@@ -26,7 +26,8 @@ import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { configured, openShare, sealShare } from "../lib/vault_share.ts";
 import { burnShare, freezeSession } from "../lib/sessions.ts";
 import { checkPin, sameHash } from "../lib/pin_attempts.ts";
-import { takeDownLive, TakeDownRetry } from "../lib/take_down.ts";
+import { takeDownLive } from "../lib/take_down.ts";
+import { tryAgain } from "./away.ts";
 import { countMiss, pausedFor, SHARED_MISS_MAX } from "../lib/recovery_misses.ts";
 import { log } from "../lib/log.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
@@ -1059,7 +1060,7 @@ async function closeIdentity(req: Request): Promise<Response> {
     try {
       return await closeOnce(caller.sessionId, caller.identityId, nonce, presented);
     } catch (error) {
-      if (!(error instanceof TakeDownRetry)) throw error;
+      if (!tryAgain(error)) throw error;
     }
   }
   return refuse("unavailable", "the node cannot write right now", 503);
@@ -1154,7 +1155,7 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
     inc("relay_identity_close_total", { result: "closed" });
     return new Response(null, { status: 200, headers: sunsetHeader() });
   }).catch((error) => {
-    if (error instanceof TakeDownRetry) throw error;
+    if (tryAgain(error)) throw error;
     if (error instanceof ClosedUnderUs) {
       return refuse("unauthorized", "the request is not signed by a live session", 401);
     }

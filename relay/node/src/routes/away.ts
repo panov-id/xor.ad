@@ -41,6 +41,14 @@ import { takeDownLive, TakeDownRetry } from "../lib/take_down.ts";
 export const AWAY_SPANS = { short: 20, hour: 60, long: 240 } as const;
 type SpanName = keyof typeof AWAY_SPANS;
 
+// What a take-down may be tried again after: a like on a new author between
+// its guess and its locks, or a deadlock Postgres broke by rolling this side
+// back. The second is the sweep meeting a phrase that expired between the
+// take-down's now() and its own (review panel 2, 2026-09-26, H3): the whole
+// transaction is gone, so a fresh one finds that phrase the sweep's.
+export function tryAgain(error: unknown): boolean {
+  return error instanceof TakeDownRetry || (error as { code?: string } | null)?.code === "40P01";
+}
 
 async function stepAway(req: Request): Promise<Response> {
   // A like on a new author racing the step away is rare; three tries cover it.
@@ -48,7 +56,7 @@ async function stepAway(req: Request): Promise<Response> {
     try {
       return await stepAwayOnce(req.clone());
     } catch (error) {
-      if (!(error instanceof TakeDownRetry)) throw error;
+      if (!tryAgain(error)) throw error;
     }
   }
   return refuse("unavailable", "the node cannot write right now", 503);
@@ -148,7 +156,7 @@ async function stepAwayOnce(req: Request): Promise<Response> {
     inc("relay_away_total", { span: body.span as string });
     return json(answer, 200, sunsetHeader());
   }).catch((error) => {
-    if (error instanceof TakeDownRetry) throw error;
+    if (tryAgain(error)) throw error;
     log("error", "stepping away failed", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);
   });

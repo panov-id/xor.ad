@@ -4731,3 +4731,101 @@ Deno.test({ name: "ran out · a phrase that ran out cannot be hidden, and so con
   assertEquals(hid.status, 404, `a phrase that ran out was hidden: ${JSON.stringify(hid.body)}`);
   reset();
 });
+
+// ── Review panel 2, 2026-09-26: H2 H8 H3 ─────────────────────────────────────
+// True once the promise settles or some backend waits on a lock — whichever
+// comes first: a route that does not wait at all is as good as one queued.
+async function settledOrWaiting(p: Promise<unknown>, ms = 3000): Promise<void> {
+  let settled = false;
+  p.then(() => { settled = true; }, () => { settled = true; });
+  const until = Date.now() + ms;
+  while (!settled && Date.now() < until) {
+    const [{ n }] = await database.queryOrThrow<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pg_stat_activity
+        WHERE datname = current_database() AND wait_event_type = 'Lock'`);
+    if (n > 0) return;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  assert(settled, "the route neither answered nor waited on a lock");
+}
+
+// The sweep takes an expired phrase's row and then its likes by cascade; a
+// take-back that deleted the like and then wrote the row met it the other way
+// round, and was the one rolled back: 503 (H2). And an expired phrase's like
+// is the sweep's, counters and all, as it is for a take-down (H8).
+Deno.test({
+  name: "taking back a like on an expired phrase meets the sweep without a deadlock and leaves the counters to it",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const sweep = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    try {
+      const a = await author();
+      const b = await author();
+      await seedPhrase(a.identity_id, "кто на набережную?");
+      const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+      assertEquals(stateOf(await like(a, theirs)), "liked");
+      await database.queryOrThrow(`UPDATE feed_messages SET expires_at = now() - interval '1 minute' WHERE id = $1`, [theirs]);
+      let back: Promise<{ status: number; body: unknown }> | undefined;
+      await sweep.begin(async (tx) => {
+        // What sweepExpiredPhrases does, a step at a time: the row, then the
+        // DELETE that cascades into the likes.
+        await tx.unsafe(`SELECT 1 FROM feed_messages WHERE id = $1 FOR UPDATE`, [theirs]);
+        back = unlike(a, theirs);
+        await settledOrWaiting(back);
+        await tx.unsafe(`DELETE FROM feed_messages WHERE id = $1`, [theirs]);
+      });
+      const answer = await back!;
+      assertEquals(answer.status, 200, `the take-back died meeting the sweep: ${JSON.stringify(answer.body)}`);
+      assertEquals(answer.body, { state: "unliked" });
+      const [given] = await database.queryOrThrow<{ n: number }>(
+        `SELECT likes_given AS n FROM identity_stats WHERE identity = $1`, [a.identity_id]);
+      assertEquals(Number(given.n), 1, "a take-back counted back a like the sweep took");
+    } finally {
+      await sweep.end();
+      reset();
+    }
+  },
+});
+
+// H3, the step away's side of it: the sweep holds one's own phrase (expired in
+// the take-down's window) and goes for the phrase one liked, which the
+// take-down holds. Postgres rolls one back; the step away is tried again.
+Deno.test({
+  name: "a step away that loses a deadlock to the sweep is tried again, not answered 503",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { reset } = await import("../src/lib/rate_limit.ts");
+    reset();
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const sweep = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    try {
+      const a = await author();
+      const b = await author();
+      const mine = await seedPhrase(a.identity_id, "кто на набережную?");
+      const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+      assertEquals(stateOf(await like(a, theirs)), "liked");
+      let away: Promise<{ status: number; body: unknown }> | undefined;
+      await sweep.begin(async (tx) => {
+        await tx.unsafe(`SELECT 1 FROM feed_messages WHERE id = $1 FOR UPDATE`, [mine]);
+        away = signedCall(a.pair.privateKey, a.session_id, "POST", "/away",
+          { span: "short", nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))) });
+        await settledOrWaiting(away);
+        await tx.unsafe(`DELETE FROM feed_messages WHERE id = $1`, [theirs]);
+      });
+      const answer = await away!;
+      assertEquals(answer.status, 200, `a step away that lost a deadlock answered ${answer.status}: ${JSON.stringify(answer.body)}`);
+      const [left] = await database.queryOrThrow<{ n: number }>(
+        `SELECT count(*)::int AS n FROM feed_messages WHERE id = $1`, [mine]);
+      assertEquals(left.n, 0, "the step away that was tried again left the own phrase up");
+      assertEquals((await signedCall(a.pair.privateKey, a.session_id, "DELETE", "/away")).status, 204);
+    } finally {
+      await sweep.end();
+      reset();
+    }
+  },
+});

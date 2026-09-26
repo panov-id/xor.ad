@@ -309,6 +309,17 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
       inc("relay_unlike_total", { result: "spent" });
       return json({ state: "spent" }, 200, sunsetHeader());
     }
+    // The phrase's row before its like, and only while it is live (review
+    // panel 2, 2026-09-26, H2 H8). The sweep takes the row first and the likes
+    // by cascade; a take-back that deleted the like first and wrote the row
+    // second met it the other way round, and one of the two died of 40P01. An
+    // expired phrase is the sweep's, its likes and counters with it, as it is
+    // for a take-down (lib/take_down.ts): nothing here to take back.
+    const [live] = await run(`SELECT 1 FROM feed_messages WHERE id = $1 AND ${LIVE_PHRASE} FOR UPDATE`, [target]);
+    if (!live) {
+      inc("relay_unlike_total", { result: "nothing" });
+      return unliked();
+    }
     const gone = await run<{ feed_message_id: string }>(
       `DELETE FROM likes WHERE liker_identity = $1 AND feed_message_id = $2 RETURNING feed_message_id`,
       [me, target],

@@ -2348,3 +2348,49 @@ Deno.test("the recovery claim's storage_failed series is published at zero befor
     .find((l) => l.startsWith('relay_recovery_claim_total{result="storage_failed"} '));
   assert(line, "relay_recovery_claim_total{result=\"storage_failed\"} is not published until the first failure");
 });
+
+// Review panel 2, 2026-09-26, H3: a phrase that expires between the close's
+// now() and the sweep's leaves the sweep holding one's own phrase while it
+// goes for a phrase one liked, which the close's take-down holds — the order
+// played here on cue by a second connection. Postgres breaks the cycle by
+// rolling one side back; when that is the close, it is tried again, not
+// answered 503.
+Deno.test({ name: "a close that loses a deadlock to the sweep is tried again, not answered 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await registered();
+  const other = await registered();
+  const phraseOf = async (author: string) => {
+    const [row] = await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES (gen_random_uuid(), 'alpha', $1, 'фраза', 'alone', 'und', 41.9, 12.5, 1000, 41.9, 12.5,
+               now(), now() + interval '3 hours') RETURNING id`, [author]);
+    return row.id;
+  };
+  const mine = await phraseOf(me.created.identity_id);
+  const theirs = await phraseOf(other.created.identity_id);
+  await database.queryOrThrow(`INSERT INTO likes (liker_identity, feed_message_id) VALUES ($1, $2)`,
+    [me.created.identity_id, theirs]);
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const got: { answer?: { status: number; body: unknown } } = {};
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM feed_messages WHERE id = $1 FOR UPDATE`, [mine]);
+      signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close",
+        { nonce: nonce16(), auth: authBase64(AUTH) }).then((r) => (got.answer = r));
+      await queuedBehind(tx, 1, "the close's take-down behind the sweep's hold on the own phrase");
+      await tx.unsafe(`DELETE FROM feed_messages WHERE id = $1`, [theirs]);
+    });
+    for (let i = 0; i < 250 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
+    assert(got.answer, "the close never answered");
+    assertEquals(got.answer.status, 200, `a close that lost a deadlock answered ${got.answer.status}: ${JSON.stringify(got.answer.body)}`);
+    const [left] = await database.queryOrThrow<{ n: number }>(
+      `SELECT count(*)::int AS n FROM feed_messages WHERE author_identity = $1`, [me.created.identity_id]);
+    assertEquals(left.n, 0, "the close that was tried again left the own phrase up");
+  } finally {
+    await sql.end(); reset();
+  }
+});

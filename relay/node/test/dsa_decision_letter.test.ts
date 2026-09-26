@@ -172,3 +172,34 @@ Deno.test({ name: "a decision with no text to send again is counted as given up 
   assertEquals((await rowOf(id)).decision_attempts, MAX_ATTEMPTS, "the textless decision is still waiting to be tried");
   assert(resultCount("exhausted") - before >= 1, "the textless decision did not reach the metric");
 }});
+
+// A letter that left and whose mark could not be written (review panel G5,
+// B47): the next pass sends it again — at least once is the design — but the
+// failed mark is counted and logged, not silent. The write is made to fail by
+// a trigger on this one notice.
+Deno.test({ name: "a decision letter that left with its mark unwritten is counted, not silent", ...pool, async fn() {
+  const id = await notice();
+  await queryOrThrow(`
+    CREATE OR REPLACE FUNCTION b47_refuse_mark() RETURNS trigger AS $$
+    BEGIN
+      IF NEW.decision_sent_at IS NOT NULL AND OLD.decision_sent_at IS NULL AND NEW.id = '${id}' THEN
+        RAISE EXCEPTION 'mark refused for the test';
+      END IF;
+      RETURN NEW;
+    END $$ LANGUAGE plpgsql`);
+  await queryOrThrow(`CREATE TRIGGER b47_refuse_mark BEFORE UPDATE ON dsa_notices FOR EACH ROW EXECUTE FUNCTION b47_refuse_mark()`);
+  try {
+    providerUp = true;
+    letters.length = 0;
+    const before = Number(render().match(/relay_dsa_letter_mark_failed_total\{letter="decision"\} (\d+)/)?.[1] ?? 0);
+    const decided = await decide(id, { decision: "rejected", facts: "Отметка не запишется" });
+    assertEquals(decided.status, 200, JSON.stringify(decided.body));
+    assert(letters.some((l) => l.includes("Отметка не запишется")), "the letter did not leave");
+    assertEquals((await rowOf(id)).decision_sent_at, null, "the refused mark was written anyway");
+    const after = Number(render().match(/relay_dsa_letter_mark_failed_total\{letter="decision"\} (\d+)/)?.[1] ?? 0);
+    assertEquals(after - before, 1, "a mark that failed was not counted");
+  } finally {
+    await queryOrThrow(`DROP TRIGGER IF EXISTS b47_refuse_mark ON dsa_notices`);
+    await queryOrThrow(`DROP FUNCTION IF EXISTS b47_refuse_mark()`);
+  }
+}});

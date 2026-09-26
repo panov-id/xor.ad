@@ -155,13 +155,36 @@ export async function pruneInvites(): Promise<{ deleted: number; unacknowledged:
        SELECT count(*)::text AS count, count(*) FILTER (WHERE unacked)::text AS unacked FROM gone`,
     );
     const went = Number(rows[0]?.count ?? 0);
+    const unacked = Number(rows[0]?.unacked ?? 0);
     deleted += went;
-    unacknowledged += Number(rows[0]?.unacked ?? 0);
+    unacknowledged += unacked;
+    // Counted per batch: a batch that fails after others went through must not
+    // take their count with it (review panel G18, B47).
+    if (unacked > 0) inc("relay_transfer_total", { result: "reply_unacknowledged" }, unacked);
     if (went < INVITE_BATCH) break;
   }
-  if (unacknowledged > 0) inc("relay_transfer_total", { result: "reply_unacknowledged" }, unacknowledged);
   log("info", "pruned session invites", { deleted, unacknowledged });
   return { deleted, unacknowledged };
+}
+
+// The standing DSA letters job, one step after another, each run whatever the
+// one before did. The decision letters' retry threw before the night path's
+// summary and took it down with it — the path for a threat to life (review
+// panel G4, B47, 2026-09-26). The first failure is thrown once all have run,
+// so the job still reads as failed and is retried.
+export async function runNoticeNotify(
+  steps: (() => Promise<unknown>)[] = [retryArrivalLetters, retryDecisionLetters, sendNightPathSummaries],
+): Promise<void> {
+  let first: unknown = null;
+  for (const step of steps) {
+    try {
+      await step();
+    } catch (error) {
+      log("error", "a step of the DSA letters job failed; the others still run", { error: String(error) });
+      first ??= error;
+    }
+  }
+  if (first !== null) throw first;
 }
 
 export function registerScheduledJobs(): void {
@@ -346,12 +369,10 @@ export function registerScheduledJobs(): void {
   });
 
   // Watchdog С2: arrival letters that did not leave, every ten minutes.
+  // Arrival letters, the notifier's decision letters that did not leave
+  // (db/058), and what the night path's ceiling held back once its hour is over.
   handle(DSA_NOTICE_NOTIFY, async () => {
-    await retryArrivalLetters();
-    // And the notifier's decision letters that did not leave (db/058).
-    await retryDecisionLetters();
-    // And what the night path's ceiling held back, once its hour is over.
-    await sendNightPathSummaries();
+    await runNoticeNotify();
     return new Date(Date.now() + 10 * A_MINUTE_MS);
   });
 

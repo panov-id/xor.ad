@@ -35,8 +35,24 @@ const DECISION_BACKOFF_CAP_MINUTES = 720;
 // series born at 1 hides its first event from increase() (B42 gate, B46).
 for (const result of ["failed", "sent_on_retry", "exhausted"]) inc("relay_dsa_decision_letter_total", { result }, 0);
 
+// The mark that a letter left. `query` answers null on a failed write rather
+// than throwing, and every mark used to ignore it: the letter had left, the row
+// said it had not, and the next pass sent it again without a word (review
+// panel G5, B47, 2026-09-26). At least once is the design here — a letter
+// counted as sent that never left would be worse — so the second letter stays
+// possible; what changes is that it is logged and counted.
+for (const letter of ["arrival", "decision"]) inc("relay_dsa_letter_mark_failed_total", { letter }, 0);
+
+export async function markLetterSent(letter: "arrival" | "decision", id: string, sql: string): Promise<boolean> {
+  const done = await query(sql, [id]);
+  if (done !== null) return true;
+  inc("relay_dsa_letter_mark_failed_total", { letter });
+  log("error", "a letter left and its mark was not written; the next pass sends it again", { letter, id });
+  return false;
+}
+
 export async function markArrivalSent(id: string): Promise<void> {
-  await query(`UPDATE dsa_notices SET arrival_sent_at = now() WHERE id = $1`, [id]);
+  await markLetterSent("arrival", id, `UPDATE dsa_notices SET arrival_sent_at = now() WHERE id = $1`);
 }
 
 type Arrival = typeof sendNoticeArrived;
@@ -100,9 +116,7 @@ export async function retryArrivalLetters(
       log("error", "the arrival letter failed again", { id: notice.id, error: withoutAddresses(String(error)) });
     }
     if (ok) {
-      await query(`UPDATE dsa_notices SET arrival_sent_at = now(), arrival_leased_until = now() WHERE id = $1`, [
-        notice.id,
-      ]);
+      await markLetterSent("arrival", notice.id, `UPDATE dsa_notices SET arrival_sent_at = now(), arrival_leased_until = now() WHERE id = $1`);
       sent++;
       continue;
     }
@@ -200,7 +214,7 @@ export async function retryDecisionLetters(
       log("error", "the decision letter failed again", { id: notice.id, error: withoutAddresses(String(error)) });
     }
     if (ok) {
-      await query(`UPDATE dsa_notices SET decision_sent_at = now(), decision_leased_until = now() WHERE id = $1`, [notice.id]);
+      await markLetterSent("decision", notice.id, `UPDATE dsa_notices SET decision_sent_at = now(), decision_leased_until = now() WHERE id = $1`);
       sent++;
       continue;
     }

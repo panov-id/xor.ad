@@ -19,6 +19,7 @@ import { averageRecipients } from "../lib/dsa_recipients.ts";
 import { query, queryOrThrow, transaction } from "../lib/db.ts";
 import { recordAuditEvent } from "../lib/audit.ts";
 import { sendNoticeDecision, sendStatementOfReasons } from "../lib/mailer.ts";
+import { markLetterSent } from "../lib/notice_notify.ts";
 import { log } from "../lib/log.ts";
 import { inc } from "../lib/metrics.ts";
 
@@ -385,7 +386,7 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       snapshotReason: notice.snapshot_reason ?? undefined,
     });
     if (told) {
-      await query(`UPDATE dsa_notices SET decision_sent_at = now() WHERE id = $1`, [notice.id]);
+      await markLetterSent("decision", notice.id, `UPDATE dsa_notices SET decision_sent_at = now() WHERE id = $1`);
     } else if (config.mail.transport !== "none") {
       inc("relay_dsa_decision_letter_total", { result: "failed" });
     }

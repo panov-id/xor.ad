@@ -105,6 +105,7 @@ run check-openapi              bash "$here/check-openapi.sh"
 run check-backup-script        bash "$here/check-backup-script.sh"
 run check-migrations           bash "$here/check-migrations.sh"
 run check-live-phrase          bash "$here/check-live-phrase.sh"
+run check-db-suites            bash "$here/check-db-suites.sh"
 run test-backup-encryption     bash "$here/test_backup-encryption.sh"
 run check-metrics-exist        bash "$here/check-metrics-exist.sh"
 

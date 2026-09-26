@@ -121,6 +121,16 @@ export class Client {
     return this.#locked;
   }
 
+  // Whether a lock could be opened again: a PIN was set on this device, so its
+  // salt is here to derive the proof with. A device raised by the paper code
+  // or arrived at by a move has a session before it has a PIN (seat() → the
+  // restorePin / arrivedPin screens), and a lock there would have no way out
+  // but Ctrl-C — unlock() throws "locked without a device salt" (verifier of
+  // P4, 2026-09-26). The face arms the idle timer on this, not on `registered`.
+  get canLock(): boolean {
+    return this.#key !== null && this.#deviceSalt !== null;
+  }
+
   constructor(private readonly base: string, private readonly apiKey: string) {
     // Deno in the tests, Node under the terminal face: the same variable, and
     // neither runtime's absence may throw here.

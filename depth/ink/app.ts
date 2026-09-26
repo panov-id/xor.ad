@@ -94,7 +94,9 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
   const timer = useRef<IdleTimer | null>(null);
   useEffect(() => {
     const t = new IdleTimer(() => {
-      if (!client.registered || client.locked) return;
+      // Not `registered`: a raised or moved-in identity has a session before
+      // it has a PIN, and a lock with nothing to open it is a dead screen.
+      if (!client.canLock || client.locked) return;
       void client.lock().then(() => setLocked(true));
     }, idleMs);
     timer.current = t;

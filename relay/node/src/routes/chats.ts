@@ -435,7 +435,6 @@ async function putKeys(req: Request, chatId: string): Promise<Response> {
       return refuse("wrap_out_of_step", `this side's keys are at epoch ${me.key_epoch}`, 409, { epoch: me.key_epoch });
     }
     await storeWrap(run, chatId, caller.sessionId, epoch, bytes);
-    inc("relay_chat_key_wrap_total", { op: "put" });
     return json({ epoch }, 200, sunsetHeader());
   }).catch((error) => {
     log("error", "key wrap store failed", { error: String(error) });
@@ -451,9 +450,15 @@ async function getKeys(req: Request, chatId: string): Promise<Response> {
   const answer = await transaction<Response>(async (run) => {
     const [me] = await run<{ key_epoch: number }>(MEMBER_ROW, [chatId, caller.identityId]);
     if (!me) return refuse("not_found", "no such chat", 404);
+    // After membership, as the PUT: the same chat budget, and no 429 to a stranger.
+    const allowed = checkAll(CHAT_MESSAGE_LIMITS, caller.identityId);
+    if (!allowed.allowed) {
+      return refuse("rate_limited", "too many chat actions this minute", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
     const wrap = await readWrap(run, chatId, caller.sessionId);
     if (!wrap) return refuse("no_wrap", "this session has no wrap of this chat's keys", 404, { epoch: me.key_epoch });
-    inc("relay_chat_key_wrap_total", { op: "get" });
     return json({ epoch: wrap.key_epoch, current_epoch: me.key_epoch, wrapped_key: bytesToBase64url(wrap.wrapped_key) }, 200, sunsetHeader());
   }).catch((error) => {
     log("error", "key wrap read failed", { error: String(error) });

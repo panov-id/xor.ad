@@ -235,6 +235,28 @@ Deno.test("a chat past its term drops its wraps on the first call that meets it"
   assertEquals(await wraps(id), 0, "the wraps outlived the term");
 });
 
+Deno.test("the sweep at one side's term drops both wraps: the other side, still inside its term, reads 404", async () => {
+  const { sweepChats } = await import("../src/lib/chat_sweeper.ts");
+  const a = await person();
+  const b = await person();
+  const id = await chat(a, b);
+  assertEquals((await signedCall(a, "PUT", `/chats/${id}/keys`, { epoch: 0, wrapped_key: wrapOf() })).status, 200);
+  assertEquals((await signedCall(b, "PUT", `/chats/${id}/keys`, { epoch: 0, wrapped_key: wrapOf() })).status, 200);
+  // A's term is over; B's (60 minutes by default) is not.
+  await database.queryOrThrow(`UPDATE chats SET created_at = now() - interval '30 minutes' WHERE id = $1`, [id]);
+  await database.queryOrThrow(`UPDATE chat_participants SET idle_ttl_minutes = 10 WHERE chat_id = $1 AND identity = $2`, [id, a.identity_id]);
+  await sweepChats();
+  const [rows] = await database.queryOrThrow<{ gone: number; live: number }>(
+    `SELECT count(*) FILTER (WHERE gone_at IS NOT NULL)::int AS gone, count(*) FILTER (WHERE gone_at IS NULL)::int AS live
+       FROM chat_participants WHERE chat_id = $1`, [id],
+  );
+  assertEquals([rows.gone, rows.live], [1, 1], "the sweep did not end exactly A's side");
+  assertEquals(await wraps(id), 0, "the wraps outlived the first term");
+  const read = await signedCall(b, "GET", `/chats/${id}/keys`);
+  assertEquals(read.status, 404, JSON.stringify(read.body));
+  assertEquals(code(read), "no_wrap");
+});
+
 Deno.test("agreeing to a reissue drops the wraps of the old keys", async () => {
   const a = await person();
   const b = await person();

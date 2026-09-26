@@ -39,6 +39,10 @@ export async function sweepChats(options: { batch?: number } = {}): Promise<{ en
       const chats = [...new Set(rows.map((r) => r.chat_id))];
       if (chats.length > 0) {
         await run(`DELETE FROM pending_deliveries WHERE chat = ANY($1::uuid[])`, [chats]);
+        // The key dies on the first end, for both, with both wraps (§8.13,
+        // chat_RU.md "K goes out on the first term"): the side still inside
+        // its own term could otherwise read its wrap back until the delete.
+        await run(`DELETE FROM chat_key_wraps WHERE chat_id = ANY($1::uuid[])`, [chats]);
         for (const chat of chats) await run(`SELECT pg_notify('chat_closed', $1)`, [chat]);
       }
       return rows.length;

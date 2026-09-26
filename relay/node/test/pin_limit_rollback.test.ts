@@ -325,6 +325,67 @@ Deno.test({ name: "the minute's job passes over an identity whose counters it ca
   assertEquals((await stateOf(held)).live, false, "the next pass did not take down the identity it had to pass over");
 });
 
+// B72 (panel 4, K3): a move, a paper-code raise or a close holds the share —
+// each takes it before the session (transfer.ts:397 → :448, identity.ts:677 →
+// :692, identity.ts:1114 → :1172, identity_sweeper.ts:347 → :354) — and
+// freezes the session while the tenth miss waits on that share. Asked again
+// under the share, the session is frozen: the miss is refused as a stranger's
+// signature, before the PIN, and spends nothing; the live phrase stays with
+// the identity that has a live session again.
+Deno.test({ name: "the tenth miss behind a move that froze its session is refused before the PIN (B72)", ...pooled }, async () => {
+  const me = await onTheLastAttempt();
+  // Unlike tenthMissAgainst, the holder commits while the miss still waits:
+  // the move is over before the miss gets the share.
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  const sent: { answer?: Promise<{ status: number; body: unknown }> } = {};
+  let waited = "";
+  try {
+    // deno-lint-ignore no-explicit-any
+    await sql.begin(async (tx: any) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [me.session_id]);
+      sent.answer = signedCall(me.key, me.session_id, "POST", "/vault/share", { auth: wrongPin() });
+      waited = await waitingOn(tx, "the tenth miss");
+      await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1`, [me.session_id]);
+    });
+  } finally {
+    await sql.end();
+  }
+  assert(sent.answer, "the tenth miss was never sent");
+  const answer = await sent.answer;
+  assert(waited.includes("FROM vault_shares"), `the statement that waited was not the share: ${waited}`);
+  assertEquals(answer.status, 401, `the miss behind a move answered ${answer.status} ${JSON.stringify(answer.body)}`);
+  assertEquals((answer.body as { error?: { code?: string } })?.error?.code, "unauthorized");
+  const state = await stateOf(me);
+  assertEquals(state.attempts_left, 1, "a device that had moved away spent an attempt");
+  assertEquals(state.locked, false, "a device that had moved away closed entry");
+  assertEquals(state.live, true, "the miss took down what was live under an identity that had moved on");
+});
+
+// B72: a freeze that goes back still closes the session's open sockets. The
+// NOTIFY leaves with the tenth miss's commit, from outside the savepoint the
+// freeze was rolled back to, so every node closes the rooms at once rather
+// than when the minute's job comes round.
+Deno.test({ name: "a tenth miss whose freeze times out still announces session_frozen (B72)", ...pooled }, async () => {
+  const me = await onTheLastAttempt();
+  const listener = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  const heard: string[] = [];
+  try {
+    await listener.listen("session_frozen", (payload: string) => { heard.push(payload); });
+    const { answer, waited } = await tenthMissAgainst(
+      () => signedCall(me.key, me.session_id, "POST", "/identities/close", { nonce: nonce16(), auth: wrongPin() }),
+      async (tx) => { await tx.unsafe(`SELECT 1 FROM sessions WHERE id = $1 FOR UPDATE`, [me.session_id]); },
+    );
+    assert(waited.startsWith("UPDATE sessions SET frozen_at"), `the statement that waited was not the freeze: ${waited}`);
+    const state = await stateOf(me);
+    assertCounted(state, answer, "a freeze that timed out");
+    assertEquals(state.frozen, null, "the case needs the freeze gone back");
+    for (let i = 0; i < 100 && !heard.includes(me.session_id); i++) await new Promise((r) => setTimeout(r, 20));
+    assert(heard.includes(me.session_id), "the tenth miss whose freeze went back said nothing on session_frozen");
+  } finally {
+    await listener.end();
+  }
+});
+
 addEventListener("unload", () => {
   database.closePool();
 });

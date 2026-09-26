@@ -72,6 +72,23 @@ export async function checkPin(
   );
   if (!row) return refuse("not_found", "this session has no share", 404);
 
+  // The session asked again under the share, before anything about the PIN
+  // (panel 4, K3; B72, 2026-09-26). The guard read it before the transaction,
+  // and a move, a paper-code raise or a close that committed while this waited
+  // on the share froze it: a wrong PIN then spent an attempt of a device that
+  // had left, and the tenth took down what was live under an identity that
+  // had a live session again. A plain read and no lock: every path that
+  // freezes takes the share first (identity.lock.order), so with the share
+  // held here a freeze has either committed and is seen, or waits for this
+  // transaction — and waiting on the session's row would meet the very holder
+  // the freeze below is allowed to time out on.
+  const [live] = await run<{ n: number }>(
+    `SELECT count(*)::int AS n FROM sessions s JOIN identities i ON i.id = s.identity
+      WHERE s.id = $1 AND s.frozen_at IS NULL AND i.closed_at IS NULL`,
+    [sessionId],
+  );
+  if (live.n === 0) return refuse("unauthorized", "the request is not signed by a live session", 401);
+
   // Locked and too-early are answered before the hash is looked at, and a
   // correct PIN is refused here too — otherwise waiting out the delay would
   // itself be a way to test one.
@@ -136,15 +153,25 @@ export async function checkPin(
       // first could not do it — postgres.js rejected the whole transaction
       // once the freeze had failed, and the tenth miss went back with it all
       // the same (B69, B70).
+      //
+      // `frozen` is what freezeSession answers, not that it returned: a session
+      // already frozen by something else is not this miss's freeze, and its
+      // identity's live things are not this miss's to take down (panel 4, K3).
+      //
+      // A freeze that goes back still tells every node to close this session's
+      // rooms: the NOTIFY is sent from the outer transaction, so it leaves with
+      // the lock at commit, and an open socket does not live on until the
+      // minute's job freezes the session (B72; the guard refuses new requests
+      // and tickets already, B75 and B78).
       let frozen = false;
       const mine = new Freezes();
       try {
-        await savepoint(run, (inner) => freezeSession(inner, sessionId, "pin_limit", mine));
+        frozen = await savepoint(run, (inner) => freezeSession(inner, sessionId, "pin_limit", mine));
         freezes.take(mine);
-        frozen = true;
       } catch (error) {
         const code = (error as { code?: string })?.code;
         if (code !== "55P03" && code !== "57014" && code !== "40P01") throw error;
+        await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
       }
       // And what is live comes down with it, as a time away takes it: the
       // phrases, waiting ones too, the likes one gave, the matches (chat_RU.md

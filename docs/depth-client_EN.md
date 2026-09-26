@@ -29,12 +29,15 @@ introduces no rule that is not already in the spec. Where the two disagree,
 > `identity.age` of §2 and §6 — the keys and the device salt live in the
 > process's memory, and quitting means a new identity; so the node's share is
 > random for now, and there is no lock after 5 minutes idle and no unlocking
-> through `POST /vault/share` (item `depth.lock` in `docs/facts/open.tsv`). Nor
+> through `POST /vault/share` (item `depth.lock` in `docs/facts/open.tsv`).
 > **Since 2026-09-26:** `depth restore` raises an identity with the paper code in a
 > fresh process (`scripts/depth.sh restore`), and a new paper code comes from the
 > "me" screen — there is no separate `depth reissue` command, and without a volume
-> there cannot be: a fresh process holds no identity. There is no `depth move`
-> (item `depth.restore`). Status checked against the code on 2026-09-26.
+> there cannot be: a fresh process holds no identity. **Since the same day**
+> `depth move` moves the identity by nine characters both ways (§3.2): here with the
+> `depth move` command (`scripts/depth.sh join`), away from the "me" screen; the
+> confirmation with the check line on the previous device, the new one's first PIN
+> after the move. Status checked against the code on 2026-09-26.
 
 ## 1. Why this face exists
 
@@ -253,7 +256,7 @@ recorded as a separate principle in §8 of the chat spec.
 | `depth appearance` | appearance: the accent and the contrast step (§9, storefront screen 22; added 2026-09-15) |
 | `depth report` | a notice of illegal content (DSA Article 16) |
 | `depth pin` | change the PIN: asks the old one, re-encrypts `identity.age` with a new node share (2026-09-17) |
-| `depth reissue` | a new paper code — only on presenting the current one; the old one fades in the same transaction (`POST /recovery/reissue`; 2026-09-17) |
+| `depth reissue` | a new paper code — only on presenting the current one; the old one fades in the same transaction (`POST /recovery/reissue`; 2026-09-17). Until there is a volume, only an item of "me", not a command: a fresh process holds no identity (status at the top; F31 of the 2026-09-26 panel) |
 | `depth reset` | start over: a new identity in place of this one, with the price in numbers before confirming (2026-09-17) |
 
 Everything except `depth` is also reachable from inside the running client: the
@@ -290,11 +293,13 @@ it **moves** it: alive here, frozen there.
 
 ```
 $ depth move
-  this device's PIN:  > ******
   the code from the device the identity is on now:
   > K7Q-M3F-2X9
 
   check   Q7MX      -- show it on the previous device
+
+  ("that's me" pressed there)
+  this device's PIN:  > ******
 ```
 
 Nine characters, Crockford base32 without `I`, `L`, `O`, `U`. Case does not
@@ -305,7 +310,12 @@ device, nothing happens here. The whole mechanism is in §8.2 of the spec.
 **A four-character check line — 2026-09-17** (storefront screen 13): derived from the new
 device's public keys, and a different device gets a different one. It is the only verifiable
 sign of the transfer — the "called itself" label is sent by the same side that is asking.
-The PIN is asked before the code: the vault share belongs to the device.
+The PIN is set after the move, not before the code: the new device has no earlier
+PIN, and approving the move leaves the identity a one-time right to a first PIN
+(`POST /vault/init`, `first_pin_grant_at`, §8.2) — this device's vault share is born
+with it. Clarified 2026-09-26 by the review panel (F27): this said "The PIN is asked
+before the code" [retired], while the code and the protocol did the opposite from
+the first day.
 
 After the move, the line without which a person will assume their chats are gone:
 
@@ -372,6 +382,9 @@ scrollback (a multiplexer's log is not kept out by the buffer, §2.1).
 The PIN and the paper code follow the same rules, and are never echoed.
 
 ### 3.6. `depth pin`, `depth reissue`, `depth reset`
+
+Without a volume all three are items of "me" in a running client, and `depth reissue`
+is never a separate command (status at the top, 2026-09-26).
 
 Three actions of storefront screen 12 that were missing here (added 2026-09-17): a PIN
 someone had glimpsed could not be changed except by moving, the code could not be reissued

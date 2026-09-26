@@ -31,6 +31,7 @@ import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
 import { TERM_PASSED } from "../lib/chat_sweeper.ts";
 import { checkAll, PROFILE_PATCH_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
+import { log } from "../lib/log.ts";
 
 // limits.tsv name.length: 24 graphemes, and never more than 400 bytes.
 const NAME_GRAPHEMES = 24;
@@ -216,8 +217,14 @@ async function patchProfile(req: Request): Promise<Response> {
       languages: now.languages ?? [],
       ...(now.stepped_away_until ? { stepped_away_until: Math.floor(now.stepped_away_until.getTime() / 1000) } : {}),
     }, nameQueued ? 202 : 200, sunsetHeader());
+  }).catch((error) => {
+    // A 503 and a line, as every other write route answers a database that
+    // could not take the edit; let out, it was a 500 with nothing logged
+    // (review panel 5, D9, B90). Nothing is counted: the edit did not happen.
+    log("error", "profile edit failed", { error: String(error) });
+    return null;
   });
-  if (patched) inc("relay_profile_patch_total", { result: patched });
+  if (patched && answer) inc("relay_profile_patch_total", { result: patched });
   return answer ?? refuse("unavailable", "the node cannot answer right now", 503);
 }
 

@@ -222,9 +222,11 @@ Deno.test({ name: "a profile edit is counted once it commits, and one refused at
        EXECUTE FUNCTION b77_refuse()`);
   try {
     const middle = patched();
+    // Answered 503, as a write the database would not take (B90); it was let
+    // out as a 500 before.
     const refused = await signedCall(me.pair.privateKey, me.session_id, "PATCH", "/identities/me", { age: 32 })
-      .then((r) => `answered ${r.status}`, (e) => String(e));
-    assert(refused.includes("b77: refused on cue"), `the edit was not refused at COMMIT on cue: ${refused}`);
+      .then((r) => `answered ${r.status} ${JSON.stringify(r.body)}`, (e) => `thrown ${e}`);
+    assert(refused.startsWith("answered 503"), `the edit refused at COMMIT was not answered 503: ${refused}`);
     const [row] = await database.queryOrThrow<{ age: number }>(`SELECT age FROM identities WHERE id = $1`, [me.identity_id]);
     assertEquals(row.age, 31, "the refused edit reached the table");
     assertEquals(patched() - middle, 0, "a profile edit refused at COMMIT was counted in relay_profile_patch_total");

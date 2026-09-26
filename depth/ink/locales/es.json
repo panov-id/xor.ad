@@ -164,5 +164,19 @@
   "reset.price": "frases que desaparecen: {phrases} · conversaciones y ofertas que terminan: {chats}",
   "reset.code": "El código en papel deja de servir: nada podrá recuperar esta identidad.",
   "reset.pin": "PIN",
-  "reset.go": "cerrar y empezar de nuevo"
+  "reset.go": "cerrar y empezar de nuevo",
+  "restore.title": "Código en papel",
+  "restore.intro": "Escribe los dieciséis caracteres de tu papel. Los grupos pueden ir separados por guiones o espacios.",
+  "restore.introHere": "El código en papel vuelve a abrir este dispositivo y eliges un PIN nuevo.",
+  "restore.code": "código",
+  "restore.go": "restaurar",
+  "restore.bad": "Eso no es un código en papel: dieciséis letras y cifras.",
+  "restore.noMatch": "Ese código no coincide.",
+  "restore.wait": "Demasiados intentos. Prueba de nuevo en {n} s.",
+  "restore.away": "Te has ausentado: el código se puede cambiar cuando vuelvas.",
+  "restore.refused": "El nodo no lo aceptó ({status}).",
+  "restore.item": "abrir el dispositivo con el código en papel",
+  "reissue.item": "nuevo código en papel",
+  "reissue.title": "Nuevo código en papel",
+  "reissue.intro": "Primero, el código que tienes anotado ahora. Dejará de funcionar en cuanto se confirme el nuevo."
 }

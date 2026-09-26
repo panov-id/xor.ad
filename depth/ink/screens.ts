@@ -9,7 +9,7 @@ import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import type { Client, Radius } from "../core/client.ts";
-import { readPaperText } from "../core/paper.ts";
+import { readPaperCode, readPaperText } from "../core/paper.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain } from "./parts.ts";
 
@@ -376,5 +376,47 @@ export function Card(
     hint ? h(Text, { color: "yellow" }, say("card.hint")) : null,
     note ? h(Text, { dimColor: true }, note) : null,
     h(Text, { dimColor: true }, `${say("card.keys")} · ${at + 1}/${items.length}`),
+  );
+}
+
+// ── B1 · the paper code typed in (§8.2): to raise the identity, or to prove
+// the current code before it is traded for a new one. Read the way the core
+// reads it (paper.ts): any case, dashes and spaces anywhere, I L O as digits.
+export function PaperCodeEntry(
+  { say, title, lines, go, onDone, onBack, busy, error }: {
+    say: Say;
+    title: string;
+    lines: string[];
+    go: string;
+    onDone: (code: string) => void;
+    onBack?: () => void;
+    busy?: boolean;
+    error?: string;
+  },
+): ReactElement {
+  const [code, setCode] = useState("");
+  let whole = false;
+  try {
+    readPaperCode(code);
+    whole = true;
+  } catch { /* not sixteen characters of the alphabet yet */ }
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title, lines }),
+    h(Form, {
+      fields: [{ key: "code", label: say("restore.code"), value: code }],
+      onChange: (_key, value) => setCode(value.slice(0, 24)),
+      actions: [
+        { key: "go", label: go, disabled: !whole || busy === true },
+        onBack ? { key: "back", label: say("common.back") } : { key: "exit", label: say("common.exit") },
+      ],
+      onPick: (key) => (key === "go" ? onDone(readPaperCode(code)) : onBack ? onBack() : process.exit(0)),
+      fieldsHint: say("common.rowFields"),
+      actionsHint: say("common.rowActions"),
+    }),
+    readPaperText(code).length >= 16 && !whole ? h(Text, { color: "red" }, say("restore.bad")) : null,
+    busy ? h(Text, { dimColor: true }, "…") : null,
+    error ? h(Text, { color: "red" }, error) : null,
   );
 }

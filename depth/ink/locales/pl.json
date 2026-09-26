@@ -164,5 +164,19 @@
   "reset.price": "znikną frazy: {phrases} · skończą się rozmowy i propozycje: {chats}",
   "reset.code": "Kod papierowy stanie się bezużyteczny: nic nie podniesie tej tożsamości.",
   "reset.pin": "PIN",
-  "reset.go": "zamknij i zacznij od nowa"
+  "reset.go": "zamknij i zacznij od nowa",
+  "restore.title": "Kod papierowy",
+  "restore.intro": "Wpisz szesnaście znaków z kartki. Grupy można oddzielać myślnikiem lub spacją.",
+  "restore.introHere": "Kod papierowy ponownie otworzy to urządzenie, a ty ustawisz nowy PIN.",
+  "restore.code": "kod",
+  "restore.go": "przywróć",
+  "restore.bad": "To nie jest kod papierowy: szesnaście liter i cyfr.",
+  "restore.noMatch": "Kod nie pasuje.",
+  "restore.wait": "Za dużo prób. Spróbuj ponownie za {n} s.",
+  "restore.away": "Jesteś nieobecny: kod można zmienić po powrocie.",
+  "restore.refused": "Węzeł nie przyjął ({status}).",
+  "restore.item": "otwórz urządzenie kodem papierowym",
+  "reissue.item": "nowy kod papierowy",
+  "reissue.title": "Nowy kod papierowy",
+  "reissue.intro": "Najpierw kod zapisany teraz. Przestanie działać, gdy tylko nowy zostanie potwierdzony."
 }

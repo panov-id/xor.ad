@@ -164,5 +164,19 @@
   "reset.price": "fraze care dispar: {phrases} · conversații și oferte care se încheie: {chats}",
   "reset.code": "Codul de hârtie devine inutil: nimic nu mai poate ridica această identitate.",
   "reset.pin": "PIN",
-  "reset.go": "închide și ia-o de la capăt"
+  "reset.go": "închide și ia-o de la capăt",
+  "restore.title": "Cod pe hârtie",
+  "restore.intro": "Introduceți cele șaisprezece caractere de pe hârtie. Grupurile pot fi despărțite prin cratimă sau spațiu.",
+  "restore.introHere": "Codul pe hârtie redeschide acest dispozitiv, iar dvs. alegeți un PIN nou.",
+  "restore.code": "cod",
+  "restore.go": "restabilire",
+  "restore.bad": "Acesta nu este un cod pe hârtie: șaisprezece litere și cifre.",
+  "restore.noMatch": "Codul nu se potrivește.",
+  "restore.wait": "Prea multe încercări. Reîncercați peste {n} s.",
+  "restore.away": "V-ați retras: codul poate fi schimbat după ce reveniți.",
+  "restore.refused": "Nodul nu l-a acceptat ({status}).",
+  "restore.item": "deschide dispozitivul cu codul pe hârtie",
+  "reissue.item": "cod nou pe hârtie",
+  "reissue.title": "Cod nou pe hârtie",
+  "reissue.intro": "Mai întâi, codul notat acum. Nu va mai funcționa imediat ce noul cod este confirmat."
 }

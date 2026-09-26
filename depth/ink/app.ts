@@ -11,7 +11,9 @@ import type { Statement } from "../core/client.ts";
 import { newPaperCode, paperGroups } from "../core/paper.ts";
 import { languageOf } from "./strings.ts";
 import type { Say } from "./strings.ts";
-import { Feed, Location, PaperCode, PinSet, Registration } from "./screens.ts";
+import { Feed, Location, PaperCode, PaperCodeEntry, PinSet, Registration } from "./screens.ts";
+import { raise, reissue } from "../core/recovery.ts";
+import type { Outcome } from "../core/recovery.ts";
 import type { Place } from "./screens.ts";
 import {
   Away, Blocked, ChangePin, Chat, EditProfile, Hidden, Inbox, Liked, Me, StartAgain, StepAway, Statements, Write,
@@ -42,14 +44,33 @@ type Where =
   | { screen: "stepAway" }
   | { screen: "edit"; field: "name" | "age"; current: string }
   | { screen: "away"; until: number }
-  | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number; span?: number; endsAt?: number };
+  | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number; span?: number; endsAt?: number }
+  // B1 · the paper code used (§8.2). The codes live in these states and go
+  // with them: the one on paper until the new one is confirmed, then neither.
+  | { screen: "restore" }
+  | { screen: "restorePin"; old: string }
+  | { screen: "reissue" }
+  | { screen: "newPaper"; old: string; next: string; groups: string[] };
+
+// B1 · how a use of the paper code ended, as one line.
+function outcomeLine(say: Say, o: Outcome): string {
+  if (o.ok) return "";
+  if (o.reason === "no_match") return say("restore.noMatch");
+  if (o.reason === "rate_limited") return say("restore.wait", { n: String(o.retryAfter ?? "?") });
+  if (o.reason === "stepped_away") return say("restore.away");
+  return say("restore.refused", { status: String(o.status ?? "?") });
+}
 
 // `fresh` makes the client a new identity starts on: "start again" closes this
 // one for good (§8.2), and the next is someone else, keys and all. Without it
 // the process ends there.
-export function App({ say, client: first, fresh }: { say: Say; client: Client; fresh?: () => Client }): ReactElement {
+// `start: "restore"` is `depth restore`: a clean device raising an identity
+// with its paper code instead of registering a new one.
+export function App({ say, client: first, fresh, start }: {
+  say: Say; client: Client; fresh?: () => Client; start?: "restore";
+}): ReactElement {
   const [client, setClient] = useState(first);
-  const [where, setWhere] = useState<Where>({ screen: "register" });
+  const [where, setWhere] = useState<Where>(start === "restore" ? { screen: "restore" } : { screen: "register" });
   const [busy, setBusy] = useState(false);
   const [limit, setLimit] = useState(LENGTH_UNTIL_THE_NODE_SPEAKS);
   const [place, setPlace] = useState<Place | undefined>(undefined);
@@ -221,6 +242,85 @@ export function App({ say, client: first, fresh }: { say: Say; client: Client; f
           onBack: feed,
           onError: fail,
         });
+      // ── B1 · raising with the paper code, and trading it for a new one ──
+      case "restore":
+        return h(PaperCodeEntry, {
+          say,
+          title: say("restore.title"),
+          lines: [say(client.registered ? "restore.introHere" : "restore.intro")],
+          go: say("restore.go"),
+          busy,
+          error,
+          onBack: client.registered ? me : undefined,
+          onDone: (code) => {
+            setError(undefined);
+            setBusy(true);
+            raise(client, code, { label: "depth" })
+              .then((o) => (o.ok ? setWhere({ screen: "restorePin", old: code }) : setError(outcomeLine(say, o))))
+              .catch((e: Error) => fail(e.message))
+              .finally(() => setBusy(false));
+          },
+        });
+      case "restorePin":
+        return h(PinSet, {
+          say,
+          busy,
+          error,
+          // The claim left a first-PIN grant; the new PIN takes it, and then
+          // the old code is traded, as §8.2 draws the way back.
+          onDone: (pin) => {
+            setError(undefined);
+            setBusy(true);
+            const next = newPaperCode();
+            client.firstPin(pin)
+              .then((a) =>
+                a.status === 204
+                  ? setWhere({ screen: "newPaper", old: where.old, next, groups: paperGroups(next) })
+                  : setError(say("restore.refused", { status: String(a.status) }))
+              )
+              .catch((e: Error) => fail(e.message))
+              .finally(() => setBusy(false));
+          },
+        });
+      case "reissue":
+        return h(PaperCodeEntry, {
+          say,
+          title: say("reissue.title"),
+          lines: [say("reissue.intro")],
+          go: say("reg.next"),
+          error,
+          onBack: me,
+          onDone: (code) => {
+            setError(undefined);
+            const next = newPaperCode();
+            setWhere({ screen: "newPaper", old: code, next, groups: paperGroups(next) });
+          },
+        });
+      case "newPaper":
+        return h(PaperCode, {
+          say,
+          groups: where.groups,
+          busy,
+          error,
+          // Confirmed on paper: the node takes the new code and drops the old
+          // in one transaction. A refusal sends the person back to the old one.
+          onDone: () => {
+            setError(undefined);
+            setBusy(true);
+            reissue(client, where.old, where.next)
+              .then((o) => {
+                if (!o.ok) {
+                  setWhere({ screen: place ? "reissue" : "restore" });
+                  return setError(outcomeLine(say, o));
+                }
+                if (place) return me();
+                return client.limits().then((l) => setLimit(l.phrase_length)).catch(() => {})
+                  .then(() => setWhere({ screen: "location" }));
+              })
+              .catch((e: Error) => fail(e.message))
+              .finally(() => setBusy(false));
+          },
+        });
       case "chat":
         return h(Chat, {
           say,
@@ -243,6 +343,6 @@ export function App({ say, client: first, fresh }: { say: Say; client: Client; f
     Box,
     { flexDirection: "column" },
     body,
-    error && !["register", "pin", "paper"].includes(where.screen) ? h(Text, { color: "red" }, error) : null,
+    error && !["register", "pin", "paper", "restore", "restorePin", "reissue", "newPaper"].includes(where.screen) ? h(Text, { color: "red" }, error) : null,
   );
 }

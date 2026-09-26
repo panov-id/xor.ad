@@ -16,6 +16,7 @@ import { render } from "ink-testing-library";
 import postgres from "postgres";
 import { Client } from "../core/client.ts";
 import { newPaperCode } from "../core/paper.ts";
+import { raise } from "../core/recovery.ts";
 import { App } from "./app.ts";
 import { strings } from "./strings.ts";
 
@@ -293,7 +294,8 @@ async function main() {
     // the node and the terminal is back at the first screen as someone else.
     await type(app, ENTER);
     await until(app, /начать заново/, 20);
-    await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
+    // Eight rows down since the two of the paper code stand before it (B1).
+    await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
     await until(app, /исчезнет фраз: \d/, 20);
     await typeUntil(app, "111111", /••••••/);
     await type(app, DOWN, ENTER);
@@ -301,6 +303,45 @@ async function main() {
     const [gone] = await sql`SELECT closed_at IS NOT NULL AS closed FROM identities WHERE id = ${me.id}`;
     assert.equal(gone?.closed, true, "the screen started again and the node did not close the identity");
     out("ok   starting again closed the identity on the node and returned to the first screen");
+
+    // 13 · B1 · `depth restore`: a clean terminal raises an identity by its
+    // paper code, sets a new PIN, writes the new code down, and the old one
+    // raises nobody after (§8.2).
+    const lostCode = newPaperCode();
+    const lost = new Client(node, apiKey);
+    await lost.register({ name: "Лев", age: 33 }, { pin: "123456", paperCode: lostCode });
+    await lost.confirmPaperCode();
+    const [before] = await sql`SELECT recovery_auth_hash FROM identities WHERE id = ${lost.identityId}`;
+    const raised = render(h(App, { say, client: new Client(node, apiKey), start: "restore" }));
+    try {
+      await until(raised, /Бумажный код/);
+      // Lower case and dashes, the way it comes off the paper.
+      const typed = lostCode.toLowerCase().replace(/(.{4})(?!$)/g, "$1-");
+      await typeUntil(raised, typed, new RegExp(typed.slice(-4)));
+      await type(raised, DOWN, ENTER);
+      await until(raised, /Ваш ПИН/, 30);
+      await typeUntil(raised, "246813", /••••••/);
+      await type(raised, DOWN);
+      await typeUntil(raised, "246813", /••••••[\s\S]*••••••/);
+      await type(raised, DOWN, ENTER);
+      await until(raised, /Запишите этот код/, 30);
+      const fresh = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(raised.lastFrame() ?? "");
+      assert.ok(fresh, "the new paper code is not on the screen in four groups");
+      await typeUntil(raised, fresh[2], new RegExp(`${fresh[2]}_`));
+      await type(raised, DOWN);
+      await typeUntil(raised, fresh[4], new RegExp(`${fresh[4]}_`));
+      await type(raised, DOWN, ENTER);
+      await until(raised, /Где ты/, 30);
+      const [after] = await sql`SELECT recovery_auth_hash FROM identities WHERE id = ${lost.identityId}`;
+      assert.notEqual(after.recovery_auth_hash, before.recovery_auth_hash, "the screens raised the identity and the code on file did not change");
+      const [old] = await sql`SELECT frozen_reason FROM sessions WHERE id = ${lost.sessionId}`;
+      assert.equal(old.frozen_reason, "transfer", "the lost terminal's session is still live");
+      assert.equal((await raise(new Client(node, apiKey), lostCode)).ok, false, "the old paper code still raises the identity");
+      assert.equal((await raise(new Client(node, apiKey), fresh.slice(1).join(""))).ok, true, "the code on the screen raises nobody");
+      out("ok   `depth restore` raised the identity by its code, set a PIN, and traded the code for the one shown");
+    } finally {
+      raised.unmount();
+    }
   } catch (e) {
     failed++;
     out(`FAIL ${(e as Error).message}`);

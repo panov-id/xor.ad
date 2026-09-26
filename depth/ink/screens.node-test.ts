@@ -33,7 +33,7 @@ setTimeout(async () => {
 }, 0);
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
-import { Feed, Location, PaperCode, PinSet, Registration } from "./screens.ts";
+import { Feed, Location, PaperCode, PaperCodeEntry, PinSet, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
 import { Away, Blocked, ChangePin, Chat, EditProfile, Hidden, Inbox, Liked, Me, StartAgain, Statements, StepAway, Write } from "./rooms.ts";
 import { strings } from "./strings.ts";
@@ -996,5 +996,46 @@ test("the full-screen card explains its arrows once, then likes, hides and goes 
   assert.deepEqual(calls, ["like p1", "hide p2"], "→ liked an offer, whose like cannot be taken back");
   await type(app, ENTER);
   assert.match(app.lastFrame()!, /signal/, "enter did not go back to the feed");
+  app.unmount();
+});
+
+// B1 · the paper code typed in to raise the identity (§8.2).
+test("the paper code goes in the way people write it, and not before it is whole", async () => {
+  let got: string | null = null;
+  const app = render(h(PaperCodeEntry, {
+    say, title: say("restore.title"), lines: [say("restore.intro")], go: say("restore.go"), onDone: (c: string) => (got = c),
+  }));
+  await settle();
+  assert.match(app.lastFrame()!, /Бумажный код/, "the screen does not say what it asks for");
+  // Fifteen characters and a U: not a code, and the screen says so once it is long enough.
+  await type(app, "rtq4-8fmk-2pzn-xw9", DOWN, ENTER);
+  assert.equal(got, null, "fifteen characters went on as a code");
+  await type(app, UP, "U");
+  assert.match(app.lastFrame()!, /Это не бумажный код/, "a U in the code is not called out");
+  assert.equal(got, null);
+  // The U out, an O for the zero, lower case and dashes: read as the core reads it.
+  await type(app, BACK, "o", DOWN, ENTER);
+  assert.equal(got, "RTQ48FMK2PZNXW90", "the typed code did not reach the core read back");
+  app.unmount();
+});
+
+test("the paper code is offered on the \"me\" screen: a new one, and opening this device", async () => {
+  const opened: string[] = [];
+  const client = {
+    profile: () => Promise.resolve({ name: "Женя", age: 30, name_state: "accepted" }),
+    hidden: () => Promise.resolve([]),
+    blocks: () => Promise.resolve([]),
+  };
+  const app = render(h(Me, {
+    // deno-lint-ignore no-explicit-any
+    say, client: client as any, restrictions: 0, onOpen: (row: string) => opened.push(row), onBack: () => {}, onError: () => {},
+  }));
+  await settle();
+  const frame = app.lastFrame()!;
+  assert.match(frame, /новый бумажный код/, "no way to a new paper code");
+  assert.match(frame, /открыть устройство бумажным кодом/, "no way to lift the PIN lock");
+  // name, age, liked, hidden, away, pin, then the two of the paper code.
+  await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
+  assert.deepEqual(opened, ["reissue"], "enter on the new-code row opened something else");
   app.unmount();
 });

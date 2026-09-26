@@ -808,7 +808,8 @@ export function Blocked(
 // hints, support and the console are not here yet: their terminal mechanics or
 // their refusal texts do not exist (§4.11, §9). No `m` key: the terminal moves
 // by arrows and enter only (owner, 2026-09-22), so "me" is an item of the feed.
-export type MeRow = "statements" | "liked" | "hidden" | "blocked" | "away" | "name" | "age" | "pin" | "reset";
+export type MeRow = "statements" | "liked" | "hidden" | "blocked" | "away" | "name" | "age" | "pin" | "reset"
+  | "reissue" | "restore";
 export function Me(
   { say, client, restrictions, onOpen, onBack, onError }: {
     say: Say;
@@ -843,6 +844,10 @@ export function Me(
     ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }) }] : []),
     { key: "away", label: say("away.item") },
     { key: "pin", label: say("pin.item") },
+    // B1 · the paper code: traded for a new one, or used to lift a PIN the
+    // tenth mistake closed on this device (§8.2).
+    { key: "reissue", label: say("reissue.item") },
+    { key: "restore", label: say("restore.item") },
     { key: "reset", label: say("reset.item") },
   ];
   useInput((_input, key) => {

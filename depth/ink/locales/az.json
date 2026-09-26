@@ -164,5 +164,19 @@
   "reset.price": "yox olacaq ifadələr: {phrases} · bitəcək söhbətlər və təkliflər: {chats}",
   "reset.code": "Kağız kod yararsız olacaq: bu şəxsiyyəti heç nə geri qaytara bilməz.",
   "reset.pin": "PIN",
-  "reset.go": "bağla və yenidən başla"
+  "reset.go": "bağla və yenidən başla",
+  "restore.title": "Kağız kod",
+  "restore.intro": "Kağızdakı on altı simvolu daxil edin. Qrupları tire və ya boşluqla ayırmaq olar.",
+  "restore.introHere": "Kağız kod bu cihazı yenidən açacaq və siz yeni PIN təyin edəcəksiniz.",
+  "restore.code": "kod",
+  "restore.go": "bərpa et",
+  "restore.bad": "Bu kağız kod deyil: on altı hərf və rəqəm.",
+  "restore.noMatch": "Kod uyğun gəlmədi.",
+  "restore.wait": "Həddən çox cəhd. {n} san sonra yenidən yoxlayın.",
+  "restore.away": "Siz uzaqlaşmısınız: kodu qayıtdıqdan sonra dəyişmək olar.",
+  "restore.refused": "Qovşaq qəbul etmədi ({status}).",
+  "restore.item": "cihazı kağız kodla aç",
+  "reissue.item": "yeni kağız kod",
+  "reissue.title": "Yeni kağız kod",
+  "reissue.intro": "Əvvəlcə — indi yazılmış kod. Yenisi təsdiqlənən kimi o işləməyəcək."
 }

@@ -164,5 +164,19 @@
   "reset.price": "yo'qoladigan iboralar: {phrases} · tugaydigan suhbatlar va takliflar: {chats}",
   "reset.code": "Qog'oz kod foydasiz bo'lib qoladi: bu shaxsiyatni hech narsa tiklay olmaydi.",
   "reset.pin": "PIN",
-  "reset.go": "yopish va qaytadan boshlash"
+  "reset.go": "yopish va qaytadan boshlash",
+  "restore.title": "Qog‘oz kod",
+  "restore.intro": "Qog‘ozdagi o‘n oltita belgini kiriting. Guruhlarni chiziqcha yoki bo‘sh joy bilan ajratish mumkin.",
+  "restore.introHere": "Qog‘oz kod bu qurilmani yana ochadi va siz yangi PIN o‘rnatasiz.",
+  "restore.code": "kod",
+  "restore.go": "tiklash",
+  "restore.bad": "Bu qog‘oz kod emas: o‘n oltita harf va raqam.",
+  "restore.noMatch": "Kod mos kelmadi.",
+  "restore.wait": "Urinishlar juda ko‘p. {n} soniyadan keyin qayta urinib ko‘ring.",
+  "restore.away": "Siz vaqtincha ketgansiz: kodni qaytgach almashtirish mumkin.",
+  "restore.refused": "Tugun qabul qilmadi ({status}).",
+  "restore.item": "qurilmani qog‘oz kod bilan ochish",
+  "reissue.item": "yangi qog‘oz kod",
+  "reissue.title": "Yangi qog‘oz kod",
+  "reissue.intro": "Avval — hozir yozilgan kod. Yangisi tasdiqlanishi bilan u ishlamay qoladi."
 }

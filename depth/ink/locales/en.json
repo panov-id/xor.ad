@@ -164,5 +164,19 @@
   "reset.price": "phrases to vanish: {phrases} · conversations and offers to end: {chats}",
   "reset.code": "The paper code becomes useless: nothing can raise this identity again.",
   "reset.pin": "PIN",
-  "reset.go": "close and start again"
+  "reset.go": "close and start again",
+  "restore.title": "Paper code",
+  "restore.intro": "Type the sixteen characters from your paper. Groups may be split by dashes or spaces.",
+  "restore.introHere": "The paper code opens this device again, and you set a new PIN.",
+  "restore.code": "code",
+  "restore.go": "restore",
+  "restore.bad": "That is not a paper code: sixteen letters and digits.",
+  "restore.noMatch": "That code does not match.",
+  "restore.wait": "Too many attempts. Try again in {n} s.",
+  "restore.away": "You stepped away: the code can be changed once you are back.",
+  "restore.refused": "The node did not accept it ({status}).",
+  "restore.item": "open this device with the paper code",
+  "reissue.item": "new paper code",
+  "reissue.title": "New paper code",
+  "reissue.intro": "First, the code written down now. It stops working once the new one is confirmed."
 }

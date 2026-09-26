@@ -18,4 +18,6 @@ if (!node || !apiKey) {
 }
 
 const say = strings(languageOf(process.env));
-render(h(App, { say, client: new Client(node, apiKey), fresh: () => new Client(node, apiKey) }));
+// `depth restore` — the paper code instead of a new identity (§8.2).
+const start = process.argv[2] === "restore" ? "restore" as const : undefined;
+render(h(App, { say, client: new Client(node, apiKey), fresh: () => new Client(node, apiKey), start }));

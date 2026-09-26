@@ -164,5 +164,19 @@
   "reset.price": "verschwindende Sätze: {phrases} · endende Gespräche und Angebote: {chats}",
   "reset.code": "Der Papiercode wird nutzlos: Nichts kann diese Identität wiederherstellen.",
   "reset.pin": "PIN",
-  "reset.go": "schließen und neu anfangen"
+  "reset.go": "schließen und neu anfangen",
+  "restore.title": "Papiercode",
+  "restore.intro": "Gib die sechzehn Zeichen von deinem Papier ein. Gruppen dürfen durch Bindestriche oder Leerzeichen getrennt sein.",
+  "restore.introHere": "Der Papiercode öffnet dieses Gerät wieder, und du legst eine neue PIN fest.",
+  "restore.code": "Code",
+  "restore.go": "wiederherstellen",
+  "restore.bad": "Das ist kein Papiercode: sechzehn Buchstaben und Ziffern.",
+  "restore.noMatch": "Dieser Code passt nicht.",
+  "restore.wait": "Zu viele Versuche. Noch einmal in {n} s.",
+  "restore.away": "Du bist gerade weg: Der Code lässt sich ändern, sobald du zurück bist.",
+  "restore.refused": "Der Knoten hat es nicht angenommen ({status}).",
+  "restore.item": "Gerät mit dem Papiercode öffnen",
+  "reissue.item": "neuer Papiercode",
+  "reissue.title": "Neuer Papiercode",
+  "reissue.intro": "Zuerst der Code, der jetzt notiert ist. Er gilt nicht mehr, sobald der neue bestätigt ist."
 }

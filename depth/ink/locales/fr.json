@@ -164,5 +164,19 @@
   "reset.price": "phrases qui disparaissent : {phrases} · conversations et offres qui s'arrêtent : {chats}",
   "reset.code": "Le code papier devient inutile : plus rien ne peut relever cette identité.",
   "reset.pin": "PIN",
-  "reset.go": "fermer et recommencer"
+  "reset.go": "fermer et recommencer",
+  "restore.title": "Code papier",
+  "restore.intro": "Saisissez les seize caractères de votre papier. Les groupes peuvent être séparés par des tirets ou des espaces.",
+  "restore.introHere": "Le code papier rouvre cet appareil, et vous choisissez un nouveau code PIN.",
+  "restore.code": "code",
+  "restore.go": "restaurer",
+  "restore.bad": "Ce n'est pas un code papier : seize lettres et chiffres.",
+  "restore.noMatch": "Ce code ne correspond pas.",
+  "restore.wait": "Trop de tentatives. Réessayez dans {n} s.",
+  "restore.away": "Vous vous êtes absenté : le code pourra être changé à votre retour.",
+  "restore.refused": "Le nœud ne l'a pas accepté ({status}).",
+  "restore.item": "ouvrir cet appareil avec le code papier",
+  "reissue.item": "nouveau code papier",
+  "reissue.title": "Nouveau code papier",
+  "reissue.intro": "D'abord, le code noté actuellement. Il cessera de fonctionner dès que le nouveau sera confirmé."
 }

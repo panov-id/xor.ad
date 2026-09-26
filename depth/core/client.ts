@@ -349,6 +349,15 @@ export class Client {
   }
 
   // `after` walks the cursor of protocol §6; an empty `next` is the end.
+  // GET /feed/density — the step under the radius handle, never the number
+  // (§8.3): none, few, about_ten, tens, hundreds; people with a live phrase
+  // since 2026-09-26. Its own limit, a hundred an hour: 429 is a refusal, and
+  // the caller keeps the last step it had.
+  async density(at: { lat: number; lon: number; radius: Radius }): Promise<Answer<{ step: string }>> {
+    const q = new URLSearchParams({ lat: String(at.lat), lon: String(at.lon), radius: String(at.radius) });
+    return await this.#call("GET", `/feed/density?${q}`);
+  }
+
   async feed(at: { lat: number; lon: number; radius: Radius; after?: string }): Promise<{ items: unknown[]; next?: string | null }> {
     const q = new URLSearchParams({ lat: String(at.lat), lon: String(at.lon), radius: String(at.radius) });
     if (at.after) q.set("after", at.after);

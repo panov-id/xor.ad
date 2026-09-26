@@ -3,5 +3,5 @@
   "private": true,
   "type": "module",
   "scripts": { "test": "playwright test" },
-  "dependencies": { "@playwright/test": "1.49.0" }
+  "dependencies": { "@playwright/test": "1.49.0", "@axe-core/playwright": "4.10.1" }
 }

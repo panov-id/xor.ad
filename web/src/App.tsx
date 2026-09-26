@@ -23,6 +23,7 @@ import { Feed, type FeedCard } from "./screens/Feed.tsx";
 import { Inbox, type InboxChatRow, type MatchRow } from "./screens/Inbox.tsx";
 import { Likes } from "./screens/Likes.tsx";
 import { Match } from "./screens/Match.tsx";
+import { Offer } from "./screens/Offer.tsx";
 import { Register } from "./screens/Register.tsx";
 import { Splash } from "./screens/Splash.tsx";
 import { Unlock } from "./screens/Unlock.tsx";
@@ -36,6 +37,7 @@ type Screen =
   | { at: "splash" }
   | { at: "register" }
   | { at: "unlock"; record: Record_ }
+  | { at: "offer"; code: string }
   | { at: "feed" }
   | { at: "composer" }
   | { at: "card"; card: FeedCard }
@@ -58,6 +60,10 @@ export function App() {
 
   useEffect(() => {
     (async () => {
+      // `<storefront>/o/<code>` — the exit screen of an offer's link (W5): for
+      // anybody, before any identity; the rest of the page is not entered.
+      const offer = /^\/o\/([A-Za-z0-9_-]+)\/?$/.exec(location.pathname);
+      if (offer) return setScreen({ at: "offer", code: offer[1] });
       const back = await restoreForTab().catch(() => null);
       if (back) {
         setSeated({ client: back.client, keys: new ChatKeys(back.client, back.longKey), sealed: "ok" });
@@ -113,6 +119,8 @@ export function App() {
       return <Register onDone={(client, sealed) => { void registered(client, sealed); }} />;
     case "unlock":
       return <Unlock record={screen.record} onDone={unlocked} onForget={() => setScreen({ at: "splash" })} />;
+    case "offer":
+      return <Offer code={screen.code} onHome={() => { history.replaceState(null, "", "/"); setScreen({ at: "loading" }); location.reload(); }} />;
     case "feed":
       return (
         <>

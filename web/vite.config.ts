@@ -18,7 +18,19 @@ const node = process.env.WEB_NODE_URL ?? "http://localhost:62080";
 const NODE_PATHS = ["away", "blocks", "chat", "chats", "feed", "hidden", "identities", "inbox", "legal", "likes", "limits", "matches", "recovery", "sessions", "statements", "support", "vault", "health"];
 // Host stays the page's: the signature covers the authority the person called
 // (identity_auth.ts signedAuthority), and the node reads it from the request.
-const proxy = { [`^/(${NODE_PATHS.join("|")})(/|$|\\?)`]: { target: node, changeOrigin: false, ws: true } };
+const proxy = {
+  [`^/(${NODE_PATHS.join("|")})(/|$|\\?)`]: { target: node, changeOrigin: false, ws: true },
+  // An offer's link, `<storefront>/o/<code>` (offers spec §6.2; W5): the same
+  // path is a page and a node route. A browser navigating there (Accept
+  // text/html) gets the page, which then asks the node for JSON at the same
+  // path; `/o/<code>/go` is always the node's — its answer is the 302.
+  "^/o/": {
+    target: node,
+    changeOrigin: false,
+    bypass: (req: { url?: string; headers: { accept?: string } }) =>
+      /^\/o\/[A-Za-z0-9_-]+\/?(\?.*)?$/.test(req.url ?? "") && (req.headers.accept ?? "").includes("text/html") ? "/index.html" : undefined,
+  },
+};
 
 // depth/core lives outside this package: the screens import it by relative
 // path, as the terminal face does (depth/ink), so there is one core.

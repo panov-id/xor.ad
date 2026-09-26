@@ -403,7 +403,7 @@ session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-1
 | identity creation | 10 per hour and 30 per day per address | the node |
 | raising by paper code | 10 an hour and 30 a day per address, plus the shared brake of 50 misses an hour | the node |
 | transfer window (`POST /sessions/invite`) | 10 an hour and 30 a day per address | the node |
-| transfer code entry (`POST /sessions/claim`) | 60 an hour and 200 a day per address | the node |
+| transfer code entry (`POST /sessions/claim`) | 10 an hour and 30 a day per address, as recovery has: one address cannot reach the shared brake of 50 misses | the node |
 | transfer state poll (`GET /sessions/:lookup_id`) | 600 an hour and 1500 a day per address, apart from the code entry | the node |
 | a like and taking it back | 300 an hour per identity | the node |
 | the list in `POST /chats/alive` | 200 ids | the node |

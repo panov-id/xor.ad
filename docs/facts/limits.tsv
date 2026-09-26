@@ -101,8 +101,8 @@ recovery.claim.hour	10	запросов	подъёмов бумажным код
 recovery.claim.day	30	запросов	подъёмов бумажным кодом в сутки по адресу (20.09.2026)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 transfer.invite.hour	10	запросов	окон переноса в час по адресу (21.09.2026, open-work P2)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 transfer.invite.day	30	запросов	окон переноса в сутки по адресу (21.09.2026, open-work P2)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
-transfer.claim.hour	60	запросов	вводов кода переноса в час по адресу — защита от перебора кода	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
-transfer.claim.day	200	запросов	вводов кода переноса в сутки по адресу	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+transfer.claim.hour	10	запросов	вводов кода переноса в час по адресу, как у восстановления: один адрес не ставит общий тормоз 50 промахов (26.09.2026, панель ревью S3, кворум B58)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+transfer.claim.day	30	запросов	вводов кода переноса в сутки по адресу (26.09.2026, кворум B58)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 transfer.state.hour	600	запросов	опросов состояния переноса в час по адресу: 10 окон × 2 устройства × 24 опроса с запасом (26.09.2026, кворум B10)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 transfer.state.day	1500	запросов	опросов состояния переноса в сутки по адресу: 30 окон × 48 с запасом (26.09.2026, кворум B10)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 like.hour	300	запросов	лайков и снятий в час на личность, тормоз от скрипта (владелец 21.09.2026)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	

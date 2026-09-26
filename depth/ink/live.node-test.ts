@@ -482,6 +482,45 @@ async function main() {
     } finally {
       awayApp.unmount();
     }
+
+    // 15 · B18 · no point yet, and the way to the feed asked for: an identity
+    // raised by its code whose new code the node refused (here, a step away)
+    // goes back from the code's screen to "me" and on to the feed — which it
+    // has never seen. The feed with no point read place.lat of undefined and
+    // killed the process (verifier, B1); it must open the point instead
+    // (depth.feed.nopoint.test).
+    const pointless = newPaperCode();
+    const drifter = new Client(node, apiKey);
+    await drifter.register({ name: "Гена", age: 41 }, { pin: "123456", paperCode: pointless });
+    await drifter.confirmPaperCode();
+    const noPoint = render(h(App, { say, client: new Client(node, apiKey), start: "restore" }));
+    try {
+      await until(noPoint, /Бумажный код/);
+      await typeUntil(noPoint, pointless, new RegExp(pointless.slice(-4)));
+      await type(noPoint, DOWN, ENTER);
+      await until(noPoint, /Ваш ПИН/, 30);
+      await typeUntil(noPoint, "864200", /••••••/);
+      await type(noPoint, DOWN);
+      await typeUntil(noPoint, "864200", /••••••[\s\S]*••••••/);
+      await type(noPoint, DOWN, ENTER);
+      await until(noPoint, /Запишите этот код/, 30);
+      const shownCode = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(noPoint.lastFrame() ?? "");
+      assert.ok(shownCode, "the new paper code is not on the screen in four groups");
+      await sql`UPDATE identities SET stepped_away_until = now() + interval '20 minutes' WHERE id = ${drifter.identityId}`;
+      await typeUntil(noPoint, shownCode[2], new RegExp(`${shownCode[2]}_`));
+      await type(noPoint, DOWN);
+      await typeUntil(noPoint, shownCode[4], new RegExp(`${shownCode[4]}_`));
+      await type(noPoint, DOWN, ENTER);
+      await until(noPoint, /Новый бумажный код[\s\S]*Вы отошли/, 30);
+      // The code's row: "дальше", "вернуться", "назад" — back to "me".
+      await type(noPoint, DOWN, RIGHT, RIGHT, ENTER);
+      await until(noPoint, /открыть устройство бумажным кодом/, 20);
+      await type(noPoint, RIGHT, ENTER); // "me": "назад", to the feed
+      await until(noPoint, /Где ты/, 20);
+      out("ok   with no point yet, the way to the feed opens the point, and the terminal stays up");
+    } finally {
+      noPoint.unmount();
+    }
   } catch (e) {
     failed++;
     out(`FAIL ${(e as Error).message}`);

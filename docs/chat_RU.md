@@ -785,7 +785,7 @@ CREATE TABLE identities (
   name_pending     text CHECK ((name_state = 'pending') = (name_pending IS NOT NULL)),  -- имя, ждущее вердикта: прежнее действует до него (16.09.2026, DATA-22)
   languages        text[] NOT NULL DEFAULT '{}' CHECK (cardinality(languages) <= 3),  -- языки ленты, до трёх; на узле, потому что фильтр выдачи считает узел (16.09.2026, DATA-22)
   -- stepped_away_at [retired 14.09.2026]: метка «отошёл» живёт на участнике беседы (chat_participants.away_marked, §8.6)
-  filter_age_min   integer,             -- зажимается в band(age) на записи; любое целое внутри полосы (17.09.2026; внесены в CREATE 20.09.2026)
+  filter_age_min   integer,             -- зажимается в band(age) на записи; целое от 13 до 150 внутри полосы, вне 13–150 — 400 (17.09.2026; внесены в CREATE 20.09.2026; границы 13–150 — 26.09.2026, B98)
   filter_age_max   integer,             -- так же; порядок пары держит CHECK ниже, зажим — узел
   CHECK (filter_age_min IS NULL OR filter_age_max IS NULL OR filter_age_min <= filter_age_max),
   signup_completed_at timestamptz,      -- NULL = регистрация не дошла до бумажного кода: такая личность не проходит ни одной проверки членства и сносится через signup.unfinished.ttl. Заведена 20.09.2026 по панели ревью: пометка была обещана абзацем ниже и не имела носителя — роль признака случайно играл recovery_auth_hash, а с 19.09.2026 recovery_lookup_id приходит в IdentityCreate, и строка рождается с заполненной колонкой

@@ -33,6 +33,7 @@ import { checkAll, PROFILE_PATCH_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { withoutAddresses } from "../lib/mailer.ts";
+import postgres from "npm:postgres@3.4.4";
 
 // limits.tsv name.length: 24 graphemes, and never more than 400 bytes.
 const NAME_GRAPHEMES = 24;
@@ -247,8 +248,29 @@ async function patchProfile(req: Request): Promise<Response> {
 
 // An error the database or its driver raised: a SQLSTATE, or postgres.js's own
 // connection code — a string either way. A fault of this code carries none.
+//
+// Narrowed to the database being unavailable, not wrong (verifier on B98,
+// B105): any string code let a typo in SQL (42703), a bad cast (22P02),
+// postgres.js's own UNDEFINED_VALUE and a Node error (ENOENT) through as a
+// 503, when each is a fault of this code that dispatch should answer 500 and
+// log with its request id. What stays is what a retry can outlive:
+//   08 connection exception, 53 insufficient resources (disk, memory,
+//   connections), 57 operator intervention (57014 statement timeout, 57P01
+//   shutdown), 40 transaction rollback (40001 serialization, 40P01 deadlock),
+//   55 object not in prerequisite state (55P03 lock timeout) — on a
+//   PostgresError only;
+//   and postgres.js's connection codes, raised as a plain Error: the
+//   CONNECTION_* family, CONNECT_TIMEOUT, and the socket's ECONNREFUSED
+//   (measured in postgres:16 / postgres.js 3.4.4, B105).
+const UNAVAILABLE_CLASSES = new Set(["08", "53", "57", "40", "55"]);
+const CONNECTION_CODES = new Set([
+  "CONNECTION_CLOSED", "CONNECTION_ENDED", "CONNECTION_DESTROYED", "CONNECT_TIMEOUT", "ECONNREFUSED",
+]);
 export function fromTheDatabase(error: unknown): boolean {
-  return typeof (error as { code?: unknown } | null)?.code === "string";
+  const code = (error as { code?: unknown } | null)?.code;
+  if (typeof code !== "string") return false;
+  if (error instanceof postgres.PostgresError) return UNAVAILABLE_CLASSES.has(code.slice(0, 2));
+  return CONNECTION_CODES.has(code);
 }
 
 route("PATCH", "/identities/me", (c) => patchProfile(c.req));

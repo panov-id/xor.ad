@@ -664,13 +664,13 @@ components:
           properties: {id: {type: string, format: uuid}, seat: {type: integer}}
     ProfilePatch:
       type: object
-      description: Any subset (chat spec §8.2, §8.3). A name goes to the queue; age across 20/21 only upwards; filter bounds anything inside the band (2026-09-17).
-      x-description-ru: Любое подмножество (спека чата §8.2, §8.3). Имя уходит в очередь; возраст через 20/21 только вверх; границы фильтра — любые внутри полосы (17.09.2026).
+      description: Any subset (chat spec §8.2, §8.3). A name goes to the queue; age across 20/21 only upwards; filter bounds whole numbers from 13 to 150 inside the band (2026-09-17; 13–150 since 2026-09-26, B98).
+      x-description-ru: Любое подмножество (спека чата §8.2, §8.3). Имя уходит в очередь; возраст через 20/21 только вверх; границы фильтра — целые от 13 до 150 внутри полосы (17.09.2026; 13–150 с 26.09.2026, B98).
       properties:
         name: {type: string}
-        age: {type: integer, minimum: 13}
-        filter_age_min: {type: integer}
-        filter_age_max: {type: integer}
+        age: {type: integer, minimum: 13, maximum: 150}
+        filter_age_min: {type: integer, minimum: 13, maximum: 150, nullable: true}
+        filter_age_max: {type: integer, minimum: 13, maximum: 150, nullable: true}
         languages: {type: array, maxItems: 3, items: {type: string}}
         filter_modes: {type: array, items: {type: string}}
     Nonce:
@@ -2980,7 +2980,7 @@ paths:
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ProfilePatch"}}}}
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {description: "invalid_body: an empty patch, a name that is not a string, is empty, carries invisible characters (controls, format characters, line separators) or exceeds name.length (24 graphemes, 400 bytes), an age outside 13–150, a filter bound that is not a whole number or null, filter_age_min above filter_age_max, more than three language codes, or filter_modes (not built); or an unsupported protocol version.", x-description-ru: "invalid_body: пустая правка, имя не строка, пустое, с невидимыми символами (управляющие, форматные, разделители строк) или длиннее name.length (24 графемы, 400 байт), возраст вне 13–150, граница фильтра не целое и не null, filter_age_min выше filter_age_max, больше трёх языков либо filter_modes (не построено); или неподдерживаемая версия протокола."}
+        "400": {description: "invalid_body: an empty patch, a name that is not a string, is empty, carries invisible characters (controls, format characters, line separators) or exceeds name.length (24 graphemes, 400 bytes), an age outside 13–150, a filter bound that is not a whole number from 13 to 150 or null, filter_age_min above filter_age_max, more than three language codes, or filter_modes (not built); or an unsupported protocol version.", x-description-ru: "invalid_body: пустая правка, имя не строка, пустое, с невидимыми символами (управляющие, форматные, разделители строк) или длиннее name.length (24 графемы, 400 байт), возраст вне 13–150, граница фильтра не целое от 13 до 150 и не null, filter_age_min выше filter_age_max, больше трёх языков либо filter_modes (не построено); или неподдерживаемая версия протокола."}
         "429": {description: "rate_limited: profile.patch.day (10) attempts spent, with retry-after; or paused: the queue's pause after five refusals, with {until} and retry-after.", x-description-ru: "rate_limited: истрачены попытки profile.patch.day (10), с retry-after; либо paused: пауза очереди после пяти отказов, с {until} и retry-after."}
         "200": {description: Saved., x-description-ru: Сохранено., content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
         "202": {description: "The name is queued; the profile as it stands, name_pending set.", x-description-ru: "Имя в очереди; профиль как есть, с name_pending.", content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}

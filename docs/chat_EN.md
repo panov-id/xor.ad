@@ -793,7 +793,7 @@ CREATE TABLE identities (
   name_pending     text CHECK ((name_state = 'pending') = (name_pending IS NOT NULL)),  -- the name awaiting the verdict: the previous one stays in force until then (2026-09-16, DATA-22)
   languages        text[] NOT NULL DEFAULT '{}' CHECK (cardinality(languages) <= 3),  -- feed languages, up to three; on the node because the node applies the feed filter (2026-09-16, DATA-22)
   -- stepped_away_at [retired 2026-09-14]: the "stepped away" label lives on the chat participant (chat_participants.away_marked, §8.6)
-  filter_age_min   integer,             -- clamped into band(age) on write; any integer inside the band (2026-09-17; moved into CREATE on 2026-09-20)
+  filter_age_min   integer,             -- clamped into band(age) on write; a whole number from 13 to 150 inside the band, 400 outside 13–150 (2026-09-17; moved into CREATE on 2026-09-20; bounds 13–150 on 2026-09-26, B98)
   filter_age_max   integer,             -- the same; the pair's order is held by the CHECK below, the clamp by the node
   CHECK (filter_age_min IS NULL OR filter_age_max IS NULL OR filter_age_min <= filter_age_max),
   signup_completed_at timestamptz,      -- NULL = the registration never reached the paper code: such an identity passes no membership check and is swept after signup.unfinished.ttl. Added 2026-09-20 after the review panel: the mark was promised by the paragraph below and had no carrier — recovery_auth_hash played the part by accident, and since 2026-09-19 recovery_lookup_id arrives in IdentityCreate, so the row is born with the column filled

@@ -214,7 +214,7 @@ Deno.test({ name: "a profile edit is counted once it commits, and one refused at
 
   await database.queryOrThrow(
     `CREATE OR REPLACE FUNCTION b77_refuse() RETURNS trigger LANGUAGE plpgsql
-       AS $$ BEGIN RAISE EXCEPTION 'b77: refused on cue'; END $$`);
+       AS $$ BEGIN RAISE EXCEPTION 'b77: refused on cue' USING ERRCODE = '40001'; END $$`);
   await database.queryOrThrow(
     `CREATE CONSTRAINT TRIGGER b77_refuse_commit AFTER UPDATE ON identities
        DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
@@ -255,15 +255,30 @@ Deno.test({ name: "an age filter outside an age's bounds is refused 400, and one
 // the database's and goes on to dispatch.
 Deno.test({ name: "a profile edit the database refuses is logged by route with no address in it (B98)", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { fromTheDatabase } = await import("../src/routes/profile.ts");
-  const real = await database.queryOrThrow(`SELECT 1 / 0`).then(() => null, (e) => e);
-  assert(fromTheDatabase(real), `a real database error was not taken for one: ${real}`);
-  assertEquals(fromTheDatabase(new TypeError("x is undefined")), false, "a fault of the code was taken for the database's");
-  assertEquals(fromTheDatabase(null), false, "null was taken for the database's error");
+  // Unavailable, and real: a statement timeout (57014) from the database itself,
+  // and the socket's refusal in the shape postgres.js raises it (measured, B105).
+  const timedOut = await database.transaction(async (run) => {
+    await run(`SET LOCAL statement_timeout = '10ms'`);
+    await run(`SELECT pg_sleep(1)`);
+  }).then(() => null, (e) => e);
+  assert(fromTheDatabase(timedOut), `a statement timeout was not taken for the database's: ${timedOut}`);
+  assert(fromTheDatabase(Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" })),
+    "a refused connection was not taken for the database's");
+  // Wrong, not unavailable (B105): the code's own faults, whatever code they carry.
+  const divided = await database.queryOrThrow(`SELECT 1 / 0`).then(() => null, (e) => e);
+  const typo = await database.queryOrThrow(`SELECT no_such_column FROM identities LIMIT 1`).then(() => null, (e) => e);
+  for (const [what, error] of [
+    ["a division by zero (22012)", divided], ["a typo in SQL (42703)", typo],
+    ["a Node error (ENOENT)", Object.assign(new Error("no such file"), { code: "ENOENT" })],
+    ["any object with a code", { code: "x" }], ["a TypeError", new TypeError("x is undefined")], ["null", null],
+  ] as const) {
+    assertEquals(fromTheDatabase(error), false, `${what} was taken for the database's being unavailable`);
+  }
 
   const me: Person = await person();
   await database.queryOrThrow(
     `CREATE OR REPLACE FUNCTION b98_refuse() RETURNS trigger LANGUAGE plpgsql
-       AS $$ BEGIN RAISE EXCEPTION 'b98: refused for someone@example.org'; END $$`);
+       AS $$ BEGIN RAISE EXCEPTION 'b98: refused for someone@example.org' USING ERRCODE = '40001'; END $$`);
   await database.queryOrThrow(
     `CREATE CONSTRAINT TRIGGER b98_refuse_commit AFTER UPDATE ON identities
        DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
@@ -283,8 +298,59 @@ Deno.test({ name: "a profile edit the database refuses is logged by route with n
   const line = lines.find((l) => l.includes("profile edit failed"));
   assert(line, `no "profile edit failed" line was logged: ${lines.join(" | ")}`);
   assert(line.includes("PATCH /identities/me"), `the line does not name its route: ${line}`);
-  assert(line.includes("P0001"), `the line does not carry the database's code: ${line}`);
+  assert(line.includes("40001"), `the line does not carry the database's code: ${line}`);
   assert(!line.includes("someone@example.org"), `the line carries an address: ${line}`);
+});
+
+// Through dispatch (B105): an error that is the code's — here a typo in SQL,
+// 42703, raised at COMMIT — is not the database being unavailable. The route
+// lets it go, and dispatch answers 500 and logs "handler threw" with the
+// request's id; the route's own 503 and "profile edit failed" are not used.
+Deno.test({ name: "a profile edit that fails on a fault of the code is dispatch's 500, not the route's 503 (B105)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { dispatch } = await import("../src/dispatch.ts");
+  const me: Person = await person();
+  await database.queryOrThrow(
+    `CREATE OR REPLACE FUNCTION b105_typo() RETURNS trigger LANGUAGE plpgsql
+       AS $$ BEGIN RAISE EXCEPTION 'column "agee" does not exist' USING ERRCODE = '42703'; END $$`);
+  await database.queryOrThrow(
+    `CREATE CONSTRAINT TRIGGER b105_typo_commit AFTER UPDATE ON identities
+       DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+       WHEN (NEW.id = '${me.identity_id}' AND NEW.age = 34)
+       EXECUTE FUNCTION b105_typo()`);
+  const raw = new TextEncoder().encode(JSON.stringify({ age: 34 }));
+  const time = Math.floor(Date.now() / 1000);
+  const target = new URL("https://relay.test/identities/me");
+  const payload = auth.signedPayload("PATCH", auth.signedAuthority(target), auth.signedPath(target),
+    await auth.sha256hex(raw), time);
+  const signature = new Uint8Array(await crypto.subtle.sign(SIGN, me.pair.privateKey, new TextEncoder().encode(payload)));
+  const lines: string[] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => { lines.push(args.map(String).join(" ")); };
+  let status = 0;
+  try {
+    const response = await dispatch(new Request(target, {
+      method: "PATCH",
+      headers: {
+        "x-protocol-version": String(auth.PROTOCOL_MAJOR),
+        "x-origin-token": "expired-take-down-origin-token",
+        "x-client-ip": nextAddress(),
+        "content-type": "application/json",
+        "x-identity-session": me.session_id,
+        "x-identity-time": String(time),
+        "x-identity-sign": auth.bytesToBase64url(signature),
+      },
+      body: raw,
+    }), "127.0.0.1");
+    status = response.status;
+    await response.body?.cancel();
+  } finally {
+    console.error = original;
+    await database.queryOrThrow(`DROP TRIGGER IF EXISTS b105_typo_commit ON identities`);
+    await database.queryOrThrow(`DROP FUNCTION IF EXISTS b105_typo()`);
+  }
+  assertEquals(status, 500, `a fault of the code answered ${status}, not dispatch's 500 (${lines.join(" | ")})`);
+  assert(lines.some((l) => l.includes("handler threw") && l.includes("req_id")), `dispatch did not log it with the request's id: ${lines.join(" | ")}`);
+  assert(!lines.some((l) => l.includes("profile edit failed")), "the route logged a fault of the code as the database's");
 });
 
 addEventListener("unload", () => {

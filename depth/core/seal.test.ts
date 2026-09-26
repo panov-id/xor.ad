@@ -3,8 +3,8 @@
 // message does not open, and a half nobody signed is refused.
 
 import { assert, assertEquals, assertRejects } from "jsr:@std/assert@1";
-import { Ephemeral, direction } from "./seal.ts";
-import { generateSigningKey } from "./sign.ts";
+import { Ephemeral, direction, unwrapConversation } from "./seal.ts";
+import { base64url, generateSigningKey } from "./sign.ts";
 
 const CHAT = "3d5c1c0a-9d1e-4a1a-8b7f-2f0d4c9a1e11";
 const MATCH = "7a1b2c3d-0000-4000-8000-0000000000aa";
@@ -71,4 +71,65 @@ Deno.test("a box is bound to its local_id, and a replayed box does not open twic
   // The node re-labels a box: the AAD does not match.
   const other = await a.seal("другой", crypto.randomUUID());
   await assertRejects(() => b.open(other, id));
+});
+
+// The keys wrapped for a session (§8.13, db/061): what the web face keeps on
+// disk and opens after a reload. The node stores what it cannot read; only the
+// device whose wrap key it was made under opens it, for this chat and epoch.
+const wrapPair = () => crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as Promise<CryptoKeyPair>;
+const spkiOf = async (key: CryptoKey) => base64url(new Uint8Array(await crypto.subtle.exportKey("spki", key)));
+
+async function wrappedPair(epoch = 0) {
+  const aLong = await generateSigningKey();
+  const bLong = await generateSigningKey();
+  const aEph = await Ephemeral.generate();
+  const bEph = await Ephemeral.generate();
+  const aHalf = await aEph.publish(aLong.privateKey, MATCH);
+  const bHalf = await bEph.publish(bLong.privateKey, MATCH);
+  const aWrap = await wrapPair();
+  const { conversation: a, wrapped } = await aEph.openAndWrap(bHalf, bLong.publicSpki, MATCH, CHAT, LOW, HIGH, {
+    wrapPublicSpki: await spkiOf(aWrap.publicKey), epoch,
+  });
+  const b = await bEph.open(aHalf, aLong.publicSpki, MATCH, CHAT, HIGH, LOW);
+  return { a, b, wrapped, aWrap, bHalf, bLong, aEph };
+}
+
+Deno.test("a wrapped conversation opens again from the wrap alone, with the same keys", async () => {
+  const { a, b, wrapped, aWrap } = await wrappedPair();
+  const restored = await unwrapConversation(wrapped, aWrap.privateKey, CHAT, 0, LOW, HIGH);
+  const id = crypto.randomUUID();
+  assertEquals(await restored.open(await b.seal("после перезагрузки", id), id), "после перезагрузки");
+  const back = await restored.seal("и обратно", id);
+  assertEquals(await b.open(back, id), "и обратно");
+  // The live conversation and the restored one are the same keys: what one
+  // seals, the peer opens either way.
+  assertEquals(await b.open(await a.seal("до перезагрузки", id), id), "до перезагрузки");
+  // Two wraps of one conversation differ: a fresh pair and nonce each time.
+  const { wrapped: again } = await wrappedPair();
+  assert(again !== wrapped);
+  // And the wrap is the size the node bounds it at (db/061: at most 768 bytes).
+  assert(wrapped.length <= 1024, `a wrap of ${wrapped.length} characters`);
+});
+
+Deno.test("a wrap does not open under another session's key, for another chat, or at another epoch", async () => {
+  const { wrapped, aWrap } = await wrappedPair(3);
+  const stranger = await wrapPair();
+  await assertRejects(() => unwrapConversation(wrapped, stranger.privateKey, CHAT, 3, LOW, HIGH), Error, "does not open");
+  await assertRejects(() => unwrapConversation(wrapped, aWrap.privateKey, "another-chat", 3, LOW, HIGH), Error, "does not open");
+  await assertRejects(() => unwrapConversation(wrapped, aWrap.privateKey, CHAT, 4, LOW, HIGH), Error, "does not open");
+  // The node hands back something that is not a wrap at all.
+  await assertRejects(() => unwrapConversation("AAAA", aWrap.privateKey, CHAT, 3, LOW, HIGH), Error, "not a key wrap");
+  // The right key, chat and epoch still open it.
+  await unwrapConversation(wrapped, aWrap.privateKey, CHAT, 3, LOW, HIGH);
+});
+
+Deno.test("openAndWrap still refuses a half nobody signed", async () => {
+  const { aEph, bLong } = await wrappedPair();
+  const stranger = await generateSigningKey();
+  const forged = await (await Ephemeral.generate()).publish(stranger.privateKey, MATCH);
+  const w = await wrapPair();
+  await assertRejects(
+    () => aEph.openAndWrap(forged, bLong.publicSpki, MATCH, CHAT, LOW, HIGH, { wrapPublicSpki: "", epoch: 0 }).then(() => spkiOf(w.publicKey)),
+    Error, "not signed",
+  );
 });

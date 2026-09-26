@@ -1412,6 +1412,8 @@ opaque, so compatibility is held by the clients: the reference is
 rejected: AES-KW — P-256 pkcs8 does not divide into its blocks — and hex for
 `lookup_id`).
 
+**Reissue takes the long-lived key from the wrap under the current code — decided by a 3/3 quorum on 2026-09-26.** A new code needs the long-lived key's pkcs8, while the working copy is non-extractable. After registering or restoring, the client keeps the `recovery_wrapped_key` ciphertext under the current code; reissue unwraps it as extractable inside one function, wraps it under the new code and drops it. The price is named: a process that neither registered nor restored in this run refuses reissue plainly, and in `depth` without a volume that is every process but the current one. Rejected: fetching the wrap with a signed same-device `POST /recovery/claim` — as a side effect it clears the PIN counter and re-arms `first_pin_grant_at` (`relay/node/src/routes/identity.ts:592`) — and keeping the long-lived key extractable for the whole process, against the paragraph above.
+
 **The attempt counter has been taken off the identity — corrected 2026-08-18.**
 `recovery_attempts_left` lived in the `identities` row and could barely ever
 decrement: both halves come out of one Argon2id, so an error in a single

@@ -91,6 +91,52 @@ configured("times, versions, ids and paths are not taken for addresses", () => {
   assert(typeof entry.ts === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d/.test(entry.ts as string), "the line's own timestamp was scrubbed");
 });
 
+// A mailbox in any script (review panel 6, security lens; B106): the intake
+// takes any characters (lib/http.ts), and a refusal from SMTP or Resend quoting
+// the recipient went into a stored error line whole — \w is ASCII only.
+configured("a mailbox in any script is scrubbed, and a stack line, a path or user@host is not", () => {
+  const { entry } = printedBy("error", {
+    cyrillic: "550 иван@почта.рф: no such user",
+    mixed: "rejected ivan@почта.рф and user@münchen.de",
+    constraint: 'Key (email)=(Иван.Петров@mail.ru) already exists.',
+    stack: "at assertEquals (https://jsr.io/@std/assert/1.0.19/equals.ts:67:9)",
+    local: "user@host refused the connection",
+    bare: "a@b",
+    path: "/v1/me/@handle/tables",
+  });
+  assertEquals(entry.cyrillic, "550 <address>: no such user", "a Cyrillic mailbox survived");
+  assertEquals(entry.mixed, "rejected <address> and <address>", "a mailbox with a non-ASCII domain survived");
+  assertEquals(entry.constraint, "Key (email)=(<address>) already exists.", "the mailbox a unique constraint quotes survived");
+  assertEquals(entry.stack, "at assertEquals (https://jsr.io/@std/assert/1.0.19/equals.ts:67:9)", "a stack line was taken for a mailbox");
+  assertEquals(entry.local, "user@host refused the connection", "user@host, with no domain, was taken for a mailbox");
+  assertEquals(entry.bare, "a@b", "a@b was taken for a mailbox");
+  assertEquals(entry.path, "/v1/me/@handle/tables", "a path was taken for a mailbox");
+});
+
+// Not only plain objects (review panel 6; B106): every log() call hands over
+// String(error) today, but an Error, an instance of a class or an object with
+// no prototype reaching log() would have kept its addresses — or, for an
+// Error, logged as {} and said nothing.
+configured("an Error, a class instance and a null-prototype object are scrubbed, and an Error says what it was", () => {
+  class Fault { constructor(public detail: string) {} }
+  const bare = Object.create(null) as Record<string, unknown>;
+  bare.detail = "from 198.51.100.61";
+  const { raw, entry } = printedBy("error", {
+    error: new Error("connect to 198.51.100.60:5432 failed", { cause: new Error("for someone@example.org") }),
+    fault: new Fault("peer 2001:db8:77::1 went away"),
+    bare,
+    at: new Date("2026-09-26T12:00:00Z"),
+  });
+  for (const address of ["198.51.100.60", "someone@example.org", "2001:db8:77::1", "198.51.100.61"]) {
+    assert(!raw.includes(address), `${address} survived into the log line inside an object: ${raw}`);
+  }
+  const error = entry.error as { name?: string; message?: string; cause?: { message?: string } };
+  assertEquals(error.name, "Error", "an Error was logged without its name");
+  assertEquals(error.message, "connect to <ip> failed", "an Error was logged without its message");
+  assertEquals(error.cause?.message, "for <address>", "an Error's cause was dropped or kept its address");
+  assertEquals(entry.at, "2026-09-26T12:00:00.000Z", "a Date was taken apart instead of written as itself");
+});
+
 // Every level: stdout keeps info lines, and a caller's address in one is the
 // same leak one step before storage.
 configured("warn and info lines are scrubbed too", () => {

@@ -740,6 +740,58 @@ Deno.test("the tenth miss takes down what is live, and leaves the expired to the
   assertEquals(received.likes_received, 1, "the author's likes_received did not lose the live like");
 });
 
+Deno.test("a take-down raced every time cannot undo the tenth miss, and the minute's job finishes it", async () => {
+  // Whoever guesses the PIN holds the tab, and a like on a new author from the
+  // same identity raises TakeDownRetry. A take-down that threw after its third
+  // retry rolled the whole transaction back — the attempt uncounted, the
+  // session not frozen — and the lock could be dodged at will (B51, returned).
+  // Here every take-down is raced: its DELETE of the likes always retries.
+  const { checkPin } = await import("../src/lib/pin_attempts.ts");
+  const { TakeDownRetry, takeDownLeftByPinLimit } = await import("../src/lib/take_down.ts");
+  const mine = await registerWithPin();
+  const me = mine.answer.body as { identity_id: string; session_id: string };
+  const live = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+       lat_published, lon_published, visible_at, expires_at)
+     VALUES ($1, 'sosed', $2, 'десятая', 'alone', 'und', 59.93, 30.33, 1000, 59.93, 30.33, now(), now() + interval '1 hour')`,
+    [live, me.identity_id],
+  );
+  await database.queryOrThrow(`UPDATE vault_shares SET attempts_left = 1, next_attempt_at = NULL WHERE session = $1`, [me.session_id]);
+
+  let raced = 0;
+  let answer: Response | unknown = null;
+  try {
+    answer = await database.transaction((run) => {
+    const racing = (<R>(text: string, args?: unknown[]) => {
+      if (text.includes("DELETE FROM likes WHERE liker_identity")) {
+        raced++;
+        return Promise.reject(new TakeDownRetry());
+      }
+      return run<R>(text, args);
+    }) as typeof run;
+    return checkPin(racing, me.session_id, "0".repeat(64), () => {});
+    });
+  } catch (error) {
+    // Thrown out, it takes the whole transaction back — read the row below.
+    if (!(error instanceof TakeDownRetry)) throw error;
+  }
+  assert(raced >= 3, `the take-down was raced ${raced} times, not three`);
+  const row = await attemptsLeft(me.session_id);
+  assertEquals(row.attempts_left, 0, "the tenth miss was not counted");
+  assert(answer instanceof Response && answer.status === 409, "the tenth miss did not answer pin_locked");
+  assert(row.locked_at, "the tenth miss did not close entry");
+  const [session] = await database.queryOrThrow<{ frozen_reason: string | null }>(
+    `SELECT frozen_reason FROM sessions WHERE id = $1`, [me.session_id]);
+  assertEquals(session.frozen_reason, "pin_limit", "the tenth miss did not freeze the session");
+  const exists = async () => (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [live])).length === 1;
+  assert(await exists(), "the phrase went, though every take-down was raced");
+
+  // The minute's job takes down what the tenth miss left.
+  assert((await takeDownLeftByPinLimit()) >= 1, "the job found nothing left by the PIN limit");
+  assertEquals(await exists(), false, "the job left the live phrase under the frozen name");
+});
+
 Deno.test("the tenth miss closes entry and leaves the share intact", async () => {
   const { answer, pair } = await registerWithPin();
   const created = answer.body as { session_id: string };

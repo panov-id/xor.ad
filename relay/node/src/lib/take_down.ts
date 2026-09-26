@@ -10,28 +10,77 @@
 // take-back use (likes.ts), and throws TakeDownRetry when a like on a new
 // author raced it; the caller starts the whole transaction again.
 
+import { queryOrThrow, transaction } from "./db.ts";
+import { log } from "./log.ts";
+
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 
 export class TakeDownRetry extends Error {}
 
-// For a caller whose transaction must not start again: the tenth PIN mistake
-// has already spent the attempt and frozen the session in it, and a retry of
-// the whole transaction would undo both. The take-down alone goes back to a
-// savepoint and runs again, three times as away.ts and identity.ts do; past
-// that the retry is thrown and the caller's transaction rolls back whole.
-export async function takeDownLiveInPlace(run: Run, me: string): Promise<void> {
+// For a caller whose transaction must commit whatever the take-down meets:
+// the tenth PIN mistake has spent the attempt and frozen the session in it,
+// and those two are the lock. The take-down alone goes back to a savepoint and
+// runs again, three times as away.ts and identity.ts do; past that it gives up
+// in place — only its own savepoint is rolled back — and answers false, and
+// takeDownLeftByPinLimit below finishes it within the minute.
+//
+// It used to throw after the third retry, and the whole transaction of the
+// tenth miss rolled back with it: the attempt uncounted, the session not
+// frozen. Whoever guesses the PIN holds the tab, and a like on a new author
+// from that same identity is what raises TakeDownRetry — so they could keep
+// the take-down failing and get a tenth attempt without the lock, again and
+// again (coordinator, after the observer's reading, B51, 2026-09-26).
+export async function takeDownLiveInPlace(run: Run, me: string): Promise<boolean> {
   for (let attempt = 0; attempt < 3; attempt++) {
     await run(`SAVEPOINT take_down`);
     try {
       await takeDownLive(run, me);
       await run(`RELEASE SAVEPOINT take_down`);
-      return;
+      return true;
     } catch (error) {
       if (!(error instanceof TakeDownRetry)) throw error;
       await run(`ROLLBACK TO SAVEPOINT take_down`);
     }
   }
-  throw new TakeDownRetry();
+  return false;
+}
+
+// What the tenth PIN mistake froze and could not take down in place: an
+// identity whose sessions are all frozen, one of them by the PIN limit, and
+// that still has something live under its name — a phrase, waiting ones too,
+// a like on a live phrase, a match that did not become a chat. Each in its own
+// transaction, started again on TakeDownRetry or a deadlock as away.ts does;
+// one that keeps failing waits for the next minute. Runs every minute
+// (lib/scheduled.ts, take_down_pin_limit).
+export async function takeDownLeftByPinLimit(): Promise<number> {
+  const left = await queryOrThrow<{ id: string }>(
+    `SELECT i.id FROM identities i
+      WHERE i.closed_at IS NULL
+        AND EXISTS (SELECT 1 FROM sessions s WHERE s.identity = i.id AND s.frozen_reason = 'pin_limit')
+        AND NOT EXISTS (SELECT 1 FROM sessions s WHERE s.identity = i.id AND s.frozen_at IS NULL)
+        AND (EXISTS (SELECT 1 FROM feed_messages f
+                      WHERE f.author_identity = i.id AND (f.visible_at IS NULL OR f.expires_at > now()))
+          OR EXISTS (SELECT 1 FROM likes l JOIN feed_messages f ON f.id = l.feed_message_id
+                      WHERE l.liker_identity = i.id AND f.expires_at > now())
+          OR EXISTS (SELECT 1 FROM match_participants p JOIN matches m ON m.id = p.match_id
+                      WHERE p.identity = i.id AND m.chat_id IS NULL AND m.expires_at > now()))
+      ORDER BY i.id LIMIT 100`,
+  );
+  let done = 0;
+  for (const { id } of left) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await transaction((run) => takeDownLive(run, id));
+        done++;
+        break;
+      } catch (error) {
+        const again = error instanceof TakeDownRetry || (error as { code?: string })?.code === "40P01";
+        if (!again) throw error;
+        if (attempt === 2) log("warn", "a take-down left by the PIN limit waits for the next minute", { identity: id });
+      }
+    }
+  }
+  return done;
 }
 
 export async function takeDownLive(run: Run, me: string): Promise<void> {

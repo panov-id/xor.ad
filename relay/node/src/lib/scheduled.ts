@@ -31,6 +31,7 @@ import { sweepChats } from "./chat_sweeper.ts";
 import { wakeReturned } from "./away_waker.ts";
 import { watchBackup } from "./backup_watch.ts";
 import { watchModeration } from "./moderation_watch.ts";
+import { takeDownLeftByPinLimit } from "./take_down.ts";
 import { sweepExpiredPhrases, sweepStaleQueue } from "./feed_verdict.ts";
 import { countActiveRecipients } from "./dsa_recipients.ts";
 import { sweepAdvertisers } from "./advertiser_sweeper.ts";
@@ -111,6 +112,9 @@ export const WATCH_BACKUP = "watch_backup";
 // Watchdog С6: a letter when a face's moderation queue stops, every minute —
 // the deadline it watches is ten (lib/moderation_watch.ts).
 export const WATCH_MODERATION = "watch_moderation";
+// What the tenth PIN mistake froze and could not take down in place (B51):
+// every minute, the period of the take-down it finishes.
+export const TAKE_DOWN_PIN_LIMIT = "take_down_pin_limit";
 export const PRUNE_TOMBSTONES = "prune_job_tombstones";
 const TOMBSTONE_DAYS = 30;
 const IDEMPOTENCY_DAYS = 1;
@@ -293,6 +297,11 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_MINUTE_MS);
   });
 
+  handle(TAKE_DOWN_PIN_LIMIT, async () => {
+    await takeDownLeftByPinLimit();
+    return new Date(Date.now() + A_MINUTE_MS);
+  });
+
   handle(SWEEP_PENDING, async () => {
     await sweepExpiredPending();
     return new Date(Date.now() + A_MINUTE_MS);
@@ -453,4 +462,5 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(WAKE_RETURNED, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(WATCH_BACKUP, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(WATCH_MODERATION, {}, new Date(Date.now() + A_MINUTE_MS));
+  await enqueueOnce(TAKE_DOWN_PIN_LIMIT, {}, new Date(Date.now() + A_MINUTE_MS));
 }

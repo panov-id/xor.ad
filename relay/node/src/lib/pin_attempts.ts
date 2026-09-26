@@ -111,6 +111,8 @@ export async function checkPin(
       // :1301, :874). Frozen alone, they stayed under the name of a person who
       // could do nothing with them until the paper code (panel-2 H1, B51).
       const [owner] = await run<{ identity: string }>(`SELECT identity FROM sessions WHERE id = $1`, [sessionId]);
+      // A take-down that keeps being raced gives up in place and never takes
+      // the count and the freeze with it; the minute's job finishes it.
       if (owner) await takeDownLiveInPlace(run, owner.identity);
     }
     meter(left === 0 ? "locked" : "wrong_pin");

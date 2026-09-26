@@ -162,3 +162,32 @@ configured("the transfer claim stops at ten an hour and thirty a day, under the 
   assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "8.8.8.8", start + 3 * hour + 1).allowed, true, "one address's thirty spent another's");
   assert(10 < TRANSFER.max, `one address's hourly ten reaches the node-wide brake of ${TRANSFER.max}`);
 });
+
+// An IPv6 caller counts by its /64 (review panel 4, К6, B76): one host picks
+// any address of its /64, and a bucket per full address let it claim transfer
+// codes past the ceiling that keeps one hand off the node-wide brake.
+configured("addresses of one IPv6 /64 share a bucket, and a neighbouring /64 does not", async () => {
+  reset();
+  const { TRANSFER_CLAIM_LIMITS } = await import("../src/lib/rate_limit.ts");
+  const now = Date.now();
+  const max = TRANSFER_CLAIM_LIMITS[0].max;
+  for (let i = 0; i < max; i++) {
+    const host = `2001:db8:1:2:${(i + 1).toString(16)}::${(i * 7 + 3).toString(16)}`;
+    assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, host, now).allowed, true, `claim ${i + 1} from the /64 refused`);
+  }
+  // A fresh address in the same /64, spelled every way a header may bring it.
+  for (const same of ["2001:db8:1:2:ffff:ffff:ffff:ffff", "2001:0DB8:0001:0002::1", "[2001:db8:1:2::99]", "2001:db8:1:2::5%eth0"]) {
+    assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, same, now).allowed, false,
+      `${same} got a bucket of its own: the /64 walked past its ceiling of ${max}`);
+  }
+  assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "2001:db8:1:3::1", now).allowed, true, "the neighbouring /64 was refused for this one's claims");
+});
+
+configured("IPv4, IPv4-mapped IPv6, identity ids and suffixed buckets keep their own keys", async () => {
+  const { bucketAddress } = await import("../src/lib/rate_limit.ts");
+  for (const whole of ["203.0.113.7", "::ffff:203.0.113.7", "4f0c2a4e-8d7b-4c1e-9f6a-1b2c3d4e5f60", "someone@example.org", "keyless", "not:an:address:at:all"]) {
+    assertEquals(bucketAddress(whole), whole, `${whole} was folded`);
+  }
+  assertEquals(bucketAddress("2001:db8:1:2::5|pk_live_x"), "2001:db8:1:2::/64|pk_live_x", "an IPv6 address with a key suffix kept its full address");
+  assertEquals(bucketAddress("::1"), "0:0:0:0::/64", "the loopback did not fold");
+});

@@ -266,6 +266,43 @@ export interface Verdict {
   retryAfterSeconds: number;
 }
 
+// An IPv6 caller counts by its /64 (review panel 4, К6, B76; quorum 3:0,
+// 2026-09-26). A host is handed a whole /64 and picks any address in it, so a
+// bucket per full address was a bucket per request for one machine: B58's ten
+// codes an hour per address, meant to keep one hand off the node-wide transfer
+// brake, cost nothing to step around. A /64 is what one subscriber gets
+// (RFC 6177), the IPv6 counterpart of the shared address these limits already
+// tolerate. Only the bucket's name: the address itself — logged, compared on
+// the admin sign-in — stays whole. The key is an address, or an address and
+// `|<suffix>` (callerBucket, offer links), or an identity id, or a mailbox; only
+// a leading part that parses as IPv6 is folded. IPv4 and IPv4-mapped IPv6
+// (a dot in it) stay as they are. Boundary: a host with several /64s — a /48
+// from a cloud — still has one bucket per /64, the cost of a few IPv4
+// addresses, which the claim ceiling's own comment already prices.
+export function bucketAddress(address: string): string {
+  const cut = address.indexOf("|");
+  const head = cut === -1 ? address : address.slice(0, cut);
+  const prefix = prefix64(head);
+  return prefix === null ? address : prefix + (cut === -1 ? "" : address.slice(cut));
+}
+
+function prefix64(text: string): string | null {
+  let s = text.trim().toLowerCase();
+  if (s.startsWith("[") && s.endsWith("]")) s = s.slice(1, -1);
+  const zone = s.indexOf("%");
+  if (zone !== -1) s = s.slice(0, zone);
+  if (!s.includes(":") || !/^[0-9a-f:]+$/.test(s)) return null;
+  const halves = s.split("::");
+  if (halves.length > 2) return null;
+  const left = halves[0] ? halves[0].split(":") : [];
+  const right = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  const missing = 8 - left.length - right.length;
+  if (halves.length === 1 ? missing !== 0 : missing < 1) return null;
+  const groups = [...left, ...new Array<string>(halves.length === 2 ? missing : 0).fill("0"), ...right];
+  if (groups.some((g) => g.length === 0 || g.length > 4)) return null;
+  return `${groups.slice(0, 4).map((g) => parseInt(g, 16).toString(16)).join(":")}::/64`;
+}
+
 export function check(limit: Limit, address: string, now = Date.now(), record = true): Verdict {
   if (buckets.size > MAX_TRACKED) {
     // Two passes, and neither of them is a wholesale clear.
@@ -321,7 +358,7 @@ export function check(limit: Limit, address: string, now = Date.now(), record = 
 
   WINDOWS.set(limit.name, limit.windowMs);
   MAXIMA.set(limit.name, limit.max);
-  const key = `${limit.name}:${address}`;
+  const key = `${limit.name}:${bucketAddress(address)}`;
   const bucket = buckets.get(key) ?? { hits: [] };
   const cutoff = now - limit.windowMs;
   const hits = bucket.hits.filter((at) => at > cutoff);

@@ -105,7 +105,26 @@ export async function checkPin(
       //
       // Freezing carries its own notification; lib/sessions.ts says why that is
       // not optional and why it is not written inline here.
-      await freezeSession(run, sessionId, "pin_limit");
+      //
+      // Under its own savepoint (panel-3 S1, B59). The count and locked_at
+      // above are written on the share this transaction already holds; the
+      // freeze needs the session's row, and a caller's route may carry a lock
+      // timeout (closeOnce: two seconds). A freeze that cannot take its row in
+      // time used to roll the whole transaction back — the tenth attempt
+      // uncounted, entry left open. Now only the freeze goes back: the PIN is
+      // locked regardless, and the minute's job (take_down.ts,
+      // takeDownLeftByPinLimit) freezes a session whose share is locked.
+      let frozen = false;
+      await run(`SAVEPOINT pin_limit_freeze`);
+      try {
+        await freezeSession(run, sessionId, "pin_limit");
+        await run(`RELEASE SAVEPOINT pin_limit_freeze`);
+        frozen = true;
+      } catch (error) {
+        const code = (error as { code?: string })?.code;
+        if (code !== "55P03" && code !== "57014" && code !== "40P01") throw error;
+        await run(`ROLLBACK TO SAVEPOINT pin_limit_freeze`);
+      }
       // And what is live comes down with it, as a time away takes it: the
       // phrases, waiting ones too, the likes one gave, the matches (chat_RU.md
       // :1301, :874). Frozen alone, they stayed under the name of a person who
@@ -113,7 +132,7 @@ export async function checkPin(
       const [owner] = await run<{ identity: string }>(`SELECT identity FROM sessions WHERE id = $1`, [sessionId]);
       // A take-down that keeps being raced gives up in place and never takes
       // the count and the freeze with it; the minute's job finishes it.
-      if (owner) await takeDownLiveInPlace(run, owner.identity);
+      if (frozen && owner) await takeDownLiveInPlace(run, owner.identity);
     }
     // The tenth miss is a miss like the nine before it: counted as "locked" it
     // fell outside every counter's "wrong", so PinMissBurst never saw the one

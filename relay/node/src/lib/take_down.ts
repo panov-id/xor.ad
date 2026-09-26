@@ -12,6 +12,7 @@
 
 import { queryOrThrow, transaction } from "./db.ts";
 import { log } from "./log.ts";
+import { freezeSession } from "./sessions.ts";
 
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 
@@ -55,6 +56,29 @@ export async function takeDownLiveInPlace(run: Run, me: string): Promise<boolean
 // code before this ran has a live session again and is not taken: what is
 // live stays with the person who has a way in again.
 export async function takeDownLeftByPinLimit(): Promise<number> {
+  // First the freezes the tenth miss could not write (pin_attempts.ts, B59):
+  // a share locked by the PIN limit under a session still live. The share
+  // first, then the session — the order every path takes them — and the lock
+  // asked again under it: the paper code may have lifted it meanwhile.
+  const unfrozen = await queryOrThrow<{ id: string }>(
+    `SELECT s.id FROM sessions s JOIN vault_shares v ON v.session = s.id
+      WHERE v.locked_at IS NOT NULL AND s.frozen_at IS NULL
+      ORDER BY s.id LIMIT 100`,
+  );
+  for (const { id } of unfrozen) {
+    try {
+      await transaction(async (run) => {
+        const [share] = await run<{ locked: boolean }>(
+          `SELECT locked_at IS NOT NULL AS locked FROM vault_shares WHERE session = $1 FOR UPDATE`, [id]);
+        if (share?.locked) await freezeSession(run, id, "pin_limit");
+      });
+    } catch (error) {
+      const code = (error as { code?: string })?.code;
+      if (code !== "55P03" && code !== "57014" && code !== "40P01") throw error;
+      log("warn", "a freeze left by the PIN limit waits for the next minute", { session: id });
+    }
+  }
+
   const left = await queryOrThrow<{ id: string }>(
     `SELECT i.id FROM identities i
       WHERE i.closed_at IS NULL

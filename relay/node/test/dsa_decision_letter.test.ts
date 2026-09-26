@@ -203,3 +203,69 @@ Deno.test({ name: "a decision letter that left with its mark unwritten is counte
     await queryOrThrow(`DROP FUNCTION IF EXISTS b47_refuse_mark()`);
   }
 }});
+
+// The trace a given-up letter leaves (review panel 3, O2 and O3; B63,
+// 2026-09-26): a gauge read from the rows at scrape time, up for as long as the
+// letter stays unsent. The counter above lives in one process and says nothing
+// about a node that died after leasing the last try.
+const { collectQueueMetrics } = await import("../src/lib/queue_metrics.ts");
+async function givenUp(): Promise<number> {
+  await collectQueueMetrics();
+  const line = render().split("\n").find((l) => l.startsWith("relay_dsa_decision_letters_given_up "));
+  assert(line, "relay_dsa_decision_letters_given_up is not on /metrics");
+  return Number(line.split(" ").pop());
+}
+
+Deno.test({ name: "a decision letter given up stays counted until it is marked sent", ...pool, async fn() {
+  const id = await refusedDecision();
+  await queryOrThrow(`UPDATE dsa_notices SET decision_attempts = $2 WHERE id = $1`, [id, MAX_ATTEMPTS - 1]);
+  const before = await givenUp();
+  // The last try, seen while it is in flight: leased, so not given up yet.
+  let inFlight: number | null = null;
+  await retryDecisionLetters(async () => {
+    inFlight = await givenUp();
+    return false;
+  });
+  assertEquals(inFlight, before, "the last try was counted as given up while it was still being sent");
+  assertEquals(await givenUp() - before, 1, "the refused last try is not counted as given up");
+  // A later pass does not make it go away; the mark does.
+  await retryDecisionLetters();
+  assertEquals(await givenUp() - before, 1, "the given-up letter left the gauge with the letter still unsent");
+  await queryOrThrow(`UPDATE dsa_notices SET decision_sent_at = now() WHERE id = $1`, [id]);
+  assertEquals(await givenUp(), before, "a letter marked sent is still counted as given up");
+}});
+
+Deno.test({ name: "a node that died holding the last try leaves the letter counted once its lease runs out", ...pool, async fn() {
+  const id = await refusedDecision();
+  await queryOrThrow(`UPDATE dsa_notices SET decision_attempts = $2 WHERE id = $1`, [id, MAX_ATTEMPTS - 1]);
+  const before = await givenUp();
+  // The lease of the last try, as the pass takes it. The node then dies before
+  // the send, so nothing counts, marks or gives the lease back: the row is put
+  // back to what the lease left once the stub has seen it.
+  let row: { attempts: number; leased: boolean } | null = null;
+  await retryDecisionLetters(async () => {
+    row = (await queryOrThrow<{ attempts: number; leased: boolean }>(
+      `SELECT decision_attempts AS attempts, decision_leased_until > now() AS leased FROM dsa_notices WHERE id = $1`, [id]))[0];
+    return false;
+  });
+  assertEquals(row, { attempts: MAX_ATTEMPTS, leased: true }, "the pass did not lease the last try the way this case assumes");
+  await queryOrThrow(`UPDATE dsa_notices SET decision_leased_until = now() + interval '10 minutes' WHERE id = $1`, [id]);
+  assertEquals(await givenUp(), before, "a held lease was counted as given up");
+  await queryOrThrow(`UPDATE dsa_notices SET decision_leased_until = now() - interval '1 second' WHERE id = $1`, [id]);
+  assertEquals(await givenUp() - before, 1, "the letter the dead node held is in no trace");
+  // Nothing sends it again: the gauge is the only trace, and it holds.
+  providerUp = true;
+  letters.length = 0;
+  await retryDecisionLetters();
+  assertEquals((await rowOf(id)).decision_sent_at, null);
+  assertEquals(await givenUp() - before, 1);
+}});
+
+Deno.test({ name: "a decision with no text to send again is counted as given up on the gauge", ...pool, async fn() {
+  const id = await notice();
+  const before = await givenUp();
+  await queryOrThrow(
+    `UPDATE dsa_notices SET status = 'rejected', decided_at = now() - interval '1 hour', decision_letter_facts = NULL WHERE id = $1`, [id]);
+  await retryDecisionLetters();
+  assertEquals(await givenUp() - before, 1, "the textless decision is not on the gauge");
+}});

@@ -201,13 +201,18 @@ groups:
       # decision still reaches the notifier's device by the receipt (§6); the
       # letter is the channel for whoever cleared their browser, and nothing
       # else retries it (review panel G1, G3; B46, 2026-09-26).
+      #
+      # Over a gauge read from the rows, not an hour's increase of a counter
+      # (review panel 3, O2 and O3; B63): the increase went "resolved" an hour
+      # later with the letter still unsent, and a node that died holding the
+      # last try counted nothing. Every node reads the same table, hence max.
       - alert: DsaDecisionLetterExhausted
-        expr: sum(increase(relay_dsa_decision_letter_total{result="exhausted"}[1h])) > 0
+        expr: max(relay_dsa_decision_letters_given_up) > 0
         for: 1m
         labels: { severity: warning }
         annotations:
           summary: "Письмо о решении по ст. 16(5) не ушло"
-          description: "Все попытки исчерпаны, или у решения нет сохранённого текста письма. Заявитель узнает решение только по квитанции на устройстве. Смотреть relay_dsa_decision_letter_total и почтовый транспорт."
+          description: "Все попытки исчерпаны, или у решения нет сохранённого текста письма. Заявитель узнает решение только по квитанции на устройстве. Тревога держится, пока у такого уведомления не отмечена отправка (dsa_notices.decision_sent_at). Смотреть relay_dsa_decision_letters_given_up и почтовый транспорт."
 
       # A DSA letter that left and whose sent mark could not be written
       # (markLetterSent in lib/notice_notify.ts; review panel G5, B47). At least

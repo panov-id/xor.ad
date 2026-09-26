@@ -30,6 +30,7 @@
 
 import { query } from "./db.ts";
 import { clearGauge, setGauge } from "./metrics.ts";
+import { DECISION_LETTER_GIVEN_UP } from "./notice_notify.ts";
 import { RECOVERY, TRANSFER } from "./recovery_misses.ts";
 
 interface DepthRow {
@@ -47,6 +48,7 @@ let seen = new Set<string>();
 
 export async function collectQueueMetrics(): Promise<void> {
   await collectDsaQueue();
+  await collectDecisionLetters();
   await collectModerationQueue();
   const rows = await query<DepthRow>(
     `SELECT kind,
@@ -126,6 +128,21 @@ async function collectDsaQueue(): Promise<void> {
 }
 
 let seenBrands = new Set<string>();
+
+// Article 16(5) letters about a decision that will not be tried again, counted
+// from the rows (DECISION_LETTER_GIVEN_UP in lib/notice_notify.ts). A count
+// always answers, so the series is there at zero from the first scrape, and it
+// stays up for as long as one such letter is unsent — DsaDecisionLetterExhausted
+// fires on it rather than on an hour's increase of a per-process counter,
+// which went "resolved" with the letter still unsent and missed a node that
+// died holding the last try (review panel 3, O2 and O3; B63, 2026-09-26).
+async function collectDecisionLetters(): Promise<void> {
+  const rows = await query<{ given_up: string }>(
+    `SELECT count(*)::text AS given_up FROM dsa_notices WHERE ${DECISION_LETTER_GIVEN_UP}`,
+  );
+  if (rows === null) return;
+  setGauge("relay_dsa_decision_letters_given_up", Number(rows[0].given_up));
+}
 
 // Watchdog С6 (docs/watchdogs_RU.md): the age of the oldest phrase waiting for
 // a verdict, by the face it came through. Its ceiling is moderation.queue.wait

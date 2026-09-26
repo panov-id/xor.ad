@@ -782,13 +782,17 @@ tests:
               summary: "Очередь ст. 16 не разбирается"
               description: "Есть незакрытые уведомления и ни одного решения за шесть часов. Сроки ответа — регуляторные. Возраст самого старого — relay_dsa_queue_oldest_seconds."
 
-  # DsaDecisionLetterExhausted (B46, 2026-09-26): the counter is there at zero
-  # from the start; one letter given up at 11m, increase over 1h > 0 from then; for 1m.
-  - name: a decision letter given up fires a minute later, not before
+  # DsaDecisionLetterExhausted (B46; over the gauge since B63, 2026-09-26):
+  # one letter given up at 11m and never sent, seen by two nodes; for 1m. It
+  # still fires two hours on — the increase over 1h this replaced had gone
+  # quiet by 72m (O2).
+  - name: a decision letter given up fires a minute later and holds while it stays unsent
     interval: 1m
     input_series:
-      - series: 'relay_dsa_decision_letter_total{result="exhausted"}'
-        values: '0x10 1x60'
+      - series: 'relay_dsa_decision_letters_given_up{instance="a"}'
+        values: '0x10 1x130'
+      - series: 'relay_dsa_decision_letters_given_up{instance="b"}'
+        values: '0x10 1x130'
     alert_rule_test:
       - eval_time: 11m
         alertname: DsaDecisionLetterExhausted
@@ -799,12 +803,36 @@ tests:
           - exp_labels: { severity: warning }
             exp_annotations:
               summary: "Письмо о решении по ст. 16(5) не ушло"
-              description: "Все попытки исчерпаны, или у решения нет сохранённого текста письма. Заявитель узнает решение только по квитанции на устройстве. Смотреть relay_dsa_decision_letter_total и почтовый транспорт."
+              description: "Все попытки исчерпаны, или у решения нет сохранённого текста письма. Заявитель узнает решение только по квитанции на устройстве. Тревога держится, пока у такого уведомления не отмечена отправка (dsa_notices.decision_sent_at). Смотреть relay_dsa_decision_letters_given_up и почтовый транспорт."
+      - eval_time: 135m
+        alertname: DsaDecisionLetterExhausted
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Письмо о решении по ст. 16(5) не ушло"
+              description: "Все попытки исчерпаны, или у решения нет сохранённого текста письма. Заявитель узнает решение только по квитанции на устройстве. Тревога держится, пока у такого уведомления не отмечена отправка (dsa_notices.decision_sent_at). Смотреть relay_dsa_decision_letters_given_up и почтовый транспорт."
+
+  - name: a given-up decision letter marked sent stops the alert
+    interval: 1m
+    input_series:
+      - series: 'relay_dsa_decision_letters_given_up'
+        values: '0x10 1x20 0x40'
+    alert_rule_test:
+      - eval_time: 25m
+        alertname: DsaDecisionLetterExhausted
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Письмо о решении по ст. 16(5) не ушло"
+              description: "Все попытки исчерпаны, или у решения нет сохранённого текста письма. Заявитель узнает решение только по квитанции на устройстве. Тревога держится, пока у такого уведомления не отмечена отправка (dsa_notices.decision_sent_at). Смотреть relay_dsa_decision_letters_given_up и почтовый транспорт."
+      - eval_time: 35m
+        alertname: DsaDecisionLetterExhausted
+        exp_alerts: []
 
   - name: decision letters that fail and are retried are not given up
     interval: 1m
     input_series:
-      - series: 'relay_dsa_decision_letter_total{result="exhausted"}'
+      - series: 'relay_dsa_decision_letters_given_up'
         values: '0x70'
       - series: 'relay_dsa_decision_letter_total{result="failed"}'
         values: '0+1x70'

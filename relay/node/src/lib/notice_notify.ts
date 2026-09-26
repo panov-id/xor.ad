@@ -161,6 +161,18 @@ type Decision = typeof sendNoticeDecision;
 // It was left "not sent" for ever; now it is marked exhausted at once and
 // counted, so a letter that cannot be retried is seen rather than waited for
 // (review panel G3).
+//
+// The counter is what happened in this process; what stays is the row. A node
+// that dies between leasing the last try and sending it spent the attempt and
+// counted nothing, and the row is never picked again (review panel 3, O3). So
+// the alert reads the rows instead: every decided letter out of tries, unsent,
+// and held by no lease — the one in flight is not given up yet. It holds until
+// the letter is marked sent, not for an hour after an increase (O2; B63,
+// 2026-09-26). Read at scrape time by lib/queue_metrics.ts.
+export const DECISION_LETTER_GIVEN_UP = `decided_at IS NOT NULL AND decision_sent_at IS NULL
+        AND notifier_email IS NOT NULL AND decision_attempts >= ${MAX_ATTEMPTS}
+        AND (decision_leased_until IS NULL OR decision_leased_until <= now())`;
+
 export async function retryDecisionLetters(
   send: Decision = sendNoticeDecision,
 ): Promise<{ sent: number; failed: number; exhausted: number }> {
@@ -221,12 +233,15 @@ export async function retryDecisionLetters(
     failed++;
     inc("relay_dsa_decision_letter_total", { result: "failed" });
     if (notice.attempts >= MAX_ATTEMPTS) exhausted++;
-    // The next try waits longer each time; the exhausted one is not picked again.
+    // The next try waits longer each time. The exhausted one is not picked
+    // again, and its lease ends now rather than twelve hours on: the given-up
+    // gauge (DECISION_LETTER_GIVEN_UP) counts it once no lease holds it.
     await query(
       `UPDATE dsa_notices
-          SET decision_leased_until = now() + make_interval(mins => least($2 * power(2, $3 - 1)::int, $4))
+          SET decision_leased_until = CASE WHEN $3::int >= $5::int THEN now()
+                ELSE now() + make_interval(mins => least($2 * power(2, $3::int - 1)::int, $4)) END
         WHERE id = $1`,
-      [notice.id, DECISION_BACKOFF_MINUTES, notice.attempts, DECISION_BACKOFF_CAP_MINUTES],
+      [notice.id, DECISION_BACKOFF_MINUTES, notice.attempts, DECISION_BACKOFF_CAP_MINUTES, MAX_ATTEMPTS],
     );
   }
   if (sent) inc("relay_dsa_decision_letter_total", { result: "sent_on_retry" }, sent);

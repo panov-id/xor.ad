@@ -10,6 +10,8 @@ A place for talking to the people around you, right now, and then letting it go.
 
 - **sosed.place** — one face, with its own name, tone and visual identity.
 - **neighbro.place** — the other face: a different look over the same platform.
+- **`depth`** — the terminal client, which goes first: the core `depth/core/` against a live node, Ink screens on top; no history on disk by design.
+- **`web/`** — the web face for both brands on the same `depth/core`: registration with a PIN, the feed, the composer, the card, likes, the inbox, the match, an encrypted chat, an offer's link; e2e in Docker (2026-09-26, in progress).
 - **xor.ad** — the platform underneath both. One backend, one database, one shared pool of users and feed — sosed.place and neighbro.place are different skins over the same data, not isolated audiences. Moderation is one policy for every face. New faces for new audiences plug into the same gateway.
 
 ## The alpha experience
@@ -44,7 +46,7 @@ The on-node classifier also reads for tone beyond toxicity: it rejects harassmen
 
 ## Architecture (alpha)
 
-- **Frontend:** React, browser-based web app — no native app for the alpha.
+- **Frontend:** React, a browser web app (`web/`, on the `depth/core` core, one build for both brands) and the `depth` terminal client (Node + Ink) — no native app for the alpha.
 - **Backend:** the **relay node pool** — identical Deno nodes behind Caddy (Let's Encrypt TLS), brand-agnostic, serving every face. Today it runs the landing/panel routes (`/waitlist`, `/client-error`, panel control plane) with data in Bunny Storage and email via Resend (one account per brand); the alpha app grows on the same pool. See [`relay/ARCHITECTURE_EN.md`](./relay/ARCHITECTURE_EN.md).
 - **Gateway:** xor.ad is the shared custom domain every frontend talks to — per env the forms hit a relay node directly (`n1-dev`/`n1-staging` private, `api.relay.panov.id` public geo record for prod).
 - **Language detection:** a local language-detection library runs inside the relay nodes — no external API call, no per-message cost.

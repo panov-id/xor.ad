@@ -180,6 +180,15 @@ export async function transaction<T>(run: (query: Query) => Promise<T>): Promise
   return await ensurePool().begin(async (tx: Sql) => await run(queryOn(tx))) as T;
 }
 
+// Whether `run` is a query function a transaction() or a savepoint() handed
+// out. A wrapper around one is not: its statements would run, but savepoint()
+// cannot open a savepoint on it and refuses — a refusal that, met only at the
+// step that needs the savepoint, takes that step's whole transaction back
+// (verifier on B70; B81). Asked up front by the callers that will need one.
+export function inTransaction(run: Query): boolean {
+  return scopes.has(run);
+}
+
 // A step that may go back alone, inside a transaction: its statements run on a
 // savepoint, a throw from it rolls back to the savepoint and is re-thrown, and
 // the transaction goes on if the caller catches it.

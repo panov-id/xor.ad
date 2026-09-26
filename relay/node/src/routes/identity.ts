@@ -785,6 +785,13 @@ async function vaultShare(req: Request): Promise<Response> {
 
   const freezes = new Freezes();
   const answer = await transaction<Response>(async (run) => {
+    // Two seconds for any lock this waits on, as closeOnce has: the tenth
+    // miss's freeze waits on the session's row, which a consent holds FOR
+    // SHARE, and without a bound it held a pooled connection for the whole
+    // statement timeout, fifteen seconds, before the miss was counted. At two
+    // the freeze gives up under its savepoint, the miss stands and the
+    // minute's job freezes the session (pin_attempts.ts; B81).
+    await run(`SET LOCAL lock_timeout = '2s'`);
     // The attempt itself — the row, the lock, the delay, the spent attempt and
     // the freeze on the tenth — lives in lib/pin_attempts.ts, shared with
     // POST /sessions/invite. It used to live here alone, which is how that
@@ -970,6 +977,13 @@ async function changePin(req: Request): Promise<Response> {
 
   const freezes = new Freezes();
   return await transaction<Response>(async (run) => {
+    // Two seconds for any lock this waits on, as closeOnce has: the tenth
+    // miss's freeze waits on the session's row, which a consent holds FOR
+    // SHARE, and without a bound it held a pooled connection for the whole
+    // statement timeout, fifteen seconds, before the miss was counted. At two
+    // the freeze gives up under its savepoint, the miss stands and the
+    // minute's job freezes the session (pin_attempts.ts; B81).
+    await run(`SET LOCAL lock_timeout = '2s'`);
     const held = await run<{ session: string }>(
       `SELECT session FROM vault_shares WHERE session = $1 FOR UPDATE`, [caller.sessionId]);
     if (held.length === 0) return refuse("not_found", "this session has no share", 404);

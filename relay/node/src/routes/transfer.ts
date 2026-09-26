@@ -103,6 +103,13 @@ async function createInvite(req: Request): Promise<Response> {
 
   const freezes = new Freezes();
   const answer = await transaction<Response>(async (run) => {
+    // Two seconds for any lock this waits on, as closeOnce has: the tenth
+    // miss's freeze waits on the session's row, which a consent holds FOR
+    // SHARE, and without a bound it held a pooled connection for the whole
+    // statement timeout, fifteen seconds, before the miss was counted. At two
+    // the freeze gives up under its savepoint, the miss stands and the
+    // minute's job freezes the session (pin_attempts.ts; B81).
+    await run(`SET LOCAL lock_timeout = '2s'`);
     // The PIN, against this device's own row, through the same counter as
     // POST /vault/share. Not the share: nothing is handed out here, so there
     // is nothing to seal or open — only the proof to check.

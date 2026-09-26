@@ -14,7 +14,7 @@
 //
 // Two routes copying one rule is how the rule dies. This is the rule.
 
-import { savepoint } from "./db.ts";
+import { inTransaction, savepoint } from "./db.ts";
 import { refuse } from "./identity_guard.ts";
 import { Freezes, freezeSession } from "./sessions.ts";
 import { takeDownLiveInPlace } from "./take_down.ts";
@@ -54,6 +54,17 @@ export async function checkPin(
   meter: (result: string) => void,
   freezes: Freezes,
 ): Promise<Response | VaultRow> {
+  // Asked first, before the attempt is read: the tenth miss freezes the
+  // session under a savepoint (lib/db.ts), and savepoint() refuses a wrapper
+  // around a transaction's run. Met at the tenth miss, that refusal rolled
+  // the miss back whole — the attempt not spent, entry left open, the PIN
+  // open to another guess — and only the tenth attempt ever met it, so a
+  // wrapper added for a log or a metric would have passed every test that
+  // stops short of ten (verifier on B70). Refused here, it fails the first
+  // attempt on any route that wraps, loud, with nothing spent.
+  if (!inTransaction(run)) {
+    throw new Error("checkPin() takes the query function of a transaction() itself, not a wrapper around it");
+  }
   const [row] = await run<VaultRow>(
     `SELECT auth_hash, share_enc, attempts_left, next_attempt_at, locked_at
        FROM vault_shares WHERE session = $1 FOR UPDATE`,

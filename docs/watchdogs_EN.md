@@ -148,7 +148,14 @@ The platform's promises rest on people and jobs, and they can break without a so
   with "the check did not happen" (`chat_EN.md` §8.3), so an oldest age near it means the queue has
   stopped rather than slowed.
 - **Where to.** A letter to the personal addresses in `DSA_ESCALATION_EMAILS`, one per stall, not per
-  pass. Added 2026-09-15 after the final panel (OPS-7); built together with the queue (§13, step 2).
+  pass. Added 2026-09-15 after the final panel (OPS-7). **Built 2026-09-26:** the node sends it itself
+  (`relay/node/src/lib/moderation_watch.ts`, the `watch_moderation` job once a minute) — the boxes run
+  no Alertmanager. "Moving again" means only a verdict for this face after the letter, not a queue
+  gone empty: without the §8.14 moderator the sweeper drops every phrase, and a letter would go out for
+  each. Without a verdict, at most once a day per face; after a verdict, again, but not within the hour
+  (decided by quorum on 2026-09-26). A refusal carries no face in the schema, so a moderator who only
+  refuses reads as stalled — the price is one letter a day. The letter names how many phrases waited
+  past nine minutes that day; on a pool of N nodes each keeps its own memory, as W7 does.
 
 ## W7. The age of the last dump
 
@@ -178,7 +185,7 @@ Each watchdog is broken on purpose and must reach the channel:
 
 ## Open
 
-- Watchdog W5 is not built. W6 has its gauge and alert rule (2026-09-26); the letter to `DSA_ESCALATION_EMAILS` goes through Alertmanager, which the boxes do not run — like W7, it needs a letter path of its own. W7 was built on 2026-09-24 and ships with the `day57` roll; until then the backup on the boxes stays silent — item `backup.silent.failure` in `docs/facts/open.tsv`.
+- Watchdog W5 is not built. W6 has its gauge, its alert rule and a letter from the node itself (2026-09-26). W7 was built on 2026-09-24 and ships with the `day57` roll; until then the backup on the boxes stays silent — item `backup.silent.failure` in `docs/facts/open.tsv`.
   W2 is built without the fallback transport — `watchdogs.unbuilt`. W3's digest line about other tombstones was built on 2026-09-24.
 - The external pinger service is not chosen — `node.external.pinger`.
 - W1: no fallback transport for the escalation — `mail.fallback.transport`; the ceiling on letters since 2026-09-24 — six an hour per address and one summary beyond that.

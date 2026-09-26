@@ -18,7 +18,7 @@ import { stillHere } from "../lib/take_down.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
-import { refusalFor } from "../lib/feed_limits.ts";
+import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
 import { band, boundingBox, quantise } from "../lib/feed_geo.ts";
 import { query } from "../lib/db.ts";
 import { inc } from "../lib/metrics.ts";
@@ -351,7 +351,7 @@ async function deliver(req: Request, url: URL): Promise<Response> {
               f.expires_at <= now() + (${SOON_MINUTES} * interval '1 minute') AS soon
          FROM feed_messages f
          JOIN identities a ON a.id = f.author_identity
-        WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
+        WHERE ${livePhraseOf("f")}
           AND ${geo}
           AND ${bandSql}
           AND ($8::text IS NULL OR f.mode = $8)
@@ -565,7 +565,7 @@ async function density(req: Request, url: URL): Promise<Response> {
        SELECT 1
        FROM feed_messages f
        JOIN identities a ON a.id = f.author_identity
-      WHERE f.visible_at IS NOT NULL AND f.expires_at > now()
+      WHERE ${livePhraseOf("f")}
         AND f.lat_published BETWEEN $1 AND $2 AND f.lon_published BETWEEN $3 AND $4
         AND a.age >= $6 AND ($7::int IS NULL OR a.age <= $7)
         AND (

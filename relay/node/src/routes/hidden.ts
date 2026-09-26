@@ -15,6 +15,7 @@ import { query } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll, HIDDEN_LIMITS } from "../lib/rate_limit.ts";
+import { livePhraseOf } from "../lib/feed_limits.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 
@@ -22,7 +23,7 @@ const UUID = /^[0-9a-fA-F-]{36}$/;
 // inside each other's age band, and with no block either way. Without this the
 // route confirmed a remembered id and GET returned its text — a way round §8.9.
 // Needs `f` (feed_messages), `author` and `me` (identities) in scope; $1 is me.
-const MAY_SEE = `f.visible_at IS NOT NULL AND f.expires_at > now()
+const MAY_SEE = `${livePhraseOf("f")}
   AND author.closed_at IS NULL
   AND author.age BETWEEN (CASE WHEN me.age <= 20 THEN greatest(13, me.age - 2) ELSE least(21, me.age - 2) END)
                      AND (CASE WHEN me.age <= 20 THEN me.age + 2 ELSE 1000 END)

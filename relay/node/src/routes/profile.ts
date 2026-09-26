@@ -27,7 +27,7 @@ import { transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { band } from "../lib/feed_geo.ts";
-import { refusalFor } from "../lib/feed_limits.ts";
+import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
 import { TERM_PASSED } from "../lib/chat_sweeper.ts";
 import { checkAll, PROFILE_PATCH_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
@@ -151,7 +151,7 @@ async function patchProfile(req: Request): Promise<Response> {
           // Frozen while a phrase of yours lives or a chat of yours is open.
           const [busy] = await run<{ phrase: boolean; chat: boolean }>(
             `SELECT EXISTS (SELECT 1 FROM feed_messages f
-                             WHERE f.author_identity = $1 AND f.visible_at IS NOT NULL AND f.expires_at > now()) AS phrase,
+                             WHERE f.author_identity = $1 AND ${livePhraseOf("f")}) AS phrase,
                     EXISTS (SELECT 1 FROM chat_participants p JOIN chats c ON c.id = p.chat_id
                              WHERE p.identity = $1 AND p.gone_at IS NULL AND NOT (${TERM_PASSED})) AS chat`,
             [caller.identityId],

@@ -41,7 +41,7 @@ GROUP = group_root(ROOT)
 PAIRS = [
     "xor.ad/docs/chat", "xor.ad/docs/protocol", "xor.ad/docs/dsa/SPEC",
     "xor.ad/docs/offers/SPEC", "xor.ad/docs/app-prototype-spec",
-    "xor.ad/docs/design-system-app", "xor.ad/docs/test-map",
+    "xor.ad/docs/design-system-app", "xor.ad/docs/archive/test-map",
 ]
 DATE_RU = re.compile(r"\b(\d{2})\.(\d{2})\.(20\d{2})\b")
 DATE_EN = re.compile(r"\b(20\d{2})-(\d{2})-(\d{2})\b")

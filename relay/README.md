@@ -100,7 +100,7 @@ waitlist → fs storage + Mailpit catch + dedup). CI runs both on every
   use a passphrase-protected key.
 - **TLS:** DNS-01 via Bunny, so certs issue with ports locked down.
 - Chat threat model (untrusted community relays → E2E) — see
-  `../docs/chat-decentralized-ideas_EN.md`.
+  `../docs/archive/chat-decentralized-ideas_EN.md`.
 
 ## Status
 

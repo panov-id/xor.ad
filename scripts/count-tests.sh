@@ -2,7 +2,7 @@
 # How many test cases exist, counted rather than remembered.
 #
 #   scripts/count-tests.sh            # the numbers
-#   scripts/count-tests.sh --check    # and compare them with docs/test-map
+#   scripts/count-tests.sh --check    # accepted for check-all; the map is retired
 #
 # The map names its own counts, and rule 14 of the working agreement says a
 # number in a document is recounted before it is repeated. It named
@@ -46,20 +46,9 @@ printf 'итого            %s\n' "$total"
 
 [ "${1:-}" = "--check" ] || exit 0
 
-# The map states both numbers; a document that names a count it cannot support
-# is worse than one that names none, because it gets quoted.
-problems=0
-for pair in "relay/node/test|$node" "panel/src|$panel_unit" "panel/tests/e2e|$panel_e2e" "Итого|$total"; do
-  label="${pair%%|*}"; want="${pair#*|}"
-  line=$(grep -F "$label" "$root/docs/test-map_RU.md" | head -1)
-  if ! printf '%s' "$line" | grep -qE "\b$want\b"; then
-    printf '  ✗ карта говорит не %s: %s\n' "$want" "${line:0:90}"
-    problems=$((problems + 1))
-  fi
-done
-
-if [ "$problems" -gt 0 ]; then
-  printf '\nрасхождений: %s — пересчитать и поправить docs/test-map_RU.md и пару\n' "$problems"
-  exit 1
-fi
-printf '\nкарта называет те же числа\n'
+# Until 2026-09-26 --check compared these numbers with docs/test-map_RU.md. The
+# map is no longer kept by hand (it sits in docs/archive/), so there is nothing
+# to compare with: the numbers above are the only ones, and a document quoting
+# them names this script as its source.
+printf '\nкарта тестов не ведётся с 26.09.2026 — числа только здесь\n'
+exit 0

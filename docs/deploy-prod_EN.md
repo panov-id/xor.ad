@@ -12,7 +12,7 @@
 > rather than tasks. The document is kept as the history of a decision, not as a
 > to-do list.
 
-Prod = real domains. General mechanics in `deployment_EN.md`, dev/uat in `deploy-today_EN.md`.
+Prod = real domains. General mechanics in `deployment_EN.md`, dev/uat in `archive/deploy-today_EN.md` (archive).
 Focus: the **neighbro.place** face (sosed on hold, panel later).
 
 ## 0. Decisions first

@@ -1,210 +1,189 @@
-# Roadmap — state as of 2026-09-24
+# Roadmap — state as of 2026-09-26
 
-A snapshot of where the product stands as a whole. The detailed work tracker is
-[`open-work_EN.md`](open-work_EN.md); the product build order is §13 of
-[`chat_EN.md`](chat_EN.md). This file sits one level above both: which layers
-exist, which do not, and how that was checked. The snapshot was checked by a
-five-lens review panel —
-[`reviews/PANEL_2026-09-21_roadmap.md`](reviews/PANEL_2026-09-21_roadmap.md); the 2026-09-22 summary was checked by the consistency lens, and what was built that day by the panels `reviews/PANEL_2026-09-22_*.md` (feed queue, profile, encryption, reissue, support). What was built on 2026-09-23 was checked by the panels `reviews/PANEL_2026-09-23_*.md` (watchdogs C1–C3, stepping away, profile and card, screens, chat, the loop). The 2026-09-24 cut is by measurement (`curl`, `scripts/check-node-images.sh`, `scripts/check-openapi.sh`, `scripts/count-tests.sh`, `scripts/run-depth-ui-tests.sh`, `git`, CI), without a review panel.
+A snapshot of where the product stands as a whole. What is open — the registry
+[`facts/open.tsv`](facts/open.tsv); the build order — §13 of
+[`chat_EN.md`](chat_EN.md). This is one level above: which layers exist, which
+do not, and what proved it. The 2026-09-26 cut was checked against the code and
+tests of branch `day58` (`a692813`), the crew board (tasks B1–B105 merged) and
+the shift handover; measurements — `curl`, `scripts/count-tests.sh`,
+`scripts/check-openapi.sh`, `scripts/run-depth-tests.sh`,
+`scripts/run-depth-ui-tests.sh`, `git`. Earlier snapshots (2026-09-24 and
+before) are replaced whole; the `open-work` tracker and the test map are no
+longer maintained by hand since 2026-09-26 and sit in `archive/`.
 
-`[x]` done and verified, `[~]` partial, `[ ]` ahead. Every claim about a live
-environment carries a date and a method. The 7 July 2026 snapshot (Supabase,
-"prod later") is replaced in full: none of its infrastructure claims hold any
-more. The legal section keeps its number (§2): both storefronts'
-`17-offer_*.md` and `legal-review-brief_*.md` link to it.
+`[x]` — done and verified, `[~]` — partial, `[ ]` — ahead. Every claim about the
+live environment carries a date and how it was measured. The live environment
+runs image `v2026.9.11-g8f89e7a` (built 2026-09-11): everything below marked
+with a later date exists in the `day58` code and is proven by tests, not on the
+live node. The legal section keeps its number (§2): `17-offer_*.md` of both
+storefronts and `legal-review-brief_*.md` point at it.
 
 ## Summary
 
-| Layer | Readiness | Verified by |
+| Layer | Readiness | Verified |
 |---|---|---|
-| Storefronts neighbro.place and sosed.place | ~90% | `curl` 2026-09-24: both 200 |
-| Panel xor.panov.id | ~80% | 11 pages in `panel/src/pages` (2026-09-22: the feed queue, support); e2e 5, unit 32 |
-| Relay node: platform (keys, brands, DSA, mail) | ~70% | `/health` 2026-09-24: `p1-prod`, `database: ok`, `mail: resend`; CI runs all 10 database suites — 276 tests (2026-09-24); open items — §1 |
-| Operations: backups, restore, alerts, rollback | ~50% | backups without a key and without the waitlist; restore drill — 2026-08-07 |
-| Legal and DSA | ~60% | Bunny transfer outside the EEA is open — §2 |
-| Relay node: product, steps 1–4 of §13 | ~60% | step 1 and the profile edit; step 2 — a person gives the verdict in the panel (no model); step 3 — like, take-back, name refusal; step 4 — consent with the ephemeral half; the contract: 97 operations built, 41 spec (measured on the evening of 2026-09-24, after `POST /vault/pin` and `POST /identities/close`; `check-openapi.sh`, by parsing the YAML — `grep` undercounts operations taken through anchors); support is outside the §13 steps: `POST/GET /support`, the team's side, `db/039` |
-| Relay node: product, steps 5–8 of §13 | ~40% | step 5 — transport, socket, delivery, close codes; step 6 — direction keys and the reissue; step 7 — blocks, hidden, sweepers; step 8 — not started (games), in place of notifications the inbox with a cursor and the daily support digest; stepping away, `POST/DELETE /away` (2026-09-23) |
-| `depth` client (terminal, goes first) | ~65% | core `depth/core/`: signing, registration, profile, feed, like, consent, end-to-end encryption, the key reissue and the safety code against a live node (49 core tests, 52 in the whole `depth/` run counting the screens' strings — `scripts/run-depth-tests.sh`, 2026-09-26); Ink rendering since 2026-09-22 — `depth/ink/`: registration, location, feed, phrase, inbox, chat; on 2026-09-23 — the "me" screen with name and age editing, "liked", "blocked", "not now", the chat span and the tombstone, stepping away, the full-screen card, refusals on publishing; arrows and enter only; the storefronts' seventeen languages (`scripts/check-depth-i18n.sh`), 35 screen tests (`scripts/run-depth-ui-tests.sh`, 2026-09-26) and a live walk of the terminal against a node, up to the shared safety code (`scripts/run-depth-live-ui.sh`); an image and the command `scripts/depth.sh` (2026-09-22); the PIN and the paper code are real (2026-09-26): Argon2id with the device salt, a sixteen-character code wraps the long key, registration waits for the code's second and fourth groups; "me" has "change the PIN" (`POST /vault/pin`) and "start again" (`POST /identities/close`); an identity lives until you quit — there is no volume, so there is no lock after 5 minutes and no `depth restore`/`reissue`/`move` (items `depth.lock`, `depth.restore` in `docs/facts/open.tsv`) |
-| Web app (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` |
+| Storefronts neighbro.place and sosed.place | ~90% | `curl` 2026-09-26: both 200 |
+| Panel xor.panov.id | ~80% | 200 (`curl` 2026-09-26); 11 pages in `panel/src/pages` (keys, brands, DSA notices, feed queue, logs, panel users, secret keys, support, waitlist, login); unit 32, e2e 5 (`count-tests.sh` 2026-09-26) |
+| Relay node: platform (keys, brands, DSA, mail) | ~75% | `/health` 2026-09-26: `p1-prod`, `database: ok`, `mail: resend`, `storage_transport: bunny`; 739 tests, of them 692 in the node (`count-tests.sh` on `day58`, 2026-09-26); the contract — 140 operations, 100 built, 40 spec (`check-openapi.sh` 2026-09-26, a dangling `$ref` and the validator are gates); 52 migration files, the last `060`; what is open — §1 |
+| Operations: backups, restore, alerts, rollback | ~50% | backups without a key and without the waitlist; restore drill — 2026-08-07; alert rules with `promtool` probes, alert counters seeded at zero on start |
+| Legal and DSA | ~60% | the Bunny transfer outside the EEA is open — §2 |
+| Relay node: product, steps 1–4 of §13 | ~65% | step 1 — identity, PIN, code, move, the tenth PIN miss takes down what is live; step 2 — a person gives the verdict in the panel (no model); step 3 — like, take-back, name refusal; step 4 — consent with the ephemeral half |
+| Relay node: product, steps 5–8 of §13 | ~40% | step 5 — transport, socket, delivery, close codes; step 6 — direction keys and rekey; step 7 — blocks, hidden, sweepers; step 8 — not started (games); instead of notifications — an inbox with a cursor and a daily support digest |
+| `depth` client (terminal, goes first) | ~70% | core `depth/core/` against a live node — 91 tests (`run-depth-tests.sh` 2026-09-26); Ink screens — 55 (`run-depth-ui-tests.sh` 2026-09-26); the PIN and the paper code are real, `depth restore` and `depth move` both ways, a new code from "me" (2026-09-26); 17 languages (`check-depth-i18n.sh`) |
+| Web application (step 9) | ~5% | only `neighbro.place/prototype/neighbro-app-proto.html` exists |
 
-The percentages are estimates: they are not weighted by hours, because steps
-3–9 have not yet been cut into priced tasks.
+The percentages are expert estimates: they are not weighted by hours, because
+there is no priced breakdown for steps 3–9 yet.
 
 ## 1. Live environment and operations
 
-- [x] Production is public: `api.relay.panov.id/health` 200, node `p1-prod`,
-  image `v2026.9.11-g8f89e7a`, brands `sosed` and `neighbro`. Measured
-  2026-09-24.
-- [x] Storefronts `sosed.place` and `neighbro.place`, panel `xor.panov.id` —
-  200. Measured 2026-09-24. Production shipped 2026-07-27–2026-07-28.
-- [x] Supabase left the path on 2026-07-22: state lives in our own Postgres
-  beside the node, delivery through Bunny.
-- [~] Dev and staging (box n1) answer — measured 2026-09-24
-  (`scripts/check-node-images.sh`): dev runs `sha-622a848` of 2026-09-11, that
-  is, none of `day56`; staging answers but does not name its build. Boxes `n2`
-  and `n3` are declared in the inventory with no machines.
-- [~] Article 16 notice intake — the host `report.relay.panov.id` is alive
-  (`/health` 200, `p1-prod`, measured 2026-09-24 — **from Bunny's cache**: the zone serves `/health` and `/ready`
-  with `max-age=2592000`, `cdn-cachedat 09/23/2026`, the node is not asked — `report.zone.cache`), route `POST /report`; not
-  yet shipped to the storefronts in production. Why it moved: the WAF on every
-  zone cuts bodies quoting `<script>` or `../`, and the zone has zero custom
-  rules (`open-work_EN.md`, G12/G13).
-- [ ] **Roll out `day57`.** `day56` was pushed in full on 2026-09-24
-  (`b74b60a`); `day57` on top of it is ahead of `origin/dev` (`cd21688`,
-  2026-09-19); the counts of commits and of unpushed ones are
-  `git rev-list --count origin/dev..day57` and `origin/day57..day57` on the day
-  of the rollout, not from here (panel 2026-09-24).
-  Migrations `022`–`046` have not been applied anywhere: the dev
-  (`sha-622a848`) and production images end at `021`, staging at `010` (by the
-  pinned tags in `relay/wizard/environments.toml`; `schema_migrations` on the
-  boxes was not queried). The draft pairs were squashed on 2026-09-24 in
-  `day57`: `035` into `030`, `036` and `038` into `031`, `037` into `032`,
-  `040` into `039` (9 files into 4, 16 into 11 across `030`–`045`, no
-  renumbering), so `day57` is what rolls out, not `day56`. A merge into `dev`
-  ships only the panel (`deploy-dev.yml`); node n1 goes by
-  `scripts/deploy-relay-dev.sh` after a green build-push. Start with dev (n1),
-  not production.
-- [x] The node's CI runs every database suite: the list is taken from the
-  `--ignore` of `relay/node/deno.json`, 10 suites, 276 tests (`f142f18`,
-  2026-09-24; before it, 9 of the 10 ran only locally). A deliberate break in
-  `queue_metrics.test.ts` went red naming the file.
-- [ ] **Two production defects are fixed by rolling out `day57`** (found by
-  the loop on 2026-09-24): a `/v1` repeat with an `Idempotency-Key` answers 200
-  with no body (`acb7dca`); Article 16 notice snapshots sit in
-  `dsa_notices.snapshot` as a jsonb string, so the panel shows the moderator
-  an escaped line instead of the evidence (`4e54c91`, `db/046` unwraps the
-  rows). The storefronts send no idempotency key, so the first touches only
-  `/v1` clients. In the test database the class is caught by the last step of
-  the run: no jsonb column in the schema holds a string
-  (`tools/check_jsonb_strings.ts`). Production has no such step: after the
-  rollout run the same tool in the node's container and expect zero; a
-  snapshot the old image writes during the migration window or a rollback is
-  still shown as the object by the queue (`routes/dsa.ts`).
-- [ ] `NOT NULL` on the published centre (P5) — only in the rollout after
-  `027`, never in the same one.
-- [~] Nightly backup encryption (P4): the mechanism shipped 2026-09-21
-  (`4a4da9b`); no key on the boxes yet — an owner action: the public half into
-  `backup.env` on p1 and n1, the private half from its file into the password
-  vault. Until then, backups are plaintext. As of 2026-09-24 the private half
-  is still a file.
-- [ ] L1: the waitlist is not in the backup — it lives in Bunny storage, and
-  the backup takes only Postgres.
-- [~] Restore drill — last on 2026-08-07 (`scripts/verify-backup-restore.sh`).
-- [x] Watchdog W3 — queue jobs that ran out of attempts are re-armed every hour,
-  and a node started without its database arms them without a restart; a
-  `prune_dsa_records` tombstone is a letter to `DSA_ESCALATION_EMAILS`, one per
-  tombstone (`scheduled.ts` `rearmPass`, `lib/tombstone_watch.ts`, `db/042`, 6 tests
-  against Postgres, 2026-09-23). Not shipped.
-- [~] Alerts: `relay/local/observability/alerts.yml` and the gate
-  `scripts/check-metrics-exist.sh`, runbook `runbook-node-down_*.md`; not
-  verified to fire in production.
+- [x] Prod is public: `api.relay.panov.id/health` 200, node `p1-prod`, region
+  `eu-nuremberg`, image `v2026.9.11-g8f89e7a`, brands `sosed` and `neighbro`.
+  Measured 2026-09-26.
+- [x] Storefronts `sosed.place` and `neighbro.place`, panel `xor.panov.id` — 200.
+  Measured 2026-09-26. Prod opened 2026-07-27–2026-07-28.
+- [x] Supabase left the path on 2026-07-22: state in our own Postgres next to
+  the node, delivery through Bunny.
+- [~] The dev and staging environments (box n1): pinned tags in
+  `relay/wizard/environments.toml` — dev `sha-622a848` (2026-09-11), staging
+  `v2026.8.14-gc3d10fb`; n1's live answers were not taken on 2026-09-26. Boxes
+  `n2` and `n3` are declared in the inventory without machines.
+- [~] Article 16 notice intake — host `report.relay.panov.id` answers 200
+  (2026-09-26; the zone serves `/health` from the Bunny cache — `report.zone.cache`
+  in `facts/open.tsv`), route `POST /report`; the storefronts are not switched to it.
+  Why a separate host: the WAF of every zone cuts bodies quoting `<script>` or
+  `../`, and the zone has zero rules of its own.
+- [x] The node's gates run the database suites from one list
+  (`relay/node/deno.json`, the single source since 2026-09-26); the full run on tip
+  `55647f2` on 2026-09-26: unit 258, with the database 471 in 22 suites, no failures.
+- [x] The schema upgrade path `021` → `060` over a non-empty database is held by
+  tests (2026-09-26): backfills `027`/`028`/`047`/`049` over live rows, starts from
+  several levels; migration hygiene is a gate (`IF NOT EXISTS`, `NOT NULL` without
+  `DEFAULT` and a backfill, numbering), old violations listed.
+- [~] The live image of 2026-09-11 answers a `/v1` replay with `Idempotency-Key`
+  200 without a body and holds Article 16 notice snapshots as a jsonb string; both
+  are fixed in the `day58` code (`acb7dca`, `4e54c91`, `db/046` unfolds the strings),
+  and in the test database the class is caught by `tools/check_jsonb_strings.ts`.
+- [ ] `NOT NULL` for the published centre is not on
+  (`feed.published.notnull` in `facts/open.tsv`).
+- [~] Encryption of nightly backups: the mechanism was built on 2026-09-21
+  (`4a4da9b`), there is no key on the boxes — the owner's action
+  (`backup.encryption` in `facts/open.tsv`). Until then the backups are plaintext.
+- [ ] The waitlist is not in the backup — it lives in Bunny storage, and the
+  backup takes only Postgres.
+- [~] Restore drill — the last on 2026-08-07 (`scripts/verify-backup-restore.sh`).
+- [x] Watchdogs C1–C3, C6, C7 are built (`watchdogs_EN.md`): the age of Article 16
+  notices, the retry of a letter that did not go, re-arming queue jobs and the
+  `prune_dsa_records` tombstone, the moderation queue's age per brand with a letter
+  from the node no more than once a day (2026-09-26), the C7 letter. The tenth PIN
+  miss's minute job counts what it did, logs the error code and raises two alerts —
+  a take-down put off and one that keeps failing (2026-09-26).
+- [x] Alert rules (`relay/local/observability/alerts.yml`) — each with a `promtool`
+  probe, a gate "rule without a probe"; alert counters are seeded at zero on start,
+  so the first event is visible (2026-09-26). The alerts' work on prod is not verified.
 - [~] Rollback — the procedure exists (`relay/RELEASE_EN.md`, the previous
-  `:vX.Y.Z`), never exercised on a live environment.
-- [ ] Per-address rate limits live in node memory: they do not survive a
-  container rebuild and are not shared between nodes.
+  `:vX.Y.Z`), never rehearsed on the live environment.
+- [~] Per-address rate limits live in the node's memory: they do not survive a
+  container being recreated and are not shared between nodes. An IPv6 address is
+  counted by its /64, IPv4 inside IPv6 (`::ffff:`, NAT64 `64:ff9b::/96`) — in the
+  same bucket as bare IPv4 (2026-09-26, decided by quorum); the per-address limit on
+  entering move codes is no higher than the node's overall brake, so one address
+  cannot pause everyone.
+- [ ] Scrubbing addresses in the node's log: e-mail is cut out, the client IP and
+  the database `address:port` reach the log; a draft without a speed measurement — open.
 
 ## 2. Legal and DSA
 
-- [x] Terms, Privacy, Community Guidelines; operator PSYTICAN & PEJEDED. Both
-  storefronts' `support@` addresses are live per the Article 30 register.
-- [x] Article 30 GDPR record of processing (`article-30-register_EN.md`); its
-  GA4 row is marked "live production not verified".
-- [x] Breach procedure, 72 hours per Article 33 GDPR
-  (`breach-procedure_EN.md`).
-- [x] Mail: Resend on staging and production, Mailpit on dev.
-- [~] DSA notice and decision register in the panel, `GET /statements` —
-  not whole in production until `day56` and the Article 16 intake ship. P3
-  closed 2026-09-21: the list has an `after` cursor, statements past the
-  hundredth are reachable.
-- [~] Watchdog W1 — the age of Article 16 notices (`watchdogs_EN.md`): a letter
-  past 24 hours, an escalation past 48, one per threshold, a letter that did not
-  leave retried in 10 minutes; `lib/dsa_watchdog.ts`, migration `db/041`, 7 tests
-  against Postgres (2026-09-23, panel `reviews/PANEL_2026-09-23_watchdog-c1.md`).
-  Missing — a fallback transport for the escalation, and the
-  `DSA_ESCALATION_EMAILS` addresses are not set on the boxes; not shipped.
-- [~] Watchdog W2 — an arrival letter that did not leave is retried by a
-  standing job every 10 minutes; after 8 failures, a letter to
-  `DSA_ESCALATION_EMAILS`; every new notice is copied there at once (the night
-  path, at most 6 an hour, the rest as one summary after the hour; owner, 2026-09-23).
-  `lib/notice_notify.ts`, `db/043`–`044`, 15 tests against Postgres
-  (2026-09-23). Missing — the fallback transport; not shipped.
-- [x] A notice's one-year term leaves an anonymous count: `prune_dsa_records`
-  deletes and counts by month and kind of target (`db/045`
-  `dsa_notice_counts`, 2026-09-23), as the privacy policy and `dsa/SPEC` §9
-  promise. Not rolled out.
-- [ ] **Bunny transfer outside the EEA: no SCC** (GDPR Chapter V, Art. 44–46) —
+- [x] Terms, Privacy, Community Guidelines; operator PSYTICAN & PEJEDED.
+  The `support@` addresses of both storefronts are live per the Article 30 register.
+- [x] Article 30 GDPR processing register (`article-30-register_EN.md`); its GA4
+  line is marked "live prod not verified".
+- [x] Breach procedure, 72 hours under Article 33 GDPR (`breach-procedure_EN.md`).
+- [x] Mail: Resend on staging and prod, Mailpit on dev.
+- [~] The register of DSA notices and decisions in the panel, `GET /statements`
+  with an `after` cursor; the live node has no Article 16 intake, so the register
+  there is empty.
+- [x] The Article 16(5) decision letter: a delivery mark, a retry by a standing
+  job, after 8 failures — a lasting trace (`db/058`) and an alert (2026-09-26).
+- [x] Watchdog C1 — the age of Article 16 notices: a letter after 24 hours,
+  escalation after 48, one per threshold, one that did not go repeats after
+  10 minutes (`lib/dsa_watchdog.ts`, `db/041`). No fallback transport for the
+  escalation; the `DSA_ESCALATION_EMAILS` addresses are not set on the boxes.
+- [x] Watchdog C2 — the letter about a new notice that did not go repeats every
+  10 minutes; after 8 failures — a letter to `DSA_ESCALATION_EMAILS`; every new
+  notice is copied there at once (at night no more than 6 an hour, the rest as a
+  digest; the owner's decision of 2026-09-23). `lib/notice_notify.ts`, `db/043`–`044`.
+- [x] The one-year notice term leaves an anonymous count: `prune_dsa_records`
+  deletes and counts by month and target kind (`db/045`), as the policy and
+  `dsa/SPEC` §9 promise.
+- [ ] **Bunny transfer outside the EEA: no SCC** (Chapter V GDPR, Articles 44–46) —
   `article-30-register_EN.md`. SCC or a replacement.
-- [x] LAW-7: the abandoned-identity sweeper — built 2026-09-20
-  (`lib/identity_sweeper.ts`: a year without a session closes, 30 days later
-  deletes; tests `identity_sweeper.test.ts`). Until 2026-09-21 this line and the
-  Article 30 register said "not built" — a quorum of agents picked it as the next
-  piece, and reading the code showed it was already there.
-- [ ] J9: recheck micro-enterprise status **by 2027-08-05**. The Art. 19(1)
-  DSA exemption from Art. 20–28 depends on it. There are no transparency
-  reports on the same ground (Art. 15(3), 19(1)); on request — Art. 24(3).
-- [ ] Legal review of the Terms (13+ together with offline meetups).
-- [ ] Legal analysis of saved offers (filed 2026-08-29), three questions:
-  what binds the venue when `discount_until` on a saved card has passed; what
-  to do with the copy of an offer removed after a complaint; whether a saved
-  card is an offer or an invitation to make offers. Details —
-  `legal-review-brief_EN.md`.
-- [~] The Article 17 statement-of-reasons screen for an author without
-  email — drawn 2026-09-21 (frames U, V, W of
-  `panel/design/sheets/screen-06-07-10.svg`, the owner's decisions in screens
-  9 and 14 of the storefronts). Built in the terminal on 2026-09-23
-  (`depth/ink/rooms.ts`, `Statements`; three screen tests, seen red);
-  no web client yet.
+- [x] The abandoned-identity sweeper (`lib/identity_sweeper.ts`): a year without
+  a session closes, 30 days later deletes; held rows are skipped (`SKIP LOCKED`),
+  an identity that finished registering during its query is left alone
+  (2026-09-26, a two-connection test); a frozen session does not extend the year.
+- [ ] J9: re-check the micro-enterprise status **before 2027-08-05**. The
+  exemption under Article 19(1) DSA from Articles 20–28 depends on it. No
+  transparency reports on the same ground (Articles 15(3), 19(1)); on request —
+  Article 24(3).
+- [ ] Legal review of the Terms (13+ together with offline meetings).
+- [ ] Legal analysis of saving an offer (opened 2026-08-29), three questions:
+  what binds the venue once `discount_until` on a saved card has passed; what to
+  do with the copy of an offer taken down on a complaint; is it an offer or an
+  invitation to make offers. In detail — `legal-review-brief_EN.md`.
+- [~] The Article 17 statement screen for an author without e-mail — drawn
+  2026-09-21 (frames U, V, W of sheet `panel/design/sheets/screen-06-07-10.svg`).
+  Built in the terminal on 2026-09-23 (`depth/ink/rooms.ts`, `Statements`); no
+  client on the web.
 
 ## 3. Product: build order (§13 of the chat spec)
 
-The terminal goes first; the web is the last step, over a protocol already
-proven. The server is built ahead of the client; the client is the `depth/core/`
-core without drawing, against a live node (since 2026-09-21).
+The terminal goes first; the web is the last step over an already proven
+protocol. The server is built ahead of the client; the client is the
+`depth/core/` core without rendering, against a live node, and the
+`depth/ink/` screens on top of it.
 
 | Step | Server (`xor.ad/relay/node`) | `depth` client |
 |---|---|---|
-| 1. Identity and session | [x] migration `db/022`; `POST /identities`, `/vault/*`, `/sessions/*`, `/recovery/*`, `PATCH /identities/me` (2026-09-22: the name to the queue, frozen while a phrase lives or a chat is open, age across 20/21 upward only, the filter inside the band; the `name_verdict` frame goes to the author's open rooms since 2026-09-24, no `filter_modes` — the field's meaning is not written down); P2 closed 2026-09-21; `GET/PUT /identities/appearance` — theme, contrast and accent on the node (2026-09-23); `phrases` in `GET /identities/me`; not rolled out | [~] core: registration and the paper code against a live node; PIN, code and share are placeholders; the "me" screen: name and age editing with the approved refusals (2026-09-23) |
-| 2. Feed and geo | [~] migrations `db/025`–`029`; `POST/GET/DELETE /feed`, `/feed/density`, delivery by circles; **no moderating model wired**; a person gives the verdict: `GET /admin/feed-queue` and `POST …/publish`, `…/refuse` are built on the node (2026-09-22, `routes/feed_queue.ts`, five tests), the panel's queue page is built (`panel/src/pages/feed-queue`, mockup `panel/design/feed-queue-mockup.svg`, an e2e verdict test against the stand); refusing the name apart from the phrase is built (2026-09-22: `refuse-name`, the phrase waits for a new name, a match requires `accepted`) — `publish()` is called by hand from that page, only the sweeper runs unattended (`lib/feed_verdict.ts`); the name check at first publication depends on it too; the author's age is computable — accepted cost P1; the `soon` flag in the last 65 minutes of someone else's phrase (2026-09-23); the circle is a choice of delivery, not an access boundary (S1, risk accepted 2026-09-23); not rolled out | [~] core: a phrase and the feed with its cursor; the full-screen card, the node's refusal on publishing in `refusal-wordings`' words (2026-09-23) |
-| 3. Likes | [~] `likes` — `db/030`; `POST /feed/:id/like` (2026-09-21): band, block, self-like without an oracle, a match on a mutual like; `DELETE` — a take-back until a match, else `spent`; a limit of 300 an hour; a sweep of expired matches every minute; missing — the offer's match (unblocked 2026-09-22: `publish` in the queue accepts the name with the same verdict, `name_state = accepted` is the "name checked" mark; the offer's match itself is not built yet); the two-connection test of crossing likes exists since 2026-09-24 — without the pair lock the match is lost, with it the match is made (`feed_publish.test.ts`); liked phrases left the feed for `GET /likes` (2026-09-23) | [~] core: like and take-back; the "liked" screen (2026-09-23) |
-| 4. Match and double consent | [~] `db/030`; `POST /matches/:id/consent` (`waiting`/`agreed`), "not now" and its undo (2026-09-21); `agreed` opens no chat until step 5, the ephemeral key is step 6 | [~] core: consent and "not now"; "not now" and "undo" on the inbox screen (2026-09-23) |
-| 5. Chat: transport | [~] `db/031`: `chats`, `chat_participants`, `chat_starters`; both consenting opens the chat and answers its `chat_id`; `db/032` `pending_deliveries`, sending a ciphertext (202 with no signal of presence) and confirming receipt (2026-09-21); a queue ceiling of 200 pushing out the oldest in silence and a sweep of rows past 260 minutes; `db/033` tickets and the `GET /chat` socket: what waits on connecting, what is new through `NOTIFY`, two `depth` terminals exchange a ciphertext; the end of a conversation — `DELETE /chats/:id`, one's own term, the `sweep_chats` job, the room closes 4003 (2026-09-21); the term's `PATCH`, `POST /chats/alive`, `GET /inbox` (matches and conversations, one's own `my_span`; no `offer_interest`, no second page); stepping away, `POST/DELETE /away` (2026-09-23); a node stopping closes its rooms with 1001 (`main.ts`, `closeAllRooms`; was "missing — 1001" [retired]) | [~] `depth/ink` (2026-09-23): one's own chat span and countdown, the tombstone on 4003, stepping away in full and the "stepped away" mark on a peer; the room reconnects on 1001, 1011 and 1006 after a jittered pause, takes a new ticket on 4001, and a line handed twice is shown once (`depth/core/reconnect.ts`, 2026-09-24); no screens for 4002 and 4004 |
-| 6. Encryption | [~] the ephemeral half, signed by the long key, rides on consent (`db/030`, `routes/matches.ts`); the inbox hands over the peer's half, long key and `me` (2026-09-22); the reissue after a lost pair — `POST /chats/:id/rekey`, the epoch in `db/031` (2026-09-22); missing — `chat_key_wraps` (the web face needs them, not a terminal without a disk) | [~] `depth/core/seal.ts`: ECDH P-256 → HKDF (salt `chat_id`) → two direction keys, AES-GCM with a 96-bit nonce; `Client.consent` publishes the half, `openConversation`/`sayInChat`/`read`; an end-to-end test of two terminals against the node, a reflection does not open (2026-09-22); missing — wraps under the session key, and Ink |
-| 7. Blocks, hiding, sweeping | [~] `POST`/`GET`/`DELETE /blocks` (2026-09-21): by a phrase or a conversation, 204 with no oracle, a `nonce` against replay, the match goes and the conversation ends for both with the room closed 4003; sweepers of matches, the queue and conversations; `db/034` and `/hidden` — hide a phrase for oneself and bring it back; missing — blocking and hiding a line at a table (there are no tables) | [x] `depth/ink` (2026-09-23): "hide" and "block" in the feed, the hidden list with a way back, "end the conversation" and "block" in the chat; blocking asks twice and names what it costs; the core gained `hide`, `hidden`, `unhide`; the "blocked" screen with lifting (2026-09-23) |
+| 1. Identity and session | [x] `db/022`; `POST /identities`, `/vault/*`, `/sessions/*`, `/recovery/*`, `PATCH /identities/me` (the name goes into the queue, a freeze while a phrase or chat is live, age across 20/21 only upwards, the filter within the band with checked bounds — out of bounds 400, 503 only when the database is unavailable); PIN change `POST /vault/pin`, "start over" `POST /identities/close`, a new paper code `POST /recovery/reissue`, revisions `GET /legal/manifest` and `POST /legal/accept`; `quota {used, of, next_at}` in `GET /identities/me`; `GET/PUT /identities/appearance`. **The tenth PIN miss** locks the share, freezes the session and takes down what is live — the phrase, likes, matches, chats — and stands whatever the freeze meets (savepoints through postgres.js, a retry on 40P01, the PIN routes' own `lock_timeout`); what is left undone a minute job finishes with a re-check; the socket, support, consent, move approval and the first PIN read `locked_at` and refuse a locked session (2026-09-26). A fourth bypass is open: routes that waited for the identity's stats behind the take-down write as the locked session after commit. **Move**: a nine-character code, approval on the old device, `reply_envelope` erased on the new session's `ack`, a brake of 50 misses → a 15-minute pause, the state poll has its own limit. The identity sweeper — §2 | [x] The PIN and the paper code are real (2026-09-26): Argon2id with a device salt, a 16-character code wraps the long key, registration waits for the second and fourth groups of the code; `depth restore` — raising by code on a clean process; `depth move` — a move both ways, the new device's first PIN after the move, the outcome as the node decided whatever the network did to the answers; a new code and PIN change from "me"; there is no separate `depth reissue` command and without a volume there cannot be one (`depth-client_EN.md` §3.6); the "me" screen with name and age editing; coming back from a step away from the PIN and code screens; errors reach the screen only through `plain`, without escape sequences |
+| 2. Feed and geo | [~] `db/025`–`029`; `POST/GET/DELETE /feed`, `/feed/density`, delivery by rings; **the moderator model is not connected**; a person gives the verdict: `GET /admin/feed-queue`, `POST …/publish`, `…/refuse`, `refuse-name` (the phrase waits for a new name, a match requires `accepted`), the queue page in the panel with an e2e test; without a person only the cleaner works (`lib/feed_verdict.ts`); watchdog C6 — the queue's age per brand, a letter from the node no more than once a day; the author's age is computable — the accepted price of P1; the `soon` flag in the last 65 minutes of another's phrase; the ring is a delivery choice, not an access boundary (S1, risk accepted 2026-09-23); a live phrase's term is read by one predicate `LIVE_PHRASE` wherever it is read (2026-09-26) | [~] core: phrase and feed with a cursor; a full-screen card, the node's refusal on publishing in `refusal-wordings` words; a terminal with no point yet opens the point on the way to the feed (2026-09-26) |
+| 3. Likes | [~] `likes` — `db/030`; `POST /feed/:id/like`: the band, blocks, a self-like without an oracle, a match on a mutual one; `DELETE` — taking back before a match, otherwise `spent`, taken back only from a live phrase held first, the expired goes to the sweeper (2026-09-26); a limit of 300 an hour; expired matches swept once a minute; a mutual-likes test on two connections; the liked left the feed for `GET /likes`; no match from an offer | [~] core: like and take-back; the "liked" screen |
+| 4. Match and double consent | [~] `db/030`; `POST /matches/:id/consent` (`waiting`/`agreed`), "not now" and its undo; the chat does not open on `agreed` until step 5, the ephemeral key is step 6; consent behind a tenth miss does not pass (2026-09-26) | [~] core: consent and "not now"; "not now" and "bring back" on the inbox screen |
+| 5. Chat: transport | [~] `db/031`: `chats`, `chat_participants`, `chat_starters`; both consents open the chat and return `chat_id`; `db/032` `pending_deliveries`, sending ciphertext (202 without a presence signal) and acknowledging receipt; a queue ceiling of 200 with silent eviction and a sweep of rows older than 260 minutes; `db/033` tickets and the `GET /chat` socket: the accumulated on connect, the new through `NOTIFY`; a session with a locked share gets no room and no lines (2026-09-26); the end of a conversation — `DELETE /chats/:id`, one's own span, the `sweep_chats` sweeper, the room closes with 4003; `PATCH` of the span, `POST /chats/alive`, `GET /inbox` (matches and conversations, one's own `my_span`; without `offer_interest` and a second page); time away `POST/DELETE /away`; a node shutdown closes rooms with code 1001 | [~] `depth/ink`: one's own span and countdown, a tombstone on 4003, time away in full and the "away" mark on the other side; room reconnect on 1001, 1011 and 1006 with a pause and jitter, a new ticket on 4001, a line delivered twice shows once (`depth/core/reconnect.ts`); the queue of lines before consent with a ceiling in the core without a screen (2026-09-26); no screens for 4002 and 4004 |
+| 6. Encryption | [~] the ephemeral half signed by the long key rides on consent (`db/030`, `routes/matches.ts`), the inbox returns the other's half, the long key and `me`; rekey after losing the pair — `POST /chats/:id/rekey`, the epoch in `db/031`; missing — `chat_key_wraps` (needed by the web face, not by a diskless terminal) | [~] `depth/core/seal.ts`: ECDH P-256 → HKDF (salt `chat_id`) → two direction keys, AES-GCM with a 96-bit nonce; `Client.consent` publishes the half, `openConversation`/`sayInChat`/`read`; an end-to-end test of two terminals against the node, a reflection does not open; missing — wraps under the session key |
+| 7. Blocks, hiding, cleanup | [~] `POST`/`GET`/`DELETE /blocks`: by phrase or conversation, 204 without an oracle, a `nonce` against replay, kills the match and ends the conversation for both with the room closing 4003; sweepers of matches, the queue and conversations; `db/034` and `/hidden` — hide a phrase for oneself only and bring it back, an index on `hidden_messages.feed_message_id` (`db/060`); missing — blocking and hiding a line at a table (there are no tables) | [x] `depth/ink`: "hide" and "block" in the feed, the hidden screen with bring-back, "end the conversation" and "block" in the chat; blocking asks twice and names the consequence; the "blocked" screen with unblocking |
 | 8. Notifications and games | [ ] | [ ] |
-| 9. Web face | — | [ ] prototype exists, app does not |
-| Offers (outside §13) | [~] `db/050`: `advertisers`, `venues`, `offers`; `GET /o/:code` (the interstitial: the domain and whether the link is off) and `/o/:code/go` (302, a count with no person, previewers and HEAD not counted, a limit per address), 9bfb5f0 and a62bbb9; the link goes out with the offer too — hidden by complaints or its discount over, decided by quorum on 2026-09-24 (98e0c84); not yet — complaints about a link `/o/:code/report` (waits for the letter to the venue under Art. 17), the `/adv/*` dashboard | [ ] |
+| 9. Web face | — | [ ] a prototype exists, no application |
+| Offers (outside §13) | [~] `db/050`: `advertisers`, `venues`, `offers`; `GET /o/:code` (the exit screen: the domain and whether the link is spent) and `/o/:code/go` (302, counted without a person, previewers and HEAD do not count, a per-address limit); the link goes dark with the offer — hidden on complaints or with the discount expired (quorum 2026-09-24); missing — complaints about the link `/o/:code/report`, the `/adv/*` cabinet | [ ] |
 
-All eleven tables of the first cut (§13) exist: six before 2026-09-21, `likes`,
-`matches`, `match_participants`, `blocks` by migration `db/030`, `support_requests`
-by `db/039` (2026-09-22). Migrations in `relay/node/db` — 49 files, the last `057` (measured late on the evening of 2026-09-24; 43 and `051` in the evening [retired]; was "37, the last `045`" after the squash [retired]).
+All eleven tables of the first cut (§13) exist. Migrations in `relay/node/db` —
+52 files, the last `060` (measured 2026-09-26). 739 tests: the node 692,
+`testing/e2e` 10, the panel 32 and 5 (`scripts/count-tests.sh`, 2026-09-26).
 
-Chat code was cleared by the owner's word on 2026-09-21.
-
-**Built on 2026-09-24, not rolled out** (git `day57`): changing the PIN `POST /vault/pin` (63ac60e), "start over" `POST /identities/close` (dd16011), a new paper code `POST /recovery/reissue` (dd40dc6), the legal revisions `GET /legal/manifest` and `POST /legal/accept` (29cdd5d); the request dispatcher moved to `relay/node/src/dispatch.ts`, and HEAD is checked through it (b6819f5); `/ready` answers 503 for a staging or prod node with no database (d60fdac); DELETE `/away` no longer wakes the rooms a second time after the minute's job (19a014d). 571 tests (`scripts/count-tests.sh`, the evening of 2026-09-24).
+Chat code was allowed by the owner's word on 2026-09-21.
 
 ## 4. Storefronts and panel
 
-- [x] Landing pages of both storefronts: themes, accents, i18n, waitlist,
-  `legal.html`.
+- [x] Landings of both storefronts: themes, accents, i18n, waitlist, `legal.html`.
 - [x] App screen mockups are assembled from the kit (`panel/design/sheets`,
-  `panel/design/kit`), with a gallery and text gates.
-- [x] Panel: link sign-in, API keys and secret keys with quotas, brands, panel
-  users, waitlist, logs, DSA notice register.
-- [ ] Translation of the app strings: only a language selector exists, in the
-  prototype.
+  `panel/design/kit`), a gallery and text gates.
+- [x] Panel: sign-in by link, API keys and secret keys with quotas, brands,
+  panel users, waitlist, logs, the DSA notice register, the feed queue, support.
+- [ ] Translation of the app's strings: today only a language selector in the prototype.
 
-## 5. Review panel leftovers, 2026-09-21
+## 5. Review panels
 
-The first panel (`PANEL_2026-09-21_steps1-2.md`) is closed in full. The second
-(`PANEL_2026-09-21_day-fixes.md`) is closed in full on 2026-09-21: task 7 by
-`6dd62de`, 8 by `ae65510`, 5 by `2bde94b`. The 2026-09-23 panels
-(`PANEL_2026-09-23_*.md`, eight reports): findings were closed the same day by the
-"Close what the panel found…" commits; the reports were not checked line by line
-in this cut.
+Protocols — `reviews/PANEL_*.md`. The panels of 2026-09-21–2026-09-23 were
+closed by commits of the same days. Over the 2026-09-26 shifts on `day58` five
+panels ran (`PANEL_2026-09-26_day58-artel.md`, `…-artel-2..5.md`): findings were
+closed by tasks B26–B105, all merged; a sixth panel was started and not finished.
+From here on — one panel per wave, only the "Security" lens plus `verifier`;
+findings go as a line into `facts/open.tsv`, not as new tasks of the same wave
+(`parallel-sessions_EN.md` §2).
 
 ## Open questions
 
-- Minimum age: 13+ now; a lawyer may insist on 16+. The Art. 8 GDPR consent
-  threshold applies only to processing based on consent.
-- The accent set and the brand reference typeface — open in the 7 July
-  snapshot; whether they were settled has not been checked.
+- Minimum age: 13+ now, the lawyer may insist on 16+. The Article 8 GDPR
+  consent threshold concerns only processing based on consent.
+- The set of accents and the brand's reference font — were open in the 7 July
+  snapshot; whether they were decided is not checked.

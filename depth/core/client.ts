@@ -10,10 +10,11 @@
 // process.
 
 import { base64url, signRequest, type SigningKey } from "./sign.ts";
-import { Conversation, Ephemeral, safetyCode, verifyHalf } from "./seal.ts";
+import { Conversation, Ephemeral, fromBase64url, safetyCode, verifyHalf } from "./seal.ts";
 import { derivePin, newDeviceSalt } from "./pin.ts";
 import { derivePaperCode, wrapLongKey } from "./paper.ts";
 import { PendingQueue } from "./pending.ts";
+import { decodeSealable, encodeSealable, open as openSealed, seal, vaultKey } from "./lock.ts";
 
 const PROTOCOL_MAJOR = "1";
 const random = (n: number) => crypto.getRandomValues(new Uint8Array(n));
@@ -106,6 +107,20 @@ export class Client {
   // meant for strangers. Unset outside tests — the edge sets these, not a client.
   #edge: Record<string, string> = {};
 
+  // ── The lock (lock.ts; depth-client §, 2026-09-17) ──
+  // The PIN's local half and the share the node keeps, from the last time the
+  // PIN was set or proved on this device: the vault key is HKDF of the two.
+  // Absent on a path that set no PIN here (a same-device raise by the paper
+  // code) — then the lock gates but seals nothing, and says so.
+  #pinLocal: Uint8Array | null = null;
+  #share: Uint8Array | null = null;
+  #locked = false;
+  #sealed: Uint8Array | null = null;
+
+  get locked(): boolean {
+    return this.#locked;
+  }
+
   constructor(private readonly base: string, private readonly apiKey: string) {
     // Deno in the tests, Node under the terminal face: the same variable, and
     // neither runtime's absence may throw here.
@@ -127,6 +142,9 @@ export class Client {
     headers["x-api-key"] = this.apiKey;
     if (signed) {
       if (!this.#key) throw new Error("not registered: there is no key to sign with");
+      // Locked: nothing signed leaves but the proof that opens it (§8.2). The
+      // words are the screen's to translate; the core states the fact.
+      if (this.#locked && !(method === "POST" && path === "/vault/share")) throw new Error("locked: the PIN opens it");
       Object.assign(headers, await signRequest(this.#key, this.#session, method, url, raw));
     }
     const response = await fetch(url, { method, headers, body: body === undefined ? undefined : raw, signal });
@@ -176,6 +194,9 @@ export class Client {
     const long = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
     const { wrapped, privateKey } = await wrapLongKey(long.privateKey, paper.wrapKey);
     const held = opts.hold ? await opts.hold(long.privateKey) : null;
+    // The node's half of the vault key is made here and kept here too: the lock
+    // seals under HKDF(local ‖ share) without asking the node (lock.ts).
+    const share = random(32);
     const key: SigningKey = {
       privateKey,
       publicSpki: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", long.publicKey))),
@@ -187,7 +208,7 @@ export class Client {
       name: who.name,
       age: who.age,
       auth_hash: await sha256hex(pin.auth),
-      share: base64url(random(32)),
+      share: base64url(share),
       recovery_lookup_id: paper.lookupId,
     }, false);
     if (answer.status !== 200) throw new Error(`registration refused: ${answer.status} ${JSON.stringify(answer.body)}`);
@@ -196,6 +217,8 @@ export class Client {
     this.#deviceSalt = salt;
     this.#wrappedLongKey = wrapped;
     this.#held = held;
+    this.#pinLocal = pin.local;
+    this.#share = share;
     this.#session = answer.body.session_id;
     this.identityId = answer.body.identity_id;
     return { identityId: this.identityId, sessionId: this.#session };
@@ -222,13 +245,21 @@ export class Client {
   // pin_mismatch with attempts_left, the tenth pin_locked and the session
   // frozen — the same counter as every other proof of the PIN.
   async changePin(current: string, next: string): Promise<Answer<{ error?: { code?: string; attempts_left?: number } }>> {
-    const [proof, fresh] = await Promise.all([this.#pinProof(current), this.#pinProof(next)]);
-    return this.#call("POST", "/vault/pin", {
+    if (!this.#deviceSalt) throw new Error("not registered: there is no device salt to derive the PIN with");
+    const [proof, fresh] = await Promise.all([this.#pinProof(current), derivePin(next, this.#deviceSalt)]);
+    const nextShare = random(32);
+    const answer = await this.#call<{ error?: { code?: string; attempts_left?: number } }>("POST", "/vault/pin", {
       nonce: base64url(random(16)),
       current_auth: base64url(proof),
-      next_auth_hash: await sha256hex(fresh),
-      next_share: base64url(random(32)),
+      next_auth_hash: await sha256hex(fresh.auth),
+      next_share: base64url(nextShare),
     });
+    // The vault key follows the PIN: the next lock seals under the new halves.
+    if (answer.status === 200) {
+      this.#pinLocal = fresh.local;
+      this.#share = nextShare;
+    }
+    return answer;
   }
 
   // POST /identities/close — "start again" (§8.2, screen 12): confirmed by the
@@ -264,7 +295,7 @@ export class Client {
     return this.#call("PATCH", "/identities/me", patch);
   }
 
-  // POST /feed — 202 means "being read", not "published" (§8.3).
+  // POST /feed — 200 {state: "published"} to a clean phrase, 202 "checking" to one the queue reads (§8.3; P1, 26.09.2026).
   say(phrase: { text: string; mode: string; lat: number; lon: number; radius: Radius }): Promise<Answer> {
     return this.#call("POST", "/feed", {
       text: phrase.text, mode: phrase.mode, lat: phrase.lat, lon: phrase.lon, area_radius: phrase.radius,
@@ -766,13 +797,87 @@ export class Client {
   // this device, if it had one, proves nothing any more.
   async firstPin(pin: string): Promise<Answer<{ error?: { code?: string } }>> {
     const salt = newDeviceSalt();
-    const proof = (await derivePin(pin, salt)).auth;
+    const derived = await derivePin(pin, salt);
+    const share = random(32);
     const answer = await this.#call<{ error?: { code?: string } }>("POST", "/vault/init", {
-      auth_hash: await sha256hex(proof),
-      share: base64url(random(32)),
+      auth_hash: await sha256hex(derived.auth),
+      share: base64url(share),
     });
-    if (answer.status === 204 || answer.status === 200) this.#deviceSalt = salt;
+    if (answer.status === 204 || answer.status === 200) {
+      this.#deviceSalt = salt;
+      this.#pinLocal = derived.local;
+      this.#share = share;
+    }
     return answer;
+  }
+
+  // ── The lock (depth-client §, 2026-09-17; lock.ts) ──
+  //
+  // Five minutes without a key: the screen is the face's to wipe and the rooms
+  // are its to close (unmounting them does); the core, from here, refuses every
+  // signed call but the proof that opens it, and puts away what it can write
+  // down — the long key's extractable copy and the copy wrapped under the paper
+  // code — under HKDF(local ‖ share). `sealed: false` names the one path that
+  // set no PIN on this device, where the gate is all there is.
+  async lock(): Promise<{ sealed: boolean }> {
+    if (this.#locked) return { sealed: this.#sealed !== null };
+    this.#locked = true;
+    if (!this.#pinLocal || !this.#share) return { sealed: false };
+    const key = await vaultKey(this.#pinLocal, this.#share);
+    const doc: { longPkcs8?: string; wrappedLongKey?: string } = {};
+    if (this.#held) {
+      doc.longPkcs8 = base64url(await this.#held.use(async (k) => new Uint8Array(await crypto.subtle.exportKey("pkcs8", k))));
+    }
+    if (this.#wrappedLongKey) doc.wrappedLongKey = base64url(this.#wrappedLongKey);
+    this.#sealed = await seal(key, encodeSealable(doc));
+    // Nothing that went into the seal stays out of it. The local half goes too:
+    // from here only the PIN, typed again, brings it back. The salt stays — it
+    // is what the PIN is derived with, and it is not a secret.
+    this.#held = null;
+    this.#wrappedLongKey = null;
+    if (this.#long && doc.longPkcs8) this.#long = { privateKey: null as unknown as CryptoKey, publicSpki: this.#long.publicSpki };
+    this.#pinLocal = null;
+    this.#share = null;
+    return { sealed: true };
+  }
+
+  // POST /vault/share with the PIN's proof: the node counts the attempt and,
+  // on the right PIN, hands back the share; the vault key opens the seal.
+  // Anything but 200 is the node's refusal, returned as it came (pin_mismatch
+  // with attempts_left, pin_locked, rate_limited with retryAfter) for the
+  // screen to say. `hold` is the keeper for the long key, as register takes it.
+  async unlock(
+    pin: string,
+    opts: { hold?: (extractable: CryptoKey) => Promise<HeldLongKey> } = {},
+  ): Promise<{ ok: true } | { ok: false; answer: Answer<{ error?: { code?: string; attempts_left?: number } }> }> {
+    if (!this.#locked) return { ok: true };
+    if (!this.#deviceSalt) throw new Error("locked without a device salt: there is no PIN to prove");
+    const derived = await derivePin(pin, this.#deviceSalt);
+    const answer = await this.#call<{ share?: string; error?: { code?: string; attempts_left?: number } }>(
+      "POST", "/vault/share", { auth: base64url(derived.auth) },
+    );
+    if (answer.status !== 200 || typeof answer.body?.share !== "string") return { ok: false, answer };
+    const share = fromBase64url(answer.body.share);
+    if (this.#sealed) {
+      const doc = decodeSealable(await openSealed(await vaultKey(derived.local, share), this.#sealed));
+      if (doc.wrappedLongKey) this.#wrappedLongKey = fromBase64url(doc.wrappedLongKey);
+      if (doc.longPkcs8) {
+        const pkcs8 = fromBase64url(doc.longPkcs8);
+        const extractable = await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, { name: "ECDSA", namedCurve: "P-256" }, true, ["sign"]);
+        if (opts.hold) this.#held = await opts.hold(extractable);
+        if (this.#long) {
+          this.#long = {
+            privateKey: await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]),
+            publicSpki: this.#long.publicSpki,
+          };
+        }
+      }
+      this.#sealed = null;
+    }
+    this.#pinLocal = derived.local;
+    this.#share = share;
+    this.#locked = false;
+    return { ok: true };
   }
 }
 

@@ -5,7 +5,9 @@ import { afterClose, reconnectDelay } from "./reconnect.ts";
 Deno.test("each close code gets the protocol's answer", () => {
   assertEquals(afterClose(4003), "over");
   for (const code of [1001, 1011, 1006, 4001]) assertEquals(afterClose(code), "reconnect", `code ${code}`);
-  for (const code of [1000, 4002, 4004, 4005]) assertEquals(afterClose(code), "stay", `code ${code}`);
+  assertEquals(afterClose(4002), "moved", "a move must end every room, not leave it silent");
+  assertEquals(afterClose(4004), "update", "an unsupported protocol must call for an update");
+  for (const code of [1000, 4005]) assertEquals(afterClose(code), "stay", `code ${code}`);
 });
 
 Deno.test("the pause doubles to a ceiling, and never lands everyone at once", () => {

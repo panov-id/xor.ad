@@ -212,5 +212,10 @@
   "move.deriving": "Schlüssel werden aus dem Code berechnet…",
   "move.inWait": "Vergleichen Sie diese vier Zeichen mit dem Bildschirm des bisherigen Geräts und drücken Sie dort „das bin ich“. Hier warten wir.",
   "move.arrivedTitle": "Die Identität ist hier",
-  "move.arrived": "Auf diesem Gerät gibt es keinen Verlauf — hier ist es vorerst leer. Die bisherigen Unterhaltungen sind da, schweigen aber, bis ihr Schlüssel neu ausgegeben ist."
+  "move.arrived": "Auf diesem Gerät gibt es keinen Verlauf — hier ist es vorerst leer. Die bisherigen Unterhaltungen sind da, schweigen aber, bis ihr Schlüssel neu ausgegeben ist.",
+  "lock.prompt": "PIN ›",
+  "closed.movedTitle": "Die Identität ist fort",
+  "closed.moved": "Die Identität wurde auf ein anderes Gerät übertragen; hier ist nichts mehr von ihr.",
+  "closed.updateTitle": "depth braucht ein Update",
+  "closed.update": "Der Knoten spricht eine andere Protokollversion. Aktualisiere depth und starte es neu."
 }

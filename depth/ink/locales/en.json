@@ -212,5 +212,10 @@
   "move.deriving": "deriving the keys from the code…",
   "move.inWait": "Compare these four characters with the old device's screen and press \"it's me\" there. Waiting here.",
   "move.arrivedTitle": "The identity is here",
-  "move.arrived": "There is no history on this device — it is empty here for now. The earlier conversations are in place but silent until their key is reissued."
+  "move.arrived": "There is no history on this device — it is empty here for now. The earlier conversations are in place but silent until their key is reissued.",
+  "lock.prompt": "PIN ›",
+  "closed.movedTitle": "The identity has left",
+  "closed.moved": "The identity was moved to another device; nothing of it is left here.",
+  "closed.updateTitle": "depth needs an update",
+  "closed.update": "The node speaks another version of the protocol. Update depth and start it again."
 }

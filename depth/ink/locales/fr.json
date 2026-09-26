@@ -212,5 +212,10 @@
   "move.deriving": "calcul des clés à partir du code…",
   "move.inWait": "Comparez ces quatre caractères avec l'écran de l'ancien appareil et appuyez là-bas sur « c'est moi ». Ici, on attend.",
   "move.arrivedTitle": "L'identité est ici",
-  "move.arrived": "Il n'y a pas d'historique sur cet appareil — c'est vide pour l'instant. Les conversations précédentes sont là mais muettes tant que leur clé n'est pas réémise."
+  "move.arrived": "Il n'y a pas d'historique sur cet appareil — c'est vide pour l'instant. Les conversations précédentes sont là mais muettes tant que leur clé n'est pas réémise.",
+  "lock.prompt": "PIN ›",
+  "closed.movedTitle": "L’identité est partie",
+  "closed.moved": "L’identité a été transférée sur un autre appareil ; il n’en reste rien ici.",
+  "closed.updateTitle": "depth doit être mis à jour",
+  "closed.update": "Le nœud parle une autre version du protocole. Mettez depth à jour et relancez-le."
 }

@@ -264,7 +264,7 @@ const SPANS = [10, 30, 60, 260] as const;
 type Span = (typeof SPANS)[number];
 
 export function Chat(
-  { say, client, chatId, matchId, name, age, limit, span: startSpan, endsAt: startEnds, onBack, onFeed, onError }: {
+  { say, client, chatId, matchId, name, age, limit, span: startSpan, endsAt: startEnds, onBack, onFeed, onError, onClosed }: {
     say: Say;
     client: Client;
     chatId: string;
@@ -280,6 +280,9 @@ export function Chat(
     // The tombstone's one way out (refusal-wordings: "Back to the feed").
     onFeed?: () => void;
     onError: (message: string) => void;
+    // 4002 and 4004 (protocol §4.4, core/reconnect.ts): not this room's end but
+    // the session's; the face draws their screens (screens/closed.ts).
+    onClosed?: (code: number) => void;
   },
 ): ReactElement {
   const [lines, setLines] = useState<Array<{ mine: boolean; text: string; broken?: boolean }>>([]);
@@ -402,6 +405,11 @@ export function Chat(
         if (action === "over") {
           live = false;
           end(Math.floor(Date.now() / 1000) >= endsAtRef.current ? "expired" : "ended");
+          return;
+        }
+        if (action === "moved" || action === "update") {
+          live = false;
+          onClosed?.(closedWith);
           return;
         }
         if (action === "stay") return;

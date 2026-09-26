@@ -212,5 +212,10 @@
   "move.deriving": "wyliczamy klucze z kodu…",
   "move.inWait": "Porównaj te cztery znaki z ekranem poprzedniego urządzenia i naciśnij tam „to ja”. Tutaj czekamy.",
   "move.arrivedTitle": "Tożsamość jest tutaj",
-  "move.arrived": "Na tym urządzeniu nie ma historii — na razie jest tu pusto. Wcześniejsze rozmowy są na miejscu, ale milczą, dopóki klucz rozmowy nie zostanie wydany ponownie."
+  "move.arrived": "Na tym urządzeniu nie ma historii — na razie jest tu pusto. Wcześniejsze rozmowy są na miejscu, ale milczą, dopóki klucz rozmowy nie zostanie wydany ponownie.",
+  "lock.prompt": "PIN ›",
+  "closed.movedTitle": "Tożsamość odeszła",
+  "closed.moved": "Tożsamość przeniesiono na inne urządzenie; tutaj nic z niej nie zostało.",
+  "closed.updateTitle": "depth wymaga aktualizacji",
+  "closed.update": "Węzeł mówi inną wersją protokołu. Zaktualizuj depth i uruchom go ponownie."
 }

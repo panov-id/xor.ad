@@ -9,14 +9,18 @@
 // dropped with no close frame at all — the network, not the node, and the
 // same answer as 1001.
 
-export type CloseAction = "over" | "reconnect" | "stay";
+// "moved": 4002, the identity left this device (a move) — the room is dead for
+// good and so is every other; "update": 4004, the node no longer speaks this
+// protocol version. Each has a screen of its own (depth/ink/screens/closed.ts).
+export type CloseAction = "over" | "reconnect" | "stay" | "moved" | "update";
 
 export function afterClose(code: number): CloseAction {
   if (code === 4003) return "over";
   // 4001: the ticket went stale; a new one is taken on the way back in.
   if (code === 1001 || code === 1011 || code === 1006 || code === 4001) return "reconnect";
-  // 1000 is one's own close; 4002 (moved), 4004 (update) and 4005 (a seat)
-  // have screens of their own that depth does not draw yet.
+  if (code === 4002) return "moved";
+  if (code === 4004) return "update";
+  // 1000 is one's own close; 4005 (a seat) has no table to lose yet.
   return "stay";
 }
 

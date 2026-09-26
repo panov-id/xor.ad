@@ -1,3 +1,5 @@
+> **Archived 2026-09-26 — not a witness.** Moved into `docs/archive/` as it was; check the state it describes against the code, `docs/roadmap_EN.md` and `docs/facts/`.
+
 # Chat: decentralized node pool — ideas (starting point)
 
 > Status: **brainstorm, not a decision.** Captured chat/app ideas so there's a

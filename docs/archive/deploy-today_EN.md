@@ -1,3 +1,5 @@
+> **Archived 2026-09-26 — not a witness.** Moved into `docs/archive/` as it was; check the state it describes against the code, `docs/roadmap_EN.md` and `docs/facts/`.
+
 # DEPLOY TODAY — dev + uat runbook (landings + panel)
 
 > **Note: describes the previous stack.** Supabase is no longer used — not its

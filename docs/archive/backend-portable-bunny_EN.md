@@ -1,3 +1,5 @@
+> **Archived 2026-09-26 — not a witness.** Moved into `docs/archive/` as it was; check the state it describes against the code, `docs/roadmap_EN.md` and `docs/facts/`.
+
 # Portable backend on your own containers (Bunny-first, no lock-in)
 
 > **Historical document.** It records how the backend was chosen in July 2026 and

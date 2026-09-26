@@ -7,7 +7,7 @@
 // seal is the one the wrap was made for. The phrase and the likes have no
 // screen; they go through the page's own client (window.xor), as chat.spec.
 
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
 
 const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 const PIN = "246813";

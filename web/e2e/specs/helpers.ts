@@ -3,7 +3,7 @@
 // typed back — and the feed answering 200. Shared so that two specs cannot
 // drift in what "registered" means.
 
-import { expect, type Page } from "@playwright/test";
+import { expect, type Page } from "../fixtures/address.ts";
 
 export const PIN = "123456";
 

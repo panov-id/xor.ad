@@ -4,7 +4,7 @@
 // "start again", after which the device remembers nothing. Every step is
 // read back from the node's answers, not from the screen alone.
 
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../fixtures/address.ts";
 import { PIN, register, unlock, watch } from "./helpers.ts";
 
 test("me: the name to the queue, the PIN changed and the vault re-sealed, away and back, start again", async ({ page }) => {

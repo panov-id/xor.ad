@@ -5,7 +5,7 @@
 // device opens with the new PIN. The old device is frozen by the raise
 // (§8.2: one live session), which the node says with a 401 to its next call.
 
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../fixtures/address.ts";
 import { register, unlock, watch } from "./helpers.ts";
 
 test("the paper code raises the identity on a clean device, sealed under a new PIN", async ({ browser }) => {

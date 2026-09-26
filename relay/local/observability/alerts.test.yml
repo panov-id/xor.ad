@@ -927,3 +927,41 @@ tests:
       - eval_time: 40m
         alertname: TakeDownPinLimitDeferred
         exp_alerts: []
+
+  # TakeDownPinLimitFailing (B100): a person failing every minute from 2m makes
+  # the expression true from 2m; for: 15m — quiet at 16m, firing at 17m. The
+  # deferred alert stays quiet: a failure is not a lock.
+  - name: a take-down failing every minute for a quarter of an hour fires
+    interval: 1m
+    input_series:
+      - series: 'relay_take_down_pin_limit_total{result="failed"}'
+        values: '0 0 1+1x40'
+      - series: 'relay_take_down_pin_limit_total{result="deferred"}'
+        values: '0x42'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: TakeDownPinLimitFailing
+        exp_alerts: []
+      - eval_time: 17m
+        alertname: TakeDownPinLimitFailing
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Минутная задача снятия после десятого неверного ПИНа падает"
+              description: "Минутная задача четверть часа подряд падает на одной или нескольких личностях с закрытым входом — не на блокировке, а на ошибке. Сама она не пройдёт: у человека остаётся живая сессия или живое под именем. Смотреть журнал узла: «failed; the next minute tries again» с идентификатором и текстом ошибки."
+      - eval_time: 40m
+        alertname: TakeDownPinLimitDeferred
+        exp_alerts: []
+
+  # One failure — a restart, a dropped connection — and then done: quiet.
+  - name: a single failed take-down is not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_take_down_pin_limit_total{result="failed"}'
+        values: '0 0 1x40'
+      - series: 'relay_take_down_pin_limit_total{result="taken"}'
+        values: '0+1x42'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: TakeDownPinLimitFailing
+        exp_alerts: []

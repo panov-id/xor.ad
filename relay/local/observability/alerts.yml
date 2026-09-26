@@ -164,6 +164,21 @@ groups:
           summary: "Снятие после десятого неверного ПИНа откладывается"
           description: "Минутная задача полчаса не может заморозить сессию или снять живое у личности с закрытым входом. Код ошибки — в журнале узла."
 
+      # The same job meeting something other than a lock (B93): one person's
+      # pass logged, counted failed and passed over, the rest done. Not the
+      # alert above, by cause and by what to look at: a lock lets go and is
+      # watched for half an hour; an error is code or data, it fails the same
+      # person every minute and does not pass on its own. A quarter of an hour
+      # of failing every five minutes, so a single failure — a restart, a
+      # dropped connection — stays quiet (B100, 2026-09-26).
+      - alert: TakeDownPinLimitFailing
+        expr: sum(increase(relay_take_down_pin_limit_total{result="failed"}[5m])) > 0
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "Минутная задача снятия после десятого неверного ПИНа падает"
+          description: "Минутная задача четверть часа подряд падает на одной или нескольких личностях с закрытым входом — не на блокировке, а на ошибке. Сама она не пройдёт: у человека остаётся живая сессия или живое под именем. Смотреть журнал узла: «failed; the next minute tries again» с идентификатором и текстом ошибки."
+
       # A right paper code the node could not write (relay/node/src/routes/
       # identity.ts, claim on a new device). There is no retry on the person's
       # side worth the name: they hold the code and got 503, so one is enough.

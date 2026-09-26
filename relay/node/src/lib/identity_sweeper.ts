@@ -59,6 +59,22 @@ export const DELETION_DELAY_DAYS = 30; // identity.deletion.delay
 export const BATCH = 2000;
 const MAX_BATCHES = 500;
 
+// The statements that DELETE identities take fewer rows at a time, and the
+// reason is the foreign keys, not the locks. Thirteen tables point at
+// identities, so a DELETE of one row fires thirteen checks, and a statement of
+// BATCH rows fires 26 000 of them: 97% of that statement's time (2451 of
+// 2525 ms, EXPLAIN ANALYZE on a migrated database, 2026-09-26). Every one of
+// the thirteen columns is indexed; what the statement costs is the fan-out,
+// and it grows with the host's load, not with the data. Measured the same day
+// on one database, sizes interleaved, under stress-ng --cpu 8: 2000 rows took
+// 702-808 ms, 200 rows 85-114 ms — linear. Under the load of five sessions'
+// suites the 2000-row statement reached statement_timeout (15 s, db.ts) and
+// the pass died with the rows in place (open.tsv relay.sweeper.flaky). 200 is
+// that failure point divided by ten. The ceiling of MAX_BATCHES stays, so a
+// pass deletes at most 100 000 rows and leaves the rest for the next hour
+// rather than outliving the job's lease (quorum of the coordinator, B23).
+export const DELETE_BATCH = 200;
+
 export interface SweepResult {
   unfinished: number;
   closed: number;
@@ -66,9 +82,9 @@ export interface SweepResult {
 }
 
 // Runs one statement over and over until it stops finding work, or until the
-// ceiling. The statement is expected to carry its own LIMIT and to answer with
-// the number of rows it took.
-async function inBatches(statement: string): Promise<number> {
+// ceiling. The statement is expected to carry its own LIMIT of `size` and to
+// answer with the number of rows it took.
+async function inBatches(statement: string, size: number): Promise<number> {
   let total = 0;
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
     const rows = await queryOrThrow<{ count: string }>(statement);
@@ -76,7 +92,7 @@ async function inBatches(statement: string): Promise<number> {
     total += took;
     // Short of a full batch means the work ran out; asking again would cost a
     // statement to learn nothing.
-    if (took < BATCH) break;
+    if (took < size) break;
   }
   return total;
 }
@@ -401,11 +417,12 @@ export async function sweepIdentities(): Promise<SweepResult> {
        SELECT id FROM identities
         WHERE signup_completed_at IS NULL
           AND created_at < now() - interval '${UNFINISHED_SIGNUP_HOURS} hours'
-        LIMIT ${BATCH}
+        LIMIT ${DELETE_BATCH}
      ), gone AS (
        DELETE FROM identities WHERE id IN (SELECT id FROM doomed) RETURNING 1
      )
      SELECT count(*)::text AS count FROM gone`,
+    DELETE_BATCH,
   );
 
   // No index serves this one, and that is deliberate: its condition matches
@@ -421,11 +438,12 @@ export async function sweepIdentities(): Promise<SweepResult> {
        SELECT id FROM identities
         WHERE closed_at IS NOT NULL
           AND closed_at < now() - interval '${DELETION_DELAY_DAYS} days'
-        LIMIT ${BATCH}
+        LIMIT ${DELETE_BATCH}
      ), gone AS (
        DELETE FROM identities WHERE id IN (SELECT id FROM doomed) RETURNING 1
      )
      SELECT count(*)::text AS count FROM gone`,
+    DELETE_BATCH,
   );
 
   const result = { unfinished, closed, deleted };

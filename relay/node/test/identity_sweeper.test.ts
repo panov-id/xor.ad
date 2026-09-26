@@ -50,6 +50,22 @@ async function identity(
   return { identityId, sessionId };
 }
 
+// A test's own rows, deleted the way the sweeper deletes: DELETE_BATCH at a
+// time. One statement over two thousand identities fires thirteen foreign-key
+// checks per row and outlives statement_timeout under load — the failure B23
+// moved the sweeper off, which a clean-up must not bring back.
+async function deleteNamed(name: string): Promise<void> {
+  for (;;) {
+    const [gone] = await database.queryOrThrow<{ n: string }>(
+      `WITH doomed AS (SELECT id FROM identities WHERE name = $1 LIMIT ${sweeper.DELETE_BATCH}),
+            gone AS (DELETE FROM identities WHERE id IN (SELECT id FROM doomed) RETURNING 1)
+       SELECT count(*)::text AS n FROM gone`,
+      [name],
+    );
+    if (Number(gone.n) < sweeper.DELETE_BATCH) return;
+  }
+}
+
 const identityRow = async (id: string) =>
   (await database.queryOrThrow<
     {
@@ -189,8 +205,9 @@ Deno.test("a sweep bigger than one batch still takes everything", async () => {
   // What that leaves to test is the loop's own arithmetic: it must come back
   // for more while a batch comes back full, and stop as soon as one does not.
   // The batch size is read from the module so this case measures the loop
-  // rather than a number copied into a test.
-  const overOneBatch = sweeper.BATCH + 3;
+  // rather than a number copied into a test — the deleting statements' own,
+  // DELETE_BATCH, since B23 made it smaller than the closing ones'.
+  const overOneBatch = sweeper.DELETE_BATCH + 3;
   const ids: string[] = [];
   for (let i = 0; i < overOneBatch; i++) ids.push(crypto.randomUUID());
   // One statement to make them: a thousand round trips would make this case a
@@ -201,15 +218,21 @@ Deno.test("a sweep bigger than one batch still takes everything", async () => {
     [ids],
   );
 
-  const result = await sweeper.sweepIdentities();
-  assert(
-    result.unfinished >= overOneBatch,
-    `the sweep took ${result.unfinished} of ${overOneBatch} abandoned signups`,
-  );
-  const [left] = await database.queryOrThrow<{ n: string }>(
-    `SELECT count(*)::text AS n FROM identities WHERE name = 'batch-probe'`,
-  );
-  assertEquals(Number(left.n), 0, "rows past their deadline survived the sweep");
+  try {
+    const result = await sweeper.sweepIdentities();
+    assert(
+      result.unfinished >= overOneBatch,
+      `the sweep took ${result.unfinished} of ${overOneBatch} abandoned signups`,
+    );
+    const [left] = await database.queryOrThrow<{ n: string }>(
+      `SELECT count(*)::text AS n FROM identities WHERE name = 'batch-probe'`,
+    );
+    assertEquals(Number(left.n), 0, "rows past their deadline survived the sweep");
+  } finally {
+    // Its own rows go whatever happened: left behind by a failure here, they
+    // turned "a quiet pass" red next as a second, misleading failure (B23).
+    await deleteNamed("batch-probe");
+  }
 });
 
 Deno.test("a quiet pass says nothing and changes nothing", async () => {
@@ -701,7 +724,7 @@ Deno.test({ name: "a full batch of identities the sweep leaves alone does not hi
   const [heldOpen] = await database.queryOrThrow<{ n: string }>(
     `SELECT count(*)::text AS n FROM identities WHERE id = ANY($1::uuid[]) AND closed_at IS NULL`, [held]);
   const lastRow = await identityRow(lastId);
-  await database.queryOrThrow(`DELETE FROM identities WHERE name = 'keyset-probe'`);
+  await deleteNamed("keyset-probe");
   assertEquals(heldOpen.n, String(sweeper.BATCH), "the sweep closed an identity whose shares were held");
   assert(lastRow.closed_at, "an identity after a full batch of skipped ones was never reached");
 });

@@ -430,6 +430,59 @@ Deno.test("the profile answers a finished registration and refuses an unsigned r
   assertEquals(bare.status, 401);
 });
 
+// The quota on screens 4, 9 and 10 (B5, 2026-09-26): live phrases counted by
+// the predicate that refuses a fifth one, the ceiling, and next_at only when
+// every slot is taken. A phrase waiting for the queue and an expired one take
+// no slot.
+Deno.test("the profile's quota counts the live slots the publish refusal counts", async () => {
+  const { answer, pair } = await register();
+  const created = answer.body as { identity_id: string; session_id: string };
+  await signedCall(pair.privateKey, created.session_id, "POST", "/recovery/confirm", {
+    recovery_wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))),
+  });
+  const quota = async () =>
+    ((await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me")).body as {
+      quota: { used: number; of: number; next_at?: number };
+    }).quota;
+  const phrase = (visible: string | null, expires: string | null) =>
+    database.queryOrThrow<{ id: string }>(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES (gen_random_uuid(), 'alpha', $1, 'фраза', 'alone', 'und', 41.9, 12.5, 1000, 41.9, 12.5,
+               ${visible ?? "NULL"}, ${expires ?? "NULL"})
+       RETURNING id`,
+      [created.identity_id],
+    ).then((rows) => rows[0].id);
+
+  // None yet: the ceiling and nothing to wait for.
+  const empty = await quota();
+  assertEquals(empty, { used: 0, of: 4 }, `quota with no phrases: ${JSON.stringify(empty)}`);
+
+  // A phrase still waiting for the queue and one whose time ran out take no slot.
+  await phrase(null, null);
+  await phrase("now() - interval '5 hours'", "now() - interval '40 minutes'");
+  assertEquals(await quota(), { used: 0, of: 4 }, "a waiting or expired phrase was counted as live");
+
+  // Four live ones: every slot taken, and next_at is the earliest end.
+  const ids: string[] = [];
+  for (const minutes of [200, 30, 120, 250]) {
+    ids.push(await phrase("now() - interval '10 minutes'", `now() + interval '${minutes} minutes'`));
+  }
+  const [{ earliest }] = await database.queryOrThrow<{ earliest: number }>(
+    `SELECT floor(extract(epoch FROM min(expires_at)))::int AS earliest FROM feed_messages
+      WHERE id = ANY($1::uuid[])`,
+    [ids],
+  );
+  const full = await quota();
+  assertEquals(full, { used: 4, of: 4, next_at: earliest }, `full quota: ${JSON.stringify(full)}`);
+
+  // One taken down: a slot is free at once, and there is nothing to wait for.
+  await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = $1`, [ids[1]]);
+  const freed = await quota();
+  assertEquals(freed, { used: 3, of: 4 }, `quota with a slot freed: ${JSON.stringify(freed)}`);
+});
+
 Deno.test("a signed request marks the session as seen, at most once a day", async () => {
   // The identity sweeper counts a year of disuse from `sessions.last_seen_at`,
   // and until 2026-09-20 nothing wrote that column: the year ran from the

@@ -36,6 +36,12 @@ export const PUBLISH_PER_HOUR = 4;
 export const REFUSALS_BEFORE_PAUSE = 5;
 export const PAUSE_MINUTES = 15;
 
+// What takes one of the LIVE_MAX slots: a phrase the queue let through and
+// whose time has not run out. One wording for the refusal below and for the
+// quota GET /identities/me shows (B5, 2026-09-26), so the count a person sees
+// is the count that refuses them. A condition on `feed_messages`, unqualified.
+export const LIVE_PHRASE = `visible_at IS NOT NULL AND expires_at > now()`;
+
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 
 export interface StatsRow {
@@ -138,7 +144,7 @@ export async function refusalFor(
   // hour's moment stays where it is (§8.3, "why phrases have two numbers").
   const [live] = await run<{ n: string }>(
     `SELECT count(*)::text AS n FROM feed_messages
-      WHERE author_identity = $1 AND visible_at IS NOT NULL AND expires_at > now()`,
+      WHERE author_identity = $1 AND ${LIVE_PHRASE}`,
     [identityId],
   );
   const liveCount = Number(live?.n ?? 0);

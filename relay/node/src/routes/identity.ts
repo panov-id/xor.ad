@@ -33,6 +33,7 @@ import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identi
 import { IDENTITY_CREATE_LIMITS, RECOVERY_CLAIM_LIMITS, RECOVERY_REISSUE_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { cleanName } from "../lib/names.ts";
+import { LIVE_MAX, LIVE_PHRASE } from "../lib/feed_limits.ts";
 import { ACCENTS, CONTRASTS, THEMES } from "./appearance.ts";
 
 // §8.2 and docs/facts/limits.tsv (`name.length`, enforced by: the node): the
@@ -305,21 +306,37 @@ async function readProfile(req: Request): Promise<Response> {
   // One's own live phrases (protocol §4.11, agreed 17.09.2026): published ones
   // with their end, and the ones still waiting for the queue with none — a step
   // away takes both (§8.2), and its price is counted from this list
-  // (23.09.2026). quota and table still wait for what they belong to.
+  // (23.09.2026). table still waits for what it belongs to.
   const phrases = await query<{ id: string; expires_at: Date | null }>(
     `SELECT id, expires_at FROM feed_messages
       WHERE author_identity = $1 AND (visible_at IS NULL OR expires_at > now())
       ORDER BY created_at`,
     [caller.identityId],
   );
-  if (phrases === null) {
+  // The live slots against the ceiling (screens 4, 9, 10; B5, 2026-09-26),
+  // counted by the very predicate that refuses a fifth phrase, so the number
+  // shown is the number that refuses. Not phrases.length: that list also holds
+  // the phrase waiting for the queue, which takes no slot. next_at only when
+  // every slot is taken — the moment the earliest frees one; with a slot free
+  // there is nothing to wait for, and the Profile sends nothing it has nothing
+  // to say about (quorum of three, 3 to 0, over null and "always the earliest
+  // expiry"). A phrase waiting for the queue has no clock and no slot. The hourly
+  // ceiling is a different refusal with its own next_slot (routes/feed.ts) and
+  // is not folded in here.
+  const slots = await query<{ used: number; next_at: Date | null }>(
+    `SELECT count(*)::int AS used, min(expires_at) AS next_at FROM feed_messages
+      WHERE author_identity = $1 AND ${LIVE_PHRASE}`,
+    [caller.identityId],
+  );
+  if (phrases === null || slots === null) {
     inc("relay_profile_total", { result: "unavailable" });
     return refuse("unavailable", "the node cannot answer right now", 503);
   }
+  const { used, next_at } = slots[0];
 
   inc("relay_profile_total", { result: "served" });
-  // Only what the node can honestly answer: quota and table belong to things
-  // that do not exist yet — a zero there would be a number the node made up.
+  // Only what the node can honestly answer: table belongs to a thing that does
+  // not exist yet — a zero there would be a number the node made up.
   return json({
     name: row.name,
     ...(row.name_pending ? { name_pending: row.name_pending } : {}),
@@ -335,6 +352,11 @@ async function readProfile(req: Request): Promise<Response> {
       id: f.id,
       ...(f.expires_at ? { expires_at: Math.floor(f.expires_at.getTime() / 1000) } : {}),
     })),
+    quota: {
+      used,
+      of: LIVE_MAX,
+      ...(used >= LIVE_MAX && next_at ? { next_at: Math.floor(next_at.getTime() / 1000) } : {}),
+    },
     ...(row.stepped_away_until
       ? { stepped_away_until: Math.floor(row.stepped_away_until.getTime() / 1000) }
       : {}),

@@ -307,8 +307,14 @@ async function readProfile(req: Request): Promise<Response> {
   // with their end, and the ones still waiting for the queue with none — a step
   // away takes both (§8.2), and its price is counted from this list
   // (23.09.2026). table still waits for what it belongs to.
-  const phrases = await query<{ id: string; expires_at: Date | null }>(
-    `SELECT id, expires_at FROM feed_messages
+  //
+  // The quota below is counted from these same rows, in this one statement: one
+  // snapshot and one now(). It was a second query, and a phrase that expired or
+  // was published between the two made `used` disagree with the list it was
+  // shown beside (review panel F9, B32, 2026-09-26). `live` is the predicate
+  // that refuses a fifth phrase; every live row is also in this list.
+  const phrases = await query<{ id: string; expires_at: Date | null; live: boolean }>(
+    `SELECT id, expires_at, (${LIVE_PHRASE}) AS live FROM feed_messages
       WHERE author_identity = $1 AND (visible_at IS NULL OR expires_at > now())
       ORDER BY created_at`,
     [caller.identityId],
@@ -323,16 +329,13 @@ async function readProfile(req: Request): Promise<Response> {
   // expiry"). A phrase waiting for the queue has no clock and no slot. The hourly
   // ceiling is a different refusal with its own next_slot (routes/feed.ts) and
   // is not folded in here.
-  const slots = await query<{ used: number; next_at: Date | null }>(
-    `SELECT count(*)::int AS used, min(expires_at) AS next_at FROM feed_messages
-      WHERE author_identity = $1 AND ${LIVE_PHRASE}`,
-    [caller.identityId],
-  );
-  if (phrases === null || slots === null) {
+  if (phrases === null) {
     inc("relay_profile_total", { result: "unavailable" });
     return refuse("unavailable", "the node cannot answer right now", 503);
   }
-  const { used, next_at } = slots[0];
+  const live = phrases.filter((f) => f.live && f.expires_at);
+  const used = live.length;
+  const next_at = live.reduce<Date | null>((min, f) => (!min || f.expires_at! < min ? f.expires_at : min), null);
 
   inc("relay_profile_total", { result: "served" });
   // Only what the node can honestly answer: table belongs to a thing that does

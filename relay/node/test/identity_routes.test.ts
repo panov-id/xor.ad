@@ -434,6 +434,47 @@ Deno.test("the profile answers a finished registration and refuses an unsigned r
 // the predicate that refuses a fifth one, the ceiling, and next_at only when
 // every slot is taken. A phrase waiting for the queue and an expired one take
 // no slot.
+// One snapshot for the list and the quota (review panel F9, B32, 2026-09-26):
+// they were two queries, and a phrase that expired between them was in the list
+// and not in `used`. Sixteen phrases run out one after another while the profile
+// is read without pause; every answer must count exactly the live phrases it
+// lists.
+Deno.test("the profile's quota agrees with its own list while phrases run out", async () => {
+  const { answer, pair } = await register();
+  const created = answer.body as { identity_id: string; session_id: string };
+  await signedCall(pair.privateKey, created.session_id, "POST", "/recovery/confirm", {
+    recovery_wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))),
+  });
+  for (let i = 0; i < 16; i++) {
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES (gen_random_uuid(), 'alpha', $1, 'тает', 'alone', 'und', 41.9, 12.5, 1000, 41.9, 12.5,
+               now() - interval '1 hour', now() + make_interval(secs => $2))`,
+      [created.identity_id, 0.4 + i * 0.06],
+    );
+  }
+  const until = Date.now() + 1800;
+  let reads = 0;
+  const disagreements: string[] = [];
+  while (Date.now() < until) {
+    const me = (await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me")).body as {
+      phrases: { expires_at?: number }[];
+      quota: { used: number; of: number; next_at?: number };
+    };
+    reads++;
+    const listed = me.phrases.filter((f) => f.expires_at !== undefined);
+    if (me.quota.used !== listed.length) disagreements.push(`used ${me.quota.used}, listed ${listed.length}`);
+    else if (me.quota.used >= me.quota.of) {
+      const earliest = Math.min(...listed.map((f) => f.expires_at!));
+      if (me.quota.next_at !== earliest) disagreements.push(`next_at ${me.quota.next_at}, earliest listed ${earliest}`);
+    }
+  }
+  assert(reads >= 20, `only ${reads} reads in the window — the race was never run`);
+  assertEquals(disagreements, [], `${disagreements.length} of ${reads} answers counted other phrases than they listed`);
+});
+
 Deno.test("the profile's quota counts the live slots the publish refusal counts", async () => {
   const { answer, pair } = await register();
   const created = answer.body as { identity_id: string; session_id: string };

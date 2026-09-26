@@ -425,6 +425,8 @@ session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-1
 | report threshold | 5% of a phrase's possible audience | the node's config |
 | floor of the report threshold | 3 people | the node's config |
 
+A “per address” limit counts IPv6 by its /64: the addresses of one /64 share one bucket, and the address itself is logged unchanged (decided 2026-09-26 by a 3:0 quorum, B76; `relay/node/src/lib/rate_limit.ts` `bucketAddress`). The price is named: a host with a /48 still gets a bucket for each /64.
+
 **The node states them itself: `GET /limits` (2026-09-22).** The public route answers `{phrase_length, chat_ciphertext_chars}` — the very numbers `POST /feed` and `POST /chats/:id/messages` refuse by. A face shows them before a person types rather than after the refusal: the terminal carried 146 in its own source while the node refused at 128, and the first to learn of it was the person who had finished the sentence (review panel, 2026-09-22). The route guarantees nothing on its own — the client is open, and the check stays where the work happens.
 
 **The storefront key `ak_pub_…` is public (the owner's decision, 2026-09-22).** It names the brand, not the person: `db/001` does not hash it, it grants nothing, and the identity's signature is checked separately (§2, `identity_guard.ts`). So it may be baked into the terminal's image and the command handed out in one line. What it does cost: browser faces are covered by the allowlist of origins, and a terminal has no origin — so what protects against someone else's terminal carrying the same key is the per-identity limits and moderation, not the key. A revoked key is refused (`revoked_at`).

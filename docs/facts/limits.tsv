@@ -27,6 +27,8 @@
 # в конкретном предложении. Для «4» это почти всегда истина и потому слабо; вся
 # сила — на числах, которые лежат в нескольких файлах и расходятся.
 #
+# «По адресу» ниже — IPv6 по /64 (26.09.2026, кворум B76, protocol_RU.md §5).
+#
 id	values	unit	what	enforced_by	places	executor
 phrase.length	128	графем	длина фразы; графемы считает узел, в базе широкая страховка octet_length <= 2048 (15.09.2026, DATA-6)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	
 chat.message.length	256	символов	длина сообщения чата по умолчанию	клиент	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md,xor.ad/docs/chat_RU.md,xor.ad/docs/chat_EN.md	

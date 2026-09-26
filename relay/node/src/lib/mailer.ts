@@ -501,7 +501,7 @@ export async function sendBackupStale(to: string, ageHours: number | null): Prom
 
 // Watchdog С6: phrases of a face have waited near moderation.queue.wait for a
 // verdict (lib/moderation_watch.ts). Counts and minutes — nothing of any phrase.
-export function moderationStoppedBlocks(queue: { brand: string; oldestMinutes: number; waiting: number }): Block[] {
+export function moderationStoppedBlocks(queue: { brand: string; oldestMinutes: number; waiting: number; pastNineInADay: number }): Block[] {
   return [
     {
       kind: "text",
@@ -510,15 +510,19 @@ export function moderationStoppedBlocks(queue: { brand: string; oldestMinutes: n
     },
     {
       kind: "text",
-      value: "Look at the moderation worker and at relay_feed_verdict_total. Another letter follows only " +
-        "after the queue moves again and stops again.",
+      value: `Phrases of ${queue.brand} that waited past nine minutes in the last day, as this node saw them: ${queue.pastNineInADay}.`,
+    },
+    {
+      kind: "text",
+      value: "Look at the moderation worker and at relay_feed_verdict_total. Another letter follows in a day " +
+        "if it stays this way, or an hour after this one if a verdict is given and it stops again.",
     },
   ];
 }
 
 export async function sendModerationStopped(
   to: string,
-  queue: { brand: string; oldestMinutes: number; waiting: number },
+  queue: { brand: string; oldestMinutes: number; waiting: number; pastNineInADay: number },
 ): Promise<boolean> {
   if (config.mail.transport === "none") return false;
   const brand = resolveBrand(null);

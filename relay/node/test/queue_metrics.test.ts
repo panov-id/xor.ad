@@ -187,73 +187,97 @@ Deno.test("С6: a phrase held by its author's refused name is not the node's que
   await database.queryOrThrow(`DELETE FROM feed_messages WHERE brand = $1`, [brand]);
 });
 
-// ── Watchdog С6's letter (lib/moderation_watch.ts): one per stop, not per pass ──
+// ── Watchdog С6's letter (lib/moderation_watch.ts): a stop is news once ──
 //
 // Read the way the gauge reads the queue, from the stand's database; each case
 // on a face of its own, and the letters a function the case holds.
 const { watchModeration, forgetModerationWatch, STOPPED_SECONDS } = await import("../src/lib/moderation_watch.ts");
 
-type Letter = { to: string; brand: string; oldestMinutes: number; waiting: number };
+type Letter = { to: string; brand: string; oldestMinutes: number; waiting: number; pastNineInADay: number };
 
-// Letters for one face only; true — sent.
-function letters(brand: string) {
+// Letters for one face only; `ok` says whether they were sent.
+function letters(brand: string, ok = true) {
   const sent: Letter[] = [];
   return {
     sent,
-    send: (to: string, q: { brand: string; oldestMinutes: number; waiting: number }) => {
+    send: (to: string, q: Omit<Letter, "to">) => {
       if (q.brand === brand) sent.push({ to, ...q });
-      return Promise.resolve(true);
+      return Promise.resolve(ok);
     },
   };
 }
 
-const publish = (brand: string) =>
-  database.queryOrThrow(
-    `UPDATE feed_messages SET visible_at = now(), expires_at = now() + interval '3 hours'
-      WHERE brand = $1 AND visible_at IS NULL`,
-    [brand],
-  );
 const face = () => `c6-watch-${crypto.randomUUID()}`;
 const TO = ["ops@example.test"];
+const HOUR = 3_600_000;
+// What the sweep does to a phrase nobody decided: the row goes, no verdict.
+const sweep = (brand: string) => database.queryOrThrow(`DELETE FROM feed_messages WHERE brand = $1 AND visible_at IS NULL`, [brand]);
+const publish = (id: string) =>
+  database.queryOrThrow(
+    `UPDATE feed_messages SET visible_at = now(), expires_at = now() + interval '3 hours' WHERE id = $1`,
+    [id],
+  );
 
-Deno.test("a stopped queue writes one letter, with the face, the age and the count", async () => {
+Deno.test("a stopped queue writes one letter, with the face, the age, the count and the day's late ones", async () => {
   forgetModerationWatch();
   const brand = face();
   const l = letters(brand);
   await waitingPhrase(brand, STOPPED_SECONDS + 20);
   await waitingPhrase(brand, 30);
   await watchModeration({ send: l.send, to: TO });
-  assertEquals(l.sent, [{ to: "ops@example.test", brand, oldestMinutes: 9, waiting: 2 }], "the stop was not told as it is");
-  await publish(brand);
+  assertEquals(l.sent, [{ to: "ops@example.test", brand, oldestMinutes: 9, waiting: 2, pastNineInADay: 1 }], "the stop was not told as it is");
+  await sweep(brand);
 });
 
-Deno.test("a queue still stopped on the next pass writes nothing more", async () => {
+Deno.test("a queue still stopped on the next passes writes nothing more", async () => {
   forgetModerationWatch();
   const brand = face();
   const l = letters(brand);
   await waitingPhrase(brand, STOPPED_SECONDS + 20);
-  await watchModeration({ send: l.send, to: TO });
-  await watchModeration({ send: l.send, to: TO });
-  await watchModeration({ send: l.send, to: TO });
+  const start = Date.now();
+  for (const minutes of [0, 1, 2]) await watchModeration({ now: start + minutes * 60_000, send: l.send, to: TO });
   assertEquals(l.sent.length, 1, `one stop wrote ${l.sent.length} letters`);
-  await publish(brand);
+  await sweep(brand);
 });
 
-Deno.test("a queue that came alive and stopped again writes a second letter", async () => {
+Deno.test("with no moderator, phrases that age out one after another write one letter a day", async () => {
+  // Every phrase ages to the ceiling and the sweep takes it: the queue empties
+  // every ten minutes, and an empty queue is not one that came alive.
   forgetModerationWatch();
   const brand = face();
   const l = letters(brand);
+  const start = Date.now();
+  for (let i = 0; i < 5; i++) {
+    await waitingPhrase(brand, STOPPED_SECONDS + 20);
+    await watchModeration({ now: start + i * 10 * 60_000, send: l.send, to: TO });
+    await sweep(brand);
+    await watchModeration({ now: start + i * 10 * 60_000 + 60_000, send: l.send, to: TO });
+  }
+  assertEquals(l.sent.length, 1, `five stalls wrote ${l.sent.length} letters`);
+  assertEquals(l.sent[0].pastNineInADay, 1);
+  // A day on, still stalling: the next letter, with the day's count.
   await waitingPhrase(brand, STOPPED_SECONDS + 20);
-  await watchModeration({ send: l.send, to: TO });
-  // Verdicts given: nothing waits, the queue is alive.
-  await publish(brand);
-  await watchModeration({ send: l.send, to: TO });
-  assertEquals(l.sent.length, 1, "a queue that came alive wrote a letter");
-  // And it stops again.
-  await waitingPhrase(brand, STOPPED_SECONDS + 60);
-  await watchModeration({ send: l.send, to: TO });
-  assertEquals(l.sent.length, 2, "the second stop was not told");
-  await publish(brand);
+  await watchModeration({ now: start + 25 * HOUR, send: l.send, to: TO });
+  assertEquals(l.sent.length, 2, "a queue still stopping a day later was not told again");
+  await sweep(brand);
+});
+
+Deno.test("a verdict, then a stop again: a second letter, but not within the hour", async () => {
+  forgetModerationWatch();
+  const brand = face();
+  const l = letters(brand);
+  const start = Date.now();
+  const first = await waitingPhrase(brand, STOPPED_SECONDS + 20);
+  await watchModeration({ now: start, send: l.send, to: TO });
+  assertEquals(l.sent.length, 1);
+  // The moderator decides one — and the queue stops again.
+  await publish(first);
+  await waitingPhrase(brand, STOPPED_SECONDS + 20);
+  await watchModeration({ now: start + 20 * 60_000, send: l.send, to: TO });
+  assertEquals(l.sent.length, 1, "a flap inside the hour wrote a second letter");
+  await watchModeration({ now: start + HOUR + 60_000, send: l.send, to: TO });
+  assertEquals(l.sent.length, 2, "a stop after a verdict was not told");
+  await sweep(brand);
 });
 
 Deno.test("a phrase held by its author's refused name does not wake anybody", async () => {
@@ -265,7 +289,7 @@ Deno.test("a phrase held by its author's refused name does not wake anybody", as
   const pass = await watchModeration({ send: l.send, to: TO });
   assertEquals(l.sent, [], "a phrase waiting on its author was told as a stopped queue");
   assert(!pass.stopped.includes(brand), "the face was called stopped");
-  await database.queryOrThrow(`DELETE FROM feed_messages WHERE brand = $1`, [brand]);
+  await sweep(brand);
 });
 
 Deno.test("a queue under nine minutes is slow, not stopped", async () => {
@@ -275,22 +299,18 @@ Deno.test("a queue under nine minutes is slow, not stopped", async () => {
   await waitingPhrase(brand, STOPPED_SECONDS - 30);
   await watchModeration({ send: l.send, to: TO });
   assertEquals(l.sent, [], "eight and a half minutes was told as a stop");
-  await publish(brand);
+  await sweep(brand);
 });
 
 Deno.test("a letter nobody could be sent is tried again on the next pass", async () => {
   forgetModerationWatch();
   const brand = face();
-  let tries = 0;
-  const failing = (_to: string, q: { brand: string }) => {
-    if (q.brand === brand) tries++;
-    return Promise.resolve(false);
-  };
+  const l = letters(brand, false);
   await waitingPhrase(brand, STOPPED_SECONDS + 20);
-  await watchModeration({ send: failing, to: TO });
-  await watchModeration({ send: failing, to: TO });
-  assertEquals(tries, 2, "an unsent letter was counted as told");
-  await publish(brand);
+  await watchModeration({ send: l.send, to: TO });
+  await watchModeration({ send: l.send, to: TO });
+  assertEquals(l.sent.length, 2, "an unsent letter was counted as told");
+  await sweep(brand);
 });
 
 addEventListener("unload", () => {

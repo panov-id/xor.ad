@@ -1232,8 +1232,29 @@ Deno.test("a locked vault changes no PIN, even with the right one", async () => 
   await database.queryOrThrow(`UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [me.created.session_id]);
   const next = { auth: crypto.getRandomValues(new Uint8Array(32)), share: newShareBytes() };
   const refused = await changePin(me, AUTH, next);
-  assertEquals(refused.status, 409);
-  assertEquals((refused.body as { error: { code: string } }).error.code, "pin_locked");
+  // The guard refuses a session whose PIN is locked before the route is reached
+  // (B75): the answer is a freeze's, not the route's pin_locked.
+  assertEquals(refused.status, 401);
+  assertEquals((refused.body as { error: { code: string } }).error.code, "unauthorized");
+  assertEquals((await attemptsLeft(me.created.session_id)).attempts_left, 0, "the locked share was touched");
+});
+
+// The window the tenth miss can leave (panel 4, K4; B75, 2026-09-26): entry
+// closed, the freeze not written — it timed out on the session's row and waits
+// for the minute's job. The tab must be refused at once, as a frozen one is,
+// not go on signing in the person's name until the job comes round.
+Deno.test("a session whose PIN is locked is refused before its freeze is written", async () => {
+  const { created, pair } = await registered();
+  const before = await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me");
+  assertEquals(before.status, 200, "the live session was not let in before the lock");
+  await database.queryOrThrow(
+    `UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [created.session_id]);
+  const [session] = await database.queryOrThrow<{ frozen_at: Date | null }>(
+    `SELECT frozen_at FROM sessions WHERE id = $1`, [created.session_id]);
+  assertEquals(session.frozen_at, null, "the case needs the freeze unwritten");
+  const after = await signedCall(pair.privateKey, created.session_id, "GET", "/identities/me");
+  assertEquals(after.status, 401, "a session with its PIN locked still signs in the person's name");
+  assertEquals((after.body as { error: { code: string } }).error.code, "unauthorized");
 });
 
 // The legal manifest and the acceptance (protocol §4.1): the revisions are the

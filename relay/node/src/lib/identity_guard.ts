@@ -55,6 +55,7 @@ interface SessionRow {
   identity_id: string;
   sign_public_key: string;
   frozen_at: Date | null;
+  pin_locked: boolean;
   last_seen_at: Date;
   stepped_away_until: Date | null;
   signup_completed_at: Date | null;
@@ -112,8 +113,10 @@ export async function callerOf(
 
   const rows = await query<SessionRow>(
     `SELECT s.id AS session_id, s.identity, s.sign_public_key, s.frozen_at, s.last_seen_at,
+            v.locked_at IS NOT NULL AS pin_locked,
             i.id AS identity_id, i.stepped_away_until, i.signup_completed_at, i.closed_at
        FROM sessions s JOIN identities i ON i.id = s.identity
+       LEFT JOIN vault_shares v ON v.session = s.id
       WHERE s.id = $1`,
     [sessionId],
   );
@@ -125,7 +128,16 @@ export async function callerOf(
   // exception is the route that undoes a freeze — and it is one line lower, not
   // folded in here, so that a reader sees the rule before the exception.
   if (!row || row.closed_at) return unauthorized();
-  if (row.frozen_at && !options.allowFrozen) return unauthorized();
+  // A share locked by the tenth PIN mistake is a frozen session, whether or not
+  // the freeze got its row. The lock is written first, in the tenth miss's own
+  // transaction; the freeze may time out on the session's row and wait for the
+  // minute's job (take_down_pin_limit), and until then the tab went on
+  // publishing, writing and complaining in the person's name — the very thing
+  // §8.2 freezes it for (panel 4, K4; decided by quorum as B75, 2026-09-26).
+  // Nothing but the tenth miss writes locked_at, and the paper code clears it
+  // with frozen_at, so a live session never meets this. The same refusal as a
+  // freeze: telling them apart would report on the account.
+  if ((row.frozen_at || row.pin_locked) && !options.allowFrozen) return unauthorized();
 
   const verdict = await verifySignedRequest(req, {
     method: req.method,
@@ -169,7 +181,7 @@ export async function callerOf(
   // support route then refused (support.frozen.bump; decided by quorum,
   // 2026-09-25). The mark stops at the freeze, and the year runs from there; a
   // device raised again is live and bumps on its next request.
-  if (!row.frozen_at && row.last_seen_at.getTime() < Date.now() - A_DAY_MS) {
+  if (!row.frozen_at && !row.pin_locked && row.last_seen_at.getTime() < Date.now() - A_DAY_MS) {
     await query(`UPDATE sessions SET last_seen_at = now() WHERE id = $1`, [row.session_id]);
   }
 

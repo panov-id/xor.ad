@@ -58,7 +58,7 @@ test("me: the name to the queue, the PIN changed and the vault re-sealed, away a
   // opens the re-sealed vault and the feed answers 200 to the seated key.
   await page.reload();
   await unlock(page, PIN);
-  await expect(page.getByTestId("error")).toContainText("осталось попыток", { timeout: 30000 });
+  await expect(page.getByTestId("error")).toContainText("Осталось попыток", { timeout: 30000 });
   const before = feedAnswers.length;
   await unlock(page, "246810");
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });

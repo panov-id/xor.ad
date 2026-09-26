@@ -222,5 +222,10 @@
   "restore.hereIntro": "Der Zugang ist wieder offen, der PIN-Zähler steht auf zehn. Die alte PIN gilt weiter.",
   "restore.keepPin": "PIN weiß ich noch — weiter",
   "restore.forgotPin": "PIN vergessen — neue festlegen",
-  "restore.newPinPrice": "Die alte PIN gilt dann nicht mehr. Auf diesem Gerät gibt es ohnehin keinen Verlauf — nichts zu verlieren."
+  "restore.newPinPrice": "Die alte PIN gilt dann nicht mehr. Auf diesem Gerät gibt es ohnehin keinen Verlauf — nichts zu verlieren.",
+  "chat.waiting": "wir warten auf Antwort",
+  "chat.queued": "wartet",
+  "chat.waitingHint": "Zeilen warten ohne ✓ in einer Schlange und gehen an die andere Seite, sobald sie „reden“ drückt. Beendest du depth, ist die Schlange weg.",
+  "chat.offerGone": "Das Angebot ist weg.",
+  "inbox.waiting": "ein Match — wir warten auf Antwort"
 }

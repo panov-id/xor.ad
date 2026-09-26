@@ -25,6 +25,7 @@ import { RaisedHere, RaisedHerePin } from "./screens/restore.ts";
 import { IDLE_MS, IdleTimer } from "../core/lock.ts";
 import { Lock } from "./screens/lock.ts";
 import { Closed } from "./screens/closed.ts";
+import { Waiting } from "./screens/pending.ts";
 import type { SessionClose } from "./screens/closed.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
@@ -53,6 +54,9 @@ type Where =
   | { screen: "edit"; field: "name" | "age"; current: string }
   | { screen: "away"; until: number }
   | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number; span?: number; endsAt?: number }
+  // P9 · one's own consent given, the second's not yet (§8.5): the conversation
+  // that waits, with the queue of lines on this device (screens/pending.ts).
+  | { screen: "waiting"; matchId: string; name: string; age: number }
   // The move (§8.2, depth/ink/move.ts): out of this device, the frozen end,
   // into this one, and the first PIN of the device the identity arrived at.
   | { screen: "move" }
@@ -147,6 +151,10 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
   // the app is where an Article 17 statement is delivered (dsa/SPEC §7), and
   // the first time they arrive they are shown whole, not as a count.
   const [statements, setStatements] = useState<Statement[] | null>(null);
+  // P9 · the offers this process agreed to and still waits on: the node's inbox
+  // row does not say so (it marks the other side's consent), and the queue
+  // before the second's consent lives on this device anyway (§8.5).
+  const [consented, setConsented] = useState<Set<string>>(() => new Set());
   useEffect(() => {
     if (where.screen !== "feed" || statements !== null) return;
     client.statements()
@@ -353,7 +361,25 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
           client,
           onOpen: (chatId, matchId, name, age, span, endsAt) =>
             setWhere({ screen: "chat", chatId, matchId, name, age, span, endsAt }),
+          onWait: (matchId, name, age) => {
+            setConsented((all) => new Set(all).add(matchId));
+            setWhere({ screen: "waiting", matchId, name, age });
+          },
+          consented: (matchId) => consented.has(matchId),
           onBack: feed,
+          onError: fail,
+        });
+      case "waiting":
+        return h(Waiting, {
+          say,
+          client,
+          matchId: where.matchId,
+          name: where.name,
+          age: where.age,
+          limit,
+          onOpened: (chatId, matchId, name, age) => setWhere({ screen: "chat", chatId, matchId, name, age }),
+          onBack: () => setWhere({ screen: "inbox" }),
+          onFeed: feed,
           onError: fail,
         });
       // ── B1 · raising with the paper code, and trading it for a new one ──

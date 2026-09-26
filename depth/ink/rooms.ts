@@ -121,10 +121,16 @@ export function marksOf(r: Row): string {
 
 // 5 · the inbox: matches waiting for consent, and chats already open.
 export function Inbox(
-  { say, client, onOpen, onBack, onError }: {
+  { say, client, onOpen, onWait, consented, onBack, onError }: {
     say: Say;
     client: Client;
     onOpen: (chatId: string, matchId: string | undefined, name: string, age: number, span?: number, endsAt?: number) => void;
+    // P9 · one's own consent answered "waiting" (§8.5): the conversation opens
+    // here and waits for the second (screens/pending.ts). `consented` says
+    // which offers this process already agreed to — the node's row does not
+    // (inbox.ts marks the other side's consent, not one's own).
+    onWait?: (matchId: string, name: string, age: number) => void;
+    consented?: (matchId: string) => boolean;
     onBack: () => void;
     onError: (message: string) => void;
   },
@@ -199,6 +205,8 @@ export function Inbox(
               ? say("inbox.declined")
               : r.kind === "chat"
               ? `${say("inbox.open")} · ${say("inbox.until", { time: time(r.chat_expires_at) })}`
+              : consented?.(r.match_id ?? r.id)
+              ? say("inbox.waiting")
               : say("inbox.match"),
           )
         ),
@@ -209,11 +217,15 @@ export function Inbox(
         : [
           {
             key: "act",
-            label: chosen?.kind === "chat" ? say("inbox.enter") : say("inbox.consent"),
+            label: chosen?.kind === "chat" || (chosen && consented?.(chosen.match_id ?? chosen.id))
+              ? say("inbox.enter")
+              : say("inbox.consent"),
             disabled: !chosen,
           },
           // "Not now" (§4.6): recorded at once and invisible to the other side.
-          ...(chosen && chosen.kind !== "chat" ? [{ key: "decline", label: say("inbox.notNow") }] : []),
+          ...(chosen && chosen.kind !== "chat" && !consented?.(chosen.match_id ?? chosen.id)
+            ? [{ key: "decline", label: say("inbox.notNow") }]
+            : []),
           { key: "back", label: say("common.back") },
         ],
       onPick: (key) => {
@@ -243,10 +255,15 @@ export function Inbox(
         if (chosen.kind === "chat") {
           return onOpen(chosen.id, chosen.match_id, chosen.name ?? "", chosen.age ?? 0, chosen.my_span, chosen.chat_expires_at);
         }
-        client.consent(chosen.match_id ?? chosen.id)
+        // Agreed already on this device: back into the waiting conversation.
+        if (consented?.(matchId) && onWait) return onWait(matchId, chosen.name ?? "", chosen.age ?? 0);
+        client.consent(matchId)
           .then((answer) => {
             const chatId = answer.body.chat_id;
-            if (chatId) return onOpen(chatId, chosen.match_id ?? chosen.id, chosen.name ?? "", chosen.age ?? 0);
+            if (chatId) return onOpen(chatId, matchId, chosen.name ?? "", chosen.age ?? 0);
+            // "waiting": the conversation opens for me now and waits for the
+            // second (§8.5, 2026-09-18). Without a way in, back to the list.
+            if (onWait) return onWait(matchId, chosen.name ?? "", chosen.age ?? 0);
             return load();
           })
           .catch((e: Error) => onError(e.message));
@@ -349,6 +366,24 @@ export function Chat(
     }
   };
 
+  // P9 · the lines written while the second had not agreed (§8.5, core
+  // pending.ts) go out with the chat's first breath, in their order, and take
+  // their place on the screen as one's own. What could not go stays queued and
+  // goes ahead of the next line typed (client.sayInChat).
+  useEffect(() => {
+    if (!matchId || !client.queued || client.queued(matchId).length === 0) return;
+    const waited = [...client.queued(matchId)];
+    client.flushQueued(chatId, matchId)
+      .then((stuck) => {
+        const went = stuck ? waited.length - client.queued(matchId).length : waited.length;
+        if (went > 0) {
+          setLines((all) => [...waited.slice(0, went).map((text) => ({ mine: true, text })), ...all]);
+          setEndsAt(Math.floor(Date.now() / 1000) + span * 60);
+        }
+        if (stuck) onError(`the lines that waited were refused: ${stuck.status}`);
+      })
+      .catch((e: Error) => onError(e.message));
+  }, [chatId]);
   useEffect(() => {
     let room: { next: () => Promise<{ type: string; data: unknown }>; close: () => void } | null = null;
     let live = true;

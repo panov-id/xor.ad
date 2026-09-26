@@ -103,6 +103,7 @@ run check-design-build         python3 "$here/build-design-sheets.py" --check
 run test-design-build          bash "$here/test_build-design-sheets.sh"
 run check-openapi              bash "$here/check-openapi.sh"
 run check-backup-script        bash "$here/check-backup-script.sh"
+run check-migrations           bash "$here/check-migrations.sh"
 run test-backup-encryption     bash "$here/test_backup-encryption.sh"
 run check-metrics-exist        bash "$here/check-metrics-exist.sh"
 

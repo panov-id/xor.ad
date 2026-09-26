@@ -3432,8 +3432,8 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
         "200":
-          description: "The state, and at most one envelope: `claim_envelope` while it is claimed; `reply_envelope` and `session_id` once it is approved, repeated on every poll until the new session acknowledges the reply (POST /sessions/{lookup_id}/ack), and `approved` alone after that (2026-09-26). The old device does not poll this route after approving: `approve` already answered it."
-          x-description-ru: "Состояние и не больше одного конверта: `claim_envelope`, пока приглашение занято; `reply_envelope` и `session_id` — когда подтверждено, на каждый опрос, пока новая сессия не подтвердит получение (POST /sessions/{lookup_id}/ack), а после — одно `approved` (26.09.2026). Старое устройство после одобрения этот маршрут не опрашивает: ответ ему дал `approve`."
+          description: "The state, and at most one envelope: `claim_envelope` while it is claimed; `reply_envelope` and `session_id` once it is approved, repeated on every poll until the new session acknowledges the reply (POST /sessions/{lookup_id}/ack), but no longer than the row lives — an unacknowledged reply goes with the invitation sweep 1–2 hours after the code expired, counted as relay_transfer_total{result=\"reply_unacknowledged\"} — and `approved` alone after that (2026-09-26). The old device does not poll this route after approving when approve's answer arrived; when that answer was lost, it asks here."
+          x-description-ru: "Состояние и не больше одного конверта: `claim_envelope`, пока приглашение занято; `reply_envelope` и `session_id` — когда подтверждено, на каждый опрос, пока новая сессия не подтвердит получение (POST /sessions/{lookup_id}/ack), но не дольше жизни строки — неподтверждённый ответ уходит с уборкой приглашений через 1–2 часа после истечения кода и считается как relay_transfer_total{result=\"reply_unacknowledged\"}, — а после — одно `approved` (26.09.2026). Старое устройство после одобрения этот маршрут не опрашивает, когда ответ на approve дошёл; если он потерян — спрашивает здесь."
           headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
           content:
             application/json:
@@ -3448,7 +3448,7 @@ paths:
                   reply_envelope: {type: string, description: "base64url; opaque to the node.", x-description-ru: "base64url; узлу непрозрачен."}
                   session_id: {type: string, format: uuid}
         "400": {$ref: "#/components/responses/BadVersion"}
-        "404": {description: "No such code — one wording for a code that never existed and one already swept.", x-description-ru: "Нет такого кода — одна формулировка на не существовавший и на уже убранный.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
+        "404": {description: "No such code — one wording for a code that never existed and one already swept. Counted as relay_transfer_total{result=\"state_no_match\"} and not fed to the code entry's shared brake (quorum B30, 2026-09-26).", x-description-ru: "Нет такого кода — одна формулировка на не существовавший и на уже убранный. Считается как relay_transfer_total{result=\"state_no_match\"} и в общий тормоз ввода кода не идёт (кворум B30, 26.09.2026).", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "429": {$ref: "#/components/responses/RateLimited"}
         "503": {$ref: "#/components/responses/Unavailable"}
 

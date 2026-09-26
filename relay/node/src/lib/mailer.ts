@@ -766,8 +766,6 @@ export async function sendStatementOfReasons(
   );
 }
 
-// One sender for both letters: same transports as everything else, and a boolean
-// back so a caller that records delivery can record the truth.
 // Every letter that goes through deliver(), by the name its metric and its log
 // carry (B21, 2026-09-26). They all said kind="dsa" and "dsa mail failed" —
 // the support digest, the backup and tombstone watchdogs, the moderation stop —
@@ -788,6 +786,8 @@ for (const kind of MAIL_KINDS) {
   for (const result of ["sent", "failed"]) inc("relay_mail_total", { transport: config.mail.transport, result, kind }, 0);
 }
 
+// One sender for every letter of MAIL_KINDS: the same transports as everything
+// else, and a boolean back so a caller that records delivery can record the truth.
 async function deliver(
   kind: MailKind,
   brand: { key: string; name: string; from: string; domain: string; upper: string },

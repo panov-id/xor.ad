@@ -32,7 +32,8 @@
 //
 // Held in this process, as С7's once-a-day is: on a pool of N nodes the job
 // runs on whichever node takes it, and each keeps its own memory. Named, not
-// fixed here — the same open item as С7's.
+// fixed here — the same open item as С7's, relay.watch.process.memory in
+// docs/facts/open.tsv.
 
 import { config } from "../config.ts";
 import { query } from "./db.ts";

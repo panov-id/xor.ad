@@ -140,8 +140,10 @@ The platform's promises rest on people and jobs, and they can break without a so
   age of the oldest phrase waiting for a verdict (`relay/node/src/lib/queue_metrics.ts`), the gauge §8.3
   of the chat spec requires. It counts what `sweepStaleQueue` would drop: a phrase whose author's name
   was rejected does not count — it waits on its author, not on the node (§8.2). An empty queue has no
-  series rather than a zero. The alert `ModerationQueueStopped`: the oldest above 9 minutes for 2
-  minutes, `info` — until the §8.14 moderator exists every phrase lives to the limit and a `warning`
+  series rather than a zero. The alert `ModerationQueueStopped`: the five-minute peak of the oldest age
+  above 9 minutes, held for 2 minutes (`max_over_time(…[5m])`, review panel F12 on 2026-09-26: one stuck
+  phrase holds the instant value only until the sweep at its 10th–11th minute, and `for: 2m` never
+  fired), `info` — until the §8.14 moderator exists every phrase lives to the limit and a `warning`
   would always ring (decided by the worker after the `FeedPublishesNothing` precedent; raise the two
   together). Nine, not ten: at the tenth the sweeper has already dropped the phrase and the evidence.
 - **Threshold.** The waiting limit `moderation.queue.wait`, 10 minutes: past it the phrase is dropped
@@ -155,7 +157,8 @@ The platform's promises rest on people and jobs, and they can break without a so
   each. Without a verdict, at most once a day per face; after a verdict, again, but not within the hour
   (decided by quorum on 2026-09-26). A refusal carries no face in the schema, so a moderator who only
   refuses reads as stalled — the price is one letter a day. The letter names how many phrases waited
-  past nine minutes that day; on a pool of N nodes each keeps its own memory, as W7 does.
+  past nine minutes that day; on a pool of N nodes each keeps its own memory, as W7 does — the open item
+  `relay.watch.process.memory` in `docs/facts/open.tsv`.
 
 ## W7. The age of the last dump
 
@@ -189,5 +192,5 @@ Each watchdog is broken on purpose and must reach the channel:
   W2 is built without the fallback transport — `watchdogs.unbuilt`. W3's digest line about other tombstones was built on 2026-09-24.
 - The external pinger service is not chosen — `node.external.pinger`.
 - The `DsaDecisionLetterExhausted` alert — an Art. 16(5) decision letter has run out of tries or has no text: `increase(relay_dsa_decision_letter_total{result="exhausted"}[1h]) > 0` for a minute, warning (built 2026-09-26).
-- The `TransferBrakeOn` alert — the transfer-code pause (`claim.miss.pause`, after 50 misses in an hour): `relay_transfer_pause_seconds_left > 0` for a minute, warning; while it holds, a genuine transfer waits too (built 2026-09-26). Its neighbour `RecoveryBrakeOn` has a test since 2026-09-26.
+- The `TransferBrakeOn` alert — the transfer-code pause (`claim.miss.pause`, after 50 misses in an hour): `relay_transfer_pause_seconds_left > 0` for a minute, warning; while it holds, a genuine transfer waits too (built 2026-09-26). Its neighbour `RecoveryBrakeOn` has its test in `alerts.test.yml` since 2026-09-26 (B37).
 - W1: no fallback transport for the escalation — `mail.fallback.transport`; the ceiling on letters since 2026-09-24 — six an hour per address and one summary beyond that.

@@ -69,7 +69,8 @@ const MAX_BATCHES = 500;
 // on one database, sizes interleaved, under stress-ng --cpu 8: 2000 rows took
 // 702-808 ms, 200 rows 85-114 ms — linear. Under the load of five sessions'
 // suites the 2000-row statement reached statement_timeout (15 s, db.ts) and
-// the pass died with the rows in place (open.tsv relay.sweeper.flaky). 200 is
+// the pass died with the rows in place (the closed item relay.sweeper.flaky,
+// B23, 8f85806). 200 is
 // that failure point divided by ten. The ceiling of MAX_BATCHES stays, so a
 // pass deletes at most 100 000 rows and leaves the rest for the next hour
 // rather than outliving the job's lease (quorum of the coordinator, B23).

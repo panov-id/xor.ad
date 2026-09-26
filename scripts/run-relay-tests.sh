@@ -4,10 +4,11 @@
 # `deno test` (e.g. --filter "access").
 #
 # Everything here runs with no database, which is a real configuration and must
-# keep working. The suite that needs one lives in test/database.test.ts and is
-# skipped below — run it with scripts/run-relay-database-tests.sh, which brings
-# its own Postgres. It refuses to run without one rather than skipping quietly,
-# because a suite that skips looks exactly like a suite that passes.
+# keep working. The suites that need one are the --ignore list of `deno task
+# test` in relay/node/deno.json, and are skipped here — run them with
+# scripts/run-relay-database-tests.sh, which brings its own Postgres. Each
+# refuses to run without one rather than skipping quietly, because a suite that
+# skips looks exactly like a suite that passes.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -32,20 +33,17 @@ docker run --rm \
 # failing on every local run since they were written, while CI ran them green off
 # a full checkout: the script and the pipeline were testing different things, and
 # the local half was the one nobody could read. Read-only: tests do not write docs.
+#
+# `deno task test`, and nothing else: the run CI performs (.github/workflows/
+# relay.yml, "unit tests"). Until 2026-09-26 this script carried its own copy of
+# the suites that need Postgres as an --ignore list, and the copy had drifted —
+# it still split off tenancy.test.ts into a process of its own, which CI stopped
+# doing when each suite began stating its own configuration. The list lives in
+# one place now, relay/node/deno.json; scripts/check-db-suites.sh holds it to
+# the suites that actually refuse to run without a database (B17).
 docker run --rm \
   -v "$root/relay/node":/node \
   -v "$root/docs":/docs:ro \
   -w /node \
   "$image" \
-  deno test --allow-env --allow-read --allow-write \
-  --ignore=test/tenancy.test.ts,test/database.test.ts,test/identity_routes.test.ts,test/session_freeze.test.ts,test/identity_sweeper.test.ts,test/dsa_watchdog.test.ts,test/job_rearm.test.ts,test/notice_notify.test.ts,test/queue_metrics.test.ts,test/transfer_routes.test.ts,test/feed_publish.test.ts,test/advertiser_sweeper.test.ts,test/support_sweeper.test.ts "$@"
-
-# The tenancy test rewrites BRANDS/SESSION_SECRET for the whole process (config
-# is captured at import), so it runs in one of its own rather than leaking into
-# everyone else's configuration.
-docker run --rm \
-  -v "$root/relay/node":/node \
-  -v "$root/docs":/docs:ro \
-  -w /node \
-  "$image" \
-  deno test --allow-env --allow-read --allow-write --allow-net=127.0.0.1 test/tenancy.test.ts
+  task test "$@"

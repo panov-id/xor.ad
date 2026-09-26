@@ -27,13 +27,14 @@
 // ask for the share; it cannot get it without the PIN, and it cannot sign
 // anything else.
 //
-// What this file does not do yet, said plainly: the wrapping pair (ECDH) is
-// born non-extractable inside the core's register() and cannot be sealed
-// from here; the quorum asked for it to be sealed too, which is a change to
-// depth/core, deferred to the chat step. After a reload the seat gets a fresh
-// wrapping pair, so a chat started before the reload cannot be opened.
+// The wrapping pair (ECDH) is sealed beside the long key (W1d, 2026-09-26):
+// the core hands its pkcs8 over once at registration (register's holdWrap)
+// and keeps a non-extractable copy; after a reload the same pair comes back
+// from the seal, so the chat keys P2 wrapped under this session's
+// wrap_public_key open again. Same seal, same vault key; the public half is
+// the node's to remember (sessions.wrap_public_key).
 
-import { Client, type HeldLongKey } from "../../depth/core/client.ts";
+import { Client, type HeldLongKey, WRAP_ALGORITHM, WRAP_USAGES } from "../../depth/core/client.ts";
 import { open as unseal, seal, vaultKey } from "../../depth/core/lock.ts";
 import { derivePin } from "../../depth/core/pin.ts";
 import { base64url, type SigningKey } from "../../depth/core/sign.ts";
@@ -54,6 +55,16 @@ export interface Record_ {
   wrappedLongKey: Uint8Array;
   // iv(12) ‖ AES-GCM(pkcs8 of the long key) under the storage key.
   sealedLong: Uint8Array;
+  // The wrapping pair's private half, sealed the same way (W1d), and its
+  // public half as base64url SPKI — seat() takes it, the chat keys wrap under
+  // it (W3), and the node never says it back.
+  sealedWrap: Uint8Array;
+  wrapSpki: string;
+  // What the wrapping key derives with a fixed public point: not a secret of
+  // anything (the point is public and the same everywhere), and after a reload
+  // the raised key must derive the same — the page's own proof that the pair
+  // came back, which the e2e reads.
+  wrapCheck: Uint8Array;
   // The unlock pair's private half, non-extractable, unsealed: it signs
   // POST /vault/share and nothing the node accepts elsewhere (db/063).
   unlockKey: CryptoKey;
@@ -88,6 +99,32 @@ function fromBase64url(text: string): Uint8Array {
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 }
 
+// The public half of an ECDH P-256 private key, as base64url SPKI, from its
+// pkcs8: WebCrypto exports a private JWK with the point in it, and a JWK of
+// the point alone imports as the public key.
+async function spkiOfPkcs8(pkcs8: Uint8Array): Promise<string> {
+  const priv = await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, WRAP_ALGORITHM, true, ["deriveBits"]);
+  const jwk = await crypto.subtle.exportKey("jwk", priv);
+  const pub = await crypto.subtle.importKey("jwk", { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y }, WRAP_ALGORITHM, true, []);
+  return base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pub)));
+}
+
+// A fixed public point for the wrap check: the generator's own public key of
+// a P-256 pair with private scalar 1 — public, constant, the same for every
+// device. Deriving with it proves nothing about any peer; it tells the same
+// private key from a different one.
+const CHECK_POINT_JWK = {
+  kty: "EC",
+  crv: "P-256",
+  x: "axfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpY",
+  y: "T-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU",
+} as const;
+async function checkOf(wrapPrivate: CryptoKey): Promise<Uint8Array> {
+  const point = await crypto.subtle.importKey("jwk", CHECK_POINT_JWK, WRAP_ALGORITHM, false, []);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: point }, wrapPrivate, 256));
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", bits));
+}
+
 // A registered client and the record this device keeps of it. The paper code
 // is the caller's to show and to ask back; it is not written anywhere here.
 export async function registerAndKeep(
@@ -102,10 +139,15 @@ export async function registerAndKeep(
     extractable = key;
     return await HeldKey.hold(key);
   };
+  // The wrapping pair's pkcs8, copied for the one seal below and wiped after.
+  let wrapPkcs8: Uint8Array | null = null;
+  const holdWrap = async (pkcs8: Uint8Array): Promise<void> => {
+    wrapPkcs8 = pkcs8.slice();
+  };
   // The unlock pair: private half never extractable, public half to the node.
   const unlock = await crypto.subtle.generateKey(P256, false, ["sign", "verify"]) as CryptoKeyPair;
   const unlockSpki = base64url(new Uint8Array(await crypto.subtle.exportKey("spki", unlock.publicKey)));
-  const born = await client.register(who, secrets, { hold, unlockPub: unlockSpki });
+  const born = await client.register(who, secrets, { hold, unlockPub: unlockSpki, holdWrap });
   // The core made the salt; the PIN is derived again here for the local half
   // and for the node's share. The node counts this as a proof, and resets its
   // counter — the PIN is fresh from the same screen.
@@ -119,6 +161,12 @@ export async function registerAndKeep(
   extractable = null;
   const sealedLong = await seal(key, pkcs8);
   pkcs8.fill(0);
+  if (!wrapPkcs8) throw new Error("the core did not hand the wrapping pair over");
+  const sealedWrap = await seal(key, wrapPkcs8);
+  const wrapCheck = await checkOf(await crypto.subtle.importKey("pkcs8", wrapPkcs8 as BufferSource, WRAP_ALGORITHM, false, ["deriveBits"]));
+  const wrapSpki = client.wrapPublicSpki ?? await spkiOfPkcs8(wrapPkcs8);
+  (wrapPkcs8 as Uint8Array).fill(0);
+  wrapPkcs8 = null;
   const record: Record_ = {
     id: "me",
     identityId: client.identityId,
@@ -127,6 +175,9 @@ export async function registerAndKeep(
     deviceSalt,
     wrappedLongKey: client.wrappedLongKey!,
     sealedLong,
+    sealedWrap,
+    wrapSpki,
+    wrapCheck,
     unlockKey: unlock.privateKey,
     unlockSpki,
     savedAt: Date.now(),
@@ -172,7 +223,7 @@ export class PinRefused extends Error {
 // After a reload: the PIN, the unlock key's one signed call for the share,
 // the storage key, the long key unwrapped into memory non-extractable, and a
 // seated client. The record is read here; the caller shows the screen.
-export async function unlockAfterReload(record: Record_, pin: string): Promise<{ client: Client; longKey: CryptoKey }> {
+export async function unlockAfterReload(record: Record_, pin: string): Promise<{ client: Client; longKey: CryptoKey; wrapSame: boolean }> {
   const material = await derivePin(pin, record.deviceSalt);
   // A client seated with the unlock key as its session key: it can sign
   // exactly what the node lets that key sign. The long-key and wrapping slots
@@ -209,19 +260,29 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
   }
   const client = new Client(NODE_BASE, API_KEY);
   const longSigning: SigningKey = { privateKey: long, publicSpki: record.longSpki };
-  // The wrapping pair is not on the disk yet (see the top of this file): a
-  // fresh one, which means no chat from before the reload opens.
-  const wrap = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair;
+  // The same wrapping pair as before the reload, out of its seal (W1d).
+  const key = await vaultKey(material.local, fromBase64url(given.body.share));
+  const wrapPkcs8 = await unseal(key, record.sealedWrap);
+  let wrapPrivate: CryptoKey;
+  try {
+    wrapPrivate = await crypto.subtle.importKey("pkcs8", wrapPkcs8 as BufferSource, WRAP_ALGORITHM, false, WRAP_USAGES);
+  } finally {
+    wrapPkcs8.fill(0);
+  }
+  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);
   client.seat({
     identityId: record.identityId,
     sessionId: record.sessionId,
     sessionKey: longSigning,
     longKey: long,
     longSpki: record.longSpki,
-    wrapPrivate: wrap.privateKey,
+    wrapPrivate,
+    wrapPublicSpki: record.wrapSpki,
     deviceSalt: record.deviceSalt,
     wrappedLongKey: record.wrappedLongKey,
   });
   // The signing half goes back too: the chat keys sign with it (chat/keys.ts).
-  return { client, longKey: long };
+  return { client, longKey: long, wrapSame: same };
 }
+
+const equal = (a: Uint8Array, b: Uint8Array): boolean => a.length === b.length && a.every((x, i) => x === b[i]);

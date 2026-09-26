@@ -18,7 +18,7 @@ function pinLine(e: PinRefused): string {
   return e.message;
 }
 
-export function Unlock({ record, onDone, onForget }: { record: Record_; onDone: (client: Client, longKey: CryptoKey) => void; onForget: () => void }) {
+export function Unlock({ record, onDone, onForget }: { record: Record_; onDone: (client: Client, longKey: CryptoKey, wrapSame: boolean) => void; onForget: () => void }) {
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,8 +27,8 @@ export function Unlock({ record, onDone, onForget }: { record: Record_; onDone: 
     setBusy(true);
     setError(null);
     try {
-      const { client, longKey } = await unlockAfterReload(record, pin);
-      onDone(client, longKey);
+      const { client, longKey, wrapSame } = await unlockAfterReload(record, pin);
+      onDone(client, longKey, wrapSame);
     } catch (e) {
       if (e instanceof PinRefused) {
         setError(pinLine(e));

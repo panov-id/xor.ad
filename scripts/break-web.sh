@@ -26,6 +26,21 @@ else
   echo "   STAYED GREEN — the guard proves nothing"; status=1
 fi
 restore
+
+# Break 2 (W1d): the wrapping pair raised after a reload is a fresh one, not
+# the one out of the seal — the page's check says so (data-sealed becomes
+# "unlocked-new-wrap") and the e2e must go red on the reload's line.
+echo "== break 2: the wrapping pair after a reload is a fresh one"
+sed -i 's|^import { Client, type HeldLongKey, WRAP_ALGORITHM, WRAP_USAGES } from "../../depth/core/client.ts";|import { Client, type HeldLongKey, newWrapPair, WRAP_ALGORITHM, WRAP_USAGES } from "../../depth/core/client.ts";|; s|  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|  wrapPrivate = (await newWrapPair()).privateKey;\n  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|' "$root/$vault"
+grep -q 'wrapPrivate = (await newWrapPair()).privateKey;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
+out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
+echo "$out" | grep -E 'unlocked-new-wrap|✘|✓|[0-9]+ (passed|failed)' | head -6
+if echo "$out" | grep -q 'data-sealed="unlocked-new-wrap"' && echo "$out" | grep -qE '1 failed'; then
+  echo "   red as expected"
+else
+  echo "   STAYED GREEN — the guard proves nothing"; status=1
+fi
+restore
 [ -z "$(git -C "$root" status --porcelain -- "$vault")" ] || { echo "the tree is not restored" >&2; exit 1; }
 echo "== restored: $vault clean"
 exit "$status"

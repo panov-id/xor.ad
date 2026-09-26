@@ -30,7 +30,7 @@ import { Unlock } from "./screens/Unlock.tsx";
 import { readRecord, type Record_ } from "./vault.ts";
 import "./chat/chat.css";
 
-type Sealed = "ok" | "failed" | "unlocked";
+type Sealed = "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
 type Seated = { client: Client; keys: ChatKeys; sealed: Sealed };
 type Screen =
   | { at: "loading" }
@@ -90,8 +90,8 @@ export function App() {
   // Opened by the PIN: the long key came out of the vault's seal, and the
   // chat keys sign with it. The tab keeps no record of it — the vault is the
   // record, and the PIN opens it again.
-  function unlocked(client: Client, longKey: CryptoKey) {
-    setSeated({ client, keys: new ChatKeys(client, longKey), sealed: "unlocked" });
+  function unlocked(client: Client, longKey: CryptoKey, wrapSame: boolean) {
+    setSeated({ client, keys: new ChatKeys(client, longKey), sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
     setScreen({ at: "feed" });
   }
 

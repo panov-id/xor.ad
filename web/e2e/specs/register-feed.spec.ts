@@ -66,13 +66,13 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
   // The vault kept a sealed record, and the seal opens.
   await expect(page.locator('[data-screen="feed"]')).toHaveAttribute("data-sealed", "ok");
   const record = await page.evaluate(() =>
-    new Promise<{ identityId: string; sessionId: string; sealedLength: number; salt: number } | null>((resolve) => {
+    new Promise<{ identityId: string; sessionId: string; sealedLength: number; salt: number; sealedWrap: number; wrapCheck: number } | null>((resolve) => {
       const req = indexedDB.open("xor-vault", 1);
       req.onsuccess = () => {
         const get = req.result.transaction("identity").objectStore("identity").get("me");
         get.onsuccess = () => {
           const r = get.result;
-          resolve(r ? { identityId: r.identityId, sessionId: r.sessionId, sealedLength: r.sealedLong.length, salt: r.deviceSalt.length } : null);
+          resolve(r ? { identityId: r.identityId, sessionId: r.sessionId, sealedLength: r.sealedLong.length, salt: r.deviceSalt.length, sealedWrap: r.sealedWrap.length, wrapCheck: r.wrapCheck.length } : null);
         };
         get.onerror = () => resolve(null);
       };
@@ -85,6 +85,9 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
   expect(record!.salt).toBe(16);
   // iv(12) + pkcs8 of a P-256 key (138 bytes) + GCM tag (16).
   expect(record!.sealedLength).toBe(12 + 138 + 16);
+  // The wrapping pair's pkcs8 is the same size, and the check is a SHA-256.
+  expect(record!.sealedWrap).toBe(12 + 138 + 16);
+  expect(record!.wrapCheck).toBe(32);
 
   // A reload: the device remembers, the PIN opens — through the node. A wrong
   // PIN is the node's refusal with the attempts left; the right one seats the
@@ -102,6 +105,8 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
   const before = feedAnswers.length;
   await page.getByTestId("unlock").click();
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
+  // "unlocked" and not "unlocked-new-wrap": the wrapping pair out of the seal
+  // derives what the pair born at registration derived (W1d).
   await expect(page.locator('[data-screen="feed"]')).toHaveAttribute("data-sealed", "unlocked");
   await expect(page.getByTestId("loading")).toBeHidden({ timeout: 15000 });
   expect(feedAnswers.length).toBeGreaterThan(before);

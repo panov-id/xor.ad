@@ -228,7 +228,16 @@ export class Client {
     // `unlockPub`: the public half of an unlock key, base64url SPKI, from a
     // face with a disk (db/063; the web's vault.ts) — the node accepts that
     // key on POST /vault/share alone. The terminal has no disk and sends none.
-    opts: { hold?: (extractable: CryptoKey) => Promise<HeldLongKey>; unlockPub?: string } = {},
+    // `holdWrap`: a face with a disk takes the wrapping pair's private half
+    // as pkcs8, once, to seal it beside the long key (W1d, 2026-09-26): the
+    // chat keys of P2 are wrapped under this session's wrap_public_key, and a
+    // session that came back after a reload with a fresh pair could open none
+    // of them. What this client keeps is a non-extractable copy.
+    opts: {
+      hold?: (extractable: CryptoKey) => Promise<HeldLongKey>;
+      unlockPub?: string;
+      holdWrap?: (pkcs8: Uint8Array) => Promise<void>;
+    } = {},
   ): Promise<{ identityId: string; sessionId: string }> {
     const salt = newDeviceSalt();
     const [pin, paper] = await Promise.all([derivePin(secrets.pin, salt), derivePaperCode(secrets.paperCode)]);
@@ -242,7 +251,7 @@ export class Client {
       privateKey,
       publicSpki: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", long.publicKey))),
     };
-    const wrap = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits", "deriveKey"]) as CryptoKeyPair; // deriveKey too (P2, 2026-09-26): seal.ts wraps the chat keys key to key, so the shared secret never becomes bytes; deriveBits stays for transfer.ts openReply
+    const wrap = await newWrapPair(opts.holdWrap);
     const answer = await this.#call<{ identity_id: string; session_id: string }>("POST", "/identities", {
       sign_pub: key.publicSpki,
       wrap_pub: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", wrap.publicKey))),
@@ -952,6 +961,28 @@ export class Client {
     this.#locked = false;
     return { ok: true };
   }
+}
+
+// The wrapping pair of a session: ECDH P-256, deriveKey too (P2, 2026-09-26:
+// seal.ts wraps the chat keys key to key, so the shared secret never becomes
+// bytes; deriveBits stays for transfer.ts openReply). Born non-extractable —
+// unless a face with a disk asks for its pkcs8 through `holdWrap`: then it is
+// born extractable, handed over once, and what comes back to the caller is a
+// non-extractable copy of the same key, imported from the same bytes (W1d).
+// Exported for its test: the copy must derive what the original derives.
+export const WRAP_ALGORITHM = { name: "ECDH", namedCurve: "P-256" } as const;
+export const WRAP_USAGES: KeyUsage[] = ["deriveBits", "deriveKey"];
+export async function newWrapPair(holdWrap?: (pkcs8: Uint8Array) => Promise<void>): Promise<CryptoKeyPair> {
+  if (!holdWrap) return await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair;
+  const born = await crypto.subtle.generateKey(WRAP_ALGORITHM, true, WRAP_USAGES) as CryptoKeyPair;
+  const pkcs8 = new Uint8Array(await crypto.subtle.exportKey("pkcs8", born.privateKey));
+  const privateKey = await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, WRAP_ALGORITHM, false, WRAP_USAGES);
+  try {
+    await holdWrap(pkcs8);
+  } finally {
+    pkcs8.fill(0);
+  }
+  return { publicKey: born.publicKey, privateKey };
 }
 
 // What seat() keeps of a held long key: the shape of transfer.ts HeldKey.

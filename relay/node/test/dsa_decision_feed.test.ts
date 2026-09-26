@@ -224,3 +224,79 @@ Deno.test({ name: "a phrase already gone: the statement goes to the typed addres
   assertEquals(decided.status, 200, JSON.stringify(decided.body));
   assertEquals((await statementOf(gone))[0].recipient_identity, me.identity_id);
 }});
+
+// ── P8 return · nothing is deleted before the addressee is settled; a tenant reaches its own phrases only ──
+const TENANT_ROLE = "moderator";
+async function decideAs(brand: string | null, role: string, id: string, body: unknown): Promise<{ status: number; body: Record<string, unknown> }> {
+  const email = `${role}@${brand ?? "platform"}.test`;
+  await scopedForBrand(null).put(`${usersDir()}/${await sha256hex(email)}.json`, {
+    email, role, brand, created_at: "2026-09-15T00:00:00.000Z",
+  });
+  const token = await sign({ sub: email, role, brand, env: config.envName, exp: Math.floor(Date.now() / 1000) + 3600 }, SECRET);
+  const url = new URL(`https://relay.test/admin/dsa-notices/${id}/decide`);
+  const found = match("POST", url.pathname);
+  assert(found, "no route for the decision");
+  const response = await found.h({
+    req: new Request(url, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    params: found.params,
+    url,
+  });
+  return { status: response.status, body: await response.json() };
+}
+async function phraseOfBrand(brand: string, identityId: string | null): Promise<string> {
+  const id = crypto.randomUUID();
+  await queryOrThrow(
+    `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+       lat_published, lon_published, visible_at, expires_at)
+     VALUES ($1, $2, $3, 'кто на набережную?', 'alone', 'und', 59.93, 30.33, 1000, 59.93, 30.33, now(), now() + interval '3 hours')`,
+    [id, brand, identityId],
+  );
+  return id;
+}
+await queryOrThrow(
+  `INSERT INTO brands (key, name, domain, sender, upper) VALUES ('beta', 'Beta', 'beta.test', 'b <b@beta.test>', 'BETA')
+   ON CONFLICT (key) DO NOTHING`,
+);
+
+Deno.test({ name: "a phrase whose author was erased and no addressee typed: 422, and the phrase is left where it is", ...pool, async fn() {
+  const orphan = await phraseOfBrand("alpha", null);
+  const notice = await noticeAbout(orphan);
+  const refused = await decide(notice, upheld());
+  assertEquals(refused.status, 422, JSON.stringify(refused.body));
+  assertEquals(await phraseRows(orphan), 1, "a refused decision deleted the phrase");
+  assertEquals((await statementOf(notice)).length, 0, "a refused decision wrote a statement");
+  const [row] = await queryOrThrow<{ decided_at: Date | null }>(`SELECT decided_at FROM dsa_notices WHERE id = $1`, [notice]);
+  assertEquals(row.decided_at, null, "a refused decision marked the notice decided");
+  // With an addressee typed, the erased author's phrase is taken down and the statement goes to them.
+  const me = await author();
+  const decided = await decide(notice, upheld({ recipient_identity: me.identity_id }));
+  assertEquals(decided.status, 200, JSON.stringify(decided.body));
+  assertEquals(await phraseRows(orphan), 0);
+  assertEquals((await statementOf(notice))[0].recipient_identity, me.identity_id);
+}});
+
+Deno.test({ name: "a tenant's moderator does not reach a phrase of another storefront, and does reach its own", ...pool, async fn() {
+  const me = await author();
+  const foreign = await phraseOfBrand("beta", me.identity_id);
+  const about = await noticeAbout(foreign);
+  // The notice is alpha's; the phrase it points at is beta's. To alpha the
+  // phrase is not there: no addressee resolved, nothing deleted, 422.
+  const refused = await decideAs("alpha", TENANT_ROLE, about, upheld());
+  assertEquals(refused.status, 422, JSON.stringify(refused.body));
+  assertEquals(await phraseRows(foreign), 1, "a tenant deleted another storefront's phrase");
+  // Typing an addressee lets the statement out, and still leaves the phrase.
+  const typed = await decideAs("alpha", TENANT_ROLE, about, upheld({ recipient_identity: me.identity_id }));
+  assertEquals(typed.status, 200, JSON.stringify(typed.body));
+  assertEquals(await phraseRows(foreign), 1, "a tenant deleted another storefront's phrase through a typed addressee");
+
+  const own = await phraseOfBrand("alpha", me.identity_id);
+  const mine = await noticeAbout(own);
+  const decided = await decideAs("alpha", TENANT_ROLE, mine, upheld());
+  assertEquals(decided.status, 200, JSON.stringify(decided.body));
+  assertEquals(await phraseRows(own), 0, "a tenant's decision left its own phrase in the feed");
+  assertEquals((await statementOf(mine))[0].recipient_identity, me.identity_id);
+}});

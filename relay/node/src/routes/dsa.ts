@@ -319,18 +319,29 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       // take-down end it — by deleting the row, its likes going by cascade
       // (db/030). A phrase already gone leaves the statement to the typed
       // addressee, if any: Article 17 is owed whether the row is still there.
+      //
+      // The addressee is settled before anything is written: a return from this
+      // callback commits, so a refusal after the DELETE would have deleted the
+      // phrase, marked nothing decided and answered 422 (verifier of P8).
+      // A tenant reaches only its own storefront's phrases; a phrase of another
+      // brand is, to it, not there — the platform (brand NULL) reaches every one.
       let recipient = typedRecipient;
+      let phrase: { author_identity: string | null } | undefined;
       if (aboutPhrase) {
-        const phrase = await tx<{ author_identity: string | null }>(
-          `SELECT author_identity FROM feed_messages WHERE id = $1 FOR UPDATE`,
-          [notice.target_id],
-        );
-        if (phrase[0]?.author_identity) recipient = phrase[0].author_identity;
-        if (phrase[0] && (restriction === "removed" || restriction === "hidden")) {
-          await tx(`DELETE FROM feed_messages WHERE id = $1`, [notice.target_id]);
-        }
+        phrase = (await tx<{ author_identity: string | null }>(
+          `SELECT author_identity FROM feed_messages
+            WHERE id = $1 AND ($2::text IS NULL OR brand = $2) FOR UPDATE`,
+          [notice.target_id, access.user.brand ?? null],
+        ))[0];
+        // The author erased (db/025: ON DELETE SET NULL) leaves the typed
+        // addressee, if any; without one there is nobody to tell, and nothing
+        // is done.
+        if (phrase?.author_identity) recipient = phrase.author_identity;
       }
       if (!recipient) return { ok: false as const, reason: "no_recipient" as const };
+      if (phrase && (restriction === "removed" || restriction === "hidden")) {
+        await tx(`DELETE FROM feed_messages WHERE id = $1`, [notice.target_id]);
+      }
 
       const created = await tx<{ id: string }>(
         // `automated_used` is written, not defaulted. Article 17(3)(c) asks

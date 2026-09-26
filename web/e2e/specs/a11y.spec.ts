@@ -86,7 +86,7 @@ test("the header's live step reaches a polite region once per change, and the sc
   await axeClean(page, "inbox");
 });
 
-test("an offer's link lands on the exit screen: the node's answer for a missing code, and the domain and the spent state as the page draws them", async ({ page }) => {
+test("an offer's link with a code nobody issued lands on the exit screen's not-found, and it passes axe", async ({ page }) => {
   page.on("pageerror", (e) => console.log(`[page error] ${e.message}`));
   // A code nobody issued: the node answers 404 and the page says so.
   await page.goto("/o/nosuchcode0001");
@@ -94,22 +94,5 @@ test("an offer's link lands on the exit screen: the node's answer for a missing 
   await expect(page.getByTestId("missing")).toContainText("Такой ссылки нет");
   await axeClean(page, "offer-exit missing");
 
-  // The two answers a live link gives, as the node shapes them (routes/
-  // offer_links.ts exit: {domain, disabled}); no offer row exists in this
-  // stand, so the JSON is stood in for and the page's reading of it is what
-  // is checked here.
-  // The page itself must load (the document goes through); only its JSON call is stood in for.
-  await page.route("**/o/live0001", (route) => route.request().resourceType() === "document" ? route.continue() : route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ domain: "ourcafe.cy", disabled: false }) }));
-  await page.goto("/o/live0001");
-  await expect(page.locator('[data-screen="offer-exit"]')).toHaveAttribute("data-state", "ok", { timeout: 15000 });
-  await expect(page.getByTestId("domain")).toHaveText("ourcafe.cy");
-  await expect(page.getByTestId("go")).toHaveAttribute("href", "/o/live0001/go");
-  await expect(page.getByTestId("go")).toHaveAttribute("rel", /noopener/);
-  await axeClean(page, "offer-exit live");
-
-  await page.route("**/o/spent0001", (route) => route.request().resourceType() === "document" ? route.continue() : route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ domain: "ourcafe.cy", disabled: true }) }));
-  await page.goto("/o/spent0001");
-  await expect(page.getByTestId("exit")).toHaveAttribute("data-disabled", "true", { timeout: 15000 });
-  await expect(page.getByTestId("disabled")).toContainText("погашена");
-  await expect(page.getByTestId("go")).toHaveCount(0);
+  // A live and a switched-off link, against the seeded offers: offer.spec.ts (W5b).
 });

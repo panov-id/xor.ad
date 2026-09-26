@@ -1304,3 +1304,49 @@ Deno.test({ name: "the consequences pass skips a closed identity whose share som
   const aAfter = await undone(a);
   assert(!aAfter.live && !aAfter.whole, "the next pass did not finish the identity it had skipped");
 });
+
+// The batches of the catch-up pass go by id and stop on a batch that is not
+// full (i.id > after; picked < BATCH). Nothing held that: with the cursor stuck
+// at zero, or stopping on a full batch, every case stayed green (the observer's
+// probe, B101). A whole batch of held closed identities, first by id, and one
+// free after them: the pass must step past the held batch and finish the free
+// one in the same pass, and leave the held ones to the next. One held identity
+// would not do — a cursor at zero picks it again beside the free one and still
+// ends on a short batch.
+Deno.test({ name: "the catch-up pass steps past a whole held batch to the identity after it (B101)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const n = sweeper.BATCH + 1;
+  const ids = Array.from({ length: n }, () => crypto.randomUUID()).sort();
+  const sessions = ids.map(() => crypto.randomUUID());
+  await database.queryOrThrow(
+    `INSERT INTO identities (id, name, age, identity_public_key, signup_completed_at, closed_at)
+     SELECT unnest($1::uuid[]), 'b101-probe', 30, 'not-a-real-key', now() - interval '3 days', now() - interval '1 day'`,
+    [ids]);
+  await database.queryOrThrow(
+    `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key)
+     SELECT s, i, 'not-a-real-key', 'not-a-real-key' FROM unnest($1::uuid[], $2::uuid[]) AS t(s, i)`,
+    [sessions, ids]);
+  await database.queryOrThrow(
+    `INSERT INTO vault_shares (session, auth_hash, share_enc) SELECT unnest($1::uuid[]), 'not-a-real-hash', '\\x00'::bytea`,
+    [sessions]);
+  const held = sessions.slice(0, sweeper.BATCH);
+  const free = sessions[n - 1];
+  const live = async (s: string[]) => (await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM sessions WHERE id = ANY($1::uuid[]) AND frozen_at IS NULL`, [s]))[0].n;
+  const holder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  try {
+    // deno-lint-ignore no-explicit-any
+    await holder.begin(async (tx: any) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = ANY($1::uuid[]) FOR UPDATE`, [held]);
+      await sweeper.sweepIdentities();
+    });
+    assertEquals(await live([free]), 0, "the pass did not reach the identity after a whole held batch");
+    assertEquals(await live(held), sweeper.BATCH, "an identity under a held share was finished");
+    // Let go, the next pass finishes the rest.
+    await sweeper.sweepIdentities();
+    assertEquals(await live(held), 0, "the next pass did not finish the identities it had stepped past");
+  } finally {
+    await holder.end();
+    await deleteNamed("b101-probe");
+  }
+});

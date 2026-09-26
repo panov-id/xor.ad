@@ -167,7 +167,7 @@
   "reset.go": "închide și ia-o de la capăt",
   "restore.title": "Cod pe hârtie",
   "restore.intro": "Introduceți cele șaisprezece caractere de pe hârtie. Grupurile pot fi despărțite prin cratimă sau spațiu.",
-  "restore.introHere": "Codul pe hârtie redeschide acest dispozitiv, iar dvs. alegeți un PIN nou.",
+  "restore.introHere": "Codul de hârtie deschide din nou acest dispozitiv. PIN-ul rămâne același; dacă nu îl mai știi, vei stabili unul nou.",
   "restore.code": "cod",
   "restore.go": "restabilire",
   "restore.bad": "Acesta nu este un cod pe hârtie: șaisprezece litere și cifre.",
@@ -217,5 +217,10 @@
   "closed.movedTitle": "Identitatea a plecat",
   "closed.moved": "Identitatea a fost mutată pe alt dispozitiv; aici nu a mai rămas nimic din ea.",
   "closed.updateTitle": "depth are nevoie de actualizare",
-  "closed.update": "Nodul vorbește altă versiune a protocolului. Actualizează depth și pornește-l din nou."
+  "closed.update": "Nodul vorbește altă versiune a protocolului. Actualizează depth și pornește-l din nou.",
+  "restore.hereTitle": "Dispozitivul este deschis",
+  "restore.hereIntro": "Intrarea este din nou deschisă, contorul PIN a revenit la zece. PIN-ul vechi este valabil.",
+  "restore.keepPin": "Îmi amintesc PIN-ul — mai departe",
+  "restore.forgotPin": "Nu îmi amintesc PIN-ul — stabilesc unul nou",
+  "restore.newPinPrice": "PIN-ul vechi nu va mai funcționa. Pe acest dispozitiv oricum nu există istoric — nimic de pierdut."
 }

@@ -167,7 +167,7 @@
   "reset.go": "yopish va qaytadan boshlash",
   "restore.title": "Qog‘oz kod",
   "restore.intro": "Qog‘ozdagi o‘n oltita belgini kiriting. Guruhlarni chiziqcha yoki bo‘sh joy bilan ajratish mumkin.",
-  "restore.introHere": "Qog‘oz kod bu qurilmani yana ochadi va siz yangi PIN o‘rnatasiz.",
+  "restore.introHere": "Qog‘oz kod bu qurilmani qayta ochadi. PIN avvalgidek qoladi; eslamasangiz — yangisini qo‘yasiz.",
   "restore.code": "kod",
   "restore.go": "tiklash",
   "restore.bad": "Bu qog‘oz kod emas: o‘n oltita harf va raqam.",
@@ -217,5 +217,10 @@
   "closed.movedTitle": "Shaxs ketdi",
   "closed.moved": "Shaxs boshqa qurilmaga ko‘chirildi; bu yerda undan hech narsa qolmadi.",
   "closed.updateTitle": "depth yangilanishi kerak",
-  "closed.update": "Tugun protokolning boshqa versiyasida gapiradi. depth-ni yangilab, qayta ishga tushiring."
+  "closed.update": "Tugun protokolning boshqa versiyasida gapiradi. depth-ni yangilab, qayta ishga tushiring.",
+  "restore.hereTitle": "Qurilma ochiq",
+  "restore.hereIntro": "Kirish qayta ochildi, PIN hisoblagichi tiklandi. Avvalgi PIN ishlaydi.",
+  "restore.keepPin": "PIN eslayman — davom etish",
+  "restore.forgotPin": "PIN eslamayman — yangisini qo‘yish",
+  "restore.newPinPrice": "Avvalgi PIN ishlamay qoladi. Bu qurilmada baribir tarix yo‘q — yo‘qotadigan narsa yo‘q."
 }

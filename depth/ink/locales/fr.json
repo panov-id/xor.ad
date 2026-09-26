@@ -167,7 +167,7 @@
   "reset.go": "fermer et recommencer",
   "restore.title": "Code papier",
   "restore.intro": "Saisissez les seize caractères de votre papier. Les groupes peuvent être séparés par des tirets ou des espaces.",
-  "restore.introHere": "Le code papier rouvre cet appareil, et vous choisissez un nouveau code PIN.",
+  "restore.introHere": "Le code papier rouvre cet appareil. Le PIN reste le même ; si vous ne vous en souvenez pas, vous en définirez un nouveau.",
   "restore.code": "code",
   "restore.go": "restaurer",
   "restore.bad": "Ce n'est pas un code papier : seize lettres et chiffres.",
@@ -217,5 +217,10 @@
   "closed.movedTitle": "L’identité est partie",
   "closed.moved": "L’identité a été transférée sur un autre appareil ; il n’en reste rien ici.",
   "closed.updateTitle": "depth doit être mis à jour",
-  "closed.update": "Le nœud parle une autre version du protocole. Mettez depth à jour et relancez-le."
+  "closed.update": "Le nœud parle une autre version du protocole. Mettez depth à jour et relancez-le.",
+  "restore.hereTitle": "L’appareil est ouvert",
+  "restore.hereIntro": "L’entrée est rouverte et le compteur du PIN est revenu à dix. L’ancien PIN reste valable.",
+  "restore.keepPin": "Je me souviens du PIN — continuer",
+  "restore.forgotPin": "Je ne me souviens pas du PIN — en définir un nouveau",
+  "restore.newPinPrice": "L’ancien PIN cessera de fonctionner. Il n’y a de toute façon aucun historique sur cet appareil — rien à perdre."
 }

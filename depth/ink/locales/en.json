@@ -167,7 +167,7 @@
   "reset.go": "close and start again",
   "restore.title": "Paper code",
   "restore.intro": "Type the sixteen characters from your paper. Groups may be split by dashes or spaces.",
-  "restore.introHere": "The paper code opens this device again, and you set a new PIN.",
+  "restore.introHere": "The paper code opens this device again. The PIN stays as it was; if you do not remember it, you will set a new one.",
   "restore.code": "code",
   "restore.go": "restore",
   "restore.bad": "That is not a paper code: sixteen letters and digits.",
@@ -217,5 +217,10 @@
   "closed.movedTitle": "The identity has left",
   "closed.moved": "The identity was moved to another device; nothing of it is left here.",
   "closed.updateTitle": "depth needs an update",
-  "closed.update": "The node speaks another version of the protocol. Update depth and start it again."
+  "closed.update": "The node speaks another version of the protocol. Update depth and start it again.",
+  "restore.hereTitle": "The device is open",
+  "restore.hereIntro": "Entry is open again and the PIN counter is back at ten. The old PIN still works.",
+  "restore.keepPin": "I remember the PIN — go on",
+  "restore.forgotPin": "I do not remember the PIN — set a new one",
+  "restore.newPinPrice": "The old PIN will stop working. There is no history on this device anyway — nothing to lose."
 }

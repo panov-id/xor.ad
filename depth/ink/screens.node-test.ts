@@ -1654,3 +1654,77 @@ test("raised by the paper code and not yet given a PIN, the device does not lock
   app.unmount();
   noErrors();
 });
+
+// ── P6 · the paper code used on this very device: keep the PIN, or a new one under the grant ──
+import { RaisedHere } from "./screens/restore.ts";
+import { derivePaperCode, newPaperCode, wrapLongKey } from "../core/paper.ts";
+
+// A device that already holds a session, and a node whose claim answers with
+// the long key under the code typed: raise() opens it and reports sameDevice.
+async function raisedDevice(code: string) {
+  const long = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
+  const { wrapKey } = await derivePaperCode(code);
+  const { wrapped } = await wrapLongKey(long.privateKey, wrapKey);
+  const pins: string[] = [];
+  const client = {
+    registered: true, identityId: "id", held: null, longSpki: "", wrappedLongKey: null,
+    request: (_m: string, path: string) =>
+      path === "/recovery/claim"
+        ? Promise.resolve({ status: 200, body: { identity_id: "id", session_id: "s", recovery_wrapped_key: Buffer.from(wrapped).toString("base64url") } })
+        : Promise.resolve({ status: 500, body: null }),
+    holdWrappedLongKey: () => {},
+    firstPin: (pin: string) => { pins.push(pin); return Promise.resolve({ status: 204, body: null }); },
+    limits: () => Promise.resolve({ phrase_length: 128, chat_ciphertext_chars: 2048 }),
+  };
+  return { client, pins };
+}
+
+test("the choice screen offers to keep the PIN or set a new one, and nothing else", async () => {
+  let kept = 0, fresh = 0;
+  const app = render(h(RaisedHere, { say, onKeep: () => kept++, onNewPin: () => fresh++ }));
+  await settle();
+  const frame = app.lastFrame()!;
+  assert.match(frame, /Устройство открыто/);
+  assert.match(frame, /Прежний ПИН действует/);
+  assert.match(frame, /ПИН помню — дальше/);
+  assert.match(frame, /не помню ПИН — задать новый/);
+  await type(app, RIGHT, ENTER);
+  assert.deepEqual([kept, fresh], [0, 1], "\"I do not remember\" did not offer a new PIN");
+  await type(app, LEFT, ENTER);
+  assert.deepEqual([kept, fresh], [1, 1], "\"I remember\" did not go on");
+  app.unmount();
+});
+
+test("the code used on this device leads to the choice, and a forgotten PIN goes to /vault/init before the new code", async () => {
+  const code = newPaperCode();
+  const { client, pins } = await raisedDevice(code);
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(App, { say, client: client as any, start: "restore" }));
+  await settle();
+  assert.match(app.lastFrame()!, /ПИН останется прежним/, "the intro still promises a new PIN on this device");
+  await type(app, code, DOWN, ENTER);
+  await waitFor(shows(app, /Устройство открыто/), 10);
+  assert.doesNotMatch(app.lastFrame()!, /[0-9A-Z]{4} - [0-9A-Z]{4}/, "the new code was shown before the PIN was asked about");
+  await type(app, RIGHT, ENTER);
+  await waitFor(shows(app, /Прежний ПИН перестанет работать/));
+  assert.equal(pins.length, 0, "a PIN went to the node before one was typed");
+  await type(app, ..."424242".split(""), DOWN, ..."424242".split(""), DOWN, ENTER);
+  await waitFor(() => pins.length === 1, 5);
+  assert.deepEqual(pins, ["424242"], "the new PIN did not reach /vault/init");
+  await waitFor(shows(app, /[0-9A-Z]{4} - [0-9A-Z]{4}/), 5);
+  app.unmount();
+});
+
+test("the PIN kept, the device goes straight on to the new code and asks the node for nothing", async () => {
+  const code = newPaperCode();
+  const { client, pins } = await raisedDevice(code);
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(App, { say, client: client as any, start: "restore" }));
+  await settle();
+  await type(app, code, DOWN, ENTER);
+  await waitFor(shows(app, /Устройство открыто/), 10);
+  await type(app, ENTER);
+  await waitFor(shows(app, /[0-9A-Z]{4} - [0-9A-Z]{4}/), 5);
+  assert.equal(pins.length, 0, "keeping the PIN still sent one to the node");
+  app.unmount();
+});

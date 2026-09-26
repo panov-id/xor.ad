@@ -167,7 +167,7 @@
   "reset.go": "cerrar y empezar de nuevo",
   "restore.title": "Código en papel",
   "restore.intro": "Escribe los dieciséis caracteres de tu papel. Los grupos pueden ir separados por guiones o espacios.",
-  "restore.introHere": "El código en papel vuelve a abrir este dispositivo y eliges un PIN nuevo.",
+  "restore.introHere": "El código de papel vuelve a abrir este dispositivo. El PIN sigue igual; si no lo recuerdas, fijarás uno nuevo.",
   "restore.code": "código",
   "restore.go": "restaurar",
   "restore.bad": "Eso no es un código en papel: dieciséis letras y cifras.",
@@ -217,5 +217,10 @@
   "closed.movedTitle": "La identidad se ha ido",
   "closed.moved": "La identidad se trasladó a otro dispositivo; aquí no queda nada de ella.",
   "closed.updateTitle": "depth necesita una actualización",
-  "closed.update": "El nodo habla otra versión del protocolo. Actualiza depth y vuelve a iniciarlo."
+  "closed.update": "El nodo habla otra versión del protocolo. Actualiza depth y vuelve a iniciarlo.",
+  "restore.hereTitle": "El dispositivo está abierto",
+  "restore.hereIntro": "La entrada vuelve a estar abierta y el contador del PIN está en diez. El PIN anterior sigue valiendo.",
+  "restore.keepPin": "Recuerdo el PIN — seguir",
+  "restore.forgotPin": "No recuerdo el PIN — fijar uno nuevo",
+  "restore.newPinPrice": "El PIN anterior dejará de funcionar. En este dispositivo no hay historial de todos modos — nada que perder."
 }

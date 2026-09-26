@@ -626,3 +626,246 @@ G31 (проходы удаления вне правила §8.2, одновре
 | 3 | Узел, мелкое: ночная сводка независимо от повтора писем, лог при неудачной отметке «отправлено», счёт pruneInvites по пачкам | G4, G5, G18 | мелкое | ~40 мин, scheduled.ts, notice_notify.ts, dsa.ts |
 | 4 | depth move: тайм-аут ack, прерывание зависшего опроса (AbortSignal в client.request — файл bc), повтор ack или смысл метрики reply_unacknowledged | G11, G12, G15 | мелкое | ~40 мин, transfer_move.ts, client.ts (по согласованию), scheduled.ts/protocol |
 | 5 | Документы: watchdogs RU/EN (G19, G20, G21), protocol RU/EN и openapi (G22, G23), висячие ссылки (G24, G25), комментарий mailer (G29) | G19–G25, G29 | противоречие + мелкое | ~40 мин |
+
+---
+
+# Второй заход — B38–B42 (`0cc0dd4..cbda02a`)
+
+**Дата:** 26.09.2026, 11:58–12:15. **Ведущий:** xor-ad-ae. **Что:** `git diff 0cc0dd4..cbda02a -- relay/node
+depth relay/local scripts` — 17 файлов, +966/−8; кода около 70 строк (главное — take_down.ts: снятие
+живого берёт только живые лайки и живые/ждущие свои фразы, истёкшее оставлено уборщику, — снятие
+40P01 с уборщиком; нулевые серии метрик B42), остальное — тесты (alerts.test.yml, take_down, стресс,
+metrics_zeros). **Состав:** три линзы — Безопасность (обязательна), Данные, Эксплуатация; Протоколы и
+Согласованность на 70 строках кода не собирались. Затем один опровергатель на все находки.
+
+## Сырые находки линз (второй заход)
+
+### Второй заход — линза «Безопасность» — сырьё
+
+## Security lens, second pass, `0cc0dd4..cbda02a`
+
+No critical findings. The take-down change is sound for what §8.2 asks. There are two contradictions and one minor residual race.
+
+**Checked by reading the code at cbda02a. I did not run the tests or a container.**
+
+### What I checked and found holding
+
+1. **Do phrases or likes stay live after a step-away or close?**
+   - The take-down deletes phrases where `visible_at IS NULL OR expires_at > now()` (`take_down.ts:93-96`). The sweep deletes the exact complement, `visible_at IS NOT NULL AND expires_at <= now()` (`feed_verdict.ts:298-299`). Together they cover every row.
+   - Every reader that could show a leftover expired phrase filters on `livePhraseOf`: the feed `feed.ts:352`, the density count `feed.ts:566`, the list of one's likes (screen 25) `likes.ts:407`, the name freeze `profile.ts:153`, and the match query `likes.ts:184-185`.
+   - So a leftover expired phrase and its likes are invisible, and they cannot make a match.
+   - This matches the recorded decision in spec `docs/chat_RU.md` §8.2, line 108 of that section ("Снятие живого не трогает истёкшее", 26.09).
+2. **Can a like land between `held` and the DELETE and survive?** No defect found.
+   - The take-down locks one's own `identity_stats` row first (`take_down.ts:28-31`, `me` is in the array).
+   - A like takes the same row (`likes.ts:113-116`), so a like by `me` waits until the take-down commits. Then `stillHere` (`likes.ts:117`) refuses it.
+   - A like that commits before the lock appears in `held`, because the `SELECT id … FOR UPDATE` runs after the stats lock (`take_down.ts:32-40`).
+3. **Does the TakeDownRetry guard still cover a new author?** Yes.
+   - A like on a new author that commits between `guess` and the stats lock is in `held`. The DELETE returns it and `take_down.ts:63` throws.
+   - Both callers retry only on TakeDownRetry (`away.ts:47-53`, `identity.ts:1062`).
+   - A like on a phrase that has since expired no longer triggers a retry. That is correct, because it is no longer deleted or counted.
+4. **Can a moderation verdict publish a waiting phrase during the take-down?** No new race.
+   - The DELETE's WHERE covers both states of the row.
+   - Under READ COMMITTED, the row that the verdict publishes is checked again as live and deleted.
+5. **Metric labels in the zero series.** No leak and no cardinality risk.
+   - Every pre-created label is a literal (`feed_verdict.ts:27`, `dsa.ts:27`, `identity.ts:1280`, `likes.ts:34-35`, `statements.ts:26`, `transfer.ts:41`, `sessions.ts:34`).
+   - The one exception is `mailer.ts`: `config.mail.transport` × the `MAIL_KINDS` constant × 2 results, which is bounded.
+   - The label names match the ones that actually increment (for example, `identity.ts:1103` maps `wrong_pin` to `"wrong"`).
+
+### Findings
+
+- **Contradiction, pre-existing and outside the diff: the PIN-limit freeze takes nothing down.**
+  - `take_down.ts:2-4` says the list is "exactly as the PIN-limit freeze does", and spec §8.2 (the freeze paragraph at line 535) requires that freeze to take down phrases, likes and matches.
+  - But `pin_attempts.ts:107` calls only `freezeSession(run, sessionId, "pin_limit")`, and `sessions.ts:44-90` has no call to `takeDownLive`.
+  - I did not find it handled anywhere: `takeDownLive` is called only from `away.ts:118` and `identity.ts:1116`.
+  - Result: after ten wrong PINs, the frozen identity's phrases, likes and matches stay live, which the spec says must go.
+  - Point fix: call `takeDownLive` inside the pin_limit branch of `pin_attempts.ts`, with the same TakeDownRetry loop.
+- **Minor: a narrow deadlock window remains at the expiry boundary.**
+  - `now()` is fixed at the start of the take-down transaction. A phrase that expires during that transaction is still live to the take-down, which locks it (`take_down.ts:37`) or deletes it (`:94`). The sweep, with a later `now()`, sees it as expired and takes it in its own order (`feed_verdict.ts:297`).
+  - Two such phrases crossing expiry inside a transaction of a few milliseconds could still produce 40P01.
+  - Nothing is left half-done: the transaction rolls back. But callers do not retry 40P01 (`away.ts:51` rethrows it), so the person gets a 5xx.
+  - This is my theory; I did not reproduce it. Point fix: also retry on 40P01 in the two loops.
+- **Minor, a contradiction on counters that the spec accepts:** likes on phrases that expired before the take-down stay in the author's `likes_received` for good (`take_down.ts:53-55`). This is the same as any like the sweep takes, and §8.2 line 108 accepts it. It is not a leak, as long as `likes_received` is never shown to anyone as a list of who liked. I did not check that.
+- **Not a defect:** `scripts/run-relay-tests.sh:47` mounts `relay/local` read-only. In a working checkout this would include any ignored local env file there (`relay/local/.gitignore` exists; I did not read it). The test container has `--allow-net=127.0.0.1`, so nothing can leave the machine.
+### Второй заход — линза «Данные и СУБД» — сырьё
+
+Линза «Данные и СУБД», второй проход, cbda02a. Смотрел только чтение и один опыт в одноразовом postgres:16.
+
+```diff
++ Для take-down теперь без дедлока: лайк, снятие лайка, второй take-down той же личности и уборщик вне окна истечения. Проверено чтением
+- Снятие лайка на истёкшей фразе, которую уборщик ещё не забрал, даёт 40P01 с уборщиком. Воспроизведено в postgres:16
+! Осталось окно, в котором take-down и уборщик сталкиваются: фраза истекает во время транзакции take-down. Стресс-тест его не достаёт
+! Стресс-тест не проверяет удаление своих фраз, а проверка likes_given в нём пропускает старое поведение
+```
+
+**1. Дефект конструкции.** `relay/node/src/routes/likes.ts:312-317`. Снятие лайка сначала удаляет строку `likes`, потом правит `feed_messages`. Уборщик делает наоборот: сначала строка фразы, потом каскад на `likes`. Проверки, что фраза жива, в снятии нет (`likes.ts:277-281`), поэтому на истёкшей, но ещё не убранной фразе получается тот же встречный порядок, что чинили в take-down. **ПРОВЕРЕНО** опытом: в сессии снятия `DELETE l`, пауза, `UPDATE f`, а в это время уборщик делает `DELETE FROM f WHERE expires_at<=now()`. Итог — `deadlock detected ... while updating tuple in relation "f"`. Пользователь получает 503.
+Правка точечная: после блокировки `identity_stats` взять `SELECT 1 FROM feed_messages WHERE id=$1 AND expires_at > now() FOR UPDATE`, а если строки нет, отвечать `unliked()` и ничего не удалять. Спецификация от 26.09 («истёкшее — уборщику») это и требует.
+
+**2. Дефект конструкции, редкий.** Остаётся окно. `now()` в take-down — это время начала его транзакции, у уборщика `now()` позже. Возьмём фразу X, которую я лайкнул, и мою фразу Z, у которых `expires_at` попал между этими двумя моментами. Take-down держит X (`take_down.ts:36-38`) и потом удаляет Z (`:93-96`). Уборщик одним `DELETE` уже взял Z и ждёт X. Получается цикл. **НЕ ПРОВЕРЕНО** опытом, вывод по теории блокировок. Вызывающий код повторяет транзакцию только на `TakeDownRetry` (`away.ts:51`, `identity.ts:1062`), на 40P01 повтора нет, значит закрытие или отлучка отвечают 503.
+Правка: во внутреннем `SELECT` уборщика `FOR UPDATE SKIP LOCKED` (`feed_verdict.ts:297-299`). Она же закрывает и пункт 1. Оговорка: спецификация отклонила вариант «пропускать занятые в уборщике» в связке с блокировкой всех фраз по порядку `id`. Одно `SKIP LOCKED` без той связки не добавляет блокировок.
+
+**3. Противоречие, мелкое.** Счётчики теперь зависят от пути. Для лайков на истёкших фразах take-down больше не уменьшает `likes_given` и `likes_received`, и это согласуется с уборщиком, который их никогда не уменьшает (`feed_verdict.ts:295-303`, `identity_stats` он не трогает). А снятие лайка на той же неубранной фразе их уменьшает (`likes.ts:318-325`). Правка из пункта 1 это выравнивает. Сами счётчики не расходятся со строками, потому что `likes_given` — это история.
+
+**4. Мелкое, стресс-тест.**
+- Стресс не проверяет удаление своих фраз. У лайкера в `take_down_stress.test.ts:43-63` своих фраз нет, так что изменение `take_down.ts:93-96` стрессом не покрыто. А там отдельный класс: два многострочных `DELETE` по пересекающимся истёкшим строкам в разном порядке.
+- Проверка `likes_given` слишком слабая. Теперь значение детерминировано и равно `AUTHORS - live.length`, то есть 30, а `:100-101` принимает любое от 0 до 30. Старое поведение, при котором вычитались и истёкшие, этот тест тоже пропустит. Комментарий в `:94-97` («the expired ones the sweep reached first did not») описывает старый код.
+- Истёкшие фразы в тесте просрочены на минуту (`:55`), поэтому окно из пункта 2 не возникает никогда.
+- Утверждение «5 из 5 красных на старом коде» я **НЕ ПРОВЕРЯЛ**, сам тест не запускал.
+
+**Где дефекта не нашёл:**
+- Согласованность `now()`. **ПРОВЕРЕНО** чтением. `held` вычисляется один раз, `DELETE` идёт по `ANY($2)` без повторного предиката (`take_down.ts:57`). `now()` внутри транзакции постоянен, поэтому и перепроверка строки у `FOR UPDATE` даёт тот же ответ. Фраза, истёкшая посреди транзакции, в обоих операторах считается живой. Её счётчики уменьшаются согласованно, уборщик ждёт и забирает её после коммита. Противоречия нет, кроме окна из пункта 2.
+- Порядок с лайком, снятием лайка и вторым take-down. **ПРОВЕРЕНО** чтением `likes.ts:113-116`, `294-297`. Все начинают с `identity_stats` в едином порядке uuid, а строку фразы берут только после этого. Лайк чужого на мою фразу ждёт на `stats(me)`. Второй take-down с другого устройства тоже ждёт на `stats(me)`, после чего видит свежие данные (READ COMMITTED, снимок на каждый оператор): `held` пуст или новый, лайк вставить нельзя, потому что `stats(me)` занят.
+- Ждущие фразы (`visible_at IS NULL`) с уборщиком не пересекаются: уборщик берёт только `visible_at IS NOT NULL`.
+- `take_down.test.ts` честно открывает окно для `TakeDownRetry` через подменённую `run` и проверяет, что блокировка не взята, через `NOWAIT`.
+
+Опыт лежит в `/tmp/claude-1000/-home-eugene-panov-Projects-panov-id-xor-ad/6831ada1-1b2c-473c-844a-9e268f8c5d2f/scratchpad/dl.sh`.
+### Второй заход — линза «Эксплуатация» — сырьё
+
+Линза «Эксплуатация», второй проход, cbda02a. Я только читал, в репозитории ничего не менял. Для чтения выгрузил снимок через `git archive` в scratchpad.
+
+Что проверил запуском:
+- `scripts/test_alerts.sh` на снимке: «18 rules, 18 with a firing, a quiet and an edge probe», promtool — SUCCESS.
+- `scripts/check-db-suites.sh relay/node` на снимке: «тестов с базой: 15 — список совпадает».
+- `metrics_zeros.test.ts` и стресс-тест не запускал: нужен полный прогон узла и Postgres.
+
+**1. Дефект проектирования. Письмо-приветствие публикует серию, которую никто не создал заранее, и MailFailing пропускает первый отказ.**
+- `relay/node/src/lib/mailer.ts:191` и `:193` (`sendWelcome`) инкрементируют `relay_mail_total{transport, result}` без метки `kind`.
+- Заранее созданные серии (`mailer.ts:787-789`) все несут `kind` из `MAIL_KINDS` (`:777-780`), а `"welcome"` в этом списке нет.
+- Поэтому первый упавший welcome после рестарта (путь `routes/waitlist.ts:127`) рождает серию `{transport="resend",result="failed"}` сразу со значением 1. `rate()` в `alerts.yml:182` её не видит — ровно то, что B42 закрывал.
+- Тест `metrics_zeros.test.ts:68` этого не ловит: селектору `result!="sent"` подходит любая нулевая серия с любым `kind`.
+- Точечная правка: дать welcome `kind: "welcome"` в `:191/:193` и добавить `"welcome"` в `MAIL_KINDS`. Либо заранее создать и `{transport, result:"failed"}` без `kind`.
+
+**2. Противоречие, мелкое. Тест нулевых серий проверяет наличие нуля, а не то, что код потом инкрементирует ту же серию.**
+- `metrics_zeros.test.ts:65-70` сверяет только метки из селектора алерта.
+- Метки `transport` и `kind` не проверяются. Отсюда и слепое пятно пункта 1: любую серию с новым набором меток тест пропустит.
+- Правка: для `relay_mail_total` отдельно сверить, что каждое место `inc(` ложится на набор меток, созданный при загрузке. Либо свести вызовы к одной функции.
+
+**3. Мелкое. Метка `transport` вычисляется один раз при загрузке модуля, а конфиг перечитываемый.**
+- Создание нулей берёт `config.mail.transport` при импорте (`mailer.ts:788`).
+- `reloadConfig()` существует и в комментарии назван задел под сигнал перезагрузки.
+- В проде конфиг сейчас читается один раз, поэтому это не дефект. Но если сменить транспорт перезагрузкой, заранее созданные серии окажутся под старым транспортом. Стоит записать рядом с `reloadConfig`.
+
+**4. Не найдено, где обрабатывается (было до этого диффа). Последний неверный PIN помечается `locked`, а не `wrong_pin`.**
+- Место: `relay/node/src/lib/pin_attempts.ts:109`.
+- `PinMissBurst` (`alerts.yml:111`, `result="wrong"`) и `TransferPinGuessing` (`:242`, `wrong_pin`) эту попытку не считают, а серия `locked` тоже рождается с 1.
+- При переборе это недосчёт на одну попытку на сессию, пороги 10 и 20 это почти не меняет. Упоминаю, потому что задача B42 — «первое событие».
+
+**5. Мелкое. Стресс-тест при красном прогоне не убирает свои строки.**
+- В `take_down_stress.test.ts:116` assert бросает исключение раньше очистки на `:119-126`.
+- Строки `take-down-stress` остаются в базе, но база одноразовая: контейнер и сеть сносит `trap cleanup` (`scripts/run-relay-database-tests.sh:29-34`). Контейнеры после теста не остаются.
+- Флаки не вижу: сам тест дочищает просрочку повторным проходом (`:111`), свип идёт до исчерпания (`feed_verdict.ts:293-307`), а `likes_given` после правки детерминирован.
+- Сам тест доказывает отсутствие дедлока только вероятностно, и красный он давал до правки лишь по словам комментария. Контрольную поломку я не повторял.
+
+**6. Проверено, дефекта нет:**
+- `test_alerts.sh` без promtool красный: `set -euo pipefail` (`:13`), а `docker run` (`:55`) падает с ненулевым кодом.
+- Оба новых набора с базой стоят в `--ignore` (`relay/node/deno.json:7`) и отказываются работать без `DATABASE_URL` (`take_down_stress.test.ts:15-19`).
+- Монтирование `relay/local` (`scripts/run-relay-tests.sh:47`) соответствует пути `../../local/...` в `metrics_zeros.test.ts:60`.
+- Остальные нулевые серии совпадают с местами инкремента по меткам:
+  - `dsa.ts:27` и `:341`;
+  - `sessions.ts:34` и `:97`;
+  - `identity.ts:1280` и `:790/988/1103`;
+  - `likes.ts:34-35` и `:247/331`;
+  - `statements.ts:26` и `:96`;
+  - `transfer.ts:41` и `:135` через `pin_attempts.ts:109`;
+  - `feed_verdict.ts:27` и `:176/263`.
+
+**Что увидит дежурный.** `DsaQueueStuck` (`alerts.yml:191`) теперь срабатывает и на свежем узле с открытой очередью: раньше без серии `== 0` давал пустой результат. Это исправление, но после выката жди первый настоящий пейдж по старым открытым уведомлениям. Проба `alerts.test.yml:15` («no published series at all») описывает состояние, которого узел после B42 не производит. Она безвредна благодаря `or vector(0)`.
+
+## Сведённые находки (второй заход, до перепроверки)
+
+H1 [Б] relay (до диапазона): заморозка десятой ошибкой ПИНа ничего не снимает — pin_attempts.ts:107 только freezeSession(..., "pin_limit"); takeDownLive зовут лишь away.ts:118 и identity.ts:1116; chat_RU.md:1301 требует «в той же транзакции заморозка снимает живое, как отлучка».
+H2 [Д1] relay: снятие лайка на истёкшей, но не убранной фразе — встречный порядок с уборщиком (likes.ts:312-317: DELETE likes, затем UPDATE feed_messages; уборщик: фраза, затем каскад на likes) → 40P01, человек получает 503; проверки живости фразы в снятии нет (likes.ts:277-281).
+H3 [Б, Д2] relay: окно на границе истечения — фраза истекает между now() транзакции take-down и now() уборщика (take_down.ts:36-38, :93-96; feed_verdict.ts:297-299) → возможен 40P01; вызывающие повторяют только TakeDownRetry (away.ts:51, identity.ts:1062), не 40P01 — теория.
+H4 [Э1] relay: sendWelcome считает relay_mail_total без kind (mailer.ts:191,193), "welcome" нет в MAIL_KINDS — нулевой серии нет, первый отказ приветствия после рестарта MailFailing не видит.
+H5 [Э2] relay: metrics_zeros.test.ts:65-70 проверяет только метки из селектора тревоги, не то, что код инкрементирует ту же серию (поэтому пропустил H4).
+H6 [Э4] relay (до диапазона): последний неверный ПИН считается как locked, а не wrong/wrong_pin (pin_attempts.ts:109) — PinMissBurst/TransferPinGuessing недосчитывают одну попытку.
+H7 [Д4, Э5] relay: стресс take_down_stress.test.ts не покрывает удаление своих фраз (:43-63), проверка likes_given слаба (:100-101), комментарий :94-97 описывает старый код; при красном прогоне строки не чистятся (:116 до :119-126, база одноразовая).
+H8 [Д3] relay: счётчики зависят от пути — take-down на истёкшей не вычитает, снятие лайка на той же неубранной вычитает (likes.ts:318-325).
+H9 [Э3] relay: метка transport нулевых серий берётся при загрузке модуля (mailer.ts:788), а reloadConfig существует.
+
+## Опровержение (второй заход)
+
+### Второй заход — опровержение H1–H9 — сырьё
+
+Итог по H1–H9 на cbda02a: подтверждено 8 находок, опровергнута одна (H9). Все находки — от панели (p3-findings.md), каждую я проверил сам через `git show cbda02a:…`. H2 воспроизведена в одноразовом postgres:16.
+
+**H1 — ПОДТВЕРЖДЕНО, дефект проекта (было до диапазона).**
+- При десятой ошибке `pin_attempts.ts:95-107` зовёт только `freezeSession(run, sessionId, "pin_limit")`.
+- `sessions.ts:44-98` пишет `frozen_at`, шлёт `pg_notify`, а полови́ны мэтчей трогает только при `transfer`. Фразы, лайки и мэтчи не снимаются.
+- `takeDownLive` вызывается только в `away.ts:118` и `identity.ts:1116`.
+- В `relay/node/db` нет ни одного `CREATE TRIGGER`, так что SQL-пути тоже нет.
+- Спека требует обратного, причём дважды: `chat_RU.md:1301` («В той же транзакции заморозка снимает живое, как отлучка») и `:874` («Закрытие, отлучка и заморозка снимают живые фразы…»).
+- Шапка `take_down.ts:3` даже пишет «exactly as the PIN-limit freeze does», хотя этот путь её не вызывает.
+- Тест `feed_publish.test.ts:2034-2047` («a PIN-limit freeze leaves the halves and the consent standing») закрепляет только сохранность согласия. Тестов на снятие живого при `pin_limit` нет.
+
+**H2 — ПОДТВЕРЖДЕНО, мелкое.**
+- Снятие лайка, `likes.ts:275-316`: чтение фразы без блокировки, advisory-блокировка пары, `identity_stats FOR UPDATE`, затем `DELETE likes` и только потом `UPDATE feed_messages`.
+- Уборщик блокирует ни `identity_stats`, ни advisory не берёт, поэтому эти блокировки ничего не упорядочивают.
+- Уборщик, `feed_verdict.ts:295-303`: сначала `DELETE feed_messages`, потом каскад в `likes` через `030_likes_matches_blocks.sql:15`.
+- Проверки `expires_at` в снятии лайка нет (`:277-281`).
+- Воспроизведение (скрипт `scratchpad/h2run.sh`, postgres:16): `ERROR: deadlock detected … while deleting tuple in relation "likes"`.
+- Жертва — любая из двух сторон. Если уборщик, он повторит через минуту; если снятие лайка — человек получает 503 через `.catch` на `:327-331`.
+- Окно узкое: фраза истекла, но ещё не убрана (≤1 мин), а `GET /likes` показывает только живые.
+
+**H3 — ПОДТВЕРЖДЕНО как теория, мелкое.**
+- `now()` в Postgres — время начала транзакции. Снятие живого фильтрует по нему (`take_down.ts:36-38` и `:93-96`), уборщик — по началу своего оператора.
+- Сценарий цикла: фраза B, которую человек лайкнул, и его собственная фраза X истекают в этом окне. Снятие держит B `FOR UPDATE`; уборщик берёт X и ждёт B; снятие затем удаляет X и ждёт уборщика.
+- Повтор есть только на `TakeDownRetry` (`away.ts:47-52`, `identity.ts:1062-1068`), остальное уходит в 503.
+- Не воспроизводил.
+
+**H4 — ПОДТВЕРЖДЕНО, мелкое.**
+- `mailer.ts:191,193` пишут `{transport,result}` без `kind`. Нулевые серии в `:787-789` заводятся только для `MAIL_KINDS` (`:777-781`), `welcome` там нет. Других нулевых инициализаций `relay_mail_total` нет.
+- Итог: первый отказ приветствия после старта рождает серию сразу с 1, и `rate()` в `alerts.yml:182` его не видит.
+
+**H5 — ПОДТВЕРЖДЕНО, пробел в тесте.**
+- `metrics_zeros.test.ts:65-70` ищет хотя бы одну нулевую серию, подходящую под селектор. Под `result!="sent"` подходит любая серия с `kind`, поэтому набор меток без `kind` (H4) проходит.
+
+**H6 — ПОДТВЕРЖДЕНО, мелкое.**
+- `pin_attempts.ts:109`: `meter(left === 0 ? "locked" : "wrong_pin")`. Маршруты переводят в `wrong` только `wrong_pin` (`identity.ts:790,988,1103`), а `transfer.ts:135` пишет результат как есть.
+- `PinMissBurst` (`alerts.yml:111`) и `TransferPinGuessing` (`:242`) недосчитывают одну ошибку на устройство. Смягчает `SessionFreezeBurst`, который считает заморозки `pin_limit`.
+
+**H7 — ПОДТВЕРЖДЕНО, мелкое (качество теста).**
+- У лайкающего нет своих фраз (`:43-63`), так что удаление собственных фраз не покрыто.
+- Новый код даёт ровно `likes_given = 30`, а тест допускает `0..30` (`:100-101`).
+- Комментарий `:94-97` («the expired ones the sweep reached first did not») описывает старое поведение.
+- Утверждения `:100-116` стоят раньше очистки `:119-126`, поэтому при красном прогоне строки остаются.
+
+**H8 — ПОДТВЕРЖДЕНО, мелкое.**
+- Снятие живого вычитает только живые лайки (`take_down.ts:36-38`, `:55-61`).
+- `unlikePhrase` вычитает `like_count`/`likes_given`/`likes_received` и на истёкшей неубранной фразе (`likes.ts:318-325`, проверки живости нет). Смысл счётчика зависит от пути.
+
+**H9 — ОПРОВЕРГНУТО.**
+- `reloadConfig` (`config.ts:183`) нигде в `relay/node/src` не вызывается; сам комментарий `:180-182`: «Nothing in the node calls this; it is for tests». Метка `transport` из `mailer.ts:788` в работающем узле не расходится с конфигом.
+
+## Сводка ведущего (второй заход)
+
+9 находок после слияния: подтверждено 8, опровергнута H9 (`reloadConfig` узел не вызывает,
+`config.ts:180-183`). Не находки (линзы сами сняли): остаток `likes_received` на истёкших — принятое
+спекой 26.09 «истёкшее — уборщику»; монтирование relay/local в тестах — сеть закрыта; DsaQueueStuck
+теперь срабатывает и на свежем узле — это исправление, ждать первого настоящего вызова после выката.
+
+**Дефект дизайна**
+- H1 relay (до диапазона): десятая ошибка ПИНа замораживает сессию, но не снимает живое — фразы,
+  лайки, мэтчи остаются. Спека: chat_RU.md:1301 и :874. **ПРОВЕРЕНО** мной: `pin_attempts.ts:107`
+  зовёт только freezeSession; `git grep takeDownLive` → лишь away.ts:118 и identity.ts:1116.
+  Шапка take_down.ts:3 утверждает обратное.
+
+**Мелкое**
+- H2 снятие лайка на истёкшей неубранной фразе встречает уборщика встречным порядком → 40P01, 503.
+  **ПРОВЕРЕНО** мной: `scratchpad/dl.sh` в postgres:16 → `deadlock detected`; порядок likes.ts:312-316
+  (DELETE likes, затем UPDATE feed_messages) совпадает с моделью.
+- H3 окно на границе истечения take-down × уборщик → 40P01 без повтора (теория). НЕ ПРОВЕРЕНО.
+- H4 приветственное письмо без kind — нулевой серии нет, первый отказ MailFailing не видит.
+  **ПРОВЕРЕНО** мной: mailer.ts:191,193; `"welcome"` в MAIL_KINDS нет.
+- H5 metrics_zeros.test.ts не сверяет наборы меток с местами инкремента (пропустил H4). НЕ ПРОВЕРЕНО.
+- H6 последний неверный ПИН считается `locked`, а не wrong (pin_attempts.ts:109). НЕ ПРОВЕРЕНО.
+- H7 стресс take_down: нет своих фраз, слабая проверка likes_given, устаревший комментарий. НЕ ПРОВЕРЕНО.
+- H8 счётчики зависят от пути (снятие лайка вычитает на истёкшей, снятие живого — нет). НЕ ПРОВЕРЕНО.
+
+## Нарезка на задачи (второй заход)
+
+| # | Что | Находки | Уровень | Цена |
+|---|---|---|---|---|
+| 6 | Заморозка десятой ошибкой ПИНа снимает живое, как отлучка: takeDownLive в ветке pin_limit (pin_attempts.ts) с повтором TakeDownRetry; тест «после десятой ошибки фраз, лайков, мэтчей нет»; поправить шапку take_down.ts | H1 | дефект дизайна | ~1 ч, pin_attempts.ts, тест |
+| 7 | Снятие лайка на истёкшей фразе: взять фразу `FOR UPDATE` с `expires_at > now()` до DELETE, нет строки — `unliked()` без вычитания; тест двумя соединениями; заодно повтор 40P01 в циклах отлучки и закрытия | H2, H8, H3 | мелкое | ~45 мин, likes.ts, away.ts, identity.ts |
+| 8 | Метрики: kind "welcome" в MAIL_KINDS и sendWelcome; metrics_zeros сверяет наборы меток с инкрементами; последний неверный ПИН в счёт wrong | H4, H5, H6 | мелкое | ~40 мин, mailer.ts, metrics_zeros.test.ts, pin_attempts.ts/маршруты |
+| 9 | Стресс take_down: свои фразы, точная проверка likes_given, комментарий, очистка в finally | H7 | мелкое | ~20 мин, take_down_stress.test.ts |

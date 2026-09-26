@@ -363,7 +363,7 @@ community guidelines, served beside it, promise the opposite.
 `relay/node/src/chat/relay.ts:1-9` is a stub whose header describes passing
 messages through AI moderation in plaintext, rests privacy on storing nothing,
 and declares end-to-end encryption an incompatible alternative living in
-`docs/chat-decentralized-ideas_{RU,EN}.md`.
+`docs/archive/chat-decentralized-ideas_{RU,EN}.md`.
 
 `chat_EN.md` §8.13 adopted end-to-end encryption as a decision and says outright
 that it became possible exactly when the chat stopped being moderated. The stub

@@ -5,7 +5,7 @@ tier) for the neighborhood faces. It backs the landings now (waitlist, welcome
 email) and is built to host the future decentralized chat.
 
 Companion docs: `RELEASE_{EN,RU}.md` (release & promotion regimen), `README*`
-(quick start), `../docs/chat-decentralized-ideas_*` (future chat).
+(quick start), `../docs/archive/chat-decentralized-ideas_*` (future chat).
 
 ## 1. Topology
 

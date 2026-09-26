@@ -1753,3 +1753,150 @@ test("a refused new PIN does not follow the person back to the choice or on to t
   assert.doesNotMatch(app.lastFrame()!, /Узел не принял/, "the refusal followed the person on to the new code");
   app.unmount();
 });
+
+// ── P9 · the conversation that waits for the second (§8.5): the queue on this device ──
+import { Waiting } from "./screens/pending.ts";
+
+// A core whose queue is the real one (depth/core/pending.ts), and whose inbox
+// the test moves by hand: first the offer, then either a chat born of it or nothing.
+async function waitingCore() {
+  const { PendingQueue } = await import("../core/pending.ts");
+  const q = new PendingQueue();
+  const said: string[] = [];
+  const core = {
+    rows: [{ kind: "match", id: "m1", match_id: undefined, name: "Аня", age: 27 }] as Array<Record<string, unknown>>,
+    dropped: [] as string[],
+    queueLine: (m: string, t: string) => q.push(m, t),
+    queued: (m: string) => q.peek(m),
+    dropQueued: (m: string) => { q.drop(m); core.dropped.push(m); },
+    sayInChat: (_c: string, t: string) => { said.push(t); return Promise.resolve({ status: 202, body: {} }); },
+    inbox: () => Promise.resolve(core.rows),
+    said,
+  };
+  return core;
+}
+
+test("what is typed while the second has not agreed waits on the device, marked, and never reaches the node", async () => {
+  const core = await waitingCore();
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Waiting, { say, client: core as any, matchId: "m1", name: "Аня", age: 27, limit: 128, onOpened: () => {}, onBack: () => {}, onFeed: () => {}, onError: collect, pollMs: 100_000 }));
+  await settle();
+  assert.match(app.lastFrame()!, /Аня, 27/);
+  assert.match(app.lastFrame()!, /ждём ответа/, "the head does not say the conversation waits");
+  assert.match(app.lastFrame()!, /без ✓/, "the screen does not say the lines wait without a tick");
+  await type(app, "привет", DOWN, ENTER);
+  await settle();
+  assert.match(app.lastFrame()!, /привет\s+· ждёт/, "the queued line is not shown as waiting");
+  // The line about losing the queue stands under the queue (§8.5 :2133), and says the spec's words.
+  const frame = app.lastFrame()!;
+  assert.match(frame, /уходят второму в момент его «поговорить»/, "the hint does not carry the spec's words");
+  assert.ok(frame.indexOf("привет") < frame.indexOf("без ✓"), "the hint about the queue stands above the queue, not under it");
+  assert.deepEqual(core.queued("m1"), ["привет"], "the line did not reach the device's queue");
+  assert.deepEqual(core.said, [], "a line went to the node before the second agreed");
+  app.unmount();
+  noErrors();
+});
+
+test("past the ceiling the oldest waiting line goes without a word, and the screen shows what the core holds", async () => {
+  const core = await waitingCore();
+  const { PENDING_MAX } = await import("../core/pending.ts");
+  for (let i = 0; i < PENDING_MAX; i++) core.queueLine("m1", `строка ${i}`);
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Waiting, { say, client: core as any, matchId: "m1", name: "Аня", age: 27, limit: 128, onOpened: () => {}, onBack: () => {}, onFeed: () => {}, onError: collect, pollMs: 100_000 }));
+  await settle();
+  await type(app, "последняя", DOWN, ENTER);
+  await settle();
+  assert.equal(core.queued("m1").length, PENDING_MAX, "the queue grew past chat.pending.max");
+  assert.equal(core.queued("m1")[0], "строка 1", "the oldest line did not leave first");
+  // The frame is clipped to the terminal's rows, so "строка 0 is not there"
+  // proves nothing by itself: the first waiting line drawn must be the first
+  // the core holds — the screen draws the queue, it does not keep one.
+  const first = /^\s+(.+?)\s+· ждёт/m.exec(app.lastFrame()!)?.[1];
+  assert.equal(first, core.queued("m1")[0], "the screen shows a queue other than the core's");
+  assert.notEqual(first, "строка 0", "the evicted line is still on the screen");
+  assert.doesNotMatch(app.lastFrame()!, /переполн|too many|full/i, "the ceiling announced itself");
+  app.unmount();
+  noErrors();
+});
+
+test("the second agreed: the waiting screen hands the chat on; the offer gone: a tombstone and the queue dies", async () => {
+  const core = await waitingCore();
+  core.queueLine("m1", "привет");
+  let opened: string | null = null;
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Waiting, { say, client: core as any, matchId: "m1", name: "Аня", age: 27, limit: 128, onOpened: (chatId: string) => (opened = chatId), onBack: () => {}, onFeed: () => {}, onError: collect, pollMs: 60 }));
+  await settle();
+  core.rows = [{ kind: "chat", id: "c9", match_id: "m1", name: "Аня", age: 27 }];
+  await waitFor(() => opened === "c9", 3);
+  assert.deepEqual(core.queued("m1"), ["привет"], "the queue was dropped before the chat could send it");
+  app.unmount();
+
+  const gone = await waitingCore();
+  gone.queueLine("m1", "привет");
+  let toFeed = 0;
+  // deno-lint-ignore no-explicit-any
+  const app2 = render(h(Waiting, { say, client: gone as any, matchId: "m1", name: "Аня", age: 27, limit: 128, onOpened: () => {}, onBack: () => {}, onFeed: () => toFeed++, onError: collect, pollMs: 60 }));
+  await settle();
+  gone.rows = [];
+  await waitFor(shows(app2, /предложение ушло/), 3);
+  assert.deepEqual(gone.dropped, ["m1"], "the queue did not die with the offer");
+  assert.deepEqual(gone.queued("m1"), [], "a line of the dead offer is still held");
+  assert.doesNotMatch(app2.lastFrame()!, /привет/, "a line of the dead offer is still on the screen");
+  await type(app2, ENTER);
+  assert.equal(toFeed, 1, "the tombstone did not lead to the feed");
+  app2.unmount();
+  noErrors();
+});
+
+test("one's own consent answered \"waiting\" opens the waiting conversation, and the inbox remembers it", async () => {
+  let waited: string | null = null;
+  const consented = new Set<string>();
+  const client = {
+    inboxSince: () => Promise.resolve({
+      items: [{ kind: "match", id: "m1", name: "Аня", age: 27, phrase: { text: "гуляю", mode: "alone" }, waiting_for_you: false, state: "pending" }],
+      events: { new_matches: 0, waiting_for_you: 0, new_chats: 0, pending_messages: 0, ending_soon: 0 },
+    }),
+    consent: () => Promise.resolve({ status: 200, body: { state: "waiting" } }),
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Inbox, { say, client: client as any, onOpen: () => {}, onWait: (m: string) => { waited = m; consented.add(m); }, consented: (m: string) => consented.has(m), onBack: () => {}, onError: collect }));
+  await settle();
+  await settle();
+  assert.match(app.lastFrame()!, /мэтч — ждёт твоего согласия/);
+  await type(app, ENTER);
+  await waitFor(() => waited === "m1", 3);
+  // Back in the inbox: the row says we wait, offers "open", and "not now" is gone — one has agreed.
+  const again = render(h(Inbox, { say, client: client as any, onOpen: () => {}, onWait: (m: string) => (waited = `again ${m}`), consented: (m: string) => consented.has(m), onBack: () => {}, onError: collect }));
+  await settle();
+  await settle();
+  assert.match(again.lastFrame()!, /мэтч — ждём ответа/, "the inbox forgot the consent given");
+  assert.match(again.lastFrame()!, /открыть/);
+  assert.doesNotMatch(again.lastFrame()!, /не сейчас/, "\"not now\" is offered after one's own consent");
+  await type(again, ENTER);
+  await waitFor(() => waited === "again m1", 3);
+  app.unmount();
+  again.unmount();
+  noErrors();
+});
+
+test("a chat opened over a queue sends what waited first and shows it as one's own", async () => {
+  const flushed: string[] = [];
+  const held = ["привет", "ты где?"];
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: "1111 2222" }),
+    openRoom: () => Promise.resolve({ next: () => new Promise(() => {}), close: () => {}, closed: new Promise(() => {}) }),
+    queued: () => held,
+    flushQueued: (c: string, m: string) => { flushed.push(`${c}/${m}`); held.length = 0; return Promise.resolve(null); },
+    read: () => Promise.resolve(""),
+  };
+  const app = render(h(Chat, {
+    // deno-lint-ignore no-explicit-any
+    say, client: client as any, chatId: "c9", matchId: "m1", name: "Аня", age: 27, limit: 128,
+    onBack: () => {}, onError: collect,
+  }));
+  await waitFor(shows(app, /ты где\?/), 3);
+  assert.deepEqual(flushed, ["c9/m1"], "the queue did not go out when the chat opened");
+  assert.match(app.lastFrame()!, /привет[\s\S]*ты где\?/, "the waited lines are not on the screen in their order");
+  app.unmount();
+  noErrors();
+});

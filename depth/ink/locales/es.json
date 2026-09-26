@@ -222,5 +222,10 @@
   "restore.hereIntro": "La entrada vuelve a estar abierta y el contador del PIN está en diez. El PIN anterior sigue valiendo.",
   "restore.keepPin": "Recuerdo el PIN — seguir",
   "restore.forgotPin": "No recuerdo el PIN — fijar uno nuevo",
-  "restore.newPinPrice": "El PIN anterior dejará de funcionar. En este dispositivo no hay historial de todos modos — nada que perder."
+  "restore.newPinPrice": "El PIN anterior dejará de funcionar. En este dispositivo no hay historial de todos modos — nada que perder.",
+  "chat.waiting": "esperando respuesta",
+  "chat.queued": "espera",
+  "chat.waitingHint": "Las líneas esperan en una cola sin ✓ y llegan al otro en cuanto pulsa «hablar». Si sales de depth, la cola se pierde.",
+  "chat.offerGone": "La propuesta se ha ido.",
+  "inbox.waiting": "un match — esperando respuesta"
 }

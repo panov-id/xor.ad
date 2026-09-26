@@ -222,5 +222,10 @@
   "restore.hereIntro": "L’entrée est rouverte et le compteur du PIN est revenu à dix. L’ancien PIN reste valable.",
   "restore.keepPin": "Je me souviens du PIN — continuer",
   "restore.forgotPin": "Je ne me souviens pas du PIN — en définir un nouveau",
-  "restore.newPinPrice": "L’ancien PIN cessera de fonctionner. Il n’y a de toute façon aucun historique sur cet appareil — rien à perdre."
+  "restore.newPinPrice": "L’ancien PIN cessera de fonctionner. Il n’y a de toute façon aucun historique sur cet appareil — rien à perdre.",
+  "chat.waiting": "en attente de réponse",
+  "chat.queued": "attend",
+  "chat.waitingHint": "Les lignes attendent dans une file sans ✓ et partent vers l’autre dès qu’il appuie sur « parler ». Quitter depth efface la file.",
+  "chat.offerGone": "La proposition est partie.",
+  "inbox.waiting": "un match — en attente de réponse"
 }

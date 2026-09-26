@@ -222,5 +222,10 @@
   "restore.hereIntro": "Intrarea este din nou deschisă, contorul PIN a revenit la zece. PIN-ul vechi este valabil.",
   "restore.keepPin": "Îmi amintesc PIN-ul — mai departe",
   "restore.forgotPin": "Nu îmi amintesc PIN-ul — stabilesc unul nou",
-  "restore.newPinPrice": "PIN-ul vechi nu va mai funcționa. Pe acest dispozitiv oricum nu există istoric — nimic de pierdut."
+  "restore.newPinPrice": "PIN-ul vechi nu va mai funcționa. Pe acest dispozitiv oricum nu există istoric — nimic de pierdut.",
+  "chat.waiting": "așteptăm răspuns",
+  "chat.queued": "așteaptă",
+  "chat.waitingHint": "Replicile stau la coadă fără ✓ și pleacă la celălalt în clipa în care apasă „să vorbim”. Ieși din depth — coada dispare.",
+  "chat.offerGone": "Propunerea a plecat.",
+  "inbox.waiting": "un match — așteptăm răspuns"
 }

@@ -222,5 +222,10 @@
   "restore.hereIntro": "Giriş yenidən açıqdır, PIN sayğacı sıfırlandı. Əvvəlki PIN işləyir.",
   "restore.keepPin": "PIN yadımdadır — davam",
   "restore.forgotPin": "PIN yadımda deyil — yenisini təyin et",
-  "restore.newPinPrice": "Əvvəlki PIN işləməyəcək. Bu cihazda onsuz da tarixçə yoxdur — itirəcək bir şey yoxdur."
+  "restore.newPinPrice": "Əvvəlki PIN işləməyəcək. Bu cihazda onsuz da tarixçə yoxdur — itirəcək bir şey yoxdur.",
+  "chat.waiting": "cavab gözləyirik",
+  "chat.queued": "gözləyir",
+  "chat.waitingHint": "Sətirlər ✓ olmadan növbədə durur və o biri «danışaq» deyən an ona gedir. depth-dən çıxsan — növbə itir.",
+  "chat.offerGone": "Təklif getdi.",
+  "inbox.waiting": "match — cavab gözləyirik"
 }

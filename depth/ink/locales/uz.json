@@ -222,5 +222,10 @@
   "restore.hereIntro": "Kirish qayta ochildi, PIN hisoblagichi tiklandi. Avvalgi PIN ishlaydi.",
   "restore.keepPin": "PIN eslayman — davom etish",
   "restore.forgotPin": "PIN eslamayman — yangisini qo‘yish",
-  "restore.newPinPrice": "Avvalgi PIN ishlamay qoladi. Bu qurilmada baribir tarix yo‘q — yo‘qotadigan narsa yo‘q."
+  "restore.newPinPrice": "Avvalgi PIN ishlamay qoladi. Bu qurilmada baribir tarix yo‘q — yo‘qotadigan narsa yo‘q.",
+  "chat.waiting": "javob kutamiz",
+  "chat.queued": "kutadi",
+  "chat.waitingHint": "Satrlar ✓ belgisiz navbatda turadi va ikkinchisi «gaplashamiz» degan zahoti unga ketadi. depth-dan chiqsang — navbat yo‘qoladi.",
+  "chat.offerGone": "Taklif ketdi.",
+  "inbox.waiting": "match — javob kutamiz"
 }

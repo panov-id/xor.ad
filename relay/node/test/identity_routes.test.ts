@@ -807,6 +807,7 @@ Deno.test("the tenth miss is counted wrong like the nine before it", async () =>
   }
   assert((await attemptsLeft(created.session_id)).locked_at, "the tenth miss did not close entry");
   assertEquals(wrongs() - before, 10, "a miss was not counted wrong");
+});
 
 Deno.test("a freeze that cannot take its row in time does not undo the tenth miss, and the minute's job freezes it", async () => {
   // closeOnce sets a two-second lock timeout before checkPin; a freeze that

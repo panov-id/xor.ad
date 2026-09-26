@@ -151,10 +151,16 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   await expect(anya.locator('[data-testid="theirs"]').last()).toContainText("слышно", { timeout: 20000 });
 
   // Closed by hand on A's side: B's room closes 4003 and the tombstone stands.
+  // By the code the node names in its `closed` frame (protocol §4.4), not by a
+  // ticket refused on the way back in: no ticket is bought after the close.
+  const ticketsAfterClose: number[] = [];
+  boris.on("response", (r) => { if (new URL(r.url()).pathname === `/chats/${chatId}/ticket`) ticketsAfterClose.push(r.status()); });
   const closed = await viaClient<{ status: number; body: { state: string } }>(anya, "closeChat", chatId);
   expect(closed.status).toBe(200);
   await expect(boris.getByTestId("tombstone")).toBeVisible({ timeout: 20000 });
   await expect(boris.locator('[data-screen="chat"]')).toHaveAttribute("data-over", "yes");
+  await boris.waitForTimeout(3000);
+  expect(ticketsAfterClose, "the tombstone came by a refused ticket, not by the node's code").toEqual([]);
 
   await a.close();
   await b.close();

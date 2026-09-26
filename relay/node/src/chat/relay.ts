@@ -44,6 +44,28 @@ function frame(room: Room, type: string, data: unknown): void {
   room.socket.send(JSON.stringify({ type, seq: room.seq, data }));
 }
 
+// Every close the node makes, one way (protocol §4.4, frame `closed`): the code
+// and the reason in a frame of their own, then the close. Measured 2026-09-26
+// (W3b, web/e2e/specs/close-code.spec.ts): a browser reached straight from
+// this node saw the 4003 close as a bare 1006 — Deno 2.1.4 closing an
+// upgraded socket sends no close frame the browser reads — while data frames
+// arrive. So the code travels as data first, and the close follows on the
+// next turn, after the frame has left. A client that got a real code keeps
+// it; one that got 1006 reads the frame (depth/core/reconnect.ts stays the
+// judge of what a code means).
+function closeWith(socket: WebSocket, seq: number, code: number, reason: string): void {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type: "closed", seq: seq + 1, data: { code, reason } }));
+  }
+  setTimeout(() => {
+    if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) socket.close(code, reason);
+  }, 0);
+}
+function closeRoom(room: Room, code: number, reason: string): void {
+  room.seq += 1;
+  closeWith(room.socket, room.seq, code, reason);
+}
+
 // What waits in the queue for this session of this chat — all of it, or one
 // line by its local id. Exported for the database suite: a room needs a socket,
 // the question of what it would be handed does not.
@@ -114,7 +136,7 @@ function ensureListeningFrozen(): Promise<void> {
   listeningFrozen ??= listen("session_frozen", (session) => {
     for (const set of rooms.values()) {
       for (const room of set) {
-        if (room.session === session) room.socket.close(4002, "the session was frozen");
+        if (room.session === session) closeRoom(room, 4002, "the session was frozen");
       }
     }
   });
@@ -126,7 +148,7 @@ function ensureListeningFrozen(): Promise<void> {
 let listeningClosed: Promise<void> | null = null;
 function ensureListeningClosed(): Promise<void> {
   listeningClosed ??= listen("chat_closed", (chat) => {
-    for (const room of rooms.get(chat) ?? []) room.socket.close(4003, "the conversation is over");
+    for (const room of rooms.get(chat) ?? []) closeRoom(room, 4003, "the conversation is over");
   });
   return listeningClosed;
 }
@@ -214,7 +236,7 @@ export function closeAllRooms(): number {
   let closed = 0;
   for (const set of rooms.values()) {
     for (const room of set) {
-      room.socket.close(1001, "the node is going away");
+      closeRoom(room, 1001, "the node is going away");
       closed++;
     }
   }
@@ -246,7 +268,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   const token = (offered.find((p) => p.startsWith("ticket.")) ?? "").slice("ticket.".length);
   if (!speaks) {
     const { socket, response } = Deno.upgradeWebSocket(req);
-    socket.onopen = () => socket.close(4004, "protocol version not supported");
+    socket.onopen = () => closeWith(socket, 0, 4004, "protocol version not supported");
     inc("relay_chat_rooms_total", { result: "bad_version" });
     return response;
   }
@@ -273,11 +295,11 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   if (failed) {
     // A database that failed is not a bad ticket: 1011, and the client retries
     // later instead of buying tickets in a loop.
-    socket.onopen = () => socket.close(1011, "the node failed");
+    socket.onopen = () => closeWith(socket, 0, 1011, "the node failed");
     return response;
   }
   if (!spent) {
-    socket.onopen = () => socket.close(4001, "ticket expired, spent or wrong");
+    socket.onopen = () => closeWith(socket, 0, 4001, "ticket expired, spent or wrong");
     inc("relay_chat_rooms_total", { result: "bad_ticket" });
     return response;
   }
@@ -288,7 +310,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
     // One room per (chat, session): an older socket of the same session is
     // closed, so tickets cannot pile up rooms (step 5 panel, 2026-09-21).
     for (const older of set) {
-      if (older.session === room.session) older.socket.close(1000, "replaced by a newer socket");
+      if (older.session === room.session) closeRoom(older, 1000, "replaced by a newer socket");
     }
     set.add(room);
     rooms.set(room.chat, set);

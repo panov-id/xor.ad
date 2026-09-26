@@ -4,7 +4,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { base64url } from "./sign.ts";
 import { deriveTransferCode, HeldKey, openClaim, sealReply } from "./transfer.ts";
-import { Arrival, Departure, type MoveClient } from "./transfer_move.ts";
+import { ACK_TRIES, Arrival, Departure, type MoveClient } from "./transfer_move.ts";
 
 type Reply = { status: number; body: unknown; retryAfter?: number };
 type Route = (method: string, path: string, body?: unknown) => Reply | "throw" | "hang";
@@ -13,19 +13,50 @@ const spki = async (key: CryptoKey) => base64url(new Uint8Array(await crypto.sub
 
 function fake(route: Route) {
   const calls: string[] = [];
+  // Every request's signal, and whether it was aborted: a "hang" ends only
+  // when its signal says so, as fetch does.
+  const signals: (AbortSignal | undefined)[] = [];
   const client = {
     identityId: "", held: null, longSpki: "", seats: 0,
     seat() { client.seats++; },
     firstPin: () => Promise.resolve({ status: 204, body: null }),
-    request: <T>(method: string, path: string, body?: unknown) => {
+    request: <T>(method: string, path: string, body?: unknown, _signed?: boolean, signal?: AbortSignal) => {
       calls.push(`${method} ${path.replace(/\/sessions\/[^/]+/, "/sessions/…")}`);
+      signals.push(signal);
       const r = route(method, path, body);
       if (r === "throw") return Promise.reject(new TypeError("fetch failed"));
-      if (r === "hang") return new Promise<never>(() => {});
+      if (r === "hang") {
+        return new Promise<never>((_, fail) => signal?.addEventListener("abort", () => fail(new DOMException("aborted", "AbortError"))));
+      }
       return Promise.resolve(r as { status: number; body: T; retryAfter?: number });
     },
   };
-  return { client: client as unknown as MoveClient & { seats: number }, calls };
+  return { client: client as unknown as MoveClient & { seats: number }, calls, signals };
+}
+
+// An arrival the old device has approved, against a fake node whose ack is
+// answered by `ack`: the claim and the reply are the real envelopes.
+async function arrivalWithAck(ack: (n: number) => Reply | "throw" | "hang") {
+  const code = "K7QM3F2X9";
+  const keys = await deriveTransferCode(code);
+  const long = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
+  let claim = "";
+  let reply = "";
+  let acks = 0;
+  const node = fake((method, path, body) => {
+    if (path === "/sessions/claim") {
+      claim = (body as { envelope: string }).envelope;
+      return { status: 200, body: { state: "claimed" } };
+    }
+    if (path.endsWith("/ack")) return ack(++acks);
+    if (method === "GET") return { status: 200, body: { state: "approved", reply_envelope: reply, session_id: "s-2" } };
+    return { status: 404, body: null };
+  });
+  const into = await Arrival.claim(node.client, code, "depth, test");
+  assert(into instanceof Arrival);
+  into.ackPauseMs = 1;
+  reply = await sealReply(keys, await openClaim(keys, claim), { identityId: "id-1", longPub: await spki(long.publicKey) }, await HeldKey.hold(long.privateKey));
+  return { into, node, acks: () => acks };
 }
 
 Deno.test("an ack whose answer is lost does not undo an arrival: the device stays arrived", async () => {
@@ -51,11 +82,12 @@ Deno.test("an ack whose answer is lost does not undo an arrival: the device stay
   });
   const into = await Arrival.claim(node.client, code, "depth, test");
   assert(into instanceof Arrival);
+  into.ackPauseMs = 1;
   const claimant = await openClaim(keys, claim);
   reply = await sealReply(keys, claimant, { identityId: "id-1", longPub: await spki(long.publicKey) }, await HeldKey.hold(long.privateKey));
 
   assertEquals(await into.state(), "approved", "a lost ack answer turned an arrival into an error");
-  assertEquals(into.acked, 0);
+  assertEquals(await into.ackDone, 0);
   // The node dropped the reply on the ack it did take; the next ask must not
   // read that as a failed move.
   assertEquals(await into.state(), "approved", "the ask after the ack called the move failed");
@@ -123,3 +155,46 @@ Deno.test("an ask that never answers, or fails on the way, is \"no answer yet\",
   assertEquals(await into.state(50), "claimed");
 });
 
+
+// Review panel 2, 2026-09-26: G11 G12 G15.
+Deno.test("an ack that never answers does not hold up the arrival", async () => {
+  const { into, acks } = await arrivalWithAck(() => "hang");
+  // Each ack try is given a second; an arrival that waited for them would
+  // take three.
+  const started = Date.now();
+  assertEquals(await into.state(1000), "approved");
+  assert(Date.now() - started < 900, `the arrival waited for the ack: ${Date.now() - started} ms`);
+  assertEquals(await into.ackDone, 0, "an ack nobody answered was counted as taken");
+  assertEquals(acks(), ACK_TRIES, "the hung ack was not tried again");
+});
+
+Deno.test("an ack lost on the way is tried again until the node takes it", async () => {
+  const { into, acks } = await arrivalWithAck((n) =>
+    n === 1 ? "throw" : n === 2 ? { status: 503, body: null } : { status: 200, body: { state: "approved" } }
+  );
+  assertEquals(await into.state(), "approved");
+  assertEquals(await into.ackDone, 200, "the ack was not tried again after a lost one");
+  assertEquals(acks(), 3);
+});
+
+Deno.test("an ack the node refuses is not asked again", async () => {
+  const { into, acks } = await arrivalWithAck(() => ({ status: 404, body: null }));
+  assertEquals(await into.state(), "approved");
+  assertEquals(await into.ackDone, 404);
+  assertEquals(acks(), 1, "a refusal that asking cannot change was asked again");
+});
+
+Deno.test("an ask past its time is aborted, not left open behind the next one", async () => {
+  const node = fake((method, path) => {
+    if (path === "/sessions/claim") return { status: 200, body: { state: "claimed" } };
+    if (method === "GET") return "hang";
+    return { status: 404, body: null };
+  });
+  const into = await Arrival.claim(node.client, "K7QM3F2X9", "depth, test");
+  assert(into instanceof Arrival);
+  assertEquals(await into.state(50), "claimed");
+  assertEquals(await into.state(50), "claimed");
+  const asks = node.signals.slice(1);
+  assertEquals(asks.length, 2);
+  assert(asks.every((s) => s?.aborted), "a timed-out ask was left running");
+});

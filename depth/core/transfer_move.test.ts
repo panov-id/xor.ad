@@ -63,7 +63,7 @@ Deno.test({
     assertEquals(await into.state(), "approved");
     // The reply taken is the reply gone (B3): the node answers the ack, and
     // whoever holds the code asks for it after that in vain.
-    assertEquals(into.acked, 200, "the node did not take the ack");
+    assertEquals(await into.ackDone, 200, "the node did not take the ack");
     const after = await fresh.request<{ state?: string; reply_envelope?: string }>(
       "GET", `/sessions/${encodeURIComponent((await rowOf(`SELECT lookup_id FROM session_invites WHERE new_session = $1`, [fresh.sessionId])).lookup_id as string)}`,
       undefined, false,
@@ -92,6 +92,7 @@ Deno.test({
     assertEquals(await again.state(), "claimed");
     assertEquals((await again.approve()).status, 200);
     assertEquals(await home.state(), "approved");
+    assertEquals(await home.ackDone, 200);
     assertEquals(back.longSpki, old.longSpki, "the long key did not survive a second move");
   },
 });
@@ -162,6 +163,7 @@ Deno.test({
     assertEquals(await out.state(), "claimed");
     assertEquals((await out.approve()).status, 200);
     assertEquals(await into.state(), "approved");
+    assertEquals(await into.ackDone, 200);
     assertEquals(next.longSpki, lost.longSpki, "the long key did not survive the paper code and the move");
   },
 });

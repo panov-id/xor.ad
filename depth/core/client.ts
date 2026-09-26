@@ -108,7 +108,7 @@ export class Client {
     }
   }
 
-  async #call<T>(method: string, path: string, body?: unknown, signed = true): Promise<Answer<T>> {
+  async #call<T>(method: string, path: string, body?: unknown, signed = true, signal?: AbortSignal): Promise<Answer<T>> {
     const url = new URL(path, this.base).toString();
     const raw = body === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(body));
     const headers: Record<string, string> = { "x-protocol-version": PROTOCOL_MAJOR, ...this.#edge };
@@ -120,7 +120,7 @@ export class Client {
       if (!this.#key) throw new Error("not registered: there is no key to sign with");
       Object.assign(headers, await signRequest(this.#key, this.#session, method, url, raw));
     }
-    const response = await fetch(url, { method, headers, body: body === undefined ? undefined : raw });
+    const response = await fetch(url, { method, headers, body: body === undefined ? undefined : raw, signal });
     const text = await response.text();
     // A refusal that is not JSON — a proxy's HTML, a 502 — keeps its status and
     // its text instead of throwing (depth-core panel, 2026-09-21).
@@ -668,8 +668,8 @@ export class Client {
 
   // A protocol call for the core's other modules (recovery.ts, transfer.ts):
   // signed by the session when there is one and `signed` is not false.
-  request<T>(method: string, path: string, body?: unknown, signed = true): Promise<Answer<T>> {
-    return this.#call<T>(method, path, body, signed);
+  request<T>(method: string, path: string, body?: unknown, signed = true, signal?: AbortSignal): Promise<Answer<T>> {
+    return this.#call<T>(method, path, body, signed, signal);
   }
 
   // ── B16 · lines before the second's consent (§8.5, pending.ts) ──

@@ -22,7 +22,7 @@ export interface MoveClient {
   identityId: string;
   readonly held: HeldLongKey | null;
   readonly longSpki: string;
-  request<T>(method: string, path: string, body?: unknown, signed?: boolean): Promise<Answer<T>>;
+  request<T>(method: string, path: string, body?: unknown, signed?: boolean, signal?: AbortSignal): Promise<Answer<T>>;
   seat(s: {
     identityId: string; sessionId: string; sessionKey: SigningKey; longKey: CryptoKey; longSpki: string;
     wrapPrivate: CryptoKey; held?: HeldLongKey;
@@ -51,25 +51,43 @@ const path = (keys: TransferKeys, tail = "") => `/sessions/${encodeURIComponent(
 // 2026-09-26, F1/F2).
 export const ASK_TIMEOUT_MS = 15_000;
 
-// The state, asked once: its answer, or null for "none came — ask later".
-// A 429 carries the node's own "later" (Retry-After, seconds); the caller
-// keeps quiet until then instead of spending its next asks on refusals
-// (F16).
-async function askState(
-  client: MoveClient,
-  keys: TransferKeys,
+// One call, given timeoutMs: its answer, or null for "none came". The call
+// is aborted when the time is up, so a hung request is not left open behind
+// the next one (review panel 2 2026-09-26, G12); the race stands as well, for
+// a client that does not listen to the signal.
+async function within<T>(
   timeoutMs: number,
-): Promise<Answer<StateBody> | null> {
+  call: (signal: AbortSignal) => Promise<Answer<T>>,
+): Promise<Answer<T> | null> {
+  const stop = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const late = new Promise<null>((done) => (timer = setTimeout(() => done(null), timeoutMs)));
+  const late = new Promise<null>((done) => (timer = setTimeout(() => {
+    stop.abort();
+    done(null);
+  }, timeoutMs)));
   try {
-    return await Promise.race([client.request<StateBody>("GET", path(keys), undefined, false), late]);
+    return await Promise.race([call(stop.signal), late]);
   } catch {
     return null;
   } finally {
     clearTimeout(timer);
   }
 }
+
+// The state, asked once: its answer, or null for "none came — ask later".
+// A 429 carries the node's own "later" (Retry-After, seconds); the caller
+// keeps quiet until then instead of spending its next asks on refusals
+// (F16).
+function askState(client: MoveClient, keys: TransferKeys, timeoutMs: number): Promise<Answer<StateBody> | null> {
+  return within(timeoutMs, (signal) => client.request<StateBody>("GET", path(keys), undefined, false, signal));
+}
+
+// The ack is tried this many times, this far apart: a lost one leaves the
+// reply on the node until the sweep, which counts it as a move nobody
+// finished (relay_transfer_total{result="reply_unacknowledged"}) — G15. A
+// repeat is 200 on the node (transfer.ts ackReply), so trying again is safe.
+export const ACK_TRIES = 3;
+export const ACK_PAUSE_MS = 5_000;
 
 function known(state: string | undefined): MoveState {
   return state === "waiting" || state === "claimed" || state === "approved" || state === "rejected" ||
@@ -240,15 +258,28 @@ export class Arrival {
     // the session just seated — B3). A refused or lost ack does not undo the
     // move: the envelope waits for the sweeper, sealed to this device's
     // wrapping key and useless to anybody else — so it is not this call's to
-    // fail (F1).
-    try {
-      this.acked = (await this.client.request("POST", path(this.keys, "/ack"))).status;
-    } catch {
-      this.acked = 0;
-    }
+    // fail (F1), nor to wait for: the ack goes on its own, and the arrival is
+    // said at once (G11).
+    this.ackDone = this.ack(timeoutMs);
     return state;
   }
 
-  // What the node said to the ack, for the tests and nothing else.
+  // Tried until the node answers something other than "not now": no answer,
+  // a 429 and a 5xx are asked again after a pause; a 200 is taken, and any
+  // other refusal will not change by asking.
+  private async ack(timeoutMs: number): Promise<number> {
+    for (let n = 1; ; n++) {
+      const answer = await within(timeoutMs, (signal) => this.client.request("POST", path(this.keys, "/ack"), undefined, true, signal));
+      this.acked = answer?.status ?? 0;
+      const again = this.acked === 0 || this.acked === 429 || this.acked >= 500;
+      if (!again || n >= ACK_TRIES) return this.acked;
+      await new Promise((done) => setTimeout(done, this.ackPauseMs));
+    }
+  }
+
+  // What the node said to the last ack, and the tries' end — for the tests
+  // and nothing else; ackPauseMs is theirs to shorten.
   acked = 0;
+  ackDone: Promise<number> = Promise.resolve(0);
+  ackPauseMs = ACK_PAUSE_MS;
 }

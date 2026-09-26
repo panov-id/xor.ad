@@ -16,6 +16,7 @@
 
 import { inTransaction, savepoint } from "./db.ts";
 import { refuse } from "./identity_guard.ts";
+import { log } from "./log.ts";
 import { Freezes, freezeSession } from "./sessions.ts";
 import { takeDownLiveInPlace } from "./take_down.ts";
 
@@ -171,6 +172,7 @@ export async function checkPin(
       } catch (error) {
         const code = (error as { code?: string })?.code;
         if (code !== "55P03" && code !== "57014" && code !== "40P01") throw error;
+        log("warn", "the tenth miss's freeze waits for the minute's job", { session: sessionId, code });
         await run(`SELECT pg_notify('session_frozen', $1)`, [sessionId]);
       }
       // And what is live comes down with it, as a time away takes it: the

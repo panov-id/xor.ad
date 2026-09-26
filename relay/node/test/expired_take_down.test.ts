@@ -353,6 +353,42 @@ Deno.test({ name: "a profile edit that fails on a fault of the code is dispatch'
   assert(!lines.some((l) => l.includes("profile edit failed")), "the route logged a fault of the code as the database's");
 });
 
+// A lock timeout (55P03) is the database unavailable, not the code wrong: a
+// 503 (the observer on B105: class 55 could be dropped with everything green).
+// A real one: the edit's own UPDATE fires a trigger that sets a lock timeout
+// and asks for a row a second connection holds — this route sets none itself.
+Deno.test({ name: "a profile edit that meets a lock timeout answers 503 (B108, class 55)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const me: Person = await person();
+  await database.queryOrThrow(`CREATE TABLE IF NOT EXISTS b108_held (id int PRIMARY KEY)`);
+  await database.queryOrThrow(`INSERT INTO b108_held VALUES (1) ON CONFLICT DO NOTHING`);
+  await database.queryOrThrow(
+    `CREATE OR REPLACE FUNCTION b108_wait() RETURNS trigger LANGUAGE plpgsql AS $$
+     BEGIN
+       SET LOCAL lock_timeout = '200ms';
+       PERFORM 1 FROM b108_held WHERE id = 1 FOR UPDATE;
+       RETURN NEW;
+     END $$`);
+  await database.queryOrThrow(
+    `CREATE TRIGGER b108_wait BEFORE UPDATE ON identities FOR EACH ROW
+       WHEN (NEW.id = '${me.identity_id}' AND NEW.age = 35) EXECUTE FUNCTION b108_wait()`);
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  let outcome = "";
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM b108_held WHERE id = 1 FOR UPDATE`);
+      outcome = await signedCall(me.pair.privateKey, me.session_id, "PATCH", "/identities/me", { age: 35 })
+        .then((r) => `answered ${r.status} ${JSON.stringify(r.body)}`, (e) => `thrown ${(e as { code?: string })?.code} ${e}`);
+    });
+  } finally {
+    await sql.end();
+    await database.queryOrThrow(`DROP TRIGGER IF EXISTS b108_wait ON identities`);
+    await database.queryOrThrow(`DROP FUNCTION IF EXISTS b108_wait()`);
+    await database.queryOrThrow(`DROP TABLE IF EXISTS b108_held`);
+  }
+  assert(outcome.startsWith("answered 503"), `a lock timeout on a profile edit was not a 503: ${outcome}`);
+});
+
 addEventListener("unload", () => {
   database.closePool();
 });

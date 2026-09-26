@@ -25,6 +25,7 @@ import { cleanName } from "../lib/names.ts";
 import { json } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
+import { stillHere } from "../lib/take_down.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { band } from "../lib/feed_geo.ts";
 import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
@@ -113,6 +114,11 @@ async function patchProfile(req: Request): Promise<Response> {
     // identity_stats first — the verdict's order — and it doubles as the
     // pause check for a new name below.
     const refusal = await refusalFor(run, caller.identityId);
+    // After the counters row's lock: the tenth PIN miss holds it while it
+    // locks the share and freezes this session, and an edit that waited on it
+    // wrote for good in the name of a session no longer live (panel 6, B108).
+    const gone = await stillHere(run, caller.identityId, caller.sessionId);
+    if (gone?.closed) return refuse("unauthorized", "the request is not signed by a live session", 401);
     const [row] = await run<Row>(
       `SELECT name, name_pending, name_state, age, filter_age_min, filter_age_max
          FROM identities WHERE id = $1 AND closed_at IS NULL FOR UPDATE`,

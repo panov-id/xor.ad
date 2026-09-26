@@ -98,7 +98,7 @@ async function publish(req: Request): Promise<Response> {
     const refusal = await refusalFor(run, caller.identityId);
     // After the counters row's lock refusalFor took: a close or a time away
     // that held it has committed by now (lib/take_down.ts).
-    const gone = await stillHere(run, caller.identityId);
+    const gone = await stillHere(run, caller.identityId, caller.sessionId);
     if (gone) {
       return gone.closed
         ? refuse("unauthorized", "the request is not signed by a live session", 401)

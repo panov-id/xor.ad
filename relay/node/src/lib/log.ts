@@ -6,6 +6,7 @@
 // per request, which would mean an object per request.
 
 import { config } from "../config.ts";
+import { scrubFields } from "./scrub.ts";
 import { put, storageEnabled } from "./storage.ts";
 
 type Level = "info" | "warn" | "error";
@@ -35,14 +36,19 @@ function serializable(_key: string, value: unknown): unknown {
 }
 
 export function log(level: Level, msg: string, fields: Record<string, unknown> = {}): void {
-  const entry: Record<string, unknown> = {
+  // Scrubbed here, for every line and every field: mailboxes and IP addresses
+  // reach error text from messages nobody here writes — a RAISE, postgres.js's
+  // connection errors with the database's address, a caller's address in a
+  // thrown handler — and warn and error lines are copied into storage below
+  // (lib/scrub.ts; B106). No field logs an address on purpose.
+  const entry = scrubFields({
     ts: new Date().toISOString(),
     level,
     msg,
     node: config.nodeId,
     env: config.envName,
     ...fields,
-  };
+  }) as Record<string, unknown>;
   const rendered = JSON.stringify(entry, serializable);
   (level === "error" ? console.error : console.log)(rendered);
   // The rendered form, not the raw entry: the value the console refuses would be

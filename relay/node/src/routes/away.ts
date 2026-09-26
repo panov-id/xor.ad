@@ -35,7 +35,7 @@ import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, sunsetHeader } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
-import { takeDownLive, TakeDownRetry } from "../lib/take_down.ts";
+import { NoLongerLive, stillHere, takeDownLive, TakeDownRetry } from "../lib/take_down.ts";
 
 // limits.tsv away.span.short / hour / long.
 export const AWAY_SPANS = { short: 20, hour: 60, long: 240 } as const;
@@ -124,6 +124,12 @@ async function stepAwayOnce(req: Request): Promise<Response> {
     }
 
     await takeDownLive(run, me);
+    // After the take-down's lock on the counters: the tenth PIN miss holds it
+    // while it locks the share and freezes this session, and a time away that
+    // waited on it went on in the name of a session no longer live (panel 6,
+    // B108). The nonce is already written: thrown, so it goes back too.
+    const gone = await stillHere(run, me, caller.sessionId);
+    if (gone?.closed) throw new NoLongerLive();
 
     // Every live conversation of one's own: the mark, and one line to the other side.
     const chats = await run<{ chat_id: string }>(
@@ -157,6 +163,7 @@ async function stepAwayOnce(req: Request): Promise<Response> {
     return json(answer, 200, sunsetHeader());
   }).catch((error) => {
     if (tryAgain(error)) throw error;
+    if (error instanceof NoLongerLive) return refuse("unauthorized", "the request is not signed by a live session", 401);
     log("error", "stepping away failed", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);
   });

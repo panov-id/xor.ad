@@ -65,7 +65,9 @@ function readable(text: string): string {
 // Spelled-out punctuation of the kind people use to slip past a filter:
 // "site точка ru", "name (at) mail (dot) com". English "at" and "dot" as bare
 // words are not touched — "meet at the bridge" is a phrase, not an address.
-const SPELLED_DOT = /\s*(?:\(dot\)|\[dot\]|\(точка\)|\[точка\]| точка )\s*/gu;
+// Measured 2026-09-27 (docs/measurements/feed-rules-2026-09-27): "[.]" and
+// "(.)" passed as a bare dot in brackets; they are spelled-out punctuation too.
+const SPELLED_DOT = /\s*(?:\(dot\)|\[dot\]|\(точка\)|\[точка\]|\[\.\]|\(\.\)| точка )\s*/gu;
 const SPELLED_AT = /\s*(?:\(at\)|\[at\]|\(собака\)|\[собака\]| собака )\s*/gu;
 function unspelled(text: string): string {
   return text.replace(SPELLED_DOT, ".").replace(SPELLED_AT, "@");
@@ -74,14 +76,23 @@ function unspelled(text: string): string {
 // A link: a scheme, a www., or a bare host with a Latin top-level label of two
 // letters or more. The last one flags "Mr.Smith" too; that is a phrase for a
 // person to read, not a refusal.
-const LINK = /(?:https?:\/\/|www\.)\S|(?:^|[^\p{L}\p{N}])[\p{L}\p{N}-]{1,63}(?:\.[\p{L}\p{N}-]{1,63})*\.[a-z]{2,24}(?=$|[^\p{L}\p{N}])/u;
+// The top-level label is Latin, or one of the Cyrillic ones a neighbour's
+// site ends in — .рф, .ру, .укр, .бел, .срб — which passed the measurement of
+// 2026-09-27 ("сайт пример.рф"). A closed list, not \p{L}: "конец.Начало" is a
+// typo, not a host. One label character before the dot is enough to call it a
+// host: the earlier form walked the whole label chain and backtracked over it
+// — 7 s on 100 KB of "a.a.a." (measured 2026-09-27, the same shape as B106).
+const LINK = /(?:https?:\/\/|www\.)\S|[\p{L}\p{N}-]\.(?:[a-z]{2,24}|рф|ру|укр|бел|срб)(?=$|[^\p{L}\p{N}])/u;
 // A contact: an address, a handle, a messenger by name, or a telephone — seven
 // digits or more with the separators people put between them. A date has
 // eight digits and is flagged too; it waits for a person, which is the side
 // the rules err to.
 const EMAIL = /[^\s@]{1,64}@[^\s@]{1,255}\.[a-z]{2,24}/u;
 const HANDLE = /(?:^|\s)@[\p{L}\p{N}_]{3,32}/u;
-const MESSENGER = /(?:^|[^\p{L}])(?:telegram|tg|whatsapp|viber|wechat|snapchat)(?=$|[^\p{L}])|телег|вотсап|ватсап|вайбер|снапчат/u;
+// "тг" in Cyrillic is the messenger as people write it ("пиши в тг"); it passed
+// the measurement of 2026-09-27. Bounded like the Latin names, so "тгк" or a
+// word carrying the two letters is not flagged.
+const MESSENGER = /(?:^|[^\p{L}])(?:telegram|tg|whatsapp|viber|wechat|snapchat|тг)(?=$|[^\p{L}])|телег|вотсап|ватсап|вайбер|снапчат/u;
 const PHONE = /(?:\+|\b)\d[\d\s().-]{5,24}\d/u;
 const digitsIn = (s: string): number => (s.match(/\d/g) ?? []).length;
 

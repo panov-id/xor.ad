@@ -139,6 +139,7 @@ if [ "$with_tests" = 1 ]; then
   run_in_docker test_check-design-grid "$here/test_check-design-grid.sh"
   run test_ontology            bash "$here/test_ontology.sh"
   run test_check-facts-coverage bash "$here/test_check-facts-coverage.sh"
+  run test_check-docs-pairing  bash "$here/test_check-docs-pairing.sh"
   run test_check-facts-open     bash "$here/test_check-facts-open.sh"
   # Переадресатор пишет в реестры, и потому опаснее ворот: неверный номер он
   # сделал бы зелёным. Проба держит его отказы — ненайденный якорь,

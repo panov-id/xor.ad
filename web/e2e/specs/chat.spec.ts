@@ -130,12 +130,17 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   expect(codeA).toMatch(/^\d{4}( \d{4}){4}$/);
   expect(codeA).toBe(codeB);
 
-  // B reloads: the same session comes back (the tab's record), the inbox is
-  // shown, the conversation opens from the wrap — GET /chats/:id/keys 200 and
-  // no PUT — and A's next line reads.
+  // B reloads: the vault asks the PIN (W1d — the tab's own record is gone),
+  // the same session comes back, the conversation opens from the wrap — GET
+  // /chats/:id/keys 200 and no PUT — and A's next line reads.
   const reads: number[] = [];
   boris.on("response", (r) => { if (new URL(r.url()).pathname === `/chats/${chatId}/keys` && r.request().method() === "GET") reads.push(r.status()); });
   await boris.reload();
+  await expect(boris.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 20000 });
+  await boris.getByTestId("unlock-pin").fill("246813");
+  await boris.getByTestId("unlock").click();
+  await expect(boris.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
+  await boris.getByTestId("nav-inbox").click();
   await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 20000 });
   await expect(boris.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();

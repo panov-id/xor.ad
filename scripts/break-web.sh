@@ -16,8 +16,10 @@ if [ -n "$(git -C "$root" status --porcelain -- "$vault")" ]; then
   echo "$vault is already modified — commit first; the break restores with git checkout" >&2; exit 1
 fi
 echo "== break: the seal is opened without the node's share"
-sed -i 's|  return await unsealLong(record, material.local, share);|  return await unsealLong(record, material.local, share.slice(0, 1));|' "$root/$vault"
-grep -q 'material.local, share.slice(0, 1))' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
+# Both readings of the vault key — the check after registration and the cold
+# path after a reload (verifier of W1d): one sed, two lines.
+sed -i 's|vaultKey(material.local, share)|vaultKey(material.local, share.slice(0, 1))|g' "$root/$vault"
+[ "$(grep -c 'vaultKey(material.local, share.slice(0, 1))' "$root/$vault")" = "2" ] || { echo "the break did not apply to both readings" >&2; exit 1; }
 out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
 echo "$out" | grep -E 'data-sealed|✘|✓|[0-9]+ (passed|failed)' | head -6
 if echo "$out" | grep -q 'toHaveAttribute' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then

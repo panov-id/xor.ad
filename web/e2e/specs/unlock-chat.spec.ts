@@ -89,8 +89,7 @@ test("a conversation opens again after a cold start: the PIN raises the same wra
   await expect(boris.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });
   expect(keys).toEqual([["PUT", 200]]);
 
-  // A cold start for B: no tab id, the vault and the PIN.
-  await boris.evaluate(() => sessionStorage.clear());
+  // B reloads: the vault and the PIN, nothing else.
   await boris.reload();
   await expect(boris.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 15000 });
   await boris.getByTestId("unlock-pin").fill(PIN);

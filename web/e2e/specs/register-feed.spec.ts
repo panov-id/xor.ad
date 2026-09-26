@@ -92,10 +92,8 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
   // A reload: the device remembers, the PIN opens — through the node. A wrong
   // PIN is the node's refusal with the attempts left; the right one seats the
   // long key again, and the feed answers 200 to a call signed by it (W1c).
-  // As a new tab would: the tab's own record (chat/tab_session.ts) is for a
-  // reload of the tab that registered; without its id the vault is the way
-  // back, and the PIN opens it.
-  await page.evaluate(() => sessionStorage.clear());
+  // A plain reload of the very tab that registered: the vault is the only
+  // way back, and the PIN opens it (SEC-2; verifier of W1d, 2026-09-27).
   await page.reload();
   await expect(page.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 15000 });
   await page.getByTestId("unlock-pin").fill("654321");

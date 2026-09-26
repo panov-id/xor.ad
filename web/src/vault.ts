@@ -99,16 +99,6 @@ function fromBase64url(text: string): Uint8Array {
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 }
 
-// The public half of an ECDH P-256 private key, as base64url SPKI, from its
-// pkcs8: WebCrypto exports a private JWK with the point in it, and a JWK of
-// the point alone imports as the public key.
-async function spkiOfPkcs8(pkcs8: Uint8Array): Promise<string> {
-  const priv = await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, WRAP_ALGORITHM, true, ["deriveBits"]);
-  const jwk = await crypto.subtle.exportKey("jwk", priv);
-  const pub = await crypto.subtle.importKey("jwk", { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y }, WRAP_ALGORITHM, true, []);
-  return base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pub)));
-}
-
 // A fixed public point for the wrap check: the generator's own public key of
 // a P-256 pair with private scalar 1 — public, constant, the same for every
 // device. Deriving with it proves nothing about any peer; it tells the same
@@ -164,7 +154,8 @@ export async function registerAndKeep(
   if (!wrapPkcs8) throw new Error("the core did not hand the wrapping pair over");
   const sealedWrap = await seal(key, wrapPkcs8);
   const wrapCheck = await checkOf(await crypto.subtle.importKey("pkcs8", wrapPkcs8 as BufferSource, WRAP_ALGORITHM, false, ["deriveBits"]));
-  const wrapSpki = client.wrapPublicSpki ?? await spkiOfPkcs8(wrapPkcs8);
+  const wrapSpki = client.wrapPublicSpki;
+  if (!wrapSpki) throw new Error("the core did not say the wrapping pair's public half");
   (wrapPkcs8 as Uint8Array).fill(0);
   wrapPkcs8 = null;
   const record: Record_ = {
@@ -193,7 +184,7 @@ export async function registerAndKeep(
 export async function openSealed(record: Record_, pin: string, share: Uint8Array): Promise<CryptoKey> {
   const material = await derivePin(pin, record.deviceSalt);
   try {
-    return await unsealLong(record, material.local, share);
+    return await unsealLong(record, await vaultKey(material.local, share));
   } finally {
     material.auth.fill(0);
     material.local.fill(0);
@@ -201,8 +192,7 @@ export async function openSealed(record: Record_, pin: string, share: Uint8Array
 }
 
 // The long key out of its seal, into memory non-extractable.
-async function unsealLong(record: Record_, local: Uint8Array, share: Uint8Array): Promise<CryptoKey> {
-  const key = await vaultKey(local, share);
+async function unsealLong(record: Record_, key: CryptoKey): Promise<CryptoKey> {
   const pkcs8 = await unseal(key, record.sealedLong);
   try {
     return await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, P256, false, ["sign"]);
@@ -257,7 +247,7 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
   let wrapPrivate: CryptoKey;
   try {
     const key = await vaultKey(material.local, share);
-    long = await unsealLong(record, material.local, share);
+    long = await unsealLong(record, key);
     const wrapPkcs8 = await unseal(key, record.sealedWrap);
     try {
       wrapPrivate = await crypto.subtle.importKey("pkcs8", wrapPkcs8 as BufferSource, WRAP_ALGORITHM, false, WRAP_USAGES);

@@ -5,17 +5,16 @@
 // the match, 08 the conversation (W3). The area and the radius live here, so
 // the composer sends from the same circle the feed shows.
 //
-// Two ways back into an identity, in this order: the tab's own record
-// (web/src/chat/tab_session.ts — a reload of the tab that registered comes
-// back to the inbox with the same session and the wrap the node kept), and
-// otherwise the vault on the disk, which the PIN opens through the node
-// (vault.ts). The tab's record goes when the vault keeps the wrap pair (W1d).
+// One way back into an identity: the vault on the disk, which the PIN opens
+// through the node (vault.ts) — every reload, the tab that registered too.
+// The tab's own record of W3 (keys as bare CryptoKey objects, no PIN) was the
+// retired hole of SEC-2 and went with W1d, once the vault kept the wrap pair
+// (verifier of W1d, 2026-09-27).
 
 import { useEffect, useState } from "react";
 import type { Client, Radius } from "../../depth/core/client.ts";
 import type { Sent } from "./api/actions.ts";
 import { ChatKeys } from "./chat/keys.ts";
-import { keepForTab, restoreForTab } from "./chat/tab_session.ts";
 import { Card } from "./screens/Card.tsx";
 import { Chat } from "./screens/Chat.tsx";
 import { Composer } from "./screens/Composer.tsx";
@@ -64,11 +63,6 @@ export function App() {
       // anybody, before any identity; the rest of the page is not entered.
       const offer = /^\/o\/([A-Za-z0-9_-]+)\/?$/.exec(location.pathname);
       if (offer) return setScreen({ at: "offer", code: offer[1] });
-      const back = await restoreForTab().catch(() => null);
-      if (back) {
-        setSeated({ client: back.client, keys: new ChatKeys(back.client, back.longKey), sealed: "ok" });
-        return setScreen({ at: "inbox" });
-      }
       const record = await readRecord().catch(() => undefined);
       setScreen(record ? { at: "unlock", record } : { at: "splash" });
     })();
@@ -82,7 +76,11 @@ export function App() {
   }, [seated]);
 
   async function registered(client: Client, sealed: Sealed) {
-    const { longKey } = await keepForTab(client);
+    // The long key's signing half for the chat keys — from the held copy the
+    // registration left, in memory only; the vault holds the sealed one.
+    const held = client.held;
+    if (!held) throw new Error("the client holds no long key");
+    const longKey = await held.signing();
     setSeated({ client, keys: new ChatKeys(client, longKey), sealed });
     setScreen({ at: "feed" });
   }

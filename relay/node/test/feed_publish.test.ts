@@ -4719,6 +4719,45 @@ Deno.test({ name: "consent waits on the pair's counters before the match, and do
     "the consent answered something else than a consent — a deadlock is a 503");
 });
 
+// A tenth PIN mistake that locked the share while the consent waited on the
+// pair's counters — its freeze gone back to the minute's job — is a freeze by
+// the guard's rule (B75): the consent must not publish a half for that
+// session (B87; the race, B94).
+Deno.test({ name: "a consent behind a tenth miss that locked the share publishes no half (B94)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const { a, id } = await freshMatch();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const got: { answer?: { status: number; body: unknown } } = {};
+  let sent: Promise<unknown> = Promise.resolve();
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(
+        `SELECT 1 FROM identity_stats WHERE identity IN (SELECT identity FROM match_participants WHERE match_id = $1)
+          ORDER BY identity FOR UPDATE`, [id]);
+      sent = consent(a, id).then((r) => (got.answer = r));
+      const [{ p }] = await tx.unsafe(`SELECT pg_backend_pid() AS p`) as { p: number }[];
+      let queuedOn = 0;
+      for (let i = 0; i < 250 && queuedOn === 0; i++) {
+        await tx.unsafe(`SELECT pg_stat_clear_snapshot()`);
+        queuedOn = ((await tx.unsafe(
+          `SELECT count(*)::int AS n FROM pg_stat_activity WHERE $1 = ANY(pg_blocking_pids(pid))`, [p])) as { n: number }[])[0].n;
+        if (queuedOn === 0) await pause(20);
+      }
+      assert(queuedOn > 0, "the consent never queued on the held counters — the case never ran");
+      await tx.unsafe(`UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [a.session_id]);
+    });
+    await sent;
+  } finally {
+    await sql.end();
+  }
+  assert(got.answer, "the consent never answered");
+  assertEquals(got.answer.status, 401, `a consent behind a locked share answered ${got.answer.status}: ${JSON.stringify(got.answer.body)}`);
+  const [half] = await database.queryOrThrow<{ published: boolean }>(
+    `SELECT ephemeral_public_key IS NOT NULL AS published FROM match_participants WHERE match_id = $1 AND identity = $2`,
+    [id, a.identity_id]);
+  assertEquals(half.published, false, "the consent published a half for a session whose PIN was locked");
+});
+
 // "About to go" (§8.11, depth-client §4.4.1; owner 23.09.2026: a flag, not a
 // time): the last 65 minutes of someone else's phrase come as soon: true, in
 // the feed and in the likes, and the remaining time itself never does.

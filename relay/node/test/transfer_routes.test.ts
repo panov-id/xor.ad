@@ -1032,3 +1032,33 @@ Deno.test({ name: "one address alone cannot pause code entry for the node", sani
     misses.reset();
   }
 });
+
+// A tenth PIN mistake that locked the share while the approval waited on it —
+// its freeze gone back to the minute's job — is a freeze by the guard's rule
+// (B75): the approval must not freeze the owner's device and seat the invited
+// one past a locked PIN (B87; the race, B94).
+Deno.test({ name: "an approval behind a tenth miss that locked the share moves nothing (B94)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const old = await device_with_identity();
+  const { lookupId, invited } = await claimed(old);
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const got: { approved?: { status: number; body: unknown } } = {};
+  let sent: Promise<unknown> = Promise.resolve();
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [old.session_id]);
+      sent = approval(old, lookupId, invited.signPub).then((r) => (got.approved = r));
+      await queuedBehind(tx, 1, "the approval behind the tenth miss");
+      await tx.unsafe(`UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [old.session_id]);
+    });
+    await sent;
+  } finally {
+    await sql.end();
+  }
+  assert(got.approved, "the approval never answered");
+  assertEquals(got.approved.status, 401, `an approval behind a locked share answered ${got.approved.status}: ${JSON.stringify(got.approved.body)}`);
+  const rows = await database.queryOrThrow<{ id: string; frozen: boolean }>(
+    `SELECT id, frozen_at IS NOT NULL AS frozen FROM sessions WHERE identity = $1 ORDER BY id`, [old.identity_id]);
+  assertEquals(rows.map((r) => ({ id: r.id, frozen: r.frozen })), [{ id: old.session_id, frozen: false }],
+    "the approval froze the owner or seated the invited device past a locked PIN");
+});

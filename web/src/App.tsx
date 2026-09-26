@@ -1,7 +1,9 @@
 // The web face's screens, on the sheets in panel/design/sheets: 01 the splash,
 // 02 the two steps of registration, 03 the feed (W1); the PIN after a reload,
-// when the device remembers an identity (W1c); 06/07 the inbox, 06 the match,
-// 08 the conversation (W3). The composer, the likes and the card are W2.
+// when the device remembers an identity (W1c); the composer, a phrase
+// full-screen with like / hide / block, and "liked" (W2); 06/07 the inbox, 06
+// the match, 08 the conversation (W3). The area and the radius live here, so
+// the composer sends from the same circle the feed shows.
 //
 // Two ways back into an identity, in this order: the tab's own record
 // (web/src/chat/tab_session.ts — a reload of the tab that registered comes
@@ -10,12 +12,16 @@
 // (vault.ts). The tab's record goes when the vault keeps the wrap pair (W1d).
 
 import { useEffect, useState } from "react";
-import type { Client } from "../../depth/core/client.ts";
+import type { Client, Radius } from "../../depth/core/client.ts";
+import type { Sent } from "./api/actions.ts";
 import { ChatKeys } from "./chat/keys.ts";
 import { keepForTab, restoreForTab } from "./chat/tab_session.ts";
+import { Card } from "./screens/Card.tsx";
 import { Chat } from "./screens/Chat.tsx";
-import { Feed } from "./screens/Feed.tsx";
+import { Composer } from "./screens/Composer.tsx";
+import { Feed, type FeedCard } from "./screens/Feed.tsx";
 import { Inbox, type InboxChatRow, type MatchRow } from "./screens/Inbox.tsx";
+import { Likes } from "./screens/Likes.tsx";
 import { Match } from "./screens/Match.tsx";
 import { Register } from "./screens/Register.tsx";
 import { Splash } from "./screens/Splash.tsx";
@@ -31,6 +37,9 @@ type Screen =
   | { at: "register" }
   | { at: "unlock"; record: Record_ }
   | { at: "feed" }
+  | { at: "composer" }
+  | { at: "card"; card: FeedCard }
+  | { at: "likes" }
   | { at: "inbox" }
   | { at: "match"; row: MatchRow }
   | { at: "chat"; row: InboxChatRow };
@@ -38,6 +47,14 @@ type Screen =
 export function App() {
   const [screen, setScreen] = useState<Screen>({ at: "loading" });
   const [seated, setSeated] = useState<Seated | null>(null);
+  // The area is placed anywhere, by the person (§8.3); until the place picker
+  // of the sheet is drawn it is one fixed point.
+  const [at] = useState({ lat: 41.9, lon: 12.5 });
+  const [radius, setRadius] = useState<Radius>(1000);
+  // One's own phrase just sent, with the node's verdict; shown on the feed
+  // until the person leaves it (W2, after the verifier).
+  const [sent, setSent] = useState<{ state: Exclude<Sent, { state: "refused" }>["state"]; text: string } | null>(null);
+  const [gone, setGone] = useState<{ why: "hidden" | "blocked"; id: string } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -72,10 +89,18 @@ export function App() {
     setScreen({ at: "feed" });
   }
 
+  // Leaving the feed drops what it said about the last phrase and the last card.
+  const leaveFeed = (to: Screen) => {
+    setSent(null);
+    setGone(null);
+    setScreen(to);
+  };
+  const toFeed = () => setScreen({ at: "feed" });
+
   const nav = seated && (screen.at === "feed" || screen.at === "inbox") && (
     <nav className="nav screen" style={{ minHeight: 0, paddingBottom: 0 }} data-testid="nav">
       <button type="button" aria-current={screen.at === "feed" ? "page" : undefined} onClick={() => setScreen({ at: "feed" })} data-testid="nav-feed">лента</button>
-      <button type="button" aria-current={screen.at === "inbox" ? "page" : undefined} onClick={() => setScreen({ at: "inbox" })} data-testid="nav-inbox">разговоры</button>
+      <button type="button" aria-current={screen.at === "inbox" ? "page" : undefined} onClick={() => leaveFeed({ at: "inbox" })} data-testid="nav-inbox">разговоры</button>
     </nav>
   );
 
@@ -89,7 +114,50 @@ export function App() {
     case "unlock":
       return <Unlock record={screen.record} onDone={unlocked} onForget={() => setScreen({ at: "splash" })} />;
     case "feed":
-      return <>{nav}<Feed client={seated!.client} sealed={seated!.sealed} /></>;
+      return (
+        <>
+          {nav}
+          <Feed
+            client={seated!.client}
+            sealed={seated!.sealed}
+            at={at}
+            radius={radius}
+            onRadius={setRadius}
+            onOpen={(card) => leaveFeed({ at: "card", card })}
+            onWrite={() => leaveFeed({ at: "composer" })}
+            onLikes={() => leaveFeed({ at: "likes" })}
+            sent={sent}
+            gone={gone}
+          />
+        </>
+      );
+    case "composer":
+      return (
+        <Composer
+          client={seated!.client}
+          at={at}
+          radius={radius}
+          onSent={(result, text) => {
+            setSent({ state: result.state, text });
+            toFeed();
+          }}
+          onBack={toFeed}
+        />
+      );
+    case "card":
+      return (
+        <Card
+          client={seated!.client}
+          card={screen.card}
+          onBack={toFeed}
+          onGone={(why, id) => {
+            setGone({ why, id });
+            toFeed();
+          }}
+        />
+      );
+    case "likes":
+      return <Likes client={seated!.client} onBack={toFeed} />;
     case "inbox":
       return (
         <>

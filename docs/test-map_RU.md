@@ -107,6 +107,9 @@
 | 4.9 | **Ни ссылки, ни QR: отдельной страницы под привязку не существует** | маршрута под приглашение нет; узел принимает только `lookup_id` | нечем |
 | 4.10 | Вторая половина кода на сервер не уходит | перехват трафика переноса: в запросах только `lookup_id` и конверты | нечем |
 | 4.11 | **«Это я» и «не совпадает» — только сессией выдавшей личности, один раз** (панель ревью 19.09.2026) | `approve` чужой подписью → `not_found`; повторный `approve` → `not_found`; `reject` → код гаснет | нечем |
+| 4.12 | Опрос состояния переноса и `claim` тратят разные квоты | после `claim` опрос состояния не расходует квоту `claim`; у двух ручек свои счётчики | **есть** — «polling the state after a claim spends none of the claim's allowance» (`transfer_routes.test.ts`); «the transfer poll and the transfer claim spend separate allowances» (`rate_limit.test.ts`) |
+| 4.13 | Ответный конверт повторяется до квитанции нового устройства и гаснет после неё | второй `GET` до `ack` → тот же конверт; `GET` после `ack` → без конверта | **есть** — «a second GET before the ack gets the reply again», «a GET after the ack does not get the reply envelope» (`transfer_routes.test.ts`) |
+| 4.14 | Квитанцию принимает только новая сессия, и две квитанции разом ничего не ломают | `ack` чужой подписью → отказ, ничего не стёрто; два `ack` разом → оба 200, ответа не осталось | **есть** — «an ack signed by any session but the new one is refused and erases nothing», «two acks racing both answer 200 and leave no reply» (`transfer_routes.test.ts`) |
 
 ## 5. Восстановление по бумажному коду (шаг 1)
 
@@ -149,6 +152,8 @@
 | 6.11 | **Зона — только одна из пяти ступеней** (переписан 31.08.2026) | тест «a radius between the steps is refused…», feed_publish | **есть** |
 | 6.12 | Ссылка в тексте вырезается, и об этом сказано | фраза со ссылкой → в ленте текст без неё, автору строка с объяснением | нечем |
 | 6.13 | Непустая скидка делает фразу оффером частника | лайк на ней даёт мэтч сразу, без ответного (§8.5) | нечем |
+| 6.14 | Истёкшая, но ещё не убранная фраза не держит место из четырёх живых | четыре живых, одна истекла → пятая принята (`LIVE_PHRASE`, B8) | **есть** — «a phrase whose time ran out frees its slot for the fifth» (`feed_publish.test.ts`) |
+| 6.15 | Квота в профиле считает живые места тем же условием, что отказ публикации, и сходится со своим списком фраз | квота профиля = число, на котором отказывает пятая; при истечении фраз квота и список не расходятся | **есть** — «the profile's quota counts the live slots the publish refusal counts», «the profile's quota agrees with its own list while phrases run out» (`identity_routes.test.ts`) |
 
 ## 7. Выдача ленты (шаг 2)
 
@@ -169,19 +174,21 @@
 | 7.9 | **Узел отдаёт ступень, а не точное число** (26.08.2026) | 7 живых фраз в круге → в ответе `около десятка`, самой семёрки нет нигде | нечем |
 | 7.10 | Границы ступеней ровно те, что записаны: 0 · 1–4 · 5–14 · 15–99 · 100+ | по фразе на каждой границе: 4→`несколько`, 5→`около десятка`, 14→`около десятка`, 15→`десятки` | нечем |
 | 7.11 | У счётчика своё ограничение частоты | сотня запросов подряд → отказ, а лента при этом работает | нечем |
+| 7.12 | Истёкшая, но не убранная фраза не выдаётся в ленту и не считается в плотности | срок фразы вышел до уборки → её нет в ленте, плотность на её круге — `none` | **есть** — «ran out · the feed does not deliver a phrase that ran out», «ran out · density does not count a phrase that ran out» (`feed_publish.test.ts`) |
 
 ## 8. Лайк (шаг 3)
 
 | № | Что должно быть правдой | Чем доказывается | Состояние |
 |---|---|---|---|
 | 8.1 | Свою фразу лайкнуть нельзя | запрос мимо клиента → отказ | нечем |
-| 8.2 | **Лайк недоступен без своей живой фразы** (26.08.2026) | личность без фразы → отказ, а не молчаливый `liked` | нечем |
+| 8.2 | **Лайк недоступен без своей живой фразы** (26.08.2026) | личность без фразы → отказ, а не молчаливый `liked` | **есть** — «a like with no live phrase of one's own is refused, not swallowed», «a like whose own phrase ran out is refused as one with no phrase at all» (`feed_publish.test.ts`) |
 | 8.3 | Двойной тап не накручивает счётчик | два одинаковых запроса → `like_count` вырос на 1 | нечем |
 | 8.4 | Счётчики двигаются в той же транзакции | падение после `INSERT likes` → счётчик не разошёлся | нечем |
 | 8.5 | 64 лайка за 32 минуты — предел | 65-й → отказ | нечем |
 | 8.6 | Клиенту не сообщают, кого он лайкнул | ответ содержит только `{state}` | нечем |
 | 8.7 | **Автор видит `like_count` своей фразы тем же числом, что и все** | выдача автору и выдача чужому содержат одно значение | нечем |
 | 8.8 | **Кто лайкнул — не отдаётся ни автору, ни кому-либо** | в ответе по своей фразе нет ни списка, ни признака конкретного лайка | нечем |
+| 8.9 | Лайк чужой истёкшей фразы не засчитывается, и истёкшая уходит из «моих лайков» | лайк на фразу после её срока → счётчик 0; лайкнутая истекла → её нет в `GET /likes` | **есть** — «ran out · a like on somebody else's phrase that ran out does not count», «ran out · a liked phrase that ran out leaves my likes» (`feed_publish.test.ts`) |
 
 ## 9. Мэтч и двойное согласие (шаг 4)
 
@@ -212,6 +219,7 @@
 | 9.11 | Карточка отдаёт имя, возраст, режим и остатки обеих фраз (у мэтча от оффера — один) — и только их (правка 14.09.2026: «таймер» [retired]) | в ответе нет ни `identity_id` собеседника, ни его других фраз | нечем |
 | 9.12 | Мэтч не открывается, пока имя отклонено | `name_state = rejected` → взаимный лайк не создаёт карточки | нечем |
 | 9.13 | **«Не сейчас» записывается сразу и возвращается только в секунды отмены** (19.09.2026) | `POST /matches/{id}/decline` → мэтч отклонён; `DELETE` в срок → вернулся; после срока → отказ | нечем |
+| 9.14 | Мэтч не рождается из фразы, чей срок вышел | лайкнутая фраза истекла, ответный лайк → не `matched` | **есть** — «ran out · no match is made of a phrase that ran out» (`feed_publish.test.ts`) |
 
 ## 10. Мэтч от оффера — односторонний (шаг 4)
 
@@ -334,6 +342,7 @@
 | 16.9 | **Решение по уведомлению видно по квитанции без почты** (`dsa/SPEC_RU.md` §6, 14.09.2026) | уведомление без почты → на узле только `receipt_hash`; решение принято → запрос с кодом показывает его | нечем |
 | 16.9a | **Квитанцию нельзя подобрать** (§6) | неизвестный код и «решения ещё нет» → статус 200 у обоих, тела совпадают байт в байт, `Cache-Control: no-store`, время ответа не меньше общего минимума у обеих веток; код передан телом `POST`; в журнале адреса нет | нечем |
 | 16.9b | **Хэш квитанции уходит с уведомлением** (§9) | `prune_dsa_records` через год → нет ни уведомления, ни `receipt_hash` | нечем |
+| 16.10 | Истёкшую фразу нельзя скрыть — ответ тот же 404, что на невидимую | `POST /hidden` на истёкшую чужую фразу → 404 | **есть** — «ran out · a phrase that ran out cannot be hidden, and so confirmed» (`feed_publish.test.ts`) |
 
 ## 17. Смена имени и возраста (шаг 1, полностью — с шага 2)
 
@@ -350,6 +359,7 @@
 | 17.9 | **Бумажный код перевыпускается только предъявлением текущего** | запрос без кода → отказ; с верным кодом → новый выдан, прежний мёртв | нечем |
 | 17.10 | Смена ПИНа перешифровывает базу и берёт новую долю | старый ПИН после смены не открывает ничего | **есть на узле** — «a new PIN takes the old one's place, and the vault opens with the new share», «a wrong old PIN spends an attempt and changes nothing», «a repeat of a change that went through spends no attempt», «a locked vault changes no PIN, even with the right one» (`identity_routes.test.ts`, 24.09.2026); перешифровка базы — дело клиента, а ПИН в depth пока заглушка |
 | 17.11 | «Начать заново» закрывает личность, а не удаляет строку | `closed_at` проставлен, фразы ушли из выдачи, бумажный код больше не поднимает | **есть** — «closing an identity takes down what it has live, and a wrong PIN closes nothing» (`feed_publish.test.ts`, 24.09.2026): фразы, лайки, беседа и её очередь, замороженная сессия, сожжённая доля, половина бумажного кода |
+| 17.12 | Своя истёкшая фраза не морозит имя | фраза морозила имя (409 `name_frozen`), срок вышел → смена имени принята (202) | **есть** — «ran out · an own phrase that ran out does not freeze the name» (`feed_publish.test.ts`) |
 
 ## 18. Инбокс (шаг 8)
 
@@ -455,6 +465,16 @@
 | 25.4 | Зона фразы по точке QR: по умолчанию большая из ступени QR и 300 м | QR 1 км → 1 км; QR 100 м → 300 м; сдвиг точки → обычные правила | нечем |
 | 25.5 | Узел не отличает фразу по QR: тело `POST /feed` — те же ключи, что у любой фразы | сравнить ключи тела с фразой без QR → совпадают; поля `place`/`qr` в `openapi.yaml` нет | нечем |
 | 25.6 | Одна клетка и ступень дают одну ссылку, кто бы ни делал | два профиля, одна точка и ступень → строки ссылок равны | нечем |
+
+## 26. Сторожа и письма узла (26.09.2026)
+
+| № | Что должно быть правдой | Чем доказывается | Состояние |
+|---|---|---|---|
+| 26.1 | С6: возраст старейшей фразы, ждущей вердикта, по бренду; вердикт убирает ряд; фраза автора с отклонённым именем не считается | `relay_moderation_oldest_seconds{brand}` при двух ждущих, после вердикта, при пустой очереди; фраза автора `name_state = rejected` два часа — ряда нет | **есть** — «С6: the oldest waiting phrase reads as its age, and a verdict takes the series away», «С6: a phrase held by its author's refused name is not the node's queue» (`queue_metrics.test.ts`) |
+| 26.2 | Письмо С6: одно на остановку; без вердикта — раз в сутки; после вердикта по этому бренду — не раньше часа; отклонённое имя не будит; 8,5 минуты — не остановка; неотправленное повторяется | `watchModeration` с подставным временем и почтой: сутки остановок через 70 минут → одно письмо; чужой бренд не оживляет | **есть** — «a stopped queue writes one letter, with the face, the age, the count and the day's late ones», «a queue still stopped on the next passes writes nothing more», «with no moderator, phrases that age out one after another write one letter a day», «a verdict, then a stop again: a second letter, but not within the hour», «a verdict on another face does not bring this one's queue back», «a phrase held by its author's refused name does not wake anybody», «a queue under nine minutes is slow, not stopped», «a letter nobody could be sent is tried again on the next pass» (`queue_metrics.test.ts`) |
+| 26.3 | Письмо о решении по уведомлению ст. 16 помечается отправленным при отправке; отказ отправки оставляет уведомление неотмеченным, повтор шлёт сохранённый текст | письмо ушло сразу → отметка при решении; почта отказала → отметки нет, повтор из сохранённого текста | **есть** — «a decision letter that leaves at once is marked at the decision», «a refused decision letter leaves the notice unmarked, and the retry sends it from the kept text» (`dsa_decision_letter.test.ts`) |
+| 26.4 | Каждое письмо узла считается под своим видом из `MAIL_KINDS`; отказ квитанции — один сбой, а не два; сбой сводки поддержки на одной витрине не мешает другой | `relay_mail_total{kind}` по каждому отправителю через `deliver()`; отказанная квитанция и сводка | **есть** — «every sender through deliver() passes its own kind from MAIL_KINDS», «a refused receipt is one failure on relay_mail_total, not two», «a refused support digest is counted as support_digest, not as dsa» (`mail_kinds.test.ts`); «a digest that fails for one storefront is counted as failed, and the other is sent» (`support_sweeper.test.ts`) |
+| 26.5 | Приостановленный профиль рекламодателя после своего года ждёт ключа, потом уходит, оставляя хэш адреса | профиль старше года без ключа → стоит; ключ есть → удалён, хэш адреса остался | **есть** — «a suspended profile past its year waits for the key, then goes and leaves its address's hash» (`advertiser_sweeper.test.ts`) |
 
 ## Что из этого можно проверить уже сегодня
 

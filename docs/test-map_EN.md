@@ -106,6 +106,9 @@ through three different wrappers and cannot be counted by eye.
 | 4.9 | **No link and no QR: no separate page exists for the pairing** | there is no route for an invitation; the node accepts only a `lookup_id` | nothing to check |
 | 4.10 | The second half of the code never leaves for the server | intercept the move traffic: only `lookup_id` and envelopes in the requests | nothing to check |
 | 4.11 | **"It's me" and "doesn't match" — only by a session of the inviting identity, once** (review panel 2026-09-19) | `approve` with another signature → `not_found`; a second `approve` → `not_found`; `reject` → the code dies | nothing to check |
+| 4.12 | Polling a transfer's state and the claim spend separate allowances | after a claim, polling spends none of the claim's allowance; the two routes count apart | **exists** — "polling the state after a claim spends none of the claim's allowance" (`transfer_routes.test.ts`); "the transfer poll and the transfer claim spend separate allowances" (`rate_limit.test.ts`) |
+| 4.13 | The reply envelope repeats until the new device acknowledges it, and is gone after | a second GET before the ack → the same envelope; a GET after it → none | **exists** — "a second GET before the ack gets the reply again", "a GET after the ack does not get the reply envelope" (`transfer_routes.test.ts`) |
+| 4.14 | Only the new session's acknowledgement counts, and two at once break nothing | an ack signed by another session → refused, nothing erased; two acks racing → both 200, no reply left | **exists** — "an ack signed by any session but the new one is refused and erases nothing", "two acks racing both answer 200 and leave no reply" (`transfer_routes.test.ts`) |
 
 ## 5. Recovery by the paper code (step 1)
 
@@ -148,6 +151,8 @@ through three different wrappers and cannot be counted by eye.
 | 6.11 | **A zone is one of five steps and nothing else** (rewritten 2026-08-31) | test "a radius between the steps is refused…", feed_publish | **yes** |
 | 6.12 | A link in the text is stripped, and the person is told | a phrase with a link → the feed shows it without one, the author gets an explaining line | nothing to check |
 | 6.13 | A non-empty discount turns a phrase into a private offer | a like on it yields a match at once, with none back (§8.5) | nothing to check |
+| 6.14 | An expired phrase the sweep has not taken yet does not hold one of the four live slots | four live, one expired → the fifth is accepted (`LIVE_PHRASE`, B8) | **exists** — "a phrase whose time ran out frees its slot for the fifth" (`feed_publish.test.ts`) |
+| 6.15 | The profile's quota counts live slots by the same condition as the publish refusal, and agrees with its own list | the profile's quota = the number the fifth is refused at; as phrases run out, quota and list stay equal | **exists** — "the profile's quota counts the live slots the publish refusal counts", "the profile's quota agrees with its own list while phrases run out" (`identity_routes.test.ts`) |
 
 ## 7. Building the feed (step 2)
 
@@ -168,19 +173,21 @@ through three different wrappers and cannot be counted by eye.
 | 7.9 | **The node returns a step, not an exact number** (2026-08-26) | 7 live phrases in the circle → the response says `about a dozen`, the seven appears nowhere | nothing to check |
 | 7.10 | The step boundaries are exactly as written: 0 · 1–4 · 5–14 · 15–99 · 100+ | one phrase at each boundary: 4→`a few`, 5→`about a dozen`, 14→`about a dozen`, 15→`dozens` | nothing to check |
 | 7.11 | The counter carries a rate limit of its own | a hundred requests in a row → refused, while the feed keeps working | nothing to check |
+| 7.12 | An expired phrase not yet swept is neither delivered nor counted in the density | its term ran out before the sweep → not in the feed, density on its circle is `none` | **exists** — "ran out · the feed does not deliver a phrase that ran out", "ran out · density does not count a phrase that ran out" (`feed_publish.test.ts`) |
 
 ## 8. A like (step 3)
 
 | № | What must be true | What proves it | State |
 |---|---|---|---|
 | 8.1 | One's own phrase cannot be liked | a request around the client → refused | nothing to check |
-| 8.2 | **Liking is unavailable without a live phrase of one's own** (2026-08-26) | an identity with no phrase → refused, not a silent `liked` | nothing to check |
+| 8.2 | **Liking is unavailable without a live phrase of one's own** (2026-08-26) | an identity with no phrase → refused, not a silent `liked` | **exists** — "a like with no live phrase of one's own is refused, not swallowed", "a like whose own phrase ran out is refused as one with no phrase at all" (`feed_publish.test.ts`) |
 | 8.3 | A double tap inflates no counter | two identical requests → `like_count` grew by 1 | nothing to check |
 | 8.4 | The counters move in the same transaction | a crash after `INSERT likes` → no drift | nothing to check |
 | 8.5 | 64 likes in 32 minutes is the ceiling | the 65th → refused | nothing to check |
 | 8.6 | The client is never told who it liked | the response carries only `{state}` | nothing to check |
 | 8.7 | **The author sees their phrase's `like_count` as the same number everyone else does** | the author's response and a stranger's carry one value | nothing to check |
 | 8.8 | **Who liked is disclosed neither to the author nor to anyone** | the response for one's own phrase holds no list and no trace of a particular like | nothing to check |
+| 8.9 | A like on another's expired phrase does not count, and an expired phrase leaves my likes | a like after the term → count 0; a liked phrase ran out → not in `GET /likes` | **exists** — "ran out · a like on somebody else's phrase that ran out does not count", "ran out · a liked phrase that ran out leaves my likes" (`feed_publish.test.ts`) |
 
 ## 9. The match and the double consent (step 4)
 
@@ -211,6 +218,7 @@ through three different wrappers and cannot be counted by eye.
 | 9.11 | The card returns name, age, mode and the remainders of both phrases (one for a match from an offer) — and nothing else (edited 2026-09-14: "timer" [retired]) | the response holds neither the peer's `identity_id` nor their other phrases | nothing to check |
 | 9.12 | No match opens while the name stands rejected | `name_state = rejected` → a mutual like creates no card | nothing to check |
 | 9.13 | **"Not now" is written at once and undone only within the undo seconds** (2026-09-19) | `POST /matches/{id}/decline` → declined; `DELETE` in time → back; after it → refused | nothing to check |
+| 9.14 | No match is made of a phrase whose term ran out | the liked phrase expired, the answering like → not `matched` | **exists** — "ran out · no match is made of a phrase that ran out" (`feed_publish.test.ts`) |
 
 ## 10. A match from an offer is one-sided (step 4)
 
@@ -333,6 +341,7 @@ through three different wrappers and cannot be counted by eye.
 | 16.9 | **A notice decision is visible by receipt with no email** (`dsa/SPEC_EN.md` §6, 2026-09-14) | a notice with no email → the node holds only `receipt_hash`; once decided → a request with the code shows it | nothing to check |
 | 16.9a | **A receipt cannot be guessed** (§6) | an unknown code and "not decided yet" → status 200 for both, bodies identical byte for byte, `Cache-Control: no-store`, response time no less than one shared minimum on both branches; the code sent in a `POST` body; no address in the log | nothing to check |
 | 16.9b | **The receipt hash goes with the notice** (§9) | `prune_dsa_records` after a year → neither the notice nor `receipt_hash` remains | nothing to check |
+| 16.10 | An expired phrase cannot be hidden — the same 404 as for one not visible | `POST /hidden` on another's expired phrase → 404 | **exists** — "ran out · a phrase that ran out cannot be hidden, and so confirmed" (`feed_publish.test.ts`) |
 
 ## 17. Changing the name and the age (step 1, fully — from step 2)
 
@@ -349,6 +358,7 @@ through three different wrappers and cannot be counted by eye.
 | 17.9 | **The paper code is re-issued only on presenting the current one** | a request without it → refused; with the right code → a new one issued, the old one dead | nothing to check |
 | 17.10 | Changing the PIN re-encrypts the base and takes a new share | the old PIN opens nothing afterwards | **held on the node** — "a new PIN takes the old one's place, and the vault opens with the new share", "a wrong old PIN spends an attempt and changes nothing", "a repeat of a change that went through spends no attempt", "a locked vault changes no PIN, even with the right one" (`identity_routes.test.ts`, 2026-09-24); re-encrypting the base is the client's, and depth's PIN is still a stub |
 | 17.11 | "Start over" closes the identity rather than deleting the row | `closed_at` set, phrases out of the feed, the paper code no longer raises it | **held** — "closing an identity takes down what it has live, and a wrong PIN closes nothing" (`feed_publish.test.ts`, 2026-09-24): phrases, likes, the conversation and its queue, the frozen session, the burned share, the paper code's half |
+| 17.12 | An own expired phrase does not freeze the name | the phrase froze the name (409 `name_frozen`), its term ran out → the change is accepted (202) | **exists** — "ran out · an own phrase that ran out does not freeze the name" (`feed_publish.test.ts`) |
 
 ## 18. The inbox (step 8)
 
@@ -471,6 +481,16 @@ the spec, not from whatever turned out to be convenient to check.
 | 25.4 | The zone of a phrase at a QR point: by default the larger of the QR's step and 300 m | a 1 km QR → 1 km; a 100 m QR → 300 m; move the point → the usual rules | nothing to check |
 | 25.5 | The node cannot tell a phrase came by a QR: the `POST /feed` body has the same keys as any phrase | compare the body's keys with a phrase without a QR → equal; no `place`/`qr` field in `openapi.yaml` | nothing to check |
 | 25.6 | One cell and step give one link, whoever makes it | two profiles, one point and step → the link strings are equal | nothing to check |
+
+## 26. The node's watchdogs and letters (2026-09-26)
+
+| # | What must be true | What proves it | State |
+|---|---|---|---|
+| 26.1 | С6: the age of the oldest phrase awaiting a verdict, by face; a verdict takes the series; a phrase held by its author's refused name is not counted | `relay_moderation_oldest_seconds{brand}` with two waiting, after a verdict, with an empty queue; a refused-name author's phrase two hours old — no series | **exists** — "С6: the oldest waiting phrase reads as its age, and a verdict takes the series away", "С6: a phrase held by its author's refused name is not the node's queue" (`queue_metrics.test.ts`) |
+| 26.2 | The С6 letter: one per stop; with no verdict — once a day; after a verdict for that face — not within the hour; a refused name wakes nobody; 8.5 minutes is not a stop; an unsent letter is retried | `watchModeration` with injected time and mail: a day of stops 70 minutes apart → one letter; another face's verdict does not wake it | **exists** — "a stopped queue writes one letter, with the face, the age, the count and the day's late ones", "a queue still stopped on the next passes writes nothing more", "with no moderator, phrases that age out one after another write one letter a day", "a verdict, then a stop again: a second letter, but not within the hour", "a verdict on another face does not bring this one's queue back", "a phrase held by its author's refused name does not wake anybody", "a queue under nine minutes is slow, not stopped", "a letter nobody could be sent is tried again on the next pass" (`queue_metrics.test.ts`) |
+| 26.3 | The letter on a decision about an Article 16 notice is marked at sending; a refused send leaves the notice unmarked, and the retry sends the kept text | sent at once → marked at the decision; the mail refused → unmarked, the retry sends the kept text | **exists** — "a decision letter that leaves at once is marked at the decision", "a refused decision letter leaves the notice unmarked, and the retry sends it from the kept text" (`dsa_decision_letter.test.ts`) |
+| 26.4 | Every letter of the node is counted under its own kind from `MAIL_KINDS`; a refused receipt is one failure, not two; a digest failing on one storefront does not stop the other | `relay_mail_total{kind}` for every sender through `deliver()`; a refused receipt and digest | **exists** — "every sender through deliver() passes its own kind from MAIL_KINDS", "a refused receipt is one failure on relay_mail_total, not two", "a refused support digest is counted as support_digest, not as dsa" (`mail_kinds.test.ts`); "a digest that fails for one storefront is counted as failed, and the other is sent" (`support_sweeper.test.ts`) |
+| 26.5 | A suspended advertiser profile past its year waits for the key, then goes and leaves its address's hash | past its year with no key → stays; with the key → deleted, the address's hash kept | **exists** — "a suspended profile past its year waits for the key, then goes and leaves its address's hash" (`advertiser_sweeper.test.ts`) |
 
 ## Read together with
 

@@ -650,7 +650,7 @@ components:
         filter_age_max: {type: integer}
         languages: {type: array, maxItems: 3, items: {type: string}}
         filter_modes: {type: array, items: {type: string}, description: "Which modes the feed shows (screen 3 filters); empty is all.", x-description-ru: "Какие режимы показывает лента (фильтры экрана 3); пусто — все."}
-        quota: {type: object, description: "Live phrases against the ceiling and when the next slot frees (screens 4, 9, 10).", x-description-ru: "Живые фразы против потолка и когда освободится следующее место (экраны 4, 9, 10).", properties: {used: {type: integer}, of: {type: integer}, next_at: {type: integer, format: unix-seconds}}}
+        quota: {type: object, description: "Live phrases against the ceiling and when the next slot frees (screens 4, 9, 10); next_at only when every slot is taken, absent with a slot free.", x-description-ru: "Живые фразы против потолка и когда освободится следующее место (экраны 4, 9, 10); next_at — только когда заняты все места, при свободном месте ключа нет.", properties: {used: {type: integer}, of: {type: integer}, next_at: {type: integer, format: unix-seconds}}}
         stepped_away_until: {type: integer, format: unix-seconds}
         phrases:
           type: array

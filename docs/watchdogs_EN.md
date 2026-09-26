@@ -188,4 +188,5 @@ Each watchdog is broken on purpose and must reach the channel:
 - Watchdog W5 is not built. W6 has its gauge, its alert rule and a letter from the node itself (2026-09-26). W7 was built on 2026-09-24 and ships with the `day57` roll; until then the backup on the boxes stays silent — item `backup.silent.failure` in `docs/facts/open.tsv`.
   W2 is built without the fallback transport — `watchdogs.unbuilt`. W3's digest line about other tombstones was built on 2026-09-24.
 - The external pinger service is not chosen — `node.external.pinger`.
+- The `TransferBrakeOn` alert — the transfer-code pause (`claim.miss.pause`, after 50 misses in an hour): `relay_transfer_pause_seconds_left > 0` for a minute, warning; while it holds, a genuine transfer waits too (built 2026-09-26). Its neighbour `RecoveryBrakeOn` has no test in `alerts.test.yml` — open.
 - W1: no fallback transport for the escalation — `mail.fallback.transport`; the ceiling on letters since 2026-09-24 — six an hour per address and one summary beyond that.

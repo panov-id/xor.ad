@@ -16,6 +16,7 @@ import { type Block, letter, PLATFORM } from "./email_shell.ts";
 import { sendSmtp } from "./smtp.ts";
 import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
+import { scrubAddresses } from "./scrub.ts";
 
 // What a rejected send is allowed to say in a log line.
 //
@@ -43,10 +44,10 @@ async function providerFault(res: Response): Promise<string> {
 
 // Anything built from an exception may still have travelled through a message
 // somebody else wrote. Addresses are the one thing that must not survive into a
-// stored log line, so they are removed by shape rather than by trust.
-export function withoutAddresses(text: string): string {
-  return text.replace(/[\w.+-]+@[\w.-]+\.\w+/g, "<address>");
-}
+// stored log line, so they are removed by shape rather than by trust — mailboxes
+// and, since B106, IP addresses too (lib/scrub.ts, which log() now applies to
+// every line; this name stays for the callers that scrub before logging).
+export const withoutAddresses = scrubAddresses;
 
 const RESEND_TIMEOUT_MS = 20_000;
 

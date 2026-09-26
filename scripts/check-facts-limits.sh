@@ -121,12 +121,20 @@ done < "$registry"
 # тоже исполнился бы при импорте.
 registered=""
 if [ -f "$scheduled" ]; then
-  registered=$(python3 - "$scheduled" <<'PY'
+  registered=$(python3 - "$scheduled" "$root/relay/node/src/lib" <<'PY'
 import re, sys
 src = open(sys.argv[1], encoding='utf-8').read()
 src = re.sub(r'/\*.*?\*/', '', src, flags=re.S)
 src = re.sub(r'(?m)^([^"\n]*?)//.*$', r'\1', src)
 consts = dict(re.findall(r'\bconst\s+([A-Za-z_$][\w$]*)\s*(?::\s*string\s*)?=\s*"([^"]+)"', src))
+# A job name may be a constant imported from its own module (DSA_NOTICE_NOTIFY
+# lives in notice_notify.ts): read the exported constants of the files next door.
+import glob, os
+for other in glob.glob(os.path.join(sys.argv[2], '*.ts')):
+    if os.path.basename(other) == os.path.basename(sys.argv[1]):
+        continue  # the planner itself is read above, from the path given
+    for k, v in re.findall(r'\bexport\s+const\s+([A-Za-z_$][\w$]*)\s*(?::\s*string\s*)?=\s*"([^"]+)"', open(other, encoding='utf-8').read()):
+        consts.setdefault(k, v)
 def names(fn):
     out = set()
     for arg in re.findall(r'\b' + fn + r'\(\s*([A-Za-z_$][\w$]*|"[^"]*")\s*,', src):

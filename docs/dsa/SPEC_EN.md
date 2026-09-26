@@ -457,6 +457,8 @@ statement to the author, which may quote the content (above). Rejected: resendin
 the "why" (an empty quote under "why" breaks this section) and resending only upheld ones (refusals,
 the common outcome, would be left without a letter).
 
+**Retries grow, exhaustion shows — 2026-09-26 (review panel G1, G3).** An undelivered decision letter is retried with growing waits — from 10 minutes, doubling, up to 12 hours, 8 tries (about a day); an exhausted one is counted as `relay_dsa_decision_letter_total{result="exhausted"}` and raises `DsaDecisionLetterExhausted`. A decision taken in the 058 rollout window with no stored letter text is counted as exhausted at once. The decision still reaches the device by the receipt.
+
 ## 7. The statement of reasons to the author (Art. 17)
 
 Sent **every time** content is restricted — whether on a notice or on our own

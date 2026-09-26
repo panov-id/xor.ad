@@ -2,6 +2,15 @@
 
 State as of 2026-08-31, 18:00. The numbers come from running the scripts, not from memory.
 
+**Since 2026-09-26 the registries are not gates.** `check-facts-coverage.sh`,
+`check-facts-open.sh` and `check-facts-decisions.sh` are out of the main path of
+`scripts/check-all.sh` and run only under `--full`. The registries stay as reference:
+`open.tsv` is split into "product" (the §13 steps of `docs/roadmap_RU.md` §3) and
+"deferred until there are users", new `decisions.tsv` rows carry no line-number anchors,
+and `readdress-facts.py` is not run by default. The reason is the owner's decision of
+2026-09-26: most of the work was going into registries, protocols and the gates around
+them rather than into product code; central scenarios first, the accounting layer after.
+
 ## What already stands
 
 | Gate | What it holds | State |

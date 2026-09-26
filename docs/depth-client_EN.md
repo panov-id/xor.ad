@@ -30,9 +30,11 @@ introduces no rule that is not already in the spec. Where the two disagree,
 > process's memory, and quitting means a new identity; so the node's share is
 > random for now, and there is no lock after 5 minutes idle and no unlocking
 > through `POST /vault/share` (item `depth.lock` in `docs/facts/open.tsv`). Nor
-> are there `depth restore` (raising the identity with the code),
-> `depth reissue`, `depth move` (item `depth.restore`). Status checked against the
-> code on 2026-09-26.
+> **Since 2026-09-26:** `depth restore` raises an identity with the paper code in a
+> fresh process (`scripts/depth.sh restore`), and a new paper code comes from the
+> "me" screen — there is no separate `depth reissue` command, and without a volume
+> there cannot be: a fresh process holds no identity. There is no `depth move`
+> (item `depth.restore`). Status checked against the code on 2026-09-26.
 
 ## 1. Why this face exists
 

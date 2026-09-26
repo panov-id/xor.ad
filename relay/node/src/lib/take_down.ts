@@ -51,7 +51,9 @@ export async function takeDownLiveInPlace(run: Run, me: string): Promise<boolean
 // a like on a live phrase, a match that did not become a chat. Each in its own
 // transaction, started again on TakeDownRetry or a deadlock as away.ts does;
 // one that keeps failing waits for the next minute. Runs every minute
-// (lib/scheduled.ts, take_down_pin_limit).
+// (lib/scheduled.ts, take_down_pin_limit). An identity raised by the paper
+// code before this ran has a live session again and is not taken: what is
+// live stays with the person who has a way in again.
 export async function takeDownLeftByPinLimit(): Promise<number> {
   const left = await queryOrThrow<{ id: string }>(
     `SELECT i.id FROM identities i

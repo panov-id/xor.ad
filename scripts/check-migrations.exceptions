@@ -24,6 +24,8 @@
 025_feed_and_stats.sql	if-not-exists	index feed_by_author	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
 025_feed_and_stats.sql	if-not-exists	index feed_one_waiting	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
 025_feed_and_stats.sql	if-not-exists	table identity_stats	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
+027_feed_published_centre.sql	if-not-exists	column feed_messages.lat_published	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
+027_feed_published_centre.sql	if-not-exists	column feed_messages.lon_published	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
 027_feed_published_centre.sql	if-not-exists	index feed_live_geo_published	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
 029_feed_geo_gist.sql	if-not-exists	index feed_live_geo_box	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
 050_offers.sql	if-not-exists	table advertisers	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)

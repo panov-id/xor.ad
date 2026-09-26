@@ -5,7 +5,7 @@
 # re-run by hand-written IF NOT EXISTS, "and nothing required them to". This is
 # what requires it, and two more things a file on a live box cannot take back:
 #
-#   if-not-exists   CREATE TABLE and CREATE [UNIQUE] INDEX carry IF NOT EXISTS,
+#   if-not-exists   CREATE TABLE, CREATE [UNIQUE] INDEX and ADD COLUMN carry IF NOT EXISTS,
 #                   so a file applied and not recorded survives its second run;
 #   not-null        ADD COLUMN ... NOT NULL carries a DEFAULT — on a table with
 #                   rows it fails otherwise, and a backfill in the same file
@@ -92,9 +92,11 @@ for f in files:
             table, rest = m.group(1).lower(), m.group(2)
             for clause in top_level_split(rest):
                 c = clause.strip()
-                a = re.match(r"(?i)add (?:column )?(?:if not exists )?(\w+) (.*)", c)
+                a = re.match(r"(?i)add (?:column )?(if not exists )?(\w+) (.*)", c)
                 if a and not re.match(r"(?i)add (constraint|primary|unique|check|foreign)\b", c):
-                    col, spec = a.group(1).lower(), a.group(2)
+                    col, spec = a.group(2).lower(), a.group(3)
+                    if not a.group(1):
+                        found.append((f.name, "if-not-exists", f"column {table}.{col}", "ADD COLUMN without IF NOT EXISTS"))
                     if re.search(r"(?i)\bnot null\b", spec) and not re.search(r"(?i)\bdefault\b", spec) \
                             and not re.search(r"(?i)\bgenerated\b", spec) and table not in created_here:
                         found.append((f.name, "not-null", f"{table}.{col}", "ADD COLUMN NOT NULL without DEFAULT on a table not created in this file"))

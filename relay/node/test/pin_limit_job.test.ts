@@ -232,6 +232,79 @@ Deno.test({ name: "a take-down the job puts off is counted deferred, and the nex
   assert(jobCount("taken") - takenBefore >= 1, "a take-down the job did was not counted taken");
 });
 
+// The first pass's outcomes, each on a real race (B96, the observer's probes
+// on B74): a freeze counted when the paper code lifted the lock and nothing
+// froze, and a freeze put off counted under the take-down's name, both passed.
+async function lockedButLive() {
+  const me = await frozenByTheTenthMiss();
+  await database.queryOrThrow(`UPDATE sessions SET frozen_at = NULL, frozen_reason = NULL WHERE id = $1`, [me.session_id]);
+  return me;
+}
+const liveOf = async (sessionId: string) => (await database.queryOrThrow<{ live: boolean }>(
+  `SELECT frozen_at IS NULL AS live FROM sessions WHERE id = $1`, [sessionId]))[0].live;
+
+// The job queues on the share, and the holder lifts the lock the way the
+// paper code does before letting go: asked again under the share, nothing is
+// locked, nothing frozen — and nothing counted frozen.
+Deno.test({ name: "a lock lifted while the job waits on the share is not counted frozen (B96)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const me = await lockedButLive();
+  const frozenBefore = jobCount("frozen");
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  let pass: Promise<unknown> = Promise.resolve();
+  try {
+    // deno-lint-ignore no-explicit-any
+    await sql.begin(async (tx: any) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [me.session_id]);
+      pass = takeDownLeftByPinLimit();
+      for (let i = 0; i < 250 && (await queuedOn(tx, "%SELECT locked_at IS NOT NULL AS locked FROM vault_shares%")) === 0; i++) {
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      assertEquals(await queuedOn(tx, "%SELECT locked_at IS NOT NULL AS locked FROM vault_shares%"), 1,
+        "the job never queued on the share — the race never ran");
+      await tx.unsafe(`UPDATE vault_shares SET locked_at = NULL, attempts_left = 10 WHERE session = $1`, [me.session_id]);
+    });
+    await pass;
+  } finally {
+    await sql.end();
+  }
+  assert(await liveOf(me.session_id), "the job froze a session whose lock was lifted under it");
+  assertEquals(jobCount("frozen") - frozenBefore, 0, "a freeze that did not happen was counted frozen");
+});
+
+// The freeze of the first pass cancelled by the database while it waits on a
+// session row somebody holds (57014, what a statement timeout sends; the first
+// pass has no lock timeout of its own, so 55P03 does not arise there): counted
+// as a freeze put off, not as a take-down put off.
+Deno.test({ name: "a first-pass freeze the database cancels is counted freeze_deferred, not deferred (B96)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const me = await lockedButLive();
+  const [freezeBefore, takeBefore] = [jobCount("freeze_deferred"), jobCount("deferred")];
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  let pass: Promise<unknown> = Promise.resolve();
+  let cancelled = false;
+  try {
+    // deno-lint-ignore no-explicit-any
+    await sql.begin(async (tx: any) => {
+      await tx.unsafe(`SELECT 1 FROM sessions WHERE id = $1 FOR UPDATE`, [me.session_id]);
+      pass = takeDownLeftByPinLimit();
+      for (let i = 0; i < 250 && (await queuedOn(tx, "%UPDATE sessions SET frozen_at%")) === 0; i++) {
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      const [{ ok }] = await tx.unsafe(
+        `SELECT pg_cancel_backend(pid) AS ok FROM pg_stat_activity
+          WHERE wait_event_type = 'Lock' AND query LIKE '%UPDATE sessions SET frozen_at%' AND pid <> pg_backend_pid()`,
+      ) as { ok: boolean }[];
+      cancelled = ok;
+      await pass;
+    });
+  } finally {
+    await sql.end();
+  }
+  assert(cancelled, "the job's freeze was never queued and cancelled — the race never ran");
+  assert(await liveOf(me.session_id), "the session froze, though its freeze was cancelled");
+  assertEquals(jobCount("freeze_deferred") - freezeBefore, 1, "a freeze put off was not counted freeze_deferred once");
+  assertEquals(jobCount("deferred") - takeBefore, 0, "a freeze put off was counted as a take-down put off");
+});
+
 addEventListener("unload", () => {
   database.closePool();
 });

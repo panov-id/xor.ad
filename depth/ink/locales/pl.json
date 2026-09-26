@@ -167,7 +167,7 @@
   "reset.go": "zamknij i zacznij od nowa",
   "restore.title": "Kod papierowy",
   "restore.intro": "Wpisz szesnaście znaków z kartki. Grupy można oddzielać myślnikiem lub spacją.",
-  "restore.introHere": "Kod papierowy ponownie otworzy to urządzenie, a ty ustawisz nowy PIN.",
+  "restore.introHere": "Kod papierowy ponownie otwiera to urządzenie. PIN zostaje bez zmian; jeśli go nie pamiętasz, ustawisz nowy.",
   "restore.code": "kod",
   "restore.go": "przywróć",
   "restore.bad": "To nie jest kod papierowy: szesnaście liter i cyfr.",
@@ -217,5 +217,10 @@
   "closed.movedTitle": "Tożsamość odeszła",
   "closed.moved": "Tożsamość przeniesiono na inne urządzenie; tutaj nic z niej nie zostało.",
   "closed.updateTitle": "depth wymaga aktualizacji",
-  "closed.update": "Węzeł mówi inną wersją protokołu. Zaktualizuj depth i uruchom go ponownie."
+  "closed.update": "Węzeł mówi inną wersją protokołu. Zaktualizuj depth i uruchom go ponownie.",
+  "restore.hereTitle": "Urządzenie jest otwarte",
+  "restore.hereIntro": "Wejście znów otwarte, licznik PIN-u wrócił do dziesięciu. Dawny PIN działa.",
+  "restore.keepPin": "Pamiętam PIN — dalej",
+  "restore.forgotPin": "Nie pamiętam PIN-u — ustawić nowy",
+  "restore.newPinPrice": "Dawny PIN przestanie działać. Na tym urządzeniu i tak nie ma historii — nie ma czego tracić."
 }

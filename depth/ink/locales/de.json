@@ -167,7 +167,7 @@
   "reset.go": "schließen und neu anfangen",
   "restore.title": "Papiercode",
   "restore.intro": "Gib die sechzehn Zeichen von deinem Papier ein. Gruppen dürfen durch Bindestriche oder Leerzeichen getrennt sein.",
-  "restore.introHere": "Der Papiercode öffnet dieses Gerät wieder, und du legst eine neue PIN fest.",
+  "restore.introHere": "Der Papiercode öffnet dieses Gerät wieder. Die PIN bleibt, wie sie war; wenn du sie nicht mehr weißt, legst du eine neue fest.",
   "restore.code": "Code",
   "restore.go": "wiederherstellen",
   "restore.bad": "Das ist kein Papiercode: sechzehn Buchstaben und Ziffern.",
@@ -217,5 +217,10 @@
   "closed.movedTitle": "Die Identität ist fort",
   "closed.moved": "Die Identität wurde auf ein anderes Gerät übertragen; hier ist nichts mehr von ihr.",
   "closed.updateTitle": "depth braucht ein Update",
-  "closed.update": "Der Knoten spricht eine andere Protokollversion. Aktualisiere depth und starte es neu."
+  "closed.update": "Der Knoten spricht eine andere Protokollversion. Aktualisiere depth und starte es neu.",
+  "restore.hereTitle": "Das Gerät ist offen",
+  "restore.hereIntro": "Der Zugang ist wieder offen, der PIN-Zähler steht auf zehn. Die alte PIN gilt weiter.",
+  "restore.keepPin": "PIN weiß ich noch — weiter",
+  "restore.forgotPin": "PIN vergessen — neue festlegen",
+  "restore.newPinPrice": "Die alte PIN gilt dann nicht mehr. Auf diesem Gerät gibt es ohnehin keinen Verlauf — nichts zu verlieren."
 }

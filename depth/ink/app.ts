@@ -21,6 +21,7 @@ import {
 } from "./rooms.ts";
 import { MovedAway, MoveIn, MoveOut } from "./move.ts";
 import { plain, useKeys } from "./parts.ts";
+import { RaisedHere, RaisedHerePin } from "./screens/restore.ts";
 import { IDLE_MS, IdleTimer } from "../core/lock.ts";
 import { Lock } from "./screens/lock.ts";
 import { Closed } from "./screens/closed.ts";
@@ -62,6 +63,10 @@ type Where =
   // with them: the one on paper until the new one is confirmed, then neither.
   | { screen: "restore" }
   | { screen: "restorePin"; old: string }
+  // P6 · the code used on this very device: keep the PIN, or a new one under
+  // the grant the claim left (§8.2; depth.pin.forgot.samedevice).
+  | { screen: "raisedHere"; old: string; next: string; groups: string[] }
+  | { screen: "raisedHerePin"; old: string; next: string; groups: string[] }
   | { screen: "reissue" }
   | { screen: "newPaper"; old: string; next: string; groups: string[] };
 
@@ -375,10 +380,48 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
                 // back at ten; a new PIN is for a device that never had one.
                 if (o.sameDevice) {
                   const next = newPaperCode();
-                  return setWhere({ screen: "newPaper", old: code, next, groups: paperGroups(next) });
+                  return setWhere({ screen: "raisedHere", old: code, next, groups: paperGroups(next) });
                 }
                 setWhere({ screen: "restorePin", old: code });
               })
+              .catch((e: Error) => fail(e.message))
+              .finally(() => setBusy(false));
+          },
+        });
+      case "raisedHere":
+        return h(RaisedHere, {
+          say,
+          // A line the PIN screen left behind is not about the code (verifier of P6).
+          onKeep: () => {
+            setError(undefined);
+            setWhere({ screen: "newPaper", old: where.old, next: where.next, groups: where.groups });
+          },
+          onNewPin: () => {
+            setError(undefined);
+            setWhere({ screen: "raisedHerePin", old: where.old, next: where.next, groups: where.groups });
+          },
+        });
+      case "raisedHerePin":
+        return h(RaisedHerePin, {
+          say,
+          busy,
+          error,
+          onBack: () => {
+            setError(undefined);
+            setWhere({ screen: "raisedHere", old: where.old, next: where.next, groups: where.groups });
+          },
+          // The grant the same-device claim left takes the new PIN (POST
+          // /vault/init, recovery.test.ts "lifted by the paper code on the same
+          // device"); then the code is traded as on every other way back.
+          onDone: (pin) => {
+            setError(undefined);
+            setBusy(true);
+            client.firstPin(pin)
+              .then((a) =>
+                a.status === 204
+                  ? setWhere({ screen: "newPaper", old: where.old, next: where.next, groups: where.groups })
+                  : refused(refusal(a))
+              )
               .catch((e: Error) => fail(e.message))
               .finally(() => setBusy(false));
           },
@@ -496,7 +539,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
     Box,
     { flexDirection: "column" },
     body,
-    error && !["register", "pin", "paper", "restore", "restorePin", "reissue", "newPaper", "arrivedPin"].includes(where.screen) ? h(Text, { color: "red" }, error) : null,
+    error && !["register", "pin", "paper", "restore", "restorePin", "raisedHerePin", "reissue", "newPaper", "arrivedPin"].includes(where.screen) ? h(Text, { color: "red" }, error) : null,
   );
 }
 

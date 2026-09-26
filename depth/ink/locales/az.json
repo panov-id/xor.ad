@@ -167,7 +167,7 @@
   "reset.go": "bağla və yenidən başla",
   "restore.title": "Kağız kod",
   "restore.intro": "Kağızdakı on altı simvolu daxil edin. Qrupları tire və ya boşluqla ayırmaq olar.",
-  "restore.introHere": "Kağız kod bu cihazı yenidən açacaq və siz yeni PIN təyin edəcəksiniz.",
+  "restore.introHere": "Kağız kod bu cihazı yenidən açır. PIN olduğu kimi qalır; yadınızda deyilsə — yenisini təyin edərsiniz.",
   "restore.code": "kod",
   "restore.go": "bərpa et",
   "restore.bad": "Bu kağız kod deyil: on altı hərf və rəqəm.",
@@ -217,5 +217,10 @@
   "closed.movedTitle": "Şəxsiyyət getdi",
   "closed.moved": "Şəxsiyyət başqa cihaza köçürüldü; burada ondan heç nə qalmadı.",
   "closed.updateTitle": "depth yenilənməlidir",
-  "closed.update": "Node protokolun başqa versiyasında danışır. depth-i yeniləyin və yenidən başladın."
+  "closed.update": "Node protokolun başqa versiyasında danışır. depth-i yeniləyin və yenidən başladın.",
+  "restore.hereTitle": "Cihaz açıqdır",
+  "restore.hereIntro": "Giriş yenidən açıqdır, PIN sayğacı sıfırlandı. Əvvəlki PIN işləyir.",
+  "restore.keepPin": "PIN yadımdadır — davam",
+  "restore.forgotPin": "PIN yadımda deyil — yenisini təyin et",
+  "restore.newPinPrice": "Əvvəlki PIN işləməyəcək. Bu cihazda onsuz da tarixçə yoxdur — itirəcək bir şey yoxdur."
 }

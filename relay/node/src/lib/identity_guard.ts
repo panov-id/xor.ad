@@ -48,12 +48,17 @@ export interface Caller {
   // Only ever set for a route that asked for `allowFrozen`; everywhere else a
   // frozen session never becomes a Caller at all.
   frozenAt: Date | null;
+  // Which of the session's keys signed: the session's own, or the unlock key
+  // a face with a disk keeps unsealed — accepted only where a route said
+  // `allowUnlockKey` (db/063; §8.2, web.2026-09-26.coldunlock).
+  signedBy: "session" | "unlock";
 }
 
 interface SessionRow {
   session_id: string;
   identity_id: string;
   sign_public_key: string;
+  unlock_public_key: string | null;
   frozen_at: Date | null;
   pin_locked: boolean;
   last_seen_at: Date;
@@ -93,6 +98,12 @@ export interface GuardOptions {
   // mistake closed. Nothing else may pass this, because everything else is what
   // freezing exists to stop.
   allowFrozen?: boolean;
+  // The unlock key may sign this route. One route asks: POST /vault/share,
+  // the exchange a cold start has to make before the sealed key can sign
+  // anything. Everywhere else a signature by the unlock key is 401, as any
+  // other key's: the unlock key lies on the disk unsealed, and a route it
+  // could sign would be a route the disk alone opens (§8.2, SEC-2).
+  allowUnlockKey?: boolean;
 }
 
 export async function callerOf(
@@ -112,7 +123,7 @@ export async function callerOf(
   if (!sessionId || !/^[0-9a-fA-F-]{36}$/.test(sessionId)) return unauthorized();
 
   const rows = await query<SessionRow>(
-    `SELECT s.id AS session_id, s.identity, s.sign_public_key, s.frozen_at, s.last_seen_at,
+    `SELECT s.id AS session_id, s.identity, s.sign_public_key, s.unlock_public_key, s.frozen_at, s.last_seen_at,
             v.locked_at IS NOT NULL AS pin_locked,
             i.id AS identity_id, i.stepped_away_until, i.signup_completed_at, i.closed_at
        FROM sessions s JOIN identities i ON i.id = s.identity
@@ -139,13 +150,22 @@ export async function callerOf(
   // freeze: telling them apart would report on the account.
   if ((row.frozen_at || row.pin_locked) && !options.allowFrozen) return unauthorized();
 
-  const verdict = await verifySignedRequest(req, {
+  const signed = {
     method: req.method,
     url: req.url,
     body: new Uint8Array(await req.clone().arrayBuffer()),
-    signPublicKey: row.sign_public_key,
-  });
-  if (typeof verdict === "string") return unauthorized();
+  };
+  let signedBy: Caller["signedBy"] = "session";
+  const verdict = await verifySignedRequest(req, { ...signed, signPublicKey: row.sign_public_key });
+  if (typeof verdict === "string") {
+    // The session's key did not sign it. The unlock key may have — on the one
+    // route that allows it, for a session that has one. Same refusal
+    // otherwise: which key failed is not for the caller to learn.
+    if (!options.allowUnlockKey || !row.unlock_public_key) return unauthorized();
+    const byUnlock = await verifySignedRequest(req, { ...signed, signPublicKey: row.unlock_public_key });
+    if (typeof byUnlock === "string") return unauthorized();
+    signedBy = "unlock";
+  }
 
   if (!options.allowUnfinishedSignup && !row.signup_completed_at) {
     // Chat spec §8.2: until the paper code is confirmed the identity "passes no
@@ -207,6 +227,7 @@ export async function callerOf(
   }
 
   return {
+    signedBy,
     sessionId: row.session_id,
     identityId: row.identity_id,
     brand,

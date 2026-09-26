@@ -20,7 +20,7 @@ interface Card {
 const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 const label = (r: Radius) => (r >= 1000 ? `${r / 1000} км` : `${r} м`);
 
-export function Feed({ client, sealed }: { client: Client; sealed: "ok" | "failed" }) {
+export function Feed({ client, sealed }: { client: Client; sealed: "ok" | "failed" | "unlocked" }) {
   // The area is placed anywhere, by the person (§8.3); until the place picker
   // of the sheet is drawn it is one fixed point.
   const [at] = useState({ lat: 41.9, lon: 12.5 });
@@ -79,7 +79,7 @@ export function Feed({ client, sealed }: { client: Client; sealed: "ok" | "faile
         <button type="button" onClick={() => load(next)} data-testid="more">показать ещё</button>
       )}
       <footer className="muted">
-        ключи: печать хранилища {sealed === "ok" ? "сходится" : "не сходится"}
+        ключи: {sealed === "unlocked" ? "отперто ПИНом" : sealed === "ok" ? "печать хранилища сходится" : "печать хранилища не сходится"}
       </footer>
     </main>
   );

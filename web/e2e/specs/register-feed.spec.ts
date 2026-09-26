@@ -85,4 +85,25 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
   expect(record!.salt).toBe(16);
   // iv(12) + pkcs8 of a P-256 key (138 bytes) + GCM tag (16).
   expect(record!.sealedLength).toBe(12 + 138 + 16);
+
+  // A reload: the device remembers, the PIN opens — through the node. A wrong
+  // PIN is the node's refusal with the attempts left; the right one seats the
+  // long key again, and the feed answers 200 to a call signed by it (W1c).
+  // As a new tab would: the tab's own record (chat/tab_session.ts) is for a
+  // reload of the tab that registered; without its id the vault is the way
+  // back, and the PIN opens it.
+  await page.evaluate(() => sessionStorage.clear());
+  await page.reload();
+  await expect(page.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("unlock-pin").fill("654321");
+  await page.getByTestId("unlock").click();
+  await expect(page.getByTestId("error")).toContainText("осталось попыток: 9", { timeout: 30000 });
+  await page.getByTestId("unlock-pin").fill("123456");
+  const before = feedAnswers.length;
+  await page.getByTestId("unlock").click();
+  await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('[data-screen="feed"]')).toHaveAttribute("data-sealed", "unlocked");
+  await expect(page.getByTestId("loading")).toBeHidden({ timeout: 15000 });
+  expect(feedAnswers.length).toBeGreaterThan(before);
+  expect(feedAnswers[feedAnswers.length - 1]).toBe(200);
 });

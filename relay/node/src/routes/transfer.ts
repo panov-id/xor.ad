@@ -370,7 +370,7 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
 
-  const body = await readJson<{ reply?: unknown; sign_pub?: unknown; wrap_pub?: unknown; label?: unknown }>(req);
+  const body = await readJson<{ reply?: unknown; sign_pub?: unknown; wrap_pub?: unknown; unlock_pub?: unknown; label?: unknown }>(req);
   if (!body) return refuse("invalid_body", "the body is not json", 400);
   const reply = isText(body.reply, ENVELOPE_MAX) ? base64urlToBytes(body.reply) : null;
   if (!reply || reply.length === 0) return refuse("invalid_body", "reply must be base64url", 400);
@@ -379,6 +379,11 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
   // an envelope it has no key for.
   if (!isText(body.sign_pub, 1024) || !await importSignPublicKey(body.sign_pub)) {
     return refuse("invalid_body", "sign_pub is not a base64url SPKI P-256 key", 400);
+  }
+  // Optional, the arriving device's unlock key (db/063), checked as sign_pub is.
+  const unlockPub = body.unlock_pub === undefined || body.unlock_pub === null ? null : body.unlock_pub;
+  if (unlockPub !== null && (!isText(unlockPub, 1024) || !await importSignPublicKey(unlockPub))) {
+    return refuse("invalid_body", "unlock_pub is not a base64url SPKI P-256 key", 400);
   }
   if (!isText(body.wrap_pub, 1024) || !base64urlToBytes(body.wrap_pub)) {
     return refuse("invalid_body", "wrap_pub is not base64url", 400);
@@ -452,9 +457,9 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
       await burnShare(run, session.id, freezes);
     }
     await run(
-      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, label],
+      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, unlock_public_key, label)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, unlockPub as string | null, label],
     );
     // The arriving device has no PIN of its own yet, and the one it is about to
     // set is a first PIN by the canon's own definition (§8.2, screen 13).

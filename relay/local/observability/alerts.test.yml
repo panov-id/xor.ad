@@ -215,6 +215,26 @@ tests:
               summary: "Очередь модерации sosed стоит: старейшей фразе 10m 0s"
               description: "Фраза ждёт вердикта дольше девяти минут; на десятой её снимут непрочитанной (moderation.queue.wait). Смотреть воркер модерации и relay_feed_verdict_total."
 
+  # The shape the sweep actually leaves (review panel F12): one phrase ages a
+  # minute at a time, passes nine minutes, and is gone at eleven. The instant
+  # value was over the line for two samples only, and `for: 2m` never fired.
+  # `stale`, not `_`: a series the node stops exporting is marked stale by
+  # Prometheus at the next scrape, while `_` leaves the last value visible for
+  # the five-minute lookback — and under `_` the old rule passed this case too.
+  - name: one stuck phrase, swept at its eleventh minute, still fires
+    interval: 1m
+    input_series:
+      - series: 'relay_moderation_oldest_seconds{brand="sosed"}'
+        values: '60+60x10 stale'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: ModerationQueueStopped
+        exp_alerts:
+          - exp_labels: { severity: info, brand: sosed }
+            exp_annotations:
+              summary: "Очередь модерации sosed стоит: старейшей фразе 11m 0s"
+              description: "Фраза ждёт вердикта дольше девяти минут; на десятой её снимут непрочитанной (moderation.queue.wait). Смотреть воркер модерации и relay_feed_verdict_total."
+
   - name: a queue moving faster than nine minutes, or empty, is not an alert
     interval: 1m
     input_series:

@@ -327,14 +327,53 @@ Deno.test("a queue under nine minutes is slow, not stopped", async () => {
   await sweep(brand);
 });
 
-Deno.test("a letter nobody could be sent is tried again on the next pass", async () => {
+Deno.test("a letter that did not leave is tried again after a pause that grows, not every minute", async () => {
+  // Review panel F13: with the mail down it used to try, and log an error,
+  // every minute for as long as the queue stayed stopped.
   forgetModerationWatch();
   const brand = face();
   const l = letters(brand, false);
   await waitingPhrase(brand, STOPPED_SECONDS + 20);
-  await watchModeration({ send: l.send, to: TO });
-  await watchModeration({ send: l.send, to: TO });
-  assertEquals(l.sent.length, 2, "an unsent letter was counted as told");
+  const start = Date.now();
+  const at = (seconds: number) => watchModeration({ now: start + seconds * 1000, send: l.send, to: TO });
+  await at(0);
+  await at(30);
+  assertEquals(l.sent.length, 1, "a failed letter was tried again inside its first minute");
+  await at(61);
+  assertEquals(l.sent.length, 2, "a failed letter was not tried again after a minute");
+  await at(61 + 90);
+  assertEquals(l.sent.length, 2, "the second pause did not grow past a minute");
+  await at(61 + 121);
+  assertEquals(l.sent.length, 3, "a failed letter was not tried again after two minutes");
+  assertEquals(l.sent.every((x) => x.brand === brand), true);
+  await sweep(brand);
+});
+
+Deno.test("a node with nobody to write to says so once, not every minute", async () => {
+  forgetModerationWatch();
+  const brand = face();
+  await waitingPhrase(brand, STOPPED_SECONDS + 20);
+  const start = Date.now();
+  const said: Array<string | null> = [];
+  for (const minute of [0, 1, 2, 3]) {
+    const pass = await watchModeration({ now: start + minute * 60_000, to: [] });
+    said.push(pass.noRoad);
+    assertEquals(pass.attempts, 0, "a letter was attempted with no address to send it to");
+  }
+  assertEquals(said, ["DSA_ESCALATION_EMAILS names nobody", null, null, null], "no address was said more than once");
+  await sweep(brand);
+});
+
+Deno.test("mail switched off is said once, and nothing is sent", async () => {
+  forgetModerationWatch();
+  const brand = face();
+  const l = letters(brand);
+  await waitingPhrase(brand, STOPPED_SECONDS + 20);
+  const start = Date.now();
+  const first = await watchModeration({ now: start, send: l.send, to: TO, transport: "none" });
+  const second = await watchModeration({ now: start + 60_000, send: l.send, to: TO, transport: "none" });
+  assertEquals([first.noRoad, second.noRoad], ["mail transport is none", null], "mail switched off was said more than once");
+  assertEquals(l.sent, [], "a letter went out with the mail switched off");
   await sweep(brand);
 });
 

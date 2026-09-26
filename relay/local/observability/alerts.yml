@@ -90,8 +90,14 @@ groups:
       # gives: until the moderator of §8.14 is wired every phrase ages to the
       # ceiling, and a warning nobody can act on teaches the channel to be
       # ignored. Raise it with FeedPublishesNothing the day the moderator ships.
+      #
+      # Over five minutes, not the instant (review panel F12, 2026-09-26): one
+      # stuck phrase is past nine minutes only from its ninth minute until the
+      # sweep takes it between the tenth and the eleventh, so the instant value
+      # never stayed up for `for: 2m` and a lone stuck phrase never fired. The
+      # peak of the last five minutes stays up long enough.
       - alert: ModerationQueueStopped
-        expr: max by (brand) (relay_moderation_oldest_seconds) > 9 * 60
+        expr: max by (brand) (max_over_time(relay_moderation_oldest_seconds[5m])) > 9 * 60
         for: 2m
         labels: { severity: info }
         annotations:

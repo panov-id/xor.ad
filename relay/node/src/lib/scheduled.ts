@@ -112,7 +112,7 @@ export const WATCH_BACKUP = "watch_backup";
 // Watchdog С6: a letter when a face's moderation queue stops, every minute —
 // the deadline it watches is ten (lib/moderation_watch.ts).
 export const WATCH_MODERATION = "watch_moderation";
-// What the tenth PIN mistake froze and could not take down in place (B51):
+// What the tenth PIN mistake could not freeze or take down in place (B51, B59):
 // every minute, the period of the take-down it finishes.
 export const TAKE_DOWN_PIN_LIMIT = "take_down_pin_limit";
 export const PRUNE_TOMBSTONES = "prune_job_tombstones";

@@ -542,7 +542,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-sessionsclaim"><code>SessionsClaim</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Claimed.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Claimed.</td><td></td></tr><tr><td><code>429</code></td><td>Ten entries an hour or thirty a day from one address (transfer.claim.hour, transfer.claim.day), or the node-wide pause of fifteen minutes after fifty misses (claim.miss.shared, claim.miss.pause) — code rate_limited, Retry-After in seconds.</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/transfer.ts</code></p>
 </section>
 <section class="op" id="post-recovery-confirm">

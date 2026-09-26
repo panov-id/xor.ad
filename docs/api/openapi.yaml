@@ -1693,6 +1693,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
         "200": {description: Claimed., x-description-ru: Принято.}
+        "429": {description: "Ten entries an hour or thirty a day from one address (transfer.claim.hour, transfer.claim.day), or the node-wide pause of fifteen minutes after fifty misses (claim.miss.shared, claim.miss.pause) — code rate_limited, Retry-After in seconds.", x-description-ru: "Десять вводов в час или тридцать в сутки с одного адреса (transfer.claim.hour, transfer.claim.day) либо общая пауза узла на пятнадцать минут после пятидесяти промахов (claim.miss.shared, claim.miss.pause) — code rate_limited, Retry-After в секундах."}
   /recovery/confirm:
     post:
       tags: [identity]

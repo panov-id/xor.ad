@@ -685,7 +685,7 @@ tests:
           - exp_labels: { severity: warning }
             exp_annotations:
               summary: "ПИН на окне переноса подбирают"
-              description: "Больше двадцати неверных ПИНов за пятнадцать минут. Десятая попытка закрывает вход и замораживает сессию (§8.2) — если растёт и result=locked, защита сработала; если нет, попытки идут с разных сессий."
+              description: "Больше двадцати неверных ПИНов за пятнадцать минут. Десятая попытка закрывает вход и замораживает сессию (§8.2) — если вместе с ним растёт relay_sessions_frozen_total{reason=\"pin_limit\"} (SessionFreezeBurst), защита сработала; если нет, попытки идут с разных сессий."
 
   - name: a wrong transfer PIN a minute is not guessing
     interval: 1m

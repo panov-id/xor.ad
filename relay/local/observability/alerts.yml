@@ -70,8 +70,6 @@ groups:
           summary: "Уборщик третий час подряд пропускает личности: долю или строку держит блокировка"
           description: "Каждый проход находит личность, которой срок вышел, и не может её закрыть: её долю, сессию или строку держит чужая транзакция. Смотреть pg_locks по vault_shares, sessions и identities — застрявшая транзакция держит личность дольше её года."
 
-      # A burst of wrong PINs is somebody working through a stolen signing key
-      # or an unlocked tab. Ten in five minutes is far above a person mistyping.
       # Watchdog С7 (relay/node/src/lib/backup_watch.ts): the marker of the last
       # nightly dump is older than 26 hours. -1 means none seen yet, not old.
       - alert: BackupStale
@@ -104,6 +102,8 @@ groups:
           summary: "Очередь модерации {{ $labels.brand }} стоит: старейшей фразе {{ $value | humanizeDuration }}"
           description: "Фраза ждёт вердикта дольше девяти минут; на десятой её снимут непрочитанной (moderation.queue.wait). Смотреть воркер модерации и relay_feed_verdict_total."
 
+      # A burst of wrong PINs is somebody working through a stolen signing key
+      # or an unlocked tab. Ten in five minutes is far above a person mistyping.
       - alert: PinMissBurst
         # Every door that takes a PIN proof: the share, a PIN change and a close
         # (review panel 2026-09-24 — /vault/pin and /identities/close counted
@@ -276,7 +276,7 @@ groups:
         labels: { severity: warning }
         annotations:
           summary: "ПИН на окне переноса подбирают"
-          description: "Больше двадцати неверных ПИНов за пятнадцать минут. Десятая попытка закрывает вход и замораживает сессию (§8.2) — если растёт и result=locked, защита сработала; если нет, попытки идут с разных сессий."
+          description: "Больше двадцати неверных ПИНов за пятнадцать минут. Десятая попытка закрывает вход и замораживает сессию (§8.2) — если вместе с ним растёт relay_sessions_frozen_total{reason=\"pin_limit\"} (SessionFreezeBurst), защита сработала; если нет, попытки идут с разных сессий."
 
       # Article 17 is a duty, not a feature: an author with no mailbox learns
       # why their phrase went only through this route.

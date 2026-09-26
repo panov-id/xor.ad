@@ -542,7 +542,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-sessionsclaim"><code>SessionsClaim</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Принято.</td><td></td></tr><tr><td><code>429</code></td><td>Десять вводов в час или тридцать в сутки с одного адреса (transfer.claim.hour, transfer.claim.day) либо общая пауза узла на пятнадцать минут после пятидесяти промахов (claim.miss.shared, claim.miss.pause) — code rate_limited, Retry-After в секундах.</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/transfer.ts</code></p>
 </section>
 <section class="op" id="post-recovery-confirm">

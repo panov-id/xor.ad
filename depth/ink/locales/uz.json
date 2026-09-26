@@ -227,5 +227,7 @@
   "chat.queued": "kutadi",
   "chat.waitingHint": "Satrlar ✓ belgisiz navbatda turadi va ikkinchisi «gaplashamiz» degan zahoti unga ketadi. depth-dan chiqsang — navbat yo‘qoladi.",
   "chat.offerGone": "Taklif ketdi.",
-  "inbox.waiting": "match — javob kutamiz"
+  "inbox.waiting": "match — javob kutamiz",
+  "inbox.interest": "taklifingizga qiziqmoqda",
+  "like.namePending": "Ism tekshiruvdan o'tmadi — taklif yuborilmadi.\nIsmni to'g'rilang, offer tirik ekan u o'zi ketadi."
 }

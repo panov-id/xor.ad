@@ -227,5 +227,7 @@
   "chat.queued": "așteaptă",
   "chat.waitingHint": "Replicile stau la coadă fără ✓ și pleacă la celălalt în clipa în care apasă „să vorbim”. Ieși din depth — coada dispare.",
   "chat.offerGone": "Propunerea a plecat.",
-  "inbox.waiting": "un match — așteptăm răspuns"
+  "inbox.waiting": "un match — așteptăm răspuns",
+  "inbox.interest": "este interesat de oferta ta",
+  "like.namePending": "Numele nu a trecut verificarea — propunerea nu a fost trimisă.\nCorectează numele și va pleca de la sine cât timp oferta e activă."
 }

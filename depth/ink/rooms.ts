@@ -91,6 +91,9 @@ type Row = {
   kind: string;
   id: string;
   match_id?: string;
+  // kind offer_interest (§8.5, P3b): somebody liked my offer — the reason is
+  // my own offer, shown whole; the other side has no phrase.
+  offer?: { id: string; text: string; mode: string; discount_value?: string | null };
   name?: string;
   age?: number;
   state?: string;
@@ -207,6 +210,10 @@ export function Inbox(
               ? `${say("inbox.open")} · ${say("inbox.until", { time: time(r.chat_expires_at) })}`
               : consented?.(r.match_id ?? r.id)
               ? say("inbox.waiting")
+              // §8.5: the author sees not the other side's phrase, which there is
+              // none of, but their own offer and "интересуется вашим предложением".
+              : r.kind === "offer_interest"
+              ? `${say("inbox.interest")}${r.offer?.text ? ` · «${plain(r.offer.text, 40)}»` : ""}`
               : say("inbox.match"),
           )
         ),

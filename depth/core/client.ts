@@ -95,6 +95,32 @@ export interface Profile {
   stepped_away_until?: number;
 }
 
+// A row of GET /inbox (§8.12) as the faces read it. `match`: an offer to talk
+// waiting for consent; `offer_interest` (P3b, 2026-09-26): somebody liked my
+// offer — the one-sided match of §8.5, where the other side has no phrase and
+// the reason is my own offer, given whole in `offer` while it lives; `chat`: a
+// conversation, with what the keys need (peer, epochs). Marks since the last
+// look ride on every row (P3).
+export interface InboxItem {
+  kind: "match" | "offer_interest" | "chat";
+  id: string;
+  name?: string;
+  age?: number;
+  state?: string;
+  match_id?: string;
+  phrase?: { text: string; mode: string };
+  offer?: { id: string; text: string; mode: string; discount_value?: string | null; conditions?: string | null };
+  waiting_for_you?: boolean;
+  chat_expires_at?: number;
+  my_span?: number;
+  arrived_since?: boolean;
+  answered_since?: boolean;
+  opened_since?: boolean;
+  pending_messages?: number;
+  ending_soon?: boolean;
+  [more: string]: unknown;
+}
+
 export class Client {
   #key: SigningKey | null = null;
   // The private half of the wrapping pair. Kept, not dropped: anything sealed to

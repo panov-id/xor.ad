@@ -227,5 +227,7 @@
   "chat.queued": "attend",
   "chat.waitingHint": "Les lignes attendent dans une file sans ✓ et partent vers l’autre dès qu’il appuie sur « parler ». Quitter depth efface la file.",
   "chat.offerGone": "La proposition est partie.",
-  "inbox.waiting": "un match — en attente de réponse"
+  "inbox.waiting": "un match — en attente de réponse",
+  "inbox.interest": "s'intéresse à votre offre",
+  "like.namePending": "Le nom n'a pas passé la vérification — la proposition n'a pas été envoyée.\nCorrigez le nom et elle partira d'elle-même tant que l'offre est active."
 }

@@ -1900,3 +1900,55 @@ test("a chat opened over a queue sends what waited first and shows it as one's o
   app.unmount();
   noErrors();
 });
+
+test("interest in my offer is shown as the spec words it, with my offer as the reason (§8.5)", async () => {
+  const client = {
+    inboxSince: () => Promise.resolve({
+      items: [
+        {
+          kind: "offer_interest", id: "m7", name: "Борис", age: 31, phrase: { text: "отдам две табуретки", mode: "company" },
+          offer: { id: "o1", text: "отдам две табуретки", mode: "company", discount_value: "100%" },
+          waiting_for_you: false, state: "pending",
+        },
+        { kind: "match", id: "m8", name: "Аня", age: 27, phrase: { text: "гуляю", mode: "alone" }, waiting_for_you: false, state: "pending" },
+      ],
+      events: { new_matches: 0, waiting_for_you: 0, new_chats: 0, pending_messages: 0, ending_soon: 0 },
+    }),
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Inbox, { say, client: client as any, onOpen: () => {}, onWait: () => {}, consented: () => false, onBack: () => {}, onError: collect }));
+  await settle();
+  await settle();
+  const frame = app.lastFrame()!;
+  assert.match(frame, /Борис, 31[^\n]*интересуется вашим предложением[^\n]*«отдам две табуретки»/, "the author's row does not say the interest and the offer");
+  assert.doesNotMatch(frame, /Борис, 31[^\n]*мэтч — ждёт твоего согласия/, "the offer's interest is worded as an ordinary match");
+  assert.match(frame, /Аня, 27[^\n]*мэтч — ждёт твоего согласия/, "an ordinary match lost its wording");
+  app.unmount();
+  noErrors();
+});
+
+test("a like on an offer while one's own name waits shows the §3 line, and the like still counts", async () => {
+  const calls: string[] = [];
+  const said: string[] = [];
+  const client = {
+    feed: () => Promise.resolve({ items: [
+      { id: "o1", text: "кофе со скидкой", like_count: 1, offer: { discount_value: "−10 %" } },
+    ] }),
+    like: (id: string) => { calls.push(`like ${id}`); return Promise.resolve({ status: 200, body: { state: "liked", name_pending: true } }); },
+  };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: (m: string) => said.push(m),
+  }));
+  await settle(150);
+  // The list's menu: open, like, … — an offer is liked from the list, not by the
+  // card's arrow (an offer's like cannot be taken back).
+  await type(app, RIGHT, ENTER);
+  await settle();
+  assert.deepEqual(calls, ["like o1"], "the offer was not liked");
+  assert.deepEqual(said, ["Имя не прошло проверку — предложение не отправлено.\nПоправьте имя, и оно уйдёт само, пока оффер жив."], "the §3 wording was not shown for a like that waits on the name");
+  app.unmount();
+});

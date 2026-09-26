@@ -61,7 +61,14 @@ export const digits = (value: string) => value.replace(/\D/g, "").slice(0, 6);
 // 1a · the PIN, twice. Its price is said here, before the identity exists, not
 // after (depth-client §2.3).
 export function PinSet(
-  { say, onDone, busy, error }: { say: Say; onDone: (pin: string) => void; busy?: boolean; error?: string },
+  { say, onDone, onComeBack, busy, error }: {
+    say: Say;
+    onDone: (pin: string) => void;
+    // As on the paper code's screen: the way back from a step away (B19).
+    onComeBack?: () => void;
+    busy?: boolean;
+    error?: string;
+  },
 ): ReactElement {
   const [pin, setPin] = useState("");
   const [again, setAgain] = useState("");
@@ -77,8 +84,12 @@ export function PinSet(
         { key: "again", label: say("reg.pinAgain"), value: again, secret: true },
       ],
       onChange: (key, value) => (key === "pin" ? setPin(digits(value)) : setAgain(digits(value))),
-      actions: [{ key: "go", label: say("reg.next"), disabled: !full || differ || busy === true }, { key: "exit", label: say("common.exit") }],
-      onPick: (key) => (key === "go" ? onDone(pin) : process.exit(0)),
+      actions: [
+        { key: "go", label: say("reg.next"), disabled: !full || differ || busy === true },
+        ...(onComeBack ? [{ key: "comeBack", label: say("away.back"), disabled: busy === true }] : []),
+        { key: "exit", label: say("common.exit") },
+      ],
+      onPick: (key) => (key === "go" ? onDone(pin) : key === "comeBack" ? onComeBack?.() : process.exit(0)),
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
@@ -394,13 +405,16 @@ export function Card(
 // the current code before it is traded for a new one. Read the way the core
 // reads it (paper.ts): any case, dashes and spaces anywhere, I L O as digits.
 export function PaperCodeEntry(
-  { say, title, lines, go, onDone, onBack, busy, error }: {
+  { say, title, lines, go, onDone, onBack, onComeBack, busy, error }: {
     say: Say;
     title: string;
     lines: string[];
     go: string;
     onDone: (code: string) => void;
     onBack?: () => void;
+    // Given while the node says "stepped away": the way back is on this
+    // screen, not three screens off (depth.away.return, B19).
+    onComeBack?: () => void;
     busy?: boolean;
     error?: string;
   },
@@ -422,9 +436,13 @@ export function PaperCodeEntry(
       onChange: (_key, value) => setCode(value.slice(0, 40)),
       actions: [
         { key: "go", label: go, disabled: !whole || busy === true },
+        ...(onComeBack ? [{ key: "comeBack", label: say("away.back"), disabled: busy === true }] : []),
         onBack ? { key: "back", label: say("common.back") } : { key: "exit", label: say("common.exit") },
       ],
-      onPick: (key) => (key === "go" ? onDone(readPaperCode(code)) : onBack ? onBack() : process.exit(0)),
+      onPick: (key) =>
+        key === "go" ? onDone(readPaperCode(code))
+        : key === "comeBack" ? onComeBack?.()
+        : onBack ? onBack() : process.exit(0),
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),

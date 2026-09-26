@@ -28,7 +28,7 @@ const databaseUrl = process.env.DEPTH_DATABASE_URL!;
 const out = (line: string) => (process as unknown as { _rawDebug: (s: string) => void })._rawDebug(line);
 
 const settle = (ms = 120) => new Promise((done) => setTimeout(done, ms));
-const DOWN = "\u001B[B", RIGHT = "\u001B[C", LEFT = "\u001B[D", ENTER = "\r";
+const DOWN = "\u001B[B", UP = "\u001B[A", RIGHT = "\u001B[C", LEFT = "\u001B[D", ENTER = "\r";
 
 // The feed's row of actions, in the order the screen draws it. Counting
 // presses by hand broke the moment two actions were inserted, so the test
@@ -417,6 +417,71 @@ async function main() {
     assert.equal(await arriving.state(), "approved", "the confirmation said moved and the node did not move it");
     assert.equal(next.identityId, elsewhere.identityId);
     out("ok   the identity moved out of the terminal after \"it is me\" on the confirmation");
+    // 14 · B19 · a step away met on the paper code's screens: the PIN of a
+    // device raised by the code, and the trade of the code for a new one. The
+    // node refuses both while away (vault/init by its guard, recovery/reissue
+    // by itself); each screen says so and offers "вернуться" right there, and
+    // the same action then goes through (depth.away.return).
+    const awayCode = newPaperCode();
+    const wandering = new Client(node, apiKey);
+    await wandering.register({ name: "Вика", age: 33 }, { pin: "123456", paperCode: awayCode });
+    await wandering.confirmPaperCode();
+    const awayFor = async () =>
+      void await sql`UPDATE identities SET stepped_away_until = now() + interval '20 minutes' WHERE id = ${wandering.identityId}`;
+    const stillAway = async () =>
+      (await sql`SELECT stepped_away_until > now() AS away FROM identities WHERE id = ${wandering.identityId}`)[0]?.away === true;
+    await awayFor();
+    const awayApp = render(h(App, { say, client: new Client(node, apiKey), start: "restore" }));
+    try {
+      await until(awayApp, /Бумажный код/);
+      await typeUntil(awayApp, awayCode, new RegExp(awayCode.slice(-4)));
+      await type(awayApp, DOWN, ENTER);
+      // The PIN's screen: refused while away, and the way back is there.
+      await until(awayApp, /Ваш ПИН/, 30);
+      await typeUntil(awayApp, "975310", /••••••/);
+      await type(awayApp, DOWN);
+      await typeUntil(awayApp, "975310", /••••••[\s\S]*••••••/);
+      await type(awayApp, DOWN, ENTER);
+      await until(awayApp, /Вы отошли/, 30);
+      await until(awayApp, /вернуться/, 5);
+      await type(awayApp, RIGHT, ENTER); // "вернуться"
+      await until(awayApp, /^(?![\s\S]*Вы отошли)/, 30);
+      assert.equal(await stillAway(), false, "the PIN's screen said back and the node still has the identity away");
+      await type(awayApp, LEFT, ENTER); // the same "дальше" again
+      await until(awayApp, /Запишите этот код/, 30);
+      out("ok   a step away on the PIN's screen is ended there, and the PIN then goes through");
+
+      // The code's screen: away again before the trade is confirmed.
+      const fresh = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(awayApp.lastFrame() ?? "");
+      assert.ok(fresh, "the new paper code is not on the screen in four groups");
+      await awayFor();
+      await typeUntil(awayApp, fresh[2], new RegExp(`${fresh[2]}_`));
+      await type(awayApp, DOWN);
+      await typeUntil(awayApp, fresh[4], new RegExp(`${fresh[4]}_`));
+      await type(awayApp, DOWN, ENTER);
+      await until(awayApp, /Новый бумажный код[\s\S]*Вы отошли/, 30);
+      await until(awayApp, /вернуться/, 5);
+      await type(awayApp, DOWN, RIGHT, ENTER); // from the field to the row, "вернуться"
+      await until(awayApp, /^(?![\s\S]*Вы отошли)/, 30);
+      assert.equal(await stillAway(), false, "the code's screen said back and the node still has the identity away");
+      // The trade again, from the code on paper now: the old one still stands.
+      // Up into the field first — the cursor is still in the row — then down
+      // and left to "дальше": "вернуться" has left the row.
+      await type(awayApp, UP);
+      await typeUntil(awayApp, awayCode, new RegExp(awayCode.slice(-4)));
+      await type(awayApp, DOWN, LEFT, LEFT, ENTER);
+      await until(awayApp, /Запишите этот код/, 30);
+      const again = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(awayApp.lastFrame() ?? "");
+      assert.ok(again, "the second new code is not on the screen");
+      await typeUntil(awayApp, again[2], new RegExp(`${again[2]}_`));
+      await type(awayApp, DOWN);
+      await typeUntil(awayApp, again[4], new RegExp(`${again[4]}_`));
+      await type(awayApp, DOWN, ENTER);
+      await until(awayApp, /Где ты/, 30);
+      out("ok   a step away on the code's screen is ended there, and the trade then goes through");
+    } finally {
+      awayApp.unmount();
+    }
   } catch (e) {
     failed++;
     out(`FAIL ${(e as Error).message}`);

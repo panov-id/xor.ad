@@ -87,6 +87,25 @@ export function App({ say, client: first, fresh, start }: {
   const [mine, setMine] = useState<{ text: string; state: string } | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
   const fail = (message: string) => setError(say("common.error", { message }));
+  // B19 · a use of the paper code refused because the identity stepped away:
+  // the screen that said so offers the way back itself (depth.away.return).
+  const [away, setAway] = useState(false);
+  const refused = (o: Outcome) => {
+    setError(outcomeLine(say, o));
+    setAway(!o.ok && o.reason === "stepped_away");
+  };
+  const comeBack = away
+    ? () => {
+      setBusy(true);
+      client.comeBack()
+        .then(() => {
+          setAway(false);
+          setError(undefined);
+        })
+        .catch((e: Error) => fail(e.message))
+        .finally(() => setBusy(false));
+    }
+    : undefined;
   // Read once a run, when the feed is first reached: with no e-mail on file,
   // the app is where an Article 17 statement is delivered (dsa/SPEC §7), and
   // the first time they arrive they are shown whole, not as a count.
@@ -310,14 +329,16 @@ export function App({ say, client: first, fresh, start }: {
           busy,
           error,
           onBack: client.registered ? me : undefined,
+          onComeBack: comeBack,
           onDone: (code) => {
             setError(undefined);
+            setAway(false);
             setBusy(true);
             // Held as registration holds it, or a raised identity could never
             // move on (verifier, 26.09.2026).
             raise(client, code, { label: "depth", hold: HeldKey.hold })
               .then((o) => {
-                if (!o.ok) return setError(outcomeLine(say, o));
+                if (!o.ok) return refused(o);
                 // §8.2: on this device the old PIN opens it again, the counter
                 // back at ten; a new PIN is for a device that never had one.
                 if (o.sameDevice) {
@@ -335,17 +356,19 @@ export function App({ say, client: first, fresh, start }: {
           say,
           busy,
           error,
+          onComeBack: comeBack,
           // The claim left a first-PIN grant; the new PIN takes it, and then
           // the old code is traded, as §8.2 draws the way back.
           onDone: (pin) => {
             setError(undefined);
+            setAway(false);
             setBusy(true);
             const next = newPaperCode();
             client.firstPin(pin)
               .then((a) =>
                 a.status === 204
                   ? setWhere({ screen: "newPaper", old: where.old, next, groups: paperGroups(next) })
-                  : setError(outcomeLine(say, refusal(a)))
+                  : refused(refusal(a))
               )
               .catch((e: Error) => fail(e.message))
               .finally(() => setBusy(false));
@@ -360,10 +383,12 @@ export function App({ say, client: first, fresh, start }: {
           busy,
           error,
           onBack: me,
+          onComeBack: comeBack,
           // The current code is checked before a new one is shown: a new code
           // written down under a wrong current one would never become real.
           onDone: (code) => {
             setError(undefined);
+            setAway(false);
             setBusy(true);
             isCurrentCode(client, code)
               .then((right) => {
@@ -392,7 +417,7 @@ export function App({ say, client: first, fresh, start }: {
                 // never to raising it again (the old device is frozen by now).
                 if (!o.ok) {
                   setWhere({ screen: "reissue" });
-                  return setError(outcomeLine(say, o));
+                  return refused(o);
                 }
                 if (place) return me();
                 return client.limits().then((l) => setLimit(l.phrase_length)).catch(() => {})

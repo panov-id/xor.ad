@@ -8,7 +8,7 @@
 // the proxy alike — the node's close frame does not reach a browser), which is
 // why the code now travels in a frame of its own before the close.
 
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
 
 const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 

@@ -5,7 +5,7 @@
 // finds nothing serious or critical on the screens W1–W3 built.
 
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "../fixtures/address.ts";
 
 async function register(page: Page, name: string): Promise<void> {
   await page.goto("/");

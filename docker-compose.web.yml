@@ -66,6 +66,9 @@ services:
       NODE_ID: web-test
       ALLOWED_ORIGINS: ""
       FEED_VERDICT: rules
+      # The stand trusts X-Client-IP under this token, as production trusts Bunny (client_ip.ts):
+      # every spec comes from an address of its own (web/e2e/fixtures/address.ts; W5c).
+      ORIGIN_TOKEN: web-test-origin-token
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null 2>&1 || exit 1"]
       interval: 2s

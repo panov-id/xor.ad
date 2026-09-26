@@ -6,7 +6,7 @@
 // with the peer's next line readable. What has no screen in W3 — the phrase
 // and the likes — is driven through the page's own client (window.xor).
 
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
 
 const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 

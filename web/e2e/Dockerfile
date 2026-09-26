@@ -5,5 +5,6 @@ WORKDIR /app
 COPY package.json .
 RUN npm install
 COPY playwright.config.ts .
+COPY fixtures ./fixtures
 COPY specs ./specs
 CMD ["npx", "playwright", "test"]

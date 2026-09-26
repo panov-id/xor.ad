@@ -4,7 +4,7 @@
 // spinner. "Не сейчас" is seen by this side only: the other side's inbox
 // still shows the offer, nothing tells them.
 
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
 
 const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 

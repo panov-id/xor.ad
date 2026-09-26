@@ -9,7 +9,7 @@
 // of POST /feed and POST /feed/:id/like, so a page that lied about the verdict
 // would be caught by the number.
 
-import { type BrowserContext, expect, type Page, test } from "@playwright/test";
+import { type BrowserContext, expect, type Page, test } from "../fixtures/address.ts";
 
 const noise = (page: Page, who: string) => {
   page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log(`[${who} ${m.type()}] ${m.text()}`); });

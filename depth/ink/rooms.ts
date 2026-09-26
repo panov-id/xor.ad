@@ -7,11 +7,11 @@
 
 import { createElement as h, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text, useInput } from "ink";
+import { Box, Text } from "ink";
 import type { Client, Liked as LikedCard, Statement } from "../core/client.ts";
 import { CursorRefused } from "../core/client.ts";
 import type { Say } from "./strings.ts";
-import { Form, Head, Menu, plain } from "./parts.ts";
+import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
 import { afterClose, reconnectDelay } from "../core/reconnect.ts";
 import type { Place } from "./screens.ts";
 
@@ -131,7 +131,7 @@ export function Inbox(
       })
       .catch((e: Error) => onError(e.message));
   useEffect(() => void load(), []);
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     const count = rows?.length ?? 0;
     if (count === 0) return;
     if (key.upArrow) setAt((i) => (i - 1 + count) % count);
@@ -510,7 +510,7 @@ export function Hidden(
       .then((list) => setRows(list))
       .catch((e: Error) => onError(e.message));
   useEffect(() => void load(), []);
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     const count = rows?.length ?? 0;
     if (count === 0) return;
     if (key.upArrow) setAt((i) => (i - 1 + count) % count);
@@ -571,7 +571,7 @@ export function Statements(
   },
 ): ReactElement {
   const [at, setAt] = useState(0);
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     if (items.length < 2) return;
     if (key.upArrow) setAt((i) => (i - 1 + items.length) % items.length);
     if (key.downArrow) setAt((i) => (i + 1) % items.length);
@@ -645,7 +645,7 @@ export function Liked(
       .then((page) => { setRows(page.items); setNext(page.next); })
       .catch((e: Error) => onError(e.message));
   }, []);
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     const count = rows?.length ?? 0;
     if (count === 0) return;
     if (key.upArrow) setAt((i) => (i - 1 + count) % count);
@@ -760,7 +760,7 @@ export function Blocked(
       })
       .catch((e: Error) => onError(e.message));
   useEffect(() => void load(), []);
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     const count = rows?.length ?? 0;
     if (count < 2) return;
     if (key.upArrow) setAt((i) => (i - 1 + count) % count);
@@ -850,7 +850,7 @@ export function Me(
     { key: "restore", label: say("restore.item") },
     { key: "reset", label: say("reset.item") },
   ];
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     if (key.upArrow) setAt((i) => (i - 1 + rows.length) % rows.length);
     if (key.downArrow) setAt((i) => (i + 1) % rows.length);
   });
@@ -931,7 +931,7 @@ export function StepAway(
       setCounts({ phrases: profile.phrases?.length ?? 0, likes, ends });
     })().catch((e: Error) => onError(e.message));
   }, []);
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     if (key.upArrow) setChosen((i) => (i <= 0 ? AWAY_ORDER.length - 1 : i - 1));
     if (key.downArrow) setChosen((i) => (i + 1) % AWAY_ORDER.length);
   });

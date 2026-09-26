@@ -65,22 +65,28 @@ async function until(app: { lastFrame: () => string | undefined; frames?: string
   );
 }
 
-// Type and check, retrying: a screen that has just mounted can miss the keys
-// pressed in the very same tick — Ink subscribes to input in an effect, after
-// the first render. A person hitting a key the instant a screen appears meets
-// the same thing; it is worth knowing, and it is not what this run measures.
+// Type once, then wait for it on the screen. This used to type again when the
+// text had not shown within 200 ms, because a freshly mounted screen missed
+// keys (Ink subscribed in a passive effect). Since 26.09.2026 every screen
+// takes keys through parts.ts useKeys, which holds them for the screen the
+// previous key opened — so nothing is missed, and typing again would type the
+// text twice on a slow machine (B9).
 async function typeUntil(
   app: { stdin: { write: (s: string) => void }; lastFrame: () => string | undefined },
   text: string,
   what: RegExp,
-  tries = 4,
 ) {
-  for (let i = 0; i < tries; i++) {
-    await type(app, text);
-    await settle(200);
-    if (what.test(app.lastFrame() ?? "")) return;
+  await type(app, text);
+  await until(app, what);
+}
+
+// A row the node must have before the run goes on: asked, not slept on.
+async function rowAppears(sql: postgres.Sql, text: string, args: unknown[], seconds = 20) {
+  for (let i = 0; i < seconds * 10; i++) {
+    if ((await sql.unsafe(text, args as string[])).length > 0) return;
+    await settle(100);
   }
-  throw new Error(`"${text}" never landed on the screen:\n${app.lastFrame()}`);
+  throw new Error(`the node never wrote: ${text} ${JSON.stringify(args)}`);
 }
 
 async function main() {
@@ -158,15 +164,15 @@ async function main() {
     // Hiding from the row, and back from the hidden list: the person's own
     // feed only, and reversible (§8.9).
     await pickInFeed(app, "hide");
-    await settle(400);
-    assert.equal(/пробежку/.test(app.lastFrame() ?? ""), false, "a hidden phrase stayed on the screen");
+    // Gone from the screen once the node took the hide; until then it stays.
+    await until(app, /^(?![\s\S]*пробежку)/);
     // "me" now holds the lists (§4.11): name, age, liked, hidden.
     await pickInFeed(app, "me");
     await until(app, /скрытое · 1/, 20);
     await type(app, DOWN, DOWN, DOWN, ENTER);
     await until(app, /пробежку/, 20);
     await type(app, DOWN, ENTER); // bring it back
-    await settle(400);
+    await until(app, /ничего не скрыто/);
     await type(app, RIGHT, ENTER); // the hidden list: back to "me"
     await until(app, /скрытое/, 20);
     await type(app, RIGHT, ENTER); // "me": back to the feed
@@ -187,7 +193,7 @@ async function main() {
       [minePhrase, me.id],
     );
     await pickInFeed(app, "like");
-    await settle(500);
+    await rowAppears(sql, `SELECT 1 FROM likes WHERE feed_message_id = $1`, [phraseId]);
     const back = await peer.like(minePhrase);
     assert.ok(back.body.match_id, "the like from the screen never reached the node");
     out("ok   the like from the screen made a match");
@@ -212,7 +218,10 @@ async function main() {
     await until(app, /мэтч/, 20);
     out("ok   'not now' and 'undo' went to the node and back");
     await type(app, ENTER);
-    await until(app, /Марк/, 30);
+    // What only the chat draws: "Марк" is on the inbox's row too, and waiting
+    // for it let the next keys go to the inbox before the chat was up (B9,
+    // 6 of 10 runs under stress, 26.09.2026).
+    await until(app, /истории на диске нет/, 30);
     out("ok   the inbox screen opened the conversation");
 
     // 6 · the safety code, from the chat's menu — the twenty digits derived
@@ -229,7 +238,7 @@ async function main() {
     // "compared" closes the panel, the row is still on "code", one step right
     // is "own span", and an hour steps to "while we're talking", 260.
     await type(app, ENTER);
-    await settle(300);
+    await until(app, /^(?![\s\S]*\d{4} \d{4} \d{4} \d{4} \d{4})/);
     await type(app, RIGHT, ENTER);
     await until(app, /гаснет после 4:20/, 20);
     const [mine] = await sql`SELECT p.idle_ttl_minutes AS span FROM chat_participants p
@@ -266,11 +275,15 @@ async function main() {
     // 10 · the name, edited from "me" against the node: the step away took the
     // phrases, so the slate is clean and the new name goes to the queue (202).
     await pickInFeed(app, "me");
-    await until(app, /имя/, 20);
+    // The name as the node has it, not the row's "…": enter on the name opens
+    // nothing until the profile has come (B9, 1 of 10 under stress).
+    await until(app, /имя  Аня/, 20);
     await type(app, ENTER);
     await until(app, /меняется на чистом счету/, 20);
     await type(app, ..."\u007F\u007F\u007F".split(""), ..."Анна".split(""), DOWN, ENTER);
     await until(app, /Анна/, 20);
+    // The field shows the name before the node has it: asked, not assumed.
+    await rowAppears(sql, `SELECT 1 FROM identities WHERE id = $1 AND name_pending IS NOT NULL`, [me.id]);
     const [named] = await sql`SELECT name_pending FROM identities WHERE id = ${me.id}`;
     assert.equal(named?.name_pending, "Анна", "the new name did not reach the node's queue");
     out("ok   a name edited from the screen went to the queue");

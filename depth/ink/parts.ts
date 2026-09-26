@@ -6,9 +6,97 @@
 // No JSX: Node strips types but does not compile JSX, and the terminal face
 // runs straight from source (package.json "start").
 
-import { createElement as h, useState } from "react";
+import { createElement as h, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput, useStdin } from "ink";
+
+type KeyHandler = Parameters<typeof useInput>[0];
+type Keypress = Parameters<KeyHandler>;
+
+// Keys, one at a time, each against the screen the previous one left.
+//
+// React draws a state change in a later turn of the event loop (a
+// setImmediate: the Scheduler's task), and Ink hands each key to the handler
+// of the last render. A key that arrives in the same turn as the one before —
+// typed fast, over a slow ssh, or by a test whose timer came due together with
+// React's task — meets the old handler: the old cursor, the old `disabled`,
+// the old row of actions, the old text of a field. Measured on 26.09.2026
+// (ink 6, node 24): an arrow and enter with no gap picked the neighbour 5 of
+// 5 times, with one setImmediate between them the right row 5 of 5, and the
+// live run under load opened "сменить точку" with the cursor drawn on "я".
+//
+// So every screen takes keys through useKeys, and the keys of one terminal go
+// through one queue: the first is handed out at once, each next one only
+// after a microtask and a setImmediate — after the draw the previous key
+// caused. The handler is kept in a ref refreshed at layout time, so the one
+// the next key meets is the one just drawn, and a screen mounted by the
+// previous key is already listening. It is the order of the event loop's
+// phases, not a pause: a loaded machine makes it slower, never wrong.
+interface Gate {
+  // In the order the screens mounted — children before their parents, as
+  // their layout effects run, which is the order Ink itself calls them in.
+  listeners: Array<{ current: KeyHandler }>;
+  queue: Keypress[];
+  busy: boolean;
+  // Every useKeys subscribes to Ink so that keys keep coming whichever screen
+  // is up; Ink then calls all of them for one key, and only the first call of
+  // each round puts the key in the queue.
+  subscribed: number;
+  turn: number;
+}
+const gates = new WeakMap<object, Gate>();
+// A person does not type ahead of the screen by more than this; a paste or a
+// key held down past it is cut, not queued without end.
+export const KEYS_AHEAD = 32;
+
+function gateOf(stdin: object): Gate {
+  let gate = gates.get(stdin);
+  if (!gate) gates.set(stdin, gate = { listeners: [], queue: [], busy: false, subscribed: 0, turn: 0 });
+  return gate;
+}
+
+function drain(gate: Gate): void {
+  const next = gate.queue.shift();
+  if (!next) {
+    gate.busy = false;
+    return;
+  }
+  gate.busy = true;
+  for (const listener of [...gate.listeners]) listener.current(...next);
+  queueMicrotask(() => setImmediate(() => drain(gate)));
+}
+
+export function useKeys(handler: KeyHandler): void {
+  const { stdin } = useStdin();
+  const gate = gateOf(stdin);
+  const live = useRef(handler);
+  useLayoutEffect(() => {
+    live.current = handler;
+  });
+  useLayoutEffect(() => {
+    gate.listeners.push(live);
+    return () => {
+      gate.listeners.splice(gate.listeners.indexOf(live), 1);
+    };
+  }, [gate]);
+  const arrive = useRef<KeyHandler>((input, key) => {
+    if (gate.turn++ % gate.subscribed !== 0) return;
+    if (gate.queue.length >= KEYS_AHEAD) return;
+    gate.queue.push([input, key]);
+    if (!gate.busy) drain(gate);
+  }).current;
+  useInput(arrive);
+  // Right after Ink's own subscription, in the same effect phase, so the count
+  // is the number of Ink listeners whenever a key comes.
+  useEffect(() => {
+    gate.subscribed++;
+    gate.turn = 0;
+    return () => {
+      gate.subscribed--;
+      gate.turn = 0;
+    };
+  }, [gate]);
+}
 
 export type Action = { key: string; label: string; disabled?: boolean };
 
@@ -22,7 +110,7 @@ export function Menu(
   // Dropping it from the cycle moved every other action under the cursor —
   // with the first one disabled, enter landed on "quit" and killed the
   // process (caught by the screens' own test, 2026-09-22).
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     if (!active || actions.length === 0) return;
     // The row stops at its ends rather than wrapping: with "выход" last, a
     // wrap put quitting one keypress away from the first action, and a person
@@ -76,7 +164,7 @@ export function Fields(
   const at = outerAt ?? innerAt;
   const setAt = (fn: (i: number) => number) => (onMove ? onMove(fn(at)) : setInnerAt(fn));
   const current = fields[Math.min(at, fields.length - 1)];
-  useInput((input, key) => {
+  useKeys((input, key) => {
     if (!active) return;
     if (key.upArrow) return setAt((i) => (i - 1 + fields.length) % fields.length);
     if (key.downArrow || key.tab) return setAt((i) => (i + 1) % fields.length);
@@ -137,7 +225,7 @@ export function Form(
 ): ReactElement {
   const [at, setAt] = useState(0);
   const onMenu = at >= fields.length;
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     if (!active) return;
     if (onMenu && key.upArrow) setAt(fields.length - 1);
     else if (!onMenu && key.downArrow && at === fields.length - 1) setAt(fields.length);

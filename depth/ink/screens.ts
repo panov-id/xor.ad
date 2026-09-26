@@ -7,11 +7,11 @@
 
 import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text, useInput } from "ink";
+import { Box, Text } from "ink";
 import type { Client, Radius } from "../core/client.ts";
 import { readPaperCode, readPaperText } from "../core/paper.ts";
 import type { Say } from "./strings.ts";
-import { Form, Head, Menu, plain } from "./parts.ts";
+import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
 
 export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 
@@ -301,7 +301,7 @@ export function Feed(
 // The feed's own arrows, kept apart so the menu's left and right do not fight
 // the list's up and down.
 function FeedKeys({ count, onMove }: { count: number; onMove: (fn: (at: number) => number) => void }): ReactElement {
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     if (count === 0) return;
     if (key.upArrow) onMove((at) => (at - 1 + count) % count);
     if (key.downArrow) onMove((at) => (at + 1) % count);
@@ -335,7 +335,7 @@ export function Card(
   // same phrase twice (security lens, 23.09.2026).
   const [busy, setBusy] = useState<string | null>(null);
   const p = items[at];
-  useInput((_input, key) => {
+  useKeys((_input, key) => {
     if (key.return) {
       if (hint) {
         explained = true;

@@ -1051,3 +1051,172 @@ test("the paper code is offered on the \"me\" screen: a new one, and opening thi
   assert.deepEqual(opened, ["reissue"], "enter on the new-code row opened something else");
   app.unmount();
 });
+
+// ── B9 · keys that arrive together (depth.liveui.flaky) ──
+// Over a slow ssh, typed fast, or sent by a test whose timer came due together
+// with React's draw, a key reaches the screen before the previous key's change
+// is drawn. It must still act on what the previous key left: the row the arrow
+// moved to, the action it enabled, the screen it opened. It did not (probe,
+// 26.09.2026: 5/5 wrong with no gap), and the live run under load opened
+// "сменить точку" with the cursor drawn on "я". Every screen now takes keys
+// through parts.ts useKeys; these tests send the keys in one synchronous burst,
+// which is the worst case, and wait for the outcome, not for time.
+import { readdirSync, readFileSync } from "node:fs";
+import { useState } from "react";
+import { Form, KEYS_AHEAD, Menu } from "./parts.ts";
+
+async function until(what: () => boolean, seconds = 20): Promise<boolean> {
+  for (let i = 0; i < seconds * 20 && !what(); i++) await new Promise((done) => setTimeout(done, 50));
+  return what();
+}
+const burst = (app: { stdin: { write: (s: string) => void } }, ...keys: string[]) => keys.forEach((k) => app.stdin.write(k));
+
+// One row per component that listens to keys: the burst, and what it must end in.
+const CLASS: Array<[string, () => Promise<void>]> = [
+  ["Menu: → ⏎ picks the action the arrow moved to", async () => {
+    const picked: string[] = [];
+    const app = render(h(Menu, {
+      actions: [{ key: "a", label: "a" }, { key: "b", label: "b" }, { key: "exit", label: "выход" }],
+      onPick: (k: string) => picked.push(k),
+    }));
+    await settle();
+    burst(app, RIGHT, ENTER);
+    assert.ok(await until(() => picked.length === 1), "enter was lost");
+    burst(app, RIGHT, LEFT, LEFT, ENTER);
+    assert.ok(await until(() => picked.length === 2), "the second enter was lost");
+    assert.deepEqual(picked, ["b", "a"], "enter acted on the row the cursor was on before the arrow");
+    app.unmount();
+  }],
+  ["Form: ↓ ⏎ from the last field presses the first action, two letters both land", async () => {
+    const picked: string[] = [];
+    let value = "";
+    function Host() {
+      const [v, setV] = useState("");
+      value = v;
+      return h(Form, {
+        fields: [{ key: "x", label: "x", value: v }],
+        onChange: (_k: string, next: string) => setV(next),
+        actions: [{ key: "go", label: "go" }, { key: "exit", label: "выход" }],
+        onPick: (k: string) => picked.push(k),
+      });
+    }
+    const app = render(h(Host));
+    await settle();
+    burst(app, "a", "b", DOWN, ENTER);
+    assert.ok(await until(() => picked.length === 1), "enter was lost between the fields and the row");
+    assert.equal(value, "ab", "a letter typed in the same read was lost");
+    assert.deepEqual(picked, ["go"]);
+    app.unmount();
+  }],
+  ["Me: ↓×6 ⏎ opens the sixth row, not the one before", async () => {
+    const client = {
+      profile: () => Promise.resolve({ name: "Аня", name_state: "accepted", age: 34 }),
+      hidden: () => Promise.resolve([]),
+      blocks: () => Promise.resolve([]),
+    };
+    const opened: string[] = [];
+    // deno-lint-ignore no-explicit-any
+    const app = render(h(Me, { say, client: client as any, restrictions: 0, onOpen: (r: string) => opened.push(r), onBack: () => {}, onError: () => {} }));
+    await until(() => /Аня/.test(app.lastFrame() ?? ""));
+    // name, age, liked, hidden, away, pin, then the new paper code.
+    burst(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
+    assert.ok(await until(() => opened.length === 1), "enter was lost");
+    assert.deepEqual(opened, ["reissue"]);
+    app.unmount();
+  }],
+  ["Blocked: ↓ ⏎ lifts the block the arrow moved to", async () => {
+    const lifted: string[] = [];
+    const client = {
+      blocks: () => Promise.resolve([{ id: "b1", since: 1 }, { id: "b2", since: 2 }]),
+      unblock: (id: string) => { lifted.push(id); return Promise.resolve(); },
+    };
+    // deno-lint-ignore no-explicit-any
+    const app = render(h(Blocked, { say, lang: "ru", client: client as any, onBack: () => {}, onError: () => {} }));
+    await until(() => /›/.test(app.lastFrame() ?? ""));
+    burst(app, DOWN, ENTER);
+    assert.ok(await until(() => lifted.length === 1), "enter was lost");
+    assert.deepEqual(lifted, ["b2"], "the block lifted is not the one under the cursor");
+    app.unmount();
+  }],
+  ["StepAway: ↓ ⏎ goes away for the span the arrow chose, not into a greyed button", async () => {
+    const went: string[] = [];
+    const client = {
+      profile: () => Promise.resolve({ phrases: [] }),
+      likes: () => Promise.resolve({ items: [], next: null }),
+      inbox: () => Promise.resolve([]),
+      stepAway: (span: string) => { went.push(span); return Promise.resolve(0); },
+    };
+    // deno-lint-ignore no-explicit-any
+    const app = render(h(StepAway, { say, client: client as any, onGone: () => {}, onBack: () => {}, onError: () => {} }));
+    await until(() => /выберите срок/.test(app.lastFrame() ?? ""));
+    burst(app, DOWN, ENTER);
+    assert.ok(await until(() => went.length === 1), "enter met the button greyed before the span was chosen");
+    assert.deepEqual(went, ["short"]);
+    app.unmount();
+  }],
+  ["Feed: →×3 ⏎ asks about blocking, and does not hide", async () => {
+    const calls: string[] = [];
+    const client = {
+      feed: () => Promise.resolve({ items: [{ id: "p1", text: "первая", name: "Ира", age: 30 }] }),
+      like: () => { calls.push("like"); return Promise.resolve({ status: 200, body: {} }); },
+      hide: () => { calls.push("hide"); return Promise.resolve(); },
+      blockByPhrase: () => { calls.push("block"); return Promise.resolve(); },
+    };
+    const app = render(h(Feed, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      place: { lat: 55.75, lon: 37.62, radius: 1000 },
+      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+    }));
+    await until(() => /первая/.test(app.lastFrame() ?? ""));
+    // open, like, hide, block.
+    burst(app, RIGHT, RIGHT, RIGHT, ENTER);
+    assert.ok(await until(() => /точно заблокировать\?/.test(app.lastFrame() ?? "")), "the burst did not reach block and its question");
+    await settle();
+    assert.deepEqual(calls, [], "a burst meant for block acted on another action");
+    app.unmount();
+  }],
+];
+for (const [name, fn] of CLASS) test(`keys in one read · ${name}`, fn);
+
+test("a key that comes while the screen changes goes to the new screen", async () => {
+  const picked: string[] = [];
+  function Two() {
+    const [second, setSecond] = useState(false);
+    return second
+      ? h(Menu, { actions: [{ key: "x", label: "x" }, { key: "y", label: "y" }], onPick: (k: string) => picked.push(`second:${k}`) })
+      : h(Menu, { actions: [{ key: "go", label: "go" }, { key: "exit", label: "выход" }], onPick: (k: string) => { picked.push(`first:${k}`); setSecond(true); } });
+  }
+  const app = render(h(Two));
+  await settle();
+  burst(app, ENTER, RIGHT, ENTER);
+  assert.ok(await until(() => picked.length === 2), `a key was lost in the change of screens: ${JSON.stringify(picked)}`);
+  assert.deepEqual(picked, ["first:go", "second:y"], "the keys after the change went to the old screen");
+  app.unmount();
+});
+
+test(`keys ahead of the screen are cut at ${KEYS_AHEAD}, not queued without end`, async () => {
+  const picked: string[] = [];
+  const actions = Array.from({ length: 60 }, (_, i) => ({ key: String(i), label: String(i) }));
+  const app = render(h(Menu, { actions, onPick: (k: string) => picked.push(k) }));
+  await settle();
+  // One goes at once, KEYS_AHEAD wait; the rest of the burst, enter included, is cut.
+  burst(app, ...Array(KEYS_AHEAD + 8).fill(RIGHT), ENTER);
+  await until(() => new RegExp(`\\[ ${KEYS_AHEAD + 1} \\]`).test(app.lastFrame() ?? ""), 10);
+  await settle();
+  assert.deepEqual(picked, [], "an enter past the limit was kept");
+  assert.match(app.lastFrame()!, new RegExp(`\\[ ${KEYS_AHEAD + 1} \\]`), "the cursor is not where the kept arrows put it");
+  burst(app, ENTER);
+  assert.ok(await until(() => picked.length === 1), "the queue did not take keys again once drained");
+  assert.deepEqual(picked, [String(KEYS_AHEAD + 1)]);
+  app.unmount();
+});
+
+test("no screen listens to keys past useKeys", async () => {
+  const here = new URL(".", import.meta.url).pathname;
+  const offenders = readdirSync(here)
+    .filter((f) => f.endsWith(".ts") && !f.includes("test") && f !== "parts.ts")
+    .filter((f) => /\buseInput\b/.test(readFileSync(here + f, "utf8")));
+  assert.deepEqual(offenders, [], "useInput outside parts.ts meets keys with the last render's handler");
+});

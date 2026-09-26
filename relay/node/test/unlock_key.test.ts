@@ -155,7 +155,11 @@ Deno.test("a session without an unlock key admits no second key anywhere, /vault
   const other = await register(true);
   const wrong = await signedCall(other.unlock, other.sessionId, "POST", "/vault/share", { auth: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(32))) });
   assertEquals(wrong.status, 409, JSON.stringify(wrong.body));
-  assertEquals((wrong.body as { error: { code: string } }).error.code, "pin_mismatch");
+  assertEquals((wrong.body as { error: { code: string; attempts_left: number } }).error.code, "pin_mismatch");
+  // The counter is the node's, and it moved: nine left after one miss.
+  assertEquals((wrong.body as { error: { attempts_left: number } }).error.attempts_left, 9);
+  const again = await signedCall(other.unlock, other.sessionId, "POST", "/vault/share", { auth: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(32))) });
+  assertEquals((again.body as { error: { attempts_left: number } }).error.attempts_left, 8);
 });
 
 Deno.test("an unlock_pub the node cannot import is refused at registration", async () => {

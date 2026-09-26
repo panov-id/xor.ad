@@ -490,6 +490,17 @@ components:
       x-description-ru: "Долгий ключ под второй половиной бумажного кода. Узел его хранит и никогда не открывает; самого кода он не видит вовсе (спека чата §8.2). Сдача этого груза и завершает регистрацию."
       properties:
         recovery_wrapped_key: {type: string}
+    SessionsApprove:
+      type: object
+      required: [reply, sign_pub, wrap_pub]
+      description: "What the old device passes on for the new one: the reply envelope with the long key, the new device's keys — the node cannot read them out of an envelope it has no key for — and, optionally, the new device's unlock key (db/063). Described here on 2026-09-26; the route took this body since it was built."
+      x-description-ru: "Что старое устройство передаёт за новое: ответный конверт с долгим ключом, ключи нового устройства — узел не может прочитать их из конверта, к которому у него нет ключа, — и, необязательно, ключ отпирания нового устройства (db/063). Описано 26.09.2026; маршрут принимал это тело с постройки."
+      properties:
+        reply: {type: string, description: "The reply envelope, base64url (transfer.ts sealReply).", x-description-ru: "Ответный конверт, base64url (transfer.ts sealReply)."}
+        sign_pub: {type: string}
+        wrap_pub: {type: string}
+        unlock_pub: {type: string, description: "Optional, as in IdentityCreate (db/063).", x-description-ru: "Необязательно, как в IdentityCreate (db/063)."}
+        label: {type: string}
     RecoveryClaim:
       type: object
       required: [lookup_id]
@@ -3524,6 +3535,7 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/SessionsApprove"}}}}
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}

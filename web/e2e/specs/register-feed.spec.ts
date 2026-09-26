@@ -97,7 +97,7 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
   await expect(page.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 15000 });
   await page.getByTestId("unlock-pin").fill("654321");
   await page.getByTestId("unlock").click();
-  await expect(page.getByTestId("error")).toContainText("осталось попыток: 9", { timeout: 30000 });
+  await expect(page.getByTestId("error")).toContainText("Осталось попыток: 9", { timeout: 30000 });
   await page.getByTestId("unlock-pin").fill("123456");
   const before = feedAnswers.length;
   await page.getByTestId("unlock").click();

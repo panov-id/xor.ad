@@ -7,6 +7,17 @@ import { useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { forget, PinRefused, type Record_, unlockAfterReload } from "../vault.ts";
 
+// The node's refusal as one line, in the terminal's words (depth/ink/locales/
+// ru.json pin.*, verbatim). 401 is a session the tenth miss froze — the guard
+// answers before the PIN is checked — and reads as the lock; 429 is "too
+// soon", the PIN was not checked, so no attempts are named (verifier of W1c).
+function pinLine(e: PinRefused): string {
+  if (e.code === "pin_mismatch") return `ПИН не подходит. Осталось попыток: ${e.attemptsLeft ?? "?"}`;
+  if (e.code === "pin_locked" || e.code === "unauthorized" || e.code === "status_401") return "Вход закрыт до бумажного кода.";
+  if (e.code === "rate_limited") return `Слишком рано после прошлой попытки. Ещё раз через ${e.retryAfter ?? "?"} с.`;
+  return e.message;
+}
+
 export function Unlock({ record, onDone, onForget }: { record: Record_; onDone: (client: Client, longKey: CryptoKey) => void; onForget: () => void }) {
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
@@ -20,7 +31,7 @@ export function Unlock({ record, onDone, onForget }: { record: Record_; onDone: 
       onDone(client, longKey);
     } catch (e) {
       if (e instanceof PinRefused) {
-        setError(e.attemptsLeft !== undefined ? `${e.message} — осталось попыток: ${e.attemptsLeft}` : e.message);
+        setError(pinLine(e));
       } else {
         setError((e as Error).message);
       }

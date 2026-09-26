@@ -141,7 +141,12 @@ export async function registerAndKeep(
 // still in hand, so that the seal is known to be a seal and not a blob.
 export async function openSealed(record: Record_, pin: string, share: Uint8Array): Promise<CryptoKey> {
   const material = await derivePin(pin, record.deviceSalt);
-  return await unsealLong(record, material.local, share);
+  try {
+    return await unsealLong(record, material.local, share);
+  } finally {
+    material.auth.fill(0);
+    material.local.fill(0);
+  }
 }
 
 // The long key out of its seal, into memory non-extractable.
@@ -187,11 +192,21 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
   const given = await asking.request<{ share?: string; error?: { code?: string; attempts_left?: number } }>(
     "POST", "/vault/share", { auth: base64url(material.auth) },
   );
+  material.auth.fill(0);
   if (given.status !== 200 || !given.body?.share) {
+    material.local.fill(0);
     const code = given.body?.error?.code ?? `status_${given.status}`;
     throw new PinRefused(code, given.body?.error?.attempts_left, given.retryAfter);
   }
-  const long = await unsealLong(record, material.local, fromBase64url(given.body.share));
+  const share = fromBase64url(given.body.share);
+  let long: CryptoKey;
+  try {
+    long = await unsealLong(record, material.local, share);
+  } finally {
+    // The halves have done their one job; neither outlives it (verifier of W1c).
+    material.local.fill(0);
+    share.fill(0);
+  }
   const client = new Client(NODE_BASE, API_KEY);
   const longSigning: SigningKey = { privateKey: long, publicSpki: record.longSpki };
   // The wrapping pair is not on the disk yet (see the top of this file): a

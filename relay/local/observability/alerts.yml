@@ -149,6 +149,21 @@ groups:
           summary: "Приём кодов переноса на паузе"
           description: "Пятьдесят неверных кодов переноса за час. Пока пауза держится, честный перенос тоже не принимается."
 
+      # The minute's job that finishes the tenth PIN miss (lib/take_down.ts,
+      # takeDownLeftByPinLimit): a freeze or a take-down it could not do this
+      # minute is put off to the next, and one that keeps being put off leaves a
+      # session live, or phrases and likes up, under a name whose entry is
+      # closed (review panel 4, К5, B74). A lock held that long is a stuck
+      # transaction somewhere; the log line carries the database's code. Put off
+      # at least once in every five minutes, for half an hour.
+      - alert: TakeDownPinLimitDeferred
+        expr: sum(increase(relay_take_down_pin_limit_total{result=~"deferred|freeze_deferred"}[5m])) > 0
+        for: 30m
+        labels: { severity: warning }
+        annotations:
+          summary: "Снятие после десятого неверного ПИНа откладывается"
+          description: "Минутная задача полчаса не может заморозить сессию или снять живое у личности с закрытым входом. Код ошибки — в журнале узла."
+
       # A right paper code the node could not write (relay/node/src/routes/
       # identity.ts, claim on a new device). There is no retry on the person's
       # side worth the name: they hold the code and got 503, so one is enough.

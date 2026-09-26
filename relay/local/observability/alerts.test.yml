@@ -876,3 +876,54 @@ tests:
       - eval_time: 65m
         alertname: DsaLetterMarkFailed
         exp_alerts: []
+
+  # TakeDownPinLimitDeferred (B74): a take-down put off every minute from 2m
+  # makes the expression true from 2m; for: 30m — quiet at 31m, firing at 32m.
+  - name: a take-down put off for half an hour fires
+    interval: 1m
+    input_series:
+      - series: 'relay_take_down_pin_limit_total{result="deferred"}'
+        values: '0 0 1+1x40'
+      - series: 'relay_take_down_pin_limit_total{result="freeze_deferred"}'
+        values: '0x42'
+    alert_rule_test:
+      - eval_time: 31m
+        alertname: TakeDownPinLimitDeferred
+        exp_alerts: []
+      - eval_time: 32m
+        alertname: TakeDownPinLimitDeferred
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Снятие после десятого неверного ПИНа откладывается"
+              description: "Минутная задача полчаса не может заморозить сессию или снять живое у личности с закрытым входом. Код ошибки — в журнале узла."
+
+  # A freeze put off alone counts the same.
+  - name: a freeze put off for half an hour fires too
+    interval: 1m
+    input_series:
+      - series: 'relay_take_down_pin_limit_total{result="freeze_deferred"}'
+        values: '0 0 1+1x40'
+    alert_rule_test:
+      - eval_time: 32m
+        alertname: TakeDownPinLimitDeferred
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Снятие после десятого неверного ПИНа откладывается"
+              description: "Минутная задача полчаса не может заморозить сессию или снять живое у личности с закрытым входом. Код ошибки — в журнале узла."
+
+  # One put off and then done, and a job that takes down every minute: quiet.
+  - name: a take-down put off once, and finished take-downs, are not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_take_down_pin_limit_total{result="deferred"}'
+        values: '0 0 1x40'
+      - series: 'relay_take_down_pin_limit_total{result="taken"}'
+        values: '0+1x42'
+      - series: 'relay_take_down_pin_limit_total{result="raised"}'
+        values: '0+1x42'
+    alert_rule_test:
+      - eval_time: 40m
+        alertname: TakeDownPinLimitDeferred
+        exp_alerts: []

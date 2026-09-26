@@ -12,9 +12,25 @@
 
 import { queryOrThrow, savepoint, transaction } from "./db.ts";
 import { log } from "./log.ts";
+import { inc } from "./metrics.ts";
 import { Freezes, freezeSession } from "./sessions.ts";
 
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
+
+// What the minute's job did, by outcome (review panel 4, К5, B74,
+// 2026-09-26): a freeze or a take-down it finished, one it put off to the next
+// minute, and a person the paper code raised before it came. The put-off ones
+// were a warn line and nothing else, so a take-down kept waiting for hours on
+// a lock looked like a quiet job; TakeDownPinLimitDeferred reads them. Each at
+// zero from the start: an alert reads the series, and one born at 1 hides its
+// first event from increase() (B42).
+for (const result of ["frozen", "freeze_deferred", "taken", "deferred", "raised"]) {
+  inc("relay_take_down_pin_limit_total", { result }, 0);
+}
+
+// The code a deferral is logged with: the database's, or the race's own name.
+const codeOf = (error: unknown) =>
+  error instanceof TakeDownRetry ? "take_down_retry" : (error as { code?: string })?.code ?? "unknown";
 
 export class TakeDownRetry extends Error {}
 
@@ -81,15 +97,17 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
   for (const { id } of unfrozen) {
     const freezes = new Freezes();
     try {
-      await transaction(async (run) => {
+      const froze = await transaction(async (run) => {
         const [share] = await run<{ locked: boolean }>(
           `SELECT locked_at IS NOT NULL AS locked FROM vault_shares WHERE session = $1 FOR UPDATE`, [id]);
-        if (share?.locked) await freezeSession(run, id, "pin_limit", freezes);
+        return share?.locked ? await freezeSession(run, id, "pin_limit", freezes) : false;
       }).then(freezes.count);
+      if (froze) inc("relay_take_down_pin_limit_total", { result: "frozen" });
     } catch (error) {
       const code = (error as { code?: string })?.code;
       if (code !== "55P03" && code !== "57014" && code !== "40P01") throw error;
-      log("warn", "a freeze left by the PIN limit waits for the next minute", { session: id });
+      inc("relay_take_down_pin_limit_total", { result: "freeze_deferred" });
+      log("warn", "a freeze left by the PIN limit waits for the next minute", { session: id, code });
     }
   }
 
@@ -128,6 +146,7 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
           return true;
         });
         if (taken) done++;
+        inc("relay_take_down_pin_limit_total", { result: taken ? "taken" : "raised" });
         break;
       } catch (error) {
         const code = (error as { code?: string })?.code;
@@ -137,7 +156,8 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
         const again = error instanceof TakeDownRetry || code === "40P01";
         if (!again && !timedOut) throw error;
         if (timedOut || attempt === 2) {
-          log("warn", "a take-down left by the PIN limit waits for the next minute", { identity: id });
+          inc("relay_take_down_pin_limit_total", { result: "deferred" });
+          log("warn", "a take-down left by the PIN limit waits for the next minute", { identity: id, code: codeOf(error) });
           break;
         }
       }

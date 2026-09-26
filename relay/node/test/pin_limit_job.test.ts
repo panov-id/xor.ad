@@ -42,6 +42,10 @@ const { match } = await import("../src/lib/router.ts");
 const database = await import("../src/lib/db.ts");
 const auth = await import("../src/lib/identity_auth.ts");
 const { takeDownLeftByPinLimit } = await import("../src/lib/take_down.ts");
+const { render } = await import("../src/lib/metrics.ts");
+// What the job did, by outcome (B74).
+const jobCount = (result: string) =>
+  Number(render().match(new RegExp(`relay_take_down_pin_limit_total\\{result="${result}"\\} (\\d+)`))?.[1] ?? 0);
 await import("../src/routes/identity.ts"); // registers the routes as a side effect
 
 const KEY_ID = "ak_pub_pinlimitjobrace01";
@@ -159,6 +163,7 @@ async function queuedOn(tx: Tx, pattern: string): Promise<number> {
 
 Deno.test({ name: "the minute's job leaves what is live to a person a paper-code claim is raising (B73)", sanitizeOps: false, sanitizeResources: false }, async () => {
   const me = await frozenByTheTenthMiss();
+  const raisedBefore = jobCount("raised");
   const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
   let claim: { status: number; body: unknown } | null = null;
   let taken: number | string | null = null;
@@ -201,6 +206,30 @@ Deno.test({ name: "the minute's job leaves what is live to a person a paper-code
   const live = (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [me.phrase])).length === 1;
   assert(live, `the job took the phrase down under a person the claim was raising (the job ${jobWaited ? "waited on the share" : "did not wait on the share"})`);
   assert(jobWaited, "the job did not wait on the share the claim held");
+  assertEquals(jobCount("raised") - raisedBefore, 1, "the person the claim raised was not counted as raised once");
+});
+
+// A take-down the job puts off is counted, and one it does is (B74): the
+// counters row held past takeDownLive's two seconds, then let go.
+Deno.test({ name: "a take-down the job puts off is counted deferred, and the next one taken (B74)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const me = await frozenByTheTenthMiss();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  const [deferredBefore, takenBefore] = [jobCount("deferred"), jobCount("taken")];
+  try {
+    // deno-lint-ignore no-explicit-any
+    await sql.begin(async (tx: any) => {
+      await tx.unsafe(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [me.identity_id]);
+      await takeDownLeftByPinLimit();
+    });
+  } finally {
+    await sql.end();
+  }
+  assertEquals(jobCount("deferred") - deferredBefore, 1, "a take-down put off on a held counter was not counted deferred once");
+  const live = async () => (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [me.phrase])).length === 1;
+  assert(await live(), "the take-down went through under a held counter — the case never ran");
+  await takeDownLeftByPinLimit();
+  assertEquals(await live(), false, "the next pass did not take down");
+  assert(jobCount("taken") - takenBefore >= 1, "a take-down the job did was not counted taken");
 });
 
 addEventListener("unload", () => {

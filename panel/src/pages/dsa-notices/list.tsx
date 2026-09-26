@@ -80,6 +80,12 @@ const STATUS_LABEL: Record<string, string> = {
 // the one it was filed through (db/015).
 export type QueueFilter = "all" | "platform" | "tenant";
 
+// Whose content it is. For a phrase of the feed the node knows — the row's
+// author — and resolves it itself (P8, 2026-09-26); asking the operator to type
+// an identity there produced statements addressed to typos and e-mails, which
+// GET /statements, the author's only channel, never matched.
+export const needsRecipient = (targetKind: string): boolean => targetKind !== "feed_message";
+
 export const inQueue = (row: { brand: string | null }, queue: QueueFilter): boolean =>
   queue === "all" || (queue === "platform" ? row.brand === null : row.brand !== null);
 
@@ -285,7 +291,7 @@ const NoticeDetail = ({
                 restriction,
                 ground_kind: groundKind,
                 ground_text: groundText,
-                recipient_identity: recipient,
+                ...(needsRecipient(notice.target_kind) ? { recipient_identity: recipient } : {}),
               }
             : {}),
         }),
@@ -448,10 +454,17 @@ const NoticeDetail = ({
                 />
               </label>
 
-              <label className="field">
-                <span>Whose content it is — identity or email of the author</span>
-                <input value={recipient} onChange={(event) => setRecipient(event.target.value)} />
-              </label>
+              {needsRecipient(notice.target_kind) ? (
+                <label className="field">
+                  <span>Whose content it is — identity or email of the author</span>
+                  <input value={recipient} onChange={(event) => setRecipient(event.target.value)} />
+                </label>
+              ) : (
+                <p className="panel-hint">
+                  The statement of reasons goes to the phrase&apos;s author — the node knows who that is — and
+                  the phrase leaves the feed with this decision.
+                </p>
+              )}
             </>
           ) : null}
 

@@ -279,6 +279,62 @@ test("an opened conversation, replies queued for this session and a term in its 
   assertEquals((await inbox(b, 0)).events.ending_soon, 0, "one side's term made the other side's row ending soon");
 });
 
+// The match of an offer (§8.5, db/062; P5 → P3b): a like on my offer makes the
+// match at once and the one who came has no phrase in it. My inbox names it
+// as interest in my offer, with the offer whole; theirs is an ordinary match
+// whose phrase is the offer. Both rows count as new since the last visit.
+test("a like on my offer is interest in it in my inbox, with the offer, and a match in theirs (P3b)", async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const before = nowSeconds() - 1;
+  const neighbour = await author();
+  const taker = await author();
+  const offerId = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO feed_messages
+       (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+        lat_published, lon_published, visible_at, expires_at, discount_value, conditions)
+     VALUES ($1, 'xor', $2, 'отдам две табуретки', 'company', 'und', 60.17, 24.94, 1000, 60.17, 24.94,
+             now(), now() + interval '3 hours', '100%', 'самовывоз')`,
+    [offerId, neighbour.identity_id],
+  );
+  const liked = await signed(taker, "POST", `/feed/${offerId}/like`);
+  assertEquals(liked.status, 200, JSON.stringify(liked.body));
+  const { state, match_id: matchId } = liked.body as { state: string; match_id?: string };
+  assertEquals(state, "matched", `the like on the offer made no match: ${JSON.stringify(liked.body)}`);
+  assert(matchId, "the match has no id");
+
+  // The offer's author: interest, with the offer as the reason.
+  const mine = await inbox(neighbour, before);
+  const interest = mine.items.find((i) => i.id === matchId);
+  assert(interest, "the offer's match is not in the author's inbox");
+  assertEquals(interest.kind, "offer_interest", "the author's inbox does not name the match as interest in the offer");
+  assertEquals(interest.offer, { id: offerId, text: "отдам две табуретки", mode: "company", discount_value: "100%", conditions: "самовывоз" },
+    "the offer is not carried whole");
+  // The reason is one for both (P5): the phrase on the author's row is the offer too.
+  assertEquals(interest.phrase, { text: "отдам две табуретки", mode: "company" }, "the author's row does not carry the offer as its phrase");
+  assertEquals(interest.name, "Аня");
+  assertEquals(interest.waiting_for_you, false);
+  assertEquals(interest.arrived_since, true, "interest that arrived after the visit is not new");
+  assertEquals(mine.events.new_matches, 1, "interest in the offer is not counted among new matches");
+
+  // The one who came: an ordinary match whose phrase is the offer, and no offer block.
+  const theirs = await inbox(taker, before);
+  const match = theirs.items.find((i) => i.id === matchId);
+  assert(match, "the offer's match is not in the taker's inbox");
+  assertEquals(match.kind, "match", "the taker's own inbox names the match as interest in an offer");
+  assertEquals(match.phrase, { text: "отдам две табуретки", mode: "company" }, "the taker does not see the offer as the match's phrase");
+  assert(!("offer" in match), "the taker was given the offer block");
+  assertEquals(theirs.events.new_matches, 1);
+
+  // The offer gone from the feed: the row stays interest, the discount goes with the phrase.
+  await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = $1`, [offerId]);
+  const after = (await inbox(neighbour, before)).items.find((i) => i.id === matchId);
+  assert(after, "the match left the inbox with the offer's phrase");
+  assertEquals(after.kind, "offer_interest");
+  assertEquals(after.offer, { id: offerId, text: "отдам две табуретки", mode: "company" }, "a gone offer still shows a discount, or lost its text");
+});
+
 test("since that is not a moment is refused, and a stranger's inbox has no events (P3)", async () => {
   const me = await author();
   for (const bad of ["now", "-1", "1.5", "99999999999"]) {

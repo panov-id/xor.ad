@@ -1,0 +1,11 @@
+-- The unlock key of a session: the web face's way back after a reload
+-- (chat spec §8.2, decided by a quorum of three, web.2026-09-26.coldunlock).
+--
+-- On a disk the private halves lie sealed under the vault key, and the vault
+-- key needs the node's share, which POST /vault/share hands over only to a
+-- signed call — signed by the very key that is sealed. A face with a disk
+-- therefore keeps one more pair, unsealed and non-extractable, whose public
+-- half is here, and the node accepts that key on POST /vault/share and on
+-- nothing else (lib/identity_guard.ts). NULL for a face without a disk
+-- (depth): it registers without one and is refused nothing.
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS unlock_public_key text;

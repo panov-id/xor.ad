@@ -87,6 +87,7 @@ const SHARE_BYTES = 32;
 interface CreateBody {
   sign_pub?: unknown;
   wrap_pub?: unknown;
+  unlock_pub?: unknown;
   name?: unknown;
   age?: unknown;
   auth_hash?: unknown;
@@ -193,6 +194,11 @@ async function createIdentity(req: Request): Promise<Response> {
   if (!isText(body.wrap_pub, 1024) || !base64urlToBytes(body.wrap_pub)) {
     return refuse("invalid_body", "wrap_pub is not base64url", 400);
   }
+  // Optional: a face with a disk sends the public half of its unlock key
+  // (db/063). Checked the way sign_pub is — a key the node cannot import
+  // would strand the device on its first cold start, not now.
+  const unlockPub = await readUnlockPub(body.unlock_pub);
+  if (unlockPub instanceof Response) return unlockPub;
 
   const share = isText(body.share, 512) ? base64urlToBytes(body.share) : null;
   if (!share || share.length !== SHARE_BYTES) {
@@ -229,9 +235,9 @@ async function createIdentity(req: Request): Promise<Response> {
       [identityId, name, body.age, body.sign_pub, await recoveryHash(body.recovery_lookup_id as string)],
     );
     await run(
-      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [sessionId, identityId, body.sign_pub, body.wrap_pub, label],
+      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, unlock_public_key, label)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [sessionId, identityId, body.sign_pub, body.wrap_pub, unlockPub, label],
     );
     await run(
       `INSERT INTO vault_shares (session, auth_hash, share_enc) VALUES ($1, $2, $3)`,
@@ -418,6 +424,7 @@ interface ClaimBody {
   lookup_id?: unknown;
   sign_pub?: unknown;
   wrap_pub?: unknown;
+  unlock_pub?: unknown;
   label?: unknown;
 }
 
@@ -541,6 +548,8 @@ async function claimRecovery(req: Request): Promise<Response> {
       return refuse("invalid_body", "wrap_pub is not base64url", 400);
     }
   }
+  const unlockPub = await readUnlockPub(body.unlock_pub);
+  if (unlockPub instanceof Response) return unlockPub;
 
   const presentedCode = await recoveryHash(body.lookup_id);
   const found = await query<{ id: string; recovery_wrapped_key: Uint8Array | null }>(
@@ -694,9 +703,9 @@ async function claimRecovery(req: Request): Promise<Response> {
     }
 
     await run(
-      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [sessionId, identity.id, body.sign_pub as string, body.wrap_pub as string, label],
+      `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, unlock_public_key, label)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [sessionId, identity.id, body.sign_pub as string, body.wrap_pub as string, unlockPub, label],
     );
     // No share is written here: the device has no PIN yet, and POST /vault/init
     // is the route that takes one — against the grant left below.
@@ -759,6 +768,16 @@ async function recoveryHash(lookupId: string): Promise<string> {
   return await sha256hex(new TextEncoder().encode(lookupId));
 }
 
+// The optional public half of an unlock key (db/063): absent or a key the
+// node can import; anything else is a body it refuses.
+async function readUnlockPub(raw: unknown): Promise<string | null | Response> {
+  if (raw === undefined || raw === null) return null;
+  if (!isText(raw, 1024) || !await importSignPublicKey(raw)) {
+    return refuse("invalid_body", "unlock_pub is not a base64url SPKI P-256 key", 400);
+  }
+  return raw;
+}
+
 // POST /vault/share — the node's half of the vault key, against a proof of the PIN.
 //
 // This is the place §8.2 warns about by name: hand the share out without the
@@ -772,7 +791,9 @@ async function recoveryHash(lookupId: string): Promise<string> {
 // docs/02-name-screen_RU.md:55,78), so refusing it until the signup is finished
 // would make finishing it impossible.
 async function vaultShare(req: Request): Promise<Response> {
-  const caller = await callerOf(req, { allowUnfinishedSignup: true });
+  // And the one route the unlock key may sign (db/063): a cold start has the
+  // unlock key and nothing else until the share comes back.
+  const caller = await callerOf(req, { allowUnfinishedSignup: true, allowUnlockKey: true });
   if (caller instanceof Response) return caller;
 
   const body = await readJson<ShareBody>(req);

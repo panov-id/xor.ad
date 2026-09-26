@@ -199,7 +199,10 @@ export class Client {
     secrets: { pin: string; paperCode: string },
     // A keeper for the long key a move can open again (transfer.ts HeldKey),
     // given the key while it is still extractable — here and nowhere later.
-    opts: { hold?: (extractable: CryptoKey) => Promise<HeldLongKey> } = {},
+    // `unlockPub`: the public half of an unlock key, base64url SPKI, from a
+    // face with a disk (db/063; the web's vault.ts) — the node accepts that
+    // key on POST /vault/share alone. The terminal has no disk and sends none.
+    opts: { hold?: (extractable: CryptoKey) => Promise<HeldLongKey>; unlockPub?: string } = {},
   ): Promise<{ identityId: string; sessionId: string }> {
     const salt = newDeviceSalt();
     const [pin, paper] = await Promise.all([derivePin(secrets.pin, salt), derivePaperCode(secrets.paperCode)]);
@@ -222,6 +225,7 @@ export class Client {
       auth_hash: await sha256hex(pin.auth),
       share: base64url(share),
       recovery_lookup_id: paper.lookupId,
+      ...(opts.unlockPub ? { unlock_pub: opts.unlockPub } : {}),
     }, false);
     if (answer.status !== 200) throw new Error(`registration refused: ${answer.status} ${JSON.stringify(answer.body)}`);
     this.#key = key;

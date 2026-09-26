@@ -5,9 +5,9 @@
 #   docker build -f web/Dockerfile --build-arg VITE_API_KEY=<storefront key> .
 #
 # The image serves the built page with `vite preview`, which also forwards
-# the node's paths to the node named by WEB_NODE_URL (web/vite.config.ts): the
-# node's CORS does not yet allow the signed call's headers across origins, and
-# a gateway in front of a real deployment forwards the same way.
+# the node's paths to the node named by WEB_NODE_URL (web/vite.config.ts): one
+# origin for the stand, the way a gateway in front of a real deployment
+# forwards; the node's CORS admits the signed headers since W1b as well.
 FROM node:20-alpine
 
 WORKDIR /repo/web

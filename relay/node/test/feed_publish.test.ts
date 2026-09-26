@@ -5008,3 +5008,74 @@ Deno.test({
     }
   },
 });
+
+// Review panel 5, S1 (B85): the tenth PIN miss whose freeze could not take the
+// session's row in time leaves the share locked and the session unfrozen, and
+// its NOTIFY went back with the freeze — an open room stays open until the
+// minute's job writes the freeze. A locked share is a freeze (B75): nothing is
+// handed to that room, nothing new is queued for it, and the sender's answer
+// is the same as for anyone, so it does not tell that the other one's PIN is
+// locked. The freeze deferred by a real lock timeout: a second connection
+// holds the session's row as a consent does, FOR SHARE, past the close
+// route's two seconds.
+Deno.test({
+  name: "a session whose PIN is locked is handed no line and queued none, and the sender cannot tell (B85)",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const { pendingFor } = await import("../src/chat/relay.ts");
+    const { a, b, chat } = await openChat();
+    const before = crypto.randomUUID();
+    const sentBefore = await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`,
+      { local_id: before, ciphertext: ciphertext() });
+    assertEquals(sentBefore.status, 202, JSON.stringify(sentBefore.body));
+    assertEquals(await queued(chat, b.session_id), [before], "the fixture queued nothing");
+    await database.queryOrThrow(`UPDATE vault_shares SET attempts_left = 1, next_attempt_at = NULL WHERE session = $1`, [b.session_id]);
+
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+    let closed: { status: number; body: unknown } | null = null;
+    let waited = "";
+    try {
+      // deno-lint-ignore no-explicit-any
+      await sql.begin(async (tx: any) => {
+        await tx.unsafe(`SELECT 1 FROM sessions WHERE id = $1 FOR SHARE`, [b.session_id]);
+        const pending = signedCall(b.pair.privateKey, b.session_id, "POST", "/identities/close",
+          { nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))),
+            auth: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(32))) });
+        const [{ p }] = await tx.unsafe(`SELECT pg_backend_pid() AS p`);
+        for (let i = 0; i < 250 && !waited; i++) {
+          await tx.unsafe(`SELECT pg_stat_clear_snapshot()`);
+          const rows = await tx.unsafe(
+            `SELECT query FROM pg_stat_activity WHERE wait_event_type = 'Lock' AND $1 = ANY(pg_blocking_pids(pid))`, [p]);
+          if (rows.length > 0) waited = String(rows[0].query).replace(/\s+/g, " ");
+          else await new Promise((r) => setTimeout(r, 20));
+        }
+        closed = await pending;
+      });
+    } finally {
+      await sql.end();
+    }
+    assert(waited.startsWith("UPDATE sessions SET frozen_at"), `the statement that waited was not the freeze: ${waited}`);
+    assertEquals((closed as { status: number } | null)?.status, 409, `the tenth miss answered ${JSON.stringify(closed)}`);
+    const [state] = await database.queryOrThrow<{ locked: boolean; frozen: string | null }>(
+      `SELECT v.locked_at IS NOT NULL AS locked, s.frozen_reason AS frozen
+         FROM vault_shares v JOIN sessions s ON s.id = v.session WHERE s.id = $1`, [b.session_id]);
+    assert(state.locked && state.frozen === null, `the fixture is not a locked share under a live session: ${JSON.stringify(state)}`);
+
+    // The open room: handed nothing, neither what waited nor a new line.
+    assertEquals((await pendingFor(chat, b.session_id, null)).length, 0,
+      "a room of a session whose PIN is locked would be handed what waited");
+    const after = crypto.randomUUID();
+    const sentAfter = await signedCall(a.pair.privateKey, a.session_id, "POST", `/chats/${chat}/messages`,
+      { local_id: after, ciphertext: ciphertext() });
+    assertEquals((await pendingFor(chat, b.session_id, after)).length, 0,
+      "a new line would reach a room of a session whose PIN is locked");
+    assertEquals(await queued(chat, b.session_id), [before],
+      "a line was queued for a session whose PIN is locked");
+    // The sender's answer, the same as before the lock but for its own id.
+    assertEquals(sentAfter.status, sentBefore.status, "the sender's status tells the other one's PIN is locked");
+    assertEquals(sentAfter.body, { local_id: after, accepted: true },
+      `the sender's answer tells the other one's PIN is locked: ${JSON.stringify(sentAfter.body)}`);
+  },
+});

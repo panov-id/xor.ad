@@ -59,6 +59,12 @@ export async function pendingFor(
         -- to it, the lines wait (the owner's decision of 2026-09-24).
         AND NOT EXISTS (SELECT 1 FROM sessions s JOIN identities i ON i.id = s.identity
                          WHERE s.id = $2 AND i.stepped_away_until > now())
+        -- Nor to a session whose PIN is locked: a locked share is a freeze
+        -- (identity_guard.ts, B75), and the freeze that tears this room may be
+        -- the minute job's to write, not the tenth miss's — its NOTIFY went
+        -- back with it (review panel 5, S1; B85). The lines stay queued and
+        -- come once the paper code has opened the share again.
+        AND NOT EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = $2 AND v.locked_at IS NOT NULL)
       ORDER BY created_at, local_id`,
     [chat, session, localId],
   );

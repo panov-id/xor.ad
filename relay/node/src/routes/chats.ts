@@ -80,13 +80,18 @@ async function send(req: Request, chatId: string): Promise<Response> {
         "retry-after": String(allowed.retryAfterSeconds),
       });
     }
-    // The other side's live session; a frozen one has nothing to read with.
+    // The other side's live session; a frozen one has nothing to read with,
+    // and nor has one whose PIN is locked — a locked share is a freeze
+    // (identity_guard.ts, B75) whose write may be left to the minute's job
+    // (review panel 5, S1; B85). The answer below is the same either way: the
+    // sender is not told the other one's PIN is locked.
     await run(
       `INSERT INTO pending_deliveries (chat, recipient_session, local_id, ciphertext)
        SELECT $1, s.id, $3, $4
          FROM chat_participants p
          JOIN sessions s ON s.identity = p.identity AND s.frozen_at IS NULL
         WHERE p.chat_id = $1 AND p.identity <> $2 AND p.gone_at IS NULL
+          AND NOT EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = s.id AND v.locked_at IS NOT NULL)
        ON CONFLICT DO NOTHING`,
       [chatId, me, localId, sealed],
     );

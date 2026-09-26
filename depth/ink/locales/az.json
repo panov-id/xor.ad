@@ -227,5 +227,7 @@
   "chat.queued": "gözləyir",
   "chat.waitingHint": "Sətirlər ✓ olmadan növbədə durur və o biri «danışaq» deyən an ona gedir. depth-dən çıxsan — növbə itir.",
   "chat.offerGone": "Təklif getdi.",
-  "inbox.waiting": "match — cavab gözləyirik"
+  "inbox.waiting": "match — cavab gözləyirik",
+  "inbox.interest": "təklifinizlə maraqlanır",
+  "like.namePending": "Ad yoxlamadan keçmədi — təklif göndərilmədi.\nAdı düzəldin, təklif yaşayarkən o özü gedəcək."
 }

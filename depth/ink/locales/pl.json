@@ -227,5 +227,7 @@
   "chat.queued": "czeka",
   "chat.waitingHint": "Linie czekają w kolejce bez ✓ i trafią do drugiej strony, gdy naciśnie „porozmawiajmy”. Wyjdziesz z depth — kolejka przepada.",
   "chat.offerGone": "Propozycja odeszła.",
-  "inbox.waiting": "match — czekamy na odpowiedź"
+  "inbox.waiting": "match — czekamy na odpowiedź",
+  "inbox.interest": "interesuje się twoją ofertą",
+  "like.namePending": "Imię nie przeszło sprawdzenia — propozycja nie została wysłana.\nPopraw imię, a wyśle się sama, dopóki oferta jest aktywna."
 }

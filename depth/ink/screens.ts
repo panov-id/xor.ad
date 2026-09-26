@@ -227,6 +227,9 @@ export function Feed(
         client.like(p.id)
           .then((answer) => {
             if (answer.status !== 200) throw new Error(`the like refused: ${answer.status}`);
+            // A like on an offer while one's own name is in the queue (§8.5,
+            // S7): the like counted, the match waits — refusal-wordings §3.
+            if (answer.body.name_pending) onError(say("like.namePending"));
             drop(p.id);
           })
           .catch((e: Error) => onError(e.message)),
@@ -307,6 +310,7 @@ export function Feed(
         client.like(chosen.id)
           .then((answer) => {
             if (answer.status !== 200) throw new Error(`the like refused: ${answer.status}`);
+            if (answer.body.name_pending) onError(say("like.namePending"));
             setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id));
           })
           .catch((e: Error) => onError(e.message));

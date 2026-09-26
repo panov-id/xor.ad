@@ -227,5 +227,7 @@
   "chat.queued": "espera",
   "chat.waitingHint": "Las líneas esperan en una cola sin ✓ y llegan al otro en cuanto pulsa «hablar». Si sales de depth, la cola se pierde.",
   "chat.offerGone": "La propuesta se ha ido.",
-  "inbox.waiting": "un match — esperando respuesta"
+  "inbox.waiting": "un match — esperando respuesta",
+  "inbox.interest": "le interesa tu oferta",
+  "like.namePending": "El nombre no pasó la comprobación — la propuesta no se envió.\nCorrige el nombre y se enviará sola mientras la oferta siga viva."
 }

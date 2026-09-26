@@ -227,5 +227,7 @@
   "chat.queued": "waits",
   "chat.waitingHint": "Lines wait in a queue without a ✓ and go to the other the moment they press “talk”. Quit depth and the queue is gone.",
   "chat.offerGone": "The offer has left.",
-  "inbox.waiting": "a match — waiting for an answer"
+  "inbox.waiting": "a match — waiting for an answer",
+  "inbox.interest": "is interested in your offer",
+  "like.namePending": "The name did not pass the check — the offer to talk was not sent.\nFix the name and it will go by itself while the offer lives."
 }

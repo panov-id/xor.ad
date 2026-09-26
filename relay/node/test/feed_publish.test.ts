@@ -5079,3 +5079,115 @@ Deno.test({
       `the sender's answer tells the other one's PIN is locked: ${JSON.stringify(sentAfter.body)}`);
   },
 });
+
+// The fourth way round the tenth miss (review panel 6, B108; the class of B87
+// and B94). The tenth miss holds a person's counters row — and the matches
+// its take-down puts out — while it locks the share and freezes the session.
+// A request that waited on one of those passed the guard before and went on
+// after, in the name of a session no longer live: a profile change for good,
+// a phrase, a like, a time away, a block. Each is raced here for real: a
+// second connection holds the row the route waits on, the route queues behind
+// it (pg_blocking_pids), and the holder locks the share, as the miss does,
+// and commits. The route must answer the guard's 401 and write nothing.
+async function behindALockedShare(
+  who: { session_id: string },
+  hold: string,
+  holdArgs: unknown[],
+  send: () => Promise<{ status: number; body: unknown }>,
+): Promise<{ status: number; body: unknown }> {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const got: { answer?: { status: number; body: unknown } } = {};
+  let sent: Promise<unknown> = Promise.resolve();
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(hold, holdArgs as never[]);
+      sent = send().then((r) => (got.answer = r));
+      const [{ p }] = await tx.unsafe(`SELECT pg_backend_pid() AS p`) as { p: number }[];
+      let queued = 0;
+      for (let i = 0; i < 250 && queued === 0; i++) {
+        await tx.unsafe(`SELECT pg_stat_clear_snapshot()`);
+        queued = ((await tx.unsafe(
+          `SELECT count(*)::int AS n FROM pg_stat_activity WHERE $1 = ANY(pg_blocking_pids(pid))`, [p])) as { n: number }[])[0].n;
+        if (queued === 0) await pause(20);
+      }
+      assert(queued > 0, `the request never queued on "${hold}" — the case never ran`);
+      await tx.unsafe(`UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [who.session_id]);
+    });
+    await sent;
+  } finally {
+    await sql.end();
+  }
+  assert(got.answer, "the request never answered");
+  return got.answer;
+}
+const heldCounters = `SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`;
+const refusedAsNotLive = (answer: { status: number; body: unknown }, what: string) =>
+  assertEquals(answer.status, 401, `${what} behind a locked share answered ${answer.status}: ${JSON.stringify(answer.body)}`);
+
+Deno.test({ name: "a profile edit behind a tenth miss that locked the share changes nothing (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await author();
+  const answer = await behindALockedShare(me, heldCounters, [me.identity_id],
+    () => signedCall(me.pair.privateKey, me.session_id, "PATCH", "/identities/me", { age: 44 }));
+  refusedAsNotLive(answer, "a profile edit");
+  const [row] = await database.queryOrThrow<{ age: number }>(`SELECT age FROM identities WHERE id = $1`, [me.identity_id]);
+  assertEquals(row.age, 30, "the profile edit was written for a session whose PIN was locked");
+});
+
+Deno.test({ name: "a phrase sent behind a tenth miss that locked the share is not written (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await author();
+  const answer = await behindALockedShare(me, heldCounters, [me.identity_id],
+    () => signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase()));
+  refusedAsNotLive(answer, "a phrase");
+  const [{ n }] = await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM feed_messages WHERE author_identity = $1`, [me.identity_id]);
+  assertEquals(n, 0, "the phrase was written for a session whose PIN was locked");
+});
+
+Deno.test({ name: "a like behind a tenth miss that locked the share is not written (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await author();
+  const other = await author();
+  await seedPhrase(me.identity_id, "своя живая, для лайка");
+  const theirs = await seedPhrase(other.identity_id, "их фраза");
+  const answer = await behindALockedShare(me, heldCounters, [me.identity_id], () => like(me, theirs));
+  refusedAsNotLive(answer, "a like");
+  const [{ n }] = await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM likes WHERE liker_identity = $1`, [me.identity_id]);
+  assertEquals(n, 0, "the like was written for a session whose PIN was locked");
+});
+
+Deno.test({ name: "a time away behind a tenth miss that locked the share is not taken (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await author();
+  const given = nonce();
+  const answer = await behindALockedShare(me, heldCounters, [me.identity_id],
+    () => signedCall(me.pair.privateKey, me.session_id, "POST", "/away", { span: "short", nonce: given }));
+  refusedAsNotLive(answer, "a time away");
+  const [row] = await database.queryOrThrow<{ away: boolean; kept: number }>(
+    `SELECT stepped_away_until IS NOT NULL AS away,
+            (SELECT count(*)::int FROM nonces WHERE session_id = $2) AS kept
+       FROM identities WHERE id = $1`, [me.identity_id, me.session_id]);
+  assertEquals(row.away, false, "the time away was taken for a session whose PIN was locked");
+  assertEquals(row.kept, 0, "the time away's nonce stayed, though it was refused");
+});
+
+Deno.test({ name: "a block behind a tenth miss that locked the share is not written (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await freshMatch();
+  const theirs = await seedPhrase(b.identity_id, "ещё одна их фраза");
+  // The block waits on the match row the tenth miss's take-down puts out.
+  const answer = await behindALockedShare(a, `SELECT 1 FROM matches WHERE id = $1 FOR UPDATE`, [id],
+    () => signedCall(a.pair.privateKey, a.session_id, "POST", "/blocks", { nonce: nonce(), feed: theirs }));
+  refusedAsNotLive(answer, "a block");
+  const [row] = await database.queryOrThrow<{ blocks: number; match: number }>(
+    `SELECT (SELECT count(*)::int FROM blocks WHERE blocker_identity = $1) AS blocks,
+            (SELECT count(*)::int FROM matches WHERE id = $2) AS match`, [a.identity_id, id]);
+  assertEquals(row.blocks, 0, "the block was written for a session whose PIN was locked");
+  assertEquals(row.match, 1, "the block's delete of the match stayed, though it was refused");
+});

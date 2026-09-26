@@ -21,6 +21,7 @@ import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
+import { NoLongerLive, stillHere } from "../lib/take_down.ts";
 import { base64urlToBytes, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll, BLOCK_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
@@ -127,6 +128,12 @@ async function block(req: Request): Promise<Response> {
           WHERE a.identity = $1 AND b.identity = $2)`,
       [me, target.other],
     );
+    // After the match rows' locks: the tenth PIN miss holds them while it
+    // takes down what is live and locks the share, and a block that waited on
+    // them went on in the name of a session no longer live (panel 6, B108).
+    // The nonce and the block are already written: thrown, so they go back.
+    const gone = await stillHere(run, me, caller.sessionId);
+    if (gone?.closed) throw new NoLongerLive();
     const ended = await run<{ chat_id: string }>(
       `UPDATE chat_participants SET gone_at = now()
         WHERE gone_at IS NULL AND chat_id IN (
@@ -143,6 +150,7 @@ async function block(req: Request): Promise<Response> {
     inc("relay_block_total", { by: feed ? "feed" : "chat" });
     return done();
   }).catch((error) => {
+    if (error instanceof NoLongerLive) return refuse("unauthorized", "the request is not signed by a live session", 401);
     log("error", "block failed", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);
   });

@@ -295,14 +295,35 @@ export async function takeDownLive(run: Run, me: string): Promise<void> {
 // the close has committed, and the request must see it: asked again here,
 // after the lock, under READ COMMITTED it does (verifier, 2026-09-24 — a like
 // that passed the guard landed on a closed identity). null means go on.
-export async function stillHere(run: Run, me: string): Promise<{ closed: boolean; awayUntil: Date | null } | null> {
+//
+// And the session itself, as the guard asks it (B75): not frozen, and its
+// share not locked by the tenth PIN miss (review panel 6, B108). The tenth
+// miss holds the same counters row while it locks the share and takes down
+// what is live; a phrase, a profile edit, a time away or a block that waited
+// on it wrote, after its commit, in the name of a session whose entry was just
+// closed — a profile change for good. `closed` covers it: the request is not
+// signed by a live session, and the answer is the guard's 401.
+export async function stillHere(
+  run: Run,
+  me: string,
+  sessionId: string,
+): Promise<{ closed: boolean; awayUntil: Date | null } | null> {
   const [row] = await run<{ closed: boolean; away_until: Date | null }>(
-    `SELECT closed_at IS NOT NULL AS closed,
-            CASE WHEN stepped_away_until > now() THEN stepped_away_until END AS away_until
-       FROM identities WHERE id = $1`,
-    [me],
+    `SELECT i.closed_at IS NOT NULL
+              OR NOT EXISTS (
+                SELECT 1 FROM sessions s
+                 WHERE s.id = $2 AND s.identity = i.id AND s.frozen_at IS NULL
+                   AND NOT EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = s.id AND v.locked_at IS NOT NULL))
+              AS closed,
+            CASE WHEN i.stepped_away_until > now() THEN i.stepped_away_until END AS away_until
+       FROM identities i WHERE i.id = $1`,
+    [me, sessionId],
   );
   if (!row) return { closed: true, awayUntil: null };
   if (row.closed || row.away_until) return { closed: row.closed, awayUntil: row.away_until };
   return null;
 }
+
+// For a route that wrote before the wait stillHere follows (a nonce, a block):
+// thrown, so those writes go back with the transaction, and answered 401.
+export class NoLongerLive extends Error {}

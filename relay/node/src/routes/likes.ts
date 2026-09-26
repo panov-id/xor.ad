@@ -114,7 +114,7 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
       `SELECT 1 FROM identity_stats WHERE identity = ANY($1::uuid[]) ORDER BY identity FOR UPDATE`,
       [[me, phrase.author]],
     );
-    const gone = await stillHere(run, me);
+    const gone = await stillHere(run, me, caller.sessionId);
     if (gone) {
       return gone.closed
         ? refuse("unauthorized", "the request is not signed by a live session", 401)

@@ -16,6 +16,7 @@ import { sendSupportDigests, sweepSupport } from "./support_sweeper.ts";
 import { enqueueOnce, handle } from "./jobs.ts";
 import { enabled as databaseEnabled, queryOrThrow } from "./db.ts";
 import { log } from "./log.ts";
+import { inc } from "./metrics.ts";
 import { prunePageviews } from "../../tools/prune_pageviews.ts";
 import { pruneObjects } from "../../tools/prune_objects.ts";
 import { pruneDsaRecords } from "../../tools/prune_dsa_records.ts";
@@ -135,6 +136,33 @@ const NONCE_TTL_MINUTES = 10;
 const A_DAY_MS = 24 * 60 * 60 * 1000;
 const A_MINUTE_MS = 60 * 1000;
 const A_HOUR_MS = 60 * A_MINUTE_MS;
+
+// One pass of the invitation sweep, exported so the transfer suite can run it
+// without the job queue (running the queue there ran every other due job too).
+export async function pruneInvites(): Promise<{ deleted: number; unacknowledged: number }> {
+  let deleted = 0, unacknowledged = 0;
+  for (let batch = 0; batch < INVITE_BATCHES; batch++) {
+    const rows = await queryOrThrow<{ count: string; unacked: string }>(
+      `WITH doomed AS (
+         SELECT lookup_id FROM session_invites
+          WHERE expires_at < now() - interval '1 hour'
+          LIMIT ${INVITE_BATCH}
+       ), gone AS (
+         DELETE FROM session_invites
+          WHERE lookup_id IN (SELECT lookup_id FROM doomed)
+          RETURNING decision = 'approved' AND reply_envelope IS NOT NULL AS unacked
+       )
+       SELECT count(*)::text AS count, count(*) FILTER (WHERE unacked)::text AS unacked FROM gone`,
+    );
+    const went = Number(rows[0]?.count ?? 0);
+    deleted += went;
+    unacknowledged += Number(rows[0]?.unacked ?? 0);
+    if (went < INVITE_BATCH) break;
+  }
+  if (unacknowledged > 0) inc("relay_transfer_total", { result: "reply_unacknowledged" }, unacknowledged);
+  log("info", "pruned session invites", { deleted, unacknowledged });
+  return { deleted, unacknowledged };
+}
 
 export function registerScheduledJobs(): void {
   handle(PRUNE_OBJECTS, async (payload) => {
@@ -279,27 +307,17 @@ export function registerScheduledJobs(): void {
   // device that was showing the code to ask what happened to it and be told
   // "expired" rather than "no such code" — stateOf() in routes/transfer.ts
   // draws that distinction and it is worth something to the person holding a
-  // dead screen. Decided invitations go by the same clock: the decision has
-  // already reached both sides.
+  // dead screen. Decided invitations go by the same clock, and that clock is
+  // also the limit on an approved reply nobody acknowledged: GET
+  // /sessions/:lookup_id repeats it until the new session's ack (db/024, B3),
+  // and a reply never acknowledged lives until this sweep takes the row — one
+  // to two hours after the two-minute invitation ran out (an hour's grace, an
+  // hourly pass). It was said here that "the decision has already reached both
+  // sides"; since the ack, that is true only of the ones acknowledged (review
+  // panel F7). The ones taken unacknowledged are counted: a new device that
+  // never collected its key is a move that failed without a word.
   handle(PRUNE_INVITES, async () => {
-    let deleted = 0;
-    for (let batch = 0; batch < INVITE_BATCHES; batch++) {
-      const rows = await queryOrThrow<{ count: string }>(
-        `WITH doomed AS (
-           SELECT lookup_id FROM session_invites
-            WHERE expires_at < now() - interval '1 hour'
-            LIMIT ${INVITE_BATCH}
-         ), gone AS (
-           DELETE FROM session_invites
-            WHERE lookup_id IN (SELECT lookup_id FROM doomed) RETURNING 1
-         )
-         SELECT count(*)::text AS count FROM gone`,
-      );
-      const went = Number(rows[0]?.count ?? 0);
-      deleted += went;
-      if (went < INVITE_BATCH) break;
-    }
-    log("info", "pruned session invites", { deleted });
+    await pruneInvites();
     return new Date(Date.now() + A_HOUR_MS);
   });
 

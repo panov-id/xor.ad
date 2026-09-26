@@ -258,6 +258,9 @@ async function inviteState(req: Request, lookupId: string): Promise<Response> {
   // address got through for an hour (verifier of B2, 2026-09-26).
   const verdict = checkAll(TRANSFER_STATE_LIMITS, clientAddress(req).ip);
   if (!verdict.allowed) {
+    // Counted: an address polling past its six hundred is either a stuck
+    // client or somebody sweeping codes, and both want seeing (panel F15).
+    inc("relay_transfer_total", { result: "state_limited" });
     return refuse("rate_limited", "too many attempts from this address", 429, {}, {
       "retry-after": String(verdict.retryAfterSeconds),
     });
@@ -268,7 +271,20 @@ async function inviteState(req: Request, lookupId: string): Promise<Response> {
   const invite = rows[0];
   // A code that never existed and one that has been decided and swept read the
   // same, for the reason every other refusal on this pair of routes does.
-  if (!invite) return refuse("not_found", "that code does not match or has expired", 404);
+  //
+  // Counted, and not into the shared brake (TRANSFER.countMiss) the claim
+  // feeds (review panel F21; quorum of three, 3 to 0, B30, 2026-09-26). This
+  // route is unsigned and polled: fed into the brake, fifty cheap requests from
+  // one address — of its six hundred an hour — would pause code entry for
+  // everybody on the node. An honest device meets this 404 too, if rarely: an
+  // expired invitation still answers "expired" until the sweep, so it takes a
+  // screen left open past the sweep. What a guess here buys is a state and
+  // opaque envelopes, behind an Argon2id per guess, a 32^9 space and a
+  // two-minute life. The spec ties the brake to the claim (claim.miss.shared).
+  if (!invite) {
+    inc("relay_transfer_total", { result: "state_no_match" });
+    return refuse("not_found", "that code does not match or has expired", 404);
+  }
 
   const state = stateOf(invite);
   const body: Record<string, unknown> = { state };

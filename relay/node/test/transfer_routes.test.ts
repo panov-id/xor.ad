@@ -616,6 +616,62 @@ Deno.test("polling the state after a claim spends none of the claim's allowance"
   assertEquals(claimed.status, 200, `a claim after 61 polls from the same address: ${JSON.stringify(claimed.body)}`);
 });
 
+// The state route's own ledger (review panel F15, F21; B30, 2026-09-26): a
+// miss is counted but kept out of the brake the claim feeds, and a poll past
+// the address's allowance is counted too.
+const metricOf = async (result: string) => {
+  const { render } = await import("../src/lib/metrics.ts");
+  return Number(render().match(new RegExp(`relay_transfer_total\\{result="${result}"\\} (\\d+)`))?.[1] ?? 0);
+};
+
+Deno.test("an unknown code on the state route is counted, and does not pause code entry for everybody", async () => {
+  const misses = await import("../src/lib/recovery_misses.ts");
+  misses.reset();
+  const before = await metricOf("state_no_match");
+  // Sixty misses from sixty addresses: over the brake's fifty had they counted.
+  for (let i = 0; i < 60; i++) {
+    assertEquals((await call("GET", `/sessions/${lookup()}`)).status, 404);
+  }
+  assertEquals(await metricOf("state_no_match") - before, 60, "the state route's misses were not counted");
+  assertEquals(misses.TRANSFER.pausedFor(), 0, "misses on the state route paused code entry for everybody");
+  // And a real claim still goes through.
+  const old = await device_with_identity();
+  const { lookupId } = await claimed(old);
+  assertEquals((await call("GET", `/sessions/${lookupId}`)).status, 200);
+});
+
+Deno.test("a poll past the address's allowance is counted", async () => {
+  const { checkAll, TRANSFER_STATE_LIMITS } = await import("../src/lib/rate_limit.ts");
+  const address = "203.0.113.230";
+  while (checkAll(TRANSFER_STATE_LIMITS, address).allowed) { /* spend the allowance */ }
+  const before = await metricOf("state_limited");
+  assertEquals((await call("GET", `/sessions/${lookup()}`, { address })).status, 429);
+  assertEquals(await metricOf("state_limited") - before, 1, "a refused poll was not counted");
+});
+
+Deno.test("a reply swept without its ack is counted, an acknowledged one is not", async () => {
+  const { pruneInvites } = await import("../src/lib/scheduled.ts");
+  const unacked = await approvedMove();
+  const acked = await approvedMove();
+  assertEquals((await acked.ack()).status, 200);
+  await database.queryOrThrow(
+    `UPDATE session_invites SET expires_at = now() - interval '2 hours' WHERE lookup_id = ANY($1)`,
+    [[unacked.lookupId, acked.lookupId]]);
+  // Whatever else this run left due is swept too; the count must be exactly
+  // the due replies nobody acknowledged, this one among them.
+  const [{ due }] = await database.queryOrThrow<{ due: number }>(
+    `SELECT count(*)::int AS due FROM session_invites
+      WHERE expires_at < now() - interval '1 hour' AND decision = 'approved' AND reply_envelope IS NOT NULL`);
+  assert(due >= 1, "the unacknowledged reply is not due for the sweep");
+  const before = await metricOf("reply_unacknowledged");
+  const swept = await pruneInvites();
+  assertEquals(swept.unacknowledged, due, `the sweep counted ${swept.unacknowledged} unacknowledged replies of ${due} due`);
+  assertEquals(await metricOf("reply_unacknowledged") - before, due, "the metric does not say what the sweep counted");
+  const [{ n }] = await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM session_invites WHERE lookup_id = ANY($1)`, [[unacked.lookupId, acked.lookupId]]);
+  assertEquals(n, 0, "the sweep left a due invitation");
+});
+
 Deno.test("a GET after the ack does not get the reply envelope", async () => {
   const { lookupId, ack } = await approvedMove();
   const acked = await ack();

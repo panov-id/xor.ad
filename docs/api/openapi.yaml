@@ -3391,7 +3391,18 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "404": {description: "The invite is unknown, already used, expired past its 120 seconds, or was not issued by this identity — code not_found. One shape for all four on purpose: a distinguishable answer would tell a stranger which codes exist.", x-description-ru: "Приглашение неизвестно, уже использовано, вышло за свои 120 секунд или выдано не этой личностью — code not_found. Одна форма на все четыре намеренно: различимый ответ сообщал бы постороннему, какие коды существуют.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
-        "204": {description: Done., x-description-ru: Сделано.}
+        "200":
+          description: "Approved: the identity has moved. The new session's id; the reply envelope waits for the new device on GET /sessions/{lookup_id} until it acknowledges it (2026-09-26: this was described as 204, the node has answered 200 with this body since the route was built)."
+          x-description-ru: "Подтверждено: личность переехала. Идентификатор новой сессии; ответный конверт ждёт новое устройство на GET /sessions/{lookup_id}, пока оно не подтвердит получение (26.09.2026: здесь стояло 204, а узел с постройки маршрута отвечает 200 с этим телом)."
+          headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state, session_id]
+                properties:
+                  state: {type: string, enum: [approved]}
+                  session_id: {type: string, format: uuid}
   /sessions/{lookup_id}:
     get:
       tags: [identity]

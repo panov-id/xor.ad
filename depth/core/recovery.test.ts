@@ -175,6 +175,46 @@ Deno.test({
   },
 });
 
+// Both answers to a reissue lost (depth.reissue.lostreply, verifier of B1): the
+// node took the new code, the device never heard. It used to keep the key under
+// the retired code for the rest of the process, and asking again with a new
+// nonce was refused as a miss. Now the next call replays the same nonce and
+// body, learns the new code is live, and keeps the key under it.
+Deno.test({
+  name: "a reissue whose answer is lost twice leaves the device under the new code, not the old",
+  ignore: !node,
+  async fn() {
+    const { client, code: old } = await person("Лёва");
+    const next = newPaperCode();
+    // The request reaches the node; its answer does not reach the device.
+    const real = client.request.bind(client);
+    let lose = 2;
+    client.request = (async (method: string, path: string, body?: unknown, signed?: boolean) => {
+      const answer = await real(method, path, body, signed);
+      if (path === "/recovery/reissue" && lose-- > 0) throw new Error("the answer was lost on the way");
+      return answer;
+    }) as typeof client.request;
+    await assertRejects(() => reissue(client, old, next), Error, "lost on the way");
+    const moved = await rowOf(`SELECT count(*)::int AS n FROM nonces WHERE session_id = $1 AND route = 'POST /recovery/reissue'`, [client.sessionId!]);
+    assertEquals(moved.n, 1, "the node did not take the reissue whose answers were lost");
+
+    // Asked again with the same two codes: done, and the key is under the new one.
+    assertEquals(await reissue(client, old, next), { ok: true }, "the retry after two lost answers was refused");
+    assertEquals(await isCurrentCode(client, next), true, "the device does not hold the key under the code the node has");
+    assertEquals(await isCurrentCode(client, old), false, "the device still holds the key under the retired code");
+
+    // And it can go on: the next reissue from the new code, and a clean device
+    // raised by the one after it opens the identity's key.
+    const third = newPaperCode();
+    assertEquals(await reissue(client, next, third), { ok: true }, "the device cannot reissue from the code the node has");
+    const found = new Client(node!, apiKey!);
+    const spy = spyOnLongKey();
+    assertEquals(await raise(found, third, { hold: spy.hold }), { ok: true, sameDevice: false }, "the latest code raises nobody");
+    const identity = await rowOf(`SELECT identity_public_key FROM identities WHERE id = $1`, [client.identityId!]);
+    assertEquals(spy.spki(), identity.identity_public_key, "the latest code opens another key than the identity's");
+  },
+});
+
 Deno.test({
   name: "a keeper that fails is an error, not a wrong code",
   ignore: !node,

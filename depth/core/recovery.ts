@@ -144,21 +144,65 @@ async function rewrap(wrapped: Uint8Array, current: CryptoKey, next: CryptoKey):
 // Whether `code` is the one the long key this device holds is wrapped under —
 // asked before a new code is shown, so nobody writes down a code that a wrong
 // current one will never let become real (verifier, 2026-09-26). On the
-// device only: the node counts nothing for it.
+// device only: the node counts nothing for it — unless a reissue is still
+// unsettled, which is settled first, because the key in hand may then be under
+// a code the node has already retired.
 export async function isCurrentCode(client: Client, code: string): Promise<boolean> {
+  const pending = unsettled.get(client);
+  if (pending) await settle(client, pending);
   const held = client.wrappedLongKey;
   if (!held) return false;
   const { wrapKey } = await derivePaperCode(code);
   return (await withExtractable(held, wrapKey, () => Promise.resolve(true))) === true;
 }
 
+// A reissue whose outcome this device does not know: both answers were lost,
+// so the node may or may not have changed the code. Kept per client with the
+// exact body and nonce it was sent with, so that asking again is a replay the
+// node recognises, not a new action (depth.reissue.lostreply, 2026-09-26).
+interface Unsettled {
+  body: { nonce: string; current: { lookup_id: string }; next: { lookup_id: string; wrapped_key: string } };
+  wrapped: Uint8Array;
+}
+const unsettled = new WeakMap<Client, Unsettled>();
+
+// Which code the node holds after a reissue whose answer never came, and the
+// long key kept under exactly that one. The same nonce with the same body:
+//   204 — the node has the next code, whether it took it the first time or
+//         only now (a request that never arrived is carried out by this one);
+//   404 — the nonce outlived nonce.ttl (ten minutes) and the current code no
+//         longer matches. Only this device's session can change the code: a
+//         paper-code claim elsewhere would have frozen it, and a frozen
+//         session is refused with 401, not 404. So the next code is live. It
+//         costs one miss in the shared counter, once.
+// Anything else leaves it unknown and kept; a lost answer again throws.
+async function settle(client: Client, pending: Unsettled): Promise<Outcome | null> {
+  const answer = await client.request("POST", "/recovery/reissue", pending.body);
+  if (answer.status !== 204 && answer.status !== 404) return refusal(answer);
+  client.holdWrappedLongKey(pending.wrapped);
+  unsettled.delete(client);
+  return null;
+}
+
 // POST /recovery/reissue — `current` is the code on the paper now, `next` the
 // one just shown and typed back. A current code that does not open the key
 // this device holds is refused here, before the node counts a miss for it.
+//
+// Two answers lost in a row used to leave the device holding the key under a
+// code the node had already retired, until the process ended: the retry with
+// a new nonce met the new code and was refused as a miss (verifier of B1). Now
+// that reissue is kept unsettled and the next call settles it first; asked
+// again with the same two codes, it is simply done.
 export async function reissue(client: Client, current: string, next: string): Promise<Outcome> {
+  const [now, then] = await Promise.all([derivePaperCode(current), derivePaperCode(next)]);
+  const pending = unsettled.get(client);
+  if (pending) {
+    const refused = await settle(client, pending);
+    if (refused) return refused;
+    if (pending.body.current.lookup_id === now.lookupId && pending.body.next.lookup_id === then.lookupId) return { ok: true };
+  }
   const held = client.wrappedLongKey;
   if (!held) throw new Error("this device holds no long key under a paper code: raise or register first");
-  const [now, then] = await Promise.all([derivePaperCode(current), derivePaperCode(next)]);
   const wrapped = await rewrap(held, now.wrapKey, then.wrapKey);
   if (!wrapped) return { ok: false, reason: "no_match" };
   const nonce = base64url(crypto.getRandomValues(new Uint8Array(16)));
@@ -169,7 +213,12 @@ export async function reissue(client: Client, current: string, next: string): Pr
   } catch {
     // The answer was lost, not the request: the same nonce again is answered
     // 204 by a node that took it (protocol §2), and nothing twice.
-    answer = await client.request("POST", "/recovery/reissue", body);
+    try {
+      answer = await client.request("POST", "/recovery/reissue", body);
+    } catch (error) {
+      unsettled.set(client, { body, wrapped });
+      throw error;
+    }
   }
   if (answer.status !== 204) return refusal(answer);
   client.holdWrappedLongKey(wrapped);

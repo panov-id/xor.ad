@@ -296,7 +296,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/admin/secret-keys</code><span class="chip s-built">built</span> <span class="chip internal">internal</span></div>
 <p><strong>Create a secret key, shown once</strong></p>
 <h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>201</code></td><td>The key with its secret, shown_once true.</td><td></td></tr><tr><td><code>403</code></td><td>Scopes beyond your own permissions.</td><td></td></tr><tr><td><code>404</code></td><td>unknown brand</td><td></td></tr><tr><td><code>422</code></td><td>invalid body</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>201</code></td><td>The key with its secret, shown_once true.</td><td></td></tr><tr><td><code>403</code></td><td>Scopes beyond your own permissions.</td><td></td></tr><tr><td><code>404</code></td><td>unknown brand</td><td></td></tr><tr><td><code>422</code></td><td>invalid body, name or scopes</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/admin.ts</code></p>
 </section>
 <section class="op" id="post-admin-secret-keys--id--revoke">

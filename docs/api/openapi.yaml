@@ -820,6 +820,11 @@ components:
       headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
       x-description-ru: Неподдерживаемая версия протокола — code protocol_version_unsupported, команда обновления в message (протокол §3, §6).
       content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
+    BadVersionOrBody:
+      description: "Unsupported protocol version — code protocol_version_unsupported, the update command in message (protocol §3); or a body or query the operation cannot take — code invalid_body, what is wrong in message (protocol §6). Told apart by error.code. Any request whose body stops arriving midway is also answered 400 invalid_body before a route reads it (dispatch.ts); nobody is left to read that one."
+      headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+      x-description-ru: "Неподдерживаемая версия протокола — code protocol_version_unsupported, команда обновления в message (протокол §3); либо тело или запрос, которые операция не принимает, — code invalid_body, что не так — в message (протокол §6). Различаются по error.code. Любой запрос, тело которого оборвалось на полпути, тоже получает 400 invalid_body до маршрута (dispatch.ts); читать такой ответ уже некому."
+      content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
     NonceReused:
       description: The same nonce on another route, or a malformed nonce — code invalid_body (protocol §2). On POST /blocks this 409 answers the nonce only, never the target of the block.
       x-description-ru: Тот же nonce на другом маршруте или nonce не той формы — code invalid_body (протокол §2). У POST /blocks этот 409 отвечает только на nonce, никогда — на цель блокировки.
@@ -1215,7 +1220,7 @@ paths:
         "201": {description: "The key with its secret, shown_once true.", x-description-ru: "Ключ с секретом, shown_once true."}
         "403": {description: Scopes beyond your own permissions., x-description-ru: Скоупы сверх собственных пермишенов.}
         "404": {description: unknown brand, x-description-ru: неизвестный бренд}
-        "422": {description: invalid body, name or scopes, x-description-ru: неверное тело, имя или скоупы}
+        "422": {description: "invalid body, name or scopes", x-description-ru: "неверное тело, имя или скоупы"}
   /admin/secret-keys/{id}/revoke:
     post:
       tags: [admin]
@@ -1520,7 +1525,7 @@ paths:
                 properties:
                   identity_id: {type: string, format: uuid}
                   session_id: {type: string, format: uuid}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "422":
           description: "Under 13 — code too_young, and only that. Screen 2 has a line for this and nothing else, and a client cannot tell it from a shared invalid_body."
@@ -1546,7 +1551,7 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "404":
           description: "This session has no share to hand back: it never had one, or a move of the identity burned it (§8.2). One wording for both — a device that was left behind must not learn which."
           x-description-ru: "У этой сессии доли нет: её не было или переезд личности её сжёг (§8.2). Одна формулировка на оба случая — брошенному устройству незачем знать, какой из них."
@@ -1582,7 +1587,7 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: "Invitation stored. `expires_in` is its life in seconds, from the database's clock.", x-description-ru: "Приглашение записано. `expires_in` — сколько секунд оно живёт, по часам базы.", content: {application/json: {schema: {type: object, required: [expires_in], properties: {expires_in: {type: integer}}}}}}
         "404": {description: "This session has no share of the vault, so there is no PIN to prove.", x-description-ru: "У этой сессии нет доли хранилища, значит нечем доказать ПИН."}
@@ -1609,7 +1614,7 @@ paths:
           x-description-ru: "У этой сессии нет доли, которую можно перевыпустить: её сжёг переезд личности (§8.2)."
           content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
         "503": {$ref: "#/components/responses/Unavailable"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Changed., x-description-ru: Сменён.}
   /identities/close:
@@ -1635,7 +1640,7 @@ paths:
           x-description-ru: "У этой сессии нет доли: её сжёг переезд личности (§8.2)."
           content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
         "503": {$ref: "#/components/responses/Unavailable"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Closed., x-description-ru: Закрыта.}
   /identities/appearance:
@@ -1702,7 +1707,7 @@ paths:
                 required: [state]
                 properties:
                   state: {type: string, enum: [claimed]}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "404": {$ref: "#/components/responses/ApiError"}
         "409": {$ref: "#/components/responses/Conflict"}
         "429": {$ref: "#/components/responses/RateLimited"}
@@ -1723,7 +1728,7 @@ paths:
         - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryConfirm"}}}}
       responses:
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/Conflict"}
         "503": {$ref: "#/components/responses/Unavailable"}
@@ -1777,7 +1782,7 @@ paths:
                   identity_id: {type: string, format: uuid}
                   session_id: {type: string, format: uuid}
                   recovery_wrapped_key: {type: string, description: "base64url; the node stores it and cannot open it.", x-description-ru: "base64url; узел его хранит и открыть не может."}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "404": {description: "That code does not match — one wording for every reason.", x-description-ru: "Код не подошёл — одна формулировка на все причины.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "409": {description: "The device that asked cannot be raised right now — its own session could not be reopened. Its own status rather than the shared Conflict: nothing about the body or the code was wrong.", x-description-ru: "Устройство, которое спросило, сейчас поднять нельзя — его собственную сессию не удалось открыть заново. Свой статус, а не общий Conflict: ни с телом, ни с кодом ничего не так.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "429": {description: "Too many attempts from this address, or the node-wide pause.", x-description-ru: "Слишком много попыток с адреса или общая пауза узла.", headers: {Retry-After: {schema: {type: integer}}}, content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
@@ -1814,7 +1819,7 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Recorded., x-description-ru: Записано.}
   /feed:
@@ -1834,7 +1839,7 @@ paths:
       x-description-ru: Отвечает 202 сразу; visible_at пуст до вердикта очереди.
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "503": {$ref: "#/components/responses/Unavailable"}
         "202":
@@ -1902,7 +1907,7 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: A page of feed items and the next cursor., x-description-ru: Страница карточек ленты и следующий курсор., headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}, content: {application/json: {schema: {$ref: "#/components/schemas/FeedPage"}}}}
   /likes:
@@ -1967,7 +1972,7 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: "The step, as chat §8.3 names them: none, few (1-4), about_ten (5-14), tens (15-99), hundreds (100+). The field is `step`, not `band`, and the count itself never leaves.", x-description-ru: "Ступень, как их называет чат §8.3: none, few (1-4), about_ten (5-14), tens (15-99), hundreds (100+). Поле называется `step`, не `band`, а само число наружу не уходит.", content: {application/json: {schema: {type: object, required: [step], properties: {step: {type: string, enum: [none, few, about_ten, tens, hundreds]}}}}}}
   /feed/{id}/like:
@@ -1985,7 +1990,7 @@ paths:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: liked or matched., x-description-ru: liked или matched., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
@@ -2005,7 +2010,7 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: "state unliked — taken back, or nothing was there to take; state spent once the pair has a match, and nothing moves.", x-description-ru: "state unliked — снят либо снимать было нечего; state spent, если у пары уже есть мэтч, и ничего не меняется.", content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
@@ -2147,7 +2152,7 @@ paths:
       responses:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: The live ids., x-description-ru: Живые id., content: {application/json: {schema: {$ref: "#/components/schemas/ChatsAliveResult"}}}}
         "503": {description: The database read was not confirmed., x-description-ru: Чтение базы не подтверждено.}
@@ -2192,7 +2197,7 @@ paths:
         "503": {$ref: "#/components/responses/Unavailable"}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: "Saved: {span} — the minutes now set for one's own side.", x-description-ru: "Сохранено: {span} — минуты, теперь заданные своей стороне.", content: {application/json: {schema: {type: object, required: [span], properties: {span: {type: integer, enum: [10, 30, 60, 260]}}}}}}
   /tables:
@@ -2730,7 +2735,7 @@ paths:
         "503": {$ref: "#/components/responses/Unavailable"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/NonceReused"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: "Done, and the same answer on a repeat.", x-description-ru: Сделано; повтор отвечает тем же.}
     get:
@@ -2795,7 +2800,7 @@ paths:
         "404": {description: "Not the caller's, or it is over.", x-description-ru: "Не своё либо уже кончилось."}
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: Hidden; the id for bringing it back., x-description-ru: Скрыто; id для возврата., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
     get:
@@ -3000,7 +3005,7 @@ paths:
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/RecoveryReissue"}}}}
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "204": {description: Done., x-description-ru: Сделано.}
         "409": {description: "stepped_away and state refusals, or invalid_body on a reused nonce (protocol §2).", x-description-ru: "stepped_away и отказы состояния либо invalid_body на повторный nonce (протокол §2).", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
@@ -3047,7 +3052,7 @@ paths:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "204": {description: Done., x-description-ru: Сделано.}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
   /statements:
     get:
@@ -3069,7 +3074,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "200": {description: "The statements addressed to this identity, newest first, a hundred per page, as {items} and, on a full page only, next — the cursor for `after`, built from (created_at, id) (open-work P3, closed 2026-09-21; 'at most a hundred, no cursor' [retired]); delivery is recorded only for the ones returned. Corrected 2026-09-21 — this said a bare array, which a client generated from the contract could not read.", x-description-ru: "Мотивировки этой личности, новые первыми, по сто на страницу, в виде {items} и, только на полной странице, next — курсор для `after` из (created_at, id) (open-work P3, закрыт 21.09.2026; «не больше ста, курсора нет» [retired]); вручение отмечается только отданным. Исправлено 21.09.2026 — здесь стоял голый массив, который клиент, сгенерированный по контракту, прочитать не мог.", content: {application/json: {schema: {type: object, required: [items], properties: {items: {type: array, items: {$ref: "#/components/schemas/Statement"}}, next: {type: string, description: "Present only on a full page.", x-description-ru: "Есть только на полной странице."}}}}}}
         "503": {description: "The node cannot answer right now; nothing was recorded as delivered.", x-description-ru: "Узел сейчас не может ответить; ничего не отмечено как врученное."}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
   /o/{code}:
     get:
@@ -3381,7 +3386,7 @@ paths:
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VaultInit"}}}}
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
-        "400": {$ref: "#/components/responses/BadVersion"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "503": {$ref: "#/components/responses/Unavailable"}
         "409": {description: "Code no_first_pin_grant (2026-09-21; unauthorized [retired], which belongs to 401 and a bad signature). No first-PIN grant on this identity, or it was already spent, or it is older than `vault.first_pin.ttl` — one hour (2026-09-21). One wording for all three: an honest client cannot act on the difference, and telling them apart would tell a stolen signing key which door it is standing at. The grant lives in identities.first_pin_grant_at and is spent by the same statement that reads it.", x-description-ru: "Код no_first_pin_grant (21.09.2026; unauthorized [retired] — он за 401 и неверной подписью). Права «первый ПИН» на этой личности нет, либо оно израсходовано, либо старше `vault.first_pin.ttl` — часа (21.09.2026). Одна формулировка на все три: честному клиенту разница ничего не даёт, а украденному ключу подписи она сказала бы, у какой двери он стоит. Право живёт в identities.first_pin_grant_at и расходуется тем же запросом, которым читается.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "204": {description: Done., x-description-ru: Сделано.}

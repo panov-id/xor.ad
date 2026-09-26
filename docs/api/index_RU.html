@@ -296,7 +296,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-post">post</span><code class="path">/admin/secret-keys</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
 <p><strong>Выпустить секретный ключ, показывается один раз</strong></p>
 <h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>201</code></td><td>Ключ с секретом, shown_once true.</td><td></td></tr><tr><td><code>403</code></td><td>Скоупы сверх собственных пермишенов.</td><td></td></tr><tr><td><code>404</code></td><td>неизвестный бренд</td><td></td></tr><tr><td><code>422</code></td><td>неверное тело</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>201</code></td><td>Ключ с секретом, shown_once true.</td><td></td></tr><tr><td><code>403</code></td><td>Скоупы сверх собственных пермишенов.</td><td></td></tr><tr><td><code>404</code></td><td>неизвестный бренд</td><td></td></tr><tr><td><code>422</code></td><td>неверное тело, имя или скоупы</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
 </section>
 <section class="op" id="post-admin-secret-keys--id--revoke">

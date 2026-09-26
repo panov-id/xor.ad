@@ -77,6 +77,29 @@ expect 1 'без x-source на существующий файл' 'x-source в �
 mutate 'del spec["paths"]["/v1/me"]'
 expect 1 'построен, а в спецификации built его нет' 'построенный маршрут пропал из yaml'
 
+# Ссылка в никуда: форма операции цела, страница собирается, а клиент падает
+# (B91, B95 — ответ 404 /sessions/claim на несуществующий компонент прошёл).
+mutate 'spec["paths"]["/sessions/claim"]["post"]["responses"]["404"] = {"$ref": "#/components/responses/NoSuchResponse"}'
+expect 1 'ведёт в никуда' 'ответ ссылается на несуществующий компонент'
+
+mutate 'spec["components"]["schemas"].pop("SessionsClaim")'
+expect 1 'ведёт в никуда' 'схема, на которую ссылается тело, пропала'
+
+# Порванное flow-описание, хвост которого кончается словом без точки: запятая
+# внутри `{…}` режет незакавыченный текст, и кусок становится ключом без
+# значения (/admin/secret-keys 422 до B95). Текстом, не через mutate: тот
+# пересохраняет yaml блоками, и flow-записи в копии не остаётся.
+reset
+python3 - "$spec" <<'PY'
+import sys
+path = sys.argv[1]
+text = open(path, encoding="utf-8").read()
+fixed = '"422": {description: "invalid body, name or scopes", x-description-ru: "неверное тело, имя или скоупы"}'
+assert text.count(fixed) == 1, "the 422 of /admin/secret-keys is not where the probe expects it"
+open(path, "w", encoding="utf-8").write(text.replace(fixed, fixed.replace('"invalid body, name or scopes"', "invalid body, name or scopes")))
+PY
+expect 1 'без значения' 'flow-описание разрезано запятой, хвост без точки'
+
 # Страница собрана из другого yaml — ворота обязаны это увидеть.
 reset
 printf '<!-- правка руками -->\n' >> "$pages/index_RU.html"

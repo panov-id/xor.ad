@@ -66,6 +66,12 @@ def _mapping(loader, node):
         # на конце — след разреза уже закавыченного описания.
         if isinstance(key, str) and key.rstrip("\"'").endswith("."):
             problems.append(f"порванное flow-описание: ключ «{key}» в строке {k.start_mark.line + 1} — возьмите текст в кавычки (scripts/fix-openapi-flow-descriptions.py чинит)")
+        # И по классу, а не по хвосту: во flow-словаре `{…}` у ключа OpenAPI всегда
+        # есть значение, а кусок разрезанного описания его не имеет. «invalid body,
+        # name or scopes» у /admin/secret-keys 422 кончался словом без точки и
+        # прошёл правило выше; openapi-spec-validator упал на нём (B91, B95).
+        elif node.flow_style and isinstance(key, str) and _v.tag == "tag:yaml.org,2002:null" and _v.value == "":
+            problems.append(f"порванное flow-описание: ключ «{key}» без значения в строке {k.start_mark.line + 1} — возьмите текст в кавычки")
         seen.add(key)
     return loader.construct_mapping(node)
 _Dups.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _mapping)
@@ -297,6 +303,40 @@ if migration.is_file():
         problems.append(
             f"одноразовость: {route} стоит в CHECK nonces.route, а §2 protocol_RU.md его не называет"
         )
+
+# Ссылки: каждый локальный $ref обязан вести в существующий узел спецификации.
+# 26.09.2026 (B91, B95) ответ 404 /sessions/claim, переведённый на
+# #/components/responses/NoSuchResponse, прошёл эти ворота зелёным: форма
+# операции цела, страница собирается — а клиент, собранный по контракту, на
+# этой ссылке падает. Сторонний openapi-spec-validator такое ловит, но
+# останавливается на первой ошибке любого рода, и держать его воротами — не то.
+def _resolves(pointer):
+    node = spec
+    for part in pointer[2:].split("/"):
+        part = part.replace("~1", "/").replace("~0", "~")
+        if isinstance(node, dict) and part in node:
+            node = node[part]
+        elif isinstance(node, list) and part.isdigit() and int(part) < len(node):
+            node = node[int(part)]
+        else:
+            return False
+    return True
+
+def _refs(node, where):
+    if isinstance(node, dict):
+        ref = node.get("$ref")
+        if isinstance(ref, str):
+            if not ref.startswith("#/"):
+                problems.append(f"{where}: $ref «{ref}» не локальный — спецификация одна, ссылки только внутрь")
+            elif not _resolves(ref):
+                problems.append(f"{where}: $ref «{ref}» ведёт в никуда")
+        for key, value in node.items():
+            _refs(value, f"{where}/{key}")
+    elif isinstance(node, list):
+        for i, value in enumerate(node):
+            _refs(value, f"{where}[{i}]")
+
+_refs(spec, "#")
 
 for line in problems:
     print(f"  ✗ {line}")

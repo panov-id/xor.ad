@@ -420,7 +420,9 @@ export async function sweepIdentities(): Promise<SweepResult> {
   // its own WHERE on the row's new version, and `id IN (doomed)` was all it had
   // (second review panel G30, reproduced in postgres:16). The pick skips rows
   // somebody holds, as the other passes of this sweeper do; they are the next
-  // pass's to look at.
+  // pass's to look at. Either guard alone closes the race, and the test tells
+  // only "neither" apart: both are kept on purpose — the skip so the pass does
+  // not wait, the second ask so it re-checks. Dropping one stays green there.
   const unfinished = await inBatches(
     `WITH doomed AS (
        SELECT id FROM identities

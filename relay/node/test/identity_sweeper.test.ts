@@ -1106,3 +1106,56 @@ Deno.test({ name: "the fifth attempt is the last, and what it drops is counted a
   assertEquals((await skipped("share_held")) - before.share, 0,
     'identities nobody held, dropped by the ceiling, were counted as reason="share_held"');
 });
+
+// G30 of the second review panel (B45, 26.09.2026): a registration finished
+// while the unfinished-signup pass ran was deleted. The confirm (POST
+// /recovery/confirm — a person writing the paper code down past the hour)
+// held its row; the pass waited on it and then deleted it by id alone, since
+// under READ COMMITTED the DELETE re-checks only its own WHERE. Played here
+// with the confirm on a connection of its own, holding the row across the
+// pass, and let go only once the pass has either finished or is seen waiting.
+Deno.test({
+  name: "a signup finished while the pass runs survives it",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const late = await identity({ finished: false, createdDaysAgo: 1 });
+    let release!: () => void;
+    const held = new Promise<void>((done) => (release = done));
+    let locked!: () => void;
+    const lockTaken = new Promise<void>((done) => (locked = done));
+    try {
+      const confirm = sql.begin(async (tx) => {
+        await tx.unsafe(
+          `UPDATE identities SET signup_completed_at = now() WHERE id = $1 AND signup_completed_at IS NULL`,
+          [late.identityId]);
+        locked();
+        await held;
+      });
+      await lockTaken;
+      let settled = false;
+      const pass = sweeper.sweepIdentities().finally(() => (settled = true));
+      // Until the pass is done or stands behind the confirm's lock: the
+      // outcome is decided by which, and waiting a fixed time would guess.
+      for (let i = 0; i < 200 && !settled; i++) {
+        const waiting = await database.queryOrThrow<{ n: number }>(
+          `SELECT count(*)::int AS n FROM pg_stat_activity
+            WHERE wait_event_type = 'Lock' AND query LIKE '%signup_completed_at IS NULL%' AND pid <> pg_backend_pid()`);
+        if (waiting[0].n > 0) break;
+        await new Promise((r) => setTimeout(r, 25));
+      }
+      release();
+      await confirm;
+      await pass;
+      const [row] = await database.queryOrThrow<{ done: boolean }>(
+        `SELECT signup_completed_at IS NOT NULL AS done FROM identities WHERE id = $1`, [late.identityId]);
+      assert(row, "a signup finished while the pass ran was deleted by it");
+      assertEquals(row.done, true);
+    } finally {
+      release?.();
+      await sql.end();
+    }
+  },
+});

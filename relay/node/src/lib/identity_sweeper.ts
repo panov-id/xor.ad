@@ -412,14 +412,28 @@ export async function sweepIdentities(): Promise<SweepResult> {
   // An identity that never finished its registration is swept whole rather than
   // closed: there is nothing to keep. It has no paper code, so no notice can be
   // attached to it and nothing has to outlive it.
+  //
+  // "Unfinished" is asked twice: when the rows are picked and again by the
+  // DELETE itself. Asked only by the pick, a registration finished while the
+  // statement ran (POST /recovery/confirm, a person writing the code down past
+  // the hour) was deleted anyway: under READ COMMITTED the DELETE re-checks
+  // its own WHERE on the row's new version, and `id IN (doomed)` was all it had
+  // (second review panel G30, reproduced in postgres:16). The pick skips rows
+  // somebody holds, as the other passes of this sweeper do; they are the next
+  // pass's to look at.
   const unfinished = await inBatches(
     `WITH doomed AS (
        SELECT id FROM identities
         WHERE signup_completed_at IS NULL
           AND created_at < now() - interval '${UNFINISHED_SIGNUP_HOURS} hours'
         LIMIT ${DELETE_BATCH}
+        FOR UPDATE SKIP LOCKED
      ), gone AS (
-       DELETE FROM identities WHERE id IN (SELECT id FROM doomed) RETURNING 1
+       DELETE FROM identities
+        WHERE id IN (SELECT id FROM doomed)
+          AND signup_completed_at IS NULL
+          AND created_at < now() - interval '${UNFINISHED_SIGNUP_HOURS} hours'
+       RETURNING 1
      )
      SELECT count(*)::text AS count FROM gone`,
     DELETE_BATCH,

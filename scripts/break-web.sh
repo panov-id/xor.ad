@@ -54,7 +54,7 @@ sed -i 's|    await tx("readwrite", (s) => s.put(resealed));|    void resealed;|
 grep -q '    void resealed;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
 out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
 echo "$out" | grep -E 'me.spec|✘|✓|[0-9]+ (passed|failed)' | head -6
-if echo "$out" | grep -qE '✘ +[0-9]+ me.spec.ts' && echo "$out" | grep -qE '1 failed'; then
+if echo "$out" | grep -qE '✘ +[0-9]+ me.spec.ts' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then
   echo "   red as expected"
 else
   echo "   STAYED GREEN — the guard proves nothing"; status=1

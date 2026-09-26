@@ -525,10 +525,16 @@ async function takeDown(req: Request, id: string): Promise<Response> {
 
 // The steps a density answer comes in, and why it is steps (§8.3, 2026-08-26).
 //
-// The handle on screen 3 says how many live phrases are inside the circle, and
-// a number there would be a measuring instrument in a stranger's hands: drag
-// the radius, read the count, and the difference tells you about one person's
-// area. A step is enough to aim with and too coarse to triangulate.
+// The handle on screen 3 says how many people with a live phrase are inside the
+// circle, and a number there would be a measuring instrument in a stranger's
+// hands: drag the radius, read the count, and the difference tells you about
+// one person's area. A step is enough to aim with and too coarse to triangulate.
+//
+// People, not phrases (open.tsv feed.density.people; P7, 2026-09-26). Each
+// person holds up to four live phrases, so three people wrote "about ten"
+// while the storefront's header said "few people near you": the handle and
+// the header were counting different things. The thresholds stay as they
+// were; what is counted under them is distinct authors.
 const DENSITY_STEPS: Array<{ upTo: number; step: string }> = [
   { upTo: 0, step: "none" },
   { upTo: 4, step: "few" },
@@ -592,13 +598,15 @@ async function density(req: Request, url: URL): Promise<Response> {
   const mine = band(me.age);
   const box = boundingBox({ lat, lon }, radius + 10000);
   const counted = await query<{ n: string }>(
-    // The inner query stops at DENSITY_CAP rows; the outer one counts what it
-    // got. Note what was *not* changed, and why: the box form that rescued the
-    // sparse feed does nothing for this handle — it has no ORDER BY, so there
-    // is no cursor walk to escape, and on the same million rows the box was
-    // slower here (93.9 ms against 81.8). Measured rather than copied across.
+    // The inner query stops at DENSITY_CAP distinct authors; the outer one
+    // counts what it got. Distinct authors, not rows (feed.density.people): a
+    // person with four live phrases in the circle is one person here. Note what
+    // was *not* changed, and why: the box form that rescued the sparse feed does
+    // nothing for this handle — it has no ORDER BY, so there is no cursor walk
+    // to escape, and on the same million rows the box was slower here (93.9 ms
+    // against 81.8). Measured rather than copied across.
     `SELECT count(*)::text AS n FROM (
-       SELECT 1
+       SELECT DISTINCT f.author_identity
        FROM feed_messages f
        JOIN identities a ON a.id = f.author_identity
       WHERE ${livePhraseOf("f")}

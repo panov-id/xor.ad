@@ -76,7 +76,7 @@ to the session; older than 60 minutes — the task goes back to `free`.
 | `docs/test-map_*`, `docs/roadmap_*`, `docs/facts/*.tsv`, `docs/open-work_*`, `docs/chat_*` §13 | Edited only by the coordinator after merging. A worker sends the lines it needs by message |
 | `relay/node/deno.json`, `package-lock.json`, `depth/package-lock.json` | A task that changes them runs alone: the coordinator does not hand out a second such task in parallel |
 | Live stands (dev n1, runs against a live node) | One session at a time; the coordinator marks it in `tasks.tsv` with a `stand` row |
-| `scripts/run-depth-tests.sh` (and `check-all.sh --with-tests`, which calls it) | While the label is shared (`depth-test=1`), the script removes the containers of neighbouring runs at start — one session at a time, a `stand-depth` row (2026-09-26, found by the observer) |
+| `scripts/run-depth-tests.sh` and any `scripts/check-all.sh` (it always runs the depth tests, `check-all.sh:124`) | Before 6ea3ee6 (A7, 2026-09-26) the label was shared (`depth-test=1`) and a start removed the neighbours' containers. Now the label carries the PID and only dead runs are removed; the `stand-depth` lock is needed only while any active tree stands on a `day58` older than 6ea3ee6 — the old script removes new runs too |
 | `git push`, deploys | Coordinator only, and only on the owner's word (rule 10) |
 | Voice `/voice` | In one session at most, or phrases talk over each other |
 | Decisions inside what is approved | Whoever hits the fork gathers the quorum (rule 31); the coordinator writes the decision to `decisions.tsv` |

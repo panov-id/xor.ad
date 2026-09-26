@@ -250,25 +250,27 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
     throw new PinRefused(code, given.body?.error?.attempts_left, given.retryAfter);
   }
   const share = fromBase64url(given.body.share);
+  // One vault key for both seals, and the halves wiped once both are open
+  // (verifier of W1c): a wipe between the two left the wrapping pair sealed
+  // under a key made of zeros — the first red run after the merge of W1d.
   let long: CryptoKey;
+  let wrapPrivate: CryptoKey;
   try {
+    const key = await vaultKey(material.local, share);
     long = await unsealLong(record, material.local, share);
+    const wrapPkcs8 = await unseal(key, record.sealedWrap);
+    try {
+      wrapPrivate = await crypto.subtle.importKey("pkcs8", wrapPkcs8 as BufferSource, WRAP_ALGORITHM, false, WRAP_USAGES);
+    } finally {
+      wrapPkcs8.fill(0);
+    }
   } finally {
-    // The halves have done their one job; neither outlives it (verifier of W1c).
     material.local.fill(0);
     share.fill(0);
   }
   const client = new Client(NODE_BASE, API_KEY);
   const longSigning: SigningKey = { privateKey: long, publicSpki: record.longSpki };
   // The same wrapping pair as before the reload, out of its seal (W1d).
-  const key = await vaultKey(material.local, fromBase64url(given.body.share));
-  const wrapPkcs8 = await unseal(key, record.sealedWrap);
-  let wrapPrivate: CryptoKey;
-  try {
-    wrapPrivate = await crypto.subtle.importKey("pkcs8", wrapPkcs8 as BufferSource, WRAP_ALGORITHM, false, WRAP_USAGES);
-  } finally {
-    wrapPkcs8.fill(0);
-  }
   const same = equal(await checkOf(wrapPrivate), record.wrapCheck);
   client.seat({
     identityId: record.identityId,

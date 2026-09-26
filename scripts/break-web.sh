@@ -31,8 +31,10 @@ restore
 # the one out of the seal — the page's check says so (data-sealed becomes
 # "unlocked-new-wrap") and the e2e must go red on the reload's line.
 echo "== break 2: the wrapping pair after a reload is a fresh one"
-sed -i 's|^import { Client, type HeldLongKey, WRAP_ALGORITHM, WRAP_USAGES } from "../../depth/core/client.ts";|import { Client, type HeldLongKey, newWrapPair, WRAP_ALGORITHM, WRAP_USAGES } from "../../depth/core/client.ts";|; s|  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|  wrapPrivate = (await newWrapPair()).privateKey;\n  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|' "$root/$vault"
-grep -q 'wrapPrivate = (await newWrapPair()).privateKey;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
+# No import is touched: the constants are already imported, and an import
+# line that moved would turn this into a broken build, not a red test.
+sed -i 's|  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|  wrapPrivate = (await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair).privateKey;\n  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|' "$root/$vault"
+grep -q 'wrapPrivate = (await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair).privateKey;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
 out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
 echo "$out" | grep -E 'unlocked-new-wrap|✘|✓|[0-9]+ (passed|failed)' | head -6
 if echo "$out" | grep -q 'data-sealed="unlocked-new-wrap"' && echo "$out" | grep -qE '1 failed'; then

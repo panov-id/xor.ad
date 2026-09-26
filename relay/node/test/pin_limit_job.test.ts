@@ -384,3 +384,40 @@ Deno.test({ name: "one person's failed take-down does not stop the job for the r
   assert(await live(first.phrase), "the refused take-down went through — the case never ran");
   assertEquals(await live(second.phrase), false, "the person after the failed one was not taken down");
 });
+
+// The same for the first pass, the freeze (B103, the verifier on B89/B93: its
+// failed branch turned back into a throw left every case green). A trigger
+// refuses the first session's freeze with P0001; that one is counted failed and
+// stays live, the pass goes on, and the second session is frozen.
+Deno.test({ name: "one session's failed freeze does not stop the first pass for the rest (B103)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const unfrozenUnderALock = async () => {
+    const me = await frozenByTheTenthMiss();
+    await database.queryOrThrow(`UPDATE sessions SET frozen_at = NULL, frozen_reason = NULL WHERE id = $1`, [me.session_id]);
+    return me;
+  };
+  const two = [await unfrozenUnderALock(), await unfrozenUnderALock()]
+    .sort((a, b) => a.session_id < b.session_id ? -1 : 1);
+  const [first, second] = two;
+  await database.queryOrThrow(`
+    CREATE OR REPLACE FUNCTION b103_refuse() RETURNS trigger AS $$
+    BEGIN
+      IF NEW.id = '${first.session_id}' AND NEW.frozen_reason = 'pin_limit' THEN RAISE EXCEPTION 'refused for the test'; END IF;
+      RETURN NEW;
+    END $$ LANGUAGE plpgsql`);
+  await database.queryOrThrow(`CREATE TRIGGER b103_refuse BEFORE UPDATE ON sessions FOR EACH ROW EXECUTE FUNCTION b103_refuse()`);
+  const [failedBefore, deferredBefore] = [jobCount("failed"), jobCount("freeze_deferred")];
+  let outcome = "";
+  try {
+    await takeDownLeftByPinLimit().then(() => (outcome = "done"), (e) => (outcome = String(e)));
+  } finally {
+    await database.queryOrThrow(`DROP TRIGGER IF EXISTS b103_refuse ON sessions`);
+    await database.queryOrThrow(`DROP FUNCTION IF EXISTS b103_refuse()`);
+  }
+  const liveOf = async (sessionId: string) => (await database.queryOrThrow<{ live: boolean }>(
+    `SELECT frozen_at IS NULL AS live FROM sessions WHERE id = $1`, [sessionId]))[0].live;
+  assertEquals(outcome, "done", "one session's failed freeze threw out of the whole pass");
+  assertEquals(jobCount("failed") - failedBefore, 1, "the failed freeze was not counted failed once");
+  assertEquals(jobCount("freeze_deferred") - deferredBefore, 0, "a failed freeze was counted as put off");
+  assert(await liveOf(first.session_id), "the refused freeze went through — the case never ran");
+  assertEquals(await liveOf(second.session_id), false, "the session after the failed one was not frozen");
+});

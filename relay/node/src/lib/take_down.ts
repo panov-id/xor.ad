@@ -110,8 +110,24 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
   for (const { id } of left) {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        await transaction((run) => takeDownLive(run, id));
-        done++;
+        const taken = await transaction(async (run) => {
+          // Asked again under the shares (review panel 4, К11, B73): the list
+          // above was read without a lock, and a paper-code claim that raised
+          // a session since then — or is raising one now — gives the person a
+          // way in again, and what is live stays theirs. The shares first, in
+          // session order, as everything that seats or raises a session takes
+          // them (identity.lock.order, chat_RU.md:1127); a claim in flight
+          // holds one, so this waits for it and then sees its session.
+          await run(
+            `SELECT v.session FROM vault_shares v JOIN sessions s ON s.id = v.session
+              WHERE s.identity = $1 ORDER BY v.session FOR UPDATE OF v`, [id]);
+          const [raised] = await run<{ n: number }>(
+            `SELECT count(*)::int AS n FROM sessions WHERE identity = $1 AND frozen_at IS NULL`, [id]);
+          if (raised.n > 0) return false;
+          await takeDownLive(run, id);
+          return true;
+        });
+        if (taken) done++;
         break;
       } catch (error) {
         const code = (error as { code?: string })?.code;

@@ -1,0 +1,208 @@
+
+// The minute's job asks again, under the shares, whether the person has a way
+// in (review panel 4, К11/Н2, B73, 2026-09-26).
+//
+// takeDownLeftByPinLimit (lib/take_down.ts) finishes what the tenth PIN miss
+// could not take down: an identity whose sessions are all frozen, one of them
+// by the PIN limit. The list is read without a lock. A paper-code claim from
+// the same device raises the frozen session and gives the person their way in
+// back — and what is live is theirs again. Raced here for real: the claim
+// holds the share and has raised the session, a second connection keeps it
+// from committing by holding the identity's row it writes last, and the job
+// runs in that moment. Without the question asked again, it took the live
+// phrase down under a person who had just come back.
+//
+// The harness is pin_limit_rollback.test.ts's (B70).
+
+import { assert, assertEquals } from "jsr:@std/assert@1";
+
+if (!Deno.env.get("DATABASE_URL")) {
+  throw new Error(
+    "DATABASE_URL is not set — run this suite through scripts/run-relay-database-tests.sh",
+  );
+}
+
+const storageDir = await Deno.makeTempDir();
+Deno.env.set("STORAGE_TRANSPORT", "fs");
+Deno.env.set("STORAGE_DIR", storageDir);
+Deno.env.set("SESSION_SECRET", "pin-job-secret");
+Deno.env.set("NODE_ENV_NAME", "test");
+Deno.env.set("MAIL_TRANSPORT", "none");
+// Believed x-client-ip, so each request comes from an address of its own and
+// no case meets a per-address ceiling it is not about.
+Deno.env.set("ORIGIN_TOKEN", "pin-job-origin-token");
+Deno.env.set("VAULT_SHARE_KEY", "pin-job-vault-key");
+Deno.env.set(
+  "BRANDS",
+  JSON.stringify([{ key: "alpha", name: "Alpha", domain: "alpha.test", from: "a <a@alpha.test>" }]),
+);
+
+const postgres = (await import("npm:postgres@3.4.4")).default;
+const { match } = await import("../src/lib/router.ts");
+const database = await import("../src/lib/db.ts");
+const auth = await import("../src/lib/identity_auth.ts");
+const { takeDownLeftByPinLimit } = await import("../src/lib/take_down.ts");
+await import("../src/routes/identity.ts"); // registers the routes as a side effect
+
+const KEY_ID = "ak_pub_pinlimitjobrace01";
+await database.queryOrThrow(
+  `INSERT INTO brands (key, name, domain, sender, upper)
+     VALUES ('alpha', 'Alpha', 'alpha.test', 'a <a@alpha.test>', 'ALPHA')
+     ON CONFLICT (key) DO NOTHING`,
+);
+await database.queryOrThrow(
+  `INSERT INTO api_keys (id, brand, origins) VALUES ($1, 'alpha', '{}') ON CONFLICT (id) DO NOTHING`,
+  [KEY_ID],
+);
+
+const P256 = { name: "ECDSA", namedCurve: "P-256" } as const;
+const SIGN = { name: "ECDSA", hash: "SHA-256" } as const;
+const b64 = (bytes: Uint8Array) => auth.bytesToBase64url(bytes);
+
+let addresses = 0;
+async function call(
+  method: string,
+  path: string,
+  init: { body?: unknown; headers?: Record<string, string> } = {},
+): Promise<{ status: number; body: unknown }> {
+  const url = new URL(`https://relay.test${path}`);
+  const found = match(method, url.pathname);
+  assert(found, `no route for ${method} ${url.pathname}`);
+  const raw = init.body === undefined ? undefined : JSON.stringify(init.body);
+  let response: Response;
+  try {
+    response = await found.h({
+      req: new Request(url, {
+        method,
+        headers: {
+          "x-protocol-version": String(auth.PROTOCOL_MAJOR),
+          "x-origin-token": "pin-job-origin-token",
+          "x-client-ip": `198.51.100.${++addresses % 250}`,
+          ...(raw === undefined ? {} : { "content-type": "application/json" }),
+          ...(init.headers ?? {}),
+        },
+        body: raw,
+      }),
+      params: found.params,
+      url,
+    });
+  } catch (error) {
+    // A route that lets the error out answers 500 through the server's own
+    // handler; here the error itself is the answer worth reading.
+    return { status: 500, body: { thrown: (error as { code?: string })?.code ?? String(error) } };
+  }
+  const text = await response.text();
+  return { status: response.status, body: text ? JSON.parse(text) : null };
+}
+
+async function signedCall(key: CryptoKey, sessionId: string, method: string, path: string, body?: unknown) {
+  const raw = body === undefined ? new Uint8Array() : new TextEncoder().encode(JSON.stringify(body));
+  const time = Math.floor(Date.now() / 1000);
+  const target = new URL(`https://relay.test${path}`);
+  const payload = auth.signedPayload(method, auth.signedAuthority(target), auth.signedPath(target),
+    await auth.sha256hex(raw), time);
+  const signature = new Uint8Array(await crypto.subtle.sign(SIGN, key, new TextEncoder().encode(payload)));
+  return await call(method, path, {
+    body,
+    headers: { "x-identity-session": sessionId, "x-identity-time": String(time), "x-identity-sign": b64(signature) },
+  });
+}
+
+const PIN = crypto.getRandomValues(new Uint8Array(32));
+
+// Registered and finished, the paper code kept, frozen by the tenth miss as it
+// leaves a person — entry locked, the session frozen for pin_limit — with a
+// live phrase the take-down could not take.
+async function frozenByTheTenthMiss() {
+  const pair = await crypto.subtle.generateKey(P256, true, ["sign", "verify"]);
+  const spki = new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey));
+  const lookupId = crypto.randomUUID();
+  const answer = await call("POST", "/identities", {
+    headers: { "x-api-key": KEY_ID },
+    body: {
+      sign_pub: b64(spki),
+      wrap_pub: b64(crypto.getRandomValues(new Uint8Array(91))),
+      name: "Аня",
+      age: 30,
+      auth_hash: await auth.sha256hex(PIN),
+      share: b64(crypto.getRandomValues(new Uint8Array(32))),
+      recovery_lookup_id: lookupId,
+    },
+  });
+  assert(answer.status >= 200 && answer.status < 300, `registration answered ${answer.status}: ${JSON.stringify(answer.body)}`);
+  const me = { ...(answer.body as { identity_id: string; session_id: string }), key: pair.privateKey, lookupId };
+  const confirmed = await signedCall(me.key, me.session_id, "POST", "/recovery/confirm",
+    { recovery_wrapped_key: b64(crypto.getRandomValues(new Uint8Array(48))) });
+  assertEquals(confirmed.status, 204, "the registration was not finished");
+  const phrase = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+       lat_published, lon_published, visible_at, expires_at)
+     VALUES ($1, 'sosed', $2, 'вернулась', 'alone', 'und', 59.93, 30.33, 1000, 59.93, 30.33, now(), now() + interval '1 hour')`,
+    [phrase, me.identity_id],
+  );
+  await database.queryOrThrow(`UPDATE vault_shares SET attempts_left = 0, locked_at = now() WHERE session = $1`, [me.session_id]);
+  await database.queryOrThrow(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'pin_limit' WHERE id = $1`, [me.session_id]);
+  return { ...me, phrase };
+}
+
+type Tx = { unsafe: (q: string, args?: unknown[]) => Promise<unknown> };
+
+// Backends queued on a lock whose statement matches, other than the asker.
+async function queuedOn(tx: Tx, pattern: string): Promise<number> {
+  await tx.unsafe(`SELECT pg_stat_clear_snapshot()`);
+  const [{ n }] = await tx.unsafe(
+    `SELECT count(*)::int AS n FROM pg_stat_activity
+      WHERE wait_event_type = 'Lock' AND query LIKE $1 AND pid <> pg_backend_pid()`, [pattern]) as { n: number }[];
+  return n;
+}
+
+Deno.test({ name: "the minute's job leaves what is live to a person a paper-code claim is raising (B73)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const me = await frozenByTheTenthMiss();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  let claim: { status: number; body: unknown } | null = null;
+  let taken: number | string | null = null;
+  let jobWaited = false;
+  try {
+    // deno-lint-ignore no-explicit-any
+    await sql.begin(async (tx: any) => {
+      await tx.unsafe(`SELECT 1 FROM identities WHERE id = $1 FOR UPDATE`, [me.identity_id]);
+      // The claim: takes the share, raises the session, then waits on the
+      // identity's row this connection holds.
+      signedCall(me.key, me.session_id, "POST", "/recovery/claim", { lookup_id: me.lookupId })
+        .then((r) => (claim = r));
+      for (let i = 0; i < 250 && (await queuedOn(tx, "%UPDATE identities SET first_pin_grant_at%")) === 0; i++) {
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      assertEquals(await queuedOn(tx, "%UPDATE identities SET first_pin_grant_at%"), 1,
+        "the claim never reached the identity's row — the race never ran");
+      // The job, in that moment: it either finishes on its stale list, or
+      // waits on the share the claim holds.
+      takeDownLeftByPinLimit().then((n) => (taken = n), (e) => (taken = String(e)));
+      for (let i = 0; i < 250 && taken === null; i++) {
+        if ((await queuedOn(tx, "%FOR UPDATE OF v%")) > 0) {
+          jobWaited = true;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      // Committing lets the claim through, and the job after it.
+    });
+    for (let i = 0; i < 250 && (claim === null || taken === null); i++) await new Promise((r) => setTimeout(r, 20));
+  } finally {
+    await sql.end();
+  }
+  assert(claim, "the claim never answered");
+  assertEquals((claim as { status: number }).status, 200, `the claim answered ${JSON.stringify(claim)}`);
+  assert(typeof taken === "number", `the job failed: ${taken}`);
+  const [session] = await database.queryOrThrow<{ live: boolean }>(
+    `SELECT frozen_at IS NULL AS live FROM sessions WHERE id = $1`, [me.session_id]);
+  assert(session.live, "the claim did not raise the session");
+  const live = (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [me.phrase])).length === 1;
+  assert(live, `the job took the phrase down under a person the claim was raising (the job ${jobWaited ? "waited on the share" : "did not wait on the share"})`);
+  assert(jobWaited, "the job did not wait on the share the claim held");
+});
+
+addEventListener("unload", () => {
+  database.closePool();
+});

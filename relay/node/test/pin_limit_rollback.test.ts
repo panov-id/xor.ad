@@ -259,11 +259,16 @@ Deno.test({ name: "the tenth miss stands when its take-down loses a deadlock (B7
   // the counters first, then the session. The tenth miss holds the session by
   // its freeze and waits on the counters; the holder then asks for the
   // session, and one of the two is the deadlock's victim. The miss waited
-  // first, so its check runs first and it is the one cancelled. A take-down
-  // that tries again after it (take_down.ts) waits on the counters once more
-  // with the freeze still held, and the second cycle's victim is the holder —
-  // as a consent would be, which its route tries again (routes/matches.ts).
-  // So the holder asks inside a savepoint of its own and keeps its outcome.
+  // first, so its check runs first and it is the one cancelled.
+  //
+  // Then the take-down gives up in place, as it does on a lock timeout, and
+  // the minute's job finishes it (take_down.ts; quorum 3:0, B88). Tried again,
+  // it would wait on the counters once more with the freeze still holding the
+  // session, and the second cycle's victim would be the holder — the consent,
+  // which has no retry of its own and answers 503 (routes/matches.ts; review
+  // panel 5, D2: this comment used to say it retried). So the holder asks
+  // inside a savepoint and keeps its outcome: it must get the session, once the
+  // miss has committed, and not lose a deadlock (D3: both used to pass).
   let holderGotSession = false;
   let holderLost = "";
   const frozenBefore = pinLimitFreezes();
@@ -282,9 +287,9 @@ Deno.test({ name: "the tenth miss stands when its take-down loses a deadlock (B7
     },
   );
   assert(waited.includes("FROM identity_stats"), `the statement that waited was not the take-down's counters: ${waited}`);
-  // Either way round, the two met in a cycle: the holder got the session once
-  // the miss's step was cancelled, or lost the second cycle itself.
-  assert(holderGotSession || holderLost === "40P01", `no deadlock happened (holder: ${holderLost || "waiting"})`);
+  assertEquals(holderLost, "",
+    "the consent lost a second deadlock: the take-down tried again after 40P01 instead of giving up in place, and the consent has no retry");
+  assert(holderGotSession, "the holder never got the session: the miss's take-down and the consent did not meet in a cycle");
   const state = await stateOf(me);
   assertCounted(state, answer, "a take-down that lost a deadlock");
   assertEquals(state.frozen, "pin_limit", "the freeze went back with the take-down that lost the deadlock");
@@ -388,4 +393,50 @@ Deno.test({ name: "a tenth miss whose freeze times out still announces session_f
 
 addEventListener("unload", () => {
   database.closePool();
+});
+
+// Panel 4, K3 (B88): the tenth miss's take-down belongs to this miss's freeze
+// only. A move that froze the session after checkPin read it live — its UPDATE
+// already holding the row when the freeze asks for it — leaves the freeze
+// nothing to write: freezeSession answers false, and what is live under the
+// identity is now the new device's, not this miss's to take down. With the
+// answer ignored ("frozen = true" whatever happened) the take-down took the
+// new device's phrase.
+Deno.test({ name: "a tenth miss whose session a move froze under it takes down nothing of the new device (B88, K3)", ...pooled }, async () => {
+  const me = await onTheLastAttempt();
+  const frozenBefore = pinLimitFreezes();
+  const fresh = crypto.randomUUID();
+  // The move, as the B72 case above does it: its transaction holds the
+  // session's row while the miss is sent, and commits while the miss waits —
+  // so checkPin's plain re-read saw the session live, and the freeze's UPDATE,
+  // let go, finds it frozen and writes nothing. (Held to the answer, as
+  // tenthMissAgainst holds, the freeze would time out instead, and `frozen`
+  // would be false from the catch, not from freezeSession.)
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  const sent: { answer?: Promise<{ status: number; body: unknown }> } = {};
+  let waited = "";
+  try {
+    // deno-lint-ignore no-explicit-any
+    await sql.begin(async (tx: any) => {
+      await tx.unsafe(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'transfer' WHERE id = $1`, [me.session_id]);
+      await tx.unsafe(
+        `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key) VALUES ($1, $2, 'not-a-key', 'not-a-key')`,
+        [fresh, me.identity_id]);
+      sent.answer = signedCall(me.key, me.session_id, "POST", "/vault/share", { auth: wrongPin() });
+      waited = await waitingOn(tx, "the tenth miss");
+    });
+  } finally {
+    await sql.end();
+  }
+  assert(sent.answer, "the tenth miss was never sent");
+  const answer = await sent.answer;
+  assert(waited.startsWith("UPDATE sessions SET frozen_at"), `the statement that waited was not the freeze: ${waited}`);
+  const state = await stateOf(me);
+  assertEquals(state.attempts_left, 0, `the tenth miss was not counted (${answer.status} ${JSON.stringify(answer.body)})`);
+  assertEquals(state.frozen, "transfer", "the move's freeze was overwritten by the tenth miss's");
+  assertEquals(pinLimitFreezes() - frozenBefore, 0, "a freeze the move wrote was counted as the PIN limit's");
+  assertEquals(state.live, true,
+    "the tenth miss took down what is live under an identity a move has handed to a new device: its freeze wrote nothing, and the take-down went ahead anyway");
+  const [newDevice] = await database.queryOrThrow<{ frozen_at: Date | null }>(`SELECT frozen_at FROM sessions WHERE id = $1`, [fresh]);
+  assertEquals(newDevice.frozen_at, null, "the new device's session was frozen by the old one's tenth miss");
 });

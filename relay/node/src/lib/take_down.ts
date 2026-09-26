@@ -54,9 +54,14 @@ export class TakeDownRetry extends Error {}
 // against a consent to a match that takes the counters first and the session
 // after (40P01). Each of them let out took the tenth miss back whole, attempt
 // and lock and freeze, and the PIN could be tried again as often as the lock
-// could be made to time out (review panel 4, B70). A deadlock is tried again,
-// as a race is; a timeout is not — the second try would wait on the same row
-// for as long — and the minute's job finishes it.
+// could be made to time out (review panel 4, B70). None of the three is tried
+// again: a timeout would wait on the same row for as long, and a deadlock
+// would meet the same cycle — rolled back to its own savepoint, the take-down
+// lets go of the counters but not of the session, which the freeze before it
+// holds, so a second try made the consent the victim, and the consent has no
+// retry and answers 503 (review panel 5, D2; quorum 3:0, B88). The minute's
+// job finishes it. Only a race — TakeDownRetry, a like on a new author — is
+// tried again: that one is gone by the next try.
 //
 // On lib/db.ts savepoint(): a raw SAVEPOINT holds a JavaScript throw, but not
 // a failed statement — postgres.js rejects the whole transaction once one
@@ -68,8 +73,8 @@ export async function takeDownLiveInPlace(run: Run, me: string): Promise<boolean
       return true;
     } catch (error) {
       const code = (error as { code?: string })?.code;
-      if (error instanceof TakeDownRetry || code === "40P01") continue;
-      if (code === "55P03" || code === "57014") return false;
+      if (error instanceof TakeDownRetry) continue;
+      if (code === "55P03" || code === "57014" || code === "40P01") return false;
       throw error;
     }
   }

@@ -7,7 +7,12 @@
 // age, phrase and its mode. What it never carries: the other side's decline
 // (seen only by whoever declined, screen 6), the other side's term, and
 // `unread` — the device counts that, the node knows nothing about reading
-// (owner's decision, 2026-09-17).
+// (owner's decision, 2026-09-17). What it carries since P3 (§8.12, step 8):
+// what happened since the moment the client names in ?since — an offer that
+// arrived or was agreed to, a conversation that opened, replies still queued
+// for this session, a term in its last fifth — as flags on the rows and as
+// counts over everything live in `events` (lib/inbox_events.ts). Read from the
+// same tables at GET time; nothing is written for it anywhere.
 //
 // Not here yet: offer_interest rows (the offer's one-sided match is blocked on
 // the name queue).
@@ -25,6 +30,7 @@ import { query } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { TERM_PASSED } from "../lib/chat_sweeper.ts";
+import { ENDING_SOON, inboxEvents, parseSince } from "../lib/inbox_events.ts";
 
 const PAGE = 100;
 
@@ -32,6 +38,11 @@ async function inbox(req: Request): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
   const me = caller.identityId;
+
+  // What happened since the last visit (§8.12; lib/inbox_events.ts): `since`
+  // is the moment the client names, and every row says whether it is newer.
+  const since = parseSince(new URL(req.url).searchParams.get("since"));
+  if (since === undefined) return refuse("invalid_body", "since is not a moment in unix seconds", 400);
 
   const after = new URL(req.url).searchParams.get("after");
   let cut: { run: "m" | "c"; at: string; id: string } | null = null;
@@ -43,10 +54,13 @@ async function inbox(req: Request): Promise<Response> {
 
   const matches = cut?.run === "c" ? [] : await query<{
     id: string; name: string; age: number; text: string | null; mode: string; waiting: boolean; created_at: Date; at: string;
+    arrived: boolean; answered: boolean;
   }>(
     `SELECT m.id, them.name, them.age, theirs.text_snapshot AS text, theirs.mode,
             (theirs.accepted_at IS NOT NULL AND mine.accepted_at IS NULL) AS waiting, m.created_at,
-            (extract(epoch from m.created_at) * 1000000)::bigint::text AS at
+            (extract(epoch from m.created_at) * 1000000)::bigint::text AS at,
+            (m.created_at > to_timestamp($4)) AS arrived,
+            (theirs.accepted_at IS NOT NULL AND theirs.accepted_at > to_timestamp($4)) AS answered
        FROM matches m
        JOIN match_participants mine   ON mine.match_id = m.id AND mine.identity = $1
        JOIN match_participants theirs ON theirs.match_id = m.id AND theirs.identity <> $1
@@ -54,7 +68,7 @@ async function inbox(req: Request): Promise<Response> {
       WHERE m.expires_at > now() AND m.chat_id IS NULL AND mine.declined_at IS NULL
         AND ($2::bigint IS NULL OR ((extract(epoch from m.created_at) * 1000000)::bigint, m.id) < ($2::bigint, $3::uuid))
       ORDER BY m.created_at DESC, m.id DESC LIMIT ${PAGE + 1}`,
-    [me, cut?.run === "m" ? cut.at : null, cut?.run === "m" ? cut.id : null],
+    [me, cut?.run === "m" ? cut.at : null, cut?.run === "m" ? cut.id : null, since ?? 0],
   );
   // One more than a page tells whether another page exists; the offers take
   // the page first, and only what they leave is read from conversations.
@@ -64,8 +78,16 @@ async function inbox(req: Request): Promise<Response> {
     id: string; name: string; age: number; ends: string; span: number; created_at: Date; over: boolean;
     peer_id: string; peer_long: string; peer_half: string | null; peer_sig: string | null; match_id: string | null;
     my_epoch: number; peer_epoch: number; at: string;
+    opened: boolean; soon: boolean; pending: number; activity: string;
   }>(
     `SELECT c.id, them.name, them.age, c.created_at, (o.gone_at IS NOT NULL) AS over,
+            -- Since the last visit (§8.12): opened after it, in its last fifth,
+            -- replies waiting in this session's queue, and the last activity
+            -- for the device's "you missed a message" (lib/inbox_events.ts).
+            (c.created_at > to_timestamp($4)) AS opened,
+            (${ENDING_SOON}) AS soon,
+            (SELECT count(*) FROM pending_deliveries d WHERE d.chat = c.id AND d.recipient_session = $5)::int AS pending,
+            floor(extract(epoch from c.last_activity_at))::bigint::text AS activity,
             floor(extract(epoch from COALESCE(p.last_own_message_at, c.created_at)
               + p.idle_ttl_minutes * interval '1 minute'))::bigint::text AS ends,
             p.idle_ttl_minutes AS span,
@@ -82,9 +104,11 @@ async function inbox(req: Request): Promise<Response> {
       WHERE p.identity = $1 AND p.gone_at IS NULL AND NOT (${TERM_PASSED})
         AND ($2::bigint IS NULL OR ((extract(epoch from c.last_activity_at) * 1000000)::bigint, c.id) < ($2::bigint, $3::uuid))
       ORDER BY c.last_activity_at DESC, c.id DESC LIMIT ${room + 1}`,
-    [me, cut?.run === "c" ? cut.at : null, cut?.run === "c" ? cut.id : null],
+    [me, cut?.run === "c" ? cut.at : null, cut?.run === "c" ? cut.id : null, since ?? 0, caller.sessionId],
   );
-  if (matches === null || chats === null) {
+  // Counted over everything live, whatever page this is: the badge on the tab.
+  const events = await inboxEvents(me, caller.sessionId, since);
+  if (matches === null || chats === null || events === null) {
     return refuse("unavailable", "the node cannot answer right now", 503);
   }
 
@@ -106,6 +130,9 @@ async function inbox(req: Request): Promise<Response> {
       kind: "match", id: m.id, name: m.name, age: m.age,
       phrase: { text: m.text ?? "", mode: m.mode },
       waiting_for_you: m.waiting, state: "pending",
+      // Since the last visit (§8.12): the offer arrived, or the other side
+      // agreed to it, after `since`.
+      arrived_since: m.arrived, answered_since: m.answered,
     })),
     ...pageOfChats.map((c) => ({
       kind: "chat", id: c.id, name: c.name, age: c.age,
@@ -116,6 +143,15 @@ async function inbox(req: Request): Promise<Response> {
       // Named my_span, not span: a bare "span" on this row is what the test of
       // an ended conversation watches for as the other side's term leaking.
       my_span: c.span,
+      // Since the last visit (§8.12, lib/inbox_events.ts): opened after
+      // `since`; replies the node still holds for this session (§8.8) — what
+      // it has not handed over, never what was read; in the last fifth of
+      // one's own term; and the last activity, unix seconds, for the device
+      // to compare with its own last line and say "you missed a message".
+      opened_since: c.opened,
+      pending_messages: c.pending,
+      ending_soon: c.soon,
+      last_activity_at: Number(c.activity),
       // What the client needs to open the conversation's keys (§8.13): the
       // peer's ephemeral half with its signature, the long key that signed it
       // (and from which the safety code is derived), and the ids that decide
@@ -136,7 +172,7 @@ async function inbox(req: Request): Promise<Response> {
       },
     })),
   ];
-  return json({ items, ...(next ? { next } : {}) }, 200, sunsetHeader());
+  return json({ items, events, ...(since !== null ? { since } : {}), ...(next ? { next } : {}) }, 200, sunsetHeader());
 }
 
 route("GET", "/inbox", (c) => inbox(c.req));

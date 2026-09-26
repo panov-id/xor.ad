@@ -8,7 +8,7 @@
 import { createElement as h, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
-import type { Client, Liked as LikedCard, Statement } from "../core/client.ts";
+import type { Client, InboxEvents, Liked as LikedCard, Statement } from "../core/client.ts";
 import { CursorRefused } from "../core/client.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
@@ -96,7 +96,28 @@ type Row = {
   state?: string;
   chat_expires_at?: number;
   my_span?: number;
+  // Since the last visit (§8.12, step 8): flags and counts the node derives
+  // from its tables against ?since; shown here as marks, never as new words.
+  arrived_since?: boolean;
+  answered_since?: boolean;
+  opened_since?: boolean;
+  pending_messages?: number;
+  ending_soon?: boolean;
 };
+
+// The moment of the last look at the inbox in this run — depth keeps nothing
+// on disk (§8.12), so the first look of a run sees everything live as new.
+let lastLook: number | undefined;
+
+// What a row says at a glance: "●" for what happened since the last look (an
+// offer arrived or was answered, a chat opened, replies wait — with their
+// count), "⌛" for one's own term in its last fifth. Symbols, not words: the
+// texts people read are the owner's (17 locales), and these need none.
+export function marksOf(r: Row): string {
+  const fresh = r.arrived_since || r.answered_since || r.opened_since || (r.pending_messages ?? 0) > 0;
+  const count = (r.pending_messages ?? 0) > 0 ? ` ${r.pending_messages}` : "";
+  return `${fresh ? `●${count}` : ""}${r.ending_soon ? (fresh ? " ⌛" : "⌛") : ""}`;
+}
 
 // 5 · the inbox: matches waiting for consent, and chats already open.
 export function Inbox(
@@ -113,10 +134,12 @@ export function Inbox(
   // Declined rows the node no longer lists (GET /inbox drops them), kept here
   // so "declined · undo" stays in their place until the person leaves (§4.6).
   const [declined, setDeclined] = useState<Array<Row & { declined: true }>>([]);
+  const [events, setEvents] = useState<InboxEvents | null>(null);
   const load = (keep = declined) =>
-    client.inbox()
-      .then((list) => {
-        const live = list as Row[];
+    client.inboxSince(lastLook)
+      .then(({ items, events }) => {
+        setEvents(events);
+        const live = items as Row[];
         // In the order the person already sees: a declined row keeps its
         // place, so the cursor stays on it and "undo" is right there.
         setRows((before) => {
@@ -131,6 +154,11 @@ export function Inbox(
       })
       .catch((e: Error) => onError(e.message));
   useEffect(() => void load(), []);
+  // The look ends when the screen is left: marks hold while it is open, and a
+  // reload after "not now" does not wipe them.
+  useEffect(() => () => {
+    lastLook = Math.floor(Date.now() / 1000);
+  }, []);
   useKeys((_input, key) => {
     const count = rows?.length ?? 0;
     if (count === 0) return;
@@ -138,12 +166,22 @@ export function Inbox(
     if (key.downArrow) setAt((i) => (i + 1) % count);
   });
   const chosen = rows?.[at];
+  // The tab's badge (§8.12): counts over everything live, in the same marks.
+  const badge = events
+    ? [
+      events.new_matches + events.waiting_for_you + events.new_chats > 0
+        ? `● ${events.new_matches + events.waiting_for_you + events.new_chats}`
+        : "",
+      events.pending_messages > 0 ? `✉ ${events.pending_messages}` : "",
+      events.ending_soon > 0 ? `⌛ ${events.ending_soon}` : "",
+    ].filter(Boolean).join("  ")
+    : "";
   const time = (seconds?: number) =>
     seconds ? new Date(seconds * 1000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : "";
   return h(
     Box,
     { flexDirection: "column", gap: 1 },
-    h(Head, { title: say("inbox.title") }),
+    h(Head, { title: badge ? `${say("inbox.title")}   ${badge}` : say("inbox.title") }),
     rows === null
       ? h(Text, { dimColor: true }, "…")
       : rows.length === 0
@@ -156,6 +194,7 @@ export function Inbox(
             Text,
             { key: r.id, bold: i === at },
             `${i === at ? "›" : " "} ${plain(r.name ?? "?", 48)}, ${plain(r.age ?? "?", 3)}   `,
+            r.declined || !marksOf(r) ? "" : `${marksOf(r)}  `,
             r.declined
               ? say("inbox.declined")
               : r.kind === "chat"

@@ -228,6 +228,7 @@ components:
       properties:
         state: {type: string, enum: [liked, matched, spent, unliked], description: "unliked — the answer to a take-back (added 2026-09-21).", x-description-ru: "unliked — ответ на снятие лайка (добавлено 21.09.2026)."}
         match_id: {type: string, format: uuid}
+        name_pending: {type: boolean, description: "Only with state liked on an offer (added 2026-09-26, §8.5 S7): the like counted, and the offer's match waits for the liker's name to pass the queue — the screen shows the like-on-offer line of refusal-wordings §3. Absent otherwise.", x-description-ru: "Только при state liked на оффере (добавлено 26.09.2026, §8.5 S7): лайк засчитан, а мэтч от оффера ждёт, пока имя лайкнувшего пройдёт очередь — экран показывает строку «лайк на оффер» из refusal-wordings §3. Иначе отсутствует."}
     SessionsInvite:
       type: object
       properties:
@@ -2029,7 +2030,7 @@ paths:
         "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "503": {$ref: "#/components/responses/Unavailable"}
-        "200": {description: liked or matched., x-description-ru: liked или matched., content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
+        "200": {description: "liked or matched. On an offer (a phrase with a discount) the match is made at once and one-sided (§8.5, built 2026-09-26): matched with match_id when both names stand; liked with name_pending when the liker's name is still in the queue — the match follows the verdict; plain liked when the rules stop it (the author's name, a block, the pair's live chat or match) — never a word about the author.", x-description-ru: "liked или matched. На оффере (фразе со скидкой) мэтч рождается сразу и односторонне (§8.5, построено 26.09.2026): matched с match_id, когда стоят оба имени; liked с name_pending, пока имя лайкнувшего в очереди — мэтч придёт за вердиктом; просто liked, когда правила не дают (имя автора, блок, живой чат или мэтч пары) — об авторе ни слова.", content: {application/json: {schema: {$ref: "#/components/schemas/LikeResult"}}}}
         "409": {description: "Re-acceptance required (no error.code), stepped_away, or refused — no live phrase of one's own and the target is not an offer (§8.4; the code added 2026-09-21). A like the rules forbid otherwise — one's own phrase, a block, another band, a phrase that is gone — answers 200 liked, never a refusal: a different answer would be an oracle.", x-description-ru: "Нужно принять заново (без error.code), stepped_away либо refused — своей живой фразы нет, а цель не оффер (§8.4; код заведён 21.09.2026). Остальные запреты — своя фраза, блокировка, другая полоса, исчезнувшая фраза — отвечают 200 liked, а не отказом: иной ответ был бы оракулом.", content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
     delete:
       tags: [chat]

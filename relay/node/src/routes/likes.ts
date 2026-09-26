@@ -11,16 +11,19 @@
 // blocked, another age band, a phrase that is gone or never was. Telling those
 // apart would be an oracle, and §8.9 promises that nobody learns about a block.
 //
-// Not here yet, and said so: the one-sided match of an offer (§8.5), which also
-// has to send an unchecked name through the queue first (S7, 2026-09-14). An
-// offer's like counts; its match is the next piece.
+// The one-sided match of an offer (§8.5) is lib/offer_match.ts, called from the
+// same transaction once the like has counted: matched at once when both names
+// stand; with the liker's name still in the queue the like counts, the answer
+// says name_pending, and the match is made when the verdict accepts the name
+// (S7, 2026-09-14; settleOfferLikes).
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
 import { stillHere } from "../lib/take_down.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
-import { sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
+import { sunsetHeader } from "../lib/identity_auth.ts";
+import { makeOfferMatch, pairKey } from "../lib/offer_match.ts";
 import { band } from "../lib/feed_geo.ts";
 import { inc } from "../lib/metrics.ts";
 import { LIVE_PHRASE, livePhraseOf } from "../lib/feed_limits.ts";
@@ -38,11 +41,6 @@ const UUID = /^[0-9a-fA-F-]{36}$/;
 // A ceiling for "no ceiling": the band above 20 is open upwards (feed_geo.band),
 // and SQL wants a number on both sides of BETWEEN.
 const NO_CEILING = 1000;
-
-async function pairKey(a: string, b: string): Promise<string> {
-  const [low, high] = a < b ? [a, b] : [b, a];
-  return await sha256hex(new TextEncoder().encode(`${low}:${high}`));
-}
 
 const liked = () => json({ state: "liked" }, 200, sunsetHeader());
 // Not in the contract's enum before 2026-09-21: it named liked, matched and
@@ -160,8 +158,19 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
     );
 
     if (phrase.offer) {
-      inc("relay_like_total", { result: "liked" });
-      return liked();
+      // §8.5: the offer's match, at once and one-sided (lib/offer_match.ts).
+      // The liker's own state decides name_pending; everything about the
+      // author — a name that does not stand, a live chat — is "liked", as any
+      // like the rules stop is: nothing here is an oracle on the author.
+      const made = await makeOfferMatch(run, me, target, pk);
+      if (made.state === "matched") {
+        inc("relay_like_total", { result: "matched" });
+        return json({ state: "matched", match_id: made.matchId }, 200, sunsetHeader());
+      }
+      inc("relay_like_total", { result: made.state === "name_pending" ? "name_pending" : "liked" });
+      return made.state === "name_pending"
+        ? json({ state: "liked", name_pending: true }, 200, sunsetHeader())
+        : liked();
     }
 
     // §8.5: a match counts only while both phrases are alive, both names stand
@@ -280,7 +289,8 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
     );
     if (!phrase) return unliked();
     // §8.4 and screens 5 and 25: a like on an offer makes its match at once
-    // and is not taken back. The one-sided match is not built yet; the rule is.
+    // (lib/offer_match.ts) and is not taken back — not even while it waits for
+    // the liker's name: the wait is the match's, not the like's (S7).
     if (phrase.offer) {
       inc("relay_unlike_total", { result: "spent" });
       return json({ state: "spent" }, 200, sunsetHeader());
@@ -353,8 +363,8 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
 // Cards of the feed's own shape, plus `state` and `liked_at`, in the order of
 // the like, newest first. `matched` when a live match came out of this phrase
 // with me in it — then DELETE /feed/:id/like answers `spent`, and the card is
-// an offer to talk. An offer's one-sided match is not built (see the top of
-// this file), so an offer is `liked` here until it is.
+// an offer to talk. An offer's one-sided match (lib/offer_match.ts) puts the
+// offer's id on the author's row, so the same EXISTS finds it.
 //
 // It goes by itself, as the feed does: an expired or taken-down phrase, and
 // the phrases of anyone on either side of a block (§8.9). Counted against the

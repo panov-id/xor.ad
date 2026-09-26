@@ -690,7 +690,7 @@ async function claimRecovery(req: Request): Promise<Response> {
     // believes they are doing.
     for (const session of live) {
       await freezeSession(run, session.id, "transfer", freezes);
-      await burnShare(run, session.id);
+      await burnShare(run, session.id, freezes);
     }
 
     await run(
@@ -1079,7 +1079,10 @@ class ClosedUnderUs extends Error {}
 async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, presented: string): Promise<Response> {
   // One per attempt: a close retried after a deadlock counted its freezes once
   // for the attempt that rolled back and once for the one that committed (B64).
+  // The chats it ended likewise, counted after COMMIT below (B68): the freeze,
+  // the burn and the rows after them wait under the lock timeout.
   const freezes = new Freezes();
+  let chatsEnded = 0;
   return await transaction<Response>(async (run) => {
     // Every share of the identity, in order, before anything else — not only
     // this session's. The close burns the other sessions' shares at its end,
@@ -1146,21 +1149,24 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
         `UPDATE matches SET expires_at = least(expires_at, now() - interval '1 second') WHERE chat_id = ANY($1::uuid[])`,
         [chats]);
       await run(`DELETE FROM chats WHERE id = ANY($1::uuid[])`, [chats]);
-      inc("relay_chat_ended_total", { by: "closed" }, chats.length);
+      chatsEnded = chats.length;
     }
 
     const sessions = (await run<{ id: string }>(`SELECT id FROM sessions WHERE identity = $1`, [me])).map((r) => r.id);
     await run(`DELETE FROM pending_deliveries WHERE recipient_session = ANY($1::uuid[])`, [sessions]);
     for (const id of sessions) {
       await freezeSession(run, id, "closed", freezes);
-      await burnShare(run, id);
+      await burnShare(run, id, freezes);
     }
     await run(`DELETE FROM identity_appearance WHERE identity = $1`, [me]);
     await run(`UPDATE support_requests SET identity = NULL WHERE identity = $1`, [me]);
 
     inc("relay_identity_close_total", { result: "closed" });
     return new Response(null, { status: 200, headers: sunsetHeader() });
-  }).then(freezes.count).catch((error) => {
+  }).then((answer) => {
+    if (chatsEnded > 0) inc("relay_chat_ended_total", { by: "closed" }, chatsEnded);
+    return freezes.count(answer);
+  }).catch((error) => {
     if (tryAgain(error)) throw error;
     if (error instanceof ClosedUnderUs) {
       return refuse("unauthorized", "the request is not signed by a live session", 401);

@@ -579,6 +579,19 @@ async function approvedMove() {
     signedCall(key, session, "POST", `/sessions/${lookupId}/ack`);
   return { old, lookupId, invited, sessionId, ack };
 }
+// An approved move freezes the old session and burns its share, and counts
+// each once, after its COMMIT: reason="transfer" had no case holding it
+// (observer on B64; B68).
+Deno.test("an approved move counts the old session's freeze and burn once", async () => {
+  const { render } = await import("../src/lib/metrics.ts");
+  const transfers = () => Number(render().match(/relay_sessions_frozen_total\{reason="transfer"\} (\d+)/)?.[1] ?? 0);
+  const burned = () => Number(render().match(/relay_vault_shares_burned_total (\d+)/)?.[1] ?? 0);
+  const [frozenBefore, burnedBefore] = [transfers(), burned()];
+  await approvedMove();
+  assertEquals(transfers() - frozenBefore, 1, "the approval's freeze of the old session was counted other than once");
+  assertEquals(burned() - burnedBefore, 1, "the approval's burn of the old share was counted other than once");
+});
+
 const heldReply = async (lookupId: string) => (await database.queryOrThrow<{ reply_envelope: Uint8Array | null }>(
   `SELECT reply_envelope FROM session_invites WHERE lookup_id = $1`, [lookupId]))[0].reply_envelope;
 

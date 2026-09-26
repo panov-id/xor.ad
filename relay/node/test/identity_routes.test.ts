@@ -2583,6 +2583,12 @@ const frozenClosed = async () => {
   const line = render().split("\n").find((row) => row.startsWith(`relay_sessions_frozen_total{reason="closed"}`));
   return line ? Number(line.split(" ").at(-1)) : 0;
 };
+// The share burned beside each freeze, counted with it (B68).
+const burnedShares = async () => {
+  const { render } = await import("../src/lib/metrics.ts");
+  const line = render().split("\n").find((row) => row.startsWith(`relay_vault_shares_burned_total `));
+  return line ? Number(line.split(" ").at(-1)) : 0;
+};
 
 Deno.test({ name: "a close rolled back after its freeze does not count the freeze", sanitizeOps: false, sanitizeResources: false }, async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
@@ -2591,6 +2597,7 @@ Deno.test({ name: "a close rolled back after its freeze does not count the freez
   const me = await registered();
   const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
   const before = await frozenClosed();
+  const burnedBefore = await burnedShares();
   const got: { answer?: { status: number; body: unknown } } = {};
   try {
     await sql.begin(async (tx) => {
@@ -2607,6 +2614,7 @@ Deno.test({ name: "a close rolled back after its freeze does not count the freez
       `SELECT frozen_at IS NOT NULL AS frozen FROM sessions WHERE id = $1`, [me.created.session_id]);
     assert(!row.frozen, "the rolled-back close left the session frozen — the case no longer rolls back after the freeze");
     assertEquals((await frozenClosed()) - before, 0, "a freeze the close rolled back was counted in relay_sessions_frozen_total");
+    assertEquals((await burnedShares()) - burnedBefore, 0, "a burn the close rolled back was counted in relay_vault_shares_burned_total");
   } finally {
     await sql.end(); reset();
   }
@@ -2619,6 +2627,7 @@ Deno.test({ name: "a close tried again after a deadlock counts its freeze once",
   const me = await registered();
   const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
   const before = await frozenClosed();
+  const burnedBefore = await burnedShares();
   const got: { answer?: { status: number; body: unknown } } = {};
   try {
     await sql.begin(async (tx) => {
@@ -2636,7 +2645,83 @@ Deno.test({ name: "a close tried again after a deadlock counts its freeze once",
     assert(got.answer, "the close never answered");
     assertEquals(got.answer.status, 200, `the close tried again answered ${got.answer.status}: ${JSON.stringify(got.answer.body)}`);
     assertEquals((await frozenClosed()) - before, 1, "one session frozen by a close tried again, counted other than once");
+    assertEquals((await burnedShares()) - burnedBefore, 1, "one share burned by a close tried again, counted other than once");
   } finally {
     await sql.end(); reset();
   }
+});
+
+// The chats a close ends, counted after COMMIT too (B68). The same held
+// appearance table rolls the close back after it has ended the chat.
+Deno.test({ name: "a close rolled back after ending its chat does not count the chat ended", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const { render } = await import("../src/lib/metrics.ts");
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const ended = () => Number(render().match(/relay_chat_ended_total\{by="closed"\} (\d+)/)?.[1] ?? 0);
+  const me = await registered();
+  const other = await registered();
+  const chat = crypto.randomUUID();
+  await database.queryOrThrow(`INSERT INTO chats (id, pair_key) VALUES ($1, $2)`, [chat, `b68-${chat}`]);
+  await database.queryOrThrow(`INSERT INTO chat_participants (chat_id, identity) VALUES ($1, $2), ($1, $3)`,
+    [chat, me.created.identity_id, other.created.identity_id]);
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const before = ended();
+  const got: { answer?: { status: number; body: unknown } } = {};
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`LOCK TABLE identity_appearance IN SHARE MODE`);
+      signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close",
+        { nonce: nonce16(), auth: authBase64(AUTH) }).then((r) => (got.answer = r));
+      await queuedBehind(tx, 1, "the close behind the held appearance table");
+      for (let i = 0; i < 250 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
+    });
+    assert(got.answer, "the close never answered");
+    assertEquals(got.answer.status, 503, `the close behind the held table answered ${got.answer.status}: ${JSON.stringify(got.answer.body)}`);
+    const kept = await database.queryOrThrow(`SELECT 1 FROM chats WHERE id = $1`, [chat]);
+    assertEquals(kept.length, 1, "the chat went, though the close rolled back — the case no longer rolls back after ending it");
+    assertEquals(ended() - before, 0, "a chat the rolled-back close had ended was counted in relay_chat_ended_total");
+  } finally {
+    await sql.end(); reset();
+  }
+});
+
+// A claim from a new device freezes the old session and burns its share, and
+// counts each once, under reason="transfer" (the observer's gap on B64: no case
+// held the transfer count).
+Deno.test({ name: "a claim from a new device counts its freeze and its burn once", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { render } = await import("../src/lib/metrics.ts");
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const transfers = () => Number(render().match(/relay_sessions_frozen_total\{reason="transfer"\} (\d+)/)?.[1] ?? 0);
+  const { lookupId } = await registered();
+  const [frozenBefore, burnedBefore] = [transfers(), await burnedShares()];
+  const fresh = await device();
+  const raised = await call("POST", "/recovery/claim", {
+    body: {
+      lookup_id: lookupId,
+      sign_pub: fresh.signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
+    },
+  });
+  assertEquals(raised.status, 200, `the claim answered ${raised.status}: ${JSON.stringify(raised.body)}`);
+  assertEquals(transfers() - frozenBefore, 1, "the claim's freeze of the old session was counted other than once");
+  assertEquals((await burnedShares()) - burnedBefore, 1, "the claim's burn of the old share was counted other than once");
+  reset();
+});
+
+// And the tenth miss through the route itself: frozen and counted once.
+Deno.test({ name: "the tenth miss through the route counts its freeze once", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { render } = await import("../src/lib/metrics.ts");
+  const pinLimit = () => Number(render().match(/relay_sessions_frozen_total\{reason="pin_limit"\} (\d+)/)?.[1] ?? 0);
+  const { answer, pair } = await registerWithPin();
+  const created = answer.body as { session_id: string };
+  const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
+  const before = pinLimit();
+  for (let i = 0; i < 10; i++) {
+    await signedCall(pair.privateKey, created.session_id, "POST", "/vault/share", wrong);
+    await clearDelay(created.session_id);
+  }
+  assert((await attemptsLeft(created.session_id)).locked_at, "the tenth miss did not close entry");
+  assertEquals(pinLimit() - before, 1, "the tenth miss's freeze was counted other than once");
 });

@@ -128,6 +128,7 @@ async function closeInactive(): Promise<number> {
   let total = 0;
   let after = "00000000-0000-0000-0000-000000000000";
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
+    const skipped = new Map<string, number>();
     const { picked, closed, last } = await transaction(async (run) => {
       // Keyed past the last batch rather than skipping what is locked: nothing
       // is locked at this point, so a candidate that survives the second
@@ -224,9 +225,10 @@ async function closeInactive(): Promise<number> {
       // attempt, for exactly one of them. retry_cap is an identity nobody held,
       // dropped because the fifth attempt still lost somebody else — churn, not
       // a held share, and it was counted as share_held until
-      // observability.lockorder.alerts (2026-09-26).
+      // observability.lockorder.alerts (2026-09-26). Counted once the batch
+      // commits, below: a batch rolled back skipped nobody (B68).
       const skip = (reason: string, n: number) => {
-        if (n > 0) inc("relay_identity_sweeper_skipped_total", { reason }, n);
+        if (n > 0) skipped.set(reason, (skipped.get(reason) ?? 0) + n);
       };
       skip("share_held", shortOfShares);
       skip("row_held", shortOfRows);
@@ -244,11 +246,10 @@ async function closeInactive(): Promise<number> {
           RETURNING id`,
         [ids],
       );
-      if (ids.length > shut.length) {
-        inc("relay_identity_sweeper_skipped_total", { reason: "came_back" }, ids.length - shut.length);
-      }
+      skip("came_back", ids.length - shut.length);
       return { picked: doomed.length, closed: shut.length, last };
     });
+    for (const [reason, n] of skipped) inc("relay_identity_sweeper_skipped_total", { reason }, n);
     total += closed;
     after = last;
     if (picked < BATCH) break;
@@ -306,7 +307,7 @@ async function closeIdentities(): Promise<number> {
   // Without that, a LIMIT would keep handing back the same finished rows and
   // the unfinished ones would never come up.
   for (let batch = 0; batch < MAX_BATCHES; batch++) {
-    const frozen = await transaction(async (run) => {
+    const done = await transaction(async (run) => {
       // `burned` filters by identity and **must not** filter by `frozen_at`.
       // Data-modifying CTEs share one snapshot and cannot see one another's
       // writes (PostgreSQL 16 §7.8.2, checked in a container on 2026-09-20), so
@@ -339,7 +340,7 @@ async function closeIdentities(): Promise<number> {
               )
             ORDER BY i.id LIMIT ${BATCH}`,
       );
-      if (picked.length === 0) return 0;
+      if (picked.length === 0) return { frozen: 0, burned: 0, faces: 0 };
       const batchIds = picked.map((p) => p.id);
       await run(
         `SELECT v.session FROM vault_shares v JOIN sessions s ON s.id = v.session
@@ -394,14 +395,12 @@ async function closeIdentities(): Promise<number> {
       // exists to tell a wave of closures from somebody attacking open tabs,
       // and the series reason="closed" had never once been written. Same for
       // burned shares, which read zero on a night that burned a thousand.
-      if (ids.length > 0) {
-        inc("relay_sessions_frozen_total", { reason: "closed" }, ids.length);
-      }
-      const burned = rows[0]?.burned ?? 0;
-      if (burned > 0) inc("relay_vault_shares_burned_total", {}, burned);
-      return ids.length + burned + (rows[0]?.faces ?? 0);
+      // Counted once the batch commits, as lib/sessions.ts counts (B68).
+      return { frozen: ids.length, burned: rows[0]?.burned ?? 0, faces: rows[0]?.faces ?? 0 };
     });
-    if (frozen === 0) break;
+    if (done.frozen > 0) inc("relay_sessions_frozen_total", { reason: "closed" }, done.frozen);
+    if (done.burned > 0) inc("relay_vault_shares_burned_total", {}, done.burned);
+    if (done.frozen + done.burned + done.faces === 0) break;
   }
 
   return shut;

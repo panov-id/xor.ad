@@ -101,6 +101,7 @@ async function patchProfile(req: Request): Promise<Response> {
     }
   }
 
+  let patched: "name_queued" | "applied" | null = null;
   const answer = await transaction<Response>(async (run) => {
     // identity_stats first — the verdict's order — and it doubles as the
     // pause check for a new name below.
@@ -196,7 +197,8 @@ async function patchProfile(req: Request): Promise<Response> {
         await run(`SELECT pg_notify('chat_sys', $1)`, [`${chat_id}|${JSON.stringify({ kind: "age_changed", age })}`]);
       }
     }
-    inc("relay_profile_patch_total", { result: nameQueued ? "name_queued" : "applied" });
+    // Counted once the edit commits, below (B68).
+    patched = nameQueued ? "name_queued" : "applied";
     // The profile as it now stands, the same shape GET gives (202 when the
     // name is still on its way, and name_pending says which).
     const [now] = await run<Row & { languages: string[]; stepped_away_until: Date | null }>(
@@ -215,6 +217,7 @@ async function patchProfile(req: Request): Promise<Response> {
       ...(now.stepped_away_until ? { stepped_away_until: Math.floor(now.stepped_away_until.getTime() / 1000) } : {}),
     }, nameQueued ? 202 : 200, sunsetHeader());
   });
+  if (patched) inc("relay_profile_patch_total", { result: patched });
   return answer ?? refuse("unavailable", "the node cannot answer right now", 503);
 }
 

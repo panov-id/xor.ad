@@ -51,20 +51,41 @@ type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 // hands it on with take() once released: this one knows nothing of savepoints,
 // and a freeze undone by ROLLBACK TO SAVEPOINT would otherwise be counted when
 // the outer transaction commits (the B64 quorum's trap, pin_attempts.ts).
+//
+// The shares burnShare() burns ride along, for the same reason: every burn
+// sits next to a freeze, inside the same transaction (B68).
+//
+// The rule for the node's other counters (B68, 2026-09-26): a count that has
+// statements after it in its transaction is counted after COMMIT — the chats a
+// close ends, the sweep's skips, freezes and burns, a profile edit. A count
+// written as the last thing before `return` from the transaction's body stays
+// where it is: only a failed COMMIT can undo what it counts, and a retried
+// transaction (away.ts, closeOnce, support.ts) is retried for an error thrown
+// before it. About fifty-five such places; moving them all would be churn for
+// a COMMIT that fails.
 export class Freezes {
   #reasons: FreezeReason[] = [];
+  #burned = 0;
 
   note(reason: FreezeReason): void {
     this.#reasons.push(reason);
   }
 
+  burned(): void {
+    this.#burned++;
+  }
+
   take(from: Freezes): void {
     this.#reasons.push(...from.#reasons.splice(0));
+    this.#burned += from.#burned;
+    from.#burned = 0;
   }
 
   // An arrow, so it can be handed to .then() as it is; the answer passes through.
   count = <T>(answer: T): T => {
     for (const reason of this.#reasons.splice(0)) inc("relay_sessions_frozen_total", { reason });
+    if (this.#burned > 0) inc("relay_vault_shares_burned_total", {}, this.#burned);
+    this.#burned = 0;
     return answer;
   };
 }
@@ -148,7 +169,7 @@ export async function freezeSession(
 // that is marked rather than deleted, so the old phone went on decrypting
 // everything it had accumulated with its own PIN. Somebody who lost a device and
 // raised the identity from paper believed they had shut the door.
-export async function burnShare(run: Run, sessionId: string): Promise<void> {
+export async function burnShare(run: Run, sessionId: string, freezes: Freezes): Promise<void> {
   // The column pair is written together or not at all — the table's own CHECK
   // says so, and a burn that wrote only one of them would be refused outright.
   const burned = await run<{ session: string }>(
@@ -160,7 +181,8 @@ export async function burnShare(run: Run, sessionId: string): Promise<void> {
   // Only a burn that happened is counted. Burning what is already burned is
   // ordinary — a move of an identity touches every session it has — and
   // counting it would make the number describe the sweep rather than the loss.
-  if (burned.length > 0) inc("relay_vault_shares_burned_total");
+  // Counted by the caller once it commits, with the freeze it rides with (B68).
+  if (burned.length > 0) freezes.burned();
 }
 
 // A frame for every live session of one identity, through their open rooms

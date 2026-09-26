@@ -439,7 +439,7 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
     );
     for (const session of live) {
       await freezeSession(run, session.id, "transfer", freezes);
-      await burnShare(run, session.id);
+      await burnShare(run, session.id, freezes);
     }
     await run(
       `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key, label)

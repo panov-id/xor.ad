@@ -1159,3 +1159,89 @@ Deno.test({
     }
   },
 });
+
+// The sweep's counters, counted once a batch commits and never before (B68,
+// the class of review panel 3's S2). A trigger made for the case refuses on
+// cue, in this throwaway database only: the batch rolls back, the sweep
+// throws, and a count written before COMMIT would stand for work undone.
+async function refuseOnCue(trigger: string): Promise<() => Promise<void>> {
+  await database.queryOrThrow(
+    `CREATE OR REPLACE FUNCTION b68_refuse() RETURNS trigger LANGUAGE plpgsql
+       AS $$ BEGIN RAISE EXCEPTION 'b68: refused on cue'; END $$`);
+  await database.queryOrThrow(trigger);
+  const name = trigger.match(/TRIGGER (\w+)/)![1];
+  const table = trigger.match(/ ON (\w+)/)![1];
+  return async () => {
+    await database.queryOrThrow(`DROP TRIGGER IF EXISTS ${name} ON ${table}`);
+    await database.queryOrThrow(`DROP FUNCTION IF EXISTS b68_refuse()`);
+  };
+}
+
+Deno.test({ name: "a batch rolled back after its locks counts none of the identities it skipped", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  const b = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
+  await database.queryOrThrow(`UPDATE identities SET name = 'sweeper-rollback' WHERE id = $1`, [x.identityId]);
+  // The close of X refused: the statement after the skips are known.
+  const undo = await refuseOnCue(
+    `CREATE TRIGGER b68_refuse_close BEFORE UPDATE ON identities FOR EACH ROW
+       WHEN (NEW.name = 'sweeper-rollback' AND OLD.closed_at IS NULL AND NEW.closed_at IS NOT NULL)
+       EXECUTE FUNCTION b68_refuse()`);
+  const holder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  let release: () => void = () => {};
+  const released = new Promise<void>((r) => { release = r; });
+  try {
+    let held!: () => void;
+    const isHeld = new Promise<void>((r) => { held = r; });
+    // B's share held, so the batch skips B as share_held and goes on with X.
+    const holding = holder.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [b.sessionId]);
+      held();
+      await released;
+    });
+    await isHeld;
+    const before = await skipped("share_held");
+    const error = await sweeper.sweepIdentities().then(() => null, (e) => e);
+    assert(String(error).includes("b68: refused on cue"), `the batch did not roll back on cue: ${error}`);
+    assertEquals((await identityRow(x.identityId)).closed_at, null, "X was closed, though its batch rolled back");
+    assertEquals((await skipped("share_held")) - before, 0, "a batch that rolled back counted the identity it skipped as share_held");
+    release();
+    await holding;
+  } finally {
+    release();
+    await holder.end();
+    await undo();
+  }
+  // Nothing refused and nothing held: both go on the next pass.
+  await sweeper.sweepIdentities();
+  assert((await identityRow(x.identityId)).closed_at !== null, "X was not closed once nothing refused it");
+});
+
+Deno.test({ name: "a batch of consequences refused at COMMIT counts no freeze and no burned share", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const metrics = await import("../src/lib/metrics.ts");
+  const c = await identity({});
+  // Closed already, with its session live and its share whole: the second
+  // pass's batch freezes and burns it, and its COMMIT is refused.
+  await database.queryOrThrow(`UPDATE identities SET closed_at = now() WHERE id = $1`, [c.identityId]);
+  const undo = await refuseOnCue(
+    `CREATE CONSTRAINT TRIGGER b68_refuse_commit AFTER UPDATE ON sessions
+       DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+       WHEN (NEW.frozen_reason = 'closed' AND NEW.identity = '${c.identityId}')
+       EXECUTE FUNCTION b68_refuse()`);
+  const frozen = () => countOf(metrics.render(), 'relay_sessions_frozen_total{reason="closed"}');
+  const burned = () => countOf(metrics.render(), "relay_vault_shares_burned_total");
+  const liveOf = async () => (await database.queryOrThrow<{ live: boolean }>(
+    `SELECT frozen_at IS NULL AS live FROM sessions WHERE id = $1`, [c.sessionId]))[0].live;
+  try {
+    const [frozenBefore, burnedBefore] = [frozen(), burned()];
+    const error = await sweeper.sweepIdentities().then(() => null, (e) => e);
+    assert(String(error).includes("b68: refused on cue"), `the batch's COMMIT was not refused on cue: ${error}`);
+    assert(await liveOf(), "the session froze, though its batch was refused at COMMIT");
+    assertEquals(frozen() - frozenBefore, 0, "a freeze refused at COMMIT was counted in relay_sessions_frozen_total");
+    assertEquals(burned() - burnedBefore, 0, "a burn refused at COMMIT was counted in relay_vault_shares_burned_total");
+  } finally {
+    await undo();
+  }
+  await sweeper.sweepIdentities();
+  assertEquals(await liveOf(), false, "the closed identity's session was not frozen once nothing refused it");
+});

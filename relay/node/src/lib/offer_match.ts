@@ -86,9 +86,14 @@ export async function makeOfferMatch(run: Query, me: string, offerId: string, pk
   // A live match already stands for this pair: a second like of the pair makes
   // no new one (§8.5, "pair_key is unique").
   if (!made) return { state: "none" };
+  // The reason is one for both — the offer — and both cards show it (§8.5):
+  // the liker's row carries the offer's text and mode too, so the author's
+  // inbox and the chat's header read it from either row. message_id stays
+  // NULL on the liker's row: that is what says "came to the offer" — the
+  // inbox's offer_interest and the header's single starter go by it.
   await run(
     `INSERT INTO match_participants (match_id, identity, message_id, text_snapshot, mode)
-     VALUES ($1, $2, NULL, NULL, $5), ($1, $3, $4, $6, $5)`,
+     VALUES ($1, $2, NULL, $6, $5), ($1, $3, $4, $6, $5)`,
     [made.id, me, offer.author, offerId, offer.mode, offer.text],
   );
   await run(

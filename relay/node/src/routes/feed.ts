@@ -27,7 +27,7 @@ import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
-import { publishLocked, reasonsFor, verdictMode } from "../lib/feed_verdict.ts";
+import { publishLocked, reasonsFor, settleAfterVerdict, verdictMode, type Verdict } from "../lib/feed_verdict.ts";
 import { band, boundingBox, quantise } from "../lib/feed_geo.ts";
 import { query } from "../lib/db.ts";
 import { inc } from "../lib/metrics.ts";
@@ -100,6 +100,9 @@ async function publish(req: Request): Promise<Response> {
 
   const id = crypto.randomUUID();
   const published = quantise({ lat: body.lat, lon: body.lon }, body.area_radius);
+  // The verdict the request itself gave, kept for after the commit: a name
+  // that just passed settles the likes it left on offers (lib/offer_match.ts).
+  let verdict: Verdict | null = null;
   const answer = await transaction<Response>(async (run) => {
     // The row is locked before anything is read, because the moments are
     // written at the verdict and two parallel sends otherwise both pass the
@@ -176,6 +179,7 @@ async function publish(req: Request): Promise<Response> {
       });
       if (reasons.length === 0) {
         const done = await publishLocked(run, id, {}, "rules");
+        verdict = done;
         if (done.applied && done.visibleAt && done.expiresAt) {
           inc("relay_feed_total", { result: "published" });
           inc("relay_feed_rules_total", { result: "published" });
@@ -210,6 +214,7 @@ async function publish(req: Request): Promise<Response> {
     inc("relay_feed_total", { result: "storage_failed" });
     return refuse("unavailable", "the node cannot write right now", 503);
   });
+  if (verdict && answer.status === 200) await settleAfterVerdict(verdict);
   return answer;
 }
 

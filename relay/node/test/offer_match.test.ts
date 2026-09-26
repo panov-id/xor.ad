@@ -159,7 +159,8 @@ Deno.test("a like on an offer makes the match at once, with no phrase on the lik
 
   const rows = Object.fromEntries((await participants(made.id)).map((r) => [r.identity, r]));
   assertEquals(rows[taker.identity_id].message_id, null, "the one who came to the offer has a phrase");
-  assertEquals(rows[taker.identity_id].text_snapshot, null);
+  // The reason is one for both (§8.5): the liker's row shows the offer too.
+  assertEquals(rows[taker.identity_id].text_snapshot, "отдам две табуретки");
   assertEquals(rows[taker.identity_id].mode, "company", "the liker's row does not carry the offer's mode");
   assertEquals(rows[neighbour.identity_id].message_id, offer);
   assertEquals(rows[neighbour.identity_id].text_snapshot, "отдам две табуретки");
@@ -263,5 +264,84 @@ Deno.test("an expired offer and one's own offer make nothing", async () => {
   assertEquals((await like(taker, own)).body, { state: "liked" });
   const [{ n }] = await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM match_participants WHERE identity = $1`, [taker.identity_id]);
   assertEquals(n, 0, "a match with oneself");
+  reset();
+});
+
+// A waiting phrase as POST /feed leaves it for the queue: no visible_at yet.
+async function waiting(identity: string, text: string): Promise<string> {
+  const id = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO feed_messages
+       (id, brand, author_identity, text, mode, lang, lat, lon, area_radius, lat_published, lon_published)
+     VALUES ($1, 'xor', $2, $3, 'alone', 'und', 60.17, 24.94, 1000, 60.17, 24.94)`,
+    [id, identity, text],
+  );
+  return id;
+}
+
+Deno.test("the verdict that accepts the name makes the match of the like that waited on an offer", async () => {
+  reset();
+  const { publishPhrase } = await import("../src/lib/feed_verdict.ts");
+  const neighbour = await person();
+  const taker = await person();
+  await setName(taker.identity_id, "pending");
+  const offer = await seed(neighbour.identity_id, "отдам кресло", { discount: "100%" });
+  assertEquals((await like(taker, offer)).body, { state: "liked", name_pending: true });
+  // The taker's own phrase goes through the queue with the name; the moderator
+  // publishes it — and with it the name.
+  const phrase = await waiting(taker.identity_id, "ищу кресло, кстати");
+  const verdict = await publishPhrase(phrase);
+  assertEquals(verdict.applied, true, JSON.stringify(verdict));
+  assertEquals(verdict.nameAccepted, true, "the verdict did not say the name was accepted");
+  const made = await matchOf(neighbour.identity_id, taker.identity_id);
+  assert(made, "the waiting like did not become a match when the name passed");
+  const rows = Object.fromEntries((await participants(made.id)).map((r) => [r.identity, r]));
+  assertEquals(rows[taker.identity_id].message_id, null);
+  // A verdict on a phrase whose author's name already stood settles nothing new.
+  const second = await publishPhrase(await waiting(taker.identity_id, "ещё одна"));
+  assertEquals(second.nameAccepted, undefined);
+  reset();
+});
+
+Deno.test("both agree on the offer's match: the header is the offer alone, and the author's inbox shows the offer, not an empty phrase", async () => {
+  reset();
+  const { HALF_DOMAIN } = await import("../src/routes/matches.ts");
+  await import("../src/routes/inbox.ts");
+  const neighbour = await person();
+  const taker = await person();
+  const offer = await seed(neighbour.identity_id, "отдам две табуретки", { discount: "100%", mode: "company" });
+  const liked = await like(taker, offer);
+  assertEquals(liked.body.state, "matched", JSON.stringify(liked.body));
+  const matchId = liked.body.match_id as string;
+
+  // The author's inbox before anyone agreed: the reason shown is the offer.
+  const inbox = await signedCall(neighbour, "GET", "/inbox");
+  assertEquals(inbox.status, 200, JSON.stringify(inbox.body));
+  const item = (inbox.body.items as Array<{ id: string; phrase?: { text: string; mode: string } }>).find((i) => i.id === matchId);
+  assert(item, "the offer's match is not in the author's inbox");
+  assertEquals(item.phrase?.text, "отдам две табуретки", "the author's inbox shows an empty phrase for the offer's match");
+  assertEquals(item.phrase?.mode, "company");
+
+  const half = async (who: Person) => {
+    const eph = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair;
+    const spki = new Uint8Array(await crypto.subtle.exportKey("spki", eph.publicKey));
+    const prefix = new TextEncoder().encode(HALF_DOMAIN + matchId + "\n");
+    const bytes = new Uint8Array(prefix.length + spki.length);
+    bytes.set(prefix); bytes.set(spki, prefix.length);
+    const signature = new Uint8Array(await crypto.subtle.sign(SIGN, who.pair.privateKey, bytes));
+    return { ephemeral_public_key: auth.bytesToBase64url(spki), ephemeral_signature: auth.bytesToBase64url(signature) };
+  };
+  const first = await signedCall(taker, "POST", `/matches/${matchId}/consent`, await half(taker));
+  assertEquals(first.body.state, "waiting", JSON.stringify(first.body));
+  const second = await signedCall(neighbour, "POST", `/matches/${matchId}/consent`, await half(neighbour));
+  assertEquals(second.body.state, "agreed", JSON.stringify(second.body));
+  const chatId = second.body.chat_id as string;
+  const starters = await database.queryOrThrow<{ position: number; text_snapshot: string; mode: string; liked_by: string }>(
+    `SELECT position, text_snapshot, mode, liked_by FROM chat_starters WHERE chat_id = $1 ORDER BY position`, [chatId],
+  );
+  assertEquals(starters.length, 1, `the header has ${starters.length} starters: ${JSON.stringify(starters)}`);
+  assertEquals(starters[0].text_snapshot, "отдам две табуретки");
+  assertEquals(starters[0].mode, "company");
+  assertEquals(starters[0].liked_by, taker.identity_id, "the offer is shown as liked by someone other than the one who came to it");
   reset();
 });

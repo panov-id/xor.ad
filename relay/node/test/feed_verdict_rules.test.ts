@@ -44,6 +44,48 @@ Deno.test("a link or a contact is flagged, whichever way it is spelled", () => {
   }
 });
 
+// The measurement of 2026-09-27 (docs/measurements/feed-rules-2026-09-27,
+// scripts/measure-feed-rules.sh): what passed the rules and was closed, and
+// what passed and is left as the rules' named boundary — a test each, so the
+// line is written in code, not in words.
+Deno.test("the passes the measurement closed: a bracketed dot, a Cyrillic top-level label, тг", () => {
+  for (const text of ["заходите на example[.]com", "example(.)com", "сайт пример.рф", "ссылку скину, пример.ру", "домен.укр", "сайт.бел"]) {
+    assertEquals(readText(text), ["link"], text);
+  }
+  for (const text of ["пиши в тг", "пиши в личку тг", "тг: anna"]) {
+    assertEquals(readText(text), ["contact"], text);
+  }
+});
+
+Deno.test("the boundaries the measurement named, kept: a bare dot as a word, spaces around a dot, digits in words", () => {
+  // Each of these passed the rules on 2026-09-27 and stays a phrase for a
+  // person to read: catching it would catch ordinary speech with it.
+  for (const text of [
+    "example dot com — там всё", // "dot" as a bare word: "a dot of humour" is a phrase
+    "example . com, вечером", // a sentence ends with a dot and a space
+    "www example com", // no dot at all
+    "example.c0m", // a digit in the label: not a top-level label
+    "телефон девять девять девять один два три", // digits in words
+    "mail: anna @ mail . ru", // spaces around @
+    "конец.Начало", // a typo, not a host: the Cyrillic labels are a closed list
+    "тгк — это канал", // тг inside a longer word is not the messenger
+  ]) {
+    assertEquals(readText(text), [], text);
+  }
+});
+
+Deno.test("the widened rules still read 100 KB of the worst shapes in under 50 ms each", () => {
+  // As B106 measured the scrub: the phrase is 128 graphemes on the node, but a
+  // regex is judged on what it would do with more.
+  const worst = ["a.".repeat(50_000), "[.]".repeat(34_000), "тг ".repeat(34_000), "пример.рф ".repeat(10_000), "(.)a".repeat(25_000), "-.".repeat(50_000)];
+  for (const text of worst) {
+    const started = performance.now();
+    readText(text);
+    const took = performance.now() - started;
+    assertEquals(took < 50, true, `${text.slice(0, 8)}… ×${text.length} took ${Math.round(took)} ms`);
+  }
+});
+
 Deno.test("a short number is not a telephone; seven digits are", () => {
   assertEquals(readText("в 18:30, дом 12-14"), []);
   assertEquals(readText("123456"), []);

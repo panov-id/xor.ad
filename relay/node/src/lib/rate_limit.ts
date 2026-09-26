@@ -154,11 +154,6 @@ export const RECOVERY_CLAIM_LIMITS: Limit[] = [
   { name: "recovery-claim-day", max: 30, windowMs: DAY },
 ];
 
-// Typing a transfer code, and asking what happened to one. Same numbers as the
-// paper code's per-address ceiling: a person types nine characters once or
-// twice, and the state route is polled for two minutes at most — ten an hour is
-// generous for both and thin for anything else. The node-wide brake is a
-// separate mechanism (lib/shared_misses.ts).
 // Reading the feed, counted per identity rather than per address — §3 keeps
 // both, and this is the one that matters here. The fan-out the review panel
 // described on 2026-09-21 (P1) uses several identities from one address on
@@ -227,18 +222,26 @@ export const TRANSFER_INVITE_LIMITS: Limit[] = [
   { name: "transfer-invite-day", max: 30, windowMs: DAY },
 ];
 
+// Typing a transfer code, per address. The same numbers as the paper code's
+// (chat spec §8.2: "the same as recovery's"), and as the windows an address can
+// open (TRANSFER_INVITE_LIMITS): a person types nine characters once, twice
+// with a typo. It was sixty an hour, above the node-wide brake's fifty
+// (lib/recovery_misses.ts, every miss feeds it): one address alone, unsigned,
+// paused code entry for the whole node (review panel 3, S3; B58, 2026-09-26).
+// At ten, five addresses are needed to trip it — the brake is for a flood,
+// not for one hand (quorum of three: 10 two to one over 20, 30 a day three to
+// none over 200). limits.tsv transfer.claim.hour / .day.
 export const TRANSFER_CLAIM_LIMITS: Limit[] = [
-  { name: "transfer-claim", max: 60, windowMs: HOUR },
-  { name: "transfer-claim-day", max: 200, windowMs: DAY },
+  { name: "transfer-claim", max: 10, windowMs: HOUR },
+  { name: "transfer-claim-day", max: 30, windowMs: DAY },
 ];
 
 // GET /sessions/:lookup_id — the state both devices poll, in buckets of its
 // own (B10, 2026-09-26). It shared the claim's sixty, and two devices behind
 // one address polling every five seconds (depth MOVE_POLL_MS) spent them in
 // two and a half minutes; after that both screens waited an hour in silence.
-// The claim keeps its sixty: it is the guard against typing codes at random,
-// and a poll guesses nothing — it needs the lookup_id, and a miss is not
-// counted toward the shared pause. 600 an hour is ten windows (the invite
+// The claim keeps its own ten (B58), and a poll guesses nothing — it needs
+// the lookup_id, and a miss is not counted toward the shared pause. 600 an hour is ten windows (the invite
 // limit) times two devices times 24 polls in a code's 120 seconds, with room;
 // 1500 a day is the thirty windows a day, the same way (quorum of three).
 // limits.tsv transfer.state.hour / .day.

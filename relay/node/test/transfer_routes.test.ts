@@ -960,3 +960,43 @@ Deno.test({ name: "fifty wrong transfer codes across the node pause code entry f
     misses.reset();
   }
 });
+
+// The brake is for a flood, not for one hand (review panel 3, S3; B58,
+// 2026-09-26): the claim's per-address ceiling was sixty an hour, above the
+// brake's fifty, so one address with no signature typed wrong codes until code
+// entry paused for the whole node. Now the address is refused first, and an
+// honest move from elsewhere goes through.
+Deno.test({ name: "one address alone cannot pause code entry for the node", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const misses = await import("../src/lib/recovery_misses.ts");
+  misses.reset();
+  try {
+    const old = await device_with_identity();
+    const lookupId = lookup();
+    assertEquals((await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite",
+      { lookup_id: lookupId, ...proof(PIN) })).status, 200);
+
+    const address = "203.0.113.211";
+    let missed = 0;
+    let refused: { status: number; body: unknown } | null = null;
+    for (let i = 0; i < misses.TRANSFER.max + 10; i++) {
+      const answer = await call("POST", "/sessions/claim", { address, body: { lookup_id: lookup(), envelope: envelope() } });
+      if (answer.status === 404) {
+        missed++;
+        continue;
+      }
+      refused = answer;
+      break;
+    }
+    assert(refused, `${missed} wrong codes from one address and it was never refused`);
+    assertEquals(refused.status, 429);
+    const message = (refused.body as { error: { message: string } }).error.message;
+    assert(message.includes("this address"), `one address was stopped by the node's pause, not by its own ceiling, after ${missed} misses: ${message}`);
+    assert(missed < misses.TRANSFER.max, `one address got ${missed} misses in, the brake trips at ${misses.TRANSFER.max}`);
+    assertEquals(misses.TRANSFER.pausedFor(), 0, `code entry paused for the node after ${missed} misses from one address`);
+
+    const honest = await call("POST", "/sessions/claim", { body: { lookup_id: lookupId, envelope: envelope() } });
+    assertEquals(honest.status, 200, `an honest move from another address after one address's flood: ${JSON.stringify(honest.body)}`);
+  } finally {
+    misses.reset();
+  }
+});

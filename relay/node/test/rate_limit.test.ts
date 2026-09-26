@@ -113,8 +113,8 @@ configured("a refusal by one window spends no slot of another", () => {
 
 // The transfer state poll and the claim count apart (B10, 2026-09-26): two
 // devices polling every five seconds spent the claim's sixty in two and a half
-// minutes. The claim keeps its sixty — the guard against typing codes at
-// random — and the poll its own six hundred.
+// minutes. The claim keeps its own allowance (ten since B58) and the poll its
+// own six hundred.
 configured("the transfer poll and the transfer claim spend separate allowances", async () => {
   const { TRANSFER_CLAIM_LIMITS, TRANSFER_STATE_LIMITS } = await import("../src/lib/rate_limit.ts");
   reset();
@@ -123,9 +123,10 @@ configured("the transfer poll and the transfer claim spend separate allowances",
     assertEquals(checkAll(TRANSFER_STATE_LIMITS, "6.6.6.6", now).allowed, true, `poll ${i + 1} of 600 refused`);
   }
   assertEquals(checkAll(TRANSFER_STATE_LIMITS, "6.6.6.6", now).allowed, false, "the 601st poll in an hour went through");
-  for (let i = 0; i < 60; i++) {
+  const claims = TRANSFER_CLAIM_LIMITS[0].max;
+  for (let i = 0; i < claims; i++) {
     assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "6.6.6.6", now).allowed, true,
-      `claim ${i + 1} of 60 refused after the polls — they spent the claim's allowance`);
+      `claim ${i + 1} of ${claims} refused after the polls — they spent the claim's allowance`);
   }
-  assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "6.6.6.6", now).allowed, false, "the claim no longer stops at sixty an hour");
+  assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "6.6.6.6", now).allowed, false, `the claim no longer stops at ${claims} an hour`);
 });

@@ -40,7 +40,7 @@ export type Outcome =
   | { ok: true }
   | { ok: false; reason: "no_match" | "rate_limited" | "stepped_away" | "refused"; retryAfter?: number; status?: number };
 
-function refusal(answer: Answer): Outcome {
+export function refusal(answer: Answer): Outcome {
   const code = (answer.body as { error?: { code?: string } } | null)?.error?.code;
   if (answer.status === 404) return { ok: false, reason: "no_match", status: 404 };
   if (answer.status === 429) return { ok: false, reason: "rate_limited", retryAfter: answer.retryAfter, status: 429 };
@@ -48,17 +48,24 @@ function refusal(answer: Answer): Outcome {
   return { ok: false, reason: "refused", status: answer.status };
 }
 
-// The key opened extractable for the length of `use`, and nowhere else.
-async function withExtractable<T>(wrapped: Uint8Array, wrapKey: CryptoKey, use: (k: CryptoKey) => Promise<T>): Promise<T> {
-  const extractable = await crypto.subtle.unwrapKey(
-    "pkcs8",
-    wrapped.slice(12),
-    wrapKey,
-    { name: "AES-GCM", iv: wrapped.slice(0, 12), additionalData: SALT } as AesGcmParams,
-    P256,
-    true,
-    ["sign"],
-  );
+// The key opened extractable for the length of `use`, and nowhere else. A code
+// that does not open it is `null`, told apart from a failure inside `use` —
+// a keeper that threw is not a wrong code (verifier, 2026-09-26).
+async function withExtractable<T>(wrapped: Uint8Array, wrapKey: CryptoKey, use: (k: CryptoKey) => Promise<T>): Promise<T | null> {
+  let extractable: CryptoKey;
+  try {
+    extractable = await crypto.subtle.unwrapKey(
+      "pkcs8",
+      wrapped.slice(12),
+      wrapKey,
+      { name: "AES-GCM", iv: wrapped.slice(0, 12), additionalData: SALT } as AesGcmParams,
+      P256,
+      true,
+      ["sign"],
+    );
+  } catch {
+    return null;
+  }
   return await use(extractable);
 }
 
@@ -105,15 +112,11 @@ export async function raise(
   const wrapped = fromBase64url(answer.body.recovery_wrapped_key);
   // A key the code does not open is the node's word against the code's, and
   // the code wins: nothing is seated.
-  let opened: { longSpki: string; held?: HeldLongKey };
-  try {
-    opened = await withExtractable(wrapped, wrapKey, async (k) => ({
-      longSpki: await publicHalf(k),
-      held: opts.hold ? await opts.hold(k) : undefined,
-    }));
-  } catch {
-    return { ok: false, reason: "no_match" };
-  }
+  const opened = await withExtractable(wrapped, wrapKey, async (k) => ({
+    longSpki: await publicHalf(k),
+    held: opts.hold ? await opts.hold(k) : undefined,
+  }));
+  if (!opened) return { ok: false, reason: "no_match" };
   if (sameDevice) {
     client.holdWrappedLongKey(wrapped);
     return { ok: true, sameDevice: true };
@@ -134,8 +137,19 @@ export async function raise(
 // The long key from under the current code to under the next, checked on the
 // way: wrapLongKey unwraps what it made, so a wrap that cannot be opened fails
 // here and not on somebody's clean device a year later.
-async function rewrap(wrapped: Uint8Array, current: CryptoKey, next: CryptoKey): Promise<Uint8Array> {
+async function rewrap(wrapped: Uint8Array, current: CryptoKey, next: CryptoKey): Promise<Uint8Array | null> {
   return await withExtractable(wrapped, current, async (k) => (await wrapLongKey(k, next)).wrapped);
+}
+
+// Whether `code` is the one the long key this device holds is wrapped under —
+// asked before a new code is shown, so nobody writes down a code that a wrong
+// current one will never let become real (verifier, 2026-09-26). On the
+// device only: the node counts nothing for it.
+export async function isCurrentCode(client: Client, code: string): Promise<boolean> {
+  const held = client.wrappedLongKey;
+  if (!held) return false;
+  const { wrapKey } = await derivePaperCode(code);
+  return (await withExtractable(held, wrapKey, () => Promise.resolve(true))) === true;
 }
 
 // POST /recovery/reissue — `current` is the code on the paper now, `next` the
@@ -145,12 +159,8 @@ export async function reissue(client: Client, current: string, next: string): Pr
   const held = client.wrappedLongKey;
   if (!held) throw new Error("this device holds no long key under a paper code: raise or register first");
   const [now, then] = await Promise.all([derivePaperCode(current), derivePaperCode(next)]);
-  let wrapped: Uint8Array;
-  try {
-    wrapped = await rewrap(held, now.wrapKey, then.wrapKey);
-  } catch {
-    return { ok: false, reason: "no_match" };
-  }
+  const wrapped = await rewrap(held, now.wrapKey, then.wrapKey);
+  if (!wrapped) return { ok: false, reason: "no_match" };
   const nonce = base64url(crypto.getRandomValues(new Uint8Array(16)));
   const body = { nonce, current: { lookup_id: now.lookupId }, next: { lookup_id: then.lookupId, wrapped_key: base64url(wrapped) } };
   let answer: Answer;

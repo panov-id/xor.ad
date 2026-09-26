@@ -7,7 +7,7 @@ import { assert, assertEquals, assertRejects } from "jsr:@std/assert@1";
 import postgres from "npm:postgres@3.4.4";
 import { Client, type HeldLongKey } from "./client.ts";
 import { newPaperCode } from "./paper.ts";
-import { raise, reissue } from "./recovery.ts";
+import { isCurrentCode, raise, reissue } from "./recovery.ts";
 
 const node = Deno.env.get("DEPTH_NODE_URL");
 const apiKey = Deno.env.get("DEPTH_API_KEY");
@@ -120,14 +120,72 @@ Deno.test({
 });
 
 Deno.test({
+  name: "a raised device signs its chat half with the long key, and both sides see one safety code",
+  ignore: !node,
+  async fn() {
+    // The session key signs requests, the long key signs halves: swapped, the
+    // node refuses the consent ("not signed by your long key"), and a safety
+    // code made of the session key differs from the peer's (verifier, 2026-09-26).
+    const { client: lost, code } = await person("Женя");
+    const found = new Client(node!, apiKey!);
+    assertEquals((await raise(found, code)).ok, true);
+    assertEquals((await found.firstPin("654321")).status, 204);
+    const identity = await rowOf(`SELECT identity_public_key FROM identities WHERE id = $1`, [lost.identityId]);
+    assertEquals(found.longSpki, identity.identity_public_key, "the raised device names another long key");
+    const { client: peer } = await person("Аня");
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const put = async (who: string, text: string) => {
+        const id = crypto.randomUUID();
+        await sql.unsafe(
+          `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+             lat_published, lon_published, visible_at, expires_at)
+           VALUES ($1, 'sosed', $2, $3, 'alone', 'und', 59.93, 30.33, 1000, 59.93, 30.33, now(), now() + interval '3 hours')`,
+          [id, who, text]);
+        return id;
+      };
+      const mine = await put(found.identityId, "кто на набережную?");
+      const theirs = await put(peer.identityId, "гуляю у реки");
+      await found.like(theirs);
+      const matchId = (await peer.like(mine)).body.match_id!;
+      const consent = await found.consent(matchId);
+      assertEquals(consent.status, 200, `the node refused the raised device's half: ${JSON.stringify(consent.body)}`);
+      const chatId = (await peer.consent(matchId)).body.chat_id!;
+      const here = (await found.openConversation(chatId, matchId)).safetyCode;
+      const there = (await peer.openConversation(chatId, matchId)).safetyCode;
+      assertEquals(here, there, "the two sides show different safety codes");
+    } finally {
+      await sql.end();
+    }
+  },
+});
+
+Deno.test({
   name: "a wrong current code is refused on the device, and the code on file stays",
   ignore: !node,
   async fn() {
     const { client, code } = await person("Лиза");
     const before = await rowOf(`SELECT recovery_auth_hash FROM identities WHERE id = $1`, [client.identityId]);
+    assertEquals(await isCurrentCode(client, newPaperCode()), false, "a wrong code passed the check before a new one is shown");
+    assertEquals(await isCurrentCode(client, code.toLowerCase()), true, "the right code failed the check before a new one is shown");
     assertEquals(await reissue(client, newPaperCode(), newPaperCode()), { ok: false, reason: "no_match" });
     const after = await rowOf(`SELECT recovery_auth_hash FROM identities WHERE id = $1`, [client.identityId]);
     assertEquals(after.recovery_auth_hash, before.recovery_auth_hash, "a wrong code moved the code on file");
     assertEquals((await raise(new Client(node!, apiKey!), code)).ok, true, "the right code stopped working");
+  },
+});
+
+Deno.test({
+  name: "a keeper that fails is an error, not a wrong code",
+  ignore: !node,
+  async fn() {
+    // By then the node has seated the new session: "that code does not match"
+    // would send the person to type a right code again (verifier, 2026-09-26).
+    const { code } = await person("Ира");
+    await assertRejects(
+      () => raise(new Client(node!, apiKey!), code, { hold: () => Promise.reject(new Error("the keeper broke")) }),
+      Error,
+      "the keeper broke",
+    );
   },
 });

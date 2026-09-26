@@ -1019,6 +1019,18 @@ test("the paper code goes in the way people write it, and not before it is whole
   app.unmount();
 });
 
+test("the paper code goes in exactly as the screen showed it, spaces around the dashes", async () => {
+  let got: string | null = null;
+  const app = render(h(PaperCodeEntry, {
+    say, title: say("restore.title"), lines: [], go: say("restore.go"), onDone: (c: string) => (got = c),
+  }));
+  await settle();
+  // Twenty-five characters: the field used to stop at 24 and drop the last one.
+  await type(app, "RTQ4 - 8FMK - 2PZN - XW9D", DOWN, ENTER);
+  assert.equal(got, "RTQ48FMK2PZNXW9D", "the code as the screen shows it did not go in");
+  app.unmount();
+});
+
 test("the paper code is offered on the \"me\" screen: a new one, and opening this device", async () => {
   const opened: string[] = [];
   const client = {

@@ -12,7 +12,7 @@ import { newPaperCode, paperGroups } from "../core/paper.ts";
 import { languageOf } from "./strings.ts";
 import type { Say } from "./strings.ts";
 import { Feed, Location, PaperCode, PaperCodeEntry, PinSet, Registration } from "./screens.ts";
-import { raise, reissue } from "../core/recovery.ts";
+import { isCurrentCode, raise, refusal, reissue } from "../core/recovery.ts";
 import type { Outcome } from "../core/recovery.ts";
 import type { Place } from "./screens.ts";
 import {
@@ -91,7 +91,11 @@ export function App({ say, client: first, fresh, start }: {
       .catch((e: Error) => fail(e.message));
   }, [where.screen]);
 
-  const feed = () => setWhere({ screen: "feed" });
+  // No point yet — an identity raised by its code and turned back before the
+  // new code took — goes to the location, not to a feed with nothing to show
+  // (the feed read place.lat of undefined and killed the process; verifier,
+  // 2026-09-26).
+  const feed = () => setWhere(place ? { screen: "feed" } : { screen: "location" });
   const me = () => setWhere({ screen: "me" });
   const body = (() => {
     switch (where.screen) {
@@ -159,7 +163,9 @@ export function App({ say, client: first, fresh, start }: {
           onError: fail,
         });
       case "location":
-        return h(Location, { say, place, onDone: (next) => { setPlace(next); feed(); } });
+        // Straight to the feed: `feed` reads `place` of this render, which the
+        // point just set is not in yet.
+        return h(Location, { say, place, onDone: (next) => { setPlace(next); setWhere({ screen: "feed" }); } });
       case "feed":
         return h(Feed, {
           say,
@@ -196,14 +202,17 @@ export function App({ say, client: first, fresh, start }: {
           say,
           client,
           restrictions: statements?.length ?? 0,
-          onOpen: (row, current) =>
+          onOpen: (row, current) => {
+            // A line from the screen left behind is not about the one opened.
+            setError(undefined);
             setWhere(
               row === "statements" ? { screen: "statements", from: "me" }
               : row === "away" ? { screen: "stepAway" }
               : row === "name" || row === "age" ? { screen: "edit", field: row, current: current ?? "" }
               : row === "pin" ? { screen: "changePin" }
               : { screen: row },
-            ),
+            );
+          },
           onBack: feed,
           onError: fail,
         });
@@ -256,7 +265,16 @@ export function App({ say, client: first, fresh, start }: {
             setError(undefined);
             setBusy(true);
             raise(client, code, { label: "depth" })
-              .then((o) => (o.ok ? setWhere({ screen: "restorePin", old: code }) : setError(outcomeLine(say, o))))
+              .then((o) => {
+                if (!o.ok) return setError(outcomeLine(say, o));
+                // §8.2: on this device the old PIN opens it again, the counter
+                // back at ten; a new PIN is for a device that never had one.
+                if (o.sameDevice) {
+                  const next = newPaperCode();
+                  return setWhere({ screen: "newPaper", old: code, next, groups: paperGroups(next) });
+                }
+                setWhere({ screen: "restorePin", old: code });
+              })
               .catch((e: Error) => fail(e.message))
               .finally(() => setBusy(false));
           },
@@ -276,7 +294,7 @@ export function App({ say, client: first, fresh, start }: {
               .then((a) =>
                 a.status === 204
                   ? setWhere({ screen: "newPaper", old: where.old, next, groups: paperGroups(next) })
-                  : setError(say("restore.refused", { status: String(a.status) }))
+                  : setError(outcomeLine(say, refusal(a)))
               )
               .catch((e: Error) => fail(e.message))
               .finally(() => setBusy(false));
@@ -288,12 +306,22 @@ export function App({ say, client: first, fresh, start }: {
           title: say("reissue.title"),
           lines: [say("reissue.intro")],
           go: say("reg.next"),
+          busy,
           error,
           onBack: me,
+          // The current code is checked before a new one is shown: a new code
+          // written down under a wrong current one would never become real.
           onDone: (code) => {
             setError(undefined);
-            const next = newPaperCode();
-            setWhere({ screen: "newPaper", old: code, next, groups: paperGroups(next) });
+            setBusy(true);
+            isCurrentCode(client, code)
+              .then((right) => {
+                if (!right) return setError(say("restore.noMatch"));
+                const next = newPaperCode();
+                setWhere({ screen: "newPaper", old: code, next, groups: paperGroups(next) });
+              })
+              .catch((e: Error) => fail(e.message))
+              .finally(() => setBusy(false));
           },
         });
       case "newPaper":
@@ -309,8 +337,10 @@ export function App({ say, client: first, fresh, start }: {
             setBusy(true);
             reissue(client, where.old, where.next)
               .then((o) => {
+                // Refused after the identity is up: back to the current code,
+                // never to raising it again (the old device is frozen by now).
                 if (!o.ok) {
-                  setWhere({ screen: place ? "reissue" : "restore" });
+                  setWhere({ screen: "reissue" });
                   return setError(outcomeLine(say, o));
                 }
                 if (place) return me();

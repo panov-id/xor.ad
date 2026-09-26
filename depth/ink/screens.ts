@@ -406,7 +406,9 @@ export function PaperCodeEntry(
     h(Head, { title, lines }),
     h(Form, {
       fields: [{ key: "code", label: say("restore.code"), value: code }],
-      onChange: (_key, value) => setCode(value.slice(0, 24)),
+      // Room for the code as the paper shows it — four groups joined by " - ",
+      // 25 characters — and a stray space or two (verifier, 2026-09-26).
+      onChange: (_key, value) => setCode(value.slice(0, 40)),
       actions: [
         { key: "go", label: go, disabled: !whole || busy === true },
         onBack ? { key: "back", label: say("common.back") } : { key: "exit", label: say("common.exit") },

@@ -6,7 +6,7 @@
 // under the new epoch. Old ciphertext stays shut for both: the core's test
 // says so; here the screens do the asking and the agreeing.
 
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
 
 const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 

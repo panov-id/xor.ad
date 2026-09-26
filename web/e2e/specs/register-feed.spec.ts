@@ -4,7 +4,7 @@
 // (200), the record the vault kept, and that its seal opens under the same
 // PIN and share (the page checks that and says so in the footer).
 
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../fixtures/address.ts";
 
 test("registration with a PIN and the paper code, then the feed", async ({ page }) => {
   const feedAnswers: number[] = [];

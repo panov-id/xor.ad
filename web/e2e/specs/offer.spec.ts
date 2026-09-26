@@ -5,7 +5,7 @@
 // a switched-off link says so and offers no way on. No registration: the link
 // is for anybody, so this spec spends none of the stand's ten an hour.
 
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../fixtures/address.ts";
 
 test("a live offer link: the exit screen names the domain, and the node's 302 points at it", async ({ page }) => {
   page.on("pageerror", (e) => console.log(`[page error] ${e.message}`));

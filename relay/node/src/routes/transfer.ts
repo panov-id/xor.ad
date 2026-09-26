@@ -26,7 +26,7 @@ import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
 import { clientAddress } from "../lib/client_ip.ts";
-import { checkAll, TRANSFER_CLAIM_LIMITS, TRANSFER_INVITE_LIMITS } from "../lib/rate_limit.ts";
+import { checkAll, TRANSFER_CLAIM_LIMITS, TRANSFER_INVITE_LIMITS, TRANSFER_STATE_LIMITS } from "../lib/rate_limit.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { checkPin } from "../lib/pin_attempts.ts";
 import { base64urlToBytes, bytesToBase64url, importSignPublicKey, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
@@ -251,9 +251,12 @@ async function inviteState(req: Request, lookupId: string): Promise<Response> {
   if (!versionSupported(version)) {
     return refuse("protocol_version_unsupported", `this node serves protocol ${PROTOCOL_MAJOR}; update the client`, 400);
   }
-  // The same per-address ceiling as the claim: this is a route somebody polls,
-  // and a route somebody polls is a route somebody can hammer.
-  const verdict = checkAll(TRANSFER_CLAIM_LIMITS, clientAddress(req).ip);
+  // A per-address ceiling of its own: this is a route somebody polls, and a
+  // route somebody polls is a route somebody can hammer. Not the claim's: two
+  // devices polling every five seconds spent the claim's sixty in two and a
+  // half minutes, and then neither the screens nor the next claim from that
+  // address got through for an hour (verifier of B2, 2026-09-26).
+  const verdict = checkAll(TRANSFER_STATE_LIMITS, clientAddress(req).ip);
   if (!verdict.allowed) {
     return refuse("rate_limited", "too many attempts from this address", 429, {}, {
       "retry-after": String(verdict.retryAfterSeconds),
@@ -326,8 +329,10 @@ async function ackReply(req: Request, lookupId: string): Promise<Response> {
 //
 // Signed by the session that issued the invitation and by no other: §8.2 and
 // screen 13. What the body carries is the reply envelope — the long key sealed
-// to the code's other half — because the node has never held that key and must
-// not start now.
+// to the new device's wrap_pub and the code's other half together, so that
+// whoever overheard the nine characters and polls the state route still cannot
+// open it (chat.2026-09-26.moveenvelope) — because the node has never held
+// that key and must not start now.
 //
 // What this does in one transaction: writes the new session from the claim, and
 // takes the old one down the way §8.2 says every move does — frozen, its share

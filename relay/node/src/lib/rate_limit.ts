@@ -232,6 +232,21 @@ export const TRANSFER_CLAIM_LIMITS: Limit[] = [
   { name: "transfer-claim-day", max: 200, windowMs: DAY },
 ];
 
+// GET /sessions/:lookup_id — the state both devices poll, in buckets of its
+// own (B10, 2026-09-26). It shared the claim's sixty, and two devices behind
+// one address polling every five seconds (depth MOVE_POLL_MS) spent them in
+// two and a half minutes; after that both screens waited an hour in silence.
+// The claim keeps its sixty: it is the guard against typing codes at random,
+// and a poll guesses nothing — it needs the lookup_id, and a miss is not
+// counted toward the shared pause. 600 an hour is ten windows (the invite
+// limit) times two devices times 24 polls in a code's 120 seconds, with room;
+// 1500 a day is the thirty windows a day, the same way (quorum of three).
+// limits.tsv transfer.state.hour / .day.
+export const TRANSFER_STATE_LIMITS: Limit[] = [
+  { name: "transfer-state", max: 600, windowMs: HOUR },
+  { name: "transfer-state-day", max: 1500, windowMs: DAY },
+];
+
 // /o/<code> and its /go: a person following an offer's link is a page view,
 // so the page view's numbers, in buckets of their own — a link clicked does not
 // spend the page counter's allowance (offers/SPEC_RU.md §6.2, 2026-09-24).

@@ -592,6 +592,30 @@ Deno.test("a second GET before the ack gets the reply again", async () => {
   assertEquals((second.body as { session_id?: string }).session_id, sessionId);
 });
 
+// The state poll has its own allowance (B10, 2026-09-26): it shared the claim's
+// sixty an hour per address, so a claim and 59 polls — two devices behind one
+// address, every five seconds, for two and a half minutes — left the 60th poll
+// and the next claim from that address refused for an hour.
+Deno.test("polling the state after a claim spends none of the claim's allowance", async () => {
+  const address = "203.0.113.210";
+  const old = await device_with_identity();
+  const lookupId = lookup();
+  assertEquals((await signedCall(old.pair.privateKey, old.session_id, "POST", "/sessions/invite",
+    { lookup_id: lookupId, ...proof(PIN) })).status, 200);
+  assertEquals((await call("POST", "/sessions/claim", { address, body: { lookup_id: lookupId, envelope: envelope() } })).status, 200);
+  for (let i = 1; i <= 61; i++) {
+    const polled = await call("GET", `/sessions/${lookupId}`, { address });
+    assertEquals(polled.status, 200, `poll ${i} after the claim was refused: ${JSON.stringify(polled.body)}`);
+  }
+  // And the next transfer from the same address can still be claimed.
+  const other = await device_with_identity();
+  const next = lookup();
+  assertEquals((await signedCall(other.pair.privateKey, other.session_id, "POST", "/sessions/invite",
+    { lookup_id: next, ...proof(PIN) })).status, 200);
+  const claimed = await call("POST", "/sessions/claim", { address, body: { lookup_id: next, envelope: envelope() } });
+  assertEquals(claimed.status, 200, `a claim after 61 polls from the same address: ${JSON.stringify(claimed.body)}`);
+});
+
 Deno.test("a GET after the ack does not get the reply envelope", async () => {
   const { lookupId, ack } = await approvedMove();
   const acked = await ack();

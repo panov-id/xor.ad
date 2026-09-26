@@ -20,7 +20,7 @@ sed -i 's|  return await unsealLong(record, material.local, share);|  return awa
 grep -q 'material.local, share.slice(0, 1))' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
 out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
 echo "$out" | grep -E 'data-sealed|✘|✓|[0-9]+ (passed|failed)' | head -6
-if echo "$out" | grep -q 'toHaveAttribute' && echo "$out" | grep -qE '1 failed'; then
+if echo "$out" | grep -q 'toHaveAttribute' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then
   echo "   red as expected"; status=0
 else
   echo "   STAYED GREEN — the guard proves nothing"; status=1
@@ -37,7 +37,7 @@ sed -i 's|  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|  
 grep -q 'wrapPrivate = (await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair).privateKey;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
 out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
 echo "$out" | grep -E 'unlocked-new-wrap|✘|✓|[0-9]+ (passed|failed)' | head -6
-if echo "$out" | grep -q 'data-sealed="unlocked-new-wrap"' && echo "$out" | grep -qE '1 failed'; then
+if echo "$out" | grep -q 'data-sealed="unlocked-new-wrap"' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then
   echo "   red as expected"
 else
   echo "   STAYED GREEN — the guard proves nothing"; status=1

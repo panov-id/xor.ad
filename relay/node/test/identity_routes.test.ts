@@ -685,6 +685,61 @@ Deno.test("the delay starts after the fifth miss, and waiting is not a way to te
   assertEquals((await attemptsLeft(created.session_id)).attempts_left, 4);
 });
 
+Deno.test("the tenth miss takes down what is live, and leaves the expired to the sweep", async () => {
+  // chat_RU.md:1301: the freeze of the PIN limit takes down what is live, as a
+  // time away does — phrases, waiting ones too, and the likes one gave. What
+  // ran out is the sweep's, as it is for the time away (B39).
+  const mine = await registerWithPin();
+  const theirs = await registerWithPin();
+  const me = mine.answer.body as { identity_id: string; session_id: string };
+  const them = (theirs.answer.body as { identity_id: string }).identity_id;
+  const phrase = async (author: string, state: "live" | "waiting" | "expired") => {
+    const id = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+         lat_published, lon_published, visible_at, expires_at)
+       VALUES ($1, 'sosed', $2, 'десятая', 'alone', 'und', 59.93, 30.33, 1000, 59.93, 30.33,
+               CASE WHEN $3 = 'waiting' THEN NULL ELSE now() - interval '4 hours' END,
+               CASE WHEN $3 = 'waiting' THEN NULL WHEN $3 = 'expired' THEN now() - interval '1 minute'
+                    ELSE now() + interval '1 hour' END)`,
+      [id, author, state],
+    );
+    return id;
+  };
+  const myLive = await phrase(me.identity_id, "live");
+  const myWaiting = await phrase(me.identity_id, "waiting");
+  const myExpired = await phrase(me.identity_id, "expired");
+  const theirLive = await phrase(them, "live");
+  const theirExpired = await phrase(them, "expired");
+  for (const liked of [theirLive, theirExpired]) {
+    await database.queryOrThrow(`INSERT INTO likes (liker_identity, feed_message_id) VALUES ($1, $2)`, [me.identity_id, liked]);
+    await database.queryOrThrow(`UPDATE feed_messages SET like_count = 1 WHERE id = $1`, [liked]);
+  }
+  await database.queryOrThrow(`UPDATE identity_stats SET likes_given = 2 WHERE identity = $1`, [me.identity_id]);
+  await database.queryOrThrow(`UPDATE identity_stats SET likes_received = 2 WHERE identity = $1`, [them]);
+
+  // One attempt left, and it is wrong.
+  await database.queryOrThrow(`UPDATE vault_shares SET attempts_left = 1, next_attempt_at = NULL WHERE session = $1`, [me.session_id]);
+  const wrong = { auth: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
+  const tenth = await signedCall(mine.pair.privateKey, me.session_id, "POST", "/vault/share", wrong);
+  assertEquals((tenth.body as { error: { code: string } }).error.code, "pin_locked");
+
+  const exists = async (id: string) =>
+    (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [id])).length === 1;
+  assertEquals(await exists(myLive), false, "the tenth mistake left a live phrase under the frozen name");
+  assertEquals(await exists(myWaiting), false, "the tenth mistake left a phrase waiting for its verdict");
+  assertEquals(await exists(myExpired), true, "an expired phrase was taken — it is the sweep's");
+  const likes = await database.queryOrThrow<{ feed_message_id: string }>(
+    `SELECT feed_message_id FROM likes WHERE liker_identity = $1`, [me.identity_id]);
+  assertEquals(likes.map((l) => l.feed_message_id), [theirExpired], "the likes left are not exactly the one on the expired phrase");
+  const [liveCount] = await database.queryOrThrow<{ like_count: number }>(`SELECT like_count FROM feed_messages WHERE id = $1`, [theirLive]);
+  assertEquals(liveCount.like_count, 0, "the live phrase kept the like");
+  const [given] = await database.queryOrThrow<{ likes_given: number }>(`SELECT likes_given FROM identity_stats WHERE identity = $1`, [me.identity_id]);
+  assertEquals(given.likes_given, 1, "likes_given did not lose the live like");
+  const [received] = await database.queryOrThrow<{ likes_received: number }>(`SELECT likes_received FROM identity_stats WHERE identity = $1`, [them]);
+  assertEquals(received.likes_received, 1, "the author's likes_received did not lose the live like");
+});
+
 Deno.test("the tenth miss closes entry and leaves the share intact", async () => {
   const { answer, pair } = await registerWithPin();
   const created = answer.body as { session_id: string };

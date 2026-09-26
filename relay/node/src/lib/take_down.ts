@@ -1,7 +1,10 @@
 // What a person takes down with them when they stop being there: a time away
-// (routes/away.ts, chat spec §8.2) and closing the identity (routes/identity.ts,
-// the same list, "exactly as the PIN-limit freeze does"). One list, written
-// once: two copies of a rule is how one of them stops being kept.
+// (routes/away.ts, chat spec §8.2), closing the identity (routes/identity.ts,
+// the same list, "exactly as the PIN-limit freeze does") and the tenth PIN
+// mistake itself (lib/pin_attempts.ts, chat_RU.md:1301 — "снимает живое, как
+// отлучка"; it froze the session and left the rest until B51, 2026-09-26).
+// One list, written once: two copies of a rule is how one of them stops being
+// kept.
 //
 // Inside the caller's transaction. It locks in the order the like and the
 // take-back use (likes.ts), and throws TakeDownRetry when a like on a new
@@ -10,6 +13,26 @@
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 
 export class TakeDownRetry extends Error {}
+
+// For a caller whose transaction must not start again: the tenth PIN mistake
+// has already spent the attempt and frozen the session in it, and a retry of
+// the whole transaction would undo both. The take-down alone goes back to a
+// savepoint and runs again, three times as away.ts and identity.ts do; past
+// that the retry is thrown and the caller's transaction rolls back whole.
+export async function takeDownLiveInPlace(run: Run, me: string): Promise<void> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await run(`SAVEPOINT take_down`);
+    try {
+      await takeDownLive(run, me);
+      await run(`RELEASE SAVEPOINT take_down`);
+      return;
+    } catch (error) {
+      if (!(error instanceof TakeDownRetry)) throw error;
+      await run(`ROLLBACK TO SAVEPOINT take_down`);
+    }
+  }
+  throw new TakeDownRetry();
+}
 
 export async function takeDownLive(run: Run, me: string): Promise<void> {
   // The counters of everyone whose phrase one liked, and one's own, locked

@@ -16,6 +16,7 @@
 
 import { refuse } from "./identity_guard.ts";
 import { freezeSession } from "./sessions.ts";
+import { takeDownLiveInPlace } from "./take_down.ts";
 
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 
@@ -105,6 +106,12 @@ export async function checkPin(
       // Freezing carries its own notification; lib/sessions.ts says why that is
       // not optional and why it is not written inline here.
       await freezeSession(run, sessionId, "pin_limit");
+      // And what is live comes down with it, as a time away takes it: the
+      // phrases, waiting ones too, the likes one gave, the matches (chat_RU.md
+      // :1301, :874). Frozen alone, they stayed under the name of a person who
+      // could do nothing with them until the paper code (panel-2 H1, B51).
+      const [owner] = await run<{ identity: string }>(`SELECT identity FROM sessions WHERE id = $1`, [sessionId]);
+      if (owner) await takeDownLiveInPlace(run, owner.identity);
     }
     meter(left === 0 ? "locked" : "wrong_pin");
     return refuse(

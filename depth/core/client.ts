@@ -13,6 +13,7 @@ import { base64url, signRequest, type SigningKey } from "./sign.ts";
 import { Conversation, Ephemeral, safetyCode, verifyHalf } from "./seal.ts";
 import { derivePin, newDeviceSalt } from "./pin.ts";
 import { derivePaperCode, wrapLongKey } from "./paper.ts";
+import { PendingQueue } from "./pending.ts";
 
 const PROTOCOL_MAJOR = "1";
 const random = (n: number) => crypto.getRandomValues(new Uint8Array(n));
@@ -347,8 +348,17 @@ export class Client {
     return conversation;
   }
 
-  // Seal a line and send it (§8.13 over POST /chats/:id/messages).
+  // Seal a line and send it (§8.13 over POST /chats/:id/messages). Lines
+  // written before the second's consent go first, in their order: a new line
+  // does not overtake them, and if they cannot all go it waits behind them.
   async sayInChat(chatId: string, text: string, matchId?: string): Promise<Answer<{ local_id: string; accepted?: boolean; error?: string }>> {
+    if (matchId && this.#pending.size(matchId) > 0) {
+      const stuck = await this.#flush(chatId, matchId);
+      if (stuck) {
+        this.#pending.push(matchId, text);
+        return stuck;
+      }
+    }
     const conversation = await this.openConversation(chatId, matchId);
     const localId = crypto.randomUUID();
     return this.sendMessage(chatId, localId, await conversation.seal(text, localId));
@@ -454,9 +464,12 @@ export class Client {
     if (answer.status !== 204) throw new Error(`coming back refused: ${answer.status}`);
   }
 
-  // "Not now", and taking it back while the match lives (screen 7).
-  decline(matchId: string): Promise<Answer> {
-    return this.#call("POST", `/matches/${encodeURIComponent(matchId)}/decline`);
+  // "Not now", and taking it back while the match lives (screen 7). What was
+  // written for this match before the second agreed goes with it.
+  async decline(matchId: string): Promise<Answer> {
+    const answer = await this.#call("POST", `/matches/${encodeURIComponent(matchId)}/decline`);
+    if (answer.status >= 200 && answer.status < 300) this.#pending.drop(matchId);
+    return answer;
   }
 
   undoDecline(matchId: string): Promise<Answer> {
@@ -648,12 +661,57 @@ export class Client {
     // Whatever this process knew of chats belonged to the session before.
     this.#ephemeral.clear();
     this.#conversations.clear();
+    // The queue before a consent lives on the device it was written on; a new
+    // session is a new device, and the spec says the queue is lost with it.
+    this.#pending.clear();
   }
 
   // A protocol call for the core's other modules (recovery.ts, transfer.ts):
   // signed by the session when there is one and `signed` is not false.
   request<T>(method: string, path: string, body?: unknown, signed = true): Promise<Answer<T>> {
     return this.#call<T>(method, path, body, signed);
+  }
+
+  // ── B16 · lines before the second's consent (§8.5, pending.ts) ──
+  #pending = new PendingQueue();
+
+  // The first to press "talk" writes while the second has not: the line waits
+  // on this device, unsealed — there is no key yet — and the node is told
+  // nothing. Past chat.pending.max the oldest goes, silently.
+  queueLine(matchId: string, text: string): void {
+    this.#pending.push(matchId, text);
+  }
+
+  queued(matchId: string): readonly string[] {
+    return this.#pending.peek(matchId);
+  }
+
+  // The second said "not now", or the match ran out, as the face learned it.
+  dropQueued(matchId: string): void {
+    this.#pending.drop(matchId);
+  }
+
+  // The chat opened: the queue goes, sealed, in order. The answer of the line
+  // that could not go, or null when all went; what did not go stays queued.
+  flushQueued(chatId: string, matchId: string): Promise<Answer<{ local_id: string; accepted?: boolean; error?: string }> | null> {
+    return this.#flush(chatId, matchId);
+  }
+
+  async #flush(chatId: string, matchId: string): Promise<Answer<{ local_id: string; accepted?: boolean; error?: string }> | null> {
+    const lines = [...this.#pending.peek(matchId)];
+    let sent = 0;
+    try {
+      for (const line of lines) {
+        const conversation = await this.openConversation(chatId, matchId);
+        const localId = crypto.randomUUID();
+        const answer = await this.sendMessage(chatId, localId, await conversation.seal(line, localId));
+        if (answer.status !== 202) return answer;
+        sent++;
+      }
+      return null;
+    } finally {
+      this.#pending.sent(matchId, sent);
+    }
   }
 
   get registered(): boolean {

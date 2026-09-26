@@ -103,7 +103,13 @@ export function MoveOut(
     setSending(true);
     setRefused(null);
     client.pinProof(pin)
-      .then((proof) => Departure.open(client, proof))
+      .then((proof) => {
+        // The proof is made; the PIN itself has no further use here, and a
+        // screen that keeps it keeps it for as long as the code is shown
+        // (review panel 2026-09-26, F23). A refusal asks for it again.
+        setPin("");
+        return Departure.open(client, proof);
+      })
       .then((opened) => {
         if (opened instanceof Departure) {
           setOut(opened);

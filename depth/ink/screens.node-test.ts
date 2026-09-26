@@ -1487,3 +1487,17 @@ test("an error carrying escape sequences reaches the screen without them", async
   assert.doesNotMatch(frame, /\u0007/, "a BEL from an error reached the terminal");
   app.unmount();
 });
+
+// ── B31 · the PIN leaves the screen once its proof is made (F23) ──
+test("the PIN is gone from the move's screen once its proof is made", async () => {
+  const wrong = await leavingNode(false);
+  const app = render(h(MoveOut, { say, client: wrong.client, onMoved: () => {}, onBack: () => {}, onError: collect, pollMs: 40 }));
+  await settle();
+  await type(app, ..."000000".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /ПИН не подходит/));
+  // The refusal asks for the PIN again, with an empty field: the one typed
+  // was dropped when its proof went out, not kept for the screen's lifetime.
+  assert.doesNotMatch(app.lastFrame()!, /••••••/, "the PIN stayed in the screen after its proof went out");
+  app.unmount();
+  noErrors();
+});

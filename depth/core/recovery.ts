@@ -71,11 +71,23 @@ async function withExtractable<T>(wrapped: Uint8Array, wrapKey: CryptoKey, use: 
 
 // The node never says what one's own long key is (only the peer's, in the
 // inbox), and the safety code is made of it: the public half is taken from the
-// private one's JWK — x and y — inside the one call that holds it.
-async function publicHalf(extractable: CryptoKey): Promise<string> {
-  const { kty, crv, x, y } = await crypto.subtle.exportKey("jwk", extractable);
-  const pub = await crypto.subtle.importKey("jwk", { kty, crv, x, y }, P256, true, ["verify"]);
-  return base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pub)));
+// private one inside the one call that holds it. From its pkcs8, which carries
+// the public point (RFC 5915, the ECPrivateKey's [1]), into bytes that are
+// zeroed before the call returns — not from its JWK, whose `d` was a string
+// no one can wipe and that lived until the collector came (review panel
+// 2026-09-26, F22). Both runtimes put the point there (measured 26.09.2026,
+// Deno 2.1.4 and Node 24: 138 bytes, the point at 73).
+const POINT_TAG = [0xa1, 0x44, 0x03, 0x42, 0x00, 0x04];
+export async function publicHalf(extractable: CryptoKey): Promise<string> {
+  const der = new Uint8Array(await crypto.subtle.exportKey("pkcs8", extractable));
+  try {
+    const at = der.findIndex((_, i) => POINT_TAG.every((b, j) => der[i + j] === b));
+    if (at < 0) throw new Error("the long key's pkcs8 carries no public point");
+    const pub = await crypto.subtle.importKey("raw", der.slice(at + 5, at + 5 + 65), P256, true, ["verify"]);
+    return base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pub)));
+  } finally {
+    der.fill(0);
+  }
 }
 
 // POST /recovery/claim. A client with a session asks as this device: the

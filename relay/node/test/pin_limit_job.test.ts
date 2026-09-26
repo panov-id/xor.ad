@@ -235,3 +235,79 @@ Deno.test({ name: "a take-down the job puts off is counted deferred, and the nex
 addEventListener("unload", () => {
   database.closePool();
 });
+
+// B89 (panel 5, H6, and the observer on B73): each of the job's transactions
+// waits two seconds for a lock, as the route's does, not the statement
+// timeout. The row held here past that; the pass must give up well before the
+// fifteen seconds a statement may take.
+Deno.test({ name: "the job's freeze gives up on a held session row within its lock timeout (B89)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const me = await frozenByTheTenthMiss();
+  // Entry locked, the freeze not written: what the first pass is for.
+  await database.queryOrThrow(`UPDATE sessions SET frozen_at = NULL, frozen_reason = NULL WHERE id = $1`, [me.session_id]);
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  const before = jobCount("freeze_deferred");
+  let took = 0;
+  try {
+    // deno-lint-ignore no-explicit-any
+    await sql.begin(async (tx: any) => {
+      await tx.unsafe(`SELECT 1 FROM sessions WHERE id = $1 FOR UPDATE`, [me.session_id]);
+      const start = Date.now();
+      await takeDownLeftByPinLimit();
+      took = Date.now() - start;
+    });
+  } finally {
+    await sql.end();
+  }
+  assertEquals(jobCount("freeze_deferred") - before, 1, "the freeze behind a held session row was not put off once");
+  assert(took < 8000, `the job waited ${took} ms on a held session row — no lock timeout of its own`);
+});
+
+Deno.test({ name: "the job's take-down gives up on a held share within its lock timeout (B89)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const me = await frozenByTheTenthMiss();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1, onnotice: () => {} });
+  const before = jobCount("deferred");
+  let took = 0;
+  try {
+    // deno-lint-ignore no-explicit-any
+    await sql.begin(async (tx: any) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [me.session_id]);
+      const start = Date.now();
+      await takeDownLeftByPinLimit();
+      took = Date.now() - start;
+    });
+  } finally {
+    await sql.end();
+  }
+  assertEquals(jobCount("deferred") - before, 1, "the take-down behind a held share was not put off once");
+  assert(took < 8000, `the job waited ${took} ms on a held share — no lock timeout of its own`);
+});
+
+// B93 (panel 5, H11): one person's pass that meets anything but a lock is
+// logged, counted failed and passed over; the rest of the list is done. It
+// used to throw out of the whole pass. The failure is a real one: a trigger
+// refuses the first person's phrase.
+Deno.test({ name: "one person's failed take-down does not stop the job for the rest (B93)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const two = [await frozenByTheTenthMiss(), await frozenByTheTenthMiss()]
+    .sort((a, b) => a.identity_id < b.identity_id ? -1 : 1);
+  const [first, second] = two;
+  await database.queryOrThrow(`
+    CREATE OR REPLACE FUNCTION b93_refuse() RETURNS trigger AS $$
+    BEGIN
+      IF OLD.author_identity = '${first.identity_id}' THEN RAISE EXCEPTION 'refused for the test'; END IF;
+      RETURN OLD;
+    END $$ LANGUAGE plpgsql`);
+  await database.queryOrThrow(`CREATE TRIGGER b93_refuse BEFORE DELETE ON feed_messages FOR EACH ROW EXECUTE FUNCTION b93_refuse()`);
+  const before = jobCount("failed");
+  let outcome = "";
+  try {
+    await takeDownLeftByPinLimit().then(() => (outcome = "done"), (e) => (outcome = String(e)));
+  } finally {
+    await database.queryOrThrow(`DROP TRIGGER IF EXISTS b93_refuse ON feed_messages`);
+    await database.queryOrThrow(`DROP FUNCTION IF EXISTS b93_refuse()`);
+  }
+  assertEquals(outcome, "done", "one person's failure threw out of the whole pass");
+  assertEquals(jobCount("failed") - before, 1, "the failed take-down was not counted once");
+  const live = async (phrase: string) => (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [phrase])).length === 1;
+  assert(await live(first.phrase), "the refused take-down went through — the case never ran");
+  assertEquals(await live(second.phrase), false, "the person after the failed one was not taken down");
+});

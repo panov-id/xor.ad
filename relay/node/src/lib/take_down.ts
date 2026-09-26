@@ -23,8 +23,9 @@ type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 // were a warn line and nothing else, so a take-down kept waiting for hours on
 // a lock looked like a quiet job; TakeDownPinLimitDeferred reads them. Each at
 // zero from the start: an alert reads the series, and one born at 1 hides its
-// first event from increase() (B42).
-for (const result of ["frozen", "freeze_deferred", "taken", "deferred", "raised"]) {
+// first event from increase() (B42). "failed" is one person's pass that met
+// something other than a lock and was logged and passed over (B93).
+for (const result of ["frozen", "freeze_deferred", "taken", "deferred", "raised", "failed"]) {
   inc("relay_take_down_pin_limit_total", { result }, 0);
 }
 
@@ -98,6 +99,10 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
     const freezes = new Freezes();
     try {
       const froze = await transaction(async (run) => {
+        // Two seconds for any lock, as the route's freeze has (B81): without it
+        // a held session row kept this pass and a pooled connection waiting for
+        // the whole statement timeout, fifteen seconds a person (panel 5, H6; B89).
+        await run(`SET LOCAL lock_timeout = '2s'`);
         const [share] = await run<{ locked: boolean }>(
           `SELECT locked_at IS NOT NULL AS locked FROM vault_shares WHERE session = $1 FOR UPDATE`, [id]);
         return share?.locked ? await freezeSession(run, id, "pin_limit", freezes) : false;
@@ -105,7 +110,14 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
       if (froze) inc("relay_take_down_pin_limit_total", { result: "frozen" });
     } catch (error) {
       const code = (error as { code?: string })?.code;
-      if (code !== "55P03" && code !== "57014" && code !== "40P01") throw error;
+      if (code !== "55P03" && code !== "57014" && code !== "40P01") {
+        // Anything else is this one person's, and the rest of the list is not
+        // held back by it: logged, counted, tried again next minute (panel 5,
+        // H11; B93). It used to end the whole pass, and the job's attempts with it.
+        inc("relay_take_down_pin_limit_total", { result: "failed" });
+        log("error", "a freeze left by the PIN limit failed; the next minute tries again", { session: id, error: String(error) });
+        continue;
+      }
       inc("relay_take_down_pin_limit_total", { result: "freeze_deferred" });
       log("warn", "a freeze left by the PIN limit waits for the next minute", { session: id, code });
     }
@@ -129,6 +141,10 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const taken = await transaction(async (run) => {
+          // Two seconds for the shares as well: a claim or a close holding one
+          // kept this pass on it for the statement timeout (the observer on
+          // B73; B89). takeDownLive sets its own for the counters after.
+          await run(`SET LOCAL lock_timeout = '2s'`);
           // Asked again under the shares (review panel 4, К11, B73): the list
           // above was read without a lock, and a paper-code claim that raised
           // a session since then — or is raising one now — gives the person a
@@ -154,7 +170,12 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
         // identity's lock does not take the rest of the pass with it (B70).
         const timedOut = code === "55P03" || code === "57014";
         const again = error instanceof TakeDownRetry || code === "40P01";
-        if (!again && !timedOut) throw error;
+        if (!again && !timedOut) {
+          // One person's error is theirs alone (B93, as in the first pass).
+          inc("relay_take_down_pin_limit_total", { result: "failed" });
+          log("error", "a take-down left by the PIN limit failed; the next minute tries again", { identity: id, error: String(error) });
+          break;
+        }
         if (timedOut || attempt === 2) {
           inc("relay_take_down_pin_limit_total", { result: "deferred" });
           log("warn", "a take-down left by the PIN limit waits for the next minute", { identity: id, code: codeOf(error) });

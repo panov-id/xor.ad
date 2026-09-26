@@ -747,6 +747,7 @@ Deno.test("a take-down raced every time cannot undo the tenth miss, and the minu
   // session not frozen — and the lock could be dodged at will (B51, returned).
   // Here every take-down is raced: its DELETE of the likes always retries.
   const { checkPin } = await import("../src/lib/pin_attempts.ts");
+  const { Freezes } = await import("../src/lib/sessions.ts");
   const { TakeDownRetry, takeDownLeftByPinLimit } = await import("../src/lib/take_down.ts");
   const mine = await registerWithPin();
   const me = mine.answer.body as { identity_id: string; session_id: string };
@@ -770,7 +771,7 @@ Deno.test("a take-down raced every time cannot undo the tenth miss, and the minu
       }
       return run<R>(text, args);
     }) as typeof run;
-    return checkPin(racing, me.session_id, "0".repeat(64), () => {});
+    return checkPin(racing, me.session_id, "0".repeat(64), () => {}, new Freezes());
     });
   } catch (error) {
     // Thrown out, it takes the whole transaction back — read the row below.
@@ -814,6 +815,7 @@ Deno.test("a freeze that cannot take its row in time does not undo the tenth mis
   // met it (55P03) rolled the whole tenth miss back — the attempt uncounted,
   // entry left open (panel-3 S1, B59). Here the freeze always meets it.
   const { checkPin } = await import("../src/lib/pin_attempts.ts");
+  const { Freezes } = await import("../src/lib/sessions.ts");
   const { takeDownLeftByPinLimit } = await import("../src/lib/take_down.ts");
   const mine = await registerWithPin();
   const me = mine.answer.body as { identity_id: string; session_id: string };
@@ -837,7 +839,7 @@ Deno.test("a freeze that cannot take its row in time does not undo the tenth mis
         }
         return run<R>(text, args);
       }) as typeof run;
-      return checkPin(locked, me.session_id, "0".repeat(64), () => {});
+      return checkPin(locked, me.session_id, "0".repeat(64), () => {}, new Freezes());
     });
   } catch (error) {
     // Thrown out, it takes the whole transaction back — read the row below.
@@ -2564,6 +2566,76 @@ Deno.test({ name: "a close that loses a deadlock to the sweep is tried again, no
     const [left] = await database.queryOrThrow<{ n: number }>(
       `SELECT count(*)::int AS n FROM feed_messages WHERE author_identity = $1`, [me.created.identity_id]);
     assertEquals(left.n, 0, "the close that was tried again left the own phrase up");
+  } finally {
+    await sql.end(); reset();
+  }
+});
+
+// Review panel 3, S2 (B64, 2026-09-26): a freeze is counted once the close
+// that wrote it commits, never before. The close freezes its sessions and
+// then deletes the appearance row under its two-second lock timeout; a second
+// connection holding identity_appearance in SHARE mode stops it right there,
+// after the freeze and before COMMIT. The count used to sit in freezeSession()
+// itself, inside the transaction: a close rolled back there was counted, and
+// a close retried after a deadlock counted every freeze twice.
+const frozenClosed = async () => {
+  const { render } = await import("../src/lib/metrics.ts");
+  const line = render().split("\n").find((row) => row.startsWith(`relay_sessions_frozen_total{reason="closed"}`));
+  return line ? Number(line.split(" ").at(-1)) : 0;
+};
+
+Deno.test({ name: "a close rolled back after its freeze does not count the freeze", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await registered();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const before = await frozenClosed();
+  const got: { answer?: { status: number; body: unknown } } = {};
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`LOCK TABLE identity_appearance IN SHARE MODE`);
+      signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close",
+        { nonce: nonce16(), auth: authBase64(AUTH) }).then((r) => (got.answer = r));
+      await queuedBehind(tx, 1, "the close behind the held appearance table");
+      // Held past the close's lock timeout, so the close gives up and rolls back.
+      for (let i = 0; i < 250 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
+    });
+    assert(got.answer, "the close never answered");
+    assertEquals(got.answer.status, 503, `the close behind the held table answered ${got.answer.status}: ${JSON.stringify(got.answer.body)}`);
+    const [row] = await database.queryOrThrow<{ frozen: boolean }>(
+      `SELECT frozen_at IS NOT NULL AS frozen FROM sessions WHERE id = $1`, [me.created.session_id]);
+    assert(!row.frozen, "the rolled-back close left the session frozen — the case no longer rolls back after the freeze");
+    assertEquals((await frozenClosed()) - before, 0, "a freeze the close rolled back was counted in relay_sessions_frozen_total");
+  } finally {
+    await sql.end(); reset();
+  }
+});
+
+Deno.test({ name: "a close tried again after a deadlock counts its freeze once", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const me = await registered();
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const before = await frozenClosed();
+  const got: { answer?: { status: number; body: unknown } } = {};
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`LOCK TABLE identity_appearance IN SHARE MODE`);
+      signedCall(me.pair.privateKey, me.created.session_id, "POST", "/identities/close",
+        { nonce: nonce16(), auth: authBase64(AUTH) }).then((r) => (got.answer = r));
+      await queuedBehind(tx, 1, "the close behind the held appearance table");
+      // The session row the close has just frozen: a cycle, and the close,
+      // waiting longer, is the side Postgres rolls back. It is tried again.
+      await tx.unsafe(`SELECT 1 FROM sessions WHERE id = $1 FOR UPDATE`, [me.created.session_id]);
+    }).catch((error) => {
+      throw new Error(`the holder, not the close, lost the deadlock — the retry never ran: ${error}`);
+    });
+    for (let i = 0; i < 250 && !got.answer; i++) await new Promise((r) => setTimeout(r, 20));
+    assert(got.answer, "the close never answered");
+    assertEquals(got.answer.status, 200, `the close tried again answered ${got.answer.status}: ${JSON.stringify(got.answer.body)}`);
+    assertEquals((await frozenClosed()) - before, 1, "one session frozen by a close tried again, counted other than once");
   } finally {
     await sql.end(); reset();
   }

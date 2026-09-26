@@ -32,7 +32,7 @@ import { checkPin } from "../lib/pin_attempts.ts";
 import { base64urlToBytes, bytesToBase64url, importSignPublicKey, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { PROTOCOL_MAJOR, protocolVersion, versionSupported } from "../lib/identity_auth.ts";
 import { TRANSFER } from "../lib/recovery_misses.ts";
-import { burnShare, freezeSession } from "../lib/sessions.ts";
+import { burnShare, Freezes, freezeSession } from "../lib/sessions.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 
@@ -101,6 +101,7 @@ async function createInvite(req: Request): Promise<Response> {
   if (!auth || auth.length === 0) return refuse("invalid_body", "auth must be base64url", 400);
   const presented = await sha256hex(auth);
 
+  const freezes = new Freezes();
   const answer = await transaction<Response>(async (run) => {
     // The PIN, against this device's own row, through the same counter as
     // POST /vault/share. Not the share: nothing is handed out here, so there
@@ -132,7 +133,7 @@ async function createInvite(req: Request): Promise<Response> {
       return refuse("unauthorized", "the request is not signed by a live session", 401);
     }
     const vault = await checkPin(run, caller.sessionId, presented, (result) =>
-      inc("relay_transfer_total", { result }));
+      inc("relay_transfer_total", { result }), freezes);
     if (vault instanceof Response) return vault;
 
     // One invitation in flight per identity, held by the index rather than by
@@ -151,7 +152,7 @@ async function createInvite(req: Request): Promise<Response> {
     );
     inc("relay_transfer_total", { result: "invited" });
     return json({ expires_in: INVITE_TTL_SECONDS }, 200, sunsetHeader());
-  }).catch((error) => {
+  }).then(freezes.count).catch((error) => {
     log("error", "transfer invite failed", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);
   });
@@ -378,6 +379,7 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
   const label = typeof body.label === "string" ? body.label.slice(0, 200) : null;
   const sessionId = crypto.randomUUID();
 
+  const freezes = new Freezes();
   const answer = await transaction<Response>(async (run) => {
     // The caller's share before the invitation: a new invitation from the same
     // session takes the share (the PIN check) and then the invitations, and
@@ -436,7 +438,7 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
       [invite.identity],
     );
     for (const session of live) {
-      await freezeSession(run, session.id, "transfer");
+      await freezeSession(run, session.id, "transfer", freezes);
       await burnShare(run, session.id);
     }
     await run(
@@ -455,7 +457,7 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
     );
     inc("relay_transfer_total", { result: "approved" });
     return json({ state: "approved", session_id: sessionId }, 200, sunsetHeader());
-  }).catch((error) => {
+  }).then(freezes.count).catch((error) => {
     log("error", "transfer approve failed", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);
   });

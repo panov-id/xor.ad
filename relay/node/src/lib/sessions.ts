@@ -37,6 +37,38 @@ export type FreezeReason = "transfer" | "closed" | "pin_limit";
 
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 
+// The freezes one transaction wrote, counted when it commits and only then
+// (review panel 3, S2, B64, 2026-09-26). freezeSession() used to count inside
+// the caller's transaction, before COMMIT: a close that froze its sessions and
+// then met a lock timeout on the rows after them rolled back and was counted
+// anyway, and a close retried after a deadlock counted every freeze twice. A
+// caller makes one of these per attempt, hands it to every freezeSession() in
+// the transaction and chains `.then(freezes.count)` on the transaction's
+// promise, so a rolled-back attempt never reaches it. Required, so a new caller
+// cannot freeze without saying where the count goes.
+//
+// A savepoint that can be rolled back on its own gets a Freezes of its own and
+// hands it on with take() once released: this one knows nothing of savepoints,
+// and a freeze undone by ROLLBACK TO SAVEPOINT would otherwise be counted when
+// the outer transaction commits (the B64 quorum's trap, pin_attempts.ts).
+export class Freezes {
+  #reasons: FreezeReason[] = [];
+
+  note(reason: FreezeReason): void {
+    this.#reasons.push(reason);
+  }
+
+  take(from: Freezes): void {
+    this.#reasons.push(...from.#reasons.splice(0));
+  }
+
+  // An arrow, so it can be handed to .then() as it is; the answer passes through.
+  count = <T>(answer: T): T => {
+    for (const reason of this.#reasons.splice(0)) inc("relay_sessions_frozen_total", { reason });
+    return answer;
+  };
+}
+
 // Returns true when this call is the one that froze the session. A second
 // freeze of an already-frozen session writes nothing and signals nothing: the
 // `frozen_at IS NULL` guard is what keeps the first reason — and the first
@@ -45,6 +77,7 @@ export async function freezeSession(
   run: Run,
   sessionId: string,
   reason: FreezeReason,
+  freezes: Freezes,
 ): Promise<boolean> {
   // A move leaves this session's private halves on the device being frozen:
   // the halves it published for matches not yet a chat go back, with their
@@ -91,10 +124,11 @@ export async function freezeSession(
       [sessionId],
     );
   }
-  // Counted here rather than at each caller: a freeze is a freeze whoever asks
+  // Noted here rather than at each caller: a freeze is a freeze whoever asks
   // for it, and the reason is the label that tells a spike of stolen-key
-  // lockouts (`pin_limit`) from a wave of closures.
-  inc("relay_sessions_frozen_total", { reason });
+  // lockouts (`pin_limit`) from a wave of closures. Counted by the caller once
+  // its transaction commits — see Freezes.
+  freezes.note(reason);
   return true;
 }
 

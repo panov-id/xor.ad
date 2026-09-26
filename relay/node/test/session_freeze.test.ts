@@ -25,7 +25,7 @@ if (!url) {
   );
 }
 
-const { freezeSession } = await import("../src/lib/sessions.ts");
+const { Freezes, freezeSession } = await import("../src/lib/sessions.ts");
 const database = await import("../src/lib/db.ts");
 
 // The pool is warmed here rather than by the first test that needs it: its
@@ -90,7 +90,7 @@ Deno.test("a freeze is announced on session_frozen, and the payload names the se
   const heard = listener();
   await heard.ready;
 
-  const froze = await database.transaction((run) => freezeSession(run, sessionId, "pin_limit"));
+  const froze = await database.transaction((run) => freezeSession(run, sessionId, "pin_limit", new Freezes()));
   assert(froze, "freezeSession said it did not freeze a live session");
   assert(
     await heard.waitFor(sessionId),
@@ -115,13 +115,13 @@ Deno.test("a quiet channel stays quiet, and a second freeze says nothing", async
 
   assert(await heard.quiet(), `something was announced before any freeze: ${heard.arrived}`);
 
-  await database.transaction((run) => freezeSession(run, sessionId, "closed"));
+  await database.transaction((run) => freezeSession(run, sessionId, "closed", new Freezes()));
   assert(await heard.waitFor(sessionId), "the freeze was not announced");
 
   // Already frozen: no row changes, so nothing is announced and the first
   // reason stands.
   const before = heard.arrived.length;
-  const again = await database.transaction((run) => freezeSession(run, sessionId, "transfer"));
+  const again = await database.transaction((run) => freezeSession(run, sessionId, "transfer", new Freezes()));
   assertEquals(again, false, "an already-frozen session reported a fresh freeze");
   await new Promise((resolve) => setTimeout(resolve, 400));
   assertEquals(heard.arrived.length, before, "a freeze that wrote nothing still announced");
@@ -143,7 +143,7 @@ Deno.test("a freeze that is rolled back is never announced", async () => {
   await heard.ready;
 
   await database.transaction(async (run) => {
-    await freezeSession(run, sessionId, "pin_limit");
+    await freezeSession(run, sessionId, "pin_limit", new Freezes());
     throw new Error("deliberate rollback");
   }).catch(() => {});
 

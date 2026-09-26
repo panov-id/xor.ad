@@ -15,7 +15,7 @@
 // Two routes copying one rule is how the rule dies. This is the rule.
 
 import { refuse } from "./identity_guard.ts";
-import { freezeSession } from "./sessions.ts";
+import { Freezes, freezeSession } from "./sessions.ts";
 import { takeDownLiveInPlace } from "./take_down.ts";
 
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
@@ -44,12 +44,14 @@ export function sameHash(a: string, b: string): boolean {
 // right and the caller may go on with the row it was going to read anyway.
 //
 // `meter` is how each route names the outcome in its own counter — the caller
-// keeps its metric, the rule stays here.
+// keeps its metric, the rule stays here. `freezes` takes the tenth miss's
+// freeze, counted by the caller once its transaction commits (lib/sessions.ts).
 export async function checkPin(
   run: Run,
   sessionId: string,
   presented: string,
   meter: (result: string) => void,
+  freezes: Freezes,
 ): Promise<Response | VaultRow> {
   const [row] = await run<VaultRow>(
     `SELECT auth_hash, share_enc, attempts_left, next_attempt_at, locked_at
@@ -114,11 +116,16 @@ export async function checkPin(
       // uncounted, entry left open. Now only the freeze goes back: the PIN is
       // locked regardless, and the minute's job (take_down.ts,
       // takeDownLeftByPinLimit) freezes a session whose share is locked.
+      //
+      // Its freeze is noted apart and handed on only once the savepoint is
+      // released: rolled back to it, the freeze did not happen (B64).
       let frozen = false;
+      const mine = new Freezes();
       await run(`SAVEPOINT pin_limit_freeze`);
       try {
-        await freezeSession(run, sessionId, "pin_limit");
+        await freezeSession(run, sessionId, "pin_limit", mine);
         await run(`RELEASE SAVEPOINT pin_limit_freeze`);
+        freezes.take(mine);
         frozen = true;
       } catch (error) {
         const code = (error as { code?: string })?.code;

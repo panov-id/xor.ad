@@ -24,7 +24,7 @@ import {
 } from "../lib/identity_auth.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { configured, openShare, sealShare } from "../lib/vault_share.ts";
-import { burnShare, freezeSession } from "../lib/sessions.ts";
+import { burnShare, Freezes, freezeSession } from "../lib/sessions.ts";
 import { checkPin, sameHash } from "../lib/pin_attempts.ts";
 import { takeDownLive } from "../lib/take_down.ts";
 import { tryAgain } from "./away.ts";
@@ -633,6 +633,7 @@ async function claimRecovery(req: Request): Promise<Response> {
     return answer;
   }
 
+  const freezes = new Freezes();
   const answer = await transaction<Response>(async (run) => {
     // Every live session of this identity goes quiet before the new one is
     // written, or the partial unique index refuses the insert. `transfer` rather
@@ -688,7 +689,7 @@ async function claimRecovery(req: Request): Promise<Response> {
     // which is the opposite of what the person typing sixteen characters
     // believes they are doing.
     for (const session of live) {
-      await freezeSession(run, session.id, "transfer");
+      await freezeSession(run, session.id, "transfer", freezes);
       await burnShare(run, session.id);
     }
 
@@ -710,7 +711,7 @@ async function claimRecovery(req: Request): Promise<Response> {
       session_id: sessionId,
       recovery_wrapped_key: wrapped,
     }, 200, sunsetHeader());
-  }).catch((error) => {
+  }).then(freezes.count).catch((error) => {
     if (error instanceof CodeMoved) return refuse("not_found", "that code does not match", 404);
     inc("relay_recovery_claim_total", { result: "storage_failed" });
     log("error", "recovery claim failed on a new device", { error: String(error) });
@@ -782,13 +783,14 @@ async function vaultShare(req: Request): Promise<Response> {
   // itself would be a dump that can open every vault it describes (SEC-1).
   const presented = await sha256hex(auth);
 
+  const freezes = new Freezes();
   const answer = await transaction<Response>(async (run) => {
     // The attempt itself — the row, the lock, the delay, the spent attempt and
     // the freeze on the tenth — lives in lib/pin_attempts.ts, shared with
     // POST /sessions/invite. It used to live here alone, which is how that
     // route came to ask for the same proof without any of the counting.
     const row = await checkPin(run, caller.sessionId, presented, (result) =>
-      inc("relay_vault_share_total", { result: result === "wrong_pin" ? "wrong" : result }));
+      inc("relay_vault_share_total", { result: result === "wrong_pin" ? "wrong" : result }), freezes);
     if (row instanceof Response) return row;
 
     if (!row.share_enc) {
@@ -812,7 +814,7 @@ async function vaultShare(req: Request): Promise<Response> {
     );
     inc("relay_vault_share_total", { result: "given" });
     return json({ share: bytesToBase64url(share) }, 200, sunsetHeader());
-  }).catch((error) => {
+  }).then(freezes.count).catch((error) => {
     log("error", "vault share failed", { error: String(error) });
     inc("relay_vault_share_total", { result: "storage_failed" });
     return refuse("unavailable", "the node cannot answer right now", 503);
@@ -966,6 +968,7 @@ async function changePin(req: Request): Promise<Response> {
   const presented = await sha256hex(current);
   const sealed = await sealShare(nextShare);
 
+  const freezes = new Freezes();
   return await transaction<Response>(async (run) => {
     const held = await run<{ session: string }>(
       `SELECT session FROM vault_shares WHERE session = $1 FOR UPDATE`, [caller.sessionId]);
@@ -986,7 +989,7 @@ async function changePin(req: Request): Promise<Response> {
     }
 
     const row = await checkPin(run, caller.sessionId, presented, (result) =>
-      inc("relay_vault_pin_total", { result: result === "wrong_pin" ? "wrong" : result }));
+      inc("relay_vault_pin_total", { result: result === "wrong_pin" ? "wrong" : result }), freezes);
     if (row instanceof Response) return row;
     if (!row.share_enc) {
       // Burned by a move: there is no vault on this device to re-key.
@@ -1007,7 +1010,7 @@ async function changePin(req: Request): Promise<Response> {
     );
     inc("relay_vault_pin_total", { result: "changed" });
     return new Response(null, { status: 200, headers: sunsetHeader() });
-  }).catch((error) => {
+  }).then(freezes.count).catch((error) => {
     log("error", "changing the PIN failed", { error: String(error) });
     inc("relay_vault_pin_total", { result: "storage_failed" });
     return refuse("unavailable", "the node cannot write right now", 503);
@@ -1074,6 +1077,9 @@ async function closeIdentity(req: Request): Promise<Response> {
 class ClosedUnderUs extends Error {}
 
 async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, presented: string): Promise<Response> {
+  // One per attempt: a close retried after a deadlock counted its freezes once
+  // for the attempt that rolled back and once for the one that committed (B64).
+  const freezes = new Freezes();
   return await transaction<Response>(async (run) => {
     // Every share of the identity, in order, before anything else — not only
     // this session's. The close burns the other sessions' shares at its end,
@@ -1101,7 +1107,7 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
       return new Response(null, { status: 200, headers: sunsetHeader() });
     }
     const row = await checkPin(run, sessionId, presented, (result) =>
-      inc("relay_identity_close_total", { result: result === "wrong_pin" ? "wrong" : result }));
+      inc("relay_identity_close_total", { result: result === "wrong_pin" ? "wrong" : result }), freezes);
     if (row instanceof Response) return row;
     if (!row.share_enc) return refuse("not_found", "this session has no share", 404);
 
@@ -1146,7 +1152,7 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
     const sessions = (await run<{ id: string }>(`SELECT id FROM sessions WHERE identity = $1`, [me])).map((r) => r.id);
     await run(`DELETE FROM pending_deliveries WHERE recipient_session = ANY($1::uuid[])`, [sessions]);
     for (const id of sessions) {
-      await freezeSession(run, id, "closed");
+      await freezeSession(run, id, "closed", freezes);
       await burnShare(run, id);
     }
     await run(`DELETE FROM identity_appearance WHERE identity = $1`, [me]);
@@ -1154,7 +1160,7 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
 
     inc("relay_identity_close_total", { result: "closed" });
     return new Response(null, { status: 200, headers: sunsetHeader() });
-  }).catch((error) => {
+  }).then(freezes.count).catch((error) => {
     if (tryAgain(error)) throw error;
     if (error instanceof ClosedUnderUs) {
       return refuse("unauthorized", "the request is not signed by a live session", 401);

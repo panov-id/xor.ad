@@ -12,7 +12,7 @@
 
 import { queryOrThrow, transaction } from "./db.ts";
 import { log } from "./log.ts";
-import { freezeSession } from "./sessions.ts";
+import { Freezes, freezeSession } from "./sessions.ts";
 
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 
@@ -66,12 +66,13 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
       ORDER BY s.id LIMIT 100`,
   );
   for (const { id } of unfrozen) {
+    const freezes = new Freezes();
     try {
       await transaction(async (run) => {
         const [share] = await run<{ locked: boolean }>(
           `SELECT locked_at IS NOT NULL AS locked FROM vault_shares WHERE session = $1 FOR UPDATE`, [id]);
-        if (share?.locked) await freezeSession(run, id, "pin_limit");
-      });
+        if (share?.locked) await freezeSession(run, id, "pin_limit", freezes);
+      }).then(freezes.count);
     } catch (error) {
       const code = (error as { code?: string })?.code;
       if (code !== "55P03" && code !== "57014" && code !== "40P01") throw error;

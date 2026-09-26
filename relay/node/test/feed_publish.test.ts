@@ -2026,13 +2026,13 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
-    const { freezeSession } = await import("../src/lib/sessions.ts");
+    const { Freezes, freezeSession } = await import("../src/lib/sessions.ts");
     const { a, b, id } = await freshMatch();
     assertEquals((await consent(a, id)).body, { state: "waiting" });
     const [stamped] = await database.queryOrThrow<{ ephemeral_session: string | null }>(
       `SELECT ephemeral_session FROM match_participants WHERE match_id = $1 AND identity = $2`, [id, a.identity_id]);
     assertEquals(stamped.ephemeral_session, a.session_id, "the half does not say which session published it");
-    await database.transaction(async (run) => { await freezeSession(run, a.session_id, "transfer"); });
+    await database.transaction(async (run) => { await freezeSession(run, a.session_id, "transfer", new Freezes()); });
     const [taken] = await database.queryOrThrow<{ ephemeral_public_key: string | null; accepted_at: Date | null }>(
       `SELECT ephemeral_public_key, accepted_at FROM match_participants WHERE match_id = $1 AND identity = $2`, [id, a.identity_id]);
     assertEquals(taken.ephemeral_public_key, null, "a frozen session's half still stands");
@@ -2046,10 +2046,10 @@ Deno.test({
 // both reproduced). The freeze is the node's own, run in a transaction held
 // open while a consent comes in, as a move holds it.
 async function heldFreeze(sessionId: string, reason: "transfer" | "pin_limit", during: () => Promise<unknown>) {
-  const { freezeSession } = await import("../src/lib/sessions.ts");
+  const { Freezes, freezeSession } = await import("../src/lib/sessions.ts");
   const got: { answer?: { status: number; body: unknown } } = {};
   await database.transaction(async (run) => {
-    await freezeSession(run, sessionId, reason);
+    await freezeSession(run, sessionId, reason, new Freezes());
     const pending = during().then((r) => (got.answer = r as { status: number; body: unknown }));
     await new Promise((r) => setTimeout(r, 400));
     void pending;
@@ -2093,10 +2093,10 @@ Deno.test({
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
-    const { freezeSession } = await import("../src/lib/sessions.ts");
+    const { Freezes, freezeSession } = await import("../src/lib/sessions.ts");
     const { a, id } = await freshMatch();
     await consent(a, id);
-    await database.transaction(async (run) => { await freezeSession(run, a.session_id, "pin_limit"); });
+    await database.transaction(async (run) => { await freezeSession(run, a.session_id, "pin_limit", new Freezes()); });
     const [row] = await database.queryOrThrow<{ ephemeral_public_key: string | null; accepted_at: Date | null }>(
       `SELECT ephemeral_public_key, accepted_at FROM match_participants WHERE match_id = $1 AND identity = $2`, [id, a.identity_id]);
     assert(row.ephemeral_public_key, "a PIN-limit freeze took back a half its device still holds");

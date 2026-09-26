@@ -255,6 +255,15 @@ Deno.test("with no moderator, phrases that age out one after another write one l
   }
   assertEquals(l.sent.length, 1, `five stalls wrote ${l.sent.length} letters`);
   assertEquals(l.sent[0].pastNineInADay, 1);
+  // And over the rest of the day, a stall every seventy minutes with no
+  // verdict: past the hour's brake each time, so only the day holds them —
+  // without it, a letter an hour (observer, 2026-09-26).
+  for (let i = 1; i <= 19; i++) {
+    await waitingPhrase(brand, STOPPED_SECONDS + 20);
+    await watchModeration({ now: start + i * 70 * 60_000, send: l.send, to: TO });
+    await sweep(brand);
+  }
+  assertEquals(l.sent.length, 1, `a day of stalls an hour apart wrote ${l.sent.length} letters`);
   // A day on, still stalling: the next letter, with the day's count.
   await waitingPhrase(brand, STOPPED_SECONDS + 20);
   await watchModeration({ now: start + 25 * HOUR, send: l.send, to: TO });
@@ -278,6 +287,22 @@ Deno.test("a verdict, then a stop again: a second letter, but not within the hou
   await watchModeration({ now: start + HOUR + 60_000, send: l.send, to: TO });
   assertEquals(l.sent.length, 2, "a stop after a verdict was not told");
   await sweep(brand);
+});
+
+Deno.test("a verdict on another face does not bring this one's queue back", async () => {
+  forgetModerationWatch();
+  const brand = face();
+  const other = face();
+  const l = letters(brand);
+  const start = Date.now();
+  await waitingPhrase(brand, STOPPED_SECONDS + 20);
+  await watchModeration({ now: start, send: l.send, to: TO });
+  const theirs = await waitingPhrase(other, 30);
+  await publish(theirs);
+  await watchModeration({ now: start + 2 * HOUR, send: l.send, to: TO });
+  assertEquals(l.sent.length, 1, "a verdict on another face was read as this face's queue moving");
+  await sweep(brand);
+  await database.queryOrThrow(`DELETE FROM feed_messages WHERE brand = $1`, [other]);
 });
 
 Deno.test("a phrase held by its author's refused name does not wake anybody", async () => {

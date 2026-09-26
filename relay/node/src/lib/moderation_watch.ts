@@ -19,9 +19,9 @@
 //     "empty" happens every ten minutes and meant a letter every ten minutes —
 //     the flood the alert was moved to `info` to avoid.
 //   - Stops with no verdict between them: one letter a day per face, as С7.
-//   - A verdict given after the last letter — a phrase published or refused
-//     anywhere; the moderator is one for all faces — makes the next stop news
-//     again, but not sooner than an hour after the last letter: a moderator
+//   - A verdict for that face after the last letter — one of its phrases
+//     published — makes the next stop news again, but not sooner than an hour
+//     after the last letter: a moderator
 //     that works a minute and stops would otherwise write a letter per flap.
 //     Decided by a quorum of three (A: a letter after a verdict, with a cap;
 //     C: after a verdict, an hour apart; B: strictly one a day — outvoted,
@@ -60,13 +60,17 @@ export function forgetModerationWatch(): void {
   pastNine = new Map();
 }
 
-// A verdict anywhere since `at`: a publication stamps visible_at, a refusal
-// deletes the row and leaves its moment in identity_stats.
-async function verdictSince(at: number): Promise<boolean> {
+// A verdict for this face since `at`: one of its phrases published, which
+// stamps visible_at. By the face and not anywhere (observer, 2026-09-26): a
+// verdict on one face does not bring another's stopped queue back. A refusal
+// does not count, and the reason is the schema, not a choice — it deletes the
+// row and leaves its moment in identity_stats, which has no face. So a
+// moderator that only refuses reads as stopped; the letter a day still bounds
+// what that costs.
+async function verdictSince(brand: string, at: number): Promise<boolean> {
   const rows = await query<{ any: boolean }>(
-    `SELECT EXISTS (SELECT 1 FROM feed_messages WHERE visible_at > $1)
-         OR EXISTS (SELECT 1 FROM identity_stats s, unnest(s.rejected_at_recent) t WHERE t > $1) AS any`,
-    [new Date(at)],
+    `SELECT EXISTS (SELECT 1 FROM feed_messages WHERE brand = $1 AND visible_at > $2) AS any`,
+    [brand, new Date(at)],
   );
   return rows?.[0]?.any === true;
 }
@@ -103,7 +107,7 @@ export async function watchModeration(options: {
     const last = lastLetterAt.get(row.brand);
     const news = last === undefined ||
       now - last >= A_DAY_MS ||
-      (now - last >= AN_HOUR_MS && await verdictSince(last));
+      (now - last >= AN_HOUR_MS && await verdictSince(row.brand, last));
     if (!news) continue;
     const queue = {
       brand: row.brand,

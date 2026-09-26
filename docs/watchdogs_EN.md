@@ -192,5 +192,6 @@ Each watchdog is broken on purpose and must reach the channel:
   W2 is built without the fallback transport — `watchdogs.unbuilt`. W3's digest line about other tombstones was built on 2026-09-24.
 - The external pinger service is not chosen — `node.external.pinger`.
 - The `DsaDecisionLetterExhausted` alert — an Art. 16(5) decision letter has run out of tries or has no text: `increase(relay_dsa_decision_letter_total{result="exhausted"}[1h]) > 0` for a minute, warning (built 2026-09-26).
+- The `DsaLetterMarkFailed` alert — a DSA letter left and its sent mark was not written (the next pass sends it again): `increase(relay_dsa_letter_mark_failed_total[1h]) > 0` per letter kind for a minute, warning (built 2026-09-26).
 - The `TransferBrakeOn` alert — the transfer-code pause (`claim.miss.pause`, after 50 misses in an hour): `relay_transfer_pause_seconds_left > 0` for a minute, warning; while it holds, a genuine transfer waits too (built 2026-09-26). Its neighbour `RecoveryBrakeOn` has its test in `alerts.test.yml` since 2026-09-26 (B37).
 - W1: no fallback transport for the escalation — `mail.fallback.transport`; the ceiling on letters since 2026-09-24 — six an hour per address and one summary beyond that.

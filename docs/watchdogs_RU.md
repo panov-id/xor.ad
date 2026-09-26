@@ -186,5 +186,6 @@
   С2 построен без резервного транспорта — `watchdogs.unbuilt`. Строка С3 о прочих надгробиях в суточной сводке построена 24.09.2026.
 - Сервис внешнего пингера не выбран — `node.external.pinger`.
 - Тревога `DsaDecisionLetterExhausted` — письмо о решении по ст. 16(5) исчерпало попытки или не имеет текста: `increase(relay_dsa_decision_letter_total{result="exhausted"}[1h]) > 0` минуту, warning (построено 26.09.2026).
+- Тревога `DsaLetterMarkFailed` — письмо DSA ушло, а отметка об отправке не записалась (следующий проход пошлёт его снова): `increase(relay_dsa_letter_mark_failed_total[1h]) > 0` по виду письма минуту, warning (построено 26.09.2026).
 - Тревога `TransferBrakeOn` — пауза приёма кодов переноса (`claim.miss.pause`, после 50 промахов за час): `relay_transfer_pause_seconds_left > 0` минуту, warning; пока пауза, честный перенос тоже не принимается (построено 26.09.2026). У соседней `RecoveryBrakeOn` тест в `alerts.test.yml` есть с 26.09.2026 (B37).
 - С1: резервного транспорта для эскалации нет — `mail.fallback.transport`; потолок писем с 24.09.2026 — шесть в час на адрес и одна сводка сверх того.

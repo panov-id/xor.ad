@@ -185,7 +185,9 @@ configured("addresses of one IPv6 /64 share a bucket, and a neighbouring /64 doe
 
 configured("identity ids, mailboxes and other non-addresses keep their own keys, and a suffix stays", async () => {
   const { bucketAddress } = await import("../src/lib/rate_limit.ts");
-  for (const whole of ["4f0c2a4e-8d7b-4c1e-9f6a-1b2c3d4e5f60", "someone@example.org", "keyless", "not:an:address:at:all", "1.2.3", "256.1.1.1"]) {
+  // A malformed dotted address is held inside IPv6, below: alone its key is its
+  // own text whether it is read as an address or not, and proves nothing.
+  for (const whole of ["4f0c2a4e-8d7b-4c1e-9f6a-1b2c3d4e5f60", "someone@example.org", "keyless", "not:an:address:at:all"]) {
     assertEquals(bucketAddress(whole), whole, `${whole} was taken for an address`);
   }
   assertEquals(bucketAddress("2001:db8:1:2::5|pk_live_x"), "2001:db8:1:2::/64|pk_live_x", "an IPv6 address with a key suffix kept its full address");
@@ -256,6 +258,22 @@ configured("an address one group off an IPv4-carrying prefix is IPv6, folded to 
   for (const [address, bucket] of cases) {
     assertEquals(bucketAddress(address), bucket,
       `${address} is not one of the four IPv4-carrying prefixes and was read as the IPv4 host ${bucketAddress(address)}`);
+  }
+});
+
+// An octet past 255 makes no IPv4 host, and neither does a dotted tail short
+// or long of four (B104, from the coordinator's verifier on B99). Checked
+// inside IPv6, where a wrong reading shows: "256.1.1.1" alone keeps its own
+// text as its key whether it is read as an address or not, but
+// ::ffff:1.256.1.1 read with an octet up to 999 became 1.0.1.1 — another
+// host's bucket.
+configured("a dotted tail inside IPv6 with an octet past 255, or not four octets, is no address", async () => {
+  const { bucketAddress } = await import("../src/lib/rate_limit.ts");
+  for (const broken of [
+    "::ffff:1.256.1.1", "::ffff:256.1.1.1", "::ffff:1.1.1.999", "64:ff9b::300.1.1.1", "::1.2.3.256",
+    "::ffff:1.2.3", "::ffff:1.2.3.4.5", "64:ff9b::1..2.3", "::ffff:1.2.3.-4",
+  ]) {
+    assertEquals(bucketAddress(broken), broken, `${broken} is no address and was read as ${bucketAddress(broken)}`);
   }
 });
 

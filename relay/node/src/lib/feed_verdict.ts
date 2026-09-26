@@ -292,20 +292,27 @@ export async function sweepExpiredPhrases(
   const maxBatches = Math.max(1, Math.floor(Number(options.maxBatches ?? EXPIRED_MAX_BATCHES)) || EXPIRED_MAX_BATCHES);
   let swept = 0;
   for (let round = 0; round < maxBatches; round++) {
+    // SKIP LOCKED: a phrase that expired between a take-down's now() and this
+    // one's is held by that take-down, which goes on to delete one's own
+    // phrases — a phrase this batch may hold. Waited on, the two met the other
+    // way round (review panel 3, D1); skipped, it waits for the next minute.
     const rows = await queryOrThrow<{ count: string }>(
       `WITH gone AS (
          DELETE FROM feed_messages
           WHERE id IN (SELECT id FROM feed_messages
                         WHERE visible_at IS NOT NULL AND expires_at <= now()
-                        LIMIT ${batch})
+                        LIMIT ${batch}
+                        FOR UPDATE SKIP LOCKED)
           RETURNING 1
        )
        SELECT count(*)::text AS count FROM gone`,
     );
     const took = Number(rows[0]?.count ?? 0);
     swept += took;
+    // Counted per batch: each batch commits on its own, and a later one that
+    // throws must not take the count of those already gone with it (D4).
+    if (took > 0) inc("relay_feed_verdict_total", { verdict: "expired" }, took);
     if (took < batch) break;
   }
-  if (swept > 0) inc("relay_feed_verdict_total", { verdict: "expired" }, swept);
   return swept;
 }

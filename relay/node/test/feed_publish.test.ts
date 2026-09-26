@@ -762,6 +762,63 @@ Deno.test("expired phrases go in batches, and a pass stops at its ceiling", asyn
   assertEquals(await left(), 0);
 });
 
+// Review panel 3, D1: a phrase that expired between a take-down's now() and
+// the sweep's is held by that take-down, which then goes for phrases a sweep
+// batch may hold. The sweep skips the held one rather than waiting on it, and
+// takes it the next time; what nobody holds goes now. A second connection
+// plays the take-down's hold.
+Deno.test({
+  name: "the expiry sweep skips a phrase a take-down holds instead of waiting, and takes it the next time",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await verdict.sweepExpiredPhrases();
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const holder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const me = await author();
+    const expired = async () => (await database.queryOrThrow<{ id: string }>(
+      `INSERT INTO feed_messages
+         (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+          lat_published, lon_published, visible_at, expires_at)
+       VALUES (gen_random_uuid(), 'xor', $1, 'истекла', 'alone', 'und', 60.17, 24.94, 1000, 60.17, 24.94,
+               now() - interval '3 hours', now() - interval '1 minute') RETURNING id`, [me.identity_id]))[0].id;
+    const held = await expired();
+    const free = await expired();
+    const there = async (id: string) =>
+      (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [id])).length === 1;
+    let release!: () => void;
+    const released = new Promise<void>((done) => (release = done));
+    let locked!: () => void;
+    const lockTaken = new Promise<void>((done) => (locked = done));
+    const holding = holder.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM feed_messages WHERE id = $1 FOR UPDATE`, [held]);
+      locked();
+      await released;
+    });
+    try {
+      await lockTaken;
+      const pass = verdict.sweepExpiredPhrases();
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const first = await Promise.race([
+        pass,
+        new Promise<"waited">((done) => (timer = setTimeout(() => done("waited"), 3000))),
+      ]);
+      clearTimeout(timer);
+      release();
+      await holding;
+      await pass;
+      assert(first !== "waited", "the sweep waited on a phrase a take-down holds");
+      assertEquals(await there(free), false, "the phrase nobody held was not swept");
+      assertEquals(await there(held), true, "the held phrase was swept under its holder");
+      await verdict.sweepExpiredPhrases();
+      assertEquals(await there(held), false, "the skipped phrase was not taken the next time");
+    } finally {
+      release();
+      await holder.end();
+    }
+  },
+});
+
 Deno.test("density answers a step, and never the number", async () => {
   const mine = await author();
   const theirs = await author();

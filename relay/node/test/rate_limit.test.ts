@@ -228,6 +228,37 @@ configured("one IPv4 host has one bucket however it is written, and two hosts ne
   }
 });
 
+// The four prefixes are exact: one group off inside the zeros each needs, and
+// the address is an ordinary IPv6 host folded to its /64, not an IPv4 host
+// (B104, from the observer's probe on B99 — NAT64 checked one zero group
+// short, and every case stayed green).
+configured("an address one group off an IPv4-carrying prefix is IPv6, folded to its /64", async () => {
+  const { bucketAddress } = await import("../src/lib/rate_limit.ts");
+  const cases: [string, string][] = [
+    // NAT64 64:ff9b::/96 — groups 2 to 5 zero, and 64:ff9b itself.
+    ["64:ff9b:1:0:0:0:c000:280", "64:ff9b:1:0::/64"],
+    ["64:ff9b:0:1:0:0:c000:280", "64:ff9b:0:1::/64"],
+    ["64:ff9b:0:0:1:0:c000:280", "64:ff9b:0:0::/64"],
+    ["64:ff9b:0:0:0:1:c000:280", "64:ff9b:0:0::/64"],
+    ["64:ff9a::c000:280", "64:ff9a:0:0::/64"],
+    ["65:ff9b::c000:280", "65:ff9b:0:0::/64"],
+    // Mapped ::ffff:0:0/96 — groups 0 to 4 zero.
+    ["0:0:0:0:1:ffff:c000:280", "0:0:0:0::/64"],
+    ["0:0:0:1:0:ffff:c000:280", "0:0:0:1::/64"],
+    ["1::ffff:c000:280", "1:0:0:0::/64"],
+    // Translated ::ffff:0:0:0/96 — groups 0 to 3 zero, then ffff, then 0.
+    ["0:0:0:1:ffff:0:c000:280", "0:0:0:1::/64"],
+    ["0:0:0:0:ffff:1:c000:280", "0:0:0:0::/64"],
+    // Compatible ::/96 — groups 0 to 5 zero.
+    ["0:0:0:0:0:1:c000:280", "0:0:0:0::/64"],
+    ["0:0:0:0:1:0:c000:280", "0:0:0:0::/64"],
+  ];
+  for (const [address, bucket] of cases) {
+    assertEquals(bucketAddress(address), bucket,
+      `${address} is not one of the four IPv4-carrying prefixes and was read as the IPv4 host ${bucketAddress(address)}`);
+  }
+});
+
 // "::" stands for one or more zero groups anywhere in the address (RFC 4291
 // §2.2); every place it can stand, and the address written out in full, is one
 // /64. Nothing held this before B99.

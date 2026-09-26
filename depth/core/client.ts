@@ -644,6 +644,14 @@ export class Client {
     return this.#held;
   }
 
+  // What a face with a disk keeps beside its sealed keys, and hands back to
+  // seat(): the salt the PIN is derived with (the long key under the paper
+  // code has its getter below). A read-only mirror of what seat() takes (web
+  // face, W1, 2026-09-26).
+  get deviceSalt(): Uint8Array | null {
+    return this.#deviceSalt;
+  }
+
   // The long key's public half, base64url SPKI: the one registered with, or
   // the one seat() was given. The node does not say it back.
   get longSpki(): string {

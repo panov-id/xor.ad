@@ -1,0 +1,36 @@
+/* Dark, accent terra, as the sheets (panel/design/kit). Enough to read the
+   three screens; the kit's typography and spacing come with the next step. */
+:root {
+  color-scheme: dark;
+  --bg: #0d0d0c;
+  --fg: #ece9e2;
+  --muted: #8f8a80;
+  --accent: #c8623a;
+  --line: #2a2926;
+  --error: #e0604f;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.4 system-ui, sans-serif; }
+.screen { max-width: 375px; min-height: 100vh; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; justify-content: space-between; align-items: baseline; }
+h1 { font-size: 22px; margin: 0; }
+h2 { font-size: 18px; margin: 0; }
+.muted { color: var(--muted); font-size: 14px; }
+.warn { color: var(--accent); font-size: 14px; }
+.error { color: var(--error); }
+.brand { color: var(--accent); letter-spacing: 0.04em; }
+label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); }
+label.row { flex-direction: row; align-items: flex-start; gap: 10px; color: var(--fg); }
+input, select { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+input:focus { outline: none; border-color: var(--accent); }
+button { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:disabled { opacity: 0.4; cursor: default; }
+.code { font-family: ui-monospace, "JetBrains Mono", monospace; font-size: 22px; letter-spacing: 0.08em; }
+.cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.card p { margin: 0; }
+.offer { color: var(--accent); font-weight: 600; }
+.empty { display: flex; flex-direction: column; gap: 8px; padding: 32px 0; text-align: center; }
+.splash { justify-content: center; text-align: center; }
+footer { margin-top: auto; }

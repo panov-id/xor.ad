@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": [],
+    "baseUrl": ".",
+    "paths": {
+      "hash-wasm": [
+        "./node_modules/hash-wasm"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "../depth/core/*.ts"
+  ],
+  "exclude": [
+    "../depth/core/*.test.ts"
+  ]
+}

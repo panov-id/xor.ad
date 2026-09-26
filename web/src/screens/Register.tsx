@@ -76,6 +76,10 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
         await openSealed(made.record, pin, made.share);
         sealed = "ok";
       } catch { /* the line says failed */ }
+      // The share has done its one job here; it does not outlive this screen
+      // (verifier of W1, 2026-09-26).
+      made.share.fill(0);
+      setMade(null);
       onDone(made.client, sealed);
     } catch (e) {
       setError((e as Error).message);

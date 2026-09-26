@@ -5,12 +5,11 @@ import { defineConfig } from "vite";
 // The node the page talks to. The core (depth/core/client.ts) calls the node
 // by absolute path — /identities, /feed — so the page cannot put its calls
 // under a prefix of its own: this server forwards the node's own paths, by
-// their first segment, and serves everything else itself. The node's CORS
-// allows only `authorization, content-type, x-api-key` on a preflight
-// (relay/node/src/lib/cors.ts), while a signed call carries
-// x-protocol-version and the three x-identity-* headers, which a cross-origin
-// page cannot send until the node lists them — reported with W1 (2026-09-26);
-// the gateway in front of a real deployment forwards the same way.
+// their first segment, and serves everything else itself. Since W1b
+// (2026-09-26) the node's CORS lets a signed call's headers through, so a
+// page may also call the node on its own origin; the stand keeps the
+// forwarding because one origin needs no ALLOWED_ORIGINS and no https, and a
+// gateway in front of a real deployment forwards the same way.
 const node = process.env.WEB_NODE_URL ?? "http://localhost:62080";
 // The first segments of the node's person-facing routes (relay/node/src/routes),
 // without the panel's /admin, /auth, /o and /v1.

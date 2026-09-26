@@ -4084,6 +4084,47 @@ Deno.test({
   },
 });
 
+// The guard read the session before the transaction; a tenth PIN mistake that
+// commits while the request waits on the counters (its take-down takes them)
+// must still make it a frozen one's request — marked, and once a day (B87).
+Deno.test({
+  name: "a support request behind a tenth miss that locked the share is taken as a frozen one's (B87)",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const postgres = (await import("npm:postgres@3.4.4")).default;
+    const me = await author();
+    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+    const got: { answer?: { status: number; body: unknown } } = {};
+    let sent: Promise<unknown> = Promise.resolve();
+    try {
+      await sql.begin(async (tx) => {
+        await tx.unsafe(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [me.identity_id]);
+        sent = support(me, "POST", "/support", { body: "заблокировали", nonce: nonce16() }).then((r) => (got.answer = r));
+        // The witness that the request waits on the counters, not a sleep.
+        const [{ p }] = await tx.unsafe(`SELECT pg_backend_pid() AS p`) as { p: number }[];
+        let queuedOn = 0;
+        for (let i = 0; i < 250 && queuedOn === 0; i++) {
+          await tx.unsafe(`SELECT pg_stat_clear_snapshot()`);
+          queuedOn = ((await tx.unsafe(
+            `SELECT count(*)::int AS n FROM pg_stat_activity WHERE $1 = ANY(pg_blocking_pids(pid))`, [p])) as { n: number }[])[0].n;
+          if (queuedOn === 0) await new Promise((r) => setTimeout(r, 20));
+        }
+        assert(queuedOn > 0, "the request never queued on the held counters — the case never ran");
+        await tx.unsafe(`UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [me.session_id]);
+      });
+      await sent;
+    } finally {
+      await sql.end();
+    }
+    assert(got.answer, "the request never answered");
+    assertEquals(got.answer.status, 201, JSON.stringify(got.answer.body));
+    const [row] = await database.queryOrThrow<{ from_frozen: boolean }>(
+      `SELECT from_frozen FROM support_requests WHERE public_no = $1`, [(got.answer.body as { public_no: string }).public_no]);
+    assertEquals(row.from_frozen, true, "a request behind the tenth miss was taken as a live session's");
+  },
+});
+
 Deno.test({
   name: "closing an identity cuts its support requests loose, as screen 14 promises",
   sanitizeResources: false,

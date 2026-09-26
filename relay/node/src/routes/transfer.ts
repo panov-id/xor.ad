@@ -430,8 +430,11 @@ async function approveInvite(req: Request, lookupId: string): Promise<Response> 
     // device. Let through, the approval froze the owner and seated the invited
     // device — the lost phone taking the identity back past the paper code
     // (verifier, 2026-09-25, reproduced).
+    // A share locked by the tenth PIN mistake meanwhile counts as the freeze it
+    // is about to be, by the guard's rule (B75, B87).
     const [mine] = await run<{ n: number }>(
-      `SELECT count(*)::int AS n FROM sessions WHERE id = $1 AND frozen_at IS NULL`, [caller.sessionId]);
+      `SELECT count(*)::int AS n FROM sessions WHERE id = $1 AND frozen_at IS NULL
+          AND NOT EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = sessions.id AND v.locked_at IS NOT NULL)`, [caller.sessionId]);
     if (mine.n === 0) return refuse("unauthorized", "the request is not signed by a live session", 401);
 
     // The move itself, and the order is not a matter of taste: the leaving

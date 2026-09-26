@@ -59,11 +59,6 @@ async function write(req: Request): Promise<Response> {
   if (email !== null && !isEmail(email)) return refuse("invalid_body", "email is not an address", 400);
   const nonce = typeof body?.nonce === "string" ? base64urlToBytes(body.nonce) : null;
   if (!nonce || nonce.length !== 16) return refuse("invalid_body", "nonce must be 16 bytes, base64url", 400);
-  // A share locked by the tenth PIN mistake is the freeze it is about to be
-  // (B75): until the minute's job writes frozen_at, the tab wrote here as a live
-  // session — past screen 14's once a day and "no other live session" (B79).
-  const frozen = caller.frozenAt !== null || caller.pinLocked;
-
   return await transaction<Response>(async (run) => {
     // Everything under the identity's row lock: the count, so two at once do
     // not both pass, and the nonce, so two with the same nonce do not both get
@@ -71,6 +66,16 @@ async function write(req: Request): Promise<Response> {
     // (support panel, 2026-09-22).
     await run(`INSERT INTO identity_stats (identity) VALUES ($1) ON CONFLICT DO NOTHING`, [caller.identityId]);
     await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [caller.identityId]);
+    // Frozen, read here and not from the guard: the guard read the session
+    // before this transaction, and a tenth PIN mistake that committed while
+    // this waited on the counters (its take-down takes them) left a live-looking
+    // caller past screen 14's once a day (B87). A share it locked is the freeze
+    // it is about to be (B75, B79).
+    const [state0] = await run<{ frozen: boolean }>(
+      `SELECT frozen_at IS NOT NULL
+           OR EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = sessions.id AND v.locked_at IS NOT NULL) AS frozen
+         FROM sessions WHERE id = $1`, [caller.sessionId]);
+    const frozen = state0?.frozen ?? true;
     // A repeat of the nonce is the same request: its stored answer.
     const [kept] = await run<{ route: string; response: { public_no: string } | null }>(
       `SELECT route, response FROM nonces WHERE session_id = $1 AND nonce = $2`, [caller.sessionId, nonce]);

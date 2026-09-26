@@ -2703,3 +2703,35 @@ Deno.test({ name: "the tenth miss through the route counts its freeze once", san
   assert((await attemptsLeft(created.session_id)).locked_at, "the tenth miss did not close entry");
   assertEquals(pinLimit() - before, 1, "the tenth miss's freeze was counted other than once");
 });
+
+// The first PIN writes the share afresh — ten attempts, no lock — so a share
+// the tenth PIN mistake locked while this waited on it must stop it, by the
+// guard's rule that a locked share is a freeze (B75); otherwise a grant left
+// from a paper-code raise would lift the lock without the code (B87).
+Deno.test({ name: "a first PIN behind a tenth miss that locked the share is refused, and the lock stays (B87)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const { answer, pair } = await registerWithPin();
+  const created = answer.body as { identity_id: string; session_id: string };
+  await database.queryOrThrow(`UPDATE identities SET first_pin_grant_at = now() WHERE id = $1`, [created.identity_id]);
+  const payload = { auth_hash: await auth.sha256hex(crypto.getRandomValues(new Uint8Array(32))),
+    share: authBase64(crypto.getRandomValues(new Uint8Array(32))) };
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const got: { answer?: { status: number; body: unknown } } = {};
+  let sent: Promise<unknown> = Promise.resolve();
+  try {
+    await sql.begin(async (tx) => {
+      await tx.unsafe(`SELECT 1 FROM vault_shares WHERE session = $1 FOR UPDATE`, [created.session_id]);
+      sent = signedCall(pair.privateKey, created.session_id, "POST", "/vault/init", payload).then((r) => (got.answer = r));
+      await queuedBehind(tx, 1, "the first PIN behind the held share");
+      await tx.unsafe(`UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [created.session_id]);
+    });
+    await sent;
+  } finally {
+    await sql.end();
+  }
+  assert(got.answer, "the first PIN never answered");
+  assertEquals(got.answer.status, 401, `a first PIN behind a locked share answered ${got.answer.status}: ${JSON.stringify(got.answer.body)}`);
+  const row = await attemptsLeft(created.session_id);
+  assert(row.locked_at, "the first PIN lifted the tenth miss's lock");
+  assertEquals(row.attempts_left, 0, "the first PIN put the attempts back");
+});

@@ -874,8 +874,12 @@ async function vaultInit(req: Request): Promise<Response> {
     // transaction, and a claim that committed while this waited froze it and
     // left the grant for the device that came by the code. Let through, the
     // frozen phone spent that grant on a PIN of its own (verifier, 2026-09-25).
+    // Nor a share the tenth PIN mistake locked meanwhile, by the guard's rule
+    // (B75): this route writes the share afresh, ten attempts and no lock, and
+    // would lift the lock without the paper code (B87).
     const [mine] = await run<{ n: number }>(
-      `SELECT count(*)::int AS n FROM (SELECT 1 FROM sessions WHERE id = $1 AND frozen_at IS NULL FOR SHARE) s`,
+      `SELECT count(*)::int AS n FROM (SELECT 1 FROM sessions WHERE id = $1 AND frozen_at IS NULL
+          AND NOT EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = sessions.id AND v.locked_at IS NOT NULL) FOR SHARE) s`,
       [caller.sessionId]);
     if (mine.n === 0) {
       inc("relay_vault_init_total", { result: "moved_meanwhile" });

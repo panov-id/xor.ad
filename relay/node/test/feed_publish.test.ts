@@ -1902,7 +1902,8 @@ Deno.test("a like on an offer cannot be taken back", async () => {
   const b = await author();
   const offer = await seedPhrase(b.identity_id, "отдам две табуретки");
   await database.queryOrThrow(`UPDATE feed_messages SET discount_value = '100%' WHERE id = $1`, [offer]);
-  assertEquals(stateOf(await like(a, offer)), "liked");
+  // Since 2026-09-26 the offer's match is made at once (§8.5, lib/offer_match.ts).
+  assertEquals(stateOf(await like(a, offer)), "matched");
   const back = await unlike(a, offer);
   assertEquals(back.body, { state: "spent" }, "a like on an offer was taken back");
   assertEquals(await likeCount(offer), 1);

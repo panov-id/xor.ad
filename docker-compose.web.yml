@@ -40,6 +40,17 @@ services:
       - ON_ERROR_STOP=1
       - -c
       - "INSERT INTO api_keys (id, brand, origins) VALUES ('ak_pub_webtest0000000001', 'sosed', '{}') ON CONFLICT DO NOTHING"
+      # One neighbourhood venue with two offers (db/050), for the exit screen of
+      # an offer's link (W5b): a live link that sends to ourcafe.cy, and one
+      # switched off. Codes of at least ten characters (routes/offer_links.ts CODE).
+      - -c
+      - "INSERT INTO advertisers (id, email, email_confirmed_at, contact) VALUES ('00000000-0000-4000-8000-00000000ad01', 'venue@webtest.invalid', now(), 'Вера') ON CONFLICT DO NOTHING"
+      - -c
+      - "INSERT INTO venues (id, advertiser_id, name, address, verification_status, verified_at) VALUES ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-00000000ad01', 'Наше кафе', 'Колонаки, 1', 'verified', now()) ON CONFLICT DO NOTHING"
+      - -c
+      - "INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, conditions, external_url, redirect_code, discount_until, status, expires_at) VALUES ('00000000-0000-4000-8000-0000000000f1', 'sosed', '00000000-0000-4000-8000-0000000000e1', 'кофе соседям', '-10 %', 'до полудня', 'https://ourcafe.cy/menu', 'webtestlive0001', now() + interval '1 day', 'active', now() + interval '4 hours 20 minutes') ON CONFLICT DO NOTHING"
+      - -c
+      - "INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, external_url, redirect_code, redirect_disabled_at, discount_until, status, expires_at) VALUES ('00000000-0000-4000-8000-0000000000f2', 'sosed', '00000000-0000-4000-8000-0000000000e1', 'вчерашний хлеб', '-50 %', 'https://ourcafe.cy/bread', 'webtestspent001', now(), now() + interval '1 day', 'active', now() + interval '4 hours 20 minutes') ON CONFLICT DO NOTHING"
     restart: "no"
 
   node:

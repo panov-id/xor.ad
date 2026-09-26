@@ -436,7 +436,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><strong>Decide on a notice</strong></p>
 <h3>Access</h3><p>Panel session JWT (HS256, 7 days) from /auth/callback; each route checks a permission</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code></td><td>yes</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Decided, with a statement id when upheld.</td><td></td></tr><tr><td><code>404</code></td><td>no such notice</td><td></td></tr><tr><td><code>409</code></td><td>already decided</td><td></td></tr><tr><td><code>422</code></td><td>invalid decision fields</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>200</code></td><td>Decided, with a statement id when upheld. The letter to the notifier is marked decision_sent_at when it leaves; one that did not is sent again by DSA_NOTICE_NOTIFY from decision_letter_facts, up to 8 times (db/058, 2026-09-26).</td><td></td></tr><tr><td><code>404</code></td><td>no such notice</td><td></td></tr><tr><td><code>409</code></td><td>already decided</td><td></td></tr><tr><td><code>422</code></td><td>invalid decision fields</td><td></td></tr><tr><td><code>503</code></td><td>database unavailable</td><td></td></tr></table></div>
 <p class="src">Source: <code>relay/node/src/routes/dsa.ts</code></p>
 </section>
 <section class="op" id="post-admin-offer-complaints--id--decision">

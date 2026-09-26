@@ -448,6 +448,15 @@ you will not see the decision — leave an email". [retired] This said "It goes 
 decided 2026-09-11": with no email no decision arrived at all, and Art. 16(5) rested on a
 non-lawyer's reading; open item `dsa.article16.no-email` is closed by this edit.
 
+**The decision letter remembers whether it left, and is sent again — decided by quorum on 2026-09-26,
+3:0.** The node marks `decision_sent_at` when the letter leaves; one that did not is sent again by the
+standing `DSA_NOTICE_NOTIFY` job up to eight times (db/058). The text the letter quotes is kept in
+`dsa_notices.decision_letter_facts` and goes with the notice row after a year (`prune_dsa_records`): for
+a refusal there is nowhere else to take it from. The receipt channel is not shown this text — it is the
+statement to the author, which may quote the content (above). Rejected: resending a refusal without
+the "why" (an empty quote under "why" breaks this section) and resending only upheld ones (refusals,
+the common outcome, would be left without a letter).
+
 ## 7. The statement of reasons to the author (Art. 17)
 
 Sent **every time** content is restricted — whether on a notice or on our own

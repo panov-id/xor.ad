@@ -124,3 +124,19 @@ Deno.test("the held long key signs but cannot be exported outside use", async ()
   assertEquals(signing.extractable, false);
   await assertRejects(() => crypto.subtle.exportKey("pkcs8", signing));
 });
+
+// B28 · a reply whose header is broken or short is refused in fixed words:
+// the header comes before anything is authenticated, and a parser's message
+// would carry the sender's bytes — escapes included — onto the screen.
+Deno.test("a reply with a broken or short header is refused without echoing its bytes", async () => {
+  const keys = await deriveTransferCode(newTransferCode());
+  const arriving = await newDevice();
+  const evil = new TextEncoder().encode("\u001b]0;pwn\u0007{");
+  const bytes = new Uint8Array(2 + evil.length + 28);
+  bytes[1] = evil.length;
+  bytes.set(evil, 2);
+  const broken = await assertRejects(() => openReply(keys, arriving.claimant, arriving.wrapPrivate, base64url(bytes)));
+  assertEquals((broken as Error).message, "the reply header is not JSON");
+  const short = await assertRejects(() => openReply(keys, arriving.claimant, arriving.wrapPrivate, base64url(new Uint8Array([0, 200, 1, 2]))));
+  assertEquals((short as Error).message, "the reply is shorter than its own header says");
+});

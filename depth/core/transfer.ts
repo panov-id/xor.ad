@@ -247,10 +247,21 @@ export async function openReply(
   envelope: string,
 ): Promise<Traveller & { long: HeldKey; signing: CryptoKey }> {
   const bytes = fromBase64url(envelope);
-  const n = (bytes[0] << 8) | bytes[1];
+  // The header is read before anything is authenticated, and whoever wrote
+  // the reply — the node or the approving device — chose its bytes. So a
+  // short or broken reply is refused in fixed words: a parser's message
+  // quotes its input, escapes and all, and that input is theirs (review
+  // panel 2026-09-26, F3 F18). 12 is the iv, 16 the GCM tag.
+  const n = bytes.length >= 2 ? (bytes[0] << 8) | bytes[1] : 0;
+  if (bytes.length < 2 + n + 12 + 16) throw new Error("the reply is shorter than its own header says");
   const header = bytes.slice(2, 2 + n);
-  const parsed = JSON.parse(new TextDecoder().decode(header)) as Record<string, unknown>;
-  const { identity_id, long_pub, eph_pub } = parsed;
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(new TextDecoder().decode(header)) as Record<string, unknown>;
+  } catch {
+    throw new Error("the reply header is not JSON");
+  }
+  const { identity_id, long_pub, eph_pub } = parsed ?? {};
   if (typeof identity_id !== "string" || typeof long_pub !== "string" || typeof eph_pub !== "string") {
     throw new Error("the reply header does not carry identity_id, long_pub and eph_pub");
   }

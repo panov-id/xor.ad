@@ -1459,3 +1459,31 @@ test("a slow node is asked one question at a time", async () => {
   app.unmount();
   noErrors();
 });
+
+// ── B28 · an error's words are drawn as anything else from outside is ──
+// A screen's error goes up to App's fail, and its words can carry what the
+// node or the other device sent (a JSON parser quotes its input, escapes
+// included). Drawn raw, an OSC or CSI in them repaints the terminal — the
+// very screen that asks the person to trust it (review panel 2026-09-26, F3).
+import { App } from "./app.ts";
+
+test("an error carrying escape sequences reaches the screen without them", async () => {
+  const client = {
+    identityId: "", held: null, longSpki: "", registered: false,
+    seat: () => {}, firstPin: () => Promise.resolve({ status: 204, body: null }),
+    request: () => Promise.reject(new Error("\u001b]0;pwn\u0007\u001b[2Jboom")),
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(App, { say, client: client as any, start: "moveIn" }));
+  await settle();
+  await type(app, ..."k7q-m3f-2x9".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /Что-то пошло не так/));
+  const frame = app.lastFrame()!;
+  // plain puts a dot where each sequence was; the test frame strips some
+  // escapes by itself, so their absence alone would prove nothing.
+  assert.match(frame, /··boom/, "the error was not drawn through plain");
+  assert.doesNotMatch(frame, /\u001b\]0;pwn/, "an OSC from an error reached the terminal");
+  assert.doesNotMatch(frame, /\u001b\[2J/, "a CSI from an error reached the terminal");
+  assert.doesNotMatch(frame, /\u0007/, "a BEL from an error reached the terminal");
+  app.unmount();
+});

@@ -20,6 +20,7 @@ import {
   Away, Blocked, ChangePin, Chat, EditProfile, Hidden, Inbox, Liked, Me, StartAgain, StepAway, Statements, Write,
 } from "./rooms.ts";
 import { MovedAway, MoveIn, MoveOut } from "./move.ts";
+import { plain } from "./parts.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
 // answers, the screen uses this number — and it is the registry's 128
@@ -86,7 +87,11 @@ export function App({ say, client: first, fresh, start }: {
   const [place, setPlace] = useState<Place | undefined>(undefined);
   const [mine, setMine] = useState<{ text: string; state: string } | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
-  const fail = (message: string) => setError(say("common.error", { message }));
+  // Every error a screen reports lands here, and an error's words can carry
+  // what the node or the other device sent — a JSON parser quotes its input
+  // with the escapes in it. So they are drawn as anything else from outside
+  // is: through plain (review panel 2026-09-26, F3).
+  const fail = (message: string) => setError(say("common.error", { message: plain(message, 300) }));
   // B19 · a use of the paper code refused because the identity stepped away:
   // the screen that said so offers the way back itself (depth.away.return).
   const [away, setAway] = useState(false);

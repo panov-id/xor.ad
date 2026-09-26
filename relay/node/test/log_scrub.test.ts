@@ -8,6 +8,7 @@
 // that forgets it cannot leak.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { log } from "../src/lib/log.ts";
+import { MAX_FIELD, scrubAddresses } from "../src/lib/scrub.ts";
 
 import { suite } from "./support/config_env.ts";
 
@@ -144,4 +145,97 @@ configured("warn and info lines are scrubbed too", () => {
     const { raw } = printedBy(level, { detail: "from 198.51.100.23:8080" });
     assert(!raw.includes("198.51.100.23"), `a ${level} line kept the address: ${raw}`);
   }
+});
+
+// Linear, and capped (B106, the coordinator's verifier). The first scrub was a
+// set of regular expressions that backtracked, and log() scrubs every field —
+// a caller's raw Origin header among them (lib/tenant.ts): a 60 KB Origin held
+// the node for 3.4 s, a 100 KB one for 10 s, /health included. Shapes that
+// hurt the regular version, at 100 KB, through the scrub itself and through
+// log(); the budget is 50 ms where the old version took seconds.
+function timed(run: () => void): number {
+  const started = performance.now();
+  run();
+  return performance.now() - started;
+}
+
+configured("a 100 KB field of address-like text is scrubbed in under 50 ms, in the scrub and through log()", () => {
+  const shapes: Record<string, string> = {
+    brackets: "[1%".repeat(34_000),
+    word: "a".repeat(100_000),
+    digits: "1.".repeat(50_000),
+    colons: "1:".repeat(50_000),
+    at: "a@".repeat(50_000),
+    origin: "https://" + "1.".repeat(49_000) + "x",
+  };
+  for (const [name, text] of Object.entries(shapes)) {
+    const direct = timed(() => scrubAddresses(text));
+    assert(direct < 50, `scrubAddresses took ${direct.toFixed(0)} ms on 100 KB of "${name}"`);
+    const logged = timed(() => printedBy("warn", { origin: text }));
+    assert(logged < 50, `log() took ${logged.toFixed(0)} ms on a 100 KB "${name}" field`);
+  }
+});
+
+configured("a field longer than MAX_FIELD is cut before it is read, and says how much was cut", () => {
+  const long = "x".repeat(MAX_FIELD + 1000) + " 198.51.100.9";
+  const { entry, raw } = printedBy("warn", { origin: long, short: "y".repeat(MAX_FIELD) });
+  assertEquals(entry.origin, "x".repeat(MAX_FIELD) + "…[+1013 chars]", "a long field was not cut at MAX_FIELD with its tail counted");
+  assertEquals((entry.short as string).length, MAX_FIELD, "a field of exactly MAX_FIELD was cut");
+  assert(!raw.includes("198.51.100.9"), "the address past the cut survived");
+});
+
+// Shapes that leaked past the first version (the coordinator's verifier on
+// B106): a labelled address, a bracketed one with a five-digit port, eight
+// groups and a port without brackets, a URL's host. And shapes it took for an
+// address that are none: a browser's version, the unspecified listen address,
+// a C++ namespace, a package with its version.
+configured("a labelled, bracketed, ported or URL-borne address goes; a version, 0.0.0.0, a namespace and a package stay", () => {
+  const { entry, raw } = printedBy("error", {
+    labelled: "peer ip:2001:db8::1 dropped",
+    bracketed: "from [2001:db8::17]:54321",
+    unbracketed: "from 2001:db8:0:0:0:0:0:17:8443",
+    url: "fetch http://10.0.0.5:8080/x/y failed",
+    urlUser: "postgres://relay:pw@10.0.17.2:5432/relay",
+    agent: "Chrome/120.0.0.0 on Mozilla/5.0",
+    listen: "listening on 0.0.0.0:8080",
+    namespace: "in abc::def and std::string",
+    pkg: "npm:postgres@3.4.4 loaded",
+  });
+  assertEquals(entry.labelled, "peer ip:<ip> dropped", "a labelled IPv6 address survived");
+  assertEquals(entry.bracketed, "from <ip>", "a bracketed IPv6 address with a five-digit port survived");
+  assertEquals(entry.unbracketed, "from <ip>", "eight groups and a port without brackets survived");
+  assertEquals(entry.url, "fetch http://<ip>/x/y failed", "a URL's host survived, or its path went with it");
+  assertEquals(entry.urlUser, "postgres://relay:pw@<ip>/relay", "a URL's host after credentials survived");
+  for (const address of ["2001:db8", "10.0.0.5", "10.0.17.2", "54321", "8443"]) {
+    assert(!raw.includes(address), `${address} survived into the log line: ${raw}`);
+  }
+  assertEquals(entry.agent, "Chrome/120.0.0.0 on Mozilla/5.0", "a browser's version was taken for an address");
+  assertEquals(entry.listen, "listening on 0.0.0.0:8080", "the unspecified listen address was taken for a host");
+  assertEquals(entry.namespace, "in abc::def and std::string", "a namespace was taken for an IPv6 address");
+  assertEquals(entry.pkg, "npm:postgres@3.4.4 loaded", "a package with its version was taken for a mailbox");
+});
+
+// The copy in storage is the line the panel reads without shell access
+// (lib/log.ts persist); the scrub sits before both sinks, and this pins the
+// stored one rather than trusting the order of two calls.
+const scrubDir = await Deno.makeTempDir();
+const storedScrub = suite({ STORAGE_TRANSPORT: "fs", STORAGE_DIR: scrubDir, NODE_ENV_NAME: "test" });
+
+storedScrub("the copy of an error line in storage carries no address either", async () => {
+  const directory = `${scrubDir}/server-logs/test`;
+  const out = console.error;
+  console.error = () => {};
+  try {
+    log("error", "handler threw for 203.0.113.201", { error: "write CONNECTION_CLOSED 10.0.17.2:5432", who: "someone@example.org" });
+  } finally {
+    console.error = out;
+  }
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  const files = [...Deno.readDirSync(directory)].map((entry) => entry.name);
+  assertEquals(files.length, 1, "the error line was not written to storage");
+  const stored = await Deno.readTextFile(`${directory}/${files[0]}`);
+  for (const address of ["203.0.113.201", "10.0.17.2", "5432", "someone@example.org"]) {
+    assert(!stored.includes(address), `${address} reached the stored copy: ${stored}`);
+  }
+  assert(stored.includes("handler threw for <ip>"), `the stored copy lost the message: ${stored}`);
 });

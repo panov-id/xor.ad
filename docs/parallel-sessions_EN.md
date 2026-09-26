@@ -39,6 +39,19 @@ to type) and for the sessions themselves (the rules of each role).
 With fewer than four sessions the coordinator doubles as observer. More than four
 workers is not useful: merging at the coordinator becomes the bottleneck.
 
+**From wave 0 (2026-09-26, the owner's decision) the crew is a coordinator and 2–3
+workers, with no observer and no ring.** The rerun and the control break of every
+"done" are made by the coordinator's `verifier` agent: over the 26.09 shift it found
+more than the observer did (the ReDoS in B106, the dead SAVEPOINT in B70), while the
+observer twice duplicated a check already handed out. A review panel is one per wave,
+before the wave is merged into the day branch, with the "Security" lens plus `verifier`
+only; the protocol is at most 100 lines, and findings go as a line in `open.tsv` with
+the status "deferred until users", not as new tasks of the same wave. A quorum is only
+for product forks (what the user sees); bookkeeping, documents and gates the coordinator
+decides alone. The reason: from 15.09 to 26.09 product code was about 20 % of commits,
+the rest protocols, registries, tests and docs; the tenth PIN miss went through four
+rounds of panels (B70…B108).
+
 ## 3. The board
 
 ```

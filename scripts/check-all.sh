@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # Ворота слоя фактов одной командой.
 #
-#   scripts/check-all.sh              ворота слоя фактов
-#   scripts/check-all.sh --with-tests и пробы самих ворот
+#   scripts/check-all.sh              ворота продукта: контракт, миграции, наборы с базой, пределы
+#   scripts/check-all.sh --full       и всё остальное: реестры, парность, дизайн, тексты, онтология
+#   scripts/check-all.sh --with-tests и пробы самих ворот (подразумевает --full)
+#
+# С 26.09.2026 (волна 0 разгрузки, решение владельца) по умолчанию гоняются только
+# ворота, за которыми стоит код продукта или база: остальные 30 с лишним краснели
+# на любую правку текста и рождали работу «привести документ в соответствие с
+# воротами». Они не удалены — --full зовёт их все, и список «сюда не входят»
+# по-прежнему строится по путям.
 #
 # ЭТО НЕ ВСЕ ВОРОТА ПРОЕКТА, но с 01.09.2026 почти все: реестры, парность
 # документов, граф памяти, текстовые ворота и те, которым хватает контейнера.
@@ -28,12 +35,22 @@ set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/.." && pwd)"
 compose="$root/relay/local/docker-compose.yml"
-with_tests=0; [ "${1:-}" = --with-tests ] && with_tests=1
+with_tests=0; full=0
+for arg in "$@"; do
+  case "$arg" in
+    --with-tests) with_tests=1; full=1 ;;
+    --full) full=1 ;;
+  esac
+done
 # Команда docker подменяема: без этого ветку «докера нет» нечем проверить —
 # он лежит в одном каталоге с awk и python3, и PATH под пробу не порежешь.
 docker_cmd="${DOCKER:-docker}"
 
 failed=0; passed=0; skipped=0
+
+# opt — ворота вне главного пути продукта: только под --full.
+opt() { [ "$full" = 1 ] && run "$@"; }
+opt_in_docker() { [ "$full" = 1 ] && run_in_docker "$@"; }
 
 run() {  # run <имя> <команда...>
   local name="$1"; shift
@@ -54,7 +71,9 @@ stand_ready() {
 
 echo "ВОРОТА"
 
-if ! command -v "$docker_cmd" >/dev/null 2>&1; then
+if [ "$full" != 1 ]; then
+  :
+elif ! command -v "$docker_cmd" >/dev/null 2>&1; then
   skipped=$((skipped + 1))
   printf '  · %-26s docker недоступен — схема не проверена\n' check-facts-schema
 elif stand_ready || {
@@ -69,42 +88,42 @@ else
   printf '  · %-26s стенд не поднялся — схема не проверена\n' check-facts-schema
 fi
 
-run check-facts-coverage  bash "$here/check-facts-coverage.sh"
-run check-facts-open      bash "$here/check-facts-open.sh"
+opt check-facts-coverage  bash "$here/check-facts-coverage.sh"
+opt check-facts-open      bash "$here/check-facts-open.sh"
 # Не ворота на содержание, а ворота на адресацию: открытые и схема держат
 # номера строк, документы их перерастают, и оба реестра краснеют одинаково.
 # Сухой прогон называет настоящий номер и краснеет, если его никто не записал;
 # чинится тем же скриптом с --write.
-run readdress-facts       python3 "$here/readdress-facts.py"
-run check-facts-decisions bash "$here/check-facts-decisions.sh"
+opt readdress-facts       python3 "$here/readdress-facts.py"
+opt check-facts-decisions bash "$here/check-facts-decisions.sh"
 run check-facts-limits    bash "$here/check-facts-limits.sh"
 run check-retention       bash "$here/check-retention.sh"
-run check-docs-pairing    bash "$here/check-docs-pairing-all.sh"
-run ontology              python3 "$here/ontology.py" --check
+opt check-docs-pairing    bash "$here/check-docs-pairing-all.sh"
+opt ontology              python3 "$here/ontology.py" --check
 # Карта тестов называет свои числа, а число в документе живёт ровно до первого
 # нового теста. Инструмент, на который она ссылалась, в репозитории не
 # существовал — и числа разошлись на десять, никем не замеченные.
-run count-tests           bash "$here/count-tests.sh" --check
+opt count-tests           bash "$here/count-tests.sh" --check
 
 # Ворота, которым нужен только текст: держать их снаружи было нечем оправдать.
-run check-landing-tokens       bash "$here/check-landing-tokens.sh"
-run check-retired-terms        bash "$here/check-retired-terms.sh"
-run check-rules-quota-sentence bash "$here/check-rules-quota-sentence.sh"
-run check-panel-reason-labels  bash "$here/check-panel-reason-labels.sh"
+opt check-landing-tokens       bash "$here/check-landing-tokens.sh"
+opt check-retired-terms        bash "$here/check-retired-terms.sh"
+opt check-rules-quota-sentence bash "$here/check-rules-quota-sentence.sh"
+opt check-panel-reason-labels  bash "$here/check-panel-reason-labels.sh"
 run check-identity-cascades    bash "$here/check-identity-cascades.sh"
-run sync-legal-revisions       bash "$here/sync-legal-revisions.sh" --check
-run check-screens-mirror       bash "$here/check-screens-mirror.sh"
-run check-design-sheets        bash "$here/check-design-sheets.sh"
-run check-design-text          bash "$here/check-design-text.sh"
-run check-design-spacing       bash "$here/check-design-spacing.sh"
-run check-design-grid           bash "$here/check-design-grid.sh"
-run check-design-palettes      python3 "$here/design-palettes.py" --check
-run check-design-build         python3 "$here/build-design-sheets.py" --check
-run test-design-build          bash "$here/test_build-design-sheets.sh"
+opt sync-legal-revisions       bash "$here/sync-legal-revisions.sh" --check
+opt check-screens-mirror       bash "$here/check-screens-mirror.sh"
+opt check-design-sheets        bash "$here/check-design-sheets.sh"
+opt check-design-text          bash "$here/check-design-text.sh"
+opt check-design-spacing       bash "$here/check-design-spacing.sh"
+opt check-design-grid           bash "$here/check-design-grid.sh"
+opt check-design-palettes      python3 "$here/design-palettes.py" --check
+opt check-design-build         python3 "$here/build-design-sheets.py" --check
+opt test-design-build          bash "$here/test_build-design-sheets.sh"
 run check-openapi              bash "$here/check-openapi.sh"
 run check-backup-script        bash "$here/check-backup-script.sh"
 run check-migrations           bash "$here/check-migrations.sh"
-run check-live-phrase          bash "$here/check-live-phrase.sh"
+opt check-live-phrase          bash "$here/check-live-phrase.sh"
 run check-db-suites            bash "$here/check-db-suites.sh"
 run test-backup-encryption     bash "$here/test_backup-encryption.sh"
 run check-metrics-exist        bash "$here/check-metrics-exist.sh"
@@ -119,16 +138,16 @@ run_in_docker() {  # run_in_docker <имя> <путь>
     printf '  · %-26s docker недоступен — не проверено\n' "$1"
   fi
 }
-run_in_docker check-mermaid            "$here/check-mermaid.sh"
-run_in_docker check-panel-contrast     "$here/check-panel-contrast.sh"
-run_in_docker check-storefront-contrast "$here/check-storefront-contrast.sh"
-run_in_docker check-panel-font-weights "$here/check-panel-font-weights.sh"
+opt_in_docker check-mermaid            "$here/check-mermaid.sh"
+opt_in_docker check-panel-contrast     "$here/check-panel-contrast.sh"
+opt_in_docker check-storefront-contrast "$here/check-storefront-contrast.sh"
+opt_in_docker check-panel-font-weights "$here/check-panel-font-weights.sh"
 run_in_docker test-alerts              "$here/test_alerts.sh"
 run_in_docker test-migration-upgrade  "$here/test-migration-upgrade.sh"
 run_in_docker test-depth               "$here/run-depth-tests.sh"
 run_in_docker test-depth-ui            "$here/run-depth-ui-tests.sh"
 run_in_docker test-depth-live-ui       "$here/run-depth-live-ui.sh"
-run_in_docker check-depth-i18n         "$here/check-depth-i18n.sh"
+opt_in_docker check-depth-i18n         "$here/check-depth-i18n.sh"
 
 if [ "$with_tests" = 1 ]; then
   echo

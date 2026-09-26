@@ -298,3 +298,353 @@ tests:
       - eval_time: 8m
         alertname: RecoveryBrakeOn
         exp_alerts: []
+
+  # ── B40, 2026-09-26: a probe for every rule that had none. Each rule gets a
+  # series that fires exactly on the edge of its for: (quiet one evaluation
+  # before, firing at it) and a series that must stay quiet. Counters lie flat
+  # first and then rise evenly, so a rate window never extrapolates and the
+  # edge is where the arithmetic in the comment says it is.
+
+  # JobChainDead: tombstone and no standing job from t0; for 5m.
+  - name: a dead job chain fires at five minutes, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_jobs_tombstones{kind="mail"}'
+        values: '1x20'
+      - series: 'relay_jobs_standing{kind="mail"}'
+        values: '0x20'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: JobChainDead
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: JobChainDead
+        exp_alerts:
+          - exp_labels: { severity: critical, kind: mail }
+            exp_annotations:
+              summary: "Очередь mail встала: есть надгробие и нет стоячей задачи"
+              description: "Задача выработала попытки и не перевзвелась. Сама она не вернётся — enqueueOnce надгробие не заменяет."
+
+  - name: a tombstone beside a standing job is not a dead chain
+    interval: 1m
+    input_series:
+      - series: 'relay_jobs_tombstones{kind="mail"}'
+        values: '1x20'
+      - series: 'relay_jobs_standing{kind="mail"}'
+        values: '1x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: JobChainDead
+        exp_alerts: []
+
+  # JobsOverdue: the oldest due job over an hour from t0; for 10m.
+  - name: a job overdue past an hour fires at ten minutes, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_jobs_oldest_due_seconds{kind="mail"}'
+        values: '3700x20'
+    alert_rule_test:
+      - eval_time: 9m
+        alertname: JobsOverdue
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: JobsOverdue
+        exp_alerts:
+          - exp_labels: { severity: warning, kind: mail }
+            exp_annotations:
+              summary: "Задача mail просрочена больше часа"
+              description: "Никто не берёт задачи: воркер не крутится, аренда застряла, или узлов нет."
+
+  - name: a job due under an hour is not overdue
+    interval: 1m
+    input_series:
+      - series: 'relay_jobs_oldest_due_seconds{kind="mail"}'
+        values: '3500x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: JobsOverdue
+        exp_alerts: []
+
+  # IdentitySweeperSilent, first branch: the last pass stays at 0 while time()
+  # passes 10800 s after 180m, so the condition holds from 181m; for 15m.
+  - name: a sweeper silent past three hours fires fifteen minutes later, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_identity_sweeper_last_pass_seconds'
+        values: '0x220'
+    alert_rule_test:
+      - eval_time: 195m
+        alertname: IdentitySweeperSilent
+        exp_alerts: []
+      - eval_time: 196m
+        alertname: IdentitySweeperSilent
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: "Уборщик личностей молчит больше трёх часов"
+              description: "Проход должен быть раз в час. Три срока §8.2 сейчас не исполняются: брошенные регистрации, год бездействия, тридцать дней после закрытия."
+
+  # Second branch: no pass ever recorded, and a process up for more than three hours.
+  - name: a sweeper that never passed in a process up three hours fires too
+    interval: 1m
+    input_series:
+      - series: 'relay_process_uptime_seconds'
+        values: '0+60x220'
+    alert_rule_test:
+      - eval_time: 195m
+        alertname: IdentitySweeperSilent
+        exp_alerts: []
+      - eval_time: 196m
+        alertname: IdentitySweeperSilent
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: "Уборщик личностей молчит больше трёх часов"
+              description: "Проход должен быть раз в час. Три срока §8.2 сейчас не исполняются: брошенные регистрации, год бездействия, тридцать дней после закрытия."
+
+  - name: a sweeper passing every minute is not silent
+    interval: 1m
+    input_series:
+      - series: 'relay_identity_sweeper_last_pass_seconds'
+        values: '0+60x220'
+      - series: 'relay_process_uptime_seconds'
+        values: '0+60x220'
+    alert_rule_test:
+      - eval_time: 210m
+        alertname: IdentitySweeperSilent
+        exp_alerts: []
+
+  # BackupStale: 27 hours old from t0; for 10m.
+  - name: a backup older than 26 hours fires at ten minutes, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_backup_age_seconds{env="prod"}'
+        values: '97200x20'
+    alert_rule_test:
+      - eval_time: 9m
+        alertname: BackupStale
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: BackupStale
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Ночной бэкап опаздывает: 1d 3h 0m 0s"
+              description: "Метка last-ok.json не обновлялась больше 26 часов. Смотреть relay-backup.service на боксе и зону хранилища."
+
+  - name: a backup a day old is not stale
+    interval: 1m
+    input_series:
+      - series: 'relay_backup_age_seconds{env="prod"}'
+        values: '86400x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: BackupStale
+        exp_alerts: []
+
+  # PinMissBurst: flat for 10m, then 3 wrong PINs a minute; over 5m the count
+  # is 3k at 10+k, above 10 from k=4 (14m); for 5m → 19m, with 15 in the window.
+  - name: a burst of wrong PINs fires five minutes after it passes ten, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_vault_share_total{result="wrong"}'
+        values: '0x10 3+3x30'
+    alert_rule_test:
+      - eval_time: 18m
+        alertname: PinMissBurst
+        exp_alerts: []
+      - eval_time: 19m
+        alertname: PinMissBurst
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Всплеск неверных ПИНов: 15 за пять минут"
+              description: "Похоже на перебор с украденным ключом подписи. Десятая ошибка закрывает вход до бумажного кода и замораживает сессию."
+
+  - name: one wrong PIN a minute is not a burst
+    interval: 1m
+    input_series:
+      - series: 'relay_vault_share_total{result="wrong"}'
+        values: '0x10 1+1x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: PinMissBurst
+        exp_alerts: []
+
+  # SessionFreezeBurst: flat for 20m, then one pin_limit freeze a minute; over
+  # 15m the count is k at 20+k, above 5 from k=6 (26m); for 10m → 36m, 15 in the window.
+  - name: a burst of PIN-limit freezes fires ten minutes after it passes five, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_sessions_frozen_total{reason="pin_limit"}'
+        values: '0x20 1+1x40'
+    alert_rule_test:
+      - eval_time: 35m
+        alertname: SessionFreezeBurst
+        exp_alerts: []
+      - eval_time: 36m
+        alertname: SessionFreezeBurst
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Заморозок по лимиту ПИНа: 15 за пятнадцать минут"
+              description: "Либо атака на чужие вкладки, либо дефект счётчика попыток. Каждая такая заморозка — человек без входа до бумажного кода."
+
+  - name: freezes for other reasons are not a PIN-limit burst
+    interval: 1m
+    input_series:
+      - series: 'relay_sessions_frozen_total{reason="transfer"}'
+        values: '0x20 1+1x40'
+    alert_rule_test:
+      - eval_time: 50m
+        alertname: SessionFreezeBurst
+        exp_alerts: []
+
+  # ServerErrors: flat for 10m, then 12 5xx a minute (0.2/s); over 5m the rate
+  # is 12k/300 at 10+k, above 0.1 from k=3 (13m); for 5m → 18m.
+  - name: server errors above six a minute fire at five minutes, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_requests_total{status="500"}'
+        values: '0x10 12+12x30'
+    alert_rule_test:
+      - eval_time: 17m
+        alertname: ServerErrors
+        exp_alerts: []
+      - eval_time: 18m
+        alertname: ServerErrors
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: "Узел отвечает пятисотыми"
+              description: "Больше шести ошибок в минуту. Смотреть журнал узла: чаще всего это база."
+
+  - name: 4xx answers are not server errors
+    interval: 1m
+    input_series:
+      - series: 'relay_requests_total{status="404"}'
+        values: '0x10 12+12x30'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: ServerErrors
+        exp_alerts: []
+
+  # MailFailing: flat at 0 for 20m, then one refused letter a minute; true from
+  # 21m; for 10m → 31m.
+  - name: refused letters fire at ten minutes, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_mail_total{result="failed",kind="notice_receipt",transport="resend"}'
+        values: '0x20 1+1x40'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: MailFailing
+        exp_alerts: []
+      - eval_time: 31m
+        alertname: MailFailing
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: "Почта не уходит"
+              description: "Подтверждения по ст. 16 и ссылки для входа в панель не доставляются."
+
+  - name: letters that leave are not a mail failure
+    interval: 1m
+    input_series:
+      - series: 'relay_mail_total{result="sent",kind="notice_receipt",transport="resend"}'
+        values: '0x20 1+1x40'
+    alert_rule_test:
+      - eval_time: 50m
+        alertname: MailFailing
+        exp_alerts: []
+
+  # DsaQueueStuck: three open notices and a decisions counter that stays at 0;
+  # true from 1m (rate needs two samples); for 1h → 61m.
+  - name: an open queue with no decisions in six hours fires at an hour, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_dsa_queue_open'
+        values: '3x70'
+      - series: 'relay_dsa_decisions_total{decision="upheld"}'
+        values: '0x70'
+    alert_rule_test:
+      - eval_time: 60m
+        alertname: DsaQueueStuck
+        exp_alerts: []
+      - eval_time: 61m
+        alertname: DsaQueueStuck
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Очередь ст. 16 не разбирается"
+              description: "Есть незакрытые уведомления и ни одного решения за шесть часов. Сроки ответа — регуляторные. Возраст самого старого — relay_dsa_queue_oldest_seconds."
+
+  - name: an open queue being decided is not stuck
+    interval: 1m
+    input_series:
+      - series: 'relay_dsa_queue_open'
+        values: '3x70'
+      - series: 'relay_dsa_decisions_total{decision="upheld"}'
+        values: '0+1x70'
+    alert_rule_test:
+      - eval_time: 65m
+        alertname: DsaQueueStuck
+        exp_alerts: []
+
+  # TransferPinGuessing: flat for 20m, then 2 wrong PINs a minute; over 15m the
+  # count is 2k at 20+k, above 20 from k=11 (31m); for 15m → 46m.
+  - name: guessing the transfer PIN fires fifteen minutes after it passes twenty, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_transfer_total{result="wrong_pin"}'
+        values: '0x20 2+2x40'
+    alert_rule_test:
+      - eval_time: 45m
+        alertname: TransferPinGuessing
+        exp_alerts: []
+      - eval_time: 46m
+        alertname: TransferPinGuessing
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "ПИН на окне переноса подбирают"
+              description: "Больше двадцати неверных ПИНов за пятнадцать минут. Десятая попытка закрывает вход и замораживает сессию (§8.2) — если растёт и result=locked, защита сработала; если нет, попытки идут с разных сессий."
+
+  - name: a wrong transfer PIN a minute is not guessing
+    interval: 1m
+    input_series:
+      - series: 'relay_transfer_total{result="wrong_pin"}'
+        values: '0x20 1+1x40'
+    alert_rule_test:
+      - eval_time: 55m
+        alertname: TransferPinGuessing
+        exp_alerts: []
+
+  # StatementsUnavailable: flat at 0 for 20m, then a 503 a minute; true from
+  # 21m; for 10m → 31m.
+  - name: statements answering 503 fire at ten minutes, not before
+    interval: 1m
+    input_series:
+      - series: 'relay_statements_total{result="unavailable"}'
+        values: '0x20 1+1x40'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: StatementsUnavailable
+        exp_alerts: []
+      - eval_time: 31m
+        alertname: StatementsUnavailable
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Мотивировки по ст. 17 не отдаются"
+              description: "Маршрут отвечает 503. Это единственный путь, которым автор без почты узнаёт причину ограничения."
+
+  - name: statements served are not unavailable
+    interval: 1m
+    input_series:
+      - series: 'relay_statements_total{result="served"}'
+        values: '0x20 1+1x40'
+    alert_rule_test:
+      - eval_time: 50m
+        alertname: StatementsUnavailable
+        exp_alerts: []

@@ -9,7 +9,7 @@ import type { Client } from "../../../depth/core/client.ts";
 import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan, awayCounts, graphemes, NAME_MAX, pinRefusal, profileRefusal, resetCounts, say } from "../api/me.ts";
 import { changePinAndReseal, forget } from "../vault.ts";
 
-export type MeRow = "statements" | "name" | "age" | "away" | "pin" | "reset";
+export type MeRow = "statements" | "name" | "age" | "away" | "pin" | "reissue" | "reset";
 
 export function Me({ client, restrictions, onOpen, onBack, refresh }: {
   client: Client;
@@ -32,6 +32,7 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
     { key: "age", label: `${say("me.age")}  ${profile ? profile.age : "…"}`, testid: "me-age" },
     { key: "away", label: say("away.item"), testid: "me-away" },
     { key: "pin", label: say("pin.item"), testid: "me-pin" },
+    { key: "reissue", label: say("reissue.item"), testid: "me-reissue" },
     { key: "reset", label: say("reset.item"), testid: "me-reset" },
   ];
   return (

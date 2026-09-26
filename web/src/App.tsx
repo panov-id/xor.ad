@@ -29,6 +29,7 @@ import { Match } from "./screens/Match.tsx";
 import { Offer } from "./screens/Offer.tsx";
 import { Away, ChangePin, EditProfile, Me, type MeRow, StartAgain, StepAway } from "./screens/Me.tsx";
 import { Register } from "./screens/Register.tsx";
+import { Reissue } from "./screens/Reissue.tsx";
 import { Restore } from "./screens/Restore.tsx";
 import { Splash } from "./screens/Splash.tsx";
 import { Statements } from "./screens/Statements.tsx";
@@ -56,6 +57,7 @@ type Screen =
   | { at: "me" }
   | { at: "edit"; field: "name" | "age"; current: string }
   | { at: "change-pin" }
+  | { at: "reissue" }
   | { at: "reset" }
   | { at: "step-away" }
   | { at: "away"; until: number };
@@ -250,6 +252,7 @@ export function App() {
               if (row === "name" || row === "age") return setScreen({ at: "edit", field: row, current: current ?? "" });
               if (row === "away") return setScreen({ at: "step-away" });
               if (row === "pin") return setScreen({ at: "change-pin" });
+              if (row === "reissue") return setScreen({ at: "reissue" });
               setScreen({ at: "reset" });
             }}
           />
@@ -259,6 +262,8 @@ export function App() {
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
+    case "reissue":
+      return <Reissue client={seated!.client} onDone={me} onBack={me} />;
     case "reset":
       return (
         <StartAgain

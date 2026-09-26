@@ -413,3 +413,14 @@ async function sessionSpkiOf(pkcs8: Uint8Array): Promise<string> {
   const pub = await crypto.subtle.importKey("jwk", { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y }, P256, true, ["verify"]);
   return base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pub)));
 }
+
+// After a reissue of the paper code: the long key under the new code, as the
+// core now holds it (recovery.ts reissue → holdWrappedLongKey), into the
+// record — a later reissue opens it from here after a reload (W6).
+export async function rememberWrappedLongKey(client: Client): Promise<void> {
+  const record = await readRecord();
+  if (!record) return;
+  const wrapped = client.wrappedLongKey;
+  if (!wrapped) return;
+  await tx("readwrite", (s) => s.put({ ...record, wrappedLongKey: wrapped, savedAt: Date.now() }));
+}

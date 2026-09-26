@@ -101,6 +101,10 @@ recovery.claim.hour	10	запросов	подъёмов бумажным код
 recovery.claim.day	30	запросов	подъёмов бумажным кодом в сутки по адресу (20.09.2026)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 transfer.invite.hour	10	запросов	окон переноса в час по адресу (21.09.2026, open-work P2)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 transfer.invite.day	30	запросов	окон переноса в сутки по адресу (21.09.2026, open-work P2)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+transfer.claim.hour	60	запросов	вводов кода переноса в час по адресу — защита от перебора кода	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+transfer.claim.day	200	запросов	вводов кода переноса в сутки по адресу	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+transfer.state.hour	600	запросов	опросов состояния переноса в час по адресу: 10 окон × 2 устройства × 24 опроса с запасом (26.09.2026, кворум B10)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+transfer.state.day	1500	запросов	опросов состояния переноса в сутки по адресу: 30 окон × 48 с запасом (26.09.2026, кворум B10)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 like.hour	300	запросов	лайков и снятий в час на личность, тормоз от скрипта (владелец 21.09.2026)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 chat.alive.ids	200	идентификаторов	потолок списка в POST /chats/alive; спека говорила «ограничена» без числа — технический выбор 21.09.2026	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 vault.first_pin.ttl	1	час	срок одноразового права «первый ПИН» после восстановления или переноса (решение владельца 21.09.2026)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	запрос

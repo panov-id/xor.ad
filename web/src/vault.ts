@@ -34,7 +34,7 @@
 // wrapping pair, so a chat started before the reload cannot be opened.
 
 import { Client, type HeldLongKey } from "../../depth/core/client.ts";
-import { open, seal, vaultKey } from "../../depth/core/lock.ts";
+import { open as unseal, seal, vaultKey } from "../../depth/core/lock.ts";
 import { derivePin } from "../../depth/core/pin.ts";
 import { base64url, type SigningKey } from "../../depth/core/sign.ts";
 import { HeldKey } from "../../depth/core/transfer.ts";
@@ -147,7 +147,7 @@ export async function openSealed(record: Record_, pin: string, share: Uint8Array
 // The long key out of its seal, into memory non-extractable.
 async function unsealLong(record: Record_, local: Uint8Array, share: Uint8Array): Promise<CryptoKey> {
   const key = await vaultKey(local, share);
-  const pkcs8 = await open(key, record.sealedLong);
+  const pkcs8 = await unseal(key, record.sealedLong);
   try {
     return await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, P256, false, ["sign"]);
   } finally {

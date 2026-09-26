@@ -1204,8 +1204,6 @@ paths:
       x-internal: true
       x-source: relay/node/src/routes/admin.ts
       security: [{panelSession: []}]
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
         "200": {description: Keys without their secrets., x-description-ru: Ключи без секретов.}
     post:

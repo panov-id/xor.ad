@@ -288,7 +288,6 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <div class="op-head"><span class="method m-get">get</span><code class="path">/admin/secret-keys</code><span class="chip s-built">построено</span> <span class="chip internal">служебное</span></div>
 <p><strong>Секретные ключи</strong></p>
 <h3>Доступ</h3><p>Сессия панели, JWT (HS256, 7 суток) из /auth/callback; каждый маршрут проверяет пермишен</p>
-<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>200</code></td><td>Ключи без секретов.</td><td></td></tr></table></div>
 <p class="src">Источник: <code>relay/node/src/routes/admin.ts</code></p>
 </section>

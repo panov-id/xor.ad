@@ -147,6 +147,7 @@ interface DecisionBody {
 }
 
 const RESTRICTIONS = new Set(["removed", "hidden", "offer_taken_down", "access_restricted"]);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const trimmed = (value: unknown, max: number): string | null =>
   typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
@@ -283,8 +284,15 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
     if (!groundKind || !groundText) {
       return json({ error: "ground_kind and ground_text are required for an upheld notice" }, 422);
     }
-    const recipient = trimmed(body.recipient_identity, 200);
-    if (!recipient) {
+    // The addressee. For a phrase of the feed the node knows it — the row's
+    // author — and resolves it inside the transaction below (P8, 2026-09-26:
+    // until then the operator typed it, the tests typed e-mails, and a
+    // statement addressed to a typo never reached GET /statements, the only
+    // way an author without a mailbox is told anything). For every other kind
+    // the operator still names it.
+    const typedRecipient = trimmed(body.recipient_identity, 200);
+    const aboutPhrase = notice.target_kind === "feed_message" && UUID.test(notice.target_id ?? "");
+    if (!typedRecipient && !aboutPhrase) {
       return json({ error: "recipient_identity is required — a statement of reasons has an addressee" }, 422);
     }
 
@@ -303,6 +311,37 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       );
       if (!rows[0]) return { ok: false as const, reason: "gone" as const };
       if (rows[0].decided_at) return { ok: false as const, reason: "already" as const };
+
+      // The phrase itself, held, then taken out of the feed in the same
+      // transaction as the statement that explains it: "removed" and "hidden"
+      // both end its life in the feed (a phrase lives hours, there is no
+      // hidden state to bring it back from), the way the expiry sweep and a
+      // take-down end it — by deleting the row, its likes going by cascade
+      // (db/030). A phrase already gone leaves the statement to the typed
+      // addressee, if any: Article 17 is owed whether the row is still there.
+      //
+      // The addressee is settled before anything is written: a return from this
+      // callback commits, so a refusal after the DELETE would have deleted the
+      // phrase, marked nothing decided and answered 422 (verifier of P8).
+      // A tenant reaches only its own storefront's phrases; a phrase of another
+      // brand is, to it, not there — the platform (brand NULL) reaches every one.
+      let recipient = typedRecipient;
+      let phrase: { author_identity: string | null } | undefined;
+      if (aboutPhrase) {
+        phrase = (await tx<{ author_identity: string | null }>(
+          `SELECT author_identity FROM feed_messages
+            WHERE id = $1 AND ($2::text IS NULL OR brand = $2) FOR UPDATE`,
+          [notice.target_id, access.user.brand ?? null],
+        ))[0];
+        // The author erased (db/025: ON DELETE SET NULL) leaves the typed
+        // addressee, if any; without one there is nobody to tell, and nothing
+        // is done.
+        if (phrase?.author_identity) recipient = phrase.author_identity;
+      }
+      if (!recipient) return { ok: false as const, reason: "no_recipient" as const };
+      if (phrase && (restriction === "removed" || restriction === "hidden")) {
+        await tx(`DELETE FROM feed_messages WHERE id = $1`, [notice.target_id]);
+      }
 
       const created = await tx<{ id: string }>(
         // `automated_used` is written, not defaulted. Article 17(3)(c) asks
@@ -327,15 +366,19 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
           WHERE id = $2`,
         [decision, notice.id, facts],
       );
-      return { ok: true as const, id: created[0]?.id ?? null };
+      return { ok: true as const, id: created[0]?.id ?? null, recipient };
     });
 
     if (!claimed.ok) {
+      if (claimed.reason === "no_recipient") {
+        return json({ error: "the phrase is gone and recipient_identity was not given — a statement of reasons has an addressee" }, 422);
+      }
       return claimed.reason === "gone"
         ? json({ error: "no such notice" }, 404)
         : json({ error: "already decided" }, 409);
     }
     statementId = claimed.id;
+    const recipient = claimed.recipient;
     // Counted so that "the queue is not empty" can be told from "the queue is
     // not being worked": the first is ordinary, the second has a regulatory
     // clock on it. The gauge lives in lib/queue_metrics.ts.

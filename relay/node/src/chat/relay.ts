@@ -246,13 +246,18 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   }
   // Spent in the statement that reads it: a ticket opens one room, once.
   // Only for a session that is not frozen: one frozen inside the ticket's thirty
-  // seconds must not open a room (step 5 panel, 2026-09-21).
+  // seconds must not open a room (step 5 panel, 2026-09-21). Nor one whose PIN
+  // the tenth mistake locked while the freeze has not been written yet: the
+  // guard already refuses it (lib/identity_guard.ts, B75), and a ticket bought
+  // just before the lock was the tab's way back into delivery (B78,
+  // 2026-09-26). The answer is a bad ticket's, so the lock is not told.
   let failed = false;
   const [spent] = token
     ? await queryOrThrow<{ session: string; chat: string }>(
       `DELETE FROM socket_tickets t USING sessions s
         WHERE t.token_hash = $1 AND t.expires_at > now()
           AND s.id = t.session AND s.frozen_at IS NULL
+          AND NOT EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = s.id AND v.locked_at IS NOT NULL)
         RETURNING t.session, t.chat`,
       [await sha256hex(new TextEncoder().encode(token))],
     ).catch(() => { failed = true; return []; })

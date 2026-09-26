@@ -201,3 +201,46 @@ Deno.test("a session frame reaches every room of that session and no other", asy
     roomsForTest().delete("chat-b");
   }
 });
+
+// The window the tenth PIN mistake can leave (panel 4, K4): entry closed, the
+// freeze not written yet. The guard refuses such a session (B75); a socket
+// ticket bought a moment before the lock must not open a room either, and the
+// refusal must read as a bad ticket's, not as "your PIN is locked" (B78).
+Deno.test("a ticket bought before the PIN was locked opens no room, and says no more than a bad ticket", async () => {
+  const { relayUpgrade } = await import("../src/chat/relay.ts");
+  const { sha256hex } = await import("../src/lib/identity_auth.ts");
+  const sessionId = await makeSession();
+  await database.queryOrThrow(
+    `INSERT INTO vault_shares (session, auth_hash, share_enc) VALUES ($1, 'not-a-real-hash', '\\x00'::bytea)`, [sessionId]);
+  const chatId = crypto.randomUUID();
+  await database.queryOrThrow(`INSERT INTO chats (id, pair_key) VALUES ($1, $2)`, [chatId, `b78-${chatId}`]);
+  const ticket = async () => {
+    const token = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO socket_tickets (token_hash, session, chat, expires_at) VALUES ($1, $2, $3, now() + interval '30 seconds')`,
+      [await sha256hex(new TextEncoder().encode(token)), sessionId, chatId]);
+    return token;
+  };
+  const upgrade = (token: string) =>
+    relayUpgrade(new Request("https://relay.test/chat", {
+      headers: {
+        upgrade: "websocket", connection: "upgrade",
+        "sec-websocket-key": "dGhlIHNhbXBsZSBub25jZQ==", "sec-websocket-version": "13",
+        "sec-websocket-protocol": `xor.p1, ticket.${token}`,
+      },
+    }));
+  const left = async () => (await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM socket_tickets WHERE session = $1`, [sessionId]))[0].n;
+
+  // Positive control: before the lock the same session spends its ticket.
+  await upgrade(await ticket());
+  assertEquals(await left(), 0, "a live session could not spend its ticket — the case proves nothing");
+
+  const held = await ticket();
+  await database.queryOrThrow(`UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [sessionId]);
+  const locked = await upgrade(held);
+  assertEquals(await left(), 1, "a session with its PIN locked spent a ticket and got a room");
+  const wrong = await upgrade("not-a-ticket");
+  assertEquals(locked.status, wrong.status, "the locked session's refusal differs from a bad ticket's");
+  await database.queryOrThrow(`DELETE FROM socket_tickets WHERE session = $1`, [sessionId]);
+});

@@ -8,9 +8,8 @@ State as of 2026-08-31, 18:00. The numbers come from running the scripts, not fr
 `open.tsv` is split into "product" (the §13 steps of `docs/roadmap_RU.md` §3) and
 "deferred until there are users", new `decisions.tsv` rows carry no line-number anchors,
 and `readdress-facts.py` is not run by default. The reason is the owner's decision of
-2026-09-26: since 09-15 product code was about 20 % of the commits, the rest being
-registries, protocols and the gates around them; central scenarios first, the accounting
-layer after.
+2026-09-26: most of the work was going into registries, protocols and the gates around
+them rather than into product code; central scenarios first, the accounting layer after.
 
 ## What already stands
 

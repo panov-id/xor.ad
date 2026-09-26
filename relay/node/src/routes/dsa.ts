@@ -11,6 +11,7 @@
 // it outright for complaints, and keeping one rule for both is worth more than
 // the exception.
 
+import { config } from "../config.ts";
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { isDenied, requirePermission } from "../lib/access_guard.ts";
@@ -316,9 +317,10 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
          facts, groundKind, groundText],
       );
       await tx(
-        `UPDATE dsa_notices SET status = $1, decided_at = now(), automated_used = false
+        `UPDATE dsa_notices SET status = $1, decided_at = now(), automated_used = false,
+                decision_letter_facts = $3
           WHERE id = $2`,
-        [decision, notice.id],
+        [decision, notice.id, facts],
       );
       return { ok: true as const, id: created[0]?.id ?? null };
     });
@@ -355,17 +357,20 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
     // A rejection writes no statement, so its only write is the decision — and
     // it needs the same claim, or two rejections send the notifier two letters.
     const claimed = await queryOrThrow<{ id: string }>(
-      `UPDATE dsa_notices SET status = $1, decided_at = now()
+      `UPDATE dsa_notices SET status = $1, decided_at = now(), decision_letter_facts = $3
         WHERE id = $2 AND decided_at IS NULL
         RETURNING id`,
-      [decision, notice.id],
+      [decision, notice.id, facts],
     );
     if (!claimed[0]) return json({ error: "already decided" }, 409);
   }
 
   // Article 16(5): the notifier is told what was decided and how to contest it.
+  // Whether the letter left is written down (db/058): a refused one used to
+  // leave no trace, and now the standing DSA_NOTICE_NOTIFY job tries it again
+  // from the text kept on the notice (notice_notify.ts retryDecisionLetters).
   if (notice.notifier_email) {
-    await sendNoticeDecision(notice.notifier_email, {
+    const told = await sendNoticeDecision(notice.notifier_email, {
       id: notice.id,
       brand: notice.brand,
       decision,
@@ -375,6 +380,11 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       snapshotState: notice.snapshot_state,
       snapshotReason: notice.snapshot_reason ?? undefined,
     });
+    if (told) {
+      await query(`UPDATE dsa_notices SET decision_sent_at = now() WHERE id = $1`, [notice.id]);
+    } else if (config.mail.transport !== "none") {
+      inc("relay_dsa_decision_letter_total", { result: "failed" });
+    }
   }
 
   recordAuditEvent({

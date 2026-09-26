@@ -605,8 +605,11 @@ export async function sendNoticeDecision(
     snapshotState?: string;
     snapshotReason?: string;
   },
-): Promise<void> {
-  if (config.mail.transport === "none") return;
+): Promise<boolean> {
+  // Whether the letter left: the decision route and the retry mark the notice
+  // by it (db/058). It used to return nothing, and a refused letter was lost
+  // without a trace (B22, 2026-09-26).
+  if (config.mail.transport === "none") return false;
   const brand = (opts.brand ? await brandByKey(opts.brand) : null) ?? resolveBrand(null);
   const outcome = decisionOutcome(opts.decision, opts.snapshotState, opts.snapshotReason);
   const blocks: Block[] = [
@@ -628,7 +631,7 @@ export async function sendNoticeDecision(
         "We do not operate a formal internal appeals body.",
     },
   ];
-  await deliver(
+  return await deliver(
     brand,
     to,
     `${brand.name}: your report has been decided`,

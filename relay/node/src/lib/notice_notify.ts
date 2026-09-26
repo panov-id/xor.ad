@@ -16,7 +16,8 @@ import { brandByKey } from "./brand_registry.ts";
 import { enabled as databaseEnabled, query } from "./db.ts";
 import { escalationAddresses } from "./dsa_watchdog.ts";
 import { log } from "./log.ts";
-import { sendArrivalUnsent, sendNightPathSummary, sendNoticeArrived, withoutAddresses } from "./mailer.ts";
+import { inc } from "./metrics.ts";
+import { sendArrivalUnsent, sendNightPathSummary, sendNoticeArrived, sendNoticeDecision, withoutAddresses } from "./mailer.ts";
 
 export const DSA_NOTICE_NOTIFY = "dsa_notice_notify";
 export const MAX_ATTEMPTS = 8;
@@ -117,6 +118,75 @@ export async function retryArrivalLetters(
   if (failed) log("error", "arrival letters that still did not leave", { sent, failed, escalated });
   else if (sent) log("info", "arrival letters sent on retry", { sent });
   return { sent, failed, escalated };
+}
+
+type Decision = typeof sendNoticeDecision;
+
+// The notifier's letter about the decision (Article 16(5); db/058; B22,
+// 2026-09-26), retried by the same pass and the same shape as the arrival
+// letter above: leased in one statement, sent outside any transaction, an
+// attempt counted when taken, round robin by last try. It is sent from what the
+// decision kept on the notice — the text the letter quotes and the snapshot
+// state — so a retry says what the first letter would have said. After
+// MAX_ATTEMPTS it stops and is counted: telling somebody else instead would be
+// a letter with words nobody has written yet, and the device receipt (§6) still
+// carries the decision.
+export async function retryDecisionLetters(
+  send: Decision = sendNoticeDecision,
+): Promise<{ sent: number; failed: number }> {
+  if (!databaseEnabled()) throw new Error("no database to read the notices from");
+  if (config.mail.transport === "none") return { sent: 0, failed: 0 };
+  const rows = await query<{
+    id: string; brand: string | null; status: string; notifier_email: string; facts: string;
+    snapshot_state: string | null; snapshot_reason: string | null;
+  }>(
+    `UPDATE dsa_notices n
+        SET decision_leased_until = now() + $2::interval, decision_attempts = n.decision_attempts + 1
+      WHERE n.id IN (
+        SELECT id FROM dsa_notices
+         WHERE decided_at IS NOT NULL AND decision_sent_at IS NULL
+           AND notifier_email IS NOT NULL AND decision_letter_facts IS NOT NULL
+           AND status IN ('upheld', 'rejected')
+           AND decision_attempts < $3
+           AND decided_at < now() - make_interval(secs => $1)
+           AND (decision_leased_until IS NULL OR decision_leased_until <= now())
+         ORDER BY decision_leased_until NULLS FIRST, decided_at
+         LIMIT 50
+         FOR UPDATE SKIP LOCKED
+      )
+      RETURNING n.id, n.brand, n.status, n.notifier_email, n.decision_letter_facts AS facts,
+                n.snapshot_state, n.snapshot_reason`,
+    [GRACE_SECONDS, LEASE, MAX_ATTEMPTS],
+  );
+  if (rows === null) throw new Error("could not read the notices");
+  let sent = 0, failed = 0;
+  for (const notice of rows) {
+    let ok = false;
+    try {
+      ok = await send(notice.notifier_email, {
+        id: notice.id,
+        brand: notice.brand,
+        decision: notice.status as "upheld" | "rejected",
+        facts: notice.facts,
+        snapshotState: notice.snapshot_state ?? undefined,
+        snapshotReason: notice.snapshot_reason ?? undefined,
+      });
+    } catch (error) {
+      log("error", "the decision letter failed again", { id: notice.id, error: withoutAddresses(String(error)) });
+    }
+    if (ok) {
+      await query(`UPDATE dsa_notices SET decision_sent_at = now(), decision_leased_until = now() WHERE id = $1`, [notice.id]);
+      sent++;
+      continue;
+    }
+    failed++;
+    inc("relay_dsa_decision_letter_total", { result: "failed" });
+    await query(`UPDATE dsa_notices SET decision_leased_until = now() WHERE id = $1`, [notice.id]);
+  }
+  if (sent) inc("relay_dsa_decision_letter_total", { result: "sent_on_retry" }, sent);
+  if (failed) log("error", "decision letters that still did not leave", { sent, failed });
+  else if (sent) log("info", "decision letters sent on retry", { sent });
+  return { sent, failed };
 }
 
 // The night path (dsa/SPEC_RU.md §5): every new notice, at once, to the

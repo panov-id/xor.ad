@@ -62,7 +62,7 @@ done
 # backfills from DML alone let exactly that pass green (breaks, 2026-09-26).
 declare -A checked_on=(
   [006]="dsa_notices" [027]="feed_messages" [028]="identity_stats" [042]="jobs" [043]="dsa_notices"
-  [046]="dsa_notices idempotency jobs nonces" [047]="identities" [049]="legal_acceptances")
+  [046]="dsa_notices idempotency jobs nonces" [047]="identities" [049]="legal_acceptances" [058]="dsa_notices")
 for f in "${files[@]}"; do
   n=$(num "$f"); [ -n "${checked_on[$n]:-}" ] || continue
   writes[$n]=$(printf '%s\n' ${writes[$n]:-} ${checked_on[$n]} | sort -u | tr '\n' ' ')
@@ -122,11 +122,11 @@ SQL
     ;;
     # Until db/006 a notice whose copy could not be taken said so in its status.
     dsa_notices) cat <<SQL
-INSERT INTO dsa_notices (id, brand, target_kind, target_id, snapshot, reason_text, bona_fide, status, created_at) VALUES
+INSERT INTO dsa_notices (id, brand, target_kind, target_id, snapshot, reason_text, bona_fide, status, created_at, decided_at) VALUES
   ('00000000-0000-4000-8000-000000000001', 'alpha', 'feed_message', 'm1', $(js '{"text":"old words"}'), 'unlawful', true,
-   '$(before 006 target_gone received)', '2026-08-10 10:00+00'),
+   '$(before 006 target_gone received)', '2026-08-10 10:00+00', NULL),
   ('00000000-0000-4000-8000-000000000002', 'alpha', 'other', NULL, '{"text":"a value"}'::jsonb, 'other reason', true,
-   'in_review', '2026-08-11 11:00+00');
+   'rejected', '2026-08-11 11:00+00', '2026-08-12 12:00+00');
 SQL
     ;;
     dsa_statements) echo "INSERT INTO dsa_statements (brand, notice_id, target_id, recipient_identity, restriction, facts, ground_kind, ground_text)
@@ -177,6 +177,10 @@ check_046() { echo "0 0 0 0|old words|200|z@alpha.test|SELECT concat_ws(' ', (SE
   || '|' || concat_ws('|', (SELECT snapshot->>'text' FROM dsa_notices WHERE target_id = 'm1'),
   (SELECT response->>'status' FROM idempotency WHERE key = 'idem-string'),
   (SELECT payload->>'to' FROM jobs WHERE kind = 'prune'))"; }
+# A decision taken before db/058 counts its letter as sent then (nothing kept
+# to send again); an undecided notice has no letter yet.
+check_058() { echo "1 1|SELECT count(*) FILTER (WHERE decided_at IS NOT NULL AND decision_sent_at = decided_at) || ' ' ||
+  count(*) FILTER (WHERE decided_at IS NULL AND decision_sent_at IS NULL) FROM dsa_notices"; }
 check_047() { echo "t f f|SELECT concat_ws(' ', (SELECT away_wake_due FROM identities WHERE id = '$I1'),
   (SELECT away_wake_due FROM identities WHERE id = '$I2'), (SELECT away_wake_due FROM identities WHERE id = '$I3'))"; }
 check_049() { echo "1 2026-09-10 10:00:00+00 1|SELECT concat_ws(' ', count(*) FILTER (WHERE identity = '$I1'),

@@ -38,8 +38,14 @@ configured("an IP, with a port or without, IPv4 or IPv6, leaves no trace in an e
     mapped: "peer ::ffff:203.0.113.9 went away",
     nested: { detail: ["via 192.0.2.44", "ok"] },
     mailbox: "sender someone@example.org bounced",
+    // At the end of a sentence: the full stop was taken into the run and the
+    // address read as no address (B106, after the observer's probe).
+    sentence6: "could not reach 2001:db8:9::1.",
+    sentence4: "could not reach 203.0.113.77.",
   }, "handler threw for 203.0.113.200");
-  for (const address of ["10.0.17.2", "5432", "198.51.100.7", "2001:db8", "2001:0db8", "203.0.113.9", "192.0.2.44", "203.0.113.200", "someone@example.org"]) {
+  assertEquals(entry.sentence6, "could not reach <ip>.", "an IPv6 address ending a sentence survived");
+  assertEquals(entry.sentence4, "could not reach <ip>.", "an IPv4 address ending a sentence survived");
+  for (const address of ["10.0.17.2", "5432", "198.51.100.7", "2001:db8", "2001:0db8", "203.0.113.9", "192.0.2.44", "203.0.113.200", "203.0.113.77", "someone@example.org"]) {
     assert(!raw.includes(address), `${address} survived into the log line: ${raw}`);
   }
   assertEquals(entry.error, "PostgresError: write CONNECTION_CLOSED <ip>", "an IPv4 address with its port was not replaced whole");
@@ -62,6 +68,21 @@ configured("times, versions, ids and paths are not taken for addresses", () => {
     counts: "1:2:3 of 10:20",
     path: "/v1/me/tables/3",
     code: "55P03",
+    // SQL casts, as Postgres quotes the statement in an error and as our own
+    // lines carry it: "1::" and "::da" read as a one-group compressed IPv6 and
+    // were replaced (the observer's probe on B106).
+    cast: "WHERE id = ANY($1::uuid[])",
+    casts: "SELECT $2::int, now()::date, $3::bytea",
+    // A cast after a space: nothing on the left keeps it out, only that it
+    // runs into a letter on the right.
+    spaced: "SELECT id ::text, code ::bytea",
+    // Postgres cuts a long statement in an error's context with "...": then
+    // only the left edge keeps "::..." after a ")" or "$1" from being read as
+    // "::" and a sentence's stops.
+    truncated: "LINE 1: SELECT now()::... WHERE id = $1::...",
+    // A bare "::" names no host.
+    bare: "a :: b",
+    stack: "at file.ts:155:12, std::vector, a::b::c",
   };
   const { entry } = printedBy("error", kept);
   for (const [key, value] of Object.entries(kept)) {

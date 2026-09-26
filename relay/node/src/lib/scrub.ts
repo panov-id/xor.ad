@@ -17,9 +17,14 @@
 const MAILBOX = /[\w.+-]+@[\w.-]+\.\w+/g;
 
 // [v6](%zone)(:port), or a bare run of hex, colons and dots with at least two
-// colons, an optional zone after it.
-const V6_CANDIDATE = /\[([0-9a-fA-F:.]+)(?:%[^\]\s]*)?\](?::\d{1,5})?|(?<![0-9A-Za-z:.])([0-9a-fA-F]*:[0-9a-fA-F:]*:[0-9a-fA-F:.]*)(?:%[\w.-]+)?/g;
-const V4_CANDIDATE = /(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?::\d{1,5})?(?![\d.])/g;
+// colons, an optional zone after it — standing on its own: not after a letter,
+// digit, "$" or ")", and not running into a letter or digit. SQL casts are the
+// case it keeps out: in "ANY($1::uuid[])" and "now()::date" the runs "1::" and
+// "::da" read as one-group compressed IPv6 and were replaced, so the statement
+// Postgres quotes in an error became unreadable (the observer's probe on B106).
+const V6_CANDIDATE = /\[([0-9a-fA-F:.]+)(?:%[^\]\s]*)?\](?::\d{1,5})?|(?<![0-9A-Za-z:.$)])([0-9a-fA-F]*:[0-9a-fA-F:]*:[0-9a-fA-F:.]*)(?:%[\w.-]+)?(?![0-9A-Za-z])/g;
+// Not inside a longer dotted run, but a sentence's full stop after it is fine.
+const V4_CANDIDATE = /(?<![\d.])(\d{1,3}(?:\.\d{1,3}){3})(?::\d{1,5})?(?!\d|\.\d)/g;
 
 function isIPv4(s: string): boolean {
   const parts = s.split(".");
@@ -43,14 +48,23 @@ function isIPv6(s: string): boolean {
   const left = count(halves[0]), right = halves.length === 2 ? count(halves[1]) : [];
   if ([...left, ...right].some((g) => g.length === 0 || g.length > 4)) return false;
   const written = left.length + right.length + tailGroups;
-  return halves.length === 2 ? written <= 7 : written === 8;
+  // At least one group: a bare "::" names no host, and reads everywhere
+  // ("a :: b", a cut statement's "::...").
+  return halves.length === 2 ? written >= 1 && written <= 7 : written === 8;
 }
 
 export function scrubAddresses(text: string): string {
   return text
     .replace(MAILBOX, "<address>")
-    .replace(V6_CANDIDATE, (match, bracketed?: string, bare?: string) =>
-      isIPv6((bracketed ?? bare ?? "").replace(/%.*/, "")) ? "<ip>" : match)
+    .replace(V6_CANDIDATE, (match, bracketed?: string, bare?: string) => {
+      if (bracketed !== undefined) return isIPv6(bracketed) ? "<ip>" : match;
+      // A sentence's full stop is taken into the run with the dots of a dotted
+      // tail; read without it, and give it back.
+      const address = (bare ?? "").replace(/%.*/, "");
+      const stop = /\.+$/.exec(address)?.[0] ?? "";
+      if (isIPv6(address)) return "<ip>";
+      return stop && isIPv6(address.slice(0, -stop.length)) ? "<ip>" + stop : match;
+    })
     .replace(V4_CANDIDATE, (match, address: string) => isIPv4(address) ? "<ip>" : match);
 }
 

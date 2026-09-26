@@ -21,6 +21,10 @@ import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
 
+// Exists at zero from the start: an alert reads it, and a series born at 1
+// hides its first event from rate() (B42, 2026-09-26; alerts.yml).
+inc("relay_statements_total", { result: "unavailable" }, 0);
+
 interface StatementRow {
   id: string;
   created_at_cursor: string;

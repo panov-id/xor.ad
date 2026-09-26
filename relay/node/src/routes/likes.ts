@@ -29,6 +29,11 @@ import { checkAll, FEED_READ_LIMITS, LIKE_LIMITS } from "../lib/rate_limit.ts";
 import { SOON_MINUTES } from "./feed.ts";
 import { cursorConfigured, openCursor, sealCursor } from "../lib/cursor.ts";
 
+// Exists at zero from the start: an alert reads it, and a series born at 1
+// hides its first event from rate() (B42, 2026-09-26; alerts.yml).
+inc("relay_like_total", { result: "storage_failed" }, 0);
+inc("relay_unlike_total", { result: "storage_failed" }, 0);
+
 const UUID = /^[0-9a-fA-F-]{36}$/;
 // A ceiling for "no ceiling": the band above 20 is open upwards (feed_geo.band),
 // and SQL wants a number on both sides of BETWEEN.

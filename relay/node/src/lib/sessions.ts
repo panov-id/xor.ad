@@ -29,6 +29,10 @@
 
 import { inc } from "./metrics.ts";
 
+// Exists at zero from the start: an alert reads it, and a series born at 1
+// hides its first event from rate() (B42, 2026-09-26; alerts.yml).
+inc("relay_sessions_frozen_total", { reason: "pin_limit" }, 0);
+
 export type FreezeReason = "transfer" | "closed" | "pin_limit";
 
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;

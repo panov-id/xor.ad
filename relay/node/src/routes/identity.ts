@@ -1276,6 +1276,8 @@ async function reissueCode(req: Request): Promise<Response> {
 // and the rule had to guess with `unless … offset`, which fired on a scrape gap
 // too (observability.lockorder.alerts, 2026-09-25).
 inc("relay_recovery_claim_total", { result: "storage_failed" }, 0);
+// The three doors a wrong PIN comes through (PinMissBurst; B42, 2026-09-26).
+for (const door of ["relay_vault_share_total", "relay_vault_pin_total", "relay_identity_close_total"]) inc(door, { result: "wrong" }, 0);
 
 route("POST", "/identities", (c) => createIdentity(c.req));
 route("GET", "/identities/me", (c) => readProfile(c.req));

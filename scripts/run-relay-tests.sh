@@ -44,6 +44,7 @@ docker run --rm \
 docker run --rm \
   -v "$root/relay/node":/node \
   -v "$root/docs":/docs:ro \
+  -v "$root/relay/local":/local:ro \
   -w /node \
   "$image" \
   task test "$@"

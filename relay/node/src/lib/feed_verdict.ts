@@ -22,6 +22,10 @@ import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
 import { frameSessions } from "./sessions.ts";
 
+// Exists at zero from the start: an alert reads it, and a series born at 1
+// hides its first event from rate() (B42, 2026-09-26; alerts.yml).
+for (const verdict of ["published", "expired_unread"]) inc("relay_feed_verdict_total", { verdict }, 0);
+
 // docs/facts/limits.tsv, by name.
 export const PHRASE_SPAN = "4 hours 20 minutes"; // feed.phrase.span
 export const QUEUE_WAIT_MINUTES = 10; // moderation.queue.wait

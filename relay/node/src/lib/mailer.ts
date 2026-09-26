@@ -781,6 +781,13 @@ export const MAIL_KINDS = [
 ] as const;
 export type MailKind = typeof MAIL_KINDS[number];
 
+// Every kind by both outcomes at zero from the start: MailFailing reads
+// rate(result!="sent"), and a first refused letter after a start was a series
+// born at 1 that rate() could not see (B42, 2026-09-26).
+for (const kind of MAIL_KINDS) {
+  for (const result of ["sent", "failed"]) inc("relay_mail_total", { transport: config.mail.transport, result, kind }, 0);
+}
+
 async function deliver(
   kind: MailKind,
   brand: { key: string; name: string; from: string; domain: string; upper: string },

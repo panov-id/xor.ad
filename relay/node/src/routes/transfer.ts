@@ -36,6 +36,10 @@ import { burnShare, freezeSession } from "../lib/sessions.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 
+// Exists at zero from the start: an alert reads it, and a series born at 1
+// hides its first event from rate() (B42, 2026-09-26; alerts.yml).
+inc("relay_transfer_total", { result: "wrong_pin" }, 0);
+
 // `invite.lifetime` in docs/facts/limits.tsv: 120 seconds. Short because the
 // code is read out loud, and a code that is read out loud is a code somebody
 // else may hear.

@@ -22,6 +22,10 @@ import { sendNoticeDecision, sendStatementOfReasons } from "../lib/mailer.ts";
 import { log } from "../lib/log.ts";
 import { inc } from "../lib/metrics.ts";
 
+// Exists at zero from the start: an alert reads it, and a series born at 1
+// hides its first event from rate() (B42, 2026-09-26; alerts.yml).
+for (const decision of ["upheld", "rejected"]) inc("relay_dsa_decisions_total", { decision }, 0);
+
 interface NoticeRow {
   id: string;
   // Nullable since migration 007: a notice can arrive naming no storefront.

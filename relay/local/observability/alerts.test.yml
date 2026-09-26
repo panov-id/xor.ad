@@ -18,6 +18,17 @@ tests:
       - series: 'relay_feed_verdict_total{verdict="expired_unread"}'
         values: '0+1x180'
     alert_rule_test:
+      # The edge (B42): quiet one evaluation before for: is met, firing at it.
+      - eval_time: 60m
+        alertname: FeedPublishesNothing
+        exp_alerts: []
+      - eval_time: 61m
+        alertname: FeedPublishesNothing
+        exp_alerts:
+          - exp_labels: { severity: info }
+            exp_annotations:
+              summary: "Лента принимает фразы и не публикует ни одной"
+              description: "За час ни одного published и хотя бы один expired_unread: очередь есть, вердиктов нет. Пока модератора нет (§8.14), это ожидаемо — тревога существует, чтобы ожидаемое не спуталось с поломкой в тот день, когда модератор появится."
       - eval_time: 150m
         alertname: FeedPublishesNothing
         exp_alerts:
@@ -54,6 +65,17 @@ tests:
       - series: 'relay_like_total{result="storage_failed"}'
         values: '0+1x60'
     alert_rule_test:
+      # The edge (B42): quiet one evaluation before for: is met, firing at it.
+      - eval_time: 10m
+        alertname: LikesCannotWrite
+        exp_alerts: []
+      - eval_time: 11m
+        alertname: LikesCannotWrite
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Лайки не записываются"
+              description: "Десять минут подряд лайк или его снятие отвечают 503: узел не может писать в базу. Люди видят, что лайк не поставился."
       - eval_time: 30m
         alertname: LikesCannotWrite
         exp_alerts:
@@ -84,6 +106,17 @@ tests:
       - series: 'relay_identity_sweeper_skipped_total{reason="share_held"}'
         values: '0x59 1x59 2x59 3x59 4x59 5x59'
     alert_rule_test:
+      # The edge (B42): quiet one evaluation before for: is met, firing at it.
+      - eval_time: 239m
+        alertname: IdentitySweeperKeepsSkipping
+        exp_alerts: []
+      - eval_time: 240m
+        alertname: IdentitySweeperKeepsSkipping
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Уборщик третий час подряд пропускает личности: долю или строку держит блокировка"
+              description: "Каждый проход находит личность, которой срок вышел, и не может её закрыть: её долю, сессию или строку держит чужая транзакция. Смотреть pg_locks по vault_shares, sessions и identities — застрявшая транзакция держит личность дольше её года."
       - eval_time: 5h
         alertname: IdentitySweeperKeepsSkipping
         exp_alerts:
@@ -150,6 +183,17 @@ tests:
       - series: 'relay_recovery_claim_total{result="storage_failed"}'
         values: '0x10 1x50'
     alert_rule_test:
+      # The edge (B42): quiet one evaluation before for: is met, firing at it.
+      - eval_time: 11m
+        alertname: RecoveryClaimCannotWrite
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: RecoveryClaimCannotWrite
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Восстановление бумажным кодом не записывается"
+              description: "Верный бумажный код получил 503: узел не смог записать новое устройство. Человек без входа держит код в руках — смотреть журнал узла, «recovery claim failed on a new device»."
       - eval_time: 20m
         alertname: RecoveryClaimCannotWrite
         exp_alerts:
@@ -207,6 +251,17 @@ tests:
       - series: 'relay_moderation_oldest_seconds{brand="sosed"}'
         values: '600x10'
     alert_rule_test:
+      # The edge (B42): quiet one evaluation before for: is met, firing at it.
+      - eval_time: 1m
+        alertname: ModerationQueueStopped
+        exp_alerts: []
+      - eval_time: 2m
+        alertname: ModerationQueueStopped
+        exp_alerts:
+          - exp_labels: { severity: info, brand: sosed }
+            exp_annotations:
+              summary: "Очередь модерации sosed стоит: старейшей фразе 10m 0s"
+              description: "Фраза ждёт вердикта дольше девяти минут; на десятой её снимут непрочитанной (moderation.queue.wait). Смотреть воркер модерации и relay_feed_verdict_total."
       - eval_time: 5m
         alertname: ModerationQueueStopped
         exp_alerts:
@@ -255,6 +310,17 @@ tests:
       - series: 'relay_transfer_pause_seconds_left'
         values: '0 0 900 840 780 720 660'
     alert_rule_test:
+      # The edge (B42): quiet one evaluation before for: is met, firing at it.
+      - eval_time: 2m
+        alertname: TransferBrakeOn
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: TransferBrakeOn
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Приём кодов переноса на паузе"
+              description: "Пятьдесят неверных кодов переноса за час. Пока пауза держится, честный перенос тоже не принимается."
       - eval_time: 5m
         alertname: TransferBrakeOn
         exp_alerts:
@@ -281,6 +347,17 @@ tests:
       - series: 'relay_recovery_pause_seconds_left'
         values: '0 0 900 840 780 720 660'
     alert_rule_test:
+      # The edge (B42): quiet one evaluation before for: is met, firing at it.
+      - eval_time: 2m
+        alertname: RecoveryBrakeOn
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: RecoveryBrakeOn
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Приём бумажных кодов на паузе"
+              description: "Пятьдесят промахов за час. Пока пауза держится, честный код тоже не принимается."
       - eval_time: 5m
         alertname: RecoveryBrakeOn
         exp_alerts:
@@ -648,3 +725,59 @@ tests:
       - eval_time: 50m
         alertname: StatementsUnavailable
         exp_alerts: []
+
+  # ── B42, 2026-09-26: the node publishes every counter these rules read at
+  # zero from the start (relay/node/test/metrics_zeros.test.ts holds it to
+  # that). These were the B40 findings, on series as the node emitted them
+  # then: born at 1, or absent, and every one was silent. From zero, a single
+  # event after a start is seen.
+
+  # One refused letter after a start: 0 then 1 at 21m, rate > 0 until 36m; for 10m.
+  - name: the one refused letter after a start fires, the counter being there at zero
+    interval: 1m
+    input_series:
+      - series: 'relay_mail_total{result="failed",kind="notice_receipt",transport="resend"}'
+        values: '0x20 1x40'
+    alert_rule_test:
+      - eval_time: 31m
+        alertname: MailFailing
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: "Почта не уходит"
+              description: "Подтверждения по ст. 16 и ссылки для входа в панель не доставляются."
+
+  # One 503 on the statements route after a start.
+  - name: the one 503 on statements after a start fires, the counter being there at zero
+    interval: 1m
+    input_series:
+      - series: 'relay_statements_total{result="unavailable"}'
+        values: '0x20 1x40'
+    alert_rule_test:
+      - eval_time: 31m
+        alertname: StatementsUnavailable
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Мотивировки по ст. 17 не отдаются"
+              description: "Маршрут отвечает 503. Это единственный путь, которым автор без почты узнаёт причину ограничения."
+
+  # An open queue on a node that has decided nothing since it started: both
+  # decision counters sit at zero, so the rate is 0 rather than absent.
+  - name: an open queue with no decision since the start fires, the decision counters being there at zero
+    interval: 1m
+    input_series:
+      - series: 'relay_dsa_queue_open'
+        values: '3x70'
+      - series: 'relay_dsa_decisions_total{decision="upheld"}'
+        values: '0x70'
+      - series: 'relay_dsa_decisions_total{decision="rejected"}'
+        values: '0x70'
+    alert_rule_test:
+      - eval_time: 65m
+        alertname: DsaQueueStuck
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Очередь ст. 16 не разбирается"
+              description: "Есть незакрытые уведомления и ни одного решения за шесть часов. Сроки ответа — регуляторные. Возраст самого старого — relay_dsa_queue_oldest_seconds."

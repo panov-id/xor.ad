@@ -225,8 +225,11 @@ export async function sendNoticeReceipt(
     },
   ];
   // The same sender as every other letter about a notice: one path, one shell,
-  // and the counter keeps its own kind so a failing receipt stays visible.
-  const sent = await deliver(
+  // and its own kind on the counter. It used to count itself a second time
+  // after deliver() had counted it as "dsa", so every refused receipt was two
+  // failures on relay_mail_total (B21).
+  return await deliver(
+    "notice_receipt",
     brand,
     to,
     subject,
@@ -234,12 +237,6 @@ export async function sendNoticeReceipt(
     blocks,
     "You are receiving this because you reported content to us.",
   );
-  inc("relay_mail_total", {
-    transport: config.mail.transport,
-    result: sent ? "sent" : "failed",
-    kind: "notice_receipt",
-  });
-  return sent;
 }
 
 // A notice that nobody is told about waits for somebody to open a page.
@@ -317,6 +314,7 @@ export async function sendSupportDigest(
   if (config.mail.transport === "none") return false;
   const brand = (await brandByKey(brandKey)) ?? resolveBrand(null);
   return await deliver(
+    "support_digest",
     brand,
     to,
     `${brand.name}: support requests, the last day`,
@@ -334,6 +332,7 @@ export async function sendNoticeArrived(
   if (config.mail.transport === "none") return false;
   const brand = (opts.brand ? await brandByKey(opts.brand) : undefined) ?? resolveBrand(null);
   return await deliver(
+    "notice_arrived",
     brand,
     to,
     `${brand.name}: a report of illegal content is waiting`,
@@ -417,7 +416,7 @@ export async function sendNoticeAging(
   const subject = notice.stage === "escalate"
     ? `${brand.name}: a report has been unanswered for two days`
     : `${brand.name}: a report has been unanswered for a day`;
-  return await deliver(brand, to, subject, subject, noticeAgingBlocks(notice));
+  return await deliver("notice_aging", brand, to, subject, subject, noticeAgingBlocks(notice));
 }
 
 // Watchdog С1 past its ceiling: the notices beyond the first few of a pass, in
@@ -453,7 +452,7 @@ export async function sendNoticeAgingSummary(
   const only = faces.size === 1 ? notices[0].brand : null;
   const brand = (only ? await brandByKey(only) : undefined) ?? resolveBrand(null);
   const subject = `${brand.name}: ${notices.length} more reports are unanswered`;
-  return await deliver(brand, to, subject, subject, noticeAgingSummaryBlocks(notices));
+  return await deliver("notice_aging_summary", brand, to, subject, subject, noticeAgingSummaryBlocks(notices));
 }
 
 // Watchdog С3: a job whose period the privacy policy promises ran out of
@@ -496,7 +495,7 @@ export async function sendBackupStale(to: string, ageHours: number | null): Prom
   if (config.mail.transport === "none") return false;
   const brand = resolveBrand(null);
   const subject = `${brand.name}: the ${config.envName} backup is late`;
-  return await deliver(brand, to, subject, subject, backupStaleBlocks(config.envName, ageHours));
+  return await deliver("backup_stale", brand, to, subject, subject, backupStaleBlocks(config.envName, ageHours));
 }
 
 // Watchdog С6: phrases of a face have waited near moderation.queue.wait for a
@@ -527,7 +526,7 @@ export async function sendModerationStopped(
   if (config.mail.transport === "none") return false;
   const brand = resolveBrand(null);
   const subject = `${brand.name}: the ${config.envName} moderation queue of ${queue.brand} has stopped`;
-  return await deliver(brand, to, subject, subject, moderationStoppedBlocks(queue));
+  return await deliver("moderation_stopped", brand, to, subject, subject, moderationStoppedBlocks(queue));
 }
 
 export async function sendJobTombstone(
@@ -537,7 +536,7 @@ export async function sendJobTombstone(
   if (config.mail.transport === "none") return false;
   const brand = resolveBrand(null);
   const subject = `${brand.name}: the job ${tombstone.kind} gave up`;
-  return await deliver(brand, to, subject, subject, jobTombstoneBlocks(tombstone));
+  return await deliver("job_tombstone", brand, to, subject, subject, jobTombstoneBlocks(tombstone));
 }
 
 // Watchdog С2's end: the letter about a new report never reached the support
@@ -560,7 +559,7 @@ export async function sendArrivalUnsent(
   if (config.mail.transport === "none") return false;
   const brand = resolveBrand(null);
   const subject = `${brand.name}: nobody was told about a report of illegal content`;
-  return await deliver(brand, to, subject, subject, arrivalUnsentBlocks(notice));
+  return await deliver("arrival_unsent", brand, to, subject, subject, arrivalUnsentBlocks(notice));
 }
 
 // The night path's ceiling: what an hour held back beyond the letters sent one
@@ -584,7 +583,7 @@ export async function sendNightPathSummary(
   if (config.mail.transport === "none") return false;
   const brand = resolveBrand(null);
   const subject = `${brand.name}: ${summary.held} more reports of illegal content in one hour`;
-  return await deliver(brand, to, subject, subject, nightPathSummaryBlocks(summary));
+  return await deliver("night_path_summary", brand, to, subject, subject, nightPathSummaryBlocks(summary));
 }
 
 export async function sendNoticeDecision(
@@ -632,6 +631,7 @@ export async function sendNoticeDecision(
     },
   ];
   return await deliver(
+    "notice_decision",
     brand,
     to,
     `${brand.name}: your report has been decided`,
@@ -756,6 +756,7 @@ export async function sendStatementOfReasons(
     },
   ];
   return await deliver(
+    "statement_of_reasons",
     brand,
     to,
     `${brand.name}: why your content was restricted`,
@@ -767,7 +768,21 @@ export async function sendStatementOfReasons(
 
 // One sender for both letters: same transports as everything else, and a boolean
 // back so a caller that records delivery can record the truth.
+// Every letter that goes through deliver(), by the name its metric and its log
+// carry (B21, 2026-09-26). They all said kind="dsa" and "dsa mail failed" —
+// the support digest, the backup and tombstone watchdogs, the moderation stop —
+// so a failure was filed under somebody else's name. One list: a sender that
+// passes a kind not in it does not compile, and mail_kinds.test.ts holds every
+// exported sender to its own.
+export const MAIL_KINDS = [
+  "notice_receipt", "notice_arrived", "notice_aging", "notice_aging_summary", "arrival_unsent",
+  "night_path_summary", "notice_decision", "statement_of_reasons", "support_digest",
+  "backup_stale", "moderation_stopped", "job_tombstone",
+] as const;
+export type MailKind = typeof MAIL_KINDS[number];
+
 async function deliver(
+  kind: MailKind,
   brand: { key: string; name: string; from: string; domain: string; upper: string },
   to: string,
   subject: string,
@@ -792,11 +807,11 @@ async function deliver(
     } else {
       await viaResend(config.resend.fromOverride || brand.from, to, subject, html, body, brand.key);
     }
-    inc("relay_mail_total", { transport: config.mail.transport, result: "sent", kind: "dsa" });
+    inc("relay_mail_total", { transport: config.mail.transport, result: "sent", kind });
     return true;
   } catch (e) {
-    inc("relay_mail_total", { transport: config.mail.transport, result: "failed", kind: "dsa" });
-    log("error", "dsa mail failed", { error: withoutAddresses(String(e)), subject });
+    inc("relay_mail_total", { transport: config.mail.transport, result: "failed", kind });
+    log("error", "mail failed", { kind, error: withoutAddresses(String(e)), subject });
     return false;
   }
 }

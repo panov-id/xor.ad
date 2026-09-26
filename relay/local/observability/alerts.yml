@@ -136,6 +136,19 @@ groups:
           summary: "Приём бумажных кодов на паузе"
           description: "Пятьдесят промахов за час. Пока пауза держится, честный код тоже не принимается."
 
+      # The same brake on transfer codes (claim.miss.shared / claim.miss.pause:
+      # the recovery numbers, chat spec §8.2, SEC-4). The node exported the
+      # series and nothing watched it (quorum of B30, 2026-09-26): while it is
+      # on, nobody can move an identity to a new device, and the owner would
+      # learn it from a person who could not.
+      - alert: TransferBrakeOn
+        expr: relay_transfer_pause_seconds_left > 0
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Приём кодов переноса на паузе"
+          description: "Пятьдесят неверных кодов переноса за час. Пока пауза держится, честный перенос тоже не принимается."
+
       # A right paper code the node could not write (relay/node/src/routes/
       # identity.ts, claim on a new device). There is no retry on the person's
       # side worth the name: they hold the code and got 503, so one is enough.

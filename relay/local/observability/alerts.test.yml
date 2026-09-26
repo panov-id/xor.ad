@@ -246,3 +246,29 @@ tests:
       - eval_time: 8m
         alertname: ModerationQueueStopped
         exp_alerts: []
+
+  # TransferBrakeOn (B36, 2026-09-26): the transfer brake's pause had a series
+  # and no alert. The node publishes it at zero from the start (queue_metrics.ts).
+  - name: a transfer brake that stays on fires
+    interval: 1m
+    input_series:
+      - series: 'relay_transfer_pause_seconds_left'
+        values: '0 0 900 840 780 720 660'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: TransferBrakeOn
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: "Приём кодов переноса на паузе"
+              description: "Пятьдесят неверных кодов переноса за час. Пока пауза держится, честный перенос тоже не принимается."
+
+  - name: no transfer brake is not an alert
+    interval: 1m
+    input_series:
+      - series: 'relay_transfer_pause_seconds_left'
+        values: '0x10'
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: TransferBrakeOn
+        exp_alerts: []

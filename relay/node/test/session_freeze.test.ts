@@ -206,7 +206,12 @@ Deno.test("a session frame reaches every room of that session and no other", asy
 // freeze not written yet. The guard refuses such a session (B75); a socket
 // ticket bought a moment before the lock must not open a room either, and the
 // refusal must read as a bad ticket's, not as "your PIN is locked" (B78).
-Deno.test("a ticket bought before the PIN was locked opens no room, and says no more than a bad ticket", async () => {
+// Not sanitized: the node's listening connection, opened at the top of the
+// file, reads on the pool while the real sockets below come and go.
+Deno.test("a ticket bought before the PIN was locked opens no room, and says no more than a bad ticket", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
   const { relayUpgrade } = await import("../src/chat/relay.ts");
   const { sha256hex } = await import("../src/lib/identity_auth.ts");
   const sessionId = await makeSession();
@@ -238,9 +243,28 @@ Deno.test("a ticket bought before the PIN was locked opens no room, and says no 
 
   const held = await ticket();
   await database.queryOrThrow(`UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [sessionId]);
-  const locked = await upgrade(held);
-  assertEquals(await left(), 1, "a session with its PIN locked spent a ticket and got a room");
-  const wrong = await upgrade("not-a-ticket");
-  assertEquals(locked.status, wrong.status, "the locked session's refusal differs from a bad ticket's");
-  await database.queryOrThrow(`DELETE FROM socket_tickets WHERE session = $1`, [sessionId]);
+  // Through a real connection, not a synthetic request: the refusal is the
+  // close code and reason the socket gets once open, and a request no client
+  // holds never opens (the observer on B78; B82, 2026-09-26).
+  const server = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen() {} }, relayUpgrade);
+  const closeOf = (token: string) =>
+    new Promise<{ code: number; reason: string }>((resolve, reject) => {
+      const socket = new WebSocket(`ws://127.0.0.1:${server.addr.port}/chat`, ["xor.p1", `ticket.${token}`]);
+      const late = setTimeout(() => reject(new Error("the socket was not closed within five seconds")), 5000);
+      socket.onclose = (event) => {
+        clearTimeout(late);
+        resolve({ code: event.code, reason: event.reason });
+      };
+      socket.onerror = () => {};
+    });
+  try {
+    const locked = await closeOf(held);
+    assertEquals(await left(), 1, "a session with its PIN locked spent a ticket and got a room");
+    const wrong = await closeOf("not-a-ticket");
+    assertEquals(wrong.code, 4001, "a bad ticket is not refused with 4001 — the comparison below proves nothing");
+    assertEquals(locked, wrong, "the locked session's refusal differs from a bad ticket's");
+  } finally {
+    await server.shutdown();
+    await database.queryOrThrow(`DELETE FROM socket_tickets WHERE session = $1`, [sessionId]);
+  }
 });

@@ -256,6 +256,33 @@ Deno.test("four live phrases is its own limit, and a take-down frees it at once"
   assertEquals(after.status, 202, "a take-down did not free a slot");
 });
 
+Deno.test("a phrase whose time ran out frees its slot for the fifth", async () => {
+  // LIVE_PHRASE is "visible and not expired", and the refusal counts it that
+  // way: an expired phrase still sitting in the table until the sweep is not
+  // live, so it cannot hold a slot (B8, 2026-09-26 — without this only the
+  // quota's test went red when the term was dropped from the condition).
+  const me = await author();
+  for (let i = 0; i < limits.LIVE_MAX; i++) {
+    assertEquals(
+      (await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `живая ${i}` }))).status,
+      202,
+    );
+    await publishWaiting(me.identity_id);
+  }
+  await database.queryOrThrow(
+    `UPDATE identity_stats SET published_at_recent = '{}' WHERE identity = $1`,
+    [me.identity_id],
+  );
+  // One runs out, and the sweep has not come yet: the row is still there.
+  await database.queryOrThrow(
+    `UPDATE feed_messages SET expires_at = now() - interval '1 minute'
+      WHERE id = (SELECT id FROM feed_messages WHERE author_identity = $1 AND visible_at IS NOT NULL LIMIT 1)`,
+    [me.identity_id],
+  );
+  const fifth = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "пятая" }));
+  assertEquals(fifth.status, 202, `an expired phrase still held a slot: ${JSON.stringify(fifth.body)}`);
+});
+
 Deno.test("five refusals in an hour buy fifteen minutes of silence", async () => {
   const me = await author();
   // The refusals are written the way a verdict writes them; the verdict
@@ -1607,6 +1634,24 @@ Deno.test("a like with no live phrase of one's own is refused, not swallowed", a
   const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
   const refused = await like(a, theirs);
   assertEquals(refused.status, 409, JSON.stringify(refused.body));
+  assertEquals((refused.body as { error: { code: string } }).error.code, "refused");
+  assertEquals(await likeCount(theirs), 0);
+  reset();
+});
+
+Deno.test("a like whose own phrase ran out is refused as one with no phrase at all", async () => {
+  // §8.4 and chat_RU.md:1955: "a live phrase of one's own" is LIVE_PHRASE —
+  // visible and not expired. An expired phrase the sweep has not taken yet
+  // must not open the like (B8, 2026-09-26).
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const mine = await seedPhrase(a.identity_id, "моя, уже истекла");
+  await database.queryOrThrow(`UPDATE feed_messages SET expires_at = now() - interval '1 minute' WHERE id = $1`, [mine]);
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  const refused = await like(a, theirs);
+  assertEquals(refused.status, 409, `a like with an expired own phrase went in: ${JSON.stringify(refused.body)}`);
   assertEquals((refused.body as { error: { code: string } }).error.code, "refused");
   assertEquals(await likeCount(theirs), 0);
   reset();

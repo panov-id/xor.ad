@@ -42,6 +42,15 @@ export const PAUSE_MINUTES = 15;
 // is the count that refuses them. A condition on `feed_messages`, unqualified.
 export const LIVE_PHRASE = `visible_at IS NOT NULL AND expires_at > now()`;
 
+// The same condition on an aliased `feed_messages` (`f`, `their_msg`), made from
+// LIVE_PHRASE rather than written again: the like's "a live phrase of one's
+// own" (§8.4) and the match's "both phrases alive" (§8.5) held third and fourth
+// copies as text, and a change in one place would have let the like and the
+// quota part ways (B8, 2026-09-26).
+export function livePhraseOf(alias: string): string {
+  return LIVE_PHRASE.replace(/\b(visible_at|expires_at)\b/g, `${alias}.$1`);
+}
+
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 
 export interface StatsRow {

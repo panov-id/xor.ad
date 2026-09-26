@@ -23,6 +23,7 @@ import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { band } from "../lib/feed_geo.ts";
 import { inc } from "../lib/metrics.ts";
+import { LIVE_PHRASE, livePhraseOf } from "../lib/feed_limits.ts";
 import { log } from "../lib/log.ts";
 import { checkAll, FEED_READ_LIMITS, LIKE_LIMITS } from "../lib/rate_limit.ts";
 import { SOON_MINUTES } from "./feed.ts";
@@ -74,7 +75,7 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
     if (!phrase?.offer) {
       const [own] = await run<{ n: number }>(
         `SELECT count(*)::int AS n FROM feed_messages
-          WHERE author_identity = $1 AND visible_at IS NOT NULL AND expires_at > now()`,
+          WHERE author_identity = $1 AND ${LIVE_PHRASE}`,
         [me],
       );
       if (own.n === 0) {
@@ -125,7 +126,7 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
          JOIN identities author ON author.id = f.author_identity
         WHERE f.id = $2
           AND f.author_identity <> $1
-          AND f.visible_at IS NOT NULL AND f.expires_at > now()
+          AND ${livePhraseOf("f")}
           AND author.closed_at IS NULL
           AND author.age BETWEEN $3 AND $4
           AND $5 BETWEEN (CASE WHEN author.age <= 20 THEN greatest(13, author.age - 2)
@@ -175,8 +176,8 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
          JOIN identities me   ON me.id   = $1
         WHERE their_msg.id = $2
           AND my_msg.author_identity = $1
-          AND their_msg.visible_at IS NOT NULL AND their_msg.expires_at > now()
-          AND my_msg.visible_at   IS NOT NULL AND my_msg.expires_at   > now()
+          AND ${livePhraseOf("their_msg")}
+          AND ${livePhraseOf("my_msg")}
           AND them.closed_at IS NULL AND me.closed_at IS NULL
           AND them.name_state = 'accepted' AND me.name_state = 'accepted'
         ORDER BY his_like.created_at DESC
@@ -400,7 +401,7 @@ async function myLikes(req: Request, url: URL): Promise<Response> {
        FROM likes l
        JOIN feed_messages f ON f.id = l.feed_message_id
       WHERE l.liker_identity = $1
-        AND f.visible_at IS NOT NULL AND f.expires_at > now()
+        AND ${livePhraseOf("f")}
         AND NOT EXISTS (SELECT 1 FROM blocks b
                          WHERE (b.blocker_identity = $1 AND b.blocked_identity = f.author_identity)
                             OR (b.blocker_identity = f.author_identity AND b.blocked_identity = $1))

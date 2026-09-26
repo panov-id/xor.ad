@@ -1107,9 +1107,15 @@ first        decrypted the envelope ─► so the code was typed correctly
              and sets its own frozen_at — the identity has left
 node         UPDATE vault_shares SET share_enc = NULL, burned_at = now()
              WHERE session = <previous> — the share burns
-node        UPDATE vault_shares SET share_enc = NULL, burned_at = now()
-            WHERE session = <previous> — the share burns
 ```
+
+**The transfer envelopes byte by byte — decided by quorum on 2026-09-26.** The node keeps both envelopes opaque, so their layout is a contract between clients, and the web repeats `depth` byte for byte. The code is read like the paper code (case and dashes do not matter); `material = Argon2id(code, "xor.ad/device-link/v1", 64 MiB, t=3, p=1)`, `lookup_id = base64url(material[0..32])`, `secret = material[32..64]`.
+
+- `claim = iv(12) ‖ AES-GCM(secret, JSON{sign_pub, wrap_pub, label})`, additional data `"xor.ad/device-link/v1\nclaim\n" ‖ lookup_id`.
+- The check is 4 characters: the first 20 bits of `sha256(DER sign_pub ‖ DER wrap_pub)`, most significant bits first, with no domain prefix — to the letter of the scheme above.
+- `reply = u16be(header length) ‖ JSON{identity_id, long_pub, eph_pub} ‖ iv(12) ‖ wrapKey(pkcs8 of the long-lived key)`, the wrapping key is `HKDF(ECDH(eph, wrap_pub) ‖ secret, info "xor.ad/device-link/v1\nreply")`, the additional data is the prefix, `lookup_id`, `sha256(sign ‖ wrap)` of the approved device and the header. The new device checks the unwrapped key against `long_pub` with a trial signature.
+
+The reply is sealed to the new device's `wrap_pub`, not only to `secret`: `GET /sessions/:lookup_id` hands `reply_envelope` to anyone who knows the code (`relay/node/src/routes/transfer.ts:275`), and without the seal whoever overheard the nine characters would unwrap the long-lived key. Rejected: a per-byte `b & 31` check (1:2) and a reply envelope under `secret` alone (1:2).
 
 **Freezing burns the vault share — decided 2026-09-11.** `frozen_at` only put out the
 network half: the node stopped accepting the old device's signature. The local half
@@ -2697,7 +2703,7 @@ This does not undo the per-person count, because the count is about history and 
 
 **A key that cannot be extracted.** The private halves live in IndexedDB only wrapped under the vault key (§8.2, 2026-09-15); on unlock they are unwrapped into memory as `extractable: false` and forgotten on lock. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on an unlocked page reads what is open right now but carries no key away. [retired] This said "The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects".
 
-**There is one exception, and it is permanent — which is how it should be stated.** The identity's long-lived key has to reach a new device during a transfer (§8.2), and WebCrypto cannot wrap a non-extractable key: `wrapKey` requires `extractable: true`. So the long-lived key is extractable **always**, not "for exactly as long as the transfer takes" as this said before — and a foreign script will carry it off at any moment, not only during a transfer. What that buys an attacker is bounded by §8.13 above: they can impersonate the person, but not read the conversations, because the long-lived key takes no part in the encryption. At rest it is wrapped under the vault key like the other private halves, so a foreign script takes it only from an unlocked page; in `depth` the same vault key — the PIN with the node's share — protects the key file (web and `depth` are the same since 2026-09-15, §8.2).
+**There is one exception — the long-lived key is extractable for the time of a wrap, decided by quorum on 2026-09-26.** The identity's long-lived key has to reach a new device during a transfer (§8.2), and WebCrypto cannot wrap a non-extractable key: `wrapKey` requires `extractable: true`. So the long-lived key lies wrapped, its non-extractable copy does the work, and it becomes extractable only for the time of a wrap — at registration and at a transfer — from the wrapped copy: `unwrapKey` with `extractable: true`, `wrapKey` into the envelope, and that copy is dropped. In `depth`, while there is no volume, the wrapped copy is held by a non-extractable random process key in place of the vault key; the device that receives the identity holds it the same way. [retired] This said "the long-lived key is extractable **always**": against a foreign script on an unlocked page both ways protect the same — it will call the unwrap itself — but "always" disagreed with the paper-code keys of §8.2. Rejected: an extractable key in process memory all the time (0:3). What that buys an attacker is bounded by §8.13 above: they can impersonate the person, but not read the conversations, because the long-lived key takes no part in the encryption. At rest it is wrapped under the vault key like the other private halves, so a foreign script takes it only from an unlocked page; in `depth` the same vault key — the PIN with the node's share — protects the key file (web and `depth` are the same since 2026-09-15, §8.2).
 
 **Size.** The ciphertext of a 256-character phrase is up to ~1.4 KB with nonce, tag and base64 (1024 + 12 + 16 bytes → 1404 characters; §8.1 counts the same). The 8 KB `NOTIFY` limit (§8.1) still holds with room to spare.
 

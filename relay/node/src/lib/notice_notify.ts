@@ -25,6 +25,15 @@ export const MAX_ATTEMPTS = 8;
 // send the route can make: Resend's fetch gives up after its own timeout.
 const GRACE_SECONDS = 300;
 const LEASE = "10 minutes";
+// The decision letter's wait after a failed try: ten minutes, doubling, at most
+// twelve hours — eight tries then span about a day, not the 80 minutes the flat
+// ten minutes gave (review panel G1, B46, 2026-09-26).
+const DECISION_BACKOFF_MINUTES = 10;
+const DECISION_BACKOFF_CAP_MINUTES = 720;
+
+// Exists at zero from the start: DsaDecisionLetterExhausted reads it, and a
+// series born at 1 hides its first event from increase() (B42 gate, B46).
+for (const result of ["failed", "sent_on_retry", "exhausted"]) inc("relay_dsa_decision_letter_total", { result }, 0);
 
 export async function markArrivalSent(id: string): Promise<void> {
   await query(`UPDATE dsa_notices SET arrival_sent_at = now() WHERE id = $1`, [id]);
@@ -127,18 +136,34 @@ type Decision = typeof sendNoticeDecision;
 // letter above: leased in one statement, sent outside any transaction, an
 // attempt counted when taken, round robin by last try. It is sent from what the
 // decision kept on the notice — the text the letter quotes and the snapshot
-// state — so a retry says what the first letter would have said. After
-// MAX_ATTEMPTS it stops and is counted: telling somebody else instead would be
-// a letter with words nobody has written yet, and the device receipt (§6) still
-// carries the decision.
+// state — so a retry says what the first letter would have said. The wait after
+// a failure doubles (DECISION_BACKOFF_*). The try that uses up MAX_ATTEMPTS is
+// counted as exhausted, and DsaDecisionLetterExhausted pages on it: telling the
+// notifier some other way would be a letter with words nobody has written yet,
+// and the device receipt (§6) still carries the decision (review panel G1).
+//
+// A notice decided in the window between db/058 and the code that writes the
+// letter's text (the wizard migrates, then restarts) has no text to send again.
+// It was left "not sent" for ever; now it is marked exhausted at once and
+// counted, so a letter that cannot be retried is seen rather than waited for
+// (review panel G3).
 export async function retryDecisionLetters(
   send: Decision = sendNoticeDecision,
-): Promise<{ sent: number; failed: number }> {
+): Promise<{ sent: number; failed: number; exhausted: number }> {
   if (!databaseEnabled()) throw new Error("no database to read the notices from");
-  if (config.mail.transport === "none") return { sent: 0, failed: 0 };
+  if (config.mail.transport === "none") return { sent: 0, failed: 0, exhausted: 0 };
+  const textless = await query<{ id: string }>(
+    `UPDATE dsa_notices SET decision_attempts = $1
+      WHERE decided_at IS NOT NULL AND decision_sent_at IS NULL AND notifier_email IS NOT NULL
+        AND decision_letter_facts IS NULL AND decision_attempts < $1
+      RETURNING id`,
+    [MAX_ATTEMPTS],
+  );
+  if (textless === null) throw new Error("could not read the notices");
+  let exhausted = textless.length;
   const rows = await query<{
     id: string; brand: string | null; status: string; notifier_email: string; facts: string;
-    snapshot_state: string | null; snapshot_reason: string | null;
+    snapshot_state: string | null; snapshot_reason: string | null; attempts: number;
   }>(
     `UPDATE dsa_notices n
         SET decision_leased_until = now() + $2::interval, decision_attempts = n.decision_attempts + 1
@@ -155,7 +180,7 @@ export async function retryDecisionLetters(
          FOR UPDATE SKIP LOCKED
       )
       RETURNING n.id, n.brand, n.status, n.notifier_email, n.decision_letter_facts AS facts,
-                n.snapshot_state, n.snapshot_reason`,
+                n.snapshot_state, n.snapshot_reason, n.decision_attempts AS attempts`,
     [GRACE_SECONDS, LEASE, MAX_ATTEMPTS],
   );
   if (rows === null) throw new Error("could not read the notices");
@@ -181,12 +206,20 @@ export async function retryDecisionLetters(
     }
     failed++;
     inc("relay_dsa_decision_letter_total", { result: "failed" });
-    await query(`UPDATE dsa_notices SET decision_leased_until = now() WHERE id = $1`, [notice.id]);
+    if (notice.attempts >= MAX_ATTEMPTS) exhausted++;
+    // The next try waits longer each time; the exhausted one is not picked again.
+    await query(
+      `UPDATE dsa_notices
+          SET decision_leased_until = now() + make_interval(mins => least($2 * power(2, $3 - 1)::int, $4))
+        WHERE id = $1`,
+      [notice.id, DECISION_BACKOFF_MINUTES, notice.attempts, DECISION_BACKOFF_CAP_MINUTES],
+    );
   }
   if (sent) inc("relay_dsa_decision_letter_total", { result: "sent_on_retry" }, sent);
-  if (failed) log("error", "decision letters that still did not leave", { sent, failed });
+  if (exhausted) inc("relay_dsa_decision_letter_total", { result: "exhausted" }, exhausted);
+  if (failed || exhausted) log("error", "decision letters that still did not leave", { sent, failed, exhausted });
   else if (sent) log("info", "decision letters sent on retry", { sent });
-  return { sent, failed };
+  return { sent, failed, exhausted };
 }
 
 // The night path (dsa/SPEC_RU.md §5): every new notice, at once, to the

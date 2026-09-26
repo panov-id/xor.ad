@@ -115,3 +115,60 @@ Deno.test({ name: "a decision letter that leaves at once is marked at the decisi
   assertEquals(decided.status, 200, JSON.stringify(decided.body));
   assert((await rowOf(id)).decision_sent_at, "a letter that left was not marked as sent");
 }});
+
+// The letter's last try, the wait between tries, and a notice with no text to
+// send (review panel G1, G3; B46, 2026-09-26).
+const resultCount = (result: string) =>
+  Number(render().match(new RegExp(`relay_dsa_decision_letter_total\\{result="${result}"\\} (\\d+)`))?.[1] ?? 0);
+const { MAX_ATTEMPTS } = await import("../src/lib/notice_notify.ts");
+
+async function refusedDecision(): Promise<string> {
+  const id = await notice();
+  providerUp = false;
+  const decided = await decide(id, { decision: "rejected", facts: `Отказ ${crypto.randomUUID().slice(0, 8)}` });
+  assertEquals(decided.status, 200, JSON.stringify(decided.body));
+  await queryOrThrow(`UPDATE dsa_notices SET decided_at = now() - interval '10 minutes' WHERE id = $1`, [id]);
+  return id;
+}
+const waitOf = async (id: string) => (await queryOrThrow<{ minutes: number }>(
+  `SELECT round(extract(epoch FROM decision_leased_until - now()) / 60)::int AS minutes FROM dsa_notices WHERE id = $1`, [id]))[0].minutes;
+
+Deno.test({ name: "the waits between tries of a decision letter double", ...pool, async fn() {
+  const id = await refusedDecision();
+  await retryDecisionLetters();
+  assertEquals((await rowOf(id)).decision_attempts, 1);
+  assertEquals(await waitOf(id), 10, "the first failed try did not wait ten minutes");
+  await queryOrThrow(`UPDATE dsa_notices SET decision_attempts = 2, decision_leased_until = now() WHERE id = $1`, [id]);
+  await retryDecisionLetters();
+  assertEquals((await rowOf(id)).decision_attempts, 3);
+  assertEquals(await waitOf(id), 40, "the third failed try did not wait forty minutes");
+}});
+
+Deno.test({ name: "the last try of a decision letter is counted as given up and not tried again", ...pool, async fn() {
+  const id = await refusedDecision();
+  await queryOrThrow(`UPDATE dsa_notices SET decision_attempts = $2 WHERE id = $1`, [id, MAX_ATTEMPTS - 1]);
+  const before = resultCount("exhausted");
+  const pass = await retryDecisionLetters();
+  assert(pass.exhausted >= 1, `the last try was not counted as given up: ${JSON.stringify(pass)}`);
+  assertEquals(resultCount("exhausted") - before, pass.exhausted, "the metric does not say what the pass gave up");
+  assertEquals((await rowOf(id)).decision_attempts, MAX_ATTEMPTS);
+  // Given up is given up, even with the provider back and the wait over.
+  providerUp = true;
+  letters.length = 0;
+  await queryOrThrow(`UPDATE dsa_notices SET decision_leased_until = now() WHERE id = $1`, [id]);
+  await retryDecisionLetters();
+  assertEquals((await rowOf(id)).decision_sent_at, null, "a given-up letter was tried again");
+}});
+
+Deno.test({ name: "a decision with no text to send again is counted as given up at once", ...pool, async fn() {
+  // Decided in the db/058 window: the old code wrote the decision, not the letter's text.
+  const id = await notice();
+  await queryOrThrow(
+    `UPDATE dsa_notices SET status = 'rejected', decided_at = now() - interval '1 hour', decision_letter_facts = NULL WHERE id = $1`, [id]);
+  providerUp = true;
+  const before = resultCount("exhausted");
+  const pass = await retryDecisionLetters();
+  assert(pass.exhausted >= 1, `the textless decision was not counted: ${JSON.stringify(pass)}`);
+  assertEquals((await rowOf(id)).decision_attempts, MAX_ATTEMPTS, "the textless decision is still waiting to be tried");
+  assert(resultCount("exhausted") - before >= 1, "the textless decision did not reach the metric");
+}});

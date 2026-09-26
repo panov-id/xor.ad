@@ -195,6 +195,20 @@ groups:
           summary: "Очередь ст. 16 не разбирается"
           description: "Есть незакрытые уведомления и ни одного решения за шесть часов. Сроки ответа — регуляторные. Возраст самого старого — relay_dsa_queue_oldest_seconds."
 
+      # The notifier's Article 16(5) letter about a decision, given up: every
+      # try used (lib/notice_notify.ts, about a day of doubling waits), or a
+      # notice decided in the db/058 window with no text to send again. The
+      # decision still reaches the notifier's device by the receipt (§6); the
+      # letter is the channel for whoever cleared their browser, and nothing
+      # else retries it (review panel G1, G3; B46, 2026-09-26).
+      - alert: DsaDecisionLetterExhausted
+        expr: sum(increase(relay_dsa_decision_letter_total{result="exhausted"}[1h])) > 0
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Письмо о решении по ст. 16(5) не ушло"
+          description: "Все попытки исчерпаны, или у решения нет сохранённого текста письма. Заявитель узнает решение только по квитанции на устройстве. Смотреть relay_dsa_decision_letter_total и почтовый транспорт."
+
       # The feed with no moderator behind it. publishPhrase() is called by the
       # stale-queue sweeper after ten minutes and by nothing else, so a phrase
       # that nobody read is deleted unread — which is the design until §8.14 is

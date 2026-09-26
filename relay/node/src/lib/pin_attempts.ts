@@ -133,7 +133,12 @@ export async function checkPin(
       // — whoever holds the tab would go on publishing, writing in
       // conversations, complaining and asking support in this person's name,
       // all the way until the paper code. Closing the PIN alone leaves exactly
-      // that open, so the two are one write or they are a hole.
+      // that open, so the two are one write or they are a hole. They are not
+      // one write any more — the freeze below may time out and be finished by
+      // the minute's job (B59, B70) — and the hole stays shut another way: the
+      // lock itself is the write that counts, and the guard refuses a session
+      // whose share is locked as it refuses a frozen one (lib/identity_guard.ts,
+      // B75; the routes' second looks under their locks, B87).
       //
       // Freezing carries its own notification; lib/sessions.ts says why that is
       // not optional and why it is not written inline here.

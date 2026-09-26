@@ -66,7 +66,7 @@ sequenceDiagram
   alt outside the window, or the signature does not verify
     N-->>K: refused
   else
-    N->>N: is the session live #40;frozen_at IS NULL#41;?
+    N->>N: is the session live #40;frozen_at IS NULL, share not locked#41;?
     alt frozen
       N-->>K: refused — this signature is accepted nowhere,<br/>except a new support request<br/>when frozen by the PIN limit
     else

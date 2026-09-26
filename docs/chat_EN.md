@@ -1393,6 +1393,19 @@ transfer code has its bits counted out loud; here there was only an example
 string, so the alphabet and the length would have been chosen by whoever wrote
 the code first, and we would never have known.
 
+**How the code becomes keys — named 2026-09-26 so the web repeats exactly this.**
+Input is upper-cased, spaces and `-` are cut, `I` and `L` read as `1`, `O` as
+`0`, `U` is refused. Argon2id with the parameters above and `p=1` gives 64 bytes:
+the first 32 in base64url without padding are `recovery_lookup_id`, the second 32
+an AES-256-GCM key. `recovery_wrapped_key` is `iv(12) ‖ ciphertext ‖ tag` of the
+long-lived key's pkcs8 under that key, with the same salt in UTF-8 as additional
+data. The long-lived key is born extractable only for this wrapping; the working
+copy is its non-extractable one after `unwrapKey`. The node keeps both fields
+opaque, so compatibility is held by the clients: the reference is
+`depth/core/paper.test.ts` (decided by a 3/3 quorum in the artel on 2026-09-26;
+rejected: AES-KW — P-256 pkcs8 does not divide into its blocks — and hex for
+`lookup_id`).
+
 **The attempt counter has been taken off the identity — corrected 2026-08-18.**
 `recovery_attempts_left` lived in the `identities` row and could barely ever
 decrement: both halves come out of one Argon2id, so an error in a single

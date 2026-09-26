@@ -8,23 +8,149 @@
 // 2026-09-14). So both verdicts start by taking the same `identity_stats` row
 // `FOR UPDATE` that a send takes, and finish in the same transaction.
 //
-// **There is no moderator here yet, and this file does not pretend otherwise.**
-// The model is chosen — translate, then classify, by the measurement of §8.14 —
-// and it is not wired. Until it is, nothing calls `publish()` on its own: the
-// queue is worked by hand or by a caller that knows what it is doing, and what
-// runs unattended is the sweeper below, which deletes a row that waited past
-// `moderation.queue.wait` rather than letting it through unread. Publishing
-// what nobody has read would be the one thing §8.3 forbids by name, and it
-// would be indistinguishable, from outside, from a moderator that works.
+// **The first tier of §8.3 reads here, and a person reads the rest.** The
+// tier is rules — links, contacts, a phrase the author already has up — and
+// nothing else: no dictionary lives in this node, and none is made up here. A
+// phrase the rules find nothing in goes out in the same transaction that
+// wrote it (routes/feed.ts, `publishLocked`); one they flag waits for the
+// queue, where a person decides as before. The model of §8.14 — translate,
+// then classify — is chosen and not wired; when it is, it takes the flagged
+// half, not the clean one. What runs unattended besides the rules is the
+// sweeper below, which deletes a row that waited past `moderation.queue.wait`
+// rather than letting it through unread: a flagged phrase nobody read does not
+// become visible by default (§8.3, fail-closed).
+//
+// `FEED_VERDICT=queue` turns the rules off: every phrase waits for a person,
+// which is the shape a tenant with a live moderator may want, and the shape
+// this node had until P1 (2026-09-26).
 
 import { queryOrThrow, transaction } from "./db.ts";
 import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
 import { frameSessions } from "./sessions.ts";
+import { LIVE_PHRASE } from "./feed_limits.ts";
 
 // Exists at zero from the start: an alert reads it, and a series born at 1
 // hides its first event from rate() (B42, 2026-09-26; alerts.yml).
 for (const verdict of ["published", "expired_unread"]) inc("relay_feed_verdict_total", { verdict }, 0);
+for (const result of ["published", "queued"]) inc("relay_feed_rules_total", { result }, 0);
+
+// ---- the first tier: rules (§8.3) -------------------------------------------
+//
+// What a rule can see, and only that: a link, a way to be contacted outside the
+// node, and a phrase the author already has up. There is no word list here
+// because the node has none, and a list written for this file would be a
+// guess dressed as moderation. A phrase the rules flag is not refused — it
+// waits for a person, as every phrase did before — so a rule may err towards
+// the queue: the cost of a false flag is minutes of waiting, the cost of a
+// false refusal is a moment in rejected_at_recent and, after five, a pause
+// (§8.3, "the threshold must slow down the search for a wording, not punish";
+// quorum of three, 2026-09-26).
+//
+// The regexes are linear on purpose: no nested quantifiers, no backtracking
+// across the whole text (B106, a raw Origin of 60 KB stalled the node). The
+// text is 128 graphemes anyway (routes/feed.ts), and a name is 24.
+
+export type RuleReason = "link" | "contact" | "repeat" | "offer" | "name";
+
+// How a rule reads the text: NFKC so that fullwidth and mathematical letters
+// become the letters they look like, format characters gone so that a
+// zero-width space does not split "t.me", lower case, one space between words.
+// The stored phrase is not touched — this is the reader's copy.
+function readable(text: string): string {
+  return text.normalize("NFKC").replace(/\p{Cf}/gu, "").toLowerCase().replace(/\s+/gu, " ").trim();
+}
+
+// Spelled-out punctuation of the kind people use to slip past a filter:
+// "site точка ru", "name (at) mail (dot) com". English "at" and "dot" as bare
+// words are not touched — "meet at the bridge" is a phrase, not an address.
+const SPELLED_DOT = /\s*(?:\(dot\)|\[dot\]|\(точка\)|\[точка\]| точка )\s*/gu;
+const SPELLED_AT = /\s*(?:\(at\)|\[at\]|\(собака\)|\[собака\]| собака )\s*/gu;
+function unspelled(text: string): string {
+  return text.replace(SPELLED_DOT, ".").replace(SPELLED_AT, "@");
+}
+
+// A link: a scheme, a www., or a bare host with a Latin top-level label of two
+// letters or more. The last one flags "Mr.Smith" too; that is a phrase for a
+// person to read, not a refusal.
+const LINK = /(?:https?:\/\/|www\.)\S|(?:^|[^\p{L}\p{N}])[\p{L}\p{N}-]{1,63}(?:\.[\p{L}\p{N}-]{1,63})*\.[a-z]{2,24}(?=$|[^\p{L}\p{N}])/u;
+// A contact: an address, a handle, a messenger by name, or a telephone — seven
+// digits or more with the separators people put between them. A date has
+// eight digits and is flagged too; it waits for a person, which is the side
+// the rules err to.
+const EMAIL = /[^\s@]{1,64}@[^\s@]{1,255}\.[a-z]{2,24}/u;
+const HANDLE = /(?:^|\s)@[\p{L}\p{N}_]{3,32}/u;
+const MESSENGER = /(?:^|[^\p{L}])(?:telegram|tg|whatsapp|viber|wechat|snapchat)(?=$|[^\p{L}])|телег|вотсап|ватсап|вайбер|снапчат/u;
+const PHONE = /(?:\+|\b)\d[\d\s().-]{5,24}\d/u;
+const digitsIn = (s: string): number => (s.match(/\d/g) ?? []).length;
+
+// The reasons the rules find in a phrase's text — empty means clean.
+export function readText(text: string): RuleReason[] {
+  const seen = unspelled(readable(text));
+  const reasons: RuleReason[] = [];
+  if (LINK.test(seen)) reasons.push("link");
+  if (EMAIL.test(seen) || HANDLE.test(seen) || MESSENGER.test(seen)) reasons.push("contact");
+  else {
+    const phone = seen.match(PHONE);
+    if (phone && digitsIn(phone[0]) >= 7) reasons.push("contact");
+  }
+  return reasons;
+}
+
+// The verdict mode of this node. `rules`, the default: the tier of §8.3 that
+// costs nothing reads every phrase, and the queue takes what it flags — a feed
+// with no moderator wired publishes nothing otherwise, which is the state the
+// alert FeedPublishesNothing calls expected. `queue`: every phrase waits for a
+// person — the shape this node had before, and the one a tenant with a live
+// moderator may want. Any other value is `queue`: a misspelt variable closes,
+// it does not open (§8.3). The default was the coordinator's call for P1
+// (2026-09-26); the quorum of three had voted two to one for `queue`, so that
+// a feed publishing on its own would be switched on per environment — noted
+// in decisions, not followed.
+export function verdictMode(): "rules" | "queue" {
+  const raw = (Deno.env.get("FEED_VERDICT") ?? "rules").trim().toLowerCase();
+  return raw === "rules" ? "rules" : "queue";
+}
+
+// Everything the rules can say about a phrase that has just been written, read
+// under the caller's transaction: the text, the offer, the name that would go
+// out with it, and whether the author already has this phrase up.
+//
+// - An offer — a phrase with a discount or conditions — waits for a person
+//   whole: it may carry neither a link nor a promo code (§8.3, offers §2), and a
+//   promo code is not a shape a rule can tell from a word.
+// - The name goes out with the phrase under one verdict (§8.2, 2026-09-22), so
+//   a waiting name is read by the same rules; a refused name is the queue's
+//   business as before.
+// - The same phrase again, while the first is still up, is a person's to read:
+//   not a refusal, because a refusal costs a moment towards the pause of §8.3
+//   and a neighbour who wrote the same line twice, changing a price, is not
+//   who the pause is for (quorum, 2026-09-26).
+export async function reasonsFor(
+  run: Run,
+  phrase: { id: string; identityId: string; text: string; offer: boolean },
+): Promise<RuleReason[]> {
+  const reasons = readText(phrase.text);
+  if (phrase.offer) reasons.push("offer");
+  const [who] = await run<{ name_pending: string | null; name_state: string }>(
+    `SELECT name_pending, name_state FROM identities WHERE id = $1`,
+    [phrase.identityId],
+  );
+  if (who?.name_state === "rejected" || (who?.name_pending && readText(who.name_pending).length > 0)) {
+    reasons.push("name");
+  }
+  // Compared the way the rules read: NFC in the database (there is no NFKC
+  // there), case folded, spaces collapsed — and the parameter folded the same.
+  const same = await run<{ id: string }>(
+    `SELECT id FROM feed_messages
+      WHERE author_identity = $1 AND id <> $2 AND ${LIVE_PHRASE}
+        AND lower(regexp_replace(normalize(text, NFC), '\s+', ' ', 'g')) = $3
+      LIMIT 1`,
+    [phrase.identityId, phrase.id, phrase.text.normalize("NFC").toLowerCase().replace(/\s+/gu, " ").trim()],
+  );
+  if (same.length > 0) reasons.push("repeat");
+  return reasons;
+}
 
 // docs/facts/limits.tsv, by name.
 export const PHRASE_SPAN = "4 hours 20 minutes"; // feed.phrase.span
@@ -71,6 +197,9 @@ export interface Verdict {
   nameChanged?: boolean;
   // The name stands refused; the phrase waits for a new one.
   nameRejected?: boolean;
+  // When applied: the term the phrase got, as the row now holds it.
+  visibleAt?: Date;
+  expiresAt?: Date;
 }
 
 // Passed. The row becomes visible and gets its term in the same UPDATE — they
@@ -120,7 +249,26 @@ async function lockWaiting(
 }
 
 export async function publishPhrase(id: string, scope: VerdictScope = {}): Promise<Verdict> {
-  return await transaction<Verdict>(async (run) => {
+  return await transaction<Verdict>((run) => publishLocked(run, id, scope));
+}
+
+// The passing verdict inside a caller's transaction. POST /feed calls it right
+// after its INSERT when the rules found nothing (routes/feed.ts): the counters
+// row it holds is the one lockWaiting takes again, in the same order, so the
+// publication and the moment land in the transaction that wrote the phrase —
+// a send arriving between them would otherwise see the queue empty and the
+// moment unwritten (§8.3, review panel 2026-09-14).
+// `by` names who read the phrase. The verdict counter stays the queue's: it
+// feeds the alert that says "a queue with nobody deciding" (alerts.yml,
+// FeedPublishesNothing), and a publication the rules made would silence it
+// on the day the human queue stops (quorum, 2026-09-26).
+export async function publishLocked(
+  run: Run,
+  id: string,
+  scope: VerdictScope = {},
+  by: "queue" | "rules" = "queue",
+): Promise<Verdict> {
+  {
     const row = await lockWaiting(run, id, scope);
     // Already decided, already swept, or never existed: a verdict arriving
     // twice must not publish twice or write a second moment.
@@ -141,10 +289,11 @@ export async function publishPhrase(id: string, scope: VerdictScope = {}): Promi
         return { applied: false, identityId: row.author_identity, nameRejected: true };
       }
     }
-    await run(
+    const [term] = await run<{ visible_at: Date; expires_at: Date }>(
       `UPDATE feed_messages
           SET visible_at = now(), expires_at = now() + interval '${PHRASE_SPAN}'
-        WHERE id = $1 AND visible_at IS NULL`,
+        WHERE id = $1 AND visible_at IS NULL
+        RETURNING visible_at, expires_at`,
       [id],
     );
     if (row.author_identity) {
@@ -173,9 +322,9 @@ export async function publishPhrase(id: string, scope: VerdictScope = {}): Promi
         [row.author_identity],
       );
     }
-    inc("relay_feed_verdict_total", { verdict: "published" });
-    return { applied: true, identityId: row.author_identity };
-  });
+    if (by === "queue") inc("relay_feed_verdict_total", { verdict: "published" });
+    return { applied: true, identityId: row.author_identity, visibleAt: term?.visible_at, expiresAt: term?.expires_at };
+  }
 }
 
 // Refused. The row is deleted rather than marked: a refused phrase is not a

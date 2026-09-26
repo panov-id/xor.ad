@@ -19,6 +19,29 @@ OUT = W / "out"
 OUT.mkdir(exist_ok=True)
 e = html.escape
 
+
+def plural(n, one, few, many):
+    # Russian agreement: 1 коммит, 2 коммита, 5 коммитов, 11 коммитов, 21 коммит.
+    n = abs(int(n))
+    if n % 10 == 1 and n % 100 != 11:
+        return one
+    return few if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14 else many
+
+
+def num(n, one, few, many):
+    return f"{n} {plural(n, one, few, many)}"
+
+
+def axis_top(peak, step):
+    # The scale grows with the data: the highest bar never runs off the chart.
+    return max(step, -(-int(peak * 1.05) // step) * step)
+
+
+def iso(d):
+    # TOML reads an unquoted 2026-09-26 as a date, a quoted one as a string.
+    return d.isoformat() if hasattr(d, "isoformat") else str(d)
+
+
 # ---------- data ----------
 def tsv(name):
     # An empty file is a real measurement (nothing unpushed after a push), not
@@ -40,11 +63,20 @@ prod = json.loads((D / "prod-health.json").read_text())
 pool = [l.strip() for l in (D / "node-images.txt").read_text().split("\n") if l.strip().startswith(("✓", "·", "✗"))]
 # Without relay/wizard/inventory.toml (gitignored, so absent in a fresh worktree)
 # the gate prints why it did not ask the pool instead of a tally; say that.
-# An unpolled pool is reported under "not checked", never under "checked".
+# The pool counts as checked only when the gate itself says so, by its exit
+# code: a tally line with a mismatch or silent nodes is "not checked".
 _pool_lines = [l.replace(f"{R}/", "") for l in (D / "node-images.txt").read_text().split("\n") if l.strip()]
+_pool_rc = (D / "node-images.rc").read_text().strip() if (D / "node-images.rc").is_file() else None
 pool_sum = next((l for l in _pool_lines if l.startswith("записей")), None)
-pool_why = None if pool_sum else (_pool_lines or ["пул не опрошен"])[0]
+if pool_sum is None:
+    pool_why = (_pool_lines or ["пул не опрошен"])[0]
+elif _pool_rc != "0":
+    pool_why = f"{pool_sum} — ворота вернули код {_pool_rc or 'неизвестен'}, это не зелёный результат"
+else:
+    pool_why = None
 missing = []
+LIVE_SHOTS = ["sosed-desktop", "neighbro-desktop", "sosed-mobile-dark", "neighbro-mobile-light", "panel-login"]
+live_missing = [n for n in LIVE_SHOTS if not (W / "shots" / f"{n}.png").is_file()]
 opened = [r for r in csv.reader(open(D / "open.tsv"), delimiter="\t")]
 unpushed = tsv("unpushed.tsv")
 frames = dict(json.load(open(D / "frames.json")))
@@ -67,14 +99,18 @@ screens_passed, screens_failed = map(int, _screens.groups())
 
 # ---------- prose: words no script measures, each block dated ----------
 prose = tomllib.loads((H / "prose_RU.toml").read_text())
-fill = {"ahead": git["ahead_origin_day57"], "day57_tail": git["day57_tail"],
-        "branch_only": int(git["ahead_origin_day57"]) - int(git["day57_tail"]),
-        "mig_last": mig_last, "branch": git["branch"]}
+road, steps_p, day, state = prose["roadmap"], prose["steps"], prose["day"], prose["state"]
+for block, key in ((road, "as_of"), (steps_p, "as_of"), (day, "date"), (state, "as_of")):
+    block[key] = iso(block[key])
+ahead = int(git["ahead_origin_day57"])
+fill = {"ahead": ahead, "ahead_commits": num(ahead, "коммит", "коммита", "коммитов"),
+        "day57_tail": git["day57_tail"], "mig_last": mig_last, "branch": e(git["branch"])}
 P = lambda s: s.format_map(fill)
-road, day, state = prose["roadmap"], prose["day"], prose["state"]
+prod_migration = f"{road['environments'][0]['migration']:03d}"
 # Words dated before the last day with commits describe an older tree.
-stale = [(name, d) for name, d in (("роадмап", road["as_of"]), ("итоги дня", day["date"]), ("состояние", state["as_of"]))
-         if d < last_day]
+stale = [(name, verb, d) for name, verb, d in (
+    ("роадмап", "записан", road["as_of"]), ("таблица шагов", "записана", steps_p["as_of"]),
+    ("итоги дня", "записаны", day["date"]), ("состояние", "записано", state["as_of"])) if d < last_day]
 
 # ---------- palette (dataviz reference, validated slots 1-3) ----------
 S1, S2, S3 = "#2a78d6", "#eb6834", "#1baf7a"
@@ -91,10 +127,11 @@ def chart_tests():
     n = len(hist)
     bw = (W - L - 10) / n
     rows = [(h[0], int(h[2]), int(h[3]) + int(h[4]), int(h[5])) for h in hist]
-    top = 700
+    step = 100 if max(sum(r[1:]) for r in rows) <= 1000 else 250
+    top = axis_top(max(sum(r[1:]) for r in rows), step)
     y = lambda v: T + (Hh - T - B) * (1 - v / top)
     g = []
-    for v in range(0, top + 1, 100):
+    for v in range(0, top + 1, step):
         g.append(f'<line x1="{L}" x2="{W-6}" y1="{y(v):.1f}" y2="{y(v):.1f}" stroke="{GRID}"/>'
                  f'<text x="{L-6}" y="{y(v)+4:.1f}" text-anchor="end" class="ax">{v}</text>')
     for i, (d, node, panel, depth) in enumerate(rows):
@@ -122,10 +159,10 @@ def chart_commits():
     W, Hh, L, B, T = 720, 170, 44, 28, 20
     n = len(commits)
     bw = (W - L - 10) / n
-    top = 90
+    top = axis_top(max(int(c) for _, c in commits), 30)
     y = lambda v: T + (Hh - T - B) * (1 - v / top)
     g = []
-    for v in (0, 30, 60, 90):
+    for v in range(0, top + 1, 30):
         g.append(f'<line x1="{L}" x2="{W-6}" y1="{y(v):.1f}" y2="{y(v):.1f}" stroke="{GRID}"/>'
                  f'<text x="{L-6}" y="{y(v)+4:.1f}" text-anchor="end" class="ax">{v}</text>')
     peak = sorted(commits, key=lambda c: -int(c[1]))[:3]
@@ -147,9 +184,10 @@ def chart_migrations():
         (r["label"], r["migration"], S2, r["note"]) for r in road["environments"]]
     W, rh, L = 720, 34, 190
     Hh = rh * len(rows) + 26
-    x = lambda v: L + (W - L - 60) * v / 60
+    top = axis_top(max(v for _, v, _, _ in rows), 20)
+    x = lambda v: L + (W - L - 60) * v / top
     g = []
-    for v in (0, 20, 40, 60):
+    for v in range(0, top + 1, 20):
         g.append(f'<line x1="{x(v):.1f}" x2="{x(v):.1f}" y1="4" y2="{Hh-22}" stroke="{GRID}"/>'
                  f'<text x="{x(v):.1f}" y="{Hh-6}" text-anchor="middle" class="ax">{v:03d}</text>')
     for i, (lab, v, col, note) in enumerate(rows):
@@ -170,10 +208,10 @@ def chart_open():
         tally[d][r[3]] += 1
     W, rh, L = 720, 34, 120
     Hh = rh * 4 + 26
-    top = 16
+    top = axis_top(max(sum(t.values()) for t in tally.values()), 4)
     x = lambda v: L + (W - L - 40) * v / top
     g = []
-    for v in (0, 4, 8, 12, 16):
+    for v in range(0, top + 1, 4):
         g.append(f'<line x1="{x(v):.1f}" x2="{x(v):.1f}" y1="4" y2="{Hh-22}" stroke="{GRID}"/>'
                  f'<text x="{x(v):.1f}" y="{Hh-6}" text-anchor="middle" class="ax">{v}</text>')
     for i, o in enumerate(order):
@@ -242,6 +280,11 @@ def img(src, cap, when=None, cls=""):
 SH = W / "shots"
 SS = Path(os.environ.get("REPORT_SCREENSHOTS") or R / "testing/screenshots")
 DS = SS / "design"
+# Named in the report without the local home: relative inside the tree, the
+# variable's name outside it.
+shots_src = str(SS.relative_to(R)) if SS.is_relative_to(R) else "$REPORT_SCREENSHOTS"
+# Stored screenshots only; live ones missing are reported on their own line.
+stored_missing = lambda: [m for m in missing if m.removesuffix(".png") not in LIVE_SHOTS]
 
 # ---------- tables ----------
 def chip(k):
@@ -249,7 +292,7 @@ def chip(k):
     return f'<span class="chip {k}">{t}</span>'
 
 
-steps = [(s["step"], s["node"], s["node_text"], s["depth"], s["depth_text"]) for s in road["steps"]]
+steps = [(s["step"], s["node"], s["node_text"], s["depth"], s["depth_text"]) for s in steps_p["steps"]]
 layers = [(l["name"], l["percent"], l["holds"]) for l in road["layers"]]
 
 
@@ -313,8 +356,8 @@ peaks_text = ", ".join(ru_date(d) for d, _ in peaks[:-1]) + f" и {ru_date(peaks
 li = lambda items: "".join(f"<li>{P(t)}</li>" for t in items)
 stale_html = "" if not stale else (
     '<div class="callout red"><h3>Текст отстаёт от дерева</h3><ul>'
-    + "".join(f"<li>{e(n)} записан на {ru_date(d)}, а последний день с коммитами — {ru_date(last_day)}: "
-              f"обновить <code>scripts/report/prose_RU.toml</code>.</li>" for n, d in stale)
+    + "".join(f"<li>{e(n)} {v} на {ru_date(d)}, а последний день с коммитами — {ru_date(last_day)}: "
+              f"обновить <code>scripts/report/prose_RU.toml</code>.</li>" for n, v, d in stale)
     + "</ul></div>")
 
 css = (H / "report.css").read_text()
@@ -334,11 +377,11 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 </header>
 {stale_html}
 <section class="kpis">
-  <div><b>{tests_total}</b><span>тестов в репозитории, +{tests_total - tests_prev} за {ru_date(last_day)}; ещё {depth_now} в depth</span></div>
-  <div><b>{ops_built}<small> / {ops_total}</small></b><span>операций API построено; {ops_spec} — только в спеке</span></div>
-  <div><b>{mig_files}</b><span>миграций узла, последняя {mig_last}; на проде — до {e(road['prod_migration'])}</span></div>
-  <div><b>{git['ahead_origin_day57']}</b><span>коммитов нет ни на одном удалённом: {git['day57_tail']} — хвост day57, {int(git['ahead_origin_day57'])-int(git['day57_tail'])} — {e(git['branch'])}</span></div>
-  <div><b>{live_ok}<small> / {len(live)}</small></b><span>живых адресов ответили 200</span></div>
+  <div><b>{tests_total}</b><span>{plural(tests_total, "тест", "теста", "тестов")} в репозитории, +{tests_total - tests_prev} за {ru_date(last_day)}; ещё {depth_now} в depth</span></div>
+  <div><b>{ops_built}<small> / {ops_total}</small></b><span>{plural(ops_built, "операция", "операции", "операций")} API построено из {ops_total}; {ops_spec} — только в спеке</span></div>
+  <div><b>{mig_files}</b><span>{plural(mig_files, "миграция", "миграции", "миграций")} узла, последняя {mig_last}; на проде — до {prod_migration}</span></div>
+  <div><b>{git['ahead_origin_day57']}</b><span>{plural(ahead, "коммита", "коммитов", "коммитов")} нет ни на одном удалённом: {git['day57_tail']} — хвост day57, {int(git['ahead_origin_day57'])-int(git['day57_tail'])} — {e(git['branch'])}</span></div>
+  <div><b>{live_ok}<small> / {len(live)}</small></b><span>ответили 200 из {num(len(live), "живого адреса", "живых адресов", "живых адресов")}</span></div>
 </section>
 
 <div class="callout">
@@ -347,8 +390,8 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
     <li><b>Есть:</b> публичный прод — обе витрины, панель, узел relay p1 ({e(prod['image'])}, база {e(prod['database'])}, почта {e(prod['mail'])}); {P(state['has'])}.</li>
     <li><b>Нет:</b> {P(state['has_not'])}.</li>
     <li><b>Главный разрыв — выкат:</b> {P(state['gap'])}.</li>
-    <li><b>{ru_date(last_day)}:</b> {last_day_commits} коммитов{" — " + P(day['summary']) if day['date'] == last_day else f"; итоги этого дня не записаны (последние — за {ru_date(day['date'])})"}.</li>
-    <li>В реестре открытых вопросов {len(opened)} пунктов: {now_n} со сроком «сейчас», {launch_n} — «с запуском».</li>
+    <li><b>{ru_date(last_day)}:</b> {num(last_day_commits, "коммит", "коммита", "коммитов")}{" — " + P(day['summary']) if day['date'] == last_day else f"; итоги этого дня не записаны (последние — за {ru_date(day['date'])})"}.</li>
+    <li>В реестре открытых вопросов {num(len(opened), "пункт", "пункта", "пунктов")}: {now_n} со сроком «сейчас», {launch_n} — «с запуском».</li>
   </ul>
 </div>
 
@@ -379,7 +422,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 </div>
 
 <h2>5. Продукт по шагам</h2>
-<p class="lead">Сервер — <code>relay/node</code>, клиент — <code>depth</code>. Шаги — §13 <code>docs/chat_RU.md</code>.</p>
+<p class="lead">Сервер — <code>relay/node</code>, клиент — <code>depth</code>. Шаги — §13 <code>docs/chat_RU.md</code>; запись на {ru_date(steps_p['as_of'])}.</p>
 {steps_html()}
 
 <h2>6. Чего нет и что стоит</h2>
@@ -441,7 +484,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 </div>
 
 <h2>9. Реестр открытых вопросов</h2>
-<p class="lead"><code>docs/facts/open.tsv</code>, {len(opened)} пунктов, по сроку и весу.</p>
+<p class="lead"><code>docs/facts/open.tsv</code>, {num(len(opened), "пункт", "пункта", "пунктов")}, по сроку и весу.</p>
 {legend([(S1, "юридическое"), (S2, "продукт"), (S3, "удобство")])}
 {open_svg}
 <h3 class="ch">Со сроком «сейчас»</h3>
@@ -449,17 +492,18 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 
 <h2>10. Что проверено и как</h2>
 <div class="callout green"><h3>Проверено при сборке отчёта</h3><ul>
-<li>Пять живых адресов — GET, {live_ok} из {len(live)} ответили 200; <code>/health</code> прода — образ и база выше.</li>
-{f"<li>Пул узлов — <code>scripts/check-node-images.sh</code>: {e(pool_sum.split('·', 1)[-1].strip())}.</li>" if pool_sum else ""}
+<li>Живые адреса — GET: {live_ok} из {len(live)} ответили 200; <code>/health</code> прода — образ и база выше.</li>
+{f"<li>Пул узлов — <code>scripts/check-node-images.sh</code>, код 0: {e(pool_sum.split('·', 1)[-1].strip())}.</li>" if not pool_why else ""}
 <li>Контракт — <code>scripts/check-openapi.sh</code>: {ops_total} операций, протокол и код сходятся со спецификацией.</li>
 <li>Тесты посчитаны <code>scripts/count-tests.sh</code> ({tests_total}); история — по дереву git на каждый день.</li>
 <li>Тесты экранов depth прогнаны в контейнере: пройдено {screens_passed}, провалено {screens_failed}; кадры в разделе 8 — из этого прогона.</li>
-<li>Живые снимки витрин и панели — Playwright в контейнере, сейчас.</li>
+{"<li>Живые снимки витрин и панели — Playwright в контейнере, сейчас.</li>" if not live_missing else ""}
 </ul></div>
 <div class="callout red"><h3>Не проверено сейчас</h3><ul>
-<li>Проценты готовности, таблица шагов и сетка — оценка роадмапа {ru_date(road['as_of'])}, не замер.</li>
+<li>Проценты готовности и сетка — оценка роадмапа {ru_date(road['as_of'])}, таблица шагов — запись на {ru_date(steps_p['as_of'])}; не замер.</li>
+{f"<li>Живые снимки не сняты: {e(', '.join(live_missing))} — <code>scripts/report/shots.sh</code> их не сохранил.</li>" if live_missing else ""}
 {f"<li>Пул узлов не опрошен: {e(pool_why)}.</li>" if pool_why else ""}
-{f"<li>Нет {len(missing)} сохранённых снимков ({e(', '.join(missing))}): каталог <code>testing/screenshots</code> не в git — задать <code>REPORT_SCREENSHOTS</code>.</li>" if missing else ""}
+{f"<li>Нет {num(len(stored_missing()), 'сохранённого снимка', 'сохранённых снимков', 'сохранённых снимков')} ({e(', '.join(stored_missing()))}) в <code>{e(shots_src)}</code>.</li>" if stored_missing() else ""}
 {li(state['unverified'])}
 </ul></div>
 

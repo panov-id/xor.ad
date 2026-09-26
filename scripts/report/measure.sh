@@ -46,7 +46,9 @@ done
 curl -s -m 15 https://api.relay.panov.id/health > "$D/prod-health.json"
 
 # 7. Pool of nodes: recorded image vs running
-scripts/check-node-images.sh > "$D/node-images.txt" 2>&1
+# Its exit code is the verdict (0 only when every node answered and matched);
+# the report files the pool under "checked" only on 0.
+scripts/check-node-images.sh > "$D/node-images.txt" 2>&1; echo $? > "$D/node-images.rc"
 
 # 8. Git state
 {

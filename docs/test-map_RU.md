@@ -64,6 +64,7 @@
 | 1.4 | Бумажный код показан один раз и подтверждён вводом двух групп | без подтверждения регистрация не завершается | нечем |
 | 1.5 | Каждый клиент начинает отдельной личностью | два клиента подряд → два разных `identity_id` | нечем |
 | 1.6 | Первое имя принимается при регистрации и никому не видно до первого мэтча (решение 22.09.2026) | регистрация → `name_state = accepted`; смена имени → `pending`, принимается вместе со фразой | **есть** — «a new name waits for the queue, and comes out with the next phrase» (`feed_publish.test.ts`) |
+| 1.7 | Уборщик незавершённых регистраций не удаляет личность, завершившую регистрацию во время его прохода (панель ревью 26.09.2026, G30) | подтверждение регистрации держит строку на втором соединении, проход уборщика встаёт за ним → после фиксации личность цела | **есть** — «a signup finished while the pass runs survives it» (`identity_sweeper.test.ts`) |
 
 ## 2. Чем подписывается каждый запрос (шаг 1)
 
@@ -90,6 +91,8 @@
 | 3.6 | Предупреждение появляется при трёх оставшихся попытках | седьмой промах → в ответе флаг предупреждения | нечем |
 | 3.7 | **`POST /vault/init` — только по одноразовому праву «первый ПИН»** (панель ревью 19.09.2026) | ключ подписи без права → 409 `unauthorized`; после одобренного переноса → принят, повтор → 409 | **есть** — «the first PIN needs a grant, spends it, and works only once» (`identity_routes.test.ts`); право оставляют обе тропы: `POST /recovery/claim` и одобренный перенос (`transfer_routes.test.ts`, 21.09.2026) |
 | 3.8 | **Неверный ПИН отвечает `attempts_left`, десятый — `pin_locked`** (19.09.2026) | три промаха → `attempts_left` 7; десятый → код `pin_locked` | **есть** — «a wrong PIN spends one try…» и «the tenth miss closes entry…» (`identity_routes.test.ts`) |
+| 3.9 | **Десятая ошибка ПИНа снимает живое, как отлучка**: фразы, лайки, мэтчи; истёкшее оставлено уборщику (`chat_RU.md` §8.2; панель ревью 26.09.2026, H1) | десять промахов → `pin_locked`; живой и ждущей фраз нет, лайк на живой снят со счётчиками, истёкшая фраза и лайк на ней на месте | **есть** — «the tenth miss takes down what is live, and leaves the expired to the sweep» (`identity_routes.test.ts`) |
+| 3.10 | Десятая ошибка ПИНа считается неверной, как девять до неё (панель ревью 26.09.2026, H6) | десять промахов → `relay_vault_share_total{result="wrong"}` вырос на десять | **есть** — «the tenth miss is counted wrong like the nine before it» (`identity_routes.test.ts`) |
 
 ## 4. Перенос личности на другое устройство (шаг 1)
 
@@ -112,6 +115,7 @@
 | 4.14 | Квитанцию принимает только новая сессия, и две квитанции разом ничего не ломают | `ack` чужой подписью → отказ, ничего не стёрто; два `ack` разом → оба 200, ответа не осталось | **есть** — «an ack signed by any session but the new one is refused and erases nothing», «two acks racing both answer 200 and leave no reply» (`transfer_routes.test.ts`) |
 | 4.15 | Общий тормоз кода переноса: пятьдесят неверных кодов по узлу закрывают ввод кода для всех и открывают его после паузы | 50 неверных `claim` с разных адресов → пауза у всех; после паузы ввод открыт | **есть** — «fifty wrong transfer codes across the node pause code entry for everyone, and it opens again after» (`transfer_routes.test.ts`) |
 | 4.16 | Промахи и опросы переноса считаются, а неизвестный код на опросе состояния не ставит тормоз для всех | неизвестный код на ручке состояния → счётчик, без общей паузы; опрос сверх адресной квоты → счётчик; ответ, убранный без квитанции, → счётчик, квитированный — нет | **есть** — «an unknown code on the state route is counted, and does not pause code entry for everybody», «a poll past the address's allowance is counted», «a reply swept without its ack is counted, an acknowledged one is not» (`transfer_routes.test.ts`) |
+| 4.17 | Новое устройство говорит «перенесено», не дожидаясь квитанции; потерянная квитанция повторяется, отказ узла — нет; опрос и квитанция по истечении срока прерываются (панель ревью 26.09.2026, G11 G12 G15) | подставной узел: квитанция висит, теряется, отвечает 503, 404; опрос висит | **есть** — «an ack that never answers does not hold up the arrival», «an ack lost on the way is tried again until the node takes it», «an ack the node refuses is not asked again», «an ask past its time is aborted, not left open behind the next one» (`depth/core/transfer_move_outcomes.test.ts`; тесты `depth` в итог этой карты не входят — `scripts/count-tests.sh` считает узел, e2e и панель) |
 
 ## 5. Восстановление по бумажному коду (шаг 1)
 
@@ -191,6 +195,7 @@
 | 8.7 | **Автор видит `like_count` своей фразы тем же числом, что и все** | выдача автору и выдача чужому содержат одно значение | нечем |
 | 8.8 | **Кто лайкнул — не отдаётся ни автору, ни кому-либо** | в ответе по своей фразе нет ни списка, ни признака конкретного лайка | нечем |
 | 8.9 | Лайк чужой истёкшей фразы не засчитывается, и истёкшая уходит из «моих лайков» | лайк на фразу после её срока → счётчик 0; лайкнутая истекла → её нет в `GET /likes` | **есть** — «ran out · a like on somebody else's phrase that ran out does not count», «ran out · a liked phrase that ran out leaves my likes» (`feed_publish.test.ts`) |
+| 8.9a | Снятие лайка с истёкшей, ещё не убранной фразы не встречает уборщика встречным порядком и не вычитает счётчики: истёкшее — дело уборщика (панель ревью 26.09.2026, H2 H8) | уборщик на втором соединении держит строку фразы, затем удаляет её; снятие лайка → 200, `likes_given` не тронут | **есть** — «taking back a like on an expired phrase meets the sweep without a deadlock and leaves the counters to it» (`feed_publish.test.ts`) |
 
 ## 9. Мэтч и двойное согласие (шаг 4)
 
@@ -419,6 +424,7 @@
 | 22.9 | Оффер частника уходит вместе с фразами | «отойти» → фраза со скидкой удалена | нечем |
 | 22.10 | Уход или закрытие перезапускаются, если лайк на нового автора встал между прикидкой и блокировкой, и повтор считает всех | лайк на нового автора в окне `takeDownLive` → `TakeDownRetry`, повтор, счётчики всех авторов сходятся | **есть** — «a like on a new author between the guess and the lock makes the take-down start again, and the retry counts everyone» (`take_down.test.ts`) |
 | 22.11 | Уход или закрытие не встречают минутную уборку истёкших фраз встречным порядком: истёкшие и лайки на них — дело уборщика | `takeDownLive` и `sweepExpiredPhrases` разом на общих фразах и лайках, 20 раундов под `stress-ng` → ни одного 40P01, счётчики сходятся (B39) | **есть** — «a take-down and the expiry sweep on the same phrases and likes do not deadlock, and the counts add up» (`take_down_stress.test.ts`) |
+| 22.12 | Уход или закрытие, проигравшие уборщику взаимную блокировку, повторяются, а не отвечают 503 (панель ревью 26.09.2026, H3) | уборщик на втором соединении держит свою фразу уходящего и идёт за лайкнутой им → 40P01 у маршрута → повтор, 200, своей фразы нет | **есть** — «a step away that loses a deadlock to the sweep is tried again, not answered 503» (`feed_publish.test.ts`), «a close that loses a deadlock to the sweep is tried again, not answered 503» (`identity_routes.test.ts`) |
 
 ---
 
@@ -481,6 +487,9 @@
 | 26.5 | Приостановленный профиль рекламодателя после своего года ждёт ключа, потом уходит, оставляя хэш адреса | профиль старше года без ключа → стоит; ключ есть → удалён, хэш адреса остался | **есть** — «a suspended profile past its year waits for the key, then goes and leaves its address's hash» (`advertiser_sweeper.test.ts`) |
 | 26.6 | Письмо С6 без дороги говорит об этом раз, а неушедшее повторяется с растущей паузой | `transport none` или пустой `DSA_ESCALATION_EMAILS` → одна запись за процесс, писем нет; неотправленное → повтор через 1, 2, 4… минуты, потолок час | **есть** — «a letter that did not leave is tried again after a pause that grows, not every minute», «a node with nobody to write to says so once, not every minute», «mail switched off is said once, and nothing is sent» (`queue_metrics.test.ts`) |
 | 26.7 | Каждый счётчик, который читает тревога, выложен нулём до первого события | `/metrics` на свежем узле содержит каждую серию из `alerts.yml` со значением 0 | **есть** — «every counter an alert reads is published at zero before its first event» (`metrics_zeros.test.ts`) |
+| 26.8 | Письмо о решении по ст. 16 повторяется с удваивающейся паузой, последняя попытка и решение без сохранённого текста считаются брошенными; ушедшее письмо с незаписанной отметкой считается | подставная почта и время: паузы удваиваются; последняя попытка → `relay_dsa_decision_letter_total{result="exhausted"}`, больше не шлётся; нет текста → `exhausted` сразу; отметка не записалась → `relay_dsa_letter_mark_failed_total{letter="decision"}` | **есть** — «the waits between tries of a decision letter double», «the last try of a decision letter is counted as given up and not tried again», «a decision with no text to send again is counted as given up at once», «a decision letter that left with its mark unwritten is counted, not silent» (`dsa_decision_letter.test.ts`) |
+| 26.9 | Упавший шаг задания писем DSA не останавливает следующие, и задание сообщает о первом сбое | один шаг бросает → остальные выполнены, наружу — первая ошибка | **есть** — «a failing step of the DSA letters job does not stop the ones after it», «the first failure is the one the job reports» (`notice_notify_steps.test.ts`) |
+| 26.10 | Каждое место, где растёт счётчик, который читает тревога, попадает в серию, выложенную нулём; у приветственного письма свой вид (панель ревью 26.09.2026, H4 H5) | наборы меток каждого инкремента сверены с сериями, выложенными нулём | **есть** — «every place a counter an alert reads grows lands on a series seeded at zero» (`metrics_zeros.test.ts`) |
 
 ## Что из этого можно проверить уже сегодня
 

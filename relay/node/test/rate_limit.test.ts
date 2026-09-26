@@ -3,7 +3,7 @@
 // check the properties that make it a limit rather than that lever — per
 // address, and it forgets.
 
-import { assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "jsr:@std/assert@1";
 import { check, checkAll, type Limit, reset } from "../src/lib/rate_limit.ts";
 
 import { suite } from "./support/config_env.ts";
@@ -129,4 +129,36 @@ configured("the transfer poll and the transfer claim spend separate allowances",
       `claim ${i + 1} of ${claims} refused after the polls — they spent the claim's allowance`);
   }
   assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "6.6.6.6", now).allowed, false, `the claim no longer stops at ${claims} an hour`);
+});
+
+// The claim's numbers held here too, not only by the route suite (B66): ten an
+// hour and thirty a day per address (limits.tsv transfer.claim.hour / .day,
+// B58). Written as numbers, not read from the list — a test that reads the
+// value it checks follows the value wherever it goes, and sixty went through
+// that way until B58. Walked over a day, so the daily window is seen doing
+// its own refusing, and held under the node-wide brake one address must not
+// reach on its own (lib/recovery_misses.ts TRANSFER, review panel 3, S3).
+configured("the transfer claim stops at ten an hour and thirty a day, under the node-wide brake", async () => {
+  const { TRANSFER_CLAIM_LIMITS } = await import("../src/lib/rate_limit.ts");
+  const { TRANSFER } = await import("../src/lib/recovery_misses.ts");
+  reset();
+  const start = 5_000_000;
+  const hour = 60 * 60 * 1000;
+  for (let i = 0; i < 10; i++) {
+    assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "7.7.7.7", start).allowed, true, `claim ${i + 1} of 10 in the first hour refused`);
+  }
+  assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "7.7.7.7", start).allowed, false, "the 11th claim in an hour went through: the hourly ceiling is no longer 10");
+  // Two more hours of ten: thirty in the day, each hour full to its own ceiling.
+  for (let h = 1; h <= 2; h++) {
+    for (let i = 0; i < 10; i++) {
+      assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "7.7.7.7", start + h * hour + 1).allowed, true,
+        `claim ${h * 10 + i + 1} of 30 in the day refused in hour ${h + 1}`);
+    }
+  }
+  const fourthHour = checkAll(TRANSFER_CLAIM_LIMITS, "7.7.7.7", start + 3 * hour + 1);
+  assertEquals(fourthHour.allowed, false, "the 31st claim in a day went through in a fresh hour: the daily ceiling is no longer 30");
+  assert(fourthHour.retryAfterSeconds > 3600, `the 31st claim was refused by the hour, not the day (Retry-After ${fourthHour.retryAfterSeconds} s)`);
+  // Another address is untouched by all of it.
+  assertEquals(checkAll(TRANSFER_CLAIM_LIMITS, "8.8.8.8", start + 3 * hour + 1).allowed, true, "one address's thirty spent another's");
+  assert(10 < TRANSFER.max, `one address's hourly ten reaches the node-wide brake of ${TRANSFER.max}`);
 });

@@ -3,8 +3,9 @@
 #
 #   scripts/depth.sh new           a new identity against the node in DEPTH_NODE_URL
 #   scripts/depth.sh restore       the identity raised by its paper code (§8.2)
-#   scripts/depth.sh join          not yet: taking an identity over from another
-#                                  device (depth move) — docs/facts/open.tsv, depth.restore
+#   scripts/depth.sh join          an identity taken over from another device by
+#                                  its nine-character code (depth move, §8.2);
+#                                  the code is typed on the screen, never passed here
 #
 # DEPTH_NODE_URL and DEPTH_API_KEY say which node and which storefront's key.
 # The language comes from the terminal's own LANG, as with every other command.
@@ -16,11 +17,7 @@ args=()
 case "$what" in
   new) ;;
   restore) args=(restore) ;;
-  join)
-    echo "depth join: ещё не работает. Перенос личности с другого устройства (depth move)" >&2
-    echo "  не построен: пункт depth.restore в docs/facts/open.tsv." >&2
-    exit 2
-    ;;
+  join) args=(move) ;;
   *) echo "usage: depth.sh [new|restore|join]" >&2; exit 2 ;;
 esac
 

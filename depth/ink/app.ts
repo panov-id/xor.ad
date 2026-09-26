@@ -9,6 +9,7 @@ import { Box, Text } from "ink";
 import { Client } from "../core/client.ts";
 import type { Statement } from "../core/client.ts";
 import { newPaperCode, paperGroups } from "../core/paper.ts";
+import { HeldKey } from "../core/transfer.ts";
 import { languageOf } from "./strings.ts";
 import type { Say } from "./strings.ts";
 import { Feed, Location, PaperCode, PaperCodeEntry, PinSet, Registration } from "./screens.ts";
@@ -18,6 +19,7 @@ import type { Place } from "./screens.ts";
 import {
   Away, Blocked, ChangePin, Chat, EditProfile, Hidden, Inbox, Liked, Me, StartAgain, StepAway, Statements, Write,
 } from "./rooms.ts";
+import { MovedAway, MoveIn, MoveOut } from "./move.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
 // answers, the screen uses this number — and it is the registry's 128
@@ -45,6 +47,12 @@ type Where =
   | { screen: "edit"; field: "name" | "age"; current: string }
   | { screen: "away"; until: number }
   | { screen: "chat"; chatId: string; matchId?: string; name: string; age: number; span?: number; endsAt?: number }
+  // The move (§8.2, depth/ink/move.ts): out of this device, the frozen end,
+  // into this one, and the first PIN of the device the identity arrived at.
+  | { screen: "move" }
+  | { screen: "movedAway" }
+  | { screen: "moveIn" }
+  | { screen: "arrivedPin" }
   // B1 · the paper code used (§8.2). The codes live in these states and go
   // with them: the one on paper until the new one is confirmed, then neither.
   | { screen: "restore" }
@@ -67,10 +75,12 @@ function outcomeLine(say: Say, o: Outcome): string {
 // `start: "restore"` is `depth restore`: a clean device raising an identity
 // with its paper code instead of registering a new one.
 export function App({ say, client: first, fresh, start }: {
-  say: Say; client: Client; fresh?: () => Client; start?: "restore";
+  say: Say; client: Client; fresh?: () => Client; start?: "restore" | "moveIn";
 }): ReactElement {
   const [client, setClient] = useState(first);
-  const [where, setWhere] = useState<Where>(start === "restore" ? { screen: "restore" } : { screen: "register" });
+  // `depth move` opens on the code typed in (§8.2), as `depth restore` opens
+  // on the paper code.
+  const [where, setWhere] = useState<Where>(start ? { screen: start } : { screen: "register" });
   const [busy, setBusy] = useState(false);
   const [limit, setLimit] = useState(LENGTH_UNTIL_THE_NODE_SPEAKS);
   const [place, setPlace] = useState<Place | undefined>(undefined);
@@ -107,6 +117,10 @@ export function App({ say, client: first, fresh, start }: {
             setError(undefined);
             setWhere({ screen: "pin", name, age });
           },
+          onMoveIn: () => {
+            setError(undefined);
+            setWhere({ screen: "moveIn" });
+          },
         });
       case "pin":
         return h(PinSet, {
@@ -120,7 +134,9 @@ export function App({ say, client: first, fresh, start }: {
             setError(undefined);
             setBusy(true);
             const paperCode = newPaperCode();
-            client.register({ name: where.name, age: where.age }, { pin, paperCode })
+            // The long key is held here, while it is still extractable: without
+            // it this identity could never move (quorum 3/3, 26.09.2026).
+            client.register({ name: where.name, age: where.age }, { pin, paperCode }, { hold: HeldKey.hold })
               .then(() => setWhere({ screen: "paper", groups: paperGroups(paperCode) }))
               .catch((e: Error) => fail(e.message))
               .finally(() => setBusy(false));
@@ -161,6 +177,39 @@ export function App({ say, client: first, fresh, start }: {
           },
           onBack: me,
           onError: fail,
+        });
+      case "move":
+        return h(MoveOut, { say, client, onMoved: () => setWhere({ screen: "movedAway" }), onBack: me, onError: fail });
+      case "movedAway":
+        return h(MovedAway, { say });
+      case "moveIn":
+        return h(MoveIn, {
+          say,
+          client,
+          // What this device calls itself on the other screen: its word, and
+          // shown there as such (§8.2 "назвалось").
+          label: `depth, ${process.platform}`,
+          onArrived: () => setWhere({ screen: "arrivedPin" }),
+          onBack: () => setWhere({ screen: "register" }),
+          onError: fail,
+        });
+      case "arrivedPin":
+        return h(ArrivedPin, {
+          say,
+          busy,
+          error,
+          onDone: (pin) => {
+            setError(undefined);
+            setBusy(true);
+            client.firstPin(pin)
+              .then((answer) => {
+                if (answer.status !== 204) throw new Error(`the first PIN was refused: ${answer.status}`);
+                return client.limits().then((l) => setLimit(l.phrase_length)).catch(() => {});
+              })
+              .then(() => setWhere({ screen: "location" }))
+              .catch((e: Error) => fail(e.message))
+              .finally(() => setBusy(false));
+          },
         });
       case "location":
         // Straight to the feed: `feed` reads `place` of this render, which the
@@ -264,7 +313,9 @@ export function App({ say, client: first, fresh, start }: {
           onDone: (code) => {
             setError(undefined);
             setBusy(true);
-            raise(client, code, { label: "depth" })
+            // Held as registration holds it, or a raised identity could never
+            // move on (verifier, 26.09.2026).
+            raise(client, code, { label: "depth", hold: HeldKey.hold })
               .then((o) => {
                 if (!o.ok) return setError(outcomeLine(say, o));
                 // §8.2: on this device the old PIN opens it again, the counter
@@ -373,6 +424,21 @@ export function App({ say, client: first, fresh, start }: {
     Box,
     { flexDirection: "column" },
     body,
-    error && !["register", "pin", "paper", "restore", "restorePin", "reissue", "newPaper"].includes(where.screen) ? h(Text, { color: "red" }, error) : null,
+    error && !["register", "pin", "paper", "restore", "restorePin", "reissue", "newPaper", "arrivedPin"].includes(where.screen) ? h(Text, { color: "red" }, error) : null,
+  );
+}
+
+// The device the identity arrived at: what is here and what is not (§8.2 —
+// "здесь пока пусто", and the conversations silent until their key is
+// reissued), then its first PIN.
+function ArrivedPin(
+  { say, onDone, busy, error }: { say: Say; onDone: (pin: string) => void; busy?: boolean; error?: string },
+): ReactElement {
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Text, { bold: true }, say("move.arrivedTitle")),
+    h(Text, { dimColor: true }, say("move.arrived")),
+    h(PinSet, { say, onDone, busy, error }),
   );
 }

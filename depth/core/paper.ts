@@ -22,7 +22,7 @@
 import { argon2id } from "hash-wasm";
 import { PIN_ITERATIONS, PIN_MEMORY_KIB, PIN_PARALLELISM } from "./pin.ts";
 
-const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+export const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 const LENGTH = 16;
 const SALT = new TextEncoder().encode("xor.ad/recovery/v1");
 const GCM = { name: "AES-GCM", length: 256 } as const;

@@ -20,7 +20,14 @@ export type Place = { lat: number; lon: number; radius: Radius };
 // 1 · registration: the name and the age. The PIN and the paper code follow
 // on screens of their own (§3.1: name, age, PIN, paper code, point).
 export function Registration(
-  { say, onDone, error }: { say: Say; onDone: (name: string, age: number) => void; error?: string },
+  { say, onDone, onMoveIn, error }: {
+    say: Say;
+    onDone: (name: string, age: number) => void;
+    // An identity that lives on another device comes here by its code instead
+    // (§8.2, depth/ink/move.ts).
+    onMoveIn?: () => void;
+    error?: string;
+  },
 ): ReactElement {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
@@ -35,8 +42,12 @@ export function Registration(
         { key: "age", label: say("reg.age"), value: age },
       ],
       onChange: (key, value) => (key === "name" ? setName(value) : setAge(value.replace(/\D/g, ""))),
-      actions: [{ key: "go", label: say("reg.next"), disabled: !ready }, { key: "exit", label: say("common.exit") }],
-      onPick: (key) => (key === "go" ? onDone(name.trim(), Number(age)) : process.exit(0)),
+      actions: [
+        { key: "go", label: say("reg.next"), disabled: !ready },
+        ...(onMoveIn ? [{ key: "moveIn", label: say("move.inItem") }] : []),
+        { key: "exit", label: say("common.exit") },
+      ],
+      onPick: (key) => (key === "go" ? onDone(name.trim(), Number(age)) : key === "moveIn" ? onMoveIn?.() : process.exit(0)),
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),

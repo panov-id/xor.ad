@@ -17,6 +17,8 @@ import postgres from "postgres";
 import { Client } from "../core/client.ts";
 import { newPaperCode } from "../core/paper.ts";
 import { raise } from "../core/recovery.ts";
+import { HeldKey } from "../core/transfer.ts";
+import { Arrival, Departure } from "../core/transfer_move.ts";
 import { App } from "./app.ts";
 import { strings } from "./strings.ts";
 
@@ -307,8 +309,9 @@ async function main() {
     // the node and the terminal is back at the first screen as someone else.
     await type(app, ENTER);
     await until(app, /начать заново/, 20);
-    // Eight rows down since the two of the paper code stand before it (B1).
-    await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
+    // Nine rows down: the two of the paper code (B1) and the move (B2)
+    // stand before it.
+    await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
     await until(app, /исчезнет фраз: \d/, 20);
     await typeUntil(app, "111111", /••••••/);
     await type(app, DOWN, ENTER);
@@ -355,6 +358,65 @@ async function main() {
     } finally {
       raised.unmount();
     }
+
+    // 14 · B2 · an identity moved into this terminal: the code comes from another
+    // device (the core), typed on the first screen; "it is me" is said there,
+    // and this terminal sets its first PIN and reaches the point.
+    const elsewhere = new Client(node, apiKey);
+    await elsewhere.register({ name: "Лена", age: 31 }, { pin: "123456", paperCode: newPaperCode() }, { hold: HeldKey.hold });
+    await elsewhere.confirmPaperCode();
+    const leaving = await Departure.open(elsewhere, await elsewhere.pinProof("123456"));
+    assert.ok(leaving instanceof Departure, "the other device could not open a transfer window");
+    await type(app, DOWN, DOWN, RIGHT, ENTER);
+    await until(app, /Перенос сюда/, 20);
+    await typeUntil(app, leaving.code, new RegExp(leaving.code));
+    await type(app, DOWN, ENTER);
+    await until(app, /сверка\s+[0-9A-Z]{4}/, 30);
+    assert.equal(await leaving.state(), "claimed", "the typed code did not reach the other device");
+    assert.match(app.lastFrame()!, new RegExp(`сверка\\s+${leaving.check}`), "the two devices show different check characters");
+    assert.equal((await leaving.approve()).status, 200, "\"it is me\" was refused");
+    await until(app, /Личность здесь/, 30);
+    await typeUntil(app, "246810", /••••••/);
+    await type(app, DOWN);
+    await typeUntil(app, "246810", /••••••[\s\S]*••••••/);
+    await type(app, DOWN, ENTER);
+    await until(app, /Где ты/, 20);
+    const [arrived] = await sql`SELECT s.label, (SELECT count(*)::int FROM sessions f WHERE f.identity = s.identity AND f.frozen_reason = 'transfer') AS frozen
+      FROM sessions s WHERE s.identity = ${elsewhere.identityId} AND s.frozen_at IS NULL`;
+    assert.match(String(arrived?.label), /^depth, /, "the live session is not the one this terminal claimed");
+    assert.equal(arrived?.frozen, 1, "the device the identity left is not frozen");
+    out("ok   an identity moved into the terminal by its code, and the terminal set its first PIN");
+
+    // 15 · B2 · and out again, from "me": the PIN, the code on the screen, another
+    // device types it, the confirmation shows its check, "it is me" freezes
+    // this terminal.
+    await typeUntil(app, "59.9343", /59\.9343/);
+    await type(app, DOWN);
+    await typeUntil(app, "30.3351", /30\.3351/);
+    await type(app, DOWN, DOWN, ENTER);
+    await until(app, /signal/, 20);
+    await pickInFeed(app, "me");
+    // The profile first: keys pressed before it answers land on a list that
+    // is about to be drawn again (measured 26.09.2026).
+    await until(app, /имя  Лена/, 20);
+    // name, age, liked, hidden, away, pin, the two of the paper code, move.
+    await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
+    await until(app, /Перенос личности/, 20);
+    await typeUntil(app, "246810", /••••••/);
+    await type(app, DOWN, ENTER);
+    await until(app, /[0-9A-Z]{3} - [0-9A-Z]{3} - [0-9A-Z]{3}/, 30);
+    const moveCode = /([0-9A-Z]{3}) - ([0-9A-Z]{3}) - ([0-9A-Z]{3})/.exec(app.lastFrame() ?? "")!.slice(1).join("");
+    const next = new Client(node, apiKey);
+    const arriving = await Arrival.claim(next, moveCode, "Firefox, Linux");
+    assert.ok(arriving instanceof Arrival, "the code on the screen was not accepted by the node");
+    await until(app, /Устройство просит перенести личность/, 30);
+    assert.match(app.lastFrame()!, /назвалось\s+Firefox, Linux/);
+    assert.match(app.lastFrame()!, new RegExp(`сверка\\s+${arriving.check}`), "the confirmation shows another check");
+    await type(app, ENTER);
+    await until(app, /Личность переехала/, 30);
+    assert.equal(await arriving.state(), "approved", "the confirmation said moved and the node did not move it");
+    assert.equal(next.identityId, elsewhere.identityId);
+    out("ok   the identity moved out of the terminal after \"it is me\" on the confirmation");
   } catch (e) {
     failed++;
     out(`FAIL ${(e as Error).message}`);

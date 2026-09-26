@@ -19,5 +19,8 @@ if (!node || !apiKey) {
 
 const say = strings(languageOf(process.env));
 // `depth restore` — the paper code instead of a new identity (§8.2).
-const start = process.argv[2] === "restore" ? "restore" as const : undefined;
+// `depth move` — an identity brought here from another device by its code.
+const start = process.argv[2] === "restore" ? "restore" as const
+  : process.argv[2] === "move" ? "moveIn" as const
+  : undefined;
 render(h(App, { say, client: new Client(node, apiKey), fresh: () => new Client(node, apiKey), start }));

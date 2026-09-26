@@ -1220,3 +1220,190 @@ test("no screen listens to keys past useKeys", async () => {
     .filter((f) => /\buseInput\b/.test(readFileSync(here + f, "utf8")));
   assert.deepEqual(offenders, [], "useInput outside parts.ts meets keys with the last render's handler");
 });
+// ── the move (§8.2, screen 13; depth/ink/move.ts) ──
+// A fake node that answers the five transfer routes as relay/node/src/routes/
+// transfer.ts does; the envelopes are the real ones, sealed with the code the
+// screen shows, because the check characters come out of them.
+import { MoveConfirm, MoveIn, MoveOut } from "./move.ts";
+import { checkCharacters, deriveTransferCode, HeldKey, sealClaim } from "../core/transfer.ts";
+
+// Waits for what the screen should come to, not for a number of
+// milliseconds: under a loaded machine Argon2id alone takes seconds, and fixed
+// pauses turned four green tests red at a load average of 20 (26.09.2026).
+// A wait that runs out says so: it used to return quietly, and the assertion
+// after it then blamed the screen for what was only a slow machine (d1,
+// 26.09.2026).
+async function waitFor(what: () => boolean, seconds = 20): Promise<void> {
+  if (!(await until(what, seconds))) throw new Error(`waited ${seconds} s and it never came: ${what}`);
+}
+const shows = (app: { lastFrame: () => string | undefined }, re: RegExp) => () => re.test(app.lastFrame() ?? "");
+// What a screen reported through onError: asserted empty at the end of a test,
+// because an assert thrown from inside a promise killed the whole runner
+// before its summary line (verifier, 26.09.2026).
+const errors: string[] = [];
+const collect = (m: string) => void errors.push(m);
+const noErrors = () => assert.deepEqual(errors.splice(0), [], "a screen reported an error");
+const spkiOf = async (key: CryptoKey) => Buffer.from(await crypto.subtle.exportKey("spki", key)).toString("base64url");
+
+async function aDevice(label: string) {
+  const sign = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, false, ["sign", "verify"]) as CryptoKeyPair;
+  const wrap = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair;
+  return { sign_pub: await spkiOf(sign.publicKey), wrap_pub: await spkiOf(wrap.publicKey), label };
+}
+
+async function leavingNode(pinOk = true) {
+  const long = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
+  const calls: Array<{ method: string; path: string; body?: unknown }> = [];
+  const node = { state: "waiting", claim: "", asks: 0 };
+  const client = {
+    identityId: "id-1",
+    held: await HeldKey.hold(long.privateKey),
+    longSpki: await spkiOf(long.publicKey),
+    pinProof: () => Promise.resolve(new Uint8Array(32)),
+    seat: () => {},
+    firstPin: () => Promise.resolve({ status: 204, body: null }),
+    request: (method: string, path: string, body?: unknown) => {
+      calls.push({ method, path, body });
+      if (path === "/sessions/invite") {
+        return Promise.resolve(pinOk
+          ? { status: 200, body: { expires_in: 120 } }
+          : { status: 409, body: { error: { code: "pin_mismatch", attempts_left: 7 } } });
+      }
+      if (method === "GET") {
+        // The first ask meets the address's allowance: "later", not an end.
+        if (++node.asks === 1) return Promise.resolve({ status: 429, body: null, retryAfter: 30 });
+        return Promise.resolve({ status: 200, body: { state: node.state, ...(node.state === "claimed" ? { claim_envelope: node.claim } : {}) } });
+      }
+      if (path.endsWith("/approve")) return Promise.resolve({ status: 200, body: { state: "approved", session_id: "s-2" } });
+      return Promise.resolve({ status: 204, body: null });
+    },
+  };
+  return { client, calls, node };
+}
+
+const shownCode = (frame: string) => frame.match(/([0-9A-Z]{3}) - ([0-9A-Z]{3}) - ([0-9A-Z]{3})/)!.slice(1).join("");
+
+test("the move shows its price before the PIN, then the code, and the confirmation says who, when and the check", async () => {
+  const { client, calls, node } = await leavingNode();
+  let moved = false;
+  const app = render(h(MoveOut, { say, client, onMoved: () => (moved = true), onBack: () => {}, onError: collect, pollMs: 40 }));
+  await settle();
+  assert.match(app.lastFrame()!, /замрёт/, "the price is not said before the PIN");
+  await type(app, ..."123456".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /живёт ещё/));
+  assert.match(app.lastFrame()!, /живёт ещё \d+ с/, "the code's two minutes are not shown");
+  assert.match(app.lastFrame()!, /Никто из поддержки/);
+  const keys = await deriveTransferCode(shownCode(app.lastFrame()!));
+  assert.equal((calls[0].body as { lookup_id: string }).lookup_id, keys.lookupId, "the shown code is not the one invited");
+  const claimant = await aDevice("Chrome, Android");
+  node.claim = await sealClaim(keys, claimant);
+  node.state = "claimed";
+  await waitFor(shows(app, /Устройство просит/));
+  const frame = app.lastFrame()!;
+  assert.match(frame, /Устройство просит перенести личность/, "the confirmation did not come up");
+  assert.match(frame, /назвалось\s+Chrome, Android/);
+  assert.match(frame, /когда\s+только что/);
+  assert.match(frame, new RegExp(`сверка\\s+${await checkCharacters(claimant)} — совпадает с экраном нового устройства\\?`), "the check is not the claimant's");
+  assert.match(frame, /Уедет всё/, "what leaves is not said");
+  assert.match(frame, /замрёт/, "what becomes of this device is not said on the confirmation");
+  assert.match(frame, /Никто из поддержки/, "the confirmation does not warn about support");
+  assert.match(frame, /\[ это я \]/);
+  await type(app, ENTER);
+  await waitFor(() => moved);
+  const approve = calls.find((c) => c.path.endsWith("/approve"));
+  assert.ok(approve, "\"it is me\" did not approve");
+  assert.equal((approve.body as { sign_pub: string }).sign_pub, claimant.sign_pub, "the node was handed keys other than the claimant's");
+  assert.ok(moved, "the screen did not go on to the frozen end");
+  app.unmount();
+  noErrors();
+});
+
+test("\"it does not match\" refuses, and a wrong PIN says how many attempts are left", async () => {
+  const { calls } = await leavingNode();
+  const confirm = render(h(MoveConfirm, {
+    say, label: "\u001B[31mподдержка", check: "7KQ2", seenAt: Date.now() - 42_000,
+    // The node has not answered "no" yet; "yes" is answered with a 503.
+    onYes: () => { calls.push({ method: "yes", path: "" }); return Promise.reject(new Error("503")); },
+    onNo: () => { calls.push({ method: "no", path: "" }); return new Promise(() => {}); },
+  }));
+  await settle();
+  assert.match(confirm.lastFrame()!, /42 с назад/);
+  assert.doesNotMatch(confirm.lastFrame()!, /\u001B\[31m/, "the other side's label repainted the screen");
+  await type(confirm, RIGHT, ENTER, LEFT, ENTER);
+  assert.deepEqual(calls.map((c) => c.method), ["no"], "\"it does not match\" did not refuse, or a second press went through");
+  confirm.unmount();
+  // A "yes" the node refused gives the buttons back: the person can try again.
+  calls.length = 0;
+  const again = render(h(MoveConfirm, {
+    say, label: "x", check: "7KQ2", seenAt: Date.now(),
+    onYes: () => { calls.push({ method: "yes", path: "" }); return Promise.reject(new Error("503")); },
+    onNo: () => {},
+  }));
+  await settle();
+  await type(again, ENTER);
+  await waitFor(shows(again, /\[ это я \]/));
+  await type(again, ENTER);
+  await waitFor(() => calls.length === 2, 5);
+  assert.deepEqual(calls.map((c) => c.method), ["yes", "yes"], "a refused \"it is me\" left the buttons dead");
+  again.unmount();
+
+  const wrong = await leavingNode(false);
+  const app = render(h(MoveOut, { say, client: wrong.client, onMoved: () => {}, onBack: () => {}, onError: collect, pollMs: 40 }));
+  await settle();
+  await type(app, ..."000000".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /ПИН не подходит/));
+  assert.match(app.lastFrame()!, /ПИН не подходит\. Осталось попыток: 7/);
+  assert.doesNotMatch(app.lastFrame()!, / - [0-9A-Z]{3} - /, "a code was shown after a wrong PIN");
+  app.unmount();
+  noErrors();
+});
+
+test("the new device takes the code, shows its own check, and says when the old one refused", async () => {
+  let state = "claimed";
+  let asks = 0;
+  const claims: unknown[] = [];
+  const client = {
+    identityId: "", held: null, longSpki: "",
+    seat: () => {}, firstPin: () => Promise.resolve({ status: 204, body: null }),
+    request: (_method: string, path: string, body?: unknown) => {
+      if (path === "/sessions/claim") {
+        claims.push(body);
+        return Promise.resolve(claims.length === 1 ? { status: 404, body: null } : { status: 200, body: { state: "claimed" } });
+      }
+      // The first ask meets the address's allowance: "later", not an end.
+      if (++asks === 1) return Promise.resolve({ status: 429, body: null, retryAfter: 30 });
+      return Promise.resolve({ status: 200, body: { state } });
+    },
+  };
+  const app = render(h(MoveIn, { say, client, label: "depth, linux", onArrived: () => {}, onBack: () => {}, onError: collect, pollMs: 40 }));
+  await settle();
+  await type(app, ..."k7q-m3f-2x9".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /Код не подошёл/));
+  assert.match(app.lastFrame()!, /Код не подошёл или истёк/, "a 404 was not said in the one wording");
+  await type(app, ENTER);
+  await waitFor(shows(app, /сверка\s+[0-9A-Z]{4}/));
+  assert.match(app.lastFrame()!, /сверка\s+[0-9A-HJKMNP-TV-Z]{4}/, "the new device shows no check characters");
+  assert.match(app.lastFrame()!, /«это я»/);
+  state = "rejected";
+  await waitFor(shows(app, /Перенос отменён/));
+  assert.match(app.lastFrame()!, /Перенос отменён/, "the refusal was not said on the new device");
+  app.unmount();
+  noErrors();
+});
+
+test("'me' offers the move", async () => {
+  const client = {
+    profile: () => Promise.resolve({ name: "Аня", name_state: "accepted", age: 34 }),
+    hidden: () => Promise.resolve([]),
+    blocks: () => Promise.resolve([]),
+  };
+  const opened: string[] = [];
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Me, { say, client: client as any, restrictions: 0, onOpen: (r: string) => opened.push(r), onBack: () => {}, onError: () => {} }));
+  await settle();
+  await settle();
+  // name, age, liked, hidden, away, pin, the two of the paper code, move.
+  await type(app, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, DOWN, ENTER);
+  assert.deepEqual(opened, ["move"], "'me' does not open the move");
+  app.unmount();
+});

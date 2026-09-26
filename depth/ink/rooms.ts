@@ -808,7 +808,7 @@ export function Blocked(
 // hints, support and the console are not here yet: their terminal mechanics or
 // their refusal texts do not exist (§4.11, §9). No `m` key: the terminal moves
 // by arrows and enter only (owner, 2026-09-22), so "me" is an item of the feed.
-export type MeRow = "statements" | "liked" | "hidden" | "blocked" | "away" | "name" | "age" | "pin" | "reset"
+export type MeRow = "statements" | "liked" | "hidden" | "blocked" | "away" | "name" | "age" | "pin" | "move" | "reset"
   | "reissue" | "restore";
 export function Me(
   { say, client, restrictions, onOpen, onBack, onError }: {
@@ -848,6 +848,8 @@ export function Me(
     // tenth mistake closed on this device (§8.2).
     { key: "reissue", label: say("reissue.item") },
     { key: "restore", label: say("restore.item") },
+    // To another device (§8.2, screen 13): depth/ink/move.ts.
+    { key: "move", label: say("move.item") },
     { key: "reset", label: say("reset.item") },
   ];
   useKeys((_input, key) => {

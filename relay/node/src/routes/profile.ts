@@ -32,6 +32,7 @@ import { TERM_PASSED } from "../lib/chat_sweeper.ts";
 import { checkAll, PROFILE_PATCH_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
+import { withoutAddresses } from "../lib/mailer.ts";
 
 // limits.tsv name.length: 24 graphemes, and never more than 400 bytes.
 const NAME_GRAPHEMES = 24;
@@ -90,9 +91,13 @@ async function patchProfile(req: Request): Promise<Response> {
   if (body.age !== undefined && (!isInt(body.age) || body.age < 13 || body.age > AGE_MAX)) {
     return refuse("invalid_body", `age must be a whole number from 13 to ${AGE_MAX}`, 400);
   }
+  // The same bounds as an age: a filter outside them filters nothing, and past
+  // 2^31 it reached the integer column and came back a 503 (verifier on B90,
+  // B98).
   for (const k of ["filter_age_min", "filter_age_max"] as const) {
-    if (body[k] !== undefined && body[k] !== null && !isInt(body[k])) {
-      return refuse("invalid_body", `${k} must be a whole number or null`, 400);
+    const v = body[k];
+    if (v !== undefined && v !== null && (!isInt(v) || v < 13 || v > AGE_MAX)) {
+      return refuse("invalid_body", `${k} must be a whole number from 13 to ${AGE_MAX} or null`, 400);
     }
   }
   if (body.languages !== undefined) {
@@ -221,11 +226,29 @@ async function patchProfile(req: Request): Promise<Response> {
     // A 503 and a line, as every other write route answers a database that
     // could not take the edit; let out, it was a 500 with nothing logged
     // (review panel 5, D9, B90). Nothing is counted: the edit did not happen.
-    log("error", "profile edit failed", { error: String(error) });
+    //
+    // Only the database's errors: a SQLSTATE or postgres.js's own connection
+    // code, a string either way. A fault of this code has none and goes on to
+    // dispatch, which answers 500 and logs it with the request's id (B98).
+    // The line here is the route's and scrubbed as dispatch scrubs; the
+    // request id is dispatch's alone, and its "request" line for this route
+    // and a 503 is the one to pair it with.
+    if (!fromTheDatabase(error)) throw error;
+    log("error", "profile edit failed", {
+      route: "PATCH /identities/me",
+      code: (error as { code: string }).code,
+      error: withoutAddresses(String(error)),
+    });
     return null;
   });
   if (patched && answer) inc("relay_profile_patch_total", { result: patched });
   return answer ?? refuse("unavailable", "the node cannot answer right now", 503);
+}
+
+// An error the database or its driver raised: a SQLSTATE, or postgres.js's own
+// connection code — a string either way. A fault of this code carries none.
+export function fromTheDatabase(error: unknown): boolean {
+  return typeof (error as { code?: unknown } | null)?.code === "string";
 }
 
 route("PATCH", "/identities/me", (c) => patchProfile(c.req));

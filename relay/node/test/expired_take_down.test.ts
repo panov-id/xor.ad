@@ -236,6 +236,57 @@ Deno.test({ name: "a profile edit is counted once it commits, and one refused at
   }
 });
 
+// The age filters have an age's bounds (B98): past 2^31 one reached the integer
+// column and came back a 503.
+Deno.test({ name: "an age filter outside an age's bounds is refused 400, and one inside is taken (B98)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const me: Person = await person();
+  for (const [k, v] of [["filter_age_min", 2 ** 31], ["filter_age_max", 2 ** 31], ["filter_age_min", 12], ["filter_age_max", 151]] as const) {
+    const answer = await signedCall(me.pair.privateKey, me.session_id, "PATCH", "/identities/me", { [k]: v });
+    assertEquals(answer.status, 400, `${k} = ${v} answered ${answer.status} ${JSON.stringify(answer.body)}`);
+    assertEquals((answer.body as { error?: { code?: string } })?.error?.code, "invalid_body", `${k} = ${v} was not invalid_body`);
+  }
+  // Inside the person's own band (30 is in 21+): the upper bound itself is taken.
+  const taken = await signedCall(me.pair.privateKey, me.session_id, "PATCH", "/identities/me", { filter_age_min: 30, filter_age_max: 150 });
+  assertEquals(taken.status, 200, `the upper bound itself was refused: ${JSON.stringify(taken.body)}`);
+});
+
+// A database error answered 503 is logged as the route's, scrubbed of
+// addresses as dispatch scrubs its own line (B98); an error of the code is not
+// the database's and goes on to dispatch.
+Deno.test({ name: "a profile edit the database refuses is logged by route with no address in it (B98)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { fromTheDatabase } = await import("../src/routes/profile.ts");
+  const real = await database.queryOrThrow(`SELECT 1 / 0`).then(() => null, (e) => e);
+  assert(fromTheDatabase(real), `a real database error was not taken for one: ${real}`);
+  assertEquals(fromTheDatabase(new TypeError("x is undefined")), false, "a fault of the code was taken for the database's");
+  assertEquals(fromTheDatabase(null), false, "null was taken for the database's error");
+
+  const me: Person = await person();
+  await database.queryOrThrow(
+    `CREATE OR REPLACE FUNCTION b98_refuse() RETURNS trigger LANGUAGE plpgsql
+       AS $$ BEGIN RAISE EXCEPTION 'b98: refused for someone@example.org'; END $$`);
+  await database.queryOrThrow(
+    `CREATE CONSTRAINT TRIGGER b98_refuse_commit AFTER UPDATE ON identities
+       DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
+       WHEN (NEW.id = '${me.identity_id}' AND NEW.age = 33)
+       EXECUTE FUNCTION b98_refuse()`);
+  const lines: string[] = [];
+  const original = console.error;
+  console.error = (...args: unknown[]) => { lines.push(args.map(String).join(" ")); };
+  try {
+    const answer = await signedCall(me.pair.privateKey, me.session_id, "PATCH", "/identities/me", { age: 33 });
+    assertEquals(answer.status, 503, `the refused edit answered ${answer.status}`);
+  } finally {
+    console.error = original;
+    await database.queryOrThrow(`DROP TRIGGER IF EXISTS b98_refuse_commit ON identities`);
+    await database.queryOrThrow(`DROP FUNCTION IF EXISTS b98_refuse()`);
+  }
+  const line = lines.find((l) => l.includes("profile edit failed"));
+  assert(line, `no "profile edit failed" line was logged: ${lines.join(" | ")}`);
+  assert(line.includes("PATCH /identities/me"), `the line does not name its route: ${line}`);
+  assert(line.includes("P0001"), `the line does not carry the database's code: ${line}`);
+  assert(!line.includes("someone@example.org"), `the line carries an address: ${line}`);
+});
+
 addEventListener("unload", () => {
   database.closePool();
 });

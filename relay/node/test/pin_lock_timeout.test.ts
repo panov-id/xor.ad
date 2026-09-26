@@ -40,11 +40,6 @@ const { match } = await import("../src/lib/router.ts");
 const database = await import("../src/lib/db.ts");
 const auth = await import("../src/lib/identity_auth.ts");
 const { takeDownLeftByPinLimit } = await import("../src/lib/take_down.ts");
-const { render } = await import("../src/lib/metrics.ts");
-// Counted once the route's transaction commits, and only for a freeze whose
-// savepoint survived (lib/sessions.ts Freezes; pin_attempts.ts, B64).
-const pinLimitFreezes = () =>
-  Number(render().match(/relay_sessions_frozen_total\{reason="pin_limit"\} (\d+)/)?.[1] ?? 0);
 await import("../src/routes/identity.ts"); // registers the routes as a side effect
 await import("../src/routes/transfer.ts");
 

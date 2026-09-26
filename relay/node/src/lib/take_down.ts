@@ -29,25 +29,36 @@ export async function takeDownLive(run: Run, me: string): Promise<void> {
     `SELECT 1 FROM identity_stats WHERE identity = ANY($1::uuid[]) ORDER BY identity FOR UPDATE`,
     [[me, ...lockedAuthors]],
   );
-  await run(
+  const held = (await run<{ id: string }>(
     // Live ones only: an expired phrase the sweep has not taken yet is the
     // sweep's to lock, in its own order, and its likes go with it by cascade
     // — locking it here met the sweep the other way round (panel, data lens).
-    `SELECT 1 FROM feed_messages
+    `SELECT id FROM feed_messages
       WHERE id IN (SELECT feed_message_id FROM likes WHERE liker_identity = $1) AND expires_at > now()
       ORDER BY id FOR UPDATE`,
     [me],
-  );
+  )).map((r) => r.id);
 
   // The likes one gave, taken back with their counts — counted from what the
   // DELETE itself removed, not from the list read before the locks: a like
   // or a take-back from one's other device between the two used to be
   // counted wrong for somebody else (review panel 23.09.2026, both lenses).
+  //
+  // And only the likes on the phrases held above, for the reason written
+  // there, which the lock alone did not keep: deleting every like of one's
+  // took the likes on expired phrases too, and writing their like_count took
+  // those phrases' rows — after their likes, while the sweep takes a phrase's
+  // row and then its likes by cascade. The two met the other way round: 40P01
+  // in five runs of five under load (relay/node/test/take_down_stress.test.ts,
+  // B39, 2026-09-26). The likes on an expired phrase go with it at the sweep's
+  // next minute; likes_given does not count them back, as it never does for a
+  // like the sweep takes.
   const liked = await run<{ feed_message_id: string; author: string | null }>(
-    `WITH gone AS (DELETE FROM likes WHERE liker_identity = $1 RETURNING feed_message_id)
+    `WITH gone AS (DELETE FROM likes WHERE liker_identity = $1 AND feed_message_id = ANY($2::uuid[])
+                   RETURNING feed_message_id)
      SELECT g.feed_message_id, f.author_identity AS author
        FROM gone g JOIN feed_messages f ON f.id = g.feed_message_id`,
-    [me],
+    [me, held],
   );
   if (liked.some((l) => l.author !== null && !lockedAuthors.has(l.author))) {
     // A like on a new author landed between the guess and the lock: that
@@ -76,8 +87,13 @@ export async function takeDownLive(run: Run, me: string): Promise<void> {
   }
 
   // One's phrases, published or waiting for the queue; the likes on them go
-  // with them by cascade.
-  await run(`DELETE FROM feed_messages WHERE author_identity = $1`, [me]);
+  // with them by cascade. Live and waiting ones only, for the same reason: an
+  // expired one is the sweep's, which deletes it within the minute (chat spec
+  // §8.2 takes down what is live — "фразы, и ждущие проверки тоже").
+  await run(
+    `DELETE FROM feed_messages WHERE author_identity = $1 AND (visible_at IS NULL OR expires_at > now())`,
+    [me],
+  );
 
   // One's matches, put out as a phrase's expiry puts them out: the inbox and
   // the consent read `expires_at > now()`, and the sweeper takes the rest.

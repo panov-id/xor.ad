@@ -59,7 +59,10 @@ async function write(req: Request): Promise<Response> {
   if (email !== null && !isEmail(email)) return refuse("invalid_body", "email is not an address", 400);
   const nonce = typeof body?.nonce === "string" ? base64urlToBytes(body.nonce) : null;
   if (!nonce || nonce.length !== 16) return refuse("invalid_body", "nonce must be 16 bytes, base64url", 400);
-  const frozen = caller.frozenAt !== null;
+  // A share locked by the tenth PIN mistake is the freeze it is about to be
+  // (B75): until the minute's job writes frozen_at, the tab wrote here as a live
+  // session — past screen 14's once a day and "no other live session" (B79).
+  const frozen = caller.frozenAt !== null || caller.pinLocked;
 
   return await transaction<Response>(async (run) => {
     // Everything under the identity's row lock: the count, so two at once do
@@ -83,9 +86,15 @@ async function write(req: Request): Promise<Response> {
       // for help, and only while the identity has no other live session — that
       // one writes instead. A device frozen by a transfer or a closure is not
       // let in at all: support is not the way back into an identity it left.
+      // The locked share reads as the PIN limit's reason, and a session is live
+      // only with its share not locked — the caller's own, not yet frozen, would
+      // otherwise count itself (B79).
       const [state] = await run<{ reason: string | null; live: number }>(
-        `SELECT (SELECT frozen_reason FROM sessions WHERE id = $1) AS reason,
-                (SELECT count(*)::int FROM sessions WHERE identity = $2 AND frozen_at IS NULL) AS live`,
+        `SELECT coalesce(
+                  (SELECT frozen_reason FROM sessions WHERE id = $1),
+                  (SELECT 'pin_limit' FROM vault_shares WHERE session = $1 AND locked_at IS NOT NULL)) AS reason,
+                (SELECT count(*)::int FROM sessions s WHERE s.identity = $2 AND s.frozen_at IS NULL
+                   AND NOT EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = s.id AND v.locked_at IS NOT NULL)) AS live`,
         [caller.sessionId, caller.identityId],
       );
       if (state.reason !== "pin_limit" || state.live > 0) {

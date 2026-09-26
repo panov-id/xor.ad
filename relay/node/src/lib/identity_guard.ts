@@ -48,6 +48,10 @@ export interface Caller {
   // Only ever set for a route that asked for `allowFrozen`; everywhere else a
   // frozen session never becomes a Caller at all.
   frozenAt: Date | null;
+  // The tenth PIN mistake locked the share and the freeze is not written yet
+  // (B75). Like frozenAt, only a route with `allowFrozen` ever sees it true, and
+  // it must treat it as the freeze it is about to be (B79).
+  pinLocked: boolean;
 }
 
 interface SessionRow {
@@ -213,5 +217,6 @@ export async function callerOf(
     steppedAwayUntil: away,
     signupCompletedAt: row.signup_completed_at,
     frozenAt: row.frozen_at,
+    pinLocked: row.pin_locked,
   };
 }

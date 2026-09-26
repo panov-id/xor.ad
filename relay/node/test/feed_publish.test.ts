@@ -4042,6 +4042,48 @@ Deno.test({
   },
 });
 
+// The window the tenth PIN mistake can leave: entry closed, the freeze waiting
+// for the minute's job (B75). The session is the freeze it is about to be —
+// support takes it as one, and its year does not move (B79, 2026-09-26).
+const lockPin = (sessionId: string, extra = "") => database.queryOrThrow(
+  `UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [sessionId])
+  .then(() => extra ? database.queryOrThrow(extra, [sessionId]) : []);
+
+Deno.test({
+  name: "a session with its PIN locked and not yet frozen writes to support as a frozen one",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const me = await author();
+    await lockPin(me.session_id);
+    const first = await support(me, "POST", "/support", { body: "заблокировали", nonce: nonce16() });
+    assertEquals(first.status, 201, JSON.stringify(first.body));
+    const [row] = await database.queryOrThrow<{ from_frozen: boolean }>(
+      `SELECT from_frozen FROM support_requests WHERE public_no = $1`, [(first.body as { public_no: string }).public_no]);
+    assertEquals(row.from_frozen, true, "the locked session's request was not marked as a frozen one's");
+    assertEquals((await support(me, "POST", "/support", { body: "ещё раз", nonce: nonce16() })).status, 429,
+      "the locked session wrote a second request in a day");
+    // "No other live session" needs no case of its own here: sessions_one_live
+    // admits one unfrozen session per identity, and the locked one is it. What
+    // the route must not do is count that session as the other one — the 201
+    // above is where that is held.
+  },
+});
+
+Deno.test({
+  name: "a session with its PIN locked and not yet frozen does not move its last_seen_at",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const days = async (id: string) => (await database.queryOrThrow<{ days: number }>(
+      `SELECT round(extract(epoch FROM now() - last_seen_at) / 86400)::int AS days FROM sessions WHERE id = $1`, [id]))[0].days;
+    const me = await author();
+    await lockPin(me.session_id, `UPDATE sessions SET last_seen_at = now() - interval '200 days' WHERE id = $1`);
+    await support(me, "POST", "/support", { body: "заблокировали", nonce: nonce16() });
+    assertEquals(await days(me.session_id), 200, "a locked session's request to support moved its year");
+  },
+});
+
 Deno.test({
   name: "closing an identity cuts its support requests loose, as screen 14 promises",
   sanitizeResources: false,

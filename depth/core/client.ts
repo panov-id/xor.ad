@@ -973,12 +973,27 @@ export class Client {
 export const WRAP_ALGORITHM = { name: "ECDH", namedCurve: "P-256" } as const;
 export const WRAP_USAGES: KeyUsage[] = ["deriveBits", "deriveKey"];
 export async function newWrapPair(holdWrap?: (pkcs8: Uint8Array) => Promise<void>): Promise<CryptoKeyPair> {
-  if (!holdWrap) return await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair;
-  const born = await crypto.subtle.generateKey(WRAP_ALGORITHM, true, WRAP_USAGES) as CryptoKeyPair;
+  return await bornWithHandover(WRAP_ALGORITHM, WRAP_USAGES, holdWrap);
+}
+
+// The same for any pair: born non-extractable, unless a face with a disk takes
+// its pkcs8 once — then born extractable, handed over, and what the caller
+// keeps is a non-extractable copy imported from the same bytes (W6: the
+// session key a raise by paper code makes is kept this way too).
+export async function bornWithHandover(
+  algorithm: EcKeyGenParams,
+  usages: KeyUsage[],
+  hold?: (pkcs8: Uint8Array) => Promise<void>,
+): Promise<CryptoKeyPair> {
+  if (!hold) return await crypto.subtle.generateKey(algorithm, false, usages) as CryptoKeyPair;
+  const born = await crypto.subtle.generateKey(algorithm, true, usages) as CryptoKeyPair;
   const pkcs8 = new Uint8Array(await crypto.subtle.exportKey("pkcs8", born.privateKey));
-  const privateKey = await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, WRAP_ALGORITHM, false, WRAP_USAGES);
+  // The private half takes the private usages only: a pair is made with
+  // "verify" in the list, a private key cannot be imported with it.
+  const privateUsages = usages.filter((u) => u !== "verify");
+  const privateKey = await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, algorithm, false, privateUsages);
   try {
-    await holdWrap(pkcs8);
+    await hold(pkcs8);
   } finally {
     pkcs8.fill(0);
   }

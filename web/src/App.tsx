@@ -29,6 +29,7 @@ import { Match } from "./screens/Match.tsx";
 import { Offer } from "./screens/Offer.tsx";
 import { Away, ChangePin, EditProfile, Me, type MeRow, StartAgain, StepAway } from "./screens/Me.tsx";
 import { Register } from "./screens/Register.tsx";
+import { Restore } from "./screens/Restore.tsx";
 import { Splash } from "./screens/Splash.tsx";
 import { Statements } from "./screens/Statements.tsx";
 import { Unlock } from "./screens/Unlock.tsx";
@@ -41,6 +42,7 @@ type Screen =
   | { at: "loading" }
   | { at: "splash" }
   | { at: "register" }
+  | { at: "restore" }
   | { at: "unlock"; record: Record_ }
   | { at: "offer"; code: string }
   | { at: "feed" }
@@ -152,7 +154,11 @@ export function App() {
     case "loading":
       return <main className="screen"><p className="muted" data-testid="loading">…</p></main>;
     case "splash":
-      return <Splash onStart={() => setScreen({ at: "register" })} />;
+      return <Splash onStart={() => setScreen({ at: "register" })} onRestore={() => setScreen({ at: "restore" })} />;
+    case "restore":
+      // Raised by the paper code: seated as after the PIN — the vault is the
+      // record, and the tab keeps none.
+      return <Restore onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={() => setScreen({ at: "splash" })} />;
     case "register":
       return <Register onDone={(client, sealed) => { void registered(client, sealed); }} />;
     case "unlock":

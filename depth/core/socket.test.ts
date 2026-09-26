@@ -184,6 +184,9 @@ Deno.test({
       const frame = await room.next(1000);
       assertEquals(frame.type, "closed", `the frame before the close is ${frame.type}, not closed`);
       assertEquals((frame.data as { code: number }).code, 4003);
+      // The socket's numbering runs on: a fresh room with nothing handed over
+      // gets the closed frame as its first, seq 1 (verifier W3b: it was 2).
+      assertEquals(frame.seq, 1, "the closed frame skipped a number in the socket's order");
       assertEquals(typeof (frame.data as { reason?: unknown }).reason, "string", "the closed frame carries no reason");
     } finally {
       await sql.end();

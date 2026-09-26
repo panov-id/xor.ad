@@ -1,8 +1,12 @@
-// What close code a browser sees when the node ends a conversation's room with
-// 4003 (protocol §4.4) — through the page's ws proxy (vite preview), and on the
-// same node reached directly, side by side. Written because the first e2e of
-// W3 saw the room reconnect after a close by hand: the code that reached the
-// page was not 4003. This spec names who loses it, and guards the answer.
+// What a browser gets when the node ends a conversation's room with 4003
+// (protocol §4.4): the `closed` frame {code, reason} the node sends first, and
+// the socket's own close code — through the page's ws proxy (vite preview)
+// and on the same node reached directly, side by side, one room per session
+// so neither replaces the other. Written because the first e2e of W3 saw the
+// room reconnect after a close by hand: the socket's code that reached the
+// page was not 4003 (measured 2026-09-26: a bare 1006, straight and through
+// the proxy alike — the node's close frame does not reach a browser), which is
+// why the code now travels in a frame of its own before the close.
 
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 
@@ -26,9 +30,10 @@ async function register(page: Page, name: string) {
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
 }
 
+type Xor = { client: Record<string, (...x: unknown[]) => Promise<unknown>>; keys: { consent(id: string): Promise<{ status: number; body: { state: string; chat_id?: string } }> } };
 const viaClient = <T>(page: Page, fn: string, ...args: unknown[]) =>
   page.evaluate(([f, a]) => {
-    const xor = (globalThis as unknown as { xor?: { client: Record<string, (...x: unknown[]) => Promise<unknown>>; keys: Record<string, (...x: unknown[]) => Promise<unknown>> } }).xor;
+    const xor = (globalThis as unknown as { xor?: Xor }).xor;
     if (!xor) throw new Error("the page exposes no client");
     return xor.client[f](...(a as unknown[])) as Promise<T>;
   }, [fn, args] as const);
@@ -39,20 +44,26 @@ async function personIn(context: BrowserContext, name: string): Promise<Page> {
   return page;
 }
 
-// A raw socket from the page to `url` with the ticket, resolved with the close
-// code once the node ends the room; `open` resolves first so the caller knows
-// the room is up before closing the chat.
+type Seen = { opened: boolean; code: number; reason: string; clean: boolean; closedFrame: { code?: number; reason?: string; seq?: number } | null };
+
+// A raw socket from the page to `url` with the ticket: every frame kept, the
+// last `closed` frame and the socket's own close reported once it ends.
 const listenClose = (page: Page, url: string, ticket: string) =>
   page.evaluate(([u, t]) =>
-    new Promise<{ opened: boolean; code: number; reason: string; clean: boolean }>((resolve) => {
+    new Promise<Seen>((resolve) => {
       const s = new WebSocket(u, ["xor.p1", `ticket.${t}`]);
       let opened = false;
-      s.onopen = () => { opened = true; (globalThis as unknown as { probeOpen?: boolean }).probeOpen = true; };
-      s.onclose = (e) => resolve({ opened, code: e.code, reason: e.reason, clean: e.wasClean });
-      setTimeout(() => resolve({ opened, code: -1, reason: "no close within 30s", clean: false }), 30000);
+      let closedFrame: Seen["closedFrame"] = null;
+      s.onopen = () => { opened = true; (globalThis as unknown as { probeOpen: number }).probeOpen = ((globalThis as unknown as { probeOpen?: number }).probeOpen ?? 0) + 1; };
+      s.onmessage = (e) => {
+        const f = JSON.parse(String(e.data)) as { type: string; seq: number; data: { code?: number; reason?: string } };
+        if (f.type === "closed") closedFrame = { ...f.data, seq: f.seq };
+      };
+      s.onclose = (e) => resolve({ opened, code: e.code, reason: e.reason, clean: e.wasClean, closedFrame });
+      setTimeout(() => resolve({ opened, code: -1, reason: "no close within 30s", clean: false, closedFrame }), 30000);
     }), [url, ticket] as const);
 
-test("the node's 4003 reaches the browser through the page's proxy as it does directly", async ({ browser }) => {
+test("the node names 4003 in a closed frame that reaches the browser, through the proxy as directly", async ({ browser }) => {
   test.setTimeout(180_000);
   const a = await browser.newContext({ viewport: { width: 393, height: 851 } });
   const b = await browser.newContext({ viewport: { width: 393, height: 851 } });
@@ -66,35 +77,38 @@ test("the node's 4003 reaches the browser through the page's proxy as it does di
   await viaClient(anya, "like", saidB.body.id);
   const back = await viaClient<{ status: number; body: { state: string; match_id?: string } }>(boris, "like", said.body.id);
   expect(back.body.state).toBe("matched");
-  // Both agree through the page's keys (the halves signed by the long key).
-  const first = await anya.evaluate((m) => (globalThis as unknown as { xor: { keys: { consent(id: string): Promise<{ status: number; body: { state: string } }> } } }).xor.keys.consent(m), back.body.match_id!);
+  const first = await anya.evaluate((m) => (globalThis as unknown as { xor: Xor }).xor.keys.consent(m), back.body.match_id!);
   expect(first.body.state).toBe("waiting");
-  const second = await boris.evaluate((m) => (globalThis as unknown as { xor: { keys: { consent(id: string): Promise<{ status: number; body: { state: string; chat_id?: string } }> } } }).xor.keys.consent(m), back.body.match_id!);
+  const second = await boris.evaluate((m) => (globalThis as unknown as { xor: Xor }).xor.keys.consent(m), back.body.match_id!);
   expect(second.body.state).toBe("agreed");
   const chatId = second.body.chat_id!;
 
-  // Two rooms of B's: one through the page's proxy, one straight to the node
-  // (the e2e container shares the page's network; the node allows any origin
-  // in this stand). Each with its own ticket.
-  const t1 = await viaClient<string>(boris, "ticket", chatId);
-  const t2 = await viaClient<string>(boris, "ticket", chatId);
-  const viaProxy = listenClose(boris, "ws://localhost:4173/chat", t1);
-  const direct = listenClose(boris, "ws://node:8080/chat", t2);
-  await boris.waitForFunction(() => (globalThis as unknown as { probeOpen?: boolean }).probeOpen === true, undefined, { timeout: 15000 });
+  // One room per session: B's through the page's proxy, A's straight to the
+  // node (the e2e container shares the page's network; the node allows any
+  // origin in this stand). Two sessions, so neither replaces the other.
+  const tB = await viaClient<string>(boris, "ticket", chatId);
+  const tA = await viaClient<string>(anya, "ticket", chatId);
+  const viaProxy = listenClose(boris, "ws://localhost:4173/chat", tB);
+  const direct = listenClose(anya, "ws://node:8080/chat", tA);
+  await boris.waitForFunction(() => (globalThis as unknown as { probeOpen?: number }).probeOpen === 1, undefined, { timeout: 15000 });
+  await anya.waitForFunction(() => (globalThis as unknown as { probeOpen?: number }).probeOpen === 1, undefined, { timeout: 15000 });
   await boris.waitForTimeout(500);
 
-  // A closes the chat by hand: NOTIFY chat_closed, every room closes 4003.
+  // A closes the chat by hand: NOTIFY chat_closed, every room of it gets the
+  // closed frame with 4003 and then the close.
   const closed = await viaClient<{ status: number }>(anya, "closeChat", chatId);
   expect(closed.status).toBe(200);
   const [proxied, straight] = await Promise.all([viaProxy, direct]);
   console.log(`[close code] direct: ${JSON.stringify(straight)}; through proxy: ${JSON.stringify(proxied)}`);
   expect(straight.opened && proxied.opened, "a room did not open").toBe(true);
-  // Measured 2026-09-26 (W3b): the node's own socket delivers 1006, no close
-  // frame — Deno 2.1.4 closing an upgraded socket with 4003 — so the proxy is
-  // held to the node's own code, not to 4003; 4003 on the wire is the node's
-  // open item (relay.ts), and the page reads the `closing` frame meanwhile.
+  expect(straight.closedFrame?.code, "the node's closed frame did not reach the direct socket with 4003").toBe(4003);
+  expect(proxied.closedFrame?.code, "the node's closed frame did not reach the page through the proxy with 4003").toBe(4003);
+  expect(typeof proxied.closedFrame?.reason).toBe("string");
+  // The socket's own code: the same on both sides — the proxy adds and loses
+  // nothing of what the node sends; whether it is 4003 is the node's affair,
+  // measured and logged, not asserted.
   expect(proxied.code, "the page's proxy changes the node's close code").toBe(straight.code);
-  if (straight.code !== 4003) console.log(`[close code] the node did not deliver 4003 (got ${straight.code}); see the open item on relay.ts`);
+  if (straight.code !== 4003) console.log(`[close code] the node's own close arrived as ${straight.code}; the frame carried 4003`);
 
   await a.close();
   await b.close();

@@ -205,7 +205,10 @@ export class ChatKeys {
 
   async acceptRekey(row: ChatRow): Promise<Answer<{ state: string; epoch: number }>> {
     if (!row.rekey_requested) throw new Error("the other side has not asked for new keys");
-    if (row.peer.key_epoch !== row.key_epoch + 1) throw new Error("the request is not for the epoch after ours");
+    // Ours is the epoch this device published at, when it holds a pair; the
+    // node's report of our epoch otherwise (as the core: client.ts acceptRekey).
+    const mine = this.#pairs.get(row.id)?.epoch ?? row.key_epoch;
+    if (row.peer.key_epoch !== mine + 1) throw new Error("the request is not for the epoch after ours");
     if (!row.peer.ephemeral_public_key || !row.peer.ephemeral_signature ||
         !(await verifyHalf(
           { ephemeral_public_key: row.peer.ephemeral_public_key, ephemeral_signature: row.peer.ephemeral_signature },

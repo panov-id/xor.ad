@@ -49,17 +49,21 @@ function frame(room: Room, type: string, data: unknown): void {
 // (W3b, web/e2e/specs/close-code.spec.ts): a browser reached straight from
 // this node saw the 4003 close as a bare 1006 — Deno 2.1.4 closing an
 // upgraded socket sends no close frame the browser reads — while data frames
-// arrive. So the code travels as data first, and the close follows on the
-// next turn, after the frame has left. A client that got a real code keeps
+// arrive. So the code travels as data first, in the frame before the close. A
+// client that got a real code keeps
 // it; one that got 1006 reads the frame (depth/core/reconnect.ts stays the
 // judge of what a code means).
+// `seq` is the frame's own number, the next in the socket's order; the close
+// follows in the same turn — the node stops with closeAllRooms() and Deno.exit()
+// back to back (main.ts), and a close left to a later turn never happened
+// (verifier W3b, 2026-09-27: SIGTERM sent neither the frame nor the close).
 function closeWith(socket: WebSocket, seq: number, code: number, reason: string): void {
   if (socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({ type: "closed", seq: seq + 1, data: { code, reason } }));
+    socket.send(JSON.stringify({ type: "closed", seq, data: { code, reason } }));
   }
-  setTimeout(() => {
-    if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) socket.close(code, reason);
-  }, 0);
+  // Closed unless already closing: the test's bare fake socket has no state
+  // and must still be closed (chat_hardening.test.ts, "stopping the node…").
+  if (socket.readyState !== WebSocket.CLOSING && socket.readyState !== WebSocket.CLOSED) socket.close(code, reason);
 }
 function closeRoom(room: Room, code: number, reason: string): void {
   room.seq += 1;
@@ -268,7 +272,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   const token = (offered.find((p) => p.startsWith("ticket.")) ?? "").slice("ticket.".length);
   if (!speaks) {
     const { socket, response } = Deno.upgradeWebSocket(req);
-    socket.onopen = () => closeWith(socket, 0, 4004, "protocol version not supported");
+    socket.onopen = () => closeWith(socket, 1, 4004, "protocol version not supported");
     inc("relay_chat_rooms_total", { result: "bad_version" });
     return response;
   }
@@ -295,11 +299,11 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   if (failed) {
     // A database that failed is not a bad ticket: 1011, and the client retries
     // later instead of buying tickets in a loop.
-    socket.onopen = () => closeWith(socket, 0, 1011, "the node failed");
+    socket.onopen = () => closeWith(socket, 1, 1011, "the node failed");
     return response;
   }
   if (!spent) {
-    socket.onopen = () => closeWith(socket, 0, 4001, "ticket expired, spent or wrong");
+    socket.onopen = () => closeWith(socket, 1, 4001, "ticket expired, spent or wrong");
     inc("relay_chat_rooms_total", { result: "bad_ticket" });
     return response;
   }

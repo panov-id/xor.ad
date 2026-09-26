@@ -31,7 +31,7 @@ export function connectRoom(client: Client, chatId: string, on: (event: RoomEven
   let stopped = false;
   let current: { close(): void } | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
-  // The close code the node announced in a `closing` frame, if it did; read
+  // The close code the node announced in a `closed` frame, if it did; read
   // in place of the socket's own when that arrives as a bare 1006.
   let announced: number | null = null;
 

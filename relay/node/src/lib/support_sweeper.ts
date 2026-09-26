@@ -11,6 +11,7 @@
 // on the row for it (db/039, the owner's decision of 2026-09-22). A request
 // without a brand — sent with no storefront's key — is in no one's digest.
 
+import { config } from "../config.ts";
 import { queryOrThrow } from "./db.ts";
 import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
@@ -70,6 +71,13 @@ export async function sendSupportDigests(): Promise<number> {
     if (!face) continue;
     try {
       if (await sendSupportDigest(`support@${face.domain}`, line.brand, line)) sent++;
+      // A refused letter does not throw: deliver() catches it and answers
+      // false, so this catch alone never counted one (B15, 2026-09-26). False
+      // with mail switched off is not a failure — nothing was to be sent.
+      else if (config.mail.transport !== "none") {
+        log("error", "support digest not sent", { brand: line.brand });
+        inc("relay_support_digest_total", { result: "failed" });
+      }
     } catch (error) {
       log("error", "support digest not sent", { brand: line.brand, error: withoutAddresses(String(error)) });
       inc("relay_support_digest_total", { result: "failed" });

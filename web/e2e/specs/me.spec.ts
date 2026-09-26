@@ -56,9 +56,7 @@ test("me: the name to the queue, the PIN changed and the vault re-sealed, away a
 
   // A reload: the old PIN is refused by the node (its counter), the new one
   // opens the re-sealed vault and the feed answers 200 to the seated key.
-  // As a new tab would: without the tab's id (chat/tab_session.ts) the vault
-  // is the way back, and the PIN opens it.
-  await page.evaluate(() => sessionStorage.clear());
+  // A plain reload: the vault is the only way back, and the PIN opens it.
   await page.reload();
   await unlock(page, PIN);
   await expect(page.getByTestId("error")).toContainText("Осталось попыток", { timeout: 30000 });

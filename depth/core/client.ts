@@ -138,7 +138,11 @@ export class Client {
   // The salt the PIN is derived with on this device (pin.ts). Without a volume
   // it lives as long as the process, as the identity does.
   #deviceSalt: Uint8Array | null = null;
-  // The long key under the paper code, held until POST /recovery/confirm takes it.
+  // The long key under the paper code: what POST /recovery/confirm takes, and
+  // kept after it — ciphertext, useless without the code — because a reissue
+  // unwraps it under the current code and wraps it under the next (recovery.ts;
+  // quorum 3/3 in the artel, 2026-09-26: not a claim for it, whose side effects
+  // re-arm the first-PIN grant, and not a long key kept extractable).
   #wrappedLongKey: Uint8Array | null = null;
 
   // POST /identities — name and age, then the PIN's proof with the node's share,
@@ -153,11 +157,15 @@ export class Client {
   async register(
     who: { name: string; age: number },
     secrets: { pin: string; paperCode: string },
+    // A keeper for the long key a move can open again (transfer.ts HeldKey),
+    // given the key while it is still extractable — here and nowhere later.
+    opts: { hold?: (extractable: CryptoKey) => Promise<HeldLongKey> } = {},
   ): Promise<{ identityId: string; sessionId: string }> {
     const salt = newDeviceSalt();
     const [pin, paper] = await Promise.all([derivePin(secrets.pin, salt), derivePaperCode(secrets.paperCode)]);
     const long = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]) as CryptoKeyPair;
     const { wrapped, privateKey } = await wrapLongKey(long.privateKey, paper.wrapKey);
+    const held = opts.hold ? await opts.hold(long.privateKey) : null;
     const key: SigningKey = {
       privateKey,
       publicSpki: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", long.publicKey))),
@@ -177,6 +185,7 @@ export class Client {
     this.#wrapPrivate = wrap.privateKey;
     this.#deviceSalt = salt;
     this.#wrappedLongKey = wrapped;
+    this.#held = held;
     this.#session = answer.body.session_id;
     this.identityId = answer.body.identity_id;
     return { identityId: this.identityId, sessionId: this.#session };
@@ -191,7 +200,6 @@ export class Client {
       recovery_wrapped_key: base64url(this.#wrappedLongKey),
     });
     if (answer.status !== 204) throw new Error(`the paper code was not confirmed: ${answer.status}`);
-    this.#wrappedLongKey = null;
   }
 
   async #pinProof(pin: string): Promise<Uint8Array> {
@@ -283,11 +291,11 @@ export class Client {
   #conversations = new Map<string, { conversation: Conversation; epoch: number }>();
 
   async consent(matchId: string): Promise<Answer<{ state: string; chat_id?: string }>> {
-    if (!this.#key) throw new Error("not registered: there is no key to sign with");
+    const long = this.#longKey();
     const held = this.#ephemeral.get(matchId) ?? { eph: await Ephemeral.generate(), epoch: 0 };
     this.#ephemeral.set(matchId, held);
     const answer = await this.#call<{ state: string; chat_id?: string }>(
-      "POST", `/matches/${encodeURIComponent(matchId)}/consent`, await held.eph.publish(this.#key.privateKey, matchId),
+      "POST", `/matches/${encodeURIComponent(matchId)}/consent`, await held.eph.publish(long.privateKey, matchId),
     );
     // The half belongs to the chat that opened, whichever match it came from.
     if (answer.status === 200 && answer.body.chat_id) this.#ephemeral.set(answer.body.chat_id, held);
@@ -334,7 +342,7 @@ export class Client {
       chatId, row.me, row.peer.identity_id,
     );
     // From the very row whose long key verified the half: one read, one key.
-    conversation.bindSafetyCode(await safetyCode(this.#key!.publicSpki, row.peer.identity_public_key));
+    conversation.bindSafetyCode(await safetyCode(this.#longKey().publicSpki, row.peer.identity_public_key));
     this.#conversations.set(chatId, { conversation, epoch: held.epoch });
     return conversation;
   }
@@ -367,11 +375,11 @@ export class Client {
   // built — this method is that agreement, and nothing calls it on its own),
   // answers at the same epoch. Old boxes stay shut for both.
   async #publishAt(chatId: string, epoch: number): Promise<Answer<{ state: string; epoch: number }>> {
-    if (!this.#key) throw new Error("not registered: there is no key to sign with");
+    const long = this.#longKey();
     const eph = await Ephemeral.generate();
     const answer = await this.#call<{ state: string; epoch: number }>(
       "POST", `/chats/${encodeURIComponent(chatId)}/rekey`,
-      { epoch, ...(await eph.publish(this.#key.privateKey, { chat: chatId, epoch })) },
+      { epoch, ...(await eph.publish(long.privateKey, { chat: chatId, epoch })) },
     );
     if (answer.status === 200) {
       this.#ephemeral.set(chatId, { eph, epoch });
@@ -584,6 +592,110 @@ export class Client {
   get sessionId(): string {
     return this.#session;
   }
+
+  // ── Seating an identity that came from elsewhere (B1 restore, B2 move) ──
+  //
+  // Registration signs requests with the long key itself. An identity raised
+  // by the paper code or moved from another device does not: the node checks a
+  // request against the session's own key (sessions.sign_public_key) and a
+  // chat half against the identity's (identities.identity_public_key), and the
+  // new session was born with a fresh key before the long one was unwrapped.
+  // So the two are held apart here, and a client that never seats keeps
+  // signing both with the one key it registered with.
+  #long: SigningKey | null = null;
+  // The long key held wrapped under a key of this process, extractable only
+  // inside use() — for a move, which seals it to the new device (B2,
+  // transfer.ts HeldKey; quorum 3/3, 2026-09-26). Typed here by shape so this
+  // file does not import transfer.ts.
+  #held: HeldLongKey | null = null;
+
+  get held(): HeldLongKey | null {
+    return this.#held;
+  }
+
+  // The long key's public half, base64url SPKI: the one registered with, or
+  // the one seat() was given. The node does not say it back.
+  get longSpki(): string {
+    return this.#longKey().publicSpki;
+  }
+
+  #longKey(): SigningKey {
+    const key = this.#long ?? this.#key;
+    if (!key) throw new Error("not registered: there is no key to sign with");
+    return key;
+  }
+
+  seat(s: {
+    identityId: string;
+    sessionId: string;
+    sessionKey: SigningKey;
+    longKey: CryptoKey;
+    // The long key's public half as base64url SPKI — the safety code is made of it.
+    longSpki: string;
+    wrapPrivate: CryptoKey;
+    deviceSalt?: Uint8Array;
+    wrappedLongKey?: Uint8Array;
+    held?: HeldLongKey;
+  }): void {
+    this.#key = s.sessionKey;
+    this.#long = { privateKey: s.longKey, publicSpki: s.longSpki };
+    this.#wrapPrivate = s.wrapPrivate;
+    this.#session = s.sessionId;
+    this.identityId = s.identityId;
+    if (s.deviceSalt) this.#deviceSalt = s.deviceSalt;
+    if (s.wrappedLongKey) this.#wrappedLongKey = s.wrappedLongKey;
+    this.#held = s.held ?? null;
+    // Whatever this process knew of chats belonged to the session before.
+    this.#ephemeral.clear();
+    this.#conversations.clear();
+  }
+
+  // A protocol call for the core's other modules (recovery.ts, transfer.ts):
+  // signed by the session when there is one and `signed` is not false.
+  request<T>(method: string, path: string, body?: unknown, signed = true): Promise<Answer<T>> {
+    return this.#call<T>(method, path, body, signed);
+  }
+
+  get registered(): boolean {
+    return this.#key !== null;
+  }
+
+  // The long key under the current paper code, for recovery.ts to rewrap; a
+  // reissue the node took hands back the one under the next.
+  get wrappedLongKey(): Uint8Array | null {
+    return this.#wrappedLongKey;
+  }
+
+  holdWrappedLongKey(wrapped: Uint8Array): void {
+    this.#wrappedLongKey = wrapped;
+  }
+
+  // The PIN's proof for routes of the core's other modules (transfer.ts: POST
+  // /sessions/invite asks for it).
+  pinProof(pin: string): Promise<Uint8Array> {
+    return this.#pinProof(pin);
+  }
+
+  // POST /vault/init — the first PIN on this device after the paper code raised
+  // the identity (§8.2: "забыт ПИН — задаётся новый с новой долей"). The claim
+  // left the grant; a new device salt goes with the new PIN, so the old PIN of
+  // this device, if it had one, proves nothing any more.
+  async firstPin(pin: string): Promise<Answer<{ error?: { code?: string } }>> {
+    const salt = newDeviceSalt();
+    const proof = (await derivePin(pin, salt)).auth;
+    const answer = await this.#call<{ error?: { code?: string } }>("POST", "/vault/init", {
+      auth_hash: await sha256hex(proof),
+      share: base64url(random(32)),
+    });
+    if (answer.status === 204 || answer.status === 200) this.#deviceSalt = salt;
+    return answer;
+  }
+}
+
+// What seat() keeps of a held long key: the shape of transfer.ts HeldKey.
+export interface HeldLongKey {
+  use<T>(fn: (extractable: CryptoKey) => Promise<T>): Promise<T>;
+  signing(): Promise<CryptoKey>;
 }
 
 // The node answered 400 to an `after` it had issued: start from the first page.

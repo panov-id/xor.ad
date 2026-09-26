@@ -183,6 +183,21 @@ empty value counts as absent — the wizard will say it could not check.
 
 Two optional node settings go the same way since 2026-09-24: `PROTOCOL_SUNSET_AT` — the unix time when the current major version of the protocol stops being served (protocol §3; empty — no end), and `BACKUP_AGE_ALERT_HOURS` — how many hours before watchdog W7 writes about a late backup (default 26). Until then the node read them and the wizard did not pass them.
 
+**`FEED_VERDICT` — who decides a phrase's fate in the feed (2026-09-26, P1).**
+`rules` (the default, and what a missing variable means): the first tier of
+moderation in §8.3 reads the phrase by rules inside the request — a link, a
+contact, an offer, a repeat of one's own live phrase, a doubtful waiting name —
+and a clean one is published at once (`POST /feed` answers 200) while a flagged
+one waits for a person in the panel's queue (202). `queue`: the rules are off
+and every phrase waits for a person — the shape for a tenant with a live
+moderator, and the shape the node had before P1. Any other word reads as
+`queue`: a misspelling closes, it does not open. The node has no word list, so
+"clean by the rules" means only "no links and no contacts" — rudeness without
+them goes out at once until the model of §8.14 is wired; the price is named in
+`decisions.tsv`. The wizard does **not** pass this variable yet
+(`relay/wizard/wizard.py`, the node's environment list), so on a box only the
+default applies; `queue` cannot be chosen on a live node until the wizard learns it.
+
 ### The vault key `VAULT_SHARE_KEY`: changed only at a loss
 
 The key seals two things: the node's share of each session's vault key

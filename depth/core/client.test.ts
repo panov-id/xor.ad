@@ -66,14 +66,18 @@ Deno.test({
 });
 
 Deno.test({
-  name: "a phrase is sent and waits for its verdict, and the feed reads back",
+  name: "a phrase is sent — published by the rules or waiting for its verdict — and the feed reads back",
   ignore: !node,
   async fn() {
     const client = new Client(node!, apiKey!);
     await client.register({ name: "Аня", age: 28 }, { pin: "123456", paperCode: newPaperCode() });
     await client.confirmPaperCode();
     const sent = await client.say({ text: "гуляю у реки, если кто рядом", mode: "alone", lat: 41.9, lon: 12.5, radius: 1000 });
-    assertEquals(sent.status, 202, "a phrase was not accepted for checking");
+    // 200: the first tier of §8.3 found nothing and published it in the
+    // request; 202: it waits for a person (FEED_VERDICT=queue, or a phrase the
+    // rules flagged). Either is "accepted"; anything else is a refusal.
+    assert(sent.status === 200 || sent.status === 202, `a phrase was not accepted: ${sent.status}`);
+    assertEquals((sent.body as { state: string }).state, sent.status === 200 ? "published" : "checking");
     const feed = await client.feed({ lat: 41.9, lon: 12.5, radius: 1000 });
     assert(Array.isArray(feed.items), "the feed did not come back as a list");
   },

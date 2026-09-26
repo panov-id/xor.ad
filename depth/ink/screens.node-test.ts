@@ -1787,6 +1787,10 @@ test("what is typed while the second has not agreed waits on the device, marked,
   await type(app, "привет", DOWN, ENTER);
   await settle();
   assert.match(app.lastFrame()!, /привет\s+· ждёт/, "the queued line is not shown as waiting");
+  // The line about losing the queue stands under the queue (§8.5 :2133), and says the spec's words.
+  const frame = app.lastFrame()!;
+  assert.match(frame, /уходят второму в момент его «поговорить»/, "the hint does not carry the spec's words");
+  assert.ok(frame.indexOf("привет") < frame.indexOf("без ✓"), "the hint about the queue stands above the queue, not under it");
   assert.deepEqual(core.queued("m1"), ["привет"], "the line did not reach the device's queue");
   assert.deepEqual(core.said, [], "a line went to the node before the second agreed");
   app.unmount();
@@ -1834,7 +1838,7 @@ test("the second agreed: the waiting screen hands the chat on; the offer gone: a
   const app2 = render(h(Waiting, { say, client: gone as any, matchId: "m1", name: "Аня", age: 27, limit: 128, onOpened: () => {}, onBack: () => {}, onFeed: () => toFeed++, onError: collect, pollMs: 60 }));
   await settle();
   gone.rows = [];
-  await waitFor(shows(app2, /Предложение ушло\./), 3);
+  await waitFor(shows(app2, /предложение ушло/), 3);
   assert.deepEqual(gone.dropped, ["m1"], "the queue did not die with the offer");
   assert.deepEqual(gone.queued("m1"), [], "a line of the dead offer is still held");
   assert.doesNotMatch(app2.lastFrame()!, /привет/, "a line of the dead offer is still on the screen");

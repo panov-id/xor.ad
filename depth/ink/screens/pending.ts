@@ -78,10 +78,11 @@ export function Waiting(
     Box,
     { flexDirection: "column", gap: 1 },
     h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(age, 3) }), lines: [say("chat.waiting")] }),
-    h(Text, { dimColor: true }, say("chat.waitingHint")),
     queued.length > 0
       ? h(Box, { flexDirection: "column" }, ...queued.map((line, i) => h(Text, { key: i }, `  ${plain(line, limit)}  · ${say("chat.queued")}`)))
       : null,
+    // Under the queue, as the spec places the line about losing it (§8.5 :2133).
+    h(Text, { dimColor: true }, say("chat.waitingHint")),
     h(Text, { dimColor: true }, `${say("chat.counter", { used: [...draft].length, limit })} · ${say("chat.noHistory")}`),
     h(Form, {
       fields: [{ key: "draft", label: ">", value: draft }],

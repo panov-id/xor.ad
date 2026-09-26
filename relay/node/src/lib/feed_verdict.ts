@@ -29,6 +29,7 @@ import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
 import { frameSessions } from "./sessions.ts";
 import { LIVE_PHRASE } from "./feed_limits.ts";
+import { settleOfferLikes } from "./offer_match.ts";
 
 // Exists at zero from the start: an alert reads it, and a series born at 1
 // hides its first event from rate() (B42, 2026-09-26; alerts.yml).
@@ -197,6 +198,11 @@ export interface Verdict {
   nameChanged?: boolean;
   // The name stands refused; the phrase waits for a new one.
   nameRejected?: boolean;
+  // This verdict turned a waiting name into the name: the likes this identity
+  // left on offers while it waited become their matches once the verdict is
+  // committed (settleOfferLikes; §8.5 S7). publishPhrase() does it; a caller
+  // that runs publishLocked() inside its own transaction does it after commit.
+  nameAccepted?: boolean;
   // When applied: the term the phrase got, as the row now holds it.
   visibleAt?: Date;
   expiresAt?: Date;
@@ -249,7 +255,27 @@ async function lockWaiting(
 }
 
 export async function publishPhrase(id: string, scope: VerdictScope = {}): Promise<Verdict> {
-  return await transaction<Verdict>((run) => publishLocked(run, id, scope));
+  const verdict = await transaction<Verdict>((run) => publishLocked(run, id, scope));
+  await settleAfterVerdict(verdict);
+  return verdict;
+}
+
+// After the verdict's commit: a name that just passed makes the matches of the
+// likes it left on offers while it waited (§8.5 S7, lib/offer_match.ts). Its
+// own transactions under the like's locks, so it runs after the verdict's and
+// never inside it — the identity row is held there, and the name is not yet
+// visible to another transaction. A caller of publishLocked() calls this once
+// its own transaction has committed.
+export async function settleAfterVerdict(verdict: Verdict): Promise<void> {
+  if (!verdict.nameAccepted || !verdict.identityId) return;
+  try {
+    const made = await settleOfferLikes(transaction, verdict.identityId);
+    if (made.length > 0) inc("relay_like_total", { result: "matched" }, made.length);
+  } catch (error) {
+    // The name stands; the likes stay likes and a later verdict or like of
+    // the pair makes the match. Named in the log, not hidden.
+    log("error", "offer likes were not settled after a name verdict", { error: String(error) });
+  }
 }
 
 // The passing verdict inside a caller's transaction. POST /feed calls it right
@@ -269,6 +295,7 @@ export async function publishLocked(
   by: "queue" | "rules" = "queue",
 ): Promise<Verdict> {
   {
+    let nameAccepted = false;
     const row = await lockWaiting(run, id, scope);
     // Already decided, already swept, or never existed: a verdict arriving
     // twice must not publish twice or write a second moment.
@@ -310,7 +337,10 @@ export async function publishLocked(
           WHERE id = $1 AND name_state = 'pending' RETURNING id`,
         [row.author_identity],
       );
-      if (named.length > 0) await frameSessions(run, row.author_identity, "name_verdict", { accepted: true });
+      if (named.length > 0) {
+        nameAccepted = true;
+        await frameSessions(run, row.author_identity, "name_verdict", { accepted: true });
+      }
       await rememberMoment(run, row.author_identity, "published_at_recent", KEEP_PUBLISHED);
       // The first accepted publication, as a UTC date. It serves one rule only
       // — "the reporter has been publishing for a while" (offers spec §10.1) —
@@ -323,7 +353,10 @@ export async function publishLocked(
       );
     }
     if (by === "queue") inc("relay_feed_verdict_total", { verdict: "published" });
-    return { applied: true, identityId: row.author_identity, visibleAt: term?.visible_at, expiresAt: term?.expires_at };
+    return {
+      applied: true, identityId: row.author_identity, visibleAt: term?.visible_at, expiresAt: term?.expires_at,
+      ...(nameAccepted ? { nameAccepted: true } : {}),
+    };
   }
 }
 

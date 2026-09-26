@@ -14,8 +14,9 @@
 // counts over everything live in `events` (lib/inbox_events.ts). Read from the
 // same tables at GET time; nothing is written for it anywhere.
 //
-// Not here yet: offer_interest rows (the offer's one-sided match is blocked on
-// the name queue).
+// The offer's one-sided match is built (P5, 2026-09-26) and comes back as a
+// plain match; an offer_interest kind for the offer's author is the next piece
+// (P3b).
 //
 // The page (protocol §6: ?after, {items, next}; 2026-09-22) is one list read in
 // two runs: offers to talk first, newest first, then conversations by their

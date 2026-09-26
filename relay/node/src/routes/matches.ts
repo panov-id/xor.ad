@@ -222,11 +222,14 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
       [chatId, matchId],
     );
     // The header: each side's phrase, copied, with who liked it — the other one.
+    // A match of an offer has one reason (§8.5): the row of the one who came to
+    // it has no phrase (message_id NULL, db/062) and gives no starter, so the
+    // header is the offer alone, liked by the one who came.
     await run(
       `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by)
        SELECT $1, row_number() OVER (ORDER BY p.identity), coalesce(p.text_snapshot, ''), p.mode,
               (SELECT o.identity FROM match_participants o WHERE o.match_id = p.match_id AND o.identity <> p.identity)
-         FROM match_participants p WHERE p.match_id = $2`,
+         FROM match_participants p WHERE p.match_id = $2 AND p.message_id IS NOT NULL`,
       [chatId, matchId],
     );
     await run(`UPDATE matches SET chat_id = $1 WHERE id = $2`, [chatId, matchId]);

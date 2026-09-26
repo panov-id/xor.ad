@@ -76,6 +76,8 @@ export interface Liked {
   text: string;
   like_count: number;
   state: "liked" | "matched";
+  // Only on an offer, with liked: the like counted and the offer's match waits
+  // for this person's name to pass the queue (§8.5 S7, 2026-09-26).
   liked_at: number;
   // A private author's offer: its like cannot be taken back (the node answers
   // `spent`), whatever the state says.
@@ -321,7 +323,9 @@ export class Client {
     return answer.body;
   }
 
-  like(phraseId: string): Promise<Answer<{ state: string; match_id?: string }>> {
+  like(
+    phraseId: string,
+  ): Promise<Answer<{ state: string; match_id?: string; name_pending?: true }>> {
     return this.#call("POST", `/feed/${encodeURIComponent(phraseId)}/like`);
   }
 

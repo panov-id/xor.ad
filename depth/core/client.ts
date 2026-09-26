@@ -33,6 +33,15 @@ export interface Answer<T = unknown> {
 // The five circles the contract allows (openapi.yaml PhraseCreate.area_radius).
 export type Radius = 100 | 300 | 1000 | 3000 | 10000;
 
+// What happened since the last visit, as GET /inbox counts it (§8.12, step 8).
+export type InboxEvents = {
+  new_matches: number;
+  waiting_for_you: number;
+  new_chats: number;
+  pending_messages: number;
+  ending_soon: number;
+};
+
 // Protocol §6: 409 comes in two shapes. A stale edition of the documents is
 // LegalReacceptance — `error` is the string legal_reacceptance_required and the
 // documents to accept come with it; every other conflict is an ApiError with
@@ -571,9 +580,18 @@ export class Client {
 
   // GET /inbox — offers to talk and conversations in one answer (§8.12).
   async inbox(): Promise<Array<Record<string, unknown>>> {
-    const answer = await this.#call<{ items: Array<Record<string, unknown>> }>("GET", "/inbox");
+    return (await this.inboxSince()).items;
+  }
+
+  // GET /inbox?since= — the same page, with what happened since the moment
+  // given (unix seconds) counted in `events` and flagged on the rows (§8.12,
+  // step 8). depth keeps no history on disk, so the moment is the last look
+  // at the inbox in this run, or nothing: then everything live is new.
+  async inboxSince(since?: number): Promise<{ items: Array<Record<string, unknown>>; events: InboxEvents }> {
+    const path = since === undefined ? "/inbox" : `/inbox?since=${Math.floor(since)}`;
+    const answer = await this.#call<{ items: Array<Record<string, unknown>>; events: InboxEvents }>("GET", path);
     if (answer.status !== 200) throw new Error(`inbox refused: ${answer.status}`);
-    return answer.body.items;
+    return { items: answer.body.items, events: answer.body.events };
   }
 
   // DELETE /chats/:id — closed by hand, for both at once (screen 8).

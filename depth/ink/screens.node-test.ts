@@ -587,7 +587,12 @@ test("a match is declined with 'not now' and brought back with 'undo'", async ()
   const match = { kind: "match", id: "m1", match_id: "m1", name: "Марк", age: 31 };
   const chat = { kind: "chat", id: "c1", match_id: "m0", name: "Аня", age: 34, chat_expires_at: 1_758_600_000 };
   const client = {
-    inbox: () => Promise.resolve(declinedOnNode ? [chat] : [match, chat]),
+    // The screen reads the inbox with what happened since the last look (§8.12,
+    // P3): the match arrived and a reply waits, so the rows carry marks.
+    inboxSince: () => Promise.resolve({
+      items: declinedOnNode ? [chat] : [{ ...match, arrived_since: true }, { ...chat, pending_messages: 2 }],
+      events: { new_matches: declinedOnNode ? 0 : 1, waiting_for_you: 0, new_chats: 0, pending_messages: 2, ending_soon: 0 },
+    }),
     decline: (id: string) => { calls.push(`decline ${id}`); declinedOnNode = true; return Promise.resolve({ status: 204, body: {} }); },
     undoDecline: (id: string) => { calls.push(`undo ${id}`); declinedOnNode = false; return Promise.resolve({ status: 204, body: {} }); },
   };
@@ -596,6 +601,12 @@ test("a match is declined with 'not now' and brought back with 'undo'", async ()
   await settle();
   await settle();
   assert.match(app.lastFrame()!, /не сейчас/, "'not now' is not offered on a match");
+  // Since the last look (§8.12, P3): the badge in the head counts one new
+  // offer and two waiting replies; the match row is marked new, the chat row
+  // carries its count.
+  assert.match(app.lastFrame()!, /входящие\s+● 1\s+✉ 2/, "the head does not carry the inbox's counts");
+  assert.match(app.lastFrame()!, /Марк, 31\s+●\s+мэтч/, "a match that arrived since the last look is not marked");
+  assert.match(app.lastFrame()!, /Аня, 34\s+● 2\s+чат открыт/, "a chat with replies waiting does not show their count");
   await type(app, RIGHT, ENTER);
   await settle();
   assert.deepEqual(calls, ["decline m1"], "'not now' did not reach the node");
@@ -605,7 +616,8 @@ test("a match is declined with 'not now' and brought back with 'undo'", async ()
   await type(app, LEFT, ENTER);
   await settle();
   assert.deepEqual(calls, ["decline m1", "undo m1"], "'undo' did not reach the node");
-  assert.match(app.lastFrame()!, /Марк, 31\s+мэтч/, "the match did not come back after 'undo'");
+  // Back with its mark: the look has not ended, so it is still new since the last one.
+  assert.match(app.lastFrame()!, /Марк, 31\s+●\s+мэтч/, "the match did not come back after 'undo'");
   await type(app, DOWN);
   assert.doesNotMatch(app.lastFrame()!, /не сейчас/, "an open chat offers 'not now'");
   app.unmount();

@@ -272,11 +272,53 @@ async function inviteState(req: Request, lookupId: string): Promise<Response> {
   if (state === "claimed" && invite.claim_envelope) {
     body.claim_envelope = bytesToBase64url(invite.claim_envelope);
   }
+  // The reply is repeated on every poll until the new device acknowledges it
+  // (POST /sessions/:lookup_id/ack), and not once after. Not erased on the
+  // first read: approve has already frozen the old device, so an answer lost on
+  // the way would leave the new one without the long key and the identity
+  // liftable only by the paper code (coordinator, B3, 2026-09-26). After the
+  // ack the answer is "approved" alone — approve always writes a reply, so an
+  // approved invitation without one says it was received, with no new word in
+  // the contract (quorum of three, 2 to 1, over a separate "collected" state).
   if (state === "approved" && invite.reply_envelope) {
     body.reply_envelope = bytesToBase64url(invite.reply_envelope);
     body.session_id = invite.new_session;
   }
   return json(body, 200, sunsetHeader());
+}
+
+// POST /sessions/:lookup_id/ack — the new device has the reply; the node can
+// forget it.
+//
+// Signed by the session the move created and by no other: until it signs, the
+// reply stays where a lost answer can be asked for again; once it has signed,
+// it has opened the reply and holds the long key, and the node has no reason
+// to keep a copy. A repeat is 200 as well — a retry after a lost answer to the
+// ack itself must not look like a failure. Everyone else gets the refusal every
+// other route on this pair gives a stranger.
+async function ackReply(req: Request, lookupId: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+
+  const answer = await transaction<Response>(async (run) => {
+    const [invite] = await run<InviteRow>(
+      `SELECT * FROM session_invites WHERE lookup_id = $1 FOR UPDATE`,
+      [lookupId],
+    );
+    if (!invite || invite.decision !== "approved" || invite.new_session !== caller.sessionId ||
+      invite.identity !== caller.identityId) {
+      return refuse("not_found", "no such invitation", 404);
+    }
+    if (invite.reply_envelope) {
+      await run(`UPDATE session_invites SET reply_envelope = NULL WHERE lookup_id = $1`, [lookupId]);
+      inc("relay_transfer_total", { result: "reply_acknowledged" });
+    }
+    return json({ state: "approved" }, 200, sunsetHeader());
+  }).catch((error) => {
+    log("error", "transfer ack failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+  return answer;
 }
 
 // POST /sessions/:lookup_id/approve — "it is me", and the only thing that moves
@@ -430,5 +472,6 @@ route("POST", "/sessions/claim", (c) => claimInvite(c.req));
 route("GET", "/sessions/:lookup_id", (c) => inviteState(c.req, c.params.lookup_id));
 route("POST", "/sessions/:lookup_id/approve", (c) => approveInvite(c.req, c.params.lookup_id));
 route("POST", "/sessions/:lookup_id/reject", (c) => rejectInvite(c.req, c.params.lookup_id));
+route("POST", "/sessions/:lookup_id/ack", (c) => ackReply(c.req, c.params.lookup_id));
 
-export { approveInvite, claimInvite, createInvite, inviteState, INVITE_TTL_SECONDS, rejectInvite, stateOf };
+export { ackReply, approveInvite, claimInvite, createInvite, inviteState, INVITE_TTL_SECONDS, rejectInvite, stateOf };

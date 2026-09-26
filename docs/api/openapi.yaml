@@ -3421,8 +3421,8 @@ paths:
         - {$ref: "#/components/parameters/ProtocolVersion"}
       responses:
         "200":
-          description: "The state, and at most one envelope: `claim_envelope` while it is claimed, `reply_envelope` and `session_id` once it is approved."
-          x-description-ru: "Состояние и не больше одного конверта: `claim_envelope`, пока приглашение занято, `reply_envelope` и `session_id` — когда подтверждено."
+          description: "The state, and at most one envelope: `claim_envelope` while it is claimed; `reply_envelope` and `session_id` once it is approved, repeated on every poll until the new session acknowledges the reply (POST /sessions/{lookup_id}/ack), and `approved` alone after that (2026-09-26). The old device does not poll this route after approving: `approve` already answered it."
+          x-description-ru: "Состояние и не больше одного конверта: `claim_envelope`, пока приглашение занято; `reply_envelope` и `session_id` — когда подтверждено, на каждый опрос, пока новая сессия не подтвердит получение (POST /sessions/{lookup_id}/ack), а после — одно `approved` (26.09.2026). Старое устройство после одобрения этот маршрут не опрашивает: ответ ему дал `approve`."
           headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
           content:
             application/json:
@@ -3439,6 +3439,39 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "404": {description: "No such code — one wording for a code that never existed and one already swept.", x-description-ru: "Нет такого кода — одна формулировка на не существовавший и на уже убранный.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
+
+  /sessions/{lookup_id}/ack:
+    post:
+      tags: [identity]
+      summary: The reply has arrived
+      x-summary-ru: Ответ получен
+      x-status: built
+      x-source: relay/node/src/routes/transfer.ts
+      security: [{identitySignature: []}]
+      description: "The new device has opened the reply envelope; the node erases its copy (2026-09-26). Signed by the session the move created and by no other. Until this arrives the reply is repeated on every GET, because approve has already frozen the old device and a reply lost on the way would otherwise leave the identity to the paper code. A repeat is 200 as well."
+      x-description-ru: "Новое устройство открыло ответный конверт; узел стирает свою копию (26.09.2026). Подписывает сессия, рождённая переносом, и никакая другая. Пока подтверждения нет, ответ повторяется на каждый GET: одобрение уже заморозило старое устройство, и потерянный в пути ответ иначе оставил бы личность одному бумажному коду. Повтор — тоже 200."
+      parameters:
+        - {name: lookup_id, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
+      responses:
+        "200":
+          description: "Received; the reply is no longer on the node."
+          x-description-ru: "Получено; ответа на узле больше нет."
+          headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state]
+                properties:
+                  state: {type: string, enum: [approved]}
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "404": {description: "The invite is unknown, not approved, or the move did not create this session — code not_found, one shape for all three.", x-description-ru: "Приглашение неизвестно, не одобрено или сессия рождена не этим переносом — code not_found, одна форма на все три.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "503": {$ref: "#/components/responses/Unavailable"}
 
   /sessions/{lookup_id}/reject:

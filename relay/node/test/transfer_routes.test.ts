@@ -564,6 +564,73 @@ const approval = (old: Awaited<ReturnType<typeof device_with_identity>>, lookupI
     wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))), label: "new phone",
   });
 
+// The reply stays until the new device acknowledges it (B3, 2026-09-26):
+// approve has already frozen the old device, so a reply erased on first read
+// and lost on the way would leave the identity to the paper code. Every GET
+// before the ack repeats it; the ack, signed by the new session, erases it;
+// every GET after is "approved" with neither the envelope nor the session id.
+async function approvedMove() {
+  const old = await device_with_identity();
+  const { lookupId, invited } = await claimed(old);
+  const approved = await approval(old, lookupId, invited.signPub);
+  assertEquals(approved.status, 200, JSON.stringify(approved.body));
+  const sessionId = (approved.body as { session_id: string }).session_id;
+  const ack = (key = invited.pair.privateKey, session = sessionId) =>
+    signedCall(key, session, "POST", `/sessions/${lookupId}/ack`);
+  return { old, lookupId, invited, sessionId, ack };
+}
+const heldReply = async (lookupId: string) => (await database.queryOrThrow<{ reply_envelope: Uint8Array | null }>(
+  `SELECT reply_envelope FROM session_invites WHERE lookup_id = $1`, [lookupId]))[0].reply_envelope;
+
+Deno.test("a second GET before the ack gets the reply again", async () => {
+  const { lookupId, sessionId } = await approvedMove();
+  const first = await call("GET", `/sessions/${lookupId}`);
+  const second = await call("GET", `/sessions/${lookupId}`);
+  assert((first.body as { reply_envelope?: string }).reply_envelope, "the first GET got no reply envelope");
+  assertEquals(second.body, first.body,
+    `a lost answer cannot be asked for again: ${JSON.stringify(second.body)}`);
+  assertEquals((second.body as { session_id?: string }).session_id, sessionId);
+});
+
+Deno.test("a GET after the ack does not get the reply envelope", async () => {
+  const { lookupId, ack } = await approvedMove();
+  const acked = await ack();
+  assertEquals(acked.status, 200, JSON.stringify(acked.body));
+  assertEquals(acked.body, { state: "approved" });
+  const after = await call("GET", `/sessions/${lookupId}`);
+  assertEquals(after.status, 200);
+  assertEquals(after.body, { state: "approved" },
+    `the GET after the ack got more than the state: ${JSON.stringify(after.body)}`);
+  assertEquals(await heldReply(lookupId), null, "the node still holds the reply after the ack");
+  // A retry after a lost answer to the ack itself is not a failure.
+  assertEquals((await ack()).status, 200, "a repeated ack was refused");
+});
+
+Deno.test("an ack signed by any session but the new one is refused and erases nothing", async () => {
+  const { old, lookupId, ack } = await approvedMove();
+  // The old device: frozen by the move, so its signature is no live session's.
+  const byOld = await ack(old.pair.privateKey, old.session_id);
+  assertEquals(byOld.status, 401, JSON.stringify(byOld.body));
+  // A stranger with a live session of their own.
+  const stranger = await device_with_identity();
+  const byStranger = await ack(stranger.pair.privateKey, stranger.session_id);
+  assertEquals(byStranger.status, 404, JSON.stringify(byStranger.body));
+  assert(await heldReply(lookupId), "a stranger's ack erased the reply");
+  assert((await call("GET", `/sessions/${lookupId}`)).body.reply_envelope, "the reply is gone after refused acks");
+});
+
+Deno.test({ name: "two acks racing both answer 200 and leave no reply", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { lookupId, ack } = await approvedMove();
+  const got: { status: number; body: unknown }[] = [];
+  const before = await deadlocks();
+  await behind(`SELECT 1 FROM session_invites WHERE lookup_id = $1 FOR UPDATE`, lookupId,
+    () => ack().then((r) => (got[0] = r)),
+    () => ack().then((r) => (got[1] = r)));
+  assertEquals((await deadlocks()) - before, 0, "two acks deadlocked");
+  assertEquals(got.map((r) => r?.status), [200, 200], `racing acks: ${JSON.stringify(got)}`);
+  assertEquals(await heldReply(lookupId), null, "the reply survived two acks");
+});
+
 Deno.test({ name: "an approval and a new invitation from the same session queue on the share instead of deadlocking", sanitizeOps: false, sanitizeResources: false }, async () => {
   const old = await device_with_identity();
   const { lookupId, invited } = await claimed(old);

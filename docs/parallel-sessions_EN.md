@@ -48,9 +48,10 @@ before the wave is merged into the day branch, with the "Security" lens plus `ve
 only; the protocol is at most 100 lines, and findings go as a line in `open.tsv` with
 the status "deferred until users", not as new tasks of the same wave. A quorum is only
 for product forks (what the user sees); bookkeeping, documents and gates the coordinator
-decides alone. The reason: from 15.09 to 26.09 product code was about 20 % of commits,
-the rest protocols, registries, tests and docs; the tenth PIN miss went through four
-rounds of panels (B70…B108).
+decides alone. The reason (measured 2026-09-26): the test map `docs/test-map_RU.md`
+was edited 192 times, the registry `docs/facts/open.tsv` 200 times, and the review
+protocols in `docs/reviews` are 102 files of 34 091 lines — more often than any code
+file; the tenth PIN miss went through four rounds of panels (B70…B108).
 
 ## 3. The board
 

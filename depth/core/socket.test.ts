@@ -3,7 +3,7 @@
 // the stand's database, as in match.test.ts.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import postgres from "npm:postgres@3.4.4";
-import { Client } from "./client.ts";
+import { Client, type Room } from "./client.ts";
 import { newPaperCode } from "./paper.ts";
 
 const node = Deno.env.get("DEPTH_NODE_URL");
@@ -231,12 +231,23 @@ Deno.test({
   sanitizeOps: false,
   async fn() {
     const sql = postgres(databaseUrl!, { max: 1 });
+    // Every frame and step, so a failure says what arrived and which read broke
+    // (open.tsv depth.socket.rekey.flaky: one OperationError under load that
+    // twenty traced rounds under stress-ng did not repeat; B24, 2026-09-26).
+    const trace: string[] = [];
+    const frame = async (room: Room) => {
+      const f = await room.next();
+      trace.push(`${f.type}#${f.seq}:${String((f.data as { id?: string } | null)?.id ?? "").slice(0, 8)}`);
+      return f;
+    };
     try {
       const { a, b, chatId, matchId } = await chatBetween(sql);
       const room = await b.openRoom(chatId);
-      await a.sayInChat(chatId, "до потери", matchId);
-      const before = (await room.next()).data as { id: string; ciphertext: string };
+      const said = await a.sayInChat(chatId, "до потери", matchId);
+      trace.push(`sent:${said.body.local_id.slice(0, 8)}`);
+      const before = (await frame(room)).data as { id: string; ciphertext: string };
       assertEquals(await b.read(chatId, before.ciphertext, before.id), "до потери");
+      trace.push("read-before-ok");
 
       // The pair is gone — a new device, a restart — and nothing opens.
       a.forget(chatId);
@@ -250,18 +261,22 @@ Deno.test({
       assert(await b.rekeyRequested(chatId), "b was not told keys are being reissued");
       assertEquals((await b.acceptRekey(chatId)).body, { state: "agreed", epoch: 1 });
 
-      await a.sayInChat(chatId, "после перевыпуска");
+      const later = await a.sayInChat(chatId, "после перевыпуска");
+      trace.push(`sent:${later.body.local_id.slice(0, 8)}`);
       // The reissue itself arrives as frames too (type "rekey"); the message is after them.
-      let next = await room.next();
-      while (next.type === "rekey") next = await room.next();
+      let next = await frame(room);
+      while (next.type === "rekey") next = await frame(room);
       assertEquals(next.type, "message");
       const after = next.data as { id: string; ciphertext: string };
       assertEquals(await b.read(chatId, after.ciphertext, after.id), "после перевыпуска");
+      trace.push("read-after-ok");
       // The old box does not open under the new keys: nothing restores the old K.
       let reopened = false;
       try { await b.read(chatId, before.ciphertext, before.id); reopened = true; } catch { /* expected */ }
       assert(!reopened, "a box from before the reissue opened under the new keys");
       room.close();
+    } catch (error) {
+      throw new Error(`${error instanceof Error ? error.message : String(error)} | trace: ${trace.join(" ")}`, { cause: error });
     } finally {
       await sql.end();
     }

@@ -7,7 +7,8 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 deno="denoland/deno:alpine-2.1.4"
 node_image="node:24.21.0-alpine"
 pg_image="postgres:16.13-alpine"
-label="depth-live-ui=$$"  # уникален: сметка по общему ярлыку убивала стенд соседнего прогона
+label_key="depth-live-ui"
+label="$label_key=$$"  # уникален: сметка по общему ярлыку убивала стенд соседнего прогона
 cache="-v depth-test-deno-cache:/deno-dir -e DENO_DIR=/deno-dir"
 network="depth-ui-net-$$"; db="depth-ui-db-$$"; node="depth-ui-node-$$"
 database_url="postgres://relay:test@postgres:5432/relay_test"
@@ -15,8 +16,17 @@ key_id="ak_pub_depthuitest00001"
 
 cleanup() { docker rm -fv "$node" "$db" >/dev/null 2>&1 || true; docker network rm "$network" >/dev/null 2>&1 || true; }
 trap cleanup EXIT INT TERM
-docker ps -aq --filter "label=$label" | xargs -r docker rm -fv >/dev/null 2>&1 || true
-docker network ls -q --filter "label=$label" | xargs -r docker network rm >/dev/null 2>&1 || true
+# Leftovers of a run killed hard (SIGKILL skips the trap), and only those — as
+# scripts/run-depth-tests.sh does since A7. The sweep used to look for this
+# run's own label, which nothing can carry yet at the start, so a killed run's
+# stand stayed for good (26.09.2026). A run is alive while its PID is a process
+# running this script: `ps`, not `kill -0`, which fails with EPERM on another
+# user's live run; the command line catches a reused PID.
+alive() { ps -p "$1" -o args= 2>/dev/null | grep -q 'run-depth-live-ui\.sh'; }
+docker ps -a --filter "label=$label_key" --format "{{.ID}} {{.Label \"$label_key\"}}" |
+  while read -r id pid; do alive "$pid" || docker rm -fv "$id" >/dev/null 2>&1 || true; done
+docker network ls --filter "label=$label_key" --format "{{.ID}} {{.Label \"$label_key\"}}" |
+  while read -r id pid; do alive "$pid" || docker network rm "$id" >/dev/null 2>&1 || true; done
 
 docker network create --label "$label" "$network" >/dev/null
 docker run -d --label "$label" --name "$db" --network "$network" --network-alias postgres \
@@ -54,9 +64,11 @@ timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$node_image" 
   sh -c '[ -f node_modules/.lock-ok ] || { npm ci --no-audit --no-fund && touch node_modules/.lock-ok; }' >/dev/null
 status=0
 # shellcheck disable=SC2086
-timeout 600 docker run --rm --network "$network" $mods \
+# Labelled too: after a kill -9 it stays attached to this run's network, and
+# the next start could remove neither it nor the network without the label.
+timeout 600 docker run --rm --label "$label" --network "$network" $mods \
   -e DEPTH_NODE_URL=http://node:8080 -e DEPTH_API_KEY="$key_id" -e DEPTH_DATABASE_URL="$database_url" \
-  -e DEPTH_ORIGIN_TOKEN=depth-ui-origin -e DEPTH_TEST_ONLY=1 \
+  -e DEPTH_ORIGIN_TOKEN=depth-ui-origin \
   -v "$root":/repo -w /repo/depth "$node_image" \
   node --experimental-transform-types ink/live.node-test.ts || status=$?
 if [ "$status" -ne 0 ]; then echo "── node log (tail) ──" >&2; docker logs "$node" 2>&1 | tail -30 >&2; fi

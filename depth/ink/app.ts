@@ -391,7 +391,11 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
       case "raisedHere":
         return h(RaisedHere, {
           say,
-          onKeep: () => setWhere({ screen: "newPaper", old: where.old, next: where.next, groups: where.groups }),
+          // A line the PIN screen left behind is not about the code (verifier of P6).
+          onKeep: () => {
+            setError(undefined);
+            setWhere({ screen: "newPaper", old: where.old, next: where.next, groups: where.groups });
+          },
           onNewPin: () => {
             setError(undefined);
             setWhere({ screen: "raisedHerePin", old: where.old, next: where.next, groups: where.groups });
@@ -402,7 +406,10 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
           say,
           busy,
           error,
-          onBack: () => setWhere({ screen: "raisedHere", old: where.old, next: where.next, groups: where.groups }),
+          onBack: () => {
+            setError(undefined);
+            setWhere({ screen: "raisedHere", old: where.old, next: where.next, groups: where.groups });
+          },
           // The grant the same-device claim left takes the new PIN (POST
           // /vault/init, recovery.test.ts "lifted by the paper code on the same
           // device"); then the code is traded as on every other way back.

@@ -1728,3 +1728,28 @@ test("the PIN kept, the device goes straight on to the new code and asks the nod
   assert.equal(pins.length, 0, "keeping the PIN still sent one to the node");
   app.unmount();
 });
+
+// ── P6 return · a refusal of the new PIN stays on its screen ──
+test("a refused new PIN does not follow the person back to the choice or on to the code", async () => {
+  const code = newPaperCode();
+  const { client } = await raisedDevice(code);
+  client.firstPin = () => Promise.resolve({ status: 409, body: { error: { code: "no_first_pin_grant" } } });
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(App, { say, client: client as any, start: "restore" }));
+  await settle();
+  await type(app, code, DOWN, ENTER);
+  await waitFor(shows(app, /Устройство открыто/), 10);
+  await type(app, RIGHT, ENTER);
+  await waitFor(shows(app, /Прежний ПИН перестанет работать/));
+  await type(app, ..."424242".split(""), DOWN, ..."424242".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /Узел не принял \(409\)/), 5);
+  // Back to the choice: the refusal stays behind.
+  await type(app, RIGHT, ENTER);
+  await waitFor(shows(app, /Устройство открыто/), 5);
+  assert.doesNotMatch(app.lastFrame()!, /Узел не принял/, "the refusal followed the person back to the choice");
+  // And "I remember the PIN" goes on to the code with nothing about the PIN on it.
+  await type(app, ENTER);
+  await waitFor(shows(app, /[0-9A-Z]{4} - [0-9A-Z]{4}/), 5);
+  assert.doesNotMatch(app.lastFrame()!, /Узел не принял/, "the refusal followed the person on to the new code");
+  app.unmount();
+});

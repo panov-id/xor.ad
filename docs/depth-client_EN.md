@@ -17,13 +17,22 @@ introduces no rule that is not already in the spec. Where the two disagree,
 > feed with its cursor, likes and takes a like back, consents and says "not
 > now"; checked against a live node (`scripts/run-depth-tests.sh`). **Drawing
 > exists since 2026-09-22** — `depth/ink/` (Node + Ink, screens, 17 languages; was
-> "not yet: drawing (Ink)" [retired]). **Not yet:** the image, the volume and
-> `identity.age` of §2 and §6 — keys live in memory only. **Placeholders:** the PIN
-> proof — Argon2id 64 MB / t=3 is written down (§9, measured 2026-08-28), but the
-> parallelism and the device salt are not named, so a random proof stands in; the
-> paper code's halves and the node's share that opens no
-> vault yet; registering with them takes the `testOnly` flag. Status checked against
-> the code on 2026-09-24.
+> "not yet: drawing (Ink)" [retired]) — and an image, `scripts/depth.sh`.
+> **The PIN and the paper code are real** (`depth/core/pin.ts`,
+> `depth/core/paper.ts`): the PIN's proof is Argon2id 64 MB / t=3 / p=1 (§9) with
+> the device salt; the paper code is sixteen characters made on the device: its
+> first half is the node's lookup, its second wraps the long key (AES-256-GCM).
+> The registration screen asks for the PIN twice, shows the code once and waits
+> for its second and fourth groups to come back, and only then
+> `POST /recovery/confirm`. "Me" has "change the PIN" (`POST /vault/pin`) and
+> "start again" (`POST /identities/close`). **Not yet:** the volume and
+> `identity.age` of §2 and §6 — the keys and the device salt live in the
+> process's memory, and quitting means a new identity; so the node's share is
+> random for now, and there is no lock after 5 minutes idle and no unlocking
+> through `POST /vault/share` (item `depth.lock` in `docs/facts/open.tsv`). Nor
+> are there `depth restore` (raising the identity with the code),
+> `depth reissue`, `depth move` (item `depth.restore`). Status checked against the
+> code on 2026-09-26.
 
 ## 1. Why this face exists
 

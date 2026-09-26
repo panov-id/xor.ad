@@ -122,6 +122,9 @@ for gate in check-rules-quota-sentence check-landing-tokens check-retired-terms 
             check-docs-pairing-all; do
   expect_nonzero "$gate" bash "$fake/scripts/$gate.sh"
 done
+# Витрины рядом есть, их deploy/legal-revisions.json — нет. До 26.09.2026 сверка
+# писала «not checked» и выходила с 0, и check-all считал её зелёной.
+expect_nonzero sync-legal-revisions bash "$fake/scripts/sync-legal-revisions.sh" --check
 
 # Невключённое называется вслух — по той же причине, по которой это делает
 # check-all.sh: молчаливое исключение неотличимо от забытого. Но одного имени и

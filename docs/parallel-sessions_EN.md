@@ -129,6 +129,26 @@ first), and the observer checks everyone:
 A message to a neighbour is a request, not an order: each session takes
 permissions from its own user and never uses another's.
 
+**Nobody asks the owner.** No role in the artel opens a questionnaire: a turn
+with an open question does not end, the loop stands, and the ring's restart line
+cannot get into such a session (on 2026-09-26 the coordinator asked "commit the
+registries?" at 00:49 and stood until 06:21 — five and a half hours of the whole
+artel). Instead of a question:
+
+- a fork inside what is approved — a quorum (rule 31), the decision in `decisions.tsv`;
+- a commit to the working branch of the day — no question: the word was given on
+  2026-09-21 for the loop and on 2026-09-26 for the registries after merges;
+- what the rules keep for the owner (push, deploy, live boxes, deletion, money,
+  text for people) — a line in `owner.md` on the board and a `PushNotification`;
+  the item is skipped and the loop takes the next one.
+
+**The coordinator is silent for 40 minutes — the observer takes its work.** Two ring
+ticks without the coordinator's heartbeat moving: the observer merges `verified`
+into the working branch (after the full suite in the main tree), hands out free
+tasks from `tasks.tsv` and writes it to `log/`. When the coordinator comes back it
+reads the observer's `log/` and carries on from there. The coordinator checks the
+observer's merges — no session checks itself.
+
 ## 6. What the owner types
 
 Open the sessions in the `xor.ad` directory (so every one loads the project

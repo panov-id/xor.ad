@@ -255,5 +255,21 @@
   "web.unlock.remembers": "Это устройство помнит вас. Введите ПИН, чтобы продолжить.",
   "web.unlock.restore": "открыть устройство бумажным кодом",
   "web.vault.pinLocked": "десять неверных ПИНов: вход закрыт до бумажного кода",
-  "web.vault.pinWrong": "неверный ПИН"
+  "web.vault.pinWrong": "неверный ПИН",
+  "web.game.title": "Joc",
+  "web.game.class": "Joc",
+  "web.game.set": "Set",
+  "web.game.propose": "Propune un joc",
+  "web.game.waiting": "Așteptăm răspunsul celeilalte părți",
+  "web.game.offered": "Vi se propune un joc: {game}",
+  "web.game.rematch_offered": "Cealaltă parte propune încă o rundă",
+  "web.game.accept": "Joacă",
+  "web.game.decline": "Refuză",
+  "web.game.your_turn": "Mutarea ta",
+  "web.game.their_turn": "Mutarea celeilalte părți",
+  "web.game.over": "Partida s-a încheiat",
+  "web.game.rematch": "Încă o rundă",
+  "web.game.resign": "Abandonează",
+  "web.game.you": "tu",
+  "web.game.peer": "cealaltă parte"
 }

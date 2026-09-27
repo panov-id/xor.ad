@@ -17,7 +17,7 @@ const count = (hand: Hand | undefined) => (Array.isArray(hand) ? hand.length : h
 
 function others(view: TableView, hands: Record<string, Hand>): string {
   return view.seats.filter((s) => s.seat !== view.seat && hands[String(s.seat)] !== undefined)
-    .map((s) => `${plain(s.name, 48)}: ${count(hands[String(s.seat)])}`).join(" · ");
+    .map((s) => `${plain(s.name, 48)}: ${plain(count(hands[String(s.seat)]), 6)}`).join(" · ");
 }
 
 // deck: {hands, stock: {count}, played}; a move is {play: card} or {draw: true}.
@@ -30,7 +30,7 @@ function Deck({ say, view, onMove, active }: { say: Say; view: TableView; onMove
     Box,
     { flexDirection: "column" },
     h(Text, null, say("board.played", { card: plain(deck.played.slice(-1)[0] ?? "—", 8) })),
-    h(Text, { dimColor: true }, `${say("board.stock", { count: deck.stock.count })} · ${others(view, deck.hands)}`),
+    h(Text, { dimColor: true }, `${say("board.stock", { count: plain(deck.stock.count, 6) })} · ${others(view, deck.hands)}`),
     h(Text, null, cards.map((c) => `[${plain(c, 8)}]`).join(" ")),
     onMove
       ? h(Menu, {
@@ -57,7 +57,7 @@ function Word({ say, view, onMove, active }: { say: Say; view: TableView; onMove
     { flexDirection: "column" },
     h(Text, { bold: true }, w.mask === null ? say("board.no_word") : plain(w.mask, 48).split("").join(" ")),
     w.word ? h(Text, { dimColor: true }, say("board.my_word", { word: plain(w.word, 24) })) : null,
-    h(Text, { dimColor: true }, say("board.guessed", { letters: plain(w.guessed.join(" "), 80) || "—", misses: w.misses })),
+    h(Text, { dimColor: true }, say("board.guessed", { letters: plain(w.guessed.join(" "), 80) || "—", misses: plain(w.misses, 3) })),
     onMove
       ? h(Form, {
         active,
@@ -86,7 +86,7 @@ function Free({ say, view, onMove, active }: { say: Say; view: TableView; onMove
     Box,
     { flexDirection: "column" },
     h(Text, null, f.line.length ? f.line.map((b) => `[${plain(b, 8)}]`).join("") : say("board.line_empty")),
-    h(Text, { dimColor: true }, `${say("board.boneyard", { count: f.boneyard.count })} · ${others(view, f.hands)}`),
+    h(Text, { dimColor: true }, `${say("board.boneyard", { count: plain(f.boneyard.count, 6) })} · ${others(view, f.hands)}`),
     h(Text, null, bones.map((b) => `[${plain(b, 8)}]`).join(" ")),
     onMove
       ? h(Menu, {
@@ -158,7 +158,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
       ? [7, 6, 5, 4, 3, 2, 1, 0].map((y) => h(Text, { key: `r${y}` }, `${grid ? y + 1 : y} ${[0, 1, 2, 3, 4, 5, 6, 7].map((x) => at(x, y)).join(" ")}`))
       : []),
     grid || physics ? h(Text, { dimColor: true }, grid ? "  a b c d e f g h" : "  0 1 2 3 4 5 6 7") : null,
-    dice ? h(Text, null, say("board.rolled", { dice: dice.rolled ? dice.rolled.join(say("board.and")) : say("board.not_rolled") })) : null,
+    dice ? h(Text, null, say("board.rolled", { dice: dice.rolled ? plain(dice.rolled.join(say("board.and")), 12) : say("board.not_rolled") })) : null,
     onMove && grid
       ? h(Form, {
         active,

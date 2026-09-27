@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import type { ChatKeys } from "../chat/keys.ts";
 import { connectRoom } from "../chat/room.ts";
+import { ChatGame } from "./ChatGame.tsx";
 import type { InboxChatRow } from "./Inbox.tsx";
 import "../chat/chat.css";
 import { say } from "../locales/say.ts";
@@ -40,6 +41,10 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
   const [busy, setBusy] = useState(false);
   const [turn, setTurn] = useState(0);
   const [kept, setKept] = useState<{ epoch: number; refused?: string } | null>(null);
+  // The game in this conversation (GC3): shown on demand, read again on each
+  // board or proposal frame the chat's socket brings.
+  const [gameOpen, setGameOpen] = useState(false);
+  const [gameBump, setGameBump] = useState(0);
   const stop = useRef<{ stop(): void } | null>(null);
   const rowRef = useRef(row);
   rowRef.current = row;
@@ -96,7 +101,14 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
           setStatus({ key: "web.chat.rekeying", values: { epoch: event.epoch } });
           setTurn((t) => t + 1);
           break;
-        case "sys": break;
+        case "sys": {
+          const type = (event.data as { type?: unknown } | null)?.type;
+          if (type === "board" || type === "proposal") {
+            setGameBump((n) => n + 1);
+            if (type === "proposal") setGameOpen(true);
+          }
+          break;
+        }
         case "message": {
           try {
             const opened = await keys.read(rowRef.current, event.ciphertext, event.id);
@@ -178,6 +190,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
           <button type="button" disabled={busy} onClick={() => rekey("ask")} data-testid="rekey-ask">{say("web.chat.rekey_ask")}</button>
         </section>
       )}
+      {!over && gameOpen && <ChatGame client={client} chatId={given.id} bump={gameBump} />}
       <ul className="lines" data-testid="lines">
         {lines.map((l) => (
           <li key={l.id} className={`line ${l.mine ? "mine" : "theirs"}`} data-testid={l.mine ? "mine" : "theirs"} data-state={l.state ?? ""}>
@@ -194,6 +207,9 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         </form>
       )}
       <footer className="muted">
+        {!over && (
+          <button type="button" onClick={() => setGameOpen((o) => !o)} data-testid="game-toggle" aria-pressed={gameOpen}>{say("web.game.title")}</button>
+        )}
         <button type="button" onClick={() => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"))} data-testid="show-safety">{say("chat.code")}</button>
       </footer>
     </main>

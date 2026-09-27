@@ -303,5 +303,6 @@
   "board.to": "куда",
   "table.toBoard": "к доске",
   "table.rematch": "ещё партию",
-  "table.acceptRematch": "принять партию"
+  "table.acceptRematch": "принять партию",
+  "table.send": "отправить"
 }

@@ -6,7 +6,7 @@
 // per request, which would mean an object per request.
 
 import { config } from "../config.ts";
-import { scrubFields } from "./scrub.ts";
+import { scrubAddresses, scrubFields } from "./scrub.ts";
 import { put, storageEnabled } from "./storage.ts";
 
 type Level = "info" | "warn" | "error";
@@ -73,8 +73,34 @@ function persist(entry: Record<string, unknown>): void {
   put(`server-logs/${config.envName}/${crypto.randomUUID()}.json`, entry)
     // Straight to the console: routing this back through log() would recurse
     // through persist() on every failed write.
-    .catch((error) => console.error(`[log] persisting a ${entry.level} line failed: ${error}`))
+    // through persist() on every failed write. Scrubbed all the same: the
+    // storage error names the host it could not reach (SC1, 27.09.2026).
+    .catch((error) => console.error(`[log] persisting a ${entry.level} line failed: ${scrubAddresses(String(error))}`))
     .finally(() => {
       writesInFlight -= 1;
     });
+}
+
+// What nobody caught, through the same scrub, then the same end as before.
+//
+// A rejection no handler takes, and an error thrown out of a callback, were
+// printed by Deno itself, straight to stderr: a postgres.js call left
+// unawaited printed "connect ECONNREFUSED 10.0.17.2:5432" with the database's
+// address and port, and any caller's address a message carried, past log()
+// and its scrub (measured in the container, SC1, 27.09.2026). They now go
+// through log() as one error line. The process still ends, as it did: a node
+// that met an error nobody handled is restarted rather than trusted to go on.
+export function installUncaughtScrub(exit: (code: number) => void = (code) => Deno.exit(code)): void {
+  const end = (kind: string, reason: unknown) => {
+    log("error", `uncaught ${kind}`, { error: reason instanceof Error ? reason : String(reason) });
+    exit(1);
+  };
+  globalThis.addEventListener("unhandledrejection", (event) => {
+    event.preventDefault();
+    end("rejection", event.reason);
+  });
+  globalThis.addEventListener("error", (event) => {
+    event.preventDefault();
+    end("error", event.error ?? event.message);
+  });
 }

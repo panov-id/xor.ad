@@ -3,7 +3,7 @@
 // stubbed (see chat/relay.ts) so the node is chat-ready without chat code.
 
 import { assertConfig, config } from "./config.ts";
-import { log } from "./lib/log.ts";
+import { installUncaughtScrub, log } from "./lib/log.ts";
 import { closeAllRooms } from "./chat/relay.ts";
 import { startWorker } from "./lib/jobs.ts";
 import { armScheduledJobs, startRearming, registerScheduledJobs } from "./lib/scheduled.ts";
@@ -11,6 +11,8 @@ import { dispatch } from "./dispatch.ts";
 import { hitsWritten, loadRateLimits } from "./lib/rate_limit.ts";
 
 assertConfig();
+// Before anything can fail unseen: what nobody catches goes through the scrub.
+installUncaughtScrub();
 
 // The address limits as the last day left them, before the first request
 // (db/074): a restarted container used to start every address from nought.

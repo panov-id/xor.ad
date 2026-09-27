@@ -61,7 +61,9 @@ function parseBrands(): Brand[] {
       match: b.match ?? [b.key],
     }));
   } catch (e) {
-    console.warn("[config] bad BRANDS json, using defaults:", e);
+    // The error's name only: a JSON parse error quotes the text it choked on,
+    // and this text holds the senders' mailboxes (SC1, 27.09.2026).
+    console.warn("[config] bad BRANDS json, using defaults:", e instanceof Error ? e.name : "error");
     return DEFAULT_BRANDS;
   }
 }
@@ -190,7 +192,8 @@ function parseResendKeys(): Record<string, string> {
   try {
     return JSON.parse(raw) as Record<string, string>;
   } catch (e) {
-    console.warn("[config] bad RESEND_KEYS json, ignoring:", e);
+    // The name only: the parse error quotes the text, and this text is keys.
+    console.warn("[config] bad RESEND_KEYS json, ignoring:", e instanceof Error ? e.name : "error");
     return {};
   }
 }

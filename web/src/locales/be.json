@@ -250,5 +250,21 @@
   "web.unlock.remembers": "Это устройство помнит вас. Введите ПИН, чтобы продолжить.",
   "web.unlock.restore": "открыть устройство бумажным кодом",
   "web.vault.pinLocked": "десять неверных ПИНов: вход закрыт до бумажного кода",
-  "web.vault.pinWrong": "неверный ПИН"
+  "web.vault.pinWrong": "неверный ПИН",
+  "web.game.title": "Гульня",
+  "web.game.class": "Гульня",
+  "web.game.set": "Набор",
+  "web.game.propose": "Прапанаваць гульню",
+  "web.game.waiting": "Чакаем адказу суразмоўцы",
+  "web.game.offered": "Вам прапануюць згуляць: {game}",
+  "web.game.rematch_offered": "Суразмоўца прапануе яшчэ партыю",
+  "web.game.accept": "Гуляць",
+  "web.game.decline": "Адмовіцца",
+  "web.game.your_turn": "Ваш ход",
+  "web.game.their_turn": "Ход суразмоўцы",
+  "web.game.over": "Партыя скончана",
+  "web.game.rematch": "Яшчэ партыю",
+  "web.game.resign": "Здацца",
+  "web.game.you": "вы",
+  "web.game.peer": "суразмоўца"
 }

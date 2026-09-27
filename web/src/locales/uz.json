@@ -250,5 +250,21 @@
   "web.unlock.remembers": "Это устройство помнит вас. Введите ПИН, чтобы продолжить.",
   "web.unlock.restore": "открыть устройство бумажным кодом",
   "web.vault.pinLocked": "десять неверных ПИНов: вход закрыт до бумажного кода",
-  "web.vault.pinWrong": "неверный ПИН"
+  "web.vault.pinWrong": "неверный ПИН",
+  "web.game.title": "O‘yin",
+  "web.game.class": "O‘yin",
+  "web.game.set": "To‘plam",
+  "web.game.propose": "O‘yin taklif qilish",
+  "web.game.waiting": "Suhbatdosh javobini kutyapmiz",
+  "web.game.offered": "Sizga o‘ynash taklif qilinmoqda: {game}",
+  "web.game.rematch_offered": "Suhbatdosh yana bir partiya taklif qilmoqda",
+  "web.game.accept": "O‘ynash",
+  "web.game.decline": "Rad etish",
+  "web.game.your_turn": "Sizning yurishingiz",
+  "web.game.their_turn": "Suhbatdoshning yurishi",
+  "web.game.over": "Partiya tugadi",
+  "web.game.rematch": "Yana bir partiya",
+  "web.game.resign": "Taslim bo‘lish",
+  "web.game.you": "siz",
+  "web.game.peer": "suhbatdosh"
 }

@@ -250,5 +250,21 @@
   "web.unlock.remembers": "Это устройство помнит вас. Введите ПИН, чтобы продолжить.",
   "web.unlock.restore": "открыть устройство бумажным кодом",
   "web.vault.pinLocked": "десять неверных ПИНов: вход закрыт до бумажного кода",
-  "web.vault.pinWrong": "неверный ПИН"
+  "web.vault.pinWrong": "неверный ПИН",
+  "web.game.title": "Παιχνίδι",
+  "web.game.class": "Παιχνίδι",
+  "web.game.set": "Σετ",
+  "web.game.propose": "Πρότεινε παιχνίδι",
+  "web.game.waiting": "Περιμένουμε την άλλη πλευρά",
+  "web.game.offered": "Σας προτείνουν να παίξετε: {game}",
+  "web.game.rematch_offered": "Η άλλη πλευρά προτείνει άλλον έναν γύρο",
+  "web.game.accept": "Παίξε",
+  "web.game.decline": "Άρνηση",
+  "web.game.your_turn": "Η σειρά σας",
+  "web.game.their_turn": "Η σειρά της άλλης πλευράς",
+  "web.game.over": "Η παρτίδα τελείωσε",
+  "web.game.rematch": "Άλλον έναν γύρο",
+  "web.game.resign": "Παραίτηση",
+  "web.game.you": "εσείς",
+  "web.game.peer": "η άλλη πλευρά"
 }

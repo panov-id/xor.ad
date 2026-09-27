@@ -250,5 +250,21 @@
   "web.unlock.remembers": "Это устройство помнит вас. Введите ПИН, чтобы продолжить.",
   "web.unlock.restore": "открыть устройство бумажным кодом",
   "web.vault.pinLocked": "десять неверных ПИНов: вход закрыт до бумажного кода",
-  "web.vault.pinWrong": "неверный ПИН"
+  "web.vault.pinWrong": "неверный ПИН",
+  "web.game.title": "Jeu",
+  "web.game.class": "Jeu",
+  "web.game.set": "Variante",
+  "web.game.propose": "Proposer une partie",
+  "web.game.waiting": "En attente de l'autre",
+  "web.game.offered": "On vous propose une partie : {game}",
+  "web.game.rematch_offered": "L'autre propose une nouvelle manche",
+  "web.game.accept": "Jouer",
+  "web.game.decline": "Refuser",
+  "web.game.your_turn": "À vous de jouer",
+  "web.game.their_turn": "À l'autre de jouer",
+  "web.game.over": "La partie est terminée",
+  "web.game.rematch": "Une autre manche",
+  "web.game.resign": "Abandonner",
+  "web.game.you": "vous",
+  "web.game.peer": "l'autre"
 }

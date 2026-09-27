@@ -10,7 +10,7 @@ import { say } from "../locales/say.ts";
 
 // The sets each class knows (relay/node/src/lib/tables_*.ts) and the most
 // seats it takes (routes/tables.ts).
-const CLASSES: Array<{ value: BoardClass; sets: string[]; most: number }> = [
+export const CLASSES: Array<{ value: BoardClass; sets: string[]; most: number }> = [
   { value: "dots", sets: ["3x3", "2x2", "4x4"], most: 2 },
   { value: "grid", sets: ["checkers", "chess"], most: 2 },
   { value: "deck", sets: ["36"], most: 6 },

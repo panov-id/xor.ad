@@ -5,57 +5,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
-import { applyFrame, dotsOf, frameNeedsView, freeEdges, openApplications, type TableView, Tables, turnOf } from "../../../depth/core/tables.ts";
+import { applyFrame, dotsOf, frameNeedsView, openApplications, type TableView, Tables, turnOf } from "../../../depth/core/tables.ts";
 import { say } from "../api/me.ts";
 import { connectTable } from "../api/tableRoom.ts";
 import { tableRefusal } from "../api/tables.ts";
-import { CellsBoard, DeckBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
-
-const CELL = 48, PAD = 16, HIT = 16;
-
-function DotsBoard({ view, onEdge }: { view: TableView; onEdge?: (edge: string) => void }) {
-  const dots = dotsOf(view.board)!;
-  const free = new Set(freeEdges(dots));
-  const size = dots.n * CELL + PAD * 2;
-  const edges: Array<{ id: string; x1: number; y1: number; x2: number; y2: number }> = [];
-  for (let r = 0; r <= dots.n; r++) {
-    for (let c = 0; c < dots.n; c++) {
-      edges.push({ id: `h:${r}:${c}`, x1: PAD + c * CELL, y1: PAD + r * CELL, x2: PAD + (c + 1) * CELL, y2: PAD + r * CELL });
-    }
-  }
-  for (let r = 0; r < dots.n; r++) {
-    for (let c = 0; c <= dots.n; c++) {
-      edges.push({ id: `v:${r}:${c}`, x1: PAD + c * CELL, y1: PAD + r * CELL, x2: PAD + c * CELL, y2: PAD + (r + 1) * CELL });
-    }
-  }
-  return (
-    <svg width={size} height={size} role="group" aria-label={say("table.board")} data-testid="dots">
-      {Object.entries(dots.boxes).map(([box, seat]) => {
-        const [r, c] = box.split(":").map(Number);
-        return <text key={box} x={PAD + c * CELL + CELL / 2} y={PAD + r * CELL + CELL / 2 + 5} textAnchor="middle">{seat}</text>;
-      })}
-      {edges.map((e) => free.has(e.id)
-        ? (
-          // A free edge is a rectangle along it, HIT px across: a line's box
-          // is zero high or wide, and nothing but a stroke could be pressed
-          // (W11). The faint line inside shows where the edge would go.
-          <g key={e.id}>
-            <line {...e} stroke="currentColor" strokeOpacity={onEdge ? 0.15 : 0.05} strokeWidth={3} pointerEvents="none" />
-            <rect x={Math.min(e.x1, e.x2) - HIT / 2} y={Math.min(e.y1, e.y2) - HIT / 2}
-              width={Math.abs(e.x2 - e.x1) + HIT} height={Math.abs(e.y2 - e.y1) + HIT} fill="transparent"
-              role={onEdge ? "button" : undefined} aria-label={onEdge ? `${say("table.edge")} ${e.id}` : undefined}
-              data-edge={e.id} tabIndex={onEdge ? 0 : undefined} style={{ cursor: onEdge ? "pointer" : "default" }}
-              onClick={onEdge ? () => onEdge(e.id) : undefined}
-              onKeyDown={onEdge ? (k) => (k.key === "Enter" || k.key === " ") && onEdge(e.id) : undefined} />
-          </g>
-        )
-        : <line key={e.id} {...e} stroke="currentColor" strokeWidth={3} data-taken={e.id} />)}
-      {Array.from({ length: (dots.n + 1) ** 2 }, (_, i) => (
-        <circle key={i} cx={PAD + (i % (dots.n + 1)) * CELL} cy={PAD + Math.floor(i / (dots.n + 1)) * CELL} r={3} />
-      ))}
-    </svg>
-  );
-}
+import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
 
 export function Table({ client, tableId, onLeave }: { client: Client; tableId: string; onLeave: () => void }) {
   const [tables] = useState(() => new Tables(client));

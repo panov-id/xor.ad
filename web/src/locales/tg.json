@@ -250,5 +250,21 @@
   "web.unlock.remembers": "Это устройство помнит вас. Введите ПИН, чтобы продолжить.",
   "web.unlock.restore": "открыть устройство бумажным кодом",
   "web.vault.pinLocked": "десять неверных ПИНов: вход закрыт до бумажного кода",
-  "web.vault.pinWrong": "неверный ПИН"
+  "web.vault.pinWrong": "неверный ПИН",
+  "web.game.title": "Бозӣ",
+  "web.game.class": "Бозӣ",
+  "web.game.set": "Маҷмӯа",
+  "web.game.propose": "Бозӣ пешниҳод кардан",
+  "web.game.waiting": "Ҷавоби ҳамсуҳбатро интизорем",
+  "web.game.offered": "Ба шумо бозӣ пешниҳод мекунанд: {game}",
+  "web.game.rematch_offered": "Ҳамсуҳбат боз як бозиро пешниҳод мекунад",
+  "web.game.accept": "Бозӣ кардан",
+  "web.game.decline": "Даст кашидан",
+  "web.game.your_turn": "Навбати шумо",
+  "web.game.their_turn": "Навбати ҳамсуҳбат",
+  "web.game.over": "Бозӣ ба охир расид",
+  "web.game.rematch": "Боз як бозӣ",
+  "web.game.resign": "Таслим шудан",
+  "web.game.you": "шумо",
+  "web.game.peer": "ҳамсуҳбат"
 }

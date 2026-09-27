@@ -250,5 +250,21 @@
   "web.unlock.remembers": "Это устройство помнит вас. Введите ПИН, чтобы продолжить.",
   "web.unlock.restore": "открыть устройство бумажным кодом",
   "web.vault.pinLocked": "десять неверных ПИНов: вход закрыт до бумажного кода",
-  "web.vault.pinWrong": "неверный ПИН"
+  "web.vault.pinWrong": "неверный ПИН",
+  "web.game.title": "Гра",
+  "web.game.class": "Гра",
+  "web.game.set": "Набір",
+  "web.game.propose": "Запропонувати гру",
+  "web.game.waiting": "Чекаємо відповіді співрозмовника",
+  "web.game.offered": "Вам пропонують зіграти: {game}",
+  "web.game.rematch_offered": "Співрозмовник пропонує ще партію",
+  "web.game.accept": "Грати",
+  "web.game.decline": "Відмовитися",
+  "web.game.your_turn": "Ваш хід",
+  "web.game.their_turn": "Хід співрозмовника",
+  "web.game.over": "Партію закінчено",
+  "web.game.rematch": "Ще партію",
+  "web.game.resign": "Здатися",
+  "web.game.you": "ви",
+  "web.game.peer": "співрозмовник"
 }

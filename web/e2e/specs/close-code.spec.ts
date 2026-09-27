@@ -109,7 +109,9 @@ test("the node names 4003 in a closed frame that reaches the browser, through th
 
   // A closes the chat by hand: NOTIFY chat_closed, every room of it gets the
   // closed frame with 4003 and then the close.
-  // No screen closes a conversation by hand yet (web/src/screens/Chat.tsx has no such control) — listed to the coordinator; until then the spec closes it through the client.
+  // Through the client, not the screen's «закончить беседу» (chat.spec clicks
+  // it): A's chat screen would open a room of her own session and replace the
+  // raw probe this spec reads the close code on.
   const closed = await viaClient<{ status: number }>(anya, "closeChat", chatId);
   expect(closed.status).toBe(200);
   const [proxied, straight] = await Promise.all([viaProxy, direct]);

@@ -11,13 +11,15 @@ import type { MatchRow } from "./Inbox.tsx";
 import { say } from "../locales/say.ts";
 import "../chat/chat.css";
 
-export function Match({ client, keys, row, onAgreed, onWaiting, onBack }: {
+export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclined }: {
   client: Client;
   keys: ChatKeys;
   row: MatchRow;
   onAgreed: (chatId: string) => void;
   onWaiting: () => void;
   onBack: () => void;
+  // "не сейчас" said or taken back here: the inbox keeps the row (W17).
+  onDeclined?: (row: MatchRow, declined: boolean) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +52,7 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack }: {
       if (answer.status !== 204) throw new Error(`the node refused: ${answer.status}`);
       if (!declined) keys.dropQueued(row.id);
       setDeclined(!declined);
+      onDeclined?.(row, !declined);
     } catch (e) {
       setError((e as Error).message);
     } finally {

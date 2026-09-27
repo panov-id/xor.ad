@@ -50,11 +50,30 @@ export function marksOf(r: InboxRow): string {
   return `${fresh ? `●${count}` : ""}${soon ? (fresh ? " ⌛" : "⌛") : ""}`;
 }
 
-export function Inbox({ client, onOpenMatch, onOpenChat }: {
+export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone }: {
   client: Client;
   onOpenMatch: (row: MatchRow) => void;
   onOpenChat: (row: InboxChatRow) => void;
+  // Declined in this page's life (W17): the node leaves them out of the list,
+  // and they stay here as "отклонено · вернуть" until the page goes, as the
+  // terminal keeps them in its process (depth/ink/rooms.ts, §4.6).
+  declined?: MatchRow[];
+  onUndone?: (row: MatchRow) => void;
 }) {
+  const [undoing, setUndoing] = useState<string | null>(null);
+  async function undo(row: MatchRow) {
+    setUndoing(row.id);
+    try {
+      const answer = await client.undoDecline(row.id);
+      if (answer.status !== 204) throw new Error(`${answer.status}`);
+      onUndone?.(row);
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setUndoing(null);
+    }
+  }
   const [rows, setRows] = useState<InboxRow[]>([]);
   const [events, setEvents] = useState<InboxEvents | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
@@ -103,6 +122,16 @@ export function Inbox({ client, onOpenMatch, onOpenChat }: {
             <p>{m.phrase.text}</p>
             <span className="muted">{m.waiting_for_you ? say("web.inbox.waits_you") : say("web.inbox.offer")}</span>
             <button type="button" onClick={() => onOpenMatch(m)} data-testid="open-match">{say("inbox.enter")}</button>
+          </li>
+        ))}
+        {declined.filter((d) => !matches.some((m) => m.id === d.id)).map((d) => (
+          <li key={d.id} className="card declined" data-testid="match" data-id={d.id} data-declined="yes">
+            <div className="row">
+              <strong>{d.name}, {d.age}</strong>
+              <span className="mark">{say("inbox.declined")}</span>
+            </div>
+            <p>{d.phrase.text}</p>
+            <button type="button" disabled={undoing === d.id} onClick={() => void undo(d)} data-testid="undo-decline">{say("inbox.undo")}</button>
           </li>
         ))}
       </ul>

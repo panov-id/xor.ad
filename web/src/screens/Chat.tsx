@@ -36,6 +36,18 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
   const [keysState, setKeysState] = useState<"opening" | "open" | "failed">("opening");
   const [keysError, setKeysError] = useState<string | null>(null);
   const [over, setOver] = useState(given.state === "ended");
+  const [ending, setEnding] = useState(false);
+
+  // DELETE /chats/:id (client.closeChat): the node closes it for both and
+  // sends 4003 to every room; this screen needs no socket to say so.
+  async function endChat() {
+    setError(null);
+    const answer = await client.closeChat(given.id).catch((e: Error) => ({ status: 0, body: { error: e.message } }));
+    if (answer.status !== 200 && answer.status !== 204) return setError(`${answer.status}`);
+    setEnding(false);
+    setOver(true);
+    setStatus({ key: "web.chat.over" });
+  }
   const [error, setError] = useState<string | null>(null);
   const [safety, setSafety] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -164,6 +176,17 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
       </header>
       <p className="status" data-testid="status">{"error" in status ? status.error : say(status.key, status.values)}</p>
       {safety && <p className="code" data-testid="safety">{safety}</p>}
+      {/* Ending the conversation by hand, for both (W17; DELETE /chats/:id, the
+          terminal's «закончить беседу»): asked once, then the tombstone. */}
+      {!over && (ending
+        ? (
+          <section className="confirm" data-testid="end-confirm">
+            <p>{say("web.chat.endAsk")}</p>
+            <button type="button" className="danger" data-testid="end-yes" onClick={() => void endChat()}>{say("chat.end")}</button>
+            <button type="button" data-testid="end-no" onClick={() => setEnding(false)}>{say("common.back")}</button>
+          </section>
+        )
+        : <button type="button" data-testid="end" onClick={() => setEnding(true)}>{say("chat.end")}</button>)}
       {over && (
         <section className="tombstone" data-testid="tombstone">
           <h2>{say("web.chat.over_title")}</h2>

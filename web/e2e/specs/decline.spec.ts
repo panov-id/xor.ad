@@ -65,14 +65,16 @@ test("not now is this side's alone and can be taken back; a device with no wrap 
   await expect(anya.locator(`[data-testid="match"][data-id="${matchId}"]`)).toBeVisible({ timeout: 15000 });
   await expect(anya.locator(`[data-testid="match"][data-id="${matchId}"]`)).toContainText("предложение");
 
-  // Taken back on the same screen with "вернуть" (once B leaves it, the
-  // declined card is gone from B's inbox by design): the offer is back.
-  await boris.getByTestId("not-now").click();
-  await expect(boris.getByTestId("not-now")).not.toHaveText("вернуть", { timeout: 15000 });
-  await expect(boris.getByTestId("talk")).toBeEnabled();
+  // In B's inbox the declined offer stays as "отклонено · вернуть" while the
+  // page lives, as the terminal keeps it (W17) — the node leaves it out of
+  // the list; "вернуть" takes it back, and the node lists it again.
   await boris.getByTestId("back").click();
-  await boris.getByTestId("refresh").click();
-  await expect(boris.locator(`[data-testid="match"][data-id="${matchId}"]`)).toBeVisible({ timeout: 15000 });
+  const declinedRow = boris.locator(`[data-testid="match"][data-id="${matchId}"]`);
+  await expect(declinedRow).toHaveAttribute("data-declined", "yes", { timeout: 15000 });
+  await expect(declinedRow).toContainText("отклонено");
+  await declinedRow.getByTestId("undo-decline").click();
+  await expect(declinedRow).not.toHaveAttribute("data-declined", "yes", { timeout: 15000 });
+  await expect(declinedRow.getByTestId("open-match")).toBeVisible();
 
   // Both agree; A opens the conversation and wraps her keys. B never opens it
   // in this tab, then reloads: no pair in memory, no wrap on the node — the

@@ -39,14 +39,6 @@ async function register(page: Page, name: string) {
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
 }
 
-// The page's own client, for the one step no screen has yet (the close by hand).
-const viaClient = <T>(page: Page, fn: string, ...args: unknown[]) =>
-  page.evaluate(([f, a]) => {
-    const xor = (globalThis as unknown as { xor?: { client: Record<string, (...x: unknown[]) => Promise<unknown>> } }).xor;
-    if (!xor) throw new Error("the page exposes no client");
-    return xor.client[f](...(a as unknown[])) as Promise<T>;
-  }, [fn, args] as const);
-
 async function personIn(context: BrowserContext, name: string): Promise<Page> {
   const page = await context.newPage();
   watch(page, name);
@@ -154,9 +146,14 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   // ticket refused on the way back in: no ticket is bought after the close.
   const ticketsAfterClose: number[] = [];
   boris.on("response", (r) => { if (new URL(r.url()).pathname === `/chats/${chatId}/ticket`) ticketsAfterClose.push(r.status()); });
-  // No screen closes a conversation by hand yet (web/src/screens/Chat.tsx has no such control) — listed to the coordinator; until then the spec closes it through the client.
-  const closed = await viaClient<{ status: number; body: { state: string } }>(anya, "closeChat", chatId);
-  expect(closed.status).toBe(200);
+  // By the screen (W17): «закончить беседу», asked once, then A's own tombstone.
+  const closes: number[] = [];
+  anya.on("response", (r) => { if (new URL(r.url()).pathname === `/chats/${chatId}` && r.request().method() === "DELETE") closes.push(r.status()); });
+  await anya.getByTestId("end").click();
+  await expect(anya.getByTestId("end-confirm")).toBeVisible();
+  await anya.getByTestId("end-yes").click();
+  await expect(anya.getByTestId("tombstone")).toBeVisible({ timeout: 15000 });
+  expect(closes).toEqual([200]);
   await expect(boris.getByTestId("tombstone")).toBeVisible({ timeout: 20000 });
   await expect(boris.locator('[data-screen="chat"]')).toHaveAttribute("data-over", "yes");
   await boris.waitForTimeout(3000);

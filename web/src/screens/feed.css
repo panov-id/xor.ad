@@ -43,13 +43,11 @@
 [data-screen="likes"] > .ui-header .ui-header-title { text-align: center; }
 [data-screen="likes"] > .ui-header::after { content: ""; width: 44px; }
 
-/* Sheet 03: the feed keeps its own band (the nearby step is a live region the
-   specs read by testid): the title 20/600 with the step, the radius at its right. */
-[data-screen="feed"] > header { min-height: 56px; margin: 0 -16px; padding: 0 16px; display: flex; align-items: center; gap: 8px; }
-[data-screen="feed"] > header h1 { font-size: 20px; font-weight: 600; line-height: 1.2; }
-[data-screen="feed"] > header > div { display: flex; align-items: baseline; gap: 8px; margin-right: auto; }
-[data-screen="feed"] > header .nearby { margin: 0; }
-[data-screen="feed"] > header .radius select { min-height: 44px; padding: 8px 10px; font-size: 14px; }
+/* Sheet 03: the feed's band is the kit's HeaderFeed (WD8) — «место · ступень»
+   in one title 20/600, the live step inside it; the radius stands where the
+   kit's filter button does, at the right. */
+[data-screen="feed"] > .ui-header .ui-header-title { line-height: 1.2; }
+[data-screen="feed"] > .ui-header .radius select { min-height: 44px; padding: 8px 10px; font-size: 14px; }
 /* The floating composer of sheet 03 (kit `composer-float`, 327x52 at x=24,
    12 above the tab bar): "write" is the kit's pill (Button kind="pill"),
    placed where the sheet's is. */

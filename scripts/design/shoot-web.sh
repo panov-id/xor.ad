@@ -32,20 +32,31 @@ if [ "${1:-}" != "--sheets" ]; then
   "${compose[@]}" up -d --build --wait web web-adv || { "${compose[@]}" logs --no-color --tail 40 node web web-adv >&2; exit 1; }
   web="$("${compose[@]}" ps -q web)"
 
-  # The statements screen needs a statement, which only a moderator's decision
-  # writes: when shoot-web.mjs names an identity in statement.want, one row of
-  # dsa_statements (relay/node/db/005_dsa_notices.sql) is written for it.
-  rm -f "$out/statement.want" "$out/statement.done"
+  # What only the stand's database can give, asked for by shoot-web.mjs through
+  # files in $out and answered once each:
+  #   statement.want (an identity) → one dsa_statements row for it
+  #     (relay/node/db/005_dsa_notices.sql), then statement.done — the
+  #     statements screen needs a moderator's decision;
+  #   envelope.want (a venue's name) → the code of its open envelope in
+  #     envelope.code — the cabinet proves a venue by a letter's code, read
+  #     here as web/e2e/specs/adv.spec.ts reads it.
+  rm -f "$out/statement.want" "$out/statement.done" "$out/envelope.want" "$out/envelope.code"
+  psql=("${compose[@]}" exec -T postgres psql -U relay -d relay_test -v ON_ERROR_STOP=1 -qAt)
   (
     for _ in $(seq 1 1800); do
-      if [ -s "$out/statement.want" ]; then
+      if [ -s "$out/statement.want" ] && [ ! -e "$out/statement.done" ]; then
         who="$(tr -cd '0-9a-zA-Z_-' < "$out/statement.want")"
-        "${compose[@]}" exec -T postgres psql -U relay -d relay_test -v ON_ERROR_STOP=1 -q -c \
-          "INSERT INTO dsa_statements (brand, target_id, recipient_identity, restriction, facts, ground_kind, ground_text)
-           VALUES ('sosed', 'shoot-web', '$who', 'hidden', 'фраза скрыта по жалобе соседа', 'contractual', 'правила сообщества, п. 3')" \
-          && touch "$out/statement.done"
-        exit 0
+        echo "INSERT INTO dsa_statements (brand, target_id, recipient_identity, restriction, facts, ground_kind, ground_text)
+              VALUES ('sosed', 'shoot-web', :'who', 'hidden', 'фраза скрыта по жалобе соседа', 'contractual', 'правила сообщества, п. 3');" \
+          | "${psql[@]}" -v who="$who" && touch "$out/statement.done"
       fi
+      if [ -s "$out/envelope.want" ] && [ ! -e "$out/envelope.code" ]; then
+        code="$(echo "SELECT e.code FROM venue_envelopes e JOIN venues v ON v.id = e.venue_id
+                       WHERE v.name = :'name' AND e.used_at IS NULL AND e.burned_at IS NULL LIMIT 1;" \
+          | "${psql[@]}" -v name="$(cat "$out/envelope.want")")"
+        [ -n "$code" ] && printf '%s' "$code" > "$out/envelope.code"
+      fi
+      [ -e "$out/statement.done" ] && [ -e "$out/envelope.code" ] && exit 0
       sleep 0.5
     done
   ) &

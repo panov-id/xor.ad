@@ -18,3 +18,13 @@ Likes-dark	screen-25	1	25 · пусто
 Cabinet-sign-in-dark	screen-17-venue	0	17 · вход заведения
 Cabinet-offers-dark	screen-17-venue	4	17 · кабинет, офферы
 Offer-dark	screen-17-venue	7	17 · экран перехода
+Unlock-dark	screen-12-13	2	12 · 3 · «12, замок» (подпись в группе телефона)
+Departure-dark	screen-12-13	8	13 А · 9 · «цена числами» — первый шаг переноса
+Arrival-dark	screen-12-13	13	13 Б · 14 · «с заставки: два поля»
+Statements-dark	screen-06-07-10	20	10 · U · «Я» — фраза скрыта, решал человек
+Me-edit-name-dark	screen-06-07-10	18	10 · S · правка поля «я» до сохранения (на листе — возраст)
+NewTable-dark	screen-01-04-05	6	04 · «стол»: игра из трёх, имя
+Table-dark	screen-19	12	19 · A0 · момент посадки
+TableBoards-dark	screen-19	1	19 · B · играющий, ваш ход
+Cabinet-venues-dark	screen-17-venue	1	17 · точка не подтверждена: конверт с кодом
+Cabinet-new-offer-dark	screen-17-venue	2	17 · форма оффера

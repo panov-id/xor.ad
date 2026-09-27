@@ -1,5 +1,5 @@
 # shot (testing/screenshots/web/<shot>.png)	sheet (panel/design/<sheet>.svg)	phone (0-based, in the sheet's order)	what the phone shows
-Splash-dark	screen-01-04-05	0	01 · заставка
+Splash-dark	screen-01-04-05	1	01 · заставка, prefers-reduced-motion: все иконки стоят (съёмка — reducedMotion)
 Composer-dark	screen-01-04-05	2	04 · «фраза», пусто
 Register-1-dark	screen-02	1	02 · шаг 1, заполнено
 Register-2-dark	screen-02	2	02 · шаг 2, ПИН

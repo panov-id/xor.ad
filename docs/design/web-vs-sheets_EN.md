@@ -134,3 +134,12 @@ No pair on the sheets (dark shots):
 
 Light shots other than the feed (`Feed-light` ↔ `screen-brands` #9) have no pair: the
 other sheets are dark.
+
+## WS1 · WD6c · 28.09.2026 · splash
+
+- **Stop: no language choice.** Sheet 01 shows "RU" in the corner as the language code. The
+  web shows it as a label, not a button: the web has no language switch. The language is
+  picked once at load from the browser's languages (`web/src/locales/say.ts:18`, `:26`).
+- The splash icons come and go, so the shoot runs with `reducedMotion: "reduce"` and sets
+  Splash against sheet 01's second phone, where the icons stand. Without it two shoots in a
+  row gave 4.97% and 12.06% off the sheet.

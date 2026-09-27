@@ -67,10 +67,33 @@
 
 /* WD13, sheet 01: the words low and quiet, centred, and the three actions at
    the foot, all 343 wide — the sheet's upper half is its icon cycle. */
-.screen.splash[data-screen="splash"] { justify-content: flex-end; padding-bottom: var(--s-6); }
+.screen.splash[data-screen="splash"] { justify-content: flex-end; padding-bottom: var(--s-3); }
 [data-screen="splash"] h1 { font-size: 16px; font-weight: 400; color: var(--muted); margin: 0; }
-[data-screen="splash"] > .muted { margin: 0 0 var(--s-6); font-size: 16px; }
+[data-screen="splash"] > .muted { margin: calc(-1 * var(--s-3)) 0 var(--s-2); font-size: 16px; }
 [data-screen="splash"] > .ui-button { width: 100%; }
+
+/* WS1, sheet 01: the language code in the corner (44 at 315,12 — a name, not a
+   switch: the web has none), and the icon cycle filling the upper half: two
+   columns at x 64 and 224, rows 118 apart from y 84, each icon 87 (56 at 1.55).
+   Each icon comes and goes on its own beat; under reduced motion all stand. */
+.screen.splash[data-screen="splash"] { position: relative; padding-top: 84px; }
+.splash-lang {
+  position: absolute; top: 12px; right: 16px; margin: 0;
+  min-width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border-control); border-radius: var(--r-2); font-size: 14px; font-weight: 600; color: var(--fg);
+}
+.splash-icons { flex: 1; display: grid; grid-template-columns: 87px 87px; column-gap: 73px; row-gap: 31px; justify-content: center; align-content: start; margin-bottom: var(--s-4); }
+.splash-icons svg { fill: none; stroke: var(--fg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; animation: splash-come-go 5.6s ease-in-out infinite; }
+.splash-icons .dot { fill: var(--fg); stroke: none; }
+.splash-icons svg:nth-child(2) { animation-delay: -0.7s; }
+.splash-icons svg:nth-child(3) { animation-delay: -1.4s; }
+.splash-icons svg:nth-child(4) { animation-delay: -2.1s; }
+.splash-icons svg:nth-child(5) { animation-delay: -2.8s; }
+.splash-icons svg:nth-child(6) { animation-delay: -3.5s; }
+.splash-icons svg:nth-child(7) { animation-delay: -4.2s; }
+.splash-icons svg:nth-child(8) { animation-delay: -4.9s; }
+@keyframes splash-come-go { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+@media (prefers-reduced-motion: reduce) { .splash-icons svg { animation: none; } }
 
 /* WD13, sheet 25 (empty): the hint in the middle of the screen, from the left
    edge, body 16 in fg — not a centred title. */

@@ -71,4 +71,18 @@
 .screen.cabinet fieldset.place { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-3); }
 .screen.cabinet fieldset.place legend { padding: 0; margin-bottom: var(--s-2); font-size: 14px; font-weight: 600; color: var(--fg); }
 .screen.cabinet input, .screen.cabinet select, .screen.cabinet textarea { background: var(--panel); }
+/* WD11: the states sheet 17 draws — the complaint count on an offer (err), the
+   complaints with the one answer to the moderator, «это не мы» under the
+   venues, and «Так увидит сосед» before publishing. */
+.place-count { display: flex; justify-content: space-between; margin: 0; font-size: 14px; }
+.place-count-bad { color: var(--err); font-weight: 600; }
+.place-complaints, .place-not-us, .place-preview { display: flex; flex-direction: column; gap: var(--s-3); }
+.place-complaints h2, .place-not-us h2 { font-size: 16px; font-weight: 600; margin: var(--s-4) 0 0; }
+.place-not-us { border-top: 1px solid var(--border); padding-top: var(--s-4); margin-top: var(--s-4); }
+.place-complaint p { margin: 0; }
+.place-complaint .warn { color: var(--accent-text); font-size: 14px; }
+.place-answer { display: flex; gap: var(--s-2); align-items: flex-end; }
+.place-answer .place-field { flex: 1; }
+.place-preview .row { display: flex; justify-content: space-between; align-items: center; }
+.screen.cabinet .place-not-us .ui-button, .screen.cabinet .place-preview .ui-button { width: 100%; }
 .screen.cabinet [data-testid="adv-sent"] { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-1); background: var(--panel-2); font-size: 14px; }

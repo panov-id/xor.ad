@@ -36,6 +36,18 @@ export type Offer = {
   expires_at: string;
   link: string;
   link_disabled: boolean;
+  // Complaints that the discount was not given, of every status (AdvOffer).
+  complaints?: number;
+};
+
+// A complaint on one's own offer: text and date only (openapi AdvComplaint).
+export type Complaint = {
+  id: string;
+  offer_id: string;
+  text: string;
+  date: string;
+  status: "pending" | "resolved" | "rejected";
+  response: string | null;
 };
 
 export type Refusal = { error?: { code?: string; message?: string; attempts_left?: number; reason?: string } };
@@ -76,6 +88,12 @@ export const publish = (offer: {
   venue_id: string; offer_text: string; discount_value: string; discount_until: string;
   conditions?: string; promo_code?: string; external_url?: string;
 }) => call<Offer & Refusal>("POST", "/adv/offers", offer);
+// «Скидку не дали» on one's own offers, and one private answer to the moderator each (offers SPEC §10).
+export const complaints = () => call<{ items: Complaint[] }>("GET", "/adv/complaints");
+export const answerComplaint = (id: string, text: string) =>
+  call<Refusal>("POST", `/adv/complaints/${encodeURIComponent(id)}/response`, { text });
+// «Это не мы»: no session; always 204, a right code suspends that venue (SPEC §11).
+export const notUs = (code: string) => call("POST", "/adv/venues/not-us", { code });
 
 // A moment as the sheet writes it: "30 сентября, 18:00".
 export const when = (iso: string | null): string => {

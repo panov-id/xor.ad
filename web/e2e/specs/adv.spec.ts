@@ -93,6 +93,10 @@ test("the cabinet: a link by mail, a venue proved by its envelope, an offer publ
   await page.getByTestId("offer-conditions").fill("при заказе от двух");
   await page.getByTestId("offer-promo").fill("КОЛОС20");
   await page.getByTestId("offer-url").fill("https://kolos.example/");
+  // «Так увидит сосед» before publishing (sheet 17): the card from the form.
+  await page.getByTestId("offer-preview").click();
+  await expect(page.getByTestId("offer-preview-card")).toContainText(text);
+  await expect(page.getByTestId("offer-preview-card")).toContainText("−20 %");
   await page.getByTestId("offer-publish").click();
   await expect(page.getByTestId("offer-published")).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("offer-published-link")).toContainText(/Ссылка: sosed\.place\/o\/\S+/);
@@ -102,6 +106,7 @@ test("the cabinet: a link by mail, a venue proved by its envelope, an offer publ
   await page.getByTestId("offer-new").click();
   await page.getByTestId("offer-text").fill(text);
   await page.getByTestId("offer-discount").fill("−20 %");
+  await page.getByTestId("offer-preview").click();
   await page.getByTestId("offer-publish").click();
   await expect(page.getByTestId("offer-refused")).toContainText("Дубль текста живого оффера", { timeout: 15000 });
 
@@ -110,6 +115,30 @@ test("the cabinet: a link by mail, a venue proved by its envelope, an offer publ
   const offer = page.getByTestId("adv-offer").filter({ hasText: text });
   await expect(offer).toHaveCount(1, { timeout: 15000 });
   await expect(offer.getByTestId("adv-offer-state")).toHaveText("в ленте");
+
+  // «Скидку не дали» (sheet 17; SPEC §10): a complaint on this offer — a
+  // person's path to it is offer-complaint.spec.ts, so it is written into the
+  // stand's database here — shows on the card as a count and below with its
+  // text; the venue answers the moderator once, and the field is gone.
+  const said = "Сказали, что акция только по будням.";
+  const db = postgres(DATABASE, { max: 1 });
+  try {
+    await db`
+      INSERT INTO offer_complaints (id, offer_id, notifier_email, text, counts_towards_autohide)
+      SELECT gen_random_uuid(), id, 'sosed@example.test', ${said}, true FROM offers WHERE offer_text = ${text}`;
+  } finally {
+    await db.end();
+  }
+  await page.getByTestId("adv-tab-venues").click();
+  await page.getByTestId("adv-tab-offers").click();
+  await expect(offer.getByTestId("adv-offer-complaints")).toContainText("1", { timeout: 15000 });
+  const complaint = page.getByTestId("adv-complaint").filter({ hasText: said });
+  await expect(complaint).toHaveCount(1);
+  await expect(complaint).toContainText("ждёт вашего ответа");
+  await complaint.getByTestId("adv-complaint-text").fill("Условия на кассе, в акцию входят и выходные.");
+  await complaint.getByTestId("adv-complaint-send").click();
+  await expect(complaint.getByTestId("adv-complaint-response")).toHaveText("Условия на кассе, в акцию входят и выходные.", { timeout: 15000 });
+  await expect(complaint.getByTestId("adv-complaint-text")).toHaveCount(0);
 
   // A reload keeps the session; the spent link does not open again.
   await page.reload();

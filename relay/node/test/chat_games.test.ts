@@ -143,6 +143,8 @@ const view = async (who: Person, chat: string) => (await signed(who, "GET", `/ch
 
 // Two rooms of the conversation, one per side, with sockets that keep what they are sent.
 function rooms(chat: string, a: Person, b: Person) {
+  // A frame's data differs by type (board, proposal, sys); the test reads each.
+  // deno-lint-ignore no-explicit-any
   const sent = new Map<string, { type: string; data: any }[]>([["a", []], ["b", []]]);
   const fake = (name: string) =>
     ({ readyState: WebSocket.OPEN, send: (t: string) => sent.get(name)!.push(JSON.parse(t)), close() {} }) as unknown as WebSocket;

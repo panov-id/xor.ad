@@ -20,7 +20,7 @@ import { json } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
-import { sendAdvLetter } from "../lib/adv.ts";
+import { sendOfferLinkOff, withoutAddresses } from "../lib/mailer.ts";
 import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll, OFFER_LINK_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
@@ -187,7 +187,7 @@ async function report(req: Request, code: string): Promise<Response> {
     );
     return owner ?? null;
   }).catch((error) => {
-    log("error", "a link report failed", { error: String(error) });
+    log("error", "a link report failed", { error: withoutAddresses(String(error)) });
     return "unavailable" as const;
   });
   if (outcome === "unavailable") return refuse("unavailable", "the node cannot write right now", 503);
@@ -196,22 +196,8 @@ async function report(req: Request, code: string): Promise<Response> {
     inc("relay_offer_link_total", { result: "switched_off" });
     const brand = await brandByKey(outcome.brand);
     if (brand) {
-      // Articles 17(1)(a), 17(3) DSA: what was restricted, on what ground, how
-      // it was decided and how to contest it (§10.1).
-      sendAdvLetter(outcome.email, brand, "A link of your offer was switched off", "The offer's link is off", [
-        { kind: "text", value: `The link of an offer of ${outcome.venue} no longer sends anyone on.` },
-        {
-          kind: "text",
-          value: "Why: two people who had written in the feed before the offer came out, their first phrase " +
-            "more than a day old, reported that it leads to a phishing or malicious site (agreement §10). " +
-            "The decision was automatic; the offer itself stays in the feed.",
-        },
-        {
-          kind: "text",
-          value: "To contest it, answer this letter and a person will look; you may also turn to the Digital " +
-            "Services Coordinator or to a court.",
-        },
-      ]).catch(() => {});
+      // What, why, that it was automatic and how to contest it (§10.1).
+      await sendOfferLinkOff(outcome.email, brand, outcome.venue);
     }
   }
   return json({ state: "received" }, 202);

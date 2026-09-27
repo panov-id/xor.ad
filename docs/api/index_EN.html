@@ -34,7 +34,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>Node API</h1><a href="index_RU.html">Русский</a></div>
-<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 142 operations, OpenAPI 3.1.0, 2026-09-17.</p>
+<p class="lead">The relay node contract: what is built and what is described. Source — docs/api/openapi.yaml. 146 operations, OpenAPI 3.1.0, 2026-09-17.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-offers">offers</a><a href="#tag-support">support</a><a href="#schemas">Schemas</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Service routes of the node. HEAD answers for every GET, OPTIONS answers 204 on any path (dispatch.ts).</p>
@@ -1212,12 +1212,13 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Source: <code>relay/node/src/routes/offer_links.ts</code></p>
 </section>
 <section class="op" id="post-o--code--report">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/o/{code}/report</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/o/{code}/report</code><span class="chip s-built">built</span></div>
 <p><strong>Report the offer link</strong></p>
-<p>No e-mail, not an appeal but a signal; two counting reports from different people disable the link at once; a report that does not count goes to the moderator with high priority and disables nothing; it never spends COMPLAINT_MONTHLY_LIMIT (offers/SPEC_EN.md §10.1, table offer_link_reports).</p>
+<p>No e-mail, a signal and not an appeal. It counts when the reporter&#x27;s first accepted phrase came out on a UTC day no later than the day before yesterday and before the offer&#x27;s day; one person counts once; the second counting report switches the link off at once and the venue is told by mail; the offer stays. The answer is the same whether the report counted or not (offers/SPEC_EN.md §10.1, table offer_link_reports, db/069). The storefront key, when sent, bounds the lookup to its brand.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>code</code></td><td>path</td><td><code>string</code> <span class="src">minLength: 10</span></td><td>yes</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>No such code.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Received.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/offer_links.ts</code></p>
 </section>
 <section class="op" id="post-offers--id--complaints">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/offers/{id}/complaints</code><span class="chip s-spec">spec</span></div>
@@ -1229,83 +1230,128 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><a href="#schema-offercomplaintcreate"><code>OfferComplaintCreate</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Accepted; whether it counts is frozen now.</td><td><code>object</code></td></tr><tr><td><code>422</code></td><td>No e-mail: the only way to answer — the form names this reason</td><td></td></tr></table></div>
 </section>
+<section class="op" id="post-adv-sign-in">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/sign-in</code><span class="chip s-built">built</span></div>
+<p><strong>Ask for a sign-in link</strong></p>
+<p>Always 204 and a fresh browser half, cookie __Host-adv-link; a link is mailed only to a registered address, 15 minutes, one use. The asker&#x27;s address and the mailbox have ceilings; the mailbox&#x27;s is charged only for a real account (offers/SPEC_EN.md §2.1). Only from the cabinet&#x27;s own origin adv.&lt;storefront&gt;, which also names the storefront.</p>
+<h3>Access</h3><p>no access control</p>
+<h3>Request body · <code>application/json</code></h3>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>The body is not what the operation takes; code invalid_body.</td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done; Set-Cookie carries __Host-adv-link.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
+</section>
+<section class="op" id="post-adv-session">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/session</code><span class="chip s-built">built</span></div>
+<p><strong>Open a session by the link</strong></p>
+<p>The token from the link and the half in cookie __Host-adv-link of the browser that asked; only the hash of both is stored (db/067). Spent on the first try, right or wrong. Sets cookie __Host-adv for 30 days and confirms the e-mail. Only from the cabinet&#x27;s own origin adv.&lt;storefront&gt;, which also names the storefront.</p>
+<h3>Access</h3><p>no access control</p>
+<h3>Request body · <code>application/json</code></h3>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>token</code></td><td><code>string</code> <span class="src">pattern: &quot;^[0-9a-f]{64}$&quot;</span></td><td>yes</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>Invalid or expired link, another browser, or not from the cabinet&#x27;s origin.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Signed in; Set-Cookie carries __Host-adv.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
+</section>
+<section class="op" id="post-adv-sign-out">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/sign-out</code><span class="chip s-built">built</span></div>
+<p><strong>Sign out of the cabinet</strong></p>
+<p>Deletes the session row named by cookie __Host-adv and clears the cookie; the session ends on the next request.</p>
+<h3>Access</h3><p>no access control</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
+</section>
+<section class="op" id="get-adv-me">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/me</code><span class="chip s-built">built</span></div>
+<p><strong>Who is signed in</strong></p>
+<p>The account&#x27;s e-mail, whether it is confirmed, and the storefront.</p>
+<h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The account.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
+</section>
 <section class="op" id="post-adv-signup">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/signup</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/signup</code><span class="chip s-built">built</span></div>
 <p><strong>Register a venue account</strong></p>
-<p>Always 204 — says nothing about whether the address is known; the confirming link comes by e-mail (offers/SPEC_EN.md §2.1).</p>
+<p>Always 204 — an address already registered is neither an error nor a second account. Sets the browser half of the sign-in link, cookie __Host-adv-link, and mails the link; the first sign-in confirms the address (offers/SPEC_EN.md §2.1; db/067). Only from the cabinet&#x27;s own origin adv.&lt;storefront&gt;, which also names the storefront.</p>
 <h3>Access</h3><p>no access control</p>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-advertisersignup"><code>AdvertiserSignup</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>The body is not what the operation takes; code invalid_body.</td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done; Set-Cookie carries __Host-adv-link.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="get-adv-venues">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/venues</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/venues</code><span class="chip s-built">built</span></div>
 <p><strong>My venues</strong></p>
-<p>Only the account own venues with their verification status.</p>
+<p>Only the account&#x27;s own venues, with their verification status and the end of a live envelope, as {items}.</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<a href="#schema-venue"><code>Venue</code></a>&gt;</td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-venues">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues</code><span class="chip s-built">built</span></div>
 <p><strong>Add a venue</strong></p>
-<p>unverified until the envelope code (offers/SPEC_EN.md §11); needs a confirmed e-mail.</p>
+<p>unverified until the envelope code (offers/SPEC_EN.md §11); an address suspended within the last year (db/056) comes back suspended.</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-venuecreate"><code>VenueCreate</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Created; Location names the venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>The body is not what the operation takes; code invalid_body.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Created; Location names the venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="patch-adv-venues--id">
-<div class="op-head"><span class="method m-patch">patch</span><code class="path">/adv/venues/{id}</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/adv/venues/{id}</code><span class="chip s-built">built</span></div>
 <p><strong>Change a venue</strong></p>
-<p>A new address sends the venue back to unverified — a new envelope (offers/SPEC_EN.md §11).</p>
+<p>The name, the address or both. A new address burns the live envelope and sends a verified venue back to unverified; a suspended one stays suspended (offers/SPEC_EN.md §11).</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
-<p><a href="#schema-venuecreate"><code>VenueCreate</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>name</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>no</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code> <span class="src">maxLength: 256</span></td><td>no</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>The body is not what the operation takes; code invalid_body.</td><td></td></tr><tr><td><code>404</code></td><td>No such thing among one&#x27;s own — somebody else&#x27;s answers the same.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-venues--id--envelope">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/envelope</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/envelope</code><span class="chip s-built">built</span></div>
 <p><strong>Order the envelope</strong></p>
-<p>An activation code posted to the venue address, alive 30 days (ACTIVATION_CODE_TTL).</p>
+<p>A new code for the venue&#x27;s address, alive 30 days (ACTIVATION_CODE_TTL), five attempts; it supersedes a live one. The cabinet never sees the code — it goes on paper (db/068).</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Ordered.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>404</code></td><td>No such thing among one&#x27;s own — somebody else&#x27;s answers the same.</td><td></td></tr><tr><td><code>409</code></td><td>The venue is already verified, or the e-mail is not confirmed; code refused.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Ordered.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-venues--id--verify">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/verify</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/verify</code><span class="chip s-built">built</span></div>
 <p><strong>Enter the envelope code</strong></p>
-<p>verified on a right code; attempts counted, the code burnt after several wrong ones (offers/SPEC_EN.md §2.1, §11).</p>
+<p>verified on the right code; a wrong one spends an attempt of the live envelope, the fifth burns it (offers/SPEC_EN.md §2.1, §11). Case and dashes do not matter.</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-venuecode"><code>VenueCode</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The venue.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr><tr><td><code>422</code></td><td>Wrong code; the attempt is counted.</td><td></td></tr><tr><td><code>409</code></td><td>The code is burnt — a new envelope is needed.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>404</code></td><td>No such thing among one&#x27;s own — somebody else&#x27;s answers the same.</td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Verified.</td><td><code>object</code></td></tr><tr><td><code>422</code></td><td>Wrong code; the attempt is counted and error.attempts_left says how many remain.</td><td></td></tr><tr><td><code>409</code></td><td>No live envelope — used, burnt or expired; a new one is needed. Code refused.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-venues-not-us">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/not-us</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/not-us</code><span class="chip s-built">built</span></div>
 <p><strong>It&#x27;s not us</strong></p>
-<p>No session: the code from an envelope nobody at this address ordered puts that venue into suspended at once; lifted only by a new envelope; wrong codes spend the same attempt counter as /verify (owner&#x27;s decision of 2026-09-19; offers/SPEC_EN.md §11).</p>
+<p>No session: the code from an envelope nobody at this address ordered puts that venue into suspended at once and spends the envelope; lifted only by a new envelope. Wrong codes spend the ceiling of the caller&#x27;s address, shared with /verify — without a session there is no venue to charge (owner&#x27;s decision of 2026-09-19; offers/SPEC_EN.md §11).</p>
 <h3>Access</h3><p>no access control</p>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-venuecode"><code>VenueCode</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Always 204, for a right and a wrong code alike: the answer does not tell whether a code exists; a right one suspends the venue (review panel 2026-09-19)</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Always 204, for a right and a wrong code alike: the answer does not tell whether a code exists; a right one suspends the venue (review panel 2026-09-19)</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="get-adv-offers">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/offers</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/offers</code><span class="chip s-built">built</span></div>
 <p><strong>My offers</strong></p>
-<p>Live and expired, with redirect_hits and the complaint count — the only figures (offers/SPEC_EN.md §2.1).</p>
+<p>Live and expired, newest first, as {items}; of the figures only redirect_hits (offers/SPEC_EN.md §2.1). A card past expires_at reads expired.</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td>array&lt;<a href="#schema-advoffer"><code>AdvOffer</code></a>&gt;</td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The list.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-offers">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/offers</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/offers</code><span class="chip s-built">built</span></div>
 <p><strong>Publish an offer</strong></p>
-<p>Only from a verified venue; published at once and whole after the automatic checks, refused with a reason otherwise (offers/SPEC_EN.md §6, §6.1).</p>
+<p>Only from one&#x27;s own verified venue; published at once and whole, the card for 4:20 and the discount to discount_until, at most 90 days (offers/SPEC_EN.md §3, §6, §6.1, §8). The node refuses a link shortener, a link that is not http(s), a term out of range and the text of one&#x27;s own live offer; the reputation lists and the stop words are not checked yet. «Show again» is repeated_from, only from an offer no longer live.</p>
 <h3>Access</h3><p>The venue cabinet session (offers/SPEC_EN</p>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-offercreate"><code>OfferCreate</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Published; Location names the offer.</td><td><a href="#schema-advoffer"><code>AdvOffer</code></a></td></tr><tr><td><code>422</code></td><td>Refused by an automatic check; the reason in ApiError.reason.</td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td>No session of this cabinet, or not from the cabinet&#x27;s own origin adv.&lt;storefront&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>The body is not what the operation takes; code invalid_body.</td><td></td></tr><tr><td><code>404</code></td><td>No such thing among one&#x27;s own — somebody else&#x27;s answers the same.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Published; Location names the offer.</td><td><a href="#schema-advoffer"><code>AdvOffer</code></a></td></tr><tr><td><code>409</code></td><td>The venue is not verified, the e-mail not confirmed, or repeated_from names a live offer; code refused.</td><td></td></tr><tr><td><code>422</code></td><td>Refused by an automatic check, code refused; error.reason is one of link_refused, discount_until_out_of_range, conditions_too_long, duplicate.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="get-adv-complaints">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/adv/complaints</code><span class="chip s-spec">spec</span></div>
@@ -1478,7 +1524,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="schema-advertisersignup"><div class="op-head"><code class="path">AdvertiserSignup</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>yes</td><td></td></tr><tr><td><code>contact</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
 <section class="op" id="schema-venue"><div class="op-head"><code class="path">Venue</code></div>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>verification_status</code></td><td><code>string</code> <span class="src">enum: [&quot;unverified&quot;, &quot;verified&quot;, &quot;suspended&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>verified_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>verification_status</code></td><td><code>string</code> <span class="src">enum: [&quot;unverified&quot;, &quot;verified&quot;, &quot;suspended&quot;]</span></td><td>yes</td><td></td></tr><tr><td><code>verified_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>yes</td><td></td></tr><tr><td><code>envelope_expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>yes</td><td>The end of the live envelope, if one is out.</td></tr></table></div></section>
 <section class="op" id="schema-venuecreate"><div class="op-head"><code class="path">VenueCreate</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>yes</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code></td><td>yes</td><td></td></tr></table></div></section>
 <section class="op" id="schema-venuecode"><div class="op-head"><code class="path">VenueCode</code></div>
@@ -1487,7 +1533,8 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>The cabinet form. A published offer is never edited; «show again» sends a new one with repeated_from (offers/SPEC_EN.md §3.1, §8).</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>venue_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr><tr><td><code>offer_text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>yes</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code> <span class="src">maxLength: 32</span></td><td>yes</td><td></td></tr><tr><td><code>conditions</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>no</td><td></td></tr><tr><td><code>promo_code</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>external_url</code></td><td><code>string</code> <span class="src">format: &quot;uri&quot;</span></td><td>no</td><td>Never shown to people; shorteners refused (offers/SPEC_EN.md §6.1–6.2).</td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>yes</td><td></td></tr><tr><td><code>repeated_from</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-advoffer"><div class="op-head"><code class="path">AdvOffer</code></div>
-<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>venue_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>offer_text</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>conditions</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>promo_code</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>redirect</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>redirect_disabled_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>redirect_hits</code></td><td><code>integer</code></td><td>no</td><td>The only reach figure — clicks, without a person (offers/SPEC_EN.md §2.1).</td></tr><tr><td><code>complaints</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;active&quot;, &quot;expired&quot;, &quot;hidden&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>published_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr></table></div></section>
+<p>An offer as the cabinet sees it (routes/adv.ts). No complaint count yet: the complaints on the discount are not built.</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>venue_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>offer_text</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>conditions</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>promo_code</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>external_url</code></td><td><code>string</code></td><td>no</td><td>The owner&#x27;s own link; people see only the storefront&#x27;s /o/ link.</td></tr><tr><td><code>redirect_code</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>link</code></td><td><code>string</code> <span class="src">format: &quot;uri&quot;</span></td><td>no</td><td>https://&lt;storefront&gt;/o/&lt;redirect_code&gt; — what the card carries.</td></tr><tr><td><code>link_disabled</code></td><td><code>boolean</code></td><td>no</td><td></td></tr><tr><td><code>redirect_disabled_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>redirect_hits</code></td><td><code>integer</code></td><td>no</td><td>The only reach figure — clicks, without a person (offers/SPEC_EN.md §2.1).</td></tr><tr><td><code>repeated_from_offer_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;active&quot;, &quot;expired&quot;, &quot;hidden&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>published_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr><tr><td><code>expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-advcomplaint"><div class="op-head"><code class="path">AdvComplaint</code></div>
 <p>Text and date only — no complainant and no time (offers/SPEC_EN.md §10).</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>offer_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>date</code></td><td><code>string</code> <span class="src">format: &quot;date&quot;</span></td><td>no</td><td></td></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;pending&quot;, &quot;resolved&quot;, &quot;rejected&quot;]</span></td><td>no</td><td></td></tr><tr><td><code>response</code></td><td><code>string</code></td><td>no</td><td></td></tr></table></div></section>

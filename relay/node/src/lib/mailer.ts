@@ -171,6 +171,56 @@ export async function sendPanelInvite(
   await sendPanelMail(to, subject, html, text);
 }
 
+type LetterBrand = { key: string; name: string; from: string; domain: string; upper: string };
+const CABINET_FOOTNOTE = "You are receiving this because this address is registered in the advertising cabinet.";
+
+// A sign-in link to the advertising cabinet (offers spec §2.1). Best effort:
+// the route answers the same for every address, so a failure is counted and
+// logged, never told to the caller.
+export async function sendAdvertiserLink(to: string, brand: LetterBrand, link: string): Promise<boolean> {
+  return await deliver(
+    "adv_link",
+    brand,
+    to,
+    `Sign in to the ${brand.name} advertising cabinet`,
+    "Sign in to the cabinet",
+    [
+      { kind: "text", value: "Open this link in the same browser you asked from:" },
+      { kind: "reference", value: link },
+      { kind: "text", value: "It expires in 15 minutes and can be used once." },
+    ],
+    CABINET_FOOTNOTE,
+  );
+}
+
+// The venue hears that its offer's link was switched off by two reports:
+// what, on what ground, that it was automatic, and how to contest it —
+// Articles 17(1)(a), 17(3) DSA (offers spec §10.1).
+export async function sendOfferLinkOff(to: string, brand: LetterBrand, venue: string): Promise<boolean> {
+  return await deliver(
+    "offer_link_off",
+    brand,
+    to,
+    "A link of your offer was switched off",
+    "The offer's link is off",
+    [
+      { kind: "text", value: `The link of an offer of ${venue} no longer sends anyone on.` },
+      {
+        kind: "text",
+        value: "Why: two people who had written in the feed before the offer came out, their first phrase " +
+          "more than a day old, reported that it leads to a phishing or malicious site (agreement §10). " +
+          "The decision was automatic; the offer itself stays in the feed.",
+      },
+      {
+        kind: "text",
+        value: "To contest it, answer this letter and a person will look; you may also turn to the Digital " +
+          "Services Coordinator or to a court.",
+      },
+    ],
+    CABINET_FOOTNOTE,
+  );
+}
+
 export async function sendWelcome(
   to: string,
   opts: { lang?: string; accent?: string; mode?: string; source?: string | null; brand?: string },
@@ -780,6 +830,9 @@ export const MAIL_KINDS = [
   "notice_receipt", "notice_arrived", "notice_aging", "notice_aging_summary", "arrival_unsent",
   "night_path_summary", "notice_decision", "statement_of_reasons", "support_digest",
   "backup_stale", "moderation_stopped", "job_tombstone",
+  // The advertising cabinet: its sign-in link, and the offer link switched off
+  // by two reports (offers spec §2.1, §10.1).
+  "adv_link", "offer_link_off",
   // Not through deliver(): the welcome letter has its own sender and counts
   // itself, under this kind (H4, B53).
   "welcome",

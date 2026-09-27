@@ -27,6 +27,9 @@ const auth = await import("../src/lib/identity_auth.ts");
 const { reset } = await import("../src/lib/rate_limit.ts");
 await import("../src/routes/identity.ts");
 await import("../src/routes/offer_links.ts");
+await import("../src/routes/offer_complaints.ts");
+await import("../src/routes/adv.ts");
+const { sha256hex } = await import("../src/lib/hash.ts");
 
 const KEY_ID = "ak_pub_offerreporttest01";
 await database.queryOrThrow(
@@ -114,7 +117,7 @@ async function person(daysAgo: number | null): Promise<Person> {
   return who;
 }
 
-async function seedOffer(): Promise<{ id: string; code: string }> {
+async function seedOffer(): Promise<{ id: string; code: string; advertiser: string }> {
   const advertiser = crypto.randomUUID();
   const venue = crypto.randomUUID();
   const offer = crypto.randomUUID();
@@ -135,7 +138,7 @@ async function seedOffer(): Promise<{ id: string; code: string }> {
                now() + interval '7 days', 'active', now() + interval '4 hours')`,
     [offer, venue, code],
   );
-  return { id: offer, code };
+  return { id: offer, code, advertiser };
 }
 
 const disabled = async (id: string) =>
@@ -173,4 +176,77 @@ Deno.test({ name: "two counting reports from two people switch the link off; the
   // Unsigned is refused; an unknown code is 404.
   assertEquals((await call("POST", `/o/${offer.code}/report`)).status, 401);
   assertEquals((await signedCall(first, "POST", `/o/nosuchcode00/report`)).status, 404);
+} });
+
+// The cabinet's own session, as POST /adv/session would leave it.
+// deno-lint-ignore no-explicit-any -- JSON of many shapes, read field by field
+async function cabinetOf(advertiser: string): Promise<(method: string, path: string, body?: unknown) => Promise<{ status: number; body: any }>> {
+  const secret = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
+  await database.queryOrThrow(
+    `INSERT INTO advertiser_sessions (session_hash, advertiser_id, expires_at) VALUES ($1, $2, now() + interval '1 day')`,
+    [await sha256hex(secret), advertiser],
+  );
+  return async (method, path, body) => {
+    const url = new URL(`https://relay.test${path}`);
+    const found = match(method, url.pathname);
+    assert(found, `no route for ${method} ${url.pathname}`);
+    const response = await found.h({
+      req: new Request(url, {
+        method,
+        headers: {
+          origin: "https://adv.alpha.test",
+          cookie: `__Host-adv=${secret}`,
+          "x-origin-token": "offer-report-origin-token",
+          ...(body === undefined ? {} : { "content-type": "application/json" }),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      }),
+      params: found.params,
+      url,
+    });
+    const text = await response.text();
+    return { status: response.status, body: text ? JSON.parse(text) : null };
+  };
+}
+
+Deno.test({ name: "a complaint that the discount was not given: filed, counted once per person, three hide the offer, the venue answers once", ...pooled, fn: async () => {
+  reset();
+  const offer = await seedOffer();
+  const complain = (who: Person, body: unknown) => signedCall(who, "POST", `/offers/${offer.id}/complaints`, body);
+  const [a, b, c] = [await person(3), await person(4), await person(5)];
+  const fresh = await person(1);
+
+  // §10.2: no e-mail, no complaint.
+  assertEquals((await complain(a, { text: "не дали" })).status, 422);
+  assertEquals((await call("POST", `/offers/${offer.id}/complaints`, { body: { email: "x@example.test" } })).status, 401);
+
+  const first = await complain(a, { email: "a@example.test", text: "скидку не дали" });
+  assertEquals([first.status, first.body.counts_towards_autohide], [202, true]);
+  const again = await complain(a, { email: "a@example.test", text: "и снова" });
+  assertEquals([again.status, again.body.counts_towards_autohide], [202, false], "the same person counts once");
+  const tooNew = await complain(fresh, { email: "f@example.test" });
+  assertEquals([tooNew.status, tooNew.body.counts_towards_autohide], [202, false], "a day-old writer does not count");
+  assertEquals((await complain(b, { email: "b@example.test" })).body.counts_towards_autohide, true);
+  const status = async () =>
+    (await database.queryOrThrow<{ status: string }>(`SELECT status FROM offers WHERE id = $1`, [offer.id]))[0].status;
+  assertEquals(await status(), "active", "two counting complaints hide nothing");
+  assertEquals((await complain(c, { email: "c@example.test" })).body.counts_towards_autohide, true);
+  assertEquals(await status(), "hidden", "the third counting complaint from a third person hides the offer");
+
+  // The cabinet reads them by text and date, and answers one of them once.
+  const cabinet = await cabinetOf(offer.advertiser);
+  const listed = await cabinet("GET", "/adv/complaints");
+  assertEquals(listed.status, 200);
+  assertEquals(listed.body.items.length, 5);
+  for (const item of listed.body.items) {
+    assertEquals(Object.keys(item).sort(), ["date", "id", "offer_id", "response", "status", "text"], "no complainant, address or time");
+  }
+  assertEquals((await cabinet("GET", "/adv/offers")).body.items.map((o: { complaints: number }) => o.complaints), [5]);
+  const target = first.body.id as string;
+  assertEquals((await cabinet("POST", `/adv/complaints/${target}/response`, { text: "условие было в тексте" })).status, 204);
+  assertEquals((await cabinet("POST", `/adv/complaints/${target}/response`, { text: "передумали" })).status, 409,
+    "one answer, never rewritten");
+  const rival = await cabinetOf((await seedOffer()).advertiser);
+  assertEquals((await rival("GET", "/adv/complaints")).body.items.length, 0);
+  assertEquals((await rival("POST", `/adv/complaints/${target}/response`, { text: "чужой" })).status, 404);
 } });

@@ -289,6 +289,25 @@ Deno.test("a verdict, then a stop again: a second letter, but not within the hou
   await sweep(brand);
 });
 
+Deno.test("a moderator who decides only tables, or only refuses, is not a stopped one (db/072)", async () => {
+  const { noteVerdict } = await import("../src/lib/moderation_watch.ts");
+  forgetModerationWatch();
+  const brand = face();
+  const l = letters(brand);
+  const start = Date.now();
+  await waitingPhrase(brand, STOPPED_SECONDS + 20);
+  await watchModeration({ now: start, send: l.send, to: TO });
+  assertEquals(l.sent.length, 1);
+  // No phrase published: a table line decided, as /admin/table-queue notes it.
+  await noteVerdict(brand);
+  await sweep(brand);
+  await waitingPhrase(brand, STOPPED_SECONDS + 20);
+  await watchModeration({ now: start + HOUR + 60_000, send: l.send, to: TO });
+  assertEquals(l.sent.length, 2, "a decision at a table was not read as the moderator being there");
+  await sweep(brand);
+  await database.queryOrThrow(`DELETE FROM moderation_verdicts WHERE brand = $1`, [brand]);
+});
+
 Deno.test("a verdict on another face does not bring this one's queue back", async () => {
   forgetModerationWatch();
   const brand = face();

@@ -21,6 +21,7 @@ import { publishPhrase, refuseName, refusePhrase } from "../lib/feed_verdict.ts"
 import { recordAuditEvent } from "../lib/audit.ts";
 import { inc } from "../lib/metrics.ts";
 import { decideTable, tableQueue } from "../lib/tables_queue.ts";
+import { noteVerdict } from "../lib/moderation_watch.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 
@@ -75,6 +76,8 @@ async function decide(req: Request, id: string, verdict: "publish" | "refuse" | 
     if (typeof body?.name === "string") nameSeen = body.name;
   }
   const scope = { brand: access.user.brand, nameSeen };
+  // Its face, read before the verdict: a refusal deletes the row it lives on.
+  const [face] = await query<{ brand: string }>(`SELECT brand FROM feed_messages WHERE id = $1`, [id]) ?? [];
   let result: { applied: boolean; nameChanged?: boolean; nameRejected?: boolean };
   try {
     result = verdict === "publish"
@@ -88,6 +91,7 @@ async function decide(req: Request, id: string, verdict: "publish" | "refuse" | 
   if (result.nameChanged) return json({ error: "the name changed since it was read" }, 409);
   if (result.nameRejected) return json({ error: "the name is rejected; the phrase waits for a new one" }, 409);
   if (!result.applied) return json({ error: "already decided, swept, or never existed" }, 409);
+  await noteVerdict(face?.brand ?? null);
   // Who and when; the phrase's text does not go into a second store.
   recordAuditEvent({
     actor: access.user,
@@ -118,13 +122,14 @@ async function decideAtTable(req: Request, kind: "line" | "name", id: string, ve
   const access = await requirePermission(req, "feed_queue.decide");
   if (isDenied(access)) return access.response;
   if (!UUID.test(id)) return json({ error: "not found" }, 404);
-  let applied: boolean;
+  let decidedFor: string | null;
   try {
-    applied = await decideTable(kind, id, verdict, access.user.brand);
+    decidedFor = await decideTable(kind, id, verdict, access.user.brand);
   } catch {
     return json({ error: "unavailable" }, 503);
   }
-  if (!applied) return json({ error: "already decided, swept, or never existed" }, 409);
+  if (!decidedFor) return json({ error: "already decided, swept, or never existed" }, 409);
+  await noteVerdict(decidedFor);
   recordAuditEvent({ actor: access.user, action: `table_queue.${kind}_${verdict}`, target: id, outcome: "applied" });
   inc("relay_feed_queue_total", { verdict: `table_${kind}_${verdict}` });
   return json({ verdict });

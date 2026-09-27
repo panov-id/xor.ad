@@ -318,6 +318,11 @@ export async function changePinAndReseal(client: Client, current: string, next: 
   const oldKey = await vaultKey(before.local, fromBase64url(oldShare.body.share));
   const longPkcs8 = await unseal(oldKey, record.sealedLong);
   const wrapPkcs8 = await unseal(oldKey, record.sealedWrap);
+  // A device raised by the paper code keeps its session key under the same
+  // seal; left under the old key it locks the vault after the next reload.
+  const sessionPkcs8 = record.sealedSession ? await unseal(oldKey, record.sealedSession) : null;
+  before.auth.fill(0);
+  before.local.fill(0);
   try {
     const changed = await client.changePin(current, next);
     if (changed.status !== 200) return changed;
@@ -329,13 +334,17 @@ export async function changePinAndReseal(client: Client, current: string, next: 
       ...record,
       sealedLong: await seal(newKey, longPkcs8),
       sealedWrap: await seal(newKey, wrapPkcs8),
+      ...(sessionPkcs8 ? { sealedSession: await seal(newKey, sessionPkcs8) } : {}),
       savedAt: Date.now(),
     };
+    after.auth.fill(0);
+    after.local.fill(0);
     await tx("readwrite", (s) => s.put(resealed));
     return changed;
   } finally {
     longPkcs8.fill(0);
     wrapPkcs8.fill(0);
+    sessionPkcs8?.fill(0);
   }
 }
 
@@ -402,7 +411,9 @@ export async function raiseAndKeep(
   share.fill(0);
   longExtractable = null;
   await tx("readwrite", (s) => s.put(record));
-  const longKey = await crypto.subtle.importKey("pkcs8", await unseal(key, record.sealedLong), P256, false, ["sign"]);
+  const reopened = await unseal(key, record.sealedLong);
+  const longKey = await crypto.subtle.importKey("pkcs8", reopened as BufferSource, P256, false, ["sign"]);
+  reopened.fill(0);
   return { client, longKey, outcome };
 }
 

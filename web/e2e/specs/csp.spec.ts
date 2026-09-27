@@ -10,9 +10,16 @@
 import { expect, test } from "../fixtures/address.ts";
 
 test("a script that is not the page's own does not run, and the browser reports the policy", async ({ page }) => {
+  // A refused script and a refused font are both "Content Security Policy"
+  // lines; only the script's is what this test provokes, and a font refused
+  // means the page's own face was built into a data: URL (VF1).
   const violations: string[] = [];
+  const fonts: string[] = [];
   page.on("console", (message) => {
-    if (/Content Security Policy/i.test(message.text())) violations.push(message.text());
+    const text = message.text();
+    if (!/Content Security Policy/i.test(text)) return;
+    if (/^Refused to load the font /.test(text)) fonts.push(text.slice(0, 120));
+    else if (/Refused to (execute|evaluate)|script-src/.test(text)) violations.push(text);
   });
   const response = await page.goto("/");
   expect(response?.status()).toBe(200);
@@ -48,7 +55,10 @@ test("a script that is not the page's own does not run, and the browser reports 
   expect(ran.handler, "an inline handler ran").toBeUndefined();
   expect(ran.timer, "a string given to the page's timer was compiled: eval is allowed").toBeUndefined();
   expect(ran.wasm, "WebAssembly no longer compiles: the PIN would break").toBe("compiled");
-  await expect.poll(() => violations.length, { message: "the browser reported no CSP violation" }).toBeGreaterThan(0);
+  await expect.poll(() => violations.length, { message: "the browser reported no CSP violation for the scripts" }).toBeGreaterThan(0);
+  // The page's own faces load as files: none is refused by font-src.
+  await page.evaluate(() => document.fonts.ready);
+  expect(fonts, `a font was refused by the policy — built inline as data:?\n${fonts.join("\n")}`).toEqual([]);
 
   // The policy travels with the page as a <meta>, and the stand also says it
   // as a header — the header alone carries frame-ancestors.

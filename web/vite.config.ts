@@ -16,7 +16,7 @@ const node = process.env.WEB_NODE_URL ?? "http://localhost:62080";
 // without the panel's /admin, /auth, /o and /v1.
 // "chat" is the conversation's socket, GET /chat (protocol §4.4), forwarded
 // with `ws: true` below (W3, 2026-09-26).
-const NODE_PATHS = ["away", "blocks", "chat", "chats", "feed", "hidden", "identities", "inbox", "legal", "likes", "limits", "matches", "recovery", "sessions", "statements", "support", "tables", "vault", "health"];
+const NODE_PATHS = ["away", "blocks", "chat", "chats", "feed", "hidden", "identities", "inbox", "legal", "likes", "limits", "matches", "offers", "recovery", "sessions", "statements", "support", "tables", "vault", "health"];
 // Host stays the page's: the signature covers the authority the person called
 // (identity_auth.ts signedAuthority), and the node reads it from the request.
 // The cabinet (A1): the node knows the storefront by the cabinet's Origin,

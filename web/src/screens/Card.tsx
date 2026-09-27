@@ -24,6 +24,23 @@ export function Card(
   const [busy, setBusy] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A venue's offer (W12; offers spec §3, §10.2): "the discount was not
+  // given", with an address — the only way to send the decision back.
+  const [complaining, setComplaining] = useState(false);
+  const [email, setEmail] = useState("");
+  const [text, setText] = useState("");
+  const [complained, setComplained] = useState(false);
+
+  async function complain() {
+    await act(async () => {
+      const answer = await client.request<{ error?: { message?: string } }>(
+        "POST", `/offers/${encodeURIComponent(card.id)}/complaints`, { notifier_email: email.trim(), text: text.trim() },
+      );
+      if (answer.status !== 202) throw new Error(answer.body?.error?.message ?? `Жалоба не принята (${answer.status}).`);
+      setComplained(true);
+      setComplaining(false);
+    });
+  }
 
   async function act(run: () => Promise<void>) {
     setBusy(true);
@@ -74,6 +91,24 @@ export function Card(
         >
           скрыть
         </button>
+        {card.kind === "offer" && (complained
+          ? <p data-testid="complained">Жалоба отправлена. Решение придёт на почту.</p>
+          : !complaining
+          ? <button type="button" disabled={busy} onClick={() => setComplaining(true)} data-testid="complain">скидку не дали</button>
+          : (
+            <section className="confirm" data-testid="complain-form">
+              <label>
+                почта — туда придёт решение
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="complain-email" autoComplete="email" />
+              </label>
+              <label>
+                что случилось
+                <textarea value={text} maxLength={1000} onChange={(e) => setText(e.target.value)} data-testid="complain-text" />
+              </label>
+              <button type="button" className="danger" disabled={busy || !email.includes("@")} onClick={() => void complain()} data-testid="complain-send">пожаловаться</button>
+              <button type="button" onClick={() => setComplaining(false)}>{"отмена"}</button>
+            </section>
+          ))}
         {!confirmBlock
           ? (
             <button type="button" disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block">

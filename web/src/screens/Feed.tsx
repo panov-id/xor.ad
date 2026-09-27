@@ -18,7 +18,9 @@ export interface FeedCard {
   lang: string;
   like_count: number;
   // A neighbour's offer: the node nests the discount (routes/feed.ts deliver).
-  offer?: { discount_value: string; conditions?: string | null };
+  // A venue's offer comes as kind "offer" with the venue's name (O2).
+  offer?: { discount_value: string; conditions?: string | null; venue_name?: string };
+  kind?: string;
   soon?: boolean;
 }
 

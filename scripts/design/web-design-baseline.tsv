@@ -1,0 +1,20 @@
+# shot	share of differing pixels, %	left edge off the sheet, px (scripts/check-web-design.sh --write-baseline, 27.09.2026)
+Splash-dark	15.01	68.5
+Composer-dark	12.96	4
+Register-1-dark	5.15	8
+Register-2-dark	8.48	12
+Register-dark	11.93	8
+Feed-dark	9.60	17
+Feed-light	8.66	0.5
+Match-dark	17.86	15
+Match-waiting-dark	6.03	15
+Inbox-dark	5.26	5
+Me-dark	4.63	0.5
+Blocked-dark	1.92	0.5
+Chat-dark	5.69	4
+Me-away-dark	7.81	1
+Card-dark	9.17	10.5
+Likes-dark	2.11	109
+Cabinet-sign-in-dark	14.17	8
+Cabinet-offers-dark	6.05	17
+Offer-dark	13.25	10

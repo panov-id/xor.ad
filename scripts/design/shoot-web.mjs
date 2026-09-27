@@ -22,6 +22,9 @@ async function person(base = URL_) {
     baseURL: base,
     // The cabinet's service is https with the stand's own certificate.
     ignoreHTTPSErrors: true,
+    // The page's CSP (style-src 'self') drops an inserted <style>, so the
+    // control break below is let through — only when it is asked for.
+    bypassCSP: process.env.WEB_BREAK === "pad8",
     viewport: { width: 375, height: 812 },
     deviceScaleFactor: 2,
     isMobile: true,
@@ -30,6 +33,15 @@ async function person(base = URL_) {
     // The stand's node counts registrations per address (web/e2e/fixtures/address.ts).
     extraHTTPHeaders: { "x-origin-token": "web-test-origin-token", "x-client-ip": `203.0.113.${ip++}` },
   });
+  // The gate's control break (scripts/test_check-web-design.sh): every screen's
+  // left padding 8 wider, drawn by the page itself, not faked in the image.
+  if (process.env.WEB_BREAK === "pad8") {
+    await context.addInitScript(() => document.addEventListener("DOMContentLoaded", () => {
+      const s = document.createElement("style");
+      s.textContent = ".screen { padding-left: 24px !important; }";
+      document.head.append(s);
+    }));
+  }
   return context.newPage();
 }
 

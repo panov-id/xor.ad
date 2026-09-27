@@ -54,7 +54,7 @@ if [ "${1:-}" != "--sheets" ]; then
   echo "== shoot"
   timeout 900 docker run --rm --network "container:$web" \
     -v "$here/shoot-web.mjs":/tests/shoot-web.mjs:ro -v "$out":/out -w /tests \
-    -e WEB_URL=http://localhost:4173 \
+    -e WEB_URL=http://localhost:4173 -e WEB_BREAK="${WEB_BREAK:-}" \
     --entrypoint node panel-tests-runner:latest shoot-web.mjs
   status=$?
   kill "$statements" 2>/dev/null || true

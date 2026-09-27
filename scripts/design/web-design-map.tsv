@@ -1,0 +1,20 @@
+# shot (testing/screenshots/web/<shot>.png)	sheet (panel/design/<sheet>.svg)	phone (0-based, in the sheet's order)	what the phone shows
+Splash-dark	screen-01-04-05	0	01 · заставка
+Composer-dark	screen-01-04-05	2	04 · «фраза», пусто
+Register-1-dark	screen-02	1	02 · шаг 1, заполнено
+Register-2-dark	screen-02	2	02 · шаг 2, ПИН
+Register-dark	screen-02	3	02 · шаг 2, код показан
+Feed-dark	screen-03	0	03 · лента
+Feed-light	screen-brands	9	03 · вторая тема, светлая
+Match-dark	screen-06-07-10	0	06 · A · мэтч
+Match-waiting-dark	screen-06-07-10	1	06 · B · нажали первым
+Inbox-dark	screen-06-07-10	6	07 · G · вкладка «Беседы»
+Me-dark	screen-06-07-10	11	10 · L · «я», настройки
+Blocked-dark	screen-06-07-10	15	10 · P · «Заблокировано»
+Chat-dark	screen-08	0	08 · A · беседа живая
+Me-away-dark	screen-20-21-22-24	0	20 · до выбора срока
+Card-dark	screen-23	0	23 · чужая фраза
+Likes-dark	screen-25	1	25 · пусто
+Cabinet-sign-in-dark	screen-17-venue	0	17 · вход заведения
+Cabinet-offers-dark	screen-17-venue	4	17 · кабинет, офферы
+Offer-dark	screen-17-venue	7	17 · экран перехода

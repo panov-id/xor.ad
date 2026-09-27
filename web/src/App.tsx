@@ -173,6 +173,8 @@ function Face() {
     setScreen(to);
   };
   const toFeed = () => setScreen({ at: "feed" });
+  // Matches declined in this page's life, kept to be taken back (W17).
+  const [declined, setDeclined] = useState<MatchRow[]>([]);
 
   // A table from the feed (W10): a seat first — the node says no to a full
   // table or a closed one, and the feed says why; seated, the table screen.
@@ -267,6 +269,8 @@ function Face() {
             client={seated!.client}
             onOpenMatch={(row) => setScreen({ at: "match", row })}
             onOpenChat={(row) => setScreen({ at: "chat", row })}
+            declined={declined}
+            onUndone={(row) => setDeclined((d) => d.filter((x) => x.id !== row.id))}
           />
         </>
       );
@@ -279,6 +283,7 @@ function Face() {
           onAgreed={() => setScreen({ at: "inbox" })}
           onWaiting={() => setScreen({ at: "inbox" })}
           onBack={() => setScreen({ at: "inbox" })}
+          onDeclined={(row, on) => setDeclined((d) => (on ? [...d.filter((x) => x.id !== row.id), row] : d.filter((x) => x.id !== row.id)))}
         />
       );
     case "chat":

@@ -9,8 +9,8 @@
 // why the code now travels in a frame of its own before the close.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
+import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
 
-const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 
 async function register(page: Page, name: string) {
   await page.goto("/");
@@ -30,7 +30,7 @@ async function register(page: Page, name: string) {
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
 }
 
-type Xor = { client: Record<string, (...x: unknown[]) => Promise<unknown>>; keys: { consent(id: string): Promise<{ status: number; body: { state: string; chat_id?: string } }> } };
+type Xor = { client: Record<string, (...x: unknown[]) => Promise<unknown>> };
 const viaClient = <T>(page: Page, fn: string, ...args: unknown[]) =>
   page.evaluate(([f, a]) => {
     const xor = (globalThis as unknown as { xor?: Xor }).xor;
@@ -74,22 +74,31 @@ test("the node names 4003 in a closed frame that reaches the browser, through th
   const anya = await personIn(a, "Аня");
   const boris = await personIn(b, "Борис");
 
-  const said = await viaClient<{ status: number; body: { id: string } }>(anya, "say", { text: "фраза для зонда", mode: "alone", ...CIRCLE });
-  expect(said.status).toBe(200);
-  const saidB = await viaClient<{ status: number; body: { id: string } }>(boris, "say", { text: "ответная для зонда", mode: "alone", ...CIRCLE });
-  expect(saidB.status).toBe(200);
-  await viaClient(anya, "like", saidB.body.id);
-  const back = await viaClient<{ status: number; body: { state: string; match_id?: string } }>(boris, "like", said.body.id);
-  expect(back.body.state).toBe("matched");
-  const first = await anya.evaluate((m) => (globalThis as unknown as { xor: Xor }).xor.keys.consent(m), back.body.match_id!);
-  expect(first.body.state).toBe("waiting");
-  const second = await boris.evaluate((m) => (globalThis as unknown as { xor: Xor }).xor.keys.consent(m), back.body.match_id!);
-  expect(second.body.state).toBe("agreed");
-  const chatId = second.body.chat_id!;
+  const run = Date.now().toString(36);
+  const aText = `фраза для зонда ${run}`;
+  const bText = `ответная для зонда ${run}`;
+  await writePhrase(anya, aText);
+  await writePhrase(boris, bText);
+  expect(await likeByCard(anya, bText)).toBe("liked");
+  expect(await likeByCard(boris, aText)).toBe("matched");
+  // Both agree on the match screen: A first and waits, B second and the
+  // conversation stands in B's inbox.
+  await openMatch(anya, "Борис");
+  await anya.getByTestId("talk").click();
+  await expect(anya.getByTestId("waiting")).toBeVisible({ timeout: 15000 });
+  await anya.getByTestId("to-inbox").click();
+  await openMatch(boris, "Аня");
+  // B's row knows A agreed before B presses, as chat.spec reads it.
+  await expect(boris.locator('[data-screen="match"]')).toContainText("Уже согласились и ждут вас", { timeout: 15000 });
+  await boris.getByTestId("talk").click();
+  await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 15000 });
+  await expect(boris.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
+  const chatId = (await boris.locator('[data-testid="chat"]').getAttribute("data-id"))!;
 
   // One room per session: B's through the page's proxy, A's straight to the
   // node (the e2e container shares the page's network; the node allows any
   // origin in this stand). Two sessions, so neither replaces the other.
+  // The spec tests the raw socket's close code, so it buys its own tickets for its own sockets.
   const tB = await viaClient<string>(boris, "ticket", chatId);
   const tA = await viaClient<string>(anya, "ticket", chatId);
   const viaProxy = listenClose(boris, "ws://localhost:4173/chat", tB);
@@ -100,6 +109,9 @@ test("the node names 4003 in a closed frame that reaches the browser, through th
 
   // A closes the chat by hand: NOTIFY chat_closed, every room of it gets the
   // closed frame with 4003 and then the close.
+  // Through the client, not the screen's «закончить беседу» (chat.spec clicks
+  // it): A's chat screen would open a room of her own session and replace the
+  // raw probe this spec reads the close code on.
   const closed = await viaClient<{ status: number }>(anya, "closeChat", chatId);
   expect(closed.status).toBe(200);
   const [proxied, straight] = await Promise.all([viaProxy, direct]);

@@ -24,6 +24,15 @@ const SPELLING = /[\u200D\uFE0E\uFE0F]/gu;
 const STRAY_JOINER = /(?<![\p{Extended_Pictographic}\p{Emoji_Modifier}][\uFE0E\uFE0F]?)\u200D|\u200D(?!\p{Extended_Pictographic})/u;
 const STRAY_SELECTOR = /(?<![\p{Extended_Pictographic}0-9#*])[\uFE0E\uFE0F]/u;
 
+// Whether a text carries what nobody can see (FX3, X4, 27.09.2026): a table's
+// name and lines, a phrase, a venue's and an offer's words, a complaint reach
+// another person's screen — the terminal's too, where an ESC is a command —
+// so they take the rule a name takes. Whitespace is not the question here:
+// a line break collapses to a space in the reading, not in the text.
+export function hasInvisible(text: string): boolean {
+  return text.trim().length > 0 && cleanName(text) === null;
+}
+
 // The cleaned name, or null when nothing visible is left or something invisible is in it.
 export function cleanName(raw: string): string | null {
   const name = raw.normalize("NFC").trim().replace(/\s+/g, " ");

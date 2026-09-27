@@ -144,6 +144,24 @@ async function game(): Promise<{ a: Person; b: Person; id: string }> {
   return { a, b, id };
 }
 
+// FX3 (X4, 27.09.2026): a table's name and its lines reach every seat's
+// screen — the terminal's too — so what nobody can see is refused at the door,
+// as in a person's name (lib/names.ts): ESC, C0/C1 controls, direction overrides.
+Deno.test("a table's name and its lines refuse what nobody can see", async () => {
+  const a = await person();
+  const named = (name: string) =>
+    signed(a, "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce(), name });
+  assertEquals((await named("ст\u001b[31mол")).status, 400, "a table's name with ESC was taken");
+  assertEquals((await named("стол‮")).status, 400, "a table's name with a direction override was taken");
+  assertEquals((await named("стол\u0007")).status, 400, "a table's name with a bell was taken");
+  assertEquals((await named("👨‍👩‍👧‍👦 стол")).status, 201, "a name an emoji spells with joiners was refused");
+  const { b, id } = await game();
+  const say = (text: string) => signed(b, "POST", `/tables/${id}/lines`, { kind: "line", text });
+  assertEquals((await say("привет\u001b[2J")).status, 400, "a line with ESC was taken");
+  assertEquals((await say("привет‮текст")).status, 400, "a line with a direction override was taken");
+  assertEquals((await say("привет")).status, 202);
+});
+
 Deno.test("a table is seen only from a live seat, and a repeat of its nonce gets the same table", async () => {
   const a = await person();
   const stranger = await person();

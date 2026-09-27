@@ -6,6 +6,7 @@
 // holding the role is not owning the row, so a venue or an offer of somebody
 // else answers 404, as one that does not exist.
 
+import { hasInvisible } from "../lib/names.ts";
 import { route } from "../lib/router.ts";
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
@@ -49,6 +50,18 @@ function tooMany(limits: Parameters<typeof checkAll>[0], key: string): Response 
   return refuse("rate_limited", "too many requests — try later", 429, {}, {
     "retry-after": String(verdict.retryAfterSeconds),
   });
+}
+
+// A venue's and an offer's words reach the feed; what nobody can see is
+// refused before anything else is read (FX3).
+function invisibleIn(body: Record<string, unknown> | null, fields: string[]): Response | null {
+  for (const field of fields) {
+    const value = body?.[field];
+    if (typeof value === "string" && hasInvisible(value)) {
+      return refuse("invalid_body", `${field} has characters nobody can see`, 400);
+    }
+  }
+  return null;
 }
 
 const text = (value: unknown, max = TEXT_MAX): string | null =>
@@ -256,6 +269,8 @@ route("POST", "/adv/venues", async ({ req }) => {
   const ctx = await session(req);
   if (ctx instanceof Response) return ctx;
   const body = await readJson<Record<string, unknown>>(req);
+  const unseen = invisibleIn(body, ["name", "address"]);
+  if (unseen) return unseen;
   const name = text(body?.name, 128);
   const address = text(body?.address);
   if (!name || !address) return bad("a venue needs a name and an address");
@@ -280,6 +295,8 @@ route("PATCH", "/adv/venues/:id", async ({ req, params }) => {
   if (ctx instanceof Response) return ctx;
   if (!UUID.test(params.id)) return notFound();
   const body = await readJson<Record<string, unknown>>(req);
+  const unseen = invisibleIn(body, ["name", "address"]);
+  if (unseen) return unseen;
   const name = body?.name === undefined ? undefined : text(body.name, 128);
   const address = body?.address === undefined ? undefined : text(body.address);
   const place = placeOf(body);
@@ -492,6 +509,8 @@ route("POST", "/adv/offers", async ({ req }) => {
   if (!ctx.me.confirmed) return refuse("refused", "confirm the email address first", 409);
   const body = await readJson<Record<string, unknown>>(req);
   if (!body) return bad("an offer is a JSON object");
+  const unseen = invisibleIn(body, ["offer_text", "discount_value", "conditions", "promo_code", "external_url"]);
+  if (unseen) return unseen;
   const venueId = typeof body.venue_id === "string" && UUID.test(body.venue_id) ? body.venue_id : null;
   const offerText = text(body.offer_text, 128);
   const discount = text(body.discount_value, 32);
@@ -600,7 +619,10 @@ route("POST", "/adv/complaints/:id/response", async ({ req, params }) => {
   const ctx = await session(req);
   if (ctx instanceof Response) return ctx;
   if (!UUID.test(params.id)) return notFound();
-  const answer = text((await readJson<{ text?: unknown }>(req))?.text, 1000);
+  const answered = await readJson<Record<string, unknown>>(req);
+  const unseen = invisibleIn(answered, ["text"]);
+  if (unseen) return unseen;
+  const answer = text(answered?.text, 1000);
   if (!answer) return bad("an answer needs its text, up to 1000 characters");
   const made = await transaction(async (run) => {
     const [complaint] = await run<{ id: string }>(

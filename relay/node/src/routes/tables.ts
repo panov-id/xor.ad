@@ -21,6 +21,7 @@ import { checkAll } from "../lib/rate_limit.ts";
 import { log } from "../lib/log.ts";
 import { startState, stepGame } from "../lib/tables_engine.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
+import { hasInvisible } from "../lib/names.ts";
 import {
   applyOverdue,
   boardFor,
@@ -123,6 +124,9 @@ async function create(req: Request): Promise<Response> {
   const name = body.name === undefined || body.name === null ? null : body.name;
   if (name !== null && (typeof name !== "string" || graphemes(name) < 1 || graphemes(name) > 24)) {
     return refuse("invalid_body", "name is up to 24 characters", 400);
+  }
+  if (typeof name === "string" && hasInvisible(name)) {
+    return refuse("invalid_body", "the name has characters nobody can see", 400);
   }
   // The first tier of the feed's rules reads the name too: clean is the name
   // at once, flagged waits in name_pending for the queue (§6.1, 17.09.2026).
@@ -299,6 +303,7 @@ async function speak(req: Request, tableId: string): Promise<Response> {
     }
     const text = typeof body?.text === "string" ? body.text.trim() : "";
     if (!text || graphemes(text) > 128) return refuse("invalid_body", "text is 1 to 128 characters", 400);
+    if (hasInvisible(text)) return refuse("invalid_body", "the line has characters nobody can see", 400);
     if (kind === "refusal" && !seat.playing) return refuse("refused", "only a player refuses", 409);
     // A refusal names the applicant's seat (db/070): an applicant of this round.
     const target = kind === "refusal" ? body?.seat : null;

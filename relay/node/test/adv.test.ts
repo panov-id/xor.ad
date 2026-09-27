@@ -170,6 +170,15 @@ Deno.test({ name: "the cabinet: sign-in, a venue proved by its envelope, an offe
     discount_until: new Date(Date.now() + 7 * 86_400_000).toISOString(), external_url: "https://cafe.example/menu",
     ...over,
   });
+  // FX3: a venue's name and address and an offer's words reach the feed;
+  // what nobody can see is refused before anything else is asked.
+  const venueBody = (over: Record<string, unknown>) => ({ name: "Кофейня", address: "Makariou 2, Nicosia", ...over });
+  assertEquals((await call("POST", "/adv/venues", { cookies: me, body: venueBody({ name: "Кофе\u001b[31mйня" }) })).status, 400, "a venue's name with ESC was taken");
+  assertEquals((await call("POST", "/adv/venues", { cookies: me, body: venueBody({ address: "Makariou‮ 2" }) })).status, 400, "a venue's address with a direction override was taken");
+  assertEquals((await call("PATCH", `/adv/venues/${venue}`, { cookies: me, body: { name: "Кофе\u001b[2J" } })).status, 400, "a renamed venue with ESC was taken");
+  for (const field of ["offer_text", "discount_value", "conditions", "promo_code"]) {
+    assertEquals((await call("POST", "/adv/offers", { cookies: me, body: offer({ [field]: "второй\u001b[2J кофе" }) })).status, 400, `an offer's ${field} with ESC was taken`);
+  }
   // Not verified yet: no offer.
   assertEquals((await call("POST", "/adv/offers", { cookies: me, body: offer() })).status, 409);
 

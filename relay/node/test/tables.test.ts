@@ -267,8 +267,6 @@ Deno.test("a line is hidden only for the one who hid it, and goes with the table
   const { a, b, id } = await game();
   const said = await signed(b, "POST", `/tables/${id}/lines`, { kind: "line", text: "привет" });
   assertEquals(said.status, 202);
-  // The queue does not know tables yet: the verdict is written straight in.
-  await database.queryOrThrow(`UPDATE table_lines SET visible_at = now() WHERE id = $1`, [said.body.id]);
   const seen = (who: Person) =>
     signed(who, "GET", `/tables/${id}`).then((r) => (r.body.lines as { id: string }[]).some((l) => l.id === said.body.id));
   assertEquals([await seen(a), await seen(b)], [true, true]);
@@ -309,4 +307,72 @@ Deno.test("resigning makes a spectator and ends a game of two; stepping away fre
   const [seat] = await database.queryOrThrow<{ n: number }>(
     `SELECT count(*)::int AS n FROM table_seats WHERE identity = $1 AND left_at IS NULL`, [a.identity_id]);
   assertEquals(seat.n, 0, "the one who stepped away no longer sits");
+});
+
+Deno.test("lines and the name pass the feed's first tier: clean is public at once, a link waits", async () => {
+  const a = await person();
+  const clean = await signed(a, "POST", "/tables", {
+    class: "grid", set: "chess", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: "шахматы у пруда", nonce: nonce(),
+  });
+  const linked = await person();
+  const flagged = await signed(linked, "POST", "/tables", {
+    class: "grid", set: "chess", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: "t.me/chess", nonce: nonce(),
+  });
+  assertEquals((await signed(a, "GET", `/tables/${clean.body.id}`)).body.name, "шахматы у пруда");
+  assertEquals((await signed(linked, "GET", `/tables/${flagged.body.id}`)).body.name, null, "a link waits for the queue");
+  const id = clean.body.id as string;
+  const ok = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "кто играет?" });
+  const link = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "пиши https://example.com" });
+  assertEquals([ok.status, link.status], [202, 202]);
+  const shown = ((await signed(a, "GET", `/tables/${id}`)).body.lines as { id: string }[]).map((l) => l.id);
+  assert(shown.includes(ok.body.id), "the clean line is public");
+  assert(!shown.includes(link.body.id), "the line with a link waits");
+});
+
+Deno.test("dots: the engine refuses a taken edge, scores closed boxes, and the finished game comes back over", async () => {
+  const a = await person();
+  const b = await person();
+  const made = await signed(a, "POST", "/tables", { class: "dots", set: "2x2", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce() });
+  const id = made.body.id as string;
+  await signed(b, "POST", `/tables/${id}/seat`);
+  await signed(b, "POST", `/tables/${id}/lines`, { kind: "application", text: "сыграю" });
+  await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
+  const edges = [
+    "h:0:0", "h:0:1", "h:1:0", "h:1:1", "h:2:0", "h:2:1",
+    "v:0:0", "v:0:1", "v:0:2", "v:1:0", "v:1:1", "v:1:2",
+  ];
+  const who = { 1: a, 2: b } as Record<number, Person>;
+  let current = await board(a, id);
+  const first = await signed(who[current.turn!], "POST", `/tables/${id}/moves`, { seq: current.seq, move: { edge: edges[0] } });
+  assertEquals(first.status, 200, JSON.stringify(first.body));
+  current = first.body.board;
+  const taken = await signed(who[current.turn!], "POST", `/tables/${id}/moves`, { seq: current.seq, move: { edge: edges[0] } });
+  assertEquals([code(taken), taken.body.error.reason], ["illegal_move", "the edge is taken"]);
+  let last = first.body.board as Board & { over: boolean; score: Record<string, number> };
+  for (const edge of edges.slice(1)) {
+    const r = await signed(who[last.turn!], "POST", `/tables/${id}/moves`, { seq: last.seq, move: { edge } });
+    assertEquals(r.status, 200, JSON.stringify(r.body));
+    last = r.body.board;
+  }
+  assertEquals(last.over, true);
+  const view = (await signed(a, "GET", `/tables/${id}`)).body.board as { over: boolean; score: Record<string, number> };
+  assertEquals(view.over, true, "the finished game comes back, not null");
+  assertEquals(Object.values(view.score).reduce((x, y) => x + y, 0), 4, "four boxes on a 2×2 field");
+});
+
+Deno.test("a refused applicant sits out the round; the one not refused plays", async () => {
+  const a = await person();
+  const b = await person();
+  const c = await person();
+  const made = await signed(a, "POST", "/tables", { class: "free", set: "domino", seats: 3, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce() });
+  const id = made.body.id as string;
+  await signed(b, "POST", `/tables/${id}/seat`);
+  await signed(c, "POST", `/tables/${id}/seat`);
+  await signed(b, "POST", `/tables/${id}/lines`, { kind: "application", text: "можно?" });
+  await signed(c, "POST", `/tables/${id}/lines`, { kind: "application", text: "и я" });
+  assertEquals(code(await signed(a, "POST", `/tables/${id}/lines`, { kind: "refusal", text: "в другой раз" })), "invalid_body");
+  const no = await signed(a, "POST", `/tables/${id}/lines`, { kind: "refusal", text: "в другой раз", seat: 3 });
+  assertEquals(no.status, 202, JSON.stringify(no.body));
+  await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
+  assertEquals((await board(a, id)).state.order, [1, 2], "seat 3 was refused and waits");
 });

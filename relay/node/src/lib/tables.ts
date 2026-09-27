@@ -10,6 +10,7 @@
 
 import { queryOrThrow, type Query, transaction } from "./db.ts";
 import type { Limit } from "./rate_limit.ts";
+import type { Dots } from "./tables_dots.ts";
 import { log } from "./log.ts";
 
 const HOUR = 60 * 60 * 1000;
@@ -33,6 +34,7 @@ export interface GameState {
   turn: number | null; // index into order; null before the first round
   passes: Record<string, number>;
   board: { seat: number; move?: unknown; pass?: true }[];
+  dots?: Dots; // the dots class keeps its field here (lib/tables_dots.ts)
 }
 
 export const emptyState = (): GameState => ({ order: [], turn: null, passes: {}, board: [] });

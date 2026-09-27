@@ -354,6 +354,7 @@ components:
         kind: {type: string, enum: [line, application, refusal, sticker]}
         text: {type: string, description: Up to 128 graphemes (phrase.length)., x-description-ru: До 128 графем (phrase.length).}
         sticker: {type: string}
+        seat: {type: integer, description: "Required with refusal: the seat of an applicant of this round, who then sits the round out (db/070, 2026-09-27).", x-description-ru: "Обязателен у refusal: место заявителя этого круга, который тогда пропускает круг (db/070, 27.09.2026)."}
     Move:
       type: object
       description: A move in the board class's terms, or a pass. seq is the expected board version (monotonic); the same body at the same seq answers the same board, a foreign version gets 409 stale_seq (protocol §4.6, 2026-09-16).

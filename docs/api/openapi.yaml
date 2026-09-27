@@ -3416,7 +3416,7 @@ paths:
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Accepted; whether it counts is frozen now., x-description-ru: Принята; засчитана ли — заморожено сейчас., content: {application/json: {schema: {type: object, required: [id, counts_towards_autohide], properties: {id: {type: string, format: uuid}, counts_towards_autohide: {type: boolean}}}}}}
         "422": {description: "No e-mail: the only way to answer — the form names this reason", x-description-ru: "Нет почты: единственного способа ответить — форма называет эту причину"}
-        "400": {description: "The text is longer than 2000 characters; code invalid_body.", x-description-ru: "Текст длиннее 2000 символов; code invalid_body."}
+        "400": {description: "The text is longer than 1000 characters; code invalid_body.", x-description-ru: "Текст длиннее 1000 символов; code invalid_body."}
         "404": {description: No such offer., x-description-ru: Такого оффера нет.}
         "503": {$ref: "#/components/responses/Unavailable"}
   /adv/sign-in:

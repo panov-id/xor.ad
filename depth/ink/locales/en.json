@@ -249,5 +249,9 @@
   "table.like": "like",
   "table.stand": "stand up",
   "table.move": "move",
-  "table.edge": "edge"
+  "table.edge": "edge",
+  "table.board": "board",
+  "table.notYourTurn": "it is not your turn",
+  "table.stale": "the board changed meanwhile — look again",
+  "table.refused": "not accepted"
 }

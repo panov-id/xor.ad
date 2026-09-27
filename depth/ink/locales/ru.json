@@ -249,5 +249,9 @@
   "table.like": "лайк",
   "table.stand": "встать",
   "table.move": "ход",
-  "table.edge": "ребро"
+  "table.edge": "ребро",
+  "table.board": "доска",
+  "table.notYourTurn": "сейчас не ваш ход",
+  "table.stale": "доска успела измениться — посмотрите ещё раз",
+  "table.refused": "не принято"
 }

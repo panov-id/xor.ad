@@ -13,6 +13,7 @@
 // Postgres before this was changed.
 
 import { sendSupportDigests, sweepSupport } from "./support_sweeper.ts";
+import { autopass, pruneTables } from "./tables.ts";
 import { enqueueOnce, handle } from "./jobs.ts";
 import { enabled as databaseEnabled, queryOrThrow } from "./db.ts";
 import { log } from "./log.ts";
@@ -104,6 +105,8 @@ export const SWEEP_PENDING = "sweep_pending";
 // Conversations whose term came, and those over for both (§8.10). Every minute:
 // the shortest term is ten.
 export const SWEEP_CHATS = "sweep_chats";
+export const TABLE_AUTOPASS = "table_autopass";
+export const SWEEP_TABLES = "sweep_tables";
 // Times away that ran out by themselves, their held rooms woken (db/047).
 // Every minute: a longer wait is a longer silence in an open conversation.
 export const WAKE_RETURNED = "wake_returned";
@@ -279,6 +282,18 @@ export function registerScheduledJobs(): void {
 
   handle(SWEEP_CHATS, async () => {
     await sweepChats();
+    return new Date(Date.now() + A_MINUTE_MS);
+  });
+
+  // Step 8 (§6.1): overdue turns become passes every 30 seconds, and tables
+  // closed or silent for an hour are deleted with everything on them.
+  handle(TABLE_AUTOPASS, async () => {
+    await autopass();
+    return new Date(Date.now() + 30_000);
+  });
+
+  handle(SWEEP_TABLES, async () => {
+    await pruneTables();
     return new Date(Date.now() + A_MINUTE_MS);
   });
 
@@ -459,6 +474,8 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(SWEEP_MATCHES, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_PENDING, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_CHATS, {}, new Date(Date.now() + A_MINUTE_MS));
+  await enqueueOnce(TABLE_AUTOPASS, {}, new Date(Date.now() + 30_000));
+  await enqueueOnce(SWEEP_TABLES, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(WAKE_RETURNED, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(WATCH_BACKUP, {}, new Date(Date.now() + A_HOUR_MS));
   await enqueueOnce(WATCH_MODERATION, {}, new Date(Date.now() + A_MINUTE_MS));

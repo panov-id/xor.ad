@@ -20,6 +20,7 @@ import { isDenied, requirePermission } from "../lib/access_guard.ts";
 import { publishPhrase, refuseName, refusePhrase } from "../lib/feed_verdict.ts";
 import { recordAuditEvent } from "../lib/audit.ts";
 import { inc } from "../lib/metrics.ts";
+import { decideTable, tableQueue } from "../lib/tables_queue.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 
@@ -102,3 +103,34 @@ route("POST", "/admin/feed-queue/:id/publish", ({ req, params }) => decide(req, 
 route("POST", "/admin/feed-queue/:id/refuse", ({ req, params }) => decide(req, params.id, "refuse"));
 // The name, not the phrase: the phrase stays and waits for a new name (§8.2).
 route("POST", "/admin/feed-queue/:id/refuse-name", ({ req, params }) => decide(req, params.id, "refuse-name"));
+
+// Step 8: what the rules flagged at tables — lines and table names — in the
+// same panel and under the same permissions (lib/tables_queue.ts).
+route("GET", "/admin/table-queue", async ({ req }) => {
+  const access = await requirePermission(req, "feed_queue.read");
+  if (isDenied(access)) return access.response;
+  const items = await tableQueue(access.user.brand);
+  if (items === null) return json({ error: "unavailable" }, 503);
+  return json(items, 200, { "x-total-count": String(items.length) });
+});
+
+async function decideAtTable(req: Request, kind: "line" | "name", id: string, verdict: "publish" | "refuse") {
+  const access = await requirePermission(req, "feed_queue.decide");
+  if (isDenied(access)) return access.response;
+  if (!UUID.test(id)) return json({ error: "not found" }, 404);
+  let applied: boolean;
+  try {
+    applied = await decideTable(kind, id, verdict, access.user.brand);
+  } catch {
+    return json({ error: "unavailable" }, 503);
+  }
+  if (!applied) return json({ error: "already decided, swept, or never existed" }, 409);
+  recordAuditEvent({ actor: access.user, action: `table_queue.${kind}_${verdict}`, target: id, outcome: "applied" });
+  inc("relay_feed_queue_total", { verdict: `table_${kind}_${verdict}` });
+  return json({ verdict });
+}
+
+route("POST", "/admin/table-queue/lines/:id/publish", ({ req, params }) => decideAtTable(req, "line", params.id, "publish"));
+route("POST", "/admin/table-queue/lines/:id/refuse", ({ req, params }) => decideAtTable(req, "line", params.id, "refuse"));
+route("POST", "/admin/table-queue/names/:id/publish", ({ req, params }) => decideAtTable(req, "name", params.id, "publish"));
+route("POST", "/admin/table-queue/names/:id/refuse", ({ req, params }) => decideAtTable(req, "name", params.id, "refuse"));

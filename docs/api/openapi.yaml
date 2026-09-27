@@ -1391,6 +1391,94 @@ paths:
         "401": {description: no panel session, x-description-ru: нет сессии панели}
         "403": {description: "no feed_queue.read", x-description-ru: "нет права feed_queue.read"}
         "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue:
+    get:
+      tags: [admin]
+      summary: Table lines and table names the rules flagged, waiting for a verdict
+      x-summary-ru: Реплики и имена столов, помеченные правилами и ждущие вердикта
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      description: "What the feed's first tier of rules flagged at tables (chat spec §6.1, §8.3): [{kind: line | name, id, brand, text, waiting_seconds}] — a line's id or the table's id for a name; never an identity. A tenant's moderator sees their own brand only. Built 2026-09-27."
+      x-description-ru: "То, что первый уровень правил ленты пометил за столами (спека чата §6.1, §8.3): [{kind: line | name, id, brand, text, waiting_seconds}] — id реплики либо id стола для имени; личности нет. Модератор тенанта видит только свой бренд. Построено 27.09.2026."
+      responses:
+        "200": {description: "At most 200, oldest first, a plain array with x-total-count.", x-description-ru: "Не больше 200, старые первыми, плоским массивом с x-total-count."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.read", x-description-ru: "нет права feed_queue.read"}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue/lines/{id}/publish:
+    post:
+      tags: [admin]
+      summary: Publish a table line from the queue
+      x-summary-ru: Опубликовать реплику стола из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once: visible_at is stamped.", x-description-ru: "Вердикт, применён один раз: ставится visible_at."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: A malformed id., x-description-ru: Кривой id.}
+        "409": {description: "Already decided, swept with its table, of another brand, or never existed.", x-description-ru: "Уже решено, убрано со столом, чужой бренд или не существовало."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue/lines/{id}/refuse:
+    post:
+      tags: [admin]
+      summary: Refuse a table line from the queue
+      x-summary-ru: Отклонить реплику стола из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once: the line is deleted.", x-description-ru: "Вердикт, применён один раз: реплика удаляется."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: A malformed id., x-description-ru: Кривой id.}
+        "409": {description: "Already decided, swept with its table, of another brand, or never existed.", x-description-ru: "Уже решено, убрано со столом, чужой бренд или не существовало."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue/names/{id}/publish:
+    post:
+      tags: [admin]
+      summary: Accept a table's name from the queue
+      x-summary-ru: Принять имя стола из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once: name_pending moves into name.", x-description-ru: "Вердикт, применён один раз: name_pending переезжает в name."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: A malformed id., x-description-ru: Кривой id.}
+        "409": {description: "Already decided, the table closed, of another brand, or never existed.", x-description-ru: "Уже решено, стол закрыт, чужой бренд или не существовало."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue/names/{id}/refuse:
+    post:
+      tags: [admin]
+      summary: Refuse a table's name from the queue
+      x-summary-ru: Отклонить имя стола из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once: the table lives on without a name (chat spec §6.1).", x-description-ru: "Вердикт, применён один раз: стол живёт без имени (спека чата §6.1)."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: A malformed id., x-description-ru: Кривой id.}
+        "409": {description: "Already decided, the table closed, of another brand, or never existed.", x-description-ru: "Уже решено, стол закрыт, чужой бренд или не существовало."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/feed-queue/{id}/publish:
     post:
       tags: [admin]

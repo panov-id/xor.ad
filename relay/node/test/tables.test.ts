@@ -34,6 +34,7 @@ await import("../src/routes/tables.ts");
 await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
 await import("../src/routes/away.ts");
+await import("../src/routes/feed_queue.ts");
 
 const KEY_ID = "ak_pub_tablestest0000001";
 await database.queryOrThrow(
@@ -358,6 +359,67 @@ Deno.test("dots: the engine refuses a taken edge, scores closed boxes, and the f
   const view = (await signed(a, "GET", `/tables/${id}`)).body.board as { over: boolean; score: Record<string, number> };
   assertEquals(view.over, true, "the finished game comes back, not null");
   assertEquals(Object.values(view.score).reduce((x, y) => x + y, 0), 4, "four boxes on a 2×2 field");
+});
+
+// A panel session minted as lib/auth.ts redeem() mints it (as feed_publish.test.ts does).
+async function panelAs(role: string, brand: string | null = null) {
+  const { sign } = await import("../src/lib/jwt.ts");
+  const { sha256hex } = await import("../src/lib/hash.ts");
+  const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
+  const { config } = await import("../src/config.ts");
+  const email = `${role}-${crypto.randomUUID()}@platform.test`;
+  await scopedForBrand(null).put(`panel/${config.envName}/users/${await sha256hex(email)}.json`, {
+    email, role, brand, created_at: "2026-09-27T00:00:00.000Z",
+  });
+  const token = await sign({ sub: email, role, brand, env: config.envName, exp: Math.floor(Date.now() / 1000) + 3600 }, "tables-secret");
+  return async (method: string, path: string) => {
+    const url = new URL(`https://relay.test${path}`);
+    const found = match(method, url.pathname);
+    assert(found, `no route for ${method} ${url.pathname}`);
+    const response = await found.h({
+      req: new Request(url, { method, headers: { authorization: `Bearer ${token}` } }),
+      params: found.params,
+      url,
+    });
+    const text = await response.text();
+    return { status: response.status, body: text ? JSON.parse(text) : null };
+  };
+}
+
+Deno.test({
+  name: "what the rules flagged at a table waits in the panel's queue, is decided once, and the watchdog counts it",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { readModerationQueue } = await import("../src/lib/queue_metrics.ts");
+    const a = await person();
+    const made = await signed(a, "POST", "/tables", {
+      class: "grid", set: "chess", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: "t.me/chessclub", nonce: nonce(),
+    });
+    const id = made.body.id as string;
+    const line = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "пиши https://example.com" });
+    const moderator = await panelAs("moderator");
+    const queue = (await moderator("GET", "/admin/table-queue")).body as { kind: string; id: string; text: string }[];
+    assert(queue.some((q) => q.kind === "line" && q.id === line.body.id), JSON.stringify(queue));
+    assert(queue.some((q) => q.kind === "name" && q.id === id && q.text === "t.me/chessclub"), JSON.stringify(queue));
+    assert(!JSON.stringify(queue).includes(a.identity_id), "no identity in the queue");
+    const [{ brand }] = await database.queryOrThrow<{ brand: string }>(`SELECT brand FROM tables WHERE id = $1`, [id]);
+    const watched = (await readModerationQueue())!.find((r) => r.brand === brand);
+    assert(watched && watched.waiting >= 2, `the watchdog counts table items: ${brand} ${JSON.stringify(await readModerationQueue())}`);
+
+    // Another brand's moderator cannot decide it; the right one does, once.
+    const stranger = await panelAs("moderator", "some-other-brand");
+    assertEquals((await stranger("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
+    assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 200);
+    assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
+    const shown = ((await signed(a, "GET", `/tables/${id}`)).body.lines as { id: string }[]).map((l) => l.id);
+    assert(shown.includes(line.body.id), "published: the line is public");
+    assertEquals((await moderator("POST", `/admin/table-queue/names/${id}/refuse`)).status, 200);
+    const [t] = await database.queryOrThrow<{ name: string | null; name_pending: string | null }>(
+      `SELECT name, name_pending FROM tables WHERE id = $1`, [id]);
+    assertEquals([t.name, t.name_pending], [null, null], "a refused name leaves the table nameless");
+    assertEquals((await panelAs("viewer").then((v) => v("POST", `/admin/table-queue/names/${id}/publish`))).status, 403);
+  },
 });
 
 Deno.test("a refused applicant sits out the round; the one not refused plays", async () => {

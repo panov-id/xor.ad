@@ -304,5 +304,14 @@
   "table.toBoard": "к доске",
   "table.rematch": "ещё партию",
   "table.acceptRematch": "принять партию",
-  "table.send": "отправить"
+  "table.send": "отправить",
+  "chat.game": "игра",
+  "game.title": "игра",
+  "game.none": "игры пока нет — выберите, какую предложить",
+  "game.waiting": "ждём ответа",
+  "game.offered": "вам предлагают: {game}",
+  "game.theirTurn": "ходит собеседник: {name}",
+  "game.accept": "принять",
+  "game.decline": "отказаться",
+  "game.offerArrived": "вам предлагают игру — откройте «игра»"
 }

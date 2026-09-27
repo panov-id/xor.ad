@@ -47,6 +47,11 @@ import {
 const UUID = /^[0-9a-fA-F-]{36}$/;
 const STICKER = /^[a-z0-9_-]{1,40}$/;
 const graphemes = (text: string) => [...new Intl.Segmenter().segment(text)].length;
+// The database holds a name to 256 bytes and a line to 2048 (db/064): 24 or
+// 128 graphemes can be more — a family emoji is some 25 bytes — and past the
+// CHECK the insert failed as a 503 (verifier of GC2). Refused here instead.
+const bytes = (text: string) => new TextEncoder().encode(text).length;
+const tooManyBytes = () => refuse("invalid_body", "too long in bytes", 400, { reason: "too_many_bytes" });
 const notFound = () => refuse("not_found", "no such table", 404);
 const unavailable = (error: unknown) => {
   log("error", "table request failed", { error: String(error) });
@@ -125,6 +130,7 @@ async function create(req: Request): Promise<Response> {
   if (name !== null && (typeof name !== "string" || graphemes(name) < 1 || graphemes(name) > 24)) {
     return refuse("invalid_body", "name is up to 24 characters", 400);
   }
+  if (typeof name === "string" && bytes(name) > 256) return tooManyBytes();
   if (typeof name === "string" && hasInvisible(name)) {
     return refuse("invalid_body", "the name has characters nobody can see", 400);
   }
@@ -245,7 +251,9 @@ async function sit(req: Request, tableId: string): Promise<Response> {
       [me],
     );
     if (here && here.table_id === tableId) return json({ seat: here.seat_no }, 200, sunsetHeader());
-    if (here) return refuse("already_seated", "stand up from your table first", 409);
+    // One's own table, and only to its own seated person: the screen says
+    // "you are at …" and stands you up there (C5).
+    if (here) return refuse("already_seated", "stand up from your table first", 409, { table: here.table_id });
     // Bands each with each, and no block either way — one answer for both, so
     // the refusal is not an oracle (§6.1).
     const [bar] = await run(
@@ -303,6 +311,7 @@ async function speak(req: Request, tableId: string): Promise<Response> {
     }
     const text = typeof body?.text === "string" ? body.text.trim() : "";
     if (!text || graphemes(text) > 128) return refuse("invalid_body", "text is 1 to 128 characters", 400);
+    if (bytes(text) > 2048) return tooManyBytes();
     if (hasInvisible(text)) return refuse("invalid_body", "the line has characters nobody can see", 400);
     if (kind === "refusal" && !seat.playing) return refuse("refused", "only a player refuses", 409);
     // A refusal names the applicant's seat (db/070): an applicant of this round.

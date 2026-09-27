@@ -333,9 +333,17 @@ Deno.test("both agree on the offer's match: the header is the offer alone, and t
   };
   const first = await signedCall(taker, "POST", `/matches/${matchId}/consent`, await half(taker));
   assertEquals(first.body.state, "waiting", JSON.stringify(first.body));
+  // My consent is the node's, not the client's memory (P10).
+  const consentOf = async (who: Person) => {
+    const got = await signedCall(who, "GET", "/inbox");
+    return (got.body.items as Array<{ id: string; my_consent?: string }>).find((i) => i.id === matchId)?.my_consent;
+  };
+  assertEquals(await consentOf(taker), "waiting", "the inbox forgets that I already agreed");
+  assertEquals(await consentOf(neighbour), "none", "the inbox says I agreed before I did");
   const second = await signedCall(neighbour, "POST", `/matches/${matchId}/consent`, await half(neighbour));
   assertEquals(second.body.state, "agreed", JSON.stringify(second.body));
   const chatId = second.body.chat_id as string;
+  assertEquals(await consentOf(taker), undefined, "an agreed match stays a match row instead of becoming the chat");
   const starters = await database.queryOrThrow<{ position: number; text_snapshot: string; mode: string; liked_by: string }>(
     `SELECT position, text_snapshot, mode, liked_by FROM chat_starters WHERE chat_id = $1 ORDER BY position`, [chatId],
   );

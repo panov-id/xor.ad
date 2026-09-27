@@ -51,9 +51,11 @@ test("a table opens by its link after the PIN, and a move on one screen shows on
   const other = mover === zhenya ? anya : zhenya;
   await expect(mover.getByTestId("turn")).toContainText("ваш ход", { timeout: 15000 });
   await expect(other.locator("[data-taken]")).toHaveCount(0);
-  // An edge is an SVG line: a box of zero height or width, which Playwright
-  // never calls clickable; the click event is what the screen listens to.
-  await mover.locator('[data-edge][role="button"]').first().dispatchEvent("click");
+  // An edge is a button with a box of its own (W11), pressed as a person
+  // presses it; its name says which edge.
+  const edge = mover.getByRole("button", { name: /^ребро [hv]:\d+:\d+$/ }).first();
+  await expect(edge).toHaveAttribute("aria-label", /^ребро /);
+  await edge.click();
   await expect(other.locator("[data-taken]")).toHaveCount(1, { timeout: 15000 });
   await expect(other.getByTestId("turn")).toContainText("ваш ход", { timeout: 15000 });
 });

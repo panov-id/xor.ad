@@ -32,6 +32,7 @@ import { query } from "./db.ts";
 import { clearGauge, setGauge } from "./metrics.ts";
 import { DECISION_LETTER_GIVEN_UP } from "./notice_notify.ts";
 import { RECOVERY, TRANSFER } from "./recovery_misses.ts";
+import { TABLE_WAITING } from "./tables_queue.ts";
 
 interface DepthRow {
   kind: string;
@@ -167,11 +168,13 @@ export const MODERATION_WAITING = `f.visible_at IS NULL
 
 export async function readModerationQueue(): Promise<Array<{ brand: string; oldestSeconds: number; waiting: number }> | null> {
   const rows = await query<{ brand: string; oldest_seconds: string; waiting: string }>(
-    `SELECT f.brand, EXTRACT(EPOCH FROM (now() - min(f.created_at)))::text AS oldest_seconds,
+    // Phrases and, since step 8, what waits at tables (lib/tables_queue.ts):
+    // a flagged line or table name is the same queue for the gauge and the letter.
+    `SELECT w.brand, EXTRACT(EPOCH FROM (now() - min(w.created_at)))::text AS oldest_seconds,
             count(*)::text AS waiting
-       FROM feed_messages f
-      WHERE ${MODERATION_WAITING}
-      GROUP BY f.brand`,
+       FROM (SELECT f.brand, f.created_at FROM feed_messages f WHERE ${MODERATION_WAITING}
+             UNION ALL SELECT t.brand, t.created_at FROM (${TABLE_WAITING}) t) w
+      GROUP BY w.brand`,
   );
   if (rows === null) return null;
   return rows.map((row) => ({

@@ -8,8 +8,18 @@ import { closeAllRooms } from "./chat/relay.ts";
 import { startWorker } from "./lib/jobs.ts";
 import { armScheduledJobs, startRearming, registerScheduledJobs } from "./lib/scheduled.ts";
 import { dispatch } from "./dispatch.ts";
+import { hitsWritten, loadRateLimits } from "./lib/rate_limit.ts";
 
 assertConfig();
+
+// The address limits as the last day left them, before the first request
+// (db/074): a restarted container used to start every address from nought.
+try {
+  const hits = await loadRateLimits();
+  log("info", "rate-limit hits read back", { hits });
+} catch (error) {
+  log("warn", "rate-limit hits could not be read; the address limits start from nought", { error: String(error) });
+}
 
 // Background work, if there is a database to hold it. Both calls are no-ops
 // without one, so a stand with no Postgres behaves exactly as it did.
@@ -25,9 +35,12 @@ startRearming();
 // back on their own. The signal then ends the process as it would have.
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   try {
-    Deno.addSignalListener(signal, () => {
+    Deno.addSignalListener(signal, async () => {
       const closed = closeAllRooms();
       log("info", "stopping: rooms closed with 1001", { signal, closed });
+      // The hits of the last moments, so the next start reads them; bounded,
+      // because a database that hangs must not hold the stop.
+      await Promise.race([hitsWritten(), new Promise((done) => setTimeout(done, 2000))]);
       Deno.exit(0);
     });
   } catch {

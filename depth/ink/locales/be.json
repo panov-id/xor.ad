@@ -254,5 +254,12 @@
   "table.notYourTurn": "it is not your turn",
   "table.stale": "the board changed meanwhile — look again",
   "table.refused": "not accepted",
-  "table.notStarted": "the game has not started yet"
+  "table.notStarted": "the game has not started yet",
+  "complaint.title": "complaint: the discount was not given",
+  "complaint.private": "only moderators see it; the venue learns one arrived, not from whom",
+  "complaint.email": "e-mail for the answer",
+  "complaint.text": "what happened (optional)",
+  "complaint.send": "send",
+  "complaint.sent": "sent",
+  "complaint.refused": "not accepted"
 }

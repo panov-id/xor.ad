@@ -111,6 +111,8 @@ export interface InboxItem {
   phrase?: { text: string; mode: string };
   offer?: { id: string; text: string; mode: string; discount_value?: string | null; conditions?: string | null };
   waiting_for_you?: boolean;
+  // Whether I agreed already and wait for them (relay routes/inbox.ts, P10).
+  my_consent?: "waiting" | "none";
   chat_expires_at?: number;
   my_span?: number;
   arrived_since?: boolean;
@@ -384,6 +386,18 @@ export class Client {
   // DELETE /feed/:id/like — unliked, or spent once a match came of that phrase.
   unlike(phraseId: string): Promise<Answer<{ state: string }>> {
     return this.#call("DELETE", `/feed/${encodeURIComponent(phraseId)}/like`);
+  }
+
+  // POST /offers/:id/complaints (O1d): the discount was not given. Private;
+  // the e-mail is the only way to answer. 202 {id, counts_towards_autohide}.
+  // The node reads `email` (routes/offer_complaints.ts), the contract says
+  // notifier_email: the node is what answers — 422 on notifier_email, measured
+  // live by the verifier on 2026-09-27.
+  complain(offerId: string, email: string, text?: string): Promise<Answer<{ id: string; counts_towards_autohide: boolean }>> {
+    return this.#call("POST", `/offers/${encodeURIComponent(offerId)}/complaints`, {
+      email,
+      ...(text ? { text } : {}),
+    });
   }
 
   // POST /matches/:id/consent — waiting, or agreed with the chat_id it opened
@@ -1047,7 +1061,11 @@ export class Room {
   // The close code, or 0 if the socket is still open after the time: a test that
   // waits on it fails with a word instead of hanging the run.
   closedWithin(ms = 5000): Promise<number> {
-    return Promise.race([this.closed, new Promise<number>((r) => setTimeout(() => r(0), ms))]);
+    // The timer is cleared when the close comes first: a pending one fails
+    // Deno's leak check in any test that waits on a close (2026-09-27).
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<number>((r) => (timer = setTimeout(() => r(0), ms)));
+    return Promise.race([this.closed, late]).finally(() => clearTimeout(timer));
   }
 
   // The subprotocol the node chose, once the socket is open.
@@ -1060,8 +1078,14 @@ export class Room {
     const ready = this.#frames.shift();
     if (ready) return Promise.resolve(ready);
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error("no frame within the time")), timeoutMs);
-      this.#waiting.push((f) => { clearTimeout(timer); resolve(f); });
+      const take = (f: Frame) => { clearTimeout(timer); resolve(f); };
+      // A reader that gave up leaves the line: otherwise the next frame went
+      // to its rejected promise and was lost (verifier, 2026-09-27).
+      const timer = setTimeout(() => {
+        this.#waiting = this.#waiting.filter((w) => w !== take);
+        reject(new Error("no frame within the time"));
+      }, timeoutMs);
+      this.#waiting.push(take);
     });
   }
 

@@ -42,14 +42,17 @@ async function complain(req: Request, offerId: string): Promise<Response> {
     });
   }
   if (!UUID.test(offerId)) return refuse("not_found", "no such offer", 404);
-  const body = await readJson<{ email?: unknown; text?: unknown }>(req);
+  const body = await readJson<{ notifier_email?: unknown; text?: unknown }>(req);
   // §10.2: no address, no answer — the form names this reason.
-  if (!isEmail(body?.email)) {
+  // The field is notifier_email, as the spec names it (offers spec §3) and the
+  // contract carries it; the node read `email` until 27.09.2026 and refused
+  // every complaint a client built from the contract.
+  if (!isEmail(body?.notifier_email)) {
     return refuse("invalid_body", "an e-mail is needed: it is the only way to send you the decision", 422);
   }
-  const email = (body!.email as string).trim();
+  const email = (body!.notifier_email as string).trim();
   const text = typeof body?.text === "string" && body.text.trim() ? body.text.trim() : null;
-  if (text && text.length > 2000) return refuse("invalid_body", "the complaint is 2000 characters at most", 400);
+  if (text && text.length > 1000) return refuse("invalid_body", "the complaint is 1000 characters at most", 400);
 
   const outcome = await transaction<Outcome>(async (run) => {
     // The lock first: two complaints at once must not both miss the third.

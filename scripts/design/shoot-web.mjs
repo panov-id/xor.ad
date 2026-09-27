@@ -4,7 +4,7 @@
 // and each screen is shot once per scheme. A screen that does not open is a
 // line in shots.tsv with the reason, and the walk goes on.
 import { chromium } from "@playwright/test";
-import { writeFileSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 
 const URL_ = process.env.WEB_URL ?? "http://localhost:4173";
 const OUT = "/out";
@@ -12,11 +12,16 @@ const PIN = "123456";
 const T = 30000;
 const rows = [];
 
+const ADV = process.env.ADV_URL ?? "https://web-adv:4173";
+const MAILPIT = process.env.MAILPIT_URL ?? "http://mailpit:8025";
+
 const browser = await chromium.launch();
 let ip = 10;
-async function person() {
+async function person(base = URL_) {
   const context = await browser.newContext({
-    baseURL: URL_,
+    baseURL: base,
+    // The cabinet's service is https with the stand's own certificate.
+    ignoreHTTPSErrors: true,
     viewport: { width: 375, height: 812 },
     deviceScaleFactor: 2,
     isMobile: true,
@@ -190,6 +195,10 @@ await step("Reissue", anya, async () => {
 await step("Me-reset", anya, () => toMe(anya, "me-reset", "reset"));
 await step("Unlock", anya, async () => { await anya.goto("/"); await seen(screen(anya, "unlock")); });
 
+// A table stands among phrases (web/e2e/specs/helpers.ts twoAtATable): two
+// more of Аня's before she sets it.
+await home(anya);
+for (const text of ["кто на пляж?", "ищу компанию на ужин"]) await write(anya, `${text} ${run}`).catch(() => {});
 await step("NewTable", anya, async () => {
   await home(anya);
   await id(anya, "new-table").click();
@@ -200,6 +209,8 @@ await step("Table", anya, async () => {
   await id(anya, "new-table-go").click();
   await seen(id(anya, "table"));
 });
+// Аня stays at her table; Борис sits by its card and applies, she starts the
+// game, and the board is what she sees.
 await step("TableBoards", anya, async () => {
   await home(boris);
   await id(boris, "nav-inbox").click();
@@ -210,23 +221,82 @@ await step("TableBoards", anya, async () => {
   await seen(id(boris, "table"));
   await id(boris, "line-input").fill("сыграю");
   await id(boris, "apply").click();
-  await home(anya);
-  const back = id(anya, "table-card").filter({ hasText: `вечер ${run}` });
-  if (await back.count()) await back.first().click();
-  await seen(id(anya, "table"));
+  await id(anya, "table").filter({ hasText: "заявка" }).waitFor({ timeout: 15000 });
   await id(anya, "start-game").click({ timeout: 15000 });
-  await anya.waitForTimeout(1500);
+  await id(anya, "turn").filter({ hasNotText: "партия ещё не началась" }).waitFor({ timeout: 15000 });
 });
 
+// Blocked: Вера writes, Борис blocks her from her card — Аня's card left his
+// feed with the match, so she is not the one to block.
+const vera = await person();
 await step("Blocked", boris, async () => {
+  const vText = `кто со мной на рынок ${run}`;
+  await register(vera, "Вера", "40", false);
+  await write(vera, vText);
   await home(boris);
-  await openCard(boris, aText);
+  await openCard(boris, vText);
   await id(boris, "block").click();
   await id(boris, "block-confirm-yes").click();
   await toMe(boris, "me-blocked", "blocked");
 });
+
+// Statements: a new identity has none, and the web cannot give itself one.
+// Аня's identity goes to /out/statement.want; shoot-web.sh writes one
+// statement to the stand's database for it and answers with statement.done.
 await step("Statements", anya, async () => {
-  await toMe(anya, "me-statements", "statements");
+  const identity = await anya.evaluate(() => new Promise((done, fail) => {
+    const req = indexedDB.open("xor-vault", 1);
+    req.onerror = () => fail(req.error);
+    req.onsuccess = () => {
+      const get = req.result.transaction("identity").objectStore("identity").get("me");
+      get.onsuccess = () => done(get.result?.identityId ?? "");
+      get.onerror = () => fail(get.error);
+    };
+  }));
+  if (!identity) throw new Error("no identity in the vault");
+  writeFileSync(`${OUT}/statement.want`, identity);
+  for (let i = 0; i < 60 && !existsSync(`${OUT}/statement.done`); i++) await anya.waitForTimeout(500);
+  if (!existsSync(`${OUT}/statement.done`)) throw new Error("no statement written for the identity (statement.done)");
+  // Unlocked with a statement waiting, the face opens it before the feed (App.tsx).
+  await anya.goto("/");
+  await seen(screen(anya, "unlock"));
+  await id(anya, "unlock-pin").fill(PIN);
+  await id(anya, "unlock").click();
+  await seen(screen(anya, "statements"));
+});
+
+// The venue's cabinet (sheets 17 and 26): the sign-in, "sent", then in by the
+// letter's link from Mailpit, as web/e2e/specs/adv.spec.ts does.
+const venue = await person(ADV);
+const email = `shoot-${run}@example.test`;
+await step("Cabinet-sign-in", venue, async () => {
+  await venue.goto("/adv");
+  await seen(screen(venue, "adv-sign-in"));
+  await id(venue, "adv-email").fill(email);
+  await id(venue, "adv-contact").fill("Мария, +357 99 000000");
+});
+await step("Cabinet-sent", venue, async () => {
+  await id(venue, "adv-send").click();
+  await seen(id(venue, "adv-sent"));
+});
+await step("Cabinet-venues", venue, async () => {
+  let token = "";
+  for (let i = 0; i < 30 && !token; i++) {
+    const found = await (await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}`)).json();
+    const mid = found.messages?.[0]?.ID;
+    if (mid) {
+      const letter = await (await fetch(`${MAILPIT}/api/v1/message/${mid}`)).json();
+      token = /https:\/\/adv\.sosed\.place\/enter#([0-9a-f]{64})/.exec(`${letter.Text ?? ""} ${letter.HTML ?? ""}`)?.[1] ?? "";
+    }
+    if (!token) await venue.waitForTimeout(500);
+  }
+  if (!token) throw new Error(`no sign-in letter reached ${email}`);
+  await venue.goto(`/adv/enter#${token}`);
+  await seen(screen(venue, "adv-venues"));
+});
+await step("Cabinet-offers", venue, async () => {
+  await id(venue, "adv-tab-offers").click();
+  await seen(screen(venue, "adv-offers"));
 });
 
 const stranger = await person();

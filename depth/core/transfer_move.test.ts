@@ -64,6 +64,9 @@ Deno.test({
     // The reply taken is the reply gone (B3): the node answers the ack, and
     // whoever holds the code asks for it after that in vain.
     assertEquals(await into.ackDone, 200, "the node did not take the ack");
+    // The ack hands the long key under the paper code back (R3, W9): the
+    // same bytes the old device holds, so a reissue can open it here.
+    assertEquals(fresh.wrappedLongKey && [...fresh.wrappedLongKey], old.wrappedLongKey && [...old.wrappedLongKey], "the moved device does not hold the key under the paper code");
     const after = await fresh.request<{ state?: string; reply_envelope?: string }>(
       "GET", `/sessions/${encodeURIComponent((await rowOf(`SELECT lookup_id FROM session_invites WHERE new_session = $1`, [fresh.sessionId])).lookup_id as string)}`,
       undefined, false,

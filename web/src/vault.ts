@@ -465,6 +465,9 @@ export async function keepArrived(a: Arriving, pin: string): Promise<{ client: C
   const { client } = a;
   const held = client.held;
   if (!a.arrival.seated || !held) throw new Error("the move has not arrived yet");
+  // The ack hands the long key under the paper code back (R3); it goes on its
+  // own after the arrival, so it is waited for here, before the record.
+  await a.arrival.ackDone;
   if (!a.sessionPkcs8 || !a.wrapPkcs8) throw new Error("the core did not hand the keys over");
   const set = await client.firstPin(pin);
   if (set.status !== 200 && set.status !== 204) throw new Error(`the first PIN was refused: ${set.status} ${JSON.stringify(set.body)}`);
@@ -485,9 +488,9 @@ export async function keepArrived(a: Arriving, pin: string): Promise<{ client: C
     sessionId: client.sessionId,
     longSpki: client.longSpki,
     deviceSalt,
-    // The paper code's wrap stays on the node; this device was not handed it
-    // by the move, so a reissue here waits for the node to say it (open).
-    wrappedLongKey: new Uint8Array(0),
+    // From the ack (W9); empty only when the node did not say it, and then a
+    // reissue on this device cannot open the key.
+    wrappedLongKey: client.wrappedLongKey ?? new Uint8Array(0),
     sealedLong: await seal(key, longPkcs8),
     sealedSession: await seal(key, a.sessionPkcs8),
     sessionSpki: await sessionSpkiOf(a.sessionPkcs8),

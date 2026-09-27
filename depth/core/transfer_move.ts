@@ -13,6 +13,7 @@
 import type { Answer, HeldLongKey } from "./client.ts";
 import type { SigningKey } from "./sign.ts";
 import { bornWithHandover, newWrapPair } from "./client.ts";
+import { fromBase64url } from "./seal.ts";
 import { base64url } from "./sign.ts";
 import {
   checkCharacters, type Claimant, deriveTransferCode, newTransferCode, openClaim, openReply, sealClaim,
@@ -29,6 +30,9 @@ export interface MoveClient {
     wrapPrivate: CryptoKey; held?: HeldLongKey;
   }): void;
   firstPin(pin: string): Promise<Answer>;
+  // The long key under the paper code, from the ack (R3): without it a moved
+  // identity cannot reissue its code on the new device (finding T1).
+  holdWrappedLongKey?(wrapped: Uint8Array): void;
 }
 
 // What GET /sessions/:lookup_id can say, plus the one word only a client can:
@@ -284,8 +288,12 @@ export class Arrival {
   // other refusal will not change by asking.
   private async ack(timeoutMs: number): Promise<number> {
     for (let n = 1; ; n++) {
-      const answer = await within(timeoutMs, (signal) => this.client.request("POST", path(this.keys, "/ack"), undefined, true, signal));
+      const answer = await within(timeoutMs, (signal) =>
+        this.client.request<{ recovery_wrapped_key?: string }>("POST", path(this.keys, "/ack"), undefined, true, signal)
+      );
       this.acked = answer?.status ?? 0;
+      const wrapped = answer?.status === 200 ? answer.body?.recovery_wrapped_key : undefined;
+      if (typeof wrapped === "string" && this.client.holdWrappedLongKey) this.client.holdWrappedLongKey(fromBase64url(wrapped));
       const again = this.acked === 0 || this.acked === 429 || this.acked >= 500;
       if (!again || n >= ACK_TRIES) return this.acked;
       await new Promise((done) => setTimeout(done, this.ackPauseMs));

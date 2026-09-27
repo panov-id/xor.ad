@@ -12,7 +12,7 @@ test("an identity moves from one browser to another and opens there after a relo
   test.setTimeout(180_000);
   const oldContext = await browser.newContext({ viewport: { width: 393, height: 851 } });
   const old = await oldContext.newPage();
-  await register(old);
+  const paper = await register(old);
   await old.getByTestId("tab-me").click();
   await old.getByTestId("me-move").click();
   await expect(old.locator('[data-screen="departure"]')).toBeVisible();
@@ -60,4 +60,30 @@ test("an identity moves from one browser to another and opens there after a relo
   // The old device let go: it keeps nothing, and is back at the start.
   await old.getByTestId("move-exit").click();
   await expect(old.locator('[data-screen="splash"]')).toBeVisible({ timeout: 15000 });
+
+  // The paper code moved too (W9): after the reload, the new device reissues
+  // it under the old code — the key under it came with the ack — and the old
+  // code no longer raises anybody on a clean device.
+  const reissued: number[] = [];
+  fresh.on("response", (r) => { if (new URL(r.url()).pathname === "/recovery/reissue") reissued.push(r.status()); });
+  await fresh.getByTestId("tab-me").click();
+  await fresh.getByTestId("me-reissue").click();
+  await fresh.getByTestId("reissue-current").fill(paper.join(" "));
+  await fresh.getByTestId("reissue-next").click();
+  await expect(fresh.locator('[data-screen="reissue-2"]')).toBeVisible({ timeout: 30000 });
+  const next = (await fresh.getByTestId("reissue-code").textContent())!.trim().split(" ");
+  await fresh.getByTestId("reissue-group-2").fill(next[1]);
+  await fresh.getByTestId("reissue-group-4").fill(next[3]);
+  await fresh.getByTestId("reissue-confirm").click();
+  await expect(fresh.locator('[data-screen="me"]')).toBeVisible({ timeout: 30000 });
+  expect(reissued).toEqual([204]);
+
+  const clean = await (await browser.newContext({ viewport: { width: 393, height: 851 } })).newPage();
+  await clean.goto("/");
+  await clean.getByTestId("restore").click();
+  await clean.getByTestId("restore-code").fill(paper.join(" "));
+  await clean.getByTestId("restore-pin").fill("135790");
+  await clean.getByTestId("restore-pin-again").fill("135790");
+  await clean.getByTestId("restore-go").click();
+  await expect(clean.getByTestId("error")).toContainText("Код не подошёл", { timeout: 30000 });
 });

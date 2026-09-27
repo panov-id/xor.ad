@@ -521,3 +521,66 @@ Deno.test({
     }
   },
 });
+
+// G1f: the same through a real socket — a ticket bought by a signed call,
+// spent by a WebSocket in Sec-WebSocket-Protocol on a served GET /chat, frames
+// read off the wire, and the close the seat's loss makes (session_freeze.test.ts
+// serves relayUpgrade the same way).
+Deno.test({
+  name: "a live socket to a table: a ticket opens it, a move and a line arrive as frames, standing up closes it 4005",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const relay = await import("../src/chat/relay.ts");
+    const { a, b, id } = await game();
+    const server = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen() {} }, relay.relayUpgrade);
+    const frames: { type: string; data: Record<string, unknown> }[] = [];
+    let closedWith: number | null = null;
+    try {
+      const token = (await signed(b, "POST", `/tables/${id}/ticket`)).body.ticket as string;
+      const socket = new WebSocket(`ws://127.0.0.1:${server.addr.port}/chat`, ["xor.p1", `ticket.${token}`]);
+      socket.onmessage = (event) => frames.push(JSON.parse(event.data));
+      socket.onerror = () => {};
+      const shut = new Promise<void>((resolve) => {
+        socket.onclose = (event) => {
+          closedWith = event.code;
+          resolve();
+        };
+      });
+      await new Promise<void>((resolve, reject) => {
+        socket.onopen = () => resolve();
+        setTimeout(() => reject(new Error("the table's socket did not open within five seconds")), 5000);
+      });
+      // The node puts the room in on its own open; wait until it is there.
+      const until = Date.now() + 3000;
+      while (Date.now() < until && !(relay.roomsForTest().get(`table:${id}`)?.size)) {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      const waitFor = async (type: string) => {
+        const end = Date.now() + 3000;
+        while (Date.now() < end && !frames.some((f) => f.type === type)) await new Promise((r) => setTimeout(r, 20));
+        return frames.find((f) => f.type === type);
+      };
+      const start = await board(a, id);
+      assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" })).status, 200);
+      const moved = await waitFor("board");
+      assert(moved, `no board frame came over the wire: ${JSON.stringify(frames)}`);
+      assertEquals(moved!.data.turn, 2);
+      const said = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "твой ход" });
+      const end = Date.now() + 3000;
+      while (Date.now() < end && !frames.some((f) => f.type === "line" && f.data.id === said.body.id)) {
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      assert(frames.some((f) => f.type === "line" && f.data.text === "твой ход"), `the line did not arrive: ${JSON.stringify(frames)}`);
+
+      assertEquals((await signed(b, "DELETE", `/tables/${id}/seat`)).status, 204);
+      await Promise.race([shut, new Promise((r) => setTimeout(r, 5000))]);
+      // The code travels as a frame before the close (protocol §4.4 `closed`),
+      // so either the close or that frame says 4005.
+      const said4005 = closedWith === 4005 || frames.some((f) => f.type === "closed" && f.data.code === 4005);
+      assert(said4005, `standing up did not close the socket 4005: close ${closedWith}, frames ${JSON.stringify(frames.map((f) => f.type))}`);
+    } finally {
+      await server.shutdown();
+    }
+  },
+});

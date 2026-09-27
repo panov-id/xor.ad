@@ -4,7 +4,7 @@
 
 import { BRAND, NAMES } from "../config.ts";
 
-export function Splash({ onStart }: { onStart: () => void }) {
+export function Splash({ onStart, onRestore }: { onStart: () => void; onRestore: () => void }) {
   return (
     <main className="screen splash" data-screen="splash">
       <p className="brand">{NAMES[BRAND] ?? BRAND}</p>
@@ -12,6 +12,9 @@ export function Splash({ onStart }: { onStart: () => void }) {
       <p className="muted">Сказанное исчезает.</p>
       <button type="button" className="primary" onClick={onStart} data-testid="start">
         Начать
+      </button>
+      <button type="button" onClick={onRestore} data-testid="restore">
+        у меня есть бумажный код
       </button>
     </main>
   );

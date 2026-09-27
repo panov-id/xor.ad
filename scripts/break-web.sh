@@ -16,12 +16,46 @@ if [ -n "$(git -C "$root" status --porcelain -- "$vault")" ]; then
   echo "$vault is already modified — commit first; the break restores with git checkout" >&2; exit 1
 fi
 echo "== break: the seal is opened without the node's share"
-sed -i 's|  return await unsealLong(record, material.local, share);|  return await unsealLong(record, material.local, share.slice(0, 1));|' "$root/$vault"
-grep -q 'material.local, share.slice(0, 1))' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
+# Both readings of the vault key — the check after registration and the cold
+# path after a reload (verifier of W1d): one sed, two lines.
+sed -i 's|vaultKey(material.local, share)|vaultKey(material.local, share.slice(0, 1))|g' "$root/$vault"
+[ "$(grep -c 'vaultKey(material.local, share.slice(0, 1))' "$root/$vault")" = "2" ] || { echo "the break did not apply to both readings" >&2; exit 1; }
 out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
 echo "$out" | grep -E 'data-sealed|✘|✓|[0-9]+ (passed|failed)' | head -6
-if echo "$out" | grep -q 'toHaveAttribute' && echo "$out" | grep -qE '1 failed'; then
+if echo "$out" | grep -q 'toHaveAttribute' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then
   echo "   red as expected"; status=0
+else
+  echo "   STAYED GREEN — the guard proves nothing"; status=1
+fi
+restore
+
+# Break 2 (W1d): the wrapping pair raised after a reload is a fresh one, not
+# the one out of the seal — the page's check says so (data-sealed becomes
+# "unlocked-new-wrap") and the e2e must go red on the reload's line.
+echo "== break 2: the wrapping pair after a reload is a fresh one"
+# No import is touched: the constants are already imported, and an import
+# line that moved would turn this into a broken build, not a red test.
+sed -i 's|  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|  wrapPrivate = (await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair).privateKey;\n  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|' "$root/$vault"
+grep -q 'wrapPrivate = (await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair).privateKey;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
+out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
+echo "$out" | grep -E 'unlocked-new-wrap|✘|✓|[0-9]+ (passed|failed)' | head -6
+if echo "$out" | grep -q 'data-sealed="unlocked-new-wrap"' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then
+  echo "   red as expected"
+else
+  echo "   STAYED GREEN — the guard proves nothing"; status=1
+fi
+restore
+
+# Break 3 (W4): the PIN changes but the vault is not re-sealed — the record
+# on the disk is not written. The next reload cannot open with the new PIN,
+# and me.spec.ts must go red where it expects the feed after the unlock.
+echo "== break 3: the PIN changes, the vault is not re-sealed"
+sed -i 's|    await tx("readwrite", (s) => s.put(resealed));|    void resealed;|' "$root/$vault"
+grep -q '    void resealed;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
+out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
+echo "$out" | grep -E 'me.spec|✘|✓|[0-9]+ (passed|failed)' | head -6
+if echo "$out" | grep -qE '✘ +[0-9]+ me.spec.ts' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then
+  echo "   red as expected"
 else
   echo "   STAYED GREEN — the guard proves nothing"; status=1
 fi

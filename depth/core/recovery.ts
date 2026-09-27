@@ -20,9 +20,9 @@
 // 2026-09-26 — not a same-device claim to fetch it, whose side effects re-arm
 // the first-PIN grant; not a long key kept extractable for the process).
 
-import type { Answer, Client, HeldLongKey } from "./client.ts";
+import { type Answer, bornWithHandover, type Client, type HeldLongKey, newWrapPair } from "./client.ts";
 import { derivePaperCode, unwrapLongKey, wrapLongKey } from "./paper.ts";
-import { base64url, generateSigningKey } from "./sign.ts";
+import { base64url, type SigningKey } from "./sign.ts";
 
 const SALT = new TextEncoder().encode("xor.ad/recovery/v1");
 const P256 = { name: "ECDSA", namedCurve: "P-256" } as const;
@@ -110,20 +110,35 @@ async function publicHalfByJwk(extractable: CryptoKey): Promise<string> {
 export async function raise(
   client: Client,
   code: string,
-  opts: { label?: string; hold?: (extractable: CryptoKey) => Promise<HeldLongKey> } = {},
+  // A face with a disk (the web, W6) takes the new session key's and the
+  // wrapping pair's pkcs8 once, to seal them beside the long key, and names
+  // its unlock key (db/063); the terminal takes none of it.
+  opts: {
+    label?: string;
+    hold?: (extractable: CryptoKey) => Promise<HeldLongKey>;
+    holdSession?: (pkcs8: Uint8Array) => Promise<void>;
+    holdWrap?: (pkcs8: Uint8Array) => Promise<void>;
+    unlockPub?: string;
+  } = {},
 ): Promise<Outcome & { sameDevice?: boolean }> {
   const { lookupId, wrapKey } = await derivePaperCode(code);
   const sameDevice = client.registered;
-  const fresh = sameDevice ? null : {
-    session: await generateSigningKey(),
-    wrap: await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair,
-  };
+  let fresh: { session: SigningKey; wrap: CryptoKeyPair } | null = null;
+  if (!sameDevice) {
+    const pair = await bornWithHandover({ name: "ECDSA", namedCurve: "P-256" }, ["sign", "verify"], opts.holdSession);
+    const session: SigningKey = {
+      privateKey: pair.privateKey,
+      publicSpki: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey))),
+    };
+    fresh = { session, wrap: await newWrapPair(opts.holdWrap) };
+  }
   const body = fresh
     ? {
       lookup_id: lookupId,
       sign_pub: fresh.session.publicSpki,
       wrap_pub: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", fresh.wrap.publicKey))),
       ...(opts.label ? { label: opts.label } : {}),
+      ...(opts.unlockPub ? { unlock_pub: opts.unlockPub } : {}),
     }
     : { lookup_id: lookupId };
   const answer = await client.request<{ identity_id: string; session_id: string; recovery_wrapped_key: string }>(
@@ -150,6 +165,7 @@ export async function raise(
     longKey: await unwrapLongKey(wrapped, wrapKey),
     longSpki: opened.longSpki,
     wrapPrivate: fresh!.wrap.privateKey,
+    wrapPublicSpki: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", fresh!.wrap.publicKey))),
     wrappedLongKey: wrapped,
     held: opened.held,
   });

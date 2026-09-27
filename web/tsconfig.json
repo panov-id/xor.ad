@@ -24,7 +24,8 @@
       "hash-wasm": [
         "./node_modules/hash-wasm"
       ]
-    }
+    },
+    "resolveJsonModule": true
   },
   "include": [
     "src",

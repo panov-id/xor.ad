@@ -94,7 +94,13 @@ test("not now is this side's alone and can be taken back; a device with no wrap 
   const noWrap = await viaClient<{ status: number; body: { error?: { code?: string } } }>(boris, "request", "GET", `/chats/${chatId}/keys`);
   expect(noWrap.status).toBe(404);
   expect(noWrap.body.error?.code).toBe("no_wrap");
+  // A reload goes through the vault and the PIN (W1d, SEC-2), then the inbox.
   await boris.reload();
+  await expect(boris.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 20000 });
+  await boris.getByTestId("unlock-pin").fill("246813");
+  await boris.getByTestId("unlock").click();
+  await expect(boris.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
+  await boris.getByTestId("nav-inbox").click();
   await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 20000 });
   await expect(boris.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();

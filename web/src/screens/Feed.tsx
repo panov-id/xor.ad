@@ -28,7 +28,7 @@ const label = (r: Radius) => (r >= 1000 ? `${r / 1000} км` : `${r} м`);
 export function Feed(
   { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, sent, gone }: {
     client: Client;
-    sealed: "ok" | "failed" | "unlocked";
+    sealed: "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
     at: { lat: number; lon: number };
     radius: Radius;
     onRadius: (r: Radius) => void;
@@ -149,7 +149,7 @@ export function Feed(
         <button type="button" onClick={() => load(next)} data-testid="more">показать ещё</button>
       )}
       <footer className="muted">
-        ключи: {sealed === "unlocked" ? "отперто ПИНом" : sealed === "ok" ? "печать хранилища сходится" : "печать хранилища не сходится"}
+        ключи: {sealed === "unlocked" ? "отперто ПИНом, обёртка та же" : sealed === "unlocked-new-wrap" ? "отперто ПИНом, обёртка НЕ та" : sealed === "ok" ? "печать хранилища сходится" : "печать хранилища не сходится"}
       </footer>
     </main>
   );

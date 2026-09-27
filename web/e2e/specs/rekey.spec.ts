@@ -91,7 +91,13 @@ test("a side whose keys do not open asks for new ones, the other agrees on the s
   });
   const spoiled = await viaClient<{ status: number }>(boris, "request", "PUT", `/chats/${chatId}/keys`, { epoch: 0, wrapped_key: junk });
   expect(spoiled.status).toBe(200);
+  // A reload goes through the vault and the PIN (W1d, SEC-2), then the inbox.
   await boris.reload();
+  await expect(boris.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 20000 });
+  await boris.getByTestId("unlock-pin").fill("246813");
+  await boris.getByTestId("unlock").click();
+  await expect(boris.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
+  await boris.getByTestId("nav-inbox").click();
   await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 20000 });
   await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(boris.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "failed", { timeout: 20000 });
@@ -129,7 +135,13 @@ test("a side whose keys do not open asks for new ones, the other agrees on the s
   // B reloads once more: the new wrap opens at epoch 1 with no PUT.
   const putsB: number[] = [];
   boris.on("response", (r) => { if (new URL(r.url()).pathname === `/chats/${chatId}/keys` && r.request().method() === "PUT") putsB.push(r.status()); });
+  // A reload goes through the vault and the PIN (W1d, SEC-2), then the inbox.
   await boris.reload();
+  await expect(boris.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 20000 });
+  await boris.getByTestId("unlock-pin").fill("246813");
+  await boris.getByTestId("unlock").click();
+  await expect(boris.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
+  await boris.getByTestId("nav-inbox").click();
   await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 20000 });
   await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(boris.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });

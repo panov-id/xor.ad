@@ -95,7 +95,13 @@ const csp = {
     html.replace("<head>", `<head>\n    <meta http-equiv="Content-Security-Policy" content="${CSP_PAGE}" />`),
 };
 
+// A font is never inlined (VF1): a small subset (JetBrains Mono's Cyrillic
+// extension, 1640 bytes) went under the 4 KiB limit into a data: URL, which
+// font-src 'self' refuses — the policy stays as it is, the font stays a file.
+const assetsInlineLimit = (file: string) => (/\.woff2?$/.test(file) ? false : undefined);
+
 export default defineConfig({
+  build: { assetsInlineLimit },
   plugins: [react(), csp],
   server: { proxy, fs: { allow: [".", core, locales, kit, fonts] }, allowedHosts: ["host.docker.internal", "web"] },
   preview: {

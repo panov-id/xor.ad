@@ -8,7 +8,9 @@
 
 import { useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
-import { blockByPhrase, hidePhrase, likePhrase, type LikeOutcome } from "../api/actions.ts";
+import { blockByPhrase, hidePhrase, likePhrase, modes, type LikeOutcome } from "../api/actions.ts";
+import { Button } from "../ui/Button.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
 import type { FeedCard } from "./Feed.tsx";
 import { say } from "../locales/say.ts";
 
@@ -57,10 +59,8 @@ export function Card(
 
   return (
     <main className="screen card-screen" data-screen="card" data-id={card.id}>
-      <header>
-        <button type="button" onClick={onBack} data-testid="back">{say("web.card.back")}</button>
-        <span className="muted">{card.mode} · {card.lang}</span>
-      </header>
+      {/* Sheet 23: close on the left, the phrase's mode in words on the band. */}
+      <HeaderScreen title={modes().find((m) => m.value === card.mode)?.label ?? card.mode} onBack={onBack} backLabel={say("web.card.back")} />
       <article className="phrase">
         {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
         <p className="big" data-testid="text">{card.text}</p>
@@ -75,23 +75,23 @@ export function Card(
       {like?.state === "refused" && <p className="error" data-testid="refused">{like.why}</p>}
       {error && <p className="error" data-testid="error">{error}</p>}
       <div className="actions">
-        <button
+        <Button
           type="button"
-          className="primary"
+          kind="primary"
           disabled={busy || (like !== null && like.state !== "refused")}
           onClick={() => act(async () => setLike(await likePhrase(client, card.id)))}
           data-testid="like"
         >
           {say("web.card.like")}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           disabled={busy}
           onClick={() => act(async () => { await hidePhrase(client, card.id); onGone("hidden", card.id); })}
           data-testid="hide"
         >
           {say("feed.hide")}
-        </button>
+        </Button>
         {card.kind === "offer" && (complained
           ? <p data-testid="complained">{say("web.card.complained")}</p>
           : !complaining
@@ -112,23 +112,23 @@ export function Card(
           ))}
         {!confirmBlock
           ? (
-            <button type="button" disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block">
+            <Button type="button" disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block">
               {say("block.item")}
-            </button>
+            </Button>
           )
           : (
             <section className="confirm" data-testid="block-confirm">
               <p className="muted">{say("web.card.block_warning")}</p>
-              <button
+              <Button
                 type="button"
-                className="danger"
+                kind="danger"
                 disabled={busy}
                 onClick={() => act(async () => { await blockByPhrase(client, card.id); onGone("blocked", card.id); })}
                 data-testid="block-confirm-yes"
               >
                 {say("web.card.block_yes")}
-              </button>
-              <button type="button" onClick={() => setConfirmBlock(false)} data-testid="block-confirm-no">{say("web.card.block_no")}</button>
+              </Button>
+              <Button type="button" onClick={() => setConfirmBlock(false)} data-testid="block-confirm-no">{say("web.card.block_no")}</Button>
             </section>
           )}
       </div>

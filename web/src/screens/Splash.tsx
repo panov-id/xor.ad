@@ -4,6 +4,7 @@
 
 import { say } from "../api/me.ts";
 import { BRAND, NAMES } from "../config.ts";
+import { Button } from "../ui/Button.tsx";
 
 export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; onRestore: () => void; onArrive: () => void }) {
   return (
@@ -11,15 +12,15 @@ export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; 
       <p className="brand">{NAMES[BRAND] ?? BRAND}</p>
       <h1>{say("web.splash.tagline")}</h1>
       <p className="muted">{say("web.splash.vanishes")}</p>
-      <button type="button" className="primary" onClick={onStart} data-testid="start">
+      <Button type="button" kind="primary" onClick={onStart} data-testid="start">
         {say("web.splash.start")}
-      </button>
-      <button type="button" onClick={onRestore} data-testid="restore">
+      </Button>
+      <Button type="button" onClick={onRestore} data-testid="restore">
         {say("web.splash.haveCode")}
-      </button>
-      <button type="button" onClick={onArrive} data-testid="arrive">
+      </Button>
+      <Button type="button" onClick={onArrive} data-testid="arrive">
         {say("move.inItem")}
-      </button>
+      </Button>
     </main>
   );
 }

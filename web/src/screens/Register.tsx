@@ -14,6 +14,8 @@ import type { Client } from "../../../depth/core/client.ts";
 import { newPaperCode, paperGroups, readPaperText } from "../../../depth/core/paper.ts";
 import { openSealed, registerAndKeep, type Record_ } from "../vault.ts";
 import { say } from "../locales/say.ts";
+import { Button } from "../ui/Button.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 const count = (s: string) => [...graphemes.segment(s)].length;
@@ -93,7 +95,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
     <main className="screen register" data-screen={`register-${step}`}>
       {step === 1 && (
         <>
-          <header><h1>{say("web.register.who")}</h1><span className="muted">1 / 2</span></header>
+          <HeaderScreen title={say("web.register.who")} action="1 / 2" />
           <label>
             {say("reg.name")}
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={64} data-testid="name" autoComplete="off" />
@@ -108,14 +110,14 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="consent" />
             <span>{say("web.register.consent")}</span>
           </label>
-          <button type="button" className="primary" disabled={!stepOneOk} onClick={() => setStep(2)} data-testid="next">
+          <Button type="button" kind="primary" disabled={!stepOneOk} onClick={() => setStep(2)} data-testid="next">
             {say("reg.next")}
-          </button>
+          </Button>
         </>
       )}
       {step === 2 && (
         <>
-          <header><h1>{say("reg.pin")}</h1><span className="muted">2 / 2</span></header>
+          <HeaderScreen title={say("reg.pin")} action="2 / 2" />
           <label>
             {say("reg.pin")}
             <input type="password" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" data-testid="pin" />
@@ -126,14 +128,14 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
           </label>
           {pin.length === 6 && easyPin(pin) && <p className="warn">{say("web.register.easy_pin")}</p>}
           {error && <p className="error" data-testid="error">{error}</p>}
-          <button type="button" className="primary" disabled={!pinOk || busy} onClick={register} data-testid="register">
+          <Button type="button" kind="primary" disabled={!pinOk || busy} onClick={register} data-testid="register">
             {busy ? say("web.register.waiting") : say("reg.next")}
-          </button>
+          </Button>
         </>
       )}
       {step === 3 && (
         <>
-          <header><h1>{say("web.register.paper_title")}</h1></header>
+          <HeaderScreen title={say("web.register.paper_title")} />
           <p className="code" data-testid="paper-code">{groups.join(" ")}</p>
           <p className="muted">
             {say("web.register.paper_text")}
@@ -148,9 +150,9 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
             <input value={fourth} onChange={(e) => setFourth(e.target.value)} data-testid="group-4" autoComplete="off" />
           </label>
           {error && <p className="error" data-testid="error">{error}</p>}
-          <button type="button" className="primary" disabled={busy || !second || !fourth} onClick={confirm} data-testid="confirm">
+          <Button type="button" kind="primary" disabled={busy || !second || !fourth} onClick={confirm} data-testid="confirm">
             {say("web.register.done")}
-          </button>
+          </Button>
         </>
       )}
     </main>

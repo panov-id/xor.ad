@@ -8,7 +8,7 @@ import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Say } from "../strings.ts";
 import type { Client } from "../../core/client.ts";
-import { Form, Head, Menu } from "../parts.ts";
+import { Form, Head, Menu, plain } from "../parts.ts";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -53,7 +53,7 @@ export function Complaint(
           .then((answer) => {
             if (answer.status >= 200 && answer.status < 300) return setState("sent");
             const error = (answer.body as { error?: { code?: string; message?: string } } | null)?.error;
-            setError(`${say("complaint.refused")}: ${error?.message ?? error?.code ?? String(answer.status)}`);
+            setError(`${say("complaint.refused")}: ${plain(error?.message ?? error?.code ?? String(answer.status), 200)}`);
             setState("edit");
           })
           .catch((e: Error) => { setError(e.message); setState("edit"); });

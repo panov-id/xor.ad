@@ -26,3 +26,20 @@
 [data-testid="chat-game"] { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3); border-radius: var(--r-2); background: var(--panel); }
 [data-testid="chat-game"] > p { margin: 0; font-size: 14px; font-weight: 600; }
 [data-testid="chat-game"] .ui-button { font-size: 14px; }
+/* WD4b: the inbox tabs — components.svg tabs: 14/600, the active one fg with a
+   3 px accent underline, the rest muted, a hairline under; the dot is the kit's. */
+.talk-tabs { display: flex; gap: var(--s-4); border-bottom: 1px solid var(--border); }
+.talk-tab { position: relative; min-height: var(--control-h); padding: 0; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 14px; font-weight: 600; border-bottom: 3px solid transparent; }
+.talk-tab-on { color: var(--fg); border-bottom-color: var(--accent); }
+.talk-tab-dot { position: absolute; top: 10px; right: -10px; }
+.talk-chats li { list-style: none; }
+.talk-chats .ui-inbox-row { min-height: 72px; }
+/* WD4b: «во что сыграть?» — 18D: rows 48 on panel-2 with a hairline, the chosen
+   one fg; the sets as the kit's select pills. */
+.talk-picks { display: flex; flex-direction: column; border-radius: var(--r-1); overflow: hidden; }
+.talk-pick { min-height: var(--control-h); border: 0; border-radius: 0; border-bottom: 1px solid var(--border); background: var(--panel-2); color: var(--muted); text-align: left; padding: 0 var(--s-3); font-size: 14px; font-weight: 400; }
+.talk-pick:last-child { border-bottom: 0; }
+.talk-pick-on { color: var(--fg); font-weight: 600; }
+.talk-sets { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.talk-set { min-height: var(--control-h); padding: 0 var(--s-4); border-radius: var(--r-pill); border: 1px solid var(--border-control); background: none; font-size: 14px; }
+.talk-set-on { background: var(--fg); border-color: var(--fg); color: var(--bg); font-weight: 600; }

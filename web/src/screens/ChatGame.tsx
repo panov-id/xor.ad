@@ -26,7 +26,9 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
   const read = useCallback(async () => {
     const got = await games.look(chatId);
     if (got.status === 404) setGame("none");
-    else if (got.status === 200) setGame(got.body);
+    // A declined proposal leaves the row with neither a board nor a pending
+    // offer (relay routes/chat_games.ts): nothing is on, so a game may be offered again.
+    else if (got.status === 200) setGame(!got.body.board && !got.body.pending ? "none" : got.body);
     else setError(tableRefusal(got));
   }, [chatId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -51,23 +53,28 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
     const sets = CLASSES.find((c) => c.value === klass)?.sets ?? [];
     return (
       <section data-testid="chat-game" aria-label={say("web.game.title")}>
-        <label>
-          {say("web.game.class")}{" "}
-          <select value={klass} data-testid="game-class" onChange={(e) => {
-            const next = e.target.value as BoardClass;
-            setKlass(next);
-            setSet(CLASSES.find((c) => c.value === next)?.sets[0] ?? "");
-          }}>
-            {CLASSES.map((c) => <option key={c.value} value={c.value}>{c.value}</option>)}
-          </select>
-        </label>{" "}
-        <label>
-          {say("web.game.set")}{" "}
-          <select value={set} data-testid="game-set" onChange={(e) => setSet(e.target.value)}>
-            {sets.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </label>{" "}
-        <Button kind="secondary" type="button" data-testid="game-propose" disabled={busy} onClick={() => act(() => games.propose(chatId, klass, set))}>
+        {/* «во что сыграть?» as 18D draws it: one row per game, the chosen
+            one on panel-2; its sets as chips under the list. */}
+        <div role="radiogroup" aria-label={say("web.game.class")} className="talk-picks" data-testid="game-class">
+          {CLASSES.map((c) => (
+            <button key={c.value} type="button" role="radio" aria-checked={klass === c.value} data-testid={`game-class-${c.value}`}
+              className={klass === c.value ? "talk-pick talk-pick-on" : "talk-pick"}
+              onClick={() => { setKlass(c.value as BoardClass); setSet(c.sets[0] ?? ""); }}>
+              {c.value}
+            </button>
+          ))}
+        </div>
+        {sets.length > 1 && (
+          <div role="radiogroup" aria-label={say("web.game.set")} className="talk-sets" data-testid="game-set">
+            {sets.map((s) => (
+              <button key={s} type="button" role="radio" aria-checked={set === s} data-testid={`game-set-${s}`}
+                className={set === s ? "talk-set talk-set-on" : "talk-set"} onClick={() => setSet(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+        <Button kind="primary" type="button" data-testid="game-propose" disabled={busy} onClick={() => act(() => games.propose(chatId, klass, set))}>
           {say("web.game.propose")}
         </Button>
         {error && <p role="alert">{error}</p>}

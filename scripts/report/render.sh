@@ -3,7 +3,7 @@
 #
 #   scripts/report/render.sh      # → docs/report-<YYYY-MM-DD>-full.pdf
 #
-# measure.sh → frames.sh → shots.sh → build.py → Playwright print.
+# measure.sh → frames.sh → shots.sh → webshots.sh → build.py → Playwright print.
 # Intermediates (data/, dc/, shots/, out/) live in $REPORT_WORK, default
 # ~/.cache/xor.ad-report — outside the git tree. docs/*.pdf is gitignored.
 # $REPORT_SCREENSHOTS points build.py at the gitignored design screenshots when
@@ -17,6 +17,7 @@ rm -f "$REPORT_WORK/out/report.pdf"
 "$H/measure.sh"
 "$H/frames.sh"
 "$H/shots.sh"
+"$H/webshots.sh"
 python3 "$H/build.py"
 stamp="$(grep ^measured= "$REPORT_WORK/data/git.env" | cut -d= -f2)"
 timeout 300 docker run --rm -e STAMP="$stamp" -v "$REPORT_WORK/out":/work -v "$H/render.mjs":/tests/render.mjs:ro \

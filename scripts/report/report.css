@@ -75,4 +75,6 @@ table.matrix td { padding: 3px 6px; }
 .term pre { min-height: 0; max-height: 235px; }
 .shot .frame { aspect-ratio: 16/9; }
 .proof{margin-top:3px;font-size:8.5px;color:#8a8984}
-.web-shots figure.shot.phone .frame img{width:100%}
+.shots.web{grid-template-columns:repeat(4,1fr)}
+.shot.webshot .frame{aspect-ratio:393/727}
+.shot.webshot{break-inside:avoid}

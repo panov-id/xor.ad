@@ -292,6 +292,50 @@ shots_src = str(SS.relative_to(R)) if SS.is_relative_to(R) else "$REPORT_SCREENS
 # Stored screenshots only; live ones missing are reported on their own line.
 stored_missing = lambda: [m for m in missing if m.removesuffix(".png") not in LIVE_SHOTS]
 
+# ---------- the web face ----------
+# The last frame of every end-to-end test of web/ (webshots.sh). A caption says
+# which test ended on this screen, not what the screen is: nobody looked at it
+# but the test. A spec with no caption here is shown under its own name.
+WEB_TESTS = {
+    "register-feed": "регистрация с ПИНом и бумажным кодом, затем лента",
+    "compose-like": "фраза опубликована, другой человек лайкнул её с карточки и нашёл в «лайкнутом»",
+    "chat": "двое встретились через лайки и говорят под шифром; второй вернулся в беседу после перезагрузки",
+    "unlock-chat": "после перезагрузки беседа открывается только через ПИН",
+    "decline": "«не сейчас» и его отмена; устройству без свёртки сказано просить ключи",
+    "rekey": "ключи не открылись, второй согласился на новые, беседа идёт под новой эпохой",
+    "close-code": "узел назвал причину закрытия комнаты кадром closed",
+    "me": "экран «я»: смена ПИНа, отлучка, мотивировки",
+    "restore": "подъём личности по бумажному коду на чистом устройстве",
+    "reissue": "перевыпуск бумажного кода",
+    "offer": "экран выхода по ссылке оффера",
+    "a11y": "проверка доступности axe",
+}
+_web_list = D / "webshots.list"
+web_shots = [Path(l) for l in _web_list.read_text().split("\n") if l.strip()] if _web_list.is_file() else []
+web_tally = (D / "webshots.txt").read_text().strip().replace("\n", "; ") if (D / "webshots.txt").is_file() else ""
+web_rc = (D / "webshots.rc").read_text().strip() if (D / "webshots.rc").is_file() else None
+
+
+def web_caption(p):
+    folder = p.parent.name
+    spec = max((k for k in WEB_TESTS if folder.startswith(k + "-")), key=len, default=None)
+    side = p.stem.rsplit("-", 1)[-1]
+    return f"{WEB_TESTS.get(spec, folder)} · страница {side}"
+
+
+def web_html():
+    if not web_shots:
+        return '<p class="lead">Экраны веб-лица не сняты: <code>scripts/report/webshots.sh</code> картинок не оставил.</p>'
+    figs = []
+    for i, p in enumerate(web_shots):
+        dst = OUT / "img" / f"web-{i:02d}.png"
+        dst.parent.mkdir(exist_ok=True)
+        shutil.copy(p, dst)
+        figs.append(f'<figure class="shot webshot"><div class="frame"><img src="img/{dst.name}"></div>'
+                    f'<figcaption>{e(web_caption(p))}<span>сейчас</span></figcaption></figure>')
+    return '<div class="shots web">' + "".join(figs) + "</div>"
+
+
 # ---------- tables ----------
 def chip(k):
     if k == "na":
@@ -481,6 +525,10 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 {img(SH/'panel-login.png', 'xor.panov.id — вход в панель', 'сейчас', 'wide2')}
 </div>
 
+<h3 class="ch">Веб-лицо <code>web/</code> — последние кадры его сквозных тестов</h3>
+<p class="lead">Одноразовый стенд <code>docker-compose.web.yml</code>, телефонный экран Pixel 5; прогон при сборке отчёта: {e(web_tally or "итог не записан")}, код {e(web_rc or "неизвестен")}. Каждый снимок — то, на чём тест закончился; у теста с двумя людьми страниц несколько. Подпись называет тест.</p>
+{web_html()}
+
 <h3 class="ch">Терминал depth — настоящие кадры</h3>
 <p class="lead">Последний кадр каждого теста экранов (<code>depth/ink/screens.node-test.ts</code>), прогон сейчас: пройдено {screens_passed}, провалено {screens_failed}. Цвет и жирность — как их отдаёт Ink.</p>
 <div class="terms">
@@ -501,7 +549,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 {img(DS/'feed-queue-mockup.png', 'Макет: очередь модерации ленты')}
 {img(DS/'support-queue-mockup.png', 'Макет: очередь поддержки')}
 </div>
-<h3 class="ch">Приложение — макеты из кита (веб-лицо <code>web/</code> при сборке отчёта не снималось)</h3>
+<h3 class="ch">Приложение — макеты из кита</h3>
 <div class="shots two">
 {img(DS/'screen-03.png', 'Экран 03 — лента')}
 {img(DS/'screen-23.png', 'Экран 23 — фраза во весь экран')}
@@ -524,8 +572,10 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 <li>Тесты посчитаны <code>scripts/count-tests.sh</code> ({tests_total}); история — по дереву git на каждый день.</li>
 <li>Тесты экранов depth прогнаны в контейнере: пройдено {screens_passed}, провалено {screens_failed}; кадры в разделе 9 — из этого прогона.</li>
 {"<li>Живые снимки витрин и панели — Playwright в контейнере, сейчас.</li>" if not live_missing else ""}
+{f"<li>Сквозные тесты веб-лица прогнаны на одноразовом стенде: {e(web_tally)}; снимков {len(web_shots)}.</li>" if web_rc == "0" else ""}
 </ul></div>
 <div class="callout red"><h3>Не проверено сейчас</h3><ul>
+{"" if web_rc == "0" else "<li>Сквозные тесты веб-лица при сборке не прошли или не запускались.</li>"}
 <li>Проценты готовности и сетка — оценка роадмапа {ru_date(road['as_of'])}, таблица шагов — запись на {ru_date(steps_p['as_of'])}; не замер.</li>
 {f"<li>Живые снимки не сняты: {e(', '.join(live_missing))} — <code>scripts/report/shots.sh</code> их не сохранил.</li>" if live_missing else ""}
 {f"<li>Пул узлов не опрошен: {e(pool_why)}.</li>" if pool_why else ""}

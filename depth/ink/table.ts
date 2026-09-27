@@ -2,12 +2,15 @@
 // it, who sits, whose turn and how long, the lines since one's own seating.
 // Said aloud, as §4.9 asks: no end-to-end encryption here, and a line waits
 // for the moderation queue like a phrase. The board lives in the process only.
-import { createElement as h, useState } from "react";
+import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
 import { Head, Menu, useKeys } from "./parts.ts";
-import { dotsOf, drawDots, freeEdges, openApplications, type TableView, turnOf } from "../core/tables.ts";
+import type { Room } from "../core/client.ts";
+import {
+  applyFrame, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
+} from "../core/tables.ts";
 
 export type TableAction = "move" | "pass" | "say" | "stand" | "resign" | "like";
 
@@ -81,5 +84,71 @@ export function Table(
       onPick: (key) => key === "move" && edge ? onMove?.({ edge }) : onPick(key as TableAction),
       hint: dots ? `[ ] ${say("table.edge")} · ${say("common.rowActions")}` : say("common.rowActions"),
     }),
+  );
+}
+
+// The table live (C1): read once, then the socket's frames (G1e) instead of a
+// read every 2 s — a line goes on as it comes, a board or a seat frame reads
+// the table again, 4005 (the seat lost) leaves it. Moves and passes go through
+// the core; their refusals come back as a line of text.
+export function TableRoom(
+  { say, tables, open, tableId, onLeave, onError }: {
+    say: Say;
+    tables: Pick<Tables, "view" | "move" | "pass" | "stand" | "resign" | "like">;
+    open: (tableId: string) => Promise<Room>;
+    tableId: string;
+    onLeave: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [view, setView] = useState<TableView | null>(null);
+  const [said, setSaid] = useState<string | null>(null);
+  const read = () =>
+    tables.view(tableId).then((a) => (a.status === 200 ? setView(a.body) : onError(`${a.status} ${JSON.stringify(a.body)}`)));
+  useEffect(() => {
+    let live = true;
+    let room: Room | null = null;
+    read().catch((e: Error) => onError(e.message));
+    open(tableId).then(async (r) => {
+      room = r;
+      void r.closed.then((code) => {
+        live = false;
+        if (code === SEAT_LOST) onLeave();
+      });
+      while (live) {
+        const frame = await r.next(60_000).catch(() => null);
+        if (!frame || !live) continue;
+        if (frameNeedsView(frame)) await read().catch((e: Error) => onError(e.message));
+        else setView((v) => (v ? applyFrame(v, frame) : v));
+      }
+    }).catch((e: Error) => onError(e.message));
+    return () => {
+      live = false;
+      room?.close();
+    };
+  }, [tableId]);
+  if (!view) return h(Text, { dimColor: true }, "…");
+  const answer = (run: Promise<{ status: number; body: unknown }>) =>
+    void run.then((a) => {
+      const error = (a.body as { error?: { code?: string; reason?: string } } | null)?.error;
+      setSaid(a.status >= 400 ? `${say("table.refused")}: ${error?.reason ?? error?.code ?? a.status}` : null);
+    }).catch((e: Error) => onError(e.message));
+  return h(
+    Box,
+    { flexDirection: "column" },
+    h(Table, {
+      say,
+      view,
+      onMove: (move) => {
+        if (view.board) answer(tables.move(tableId, view.board.seq, move));
+      },
+      onPick: (action) => {
+        if (action === "stand") return void tables.stand(tableId).then(onLeave).catch((e: Error) => onError(e.message));
+        if (action === "pass" && view.board) return answer(tables.pass(tableId, view.board.seq));
+        if (action === "resign") return answer(tables.resign(tableId));
+        if (action === "like") return answer(tables.like(tableId));
+      },
+    }),
+    said ? h(Text, { color: "red" }, said) : null,
   );
 }

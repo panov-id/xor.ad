@@ -36,6 +36,8 @@ import { Statements } from "./screens/Statements.tsx";
 import { Unlock } from "./screens/Unlock.tsx";
 import { Arrival } from "./screens/Arrival.tsx";
 import { Departure } from "./screens/Departure.tsx";
+import { Blocked } from "./screens/Blocked.tsx";
+import { Hidden } from "./screens/Hidden.tsx";
 import { forget, readRecord, type Record_ } from "./vault.ts";
 import "./chat/chat.css";
 
@@ -61,6 +63,8 @@ type Screen =
   | { at: "change-pin" }
   | { at: "reissue" }
   | { at: "departure" }
+  | { at: "hidden" }
+  | { at: "blocked" }
   | { at: "arrival" }
   | { at: "reset" }
   | { at: "step-away" }
@@ -263,6 +267,8 @@ export function App() {
               if (row === "away") return setScreen({ at: "step-away" });
               if (row === "pin") return setScreen({ at: "change-pin" });
               if (row === "move") return setScreen({ at: "departure" });
+              if (row === "hidden") return setScreen({ at: "hidden" });
+              if (row === "blocked") return setScreen({ at: "blocked" });
               if (row === "reissue") return setScreen({ at: "reissue" });
               setScreen({ at: "reset" });
             }}
@@ -273,6 +279,10 @@ export function App() {
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
+    case "hidden":
+      return <Hidden client={seated!.client} onBack={() => { setEdits((n) => n + 1); me(); }} />;
+    case "blocked":
+      return <Blocked client={seated!.client} onBack={() => { setEdits((n) => n + 1); me(); }} />;
     case "departure":
       // Moved away: the node froze this session with the approval, and the
       // device keeps nothing of the identity any more.

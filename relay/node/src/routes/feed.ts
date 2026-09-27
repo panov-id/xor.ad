@@ -28,7 +28,8 @@ import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_lim
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
 import { publishLocked, reasonsFor, settleAfterVerdict, verdictMode, type Verdict } from "../lib/feed_verdict.ts";
-import { band, boundingBox, quantise } from "../lib/feed_geo.ts";
+import { band, boundingBox, metresBetween, quantise } from "../lib/feed_geo.ts";
+import { brandByKey } from "../lib/brand_registry.ts";
 import { query } from "../lib/db.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
@@ -259,6 +260,57 @@ interface FeedRow {
 // (lib/feed_geo.ts). The exact centre never leaves. Nothing about the author
 // leaves at all — not an id, not a name, not an age; the age is read to decide
 // the band and then dropped.
+// The live offers of verified venues whose circle meets the viewer's, newest
+// first, as feed cards. The venue's point is published rounded to the grid of
+// its radius, as a phrase's is (lib/feed_geo.ts); the distance is measured from
+// that published point, so the answer and its condition agree (db/027).
+async function venueOffers(brand: string, viewer: { lat: number; lon: number }, radius: number, quota: number) {
+  if (quota <= 0) return [];
+  const face = await brandByKey(brand);
+  if (!face) return [];
+  const box = boundingBox(viewer, radius + 10000);
+  const rows = await query<{
+    id: string; offer_text: string; discount_value: string; conditions: string | null; promo_code: string | null;
+    redirect_code: string; link_off: boolean; discount_until: Date; venue_name: string;
+    lat: number; lon: number; area_radius: number;
+  }>(
+    `SELECT o.id, o.offer_text, o.discount_value, o.conditions, o.promo_code, o.redirect_code,
+            (o.redirect_disabled_at IS NOT NULL OR o.external_url IS NULL) AS link_off, o.discount_until,
+            v.name AS venue_name, v.lat, v.lon, v.area_radius
+       FROM offers o JOIN venues v ON v.id = o.venue_id
+      WHERE o.brand = $1 AND o.status = 'active' AND o.expires_at > now() AND o.discount_until > now()
+        AND v.verification_status = 'verified' AND v.lat IS NOT NULL
+        AND v.lat BETWEEN $2 AND $3 AND v.lon BETWEEN $4 AND $5
+      ORDER BY o.published_at DESC, o.id
+      LIMIT 50`,
+    [brand, box.latMin, box.latMax, box.lonMin, box.lonMax],
+  ) ?? [];
+  const cards = [];
+  for (const row of rows) {
+    const at = quantise({ lat: row.lat, lon: row.lon }, row.area_radius);
+    if (metresBetween(at, viewer) > row.area_radius + radius) continue;
+    cards.push({
+      kind: "offer",
+      id: row.id,
+      text: row.offer_text,
+      lat: at.lat,
+      lon: at.lon,
+      area_radius: row.area_radius,
+      offer: {
+        venue_name: row.venue_name,
+        discount_value: row.discount_value,
+        conditions: row.conditions,
+        discount_until: Math.floor(row.discount_until.getTime() / 1000),
+        ...(row.promo_code ? { promo_code: row.promo_code } : {}),
+        redirect: `${face.domain}/o/${row.redirect_code}`,
+        redirect_disabled: row.link_off,
+      },
+    });
+    if (cards.length >= quota) break;
+  }
+  return cards;
+}
+
 async function deliver(req: Request, url: URL): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
@@ -482,10 +534,31 @@ async function deliver(req: Request, url: URL): Promise<Response> {
     };
   });
 
+  // Venue offers (offers spec §7; db/075), on the first page only — a page
+  // further down is the same neighbourhood read again. Shown by the face that
+  // asks: an offer lives in one storefront's feed, and a face with no brand
+  // (the terminal) sees none. The quota is one commercial card per ten
+  // phrases on the page, and a neighbour's phrase with a discount spends it
+  // too, so with fewer than ten phrases there are no offers at all — "if there
+  // are few organic posts, fewer offers, down to none". Each goes after the
+  // tenth, twentieth… phrase.
+  const offers = cursorAt || !caller.brand ? [] : await venueOffers(
+    caller.brand,
+    { lat, lon },
+    usedRadius,
+    Math.floor(rows.length / 10) - rows.filter((row) => row.discount_value).length,
+  );
+  const withOffers: unknown[] = [];
+  items.forEach((item, index) => {
+    withOffers.push(item);
+    const slot = Math.floor((index + 1) / 10) - 1;
+    if ((index + 1) % 10 === 0 && offers[slot]) withOffers.push(offers[slot]);
+  });
+
   const last = rows[rows.length - 1];
   inc("relay_feed_total", { result: "delivered" });
   return json({
-    items,
+    items: withOffers,
     next: rows.length === PAGE_SIZE && last
       ? await sealCursor("feed", last.visible_at_cursor, last.id)
       : null,

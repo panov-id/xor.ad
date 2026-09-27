@@ -228,6 +228,19 @@ function ensureListeningTables(): Promise<void> {
     const [table, kind, id] = payload.split("|");
     const set = rooms.get(`table:${table}`);
     if (!set || set.size === 0) return;
+    // The board is cut per seat — one's own hand, a word to its setter only
+    // (§6.1) — so each room gets the board as its own seat sees it.
+    if (kind === "board") {
+      for (const room of set) {
+        boardFrameFor(table, room.identity ?? null)
+          .then((data) => {
+            frame(room, "board", data);
+            inc("relay_chat_frames_total", { type: "board" });
+          })
+          .catch((error) => log("error", "table frame failed", { error: String(error) }));
+      }
+      return;
+    }
     tableFrame(table, kind, id)
       .then((built) => {
         if (!built) return;
@@ -239,10 +252,19 @@ function ensureListeningTables(): Promise<void> {
   return listeningTables;
 }
 
+// The board as the room's own seat sees it; a room whose seat is gone sees
+// nothing hidden (and is being closed 4005 anyway).
+export async function boardFrameFor(table: string, identity: string | null): Promise<unknown> {
+  const [mine] = identity
+    ? await queryOrThrow<{ seat_no: number }>(
+      `SELECT seat_no FROM table_seats WHERE table_id = $1 AND identity = $2 AND left_at IS NULL`,
+      [table, identity],
+    )
+    : [];
+  return await boardNow(queryOrThrow, table, mine?.seat_no ?? null);
+}
+
 export async function tableFrame(table: string, kind: string, id?: string): Promise<{ type: string; data: unknown } | null> {
-  if (kind === "board") {
-    return { type: "board", data: await boardNow(queryOrThrow, table) };
-  }
   if (kind === "seat") {
     const [counts] = await queryOrThrow<{ playing: number; watching: number }>(
       `SELECT count(*) FILTER (WHERE playing_from IS NOT NULL)::int AS playing,

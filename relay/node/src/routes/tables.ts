@@ -20,6 +20,8 @@ import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../
 import { checkAll } from "../lib/rate_limit.ts";
 import { log } from "../lib/log.ts";
 import { newDots, playDots } from "../lib/tables_dots.ts";
+import { newDeck, playDeck } from "../lib/tables_deck.ts";
+import { newWord, playWord } from "../lib/tables_word.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
 import {
   applyOverdue,
@@ -211,7 +213,7 @@ async function look(req: Request, tableId: string): Promise<Response> {
       seat: seat.seat_no,
       is_playing: seat.playing,
       seats,
-      board: boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last),
+      board: boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last, seat.seat_no),
       lines,
     }, 200, sunsetHeader());
   });
@@ -356,7 +358,7 @@ async function move(req: Request, tableId: string): Promise<Response> {
       [game.id],
     );
     if (body.seq === game.seq - 1 && last?.last_move_hash === hash) {
-      return json({ board: boardFor(game) }, 200, sunsetHeader());
+      return json({ board: boardFor(game, {}, false, seat.seat_no) }, 200, sunsetHeader());
     }
     if (body.seq !== game.seq) return refuse("stale_seq", "the board has moved on", 409, { seq: game.seq });
     const s = game.state;
@@ -379,7 +381,34 @@ async function move(req: Request, tableId: string): Promise<Response> {
         );
       }
     }
-    s.board.push(pass ? { seat: seat.seat_no, pass: true } : { seat: seat.seat_no, move: body.move });
+    // The deck (lib/tables_deck.ts): the card from the hand; an empty hand wins the deal.
+    // The word (lib/tables_word.ts): the setter's word, then letters; a word
+    // guessed scores the guesser.
+    let point: number | null = null;
+    if (!pass && s.deck) {
+      const played = playDeck(s.deck, body.move, seat.seat_no);
+      if ("refused" in played) return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: played.refused });
+      over = played.won;
+      if (played.won) point = seat.seat_no;
+    }
+    if (!pass && s.word) {
+      const played = playWord(s.word, body.move, seat.seat_no);
+      if ("refused" in played) return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: played.refused });
+      again = played.again;
+      point = played.point;
+    }
+    if (point !== null) {
+      await run(
+        `INSERT INTO table_scores (seat_id, points) VALUES ($1, 1)
+         ON CONFLICT (seat_id) DO UPDATE SET points = table_scores.points + 1, updated_at = now()`,
+        [seat.id],
+      );
+    }
+    // What goes into the moves everyone sees: never the hidden word itself.
+    const shown = s.word && typeof body.move === "object" && body.move !== null && "word" in body.move
+      ? { word: "set" }
+      : body.move;
+    s.board.push(pass ? { seat: seat.seat_no, pass: true } : { seat: seat.seat_no, move: shown });
     if (pass) s.passes[seat.seat_no] = (s.passes[seat.seat_no] ?? 0) + 1;
     else delete s.passes[seat.seat_no];
     if (!again) s.turn = (turn + 1) % s.order.length;
@@ -401,7 +430,7 @@ async function move(req: Request, tableId: string): Promise<Response> {
     await tableEvent(run, tableId, "line", said.id);
     await tableEvent(run, tableId, "board");
     return json(
-      { board: boardFor({ ...game, seq: after.seq, turn_due: due }, await scoreOf(run, tableId), over) },
+      { board: boardFor({ ...game, seq: after.seq, turn_due: due }, await scoreOf(run, tableId), over, seat.seat_no) },
       200,
       sunsetHeader(),
     );
@@ -444,6 +473,8 @@ async function startRound(run: Query, tableId: string): Promise<void> {
   const state: GameState = { ...emptyState(), order: players.map((p) => p.seat_no) };
   if (table.game === "dots") state.dots = newDots(table.set);
   const playable = state.order.length >= 2;
+  if (table.game === "deck" && playable) state.deck = newDeck(state.order);
+  if (table.game === "word" && playable) state.word = newWord(state.order[0]);
   if (playable) state.turn = 0;
   await run(
     `INSERT INTO table_games (table_id, class, state, turn_due, ended_at) VALUES ($1, $2, $3::text::jsonb, $4, $5)`,

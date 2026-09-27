@@ -11,6 +11,8 @@
 import { queryOrThrow, type Query, transaction } from "./db.ts";
 import type { Limit } from "./rate_limit.ts";
 import type { Dots } from "./tables_dots.ts";
+import { type Deck, deckFor } from "./tables_deck.ts";
+import { type Word, wordFor } from "./tables_word.ts";
 import { log } from "./log.ts";
 
 const HOUR = 60 * 60 * 1000;
@@ -37,6 +39,8 @@ export interface GameState {
   passes: Record<string, number>;
   board: { seat: number; move?: unknown; pass?: true }[];
   dots?: Dots; // the dots class keeps its field here (lib/tables_dots.ts)
+  deck?: Deck; // the deck class: stock and hands, cut per viewer (lib/tables_deck.ts)
+  word?: Word; // the text class: the word, shown to its setter only (lib/tables_word.ts)
 }
 
 export const emptyState = (): GameState => ({ order: [], turn: null, passes: {}, board: [] });
@@ -272,14 +276,21 @@ export function boardFor(
   game: { state: GameState; seq: number; pending: unknown; turn_due: Date | null } | null,
   score: Record<string, number> = {},
   over = false,
+  viewer: number | null = null,
 ) {
   if (!game) return null;
   const s = game.state;
   // The contract's Board (docs/api/openapi.yaml): whose turn by seat, the
-  // turn's term as expires_at; score by seat from table_scores.
+  // turn's term as expires_at; score by seat from table_scores. What is
+  // hidden is cut here and nowhere else (§6.1): a hand but one's own, the
+  // stock but its size, a word but to its setter — `viewer` is the seat asking.
+  const state: Record<string, unknown> = { order: s.order, moves: s.board };
+  if (s.dots) state.dots = s.dots;
+  if (s.deck) state.deck = deckFor(s.deck, viewer);
+  if (s.word) state.word = wordFor(s.word, viewer);
   return {
     seq: game.seq,
-    state: s.dots ? { order: s.order, moves: s.board, dots: s.dots } : { order: s.order, moves: s.board },
+    state,
     turn: s.turn === null ? null : s.order[s.turn] ?? null,
     score,
     over,
@@ -290,14 +301,14 @@ export function boardFor(
 
 // The board as a frame carries it (protocol §4.4 `board`): the running game,
 // or the last one over, with the table's score — what GET /tables/:id answers.
-export async function boardNow(run: Query, tableId: string) {
+export async function boardNow(run: Query, tableId: string, viewer: number | null = null) {
   const running = await lockGame(run, tableId);
   const [last] = running ? [] : await run<{ state: GameState; seq: number; pending: unknown; turn_due: Date | null }>(
     `SELECT state, seq, pending, NULL::timestamptz AS turn_due FROM table_games
       WHERE table_id = $1 ORDER BY started_at DESC LIMIT 1`,
     [tableId],
   );
-  return boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last);
+  return boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last, viewer);
 }
 
 // Frames for a table's rooms (chat/relay.ts): `NOTIFY table_event` with

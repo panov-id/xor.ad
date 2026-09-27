@@ -28,6 +28,7 @@ import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
+import { hintQueuedPhrase } from "../lib/moderator.ts";
 import { publishLocked, reasonsFor, settleAfterVerdict, verdictMode, type Verdict } from "../lib/feed_verdict.ts";
 import { band, boundingBox, metresBetween, quantise } from "../lib/feed_geo.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
@@ -219,6 +220,9 @@ async function publish(req: Request): Promise<Response> {
     return refuse("unavailable", "the node cannot write right now", 503);
   });
   if (verdict && answer.status === 200) await settleAfterVerdict(verdict);
+  // A phrase the rules queued gets the local model's hint (E2), after the
+  // commit and without waiting: the person still decides.
+  if (answer.status === 202 && verdictMode() === "rules") void hintQueuedPhrase(id, text);
   return answer;
 }
 

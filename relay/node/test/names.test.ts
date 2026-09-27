@@ -53,3 +53,33 @@ Deno.test("an ordinary name is trimmed and kept", () => {
   assertEquals(cleanName("  Аня   Петрова "), "Аня Петрова");
   assertEquals(cleanName("​"), null);
 });
+
+// V13 · what draws nothing outside Cc/Cf: the Hangul fillers, the combining
+// grapheme joiner, the blank braille cell and the rest of
+// Default_Ignorable_Code_Point. Each on its own, inside a name and inside a
+// phrase — one case per character, so a red names which one got through.
+const IGNORABLE: Array<[string, string]> = [
+  ["U+034F combining grapheme joiner", "\u034F"],
+  ["U+115F Hangul choseong filler", "\u115F"],
+  ["U+1160 Hangul jungseong filler", "\u1160"],
+  ["U+3164 Hangul filler", "\u3164"],
+  ["U+FFA0 halfwidth Hangul filler", "\uFFA0"],
+  ["U+2800 braille pattern blank", "\u2800"],
+  ["U+17B4 Khmer vowel inherent aq", "\u17B4"],
+  ["U+180B Mongolian free variation selector", "\u180B"],
+  ["U+FE00 variation selector-1", "\uFE00"],
+];
+for (const [what, c] of IGNORABLE) {
+  Deno.test(`V13: ${what} is refused alone, inside a name and inside a phrase`, () => {
+    assertEquals(cleanName(c), null, `${what} alone passed as a name`);
+    assertEquals(cleanName(`Ан${c}я`), null, `${what} inside a name passed`);
+    assertEquals(hasInvisible(`гуляю у реки ${c}`), true, `${what} inside a phrase passed`);
+  });
+}
+
+Deno.test("V13: Hangul written with its letters, braille with its dots and an emoji with its selector still pass", () => {
+  assertEquals(cleanName("한글"), "한글");
+  assertEquals(cleanName("⠓⠑⠇⠇⠕"), "⠓⠑⠇⠇⠕");
+  assertEquals(cleanName("❤️"), "❤️");
+  assertEquals(hasInvisible("гуляю у реки ❤️"), false);
+});

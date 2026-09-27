@@ -397,6 +397,13 @@ export class Client {
   #ephemeral = new Map<string, { eph: Ephemeral; epoch: number }>();
   #conversations = new Map<string, { conversation: Conversation; epoch: number }>();
 
+  // Tables (G2) live in tables.ts and reach the node through this one door,
+  // which opens on /tables only: the rest of the core stays behind #call.
+  tableCall<T>(method: string, path: string, body?: unknown): Promise<Answer<T>> {
+    if (!path.startsWith("/tables")) throw new Error("tableCall is for /tables only");
+    return this.#call<T>(method, path, body);
+  }
+
   async consent(matchId: string): Promise<Answer<{ state: string; chat_id?: string }>> {
     const long = this.#longKey();
     const held = this.#ephemeral.get(matchId) ?? { eph: await Ephemeral.generate(), epoch: 0 };

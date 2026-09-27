@@ -127,6 +127,11 @@ opt check-live-phrase          bash "$here/check-live-phrase.sh"
 run check-db-suites            bash "$here/check-db-suites.sh"
 run test-backup-encryption     bash "$here/test_backup-encryption.sh"
 run check-metrics-exist        bash "$here/check-metrics-exist.sh"
+# Веб-лицо — код продукта: цвет только из кита (WD1, VF2), слова только из
+# словарей (W13). Стояли в «сюда не входят» без причины и краснели незамеченными
+# (i18n на day58, 27.09.2026). Контейнера не требуют.
+run check-web-tokens           bash "$here/check-web-tokens.sh"
+run check-web-i18n             bash "$here/check-web-i18n.sh"
 
 # Ворота, которым нужен контейнер. Докера нет — это пропуск с названной
 # причиной, а не провал: провал заставил бы обходить его руками, и обходили бы.
@@ -157,6 +162,9 @@ if [ "$with_tests" = 1 ]; then
   # по scripts/design/web-design-baseline.tsv; проба ломает отступ на 8.
   run check-web-design          bash "$here/check-web-design.sh" --shoot
   run test_check-web-design     bash "$here/test_check-web-design.sh"
+  # Каждый вид «своего» цвета — hex, функции, имена, color-mix с именем — по
+  # красному, и разрешённое зелёным (VF2).
+  run test_check-web-tokens     bash "$here/test_check-web-tokens.sh"
   run_in_docker test_check-design-text    "$here/test_check-design-text.sh"
   run_in_docker test_check-design-spacing "$here/test_check-design-spacing.sh"
   run_in_docker test_check-design-grid "$here/test_check-design-grid.sh"

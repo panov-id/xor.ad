@@ -563,6 +563,33 @@ test("a long row of actions wraps by whole labels, never inside a word", async (
   app.unmount();
 });
 
+test("a table card in the feed shows its game and free seats, sits down on open, and takes no like", async () => {
+  let likes = 0;
+  const opened: string[] = [];
+  const client = {
+    feed: () => Promise.resolve({ items: [{ kind: "table", id: "t1", game: "dots", set: "4x4", seats: 2, free_seats: 1, playing: 1, watching: 0, like_count: 2, text: "" }] }),
+    like: () => { likes++; return Promise.resolve({ status: 200, body: {} }); },
+  };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+    onOpenTable: (id: string) => opened.push(id),
+  }));
+  await settle();
+  await settle();
+  assert.match(app.lastFrame()!, /стол · dots 4x4/, "the table card is not drawn as a table");
+  assert.match(app.lastFrame()!, /свободно 1/);
+  assert.match(app.lastFrame()!, /сесть/, "the row does not offer to sit down");
+  await type(app, ENTER);
+  assert.deepEqual(opened, ["t1"], "open on a table did not sit down at it");
+  await type(app, RIGHT, ENTER);
+  assert.equal(likes, 0, "a table was liked from the feed's row");
+  app.unmount();
+});
+
 test("an offer's like is not offered to be taken back", async () => {
   let unliked = 0;
   const client = {

@@ -181,11 +181,13 @@ export function Location(
 type Phrase = {
   id: string; text: string; name?: string; age?: number; distance_m?: number; minutes_ago?: number; liked?: boolean;
   like_count?: number; soon?: boolean; offer?: unknown;
+  // A table card (G1h): a game standing in the circle, to sit down at.
+  kind?: string; game?: string; set?: string; free_seats?: number; playing?: number; watching?: number;
 };
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
-  { say, client, place, mine, onWrite, onInbox, onPoint, onMe, onTable, onError }: {
+  { say, client, place, mine, onWrite, onInbox, onPoint, onMe, onTable, onOpenTable, onError }: {
     say: Say;
     client: Client;
     place: Place;
@@ -198,6 +200,8 @@ export function Feed(
     onMe?: () => void;
     // Setting a table (C2): a game at one's own point, open to the node.
     onTable?: () => void;
+    // A table card in the feed (G1h): sit down at it.
+    onOpenTable?: (tableId: string) => void;
     onError: (message: string) => void;
   },
 ): ReactElement {
@@ -211,6 +215,7 @@ export function Feed(
       .catch((e: Error) => onError(e.message));
   }, [place.lat, place.lon, place.radius]);
   const chosen = items?.[at];
+  const isTable = chosen?.kind === "table";
   const drop = (id: string) => {
     setItems((list) => {
       const left = (list ?? []).filter((p) => p.id !== id);
@@ -219,12 +224,18 @@ export function Feed(
       return left;
     });
   };
-  if (card && items && items.length > 0) {
+  // The card view walks phrases only: a table is sat at, not read as a card.
+  const phrases = (items ?? []).filter((p) => p.kind !== "table");
+  if (card && phrases.length > 0) {
+    const here = Math.max(0, phrases.findIndex((p) => p.id === chosen?.id));
     return h(Card, {
       say,
-      items,
-      at: Math.min(at, items.length - 1),
-      onMove: setAt,
+      items: phrases,
+      at: here,
+      onMove: (next) => {
+        const to = next(here);
+        setAt(Math.max(0, (items ?? []).findIndex((p) => p.id === phrases[to]?.id)));
+      },
       onLike: (p) =>
         client.like(p.id)
           .then((answer) => {
@@ -243,7 +254,14 @@ export function Feed(
     });
   }
   const line = (p: Phrase, i: number) =>
-    h(
+    p.kind === "table"
+      ? h(
+        Box,
+        { key: p.id, flexDirection: "column" },
+        h(Text, { bold: i === at }, `${i === at ? "›" : " "} ${say("table.title")}${p.name ? ` · "${plain(p.name, 24)}"` : ""} · ${plain(p.game ?? "?", 12)} ${plain(p.set ?? "", 12)}`),
+        h(Text, { dimColor: true }, `  ${say("table.free")} ${p.free_seats ?? 0} · ${say("table.playing")} ${p.playing ?? 0} · ${say("table.watching")} ${p.watching ?? 0} · ♥ ${p.like_count ?? 0}`),
+      )
+      : h(
       Box,
       { key: p.id, flexDirection: "column" },
       h(
@@ -274,10 +292,11 @@ export function Feed(
     ),
     h(Menu, {
       actions: [
-        { key: "open", label: say("inbox.enter"), disabled: !chosen },
-        { key: "like", label: say("feed.like"), disabled: !chosen },
-        { key: "hide", label: say("feed.hide"), disabled: !chosen },
-        { key: "block", label: say("block.item"), disabled: !chosen },
+        { key: "open", label: isTable ? say("table.sit") : say("inbox.enter"), disabled: !chosen || (isTable && !onOpenTable) },
+        // A table is not a phrase: no like, hide or block from this row.
+        { key: "like", label: say("feed.like"), disabled: !chosen || isTable },
+        { key: "hide", label: say("feed.hide"), disabled: !chosen || isTable },
+        { key: "block", label: say("block.item"), disabled: !chosen || isTable },
         { key: "write", label: say("feed.write") },
         ...(onTable ? [{ key: "table", label: say("feed.table") }] : []),
         { key: "inbox", label: say("feed.inbox") },
@@ -291,9 +310,10 @@ export function Feed(
         if (key === "inbox") return onInbox();
         if (key === "point") return onPoint();
         if (key === "me") return onMe?.();
+        if (key === "open" && isTable) return chosen && onOpenTable?.(chosen.id);
         if (key === "open") return chosen && setCard(true);
         if (key === "exit") return process.exit(0);
-        if (!chosen) return;
+        if (!chosen || isTable) return;
         // Hiding is mine alone and can be taken back (§8.9); blocking ends the
         // conversation for both and cannot be set again once lifted (§4.8) —
         // so the second one asks twice, in the row itself.

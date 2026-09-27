@@ -294,6 +294,18 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
           onPoint: () => setWhere({ screen: "location" }),
           onMe: () => setWhere({ screen: "me" }),
           onTable: () => setWhere({ screen: "newTable" }),
+          // Sitting down at a table from the feed (G1h): the seat first, then
+          // the live table; a refusal (unavailable, already seated) is said.
+          onOpenTable: (id) =>
+            void new Tables(client).sit(id)
+              .then((a) => {
+                if (a.status >= 400) {
+                  const e = (a.body as { error?: { code?: string } } | null)?.error;
+                  return fail(`${say("table.refused")}: ${e?.code ?? a.status}`);
+                }
+                setWhere({ screen: "table", id });
+              })
+              .catch((e: Error) => fail(e.message)),
           onError: fail,
         });
       case "newTable":

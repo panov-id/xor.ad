@@ -168,6 +168,14 @@ async function publishWaiting(identityId: string) {
   );
 }
 
+// FX3: a phrase is on every screen around; what nobody can see is refused.
+Deno.test("a phrase refuses what nobody can see", async () => {
+  const me = await author();
+  const send = (text: string) => signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text }));
+  assertEquals((await send("гуляю\u001b[2J у реки")).status, 400, "a phrase with ESC was taken");
+  assertEquals((await send("гуляю‮ у реки")).status, 400, "a phrase with a direction override was taken");
+});
+
 Deno.test("a phrase is accepted for checking, not published", async () => {
   const me = await author();
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());

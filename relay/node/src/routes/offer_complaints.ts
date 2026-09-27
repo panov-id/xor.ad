@@ -16,6 +16,7 @@ import { isEmail, json, readJson } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { checkAll } from "../lib/rate_limit.ts";
+import { hasInvisible } from "../lib/names.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
 import { sendOfferComplaint, withoutAddresses } from "../lib/mailer.ts";
 import { cabinetUrl } from "../lib/adv.ts";
@@ -53,6 +54,7 @@ async function complain(req: Request, offerId: string): Promise<Response> {
   const email = (body!.notifier_email as string).trim();
   const text = typeof body?.text === "string" && body.text.trim() ? body.text.trim() : null;
   if (text && text.length > 1000) return refuse("invalid_body", "the complaint is 1000 characters at most", 400);
+  if (text && hasInvisible(text)) return refuse("invalid_body", "the complaint has characters nobody can see", 400);
 
   const outcome = await transaction<Outcome>(async (run) => {
     // The lock first: two complaints at once must not both miss the third.

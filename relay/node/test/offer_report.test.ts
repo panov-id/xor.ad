@@ -222,6 +222,9 @@ Deno.test({ name: "a complaint that the discount was not given: filed, counted o
   // The field is notifier_email (spec §3, contract): the old name is no address at all.
   assertEquals((await complain(a, { email: "a@example.test", text: "не дали" })).status, 422, "`email` was read as the complainant's address");
   assertEquals((await complain(a, { notifier_email: "a@example.test", text: "я".repeat(1001) })).status, 400, "a text past 1000 went through");
+  // FX3: the venue reads the complaint in the cabinet; what nobody can see is refused.
+  assertEquals((await complain(a, { notifier_email: "a@example.test", text: "не дали\u001b[2J" })).status, 400, "a complaint with ESC was taken");
+  assertEquals((await complain(a, { notifier_email: "a@example.test", text: "не дали‮" })).status, 400, "a complaint with a direction override was taken");
   assertEquals((await call("POST", `/offers/${offer.id}/complaints`, { body: { notifier_email: "x@example.test" } })).status, 401);
 
   const first = await complain(a, { notifier_email: "a@example.test", text: "скидку не дали" });

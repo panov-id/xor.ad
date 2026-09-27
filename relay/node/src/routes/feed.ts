@@ -19,6 +19,7 @@
 // The verdict, the delivery, and the geo rounding of the delivery are their own
 // pieces.
 
+import { hasInvisible } from "../lib/names.ts";
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
@@ -68,6 +69,7 @@ async function publish(req: Request): Promise<Response> {
   if (typeof text !== "string" || text.trim().length < 1) {
     return refuse("invalid_body", "the phrase is missing", 400);
   }
+  if (hasInvisible(text)) return refuse("invalid_body", "the phrase has characters nobody can see", 400);
   // Both ceilings, and the refusal says which one — the same rule as a name
   // (§8.3, and db/025 for why the byte one is real rather than decorative).
   if (countGraphemes(text) > TEXT_MAX_GRAPHEMES) {

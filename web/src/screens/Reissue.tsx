@@ -38,7 +38,7 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
 
   async function confirm() {
     if (readPaperText(second) !== groups[1] || readPaperText(fourth) !== groups[3]) {
-      return setError("группы не сходятся с кодом — проверьте, что записали");
+      return setError(say("web.reissue.mismatch"));
     }
     setBusy(true);
     setError(null);
@@ -81,21 +81,20 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
           <>
             <p className="code" data-testid="reissue-code">{groups.join(" ")}</p>
             <p className="muted">
-              Запишите этот код на бумаге. Это единственный способ вернуть вашу личность: почты и пароля у нас нет, подсказать код мы не
-              сможем, второй раз он показан не будет. Прежний код перестанет работать, как только новый будет подтверждён.
+              {say("web.reissue.writeDown")}
             </p>
-            <p>Записали? Введите вторую и четвёртую группы.</p>
+            <p>{say("web.reissue.enterGroups")}</p>
             <label>
-              вторая
+              {say("web.reissue.second")}
               <input value={second} onChange={(e) => setSecond(e.target.value)} data-testid="reissue-group-2" autoComplete="off" />
             </label>
             <label>
-              четвёртая
+              {say("web.reissue.fourth")}
               <input value={fourth} onChange={(e) => setFourth(e.target.value)} data-testid="reissue-group-4" autoComplete="off" />
             </label>
             {error && <p className="error" data-testid="error">{error}</p>}
             <button type="button" className="primary" disabled={busy || !second || !fourth} onClick={() => void confirm()} data-testid="reissue-confirm">
-              готово
+              {say("web.reissue.done")}
             </button>
           </>
         )}

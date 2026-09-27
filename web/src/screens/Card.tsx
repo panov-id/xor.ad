@@ -10,6 +10,7 @@ import { useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { blockByPhrase, hidePhrase, likePhrase, type LikeOutcome } from "../api/actions.ts";
 import type { FeedCard } from "./Feed.tsx";
+import { say } from "../locales/say.ts";
 
 export function Card(
   { client, card, onBack, onGone }: {
@@ -36,7 +37,7 @@ export function Card(
       const answer = await client.request<{ error?: { message?: string } }>(
         "POST", `/offers/${encodeURIComponent(card.id)}/complaints`, { notifier_email: email.trim(), text: text.trim() },
       );
-      if (answer.status !== 202) throw new Error(answer.body?.error?.message ?? `Жалоба не принята (${answer.status}).`);
+      if (answer.status !== 202) throw new Error(answer.body?.error?.message ?? say("web.card.complaint_refused", { status: answer.status }));
       setComplained(true);
       setComplaining(false);
     });
@@ -57,20 +58,20 @@ export function Card(
   return (
     <main className="screen card-screen" data-screen="card" data-id={card.id}>
       <header>
-        <button type="button" onClick={onBack} data-testid="back">← лента</button>
+        <button type="button" onClick={onBack} data-testid="back">{say("web.card.back")}</button>
         <span className="muted">{card.mode} · {card.lang}</span>
       </header>
       <article className="phrase">
         {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
         <p className="big" data-testid="text">{card.text}</p>
-        {card.offer?.conditions && <p className="muted" data-testid="conditions">условия: {card.offer.conditions}</p>}
+        {card.offer?.conditions && <p className="muted" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
         <p className="muted">
           ♥ {card.like_count + (like && like.state !== "refused" ? 1 : 0)}
-          {card.soon ? " · скоро исчезнет" : ""}
+          {card.soon ? say("web.card.soon") : ""}
         </p>
       </article>
-      {like?.state === "liked" && <p className="warn" data-testid="liked">Лайк отправлен. Если понравитесь друг другу — будет мэтч.</p>}
-      {like?.state === "matched" && <p className="warn" data-testid="matched">Мэтч! Предложение поговорить ждёт во входящих.</p>}
+      {like?.state === "liked" && <p className="warn" data-testid="liked">{say("web.card.liked")}</p>}
+      {like?.state === "matched" && <p className="warn" data-testid="matched">{say("web.card.matched")}</p>}
       {like?.state === "refused" && <p className="error" data-testid="refused">{like.why}</p>}
       {error && <p className="error" data-testid="error">{error}</p>}
       <div className="actions">
@@ -81,7 +82,7 @@ export function Card(
           onClick={() => act(async () => setLike(await likePhrase(client, card.id)))}
           data-testid="like"
         >
-          ♥ нравится
+          {say("web.card.like")}
         </button>
         <button
           type="button"
@@ -89,35 +90,35 @@ export function Card(
           onClick={() => act(async () => { await hidePhrase(client, card.id); onGone("hidden", card.id); })}
           data-testid="hide"
         >
-          скрыть
+          {say("feed.hide")}
         </button>
         {card.kind === "offer" && (complained
-          ? <p data-testid="complained">Жалоба отправлена. Решение придёт на почту.</p>
+          ? <p data-testid="complained">{say("web.card.complained")}</p>
           : !complaining
-          ? <button type="button" disabled={busy} onClick={() => setComplaining(true)} data-testid="complain">скидку не дали</button>
+          ? <button type="button" disabled={busy} onClick={() => setComplaining(true)} data-testid="complain">{say("web.card.complain")}</button>
           : (
             <section className="confirm" data-testid="complain-form">
               <label>
-                почта — туда придёт решение
+                {say("web.card.complain_email")}
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="complain-email" autoComplete="email" />
               </label>
               <label>
-                что случилось
+                {say("web.card.complain_text")}
                 <textarea value={text} maxLength={1000} onChange={(e) => setText(e.target.value)} data-testid="complain-text" />
               </label>
-              <button type="button" className="danger" disabled={busy || !email.includes("@")} onClick={() => void complain()} data-testid="complain-send">пожаловаться</button>
-              <button type="button" onClick={() => setComplaining(false)}>{"отмена"}</button>
+              <button type="button" className="danger" disabled={busy || !email.includes("@")} onClick={() => void complain()} data-testid="complain-send">{say("web.card.complain_send")}</button>
+              <button type="button" onClick={() => setComplaining(false)}>{say("web.card.cancel")}</button>
             </section>
           ))}
         {!confirmBlock
           ? (
             <button type="button" disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block">
-              заблокировать
+              {say("block.item")}
             </button>
           )
           : (
             <section className="confirm" data-testid="block-confirm">
-              <p className="muted">Автор исчезнет из вашей ленты, а вы — из его. Общие мэтчи и беседы закончатся. Снять можно в «заблокированных».</p>
+              <p className="muted">{say("web.card.block_warning")}</p>
               <button
                 type="button"
                 className="danger"
@@ -125,9 +126,9 @@ export function Card(
                 onClick={() => act(async () => { await blockByPhrase(client, card.id); onGone("blocked", card.id); })}
                 data-testid="block-confirm-yes"
               >
-                да, заблокировать
+                {say("web.card.block_yes")}
               </button>
-              <button type="button" onClick={() => setConfirmBlock(false)} data-testid="block-confirm-no">нет</button>
+              <button type="button" onClick={() => setConfirmBlock(false)} data-testid="block-confirm-no">{say("web.card.block_no")}</button>
             </section>
           )}
       </div>

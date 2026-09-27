@@ -8,13 +8,14 @@
 // locales of depth/ink are the owner's texts, and the web face joins them when
 // its strings are lifted out (W2, 2026-09-26).
 
+import { say } from "../locales/say.ts";
 import type { Answer, Client, Liked, Radius } from "../../../depth/core/client.ts";
 
 export type Mode = "alone" | "company" | "party";
 export const MODES: Array<{ value: Mode; label: string }> = [
-  { value: "alone", label: "один" },
-  { value: "company", label: "компанией" },
-  { value: "party", label: "вечеринка" },
+  { value: "alone", label: say("web.mode.alone") },
+  { value: "company", label: say("web.mode.company") },
+  { value: "party", label: say("web.mode.party") },
 ];
 
 // What the node said back to a phrase (§8.3; P1): out at once, or read by a
@@ -38,27 +39,20 @@ const hhmm = (seconds: unknown) =>
 export async function refusalWording(client: Client, answer: Answer): Promise<string> {
   const error = (answer.body as { error?: { code?: string; message?: string; until?: number; next_slot?: number; checking?: unknown; live?: unknown } } | null)?.error;
   if (answer.status === 429 && error?.until !== undefined) {
-    return [
-      `Пять отказов за час — пауза до ${hhmm(error.until)}. Решение автоматическое.`,
-      "До этого времени ничего не уходит на проверку:",
-      "фразы, реплики за столом, смена имени, лайк на оффер, пока имя не принято, слово для виселицы.",
-      "Следующий отказ в этом часе — снова 15 минут.",
-      "Лента, лайки фраз и беседы работают.",
-      "Основание — соглашение, §8 и §15. Пауза кончится сама; не согласны — координатор цифровых услуг или суд.",
-    ].join("\n");
+    return say("write.paused", { time: hhmm(error.until) });
   }
-  if (answer.status === 429 && error?.next_slot !== undefined) return `Четыре фразы за час уже сказаны. Следующую можно в ${hhmm(error.next_slot)}.`;
-  if (answer.status === 429) return "Слишком много отправок подряд.";
-  if (answer.status === 409 && error?.checking !== undefined) return "Проверяем прошлое — новое уйдёт после вердикта.";
+  if (answer.status === 429 && error?.next_slot !== undefined) return say("write.hourly", { time: hhmm(error.next_slot) });
+  if (answer.status === 429) return say("write.rapid");
+  if (answer.status === 409 && error?.checking !== undefined) return say("write.hold");
   if (answer.status === 409 && error?.live !== undefined) {
     const ends = ((await client.profile().catch(() => null))?.phrases ?? [])
       .map((p) => p.expires_at)
       .filter((n): n is number => typeof n === "number");
-    return `Четыре фразы уже живут. Ближайшая освободится в ${ends.length ? hhmm(Math.min(...ends)) : "?"}.`;
+    return say("write.live", { time: ends.length ? hhmm(Math.min(...ends)) : "?" });
   }
-  if (answer.status === 409 && error?.code === "stepped_away") return "Вы отошли. Фразы сняты, беседы ждут.";
+  if (answer.status === 409 && error?.code === "stepped_away") return say("away.line");
   // What has no wording of its own says what the node said, until it gets one.
-  return error?.message ? `Фраза не принята: ${error.message}.` : `Фраза не принята (${answer.status}).`;
+  return error?.message ? say("web.phrase.refused_why", { why: error.message }) : say("web.phrase.refused_status", { status: answer.status });
 }
 
 export async function sayPhrase(
@@ -86,10 +80,10 @@ export async function likePhrase(client: Client, phraseId: string): Promise<Like
   // its wording (refusal-wordings, depth's away.line); the second has none yet
   // in refusal-wordings or depth's locales — the node's own text until the
   // owner gives one (owner.md).
-  if (answer.status === 409 && error?.code === "stepped_away") return { state: "refused", why: "Вы отошли. Фразы сняты, беседы ждут." };
+  if (answer.status === 409 && error?.code === "stepped_away") return { state: "refused", why: say("away.line") };
   if (answer.status === 409) return { state: "refused", why: error?.message ?? "a like needs a live phrase of your own" };
-  if (answer.status === 429) return { state: "refused", why: "Слишком много отправок подряд." };
-  return { state: "refused", why: error?.message ? `Лайк не принят: ${error.message}.` : `Лайк не принят (${answer.status}).` };
+  if (answer.status === 429) return { state: "refused", why: say("write.rapid") };
+  return { state: "refused", why: error?.message ? say("web.like.refused_why", { why: error.message }) : say("web.like.refused_status", { status: answer.status }) };
 }
 
 // Taking a like back: unliked, or spent once a match came of it (§8.4).

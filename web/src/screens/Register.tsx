@@ -13,6 +13,7 @@ import { useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { newPaperCode, paperGroups, readPaperText } from "../../../depth/core/paper.ts";
 import { openSealed, registerAndKeep, type Record_ } from "../vault.ts";
+import { say } from "../locales/say.ts";
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 const count = (s: string) => [...graphemes.segment(s)].length;
@@ -62,7 +63,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
   async function confirm() {
     if (!made) return;
     if (readPaperText(second) !== groups[1] || readPaperText(fourth) !== groups[3]) {
-      setError("группы не сходятся с кодом — проверьте, что записали");
+      setError(say("web.register.groups_mismatch"));
       return;
     }
     setBusy(true);
@@ -92,64 +93,63 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
     <main className="screen register" data-screen={`register-${step}`}>
       {step === 1 && (
         <>
-          <header><h1>Кто вы</h1><span className="muted">1 / 2</span></header>
+          <header><h1>{say("web.register.who")}</h1><span className="muted">1 / 2</span></header>
           <label>
-            имя
+            {say("reg.name")}
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={64} data-testid="name" autoComplete="off" />
-            <span className="muted">осталось {Math.max(0, NAME_MAX - count(name))}</span>
+            <span className="muted">{say("web.register.left", { count: Math.max(0, NAME_MAX - count(name)) })}</span>
           </label>
           <label>
-            возраст
+            {say("reg.age")}
             <input value={age} onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" data-testid="age" />
-            <span className={age !== "" && ageNumber < AGE_MIN ? "warn" : "muted"}>сюда с 13 лет</span>
+            <span className={age !== "" && ageNumber < AGE_MIN ? "warn" : "muted"}>{say("web.register.age_min")}</span>
           </label>
           <label className="row">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="consent" />
-            <span>принимаю пользовательское соглашение, политику конфиденциальности и правила сообщества</span>
+            <span>{say("web.register.consent")}</span>
           </label>
           <button type="button" className="primary" disabled={!stepOneOk} onClick={() => setStep(2)} data-testid="next">
-            дальше
+            {say("reg.next")}
           </button>
         </>
       )}
       {step === 2 && (
         <>
-          <header><h1>ПИН</h1><span className="muted">2 / 2</span></header>
+          <header><h1>{say("reg.pin")}</h1><span className="muted">2 / 2</span></header>
           <label>
-            ПИН
+            {say("reg.pin")}
             <input type="password" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" data-testid="pin" />
           </label>
           <label>
-            повторите ПИН
+            {say("web.register.pin_again")}
             <input type="password" value={pinAgain} onChange={(e) => setPinAgain(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" data-testid="pin-again" />
           </label>
-          {pin.length === 6 && easyPin(pin) && <p className="warn">этот ПИН легко угадать</p>}
+          {pin.length === 6 && easyPin(pin) && <p className="warn">{say("web.register.easy_pin")}</p>}
           {error && <p className="error" data-testid="error">{error}</p>}
           <button type="button" className="primary" disabled={!pinOk || busy} onClick={register} data-testid="register">
-            {busy ? "ждём долю…" : "дальше"}
+            {busy ? say("web.register.waiting") : say("reg.next")}
           </button>
         </>
       )}
       {step === 3 && (
         <>
-          <header><h1>Бумажный код восстановления</h1></header>
+          <header><h1>{say("web.register.paper_title")}</h1></header>
           <p className="code" data-testid="paper-code">{groups.join(" ")}</p>
           <p className="muted">
-            Запишите этот код на бумаге. Это единственный способ вернуть вашу личность: почты и пароля у нас нет, подсказать код мы не
-            сможем, второй раз он показан не будет.
+            {say("web.register.paper_text")}
           </p>
-          <p>Записали? Введите вторую и четвёртую группы.</p>
+          <p>{say("web.register.confirm")}</p>
           <label>
-            вторая
+            {say("web.register.second")}
             <input value={second} onChange={(e) => setSecond(e.target.value)} data-testid="group-2" autoComplete="off" />
           </label>
           <label>
-            четвёртая
+            {say("web.register.fourth")}
             <input value={fourth} onChange={(e) => setFourth(e.target.value)} data-testid="group-4" autoComplete="off" />
           </label>
           {error && <p className="error" data-testid="error">{error}</p>}
           <button type="button" className="primary" disabled={busy || !second || !fourth} onClick={confirm} data-testid="confirm">
-            готово
+            {say("web.register.done")}
           </button>
         </>
       )}

@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
+import { say } from "../locales/say.ts";
 import { MODES, sayPhrase, type Mode, type Sent } from "../api/actions.ts";
 
 export function Composer(
@@ -48,7 +49,7 @@ export function Composer(
       if (sent.state === "refused") setRefused(sent.why);
       else onSent(sent, text.trim());
     } catch (e) {
-      setRefused(`У нас не получилось: ${(e as Error).message}`);
+      setRefused(say("web.composer.failed", { why: (e as Error).message }));
     } finally {
       setBusy(false);
     }
@@ -57,42 +58,42 @@ export function Composer(
   return (
     <main className="screen composer" data-screen="composer">
       <header>
-        <h1>Твоя фраза</h1>
-        <button type="button" onClick={onBack} data-testid="back">назад</button>
+        <h1>{say("write.title")}</h1>
+        <button type="button" onClick={onBack} data-testid="back">{say("common.back")}</button>
       </header>
-      <p className="muted">Уйдёт от вашей точки в круг, который вы выбрали. Чистая фраза выходит сразу, сомнительную сначала прочитает человек.</p>
+      <p className="muted">{say("web.composer.hint")}</p>
       <label>
-        фраза
+        {say("web.composer.phrase")}
         <textarea
           value={text}
           maxLength={limit * 4}
           onChange={(e) => setText([...e.target.value].slice(0, limit).join(""))}
           rows={4}
           data-testid="text"
-          placeholder="кто на набережную к девяти?"
+          placeholder={say("web.composer.placeholder")}
         />
       </label>
       <span className="muted" data-testid="counter">{used} / {limit}</span>
       <label>
-        режим
+        {say("web.composer.mode")}
         <select value={mode} onChange={(e) => setMode(e.target.value as Mode)} data-testid="mode">
           {MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
       </label>
       <details className="offer-fields" data-testid="offer-fields">
-        <summary className="muted">скидка соседям — если это оффер</summary>
+        <summary className="muted">{say("web.composer.offer")}</summary>
         <label>
-          скидка
+          {say("web.composer.discount")}
           <input value={discount} onChange={(e) => setDiscount(e.target.value.slice(0, 200))} data-testid="discount" placeholder="−10 %" />
         </label>
         <label>
-          условия
-          <input value={conditions} onChange={(e) => setConditions(e.target.value.slice(0, 200))} data-testid="conditions" placeholder="самовывоз" />
+          {say("web.composer.conditions")}
+          <input value={conditions} onChange={(e) => setConditions(e.target.value.slice(0, 200))} data-testid="conditions" placeholder={say("web.composer.conditions_hint")} />
         </label>
       </details>
       {refused && <p className="error" data-testid="refused" style={{ whiteSpace: "pre-line" }}>{refused}</p>}
       <button type="button" className="primary" disabled={empty || busy} onClick={send} data-testid="send">
-        {busy ? "…" : "отправить"}
+        {busy ? "…" : say("write.send")}
       </button>
     </main>
   );

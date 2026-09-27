@@ -8,6 +8,7 @@ import { useState } from "react";
 import type { ChatKeys } from "../chat/keys.ts";
 import type { Client } from "../../../depth/core/client.ts";
 import type { MatchRow } from "./Inbox.tsx";
+import { say } from "../locales/say.ts";
 import "../chat/chat.css";
 
 export function Match({ client, keys, row, onAgreed, onWaiting, onBack }: {
@@ -60,34 +61,34 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack }: {
     <main className="screen match" data-screen="match" data-id={row.id} data-waiting={waiting ? "yes" : "no"}>
       <header>
         <h1>{row.name}, {row.age}</h1>
-        <button type="button" onClick={onBack} data-testid="back">назад</button>
+        <button type="button" onClick={onBack} data-testid="back">{say("common.back")}</button>
       </header>
       <section className="card">
         <p>{row.phrase.text}</p>
         <span className="muted">{row.phrase.mode}</span>
       </section>
       <p className="muted">
-        {row.waiting_for_you ? "Уже согласились и ждут вас." : "Поговорить — и, когда согласятся оба, откроется беседа. Ключи беседы рождаются у вас двоих, узел их не видит."}
+        {row.waiting_for_you ? say("web.match.agreed") : say("web.match.hint")}
       </p>
       {error && <p className="error" data-testid="error">{error}</p>}
       {!waiting && (
         <div className="actions">
-          <button type="button" className="primary" disabled={busy || declined} onClick={talk} data-testid="talk">поговорить</button>
-          <button type="button" disabled={busy} onClick={notNow} data-testid="not-now">{declined ? "вернуть" : "не сейчас"}</button>
+          <button type="button" className="primary" disabled={busy || declined} onClick={talk} data-testid="talk">{say("web.match.talk")}</button>
+          <button type="button" disabled={busy} onClick={notNow} data-testid="not-now">{declined ? say("inbox.undo") : say("inbox.notNow")}</button>
         </div>
       )}
       {waiting && (
         <section data-testid="waiting">
-          <h2>Ждём ответа</h2>
-          <p className="muted">Можно писать: строки лежат на этом устройстве и уйдут, когда согласятся.</p>
+          <h2>{say("web.match.waiting")}</h2>
+          <p className="muted">{say("web.match.queue_hint")}</p>
           <form className="composer" onSubmit={(e) => { e.preventDefault(); if (line.trim()) { keys.queue(row.id, line.trim()); setLine(""); } }}>
-            <input value={line} onChange={(e) => setLine(e.target.value)} placeholder="строка" data-testid="queued-line" />
-            <button type="submit">в очередь</button>
+            <input value={line} onChange={(e) => setLine(e.target.value)} placeholder={say("web.match.line")} data-testid="queued-line" />
+            <button type="submit">{say("web.match.enqueue")}</button>
           </form>
           <ul className="lines" data-testid="queued">
-            {keys.queued(row.id).map((l, i) => <li key={i} className="line mine">{l}<span className="muted">ждёт</span></li>)}
+            {keys.queued(row.id).map((l, i) => <li key={i} className="line mine">{l}<span className="muted">{say("chat.queued")}</span></li>)}
           </ul>
-          <button type="button" onClick={onWaiting} data-testid="to-inbox">к разговорам</button>
+          <button type="button" onClick={onWaiting} data-testid="to-inbox">{say("web.match.to_inbox")}</button>
         </section>
       )}
     </main>

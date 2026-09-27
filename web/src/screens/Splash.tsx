@@ -9,13 +9,13 @@ export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; 
   return (
     <main className="screen splash" data-screen="splash">
       <p className="brand">{NAMES[BRAND] ?? BRAND}</p>
-      <h1>Что говорят соседи рядом.</h1>
-      <p className="muted">Сказанное исчезает.</p>
+      <h1>{say("web.splash.tagline")}</h1>
+      <p className="muted">{say("web.splash.vanishes")}</p>
       <button type="button" className="primary" onClick={onStart} data-testid="start">
-        Начать
+        {say("web.splash.start")}
       </button>
       <button type="button" onClick={onRestore} data-testid="restore">
-        у меня есть бумажный код
+        {say("web.splash.haveCode")}
       </button>
       <button type="button" onClick={onArrive} data-testid="arrive">
         {say("move.inItem")}

@@ -5,6 +5,7 @@
 
 import { useEffect, useRef } from "react";
 import type { MoveState } from "../../../depth/core/transfer_move.ts";
+import { say } from "../locales/say.ts";
 
 export const MOVE_POLL_MS = 2_000;
 
@@ -20,7 +21,7 @@ export const ENDINGS: Partial<Record<MoveState, string>> = {
 // and nobody can check it (§8.2), so the browser's own words will do.
 export function browserLabel(): string {
   const ua = navigator.userAgent;
-  const browser = /Firefox\//.test(ua) ? "Firefox" : /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "браузер";
+  const browser = /Firefox\//.test(ua) ? "Firefox" : /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : say("web.transfer.browser");
   const system = /Android/.test(ua) ? "Android" : /iPhone|iPad/.test(ua) ? "iOS" : /Mac OS X/.test(ua) ? "macOS" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "";
   return system ? `${browser}, ${system}` : browser;
 }

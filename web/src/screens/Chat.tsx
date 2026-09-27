@@ -18,6 +18,7 @@ import type { ChatKeys } from "../chat/keys.ts";
 import { connectRoom } from "../chat/room.ts";
 import type { InboxChatRow } from "./Inbox.tsx";
 import "../chat/chat.css";
+import { say } from "../locales/say.ts";
 
 interface Line { id: string; text: string; mine: boolean; at: number; state?: "sent" | "queued" | "failed" }
 
@@ -25,7 +26,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
   const [row, setRow] = useState<InboxChatRow>(given);
   const [lines, setLines] = useState<Line[]>([]);
   const [text, setText] = useState("");
-  const [status, setStatus] = useState<string>("открываем ключи…");
+  const [status, setStatus] = useState<string>(say("web.chat.opening_keys"));
   const [keysState, setKeysState] = useState<"opening" | "open" | "failed">("opening");
   const [keysError, setKeysError] = useState<string | null>(null);
   const [over, setOver] = useState(given.state === "ended");
@@ -56,7 +57,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         await keys.open(fresh);
         if (!alive) return;
         setKeysState("open");
-        setStatus((s) => (s.startsWith("на связи") ? s : "ключи на месте"));
+        setStatus((s) => (s.startsWith(say("web.chat.connected")) ? s : say("web.chat.keys_ready")));
         const flushed = await keys.flush(fresh);
         if (flushed.length > 0) setLines((was) => [...was, ...flushed.map((f) => ({ id: f.localId, text: f.text, mine: true, at: Date.now() / 1000, state: "sent" as const }))]);
         setKept(keys.keptOnNode(fresh.id));
@@ -78,16 +79,16 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
     stop.current = connectRoom(client, given.id, async (event) => {
       if (!alive) return;
       switch (event.kind) {
-        case "connected": setStatus("на связи"); break;
-        case "reconnecting": setStatus(`связь прервалась (${event.code}), снова через ${Math.round(event.inMs / 1000)} с`); break;
-        case "over": setOver(true); setStatus("беседа кончилась"); break;
-        case "moved": setStatus("личность перенесена на другое устройство"); break;
-        case "update": setStatus("узел говорит на другой версии протокола — обновите страницу"); break;
-        case "failed": setStatus(`не подключиться: ${event.message}`); break;
+        case "connected": setStatus(say("web.chat.connected")); break;
+        case "reconnecting": setStatus(say("web.chat.reconnecting", { code: event.code, seconds: Math.round(event.inMs / 1000) })); break;
+        case "over": setOver(true); setStatus(say("web.chat.over")); break;
+        case "moved": setStatus(say("web.chat.moved")); break;
+        case "update": setStatus(say("web.chat.update")); break;
+        case "failed": setStatus(say("web.chat.failed", { message: event.message })); break;
         case "rekey":
           // The other side published a half at a new epoch: asked, or agreed to
           // our request. Either way the row has moved; read it and turn the keys.
-          setStatus(`ключи беседы меняются (эпоха ${event.epoch})`);
+          setStatus(say("web.chat.rekeying", { epoch: event.epoch }));
           setTurn((t) => t + 1);
           break;
         case "sys": break;
@@ -97,7 +98,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
             setLines((was) => was.some((l) => l.id === event.id) ? was : [...was, { id: event.id, text: opened, mine: false, at: event.createdAt }]);
             await client.received(given.id, [event.id]);
           } catch (e) {
-            setLines((was) => [...was, { id: event.id, text: `(не открылось: ${(e as Error).message})`, mine: false, at: event.createdAt, state: "failed" }]);
+            setLines((was) => [...was, { id: event.id, text: say("web.chat.not_opened", { message: (e as Error).message }), mine: false, at: event.createdAt, state: "failed" }]);
           }
         }
       }
@@ -111,8 +112,8 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
     setError(null);
     try {
       const { localId, answer } = await keys.say(rowRef.current, line);
-      if (answer.status === 404) { setOver(true); setStatus("беседа кончилась"); return; }
-      if (answer.status !== 202) throw new Error(`не отправлено: ${answer.status} ${JSON.stringify(answer.body)}`);
+      if (answer.status === 404) { setOver(true); setStatus(say("web.chat.over")); return; }
+      if (answer.status !== 202) throw new Error(say("web.chat.not_sent", { status: answer.status, body: JSON.stringify(answer.body) }));
       setLines((was) => [...was, { id: localId, text: line, mine: true, at: Date.now() / 1000, state: answer.body.accepted ? "sent" : "failed" }]);
       setText("");
     } catch (e) {
@@ -126,8 +127,8 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
     try {
       const fresh = (await refreshRow()) ?? rowRef.current;
       const answer = action === "ask" ? await keys.requestRekey(fresh) : await keys.acceptRekey(fresh);
-      if (answer.status !== 200) throw new Error(`перевыпуск отклонён: ${answer.status} ${JSON.stringify(answer.body)}`);
-      setStatus(answer.body.state === "agreed" ? `новые ключи выпущены (эпоха ${answer.body.epoch})` : `просьба о новых ключах отправлена (эпоха ${answer.body.epoch}), ждём согласия`);
+      if (answer.status !== 200) throw new Error(say("web.chat.rekey_refused", { status: answer.status, body: JSON.stringify(answer.body) }));
+      setStatus(answer.body.state === "agreed" ? say("web.chat.rekey_agreed", { epoch: answer.body.epoch }) : say("web.chat.rekey_asked", { epoch: answer.body.epoch }));
       setTurn((t) => t + 1);
     } catch (e) {
       setError((e as Error).message);
@@ -142,53 +143,53 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
     <main className="screen chat" data-screen="chat" data-id={given.id} data-keys={keysState} data-over={over ? "yes" : "no"} data-epoch={row.key_epoch} data-rekey-requested={askedByPeer ? "yes" : "no"}>
       <header>
         <h1>{row.name}, {row.age}</h1>
-        <button type="button" onClick={onBack} data-testid="back">назад</button>
+        <button type="button" onClick={onBack} data-testid="back">{say("common.back")}</button>
       </header>
       <p className="status" data-testid="status">{status}</p>
       {safety && <p className="code" data-testid="safety">{safety}</p>}
       {over && (
         <section className="tombstone" data-testid="tombstone">
-          <h2>Беседа кончилась</h2>
-          <p className="muted">Ключи стёрты у обоих. Прочитать это больше нечем — никому.</p>
+          <h2>{say("web.chat.over_title")}</h2>
+          <p className="muted">{say("web.chat.over_text")}</p>
         </section>
       )}
       {!over && kept?.refused && (
         <p className="warn" data-testid="keys-not-kept">
-          Узел не сохранил ключи этой беседы ({kept.refused}): после перезагрузки страницы беседу будет не открыть — попросите новые ключи тогда.
+          {say("web.chat.keys_not_kept", { reason: kept.refused })}
         </p>
       )}
       {!over && askedByPeer && (
         <section className="card" data-testid="rekey-asked">
-          <p>Собеседник сменил устройство и просит выпустить новые ключи. Прежние сообщения не вернутся.</p>
-          <button type="button" className="primary" disabled={busy} onClick={() => rekey("agree")} data-testid="rekey-agree">выпустить новые ключи</button>
+          <p>{say("web.chat.peer_moved")}</p>
+          <button type="button" className="primary" disabled={busy} onClick={() => rekey("agree")} data-testid="rekey-agree">{say("web.chat.rekey_agree")}</button>
         </section>
       )}
       {!over && !askedByPeer && waitingForPeer && (
-        <p className="muted" data-testid="rekey-waiting">Просьба о новых ключах отправлена — ждём, когда согласится собеседник.</p>
+        <p className="muted" data-testid="rekey-waiting">{say("web.chat.rekey_waiting")}</p>
       )}
       {!over && keysState === "failed" && !askedByPeer && !waitingForPeer && (
         <section className="card" data-testid="keys-failed">
           <p className="error">{keysError}</p>
-          <button type="button" disabled={busy} onClick={() => rekey("ask")} data-testid="rekey-ask">попросить новые ключи</button>
+          <button type="button" disabled={busy} onClick={() => rekey("ask")} data-testid="rekey-ask">{say("web.chat.rekey_ask")}</button>
         </section>
       )}
       <ul className="lines" data-testid="lines">
         {lines.map((l) => (
           <li key={l.id} className={`line ${l.mine ? "mine" : "theirs"}`} data-testid={l.mine ? "mine" : "theirs"} data-state={l.state ?? ""}>
             {l.text}
-            <span className="muted">{new Date(l.at * 1000).toTimeString().slice(0, 5)}{l.state === "failed" ? " · не доставлено" : ""}</span>
+            <span className="muted">{new Date(l.at * 1000).toTimeString().slice(0, 5)}{l.state === "failed" ? say("web.chat.not_delivered") : ""}</span>
           </li>
         ))}
       </ul>
       {error && <p className="error" data-testid="error">{error}</p>}
       {!over && (
         <form className="composer" onSubmit={(e) => { e.preventDefault(); void send(); }}>
-          <input value={text} onChange={(e) => setText(e.target.value)} placeholder="реплика" disabled={keysState !== "open"} data-testid="text" />
-          <button type="submit" className="primary" disabled={keysState !== "open" || !text.trim()} data-testid="send">отправить</button>
+          <input value={text} onChange={(e) => setText(e.target.value)} placeholder={say("web.chat.line")} disabled={keysState !== "open"} data-testid="text" />
+          <button type="submit" className="primary" disabled={keysState !== "open" || !text.trim()} data-testid="send">{say("chat.send")}</button>
         </form>
       )}
       <footer className="muted">
-        <button type="button" onClick={() => setSafety(keys.safetyCodeOf(given.id) ?? "ключи ещё не открыты")} data-testid="show-safety">код безопасности</button>
+        <button type="button" onClick={() => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"))} data-testid="show-safety">{say("chat.code")}</button>
       </footer>
     </main>
   );

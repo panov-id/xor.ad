@@ -1,20 +1,12 @@
 // The "me" screens' words and readings (W4, 2026-09-26). The words are the
-// terminal's, verbatim: depth/ink/locales/ru.json is imported as it is, and
-// `say` substitutes {name} the way depth/ink/strings.ts does. Nothing here
-// draws; the screens in screens/Me.tsx do.
+// terminal's, through the web's one lookup (locales/say.ts, W13), which also
+// picks the language. Nothing here draws; the screens in screens/Me.tsx do.
 
-import ru from "../../../depth/ink/locales/ru.json";
 import type { Answer, Client } from "../../../depth/core/client.ts";
 import { CursorRefused } from "../../../depth/core/client.ts";
+import { say } from "../locales/say.ts";
 
-const STRINGS = ru as Record<string, string>;
-
-export function say(key: string, values?: Record<string, string | number>): string {
-  const template = STRINGS[key] ?? key;
-  return values
-    ? template.replace(/\{(\w+)\}/g, (whole, name) => (name in values ? String(values[name]) : whole))
-    : template;
-}
+export { say };
 
 // How the node refuses a proof of the PIN, as one line (§8.2): the same
 // counter answers "change the PIN" and "start again" (depth/ink/rooms.ts).

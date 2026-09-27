@@ -12,14 +12,16 @@
 //   once in ANNOUNCE_MS — a handle dragged across five radii in a second is one
 //   announcement, the last, not five.
 
+import { say } from "../locales/say.ts";
+
 export type Step = "none" | "few" | "about_ten" | "tens" | "hundreds";
 
 export const NEARBY: Record<Step, string> = {
-  none: "здесь пока никого",
-  few: "рядом мало людей",
-  about_ten: "рядом около десятка",
-  tens: "рядом десятки",
-  hundreds: "рядом сотни",
+  none: say("web.nearby.none"),
+  few: say("web.nearby.few"),
+  about_ten: say("web.nearby.about_ten"),
+  tens: say("web.nearby.tens"),
+  hundreds: say("web.nearby.hundreds"),
 };
 
 export const isStep = (s: unknown): s is Step => typeof s === "string" && s in NEARBY;

@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import type { Client, InboxEvents } from "../../../depth/core/client.ts";
 import type { ChatRow } from "../chat/keys.ts";
+import { say } from "../locales/say.ts";
 import "../chat/chat.css";
 
 export interface MatchRow {
@@ -81,17 +82,17 @@ export function Inbox({ client, onOpenMatch, onOpenChat }: {
   return (
     <main className="screen inbox" data-screen="inbox">
       <header>
-        <h1>Разговоры</h1>
-        <button type="button" onClick={() => load()} data-testid="refresh">обновить</button>
+        <h1>{say("web.inbox.title")}</h1>
+        <button type="button" onClick={() => load()} data-testid="refresh">{say("web.inbox.refresh")}</button>
       </header>
       {state === "failed" && <p className="error" data-testid="error">{error}</p>}
       {state === "ready" && rows.length === 0 && (
         <section className="empty" data-testid="quiet">
-          <h2>Пока никого</h2>
-          <p className="muted">Лайк на чужую фразу и встречный — и здесь появится предложение поговорить.</p>
+          <h2>{say("web.inbox.empty")}</h2>
+          <p className="muted">{say("web.inbox.empty_hint")}</p>
         </section>
       )}
-      {matches.length > 0 && <h2>Предлагают поговорить</h2>}
+      {matches.length > 0 && <h2>{say("web.inbox.offers")}</h2>}
       <ul className="cards" data-testid="matches">
         {matches.map((m) => (
           <li key={m.id} className="card" data-testid="match" data-id={m.id}>
@@ -100,12 +101,12 @@ export function Inbox({ client, onOpenMatch, onOpenChat }: {
               <span className="mark">{marksOf(m)}</span>
             </div>
             <p>{m.phrase.text}</p>
-            <span className="muted">{m.waiting_for_you ? "ждёт вас" : "предложение"}</span>
-            <button type="button" onClick={() => onOpenMatch(m)} data-testid="open-match">открыть</button>
+            <span className="muted">{m.waiting_for_you ? say("web.inbox.waits_you") : say("web.inbox.offer")}</span>
+            <button type="button" onClick={() => onOpenMatch(m)} data-testid="open-match">{say("inbox.enter")}</button>
           </li>
         ))}
       </ul>
-      {chats.length > 0 && <h2>Беседы</h2>}
+      {chats.length > 0 && <h2>{say("web.inbox.chats")}</h2>}
       <ul className="cards" data-testid="chats">
         {chats.map((c) => (
           <li key={c.id} className="card" data-testid="chat" data-id={c.id} data-state={c.state}>
@@ -113,15 +114,15 @@ export function Inbox({ client, onOpenMatch, onOpenChat }: {
               <strong>{c.name}, {c.age}</strong>
               <span className="mark">{marksOf(c)}</span>
             </div>
-            <span className="muted">{c.state === "ended" ? "беседа кончилась" : `гаснет после ${c.my_span} мин вашего молчания`}</span>
-            <button type="button" onClick={() => onOpenChat(c)} data-testid="open-chat">открыть</button>
+            <span className="muted">{c.state === "ended" ? say("web.inbox.ended") : say("web.inbox.span", { n: c.my_span })}</span>
+            <button type="button" onClick={() => onOpenChat(c)} data-testid="open-chat">{say("inbox.enter")}</button>
           </li>
         ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
       {events && (
         <footer className="muted" data-testid="events">
-          с прошлого раза: {JSON.stringify(events)}
+          {say("web.inbox.since", { events: JSON.stringify(events) })}
         </footer>
       )}
     </main>

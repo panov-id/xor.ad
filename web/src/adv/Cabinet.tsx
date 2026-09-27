@@ -11,13 +11,14 @@ import {
   addVenue, me, movePlace, type Offer, offers, openSession, orderEnvelope, type Place, publish, RADII, type Refusal, signIn,
   signUp, type Venue, venues, verify, when,
 } from "./api.ts";
+import { say } from "../locales/say.ts";
 
 type View = "loading" | "sign-in" | "sent" | "expired" | "venues" | "offers" | "new-offer";
 
 const STATUS: Record<string, string> = {
-  unverified: "не подтверждена",
-  verified: "подтверждена",
-  suspended: "приостановлена",
+  unverified: say("web.cabinet.statusUnverified"),
+  verified: say("web.cabinet.statusVerified"),
+  suspended: say("web.cabinet.statusSuspended"),
 };
 
 // The token rides in the link's fragment (`/enter#<token>`): it never reaches
@@ -53,23 +54,23 @@ export function Cabinet() {
       {view === "sign-in" && <SignIn onSent={() => setView("sent")} onError={setError} />}
       {view === "sent" && (
         <>
-          <h1>Рекламный кабинет</h1>
-          <p data-testid="adv-sent">если адрес зарегистрирован, письмо отправлено</p>
-          <p className="muted">Ссылка одноразовая и живёт 15 минут; открывается в том же браузере, где её запросили.</p>
+          <h1>{say("web.cabinet.title")}</h1>
+          <p data-testid="adv-sent">{say("web.cabinet.sent")}</p>
+          <p className="muted">{say("web.cabinet.linkOnce")}</p>
         </>
       )}
       {view === "expired" && (
         <>
-          <h1 data-testid="adv-expired">Ссылка истекла</h1>
-          <p className="muted">Ссылка одноразовая и живёт 15 минут; она гаснет при первом использовании. Открывается в том же браузере, где её запросили.</p>
-          <p className="muted">Число запросов на один адрес ограничено. Письмо приходит на тот же адрес.</p>
-          <button type="button" onClick={() => setView("sign-in")} data-testid="adv-again">запросить новую</button>
+          <h1 data-testid="adv-expired">{say("web.cabinet.expired")}</h1>
+          <p className="muted">{say("web.cabinet.linkOnceSpent")}</p>
+          <p className="muted">{say("web.cabinet.limit")}</p>
+          <button type="button" onClick={() => setView("sign-in")} data-testid="adv-again">{say("web.cabinet.askAgain")}</button>
         </>
       )}
       {(view === "venues" || view === "offers" || view === "new-offer") && (
         <nav className="tabs">
-          <button type="button" aria-current={view === "venues" ? "page" : undefined} onClick={() => setView("venues")} data-testid="adv-tab-venues">заведения</button>
-          <button type="button" aria-current={view !== "venues" ? "page" : undefined} onClick={() => setView("offers")} data-testid="adv-tab-offers">мои офферы</button>
+          <button type="button" aria-current={view === "venues" ? "page" : undefined} onClick={() => setView("venues")} data-testid="adv-tab-venues">{say("web.cabinet.tabVenues")}</button>
+          <button type="button" aria-current={view !== "venues" ? "page" : undefined} onClick={() => setView("offers")} data-testid="adv-tab-offers">{say("web.cabinet.myOffers")}</button>
         </nav>
       )}
       {view === "venues" && <Venues onError={setError} />}
@@ -91,25 +92,25 @@ function SignIn({ onSent, onError }: { onSent: () => void; onError: (e: string |
       // A contact makes it a new account; the answer is the same either way.
       const answer = contact.trim() ? await signUp(email.trim(), contact.trim()) : await signIn(email.trim());
       if (answer.status === 204) return onSent();
-      if (answer.status === 429) return onError(`Слишком много запросов. Ещё раз через ${answer.retryAfter ?? "?"} с.`);
-      onError(`Кабинет не принял (${answer.status}).`);
+      if (answer.status === 429) return onError(say("web.cabinet.tooMany", { n: answer.retryAfter ?? "?" }));
+      onError(say("web.cabinet.notTaken", { status: answer.status }));
     } finally {
       setBusy(false);
     }
   }
   return (
     <>
-      <h1>Рекламный кабинет</h1>
-      <p className="muted">Вход только по ссылке из письма.</p>
+      <h1>{say("web.cabinet.title")}</h1>
+      <p className="muted">{say("web.cabinet.linkOnly")}</p>
       <label>
-        почта
+        {say("web.cabinet.email")}
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="adv-email" autoComplete="email" />
       </label>
       <label>
-        контакт — для новой учётной записи
+        {say("web.cabinet.contact")}
         <input value={contact} onChange={(e) => setContact(e.target.value)} data-testid="adv-contact" />
       </label>
-      <button type="button" className="primary" disabled={!email.includes("@") || busy} onClick={() => void go()} data-testid="adv-send">получить ссылку</button>
+      <button type="button" className="primary" disabled={!email.includes("@") || busy} onClick={() => void go()} data-testid="adv-send">{say("web.cabinet.getLink")}</button>
     </>
   );
 }
@@ -119,17 +120,17 @@ function SignIn({ onSent, onError }: { onSent: () => void; onError: (e: string |
 function PlaceFields({ value, onChange, prefix }: { value: PlaceInput; onChange: (v: PlaceInput) => void; prefix: string }) {
   return (
     <fieldset className="place">
-      <legend>точка на карте</legend>
+      <legend>{say("web.cabinet.point")}</legend>
       <label>
-        широта
+        {say("loc.lat")}
         <input inputMode="decimal" value={value.lat} onChange={(e) => onChange({ ...value, lat: e.target.value })} data-testid={`${prefix}-lat`} />
       </label>
       <label>
-        долгота
+        {say("loc.lon")}
         <input inputMode="decimal" value={value.lon} onChange={(e) => onChange({ ...value, lon: e.target.value })} data-testid={`${prefix}-lon`} />
       </label>
       <label>
-        радиус, м
+        {say("web.cabinet.radius")}
         <select value={value.radius} onChange={(e) => onChange({ ...value, radius: Number(e.target.value) })} data-testid={`${prefix}-radius`}>
           {RADII.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
@@ -151,14 +152,14 @@ function Venues({ onError }: { onError: (e: string | null) => void }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [place, setPlace] = useState<PlaceInput>(EMPTY_PLACE);
-  const load = () => venues().then((a) => a.status === 200 ? setRows(a.body!.items) : onError(`Кабинет не принял (${a.status}).`));
+  const load = () => venues().then((a) => a.status === 200 ? setRows(a.body!.items) : onError(say("web.cabinet.notTaken", { status: a.status })));
   useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   async function add() {
     onError(null);
     const at = placeOf(place);
-    if (at === "bad") return onError("Точка — это широта и долгота числами.");
+    if (at === "bad") return onError(say("web.cabinet.pointNumbers"));
     const made = await addVenue(name.trim(), address.trim(), at ?? undefined);
-    if (made.status !== 201) return onError(made.body?.error?.message ?? `Кабинет не принял (${made.status}).`);
+    if (made.status !== 201) return onError(made.body?.error?.message ?? say("web.cabinet.notTaken", { status: made.status }));
     setName("");
     setAddress("");
     setPlace(EMPTY_PLACE);
@@ -166,20 +167,20 @@ function Venues({ onError }: { onError: (e: string | null) => void }) {
   }
   return (
     <>
-      <h1>Верификация</h1>
+      <h1>{say("web.cabinet.verification")}</h1>
       {rows === null ? <p className="muted">…</p> : rows.map((v) => <VenueRow key={v.id} venue={v} onChanged={load} onError={onError} />)}
-      <p className="muted">Пока точка не подтверждена, оффер опубликовать нельзя. У каждого заведения свой конверт.</p>
+      <p className="muted">{say("web.cabinet.unverifiedNote")}</p>
       <section className="add-venue">
         <label>
-          название
+          {say("web.cabinet.name")}
           <input value={name} onChange={(e) => setName(e.target.value)} data-testid="venue-name" />
         </label>
         <label>
-          адрес
+          {say("web.cabinet.address")}
           <input value={address} onChange={(e) => setAddress(e.target.value)} data-testid="venue-address" />
         </label>
         <PlaceFields value={place} onChange={setPlace} prefix="venue" />
-        <button type="button" disabled={!name.trim() || !address.trim()} onClick={() => void add()} data-testid="venue-add">добавить заведение</button>
+        <button type="button" disabled={!name.trim() || !address.trim()} onClick={() => void add()} data-testid="venue-add">{say("web.cabinet.addVenue")}</button>
       </section>
     </>
   );
@@ -195,16 +196,16 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
   async function move() {
     onError(null);
     const at = placeOf(place);
-    if (at === null || at === "bad") return onError("Точка — это широта и долгота числами.");
+    if (at === null || at === "bad") return onError(say("web.cabinet.pointNumbers"));
     const answer = await movePlace(venue.id, at);
-    if (answer.status !== 200) return onError(answer.body?.error?.message ?? `Кабинет не принял (${answer.status}).`);
+    if (answer.status !== 200) return onError(answer.body?.error?.message ?? say("web.cabinet.notTaken", { status: answer.status }));
     setMoving(false);
     onChanged();
   }
   async function order() {
     onError(null);
     const answer = await orderEnvelope(venue.id);
-    if (answer.status !== 202) return onError(answer.body?.error?.message ?? `Кабинет не принял (${answer.status}).`);
+    if (answer.status !== 202) return onError(answer.body?.error?.message ?? say("web.cabinet.notTaken", { status: answer.status }));
     onChanged();
   }
   async function check() {
@@ -214,14 +215,14 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
     if (answer.status === 200) return onChanged();
     const refusal = answer.body as Refusal | null;
     if (answer.status === 422) {
-      setWrong(`Код не подошёл. Осталось попыток: ${refusal?.error?.attempts_left ?? "?"}. После нескольких неверных код гасится, нужен новый конверт.`);
+      setWrong(say("web.cabinet.codeWrong", { n: refusal?.error?.attempts_left ?? "?" }));
       return onChanged();
     }
     if (answer.status === 409) {
-      setWrong("После нескольких неверных код гасится, нужен новый конверт.");
+      setWrong(say("web.cabinet.codeSpent"));
       return onChanged();
     }
-    onError(refusal?.error?.message ?? `Кабинет не принял (${answer.status}).`);
+    onError(refusal?.error?.message ?? say("web.cabinet.notTaken", { status: answer.status }));
   }
   return (
     <article className="venue" data-testid="venue" data-status={venue.verification_status}>
@@ -229,29 +230,29 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
       <p className="muted">{venue.address}</p>
       <p data-testid="venue-status">{STATUS[venue.verification_status] ?? venue.verification_status}</p>
       <p className="muted" data-testid="venue-place">
-        {venue.place ? `точка: ${venue.place.lat}, ${venue.place.lon} · ${venue.place.area_radius} м` : "точка не задана — офферы не опубликовать"}
+        {venue.place ? say("web.cabinet.placeAt", { lat: venue.place.lat, lon: venue.place.lon, radius: venue.place.area_radius }) : say("web.cabinet.placeNone")}
       </p>
       {moving
         ? (
           <>
-            {venue.verification_status === "verified" && <p className="warn">Новая точка снимет подтверждение: нужен новый конверт.</p>}
+            {venue.verification_status === "verified" && <p className="warn">{say("web.cabinet.moveWarn")}</p>}
             <PlaceFields value={place} onChange={setPlace} prefix="venue-move" />
-            <button type="button" onClick={() => void move()} data-testid="venue-move-save">сохранить точку</button>
+            <button type="button" onClick={() => void move()} data-testid="venue-move-save">{say("web.cabinet.savePoint")}</button>
           </>
         )
-        : <button type="button" onClick={() => setMoving(true)} data-testid="venue-move">{venue.place ? "сдвинуть точку" : "задать точку"}</button>}
+        : <button type="button" onClick={() => setMoving(true)} data-testid="venue-move">{venue.place ? say("web.cabinet.movePoint") : say("web.cabinet.setPoint")}</button>}
       {venue.verification_status === "unverified" && (venue.envelope_expires_at
         ? (
           <>
-            <p className="muted">конверт с кодом отправлен на адрес {venue.address}; код живёт 30 дней</p>
+            <p className="muted">{say("web.cabinet.envelopeSent", { address: venue.address })}</p>
             <label>
-              код из конверта
+              {say("web.cabinet.envelopeCode")}
               <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} data-testid="venue-code" autoComplete="off" />
             </label>
-            <button type="button" className="primary" disabled={code.replace(/[\s-]/g, "").length !== 12} onClick={() => void check()} data-testid="venue-verify">подтвердить</button>
+            <button type="button" className="primary" disabled={code.replace(/[\s-]/g, "").length !== 12} onClick={() => void check()} data-testid="venue-verify">{say("web.cabinet.confirm")}</button>
           </>
         )
-        : <button type="button" onClick={() => void order()} data-testid="venue-envelope">заказать конверт</button>)}
+        : <button type="button" onClick={() => void order()} data-testid="venue-envelope">{say("web.cabinet.orderEnvelope")}</button>)}
       {wrong && <p className="error" data-testid="venue-wrong">{wrong}</p>}
     </article>
   );
@@ -260,20 +261,20 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
 function Offers({ onNew, onError }: { onNew: () => void; onError: (e: string | null) => void }) {
   const [rows, setRows] = useState<Offer[] | null>(null);
   useEffect(() => {
-    void offers().then((a) => a.status === 200 ? setRows(a.body!.items) : onError(`Кабинет не принял (${a.status}).`));
+    void offers().then((a) => a.status === 200 ? setRows(a.body!.items) : onError(say("web.cabinet.notTaken", { status: a.status })));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <>
-      <h1>Мои офферы</h1>
-      <button type="button" onClick={onNew} data-testid="offer-new">+ новый</button>
+      <h1>{say("web.cabinet.myOffersTitle")}</h1>
+      <button type="button" onClick={onNew} data-testid="offer-new">{say("web.cabinet.newOffer")}</button>
       {rows?.map((o) => (
         <article key={o.id} className="offer" data-testid="adv-offer" data-status={o.status}>
-          <p data-testid="adv-offer-state">{o.status === "active" ? "в ленте" : "истёк"}</p>
+          <p data-testid="adv-offer-state">{o.status === "active" ? say("web.cabinet.offerLive") : say("web.cabinet.offerExpired")}</p>
           <p className="discount">{o.discount_value}</p>
           <p>{o.offer_text}</p>
-          <p className="muted">скидка до {when(o.discount_until)}</p>
-          <p className="muted">переходов по ссылке {o.redirect_hits}</p>
-          {o.external_url && <p className="muted" data-testid="adv-offer-link">Ссылка: {o.link.replace(/^https:\/\//, "")}{o.link_disabled ? " · отключена" : ""}</p>}
+          <p className="muted">{say("web.cabinet.discountUntil", { until: when(o.discount_until) })}</p>
+          <p className="muted">{say("web.cabinet.hits", { n: o.redirect_hits })}</p>
+          {o.external_url && <p className="muted" data-testid="adv-offer-link">{say("web.cabinet.link", { link: o.link.replace(/^https:\/\//, "") })}{o.link_disabled ? say("web.cabinet.linkOff") : ""}</p>}
         </article>
       ))}
     </>
@@ -319,8 +320,8 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
       });
       if (answer.status === 201) return setDone(answer.body as Offer);
       const error = (answer.body as Refusal | null)?.error;
-      if (error?.reason === "duplicate") return setRefused("Дубль текста живого оффера. У вас уже висит оффер с этим текстом. Измените текст или дождитесь, пока прежний истечёт.");
-      setRefused(error?.message ?? `Кабинет не принял (${answer.status}).`);
+      if (error?.reason === "duplicate") return setRefused(say("web.cabinet.duplicate"));
+      setRefused(error?.message ?? say("web.cabinet.notTaken", { status: answer.status }));
     } finally {
       setBusy(false);
     }
@@ -328,57 +329,57 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
   if (done) {
     return (
       <section data-testid="offer-published">
-        <h1>Опубликовано</h1>
-        <p>Оффер публикуется немедленно и целиком, включая ссылку, без премодерации.</p>
-        {done.external_url && <p data-testid="offer-published-link">Ссылка: {done.link.replace(/^https:\/\//, "")}</p>}
-        <p className="muted">Карточка живёт в ленте 4 часа 20 минут, скидка — до {when(done.discount_until)}.</p>
-        <p className="muted">Опубликованный оффер не редактируется.</p>
-        <button type="button" onClick={onDone} data-testid="offer-to-list">мои офферы</button>
+        <h1>{say("web.cabinet.published")}</h1>
+        <p>{say("web.cabinet.publishedNote")}</p>
+        {done.external_url && <p data-testid="offer-published-link">{say("web.cabinet.link", { link: done.link.replace(/^https:\/\//, "") })}</p>}
+        <p className="muted">{say("web.cabinet.cardLives", { until: when(done.discount_until) })}</p>
+        <p className="muted">{say("web.cabinet.noEdit")}</p>
+        <button type="button" onClick={onDone} data-testid="offer-to-list">{say("web.cabinet.myOffers")}</button>
       </section>
     );
   }
   return (
     <>
-      <h1>Новый оффер</h1>
-      {rows !== null && rows.length === 0 && <p className="muted" data-testid="offer-no-venue">Пока точка не подтверждена, оффер опубликовать нельзя.</p>}
+      <h1>{say("web.cabinet.newOfferTitle")}</h1>
+      {rows !== null && rows.length === 0 && <p className="muted" data-testid="offer-no-venue">{say("web.cabinet.noVenue")}</p>}
       {rows !== null && rows.length > 0 && (
         <>
           <label>
-            заведение
+            {say("web.cabinet.field.venue")}
             <select value={venue} onChange={(e) => setVenue(e.target.value)} data-testid="offer-venue">
               {rows.map((v) => <option key={v.id} value={v.id}>{v.name} · {v.address}</option>)}
             </select>
           </label>
           <label>
-            текст
+            {say("web.cabinet.field.text")}
             <input value={text} maxLength={128} onChange={(e) => setText(e.target.value)} data-testid="offer-text" />
           </label>
           <label>
-            скидка
+            {say("web.cabinet.field.discount")}
             <input value={discount} maxLength={32} onChange={(e) => setDiscount(e.target.value)} data-testid="offer-discount" />
           </label>
           <label>
-            условия
+            {say("web.cabinet.field.terms")}
             <input value={conditions} maxLength={128} onChange={(e) => setConditions(e.target.value)} data-testid="offer-conditions" />
-            <span className="muted">пусто — значит без ограничений</span>
+            <span className="muted">{say("web.cabinet.termsEmpty")}</span>
           </label>
           <label>
-            скидка до
+            {say("web.cabinet.field.discountTo")}
             <input type="datetime-local" value={until} onChange={(e) => setUntil(e.target.value)} data-testid="offer-until" />
-            <span className="muted">не дальше 90 дней от публикации</span>
+            <span className="muted">{say("web.cabinet.within90")}</span>
           </label>
           <label>
-            промокод
+            {say("web.cabinet.field.promo")}
             <input value={promo} maxLength={64} onChange={(e) => setPromo(e.target.value)} data-testid="offer-promo" />
           </label>
           <label>
-            ссылка
+            {say("web.cabinet.field.url")}
             <input value={url} onChange={(e) => setUrl(e.target.value)} data-testid="offer-url" />
-            <span className="muted">сокращатели не принимаются</span>
+            <span className="muted">{say("web.cabinet.noShorteners")}</span>
           </label>
-          <p className="muted">Оффер публикуется сразу и целиком. Опубликованный оффер не редактируется: ни текст, ни скидка, ни условия.</p>
-          {refused && <p className="error" data-testid="offer-refused">Публикация отклонена. {refused}</p>}
-          <button type="button" className="primary" disabled={!venue || !text.trim() || !discount.trim() || busy} onClick={() => void go()} data-testid="offer-publish">опубликовать</button>
+          <p className="muted">{say("web.cabinet.publishNote")}</p>
+          {refused && <p className="error" data-testid="offer-refused">{say("web.cabinet.refused", { reason: refused })}</p>}
+          <button type="button" className="primary" disabled={!venue || !text.trim() || !discount.trim() || busy} onClick={() => void go()} data-testid="offer-publish">{say("web.cabinet.publish")}</button>
         </>
       )}
     </>

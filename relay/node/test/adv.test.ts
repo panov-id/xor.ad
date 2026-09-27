@@ -66,20 +66,26 @@ async function call(
   return { status: response.status, body: text ? JSON.parse(text) : null, cookies, headers: response.headers };
 }
 
-// Signs up and in: the letter's token is written as the node would write it,
-// under the half the node left in the browser.
-async function signedIn(email: string, origin = "https://adv.alpha.test"): Promise<Record<string, string>> {
-  const up = await call("POST", "/adv/signup", { origin, body: { email, contact: "+357 00 000000" } });
+// The letter a sign-up mails, as the node writes it: a token under the half
+// the node left in the browser, and the contact that sign-up gave (db/077).
+async function letterOf(email: string, contact: string, origin = "https://adv.alpha.test") {
+  const up = await call("POST", "/adv/signup", { origin, body: { email, contact } });
   assertEquals(up.status, 204);
   const half = up.cookies["__Host-adv-link"];
   assertMatch(half, /^[0-9a-f]{64}$/);
   const token = crypto.getRandomValues(new Uint8Array(32)).reduce((s, b) => s + b.toString(16).padStart(2, "0"), "");
   await database.queryOrThrow(
-    `INSERT INTO advertiser_links (link_hash, advertiser_id, expires_at)
-       SELECT $1, id, now() + interval '15 minutes' FROM advertisers WHERE lower(email) = lower($2)
+    `INSERT INTO advertiser_links (link_hash, advertiser_id, expires_at, contact)
+       SELECT $1, id, now() + interval '15 minutes', $4 FROM advertisers WHERE lower(email) = lower($2)
           AND brand = $3`,
-    [await linkHash(token, half), email, new URL(origin).host.replace(/^adv\./, "").split(".")[0]],
+    [await linkHash(token, half), email, new URL(origin).host.replace(/^adv\./, "").split(".")[0], contact],
   );
+  return { token, half };
+}
+
+// Signs up and in by the letter.
+async function signedIn(email: string, origin = "https://adv.alpha.test"): Promise<Record<string, string>> {
+  const { token, half } = await letterOf(email, "+357 00 000000", origin);
   // Somebody else's browser — the letter without the half — opens nothing.
   const stranger = await call("POST", "/adv/session", { origin, body: { token }, cookies: { "__Host-adv-link": "0".repeat(64) } });
   assertEquals(stranger.status, 401);
@@ -128,6 +134,30 @@ Deno.test({ name: "the cabinet: sign-in, a venue proved by its envelope, an offe
   assertEquals(
     (await database.queryOrThrow(`SELECT 1 FROM advertisers WHERE lower(email) = lower($1)`, [email])).length, 1,
   );
+  const contactOf = async (address: string) =>
+    (await database.queryOrThrow<{ contact: string }>(`SELECT contact FROM advertisers WHERE lower(email) = lower($1)`, [address]))[0].contact;
+  // FX2 (X2): a sign-up writes no contact; only the link that is opened does,
+  // and only its mailbox's holder opens it (db/077).
+  assertEquals(await contactOf(email), "+357 00 000000", "the account does not hold the contact of the letter its owner opened (or a later sign-up rewrote it)");
+  const open = (l: { token: string; half: string }) =>
+    call("POST", "/adv/session", { body: { token: l.token }, cookies: { "__Host-adv-link": l.half } });
+  // A stranger first, the owner after — and the owner first, a stranger after.
+  // Either way the owner opens their own letter and their contact stands; the
+  // stranger's letter goes to the owner's mailbox and is never opened.
+  for (const strangerFirst of [true, false]) {
+    const taken = `taken-${crypto.randomUUID().slice(0, 8)}@example.test`;
+    let owner: { token: string; half: string };
+    if (strangerFirst) {
+      await letterOf(taken, "чужой");
+      owner = await letterOf(taken, "владелец");
+    } else {
+      owner = await letterOf(taken, "владелец");
+      await letterOf(taken, "чужой");
+    }
+    assertEquals(await contactOf(taken), "", `a sign-up wrote a contact before any letter was opened (stranger first: ${strangerFirst})`);
+    assertEquals((await open(owner)).status, 204);
+    assertEquals(await contactOf(taken), "владелец", `the stranger named the owner's contact (stranger first: ${strangerFirst})`);
+  }
 
   const made = await call("POST", "/adv/venues", { cookies: me, body: { name: "Кофейня на Макариу", address: "Makariou 1, Nicosia", lat: 35.1676, lon: 33.3616, area_radius: 300 } });
   assertEquals(made.status, 201);

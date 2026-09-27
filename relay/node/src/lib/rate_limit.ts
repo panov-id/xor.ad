@@ -467,8 +467,19 @@ let saidDropped = false;
 // route — keeps its limits in memory and leaves no timer or write behind.
 let persisting = false;
 
+// A bucket named by an address, and not by a key id the caller chose. The key
+// in `<ip>|<id>` (callerBucket) is checked for shape only — the limiter is
+// asked before anything resolves it — so a made-up id per request was a fresh
+// bucket per request, and each one two rows kept for a day: one address grew
+// the table without bound, 1500 requests, 3000 rows, no 429 (X2, FX2,
+// 27.09.2026). Those buckets stay in memory, as every bucket did before db/074;
+// the fixed suffixes — keyless, malformed, offer-link — are the caller's
+// address alone and are written.
+const KEY_SUFFIX = /\|ak_(pub|live)_/;
+
 function byAddress(address: string): boolean {
   const cut = address.indexOf("|");
+  if (KEY_SUFFIX.test(address)) return false;
   return hostKey(cut === -1 ? address : address.slice(0, cut)) !== null;
 }
 

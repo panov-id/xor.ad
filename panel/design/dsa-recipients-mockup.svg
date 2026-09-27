@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900">
+<title>Panel · DSA recipients — the average monthly active recipients, Art. 24(3) · light theme, 1280 px (D3, 2026-09-27)</title>
+<style>
+  text { font-family: "Inter", system-ui, sans-serif; font-size: 15px; fill: #14140f; }
+  .disp { font-family: "Unbounded", "Inter", sans-serif; font-size: 22px; font-weight: 600; }
+  .big { font-family: "Unbounded", "Inter", sans-serif; font-size: 40px; font-weight: 600; }
+  .muted { fill: #5b5b55; }
+  .micro { font-size: 12px; fill: #5b5b55; }
+  .th { font-size: 12px; font-weight: 600; fill: #5b5b55; letter-spacing: .04em; }
+  .warn { fill: #8a5200; }
+  .q { font-size: 14px; }
+  .qh { font-size: 14px; font-weight: 600; }
+  .line { stroke: #d9d9d4; stroke-width: 1; }
+</style>
+<rect width="1280" height="900" fill="#f2f2f0"/>
+
+<!-- page head: GET /admin/dsa-recipients -> {months:[{month, active}], average, complete, method} -->
+<text x="40" y="56" class="disp">Recipients, DSA Art. 24(3)</text>
+<text x="40" y="82" class="muted">The average number of monthly active recipients over the six calendar months before this one — the figure the platform publishes.</text>
+
+<!-- the number -->
+<rect x="44" y="108" width="380" height="180" rx="6" fill="#14140f"/>
+<rect x="40" y="104" width="380" height="180" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+<text x="64" y="140" class="th">AVERAGE, SIX MONTHS</text>
+<text x="64" y="200" class="big">1 214</text>
+<rect x="64" y="222" width="236" height="24" rx="3" fill="none" stroke="#b26a00"/><text x="182" y="239" text-anchor="middle" class="micro warn">incomplete · 4 of 6 months counted</text>
+<text x="64" y="270" class="micro">complete is false until all six months have a row</text>
+
+<!-- the months -->
+<rect x="460" y="108" width="784" height="300" rx="6" fill="#14140f"/>
+<rect x="456" y="104" width="784" height="300" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+<text x="476" y="130" class="th">MONTH</text>
+<text x="640" y="130" class="th">ACTIVE</text>
+<line x1="457" y1="144" x2="1239" y2="144" class="line"/>
+<text x="476" y="176">2026-08</text><text x="640" y="176">1 402</text>
+<rect x="760" y="162" width="280" height="18" fill="#3355dd"/>
+<text x="476" y="212">2026-07</text><text x="640" y="212">1 288</text>
+<rect x="760" y="198" width="257" height="18" fill="#3355dd"/>
+<text x="476" y="248">2026-06</text><text x="640" y="248">1 101</text>
+<rect x="760" y="234" width="220" height="18" fill="#3355dd"/>
+<text x="476" y="284">2026-05</text><text x="640" y="284">1 065</text>
+<rect x="760" y="270" width="213" height="18" fill="#3355dd"/>
+<text x="476" y="320" class="muted">2026-04</text><text x="640" y="320" class="muted">not counted</text>
+<text x="476" y="356" class="muted">2026-03</text><text x="640" y="356" class="muted">not counted</text>
+<text x="476" y="390" class="micro">A month with no row is missing, not borrowed from further back.</text>
+
+<!-- method, as the node states it -->
+<text x="40" y="330" class="th">HOW IT IS COUNTED</text>
+<text x="40" y="354" class="q">Identities that finished signing up with a session</text>
+<text x="40" y="374" class="q">seen in the month; all counted as in the Union.</text>
+<text x="40" y="398" class="micro">(the node's method field, quorum of 24.09.2026)</text>
+
+<!-- tenant reader -->
+<text x="40" y="460" class="qh">A tenant's reader</text>
+<rect x="44" y="476" width="1200" height="64" rx="6" fill="#14140f"/>
+<rect x="40" y="472" width="1200" height="64" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+<text x="60" y="510" class="muted">This figure is the platform's. A tenant does not see it (the node answers 403).</text>
+
+<!-- questions -->
+<text x="40" y="600" class="qh">Questions to the owner</text>
+<text x="40" y="630" class="q">1. An incomplete average (fewer than six months).  a) show it with the mark (drawn)   b) show nothing until six months are counted</text>
+<text x="40" y="658" class="q">2. The bars per month.  a) keep   b) numbers only</text>
+<text x="40" y="686" class="q">3. Export for the publication.  a) a «copy the figure and the method» button   b) none, the page is enough</text>
+<text x="40" y="714" class="q">4. For a tenant.  a) hide the menu item   b) show the item with the 403 line (drawn)</text>
+</svg>

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900">
+<title>Panel · Table queue — lines and table names the rules flagged · light theme, 1280 px (D3, 2026-09-27)</title>
+<style>
+  text { font-family: "Inter", system-ui, sans-serif; font-size: 15px; fill: #14140f; }
+  .disp { font-family: "Unbounded", "Inter", sans-serif; font-size: 22px; font-weight: 600; }
+  .muted { fill: #5b5b55; }
+  .micro { font-size: 12px; fill: #5b5b55; }
+  .th { font-size: 12px; font-weight: 600; fill: #5b5b55; letter-spacing: .04em; }
+  .warn { fill: #8a5200; }
+  .danger { fill: #b3261e; }
+  .onaccent { fill: #ffffff; font-weight: 600; }
+  .q { font-size: 14px; }
+  .qh { font-size: 14px; font-weight: 600; }
+  .line { stroke: #d9d9d4; stroke-width: 1; }
+</style>
+<rect width="1280" height="900" fill="#f2f2f0"/>
+
+<!-- page head: GET /admin/table-queue (G1d, bc035bc) -->
+<text x="40" y="56" class="disp">Table queue</text>
+<text x="40" y="82" class="muted">Lines and table names the first tier of rules flagged. Nobody at the table sees them until published.</text>
+<text x="1240" y="56" text-anchor="end" class="micro">refreshes every 15 s · 3 waiting</text>
+
+<!-- card -->
+<rect x="44" y="108" width="1200" height="300" rx="6" fill="#14140f"/>
+<rect x="40" y="104" width="1200" height="300" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+
+<!-- header row: waiting_seconds, brand, kind, text -->
+<text x="60" y="130" class="th">WAITING</text>
+<text x="170" y="130" class="th">QUEUE</text>
+<text x="280" y="130" class="th">WHAT</text>
+<text x="400" y="130" class="th">TEXT</text>
+<line x1="41" y1="144" x2="1239" y2="144" class="line"/>
+
+<!-- row 1: a line at a table -->
+<text x="60" y="180" class="warn">9 min 12 s</text>
+<rect x="170" y="162" width="64" height="24" rx="3" fill="none" stroke="#5b5b55"/><text x="202" y="179" text-anchor="middle" class="micro">sosed</text>
+<text x="280" y="180">line</text>
+<text x="400" y="180">ну ты и сходил, конечно</text>
+<rect x="1002" y="159" width="100" height="36" rx="6" fill="#14140f"/><rect x="1000" y="157" width="100" height="36" rx="6" fill="#3355dd" stroke="#14140f" stroke-width="2"/><text x="1050" y="180" text-anchor="middle" class="onaccent">Publish</text>
+<rect x="1116" y="157" width="100" height="36" rx="6" fill="#ffffff" stroke="#b3261e" stroke-width="2"/><text x="1166" y="180" text-anchor="middle" class="danger">Refuse</text>
+<line x1="41" y1="216" x2="1239" y2="216" class="line"/>
+
+<!-- row 2: a table's name -->
+<text x="60" y="252">4 min 40 s</text>
+<rect x="170" y="234" width="80" height="24" rx="3" fill="none" stroke="#5b5b55"/><text x="210" y="251" text-anchor="middle" class="micro">neighbro</text>
+<text x="280" y="252">table name</text>
+<text x="400" y="252">домино после работы</text>
+<text x="400" y="272" class="micro">if refused, the table lives on without a name</text>
+<rect x="1002" y="231" width="100" height="36" rx="6" fill="#14140f"/><rect x="1000" y="229" width="100" height="36" rx="6" fill="#3355dd" stroke="#14140f" stroke-width="2"/><text x="1050" y="252" text-anchor="middle" class="onaccent">Accept</text>
+<rect x="1116" y="229" width="100" height="36" rx="6" fill="#ffffff" stroke="#b3261e" stroke-width="2"/><text x="1166" y="252" text-anchor="middle" class="danger">Refuse</text>
+<line x1="41" y1="296" x2="1239" y2="296" class="line"/>
+
+<!-- row 3: an application (a line of kind application; the queue says "line") -->
+<text x="60" y="332">0 min 48 s</text>
+<rect x="170" y="314" width="64" height="24" rx="3" fill="none" stroke="#5b5b55"/><text x="202" y="331" text-anchor="middle" class="micro">sosed</text>
+<text x="280" y="332">line</text>
+<text x="400" y="332">можно к вам? правила знаю</text>
+<rect x="1002" y="311" width="100" height="36" rx="6" fill="#14140f"/><rect x="1000" y="309" width="100" height="36" rx="6" fill="#3355dd" stroke="#14140f" stroke-width="2"/><text x="1050" y="332" text-anchor="middle" class="onaccent">Publish</text>
+<rect x="1116" y="309" width="100" height="36" rx="6" fill="#ffffff" stroke="#b3261e" stroke-width="2"/><text x="1166" y="332" text-anchor="middle" class="danger">Refuse</text>
+<text x="60" y="384" class="micro">The row shows the text and the table's brand only — never who wrote it (lib/tables_queue.ts). A tenant's moderator sees their own brand.</text>
+
+<!-- empty state -->
+<text x="40" y="452" class="qh">Empty queue</text>
+<rect x="44" y="468" width="1200" height="72" rx="6" fill="#14140f"/>
+<rect x="40" y="464" width="1200" height="72" rx="6" fill="#ffffff" stroke="#14140f" stroke-width="2"/>
+<text x="60" y="506" class="muted">Nothing waits at the tables.</text>
+
+<!-- questions -->
+<text x="40" y="600" class="qh">Questions to the owner</text>
+<text x="40" y="630" class="q">1. A page of its own or a tab of the feed queue?  a) its own page «Table queue» in the menu   b) a tab next to «Feed queue»</text>
+<text x="40" y="658" class="q">2. The kind of line: the node says only «line» for a line, an application and a refusal.  a) keep «line»   b) ask the node for the kind (line / application / refusal)</text>
+<text x="40" y="686" class="q">3. Context: the moderator sees one line alone.  a) enough   b) show the table's class and name next to it (the node would have to add them)</text>
+<text x="40" y="714" class="q">4. How long a line may wait before the watchdog raises it.  a) as the feed, 10 min   b) shorter, 3 min — a game waits on it</text>
+<text x="40" y="742" class="q">5. A refused line: does the table see a trace?  a) no trace   b) «a line was removed» in the lines</text>
+</svg>

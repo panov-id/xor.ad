@@ -100,7 +100,8 @@ screens_passed, screens_failed = map(int, _screens.groups())
 # ---------- prose: words no script measures, each block dated ----------
 prose = tomllib.loads((H / "prose_RU.toml").read_text())
 road, steps_p, day, state = prose["roadmap"], prose["steps"], prose["day"], prose["state"]
-for block, key in ((road, "as_of"), (steps_p, "as_of"), (day, "date"), (state, "as_of")):
+flows_p = prose["flows"]
+for block, key in ((road, "as_of"), (steps_p, "as_of"), (day, "date"), (state, "as_of"), (flows_p, "as_of")):
     block[key] = iso(block[key])
 ahead = int(git["unpushed"])
 # The previous day's branch is measured only when it exists where the report was built.
@@ -114,7 +115,8 @@ prod_migration = f"{road['environments'][0]['migration']:03d}"
 # Words dated before the last day with commits describe an older tree.
 stale = [(name, verb, d) for name, verb, d in (
     ("роадмап", "записан", road["as_of"]), ("таблица шагов", "записана", steps_p["as_of"]),
-    ("итоги дня", "записаны", day["date"]), ("состояние", "записано", state["as_of"])) if d < last_day]
+    ("итоги дня", "записаны", day["date"]), ("состояние", "записано", state["as_of"]),
+    ("таблица флоу", "записана", flows_p["as_of"])) if d < last_day]
 
 # ---------- palette (dataviz reference, validated slots 1-3) ----------
 S1, S2, S3 = "#2a78d6", "#eb6834", "#1baf7a"
@@ -292,8 +294,24 @@ stored_missing = lambda: [m for m in missing if m.removesuffix(".png") not in LI
 
 # ---------- tables ----------
 def chip(k):
+    if k == "na":
+        return '<span class="na">—</span>'
     t = {"yes": "есть", "part": "частично", "no": "нет"}[k]
     return f'<span class="chip {k}">{t}</span>'
+
+
+def flows_html():
+    rows = "".join(
+        f'<tr><td class="b">{e(f["name"])}</td><td>{chip(f["node"])}</td><td>{chip(f["depth"])}</td><td>{chip(f["web"])}</td>'
+        f'<td>{P(f["text"])}<div class="proof">{e(f["proof"])}</div></td></tr>' for f in flows_p["flows"])
+    return ('<table class="t steps"><thead><tr><th style="width:150px">Флоу</th><th style="width:68px">Узел</th>'
+            '<th style="width:68px">depth</th><th style="width:68px">Веб</th><th>Что может человек и чем это держится</th></tr></thead>'
+            f'<tbody>{rows}</tbody></table>')
+
+
+def flows_tally(face):
+    got = [f[face] for f in flows_p["flows"] if f[face] != "na"]
+    return f'{got.count("yes")} целиком, {got.count("part")} частично, {got.count("no")} нет'
 
 
 steps = [(s["step"], s["node"], s["node_text"], s["depth"], s["depth_text"]) for s in steps_p["steps"]]
@@ -393,7 +411,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
   <ul>
     <li><b>Есть:</b> публичный прод — обе витрины, панель, узел relay p1 ({e(prod['image'])}, база {e(prod['database'])}, почта {e(prod['mail'])}); {P(state['has'])}.</li>
     <li><b>Нет:</b> {P(state['has_not'])}.</li>
-    <li><b>Главный разрыв — выкат:</b> {P(state['gap'])}.</li>
+    <li><b>Код и живой контур:</b> {P(state['gap'])}.</li>
     <li><b>{ru_date(last_day)}:</b> {num(last_day_commits, "коммит", "коммита", "коммитов")}{" — " + P(day['summary']) if day['date'] == last_day else f"; итоги этого дня не записаны (последние — за {ru_date(day['date'])})"}.</li>
     <li>В реестре открытых вопросов {num(len(opened), "пункт", "пункта", "пунктов")}: {now_n} со сроком «сейчас», {launch_n} — «с запуском».</li>
   </ul>
@@ -416,7 +434,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 <div class="keep"><h3 class="ch">Коммиты по дням: {commits_sum} с {ru_date(commits[0][0])}</h3>
 <p class="lead">Линия {e(git['branch'])} целиком, со всем влитым в неё. Пики — {peaks_text}.</p>
 {commits_svg}</div>
-<div class="keep"><h3 class="ch">Разрыв выката: последняя миграция в коде и на контурах</h3>
+<div class="keep"><h3 class="ch">Последняя миграция в коде и на контурах</h3>
 <p class="lead">Код — по файлам <code>relay/node/db</code> сейчас; контуры — по закреплённым тегам <code>relay/wizard/environments.toml</code> (роадмап {ru_date(road['as_of'])}). <code>schema_migrations</code> на боксах не опрашивался.</p>
 {chart_migrations()}</div>
 
@@ -425,11 +443,15 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 {"".join(f'  <div class="card"><h4>{e(c["title"])}</h4><p>{P(c["text"])}</p></div>' for c in day["cards"])}
 </div>
 
-<h2>5. Продукт по шагам</h2>
+<h2>5. Готовность по флоу</h2>
+<p class="lead">Флоу — то, что человек делает от начала до конца. Запись на {ru_date(flows_p['as_of'])} по дереву {e(git['branch'])}; серой строкой — файлы тестов, которые флоу держат. Из {len(flows_p['flows'])} флоу: узел — {flows_tally('node')}; терминал — {flows_tally('depth')}; веб — {flows_tally('web')}. На проде стоит один — лист ожидания.</p>
+{flows_html()}
+
+<h2>6. Продукт по шагам</h2>
 <p class="lead">Сервер — <code>relay/node</code>, клиент — <code>depth</code>. Шаги — §13 <code>docs/chat_RU.md</code>; запись на {ru_date(steps_p['as_of'])}.</p>
 {steps_html()}
 
-<h2>6. Чего нет и что стоит</h2>
+<h2>7. Чего нет и что стоит</h2>
 <p class="lead">Состояние на {ru_date(state['as_of'])}.</p>
 <div class="callout red"><h3>Ждёт действия или решения владельца</h3><ul>
 {li(state['owner'])}
@@ -439,7 +461,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 {li(state['not_built'])}
 </ul>
 
-<h2>7. Живой контур</h2>
+<h2>8. Живой контур</h2>
 <p class="lead">Замер при сборке ({e(measured)}): GET по адресам и <code>scripts/check-node-images.sh</code>.</p>
 {live_html()}
 <p>Прод: узел <code>{e(prod['node'])}</code>, {e(prod['region'])}, образ <code>{e(prod['image'])}</code>, база <code>{e(prod['database'])}</code>, почта <code>{e(prod['mail'])}</code>, хранилище <code>{e(prod['storage_transport'])}</code>, бренды {e(', '.join(prod['brands']))}.</p>
@@ -447,7 +469,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 {pool_html()}
 <p class="lead">{e(pool_sum or pool_why)}</p>
 
-<h2>8. Экраны</h2>
+<h2>9. Экраны</h2>
 <h3 class="ch">Живые — сняты при сборке отчёта</h3>
 <div class="shots two">
 {img(SH/'sosed-desktop.png', 'sosed.place — витрина, десктоп', 'сейчас')}
@@ -479,7 +501,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 {img(DS/'feed-queue-mockup.png', 'Макет: очередь модерации ленты')}
 {img(DS/'support-queue-mockup.png', 'Макет: очередь поддержки')}
 </div>
-<h3 class="ch">Приложение — макеты (веб-лица ещё нет)</h3>
+<h3 class="ch">Приложение — макеты из кита (веб-лицо <code>web/</code> при сборке отчёта не снималось)</h3>
 <div class="shots two">
 {img(DS/'screen-03.png', 'Экран 03 — лента')}
 {img(DS/'screen-23.png', 'Экран 23 — фраза во весь экран')}
@@ -487,20 +509,20 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 {img(DS/'screen-26-place-qr.png', 'Экран 26 — QR места')}
 </div>
 
-<h2>9. Реестр открытых вопросов</h2>
+<h2>10. Реестр открытых вопросов</h2>
 <p class="lead"><code>docs/facts/open.tsv</code>, {num(len(opened), "пункт", "пункта", "пунктов")}, по сроку и весу.</p>
 {legend([(S1, "юридическое"), (S2, "продукт"), (S3, "удобство")])}
 {open_svg}
 <h3 class="ch">Со сроком «сейчас»</h3>
 {open_now_html()}
 
-<h2>10. Что проверено и как</h2>
+<h2>11. Что проверено и как</h2>
 <div class="callout green"><h3>Проверено при сборке отчёта</h3><ul>
 <li>Живые адреса — GET: {live_ok} из {len(live)} ответили 200; <code>/health</code> прода — образ и база выше.</li>
 {f"<li>Пул узлов — <code>scripts/check-node-images.sh</code>, код 0: {e(pool_sum.split('·', 1)[-1].strip())}.</li>" if not pool_why else ""}
 <li>Контракт — <code>scripts/check-openapi.sh</code>: {ops_total} операций, протокол и код сходятся со спецификацией.</li>
 <li>Тесты посчитаны <code>scripts/count-tests.sh</code> ({tests_total}); история — по дереву git на каждый день.</li>
-<li>Тесты экранов depth прогнаны в контейнере: пройдено {screens_passed}, провалено {screens_failed}; кадры в разделе 8 — из этого прогона.</li>
+<li>Тесты экранов depth прогнаны в контейнере: пройдено {screens_passed}, провалено {screens_failed}; кадры в разделе 9 — из этого прогона.</li>
 {"<li>Живые снимки витрин и панели — Playwright в контейнере, сейчас.</li>" if not live_missing else ""}
 </ul></div>
 <div class="callout red"><h3>Не проверено сейчас</h3><ul>

@@ -62,6 +62,26 @@ Deno.test({ name: "an IPv4 host keeps its bucket across a start whichever way it
   }
 } });
 
+// FX2 (X2): a key id is the caller's choice, checked for shape only, so a
+// bucket named by one is never written — a made-up id per request would grow
+// the table without bound. The fixed suffixes are the address and are written.
+Deno.test({ name: "made-up key ids do not grow the table; a keyless address still does", ...pooled, fn: async () => {
+  await database.queryOrThrow(`DELETE FROM rate_limit_hits`);
+  first.reset();
+  await first.loadRateLimits();
+  const ip = "198.51.100.66";
+  for (let i = 0; i < 300; i++) {
+    const id = `ak_pub_${crypto.randomUUID().replaceAll("-", "").slice(0, 20)}`;
+    first.checkAll(first.PAGEVIEW_LIMITS, `${ip}|${id}`);
+    first.checkAll(first.V1_LIMITS, `${ip}|ak_live_${id.slice(7)}`);
+  }
+  first.checkAll(first.PAGEVIEW_LIMITS, `${ip}|keyless`);
+  await first.hitsWritten();
+  const rows = await database.queryOrThrow<{ bucket: string }>(`SELECT bucket FROM rate_limit_hits WHERE bucket LIKE $1`, [`%${ip}%`]);
+  assertEquals(rows.filter((r) => r.bucket.includes("|ak_")).length, 0, `made-up key ids wrote ${rows.length} rows`);
+  assert(rows.some((r) => r.bucket.endsWith(`${ip}|keyless`)), "the keyless bucket of an address was not written");
+} });
+
 Deno.test({ name: "the sweep takes the rows past every window and leaves the rest", ...pooled, fn: async () => {
   await database.queryOrThrow(`DELETE FROM rate_limit_hits`);
   await database.queryOrThrow(

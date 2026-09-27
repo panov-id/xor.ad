@@ -161,3 +161,62 @@ Deno.test({
     }
   },
 });
+
+
+// C4: a game of each of the two classes the terminal draws with its own
+// controls first — deck and word — started as the table starts one (a seat, an
+// application, a rematch) and played to each kind of move the screens send.
+async function started(game: "deck" | "word") {
+  const a = await person("Женя");
+  const b = await person("Аня");
+  const made = await a.tables.create({ class: game, set: game, seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000 });
+  assertEquals(made.status, 201, JSON.stringify(made.body));
+  const id = made.body.id;
+  await b.tables.sit(id);
+  assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 202);
+  const proposed = await a.tables.propose(id, "rematch");
+  assert(proposed.status >= 200 && proposed.status < 300, `the rematch was refused: ${proposed.status} ${JSON.stringify(proposed.body)}`);
+  const view = (await a.tables.view(id)).body;
+  assert(view.board?.state[game], `no ${game} on the board: ${JSON.stringify(view.board)}`);
+  return { id, who: { [view.seat]: a, [view.seat === 1 ? 2 : 1]: b } as Record<number, typeof a> };
+}
+
+Deno.test({
+  name: "deck through the core: a card from one's own hand is played, then a card is drawn from the stock",
+  ignore: !node,
+  fn: async () => {
+    const { id, who } = await started("deck");
+    let view = (await who[1].tables.view(id)).body;
+    const mover = who[view.board!.turn!];
+    view = (await mover.tables.view(id)).body;
+    const hand = (view.board!.state.deck as { hands: Record<string, unknown> }).hands[String(view.seat)] as string[];
+    assert(Array.isArray(hand) && hand.length > 0, `one's own hand is not a list of cards: ${JSON.stringify(hand)}`);
+    const played = await mover.tables.move(id, view.board!.seq, { play: hand[0] });
+    assertEquals(played.status, 200, JSON.stringify(played.body));
+    assertEquals((played.body.board.state.deck as { played: string[] }).played.slice(-1)[0], hand[0], "the card played is not on the table");
+    const next = who[played.body.board.turn!];
+    const drawn = await next.tables.move(id, played.body.board.seq, { draw: true });
+    assertEquals(drawn.status, 200, JSON.stringify(drawn.body));
+  },
+});
+
+Deno.test({
+  name: "word through the core: the setter sets a word, the guesser names a letter and sees it in the mask",
+  ignore: !node,
+  fn: async () => {
+    const { id, who } = await started("word");
+    let view = (await who[1].tables.view(id)).body;
+    const w = view.board!.state.word as { setter: number };
+    const setter = who[w.setter];
+    const set = await setter.tables.move(id, view.board!.seq, { word: "кот" });
+    assertEquals(set.status, 200, JSON.stringify(set.body));
+    const guesser = who[w.setter === 1 ? 2 : 1];
+    view = (await guesser.tables.view(id)).body;
+    const seen = view.board!.state.word as { word: string | null; mask: string | null };
+    assertEquals(seen.word, null, "the guesser sees the setter's word");
+    const guessed = await guesser.tables.move(id, view.board!.seq, { letter: "к" });
+    assertEquals(guessed.status, 200, JSON.stringify(guessed.body));
+    view = (await guesser.tables.view(id)).body;
+    assert(/к/.test((view.board!.state.word as { mask: string }).mask), `the letter is not in the mask: ${JSON.stringify(view.board!.state.word)}`);
+  },
+});

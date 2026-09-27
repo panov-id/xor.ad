@@ -84,7 +84,7 @@ async function session(req: Request): Promise<Ctx | Response> {
 // Mails a link when the account exists, and answers the same when it does not:
 // 204 and a fresh browser half either way, so the answer says nothing about who
 // is registered. The mailbox's ceiling is charged only for a real account.
-async function mailLink(brand: Brand, email: string, half: string): Promise<void> {
+async function mailLink(brand: Brand, email: string, half: string, contact: string | null): Promise<void> {
   const [account] = await query<{ id: string }>(
     `SELECT id FROM advertisers WHERE brand = $1 AND lower(email) = lower($2)`, [brand.key, email],
   ) ?? [];
@@ -95,9 +95,9 @@ async function mailLink(brand: Brand, email: string, half: string): Promise<void
   }
   const token = randomToken();
   const stored = await query(
-    `INSERT INTO advertiser_links (link_hash, advertiser_id, expires_at)
-       VALUES ($1, $2, now() + make_interval(secs => $3))`,
-    [await linkHash(token, half), account.id, LINK_TTL_MS / 1000],
+    `INSERT INTO advertiser_links (link_hash, advertiser_id, expires_at, contact)
+       VALUES ($1, $2, now() + make_interval(secs => $3), $4)`,
+    [await linkHash(token, half), account.id, LINK_TTL_MS / 1000, contact],
   );
   if (stored === null) return;
   await sendAdvertiserLink(email, brand, `${cabinetUrl(brand)}/enter#${token}`);
@@ -115,20 +115,27 @@ async function startSignIn(req: Request, signup: boolean): Promise<Response> {
   const body = await readJson<{ email?: unknown; contact?: unknown }>(req);
   if (!isEmail(body?.email)) return bad("an email address is needed");
   const email = (body!.email as string).trim();
+  let contact: string | null = null;
   if (signup) {
-    const contact = text(body?.contact);
+    contact = text(body?.contact);
     if (!contact) return bad("a contact is needed: who do we talk to");
     // An address already registered is not an error and not a second account.
+    // The contact is not written here: it rides on the link this request
+    // mails, and reaches the account only when that link is opened — by the
+    // one who holds the mailbox (db/077). Written here, whoever signed a
+    // mailbox up first, or last before its owner opened the letter, named the
+    // contact of somebody else's account (X2, FX2, 27.09.2026). A new row
+    // needs one for NOT NULL and gets an empty one.
     const made = await query(
-      `INSERT INTO advertisers (id, email, contact, brand) VALUES ($1, $2, $3, $4)
+      `INSERT INTO advertisers (id, email, contact, brand) VALUES ($1, $2, '', $3)
          ON CONFLICT (brand, lower(email)) DO NOTHING`,
-      [crypto.randomUUID(), email, contact, brand.key],
+      [crypto.randomUUID(), email, brand.key],
     );
     if (made === null) return unavailable();
   }
   const half = randomToken();
   // Not awaited: the letter's timing must not say who is registered.
-  const sending = mailLink(brand, email, half)
+  const sending = mailLink(brand, email, half, contact)
     .catch((error) => log("error", "advertiser link failed", { error: withoutAddresses(String(error)) }))
     .finally(() => inFlight.delete(sending));
   inFlight.add(sending);
@@ -151,16 +158,25 @@ route("POST", "/adv/session", async ({ req }) => {
   }
   const secret = randomToken();
   const opened = await transaction(async (run) => {
-    const [link] = await run<{ advertiser_id: string }>(
+    const [link] = await run<{ advertiser_id: string; contact: string | null }>(
       `DELETE FROM advertiser_links l USING advertisers a
         WHERE l.link_hash = $1 AND a.id = l.advertiser_id AND a.brand = $2 AND l.expires_at > now()
-        RETURNING l.advertiser_id`,
+        RETURNING l.advertiser_id, l.contact`,
       [await linkHash(token, half), brand.key],
     );
     if (!link) return false;
-    // The first sign-in is what confirms the address (§2.1).
-    await run(`UPDATE advertisers SET email_confirmed_at = coalesce(email_confirmed_at, now()) WHERE id = $1`,
-      [link.advertiser_id]);
+    // The first sign-in is what confirms the address (§2.1), and the link that
+    // was opened names the contact (db/077): its holder proved the mailbox.
+    // A plain sign-in link carries none — then a confirmed account keeps its
+    // own, and one confirmed only now keeps nothing a stranger's sign-up could
+    // have left: the contact is empty until the owner gives one.
+    await run(
+      `UPDATE advertisers
+          SET contact = coalesce($2, CASE WHEN email_confirmed_at IS NULL THEN '' ELSE contact END),
+              email_confirmed_at = coalesce(email_confirmed_at, now())
+        WHERE id = $1`,
+      [link.advertiser_id, link.contact],
+    );
     await run(
       `INSERT INTO advertiser_sessions (session_hash, advertiser_id, expires_at)
          VALUES ($1, $2, now() + make_interval(secs => $3))`,

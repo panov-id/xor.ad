@@ -301,7 +301,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
               .then((a) => {
                 if (a.status >= 400) {
                   const e = (a.body as { error?: { code?: string } } | null)?.error;
-                  return fail(`${say("table.refused")}: ${e?.code ?? a.status}`);
+                  return fail(`${say("table.refused")}: ${plain(e?.code ?? a.status, 80)}`);
                 }
                 setWhere({ screen: "table", id });
               })

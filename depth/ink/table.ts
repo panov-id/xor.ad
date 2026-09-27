@@ -6,13 +6,14 @@ import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
-import { Form, Head, Menu, useKeys } from "./parts.ts";
+import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
+import { Board } from "./table_boards.ts";
 import type { Room } from "../core/client.ts";
 import {
   applyFrame, type BoardClass, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
 } from "../core/tables.ts";
 
-export type TableAction = "move" | "pass" | "say" | "stand" | "resign" | "like";
+export type TableAction = "move" | "pass" | "say" | "rematch" | "stand" | "resign" | "like";
 
 export function Table(
   { say, view, onPick, onMove, now }: {
@@ -22,28 +23,51 @@ export function Table(
   const turn = turnOf(view, now);
   const board = view.board;
   const counts = `${say("table.playing")} ${view.playing} · ${say("table.watching")} ${view.watching} · ♥ ${view.like_count ?? 0}`;
-  const seated = view.seats.map((s) => (s.seat === view.seat ? say("table.you") : s.name)
+  const seated = view.seats.map((s) => (s.seat === view.seat ? say("table.you") : plain(s.name, 48))
     + (s.hand_count !== undefined ? ` · ${s.hand_count}` : "")).join(" · ");
   const score = board
-    ? view.seats.filter((s) => board.score[String(s.seat)] !== undefined).map((s) => `${s.name} ${board.score[String(s.seat)]}`).join(" · ")
+    ? view.seats.filter((s) => board.score[String(s.seat)] !== undefined).map((s) => `${plain(s.name, 48)} ${board.score[String(s.seat)]}`).join(" · ")
     : "";
   const moves = board?.state.moves ?? [];
-  const nameOf = (seat: number) => view.seats.find((s) => s.seat === seat)?.name ?? `#${seat}`;
+  // Everything the node sends is someone else's text: through plain() before
+  // the terminal sees it, or a neighbour's ESC[2J clears my screen (FX4).
+  const nameOf = (seat: number) => plain(view.seats.find((s) => s.seat === seat)?.name ?? `#${seat}`, 48);
   const waiting = openApplications(view);
   // Dots (G1c): [ and ] walk the free edges, the marked one goes on "move".
   const dots = dotsOf(board);
   const free = dots ? freeEdges(dots) : [];
   const [at, setAt] = useState(0);
   const edge = free.length ? free[Math.min(at, free.length - 1)] : undefined;
-  useKeys((input) => {
+  // The other classes' boards have controls of their own (table_boards.ts):
+  // tab hands the arrows between the board and the table's row.
+  const other = !!board && !dots && board.state && Object.keys(board.state).some((k) => ["deck", "word", "free", "grid", "dice", "physics"].includes(k));
+  const [wantBoard, setOnBoard] = useState(false);
+  // The board holds the arrows only while it has something to press — its
+  // class is there and the turn is mine; otherwise they fall back to the row
+  // (verifier, 2026-09-27: after a move, or a round with no class, the focus
+  // stuck on a board with no buttons and «встать» could not be reached).
+  const onBoard = wantBoard && !!other && turn.mine;
+  useKeys((input, key) => {
+    if (other && turn.mine && key.tab) return setOnBoard(!onBoard);
     if (!free.length) return;
     if (input === "]") setAt((i) => (Math.min(i, free.length - 1) + 1) % free.length);
     if (input === "[") setAt((i) => (Math.min(i, free.length - 1) - 1 + free.length) % free.length);
   });
+  // The pending proposal carries who made it (by, the node's lockGame): one's
+  // own is waited on, another's is answered.
+  const pending = board?.pending as { kind?: string; by?: number } | null | undefined;
+  const theirRematch = pending?.kind === "rematch" && pending.by !== view.seat;
   const actions: Array<{ key: TableAction; label: string; disabled?: boolean }> = [
     ...(dots ? [{ key: "move" as const, label: `${say("table.move")} ${edge ?? ""}`, disabled: !turn.mine || !edge }] : []),
     { key: "pass", label: say("table.pass"), disabled: !turn.mine },
     { key: "say", label: say("table.say") },
+    // A game starts only on a rematch everyone at the table agrees to (the
+    // node builds rematch alone): another's open proposal is accepted here.
+    {
+      key: "rematch",
+      label: theirRematch ? say("table.acceptRematch") : say("table.rematch"),
+      disabled: view.seats.length < 2 || (board?.pending?.kind === "rematch" && !theirRematch),
+    },
     { key: "resign", label: say("table.resign"), disabled: !view.is_playing || !board || !!board.over },
     { key: "like", label: say("table.like") },
     { key: "stand", label: say("table.stand") },
@@ -52,7 +76,7 @@ export function Table(
     Box,
     { flexDirection: "column", gap: 1 },
     h(Head, {
-      title: `${say("table.title")}${view.name ? ` · "${view.name}"` : ""} · ${view.class}`,
+      title: `${say("table.title")}${view.name ? ` · "${plain(view.name, 48)}"` : ""} · ${plain(view.class, 12)}`,
       lines: [counts, `${say("table.seated")}  ${seated}`, say("table.open")],
     }),
     board === null
@@ -64,25 +88,28 @@ export function Table(
           board.over ? say("table.over")
           : board.turn === null ? say("table.notStarted")
           : turn.mine ? `${say("table.yourTurn")} · ${turn.secondsLeft} ${say("table.seconds")}`
-          : `${say("table.turn")}: ${turn.name ?? "—"} · ${turn.secondsLeft} ${say("table.seconds")}`),
+          : `${say("table.turn")}: ${plain(turn.name ?? "—", 48)} · ${turn.secondsLeft} ${say("table.seconds")}`),
         score ? h(Text, null, `${say("table.score")}: ${score}`) : null,
         ...(dots ? drawDots(dots, turn.mine ? edge : undefined).map((row, i) => h(Text, { key: `d${i}` }, row)) : []),
+        other ? h(Board, { say, view, onMove: turn.mine ? onMove : undefined, active: onBoard }) : null,
         ...moves.slice(-5).map((m, i) =>
-          h(Text, { key: `m${i}`, dimColor: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : JSON.stringify(m.move)}`)
+          h(Text, { key: `m${i}`, dimColor: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : plain(JSON.stringify(m.move), 80)}`)
         ),
       ),
     h(
       Box,
       { flexDirection: "column" },
       ...view.lines.filter((l) => l.kind !== "move").slice(-6).map((l) =>
-        h(Text, { key: l.id }, `${nameOf(l.seat)}  ${l.kind === "sticker" ? `[${l.sticker}]` : l.text ?? ""}`)
+        h(Text, { key: l.id }, `${nameOf(l.seat)}  ${l.kind === "sticker" ? `[${plain(l.sticker, 32)}]` : plain(l.text, 200)}`)
       ),
       ...waiting.map((l) => h(Text, { key: `w${l.id}`, color: "yellow" }, `${say("table.application")}: ${nameOf(l.seat)}`)),
     ),
     h(Menu, {
       actions,
+      active: !onBoard,
       onPick: (key) => key === "move" && edge ? onMove?.({ edge }) : onPick(key as TableAction),
-      hint: dots ? `[ ] ${say("table.edge")} · ${say("common.rowActions")}` : say("common.rowActions"),
+      hint: dots ? `[ ] ${say("table.edge")} · ${say("common.rowActions")}`
+        : other ? `tab ${say("table.toBoard")} · ${say("common.rowActions")}` : say("common.rowActions"),
     }),
   );
 }
@@ -94,7 +121,7 @@ export function Table(
 export function TableRoom(
   { say, tables, open, tableId, onLeave, onError }: {
     say: Say;
-    tables: Pick<Tables, "view" | "move" | "pass" | "stand" | "resign" | "like">;
+    tables: Pick<Tables, "view" | "move" | "pass" | "stand" | "resign" | "like" | "say" | "propose" | "answer">;
     open: (tableId: string) => Promise<Room>;
     tableId: string;
     onLeave: () => void;
@@ -103,6 +130,7 @@ export function TableRoom(
 ): ReactElement {
   const [view, setView] = useState<TableView | null>(null);
   const [said, setSaid] = useState<string | null>(null);
+  const [saying, setSaying] = useState<string | null>(null);
   const read = () =>
     tables.view(tableId).then((a) => (a.status === 200 ? setView(a.body) : onError(`${a.status} ${JSON.stringify(a.body)}`)));
   useEffect(() => {
@@ -128,10 +156,28 @@ export function TableRoom(
     };
   }, [tableId]);
   if (!view) return h(Text, { dimColor: true }, "…");
+  if (saying !== null) {
+    // A line at the table goes through the moderation queue like a phrase
+    // (§4.9): 202, and it shows once published.
+    return h(
+      Box,
+      { flexDirection: "column", gap: 1 },
+      h(Head, { title: say("table.say"), lines: [say("table.open")] }),
+      h(Form, {
+        fields: [{ key: "line", label: say("table.say"), value: saying }],
+        onChange: (_k, v) => setSaying(graphemes(v, 128)),
+        actions: [{ key: "send", label: say("board.set"), disabled: !saying.trim() }, { key: "back", label: say("common.back") }],
+        onPick: (key) => {
+          if (key === "send" && saying.trim()) answer(tables.say(tableId, { kind: "line", text: saying.trim() }));
+          setSaying(null);
+        },
+      }),
+    );
+  }
   const answer = (run: Promise<{ status: number; body: unknown }>) =>
     void run.then((a) => {
       const error = (a.body as { error?: { code?: string; reason?: string } } | null)?.error;
-      setSaid(a.status >= 400 ? `${say("table.refused")}: ${error?.reason ?? error?.code ?? a.status}` : null);
+      setSaid(a.status >= 400 ? `${say("table.refused")}: ${plain(error?.reason ?? error?.code ?? a.status, 200)}` : null);
     }).catch((e: Error) => onError(e.message));
   return h(
     Box,
@@ -147,6 +193,12 @@ export function TableRoom(
         if (action === "pass" && view.board) return answer(tables.pass(tableId, view.board.seq));
         if (action === "resign") return answer(tables.resign(tableId));
         if (action === "like") return answer(tables.like(tableId));
+        if (action === "say") return setSaying("");
+        if (action === "rematch") {
+          const pending = view.board?.pending;
+          const theirs = pending?.kind === "rematch" && (pending as { by?: number }).by !== view.seat;
+          return answer(theirs ? tables.answer(tableId, pending!.id, "accept") : tables.propose(tableId, "rematch"));
+        }
       },
     }),
     said ? h(Text, { color: "red" }, said) : null,
@@ -158,11 +210,18 @@ export function TableRoom(
 // a phrase; the table stands without it meanwhile (§6.1). The author sits at
 // once and stands up from any table they sat at before (POST /tables).
 const CLASSES = ["dots", "grid", "free", "deck", "dice", "word", "physics"] as const;
-// Only dots reads its set (the field's size, lib/tables_dots.ts); the node
-// takes any set of 1–40 characters, so the other classes name none of their
-// own until their engines do.
-const SETS: Record<string, string[]> = { dots: ["4x4", "2x2", "3x3", "5x5", "6x6", "7x7", "8x8"] };
+// Sets the engines read: dots its field's size (lib/tables_dots.ts), grid
+// chess or anything else as checkers (lib/tables_grid.ts); the other engines
+// read none, and the node takes any set of 1–40 characters.
+const SETS: Record<string, string[]> = { dots: ["4x4", "2x2", "3x3", "5x5", "6x6", "7x7", "8x8"], grid: ["checkers", "chess"] };
 const setsOf = (kind: string) => SETS[kind] ?? [kind];
+// The seats of each class, as the node refuses more (routes/tables.ts).
+const MOST: Record<string, number> = { grid: 2, dots: 2, dice: 2, word: 2, free: 4, physics: 4, deck: 6 };
+const seatsOf = (kind: string) => Array.from({ length: (MOST[kind] ?? 2) - 1 }, (_, i) => String(i + 2));
+// 24 graphemes, as the node counts them: a slice by UTF-16 units split an
+// emoji and the node stored U+FFFD (verifier, 2026-09-27).
+const graphemes = (text: string, most: number) =>
+  [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text)].slice(0, most).map((g) => g.segment).join("");
 
 export function NewTable(
   { say, tables, place, onSet, onBack }: {
@@ -187,14 +246,14 @@ export function NewTable(
       fields: [
         { key: "class", label: say("table.class"), value: kind, choices: [...CLASSES] },
         { key: "set", label: say("table.set"), value: set, choices: setsOf(kind) },
-        { key: "seats", label: say("table.seats"), value: seats, choices: ["2", "3", "4", "5", "6"] },
+        { key: "seats", label: say("table.seats"), value: seats, choices: seatsOf(kind) },
         { key: "name", label: say("table.name"), value: name },
       ],
       onChange: (key, value) => {
-        if (key === "class") { setKind(value); setSet(setsOf(value)[0]); }
+        if (key === "class") { setKind(value); setSet(setsOf(value)[0]); setSeats("2"); }
         if (key === "set") setSet(value);
         if (key === "seats") setSeats(value);
-        if (key === "name") setName(value.slice(0, 24));
+        if (key === "name") setName(graphemes(value, 24));
       },
       actions: [
         { key: "set", label: say("table.put"), disabled: busy },
@@ -211,7 +270,7 @@ export function NewTable(
         }).then((a) => {
           if (a.status === 201) return onSet(a.body.id);
           const e = (a.body as unknown as { error?: { code?: string; message?: string } } | null)?.error;
-          setError(`${say("table.refused")}: ${e?.message ?? e?.code ?? a.status}`);
+          setError(`${say("table.refused")}: ${plain(e?.message ?? e?.code ?? a.status, 200)}`);
           setBusy(false);
         }).catch((e: Error) => { setError(e.message); setBusy(false); });
       },

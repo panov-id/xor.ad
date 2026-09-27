@@ -14,8 +14,9 @@
 
 import { sendSupportDigests, sweepSupport } from "./support_sweeper.ts";
 import { autopass, pruneTables } from "./tables.ts";
+import { sweepChatGames } from "./chat_games.ts";
 import { enqueueOnce, handle } from "./jobs.ts";
-import { enabled as databaseEnabled, queryOrThrow } from "./db.ts";
+import { enabled as databaseEnabled, queryOrThrow, transaction } from "./db.ts";
 import { log } from "./log.ts";
 import { inc } from "./metrics.ts";
 import { prunePageviews } from "../../tools/prune_pageviews.ts";
@@ -304,6 +305,8 @@ export function registerScheduledJobs(): void {
 
   handle(SWEEP_TABLES, async () => {
     await pruneTables();
+    // And the games of chats that ended for either side or ran out of term (db/076).
+    await transaction((run) => sweepChatGames(run));
     return new Date(Date.now() + A_MINUTE_MS);
   });
 

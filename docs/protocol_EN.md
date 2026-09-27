@@ -305,20 +305,24 @@ Blocking a seated person — `POST /blocks {table: id, seat}` (§4.8): the block
 
 ### 4.7. Games in a chat (chat spec §6, screen 18)
 
-The engines of the seven classes are built at tables (§4.6, 2026-09-27) and not yet wired into a chat of two: the routes below are spec.
+Proposed 2026-09-16, approved 2026-09-17; **built 2026-09-27** (GC1, GC1b: `routes/chat_games.ts`, `lib/chat_games.ts`, `lib/tables_engine.ts`, `db/076`). The engine is the table's (§4.6, the table of the classes' rules): the rules belong to the class, not the place. Only the chat's two live sides see and move the game; anyone else gets the 404 of one that does not exist. Outside, the sides are seat 1 (who proposed the game) and seat 2; the identities lie in `chat_games.state.players` and never leave the node. The answer of `GET` and of the moves is the game's view `{class, set, your_seat, board, pending}`: `board` in the shape of `Board`, what is hidden cut by the viewer's seat — a hand and the hangman word never reach the other side; `pending` is `{id, kind: game | rematch, class, set, mine}`. [retired] "The board of two is transient, in the node's memory": the position, the score and an open proposal lie in `chat_games` until the conversation ends — not one line of the conversation is there.
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /chats/:id/game` | propose or change the game `{class, set}`; the other person gets a `proposal` frame | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6, screen 18) |
-| `POST /chats/:id/game/answer` | `{answer: accept \| decline \| counter, class, set}`; on `accept` the board opens for both | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
-| `GET /chats/:id/game` | the position, whose turn and the score after a drop — from the game cache, no lines and no one else's hand | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6, `chat_games`) |
-| `POST /chats/:id/game/moves` | a move `{seq, move}` or a pass; `move` by class: a cell, an edge, a piece, a letter, `{roll}`, `{deal}`, `{flick, impulse}` — the node shuffles and rolls; a move extends **your own** conversation span | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6, §8.6) |
-| `POST /chats/:id/game/word` | set the hangman word `{word}` — **202**, the same queue as a phrase; a refusal is "pick another" and feeds the pause counter | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6 "hangman") |
-| `POST /chats/:id/game/confirm` | "I'm here" inside `table.confirm.window`; there is no "N of 2" counter | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
-| `POST /chats/:id/game/proposals` | `{kind: rematch \| draw \| undo, class, set}` and the answer via `POST /chats/:id/game/proposals/:pid` `{answer}` | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
-| `POST /chats/:id/game/proposals/:pid` | the answer to a proposal | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
-| `POST /chats/:id/game/resign` | resign | **spec** (proposed 2026-09-16, agreed 2026-09-17) (§6) |
-| `DELETE /chats/:id/game` | end the game; the conversation's death takes the game with it by cascade anyway | **spec** (proposed 2026-09-16, agreed 2026-09-17) (`chat_games ON DELETE CASCADE`) |
+| `POST /chats/:id/game` | propose or change a game `{class, set}` — **204**; the other side gets a `proposal` frame | **built** 2026-09-27 |
+| `POST /chats/:id/game/answer` | `{answer: accept \| decline \| counter, class, set}` — **204**; `accept` opens the board for both, the proposer moves first; one's own proposal cannot be answered — 409 `refused` | **built** 2026-09-27 |
+| `GET /chats/:id/game` | this side's view of the game | **built** 2026-09-27 |
+| `POST /chats/:id/game/moves` | a move `{seq, move}` or a pass `{seq, pass: true}` — **200** the view; `move` per class (§4.6); `stale_seq`, a repeat of the same body gets the same answer, `not_your_turn`, `illegal_move` with `reason`; a move moves one's **own** term of the conversation (`last_own_message_at`), the game's term is the earlier of the two; every move is also a line `sys {kind: move, seat}` | **built** 2026-09-27 |
+| `POST /chats/:id/game/word` | set the hangman word `{word}` — **202** the view; the feed's first tier of rules, a flagged one — 409 `illegal_move` "set another word". [retired] "the same queue as a phrase, and the pause counter" — there is no queue for the word, the rules decide at once | **built** 2026-09-27 |
+| `POST /chats/:id/game/confirm` | "I am here" within `table.confirm.window` | **spec** — not built |
+| `POST /chats/:id/game/proposals` | `{kind: rematch}` — **201** `{id}`; `draw` and `undo` — 400, not built; a second open one — 409 `pending_exists` | **built** 2026-09-27 for `rematch` |
+| `POST /chats/:id/game/proposals/:pid` | `{answer: accept \| decline}` — **204**; `accept` — a new game of the same class, the same seats | **built** 2026-09-27 |
+| `POST /chats/:id/game/resign` | resign — **204**; the game is over (`over`), no result | **built** 2026-09-27 |
+| `DELETE /chats/:id/game` | end the game — **204** | **built** 2026-09-27 |
+
+**Frames to the conversation's room (§4.4):** `board` and `proposal` through `NOTIFY chat_game`, each built for its room's side; `proposal: null` — the proposal was taken back or declined; `board: null` — the game is no more.
+
+**The game goes with the conversation and with the take-down of what is live (GC1b):** by cascade from `chats`; by the minute's sweeper as soon as the conversation ended for either side or the game's term passed; and in the same transaction as a step away, closing the identity and the freeze of the tenth PIN miss (`takeDownLive`, chat spec §8.2 and :1301) — together with one's seat at a table and one's table lines still waiting for the queue.
 
 ### 4.8. Blocks and hiding (chat spec §8.9, screens 5 and 10)
 

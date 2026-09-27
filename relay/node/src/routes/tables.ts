@@ -19,13 +19,7 @@ import { type Caller, callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll } from "../lib/rate_limit.ts";
 import { log } from "../lib/log.ts";
-import { newDots, playDots } from "../lib/tables_dots.ts";
-import { newDeck, playDeck } from "../lib/tables_deck.ts";
-import { newWord, playWord } from "../lib/tables_word.ts";
-import { newGrid, playCon, playGrid } from "../lib/tables_grid.ts";
-import { newDice, playDice } from "../lib/tables_dice.ts";
-import { newFree, playFree } from "../lib/tables_free.ts";
-import { newPhysics, playPhysics } from "../lib/tables_physics.ts";
+import { startState, stepGame } from "../lib/tables_engine.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
 import { hasInvisible } from "../lib/names.ts";
 import {
@@ -379,83 +373,19 @@ async function move(req: Request, tableId: string): Promise<Response> {
     const s = game.state;
     const turn = game.state.turn!;
     if (!seat.playing || s.order[turn] !== seat.seat_no) return refuse("not_your_turn", "not your turn", 409);
-    // The dots class is checked whole (lib/tables_dots.ts); a closed box
-    // scores on the seat and the closer moves again.
-    let again = false;
-    let over = false;
-    if (!pass && s.dots) {
-      const played = playDots(s.dots, body.move, seat.seat_no);
-      if ("refused" in played) return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: played.refused });
-      again = played.closed > 0;
-      over = played.over;
-      if (played.closed > 0) {
-        await run(
-          `INSERT INTO table_scores (seat_id, points) VALUES ($1, $2)
-           ON CONFLICT (seat_id) DO UPDATE SET points = table_scores.points + $2, updated_at = now()`,
-          [seat.id, played.closed],
-        );
-      }
+    const step = stepGame(s, tableSet, body.move, pass, seat.seat_no);
+    if ("refused" in step) {
+      return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: step.refused });
     }
-    // The deck (lib/tables_deck.ts): the card from the hand; an empty hand wins the deal.
-    // The word (lib/tables_word.ts): the setter's word, then letters; a word
-    // guessed scores the guesser.
-    let point: number | null = null;
-    if (!pass && s.deck) {
-      const played = playDeck(s.deck, body.move, seat.seat_no);
-      if ("refused" in played) return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: played.refused });
-      over = played.won;
-      if (played.won) point = seat.seat_no;
-    }
-    if (!pass && s.word) {
-      const played = playWord(s.word, body.move, seat.seat_no);
-      if ("refused" in played) return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: played.refused });
-      again = played.again;
-      point = played.point;
-    }
-    // Grid and dice: the con by agreement first (lib/tables_grid.ts playCon);
-    // the claimant scores, not the one who agreed. Then the class's own move.
-    let points = 1;
-    const refusedBy = (reason: string) => refuse("illegal_move", "the move breaks the class's rules", 409, { reason });
-    const conOf = !pass && (s.grid ?? s.dice);
-    const con = conOf ? playCon(conOf, body.move, seat.seat_no) : null;
-    if (con && "refused" in con) return refusedBy(con.refused);
-    if (con) {
-      again = con.again;
-      point = con.point;
-      if (con.reset && s.grid) s.grid = { ...newGrid(tableSet, s.order), claim: null };
-      if (con.reset && s.dice) s.dice = newDice();
-    } else if (!pass && s.grid) {
-      const played = playGrid(s.grid, body.move, seat.seat_no);
-      if ("refused" in played) return refusedBy(played.refused);
-    } else if (!pass && s.dice) {
-      const played = playDice(s.dice, body.move);
-      if ("refused" in played) return refusedBy(played.refused);
-      again = played.again;
-    }
-    if (!pass && s.free) {
-      const played = playFree(s.free, body.move, seat.seat_no);
-      if ("refused" in played) return refusedBy(played.refused);
-      over = played.won;
-      if (played.won) [point, points] = [seat.seat_no, played.points];
-    }
-    if (!pass && s.physics) {
-      const played = playPhysics(s.physics, body.move, seat.seat_no);
-      if ("refused" in played) return refusedBy(played.refused);
-      over = played.over;
-      if (played.knocked > 0) [point, points] = [seat.seat_no, played.knocked];
-    }
-    if (point !== null && points > 0) {
+    const { again, over, shown } = step;
+    for (const scored of step.scores) {
       await run(
         `INSERT INTO table_scores (seat_id, points)
          SELECT id, $3 FROM table_seats WHERE table_id = $1 AND seat_no = $2
          ON CONFLICT (seat_id) DO UPDATE SET points = table_scores.points + $3, updated_at = now()`,
-        [tableId, point, points],
+        [tableId, scored.seat, scored.points],
       );
     }
-    // What goes into the moves everyone sees: never the hidden word itself.
-    const shown = s.word && typeof body.move === "object" && body.move !== null && "word" in body.move
-      ? { word: "set" }
-      : body.move;
     s.board.push(pass ? { seat: seat.seat_no, pass: true } : { seat: seat.seat_no, move: shown });
     if (pass) s.passes[seat.seat_no] = (s.passes[seat.seat_no] ?? 0) + 1;
     else delete s.passes[seat.seat_no];
@@ -518,16 +448,8 @@ async function startRound(run: Query, tableId: string): Promise<void> {
       ORDER BY seat_no LIMIT $2`,
     [tableId, table.seats],
   );
-  const state: GameState = { ...emptyState(), order: players.map((p) => p.seat_no) };
-  if (table.game === "dots") state.dots = newDots(table.set);
+  const state = startState(table.game, table.set, players.map((p) => p.seat_no));
   const playable = state.order.length >= 2;
-  if (table.game === "deck" && playable) state.deck = newDeck(state.order);
-  if (table.game === "word" && playable) state.word = newWord(state.order[0]);
-  if (table.game === "grid" && playable) state.grid = newGrid(table.set, state.order);
-  if (table.game === "dice" && playable) state.dice = newDice();
-  if (table.game === "free" && playable) state.free = newFree(state.order);
-  if (table.game === "physics" && playable) state.physics = newPhysics(state.order);
-  if (playable) state.turn = 0;
   await run(
     `INSERT INTO table_games (table_id, class, state, turn_due, ended_at) VALUES ($1, $2, $3::text::jsonb, $4, $5)`,
     [tableId, table.game, JSON.stringify(state), playable ? new Date(Date.now() + MOVE_WINDOW_MS) : null, playable ? null : new Date()],

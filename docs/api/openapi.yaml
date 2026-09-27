@@ -327,6 +327,16 @@ components:
         seats: {type: array, description: "Who sits where — the names the screens write («Аня · 3», «ход: Аня»), the role and the size of a hand, never its tiles (chat spec §6.1).", x-description-ru: "Кто где сидит — имена, которые пишут экраны («Аня · 3», «ход: Аня»), роль и размер руки, но не её фишки (спека чата §6.1).", items: {type: object, properties: {seat: {type: integer}, name: {type: string}, role: {type: string, enum: [playing, watching]}, hand_count: {type: integer}}}}
         board: {$ref: "#/components/schemas/Board"}
         lines: {type: array, items: {$ref: "#/components/schemas/TableLine"}}
+    ChatGameView:
+      type: object
+      description: "A chat's game as one side sees it (protocol §4.7, db/076, 2026-09-27): the two sides are seat 1 (who proposed) and seat 2, never identities; the board is cut by the viewer's seat, as at a table."
+      x-description-ru: "Партия беседы глазами одной стороны (протокол §4.7, db/076, 27.09.2026): стороны — место 1 (предложивший) и место 2, не личности; доска режется по месту смотрящего, как за столом."
+      properties:
+        class: {type: string}
+        set: {type: string}
+        your_seat: {type: integer, nullable: true}
+        board: {$ref: "#/components/schemas/Board"}
+        pending: {type: object, nullable: true, description: "An open proposal: {id, kind: game | rematch, class, set, mine}.", x-description-ru: "Открытое предложение: {id, kind: game | rematch, class, set, mine}."}
     Board:
       type: object
       description: Board state — seq, state by class (jsonb), whose turn, score by seat, expires_at (chat spec §6, table_games / chat_games).
@@ -2781,7 +2791,8 @@ paths:
       tags: [chat]
       summary: "Propose or change the game"
       x-summary-ru: "Предложить или сменить игру"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chat_games.ts
       security: [{identitySignature: []}]
       description: "The other person gets a proposal frame (chat spec §6, screen 18)."
       x-description-ru: "Собеседнику уходит кадр proposal (спека чата §6, экран 18)."
@@ -2801,7 +2812,8 @@ paths:
       tags: [chat]
       summary: "The game after a drop"
       x-summary-ru: "Партия после обрыва"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chat_games.ts
       security: [{identitySignature: []}]
       description: "Position, whose turn and the score from the game cache; no lines, no one else's hand (chat spec §6)."
       x-description-ru: "Позиция, чей ход и счёт из кеша партии; без реплик и чужой руки (спека чата §6)."
@@ -2815,13 +2827,14 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The board., x-description-ru: Доска., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
+        "200": {description: "The game as this side sees it (2026-09-27).", x-description-ru: "Партия глазами этой стороны (27.09.2026).", content: {application/json: {schema: {$ref: "#/components/schemas/ChatGameView"}}}}
         "404": {$ref: "#/components/responses/ApiError"}
     delete:
       tags: [chat]
       summary: "End the game"
       x-summary-ru: "Закончить игру"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chat_games.ts
       security: [{identitySignature: []}]
       description: "The conversation's death takes the game with it by cascade anyway (chat_games ON DELETE CASCADE)."
       x-description-ru: "Смерть беседы уносит партию каскадом и без этого (chat_games ON DELETE CASCADE)."
@@ -2841,7 +2854,8 @@ paths:
       tags: [chat]
       summary: "Answer the game offer"
       x-summary-ru: "Ответить на предложение игры"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chat_games.ts
       security: [{identitySignature: []}]
       description: "accept opens the board for both; decline keeps talking in words; counter names another board (chat spec §6)."
       x-description-ru: "accept открывает доску у обоих; decline — беседа словами; counter называет другую доску (спека чата §6)."
@@ -2862,7 +2876,8 @@ paths:
       tags: [chat]
       summary: "A move or a pass"
       x-summary-ru: "Ход или пас"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chat_games.ts
       security: [{identitySignature: []}]
       description: "By class: a cell, an edge, a piece, a letter, {roll}, {deal}, {flick, impulse} — the node shuffles and rolls. A move extends your own conversation span (chat spec §6, §8.6). Announced as an unencrypted system line."
       x-description-ru: "По классу: клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse} — тасует и бросает узел. Ход двигает свой срок беседы (спека чата §6, §8.6). Объявляется нешифрованной системной строкой."
@@ -2876,14 +2891,15 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The board after the move., x-description-ru: Доска после хода., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
+        "200": {description: "The game after the move, as this side sees it.", x-description-ru: "Партия после хода глазами этой стороны.", content: {application/json: {schema: {$ref: "#/components/schemas/ChatGameView"}}}}
         "409": {$ref: "#/components/responses/ApiError"}
   /chats/{id}/game/word:
     post:
       tags: [chat]
       summary: "Set the hangman word"
       x-summary-ru: "Загадать слово виселицы"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chat_games.ts
       security: [{identitySignature: []}]
       description: "202 — the same queue as a phrase; a refusal is \"pick another\" and feeds the pause counter (chat spec §6 \"hangman\")."
       x-description-ru: "202 — та же очередь, что у фразы; отказ — «загадайте другое» и счётчик паузы (спека чата §6 «виселица»)."
@@ -2897,7 +2913,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "202": {description: Queued., x-description-ru: В очереди.}
+        "202": {description: "The word is set when the first tier of rules finds it clean; a flagged word is 409 illegal_move \"set another word\". The game as the setter sees it.", x-description-ru: "Слово загадано, если первый уровень правил нашёл его чистым; помеченное — 409 illegal_move «set another word». Партия глазами загадавшего.", content: {application/json: {schema: {$ref: "#/components/schemas/ChatGameView"}}}}
         "409": {$ref: "#/components/responses/Conflict"}
   /chats/{id}/game/confirm:
     post:
@@ -2924,7 +2940,8 @@ paths:
       tags: [chat]
       summary: "Propose: play again, a draw, an undo"
       x-summary-ru: "Предложить: сыграть ещё, ничью, откат"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chat_games.ts
       security: [{identitySignature: []}]
       description: "The undo fires on both players' consent (chat spec §6)."
       x-description-ru: "Откат срабатывает при согласии обоих (спека чата §6)."
@@ -2945,7 +2962,8 @@ paths:
       tags: [chat]
       summary: "Answer a proposal"
       x-summary-ru: "Ответить на предложение"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chat_games.ts
       security: [{identitySignature: []}]
       description: "accept / decline / counter (chat spec §6)."
       x-description-ru: "accept / decline / counter (спека чата §6)."
@@ -2967,7 +2985,8 @@ paths:
       tags: [chat]
       summary: "Resign"
       x-summary-ru: "Сдаться"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/chat_games.ts
       security: [{identitySignature: []}]
       description: "A one-sided announcement (chat spec §6)."
       x-description-ru: "Одностороннее объявление (спека чата §6)."

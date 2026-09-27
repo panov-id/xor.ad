@@ -22,6 +22,7 @@ import { sha256hex } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { boardNow } from "../lib/tables.ts";
+import { chatGameFrame } from "../lib/chat_games.ts";
 
 export const NODE_ROLE = Deno.env.get("NODE_ROLE") ?? "relay"; // core | relay
 const VERSION = "xor.p1";
@@ -234,6 +235,7 @@ function ensureListeningTables(): Promise<void> {
       for (const room of set) {
         boardFrameFor(table, room.identity ?? null)
           .then((data) => {
+            if (data === null) return closeRoom(room, 4005, "the seat at the table is lost");
             frame(room, "board", data);
             inc("relay_chat_frames_total", { type: "board" });
           })
@@ -252,16 +254,17 @@ function ensureListeningTables(): Promise<void> {
   return listeningTables;
 }
 
-// The board as the room's own seat sees it; a room whose seat is gone sees
-// nothing hidden (and is being closed 4005 anyway).
-export async function boardFrameFor(table: string, identity: string | null): Promise<unknown> {
+// The board as the room's own seat sees it, or null for a room whose seat is
+// gone: it gets no board at all (X1, 27.09.2026) and is closed 4005 by the caller.
+export async function boardFrameFor(table: string, identity: string | null): Promise<unknown | null> {
   const [mine] = identity
     ? await queryOrThrow<{ seat_no: number }>(
       `SELECT seat_no FROM table_seats WHERE table_id = $1 AND identity = $2 AND left_at IS NULL`,
       [table, identity],
     )
     : [];
-  return await boardNow(queryOrThrow, table, mine?.seat_no ?? null);
+  if (!mine) return null;
+  return await boardNow(queryOrThrow, table, mine.seat_no);
 }
 
 export async function tableFrame(table: string, kind: string, id?: string): Promise<{ type: string; data: unknown } | null> {
@@ -283,6 +286,33 @@ export async function tableFrame(table: string, kind: string, id?: string): Prom
     return line ? { type: "line", data: line } : null;
   }
   return null;
+}
+
+// A chat's game (protocol §4.7; routes/chat_games.ts): `NOTIFY chat_game`
+// "<chat>|board" or "<chat>|proposal". Each room of the chat gets the frame as
+// its own side sees it — a hand, a word are cut by seat — so it is built per
+// room, from the identity behind the room's session.
+let listeningChatGames: Promise<void> | null = null;
+function ensureListeningChatGames(): Promise<void> {
+  listeningChatGames ??= listen("chat_game", (payload) => {
+    const [chat, kind] = payload.split("|");
+    for (const room of rooms.get(chat) ?? []) {
+      if (room.table) continue;
+      chatGameFrameFor(chat, room.session)
+        .then((view) => {
+          if (kind === "board") frame(room, "board", view?.board ?? null);
+          else frame(room, "proposal", view?.pending ?? null);
+          inc("relay_chat_frames_total", { type: kind === "board" ? "board" : "proposal" });
+        })
+        .catch((error) => log("error", "chat game frame failed", { error: String(error) }));
+    }
+  });
+  return listeningChatGames;
+}
+
+export async function chatGameFrameFor(chat: string, session: string) {
+  const [who] = await queryOrThrow<{ identity: string }>(`SELECT identity FROM sessions WHERE id = $1`, [session]);
+  return who ? await chatGameFrame(queryOrThrow, chat, who.identity) : null;
 }
 
 // 4005 (protocol §4.4): the seat is lost — stood up, kicked, blocked away,
@@ -322,6 +352,7 @@ export async function listenForRooms(): Promise<void> {
   await ensureListeningSession();
   await ensureListeningTables();
   await ensureListeningSeatLeft();
+  await ensureListeningChatGames();
 }
 
 // Every room, closed with 1001 "going away": the node is stopping, and a
@@ -381,6 +412,13 @@ export async function relayUpgrade(req: Request): Promise<Response> {
         WHERE t.token_hash = $1 AND t.expires_at > now()
           AND s.id = t.session AND s.frozen_at IS NULL
           AND NOT EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = s.id AND v.locked_at IS NOT NULL)
+          -- A table's ticket opens a room only while its seat is live: one
+          -- bought seated and spent after standing up (or being blocked away)
+          -- would open a room that seat_left, long past, never closes (X1,
+          -- 27.09.2026). The answer is a bad ticket's.
+          AND (t.table_id IS NULL OR EXISTS (
+                SELECT 1 FROM table_seats ts
+                 WHERE ts.table_id = t.table_id AND ts.identity = s.identity AND ts.left_at IS NULL))
         RETURNING t.session, t.chat, t.table_id, s.identity`,
       [await sha256hex(new TextEncoder().encode(token))],
     ).catch(() => { failed = true; return []; })

@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from "react";
 import "../screens/place.css";
+import { Button } from "../ui/Button.tsx";
 import {
   addVenue, me, movePlace, type Offer, offers, openSession, orderEnvelope, type Place, publish, RADII, type Refusal, signIn,
   signUp, type Venue, venues, verify, when,
@@ -15,6 +16,7 @@ import {
 import { say } from "../locales/say.ts";
 
 type View = "loading" | "sign-in" | "sent" | "expired" | "venues" | "offers" | "new-offer";
+const PATHS: Record<View, string> = { loading: "", "sign-in": "", sent: "", expired: "", venues: "/venues", offers: "/offers", "new-offer": "/offers/new" };
 
 const STATUS: Record<string, string> = {
   unverified: say("web.cabinet.statusUnverified"),
@@ -50,7 +52,17 @@ export function Cabinet() {
 
   return (
     <main className="screen cabinet" data-screen={`adv-${view}`}>
-      <p className="brand">adv</p>
+      {/* Sheet 17's strip: where you are, in mono, and the other section as a
+          word — a separate web sign-in, no app navigation. */}
+      <div className="cabinet-bar">
+        <span className="cabinet-where">{location.host}{PATHS[view]}</span>
+        {(view === "venues" || view === "offers" || view === "new-offer") && (
+          <nav className="cabinet-nav" aria-label={say("web.cabinet.title")}>
+            <Button kind="text" type="button" aria-current={view === "venues" ? "page" : undefined} onClick={() => setView("venues")} data-testid="adv-tab-venues">{say("web.cabinet.tabVenues")}</Button>
+            <Button kind="text" type="button" aria-current={view !== "venues" ? "page" : undefined} onClick={() => setView("offers")} data-testid="adv-tab-offers">{say("web.cabinet.myOffers")}</Button>
+          </nav>
+        )}
+      </div>
       {view === "loading" && <p className="muted" data-testid="loading">…</p>}
       {view === "sign-in" && <SignIn onSent={() => setView("sent")} onError={setError} />}
       {view === "sent" && (
@@ -62,17 +74,11 @@ export function Cabinet() {
       )}
       {view === "expired" && (
         <>
-          <h1 data-testid="adv-expired">{say("web.cabinet.expired")}</h1>
+          <header className="ui-header"><h1 className="ui-header-title" data-testid="adv-expired">{say("web.cabinet.expired")}</h1></header>
           <p className="muted">{say("web.cabinet.linkOnceSpent")}</p>
           <p className="muted">{say("web.cabinet.limit")}</p>
-          <button type="button" onClick={() => setView("sign-in")} data-testid="adv-again">{say("web.cabinet.askAgain")}</button>
+          <Button kind="secondary" type="button" onClick={() => setView("sign-in")} data-testid="adv-again">{say("web.cabinet.askAgain")}</Button>
         </>
-      )}
-      {(view === "venues" || view === "offers" || view === "new-offer") && (
-        <nav className="tabs place-tabs">
-          <button type="button" aria-current={view === "venues" ? "page" : undefined} onClick={() => setView("venues")} data-testid="adv-tab-venues">{say("web.cabinet.tabVenues")}</button>
-          <button type="button" aria-current={view !== "venues" ? "page" : undefined} onClick={() => setView("offers")} data-testid="adv-tab-offers">{say("web.cabinet.myOffers")}</button>
-        </nav>
       )}
       {view === "venues" && <Venues onError={setError} />}
       {view === "offers" && <Offers onNew={() => setView("new-offer")} onError={setError} />}
@@ -111,7 +117,7 @@ function SignIn({ onSent, onError }: { onSent: () => void; onError: (e: string |
         {say("web.cabinet.contact")}
         <input value={contact} onChange={(e) => setContact(e.target.value)} data-testid="adv-contact" />
       </label>
-      <button type="button" className="ui-button ui-primary" disabled={!email.includes("@") || busy} onClick={() => void go()} data-testid="adv-send">{say("web.cabinet.getLink")}</button>
+      <Button kind="primary" type="button" disabled={!email.includes("@") || busy} onClick={() => void go()} data-testid="adv-send">{say("web.cabinet.getLink")}</Button>
     </>
   );
 }
@@ -181,7 +187,7 @@ function Venues({ onError }: { onError: (e: string | null) => void }) {
           <input value={address} onChange={(e) => setAddress(e.target.value)} data-testid="venue-address" />
         </label>
         <PlaceFields value={place} onChange={setPlace} prefix="venue" />
-        <button type="button" disabled={!name.trim() || !address.trim()} onClick={() => void add()} data-testid="venue-add">{say("web.cabinet.addVenue")}</button>
+        <Button kind="primary" type="button" disabled={!name.trim() || !address.trim()} onClick={() => void add()} data-testid="venue-add">{say("web.cabinet.addVenue")}</Button>
       </section>
     </>
   );
@@ -238,10 +244,10 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
           <>
             {venue.verification_status === "verified" && <p className="warn">{say("web.cabinet.moveWarn")}</p>}
             <PlaceFields value={place} onChange={setPlace} prefix="venue-move" />
-            <button type="button" onClick={() => void move()} data-testid="venue-move-save">{say("web.cabinet.savePoint")}</button>
+            <Button kind="secondary" type="button" onClick={() => void move()} data-testid="venue-move-save">{say("web.cabinet.savePoint")}</Button>
           </>
         )
-        : <button type="button" onClick={() => setMoving(true)} data-testid="venue-move">{venue.place ? say("web.cabinet.movePoint") : say("web.cabinet.setPoint")}</button>}
+        : <Button kind="secondary" type="button" onClick={() => setMoving(true)} data-testid="venue-move">{venue.place ? say("web.cabinet.movePoint") : say("web.cabinet.setPoint")}</Button>}
       {venue.verification_status === "unverified" && (venue.envelope_expires_at
         ? (
           <>
@@ -250,10 +256,10 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
               {say("web.cabinet.envelopeCode")}
               <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} data-testid="venue-code" autoComplete="off" />
             </label>
-            <button type="button" className="ui-button ui-primary" disabled={code.replace(/[\s-]/g, "").length !== 12} onClick={() => void check()} data-testid="venue-verify">{say("web.cabinet.confirm")}</button>
+            <Button kind="primary" type="button" disabled={code.replace(/[\s-]/g, "").length !== 12} onClick={() => void check()} data-testid="venue-verify">{say("web.cabinet.confirm")}</Button>
           </>
         )
-        : <button type="button" onClick={() => void order()} data-testid="venue-envelope">{say("web.cabinet.orderEnvelope")}</button>)}
+        : <Button kind="secondary" type="button" onClick={() => void order()} data-testid="venue-envelope">{say("web.cabinet.orderEnvelope")}</Button>)}
       {wrong && <p className="error" data-testid="venue-wrong">{wrong}</p>}
     </article>
   );
@@ -266,8 +272,10 @@ function Offers({ onNew, onError }: { onNew: () => void; onError: (e: string | n
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <>
-      <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.myOffersTitle")}</h1></header>
-      <button type="button" onClick={onNew} data-testid="offer-new">{say("web.cabinet.newOffer")}</button>
+      <header className="ui-header">
+        <h1 className="ui-header-title">{say("web.cabinet.myOffersTitle")}</h1>
+        <Button kind="text" type="button" onClick={onNew} data-testid="offer-new">{say("web.cabinet.newOffer")}</Button>
+      </header>
       {rows?.map((o) => (
         <article key={o.id} className="ui-card place-offer" data-testid="adv-offer" data-status={o.status}>
           <p data-testid="adv-offer-state">{o.status === "active" ? say("web.cabinet.offerLive") : say("web.cabinet.offerExpired")}</p>
@@ -335,7 +343,7 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
         {done.external_url && <p data-testid="offer-published-link">{say("web.cabinet.link", { link: done.link.replace(/^https:\/\//, "") })}</p>}
         <p className="muted">{say("web.cabinet.cardLives", { until: when(done.discount_until) })}</p>
         <p className="muted">{say("web.cabinet.noEdit")}</p>
-        <button type="button" onClick={onDone} data-testid="offer-to-list">{say("web.cabinet.myOffers")}</button>
+        <Button kind="secondary" type="button" onClick={onDone} data-testid="offer-to-list">{say("web.cabinet.myOffers")}</Button>
       </section>
     );
   }
@@ -380,7 +388,7 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
           </label>
           <p className="muted">{say("web.cabinet.publishNote")}</p>
           {refused && <p className="error" data-testid="offer-refused">{say("web.cabinet.refused", { reason: refused })}</p>}
-          <button type="button" className="ui-button ui-primary" disabled={!venue || !text.trim() || !discount.trim() || busy} onClick={() => void go()} data-testid="offer-publish">{say("web.cabinet.publish")}</button>
+          <Button kind="primary" type="button" disabled={!venue || !text.trim() || !discount.trim() || busy} onClick={() => void go()} data-testid="offer-publish">{say("web.cabinet.publish")}</Button>
         </>
       )}
     </>

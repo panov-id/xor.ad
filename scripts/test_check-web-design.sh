@@ -6,14 +6,30 @@
 set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fail=0
+# PROBE_REUSE=1 takes the shots already in place instead of shooting again
+# (to see a break of the gate itself red without two more stands).
+reuse() { [ -n "${PROBE_REUSE:-}" ] && [ -f "$root/$1/shots.tsv" ]; }
 
 echo "== clean shoot"
-SHOTS_OUT=testing/screenshots/web-probe-clean "$root/scripts/design/shoot-web.sh" >/dev/null || { echo "✗ clean shoot failed"; exit 1; }
+reuse testing/screenshots/web-probe-clean || SHOTS_OUT=testing/screenshots/web-probe-clean "$root/scripts/design/shoot-web.sh" >/dev/null || { echo "✗ clean shoot failed"; exit 1; }
 out="$(SHOTS_OUT=testing/screenshots/web-probe-clean "$root/scripts/check-web-design.sh")"; code=$?
 if [ "$code" = 0 ]; then echo "✓ clean: green — $(printf '%s' "$out" | tail -1)"; else echo "✗ clean shots went red:"; printf '%s\n' "$out"; fail=1; fi
 
+echo "== write-baseline only lowers"
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+awk -F'\t' 'BEGIN { OFS = "\t" } /^Feed-dark\t/ { $2 = "0.00"; $3 = "0" } /^Splash-dark\t/ { $2 = "99.00"; $3 = "999" } { print }' \
+  "$root/scripts/design/web-design-baseline.tsv" > "$tmp"
+WEB_DESIGN_BASELINE="$tmp" SHOTS_OUT=testing/screenshots/web-probe-clean "$root/scripts/check-web-design.sh" --write-baseline >/dev/null
+feed="$(grep -P '^Feed-dark\t' "$tmp")"; splash="$(grep -P '^Splash-dark\t' "$tmp" | cut -f2)"
+if [ "$feed" = "$(printf 'Feed-dark\t0.00\t0')" ] && awk -v s="$splash" 'BEGIN { exit !(s < 99) }'; then
+  echo "✓ write-baseline: a lower line kept (Feed-dark 0.00 0), a higher one lowered (Splash-dark 99.00 → $splash)"
+else
+  echo "✗ write-baseline raised or kept the bar: Feed-dark «$feed», Splash-dark $splash (was 99.00)"; fail=1
+fi
+
 echo "== broken shoot: padding +8"
-WEB_BREAK=pad8 SHOTS_OUT=testing/screenshots/web-probe-break "$root/scripts/design/shoot-web.sh" >/dev/null || { echo "✗ broken shoot failed"; exit 1; }
+reuse testing/screenshots/web-probe-break || WEB_BREAK=pad8 SHOTS_OUT=testing/screenshots/web-probe-break "$root/scripts/design/shoot-web.sh" >/dev/null || { echo "✗ broken shoot failed"; exit 1; }
 out="$(SHOTS_OUT=testing/screenshots/web-probe-break "$root/scripts/check-web-design.sh")"; code=$?
 if [ "$code" = 1 ] && printf '%s' "$out" | grep -q 'выросло'; then
   echo "✓ padding +8: red — $(printf '%s' "$out" | tail -1)"

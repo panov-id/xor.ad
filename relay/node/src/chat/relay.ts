@@ -254,7 +254,7 @@ export async function tableFrame(table: string, kind: string, id?: string): Prom
   }
   if (kind === "line" && id) {
     const [line] = await queryOrThrow<Record<string, unknown>>(
-      `SELECT id, seat_no AS seat, kind, text, sticker, floor(extract(epoch from created_at))::int AS created_at
+      `SELECT id, seat_no AS seat, kind, text, sticker, refuses_seat, floor(extract(epoch from created_at))::int AS created_at
          FROM table_lines WHERE id = $1 AND table_id = $2 AND visible_at IS NOT NULL`,
       [id, table],
     );

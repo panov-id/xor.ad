@@ -451,6 +451,10 @@ Deno.test("a refused applicant sits out the round; the one not refused plays", a
   assertEquals(code(await signed(a, "POST", `/tables/${id}/lines`, { kind: "refusal", text: "в другой раз" })), "invalid_body");
   const no = await signed(a, "POST", `/tables/${id}/lines`, { kind: "refusal", text: "в другой раз", seat: 3 });
   assertEquals(no.status, 202, JSON.stringify(no.body));
+  // The line says whom it refuses, not only who spoke (verifier of G1e).
+  const refusal = ((await signed(c, "GET", `/tables/${id}`)).body.lines as { id: string; seat: number; refuses_seat: number | null }[])
+    .find((l) => l.id === no.body.id);
+  assertEquals([refusal?.seat, refusal?.refuses_seat], [1, 3], "the refusal line does not name the refused seat");
   await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
   assertEquals((await board(a, id)).state.order, [1, 2], "seat 3 was refused and waits");
 });

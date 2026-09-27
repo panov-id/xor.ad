@@ -344,6 +344,7 @@ components:
         kind: {type: string, enum: [line, application, refusal, sticker, move, congratulation]}
         text: {type: string}
         sticker: {type: string}
+        refuses_seat: {type: integer, nullable: true, description: "A refusal only: the seat of the applicant refused (db/070); seat is the player who refused.", x-description-ru: "Только у отказа: место отказанного заявителя (db/070); seat — отказавший игрок."}
         created_at: {type: integer, format: unix-seconds}
     TableLineCreate:
       type: object
@@ -368,14 +369,14 @@ components:
       type: object
       required: [kind]
       properties:
-        kind: {type: string, enum: [rematch, draw, undo]}
+        kind: {type: string, enum: [rematch, draw, undo], x-built: [rematch], description: "At a table only rematch is built (2026-09-27); draw and undo are spec — the node answers 400.", x-description-ru: "За столом построен только rematch (27.09.2026); draw и undo — спека, узел отвечает 400."}
         class: {type: string}
         set: {type: string}
     ProposalAnswer:
       type: object
       required: [answer]
       properties:
-        answer: {type: string, enum: [accept, decline, counter]}
+        answer: {type: string, enum: [accept, decline, counter], x-built: [accept, decline], description: "At a table accept and decline are built (2026-09-27); counter is spec — the node answers 400.", x-description-ru: "За столом построены accept и decline (27.09.2026); counter — спека, узел отвечает 400."}
         class: {type: string}
         set: {type: string}
     Seat:
@@ -2686,7 +2687,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "204": {description: Done., x-description-ru: Сделано.}
+        "200": {description: "What the answer did: declined, waiting for the other players, or started — every player accepted and the round began.", x-description-ru: "Что сделал ответ: declined, waiting — ждём остальных играющих, started — все согласились, круг начался.", content: {application/json: {schema: {type: object, properties: {state: {type: string, enum: [declined, waiting, started]}}}}}}
   /tables/{id}/resign:
     post:
       tags: [tables]

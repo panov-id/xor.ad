@@ -192,8 +192,8 @@ async function look(req: Request, tableId: string): Promise<Response> {
       [tableId],
     );
     // Lines from the moment of sitting down, and none of those the caller hid.
-    const lines = await run<{ id: string; seat: number; kind: string; text: string | null; sticker: string | null; created_at: number }>(
-      `SELECT l.id, l.seat_no AS seat, l.kind, l.text, l.sticker,
+    const lines = await run<{ id: string; seat: number; kind: string; text: string | null; sticker: string | null; refuses_seat: number | null; created_at: number }>(
+      `SELECT l.id, l.seat_no AS seat, l.kind, l.text, l.sticker, l.refuses_seat,
               floor(extract(epoch from l.created_at))::int AS created_at FROM table_lines l
         WHERE l.table_id = $1 AND l.visible_at IS NOT NULL AND l.created_at >= $2
           AND NOT EXISTS (SELECT 1 FROM hidden_messages h WHERE h.identity = $3 AND h.table_line_id = l.id)

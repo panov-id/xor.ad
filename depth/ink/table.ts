@@ -6,7 +6,7 @@ import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
-import { Form, Head, Menu, useKeys } from "./parts.ts";
+import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
 import { Board } from "./table_boards.ts";
 import type { Room } from "../core/client.ts";
 import {
@@ -23,13 +23,15 @@ export function Table(
   const turn = turnOf(view, now);
   const board = view.board;
   const counts = `${say("table.playing")} ${view.playing} · ${say("table.watching")} ${view.watching} · ♥ ${view.like_count ?? 0}`;
-  const seated = view.seats.map((s) => (s.seat === view.seat ? say("table.you") : s.name)
+  const seated = view.seats.map((s) => (s.seat === view.seat ? say("table.you") : plain(s.name, 48))
     + (s.hand_count !== undefined ? ` · ${s.hand_count}` : "")).join(" · ");
   const score = board
-    ? view.seats.filter((s) => board.score[String(s.seat)] !== undefined).map((s) => `${s.name} ${board.score[String(s.seat)]}`).join(" · ")
+    ? view.seats.filter((s) => board.score[String(s.seat)] !== undefined).map((s) => `${plain(s.name, 48)} ${board.score[String(s.seat)]}`).join(" · ")
     : "";
   const moves = board?.state.moves ?? [];
-  const nameOf = (seat: number) => view.seats.find((s) => s.seat === seat)?.name ?? `#${seat}`;
+  // Everything the node sends is someone else's text: through plain() before
+  // the terminal sees it, or a neighbour's ESC[2J clears my screen (FX4).
+  const nameOf = (seat: number) => plain(view.seats.find((s) => s.seat === seat)?.name ?? `#${seat}`, 48);
   const waiting = openApplications(view);
   // Dots (G1c): [ and ] walk the free edges, the marked one goes on "move".
   const dots = dotsOf(board);
@@ -58,7 +60,7 @@ export function Table(
     Box,
     { flexDirection: "column", gap: 1 },
     h(Head, {
-      title: `${say("table.title")}${view.name ? ` · "${view.name}"` : ""} · ${view.class}`,
+      title: `${say("table.title")}${view.name ? ` · "${plain(view.name, 48)}"` : ""} · ${plain(view.class, 12)}`,
       lines: [counts, `${say("table.seated")}  ${seated}`, say("table.open")],
     }),
     board === null
@@ -70,19 +72,19 @@ export function Table(
           board.over ? say("table.over")
           : board.turn === null ? say("table.notStarted")
           : turn.mine ? `${say("table.yourTurn")} · ${turn.secondsLeft} ${say("table.seconds")}`
-          : `${say("table.turn")}: ${turn.name ?? "—"} · ${turn.secondsLeft} ${say("table.seconds")}`),
+          : `${say("table.turn")}: ${plain(turn.name ?? "—", 48)} · ${turn.secondsLeft} ${say("table.seconds")}`),
         score ? h(Text, null, `${say("table.score")}: ${score}`) : null,
         ...(dots ? drawDots(dots, turn.mine ? edge : undefined).map((row, i) => h(Text, { key: `d${i}` }, row)) : []),
         other ? h(Board, { say, view, onMove: turn.mine ? onMove : undefined, active: onBoard }) : null,
         ...moves.slice(-5).map((m, i) =>
-          h(Text, { key: `m${i}`, dimColor: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : JSON.stringify(m.move)}`)
+          h(Text, { key: `m${i}`, dimColor: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : plain(JSON.stringify(m.move), 80)}`)
         ),
       ),
     h(
       Box,
       { flexDirection: "column" },
       ...view.lines.filter((l) => l.kind !== "move").slice(-6).map((l) =>
-        h(Text, { key: l.id }, `${nameOf(l.seat)}  ${l.kind === "sticker" ? `[${l.sticker}]` : l.text ?? ""}`)
+        h(Text, { key: l.id }, `${nameOf(l.seat)}  ${l.kind === "sticker" ? `[${plain(l.sticker, 32)}]` : plain(l.text, 200)}`)
       ),
       ...waiting.map((l) => h(Text, { key: `w${l.id}`, color: "yellow" }, `${say("table.application")}: ${nameOf(l.seat)}`)),
     ),
@@ -140,7 +142,7 @@ export function TableRoom(
   const answer = (run: Promise<{ status: number; body: unknown }>) =>
     void run.then((a) => {
       const error = (a.body as { error?: { code?: string; reason?: string } } | null)?.error;
-      setSaid(a.status >= 400 ? `${say("table.refused")}: ${error?.reason ?? error?.code ?? a.status}` : null);
+      setSaid(a.status >= 400 ? `${say("table.refused")}: ${plain(error?.reason ?? error?.code ?? a.status, 200)}` : null);
     }).catch((e: Error) => onError(e.message));
   return h(
     Box,
@@ -220,7 +222,7 @@ export function NewTable(
         }).then((a) => {
           if (a.status === 201) return onSet(a.body.id);
           const e = (a.body as unknown as { error?: { code?: string; message?: string } } | null)?.error;
-          setError(`${say("table.refused")}: ${e?.message ?? e?.code ?? a.status}`);
+          setError(`${say("table.refused")}: ${plain(e?.message ?? e?.code ?? a.status, 200)}`);
           setBusy(false);
         }).catch((e: Error) => { setError(e.message); setBusy(false); });
       },

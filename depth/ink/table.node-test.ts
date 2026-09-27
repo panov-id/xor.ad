@@ -110,6 +110,20 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.equal(left, 1, "4005 did not leave the table");
     app.unmount();
   }],
+  ["a neighbour's escape codes in the table's name, a seat's name or a line do not reach the terminal", async () => {
+    const hostile = view({
+      name: "\u001B[2Jдомино",
+      seats: [{ seat: 1, name: "\u001B[31mАня‮", role: "playing" }, { seat: 2, name: "Женя", role: "playing" }],
+      lines: [{ id: "l1", seat: 1, kind: "line", text: "привет\u001B]0;pwned\u0007\u001B[2J", created_at: 1 }],
+    });
+    const app = render(h(Table, { say, view: hostile, onPick: () => {}, now: NOW * 1000 }));
+    await settle();
+    const frame = app.lastFrame()!;
+    assert.doesNotMatch(frame, /\u001B\[2J|\u001B\[31m|\u001B\]0;|‮/, "a neighbour's control codes reached the screen");
+    assert.match(frame, /домино/);
+    assert.match(frame, /привет/);
+    app.unmount();
+  }],
   ["deck: one's own hand as cards, the others' as a number; tab to the board, a card played on one's turn only", async () => {
     const moves: unknown[] = [];
     const deckView = (turn: number) => view({

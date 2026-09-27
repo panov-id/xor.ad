@@ -8,7 +8,7 @@ import { createElement as h, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
-import { Form, Menu } from "./parts.ts";
+import { Form, Menu, plain } from "./parts.ts";
 import type { TableView } from "../core/tables.ts";
 
 type Move = (move: unknown) => void;
@@ -17,7 +17,7 @@ const count = (hand: Hand | undefined) => (Array.isArray(hand) ? hand.length : h
 
 function others(view: TableView, hands: Record<string, Hand>): string {
   return view.seats.filter((s) => s.seat !== view.seat && hands[String(s.seat)] !== undefined)
-    .map((s) => `${s.name}: ${count(hands[String(s.seat)])}`).join(" · ");
+    .map((s) => `${plain(s.name, 48)}: ${count(hands[String(s.seat)])}`).join(" · ");
 }
 
 // deck: {hands, stock: {count}, played}; a move is {play: card} or {draw: true}.
@@ -29,14 +29,14 @@ function Deck({ say, view, onMove, active }: { say: Say; view: TableView; onMove
   return h(
     Box,
     { flexDirection: "column" },
-    h(Text, null, say("board.played", { card: deck.played.slice(-1)[0] ?? "—" })),
+    h(Text, null, say("board.played", { card: plain(deck.played.slice(-1)[0] ?? "—", 8) })),
     h(Text, { dimColor: true }, `${say("board.stock", { count: deck.stock.count })} · ${others(view, deck.hands)}`),
-    h(Text, null, cards.map((c) => `[${c}]`).join(" ")),
+    h(Text, null, cards.map((c) => `[${plain(c, 8)}]`).join(" ")),
     onMove
       ? h(Menu, {
         active,
         actions: [
-          ...cards.map((c) => ({ key: `play:${c}`, label: c })),
+          ...cards.map((c) => ({ key: `play:${c}`, label: plain(c, 8) })),
           { key: "draw", label: say("board.draw_deck"), disabled: deck.stock.count === 0 },
         ],
         onPick: (key) => onMove(key === "draw" ? { draw: true } : { play: key.slice(5) }),
@@ -55,9 +55,9 @@ function Word({ say, view, onMove, active }: { say: Say; view: TableView; onMove
   return h(
     Box,
     { flexDirection: "column" },
-    h(Text, { bold: true }, w.mask === null ? say("board.no_word") : w.mask.split("").join(" ")),
-    w.word ? h(Text, { dimColor: true }, say("board.my_word", { word: w.word })) : null,
-    h(Text, { dimColor: true }, say("board.guessed", { letters: w.guessed.join(" ") || "—", misses: w.misses })),
+    h(Text, { bold: true }, w.mask === null ? say("board.no_word") : plain(w.mask, 48).split("").join(" ")),
+    w.word ? h(Text, { dimColor: true }, say("board.my_word", { word: plain(w.word, 24) })) : null,
+    h(Text, { dimColor: true }, say("board.guessed", { letters: plain(w.guessed.join(" "), 80) || "—", misses: w.misses })),
     onMove
       ? h(Form, {
         active,
@@ -85,16 +85,16 @@ function Free({ say, view, onMove, active }: { say: Say; view: TableView; onMove
   return h(
     Box,
     { flexDirection: "column" },
-    h(Text, null, f.line.length ? f.line.map((b) => `[${b}]`).join("") : say("board.line_empty")),
+    h(Text, null, f.line.length ? f.line.map((b) => `[${plain(b, 8)}]`).join("") : say("board.line_empty")),
     h(Text, { dimColor: true }, `${say("board.boneyard", { count: f.boneyard.count })} · ${others(view, f.hands)}`),
-    h(Text, null, bones.map((b) => `[${b}]`).join(" ")),
+    h(Text, null, bones.map((b) => `[${plain(b, 8)}]`).join(" ")),
     onMove
       ? h(Menu, {
         active,
         actions: [
           ...bones.flatMap((b) => [
-            { key: `left:${b}`, label: say("board.left", { bone: b }) },
-            { key: `right:${b}`, label: say("board.right", { bone: b }) },
+            { key: `left:${b}`, label: say("board.left", { bone: plain(b, 8) }) },
+            { key: `right:${b}`, label: say("board.right", { bone: plain(b, 8) }) },
           ]),
           { key: "draw", label: say("board.draw_boneyard"), disabled: f.boneyard.count === 0 },
         ],
@@ -124,7 +124,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
   const at = (x: number, y: number): string => {
     if (grid) {
       const c = grid.cells[`${"abcdefgh"[x]}${y + 1}`];
-      return c ? (c.seat === view.seat ? c.piece : c.piece.toLowerCase()) : "·";
+      return c ? plain(c.seat === view.seat ? c.piece : c.piece.toLowerCase(), 1) || "?" : "·";
     }
     const seat = physics!.cells[`${x}:${y}`];
     return seat === undefined ? "·" : seat === view.seat ? "●" : "○";

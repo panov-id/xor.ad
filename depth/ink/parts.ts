@@ -136,7 +136,10 @@ export function Menu(
         h(
           Text,
           { key: a.key, dimColor: a.disabled === true },
-          a.key === chosen?.key ? `[ ${a.label} ]` : `  ${a.label}  `,
+          // Brackets only on the row that hears the arrows: two bracketed rows
+          // on one screen (a table's board and its row) left no telling which
+          // one enter would fire (verifier, 2026-09-27).
+          active && a.key === chosen?.key ? `[ ${a.label} ]` : `  ${a.label}  `,
         )
       ),
     ),

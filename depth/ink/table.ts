@@ -13,7 +13,7 @@ import {
   applyFrame, type BoardClass, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
 } from "../core/tables.ts";
 
-export type TableAction = "move" | "pass" | "say" | "stand" | "resign" | "like";
+export type TableAction = "move" | "pass" | "say" | "rematch" | "stand" | "resign" | "like";
 
 export function Table(
   { say, view, onPick, onMove, now }: {
@@ -41,17 +41,33 @@ export function Table(
   // The other classes' boards have controls of their own (table_boards.ts):
   // tab hands the arrows between the board and the table's row.
   const other = !!board && !dots && board.state && Object.keys(board.state).some((k) => ["deck", "word", "free", "grid", "dice", "physics"].includes(k));
-  const [onBoard, setOnBoard] = useState(false);
+  const [wantBoard, setOnBoard] = useState(false);
+  // The board holds the arrows only while it has something to press — its
+  // class is there and the turn is mine; otherwise they fall back to the row
+  // (verifier, 2026-09-27: after a move, or a round with no class, the focus
+  // stuck on a board with no buttons and «встать» could not be reached).
+  const onBoard = wantBoard && !!other && turn.mine;
   useKeys((input, key) => {
-    if (other && key.tab) return setOnBoard((b) => !b);
+    if (other && turn.mine && key.tab) return setOnBoard(!onBoard);
     if (!free.length) return;
     if (input === "]") setAt((i) => (Math.min(i, free.length - 1) + 1) % free.length);
     if (input === "[") setAt((i) => (Math.min(i, free.length - 1) - 1 + free.length) % free.length);
   });
+  // The pending proposal carries who made it (by, the node's lockGame): one's
+  // own is waited on, another's is answered.
+  const pending = board?.pending as { kind?: string; by?: number } | null | undefined;
+  const theirRematch = pending?.kind === "rematch" && pending.by !== view.seat;
   const actions: Array<{ key: TableAction; label: string; disabled?: boolean }> = [
     ...(dots ? [{ key: "move" as const, label: `${say("table.move")} ${edge ?? ""}`, disabled: !turn.mine || !edge }] : []),
     { key: "pass", label: say("table.pass"), disabled: !turn.mine },
     { key: "say", label: say("table.say") },
+    // A game starts only on a rematch everyone at the table agrees to (the
+    // node builds rematch alone): another's open proposal is accepted here.
+    {
+      key: "rematch",
+      label: theirRematch ? say("table.acceptRematch") : say("table.rematch"),
+      disabled: view.seats.length < 2 || (board?.pending?.kind === "rematch" && !theirRematch),
+    },
     { key: "resign", label: say("table.resign"), disabled: !view.is_playing || !board || !!board.over },
     { key: "like", label: say("table.like") },
     { key: "stand", label: say("table.stand") },
@@ -105,7 +121,7 @@ export function Table(
 export function TableRoom(
   { say, tables, open, tableId, onLeave, onError }: {
     say: Say;
-    tables: Pick<Tables, "view" | "move" | "pass" | "stand" | "resign" | "like">;
+    tables: Pick<Tables, "view" | "move" | "pass" | "stand" | "resign" | "like" | "say" | "propose" | "answer">;
     open: (tableId: string) => Promise<Room>;
     tableId: string;
     onLeave: () => void;
@@ -114,6 +130,7 @@ export function TableRoom(
 ): ReactElement {
   const [view, setView] = useState<TableView | null>(null);
   const [said, setSaid] = useState<string | null>(null);
+  const [saying, setSaying] = useState<string | null>(null);
   const read = () =>
     tables.view(tableId).then((a) => (a.status === 200 ? setView(a.body) : onError(`${a.status} ${JSON.stringify(a.body)}`)));
   useEffect(() => {
@@ -139,6 +156,24 @@ export function TableRoom(
     };
   }, [tableId]);
   if (!view) return h(Text, { dimColor: true }, "…");
+  if (saying !== null) {
+    // A line at the table goes through the moderation queue like a phrase
+    // (§4.9): 202, and it shows once published.
+    return h(
+      Box,
+      { flexDirection: "column", gap: 1 },
+      h(Head, { title: say("table.say"), lines: [say("table.open")] }),
+      h(Form, {
+        fields: [{ key: "line", label: say("table.say"), value: saying }],
+        onChange: (_k, v) => setSaying(graphemes(v, 128)),
+        actions: [{ key: "send", label: say("board.set"), disabled: !saying.trim() }, { key: "back", label: say("common.back") }],
+        onPick: (key) => {
+          if (key === "send" && saying.trim()) answer(tables.say(tableId, { kind: "line", text: saying.trim() }));
+          setSaying(null);
+        },
+      }),
+    );
+  }
   const answer = (run: Promise<{ status: number; body: unknown }>) =>
     void run.then((a) => {
       const error = (a.body as { error?: { code?: string; reason?: string } } | null)?.error;
@@ -158,6 +193,12 @@ export function TableRoom(
         if (action === "pass" && view.board) return answer(tables.pass(tableId, view.board.seq));
         if (action === "resign") return answer(tables.resign(tableId));
         if (action === "like") return answer(tables.like(tableId));
+        if (action === "say") return setSaying("");
+        if (action === "rematch") {
+          const pending = view.board?.pending;
+          const theirs = pending?.kind === "rematch" && (pending as { by?: number }).by !== view.seat;
+          return answer(theirs ? tables.answer(tableId, pending!.id, "accept") : tables.propose(tableId, "rematch"));
+        }
       },
     }),
     said ? h(Text, { color: "red" }, said) : null,
@@ -169,11 +210,18 @@ export function TableRoom(
 // a phrase; the table stands without it meanwhile (§6.1). The author sits at
 // once and stands up from any table they sat at before (POST /tables).
 const CLASSES = ["dots", "grid", "free", "deck", "dice", "word", "physics"] as const;
-// Only dots reads its set (the field's size, lib/tables_dots.ts); the node
-// takes any set of 1–40 characters, so the other classes name none of their
-// own until their engines do.
-const SETS: Record<string, string[]> = { dots: ["4x4", "2x2", "3x3", "5x5", "6x6", "7x7", "8x8"] };
+// Sets the engines read: dots its field's size (lib/tables_dots.ts), grid
+// chess or anything else as checkers (lib/tables_grid.ts); the other engines
+// read none, and the node takes any set of 1–40 characters.
+const SETS: Record<string, string[]> = { dots: ["4x4", "2x2", "3x3", "5x5", "6x6", "7x7", "8x8"], grid: ["checkers", "chess"] };
 const setsOf = (kind: string) => SETS[kind] ?? [kind];
+// The seats of each class, as the node refuses more (routes/tables.ts).
+const MOST: Record<string, number> = { grid: 2, dots: 2, dice: 2, word: 2, free: 4, physics: 4, deck: 6 };
+const seatsOf = (kind: string) => Array.from({ length: (MOST[kind] ?? 2) - 1 }, (_, i) => String(i + 2));
+// 24 graphemes, as the node counts them: a slice by UTF-16 units split an
+// emoji and the node stored U+FFFD (verifier, 2026-09-27).
+const graphemes = (text: string, most: number) =>
+  [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text)].slice(0, most).map((g) => g.segment).join("");
 
 export function NewTable(
   { say, tables, place, onSet, onBack }: {
@@ -198,14 +246,14 @@ export function NewTable(
       fields: [
         { key: "class", label: say("table.class"), value: kind, choices: [...CLASSES] },
         { key: "set", label: say("table.set"), value: set, choices: setsOf(kind) },
-        { key: "seats", label: say("table.seats"), value: seats, choices: ["2", "3", "4", "5", "6"] },
+        { key: "seats", label: say("table.seats"), value: seats, choices: seatsOf(kind) },
         { key: "name", label: say("table.name"), value: name },
       ],
       onChange: (key, value) => {
-        if (key === "class") { setKind(value); setSet(setsOf(value)[0]); }
+        if (key === "class") { setKind(value); setSet(setsOf(value)[0]); setSeats("2"); }
         if (key === "set") setSet(value);
         if (key === "seats") setSeats(value);
-        if (key === "name") setName(value.slice(0, 24));
+        if (key === "name") setName(graphemes(value, 24));
       },
       actions: [
         { key: "set", label: say("table.put"), disabled: busy },

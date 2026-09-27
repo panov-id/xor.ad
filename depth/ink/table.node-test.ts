@@ -110,6 +110,55 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.equal(left, 1, "4005 did not leave the table");
     app.unmount();
   }],
+  ["a table's seats follow its class, and its name is cut by graphemes, not by halves of an emoji", async () => {
+    const sent: Array<{ seats: number; name?: string }> = [];
+    const tables = { create: (t: { seats: number; name?: string }) => { sent.push(t); return Promise.resolve({ status: 201, body: { id: "t" } }); } };
+    const app = render(h(NewTable, { say, tables: tables as never, place: { lat: 1, lon: 1, radius: 1000 }, onSet: () => {}, onBack: () => {} }));
+    await settle();
+    // dots: seats are 2 only — right on «мест» stays at 2.
+    for (const k of ["\u001B[B", "\u001B[B", "\u001B[C", "\u001B[C", "\u001B[B", "а".repeat(23) + "👍👍", "\u001B[B", "\r"]) {
+      app.stdin.write(k);
+      await settle();
+    }
+    assert.equal(sent[0]?.seats, 2, "a dots table was offered more than two seats");
+    assert.equal(sent[0]?.name, "а".repeat(23) + "👍", "the name was not cut at 24 whole graphemes");
+    app.unmount();
+  }],
+  ["another's rematch is accepted from the row, one's own is not answered", async () => {
+    const calls: string[] = [];
+    const room = { closed: new Promise<number>(() => {}), next: () => new Promise(() => {}), close: () => {} };
+    const withPending = (by: number) => view({ board: { seq: 0, state: {}, turn: null, score: {}, expires_at: null, pending: { kind: "rematch", id: "p1", by } } });
+    for (const by of [1, 2]) {
+      const tables = {
+        view: () => Promise.resolve({ status: 200, body: withPending(by) }),
+        answer: (_t: string, pid: string, a: string) => { calls.push(`answer ${pid} ${a}`); return Promise.resolve({ status: 200, body: {} }); },
+        propose: () => { calls.push("propose"); return Promise.resolve({ status: 201, body: {} }); },
+      };
+      const app = render(h(TableRoom, { say, tables: tables as never, open: () => Promise.resolve(room as never), tableId: "t", onLeave: () => {}, onError: () => {} }));
+      await settle();
+      // The row: пас, сказать, партия… — right twice onto the rematch.
+      for (const k of ["\u001B[C", "\u001B[C", "\r"]) { app.stdin.write(k); await settle(); }
+      app.unmount();
+    }
+    assert.deepEqual(calls, ["answer p1 accept"], "another's rematch was not accepted, or one's own was answered");
+  }],
+  ["once the turn passes, the arrows come back from the board to the table's row", async () => {
+    const picked: string[] = [];
+    const deck = (turn: number) => view({
+      class: "deck" as never,
+      board: { seq: 2, turn, score: {}, expires_at: NOW + 30, state: { deck: { hands: { "1": { count: 5 }, "2": ["7♠"] }, stock: { count: 20 }, played: ["9♣"] } } },
+    });
+    const props = { say, onPick: (a: string) => picked.push(a), onMove: () => {}, now: NOW * 1000 };
+    const app = render(h(Table, { ...props, view: deck(2) }));
+    await settle();
+    app.stdin.write("\t");
+    await settle();
+    app.rerender(h(Table, { ...props, view: deck(1) }));
+    await settle();
+    for (const k of ["\u001B[C", "\r"]) { app.stdin.write(k); await settle(); }
+    assert.deepEqual(picked, ["say"], "after the turn passed the row stayed deaf and «встать» could not be reached");
+    app.unmount();
+  }],
   ["a neighbour's escape codes in the table's name, a seat's name or a line do not reach the terminal", async () => {
     const hostile = view({
       name: "\u001B[2Jдомино",
@@ -157,12 +206,12 @@ const cases: Array<[string, () => Promise<void>]> = [
     }));
     await settle();
     assert.match(app.lastFrame()!, /поставить стол/);
-    // Down to "seats", right once: 3; down to the name, type; down into the row, enter.
+    // Down to "seats", right once: still 2, dots seat two (the node refuses more); down to the name, type; down into the row, enter.
     for (const k of ["\u001B[B", "\u001B[B", "\u001B[C", "\u001B[B", "домино", "\u001B[B", "\r"]) {
       app.stdin.write(k);
       await settle();
     }
-    assert.deepEqual(sent, [{ class: "dots", set: "4x4", seats: 3, lat: 52.5, lon: 13.4, area_radius: 1000, name: "домино" }]);
+    assert.deepEqual(sent, [{ class: "dots", set: "4x4", seats: 2, lat: 52.5, lon: 13.4, area_radius: 1000, name: "домино" }]);
     assert.equal(opened, "t7", "the table set was not opened");
     app.unmount();
   }],

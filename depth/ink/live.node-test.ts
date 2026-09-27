@@ -15,12 +15,13 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import postgres from "postgres";
 import { Client } from "../core/client.ts";
-import { Tables } from "../core/tables.ts";
+import { openTable, Tables } from "../core/tables.ts";
 import { newPaperCode } from "../core/paper.ts";
 import { raise } from "../core/recovery.ts";
 import { HeldKey } from "../core/transfer.ts";
 import { Arrival, Departure } from "../core/transfer_move.ts";
 import { App } from "./app.ts";
+import { TableRoom } from "./table.ts";
 import { strings } from "./strings.ts";
 
 const node = process.env.DEPTH_NODE_URL!;
@@ -568,6 +569,68 @@ async function main() {
       out("ok   with no point yet, the way to the feed opens the point, and the terminal stays up");
     } finally {
       noPoint.unmount();
+    }
+
+    // C4: deck and word played from the table's screen with real keys against
+    // the live node — tab to the board, a card played and one drawn; a word
+    // set and a letter named. Two people at their own TableRoom each.
+    const joiner = async (name: string) => {
+      const c = new Client(node, apiKey);
+      await c.register({ name, age: 30 }, { pin: "123456", paperCode: newPaperCode() });
+      await c.confirmPaperCode();
+      return c;
+    };
+    const room = (c: Client, id: string) =>
+      render(h(TableRoom, {
+        say, tables: new Tables(c), open: (t: string) => openTable(c, t), tableId: id,
+        onLeave: () => {}, onError: (m: string) => { throw new Error(m); },
+      }));
+    const startGame = async (game: "deck" | "word") => {
+      const a = await joiner("Вера"), b = await joiner("Олег");
+      const id = (await new Tables(a).create({ class: game, set: game, seats: 2, lat: 55.1, lon: 37.1, area_radius: 1000 })).body.id;
+      await new Tables(b).sit(id);
+      await new Tables(b).say(id, { kind: "application", text: "сыграю" });
+      await new Tables(a).propose(id, "rematch");
+      const seatOf = async (c: Client) => (await new Tables(c).view(id)).body.seat;
+      return { id, bySeat: { [await seatOf(a)]: a, [await seatOf(b)]: b } as Record<number, Client> };
+    };
+    {
+      const { id, bySeat } = await startGame("deck");
+      const turn = (await new Tables(bySeat[1]).view(id)).body.board!.turn!;
+      const mover = room(bySeat[turn], id);
+      await until(mover, /ваш ход/, 20);
+      await type(mover, "\t", ENTER); // the board's first action: the first card of one's hand
+      const afterPlay = (await new Tables(bySeat[turn]).view(id)).body.board!;
+      assert.equal((afterPlay.state.deck as { played: string[] }).played.length >= 1 && afterPlay.turn !== turn, true, "the card from the screen was not played");
+      mover.unmount();
+      const other = room(bySeat[afterPlay.turn!], id);
+      await until(other, /ваш ход/, 20);
+      await type(other, "\t");
+      for (let i = 0; i < 12; i++) await type(other, RIGHT); // the row stops at its end: «взять из колоды»
+      await type(other, ENTER);
+      const afterDraw = (await new Tables(bySeat[1]).view(id)).body.board!;
+      assert.notEqual(afterDraw.seq, afterPlay.seq, "the draw from the screen did not reach the node");
+      other.unmount();
+      out("ok   deck from the table's screen: a card played from one's hand, then one drawn from the stock");
+    }
+    {
+      const { id, bySeat } = await startGame("word");
+      const setterSeat = ((await new Tables(bySeat[1]).view(id)).body.board!.state.word as { setter: number }).setter;
+      const setter = room(bySeat[setterSeat], id);
+      await until(setter, /загадать слово/, 20);
+      await type(setter, "\t");
+      await typeUntil(setter, "кот", /кот/);
+      await type(setter, DOWN, ENTER);
+      await until(setter, /ваше слово: кот/, 20);
+      setter.unmount();
+      const guesser = room(bySeat[setterSeat === 1 ? 2 : 1], id);
+      await until(guesser, /_ _ _/, 20);
+      await type(guesser, "\t");
+      await typeUntil(guesser, "к", /буква[^\n]*к/);
+      await type(guesser, DOWN, ENTER);
+      await until(guesser, /к _ _/, 20);
+      guesser.unmount();
+      out("ok   word from the table's screen: the setter set a word, the guesser named a letter and saw it in the mask");
     }
   } catch (e) {
     failed++;

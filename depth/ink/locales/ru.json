@@ -301,5 +301,7 @@
   "board.set_word": "загадать слово",
   "board.stock": "колода: {count}",
   "board.to": "куда",
-  "table.toBoard": "к доске"
+  "table.toBoard": "к доске",
+  "table.rematch": "ещё партию",
+  "table.acceptRematch": "принять партию"
 }

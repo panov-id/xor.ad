@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
-import { Table, type TableAction, TableRoom } from "./table.ts";
+import { NewTable, Table, type TableAction, TableRoom } from "./table.ts";
 import { strings } from "./strings.ts";
 import type { TableView } from "../core/tables.ts";
 
@@ -108,6 +108,24 @@ const cases: Array<[string, () => Promise<void>]> = [
     closeWith(4005);
     await settle();
     assert.equal(left, 1, "4005 did not leave the table");
+    app.unmount();
+  }],
+  ["setting a table sends the class, set, seats, point and name, and opens the table it got", async () => {
+    const sent: unknown[] = [];
+    let opened: string | null = null;
+    const tables = { create: (t: unknown) => { sent.push(t); return Promise.resolve({ status: 201, body: { id: "t7" } }); } };
+    const app = render(h(NewTable, {
+      say, tables: tables as never, place: { lat: 52.5, lon: 13.4, radius: 1000 }, onSet: (id: string) => (opened = id), onBack: () => {},
+    }));
+    await settle();
+    assert.match(app.lastFrame()!, /поставить стол/);
+    // Down to "seats", right once: 3; down to the name, type; down into the row, enter.
+    for (const k of ["\u001B[B", "\u001B[B", "\u001B[C", "\u001B[B", "домино", "\u001B[B", "\r"]) {
+      app.stdin.write(k);
+      await settle();
+    }
+    assert.deepEqual(sent, [{ class: "dots", set: "4x4", seats: 3, lat: 52.5, lon: 13.4, area_radius: 1000, name: "домино" }]);
+    assert.equal(opened, "t7", "the table set was not opened");
     app.unmount();
   }],
 ];

@@ -2560,7 +2560,8 @@ paths:
       tags: [tables]
       summary: "A one-time ticket for the table's socket"
       x-summary-ru: "Одноразовый билет для сокета стола"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "As for a conversation (protocol §4.4): the ticket goes into Sec-WebSocket-Protocol next to the subprotocol xor.p1."
       x-description-ru: "Как у беседы (протокол §4.4): билет едет в Sec-WebSocket-Protocol рядом с субпротоколом xor.p1."
@@ -2575,7 +2576,7 @@ paths:
         "404": {$ref: "#/components/responses/ApiError"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The ticket., x-description-ru: Билет., content: {application/json: {schema: {type: object, properties: {ticket: {type: string}}}}}}
+        "200": {description: The ticket., x-description-ru: Билет., content: {application/json: {schema: {type: object, properties: {ticket: {type: string}, expires_in: {type: integer, description: Seconds (ticket.lifetime)., x-description-ru: Секунды (ticket.lifetime).}}}}}}
   /tables/{id}/lines:
     post:
       tags: [tables]

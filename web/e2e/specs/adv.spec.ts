@@ -53,9 +53,14 @@ test("the cabinet: a link by mail, a venue proved by its envelope, an offer publ
   // A venue: added unverified, its envelope ordered.
   await page.getByTestId("venue-name").fill(venueName);
   await page.getByTestId("venue-address").fill("Макариу 12, Лимасол");
+  // The place before the envelope (O2: a venue without one cannot publish,
+  // and moving it later takes "verified" off).
+  await page.getByTestId("venue-lat").fill("34.6786");
+  await page.getByTestId("venue-lon").fill("33.0413");
   await page.getByTestId("venue-add").click();
   const venue = page.getByTestId("venue").filter({ hasText: venueName });
   await expect(venue.getByTestId("venue-status")).toHaveText("не подтверждена", { timeout: 15000 });
+  await expect(venue.getByTestId("venue-place")).toHaveText("точка: 34.6786, 33.0413 · 1000 м");
   await venue.getByTestId("venue-envelope").click();
   await expect(venue.getByTestId("venue-code")).toBeVisible({ timeout: 15000 });
 

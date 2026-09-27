@@ -13,7 +13,13 @@ export type Venue = {
   verification_status: "unverified" | "verified" | "suspended" | string;
   verified_at: string | null;
   envelope_expires_at: string | null;
+  // Where the venue's offers are shown (O2): without it the node refuses to publish.
+  place: Place | null;
 };
+
+export type Place = { lat: number; lon: number; area_radius: number };
+// The phrase's steps (relay/node/src/routes/adv.ts RADII).
+export const RADII = [100, 300, 1000, 3000, 10000];
 
 export type Offer = {
   id: string;
@@ -58,7 +64,11 @@ export const openSession = (token: string) => call("POST", "/adv/session", { tok
 export const signOut = () => call("POST", "/adv/sign-out");
 export const me = () => call<{ email: string; email_confirmed: boolean; brand: string }>("GET", "/adv/me");
 export const venues = () => call<{ items: Venue[] }>("GET", "/adv/venues");
-export const addVenue = (name: string, address: string) => call<Venue & Refusal>("POST", "/adv/venues", { name, address });
+export const addVenue = (name: string, address: string, place?: Place) =>
+  call<Venue & Refusal>("POST", "/adv/venues", { name, address, ...place });
+// Moving the place takes "verified" off: the envelope proved the old one.
+export const movePlace = (id: string, place: Place) =>
+  call<Venue & Refusal>("PATCH", `/adv/venues/${encodeURIComponent(id)}`, { ...place });
 export const orderEnvelope = (id: string) => call<{ envelope_expires_at: string } & Refusal>("POST", `/adv/venues/${encodeURIComponent(id)}/envelope`);
 export const verify = (id: string, code: string) => call<{ verification_status: string } & Refusal>("POST", `/adv/venues/${encodeURIComponent(id)}/verify`, { code });
 export const offers = () => call<{ items: Offer[] }>("GET", "/adv/offers");

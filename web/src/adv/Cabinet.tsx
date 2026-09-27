@@ -8,8 +8,8 @@
 
 import { useEffect, useState } from "react";
 import {
-  addVenue, me, type Offer, offers, openSession, orderEnvelope, publish, type Refusal, signIn, signUp, type Venue, venues,
-  verify, when,
+  addVenue, me, movePlace, type Offer, offers, openSession, orderEnvelope, type Place, publish, RADII, type Refusal, signIn,
+  signUp, type Venue, venues, verify, when,
 } from "./api.ts";
 
 type View = "loading" | "sign-in" | "sent" | "expired" | "venues" | "offers" | "new-offer";
@@ -114,18 +114,54 @@ function SignIn({ onSent, onError }: { onSent: () => void; onError: (e: string |
   );
 }
 
+// The place as three fields: latitude, longitude and the circle, 1000 m unless
+// changed. Both numbers or neither.
+function PlaceFields({ value, onChange, prefix }: { value: PlaceInput; onChange: (v: PlaceInput) => void; prefix: string }) {
+  return (
+    <fieldset className="place">
+      <legend>точка на карте</legend>
+      <label>
+        широта
+        <input inputMode="decimal" value={value.lat} onChange={(e) => onChange({ ...value, lat: e.target.value })} data-testid={`${prefix}-lat`} />
+      </label>
+      <label>
+        долгота
+        <input inputMode="decimal" value={value.lon} onChange={(e) => onChange({ ...value, lon: e.target.value })} data-testid={`${prefix}-lon`} />
+      </label>
+      <label>
+        радиус, м
+        <select value={value.radius} onChange={(e) => onChange({ ...value, radius: Number(e.target.value) })} data-testid={`${prefix}-radius`}>
+          {RADII.map((r) => <option key={r} value={r}>{r}</option>)}
+        </select>
+      </label>
+    </fieldset>
+  );
+}
+
+type PlaceInput = { lat: string; lon: string; radius: number };
+const EMPTY_PLACE: PlaceInput = { lat: "", lon: "", radius: 1000 };
+const placeOf = (p: PlaceInput): Place | null | "bad" => {
+  if (!p.lat.trim() && !p.lon.trim()) return null;
+  const lat = Number(p.lat.replace(",", ".")), lon = Number(p.lon.replace(",", "."));
+  return Number.isFinite(lat) && Number.isFinite(lon) && p.lat.trim() && p.lon.trim() ? { lat, lon, area_radius: p.radius } : "bad";
+};
+
 function Venues({ onError }: { onError: (e: string | null) => void }) {
   const [rows, setRows] = useState<Venue[] | null>(null);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [place, setPlace] = useState<PlaceInput>(EMPTY_PLACE);
   const load = () => venues().then((a) => a.status === 200 ? setRows(a.body!.items) : onError(`Кабинет не принял (${a.status}).`));
   useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   async function add() {
     onError(null);
-    const made = await addVenue(name.trim(), address.trim());
+    const at = placeOf(place);
+    if (at === "bad") return onError("Точка — это широта и долгота числами.");
+    const made = await addVenue(name.trim(), address.trim(), at ?? undefined);
     if (made.status !== 201) return onError(made.body?.error?.message ?? `Кабинет не принял (${made.status}).`);
     setName("");
     setAddress("");
+    setPlace(EMPTY_PLACE);
     await load();
   }
   return (
@@ -142,6 +178,7 @@ function Venues({ onError }: { onError: (e: string | null) => void }) {
           адрес
           <input value={address} onChange={(e) => setAddress(e.target.value)} data-testid="venue-address" />
         </label>
+        <PlaceFields value={place} onChange={setPlace} prefix="venue" />
         <button type="button" disabled={!name.trim() || !address.trim()} onClick={() => void add()} data-testid="venue-add">добавить заведение</button>
       </section>
     </>
@@ -151,6 +188,19 @@ function Venues({ onError }: { onError: (e: string | null) => void }) {
 function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () => void; onError: (e: string | null) => void }) {
   const [code, setCode] = useState("");
   const [wrong, setWrong] = useState<string | null>(null);
+  const [moving, setMoving] = useState(false);
+  const [place, setPlace] = useState<PlaceInput>(venue.place
+    ? { lat: String(venue.place.lat), lon: String(venue.place.lon), radius: venue.place.area_radius }
+    : EMPTY_PLACE);
+  async function move() {
+    onError(null);
+    const at = placeOf(place);
+    if (at === null || at === "bad") return onError("Точка — это широта и долгота числами.");
+    const answer = await movePlace(venue.id, at);
+    if (answer.status !== 200) return onError(answer.body?.error?.message ?? `Кабинет не принял (${answer.status}).`);
+    setMoving(false);
+    onChanged();
+  }
   async function order() {
     onError(null);
     const answer = await orderEnvelope(venue.id);
@@ -178,6 +228,18 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
       <h2>{venue.name}</h2>
       <p className="muted">{venue.address}</p>
       <p data-testid="venue-status">{STATUS[venue.verification_status] ?? venue.verification_status}</p>
+      <p className="muted" data-testid="venue-place">
+        {venue.place ? `точка: ${venue.place.lat}, ${venue.place.lon} · ${venue.place.area_radius} м` : "точка не задана — офферы не опубликовать"}
+      </p>
+      {moving
+        ? (
+          <>
+            {venue.verification_status === "verified" && <p className="warn">Новая точка снимет подтверждение: нужен новый конверт.</p>}
+            <PlaceFields value={place} onChange={setPlace} prefix="venue-move" />
+            <button type="button" onClick={() => void move()} data-testid="venue-move-save">сохранить точку</button>
+          </>
+        )
+        : <button type="button" onClick={() => setMoving(true)} data-testid="venue-move">{venue.place ? "сдвинуть точку" : "задать точку"}</button>}
       {venue.verification_status === "unverified" && (venue.envelope_expires_at
         ? (
           <>

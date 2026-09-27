@@ -185,6 +185,29 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.equal(opened, "new", "the new table was not opened after moving");
     app.unmount();
   }],
+  ["seated elsewhere: when the new table refuses, the person sits back down at the old one", async () => {
+    const calls: string[] = [];
+    let opened: string | null = null;
+    const said: string[] = [];
+    const tables = {
+      view: () => Promise.resolve({ status: 200, body: view({ name: "домино" }) }),
+      stand: (id: string) => { calls.push(`stand ${id}`); return Promise.resolve({ status: 204, body: null }); },
+      sit: (id: string) => {
+        calls.push(`sit ${id}`);
+        return Promise.resolve(id === "new" ? { status: 409, body: { error: { code: "unavailable" } } } : { status: 200, body: { seat: 1 } });
+      },
+    };
+    const app = render(h(SeatedElsewhere, {
+      say, tables: tables as never, there: "old", here: "new", onOpen: (id: string) => (opened = id), onBack: () => {},
+      onError: (m: string) => said.push(m),
+    }));
+    await settle();
+    for (const k of ["\u001B[C", "\r"]) { app.stdin.write(k); await settle(); }
+    assert.deepEqual(calls, ["stand old", "sit new", "sit old"], "a refused seat left the person at no table");
+    assert.equal(opened, "old");
+    assert.match(said[0] ?? "", /вы остались за прежним столом/);
+    app.unmount();
+  }],
   ["grid: tab out of the board and back keeps the field in hand", async () => {
     const moves: unknown[] = [];
     const grid = view({
@@ -225,6 +248,11 @@ const cases: Array<[string, () => Promise<void>]> = [
       ],
       playing: "\u001B]0;x\u0007" as never,
       like_count: "\u202Eevil" as never,
+      board: {
+        seq: 1, turn: 2, expires_at: NOW + 30,
+        score: { "1": "\u202Ex" as never },
+        state: { dots: { n: 2, edges: [], boxes: { "0:0": "\u202Eevil" as never } } },
+      },
     });
     const app = render(h(Table, { say, view: hostile, onPick: () => {}, now: NOW * 1000 }));
     await settle();

@@ -95,7 +95,7 @@ export function Table(
           : turn.mine ? `${say("table.yourTurn")} · ${turn.secondsLeft} ${say("table.seconds")}`
           : `${say("table.turn")}: ${plain(turn.name ?? "—", 48)} · ${turn.secondsLeft} ${say("table.seconds")}`),
         score ? h(Text, null, `${say("table.score")}: ${score}`) : null,
-        ...(dots ? drawDots(dots, turn.mine ? edge : undefined).map((row, i) => h(Text, { key: `d${i}` }, row)) : []),
+        ...(dots ? drawDots(dots, turn.mine ? edge : undefined).map((row, i) => h(Text, { key: `d${i}` }, plain(row, 80))) : []),
         other ? h(Board, { say, view, onMove: turn.mine ? onMove : undefined, active: onBoard }) : null,
         ...moves.slice(-5).map((m, i) =>
           h(Text, { key: `m${i}`, dimColor: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : plain(JSON.stringify(m.move), 80)}`)
@@ -327,16 +327,20 @@ export function SeatedElsewhere(
       onPick: (key) => {
         if (key === "back") return onBack();
         if (key === "there") return onOpen(there);
-        void tables.stand(there)
-          .then(() => tables.sit(here))
-          .then((a) => {
-            if (a.status >= 400) {
-              const e = (a.body as { error?: { code?: string } } | null)?.error;
-              return onError(`${say("table.refused")}: ${plain(e?.code ?? a.status, 80)}`);
-            }
-            onOpen(here);
-          })
-          .catch((e: Error) => onError(e.message));
+        const code = (a: { status: number; body: unknown }) =>
+          plain((a.body as { error?: { code?: string } } | null)?.error?.code ?? a.status, 80);
+        void (async () => {
+          const stood = await tables.stand(there);
+          if (stood.status >= 400) return onError(`${say("table.refused")}: ${code(stood)}`);
+          const sat = await tables.sit(here);
+          if (sat.status < 400) return onOpen(here);
+          const back = await tables.sit(there);
+          if (back.status < 400) {
+            onError(`${say("table.refused")}: ${code(sat)} · ${say("table.keptThere")}`);
+            return onOpen(there);
+          }
+          onError(`${say("table.refused")}: ${code(sat)} · ${say("table.lostBoth")}`);
+        })().catch((e: Error) => onError(e.message));
       },
     }),
   );

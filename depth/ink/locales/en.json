@@ -316,5 +316,7 @@
   "game.offerArrived": "a game is offered — open «game»",
   "table.seatedElsewhere": "you already sit at «{name}»",
   "table.backThere": "back to it",
-  "table.standThere": "stand up there and sit here"
+  "table.standThere": "stand up there and sit here",
+  "table.keptThere": "you stay at your table",
+  "table.lostBoth": "could not go back to your table — it has closed"
 }

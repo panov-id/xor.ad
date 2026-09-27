@@ -542,6 +542,9 @@ async function gameOf(klass: string, set: string): Promise<{ a: Person; b: Perso
   await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
   return { a, b, id };
 }
+// Each class carries its own state (dots, deck, word, grid, dice, free,
+// physics); the test reads the fields of the class it plays.
+// deno-lint-ignore no-explicit-any
 type Seen = { seq: number; turn: number; over: boolean; score: Record<string, number>; state: Record<string, any> };
 const seen = async (who: Person, id: string) => (await signed(who, "GET", `/tables/${id}`)).body.board as Seen;
 

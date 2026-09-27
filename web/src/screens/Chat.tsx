@@ -20,6 +20,9 @@ import { ChatGame } from "./ChatGame.tsx";
 import type { InboxChatRow } from "./Inbox.tsx";
 import "../chat/chat.css";
 import { say } from "../locales/say.ts";
+import { Button } from "../ui/Button.tsx";
+import { Card } from "../ui/Card.tsx";
+import "./talk.css";
 
 interface Line { id: string; text: string; mine: boolean; at: number; state?: "sent" | "queued" | "failed" }
 
@@ -170,9 +173,11 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
   const waitingForPeer = row.key_epoch > row.peer.key_epoch;
   return (
     <main className="screen chat" data-screen="chat" data-id={given.id} data-keys={keysState} data-over={over ? "yes" : "no"} data-epoch={row.key_epoch} data-rekey-requested={askedByPeer ? "yes" : "no"}>
-      <header>
-        <h1>{row.name}, {row.age}</h1>
-        <button type="button" onClick={onBack} data-testid="back">{say("common.back")}</button>
+      <header className="ui-header ui-header-rule">
+        <button type="button" className="ui-icon" onClick={onBack} data-testid="back" aria-label={say("common.back")}>
+          <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><path d="M26 14 L18 22 L26 30" /></svg>
+        </button>
+        <h1 className="ui-header-title">{row.name}, {row.age}</h1>
       </header>
       <p className="status" data-testid="status">{"error" in status ? status.error : say(status.key, status.values)}</p>
       {safety && <p className="code" data-testid="safety">{safety}</p>}
@@ -182,11 +187,11 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         ? (
           <section className="confirm" data-testid="end-confirm">
             <p>{say("web.chat.endAsk")}</p>
-            <button type="button" className="danger" data-testid="end-yes" onClick={() => void endChat()}>{say("chat.end")}</button>
-            <button type="button" data-testid="end-no" onClick={() => setEnding(false)}>{say("common.back")}</button>
+            <Button kind="danger" type="button" data-testid="end-yes" onClick={() => void endChat()}>{say("chat.end")}</Button>
+            <Button kind="secondary" type="button" data-testid="end-no" onClick={() => setEnding(false)}>{say("common.back")}</Button>
           </section>
         )
-        : <button type="button" data-testid="end" onClick={() => setEnding(true)}>{say("chat.end")}</button>)}
+        : <Button kind="secondary" type="button" data-testid="end" onClick={() => setEnding(true)}>{say("chat.end")}</Button>)}
       {over && (
         <section className="tombstone" data-testid="tombstone">
           <h2>{say("web.chat.over_title")}</h2>
@@ -199,19 +204,19 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         </p>
       )}
       {!over && askedByPeer && (
-        <section className="card" data-testid="rekey-asked">
+        <Card as="section" data-testid="rekey-asked">
           <p>{say("web.chat.peer_moved")}</p>
-          <button type="button" className="primary" disabled={busy} onClick={() => rekey("agree")} data-testid="rekey-agree">{say("web.chat.rekey_agree")}</button>
-        </section>
+          <Button kind="primary" type="button" disabled={busy} onClick={() => rekey("agree")} data-testid="rekey-agree">{say("web.chat.rekey_agree")}</Button>
+        </Card>
       )}
       {!over && !askedByPeer && waitingForPeer && (
         <p className="muted" data-testid="rekey-waiting">{say("web.chat.rekey_waiting")}</p>
       )}
       {!over && keysState === "failed" && !askedByPeer && !waitingForPeer && (
-        <section className="card" data-testid="keys-failed">
+        <Card as="section" data-testid="keys-failed">
           <p className="error">{keysError}</p>
-          <button type="button" disabled={busy} onClick={() => rekey("ask")} data-testid="rekey-ask">{say("web.chat.rekey_ask")}</button>
-        </section>
+          <Button kind="secondary" type="button" disabled={busy} onClick={() => rekey("ask")} data-testid="rekey-ask">{say("web.chat.rekey_ask")}</Button>
+        </Card>
       )}
       {!over && gameOpen && <ChatGame client={client} chatId={given.id} bump={gameBump} />}
       <ul className="lines" data-testid="lines">
@@ -226,14 +231,14 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
       {!over && (
         <form className="composer" onSubmit={(e) => { e.preventDefault(); void send(); }}>
           <input value={text} onChange={(e) => setText(e.target.value)} placeholder={say("web.chat.line")} disabled={keysState !== "open"} data-testid="text" />
-          <button type="submit" className="primary" disabled={keysState !== "open" || !text.trim()} data-testid="send">{say("chat.send")}</button>
+          <Button kind="primary" type="submit" disabled={keysState !== "open" || !text.trim()} data-testid="send">{say("chat.send")}</Button>
         </form>
       )}
       <footer className="muted">
         {!over && (
-          <button type="button" onClick={() => setGameOpen((o) => !o)} data-testid="game-toggle" aria-pressed={gameOpen}>{say("web.game.title")}</button>
+          <Button kind="secondary" type="button" onClick={() => setGameOpen((o) => !o)} data-testid="game-toggle" aria-pressed={gameOpen}>{say("web.game.title")}</Button>
         )}
-        <button type="button" onClick={() => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"))} data-testid="show-safety">{say("chat.code")}</button>
+        <Button kind="secondary" type="button" onClick={() => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"))} data-testid="show-safety">{say("chat.code")}</Button>
       </footer>
     </main>
   );

@@ -1,17 +1,19 @@
 /* The inbox, the match card and the conversation (W3), on the kit's tokens
-   (panel/design/kit, imported in main.tsx). */
-.nav { display: flex; gap: 8px; }
+   (panel/design/kit, imported in main.tsx); the screens' own layout is in
+   screens/talk.css (WD4). Bubbles and the message row: components.svg
+   bubble-theirs / bubble-mine / message-input. */
+.nav { display: flex; gap: var(--s-2); }
 .nav button[aria-current="page"] { border-color: var(--accent); color: var(--accent-text); }
-.row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-2); }
 .mark { color: var(--accent-text); font-size: 14px; }
-.card button { align-self: flex-start; }
-.actions { display: flex; gap: 8px; }
-.lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.line { max-width: 85%; border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; }
-.line.mine { align-self: flex-end; border-color: var(--accent); }
+.actions { display: flex; gap: var(--s-2); }
+.lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); flex: 1; }
+.line { max-width: 85%; border-radius: var(--r-2); padding: 10px 14px; background: var(--panel); }
+.line.mine { align-self: flex-end; background: var(--panel-2); }
 .line.theirs { align-self: flex-start; }
-.line .muted { display: block; margin-top: 2px; }
-.composer { display: flex; gap: 8px; }
-.composer input { flex: 1; }
-.tombstone { text-align: center; padding: 24px 0; }
-.status { font-size: 13px; color: var(--muted); }
+.line .muted { display: block; margin-top: 2px; font-size: 13px; }
+.composer { display: flex; gap: var(--s-3); align-items: center; }
+.composer input { flex: 1; min-height: var(--control-h); border: 0; border-radius: var(--r-1); background: var(--panel-2); }
+.composer .ui-button { min-width: var(--control-h); padding: 0 var(--s-3); }
+.tombstone { text-align: center; padding: var(--s-6) var(--s-4); border-radius: var(--r-2); background: var(--panel); }
+.status { font-size: 13px; color: var(--muted); margin: 0; }

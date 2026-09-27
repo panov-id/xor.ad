@@ -1,0 +1,28 @@
+/* The talk screens — inbox, match, conversation, the game in it, the move out
+   and in (WD4) — on the kit's components (web/src/ui) and tokens. Sheets:
+   the inbox and the match, bottom row of screen-20-21-22-24; the game in a
+   conversation, 18A–F of screen-14-15-18; the move, 13 A/B of screen-12-13. */
+/* a header without «назад» keeps the title at x 16, as header-feed does */
+.ui-header-rule:not(:has(.ui-icon)) { padding-left: var(--s-4); }
+.inbox h2,.match h2, .chat h2 { font-size: 14px; font-weight: 600; color: var(--muted); margin: var(--s-2) 0 0; }
+.inbox .ui-header .ui-button { min-height: var(--control-h); padding: 0 var(--s-3); font-size: 14px; }
+.inbox .ui-card, .match .ui-card { gap: var(--s-1); }
+.inbox .ui-card strong, .match .ui-card strong { font-size: 16px; font-weight: 600; }
+.inbox .ui-card p, .match .ui-card p { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.4; }
+.inbox .ui-card .muted, .match .ui-card .muted { font-size: 14px; }
+.inbox .ui-card .ui-button, .match .ui-card .ui-button, .chat .ui-card .ui-button { align-self: flex-start; margin-top: var(--s-2); }
+.inbox .declined { opacity: 1; background: var(--panel); }
+.match .actions, .chat .confirm, .departure, .arrival { display: flex; flex-direction: column; gap: var(--s-3); }
+.match .actions .ui-button, .departure > .ui-button, .arrival > .ui-button, .chat .confirm .ui-button { width: 100%; }
+.departure .code, .arrival dd[data-testid="arrive-check"] { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; text-align: center; padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); margin: 0; }
+.departure dl, .arrival dl { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-4); margin: 0; padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); font-size: 14px; }
+.departure dt, .arrival dt { color: var(--muted); }
+.departure dd, .arrival dd { margin: 0; text-align: right; }
+.arrival dl { grid-template-columns: 1fr; }
+.arrival dd[data-testid="arrive-check"] { padding: 0; background: none; }
+.chat footer { display: flex; gap: var(--s-2); margin-top: 0; }
+.chat footer .ui-button { flex: 1; font-size: 14px; }
+.chat > .ui-button[data-testid="end"] { align-self: flex-end; min-height: var(--control-h); border-color: transparent; color: var(--accent-text); font-size: 14px; padding: 0; }
+[data-testid="chat-game"] { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3); border-radius: var(--r-2); background: var(--panel); }
+[data-testid="chat-game"] > p { margin: 0; font-size: 14px; font-weight: 600; }
+[data-testid="chat-game"] .ui-button { font-size: 14px; }

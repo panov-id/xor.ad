@@ -8,6 +8,8 @@ import type { Client } from "../../../depth/core/client.ts";
 import { Departure as Leaving, type MoveState } from "../../../depth/core/transfer_move.ts";
 import { pinRefusal, say } from "../api/me.ts";
 import { ENDINGS, MOVE_POLL_MS, useEvery } from "../api/transfer.ts";
+import { Button } from "../ui/Button.tsx";
+import "./talk.css";
 
 export function Departure({ client, onBack, onGone }: { client: Client; onBack: () => void; onGone: () => void }) {
   const [pin, setPin] = useState("");
@@ -65,19 +67,19 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
   const ending = ENDINGS[state];
   return (
     <main className="screen departure" data-screen="departure" data-state={out ? state : "start"}>
-      <header><h1>{say(state === "approved" ? "move.doneTitle" : "move.title")}</h1></header>
+      <header className="ui-header ui-header-rule"><h1 className="ui-header-title">{say(state === "approved" ? "move.doneTitle" : "move.title")}</h1></header>
       {state === "approved"
         ? (
           <>
             <p data-testid="move-done">{say("move.done")}</p>
-            <button type="button" className="primary" onClick={onGone} data-testid="move-exit">{say("common.back")}</button>
+            <Button kind="primary" type="button" onClick={onGone} data-testid="move-exit">{say("common.back")}</Button>
           </>
         )
         : ending
         ? (
           <>
             <p data-testid="move-ending">{say(ending)}</p>
-            <button type="button" onClick={onBack} data-testid="move-back">{say("common.back")}</button>
+            <Button kind="secondary" type="button" onClick={onBack} data-testid="move-back">{say("common.back")}</Button>
           </>
         )
         : !out
@@ -89,8 +91,8 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
               {say("pin.current")}
               <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="move-pin" />
             </label>
-            <button type="button" className="primary" disabled={pin.length !== 6 || busy} onClick={() => void open()} data-testid="move-go">{say("move.go")}</button>
-            <button type="button" onClick={onBack} data-testid="move-back">{say("common.back")}</button>
+            <Button kind="primary" type="button" disabled={pin.length !== 6 || busy} onClick={() => void open()} data-testid="move-go">{say("move.go")}</Button>
+            <Button kind="secondary" type="button" onClick={onBack} data-testid="move-back">{say("common.back")}</Button>
           </>
         )
         : state === "claimed" && out.claimant
@@ -104,8 +106,8 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
             </dl>
             <p className="muted">{say("move.checkAsk")}</p>
             <p className="muted">{say("move.leaves")}</p>
-            <button type="button" className="primary" disabled={busy} onClick={() => void decide(true)} data-testid="move-yes">{say("move.yes")}</button>
-            <button type="button" disabled={busy} onClick={() => void decide(false)} data-testid="move-no">{say("move.no")}</button>
+            <Button kind="primary" type="button" disabled={busy} onClick={() => void decide(true)} data-testid="move-yes">{say("move.yes")}</Button>
+            <Button kind="secondary" type="button" disabled={busy} onClick={() => void decide(false)} data-testid="move-no">{say("move.no")}</Button>
           </>
         )
         : (
@@ -114,7 +116,7 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
             <p className="muted">{say("move.codeWhere")}</p>
             <p className="muted">{say("move.codeLife", { n: left })}</p>
             <p className="muted">{say("move.nobody")}</p>
-            <button type="button" disabled={busy} onClick={() => void decide(false)} data-testid="move-stop">{say("move.stop")}</button>
+            <Button kind="secondary" type="button" disabled={busy} onClick={() => void decide(false)} data-testid="move-stop">{say("move.stop")}</Button>
           </>
         )}
       {error && <p className="error" data-testid="error">{error}</p>}

@@ -182,7 +182,7 @@ does not apply.
 
 ## 5. The arguable part: ephemerality against the duty to look into it
 
-A message lives four hours and twenty minutes and is then **deleted**, not
+A message lives 4 hours 20 minutes and is then **deleted**, not
 hidden. A notice may arrive later — there is nothing left to remove, yet we still
 owe the notifier an answer and must be able to show what the decision rested on.
 

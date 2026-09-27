@@ -157,28 +157,44 @@ UNIT_WORDS = (
 )
 UNIT_ALT = "|".join(f"(?P<{name}>{words})" for name, words in UNIT_WORDS)
 UNIT_ANY = "|".join(words for _, words in UNIT_WORDS)
-# «60 в минуту», «60 per minute», «60 a minute», «60/min» — a rate, also with
-# one word between («50 промахов за час», «50 misses an hour») that is not a
-# unit itself: «20 минут / час» is a list, not a rate. "/" counts only right
-# after the number. A number is never read out of a decimal («85.5 ч») or out
-# of a ratio («14/600»); the plain
-# «30 дней» — a term, and «a 260-minute chat» the same as «260 минут»; «15 %» —
-# a share.
-UNIT_FIGURE = re.compile(
-    rf"(?<![\d.,/])\b(?P<n>\d+)(?:\s*-\s*|\s*)"
-    rf"(?:(?P<rate>/|(?:(?!(?:{UNIT_ANY})\b)[^\W\d]+\s+)?(?:в|за|per|an?)\s+))?(?:{UNIT_ALT})(?![\w])"
-    r"|\b(?P<pn>\d+)\s*%",
+# A rate: «60 в минуту», «60 per minute», «60 a minute», «60/мин» — one word
+# may stand between («50 промахов за час», «50 misses an hour»), never a unit
+# itself («20 минут / час» is a list). A rate's unit takes one form: after «в»
+# or «за», the accusative singular — «в секундах» is "in seconds", not a rate,
+# and «429 несёт … в секундах» read as one was noise (D5).
+RATE_WORDS = (
+    ("min", r"минуту|мин|minute|min"),
+    ("s", r"секунду|сек|second|sec"),
+    ("h", r"час|ч|hour|h"),
+    ("d", r"сутки|день|day"),
+    ("w", r"неделю|week"),
+    ("mo", r"месяц|month"),
+)
+RATE_ALT = "|".join(f"(?P<{name}>{words})" for name, words in RATE_WORDS)
+# A term: «30 дней», «a 260-minute chat» — the unit right after the number.
+# A number is never read out of a decimal («85.5 ч») or a ratio («14/600»).
+EDGE = r"(?<![\d.,/])\b"
+RATE_FIGURE = re.compile(
+    rf"{EDGE}(?P<n>\d+)\s*(?:/\s*|(?:(?!(?:{UNIT_ANY})\b)[^\W\d]+\s+)?(?:в|за|per|an?)\s+)(?:{RATE_ALT})(?!\w)",
     re.IGNORECASE,
 )
+TERM_FIGURE = re.compile(rf"{EDGE}(?P<n>\d+)(?:\s*-\s*|\s*)(?:{UNIT_ALT})(?!\w)", re.IGNORECASE)
+# «≤10s», «~6с»: seconds glued to a short number, in either alphabet. Not after three digits — «404s» is
+# the plural of an answer code — and not with a space, which "135 s" of a table
+# is not.
+GLUED_SECONDS = re.compile(r"(?<![\w.,/])(?P<n>\d{1,2})[sс]\b")
+SHARE = re.compile(r"\b(?P<n>\d+)\s*%")
 
 
 def unit_figures(text):
-    for match in UNIT_FIGURE.finditer(text):
-        if match["pn"]:
-            yield f"{match['pn']}%"
-            continue
-        unit = next(name for name, _ in UNIT_WORDS if match[name])
-        yield f"{match['n']}/{unit}" if match["rate"] else f"{match['n']} {unit}"
+    for match in RATE_FIGURE.finditer(text):
+        yield f"{match['n']}/{next(name for name, _ in RATE_WORDS if match[name])}"
+    for match in TERM_FIGURE.finditer(text):
+        yield f"{match['n']} {next(name for name, _ in UNIT_WORDS if match[name])}"
+    for match in GLUED_SECONDS.finditer(text):
+        yield f"{match['n']} s"
+    for match in SHARE.finditer(text):
+        yield f"{match['n']}%"
 
 
 def figures(path):

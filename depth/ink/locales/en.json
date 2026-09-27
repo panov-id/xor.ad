@@ -303,5 +303,14 @@
   "board.to": "to",
   "table.toBoard": "to the board",
   "table.rematch": "play again",
-  "table.acceptRematch": "accept the game"
+  "table.acceptRematch": "accept the game",
+  "chat.game": "game",
+  "game.title": "game",
+  "game.none": "no game yet — pick one to offer",
+  "game.waiting": "waiting for an answer",
+  "game.offered": "you are offered: {game}",
+  "game.theirTurn": "{name}'s turn",
+  "game.accept": "accept",
+  "game.decline": "decline",
+  "game.offerArrived": "a game is offered — open «game»"
 }

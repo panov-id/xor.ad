@@ -418,6 +418,13 @@ export class Client {
     return this.#call<T>(method, path, body);
   }
 
+  // A chat's game (GC2; protocol §4.7): /chats/<id>/game and its own segments
+  // only, by the same rule as tableCall — a path that leaves the game is refused.
+  gameCall<T>(method: string, path: string, body?: unknown): Promise<Answer<T>> {
+    if (!/^\/chats\/[^/.%][^/%]*\/game(\/[^/.%][^/%]*)*$/.test(path)) throw new Error("gameCall is for /chats/:id/game only");
+    return this.#call<T>(method, path, body);
+  }
+
   async consent(matchId: string): Promise<Answer<{ state: string; chat_id?: string }>> {
     const long = this.#longKey();
     const held = this.#ephemeral.get(matchId) ?? { eph: await Ephemeral.generate(), epoch: 0 };

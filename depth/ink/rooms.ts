@@ -5,7 +5,7 @@
 // off the screen. "Compared" lives until the process exits, like everything
 // else here — nothing about a conversation is written to disk (§8.13).
 
-import { createElement as h, useEffect, useRef, useState } from "react";
+import { createElement as h, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Client, InboxEvents, Liked as LikedCard, Statement } from "../core/client.ts";
@@ -14,6 +14,8 @@ import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
 import { afterClose, reconnectDelay } from "../core/reconnect.ts";
 import type { Place } from "./screens.ts";
+import { ChatGames, isGameFrame } from "../core/chat_games.ts";
+import { ChatGame } from "./chat_game.ts";
 
 // 4 · a phrase. The counter shows the number this client documents (146);
 // the node's own limit is what actually refuses (§8.3), and reading it from
@@ -322,6 +324,13 @@ export function Chat(
   const [changed, setChanged] = useState(false);
   const [blocking, setBlocking] = useState(false);
   const [peerAway, setPeerAway] = useState(false);
+  // The chat's game (GC2): the panel, and a tick that moves on every board or
+  // proposal frame so the panel reads the game again; an offer from the other
+  // side is marked while the panel is shut.
+  const [gameOpen, setGameOpen] = useState(false);
+  const [gameTick, setGameTick] = useState(0);
+  const [gameOffered, setGameOffered] = useState(false);
+  const games = useMemo(() => new ChatGames(client), [client]);
   const [span, setSpan] = useState<Span>((SPANS as readonly number[]).includes(startSpan ?? 0) ? startSpan as Span : 60);
   // When the chat ends for me: my last own message plus my span. The node
   // counts the same way and sends nothing (§5), so the screen keeps the clock.
@@ -431,6 +440,12 @@ export function Chat(
             setPeerAway(true);
             continue;
           }
+          if (isGameFrame(frame)) {
+            setGameTick((t) => t + 1);
+            const offer = frame.type === "proposal" ? frame.data as { mine?: boolean } | null : null;
+            if (offer && offer.mine === false) setGameOffered(true);
+            continue;
+          }
           if (frame.type !== "message") continue;
           setPeerAway(false);
           const { id, ciphertext } = frame.data as { id: string; ciphertext: string };
@@ -530,9 +545,20 @@ export function Chat(
     matched ? h(Text, { dimColor: true }, `✓ ${say("chat.matched")}`) : null,
     blocking ? h(Text, { color: "red" }, `${say("block.confirm")} ${say("block.what")}`) : null,
     peerAway ? h(Text, { color: "yellow" }, say("chat.peerAway")) : null,
+    gameOffered && !gameOpen ? h(Text, { color: "yellow" }, say("game.offerArrived")) : null,
+    gameOpen
+      ? h(
+        Box,
+        { borderStyle: "single", paddingX: 1 },
+        h(ChatGame, {
+          say, games, chatId, name, tick: gameTick, active: gameOpen && !showCode,
+          onClose: () => setGameOpen(false), onError,
+        }),
+      )
+      : null,
     h(Text, { dimColor: true }, `${say("chat.counter", { used: [...draft].length, limit })} · ${say("chat.noHistory")}`),
     h(Form, {
-      active: !showCode,
+      active: !showCode && !gameOpen,
       fields: [{ key: "draft", label: ">", value: draft }],
       onChange: (_key, value) => setDraft(value.slice(0, limit)),
       actions: [
@@ -542,10 +568,16 @@ export function Chat(
         { key: "end", label: say("chat.end") },
         { key: "block", label: say("block.item") },
         { key: "back", label: say("common.back") },
+        // Last, so the rows before it keep their places (GC2).
+        { key: "game", label: say("chat.game") },
       ],
       onPick: (key) => {
         if (key === "back") return onBack();
         if (key === "code") return void openCode();
+        if (key === "game") {
+          setGameOffered(false);
+          return setGameOpen(true);
+        }
         if (key === "span") {
           const next = SPANS[(SPANS.indexOf(span) + 1) % SPANS.length];
           return void client.setChatSpan(chatId, next)

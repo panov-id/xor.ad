@@ -3641,6 +3641,7 @@ paths:
                 required: [state]
                 properties:
                   state: {type: string, enum: [approved]}
+                  recovery_wrapped_key: {type: string, description: "The long key under the paper code, as POST /recovery/claim answers it: the new device keeps it to reissue the code (finding T1, 2026-09-27). Only here, signed — never on the unsigned state route.", x-description-ru: "Длинный ключ под бумажным кодом, как его отдаёт POST /recovery/claim: новое устройство хранит его для перевыпуска кода (находка T1, 27.09.2026). Только здесь, под подписью, — никогда на неподписанном маршруте состояния."}
         "400": {$ref: "#/components/responses/BadVersion"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/Conflict"}

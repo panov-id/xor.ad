@@ -153,6 +153,10 @@ if [ "$with_tests" = 1 ]; then
   echo
   echo "ПРОБЫ ВОРОТ"
   run test-design-palettes          bash "$here/test_design-palettes.sh"
+  # Веб против листов (WD6): съёмка на своём стенде, доля отличий — храповиком
+  # по scripts/design/web-design-baseline.tsv; проба ломает отступ на 8.
+  run check-web-design          bash "$here/check-web-design.sh" --shoot
+  run test_check-web-design     bash "$here/test_check-web-design.sh"
   run_in_docker test_check-design-text    "$here/test_check-design-text.sh"
   run_in_docker test_check-design-spacing "$here/test_check-design-spacing.sh"
   run_in_docker test_check-design-grid "$here/test_check-design-grid.sh"

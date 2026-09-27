@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, useKeys } from "./parts.ts";
+import { Board } from "./table_boards.ts";
 import type { Room } from "../core/client.ts";
 import {
   applyFrame, type BoardClass, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
@@ -35,7 +36,12 @@ export function Table(
   const free = dots ? freeEdges(dots) : [];
   const [at, setAt] = useState(0);
   const edge = free.length ? free[Math.min(at, free.length - 1)] : undefined;
-  useKeys((input) => {
+  // The other classes' boards have controls of their own (table_boards.ts):
+  // tab hands the arrows between the board and the table's row.
+  const other = !!board && !dots && board.state && Object.keys(board.state).some((k) => ["deck", "word", "free", "grid", "dice", "physics"].includes(k));
+  const [onBoard, setOnBoard] = useState(false);
+  useKeys((input, key) => {
+    if (other && key.tab) return setOnBoard((b) => !b);
     if (!free.length) return;
     if (input === "]") setAt((i) => (Math.min(i, free.length - 1) + 1) % free.length);
     if (input === "[") setAt((i) => (Math.min(i, free.length - 1) - 1 + free.length) % free.length);
@@ -67,6 +73,7 @@ export function Table(
           : `${say("table.turn")}: ${turn.name ?? "—"} · ${turn.secondsLeft} ${say("table.seconds")}`),
         score ? h(Text, null, `${say("table.score")}: ${score}`) : null,
         ...(dots ? drawDots(dots, turn.mine ? edge : undefined).map((row, i) => h(Text, { key: `d${i}` }, row)) : []),
+        other ? h(Board, { say, view, onMove: turn.mine ? onMove : undefined, active: onBoard }) : null,
         ...moves.slice(-5).map((m, i) =>
           h(Text, { key: `m${i}`, dimColor: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : JSON.stringify(m.move)}`)
         ),
@@ -81,8 +88,10 @@ export function Table(
     ),
     h(Menu, {
       actions,
+      active: !onBoard,
       onPick: (key) => key === "move" && edge ? onMove?.({ edge }) : onPick(key as TableAction),
-      hint: dots ? `[ ] ${say("table.edge")} · ${say("common.rowActions")}` : say("common.rowActions"),
+      hint: dots ? `[ ] ${say("table.edge")} · ${say("common.rowActions")}`
+        : other ? `tab ${say("table.toBoard")} · ${say("common.rowActions")}` : say("common.rowActions"),
     }),
   );
 }

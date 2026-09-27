@@ -110,6 +110,30 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.equal(left, 1, "4005 did not leave the table");
     app.unmount();
   }],
+  ["deck: one's own hand as cards, the others' as a number; tab to the board, a card played on one's turn only", async () => {
+    const moves: unknown[] = [];
+    const deckView = (turn: number) => view({
+      class: "deck" as never,
+      board: {
+        seq: 2, turn, score: {}, expires_at: NOW + 30,
+        state: { deck: { hands: { "1": { count: 5 }, "2": ["7♠", "Q♥"] }, stock: { count: 20 }, played: ["9♣"] } },
+      },
+    });
+    const app = render(h(Table, { say, view: deckView(2), onPick: () => {}, onMove: (m: unknown) => moves.push(m), now: NOW * 1000 }));
+    await settle();
+    const frame = app.lastFrame()!;
+    assert.match(frame, /на столе: 9♣/);
+    assert.match(frame, /\[7♠\] \[Q♥\]/, "one's own hand is not shown as cards");
+    assert.match(frame, /Аня: 5/, "the other's hand is not shown as a number");
+    for (const k of ["\t", "\u001B[C", "\r"]) { app.stdin.write(k); await settle(); }
+    assert.deepEqual(moves, [{ play: "Q♥" }], "the card picked was not played");
+    app.unmount();
+    const theirs = render(h(Table, { say, view: deckView(1), onPick: () => {}, onMove: (m: unknown) => moves.push(m), now: NOW * 1000 }));
+    await settle();
+    for (const k of ["\t", "\r"]) { theirs.stdin.write(k); await settle(); }
+    assert.equal(moves.length, 1, "a card went out on another's turn");
+    theirs.unmount();
+  }],
   ["setting a table sends the class, set, seats, point and name, and opens the table it got", async () => {
     const sent: unknown[] = [];
     let opened: string | null = null;

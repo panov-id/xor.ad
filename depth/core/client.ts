@@ -388,6 +388,16 @@ export class Client {
     return this.#call("DELETE", `/feed/${encodeURIComponent(phraseId)}/like`);
   }
 
+  // POST /offers/:id/complaints (O1d): the discount was not given. Private;
+  // the e-mail is the only way to answer. 202 {id, counts_towards_autohide}
+  // — the node's answer; the contract lists no 202 yet.
+  complain(offerId: string, email: string, text?: string): Promise<Answer<{ id: string; counts_towards_autohide: boolean }>> {
+    return this.#call("POST", `/offers/${encodeURIComponent(offerId)}/complaints`, {
+      notifier_email: email,
+      ...(text ? { text } : {}),
+    });
+  }
+
   // POST /matches/:id/consent — waiting, or agreed with the chat_id it opened
   // (step 5). Since 2026-09-22 it carries this side's ephemeral half for the
   // chat, signed by the long key (§8.13); the pair is kept here, in memory,

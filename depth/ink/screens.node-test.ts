@@ -1976,3 +1976,27 @@ test("a like on an offer while one's own name waits shows the §3 line, and the 
   assert.deepEqual(said, ["Имя не прошло проверку — предложение не отправлено.\nПоправьте имя, и оно уйдёт само, пока оффер жив."], "the §3 wording was not shown for a like that waits on the name");
   app.unmount();
 });
+
+import { Complaint } from "./screens/complaint.ts";
+
+test("a complaint about an offer goes only with an e-mail, and says \"sent\" once the node takes it", async () => {
+  const sent: Array<[string, string, string | undefined]> = [];
+  const client = {
+    complain: (offer: string, email: string, text?: string) => {
+      sent.push([offer, email, text]);
+      return Promise.resolve({ status: 202, body: { id: "c1", counts_towards_autohide: true } });
+    },
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Complaint, { say, client: client as any, offerId: "o1", onBack: () => {} }));
+  await settle();
+  assert.match(app.lastFrame()!, /жалоба: скидку не дали/);
+  // Without an e-mail "send" stays greyed: down past both fields, enter.
+  await type(app, DOWN, DOWN, ENTER);
+  await settle();
+  assert.equal(sent.length, 0, "a complaint went out without an e-mail");
+  await type(app, UP, UP, "ann@example.org", DOWN, "не дали скидку", DOWN, ENTER);
+  await waitFor(shows(app, /отправлено/), 3);
+  assert.deepEqual(sent, [["o1", "ann@example.org", "не дали скидку"]]);
+  app.unmount();
+});

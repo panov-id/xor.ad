@@ -254,5 +254,12 @@
   "table.notYourTurn": "сейчас не ваш ход",
   "table.stale": "доска успела измениться — посмотрите ещё раз",
   "table.refused": "не принято",
-  "table.notStarted": "партия ещё не началась"
+  "table.notStarted": "партия ещё не началась",
+  "complaint.title": "жалоба: скидку не дали",
+  "complaint.private": "видят только модераторы; заведение узнает, что жалоба пришла, — не от кого",
+  "complaint.email": "почта для ответа",
+  "complaint.text": "что случилось (необязательно)",
+  "complaint.send": "отправить",
+  "complaint.sent": "отправлено",
+  "complaint.refused": "не принято"
 }

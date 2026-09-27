@@ -5,8 +5,8 @@
 // still shows the offer, nothing tells them.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
+import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
 
-const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 
 async function register(page: Page, name: string) {
   await page.goto("/");
@@ -48,32 +48,29 @@ test("not now is this side's alone and can be taken back; a device with no wrap 
   const anya = await personIn(a, "Аня");
   const boris = await personIn(b, "Борис");
 
-  const said = await viaClient<{ status: number; body: { id: string } }>(anya, "say", { text: "кто на набережную?", mode: "alone", ...CIRCLE });
-  expect(said.status).toBe(200);
-  const saidB = await viaClient<{ status: number; body: { id: string } }>(boris, "say", { text: "гуляю у залива", mode: "alone", ...CIRCLE });
-  expect(saidB.status).toBe(200);
-  await viaClient(anya, "like", saidB.body.id);
-  const back = await viaClient<{ status: number; body: { state: string; match_id?: string } }>(boris, "like", said.body.id);
-  expect(back.body.state).toBe("matched");
-  const matchId = back.body.match_id!;
+  const run = Date.now().toString(36);
+  const aText = `кто на набережную? ${run}`;
+  const bText = `гуляю у залива ${run}`;
+  await writePhrase(anya, aText);
+  await writePhrase(boris, bText);
+  expect(await likeByCard(anya, bText)).toBe("liked");
+  expect(await likeByCard(boris, aText)).toBe("matched");
 
-  // B says "not now": the offer leaves B's inbox and stays in A's.
-  await boris.getByTestId("nav-inbox").click();
-  await boris.locator(`[data-testid="match"][data-id="${matchId}"] [data-testid="open-match"]`).click();
+  // B says "not now": the offer stays in A's inbox, nothing tells her.
+  const matchId = await openMatch(boris, "Аня");
   await boris.getByTestId("not-now").click();
   await expect(boris.getByTestId("not-now")).toHaveText("вернуть");
   await expect(boris.getByTestId("talk")).toBeDisabled();
-  await boris.getByTestId("back").click();
-  await boris.getByTestId("refresh").click();
-  await expect(boris.locator('[data-testid="match"]')).toHaveCount(0, { timeout: 15000 });
   await anya.getByTestId("nav-inbox").click();
   await expect(anya.locator(`[data-testid="match"][data-id="${matchId}"]`)).toBeVisible({ timeout: 15000 });
   await expect(anya.locator(`[data-testid="match"][data-id="${matchId}"]`)).toContainText("предложение");
 
-  // Taken back through the client (the card is gone from B's inbox by design;
-  // the screen's "вернуть" is the same call): the offer is back.
-  const undone = await viaClient<{ status: number }>(boris, "undoDecline", matchId);
-  expect(undone.status).toBe(204);
+  // Taken back on the same screen with "вернуть" (once B leaves it, the
+  // declined card is gone from B's inbox by design): the offer is back.
+  await boris.getByTestId("not-now").click();
+  await expect(boris.getByTestId("not-now")).not.toHaveText("вернуть", { timeout: 15000 });
+  await expect(boris.getByTestId("talk")).toBeEnabled();
+  await boris.getByTestId("back").click();
   await boris.getByTestId("refresh").click();
   await expect(boris.locator(`[data-testid="match"][data-id="${matchId}"]`)).toBeVisible({ timeout: 15000 });
 
@@ -91,6 +88,7 @@ test("not now is this side's alone and can be taken back; a device with no wrap 
   await anya.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(anya.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });
 
+  // A probe of the node's stored state (no wrap for B's session): no person does this, no screen shows it.
   const noWrap = await viaClient<{ status: number; body: { error?: { code?: string } } }>(boris, "request", "GET", `/chats/${chatId}/keys`);
   expect(noWrap.status).toBe(404);
   expect(noWrap.body.error?.code).toBe("no_wrap");

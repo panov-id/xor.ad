@@ -4,12 +4,12 @@
 // then the second comes back as a new tab would — the tab's id gone, the
 // vault and the PIN the way in — and the conversation opens from the wrap the
 // node kept (GET /chats/:id/keys 200, no PUT): the wrapping pair out of the
-// seal is the one the wrap was made for. The phrase and the likes have no
-// screen; they go through the page's own client (window.xor), as chat.spec.
+// seal is the one the wrap was made for. The phrase and the likes go through
+// the composer and the card, as chat.spec.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
+import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
 
-const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 const PIN = "246813";
 
 function watch(page: Page, who: string) {
@@ -40,13 +40,6 @@ async function register(page: Page, name: string) {
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
 }
 
-const viaClient = <T>(page: Page, fn: string, ...args: unknown[]) =>
-  page.evaluate(([f, a]) => {
-    const xor = (globalThis as unknown as { xor?: { client: Record<string, (...x: unknown[]) => Promise<unknown>> } }).xor;
-    if (!xor) throw new Error("the page exposes no client");
-    return xor.client[f](...(a as unknown[])) as Promise<T>;
-  }, [fn, args] as const);
-
 async function personIn(context: BrowserContext, name: string): Promise<Page> {
   const page = await context.newPage();
   watch(page, name);
@@ -61,23 +54,20 @@ test("a conversation opens again after a cold start: the PIN raises the same wra
   const anya = await personIn(a, "Аня");
   const boris = await personIn(b, "Борис");
 
-  const said = await viaClient<{ status: number; body: { id: string } }>(anya, "say", { text: "гуляю у реки, если кто рядом", mode: "alone", ...CIRCLE });
-  expect(said.status, JSON.stringify(said.body)).toBe(200);
-  const saidB = await viaClient<{ status: number; body: { id: string } }>(boris, "say", { text: "иду к реке", mode: "alone", ...CIRCLE });
-  expect(saidB.status, JSON.stringify(saidB.body)).toBe(200);
-  await viaClient(anya, "like", saidB.body.id);
-  const back = await viaClient<{ status: number; body: { state: string; match_id?: string } }>(boris, "like", said.body.id);
-  expect(back.body.state, JSON.stringify(back.body)).toBe("matched");
-  const matchId = back.body.match_id!;
+  const run = Date.now().toString(36);
+  const aText = `гуляю у реки, если кто рядом ${run}`;
+  const bText = `иду к реке ${run}`;
+  await writePhrase(anya, aText);
+  await writePhrase(boris, bText);
+  expect(await likeByCard(anya, bText)).toBe("liked");
+  expect(await likeByCard(boris, aText)).toBe("matched");
 
   // Both agree: A first and waits, B second and the chat opens.
-  await anya.getByTestId("nav-inbox").click();
-  await anya.locator(`[data-testid="match"][data-id="${matchId}"] [data-testid="open-match"]`).click({ timeout: 15000 });
+  const matchId = await openMatch(anya, "Борис");
   await anya.getByTestId("talk").click();
   await expect(anya.getByTestId("waiting")).toBeVisible({ timeout: 15000 });
   await anya.getByTestId("to-inbox").click();
-  await boris.getByTestId("nav-inbox").click();
-  await boris.locator(`[data-testid="match"][data-id="${matchId}"] [data-testid="open-match"]`).click({ timeout: 15000 });
+  expect(await openMatch(boris, "Аня")).toBe(matchId);
   await boris.getByTestId("talk").click();
   await expect(boris.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   const chatId = (await boris.locator('[data-testid="chat"]').getAttribute("data-id"))!;

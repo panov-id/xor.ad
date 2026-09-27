@@ -3,12 +3,12 @@
 // and opens on the other side — and the second person reloads the page, comes
 // back to the inbox with the same session, and the conversation opens again
 // from the wrap the node kept (GET /chats/:id/keys → unwrapConversation),
-// with the peer's next line readable. What has no screen in W3 — the phrase
-// and the likes — is driven through the page's own client (window.xor).
+// with the peer's next line readable. The phrase and the likes go through the
+// composer and the card, as a person makes them.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
+import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
 
-const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 
 function watch(page: Page, who: string) {
   page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log(`[${who} ${m.type()}] ${m.text()}`); });
@@ -39,7 +39,7 @@ async function register(page: Page, name: string) {
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
 }
 
-// The page's own client: a phrase, a like — no screen for them in W3.
+// The page's own client, for the one step no screen has yet (the close by hand).
 const viaClient = <T>(page: Page, fn: string, ...args: unknown[]) =>
   page.evaluate(([f, a]) => {
     const xor = (globalThis as unknown as { xor?: { client: Record<string, (...x: unknown[]) => Promise<unknown>> } }).xor;
@@ -62,23 +62,18 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   const boris = await personIn(b, "Борис");
 
   // Two phrases in the same circle, published by the rules at once (FEED_VERDICT=rules).
-  const said = await viaClient<{ status: number; body: { id: string; state: string } }>(anya, "say", { text: "гуляю у реки, если кто рядом", mode: "alone", ...CIRCLE });
-  expect(said.status, JSON.stringify(said.body)).toBe(200);
-  const saidB = await viaClient<{ status: number; body: { id: string; state: string } }>(boris, "say", { text: "иду к реке", mode: "alone", ...CIRCLE });
-  expect(saidB.status, JSON.stringify(saidB.body)).toBe(200);
+  const run = Date.now().toString(36);
+  const aText = `гуляю у реки, если кто рядом ${run}`;
+  const bText = `иду к реке ${run}`;
+  await writePhrase(anya, aText);
+  await writePhrase(boris, bText);
 
   // A likes B's phrase, B likes A's: the match.
-  const liked = await viaClient<{ status: number; body: { state: string } }>(anya, "like", saidB.body.id);
-  expect(liked.body.state).toBe("liked");
-  const back = await viaClient<{ status: number; body: { state: string; match_id?: string } }>(boris, "like", said.body.id);
-  expect(back.body.state, JSON.stringify(back.body)).toBe("matched");
-  const matchId = back.body.match_id!;
+  expect(await likeByCard(anya, bText)).toBe("liked");
+  expect(await likeByCard(boris, aText)).toBe("matched");
 
   // Both see the offer to talk in the inbox; A agrees first and waits, B agrees and the chat opens.
-  await anya.getByTestId("nav-inbox").click();
-  await expect(anya.locator(`[data-testid="match"][data-id="${matchId}"]`)).toBeVisible({ timeout: 15000 });
-  await anya.locator(`[data-testid="match"][data-id="${matchId}"] [data-testid="open-match"]`).click();
-  await expect(anya.locator('[data-screen="match"]')).toBeVisible();
+  const matchId = await openMatch(anya, "Борис");
   await anya.getByTestId("talk").click();
   await expect(anya.getByTestId("waiting")).toBeVisible({ timeout: 15000 });
   // A line before the second agrees waits on A's device, unsealed.
@@ -87,8 +82,7 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   await expect(anya.getByTestId("queued").locator("li")).toHaveCount(1);
   await anya.getByTestId("to-inbox").click();
 
-  await boris.getByTestId("nav-inbox").click();
-  await boris.locator(`[data-testid="match"][data-id="${matchId}"] [data-testid="open-match"]`).click();
+  expect(await openMatch(boris, "Аня")).toBe(matchId);
   await expect(boris.locator('[data-screen="match"]')).toContainText("Уже согласились и ждут вас");
   await boris.getByTestId("talk").click();
   // Agreed: back in the inbox, the conversation is there.
@@ -160,6 +154,7 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   // ticket refused on the way back in: no ticket is bought after the close.
   const ticketsAfterClose: number[] = [];
   boris.on("response", (r) => { if (new URL(r.url()).pathname === `/chats/${chatId}/ticket`) ticketsAfterClose.push(r.status()); });
+  // No screen closes a conversation by hand yet (web/src/screens/Chat.tsx has no such control) — listed to the coordinator; until then the spec closes it through the client.
   const closed = await viaClient<{ status: number; body: { state: string } }>(anya, "closeChat", chatId);
   expect(closed.status).toBe(200);
   await expect(boris.getByTestId("tombstone")).toBeVisible({ timeout: 20000 });

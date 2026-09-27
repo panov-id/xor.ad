@@ -7,8 +7,8 @@
 // says so; here the screens do the asking and the agreeing.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
+import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
 
-const CIRCLE = { lat: 41.9, lon: 12.5, radius: 1000 as const };
 
 async function register(page: Page, name: string) {
   await page.goto("/");
@@ -45,6 +45,9 @@ async function personIn(context: BrowserContext, name: string): Promise<Page> {
 }
 
 async function openChat(page: Page) {
+  // Through the feed: a tab pressed on its own screen does not read it again,
+  // and A waits on the inbox she read before B agreed.
+  await page.getByTestId("nav-feed").click();
   await page.getByTestId("nav-inbox").click();
   await expect(page.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   await page.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
@@ -59,18 +62,26 @@ test("a side whose keys do not open asks for new ones, the other agrees on the s
   const anya = await personIn(a, "Аня");
   const boris = await personIn(b, "Борис");
 
-  const said = await viaClient<{ status: number; body: { id: string } }>(anya, "say", { text: "у моста через час", mode: "alone", ...CIRCLE });
-  expect(said.status).toBe(200);
-  const saidB = await viaClient<{ status: number; body: { id: string } }>(boris, "say", { text: "иду к мосту", mode: "alone", ...CIRCLE });
-  expect(saidB.status).toBe(200);
-  await viaClient(anya, "like", saidB.body.id);
-  const back = await viaClient<{ status: number; body: { state: string; match_id?: string } }>(boris, "like", said.body.id);
-  expect(back.body.state).toBe("matched");
-  const consentA = await anya.evaluate((m) => (globalThis as unknown as { xor: Xor }).xor.keys.consent(m) as Promise<{ body: { state: string } }>, back.body.match_id!);
-  expect(consentA.body.state).toBe("waiting");
-  const consentB = await boris.evaluate((m) => (globalThis as unknown as { xor: Xor }).xor.keys.consent(m) as Promise<{ body: { state: string; chat_id?: string } }>, back.body.match_id!);
-  expect(consentB.body.state).toBe("agreed");
-  const chatId = consentB.body.chat_id!;
+  const run = Date.now().toString(36);
+  const aText = `у моста через час ${run}`;
+  const bText = `иду к мосту ${run}`;
+  await writePhrase(anya, aText);
+  await writePhrase(boris, bText);
+  expect(await likeByCard(anya, bText)).toBe("liked");
+  expect(await likeByCard(boris, aText)).toBe("matched");
+  // Both agree on the match screen: A first and waits, B second and the
+  // conversation stands in B's inbox.
+  await openMatch(anya, "Борис");
+  await anya.getByTestId("talk").click();
+  await expect(anya.getByTestId("waiting")).toBeVisible({ timeout: 15000 });
+  await anya.getByTestId("to-inbox").click();
+  await openMatch(boris, "Аня");
+  // B's row knows A agreed before B presses, as chat.spec reads it.
+  await expect(boris.locator('[data-screen="match"]')).toContainText("Уже согласились и ждут вас", { timeout: 15000 });
+  await boris.getByTestId("talk").click();
+  await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 15000 });
+  await expect(boris.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
+  const chatId = (await boris.locator('[data-testid="chat"]').getAttribute("data-id"))!;
 
   // Both open the conversation at epoch 0 and a line goes through.
   await openChat(anya);
@@ -83,12 +94,14 @@ test("a side whose keys do not open asks for new ones, the other agrees on the s
   // B's keys are lost: the pair in memory dropped, the kept wrap replaced by
   // 211 bytes that are not a wrap of anything. A reload then finds keys that
   // do not open.
+  // Setting up a device that lost its keys: no screen drops them, a lost tab does.
   await boris.evaluate((id) => (globalThis as unknown as { xor: Xor }).xor.keys.forget(id), chatId);
   const junk = await boris.evaluate(() => {
     const bytes = crypto.getRandomValues(new Uint8Array(211));
     let s = ""; for (const x of bytes) s += String.fromCharCode(x);
     return btoa(s).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
   });
+  // A deliberate spoiling of the node's stored wrap: no person does this.
   const spoiled = await viaClient<{ status: number }>(boris, "request", "PUT", `/chats/${chatId}/keys`, { epoch: 0, wrapped_key: junk });
   expect(spoiled.status).toBe(200);
   // A reload goes through the vault and the PIN (W1d, SEC-2), then the inbox.

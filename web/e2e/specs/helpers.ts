@@ -60,6 +60,33 @@ export async function writePhrase(page: Page, text: string): Promise<void> {
   await expect(page.getByTestId("sent")).toHaveAttribute("data-state", "published", { timeout: 15000 });
 }
 
+// A like from the card, as a person gives one (W16): the feed read again, the
+// phrase's card opened, "нравится" pressed. Returns what the card said —
+// "liked", or "matched" when the other side liked first.
+export async function likeByCard(page: Page, text: string): Promise<"liked" | "matched"> {
+  await page.getByTestId("nav-inbox").click();
+  await page.getByTestId("nav-feed").click();
+  const card = page.getByTestId("card").filter({ hasText: text });
+  await expect(card).toHaveCount(1, { timeout: 30000 });
+  await card.click();
+  await page.getByTestId("like").click();
+  await expect(page.locator('[data-testid="liked"], [data-testid="matched"]').first()).toBeVisible({ timeout: 15000 });
+  const state = (await page.getByTestId("matched").isVisible()) ? "matched" : "liked";
+  await page.getByTestId("back").click();
+  return state;
+}
+
+// The match with this person, opened from the inbox; its id is the row's.
+export async function openMatch(page: Page, name: string): Promise<string> {
+  await page.getByTestId("nav-inbox").click();
+  const row = page.getByTestId("match").filter({ hasText: name });
+  await expect(row).toHaveCount(1, { timeout: 30000 });
+  const id = (await row.getAttribute("data-id"))!;
+  await row.getByTestId("open-match").click();
+  await expect(page.locator('[data-screen="match"]')).toBeVisible();
+  return id;
+}
+
 // A table from the feed's "new table" (W10), and the one who set it lands at it.
 export async function newTable(page: Page, t: { name: string; kind?: string; set?: string }): Promise<void> {
   await page.getByTestId("new-table").click();

@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
-import { Table, type TableAction } from "./table.ts";
+import { Table, type TableAction, TableRoom } from "./table.ts";
 import { strings } from "./strings.ts";
 import type { TableView } from "../core/tables.ts";
 
@@ -74,6 +74,40 @@ const cases: Array<[string, () => Promise<void>]> = [
     app.stdin.write("\r");
     await settle();
     assert.deepEqual(moved, { edge: "h:1:0" });
+    app.unmount();
+  }],
+  ["live: a line frame shows at once, a seat frame reads the table again, 4005 leaves it", async () => {
+    let reads = 0;
+    let left = 0;
+    let closeWith: (code: number) => void = () => {};
+    const frames: Array<(f: unknown) => void> = [];
+    const queued: unknown[] = [];
+    const room = {
+      closed: new Promise<number>((r) => (closeWith = r)),
+      next: () => queued.length ? Promise.resolve(queued.shift()) : new Promise((r) => frames.push(r)),
+      close: () => {},
+    };
+    const push = (f: unknown) => (frames.length ? frames.shift()!(f) : queued.push(f));
+    const tables = {
+      view: () => { reads++; return Promise.resolve({ status: 200, body: view({ playing: reads === 1 ? 2 : 3 }) }); },
+    };
+    const app = render(h(TableRoom, {
+      say, tables: tables as never, open: () => Promise.resolve(room as never), tableId: "t",
+      onLeave: () => left++, onError: (m: string) => { throw new Error(m); },
+    }));
+    await settle();
+    assert.equal(reads, 1, "the table was not read once on entry");
+    push({ type: "line", seq: 1, data: { id: "l9", seat: 1, kind: "line", text: "ваш ход, Женя", created_at: 9 } });
+    await settle();
+    assert.match(app.lastFrame()!, /ваш ход, Женя/, "a line frame did not show");
+    assert.equal(reads, 1, "a line frame read the table again");
+    push({ type: "seat", seq: 2, data: { playing: 3, watching: 1 } });
+    await settle();
+    assert.equal(reads, 2, "a seat frame did not read the table again");
+    assert.match(app.lastFrame()!, /играют 3/);
+    closeWith(4005);
+    await settle();
+    assert.equal(left, 1, "4005 did not leave the table");
     app.unmount();
   }],
 ];

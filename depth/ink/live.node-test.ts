@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import postgres from "postgres";
+import { ChatGames } from "../core/chat_games.ts";
 import { Client } from "../core/client.ts";
 import { openTable, Tables } from "../core/tables.ts";
 import { newPaperCode } from "../core/paper.ts";
@@ -299,6 +300,34 @@ async function main() {
                              WHERE p.chat_id = ${peerChat.chat_id} AND i.name = 'Аня'`;
     assert.equal(Number(mine?.span), 260, "the span changed on the screen but not on the node");
     out("ok   the chat's own span went to the node");
+
+    // 7a · a game in the conversation against the node (GC2, V10): the other
+    // side proposes dots 2x2, the proposal frame reaches the screen on the
+    // chat's socket, the screen opens "игра" (last in the row) and accepts; the
+    // proposer moves first, and the screen answers with the first free edge.
+    const peerGames = new ChatGames(peer);
+    const chatId = peerChat.chat_id as string;
+    assert.equal((await peerGames.propose(chatId, "dots", "2x2")).status, 204, "the other side could not propose a game");
+    await until(app, /вам предлагают игру/, 20);
+    for (let i = 0; i < 7; i++) await type(app, LEFT);
+    for (let i = 0; i < 6; i++) await type(app, RIGHT);
+    await type(app, ENTER);
+    await until(app, /вам предлагают: dots/, 20);
+    await type(app, ENTER);
+    await until(app, /ходит собеседник/, 20);
+    const opened = await peerGames.view(chatId);
+    assert.equal(opened.body.board?.turn, 1, "the accept from the screen did not start the game with the proposer's move");
+    assert.equal((await peerGames.move(chatId, opened.body.board!.seq, { edge: "h:0:0" })).status, 200, "the other side's move was refused");
+    await until(app, /ваш ход/, 20);
+    await type(app, ENTER);
+    let after = await peerGames.view(chatId);
+    for (let i = 0; i < 50 && after.body.board?.turn !== 1; i++) {
+      await settle(100);
+      after = await peerGames.view(chatId);
+    }
+    const edges = (after.body.board?.state as { dots?: { edges: string[] } }).dots?.edges ?? [];
+    assert.deepEqual(edges.slice().sort(), ["h:0:0", "h:0:1"], "the screen's move did not reach the node");
+    out("ok   a game in the conversation: proposed by the other side, accepted and moved on the screen");
 
     // 8 · the other side ends the conversation: the node closes the room with
     // 4003 and the screen becomes the tombstone (chat §5, protocol §4.4).

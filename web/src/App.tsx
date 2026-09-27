@@ -167,7 +167,7 @@ export function App() {
     case "register":
       return <Register onDone={(client, sealed) => { void registered(client, sealed); }} />;
     case "unlock":
-      return <Unlock record={screen.record} onDone={unlocked} onForget={() => setScreen({ at: "splash" })} />;
+      return <Unlock record={screen.record} onDone={unlocked} onForget={() => setScreen({ at: "splash" })} onRestore={() => setScreen({ at: "restore" })} />;
     case "offer":
       return <Offer code={screen.code} onHome={() => { history.replaceState(null, "", "/"); setScreen({ at: "loading" }); location.reload(); }} />;
     case "feed":

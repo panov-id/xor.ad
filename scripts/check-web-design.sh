@@ -33,10 +33,40 @@ measured="$(docker run --rm -u "$(id -u):$(id -g)" \
   -v "$root/panel/design":/design:ro -v "$shots":/shots:ro -w /tests \
   --entrypoint node panel-tests-runner:latest compare.mjs)"
 
+# The baseline only goes down: each shot keeps the lower of what the baseline
+# holds and what was just measured, share and edge each on its own. Writing the
+# latest values let a shot that wandered up within the slack raise the bar
+# (Register-2 8.48 → 8.55, Cabinet-offers 6.68 → 6.69 on f6205f4). A shot new to
+# the map comes in as measured; a shot measured as missing keeps its line.
 if [ "$mode" = "--write-baseline" ]; then
-  { echo "# shot	share of differing pixels, %	left edge off the sheet, px (scripts/check-web-design.sh --write-baseline, $(date +%d.%m.%Y))"; printf '%s\n' "$measured"; } > "$baseline"
-  echo "✓ база записана: $(grep -vc '^#' "$baseline") кадров → ${baseline#"$root"/}"
-  exit 0
+  python3 - "$baseline" "$(date +%d.%m.%Y)" <<PY
+import os, sys
+path, day = sys.argv[1], sys.argv[2]
+old = {}
+if os.path.isfile(path):
+    for line in open(path, encoding="utf-8"):
+        if line.startswith("#") or not line.strip(): continue
+        shot, share, edge = line.rstrip("\n").split("\t")[:3]
+        old[shot] = (float(share), float(edge))
+rows, lowered, kept = [], 0, 0
+for line in """$measured""".splitlines():
+    parts = line.split("\t")
+    shot = parts[0]
+    if parts[1] == "missing":
+        if shot in old: rows.append((shot, *old[shot])); kept += 1
+        continue
+    now = (float(parts[1]), float(parts[2]))
+    was = old.get(shot, now)
+    low = (min(was[0], now[0]), min(was[1], now[1]))
+    lowered += low != was
+    rows.append((shot, *low))
+with open(path, "w", encoding="utf-8") as f:
+    f.write(f"# shot\tshare of differing pixels, %\tleft edge off the sheet, px (scripts/check-web-design.sh --write-baseline, {day}; only ever lowered)\n")
+    for shot, share, edge in rows:
+        f.write(f"{shot}\t{share:.2f}\t{edge:g}\n")
+print(f"✓ база записана: {len(rows)} кадров, опущено {lowered}, не измерено и сохранено {kept} → {os.path.relpath(path)}")
+PY
+  exit $?
 fi
 [ -f "$baseline" ] || { echo "✗ базы нет: ${baseline#"$root"/} — scripts/check-web-design.sh --write-baseline"; exit 1; }
 

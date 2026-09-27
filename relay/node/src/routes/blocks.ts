@@ -27,7 +27,7 @@ import { base64urlToBytes, sha256hex, sunsetHeader } from "../lib/identity_auth.
 import { checkAll, BLOCK_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
-import { leaveTable, seatedOther } from "../lib/tables.ts";
+import { atOneTable, leaveTable, seatedOther } from "../lib/tables.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 const done = () => new Response(null, { status: 204, headers: sunsetHeader() });
@@ -121,6 +121,9 @@ async function block(req: Request): Promise<Response> {
         [chat, me],
       );
     if (!target) return done();
+    // A block from the feed or a chat parts a shared table too: the blocker
+    // stands up, as with {table, seat} (§6.1; X1, 27.09.2026).
+    if (!table && await atOneTable(run, me, target.other)) await leaveTable(run, me);
 
     // The pair's lock, as the like takes it (routes/likes.ts): without it a like
     // that had passed its block check could write a match after this block had

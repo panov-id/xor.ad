@@ -760,3 +760,76 @@ Deno.test({
     }
   },
 });
+
+// X1 (xor-ad-c4's cross check, 27.09.2026), the two probes as they sent them
+// and a third for a block from a chat. Red on 198716c, green after FX1.
+Deno.test({
+  name: "X1: a ticket spent after its seat is gone opens no room",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const relay = await import("../src/chat/relay.ts");
+    const { a, b, id } = await game();
+    const server = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen() {} }, relay.relayUpgrade);
+    const frames: { type: string; data: Record<string, unknown> }[] = [];
+    try {
+      const token = (await signed(b, "POST", `/tables/${id}/ticket`)).body.ticket as string;
+      assertEquals((await signed(b, "DELETE", `/tables/${id}/seat`)).status, 204);
+      const socket = new WebSocket(`ws://127.0.0.1:${server.addr.port}/chat`, ["xor.p1", `ticket.${token}`]);
+      socket.onmessage = (event) => frames.push(JSON.parse(event.data));
+      socket.onerror = () => {};
+      await new Promise((r) => setTimeout(r, 1500));
+      await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "секрет стола" });
+      const end = Date.now() + 3000;
+      while (Date.now() < end && !frames.some((f) => f.type === "line")) await new Promise((r) => setTimeout(r, 20));
+      assert(!frames.some((f) => f.type === "line"), "a person who stood up still receives the table's lines through a ticket bought while seated");
+      assert(frames.some((f) => f.type === "closed" && f.data.code === 4001), `the stale ticket is not refused as a bad one: ${JSON.stringify(frames)}`);
+      socket.close();
+    } finally {
+      await server.shutdown();
+    }
+  },
+});
+
+Deno.test({
+  name: "X1: a block from the feed stands the blocker up from a shared table",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, id } = await game();
+    const phrase = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+                                  lat_published, lon_published, visible_at, expires_at)
+         VALUES ($1, 'alpha', $2, 'фраза b', 'alone', 'und', 52.52, 13.4, 1000, 52.52, 13.4, now(), now() + interval '3 hours')`,
+      [phrase, b.identity_id],
+    );
+    assertEquals((await signed(a, "POST", "/blocks", { feed: phrase, nonce: nonce() })).status, 204);
+    const seats = await database.queryOrThrow<{ identity: string }>(
+      `SELECT identity FROM table_seats WHERE table_id = $1 AND left_at IS NULL`, [id]);
+    assert(!seats.some((s) => s.identity === a.identity_id), "the blocker stays at the table with the blocked after a block from the feed");
+    assert(seats.some((s) => s.identity === b.identity_id), "the blocked one was stood up instead of the blocker");
+  },
+});
+
+Deno.test({
+  name: "X1: a block from a chat stands the blocker up from a shared table",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const { a, b, id } = await game();
+    const chat = crypto.randomUUID();
+    const [low, high] = [a.identity_id, b.identity_id].sort();
+    await database.queryOrThrow(`INSERT INTO chats (id, pair_key) VALUES ($1, $2)`, [chat, `${low}:${high}:${chat}`]);
+    for (const p of [a, b]) {
+      await database.queryOrThrow(
+        `INSERT INTO chat_participants (chat_id, identity, ephemeral_public_key, ephemeral_signature) VALUES ($1, $2, 'half', 'sig')`,
+        [chat, p.identity_id],
+      );
+    }
+    assertEquals((await signed(b, "POST", "/blocks", { chat, nonce: nonce() })).status, 204);
+    const seats = await database.queryOrThrow<{ identity: string }>(
+      `SELECT identity FROM table_seats WHERE table_id = $1 AND left_at IS NULL`, [id]);
+    assert(!seats.some((s) => s.identity === b.identity_id), "the blocker stays at the table after a block from a chat");
+  },
+});

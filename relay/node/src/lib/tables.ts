@@ -249,6 +249,18 @@ export async function pruneTables(): Promise<number> {
 // Whom `{table, seat}` names, for POST /blocks (§8.9, protocol §4.8): the
 // identity at that live seat, only if the caller sits at the same table and it
 // is not the caller. Null otherwise, and the block route answers 204 anyway.
+// Whether two identities sit at one table right now. A block made from the
+// feed or a chat still parts them there (§6.1: whatever the block came from,
+// the blocker stands up; X1, 27.09.2026).
+export async function atOneTable(run: Query, me: string, other: string): Promise<boolean> {
+  const [row] = await run(
+    `SELECT 1 FROM table_seats mine JOIN table_seats theirs ON theirs.table_id = mine.table_id
+      WHERE mine.identity = $1 AND mine.left_at IS NULL AND theirs.identity = $2 AND theirs.left_at IS NULL`,
+    [me, other],
+  );
+  return !!row;
+}
+
 export async function seatedOther(run: Query, me: string, tableId: string, seatNo: number): Promise<string | null> {
   const [row] = await run<{ other: string }>(
     `SELECT o.identity AS other FROM table_seats o

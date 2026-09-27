@@ -34,3 +34,5 @@
 050_offers.sql	if-not-exists	index offers_redirect_code	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
 050_offers.sql	if-not-exists	index venues_advertiser	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
 051_legal_accept_dated.sql	if-not-exists	index legal_acceptances_once_dated	written before the gate; may already be applied on a box, so not rewritten (B14, 2026-09-26)
+079_rate_limit_hits.sql	number	079_rate_limit_hits.sql	081-083 are 075-077 renamed on 2026-09-28 (VF5) and were never applied on any box or stand kept past a run, so no database holds 081 without 079; git --follow dates them to their old names (wave 4)
+080_moderator_hints.sql	number	080_moderator_hints.sql	the same: 081-083 renamed from 075-077 on 2026-09-28 and applied nowhere, so no database holds 083 without 080 (wave 4)

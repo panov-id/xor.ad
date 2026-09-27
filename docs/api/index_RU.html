@@ -874,15 +874,16 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Источник: <code>relay/node/src/routes/chats.ts</code></p>
 </section>
 <section class="op" id="get-chats--id--game">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-built">построено</span></div>
 <p><strong>Партия после обрыва</strong></p>
 <p>Позиция, чей ход и счёт из кеша партии; без реплик и чужой руки (спека чата §6).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Доска.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Партия глазами этой стороны (27.09.2026).</td><td><a href="#schema-chatgameview"><code>ChatGameView</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game</code><span class="chip s-built">построено</span></div>
 <p><strong>Предложить или сменить игру</strong></p>
 <p>Собеседнику уходит кадр proposal (спека чата §6, экран 18).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -890,17 +891,19 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-gameoffer"><code>GameOffer</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="delete-chats--id--game">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}/game</code><span class="chip s-built">построено</span></div>
 <p><strong>Закончить игру</strong></p>
 <p>Смерть беседы уносит партию каскадом и без этого (chat_games ON DELETE CASCADE).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-answer">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/answer</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/answer</code><span class="chip s-built">построено</span></div>
 <p><strong>Ответить на предложение игры</strong></p>
 <p>accept открывает доску у обоих; decline — беседа словами; counter называет другую доску (спека чата §6).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -908,26 +911,29 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-moves">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/moves</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/moves</code><span class="chip s-built">построено</span></div>
 <p><strong>Ход или пас</strong></p>
 <p>По классу: клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse} — тасует и бросает узел. Ход двигает свой срок беседы (спека чата §6, §8.6). Объявляется нешифрованной системной строкой.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-move"><code>Move</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Доска после хода.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Партия после хода глазами этой стороны.</td><td><a href="#schema-chatgameview"><code>ChatGameView</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-word">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/word</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/word</code><span class="chip s-built">построено</span></div>
 <p><strong>Загадать слово виселицы</strong></p>
 <p>202 — та же очередь, что у фразы; отказ — «загадайте другое» и счётчик паузы (спека чата §6 «виселица»).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-word"><code>Word</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>В очереди.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Слово загадано, если первый уровень правил нашёл его чистым; помеченное — 409 illegal_move «set another word». Партия глазами загадавшего.</td><td><a href="#schema-chatgameview"><code>ChatGameView</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-confirm">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/confirm</code><span class="chip s-spec">спека</span></div>
@@ -938,7 +944,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game-proposals">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals</code><span class="chip s-built">построено</span></div>
 <p><strong>Предложить: сыграть ещё, ничью, откат</strong></p>
 <p>Откат срабатывает при согласии обоих (спека чата §6).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -946,9 +952,10 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposal"><code>Proposal</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>id предложения.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-proposals--pid">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals/{pid}</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals/{pid}</code><span class="chip s-built">построено</span></div>
 <p><strong>Ответить на предложение</strong></p>
 <p>accept / decline / counter (спека чата §6).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -956,14 +963,16 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-resign">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/resign</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/resign</code><span class="chip s-built">построено</span></div>
 <p><strong>Сдаться</strong></p>
 <p>Одностороннее объявление (спека чата §6).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--messages">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/messages</code><span class="chip s-built">построено</span></div>
@@ -1506,6 +1515,9 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="schema-tableview"><div class="op-head"><code class="path">TableView</code></div>
 <p>Стол без скрытого — своя рука, рубашки чужих (спека чата §6.1).</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>class</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>нет</td><td>Номер своего места; зритель тоже сидит (seat_no).</td></tr><tr><td><code>is_playing</code></td><td><code>boolean</code></td><td>нет</td><td>false у зрителя (playing_from пуст).</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td>После вердикта очереди; пусто, пока ждёт или отклонено (17.09.2026).</td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>нет</td><td>Публичное число лайков (17.09.2026).</td></tr><tr><td><code>seats</code></td><td>array&lt;<code>object</code>&gt;</td><td>нет</td><td>Кто где сидит — имена, которые пишут экраны («Аня · 3», «ход: Аня»), роль и размер руки, но не её фишки (спека чата §6.1).</td></tr><tr><td><code>board</code></td><td><a href="#schema-board"><code>Board</code></a></td><td>нет</td><td></td></tr><tr><td><code>lines</code></td><td>array&lt;<a href="#schema-tableline"><code>TableLine</code></a>&gt;</td><td>нет</td><td></td></tr></table></div></section>
+<section class="op" id="schema-chatgameview"><div class="op-head"><code class="path">ChatGameView</code></div>
+<p>Партия беседы глазами одной стороны (протокол §4.7, db/076, 27.09.2026): стороны — место 1 (предложивший) и место 2, не личности; доска режется по месту смотрящего, как за столом.</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>class</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>your_seat</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>board</code></td><td><a href="#schema-board"><code>Board</code></a></td><td>нет</td><td></td></tr><tr><td><code>pending</code></td><td><code>object</code></td><td>нет</td><td>Открытое предложение: {id, kind: game | rematch, class, set, mine}.</td></tr></table></div></section>
 <section class="op" id="schema-board"><div class="op-head"><code class="path">Board</code></div>
 <p>Состояние доски — seq, state по классу (jsonb), чей ход, счёт по местам, expires_at (спека чата §6, table_games / chat_games).</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>seq</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>state</code></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>turn</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>score</code></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>over</code></td><td><code>boolean</code></td><td>нет</td><td>Партия окончена; счёт итоговый (экраны 18 D, 19 C).</td></tr><tr><td><code>expires_at</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>pending</code></td><td><code>object</code></td><td>нет</td><td>Открытое предложение или идущий отсчёт: {kind, id, class, set, answers, until}; переживает перезапуск (OPS-12).</td></tr></table></div></section>

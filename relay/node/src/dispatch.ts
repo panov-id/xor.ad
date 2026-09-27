@@ -38,6 +38,7 @@ import "./routes/profile.ts"; // PATCH /identities/me: the profile edited, the n
 import "./routes/appearance.ts"; // GET/PUT /identities/appearance: theme, contrast, accent per face (screen 22)
 import "./routes/away.ts"; // POST/DELETE /away: stepping away and coming back (§8.2)
 import "./routes/tables.ts"; // step 8: tables, a game for a company (§6, §6.1)
+import "./routes/chat_games.ts"; // and a game in a chat of two (§6, protocol §4.7)
 import "./routes/support.ts";
 import "./routes/support_admin.ts"; // GET /admin/support, answer: the team's side (protocol §4.10a) // POST/GET /support, /support/:no/seen: screen 14 (protocol §4.10)
 import "./routes/inbox.ts"; // offers to talk and conversations in one answer (§8.12)

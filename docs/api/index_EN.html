@@ -874,15 +874,16 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Source: <code>relay/node/src/routes/chats.ts</code></p>
 </section>
 <section class="op" id="get-chats--id--game">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/chats/{id}/game</code><span class="chip s-built">built</span></div>
 <p><strong>The game after a drop</strong></p>
 <p>Position, whose turn and the score from the game cache; no lines, no one else&#x27;s hand (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
-<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The board.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The game as this side sees it (2026-09-27).</td><td><a href="#schema-chatgameview"><code>ChatGameView</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game</code><span class="chip s-built">built</span></div>
 <p><strong>Propose or change the game</strong></p>
 <p>The other person gets a proposal frame (chat spec §6, screen 18).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -890,17 +891,19 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-gameoffer"><code>GameOffer</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="delete-chats--id--game">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}/game</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/chats/{id}/game</code><span class="chip s-built">built</span></div>
 <p><strong>End the game</strong></p>
 <p>The conversation&#x27;s death takes the game with it by cascade anyway (chat_games ON DELETE CASCADE).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-answer">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/answer</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/answer</code><span class="chip s-built">built</span></div>
 <p><strong>Answer the game offer</strong></p>
 <p>accept opens the board for both; decline keeps talking in words; counter names another board (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -908,26 +911,29 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-moves">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/moves</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/moves</code><span class="chip s-built">built</span></div>
 <p><strong>A move or a pass</strong></p>
 <p>By class: a cell, an edge, a piece, a letter, {roll}, {deal}, {flick, impulse} — the node shuffles and rolls. A move extends your own conversation span (chat spec §6, §8.6). Announced as an unencrypted system line.</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-move"><code>Move</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The board after the move.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>The game after the move, as this side sees it.</td><td><a href="#schema-chatgameview"><code>ChatGameView</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-word">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/word</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/word</code><span class="chip s-built">built</span></div>
 <p><strong>Set the hangman word</strong></p>
 <p>202 — the same queue as a phrase; a refusal is &quot;pick another&quot; and feeds the pause counter (chat spec §6 &quot;hangman&quot;).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-word"><code>Word</code></a></p>
-<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Queued.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<h3>Responses</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>The word is set when the first tier of rules finds it clean; a flagged word is 409 illegal_move &quot;set another word&quot;. The game as the setter sees it.</td><td><a href="#schema-chatgameview"><code>ChatGameView</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-confirm">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/confirm</code><span class="chip s-spec">spec</span></div>
@@ -938,7 +944,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-chats--id--game-proposals">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals</code><span class="chip s-built">built</span></div>
 <p><strong>Propose: play again, a draw, an undo</strong></p>
 <p>The undo fires on both players&#x27; consent (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -946,9 +952,10 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-proposal"><code>Proposal</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>The proposal id.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-proposals--pid">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals/{pid}</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/proposals/{pid}</code><span class="chip s-built">built</span></div>
 <p><strong>Answer a proposal</strong></p>
 <p>accept / decline / counter (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
@@ -956,14 +963,16 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Request body · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--game-resign">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/resign</code><span class="chip s-spec">spec</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/game/resign</code><span class="chip s-built">built</span></div>
 <p><strong>Resign</strong></p>
 <p>A one-sided announcement (chat spec §6).</p>
 <h3>Access</h3><p>Request signature (protocol §2): ECDSA P-256 over five lines — method, authority (the Host the request arrived on), path with its normalised query, body sha256, unix time; with x-identity-session and x-identity-time, a ±5 minute window</p>
 <h3>Parameters</h3><div class="table"><table><tr><th>Name</th><th>In</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>yes</td><td></td></tr></table></div>
 <h3>Responses</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Done.</td><td></td></tr></table></div>
+<p class="src">Source: <code>relay/node/src/routes/chat_games.ts</code></p>
 </section>
 <section class="op" id="post-chats--id--messages">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/chats/{id}/messages</code><span class="chip s-built">built</span></div>
@@ -1506,6 +1515,9 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="schema-tableview"><div class="op-head"><code class="path">TableView</code></div>
 <p>The table minus what is hidden — your own hand, the backs of others&#x27; (chat spec §6.1).</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>no</td><td></td></tr><tr><td><code>class</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>seat</code></td><td><code>integer</code></td><td>no</td><td>Your own seat number; a spectator sits too (seat_no).</td></tr><tr><td><code>is_playing</code></td><td><code>boolean</code></td><td>no</td><td>false for a spectator (playing_from is empty).</td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>no</td><td>After the queue&#x27;s verdict; absent while pending or refused (2026-09-17).</td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>no</td><td>Public like count (2026-09-17).</td></tr><tr><td><code>seats</code></td><td>array&lt;<code>object</code>&gt;</td><td>no</td><td>Who sits where — the names the screens write («Аня · 3», «ход: Аня»), the role and the size of a hand, never its tiles (chat spec §6.1).</td></tr><tr><td><code>board</code></td><td><a href="#schema-board"><code>Board</code></a></td><td>no</td><td></td></tr><tr><td><code>lines</code></td><td>array&lt;<a href="#schema-tableline"><code>TableLine</code></a>&gt;</td><td>no</td><td></td></tr></table></div></section>
+<section class="op" id="schema-chatgameview"><div class="op-head"><code class="path">ChatGameView</code></div>
+<p>A chat&#x27;s game as one side sees it (protocol §4.7, db/076, 2026-09-27): the two sides are seat 1 (who proposed) and seat 2, never identities; the board is cut by the viewer&#x27;s seat, as at a table.</p>
+<div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>class</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>no</td><td></td></tr><tr><td><code>your_seat</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>board</code></td><td><a href="#schema-board"><code>Board</code></a></td><td>no</td><td></td></tr><tr><td><code>pending</code></td><td><code>object</code></td><td>no</td><td>An open proposal: {id, kind: game | rematch, class, set, mine}.</td></tr></table></div></section>
 <section class="op" id="schema-board"><div class="op-head"><code class="path">Board</code></div>
 <p>Board state — seq, state by class (jsonb), whose turn, score by seat, expires_at (chat spec §6, table_games / chat_games).</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>seq</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>state</code></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>turn</code></td><td><code>integer</code></td><td>no</td><td></td></tr><tr><td><code>score</code></td><td><code>object</code></td><td>no</td><td></td></tr><tr><td><code>over</code></td><td><code>boolean</code></td><td>no</td><td>The game ended; the score is final (screens 18 D, 19 C).</td></tr><tr><td><code>expires_at</code></td><td><code>integer</code> <span class="src">format: &quot;unix-seconds&quot;</span></td><td>no</td><td></td></tr><tr><td><code>pending</code></td><td><code>object</code></td><td>no</td><td>The open proposal or the running confirmation: {kind, id, class, set, answers, until}; survives a restart (OPS-12).</td></tr></table></div></section>

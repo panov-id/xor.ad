@@ -22,6 +22,7 @@ import { sha256hex } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { boardNow } from "../lib/tables.ts";
+import { chatGameFrame } from "../lib/chat_games.ts";
 
 export const NODE_ROLE = Deno.env.get("NODE_ROLE") ?? "relay"; // core | relay
 const VERSION = "xor.p1";
@@ -287,6 +288,33 @@ export async function tableFrame(table: string, kind: string, id?: string): Prom
   return null;
 }
 
+// A chat's game (protocol §4.7; routes/chat_games.ts): `NOTIFY chat_game`
+// "<chat>|board" or "<chat>|proposal". Each room of the chat gets the frame as
+// its own side sees it — a hand, a word are cut by seat — so it is built per
+// room, from the identity behind the room's session.
+let listeningChatGames: Promise<void> | null = null;
+function ensureListeningChatGames(): Promise<void> {
+  listeningChatGames ??= listen("chat_game", (payload) => {
+    const [chat, kind] = payload.split("|");
+    for (const room of rooms.get(chat) ?? []) {
+      if (room.table) continue;
+      chatGameFrameFor(chat, room.session)
+        .then((view) => {
+          if (kind === "board") frame(room, "board", view?.board ?? null);
+          else frame(room, "proposal", view?.pending ?? null);
+          inc("relay_chat_frames_total", { type: kind === "board" ? "board" : "proposal" });
+        })
+        .catch((error) => log("error", "chat game frame failed", { error: String(error) }));
+    }
+  });
+  return listeningChatGames;
+}
+
+export async function chatGameFrameFor(chat: string, session: string) {
+  const [who] = await queryOrThrow<{ identity: string }>(`SELECT identity FROM sessions WHERE id = $1`, [session]);
+  return who ? await chatGameFrame(queryOrThrow, chat, who.identity) : null;
+}
+
 // 4005 (protocol §4.4): the seat is lost — stood up, kicked, blocked away,
 // stepped away. `NOTIFY seat_left` "<table>:<seat>:<identity>" (lib/tables.ts).
 let listeningSeatLeft: Promise<void> | null = null;
@@ -324,6 +352,7 @@ export async function listenForRooms(): Promise<void> {
   await ensureListeningSession();
   await ensureListeningTables();
   await ensureListeningSeatLeft();
+  await ensureListeningChatGames();
 }
 
 // Every room, closed with 1001 "going away": the node is stopping, and a

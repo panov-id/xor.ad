@@ -61,4 +61,7 @@ console.log(JSON.stringify({
   false_catches: results.filter((r) => EXPECT[r.klass] === "publish" && r.verdict === "reject").length,
   ms: { p50: pct(ms, 0.5), p95: pct(ms, 0.95), max: Math.max(...ms), n: ms.length },
   by_class: byClass,
+  // Every phrase's verdict, in corpus order: two runs compared phrase by
+  // phrase say how often the model answers the same (E2b).
+  verdicts: results.map((r) => ({ klass: r.klass, text: r.text, verdict: r.verdict })),
 }, null, 2));

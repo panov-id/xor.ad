@@ -14,13 +14,14 @@
 import { query } from "./db.ts";
 import { inc } from "./metrics.ts";
 import { log } from "./log.ts";
+import { hasInvisible } from "./names.ts";
 
 export type HintVerdict = "publish" | "reject" | "unsure";
 export interface Hint { verdict: HintVerdict; reason: string; model: string; ms: number }
 
 export const MODERATOR_MODEL_DEFAULT = "qwen2.5:3b-instruct";
 
-for (const verdict of ["publish", "reject", "unsure", "failed"]) inc("relay_moderator_hints_total", { verdict }, 0);
+for (const verdict of ["publish", "reject", "unsure", "failed", "dropped"]) inc("relay_moderator_hints_total", { verdict }, 0);
 
 export function moderatorConfig(): { url: string; model: string; timeoutMs: number } | null {
   const url = (Deno.env.get("MODERATOR_URL") ?? "").trim().replace(/\/+$/, "");
@@ -79,7 +80,11 @@ export async function askModerator(
       const answer = JSON.parse(body.message?.content ?? "") as { verdict?: unknown; reason?: unknown };
       const v = String(answer.verdict ?? "").trim().toLowerCase();
       if (v === "publish" || v === "reject") verdict = v;
+      // The reason is the model's words, and a phrase can make the model say
+      // anything: an escape or a bidi mark would reach the panel that shows
+      // it (security lens, E2b). Such a reason is kept empty.
       reason = String(answer.reason ?? "").slice(0, 200);
+      if (hasInvisible(reason)) reason = "";
     } catch { /* not JSON: unsure */ }
     return { verdict, reason, model: config.model, ms };
   } catch {
@@ -89,9 +94,33 @@ export async function askModerator(
 
 // The hint for a queued phrase, written beside it (db/080). Never throws: a
 // hint is a help to the queue, not a step of the phrase's path.
-export async function hintQueuedPhrase(id: string, text: string, config = moderatorConfig()): Promise<Hint | null> {
+// At most this many questions in flight (MODERATOR_CONCURRENCY, default 2):
+// a stream of queued phrases would otherwise pile up requests of up to the
+// timeout each (security lens, E2b). One over the limit gets no hint.
+let inFlight = 0;
+export function moderatorConcurrency(): number {
+  const n = Number(Deno.env.get("MODERATOR_CONCURRENCY") ?? "2");
+  return Number.isInteger(n) && n > 0 ? n : 2;
+}
+
+export async function hintQueuedPhrase(
+  id: string,
+  text: string,
+  config = moderatorConfig(),
+  fetcher: typeof fetch = fetch,
+): Promise<Hint | null> {
   if (!config) return null;
-  const hint = await askModerator(text, config);
+  if (inFlight >= moderatorConcurrency()) {
+    inc("relay_moderator_hints_total", { verdict: "dropped" });
+    return null;
+  }
+  inFlight++;
+  let hint: Hint | null;
+  try {
+    hint = await askModerator(text, config, fetcher);
+  } finally {
+    inFlight--;
+  }
   if (!hint) {
     inc("relay_moderator_hints_total", { verdict: "failed" });
     return null;

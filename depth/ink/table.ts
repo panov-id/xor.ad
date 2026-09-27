@@ -6,10 +6,10 @@ import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
-import { Head, Menu, useKeys } from "./parts.ts";
+import { Form, Head, Menu, useKeys } from "./parts.ts";
 import type { Room } from "../core/client.ts";
 import {
-  applyFrame, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
+  applyFrame, type BoardClass, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
 } from "../core/tables.ts";
 
 export type TableAction = "move" | "pass" | "say" | "stand" | "resign" | "like";
@@ -150,5 +150,72 @@ export function TableRoom(
       },
     }),
     said ? h(Text, { color: "red" }, said) : null,
+  );
+}
+
+// Setting a table (C2): the class, its set, the seats and an optional name,
+// at the person's own point and circle. The name goes through the queue like
+// a phrase; the table stands without it meanwhile (§6.1). The author sits at
+// once and stands up from any table they sat at before (POST /tables).
+const CLASSES = ["dots", "grid", "free", "deck", "dice", "word", "physics"] as const;
+// Only dots reads its set (the field's size, lib/tables_dots.ts); the node
+// takes any set of 1–40 characters, so the other classes name none of their
+// own until their engines do.
+const SETS: Record<string, string[]> = { dots: ["4x4", "2x2", "3x3", "5x5", "6x6", "7x7", "8x8"] };
+const setsOf = (kind: string) => SETS[kind] ?? [kind];
+
+export function NewTable(
+  { say, tables, place, onSet, onBack }: {
+    say: Say;
+    tables: Pick<Tables, "create">;
+    place: { lat: number; lon: number; radius: 100 | 300 | 1000 | 3000 | 10000 };
+    onSet: (tableId: string) => void;
+    onBack: () => void;
+  },
+): ReactElement {
+  const [kind, setKind] = useState<string>("dots");
+  const [set, setSet] = useState<string>(setsOf("dots")[0]);
+  const [seats, setSeats] = useState("2");
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("table.new"), lines: [say("table.open")] }),
+    h(Form, {
+      fields: [
+        { key: "class", label: say("table.class"), value: kind, choices: [...CLASSES] },
+        { key: "set", label: say("table.set"), value: set, choices: setsOf(kind) },
+        { key: "seats", label: say("table.seats"), value: seats, choices: ["2", "3", "4", "5", "6"] },
+        { key: "name", label: say("table.name"), value: name },
+      ],
+      onChange: (key, value) => {
+        if (key === "class") { setKind(value); setSet(setsOf(value)[0]); }
+        if (key === "set") setSet(value);
+        if (key === "seats") setSeats(value);
+        if (key === "name") setName(value.slice(0, 24));
+      },
+      actions: [
+        { key: "set", label: say("table.put"), disabled: busy },
+        { key: "back", label: say("common.back") },
+      ],
+      onPick: (key) => {
+        if (key === "back") return onBack();
+        if (busy) return;
+        setBusy(true);
+        setError(null);
+        tables.create({
+          class: kind as BoardClass, set, seats: Number(seats), lat: place.lat, lon: place.lon, area_radius: place.radius,
+          ...(name.trim() ? { name: name.trim() } : {}),
+        }).then((a) => {
+          if (a.status === 201) return onSet(a.body.id);
+          const e = (a.body as unknown as { error?: { code?: string; message?: string } } | null)?.error;
+          setError(`${say("table.refused")}: ${e?.message ?? e?.code ?? a.status}`);
+          setBusy(false);
+        }).catch((e: Error) => { setError(e.message); setBusy(false); });
+      },
+    }),
+    error ? h(Text, { color: "red" }, error) : null,
   );
 }

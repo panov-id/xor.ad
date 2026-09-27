@@ -185,7 +185,7 @@ type Phrase = {
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
-  { say, client, place, mine, onWrite, onInbox, onPoint, onMe, onError }: {
+  { say, client, place, mine, onWrite, onInbox, onPoint, onMe, onTable, onError }: {
     say: Say;
     client: Client;
     place: Place;
@@ -196,6 +196,8 @@ export function Feed(
     // "Me" holds what used to crowd this row: restrictions, liked, hidden,
     // blocked (§4.11; the row outgrew a hundred columns on 23.09.2026).
     onMe?: () => void;
+    // Setting a table (C2): a game at one's own point, open to the node.
+    onTable?: () => void;
     onError: (message: string) => void;
   },
 ): ReactElement {
@@ -277,6 +279,7 @@ export function Feed(
         { key: "hide", label: say("feed.hide"), disabled: !chosen },
         { key: "block", label: say("block.item"), disabled: !chosen },
         { key: "write", label: say("feed.write") },
+        ...(onTable ? [{ key: "table", label: say("feed.table") }] : []),
         { key: "inbox", label: say("feed.inbox") },
         { key: "point", label: say("feed.point") },
         { key: "me", label: say("me.title") },
@@ -284,6 +287,7 @@ export function Feed(
       ],
       onPick: (key) => {
         if (key === "write") return onWrite();
+        if (key === "table") return onTable?.();
         if (key === "inbox") return onInbox();
         if (key === "point") return onPoint();
         if (key === "me") return onMe?.();

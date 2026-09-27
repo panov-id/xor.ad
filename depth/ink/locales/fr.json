@@ -261,5 +261,12 @@
   "complaint.text": "what happened (optional)",
   "complaint.send": "send",
   "complaint.sent": "sent",
-  "complaint.refused": "not accepted"
+  "complaint.refused": "not accepted",
+  "table.new": "set a table",
+  "table.class": "game",
+  "table.set": "set",
+  "table.seats": "seats",
+  "table.name": "name (optional)",
+  "table.put": "set",
+  "feed.table": "table"
 }

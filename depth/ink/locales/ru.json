@@ -261,5 +261,12 @@
   "complaint.text": "что случилось (необязательно)",
   "complaint.send": "отправить",
   "complaint.sent": "отправлено",
-  "complaint.refused": "не принято"
+  "complaint.refused": "не принято",
+  "table.new": "поставить стол",
+  "table.class": "игра",
+  "table.set": "набор",
+  "table.seats": "мест",
+  "table.name": "название (необязательно)",
+  "table.put": "поставить",
+  "feed.table": "стол"
 }

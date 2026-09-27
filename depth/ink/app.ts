@@ -25,6 +25,8 @@ import { RaisedHere, RaisedHerePin } from "./screens/restore.ts";
 import { IDLE_MS, IdleTimer } from "../core/lock.ts";
 import { Lock } from "./screens/lock.ts";
 import { Closed } from "./screens/closed.ts";
+import { NewTable, TableRoom } from "./table.ts";
+import { openTable, Tables } from "../core/tables.ts";
 import { Waiting } from "./screens/pending.ts";
 import type { SessionClose } from "./screens/closed.ts";
 
@@ -43,6 +45,8 @@ type Where =
   | { screen: "reset" }
   | { screen: "location" }
   | { screen: "feed" }
+  | { screen: "newTable" }
+  | { screen: "table"; id: string }
   | { screen: "write" }
   | { screen: "inbox" }
   | { screen: "hidden" }
@@ -289,6 +293,24 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
           onInbox: () => setWhere({ screen: "inbox" }),
           onPoint: () => setWhere({ screen: "location" }),
           onMe: () => setWhere({ screen: "me" }),
+          onTable: () => setWhere({ screen: "newTable" }),
+          onError: fail,
+        });
+      case "newTable":
+        return h(NewTable, {
+          say,
+          tables: new Tables(client),
+          place: place!,
+          onSet: (id) => setWhere({ screen: "table", id }),
+          onBack: feed,
+        });
+      case "table":
+        return h(TableRoom, {
+          say,
+          tables: new Tables(client),
+          open: (id) => openTable(client, id),
+          tableId: where.id,
+          onLeave: feed,
           onError: fail,
         });
       case "write":

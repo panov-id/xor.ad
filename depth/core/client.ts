@@ -390,12 +390,11 @@ export class Client {
 
   // POST /offers/:id/complaints (O1d): the discount was not given. Private;
   // the e-mail is the only way to answer. 202 {id, counts_towards_autohide}.
-  // The node reads `email` (routes/offer_complaints.ts), the contract says
-  // notifier_email: the node is what answers — 422 on notifier_email, measured
-  // live by the verifier on 2026-09-27.
+  // notifier_email, text up to 1000 — the node and the contract agree since
+  // 15c511b (it read `email` before, 2026-09-27).
   complain(offerId: string, email: string, text?: string): Promise<Answer<{ id: string; counts_towards_autohide: boolean }>> {
     return this.#call("POST", `/offers/${encodeURIComponent(offerId)}/complaints`, {
-      email,
+      notifier_email: email,
       ...(text ? { text } : {}),
     });
   }

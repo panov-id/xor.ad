@@ -253,5 +253,6 @@
   "table.board": "доска",
   "table.notYourTurn": "сейчас не ваш ход",
   "table.stale": "доска успела измениться — посмотрите ещё раз",
-  "table.refused": "не принято"
+  "table.refused": "не принято",
+  "table.notStarted": "партия ещё не началась"
 }

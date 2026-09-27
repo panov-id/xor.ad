@@ -16,10 +16,11 @@ export interface TableSeat { seat: number; name: string; role: "playing" | "watc
 export interface Board {
   seq: number;
   state: { order?: number[]; moves?: Array<{ seat: number; move?: unknown; pass?: boolean }> } & Record<string, unknown>;
-  turn: number;
+  // null before the first game starts (seen live on G1c).
+  turn: number | null;
   score: Record<string, number>;
   over?: boolean;
-  expires_at: number;
+  expires_at: number | null;
   pending?: { kind: string; id: string; class?: string; set?: string; answers?: unknown; until?: number } | null;
 }
 export interface TableLine {
@@ -109,20 +110,22 @@ export class Tables {
 // What a screen says about the turn, without a word of its own.
 export function turnOf(view: TableView, now = Date.now()): { mine: boolean; name: string | null; secondsLeft: number | null } {
   const board = view.board;
-  if (!board || board.over) return { mine: false, name: null, secondsLeft: null };
+  // No game yet (turn null) or over: nobody's turn, no clock.
+  if (!board || board.over || board.turn === null) return { mine: false, name: null, secondsLeft: null };
   const who = view.seats.find((s) => s.seat === board.turn);
   return {
     mine: view.is_playing && board.turn === view.seat,
     name: who?.name ?? null,
-    secondsLeft: Math.max(0, board.expires_at - Math.floor(now / 1000)),
+    secondsLeft: board.expires_at === null ? null : Math.max(0, board.expires_at - Math.floor(now / 1000)),
   };
 }
 
-// Applications still waiting: one not followed by a refusal naming its seat
-// (a refusal line's seat is the refused one, G1c).
+// Applications from those still watching. Whom a refusal answers is not in
+// the line: its seat is its author's (seat_no, measured live on G1c), so a
+// refused application stays listed until the node says whom it refused.
 export function openApplications(view: TableView): TableLine[] {
-  const refused = new Set(view.lines.filter((l) => l.kind === "refusal").map((l) => l.seat));
-  return view.lines.filter((l) => l.kind === "application" && !refused.has(l.seat));
+  const watching = new Set(view.seats.filter((s) => s.role === "watching").map((s) => s.seat));
+  return view.lines.filter((l) => l.kind === "application" && watching.has(l.seat));
 }
 
 // The dots class (G1c): n×n boxes; an edge is "h:r:c" — above box r,c, r in

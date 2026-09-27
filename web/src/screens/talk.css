@@ -55,6 +55,16 @@
 .match-life > span { display: block; height: 100%; }
 .match-life-mine > span { background: var(--accent); }
 .match-life-theirs > span { background: var(--cat-amber); }
+/* Sheet 06 B, waiting: the phrases shrink to quotes — 16/400 on panel-2 with a
+   3 px accent edge, no name or chip — the queue under them, and the line to
+   write at the foot of the screen. */
+.match[data-waiting="yes"] .match-mine, .match[data-waiting="yes"] .match-card { background: var(--panel-2); border-left: 3px solid var(--accent); padding: var(--s-2) var(--s-3); gap: var(--s-1); }
+.match[data-waiting="yes"] .match-mine p, .match[data-waiting="yes"] .match-card p { font-size: 16px; font-weight: 400; }
+.match[data-waiting="yes"] .match-card > strong, .match[data-waiting="yes"] .match-card .ui-chip { display: none; }
+.match-waiting { flex: 1; display: flex; flex-direction: column; gap: var(--s-2); }
+.match-waiting h2 { order: -1; margin: 0; padding: var(--s-2) var(--s-3); border-radius: var(--r-1); background: var(--panel-2); color: var(--fg); font-size: 14px; font-weight: 400; }
+.match-waiting > .muted { margin: 0; font-size: 13px; text-align: center; }
+.match-waiting .composer { margin-top: auto; }
 .match .match-hint p { font-size: 14px; font-weight: 400; color: var(--fg); }
 /* WD13: sheet 06 (the map's match) starts with the header band — no screen
    top — and puts the two buttons right under the cards, not at the foot. */

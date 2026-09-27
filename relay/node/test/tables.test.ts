@@ -530,3 +530,127 @@ Deno.test({
     }
   },
 });
+
+// A table of a class, two playing: A sets it up, B sits and applies, A opens the round.
+async function gameOf(klass: string, set: string): Promise<{ a: Person; b: Person; id: string }> {
+  const a = await person();
+  const b = await person();
+  const made = await signed(a, "POST", "/tables", { class: klass, set, seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce() });
+  const id = made.body.id as string;
+  await signed(b, "POST", `/tables/${id}/seat`);
+  await signed(b, "POST", `/tables/${id}/lines`, { kind: "application", text: "сыграю" });
+  await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
+  return { a, b, id };
+}
+type Seen = { seq: number; turn: number; over: boolean; score: Record<string, number>; state: Record<string, any> };
+const seen = async (who: Person, id: string) => (await signed(who, "GET", `/tables/${id}`)).body.board as Seen;
+
+Deno.test({ name: "deck: the node deals, each sees their own hand and the others' backs, a card must be in the hand, an empty hand wins", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("deck", "durak36");
+  const mine = await seen(a, id);
+  const theirs = await seen(b, id);
+  assertEquals(mine.state.deck.hands["1"].length, 6, "A sees six cards of their own");
+  assertEquals(mine.state.deck.hands["2"], { count: 6 }, "A sees only the size of B's hand");
+  assertEquals(theirs.state.deck.hands["1"], { count: 6 }, "B sees only the size of A's hand");
+  assertEquals(mine.state.deck.stock, { count: 24 });
+  const notMine = (theirs.state.deck.hands["2"] as string[])[0];
+  const refused = await signed(a, "POST", `/tables/${id}/moves`, { seq: mine.seq, move: { play: notMine } });
+  assertEquals([code(refused), refused.body.error.reason], ["illegal_move", "the card is not in your hand"]);
+  // One card left in A's hand: playing it wins the deal.
+  const last = (mine.state.deck.hands["1"] as string[])[0];
+  await database.queryOrThrow(
+    `UPDATE table_games SET state = jsonb_set(state, '{deck,hands,1}', to_jsonb(ARRAY[$2::text])) WHERE table_id = $1 AND ended_at IS NULL`,
+    [id, last],
+  );
+  const won = await signed(a, "POST", `/tables/${id}/moves`, { seq: mine.seq, move: { play: last } });
+  assertEquals(won.status, 200, JSON.stringify(won.body));
+  assertEquals([won.body.board.over, won.body.board.score["1"]], [true, 1], "an empty hand wins the deal");
+});
+
+Deno.test({ name: "word: the setter's word is hidden from the others and from the moves, letters are not repeated, a guessed word scores", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("word", "hangman");
+  let s = await seen(a, id);
+  assertEquals(s.state.word.setter, 1);
+  const flagged = await signed(a, "POST", `/tables/${id}/moves`, { seq: s.seq, move: { word: "telegram" } });
+  assertEquals(flagged.body.error?.reason, "set another word", "a contact word passes the rules first");
+  assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: s.seq, move: { word: "кот" } })).status, 200);
+  const guesser = await seen(b, id);
+  assertEquals([guesser.state.word.word, guesser.state.word.mask], [null, "___"], "the guesser sees the word masked");
+  assertEquals((await seen(a, id)).state.word.word, "кот", "the setter sees their own word");
+  assert(!JSON.stringify(guesser).includes("кот"), `the word leaks to the guesser: ${JSON.stringify(guesser)}`);
+  const guess = async (letter: string) => {
+    const now = await seen(b, id);
+    return await signed(b, "POST", `/tables/${id}/moves`, { seq: now.seq, move: { letter } });
+  };
+  assertEquals((await guess("к")).status, 200);
+  assertEquals((await guess("к")).body.error?.reason, "that letter was tried");
+  assertEquals((await guess("о")).status, 200);
+  const done = await guess("т");
+  assertEquals(done.status, 200, JSON.stringify(done.body));
+  s = done.body.board;
+  assertEquals(s.score["2"], 1, "a guessed word scores the guesser");
+  assertEquals([s.state.word.setter, s.turn], [2, 2], "the guesser sets the next word");
+});
+
+// G1f: the same through a real socket — a ticket bought by a signed call,
+// spent by a WebSocket in Sec-WebSocket-Protocol on a served GET /chat, frames
+// read off the wire, and the close the seat's loss makes (session_freeze.test.ts
+// serves relayUpgrade the same way).
+Deno.test({
+  name: "a live socket to a table: a ticket opens it, a move and a line arrive as frames, standing up closes it 4005",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const relay = await import("../src/chat/relay.ts");
+    const { a, b, id } = await game();
+    const server = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen() {} }, relay.relayUpgrade);
+    const frames: { type: string; data: Record<string, unknown> }[] = [];
+    let closedWith: number | null = null;
+    try {
+      const token = (await signed(b, "POST", `/tables/${id}/ticket`)).body.ticket as string;
+      const socket = new WebSocket(`ws://127.0.0.1:${server.addr.port}/chat`, ["xor.p1", `ticket.${token}`]);
+      socket.onmessage = (event) => frames.push(JSON.parse(event.data));
+      socket.onerror = () => {};
+      const shut = new Promise<void>((resolve) => {
+        socket.onclose = (event) => {
+          closedWith = event.code;
+          resolve();
+        };
+      });
+      await new Promise<void>((resolve, reject) => {
+        socket.onopen = () => resolve();
+        setTimeout(() => reject(new Error("the table's socket did not open within five seconds")), 5000);
+      });
+      // The node puts the room in on its own open; wait until it is there.
+      const until = Date.now() + 3000;
+      while (Date.now() < until && !(relay.roomsForTest().get(`table:${id}`)?.size)) {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      const waitFor = async (type: string) => {
+        const end = Date.now() + 3000;
+        while (Date.now() < end && !frames.some((f) => f.type === type)) await new Promise((r) => setTimeout(r, 20));
+        return frames.find((f) => f.type === type);
+      };
+      const start = await board(a, id);
+      assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" })).status, 200);
+      const moved = await waitFor("board");
+      assert(moved, `no board frame came over the wire: ${JSON.stringify(frames)}`);
+      assertEquals(moved!.data.turn, 2);
+      const said = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "твой ход" });
+      const end = Date.now() + 3000;
+      while (Date.now() < end && !frames.some((f) => f.type === "line" && f.data.id === said.body.id)) {
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      assert(frames.some((f) => f.type === "line" && f.data.text === "твой ход"), `the line did not arrive: ${JSON.stringify(frames)}`);
+
+      assertEquals((await signed(b, "DELETE", `/tables/${id}/seat`)).status, 204);
+      await Promise.race([shut, new Promise((r) => setTimeout(r, 5000))]);
+      // The code travels as a frame before the close (protocol §4.4 `closed`),
+      // so either the close or that frame says 4005.
+      const said4005 = closedWith === 4005 || frames.some((f) => f.type === "closed" && f.data.code === 4005);
+      assert(said4005, `standing up did not close the socket 4005: close ${closedWith}, frames ${JSON.stringify(frames.map((f) => f.type))}`);
+    } finally {
+      await server.shutdown();
+    }
+  },
+});

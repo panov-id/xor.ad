@@ -65,6 +65,17 @@ Deno.test("the claim opens with the same code and with no other", async () => {
   await assertRejects(async () => await openClaim(await deriveTransferCode("K7QM3F2X8"), envelope));
 });
 
+Deno.test("a web device's claim carries its unlock key through, and one that is not a key is refused", async () => {
+  const keys = await deriveTransferCode("K7QM3F2X9");
+  const { claimant } = await newDevice("Chrome, Android");
+  const unlock = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, false, ["sign", "verify"]) as CryptoKeyPair;
+  const web = { ...claimant, unlock_pub: await spki(unlock.publicKey) };
+  assertEquals(await openClaim(keys, await sealClaim(keys, web)), web);
+  // The terminal's claim stays as it was: no unlock_pub, and none appears.
+  assertEquals("unlock_pub" in await openClaim(keys, await sealClaim(keys, claimant)), false);
+  await assertRejects(async () => await openClaim(keys, await sealClaim(keys, { ...claimant, unlock_pub: "bm90IGEga2V5" })));
+});
+
 Deno.test("the check characters are the first twenty bits of sha256(sign ‖ wrap), high bits first", async () => {
   const { claimant } = await newDevice();
   const bytes = (s: string) => Uint8Array.from(atob(s.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - s.length % 4) % 4)), (c) => c.charCodeAt(0));

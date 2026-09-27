@@ -34,7 +34,9 @@ import { Restore } from "./screens/Restore.tsx";
 import { Splash } from "./screens/Splash.tsx";
 import { Statements } from "./screens/Statements.tsx";
 import { Unlock } from "./screens/Unlock.tsx";
-import { readRecord, type Record_ } from "./vault.ts";
+import { Arrival } from "./screens/Arrival.tsx";
+import { Departure } from "./screens/Departure.tsx";
+import { forget, readRecord, type Record_ } from "./vault.ts";
 import "./chat/chat.css";
 
 type Sealed = "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
@@ -58,6 +60,8 @@ type Screen =
   | { at: "edit"; field: "name" | "age"; current: string }
   | { at: "change-pin" }
   | { at: "reissue" }
+  | { at: "departure" }
+  | { at: "arrival" }
   | { at: "reset" }
   | { at: "step-away" }
   | { at: "away"; until: number };
@@ -159,7 +163,10 @@ export function App() {
     case "loading":
       return <main className="screen"><p className="muted" data-testid="loading">…</p></main>;
     case "splash":
-      return <Splash onStart={() => setScreen({ at: "register" })} onRestore={() => setScreen({ at: "restore" })} />;
+      return <Splash onStart={() => setScreen({ at: "register" })} onRestore={() => setScreen({ at: "restore" })} onArrive={() => setScreen({ at: "arrival" })} />;
+    case "arrival":
+      // Arrived by a move: sealed under a first PIN, seated as after the PIN.
+      return <Arrival onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={() => setScreen({ at: "splash" })} />;
     case "restore":
       // Raised by the paper code: seated as after the PIN — the vault is the
       // record, and the tab keeps none.
@@ -255,6 +262,7 @@ export function App() {
               if (row === "name" || row === "age") return setScreen({ at: "edit", field: row, current: current ?? "" });
               if (row === "away") return setScreen({ at: "step-away" });
               if (row === "pin") return setScreen({ at: "change-pin" });
+              if (row === "move") return setScreen({ at: "departure" });
               if (row === "reissue") return setScreen({ at: "reissue" });
               setScreen({ at: "reset" });
             }}
@@ -265,6 +273,10 @@ export function App() {
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
+    case "departure":
+      // Moved away: the node froze this session with the approval, and the
+      // device keeps nothing of the identity any more.
+      return <Departure client={seated!.client} onBack={me} onGone={() => { void forget().then(() => { setSeated(null); setStatements(null); setScreen({ at: "splash" }); }); }} />;
     case "reissue":
       return <Reissue client={seated!.client} onDone={me} onBack={me} />;
     case "reset":

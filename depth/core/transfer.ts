@@ -105,11 +105,15 @@ export async function deriveTransferCode(code: string): Promise<TransferKeys> {
 }
 
 // What the new device puts in its envelope: the two public halves it made for
-// itself, and a name for itself nobody can check.
+// itself, and a name for itself nobody can check. A face with a disk (the
+// web, T1) adds the public half of its unlock key, which the node keeps on
+// the new session (db/063) and which the check characters do not cover —
+// the envelope's seal under the code does; the terminal sends none.
 export interface Claimant {
   sign_pub: string;
   wrap_pub: string;
   label: string;
+  unlock_pub?: string;
 }
 
 const claimData = (keys: TransferKeys) => text(`${DOMAIN}\nclaim\n${keys.lookupId}`);
@@ -122,6 +126,7 @@ export async function sealClaim(keys: TransferKeys, claimant: Claimant): Promise
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const body = text(JSON.stringify({
     sign_pub: claimant.sign_pub, wrap_pub: claimant.wrap_pub, label: claimant.label.slice(0, LABEL_MAX),
+    ...(claimant.unlock_pub ? { unlock_pub: claimant.unlock_pub } : {}),
   }));
   const sealed = new Uint8Array(await crypto.subtle.encrypt(
     { name: "AES-GCM", iv, additionalData: claimData(keys) } as AesGcmParams,
@@ -141,15 +146,17 @@ export async function openClaim(keys: TransferKeys, envelope: string): Promise<C
     bytes.slice(12) as BufferSource,
   );
   const body = JSON.parse(new TextDecoder().decode(plain)) as Record<string, unknown>;
-  const { sign_pub, wrap_pub, label } = body;
+  const { sign_pub, wrap_pub, label, unlock_pub } = body;
   if (typeof sign_pub !== "string" || typeof wrap_pub !== "string" || typeof label !== "string") {
     throw new Error("the claim envelope does not carry sign_pub, wrap_pub and label");
   }
+  if (unlock_pub !== undefined && typeof unlock_pub !== "string") throw new Error("the claim envelope's unlock_pub is not a key");
   // Both halves must be keys, or the check characters would be computed over
   // something the approval then hands the node as a key.
   await crypto.subtle.importKey("spki", fromBase64url(sign_pub) as BufferSource, P256, false, ["verify"]);
   await crypto.subtle.importKey("spki", fromBase64url(wrap_pub) as BufferSource, ECDH, false, []);
-  return { sign_pub, wrap_pub, label: label.slice(0, LABEL_MAX) };
+  if (unlock_pub !== undefined) await crypto.subtle.importKey("spki", fromBase64url(unlock_pub) as BufferSource, P256, false, ["verify"]);
+  return { sign_pub, wrap_pub, label: label.slice(0, LABEL_MAX), ...(unlock_pub !== undefined ? { unlock_pub } : {}) };
 }
 
 async function checkDigest(claimant: Pick<Claimant, "sign_pub" | "wrap_pub">): Promise<Uint8Array> {

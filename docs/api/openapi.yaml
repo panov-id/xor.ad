@@ -615,8 +615,8 @@ components:
         repeated_from: {type: string, format: uuid}
     AdvOffer:
       type: object
-      description: "An offer as the cabinet sees it (routes/adv.ts). No complaint count yet: the complaints on the discount are not built."
-      x-description-ru: "Оффер глазами кабинета (routes/adv.ts). Числа жалоб пока нет: жалобы на скидку не построены."
+      description: "An offer as the cabinet sees it (routes/adv.ts); of the figures only redirect_hits and complaints (offers/SPEC_EN.md §2.1)."
+      x-description-ru: "Оффер глазами кабинета (routes/adv.ts); из цифр только redirect_hits и complaints (offers/SPEC_RU.md §2.1)."
       properties:
         id: {type: string, format: uuid}
         venue_id: {type: string, format: uuid}
@@ -630,6 +630,7 @@ components:
         link_disabled: {type: boolean}
         redirect_disabled_at: {type: string, format: date-time, nullable: true}
         redirect_hits: {type: integer, description: "The only reach figure — clicks, without a person (offers/SPEC_EN.md §2.1).", x-description-ru: "Единственная цифра охвата — переходы, без человека (offers/SPEC_RU.md §2.1)."}
+        complaints: {type: integer, description: "Complaints that the discount was not given, of every status.", x-description-ru: "Жалобы «скидку не дали», любого статуса."}
         repeated_from_offer_id: {type: string, format: uuid, nullable: true}
         discount_until: {type: string, format: date-time}
         status: {type: string, enum: [active, expired, hidden]}
@@ -645,7 +646,7 @@ components:
         text: {type: string}
         date: {type: string, format: date}
         status: {type: string, enum: [pending, resolved, rejected]}
-        response: {type: string}
+        response: {type: string, nullable: true}
     ComplaintResponse:
       type: object
       required: [text]
@@ -3603,27 +3604,34 @@ paths:
       tags: [offers]
       summary: "Complaints on my offers"
       x-summary-ru: "Жалобы на мои офферы"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "Text and date, without the complainant and the time (offers/SPEC_EN.md §10)."
-      x-description-ru: "Текст и дата, без заявителя и без времени (offers/SPEC_RU.md §10)."
+      description: "On one's own offers, newest first, as {items}: text and the UTC date, without the complainant, the address and the time, and the venue's answer if given (offers/SPEC_EN.md §10; db/071)."
+      x-description-ru: "На свои офферы, новые первыми, в виде {items}: текст и дата по UTC, без заявителя, адреса и времени, и ответ заведения, если дан (offers/SPEC_RU.md §10; db/071)."
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/AdvComplaint"}}}}}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: object, required: [items], properties: {items: {type: array, items: {$ref: "#/components/schemas/AdvComplaint"}}}}}}}
   /adv/complaints/{id}/response:
     post:
       tags: [offers]
       summary: "Answer a complaint"
       x-summary-ru: "Ответить на жалобу"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "Private, to the moderator; lives beside the complaint (offers/SPEC_EN.md §10.3)."
-      x-description-ru: "Приватно, модератору; живёт рядом с жалобой (offers/SPEC_RU.md §10.3)."
+      description: "Private, to the moderator; lives beside the complaint (offers/SPEC_EN.md §10.3). One answer per complaint, never rewritten — an answer changed after the decision would reopen what it said yesterday (§3.1)."
+      x-description-ru: "Приватно, модератору; живёт рядом с жалобой (offers/SPEC_RU.md §10.3). Один ответ на жалобу, без переписывания — ответ, изменённый после решения, вернул бы спор о том, что там было вчера (§3.1)."
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ComplaintResponse"}}}}
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "400": {description: "No text, or longer than 1000; code invalid_body.", x-description-ru: "Нет текста или длиннее 1000; code invalid_body."}
+        "404": {description: "No such complaint on one's own offers — somebody else's answers the same.", x-description-ru: "Такой жалобы на свои офферы нет — чужая отвечает так же."}
+        "409": {description: "The complaint already has its answer; code refused.", x-description-ru: "У жалобы уже есть ответ; code refused."}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "204": {description: Done., x-description-ru: Сделано.}
   /admin/offer-complaints/{id}/decision:
     post:

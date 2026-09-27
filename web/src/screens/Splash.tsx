@@ -2,9 +2,10 @@
 // is, one of what it is not, and the way in. The icon frame of the sheet is
 // not drawn yet.
 
+import { say } from "../api/me.ts";
 import { BRAND, NAMES } from "../config.ts";
 
-export function Splash({ onStart, onRestore }: { onStart: () => void; onRestore: () => void }) {
+export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; onRestore: () => void; onArrive: () => void }) {
   return (
     <main className="screen splash" data-screen="splash">
       <p className="brand">{NAMES[BRAND] ?? BRAND}</p>
@@ -15,6 +16,9 @@ export function Splash({ onStart, onRestore }: { onStart: () => void; onRestore:
       </button>
       <button type="button" onClick={onRestore} data-testid="restore">
         у меня есть бумажный код
+      </button>
+      <button type="button" onClick={onArrive} data-testid="arrive">
+        {say("move.inItem")}
       </button>
     </main>
   );

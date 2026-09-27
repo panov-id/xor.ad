@@ -32,7 +32,7 @@ YML
 project="web-report-$$"
 compose=(docker compose -f "$R/docker-compose.web.yml" -f "$W/webshots.override.yml" -p "$project")
 export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
-trap '"${compose[@]}" down -v --remove-orphans >/dev/null 2>&1 || true' EXIT INT TERM
+trap '"${compose[@]}" down -v --rmi local --remove-orphans >/dev/null 2>&1 || true' EXIT INT TERM
 timeout 1500 "${compose[@]}" up --build --abort-on-container-exit --exit-code-from e2e e2e > "$W/data/webshots.log" 2>&1
 echo $? > "$W/data/webshots.rc"
 grep -E '^\S*e2e\S*\s+\|\s+(\d+ |[0-9]+ )?(passed|failed|flaky|skipped)|[0-9]+ (passed|failed)' "$W/data/webshots.log" \

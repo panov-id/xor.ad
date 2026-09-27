@@ -12,7 +12,8 @@
 
 import type { Answer, HeldLongKey } from "./client.ts";
 import type { SigningKey } from "./sign.ts";
-import { base64url, generateSigningKey } from "./sign.ts";
+import { bornWithHandover, newWrapPair } from "./client.ts";
+import { base64url } from "./sign.ts";
 import {
   checkCharacters, type Claimant, deriveTransferCode, newTransferCode, openClaim, openReply, sealClaim,
   sealReply, type TransferKeys, transferGroups,
@@ -173,6 +174,7 @@ export class Departure {
       reply,
       sign_pub: this.claimant.sign_pub,
       wrap_pub: this.claimant.wrap_pub,
+      ...(this.claimant.unlock_pub ? { unlock_pub: this.claimant.unlock_pub } : {}),
       label: this.claimant.label,
     });
     if (answer.status === 200) this.last = "approved";
@@ -201,14 +203,27 @@ export class Arrival {
   // POST /sessions/claim — unsigned: this device has no session, and the code
   // is what authorises it. A 404 is "the code does not match or has expired",
   // one wording for both, and a 409 is the second claim that cancelled it.
-  static async claim(client: MoveClient, code: string, label: string): Promise<Arrival | Answer> {
+  // A face with a disk (the web, T1) takes the session key's and the
+  // wrapping pair's pkcs8 once, to seal them, and names its unlock key — as a
+  // raise by the paper code does (recovery.ts raise); the terminal takes none.
+  static async claim(
+    client: MoveClient,
+    code: string,
+    label: string,
+    opts: { unlockPub?: string; holdSession?: (pkcs8: Uint8Array) => Promise<void>; holdWrap?: (pkcs8: Uint8Array) => Promise<void> } = {},
+  ): Promise<Arrival | Answer> {
     const keys = await deriveTransferCode(code);
-    const sessionKey = await generateSigningKey();
-    const wrap = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair;
+    const pair = await bornWithHandover({ name: "ECDSA", namedCurve: "P-256" }, ["sign", "verify"], opts.holdSession);
+    const sessionKey: SigningKey = {
+      privateKey: pair.privateKey,
+      publicSpki: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey))),
+    };
+    const wrap = await newWrapPair(opts.holdWrap);
     const mine: Claimant = {
       sign_pub: sessionKey.publicSpki,
       wrap_pub: base64url(new Uint8Array(await crypto.subtle.exportKey("spki", wrap.publicKey))),
       label,
+      ...(opts.unlockPub ? { unlock_pub: opts.unlockPub } : {}),
     };
     const answer = await client.request("POST", "/sessions/claim", {
       lookup_id: keys.lookupId,

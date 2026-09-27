@@ -15,7 +15,8 @@
 // GET lists {id, since} by the opaque blocks.id, which does not lead back to an
 // identity (DATA-21). DELETE answers 204 for someone else's id too (SEC-14).
 //
-// Not here yet: blocking by a seat at a table — there are no tables.
+// A seat at a table {table, seat} blocks whoever sits there, and the blocker
+// stands up (step 8, lib/tables.ts).
 
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
@@ -26,6 +27,7 @@ import { base64urlToBytes, sha256hex, sunsetHeader } from "../lib/identity_auth.
 import { checkAll, BLOCK_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
+import { leaveTable, seatedOther } from "../lib/tables.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
 const done = () => new Response(null, { status: 204, headers: sunsetHeader() });
@@ -35,13 +37,18 @@ async function block(req: Request): Promise<Response> {
   // replay: protocol §2 answers a repeat even from a time away (as POST /away).
   const caller = await callerOf(req, { allowSteppedAway: true });
   if (caller instanceof Response) return caller;
-  const body = await readJson<{ feed?: unknown; chat?: unknown; nonce?: unknown }>(req);
+  const body = await readJson<{ feed?: unknown; chat?: unknown; table?: unknown; seat?: unknown; nonce?: unknown }>(req);
   if (!body) return refuse("invalid_body", "the body is not json", 400);
   const given = typeof body.nonce === "string" ? base64urlToBytes(body.nonce) : null;
   if (!given || given.length !== 16) return refuse("invalid_body", "nonce must be 16 bytes, base64url", 400);
   const feed = typeof body.feed === "string" && UUID.test(body.feed) ? body.feed : null;
   const chat = typeof body.chat === "string" && UUID.test(body.chat) ? body.chat : null;
-  if ((feed === null) === (chat === null)) return refuse("invalid_body", "exactly one of feed or chat", 400);
+  const table = typeof body.table === "string" && UUID.test(body.table) ? body.table : null;
+  const seat = Number.isInteger(body.seat) && (body.seat as number) > 0 ? body.seat as number : null;
+  if ((table === null) !== (seat === null)) return refuse("invalid_body", "a table comes with its seat", 400);
+  if ([feed, chat, table].filter((x) => x !== null).length !== 1) {
+    return refuse("invalid_body", "exactly one of feed, chat or table", 400);
+  }
   // A repeat is answered before the limit is spent (protocol §2): counting it
   // used a slot per repeat, and once the hour's slots were gone the repeat of
   // a block already made got 429 instead of its 204 (loop, 2026-09-24). The
@@ -95,7 +102,13 @@ async function block(req: Request): Promise<Response> {
 
     // Whom the phrase or the conversation leads to — only if it is the
     // caller's to see: a live phrase of somebody else, or a chat they are in.
-    const [target] = feed
+    // Step 8: a seat at the caller's own table (§6.1) — the blocker is the one
+    // who stands up; the game goes on for the rest.
+    const bySeat = table ? await seatedOther(run, me, table, seat!) : null;
+    if (table && bySeat) await leaveTable(run, me);
+    const [target] = table
+      ? (bySeat ? [{ other: bySeat }] : [])
+      : feed
       ? await run<{ other: string }>(
         `SELECT author_identity AS other FROM feed_messages
           WHERE id = $1 AND author_identity <> $2 AND visible_at IS NOT NULL`,
@@ -147,7 +160,7 @@ async function block(req: Request): Promise<Response> {
       await run(`DELETE FROM pending_deliveries WHERE chat = $1`, [id]);
       await run(`SELECT pg_notify('chat_closed', $1)`, [id]);
     }
-    inc("relay_block_total", { by: feed ? "feed" : "chat" });
+    inc("relay_block_total", { by: table ? "table" : feed ? "feed" : "chat" });
     return done();
   }).catch((error) => {
     if (error instanceof NoLongerLive) return refuse("unauthorized", "the request is not signed by a live session", 401);

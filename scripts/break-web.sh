@@ -21,7 +21,8 @@ echo "== break: the seal is opened without the node's share"
 sed -i 's|vaultKey(material.local, share)|vaultKey(material.local, share.slice(0, 1))|g' "$root/$vault"
 [ "$(grep -c 'vaultKey(material.local, share.slice(0, 1))' "$root/$vault")" = "2" ] || { echo "the break did not apply to both readings" >&2; exit 1; }
 out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
-echo "$out" | grep -E 'data-sealed|✘|✓|[0-9]+ (passed|failed)' | head -6
+echo "$out" | grep -E 'data-sealed|✘' | head -6
+echo "$out" | grep -E '[0-9]+ (passed|failed|flaky|skipped) \(' | tail -3
 if echo "$out" | grep -q 'toHaveAttribute' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then
   echo "   red as expected"; status=0
 else
@@ -38,7 +39,8 @@ echo "== break 2: the wrapping pair after a reload is a fresh one"
 sed -i 's|  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|  wrapPrivate = (await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair).privateKey;\n  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);|' "$root/$vault"
 grep -q 'wrapPrivate = (await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair).privateKey;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
 out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
-echo "$out" | grep -E 'unlocked-new-wrap|✘|✓|[0-9]+ (passed|failed)' | head -6
+echo "$out" | grep -E 'unlocked-new-wrap|✘' | head -6
+echo "$out" | grep -E '[0-9]+ (passed|failed|flaky|skipped) \(' | tail -3
 if echo "$out" | grep -q 'data-sealed="unlocked-new-wrap"' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then
   echo "   red as expected"
 else
@@ -53,7 +55,8 @@ echo "== break 3: the PIN changes, the vault is not re-sealed"
 sed -i 's|    await tx("readwrite", (s) => s.put(resealed));|    void resealed;|' "$root/$vault"
 grep -q '    void resealed;' "$root/$vault" || { echo "the break did not apply" >&2; exit 1; }
 out=$(bash "$root/scripts/run-web-tests.sh" 2>&1 | sed 's/\x1b\[[0-9;]*m//g')
-echo "$out" | grep -E 'me.spec|✘|✓|[0-9]+ (passed|failed)' | head -6
+echo "$out" | grep -E 'me.spec|✘' | head -6
+echo "$out" | grep -E '[0-9]+ (passed|failed|flaky|skipped) \(' | tail -3
 if echo "$out" | grep -qE '✘ +[0-9]+ me.spec.ts' && echo "$out" | grep -qE '[1-9][0-9]* failed'; then
   echo "   red as expected"
 else

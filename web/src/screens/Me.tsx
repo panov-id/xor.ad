@@ -7,9 +7,10 @@
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan, awayCounts, graphemes, NAME_MAX, pinRefusal, profileRefusal, resetCounts, say } from "../api/me.ts";
+import { blockList, hiddenList } from "../api/lists.ts";
 import { changePinAndReseal, forget } from "../vault.ts";
 
-export type MeRow = "statements" | "name" | "age" | "away" | "pin" | "reissue" | "reset";
+export type MeRow = "statements" | "name" | "age" | "hidden" | "blocked" | "away" | "pin" | "move" | "reissue" | "reset";
 
 export function Me({ client, restrictions, onOpen, onBack, refresh }: {
   client: Client;
@@ -26,12 +27,24 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
       .then((p) => setProfile({ name: p.name, pending: p.name_pending, age: p.age }))
       .catch((e: Error) => setError(e.message));
   }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The two lists' sizes, as the terminal's "me" shows them (depth/ink
+  // rooms.ts): "скрытое · n", and "Заблокировано: n" only while there is
+  // something to lift (Q-48).
+  const [hidden, setHidden] = useState<number | null>(null);
+  const [blocked, setBlocked] = useState(0);
+  useEffect(() => {
+    hiddenList(client).then((r) => setHidden(r.length)).catch(() => setHidden(null));
+    blockList(client).then((r) => setBlocked(r.length)).catch(() => setBlocked(0));
+  }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
   const rows: Array<{ key: MeRow; label: string; red?: boolean; testid: string }> = [
     ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true, testid: "me-statements" }] : []),
     { key: "name", label: `${say("me.name")}  ${profile ? profile.name + (profile.pending ? ` → ${profile.pending} · ${say("feed.checking")}` : "") : "…"}`, testid: "me-name" },
     { key: "age", label: `${say("me.age")}  ${profile ? profile.age : "…"}`, testid: "me-age" },
+    { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}`, testid: "me-hidden" },
+    ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }), testid: "me-blocked" }] : []),
     { key: "away", label: say("away.item"), testid: "me-away" },
     { key: "pin", label: say("pin.item"), testid: "me-pin" },
+    { key: "move", label: say("move.item"), testid: "me-move" },
     { key: "reissue", label: say("reissue.item"), testid: "me-reissue" },
     { key: "reset", label: say("reset.item"), testid: "me-reset" },
   ];

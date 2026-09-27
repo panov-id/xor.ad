@@ -40,6 +40,7 @@ import { open as unseal, seal, vaultKey } from "../../depth/core/lock.ts";
 import { derivePin } from "../../depth/core/pin.ts";
 import { base64url, type SigningKey } from "../../depth/core/sign.ts";
 import { HeldKey } from "../../depth/core/transfer.ts";
+import { Arrival } from "../../depth/core/transfer_move.ts";
 import { API_KEY, NODE_BASE } from "./config.ts";
 
 const DB = "xor-vault";
@@ -250,11 +251,20 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
   // (verifier of W1c): a wipe between the two left the wrapping pair sealed
   // under a key made of zeros — the first red run after the merge of W1d.
   let long: CryptoKey;
+  let held: HeldLongKey;
   let session: CryptoKey | null = null;
   let wrapPrivate: CryptoKey;
   try {
     const key = await vaultKey(material.local, share);
-    long = await unsealLong(record, key);
+    // Held as the registration and the raise hold it, so a move can hand the
+    // long key over after a reload too (T1; transfer.ts HeldKey).
+    const longPkcs8 = await unseal(key, record.sealedLong);
+    try {
+      held = await HeldKey.hold(await crypto.subtle.importKey("pkcs8", longPkcs8 as BufferSource, P256, true, ["sign"]));
+      long = await crypto.subtle.importKey("pkcs8", longPkcs8 as BufferSource, P256, false, ["sign"]);
+    } finally {
+      longPkcs8.fill(0);
+    }
     if (record.sealedSession) {
       const sessionPkcs8 = await unseal(key, record.sealedSession);
       try {
@@ -289,7 +299,9 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
     wrapPrivate,
     wrapPublicSpki: record.wrapSpki,
     deviceSalt: record.deviceSalt,
-    wrappedLongKey: record.wrappedLongKey,
+    // Empty after a move (keepArrived): nothing to hand the core.
+    wrappedLongKey: record.wrappedLongKey.length ? record.wrappedLongKey : undefined,
+    held,
   });
   // The signing half goes back too: the chat keys sign with it (chat/keys.ts).
   return { client, longKey: long, wrapSame: same };
@@ -318,6 +330,11 @@ export async function changePinAndReseal(client: Client, current: string, next: 
   const oldKey = await vaultKey(before.local, fromBase64url(oldShare.body.share));
   const longPkcs8 = await unseal(oldKey, record.sealedLong);
   const wrapPkcs8 = await unseal(oldKey, record.sealedWrap);
+  // A device raised by the paper code keeps its session key under the same
+  // seal; left under the old key it locks the vault after the next reload.
+  const sessionPkcs8 = record.sealedSession ? await unseal(oldKey, record.sealedSession) : null;
+  before.auth.fill(0);
+  before.local.fill(0);
   try {
     const changed = await client.changePin(current, next);
     if (changed.status !== 200) return changed;
@@ -329,13 +346,17 @@ export async function changePinAndReseal(client: Client, current: string, next: 
       ...record,
       sealedLong: await seal(newKey, longPkcs8),
       sealedWrap: await seal(newKey, wrapPkcs8),
+      ...(sessionPkcs8 ? { sealedSession: await seal(newKey, sessionPkcs8) } : {}),
       savedAt: Date.now(),
     };
+    after.auth.fill(0);
+    after.local.fill(0);
     await tx("readwrite", (s) => s.put(resealed));
     return changed;
   } finally {
     longPkcs8.fill(0);
     wrapPkcs8.fill(0);
+    sessionPkcs8?.fill(0);
   }
 }
 
@@ -402,8 +423,96 @@ export async function raiseAndKeep(
   share.fill(0);
   longExtractable = null;
   await tx("readwrite", (s) => s.put(record));
-  const longKey = await crypto.subtle.importKey("pkcs8", await unseal(key, record.sealedLong), P256, false, ["sign"]);
+  const reopened = await unseal(key, record.sealedLong);
+  const longKey = await crypto.subtle.importKey("pkcs8", reopened as BufferSource, P256, false, ["sign"]);
+  reopened.fill(0);
   return { client, longKey, outcome };
+}
+
+// A device the identity is arriving at by a move (T1; chat spec §8.2): the
+// claim goes with an unlock key and hands the session key's and the wrapping
+// pair's pkcs8 over once; after "it is me" on the old device the core seats
+// the client with the long key held, and a first PIN seals the record exactly
+// as after a raise by the paper code.
+export interface Arriving {
+  arrival: Arrival;
+  client: Client;
+  unlock: CryptoKeyPair;
+  unlockSpki: string;
+  sessionPkcs8: Uint8Array | null;
+  wrapPkcs8: Uint8Array | null;
+}
+
+export async function claimArrival(code: string, label: string): Promise<Arriving | Answer> {
+  const client = new Client(NODE_BASE, API_KEY);
+  const unlock = await crypto.subtle.generateKey(P256, false, ["sign", "verify"]) as CryptoKeyPair;
+  const unlockSpki = base64url(new Uint8Array(await crypto.subtle.exportKey("spki", unlock.publicKey)));
+  const kept: { session: Uint8Array | null; wrap: Uint8Array | null } = { session: null, wrap: null };
+  const arrival = await Arrival.claim(client, code, label, {
+    unlockPub: unlockSpki,
+    holdSession: async (pkcs8) => { kept.session = pkcs8.slice(); },
+    holdWrap: async (pkcs8) => { kept.wrap = pkcs8.slice(); },
+  });
+  if (!(arrival instanceof Arrival)) {
+    kept.session?.fill(0);
+    kept.wrap?.fill(0);
+    return arrival;
+  }
+  return { arrival, client, unlock: unlock, unlockSpki, sessionPkcs8: kept.session, wrapPkcs8: kept.wrap };
+}
+
+export async function keepArrived(a: Arriving, pin: string): Promise<{ client: Client; longKey: CryptoKey }> {
+  const { client } = a;
+  const held = client.held;
+  if (!a.arrival.seated || !held) throw new Error("the move has not arrived yet");
+  if (!a.sessionPkcs8 || !a.wrapPkcs8) throw new Error("the core did not hand the keys over");
+  const set = await client.firstPin(pin);
+  if (set.status !== 200 && set.status !== 204) throw new Error(`the first PIN was refused: ${set.status} ${JSON.stringify(set.body)}`);
+  const deviceSalt = client.deviceSalt!;
+  const material = await derivePin(pin, deviceSalt);
+  const given = await client.request<{ share: string }>("POST", "/vault/share", { auth: base64url(material.auth) });
+  material.auth.fill(0);
+  if (given.status !== 200) throw new Error(`the node did not hand back its share: ${given.status}`);
+  const share = fromBase64url(given.body.share);
+  const key = await vaultKey(material.local, share);
+  material.local.fill(0);
+  share.fill(0);
+  const longPkcs8 = await held.use(async (k) => new Uint8Array(await crypto.subtle.exportKey("pkcs8", k)));
+  const wrapPrivate = await crypto.subtle.importKey("pkcs8", a.wrapPkcs8 as BufferSource, WRAP_ALGORITHM, true, ["deriveBits"]);
+  const record: Record_ = {
+    id: "me",
+    identityId: client.identityId,
+    sessionId: client.sessionId,
+    longSpki: client.longSpki,
+    deviceSalt,
+    // The paper code's wrap stays on the node; this device was not handed it
+    // by the move, so a reissue here waits for the node to say it (open).
+    wrappedLongKey: new Uint8Array(0),
+    sealedLong: await seal(key, longPkcs8),
+    sealedSession: await seal(key, a.sessionPkcs8),
+    sessionSpki: await sessionSpkiOf(a.sessionPkcs8),
+    sealedWrap: await seal(key, a.wrapPkcs8),
+    wrapSpki: await publicOf(wrapPrivate, WRAP_ALGORITHM),
+    wrapCheck: await checkOf(wrapPrivate),
+    unlockKey: a.unlock.privateKey,
+    unlockSpki: a.unlockSpki,
+    savedAt: Date.now(),
+  };
+  longPkcs8.fill(0);
+  a.sessionPkcs8.fill(0);
+  a.wrapPkcs8.fill(0);
+  a.sessionPkcs8 = null;
+  a.wrapPkcs8 = null;
+  await tx("readwrite", (s) => s.put(record));
+  return { client, longKey: await held.signing() };
+}
+
+// The public half of an EC private key (extractable) as base64url SPKI.
+async function publicOf(priv: CryptoKey, algorithm: EcKeyImportParams): Promise<string> {
+  const jwk = await crypto.subtle.exportKey("jwk", priv);
+  const usages: KeyUsage[] = algorithm.name === "ECDSA" ? ["verify"] : [];
+  const pub = await crypto.subtle.importKey("jwk", { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y }, algorithm, true, usages);
+  return base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pub)));
 }
 
 // The public half of an ECDSA P-256 private key from its pkcs8, base64url SPKI.

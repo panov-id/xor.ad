@@ -255,6 +255,7 @@
   "table.stale": "the board changed meanwhile — look again",
   "table.refused": "not accepted",
   "table.notStarted": "the game has not started yet",
+  "feed.complain": "complain",
   "complaint.title": "complaint: the discount was not given",
   "complaint.private": "only moderators see it; the venue learns one arrived, not from whom",
   "complaint.email": "e-mail for the answer",

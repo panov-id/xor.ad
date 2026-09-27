@@ -12,6 +12,7 @@ import { newPaperCode, paperGroups } from "../core/paper.ts";
 import { HeldKey } from "../core/transfer.ts";
 import { languageOf } from "./strings.ts";
 import type { Say } from "./strings.ts";
+import { Complaint } from "./screens/complaint.ts";
 import { Feed, Location, PaperCode, PaperCodeEntry, PinSet, Registration } from "./screens.ts";
 import { isCurrentCode, raise, refusal, reissue } from "../core/recovery.ts";
 import type { Outcome } from "../core/recovery.ts";
@@ -45,6 +46,8 @@ type Where =
   | { screen: "reset" }
   | { screen: "location" }
   | { screen: "feed" }
+  // V8 · a complaint about an offer card from the feed (O1d; screens/complaint.ts).
+  | { screen: "complaint"; offerId: string }
   | { screen: "newTable" }
   | { screen: "table"; id: string }
   | { screen: "seatedElsewhere"; there: string; here: string }
@@ -284,6 +287,8 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
         // Straight to the feed: `feed` reads `place` of this render, which the
         // point just set is not in yet.
         return h(Location, { say, place, onDone: (next) => { setPlace(next); setWhere({ screen: "feed" }); } });
+      case "complaint":
+        return h(Complaint, { say, client, offerId: where.offerId, onBack: () => setWhere({ screen: "feed" }) });
       case "feed":
         return h(Feed, {
           say,
@@ -295,6 +300,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
           onPoint: () => setWhere({ screen: "location" }),
           onMe: () => setWhere({ screen: "me" }),
           onTable: () => setWhere({ screen: "newTable" }),
+          onComplain: (offerId) => setWhere({ screen: "complaint", offerId }),
           // Sitting down at a table from the feed (G1h): the seat first, then
           // the live table; a refusal (unavailable, already seated) is said.
           onOpenTable: (id) =>

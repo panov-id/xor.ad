@@ -54,6 +54,9 @@ const id = (page, t) => page.getByTestId(t);
 async function seen(locator) { await locator.first().waitFor({ state: "visible", timeout: T }); }
 
 async function shoot(page, name) {
+  // No focus ring in a shot: a field typed into last keeps its ring, which no
+  // sheet draws (Cabinet-sign-in and every screen with a field, WD6e).
+  await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
   for (const scheme of ["light", "dark"]) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.evaluate(() => document.fonts.ready);

@@ -585,6 +585,19 @@ async function main() {
         say, tables: new Tables(c), open: (t: string) => openTable(c, t), tableId: id,
         onLeave: () => {}, onError: (m: string) => { throw new Error(m); },
       }));
+    // The first key right after the table first shows is lost (the room is
+    // still opening; verifier, 2026-09-27: 40 of 40 at once, 0 of 40 after
+    // 50 ms) — a pause, and the node is read until it has changed.
+    const ready = () => new Promise((done) => setTimeout(done, 300));
+    const boardOf = async (c: Client, id: string) => (await new Tables(c).view(id)).body.board!;
+    const untilBoard = async (c: Client, id: string, ok: (b: Awaited<ReturnType<typeof boardOf>>) => boolean) => {
+      for (let i = 0; i < 40; i++) {
+        const b = await boardOf(c, id);
+        if (ok(b)) return b;
+        await new Promise((done) => setTimeout(done, 100));
+      }
+      return boardOf(c, id);
+    };
     const startGame = async (game: "deck" | "word") => {
       const a = await joiner("Вера"), b = await joiner("Олег");
       const id = (await new Tables(a).create({ class: game, set: game, seats: 2, lat: 55.1, lon: 37.1, area_radius: 1000 })).body.id;
@@ -599,17 +612,20 @@ async function main() {
       const turn = (await new Tables(bySeat[1]).view(id)).body.board!.turn!;
       const mover = room(bySeat[turn], id);
       await until(mover, /ваш ход/, 20);
+      await ready();
       await type(mover, "\t", ENTER); // the board's first action: the first card of one's hand
-      const afterPlay = (await new Tables(bySeat[turn]).view(id)).body.board!;
+      const afterPlay = await untilBoard(bySeat[turn], id, (b) => b.turn !== turn);
       assert.equal((afterPlay.state.deck as { played: string[] }).played.length >= 1 && afterPlay.turn !== turn, true, "the card from the screen was not played");
       mover.unmount();
       const other = room(bySeat[afterPlay.turn!], id);
       await until(other, /ваш ход/, 20);
+      await ready();
       await type(other, "\t");
       for (let i = 0; i < 12; i++) await type(other, RIGHT); // the row stops at its end: «взять из колоды»
       await type(other, ENTER);
-      const afterDraw = (await new Tables(bySeat[1]).view(id)).body.board!;
-      assert.notEqual(afterDraw.seq, afterPlay.seq, "the draw from the screen did not reach the node");
+      const stock = (b: Awaited<ReturnType<typeof boardOf>>) => (b.state.deck as { stock: { count: number } }).stock.count;
+      const afterDraw = await untilBoard(bySeat[1], id, (b) => stock(b) < stock(afterPlay));
+      assert.equal(stock(afterDraw), stock(afterPlay) - 1, "the draw from the screen did not take a card from the stock");
       other.unmount();
       out("ok   deck from the table's screen: a card played from one's hand, then one drawn from the stock");
     }
@@ -618,6 +634,7 @@ async function main() {
       const setterSeat = ((await new Tables(bySeat[1]).view(id)).body.board!.state.word as { setter: number }).setter;
       const setter = room(bySeat[setterSeat], id);
       await until(setter, /загадать слово/, 20);
+      await ready();
       await type(setter, "\t");
       await typeUntil(setter, "кот", /кот/);
       await type(setter, DOWN, ENTER);
@@ -625,6 +642,7 @@ async function main() {
       setter.unmount();
       const guesser = room(bySeat[setterSeat === 1 ? 2 : 1], id);
       await until(guesser, /_ _ _/, 20);
+      await ready();
       await type(guesser, "\t");
       await typeUntil(guesser, "к", /буква[^\n]*к/);
       await type(guesser, DOWN, ENTER);

@@ -263,7 +263,7 @@ export function Feed(
         Box,
         { key: p.id, flexDirection: "column" },
         h(Text, { bold: i === at }, `${i === at ? "›" : " "} ${say("table.title")}${p.name ? ` · "${plain(p.name, 24)}"` : ""} · ${plain(p.game ?? "?", 12)} ${plain(p.set ?? "", 12)}`),
-        h(Text, { dimColor: true }, `  ${say("table.free")} ${p.free_seats ?? 0} · ${say("table.playing")} ${p.playing ?? 0} · ${say("table.watching")} ${p.watching ?? 0} · ♥ ${p.like_count ?? 0}`),
+        h(Text, { dimColor: true }, `  ${say("table.free")} ${plain(p.free_seats ?? 0, 6)} · ${say("table.playing")} ${plain(p.playing ?? 0, 6)} · ${say("table.watching")} ${plain(p.watching ?? 0, 6)} · ♥ ${plain(p.like_count ?? 0, 6)}`),
       )
       : h(
       Box,

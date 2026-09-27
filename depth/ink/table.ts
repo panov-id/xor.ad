@@ -22,11 +22,11 @@ export function Table(
 ): ReactElement {
   const turn = turnOf(view, now);
   const board = view.board;
-  const counts = `${say("table.playing")} ${view.playing} · ${say("table.watching")} ${view.watching} · ♥ ${view.like_count ?? 0}`;
+  const counts = `${say("table.playing")} ${plain(view.playing, 6)} · ${say("table.watching")} ${plain(view.watching, 6)} · ♥ ${plain(view.like_count ?? 0, 6)}`;
   const seated = view.seats.map((s) => (s.seat === view.seat ? say("table.you") : plain(s.name, 48))
-    + (s.hand_count !== undefined ? ` · ${s.hand_count}` : "")).join(" · ");
+    + (s.hand_count !== undefined ? ` · ${plain(s.hand_count, 6)}` : "")).join(" · ");
   const score = board
-    ? view.seats.filter((s) => board.score[String(s.seat)] !== undefined).map((s) => `${plain(s.name, 48)} ${board.score[String(s.seat)]}`).join(" · ")
+    ? view.seats.filter((s) => board.score[String(s.seat)] !== undefined).map((s) => `${plain(s.name, 48)} ${plain(board.score[String(s.seat)], 6)}`).join(" · ")
     : "";
   const moves = board?.state.moves ?? [];
   // Everything the node sends is someone else's text: through plain() before
@@ -47,6 +47,11 @@ export function Table(
   // (verifier, 2026-09-27: after a move, or a round with no class, the focus
   // stuck on a board with no buttons and «встать» could not be reached).
   const onBoard = wantBoard && !!other && turn.mine;
+  // The wish ends with the turn: when it comes back, a key meant for the
+  // row must not play a card (verifier, 2026-09-27).
+  useEffect(() => {
+    if (!turn.mine) setOnBoard(false);
+  }, [turn.mine]);
   useKeys((input, key) => {
     if (other && turn.mine && key.tab) return setOnBoard(!onBoard);
     if (!free.length) return;
@@ -156,6 +161,11 @@ export function TableRoom(
     };
   }, [tableId]);
   if (!view) return h(Text, { dimColor: true }, "…");
+  const answer = (run: Promise<{ status: number; body: unknown }>) =>
+    void run.then((a) => {
+      const error = (a.body as { error?: { code?: string; reason?: string } } | null)?.error;
+      setSaid(a.status >= 400 ? `${say("table.refused")}: ${plain(error?.reason ?? error?.code ?? a.status, 200)}` : null);
+    }).catch((e: Error) => onError(e.message));
   if (saying !== null) {
     // A line at the table goes through the moderation queue like a phrase
     // (§4.9): 202, and it shows once published.
@@ -166,7 +176,7 @@ export function TableRoom(
       h(Form, {
         fields: [{ key: "line", label: say("table.say"), value: saying }],
         onChange: (_k, v) => setSaying(graphemes(v, 128)),
-        actions: [{ key: "send", label: say("board.set"), disabled: !saying.trim() }, { key: "back", label: say("common.back") }],
+        actions: [{ key: "send", label: say("table.send"), disabled: !saying.trim() }, { key: "back", label: say("common.back") }],
         onPick: (key) => {
           if (key === "send" && saying.trim()) answer(tables.say(tableId, { kind: "line", text: saying.trim() }));
           setSaying(null);
@@ -174,11 +184,6 @@ export function TableRoom(
       }),
     );
   }
-  const answer = (run: Promise<{ status: number; body: unknown }>) =>
-    void run.then((a) => {
-      const error = (a.body as { error?: { code?: string; reason?: string } } | null)?.error;
-      setSaid(a.status >= 400 ? `${say("table.refused")}: ${plain(error?.reason ?? error?.code ?? a.status, 200)}` : null);
-    }).catch((e: Error) => onError(e.message));
   return h(
     Box,
     { flexDirection: "column" },
@@ -222,6 +227,16 @@ const seatsOf = (kind: string) => Array.from({ length: (MOST[kind] ?? 2) - 1 }, 
 // emoji and the node stored U+FFFD (verifier, 2026-09-27).
 const graphemes = (text: string, most: number) =>
   [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text)].slice(0, most).map((g) => g.segment).join("");
+// The table's name is also held to 256 bytes (db/064: octet_length(name) <= 256):
+// 24 family emoji are 600 and the node answered 503 (verifier, 2026-09-27).
+const tableName = (text: string) => {
+  let out = "";
+  for (const g of new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(graphemes(text, 24))) {
+    if (new TextEncoder().encode(out + g.segment).length > 256) break;
+    out += g.segment;
+  }
+  return out;
+};
 
 export function NewTable(
   { say, tables, place, onSet, onBack }: {
@@ -253,7 +268,7 @@ export function NewTable(
         if (key === "class") { setKind(value); setSet(setsOf(value)[0]); setSeats("2"); }
         if (key === "set") setSet(value);
         if (key === "seats") setSeats(value);
-        if (key === "name") setName(graphemes(value, 24));
+        if (key === "name") setName(tableName(value));
       },
       actions: [
         { key: "set", label: say("table.put"), disabled: busy },

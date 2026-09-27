@@ -101,39 +101,3 @@ test("two in a conversation play dots: one offers, the other accepts on the sock
   }
   await expect(anya.getByTestId("game-turn")).toHaveText("Ваш ход");
 });
-
-test("a proposal declined leaves nothing on: the proposer may offer a game again", async ({ browser }) => {
-  test.setTimeout(180_000);
-  const anya = await personIn(await browser.newContext({ viewport: { width: 393, height: 851 } }), "Аня");
-  const boris = await personIn(await browser.newContext({ viewport: { width: 393, height: 851 } }), "Борис");
-  const said = await viaClient<{ body: { id: string } }>(anya, "say", { text: "кто сыграет в точки", mode: "alone", ...CIRCLE });
-  const saidB = await viaClient<{ body: { id: string } }>(boris, "say", { text: "я не сыграю", mode: "alone", ...CIRCLE });
-  await viaClient(anya, "like", saidB.body.id);
-  const back = await viaClient<{ body: { state: string; match_id?: string } }>(boris, "like", said.body.id);
-  expect(back.body.state, JSON.stringify(back.body)).toBe("matched");
-  for (const page of [anya, boris]) {
-    await page.getByTestId("nav-inbox").click();
-    await page.locator(`[data-testid="match"][data-id="${back.body.match_id}"] [data-testid="open-match"]`).click({ timeout: 15000 });
-    await page.getByTestId("talk").click();
-    if (page === anya) {
-      await expect(anya.getByTestId("waiting")).toBeVisible({ timeout: 15000 });
-      await anya.getByTestId("to-inbox").click();
-    }
-  }
-  await openChat(boris);
-  await anya.getByTestId("refresh").click();
-  await openChat(anya);
-
-  await anya.getByTestId("game-toggle").click();
-  await anya.getByTestId("game-propose").click();
-  await expect(anya.getByTestId("game-waiting")).toBeVisible({ timeout: 15000 });
-  await expect(boris.getByTestId("game-offer")).toBeVisible({ timeout: 20000 });
-  await boris.getByTestId("game-decline").click();
-
-  // The node keeps the row with neither board nor pending (GET 200): the
-  // section must offer the choice again, not stand empty. Reopened to re-read.
-  await anya.getByTestId("game-toggle").click();
-  await anya.getByTestId("game-toggle").click();
-  await expect(anya.getByTestId("game-propose")).toBeVisible({ timeout: 15000 });
-  await expect(anya.getByTestId("game-waiting")).toHaveCount(0);
-});

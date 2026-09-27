@@ -76,8 +76,9 @@ async function twoTalking(browser: import("@playwright/test").Browser, names: [s
 
 async function propose(page: Page, klass: string, set: string) {
   await page.getByTestId("game-toggle").click();
-  await page.getByTestId("game-class").selectOption(klass);
-  await page.getByTestId("game-set").selectOption(set);
+  await page.getByTestId(`game-class-${klass}`).click();
+  // A game with one set shows no set chips (ChatGame.tsx): its only set is taken.
+  if (await page.getByTestId(`game-set-${set}`).count()) await page.getByTestId(`game-set-${set}`).click();
   await page.getByTestId("game-propose").click();
   await expect(page.getByTestId("game-waiting")).toBeVisible({ timeout: 15000 });
 }
@@ -132,11 +133,8 @@ test("deck in a conversation: a card played shows on both, a resign ends it for 
 });
 
 test("a first proposal declined: the offer goes from both screens, and the proposer can propose again", async ({ browser }) => {
-  // Known defect (V10, 27.09.2026): after a decline the node keeps the game's
-  // row with no board and no proposal, and ChatGame.tsx offers "propose" only
-  // on a 404 — the proposer is left with nothing to press. Expected to fail
-  // until the screen is fixed; when it passes, drop this line.
-  test.fail();
+  // After a decline the node keeps the game's row with no board and no
+  // proposal (GET 200); ChatGame.tsx reads that as nothing on (WD4b).
   test.setTimeout(180_000);
   const [anya, boris] = await twoTalking(browser, ["Вера", "Глеб"]);
 

@@ -186,6 +186,14 @@ Deno.test({ name: "the cabinet: sign-in, a venue proved by its envelope, an offe
   for (const field of ["offer_text", "discount_value", "conditions", "promo_code"]) {
     assertEquals((await call("POST", "/adv/offers", { cookies: me, body: offer({ [field]: "второй\u001b[2J кофе" }) })).status, 400, `an offer's ${field} with ESC was taken`);
   }
+  // A link a person reads before following it: a well-formed URL that hides a
+  // zero-width space or a direction override is refused for what it hides,
+  // not for its shape (V6, 27.09.2026).
+  for (const hidden of ["https://cafe.example/me​nu", "https://cafe.example/‮unem"]) {
+    const took = await call("POST", "/adv/offers", { cookies: me, body: offer({ external_url: hidden }) });
+    assertEquals(took.status, 400, `an offer's external_url ${JSON.stringify(hidden)} was taken`);
+    assertMatch(took.body.error.message, /external_url has characters nobody can see/);
+  }
   // Not verified yet: no offer.
   assertEquals((await call("POST", "/adv/offers", { cookies: me, body: offer() })).status, 409);
 

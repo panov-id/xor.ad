@@ -68,9 +68,10 @@
 
 /* WD9: the cabinet against sheet 17 — the strip on top (panel, the address in
    mono 11 on the left, the sections as words on the right), titles at display
-   26/400, full-width actions, the point's fields without the fieldset's frame. */
+   26/400, full-width actions, the point's fields without the fieldset's frame.
+   The strip is 56 tall, as the sheet's rect and the kit's headers (WD10h). */
 .screen.cabinet { gap: var(--s-3); }
-.cabinet-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); min-height: var(--control-h); margin: 0 calc(-1 * var(--s-4)); padding: 0 var(--s-4); background: var(--panel); }
+.cabinet-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); min-height: 56px; margin: 0 calc(-1 * var(--s-4)); padding: 0 var(--s-4); background: var(--panel); }
 .cabinet-where { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
 .cabinet-nav { display: flex; gap: var(--s-3); }
 .cabinet-nav .ui-button { font-size: 13px; font-weight: 400; color: var(--muted); }

@@ -2,7 +2,8 @@
 // content's left edge at x 16 on a 375 phone. A 24 of .screen's padding once
 // stood above every band (WD10, 28.09.2026) and no test saw it, since the specs
 // read words, not geometry. This one measures the band's box and its first
-// text's left edge on the feed, the conversations, "me" and the cabinet.
+// text's left edge on the feed, the conversations, "me" and the cabinet, and
+// the band's height: 56, the kit's headers and sheet 17's strip (WD10h).
 
 import { expect, test, type Page } from "../fixtures/address.ts";
 import { register } from "./helpers.ts";
@@ -19,6 +20,7 @@ async function measure(page: Page, screen: string, band: string, text: string) {
   expect(box, `${screen}: no band ${band} to measure`).not.toBeNull();
   expect(Math.round(box!.y), `${screen}: the header band starts at y=${Math.round(box!.y)}, the sheet draws it at 0`).toBe(0);
   expect(Math.round(box!.width), `${screen}: the band is ${Math.round(box!.width)} wide, the sheet's is the phone's 375`).toBe(375);
+  expect(Math.round(box!.height), `${screen}: the band is ${Math.round(box!.height)} tall, the sheet's and the kit's is 56`).toBe(56);
   expect(Math.round(left), `${screen}: the band's text starts at x=${Math.round(left)}, the sheet's at 16`).toBe(16);
 }
 

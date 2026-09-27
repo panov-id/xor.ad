@@ -12,6 +12,8 @@ import { tableRefusal } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
 import { CLASSES } from "./NewTable.tsx";
 import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
+import { Button } from "../ui/Button.tsx";
+import "./talk.css";
 
 export function ChatGame({ client, chatId, bump }: { client: Client; chatId: string; bump: number }) {
   const games = new ChatGames(client);
@@ -65,9 +67,9 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
             {sets.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </label>{" "}
-        <button type="button" data-testid="game-propose" disabled={busy} onClick={() => act(() => games.propose(chatId, klass, set))}>
+        <Button kind="secondary" type="button" data-testid="game-propose" disabled={busy} onClick={() => act(() => games.propose(chatId, klass, set))}>
           {say("web.game.propose")}
-        </button>
+        </Button>
         {error && <p role="alert">{error}</p>}
       </section>
     );
@@ -85,14 +87,14 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
       {pending && !pending.mine && (
         <p data-testid="game-offer">
           {pending.kind === "rematch" ? say("web.game.rematch_offered") : say("web.game.offered", { game: `${pending.class} ${pending.set}` })}{" "}
-          <button type="button" data-testid="game-accept" disabled={busy} onClick={() => act(() =>
+          <Button kind="secondary" type="button" data-testid="game-accept" disabled={busy} onClick={() => act(() =>
             pending.kind === "rematch" ? games.answerRematch(chatId, pending.id, "accept") : games.answer(chatId, "accept"))}>
             {say("web.game.accept")}
-          </button>{" "}
-          <button type="button" data-testid="game-decline" disabled={busy} onClick={() => act(() =>
+          </Button>{" "}
+          <Button kind="secondary" type="button" data-testid="game-decline" disabled={busy} onClick={() => act(() =>
             pending.kind === "rematch" ? games.answerRematch(chatId, pending.id, "decline") : games.answer(chatId, "decline"))}>
             {say("web.game.decline")}
-          </button>
+          </Button>
         </p>
       )}
       {board && (
@@ -111,14 +113,14 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
           )}
           {board.over
             ? !pending && (
-              <button type="button" data-testid="game-rematch" disabled={busy} onClick={() => act(() => games.rematch(chatId))}>
+              <Button kind="secondary" type="button" data-testid="game-rematch" disabled={busy} onClick={() => act(() => games.rematch(chatId))}>
                 {say("web.game.rematch")}
-              </button>
+              </Button>
             )
             : (
-              <button type="button" data-testid="game-resign" disabled={busy} onClick={() => act(() => games.resign(chatId))}>
+              <Button kind="secondary" type="button" data-testid="game-resign" disabled={busy} onClick={() => act(() => games.resign(chatId))}>
                 {say("web.game.resign")}
-              </button>
+              </Button>
             )}
         </>
       )}

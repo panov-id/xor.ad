@@ -64,3 +64,19 @@
 :is([data-screen="splash"], [data-screen="unlock"], [data-screen^="register-"]) .ui-primary { width: 100%; }
 :is([data-screen="unlock"], [data-screen^="register-"]) .ui-primary { margin-top: auto; }
 [data-screen="splash"] { gap: 12px; }
+
+/* WD13, sheet 01: the words low and quiet, centred, and the three actions at
+   the foot, all 343 wide — the sheet's upper half is its icon cycle. */
+.screen.splash[data-screen="splash"] { justify-content: flex-end; padding-bottom: var(--s-6); }
+[data-screen="splash"] h1 { font-size: 16px; font-weight: 400; color: var(--muted); margin: 0; }
+[data-screen="splash"] > .muted { margin: 0 0 var(--s-6); font-size: 16px; }
+[data-screen="splash"] > .ui-button { width: 100%; }
+
+/* WD13, sheet 25 (empty): the hint in the middle of the screen, from the left
+   edge, body 16 in fg — not a centred title. */
+[data-screen="likes"] .empty { flex: 1; justify-content: center; text-align: left; padding: 0; }
+[data-screen="likes"] .empty h2 { font-size: 16px; font-weight: 400; margin: 0; }
+[data-screen="likes"] .empty .muted { color: var(--fg); font-size: 16px; }
+
+/* WD13, sheet 04: the phrase field on panel at --r-2, 128 tall, as «фраза». */
+[data-screen="composer"] textarea { background: var(--panel); border-radius: var(--r-2); min-height: 128px; }

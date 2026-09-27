@@ -157,13 +157,43 @@ const cases: Array<[string, () => Promise<void>]> = [
     await settle();
     for (const k of ["\u001B[C", "\r"]) { app.stdin.write(k); await settle(); }
     assert.deepEqual(picked, ["say"], "after the turn passed the row stayed deaf and «встать» could not be reached");
+    // The turn comes back: the row still holds the arrows, a card is not played.
+    const moved: unknown[] = [];
+    app.rerender(h(Table, { ...props, onMove: (m: unknown) => moved.push(m), view: deck(2) }));
+    await settle();
+    app.stdin.write("\r");
+    await settle();
+    assert.deepEqual(moved, [], "the focus jumped back to the board and a key meant for the row played a card");
+    app.unmount();
+  }],
+  ["«сказать» opens a line, sends it to the node and leaves the keys alive", async () => {
+    const sent: unknown[] = [];
+    const room = { closed: new Promise<number>(() => {}), next: () => new Promise(() => {}), close: () => {} };
+    const tables = {
+      view: () => Promise.resolve({ status: 200, body: view() }),
+      say: (_t: string, line: unknown) => { sent.push(line); return Promise.resolve({ status: 202, body: {} }); },
+    };
+    const app = render(h(TableRoom, {
+      say, tables: tables as never, open: () => Promise.resolve(room as never), tableId: "t", onLeave: () => {},
+      onError: (m: string) => { throw new Error(m); },
+    }));
+    await settle();
+    // The row: пас (greyed), сказать — right once, enter.
+    for (const k of ["\u001B[C", "\r", "добрый вечер", "\u001B[B", "\r"]) { app.stdin.write(k); await settle(); }
+    assert.deepEqual(sent, [{ kind: "line", text: "добрый вечер" }], "the line was not sent");
+    assert.match(app.lastFrame()!, /ещё партию/, "the table did not come back after the line was sent");
     app.unmount();
   }],
   ["a neighbour's escape codes in the table's name, a seat's name or a line do not reach the terminal", async () => {
     const hostile = view({
       name: "\u001B[2Jдомино",
       seats: [{ seat: 1, name: "\u001B[31mАня‮", role: "playing" }, { seat: 2, name: "Женя", role: "playing" }],
-      lines: [{ id: "l1", seat: 1, kind: "line", text: "привет\u001B]0;pwned\u0007\u001B[2J", created_at: 1 }],
+      lines: [
+        { id: "l1", seat: 1, kind: "line", text: "привет\u001B]0;pwned\u0007\u001B[2J", created_at: 1 },
+        { id: "l2", seat: 1, kind: "line", text: "при\u202Eвет мир", created_at: 2 },
+      ],
+      playing: "\u001B]0;x\u0007" as never,
+      like_count: "\u202Eevil" as never,
     });
     const app = render(h(Table, { say, view: hostile, onPick: () => {}, now: NOW * 1000 }));
     await settle();

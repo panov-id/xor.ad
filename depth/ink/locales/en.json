@@ -303,5 +303,6 @@
   "board.to": "to",
   "table.toBoard": "to the board",
   "table.rematch": "play again",
-  "table.acceptRematch": "accept the game"
+  "table.acceptRematch": "accept the game",
+  "table.send": "send"
 }

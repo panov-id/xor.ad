@@ -12,6 +12,7 @@
 // limit, it is a lever for denial of service, and this exists to take it away.
 
 import { log } from "./log.ts";
+import { enabled as databaseEnabled, query } from "./db.ts";
 
 interface Bucket {
   hits: number[];
@@ -432,7 +433,128 @@ export function check(limit: Limit, address: string, now = Date.now(), record = 
   if (!record) return { allowed: true, remaining: limit.max - hits.length - 1, retryAfterSeconds: 0 };
   hits.push(now);
   buckets.set(key, { hits });
+  if (byAddress(address)) remember(key, now);
   return { allowed: true, remaining: limit.max - hits.length, retryAfterSeconds: 0 };
+}
+
+// ── The address limits outlive the process (db/074; roadmap §1) ──
+//
+// The decision stays in memory and synchronous: a request is never held for a
+// write, and the limits keep working when the database does not — the reason
+// the v1 ceiling lives here at all. What changes is that a counted hit on an
+// address bucket is also written, behind the answer, and a node that starts
+// reads the last day back (loadRateLimits). So a new container no longer
+// starts every address from nought. Limits by identity or by mailbox stay in
+// memory only, as protocol §5 says; a key counts as an address when its
+// leading part parses as one — the same test bucketAddress already makes.
+//
+// Boundary, named: nodes of a pool read each other's hits only when they
+// start, not while they run — each still counts on its own between starts.
+const PERSIST_WINDOW_HOURS = 25; // the longest window is a day
+// Written in batches, one statement a quarter-second: a row per request cost
+// ~4 ms of the database each (2000 took 8.3 s, measured 27.09.2026), and a
+// flood queued writes without bound. The buffer is bounded too — past it the
+// oldest unwritten hits are dropped, which costs only what a restart would.
+const FLUSH_MS = 250;
+const PENDING_MAX = 20_000;
+let pending: { key: string; at: number }[] = [];
+let flushing: Promise<void> | null = null;
+let timer: number | null = null;
+let saidWriteFailed = false;
+let saidDropped = false;
+// Writing starts when the node reads the hits back on start (main.ts calls
+// loadRateLimits): a process that never started a node — a test of one
+// route — keeps its limits in memory and leaves no timer or write behind.
+let persisting = false;
+
+function byAddress(address: string): boolean {
+  const cut = address.indexOf("|");
+  return hostKey(cut === -1 ? address : address.slice(0, cut)) !== null;
+}
+
+function remember(key: string, at: number): void {
+  if (!persisting || !databaseEnabled()) return;
+  pending.push({ key, at });
+  if (pending.length > PENDING_MAX) {
+    pending = pending.slice(pending.length - PENDING_MAX);
+    if (!saidDropped) {
+      saidDropped = true;
+      log("warn", "rate-limit hits dropped before writing: the buffer is full", { max: PENDING_MAX });
+    }
+  }
+  if (timer === null) {
+    timer = setTimeout(() => {
+      timer = null;
+      flush();
+    }, FLUSH_MS);
+    // A batch waiting to be written does not keep a process alive by itself.
+    Deno.unrefTimer(timer);
+  }
+}
+
+function flush(): Promise<void> {
+  if (flushing) return flushing;
+  if (pending.length === 0) return Promise.resolve();
+  const batch = pending;
+  pending = [];
+  flushing = query(
+    `INSERT INTO rate_limit_hits (bucket, at) SELECT * FROM unnest($1::text[], $2::timestamptz[])`,
+    [batch.map((hit) => hit.key), batch.map((hit) => new Date(hit.at).toISOString())],
+  ).then((done) => {
+    if (done === null && !saidWriteFailed) {
+      saidWriteFailed = true;
+      log("warn", "rate-limit hits were not written; the limits hold in memory until the node restarts");
+    }
+  }).finally(() => {
+    flushing = null;
+  });
+  return flushing;
+}
+
+// Tests, and the shutdown path: every hit counted so far has landed.
+export async function hitsWritten(): Promise<void> {
+  if (timer !== null) {
+    clearTimeout(timer);
+    timer = null;
+  }
+  while (flushing || pending.length > 0) await (flushing ?? flush());
+}
+
+// On start: the last day of address hits back into the buckets, and the rows
+// past any window swept. A node that cannot read starts from nought, as before,
+// and says so.
+export async function loadRateLimits(now = Date.now()): Promise<number> {
+  if (!databaseEnabled()) return 0;
+  persisting = true;
+  await query(`DELETE FROM rate_limit_hits WHERE at < now() - make_interval(hours => $1)`, [PERSIST_WINDOW_HOURS]);
+  const rows = await query<{ bucket: string; at: Date }>(
+    `SELECT bucket, at FROM rate_limit_hits WHERE at > now() - make_interval(hours => $1) ORDER BY at`,
+    [PERSIST_WINDOW_HOURS],
+  );
+  if (rows === null) {
+    log("warn", "rate-limit hits could not be read; the address limits start from nought");
+    return 0;
+  }
+  for (const row of rows) {
+    const at = row.at.getTime();
+    if (at > now) continue;
+    const held = buckets.get(row.bucket) ?? { hits: [] };
+    held.hits.push(at);
+    buckets.set(row.bucket, held);
+  }
+  return rows.length;
+}
+
+// The sweep of rows past every window, for the scheduled job: without it the
+// table grows by every counted request between restarts.
+export async function sweepRateLimitHits(): Promise<number | null> {
+  if (!databaseEnabled()) return 0;
+  const gone = await query<{ n: number }>(
+    `WITH gone AS (DELETE FROM rate_limit_hits WHERE at < now() - make_interval(hours => $1) RETURNING 1)
+     SELECT count(*)::int AS n FROM gone`,
+    [PERSIST_WINDOW_HOURS],
+  );
+  return gone?.[0]?.n ?? null;
 }
 
 // Every window must allow it; the first refusal is the one reported, because

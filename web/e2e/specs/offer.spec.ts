@@ -18,7 +18,10 @@ test("a live offer link: the exit screen names the domain, and the node's 302 po
   await expect(page.getByTestId("domain")).toHaveText("ourcafe.cy");
   await expect(page.getByTestId("exit")).toHaveAttribute("data-disabled", "false");
   await expect(page.getByTestId("go")).toHaveAttribute("href", "/o/webtestlive0001/go");
-  await expect(page.getByTestId("go")).toContainText("ourcafe.cy");
+  // Sheet 17: the domain stands whole in its own block, the button says "Продолжить";
+  // a link opened in a fresh tab has no identity, so no report is offered (WS3).
+  await expect(page.getByTestId("go")).toHaveText("Продолжить");
+  await expect(page.getByTestId("report")).toHaveCount(0);
 
   // The node's 302, read where the button points, without following it: the
   // browser stays on the page, the Location is the offer's address.

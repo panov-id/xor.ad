@@ -29,9 +29,20 @@
 .place-field { display: flex; flex-direction: column; gap: var(--s-1); font-size: 14px; color: var(--muted); }
 .place-field select, .place-field input { background: var(--panel); border-color: var(--border-control); color: var(--fg); font-size: 16px; }
 
-.place-exit p { margin: 0; }
-.place-link-button { text-decoration: none; }
 .place-footer { margin-top: auto; display: flex; flex-direction: column; }
+
+/* The offer's exit (sheet 17, WS3): the display title at y 120, the domain in
+   the code block (72 tall, panel-2, mono 26), two lines of body, and the three
+   actions low on the screen — continue, cancel, and the framed report. */
+.offer-leave { display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-6) var(--s-2) 0; }
+.offer-display { font-size: 26px; font-weight: 400; line-height: 1.25; margin: 0; }
+.offer-domain { margin: 0; display: grid; place-items: center; min-height: 72px; border-radius: var(--r-2); background: var(--panel-2); color: var(--fg);
+  font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; letter-spacing: 2px; overflow-wrap: anywhere; text-align: center; padding: 0 var(--s-3); }
+.offer-note { margin: 0; font-size: 16px; line-height: 26px; color: var(--fg); }
+.offer-actions { margin-top: auto; display: flex; flex-direction: column; gap: var(--s-3); padding: 0 var(--s-2) var(--s-6); }
+.offer-go { text-decoration: none; width: 100%; }
+.offer-report { min-height: var(--control-h); border: 1px solid var(--border-control); border-radius: var(--r-1); background: transparent; color: var(--fg); font-size: 16px; font-weight: 600; }
+.offer-toast { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-2); background: var(--fg); color: var(--bg); font-size: 14px; }
 
 /* The table (sheet 19): the head under the header, the lines as system lines,
    the say row at the bottom. */

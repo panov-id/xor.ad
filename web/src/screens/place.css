@@ -85,4 +85,10 @@
 .place-answer .place-field { flex: 1; }
 .place-preview .row { display: flex; justify-content: space-between; align-items: center; }
 .screen.cabinet .place-not-us .ui-button, .screen.cabinet .place-preview .ui-button { width: 100%; }
+/* WD13, sheet 17 «Вы покидаете sosed»: no card — the title at display 26, the
+   words on the ground, the way out at the foot with «на главную» under it. */
+.screen.offer-exit .ui-header-title { font-size: 26px; font-weight: 400; }
+.screen.offer-exit .ui-header { border-bottom: 0; }
+.screen.offer-exit .place-exit { flex: 1; background: none; border: 0; padding: 0; }
+.screen.offer-exit .place-exit .place-link-button { margin-top: auto; width: 100%; }
 .screen.cabinet [data-testid="adv-sent"] { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-1); background: var(--panel-2); font-size: 14px; }

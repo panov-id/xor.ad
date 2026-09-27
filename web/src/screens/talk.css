@@ -49,4 +49,6 @@
 .match .match-card p { font-size: 20px; font-weight: 600; }
 .match .match-hint { border-left: 4px solid var(--accent); }
 .match .match-hint p { font-size: 14px; font-weight: 400; color: var(--fg); }
-.match .actions { margin-top: auto; }
+/* WD13: sheet 06 (the map's match) starts with the header band — no screen
+   top — and puts the two buttons right under the cards, not at the foot. */
+.screen.match { padding-top: 0; }

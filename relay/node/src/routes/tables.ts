@@ -16,13 +16,16 @@ import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { type Query, transaction } from "../lib/db.ts";
 import { type Caller, callerOf, refuse } from "../lib/identity_guard.ts";
-import { base64urlToBytes, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
+import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll } from "../lib/rate_limit.ts";
 import { log } from "../lib/log.ts";
 import { newDots, playDots } from "../lib/tables_dots.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
 import {
   applyOverdue,
+  boardFor,
+  scoreOf,
+  tableEvent,
   bandBetween,
   blockedEither,
   CLASSES,
@@ -36,6 +39,8 @@ import {
   SEAT_LIMITS,
   STICKER_LIMITS,
   TABLE_CREATE_LIMITS,
+  TICKET_LIMITS,
+  TICKET_SECONDS,
 } from "../lib/tables.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
@@ -88,38 +93,6 @@ async function atTable(
 const touch = (run: Query, tableId: string) =>
   run(`UPDATE tables SET last_move_at = now() WHERE id = $1`, [tableId]);
 
-// The board as this seat may see it. No class here keeps a hand yet, so
-// nothing is cut; when one does, this is the one place that cuts it (§6.1).
-// The table's score by seat: it lives on the seat and outlasts games (§6.1,
-// table_scores); only live seats — the one who left does not take it along.
-async function scoreOf(run: Query, tableId: string): Promise<Record<string, number>> {
-  const rows = await run<{ seat_no: number; points: number }>(
-    `SELECT s.seat_no, sc.points FROM table_scores sc JOIN table_seats s ON s.id = sc.seat_id
-      WHERE s.table_id = $1 AND s.left_at IS NULL`,
-    [tableId],
-  );
-  return Object.fromEntries(rows.map((r) => [String(r.seat_no), r.points]));
-}
-
-function boardFor(
-  game: { state: GameState; seq: number; pending: unknown; turn_due: Date | null } | null,
-  score: Record<string, number> = {},
-  over = false,
-) {
-  if (!game) return null;
-  const s = game.state;
-  // The contract's Board (docs/api/openapi.yaml): whose turn by seat, the
-  // turn's term as expires_at; score by seat from table_scores.
-  return {
-    seq: game.seq,
-    state: s.dots ? { order: s.order, moves: s.board, dots: s.dots } : { order: s.order, moves: s.board },
-    turn: s.turn === null ? null : s.order[s.turn] ?? null,
-    score,
-    over,
-    expires_at: game.turn_due ? Math.floor(new Date(game.turn_due).getTime() / 1000) : null,
-    pending: game.pending ?? null,
-  };
-}
 
 async function create(req: Request): Promise<Response> {
   const caller = await callerOf(req);
@@ -219,8 +192,8 @@ async function look(req: Request, tableId: string): Promise<Response> {
       [tableId],
     );
     // Lines from the moment of sitting down, and none of those the caller hid.
-    const lines = await run<{ id: string; seat: number; kind: string; text: string | null; sticker: string | null; created_at: number }>(
-      `SELECT l.id, l.seat_no AS seat, l.kind, l.text, l.sticker,
+    const lines = await run<{ id: string; seat: number; kind: string; text: string | null; sticker: string | null; refuses_seat: number | null; created_at: number }>(
+      `SELECT l.id, l.seat_no AS seat, l.kind, l.text, l.sticker, l.refuses_seat,
               floor(extract(epoch from l.created_at))::int AS created_at FROM table_lines l
         WHERE l.table_id = $1 AND l.visible_at IS NOT NULL AND l.created_at >= $2
           AND NOT EXISTS (SELECT 1 FROM hidden_messages h WHERE h.identity = $3 AND h.table_line_id = l.id)
@@ -280,6 +253,7 @@ async function sit(req: Request, tableId: string): Promise<Response> {
        RETURNING seat_no`,
       [tableId, me],
     );
+    await tableEvent(run, tableId, "seat");
     return json({ seat: seat.seat_no }, 200, sunsetHeader());
   }).catch(unavailable);
 }
@@ -312,6 +286,7 @@ async function speak(req: Request, tableId: string): Promise<Response> {
         [caller.brand ?? "unattributed", tableId, caller.identityId, body.sticker, seat.seat_no],
       );
       await touch(run, tableId);
+      await tableEvent(run, tableId, "line", line.id);
       return json({ id: line.id }, 200, sunsetHeader());
     }
     if (kind !== "line" && kind !== "application" && kind !== "refusal") {
@@ -354,6 +329,7 @@ async function speak(req: Request, tableId: string): Promise<Response> {
       [caller.brand ?? "unattributed", tableId, caller.identityId, text, seat.seat_no, kind, target ?? null, clean],
     );
     await touch(run, tableId);
+    if (clean) await tableEvent(run, tableId, "line", line.id);
     return json({ id: line.id }, 202, sunsetHeader());
   });
 }
@@ -416,12 +392,14 @@ async function move(req: Request, tableId: string): Promise<Response> {
     );
     // The move in words, seen by everyone seated (§6, 09.09.2026); the engine
     // writes it, so it needs no queue.
-    await run(
+    const [said] = await run<{ id: string }>(
       `INSERT INTO table_lines (brand, table_id, author_identity, text, seat_no, kind, visible_at)
-       SELECT brand, id, NULL, $2, $3, 'move', now() FROM tables WHERE id = $1`,
+       SELECT brand, id, NULL, $2, $3, 'move', now() FROM tables WHERE id = $1 RETURNING id`,
       [tableId, pass ? `seat ${seat.seat_no} passed` : `seat ${seat.seat_no} moved`, seat.seat_no],
     );
     await touch(run, tableId);
+    await tableEvent(run, tableId, "line", said.id);
+    await tableEvent(run, tableId, "board");
     return json(
       { board: boardFor({ ...game, seq: after.seq, turn_due: due }, await scoreOf(run, tableId), over) },
       200,
@@ -472,6 +450,8 @@ async function startRound(run: Query, tableId: string): Promise<void> {
     [tableId, table.game, JSON.stringify(state), playable ? new Date(Date.now() + MOVE_WINDOW_MS) : null, playable ? null : new Date()],
   );
   await touch(run, tableId);
+  await tableEvent(run, tableId, "board");
+  await tableEvent(run, tableId, "seat");
 }
 
 async function propose(req: Request, tableId: string): Promise<Response> {
@@ -582,17 +562,43 @@ async function giveUp(req: Request, tableId: string): Promise<Response> {
   return await atTable(req, tableId, async (run, _caller, seat) => {
     if (!seat.playing) return refuse("refused", "only a player resigns", 409);
     await resign(run, tableId, seat.seat_no);
-    await run(
+    const [said] = await run<{ id: string }>(
       `INSERT INTO table_lines (brand, table_id, author_identity, text, seat_no, kind, visible_at)
-       SELECT brand, id, NULL, $2, $3, 'move', now() FROM tables WHERE id = $1`,
+       SELECT brand, id, NULL, $2, $3, 'move', now() FROM tables WHERE id = $1 RETURNING id`,
       [tableId, `seat ${seat.seat_no} resigned`, seat.seat_no],
     );
     await touch(run, tableId);
+    await tableEvent(run, tableId, "line", said.id);
+    await tableEvent(run, tableId, "board");
+    await tableEvent(run, tableId, "seat");
     return new Response(null, { status: 204, headers: sunsetHeader() });
   });
 }
 
+// POST /tables/:id/ticket — a one-time ticket for the table's socket (protocol
+// §4.6, §4.4), only from a live seat (SEC-4), thirty seconds (SEC-15). The
+// room it opens carries `line`, `board` and `seat` frames and is closed 4005
+// when the seat is lost (chat/relay.ts).
+async function ticket(req: Request, tableId: string): Promise<Response> {
+  return await atTable(req, tableId, async (run, caller) => {
+    const allowed = checkAll(TICKET_LIMITS, caller.identityId);
+    if (!allowed.allowed) {
+      return refuse("rate_limited", "too many tickets this minute", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
+    const token = bytesToBase64url(crypto.getRandomValues(new Uint8Array(32)));
+    await run(
+      `INSERT INTO socket_tickets (token_hash, session, table_id, expires_at)
+       VALUES ($1, $2, $3, now() + interval '${TICKET_SECONDS} seconds')`,
+      [await sha256hex(new TextEncoder().encode(token)), caller.sessionId, tableId],
+    );
+    return json({ ticket: token, expires_in: TICKET_SECONDS }, 200, sunsetHeader());
+  });
+}
+
 route("POST", "/tables", (c) => create(c.req));
+route("POST", "/tables/:id/ticket", (c) => ticket(c.req, c.params.id));
 route("POST", "/tables/:id/like", (c) => like(c.req, c.params.id));
 route("DELETE", "/tables/:id/like", (c) => unlike(c.req, c.params.id));
 route("POST", "/tables/:id/resign", (c) => giveUp(c.req, c.params.id));

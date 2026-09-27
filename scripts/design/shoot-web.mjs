@@ -22,6 +22,10 @@ async function person(base = URL_) {
     baseURL: base,
     // The cabinet's service is https with the stand's own certificate.
     ignoreHTTPSErrors: true,
+    // A shot is one frame: the splash's icons come and go, and two shoots
+    // caught two frames (4.97% and 12.06% off the sheet, WD6c). Under reduced
+    // motion they stand, as on the sheet's second phone of screen 01.
+    reducedMotion: "reduce",
     // The page's CSP (style-src 'self') drops an inserted <style>, so the
     // control break below is let through — only when it is asked for.
     bypassCSP: process.env.WEB_BREAK === "pad8",

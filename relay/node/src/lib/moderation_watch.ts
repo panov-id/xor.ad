@@ -71,16 +71,30 @@ export function forgetModerationWatch(): void {
   saidNoRoad = null;
 }
 
-// A verdict for this face since `at`: one of its phrases published, which
-// stamps visible_at. By the face and not anywhere (observer, 2026-09-26): a
-// verdict on one face does not bring another's stopped queue back. A refusal
-// does not count, and the reason is the schema, not a choice — it deletes the
-// row and leaves its moment in identity_stats, which has no face. So a
-// moderator that only refuses reads as stopped; the letter a day still bounds
-// what that costs.
+// A moderator decided something for this face: a phrase or a table line or a
+// table's name, published or refused (db/072). Called by the panel's queues
+// after a decision applied. A failed write is logged and not thrown: the
+// decision itself stands, and the cost is a stopped-queue letter too many.
+export async function noteVerdict(brand: string | null): Promise<void> {
+  if (!brand) return;
+  const done = await query(
+    `INSERT INTO moderation_verdicts (brand, decided_at) VALUES ($1, now())
+       ON CONFLICT (brand) DO UPDATE SET decided_at = greatest(moderation_verdicts.decided_at, EXCLUDED.decided_at)`,
+    [brand],
+  );
+  if (done === null) log("warn", "a moderation verdict was not noted", { brand });
+}
+
+// A verdict for this face since `at`: a decision the panel noted (noteVerdict),
+// or one of its phrases published, which stamps visible_at. By the face and not
+// anywhere (observer, 2026-09-26): a verdict on one face does not bring
+// another's stopped queue back. Until db/072 a refusal did not count — it
+// deletes the row — and neither did a decision at a table, so a moderator that
+// only refused, or only decided tables, read as stopped.
 async function verdictSince(brand: string, at: number): Promise<boolean> {
   const rows = await query<{ any: boolean }>(
-    `SELECT EXISTS (SELECT 1 FROM feed_messages WHERE brand = $1 AND visible_at > $2) AS any`,
+    `SELECT EXISTS (SELECT 1 FROM moderation_verdicts WHERE brand = $1 AND decided_at > $2)
+         OR EXISTS (SELECT 1 FROM feed_messages WHERE brand = $1 AND visible_at > $2) AS any`,
     [brand, new Date(at)],
   );
   return rows?.[0]?.any === true;

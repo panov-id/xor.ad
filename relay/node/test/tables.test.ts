@@ -409,8 +409,17 @@ Deno.test({
 
     // Another brand's moderator cannot decide it; the right one does, once.
     const stranger = await panelAs("moderator", "some-other-brand");
+    await database.queryOrThrow(`DELETE FROM moderation_verdicts WHERE brand = $1`, [brand]);
     assertEquals((await stranger("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
+    assertEquals(
+      (await database.queryOrThrow(`SELECT 1 FROM moderation_verdicts WHERE brand = $1`, [brand])).length, 0,
+      "a decision that did not apply is not a verdict",
+    );
     assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 200);
+    assertEquals(
+      (await database.queryOrThrow(`SELECT 1 FROM moderation_verdicts WHERE brand = $1`, [brand])).length, 1,
+      "a decision at a table is the watchdog's verdict for its face (db/072)",
+    );
     assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
     const shown = ((await signed(a, "GET", `/tables/${id}`)).body.lines as { id: string }[]).map((l) => l.id);
     assert(shown.includes(line.body.id), "published: the line is public");

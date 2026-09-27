@@ -47,15 +47,18 @@ export async function decideTable(
   id: string,
   verdict: "publish" | "refuse",
   brand: string | null,
-): Promise<boolean> {
+): Promise<string | null> {
   const fence = `AND ($2::text IS NULL OR brand = $2)`;
   const sql = kind === "line"
     ? verdict === "publish"
-      ? `UPDATE table_lines SET visible_at = now() WHERE id = $1 AND visible_at IS NULL ${fence} RETURNING id`
-      : `DELETE FROM table_lines WHERE id = $1 AND visible_at IS NULL ${fence} RETURNING id`
+      ? `UPDATE table_lines SET visible_at = now() WHERE id = $1 AND visible_at IS NULL ${fence} RETURNING brand`
+      : `DELETE FROM table_lines WHERE id = $1 AND visible_at IS NULL ${fence} RETURNING brand`
     : verdict === "publish"
     ? `UPDATE tables SET name = name_pending, name_pending = NULL
-        WHERE id = $1 AND name_pending IS NOT NULL ${fence} RETURNING id`
-    : `UPDATE tables SET name_pending = NULL WHERE id = $1 AND name_pending IS NOT NULL ${fence} RETURNING id`;
-  return (await queryOrThrow(sql, [id, brand])).length > 0;
+        WHERE id = $1 AND name_pending IS NOT NULL ${fence} RETURNING brand`
+    : `UPDATE tables SET name_pending = NULL WHERE id = $1 AND name_pending IS NOT NULL ${fence} RETURNING brand`;
+  // The face it was decided for, or null when nothing applied: the watchdog
+  // counts a decision by face (lib/moderation_watch.ts, db/072).
+  const [row] = await queryOrThrow<{ brand: string }>(sql, [id, brand]);
+  return row?.brand ?? null;
 }

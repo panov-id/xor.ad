@@ -111,6 +111,8 @@ export interface InboxItem {
   phrase?: { text: string; mode: string };
   offer?: { id: string; text: string; mode: string; discount_value?: string | null; conditions?: string | null };
   waiting_for_you?: boolean;
+  // Whether I agreed already and wait for them (relay routes/inbox.ts, P10).
+  my_consent?: "waiting" | "none";
   chat_expires_at?: number;
   my_span?: number;
   arrived_since?: boolean;

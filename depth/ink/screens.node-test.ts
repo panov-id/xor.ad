@@ -1848,6 +1848,30 @@ test("the second agreed: the waiting screen hands the chat on; the offer gone: a
   noErrors();
 });
 
+test("after a restart the node's my_consent keeps the wait: no second consent, straight into waiting", async () => {
+  let waited: string | null = null;
+  let consents = 0;
+  const client = {
+    inboxSince: () => Promise.resolve({
+      items: [{ kind: "match", id: "m1", name: "Аня", age: 27, phrase: { text: "гуляю", mode: "alone" }, waiting_for_you: false, state: "pending", my_consent: "waiting" }],
+      events: { new_matches: 0, waiting_for_you: 0, new_chats: 0, pending_messages: 0, ending_soon: 0 },
+    }),
+    consent: () => { consents++; return Promise.resolve({ status: 200, body: { state: "waiting" } }); },
+  };
+  // A fresh process: its own memory knows no consent at all.
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Inbox, { say, client: client as any, onOpen: () => {}, onWait: (m: string) => (waited = m), consented: () => false, onBack: () => {}, onError: collect }));
+  await settle();
+  await settle();
+  assert.match(app.lastFrame()!, /мэтч — ждём ответа/, "after a restart the inbox asks for the consent again");
+  assert.doesNotMatch(app.lastFrame()!, /не сейчас/, "\"not now\" is offered after one's own consent");
+  await type(app, ENTER);
+  await waitFor(() => waited === "m1", 3);
+  assert.equal(consents, 0, "the consent was sent a second time");
+  app.unmount();
+  noErrors();
+});
+
 test("one's own consent answered \"waiting\" opens the waiting conversation, and the inbox remembers it", async () => {
   let waited: string | null = null;
   const consented = new Set<string>();

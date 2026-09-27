@@ -91,6 +91,8 @@ type Row = {
   kind: string;
   id: string;
   match_id?: string;
+  // The node's memory of my consent (P10): "waiting" once I agreed.
+  my_consent?: "waiting" | "none";
   // kind offer_interest (§8.5, P3b): somebody liked my offer — the reason is
   // my own offer, shown whole; the other side has no phrase.
   offer?: { id: string; text: string; mode: string; discount_value?: string | null };
@@ -144,6 +146,9 @@ export function Inbox(
   // so "declined · undo" stays in their place until the person leaves (§4.6).
   const [declined, setDeclined] = useState<Array<Row & { declined: true }>>([]);
   const [events, setEvents] = useState<InboxEvents | null>(null);
+  // Agreed already: the node says so on the row (my_consent, P10), which
+  // outlives the process; this process's memory answers for what it did itself.
+  const agreed = (r: Row) => r.my_consent === "waiting" || !!consented?.(r.match_id ?? r.id);
   const load = (keep = declined) =>
     client.inboxSince(lastLook)
       .then(({ items, events }) => {
@@ -208,7 +213,7 @@ export function Inbox(
               ? say("inbox.declined")
               : r.kind === "chat"
               ? `${say("inbox.open")} · ${say("inbox.until", { time: time(r.chat_expires_at) })}`
-              : consented?.(r.match_id ?? r.id)
+              : agreed(r)
               ? say("inbox.waiting")
               // §8.5: the author sees not the other side's phrase, which there is
               // none of, but their own offer and "интересуется вашим предложением".
@@ -224,13 +229,13 @@ export function Inbox(
         : [
           {
             key: "act",
-            label: chosen?.kind === "chat" || (chosen && consented?.(chosen.match_id ?? chosen.id))
+            label: chosen?.kind === "chat" || (chosen && agreed(chosen))
               ? say("inbox.enter")
               : say("inbox.consent"),
             disabled: !chosen,
           },
           // "Not now" (§4.6): recorded at once and invisible to the other side.
-          ...(chosen && chosen.kind !== "chat" && !consented?.(chosen.match_id ?? chosen.id)
+          ...(chosen && chosen.kind !== "chat" && !agreed(chosen)
             ? [{ key: "decline", label: say("inbox.notNow") }]
             : []),
           { key: "back", label: say("common.back") },
@@ -263,7 +268,7 @@ export function Inbox(
           return onOpen(chosen.id, chosen.match_id, chosen.name ?? "", chosen.age ?? 0, chosen.my_span, chosen.chat_expires_at);
         }
         // Agreed already on this device: back into the waiting conversation.
-        if (consented?.(matchId) && onWait) return onWait(matchId, chosen.name ?? "", chosen.age ?? 0);
+        if (agreed(chosen) && onWait) return onWait(matchId, chosen.name ?? "", chosen.age ?? 0);
         client.consent(matchId)
           .then((answer) => {
             const chatId = answer.body.chat_id;

@@ -255,5 +255,21 @@
   "web.unlock.remembers": "Это устройство помнит вас. Введите ПИН, чтобы продолжить.",
   "web.unlock.restore": "открыть устройство бумажным кодом",
   "web.vault.pinLocked": "десять неверных ПИНов: вход закрыт до бумажного кода",
-  "web.vault.pinWrong": "неверный ПИН"
+  "web.vault.pinWrong": "неверный ПИН",
+  "web.game.title": "Խաղ",
+  "web.game.class": "Խաղ",
+  "web.game.set": "Հավաքածու",
+  "web.game.propose": "Առաջարկել խաղ",
+  "web.game.waiting": "Սպասում ենք զրուցակցի պատասխանին",
+  "web.game.offered": "Ձեզ առաջարկում են խաղալ՝ {game}",
+  "web.game.rematch_offered": "Զրուցակիցն առաջարկում է ևս մեկ խաղ",
+  "web.game.accept": "Խաղալ",
+  "web.game.decline": "Հրաժարվել",
+  "web.game.your_turn": "Ձեր քայլն է",
+  "web.game.their_turn": "Զրուցակցի քայլն է",
+  "web.game.over": "Խաղն ավարտված է",
+  "web.game.rematch": "ԵՒս մեկ խաղ",
+  "web.game.resign": "Հանձնվել",
+  "web.game.you": "դուք",
+  "web.game.peer": "զրուցակից"
 }

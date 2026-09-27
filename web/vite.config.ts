@@ -56,6 +56,11 @@ const proxy = {
 const core = fileURLToPath(new URL("../depth/core", import.meta.url));
 // And the terminal's words: the "me" screens say what depth says, verbatim.
 const locales = fileURLToPath(new URL("../depth/ink/locales", import.meta.url));
+// The kit's tokens and faces (WD1): tokens.css names its fonts /fonts/<file>,
+// as the sheets are served; here that path is the kit's font folder, so the
+// build bundles them as the page's own assets.
+const kit = fileURLToPath(new URL("../panel/design/kit", import.meta.url));
+const fonts = fileURLToPath(new URL("../panel/design/fonts/", import.meta.url));
 
 // The page's Content-Security-Policy (FX5′, 27.09.2026). A script that runs on
 // the page can do whatever the page can — take the long key it holds after the
@@ -92,7 +97,7 @@ const csp = {
 
 export default defineConfig({
   plugins: [react(), csp],
-  server: { proxy, fs: { allow: [".", core, locales] }, allowedHosts: ["host.docker.internal", "web"] },
+  server: { proxy, fs: { allow: [".", core, locales, kit, fonts] }, allowedHosts: ["host.docker.internal", "web"] },
   preview: {
     proxy,
     allowedHosts: ["host.docker.internal", "web", "web-adv"],
@@ -101,5 +106,10 @@ export default defineConfig({
   },
   // depth/core names hash-wasm bare; resolved from this package's node_modules,
   // as depth/deno.json maps it for Deno.
-  resolve: { alias: { "hash-wasm": fileURLToPath(new URL("./node_modules/hash-wasm", import.meta.url)) } },
+  resolve: {
+    alias: [
+      { find: "hash-wasm", replacement: fileURLToPath(new URL("./node_modules/hash-wasm", import.meta.url)) },
+      { find: /^\/fonts\//, replacement: fonts },
+    ],
+  },
 });

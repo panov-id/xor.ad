@@ -5,6 +5,8 @@
 *
 !depth/core
 !depth/ink/locales
+!panel/design/kit
+!panel/design/fonts
 !web
 web/node_modules
 web/dist

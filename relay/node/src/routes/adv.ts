@@ -125,7 +125,7 @@ async function startSignIn(req: Request, signup: boolean): Promise<Response> {
     // An address already registered is not an error and not a second account.
     // The contact is not written here: it rides on the link this request
     // mails, and reaches the account only when that link is opened — by the
-    // one who holds the mailbox (db/077). Written here, whoever signed a
+    // one who holds the mailbox (db/083). Written here, whoever signed a
     // mailbox up first, or last before its owner opened the letter, named the
     // contact of somebody else's account (X2, FX2, 27.09.2026). A new row
     // needs one for NOT NULL and gets an empty one.
@@ -169,7 +169,7 @@ route("POST", "/adv/session", async ({ req }) => {
     );
     if (!link) return false;
     // The first sign-in is what confirms the address (§2.1), and the link that
-    // was opened names the contact (db/077): its holder proved the mailbox.
+    // was opened names the contact (db/083): its holder proved the mailbox.
     // A plain sign-in link carries none — then a confirmed account keeps its
     // own, and one confirmed only now keeps nothing a stranger's sign-up could
     // have left: the contact is empty until the owner gives one.
@@ -211,7 +211,7 @@ route("GET", "/adv/me", async ({ req }) => {
 
 // --- venues -------------------------------------------------------------------
 
-// The venue's point and the radius its offers are shown in (db/075; offers
+// The venue's point and the radius its offers are shown in (db/081; offers
 // spec §7: the zone of a business offer is its venue's address). Given by the
 // cabinet with the address; no geocoder. Absent is allowed — such a venue
 // publishes nothing until it has one; half of it is not.
@@ -546,7 +546,7 @@ route("POST", "/adv/offers", async ({ req }) => {
     );
     if (!venue) return "not_found" as const;
     if (venue.verification_status !== "verified") return "not_verified" as const;
-    // An offer is shown around its venue (§7, db/075); without a point there is
+    // An offer is shown around its venue (§7, db/081); without a point there is
     // no feed it could reach, and publishing it would be a card nobody sees.
     if (!venue.placed) return "no_place" as const;
     if (repeatedFrom) {

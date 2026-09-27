@@ -67,7 +67,7 @@ async function call(
 }
 
 // The letter a sign-up mails, as the node writes it: the node's own link row,
-// contact and all (db/077), re-keyed to a token the test knows under the half
+// contact and all (db/083), re-keyed to a token the test knows under the half
 // the node left in the browser. The contact is read from what the node stored,
 // not written by the test — a test that wrote it proved nothing (V4, 27.09.2026).
 async function letterOf(email: string, contact: string, origin = "https://adv.alpha.test") {
@@ -144,7 +144,7 @@ Deno.test({ name: "the cabinet: sign-in, a venue proved by its envelope, an offe
   const contactOf = async (address: string) =>
     (await database.queryOrThrow<{ contact: string }>(`SELECT contact FROM advertisers WHERE lower(email) = lower($1)`, [address]))[0].contact;
   // FX2 (X2): a sign-up writes no contact; only the link that is opened does,
-  // and only its mailbox's holder opens it (db/077).
+  // and only its mailbox's holder opens it (db/083).
   assertEquals(await contactOf(email), "+357 00 000000", "the account does not hold the contact of the letter its owner opened (or a later sign-up rewrote it)");
   const open = (l: { token: string; half: string }) =>
     call("POST", "/adv/session", { body: { token: l.token }, cookies: { "__Host-adv-link": l.half } });

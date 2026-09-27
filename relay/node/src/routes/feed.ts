@@ -541,7 +541,7 @@ async function deliver(req: Request, url: URL): Promise<Response> {
     };
   });
 
-  // Venue offers (offers spec §7; db/075), on the first page only — a page
+  // Venue offers (offers spec §7; db/081), on the first page only — a page
   // further down is the same neighbourhood read again. Shown by the face that
   // asks: an offer lives in one storefront's feed, and a face with no brand
   // (the terminal) sees none. The quota is one commercial card per ten

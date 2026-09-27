@@ -233,6 +233,50 @@ async function main() {
     await until(app, /пробежку/, 20);
     out("ok   a phrase hidden from the feed came back from the hidden list");
 
+    // VF3 · the complaint through the App itself (app.ts case "complaint"):
+    // an offer card at this point, "complain" on its row, the complaint
+    // screen. The offer and its ten neighbours go in as rows (one offer per ten
+    // phrases, routes/feed.ts) and out again, so the steps after see the feed
+    // they saw before.
+    {
+      const advertiser = crypto.randomUUID(), venue = crypto.randomUUID(), offer = crypto.randomUUID();
+      const filler = Array.from({ length: 10 }, () => crypto.randomUUID());
+      await sql`INSERT INTO advertisers (id, email, contact) VALUES (${advertiser}, 'cafe-app@depth.test', 'кофейня')`;
+      await sql`INSERT INTO venues (id, advertiser_id, name, address, verification_status, lat, lon, area_radius)
+                VALUES (${venue}, ${advertiser}, 'Угол', 'ул. Реки 1', 'verified', 59.9343, 30.3351, 1000)`;
+      await sql`INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, redirect_code, discount_until, status, expires_at)
+                VALUES (${offer}, 'sosed', ${venue}, 'чай за полцены', '-50%', ${"d" + offer.replaceAll("-", "")},
+                        now() + interval '1 day', 'active', now() + interval '1 hour')`;
+      for (const [i, id] of filler.entries()) {
+        await sql.unsafe(
+          `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+             lat_published, lon_published, visible_at, expires_at)
+           VALUES ($1, 'sosed', $2, $3, 'alone', 'und', 59.9343, 30.3351, 1000, 59.9343, 30.3351, now(), now() + interval '3 hours')`,
+          [id, peer.identityId, `соседская фраза ${i}`],
+        );
+      }
+      const refresh = async (what: RegExp) => {
+        await pickInFeed(app, "point");
+        await until(app, /Где ты/);
+        await type(app, DOWN, DOWN, DOWN, ENTER);
+        await until(app, what, 30);
+      };
+      await refresh(/чай за полцены/);
+      for (let i = 0; i < 20 && !/›[^\n]*\n\s*чай за полцены/.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
+      await until(app, /›[^\n]*\n\s*чай за полцены/, 10);
+      await pickInFeed(app, "complain");
+      await until(app, /скидку не дали/, 10);
+      out("ok   \"complain\" on an offer's row in the App opened the complaint screen");
+      // Fields, then the actions: send, back.
+      await type(app, DOWN, DOWN, RIGHT, ENTER);
+      await until(app, /чай за полцены/, 10);
+      await sql`DELETE FROM feed_messages WHERE id = ANY(${filler})`;
+      await sql`DELETE FROM offers WHERE id = ${offer}`;
+      await refresh(/пробежку/);
+      for (let i = 0; i < 6 && !/›[^\n]*\n\s*кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
+      await until(app, /›[^\n]*\n\s*кто на пробежку/, 10);
+    }
+
     // 4 · a like each way makes a match. The screen likes the peer's phrase;
     // the peer likes a phrase put in for this identity, because a phrase
     // written from the screen is still waiting for the queue's verdict.

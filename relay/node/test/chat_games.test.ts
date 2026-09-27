@@ -1,4 +1,4 @@
-// GC1 (chat spec §6, screen 18; protocol §4.7; db/076): a game in a chat of
+// GC1 (chat spec §6, screen 18; protocol §4.7; db/082): a game in a chat of
 // two, on the tables' engine. Proposed and answered, played through the
 // class's rules, sent to the conversation's rooms as the side that sees it,
 // and gone with the conversation.

@@ -6,8 +6,10 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-const modelUrl = Deno.env.get("MODERATOR_URL");
-const live = Boolean(modelUrl && Deno.env.get("DATABASE_URL"));
+if (!Deno.env.get("DATABASE_URL")) {
+  throw new Error("DATABASE_URL is not set — run through relay/moderator/run-live.sh");
+}
+const live = Boolean(Deno.env.get("MODERATOR_URL"));
 
 Deno.env.set("STORAGE_TRANSPORT", "fs");
 Deno.env.set("STORAGE_DIR", await Deno.makeTempDir());

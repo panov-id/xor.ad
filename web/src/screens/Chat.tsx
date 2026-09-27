@@ -22,11 +22,16 @@ import { say } from "../locales/say.ts";
 
 interface Line { id: string; text: string; mine: boolean; at: number; state?: "sent" | "queued" | "failed" }
 
+type Status = { key: string; values?: Record<string, string | number> } | { error: string };
+
 export function Chat({ client, keys, row: given, onBack }: { client: Client; keys: ChatKeys; row: InboxChatRow; onBack: () => void }) {
   const [row, setRow] = useState<InboxChatRow>(given);
   const [lines, setLines] = useState<Line[]>([]);
   const [text, setText] = useState("");
-  const [status, setStatus] = useState<string>(say("web.chat.opening_keys"));
+  // The status is a state — a key of the dictionary and its values, or an
+  // error's own text — and becomes words only when shown (W14): a check on
+  // it never compares a translated line.
+  const [status, setStatus] = useState<Status>({ key: "web.chat.opening_keys" });
   const [keysState, setKeysState] = useState<"opening" | "open" | "failed">("opening");
   const [keysError, setKeysError] = useState<string | null>(null);
   const [over, setOver] = useState(given.state === "ended");
@@ -57,7 +62,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         await keys.open(fresh);
         if (!alive) return;
         setKeysState("open");
-        setStatus((s) => (s.startsWith(say("web.chat.connected")) ? s : say("web.chat.keys_ready")));
+        setStatus((s) => ("key" in s && s.key === "web.chat.connected" ? s : { key: "web.chat.keys_ready" }));
         const flushed = await keys.flush(fresh);
         if (flushed.length > 0) setLines((was) => [...was, ...flushed.map((f) => ({ id: f.localId, text: f.text, mine: true, at: Date.now() / 1000, state: "sent" as const }))]);
         setKept(keys.keptOnNode(fresh.id));
@@ -65,7 +70,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         if (!alive) return;
         setKeysState("failed");
         setKeysError((e as Error).message);
-        setStatus((e as Error).message);
+        setStatus({ error: (e as Error).message });
       }
     })();
     return () => { alive = false; };
@@ -79,16 +84,16 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
     stop.current = connectRoom(client, given.id, async (event) => {
       if (!alive) return;
       switch (event.kind) {
-        case "connected": setStatus(say("web.chat.connected")); break;
-        case "reconnecting": setStatus(say("web.chat.reconnecting", { code: event.code, seconds: Math.round(event.inMs / 1000) })); break;
-        case "over": setOver(true); setStatus(say("web.chat.over")); break;
-        case "moved": setStatus(say("web.chat.moved")); break;
-        case "update": setStatus(say("web.chat.update")); break;
-        case "failed": setStatus(say("web.chat.failed", { message: event.message })); break;
+        case "connected": setStatus({ key: "web.chat.connected" }); break;
+        case "reconnecting": setStatus({ key: "web.chat.reconnecting", values: { code: event.code, seconds: Math.round(event.inMs / 1000) } }); break;
+        case "over": setOver(true); setStatus({ key: "web.chat.over" }); break;
+        case "moved": setStatus({ key: "web.chat.moved" }); break;
+        case "update": setStatus({ key: "web.chat.update" }); break;
+        case "failed": setStatus({ key: "web.chat.failed", values: { message: event.message } }); break;
         case "rekey":
           // The other side published a half at a new epoch: asked, or agreed to
           // our request. Either way the row has moved; read it and turn the keys.
-          setStatus(say("web.chat.rekeying", { epoch: event.epoch }));
+          setStatus({ key: "web.chat.rekeying", values: { epoch: event.epoch } });
           setTurn((t) => t + 1);
           break;
         case "sys": break;
@@ -112,7 +117,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
     setError(null);
     try {
       const { localId, answer } = await keys.say(rowRef.current, line);
-      if (answer.status === 404) { setOver(true); setStatus(say("web.chat.over")); return; }
+      if (answer.status === 404) { setOver(true); setStatus({ key: "web.chat.over" }); return; }
       if (answer.status !== 202) throw new Error(say("web.chat.not_sent", { status: answer.status, body: JSON.stringify(answer.body) }));
       setLines((was) => [...was, { id: localId, text: line, mine: true, at: Date.now() / 1000, state: answer.body.accepted ? "sent" : "failed" }]);
       setText("");
@@ -128,7 +133,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
       const fresh = (await refreshRow()) ?? rowRef.current;
       const answer = action === "ask" ? await keys.requestRekey(fresh) : await keys.acceptRekey(fresh);
       if (answer.status !== 200) throw new Error(say("web.chat.rekey_refused", { status: answer.status, body: JSON.stringify(answer.body) }));
-      setStatus(answer.body.state === "agreed" ? say("web.chat.rekey_agreed", { epoch: answer.body.epoch }) : say("web.chat.rekey_asked", { epoch: answer.body.epoch }));
+      setStatus(answer.body.state === "agreed" ? { key: "web.chat.rekey_agreed", values: { epoch: answer.body.epoch } } : { key: "web.chat.rekey_asked", values: { epoch: answer.body.epoch } });
       setTurn((t) => t + 1);
     } catch (e) {
       setError((e as Error).message);
@@ -145,7 +150,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         <h1>{row.name}, {row.age}</h1>
         <button type="button" onClick={onBack} data-testid="back">{say("common.back")}</button>
       </header>
-      <p className="status" data-testid="status">{status}</p>
+      <p className="status" data-testid="status">{"error" in status ? status.error : say(status.key, status.values)}</p>
       {safety && <p className="code" data-testid="safety">{safety}</p>}
       {over && (
         <section className="tombstone" data-testid="tombstone">

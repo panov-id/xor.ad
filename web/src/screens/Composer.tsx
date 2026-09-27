@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { say } from "../locales/say.ts";
-import { MODES, sayPhrase, type Mode, type Sent } from "../api/actions.ts";
+import { modes, sayPhrase, type Mode, type Sent } from "../api/actions.ts";
 
 export function Composer(
   { client, at, radius, onSent, onBack }: {
@@ -77,7 +77,7 @@ export function Composer(
       <label>
         {say("web.composer.mode")}
         <select value={mode} onChange={(e) => setMode(e.target.value as Mode)} data-testid="mode">
-          {MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+          {modes().map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
       </label>
       <details className="offer-fields" data-testid="offer-fields">

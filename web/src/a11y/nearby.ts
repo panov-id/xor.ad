@@ -16,15 +16,13 @@ import { say } from "../locales/say.ts";
 
 export type Step = "none" | "few" | "about_ten" | "tens" | "hundreds";
 
-export const NEARBY: Record<Step, string> = {
-  none: say("web.nearby.none"),
-  few: say("web.nearby.few"),
-  about_ten: say("web.nearby.about_ten"),
-  tens: say("web.nearby.tens"),
-  hundreds: say("web.nearby.hundreds"),
-};
+const STEPS: readonly Step[] = ["none", "few", "about_ten", "tens", "hundreds"];
 
-export const isStep = (s: unknown): s is Step => typeof s === "string" && s in NEARBY;
+// The words of a step, made when asked (W14): a list built when the module
+// loads keeps the language the page had then.
+export const nearby = (step: Step): string => say(`web.nearby.${step}`);
+
+export const isStep = (s: unknown): s is Step => typeof s === "string" && (STEPS as readonly string[]).includes(s);
 
 // Not more often than this: a polite region that changes twice a second is a
 // reader talking over itself.

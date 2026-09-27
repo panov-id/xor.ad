@@ -12,7 +12,8 @@ import { say } from "../locales/say.ts";
 import type { Answer, Client, Liked, Radius } from "../../../depth/core/client.ts";
 
 export type Mode = "alone" | "company" | "party";
-export const MODES: Array<{ value: Mode; label: string }> = [
+// Made when asked (W14), so the labels are in the page's language of the moment.
+export const modes = (): Array<{ value: Mode; label: string }> => [
   { value: "alone", label: say("web.mode.alone") },
   { value: "company", label: say("web.mode.company") },
   { value: "party", label: say("web.mode.party") },

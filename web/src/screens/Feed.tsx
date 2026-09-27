@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
-import { ANNOUNCE_MS, announce, isStep, NEARBY, type Step } from "../a11y/nearby.ts";
+import { ANNOUNCE_MS, announce, isStep, nearby, type Step } from "../a11y/nearby.ts";
 import type { Sent } from "../api/actions.ts";
 import { say } from "../locales/say.ts";
 
@@ -101,7 +101,7 @@ export function Feed(
           <h1>{say("web.feed.title")}</h1>
           {/* What the reader hears: the announced step, not every flicker of it. */}
           <p className="muted nearby" aria-live="polite" role="status" data-testid="nearby" data-step={said ?? undefined}>
-            {said ? NEARBY[said] : ""}
+            {said ? nearby(said) : ""}
           </p>
         </div>
         <label className="radius">

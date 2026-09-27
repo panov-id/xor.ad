@@ -6,10 +6,10 @@
 -- and the radius takes the same five steps as a phrase's. Nullable: a venue
 -- made before this has no point and its offers wait for one.
 ALTER TABLE venues
-  ADD COLUMN lat double precision CHECK (lat IS NULL OR lat BETWEEN -90 AND 90),
-  ADD COLUMN lon double precision CHECK (lon IS NULL OR lon BETWEEN -180 AND 180),
-  ADD COLUMN area_radius integer CHECK (area_radius IS NULL OR area_radius IN (100, 300, 1000, 3000, 10000)),
+  ADD COLUMN IF NOT EXISTS lat double precision CHECK (lat IS NULL OR lat BETWEEN -90 AND 90),
+  ADD COLUMN IF NOT EXISTS lon double precision CHECK (lon IS NULL OR lon BETWEEN -180 AND 180),
+  ADD COLUMN IF NOT EXISTS area_radius integer CHECK (area_radius IS NULL OR area_radius IN (100, 300, 1000, 3000, 10000)),
   ADD CONSTRAINT venues_place_whole CHECK ((lat IS NULL) = (lon IS NULL) AND (lat IS NULL) = (area_radius IS NULL));
 
 -- The feed's question: live offers of a brand, by the venue's box.
-CREATE INDEX offers_live_by_brand ON offers (brand, expires_at) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS offers_live_by_brand ON offers (brand, expires_at) WHERE status = 'active';

@@ -6,7 +6,7 @@
 -- all, so a moderator deciding only tables read as stopped. One row per face,
 -- moved forward by every decision in the panel's queues. The audit trail keeps
 -- who; this keeps only when, and only the latest.
-CREATE TABLE moderation_verdicts (
+CREATE TABLE IF NOT EXISTS moderation_verdicts (
   brand       text PRIMARY KEY,
   decided_at  timestamptz NOT NULL
 );

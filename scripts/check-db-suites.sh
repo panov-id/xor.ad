@@ -38,7 +38,8 @@ for name in sorted(listed - refusing):
     if not os.path.exists(os.path.join(node, name)):
         bad.append(f"{name}: in deno.json's --ignore, and there is no such file")
     else:
-        bad.append(f"{name}: in deno.json's --ignore, and it does not refuse to run without a database — the unit run skips it for nothing")
+        if "deno-suite: own-process" not in open(os.path.join(node, name), encoding="utf-8").read():
+            bad.append(f"{name}: in deno.json's --ignore, and it does not refuse to run without a database — the unit run skips it for nothing")
 if bad:
     print("  ✗ набор тестов с базой разошёлся со списком в relay/node/deno.json:")
     for b in bad:

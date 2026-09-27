@@ -442,7 +442,7 @@ Deno.test({
     assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 200);
     assertEquals(
       (await database.queryOrThrow(`SELECT 1 FROM moderation_verdicts WHERE brand = $1`, [brand])).length, 1,
-      "a decision at a table is the watchdog's verdict for its face (db/072)",
+      "a decision at a table is the watchdog's verdict for its face (db/078)",
     );
     assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
     const shown = ((await signed(a, "GET", `/tables/${id}`)).body.lines as { id: string }[]).map((l) => l.id);

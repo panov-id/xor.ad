@@ -289,7 +289,7 @@ Deno.test("a verdict, then a stop again: a second letter, but not within the hou
   await sweep(brand);
 });
 
-Deno.test("a moderator who decides only tables, or only refuses, is not a stopped one (db/072)", async () => {
+Deno.test("a moderator who decides only tables, or only refuses, is not a stopped one (db/078)", async () => {
   const { noteVerdict } = await import("../src/lib/moderation_watch.ts");
   forgetModerationWatch();
   const brand = face();

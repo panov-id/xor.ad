@@ -4,7 +4,7 @@
 -- The code itself is kept until the envelope is used or burned, because an
 -- operator has to print it; the lookup goes by its hash, so the "not us" page
 -- finds an envelope without comparing plain codes in SQL.
-CREATE TABLE venue_envelopes (
+CREATE TABLE IF NOT EXISTS venue_envelopes (
   id          uuid PRIMARY KEY,
   venue_id    uuid NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
   code        text,                               -- for printing; NULL once spent
@@ -16,5 +16,5 @@ CREATE TABLE venue_envelopes (
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 -- One live envelope per venue: a second order supersedes the first.
-CREATE UNIQUE INDEX venue_envelopes_live ON venue_envelopes (venue_id)
+CREATE UNIQUE INDEX IF NOT EXISTS venue_envelopes_live ON venue_envelopes (venue_id)
   WHERE used_at IS NULL AND burned_at IS NULL;

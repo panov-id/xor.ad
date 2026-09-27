@@ -51,7 +51,7 @@ export const PRUNE_DSA = "prune_dsa_records";
 export const COUNT_DSA_RECIPIENTS = "count_dsa_recipients";
 // A business profile a year after its last offer (db/056).
 export const SWEEP_ADVERTISERS = "sweep_advertisers";
-// Address rate-limit hits past every window (db/074).
+// Address rate-limit hits past every window (db/079).
 export const SWEEP_RATE_LIMITS = "sweep_rate_limits";
 // Idempotency rows outlive their purpose by a lot: a key exists so a retry a few
 // minutes later gets the same answer, and after a day nobody will ever look one

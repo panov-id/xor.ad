@@ -8,8 +8,8 @@
 -- start. The longest window is a day, so a row older than that is swept.
 -- Limits kept by identity or by mailbox are not written: protocol §5 keeps
 -- them in memory on purpose.
-CREATE TABLE rate_limit_hits (
+CREATE TABLE IF NOT EXISTS rate_limit_hits (
   bucket  text NOT NULL CHECK (octet_length(bucket) <= 512),
   at      timestamptz NOT NULL
 );
-CREATE INDEX rate_limit_hits_at ON rate_limit_hits (at);
+CREATE INDEX IF NOT EXISTS rate_limit_hits_at ON rate_limit_hits (at);

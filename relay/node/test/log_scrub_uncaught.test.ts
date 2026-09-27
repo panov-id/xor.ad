@@ -1,3 +1,4 @@
+// deno-suite: own-process — in deno.json's --ignore for its own process, not for a database (scripts/check-db-suites.sh).
 // What reaches the console past log()'s own lines (SC1): a rejection nobody
 // handles and an error thrown out of a callback, which Deno printed as they
 // were — the database's address and port, a caller's address — and the

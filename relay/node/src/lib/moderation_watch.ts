@@ -72,7 +72,7 @@ export function forgetModerationWatch(): void {
 }
 
 // A moderator decided something for this face: a phrase or a table line or a
-// table's name, published or refused (db/072). Called by the panel's queues
+// table's name, published or refused (db/078). Called by the panel's queues
 // after a decision applied. A failed write is logged and not thrown: the
 // decision itself stands, and the cost is a stopped-queue letter too many.
 export async function noteVerdict(brand: string | null): Promise<void> {
@@ -88,7 +88,7 @@ export async function noteVerdict(brand: string | null): Promise<void> {
 // A verdict for this face since `at`: a decision the panel noted (noteVerdict),
 // or one of its phrases published, which stamps visible_at. By the face and not
 // anywhere (observer, 2026-09-26): a verdict on one face does not bring
-// another's stopped queue back. Until db/072 a refusal did not count — it
+// another's stopped queue back. Until db/078 a refusal did not count — it
 // deletes the row — and neither did a decision at a table, so a moderator that
 // only refused, or only decided tables, read as stopped.
 async function verdictSince(brand: string, at: number): Promise<boolean> {

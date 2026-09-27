@@ -6,7 +6,7 @@
 -- deleted on request — only with the account after the retention year, so it
 -- goes by cascade with its offer. One answer per complaint: the cabinet's form
 -- has one field, and a thread with the moderator is not what §10.3 describes.
-CREATE TABLE offer_complaints (
+CREATE TABLE IF NOT EXISTS offer_complaints (
   id                       uuid PRIMARY KEY,
   offer_id                 uuid NOT NULL REFERENCES offers(id) ON DELETE CASCADE,
   user_id                  uuid REFERENCES identities(id) ON DELETE SET NULL,
@@ -16,9 +16,9 @@ CREATE TABLE offer_complaints (
   counts_towards_autohide  boolean NOT NULL,   -- frozen at the moment of the complaint
   created_at               timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX offer_complaints_offer ON offer_complaints (offer_id);
+CREATE INDEX IF NOT EXISTS offer_complaints_offer ON offer_complaints (offer_id);
 
-CREATE TABLE business_responses (
+CREATE TABLE IF NOT EXISTS business_responses (
   id                  uuid PRIMARY KEY,
   offer_complaint_id  uuid NOT NULL UNIQUE REFERENCES offer_complaints(id) ON DELETE CASCADE,
   text                text NOT NULL CHECK (char_length(text) BETWEEN 1 AND 2000),

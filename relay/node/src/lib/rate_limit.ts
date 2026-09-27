@@ -437,7 +437,7 @@ export function check(limit: Limit, address: string, now = Date.now(), record = 
   return { allowed: true, remaining: limit.max - hits.length, retryAfterSeconds: 0 };
 }
 
-// ── The address limits outlive the process (db/074; roadmap §1) ──
+// ── The address limits outlive the process (db/079; roadmap §1) ──
 //
 // The decision stays in memory and synchronous: a request is never held for a
 // write, and the limits keep working when the database does not — the reason
@@ -472,7 +472,7 @@ let persisting = false;
 // asked before anything resolves it — so a made-up id per request was a fresh
 // bucket per request, and each one two rows kept for a day: one address grew
 // the table without bound, 1500 requests, 3000 rows, no 429 (X2, FX2,
-// 27.09.2026). Those buckets stay in memory, as every bucket did before db/074;
+// 27.09.2026). Those buckets stay in memory, as every bucket did before db/079;
 // the fixed suffixes — keyless, malformed, offer-link — are the caller's
 // address alone and are written.
 const KEY_SUFFIX = /\|ak_(pub|live)_/;

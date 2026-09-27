@@ -60,7 +60,7 @@ export async function decideTable(
     : `UPDATE tables SET name_pending = NULL WHERE id = $1 AND name_pending IS NOT NULL ${fence}
        RETURNING brand, id AS table_id, created_by`;
   // The face it was decided for, or null when nothing applied: the watchdog
-  // counts a decision by face (lib/moderation_watch.ts, db/072).
+  // counts a decision by face (lib/moderation_watch.ts, db/078).
   return await transaction(async (run) => {
     const [done] = await run<{ brand: string; table_id: string; created_by?: string | null }>(sql, [id, brand]);
     if (!done) return null;

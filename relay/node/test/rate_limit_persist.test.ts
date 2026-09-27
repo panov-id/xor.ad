@@ -1,4 +1,4 @@
-// The address limits outlive the process (lib/rate_limit.ts, db/074): a limit
+// The address limits outlive the process (lib/rate_limit.ts, db/079): a limit
 // spent by one node is still spent for a node started afresh on the same
 // database, with the same buckets — an IPv6 host by its /64, an IPv4 host
 // however it is spelled — while a limit by identity starts from nought, as

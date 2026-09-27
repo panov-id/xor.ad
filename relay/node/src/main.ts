@@ -15,7 +15,7 @@ assertConfig();
 installUncaughtScrub();
 
 // The address limits as the last day left them, before the first request
-// (db/074): a restarted container used to start every address from nought.
+// (db/079): a restarted container used to start every address from nought.
 try {
   const hits = await loadRateLimits();
   log("info", "rate-limit hits read back", { hits });

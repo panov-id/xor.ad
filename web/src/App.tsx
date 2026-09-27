@@ -36,6 +36,7 @@ import { Statements } from "./screens/Statements.tsx";
 import { Unlock } from "./screens/Unlock.tsx";
 import { Arrival } from "./screens/Arrival.tsx";
 import { Departure } from "./screens/Departure.tsx";
+import { Cabinet } from "./adv/Cabinet.tsx";
 import { Blocked } from "./screens/Blocked.tsx";
 import { Hidden } from "./screens/Hidden.tsx";
 import { forget, readRecord, type Record_ } from "./vault.ts";
@@ -70,7 +71,16 @@ type Screen =
   | { at: "step-away" }
   | { at: "away"; until: number };
 
+// The venue's cabinet (A1) is its own page: at adv.<storefront> in a real
+// deployment, under /adv on the stand. Decided once per load, so the face's
+// hooks below are never called conditionally.
+const CABINET = location.hostname.startsWith("adv.") || /^\/adv(\/|$)/.test(location.pathname);
+
 export function App() {
+  return CABINET ? <Cabinet /> : <Face />;
+}
+
+function Face() {
   const [screen, setScreen] = useState<Screen>({ at: "loading" });
   const [seated, setSeated] = useState<Seated | null>(null);
   // The area is placed anywhere, by the person (§8.3); until the place picker

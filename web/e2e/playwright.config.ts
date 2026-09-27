@@ -13,5 +13,7 @@ export default defineConfig({
     baseURL: process.env.WEB_URL ?? "http://localhost:4173",
     ...devices["Pixel 5"],
     trace: "retain-on-failure",
+    // The cabinet's service is https with the stand's own certificate (A1).
+    ignoreHTTPSErrors: true,
   },
 });

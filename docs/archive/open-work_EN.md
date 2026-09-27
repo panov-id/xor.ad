@@ -67,7 +67,7 @@ landing, the migration always before the flag.
       the fixed edge rule only shortens the cache for copies fetched after it, so
       an earlier visitor still held a keyless `config.js` for up to 30 days and
       their form would have started answering 401. The address is now versioned
-      (`config.js?v=<build>`), and since the page itself is cached for minutes,
+      (`config.js?v=<build>`), and since the page itself is cached for 5 minutes,
       the old copy is simply never requested again.
 - [x] **A9. The image tag lived outside history** — 2026-07-29, by splitting
       the file. Un-ignoring `inventory.toml` whole was not an option: this is a
@@ -155,7 +155,7 @@ landing, the migration always before the flag.
       catchable on a stand — which is what the item existed for.
 - [x] **B5. Per-key quotas and limits** — 2026-07-28, once E1 landed. The daily
       allowance lives on the key, the counters in `quota_counters`
-      (`db/002_quotas.sql`). A node counts locally and flushes on a ten-second
+      (`db/002_quotas.sql`). A node counts locally and flushes on a 10-second
       timer: an UPDATE per public request would put the database on the path of
       every signup and every page view — exactly the dependency a storage-first
       design avoids. The cost is honest: within one flush interval a key can
@@ -633,7 +633,7 @@ pass opened and did not close.
 
 - [x] **J10. Bunny's two new sub-processors — we do not object. Decided
       2026-08-07.** The notice arrived 2026-08-05, the change takes effect
-      2026-08-19, the §3.2 objection window is five days and silence counts as
+      2026-08-19, the §3.2 objection window is 5 days and silence counts as
       consent. We let the window pass **deliberately**.
 
       There is nothing to object to: the change concerns "personal account data" —

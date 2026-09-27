@@ -150,7 +150,7 @@ through three different wrappers and cannot be counted by eye.
 | 6.4c | **The first publication is written as a UTC date, "long ago" is 24 to 48 hours** (§8.3, 2026-09-14) | a publication at 23:58 UTC → a report a day later does not count, two days later it does; a publication on the offer's day does not count | nothing to check |
 | 6.5 | **A successful publication does not zero the refusal counter** (edited 2026-09-07) | four refusals, a success, one more → the mute is there. The old entry demanded the opposite and enshrined the bypass: four probes, a clean phrase, four more | nothing to check |
 | 6.5b | **The "checking…" line becomes "taking longer than usual" after 60 seconds** (2026-09-08) | a phrase in the queue, 60 seconds pass → the copy changes, no refusal arrives, the phrase is still queued | nothing to check |
-| 6.5a | **Stepping away lifts neither the hourly limit nor the pause** (2026-09-07) | four publications, twenty minutes away, return → `POST /feed` refused on the hourly limit | nothing to check |
+| 6.5a | **Stepping away lifts neither the hourly limit nor the pause** (2026-09-07) | four publications, 20 minutes away, return → `POST /feed` refused on the hourly limit | nothing to check |
 | 6.6 | **A phrase goes out only when both it and the name are accepted** (2026-08-26) | name rejected → the phrase waits; name fixed → it publishes itself | nothing to check |
 | 6.7 | While a phrase waits for the name, a second one cannot be sent | a second `POST /feed` → refused | nothing to check |
 | 6.8 | Limits: ≤4 live phrases, ≤4 per hour (2026-08-28) | tests "four an hour counts moments…" and "four live phrases is its own limit…", feed_publish | **yes** |
@@ -271,7 +271,7 @@ through three different wrappers and cannot be counted by eye.
 
 | № | What must be true | What proves it | State |
 |---|---|---|---|
-| 13.1 | **Each side has its own span, counted from their own last message** | Petya 10 min, Kolya an hour; Petya silent for 11 → `gone_at` for Petya, alive for Kolya | nothing to check |
+| 13.1 | **Each side has its own span, counted from their own last message** | Petya 10 min, Kolya an hour; Petya silent for 11 minutes → `gone_at` for Petya, alive for Kolya | nothing to check |
 | 13.2 | The other side's span and remainder are not handed out | the open response carries neither the peer's value nor their `gone_at` time | nothing to check |
 | 13.3 | The span changes inside an open conversation at any time | 10 → 60 on a live conversation → accepted, recounted from the same `last_own_message_at` | nothing to check |
 | 13.3a | The other person's message does **not** reset my count | Kolya writes every 5 minutes, Petya stays silent for 11 → it ended for Petya | nothing to check |

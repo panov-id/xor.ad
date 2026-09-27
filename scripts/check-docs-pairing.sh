@@ -81,7 +81,11 @@ UNITS = {"КБ": "KB", "МБ": "MB", "ГБ": "GB"}
 # `202` inside the next span through as a bare figure. The pair agreed; the
 # reading of it did not.
 FENCE = re.compile(r"^[ \t]*```.*$", re.MULTILINE)
-NOISE = re.compile(r"https?://\S+|`[^`]*`|[0-9a-f]{7,}|\b\S+\.(?:woff2|js|css|mjs|jpg|png|svg|sh|py)\b")
+# A URL ends where Markdown or prose ends it — at ) ] | > < , or a quote — and
+# not at the next space: «(https://x/y),27.09.2026» used to lose the date with
+# the address, and a date moved in one half only went unseen (7a, T2). A date
+# inside the address itself (?d=27.09.2026) is the address, and stays cut.
+NOISE = re.compile(r"https?://[^\s)\]|<>,\"'`]+|`[^`]*`|[0-9a-f]{7,}|\b\S+\.(?:woff2|js|css|mjs|jpg|png|svg|sh|py)\b")
 
 # Only figures distinctive enough to carry a decision. A bare 5 is written «5» in
 # one language and "five" in the other often enough that comparing them reports
@@ -133,6 +137,66 @@ def canonical(figure):
     return figure
 
 
+# A small number with its unit is a decision, not style (T2, 27.09.2026): «60 в
+# минуту», «30 дней», «5 мин» — a limit or a term that moved in one half only
+# (60 → 61 in the English, found in D4) passed as a bare two-digit figure. The
+# unit is what says the number is not «five people»; so a number next to a unit
+# of time, a rate or a percent is compared always, in one canonical shape per
+# unit, whichever language wrote it. A number written as a word stays unseen.
+UNIT_WORDS = (
+    ("min", r"минут(?:а|ы|у|ам|ами|ах)?|мин|minutes?|mins?"),
+    ("s", r"секунд(?:а|ы|у|ам|ами|ах)?|сек|seconds?|secs?"),
+    ("ms", r"мс|ms|milliseconds?"),
+    ("h", r"час(?:а|ов|ам|ами|ах)?|ч|hours?|hrs?|h"),
+    ("d", r"дн(?:я|ей|ям|ями|ях)|день|сут(?:ки|ок|кам|ками)|days?"),
+    ("w", r"недел(?:я|и|ю|ь|ям|ями|ях)|weeks?"),
+    ("mo", r"месяц(?:а|у|ев|ам|ами|ах)?|months?"),
+    # Years are left out: «с 13 лет», «до 20 лет» is an age, which the English
+    # writes as a bare number («from 13», «under 20») — measured on the three
+    # repositories, every «лет» mismatch was an age, none a term.
+)
+UNIT_ALT = "|".join(f"(?P<{name}>{words})" for name, words in UNIT_WORDS)
+UNIT_ANY = "|".join(words for _, words in UNIT_WORDS)
+# A rate: «60 в минуту», «60 per minute», «60 a minute», «60/мин» — one word
+# may stand between («50 промахов за час», «50 misses an hour»), never a unit
+# itself («20 минут / час» is a list). A rate's unit takes one form: after «в»
+# or «за», the accusative singular — «в секундах» is "in seconds", not a rate,
+# and «429 несёт … в секундах» read as one was noise (D5).
+RATE_WORDS = (
+    ("min", r"минуту|мин|minute|min"),
+    ("s", r"секунду|сек|second|sec"),
+    ("h", r"час|ч|hour|h"),
+    ("d", r"сутки|день|day"),
+    ("w", r"неделю|week"),
+    ("mo", r"месяц|month"),
+)
+RATE_ALT = "|".join(f"(?P<{name}>{words})" for name, words in RATE_WORDS)
+# A term: «30 дней», «a 260-minute chat» — the unit right after the number.
+# A number is never read out of a decimal («85.5 ч») or a ratio («14/600»).
+EDGE = r"(?<![\d.,/])\b"
+RATE_FIGURE = re.compile(
+    rf"{EDGE}(?P<n>\d+)\s*(?:/\s*|(?:(?!(?:{UNIT_ANY})\b)[^\W\d]+\s+)?(?:в|за|per|an?)\s+)(?:{RATE_ALT})(?!\w)",
+    re.IGNORECASE,
+)
+TERM_FIGURE = re.compile(rf"{EDGE}(?P<n>\d+)(?:\s*-\s*|\s*)(?:{UNIT_ALT})(?!\w)", re.IGNORECASE)
+# «≤10s», «~6с»: seconds glued to a short number, in either alphabet. Not after three digits — «404s» is
+# the plural of an answer code — and not with a space, which "135 s" of a table
+# is not.
+GLUED_SECONDS = re.compile(r"(?<![\w.,/])(?P<n>\d{1,2})[sс]\b")
+SHARE = re.compile(r"\b(?P<n>\d+)\s*%")
+
+
+def unit_figures(text):
+    for match in RATE_FIGURE.finditer(text):
+        yield f"{match['n']}/{next(name for name, _ in RATE_WORDS if match[name])}"
+    for match in TERM_FIGURE.finditer(text):
+        yield f"{match['n']} {next(name for name, _ in UNIT_WORDS if match[name])}"
+    for match in GLUED_SECONDS.finditer(text):
+        yield f"{match['n']} s"
+    for match in SHARE.finditer(text):
+        yield f"{match['n']}%"
+
+
 def figures(path):
     counts = collections.Counter()
     raw = path.read_text(encoding="utf-8")
@@ -156,6 +220,8 @@ def figures(path):
         figure = re.sub(r"\s+", " ", figure)
         if DISTINCTIVE.search(figure):
             counts[canonical(figure)] += 1
+    for figure in unit_figures(text):
+        counts[figure] += 1
     return counts
 
 # Обход от корня репозитория, а не от docs/. Раньше сверялись только документы

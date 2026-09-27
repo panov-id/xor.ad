@@ -60,6 +60,7 @@ async function inbox(req: Request): Promise<Response> {
     arrived: boolean; answered: boolean; consented: boolean;
     interest: boolean; offer_id: string | null; offer_text: string | null; offer_mode: string;
     discount_value: string | null; conditions: string | null;
+    their_ends: string | null; my_ends: string | null; mine_is_phrase: boolean;
   }>(
     `SELECT m.id, them.name, them.age, theirs.text_snapshot AS text, theirs.mode,
             (theirs.accepted_at IS NOT NULL AND mine.accepted_at IS NULL) AS waiting, m.created_at,
@@ -76,12 +77,23 @@ async function inbox(req: Request): Promise<Response> {
             -- The discount and its conditions, while the offer is still in the
             -- feed; gone with it — the match outlives nothing, but the read is
             -- LEFT so a row without them is a row, not a hole.
-            f.discount_value, f.conditions
+            f.discount_value, f.conditions,
+            -- What is left of both phrases (§8.11, «Мэтч», 14.09.2026): the one
+            -- exception to "someone else's end never leaves the node" — the end
+            -- of a phrase that already led to a mutual like is told to the
+            -- other side of that match, and to no one else. Sheet 24 draws it
+            -- as a bar, never as a number. A phrase no longer in the feed has
+            -- no end to tell (LEFT, null).
+            floor(extract(epoch from tf.expires_at))::bigint::text AS their_ends,
+            floor(extract(epoch from mf.expires_at))::bigint::text AS my_ends,
+            (mf.id IS NOT NULL) AS mine_is_phrase
        FROM matches m
        JOIN match_participants mine   ON mine.match_id = m.id AND mine.identity = $1
        JOIN match_participants theirs ON theirs.match_id = m.id AND theirs.identity <> $1
        JOIN identities them ON them.id = theirs.identity
        LEFT JOIN feed_messages f ON theirs.message_id IS NULL AND f.id = mine.message_id
+       LEFT JOIN feed_messages tf ON tf.id = theirs.message_id
+       LEFT JOIN feed_messages mf ON mf.id = mine.message_id
       WHERE m.expires_at > now() AND m.chat_id IS NULL AND mine.declined_at IS NULL
         AND ($2::bigint IS NULL OR ((extract(epoch from m.created_at) * 1000000)::bigint, m.id) < ($2::bigint, $3::uuid))
       ORDER BY m.created_at DESC, m.id DESC LIMIT ${PAGE + 1}`,
@@ -149,7 +161,12 @@ async function inbox(req: Request): Promise<Response> {
       // for both (P5): `phrase` carries the offer's text on both rows, and the
       // author's row adds `offer` — its id, and the discount while it lives.
       kind: m.interest ? "offer_interest" : "match", id: m.id, name: m.name, age: m.age,
-      phrase: { text: m.text ?? "", mode: m.mode },
+      phrase: { text: m.text ?? "", mode: m.mode, ...(m.their_ends !== null ? { expires_at: Number(m.their_ends) } : {}) },
+      // My own phrase in this match (sheet 24's first card), read from my side
+      // of it only — mine.identity = $1 above; an offer on my side is `offer`.
+      ...(!m.interest && m.mine_is_phrase
+        ? { my_phrase: { text: m.offer_text ?? "", mode: m.offer_mode, ...(m.my_ends !== null ? { expires_at: Number(m.my_ends) } : {}) } }
+        : {}),
       ...(m.interest
         ? {
           offer: {

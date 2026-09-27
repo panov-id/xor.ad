@@ -16,6 +16,25 @@ import { Chip } from "../ui/Chip.tsx";
 import { modes } from "../api/actions.ts";
 import "./talk.css";
 
+type Phrase = { text: string; mode: string; expires_at?: number };
+
+// A phrase lives 4 h 20 min in the feed (limits feed.phrase.span; relay
+// lib/feed_verdict.ts PHRASE_SPAN): the bar is the share of that left.
+const PHRASE_LIFE_SECONDS = (4 * 60 + 20) * 60;
+
+// What is left of a phrase, as a bar only: the end is never printed (screen
+// 24; «чужой срок не числом», 19.09.2026). No end — the phrase has left the
+// feed — no bar.
+function Life({ end, tone }: { end?: number; tone: "mine" | "theirs" }) {
+  if (end === undefined) return null;
+  const left = Math.max(0, Math.min(1, (end - Date.now() / 1000) / PHRASE_LIFE_SECONDS));
+  return (
+    <span className={`match-life match-life-${tone}`} aria-hidden="true" data-testid={`life-${tone}`} data-left={left.toFixed(2)}>
+      <span style={{ width: `${(left * 100).toFixed(1)}%` }} />
+    </span>
+  );
+}
+
 export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclined }: {
   client: Client;
   keys: ChatKeys;
@@ -26,6 +45,11 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
   // "не сейчас" said or taken back here: the inbox keeps the row (W17).
   onDeclined?: (row: MatchRow, declined: boolean) => void;
 }) {
+  // The row as GET /inbox gives it since N1: the other's end on `phrase`, and
+  // my own phrase in the match as `my_phrase` (openapi InboxItem).
+  const lived = row as MatchRow & { phrase: Phrase; my_phrase?: Phrase };
+  const theirs = lived.phrase;
+  const mine = lived.my_phrase;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [declined, setDeclined] = useState(false);
@@ -73,14 +97,22 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
         </button>
         <h1 className="ui-header-title">{row.name}, {row.age}</h1>
       </header>
-      {/* Sheet 24, «Мэтч»: the other person's card on panel-2 — name, the
-          phrase's mode as a chip, the phrase — then the hint with its accent
-          edge. The sheet's lifespan bar is left out: the inbox row carries no
-          expiry to draw it from. */}
+      {/* Sheet 24, «Мэтч»: my phrase that was liked, then the other person's
+          card on panel-2 — name, the mode as a chip, the phrase — each with
+          what is left of it as a bar (the node tells the other's end to its
+          match partner only, §8.11; never printed as a number, decision
+          19.09.2026), then the hint with its accent edge. */}
+      {mine && (
+        <Card as="section" className="match-mine" data-testid="match-mine">
+          <p>{mine.text}</p>
+          <Life end={mine.expires_at} tone="mine" />
+        </Card>
+      )}
       <Card as="section" kind="nested" className="match-card">
         <strong>{row.name}, {row.age}</strong>
         <Chip label={modes().find((m) => m.value === row.phrase.mode)?.label ?? row.phrase.mode} />
         <p>{row.phrase.text}</p>
+        <Life end={theirs.expires_at} tone="theirs" />
       </Card>
       <Card as="section" kind="nested" className="match-hint">
         <p>{row.waiting_for_you ? say("web.match.agreed") : say("web.match.hint")}</p>

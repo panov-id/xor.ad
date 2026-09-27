@@ -48,5 +48,12 @@
 .match .match-card { gap: var(--s-2); }
 .match .match-card p { font-size: 20px; font-weight: 600; }
 .match .match-hint { border-left: 4px solid var(--accent); }
+/* N1: sheet 24's lifespan — 3 px on a border-control track (kit `lifespan`),
+   mine in accent, theirs in the category colour of its chip. */
+.match .match-mine p { font-size: 20px; font-weight: 600; margin: 0; }
+.match-life { display: block; height: 3px; border-radius: var(--r-pill); background: var(--border-control); overflow: hidden; }
+.match-life > span { display: block; height: 100%; }
+.match-life-mine > span { background: var(--accent); }
+.match-life-theirs > span { background: var(--cat-amber); }
 .match .match-hint p { font-size: 14px; font-weight: 400; color: var(--fg); }
 .match .actions { margin-top: auto; }

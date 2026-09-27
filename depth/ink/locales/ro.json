@@ -304,5 +304,8 @@
   "table.toBoard": "to the board",
   "table.rematch": "play again",
   "table.acceptRematch": "accept the game",
-  "table.send": "send"
+  "table.send": "send",
+  "table.seatedElsewhere": "you already sit at «{name}»",
+  "table.backThere": "back to it",
+  "table.standThere": "stand up there and sit here"
 }

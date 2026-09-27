@@ -304,5 +304,8 @@
   "table.toBoard": "к доске",
   "table.rematch": "ещё партию",
   "table.acceptRematch": "принять партию",
-  "table.send": "отправить"
+  "table.send": "отправить",
+  "table.seatedElsewhere": "вы уже за столом «{name}»",
+  "table.backThere": "вернуться к нему",
+  "table.standThere": "встать там и сесть здесь"
 }

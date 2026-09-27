@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
-import { NewTable, Table, type TableAction, TableRoom } from "./table.ts";
+import { NewTable, SeatedElsewhere, Table, type TableAction, TableRoom } from "./table.ts";
 import { strings } from "./strings.ts";
 import type { TableView } from "../core/tables.ts";
 
@@ -164,6 +164,25 @@ const cases: Array<[string, () => Promise<void>]> = [
     app.stdin.write("\r");
     await settle();
     assert.deepEqual(moved, [], "the focus jumped back to the board and a key meant for the row played a card");
+    app.unmount();
+  }],
+  ["seated elsewhere: the old table is named, and «stand up there» stands there, sits here and opens it", async () => {
+    const calls: string[] = [];
+    let opened: string | null = null;
+    const tables = {
+      view: () => Promise.resolve({ status: 200, body: view({ name: "\u001B[2Jдомино у реки" }) }),
+      stand: (id: string) => { calls.push(`stand ${id}`); return Promise.resolve({ status: 204, body: null }); },
+      sit: (id: string) => { calls.push(`sit ${id}`); return Promise.resolve({ status: 200, body: { seat: 2 } }); },
+    };
+    const app = render(h(SeatedElsewhere, {
+      say, tables: tables as never, there: "old", here: "new", onOpen: (id: string) => (opened = id), onBack: () => {},
+      onError: (m: string) => { throw new Error(m); },
+    }));
+    await settle();
+    assert.match(app.lastFrame()!, /вы уже за столом «·?домино у реки»/, "the old table is not named, or its name was not cleaned");
+    for (const k of ["\u001B[C", "\r"]) { app.stdin.write(k); await settle(); }
+    assert.deepEqual(calls, ["stand old", "sit new"]);
+    assert.equal(opened, "new", "the new table was not opened after moving");
     app.unmount();
   }],
   ["grid: tab out of the board and back keeps the field in hand", async () => {

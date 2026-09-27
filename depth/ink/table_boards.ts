@@ -155,7 +155,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
     Box,
     { flexDirection: "column" },
     ...(grid || physics
-      ? [7, 6, 5, 4, 3, 2, 1, 0].map((y) => h(Text, { key: `r${y}` }, `${y + 1} ${[0, 1, 2, 3, 4, 5, 6, 7].map((x) => at(x, y)).join(" ")}`))
+      ? [7, 6, 5, 4, 3, 2, 1, 0].map((y) => h(Text, { key: `r${y}` }, `${grid ? y + 1 : y} ${[0, 1, 2, 3, 4, 5, 6, 7].map((x) => at(x, y)).join(" ")}`))
       : []),
     grid || physics ? h(Text, { dimColor: true }, grid ? "  a b c d e f g h" : "  0 1 2 3 4 5 6 7") : null,
     dice ? h(Text, null, say("board.rolled", { dice: dice.rolled ? dice.rolled.join(say("board.and")) : say("board.not_rolled") })) : null,

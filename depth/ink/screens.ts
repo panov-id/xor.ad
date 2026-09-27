@@ -227,7 +227,11 @@ export function Feed(
   // The card view walks phrases only: a table is sat at, not read as a card.
   const phrases = (items ?? []).filter((p) => p.kind !== "table");
   if (card && phrases.length > 0) {
-    const here = Math.max(0, phrases.findIndex((p) => p.id === chosen?.id));
+    // After a like or a hide the cursor may stand on a table: the card goes
+    // on to the phrase after it, not back to the first (verifier, 2026-09-27).
+    const before = (items ?? []).slice(0, at).filter((p) => p.kind !== "table").length;
+    const found = phrases.findIndex((p) => p.id === chosen?.id);
+    const here = Math.min(phrases.length - 1, found >= 0 ? found : before);
     return h(Card, {
       say,
       items: phrases,

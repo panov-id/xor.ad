@@ -22,6 +22,10 @@ import { log } from "../lib/log.ts";
 import { newDots, playDots } from "../lib/tables_dots.ts";
 import { newDeck, playDeck } from "../lib/tables_deck.ts";
 import { newWord, playWord } from "../lib/tables_word.ts";
+import { newGrid, playCon, playGrid } from "../lib/tables_grid.ts";
+import { newDice, playDice } from "../lib/tables_dice.ts";
+import { newFree, playFree } from "../lib/tables_free.ts";
+import { newPhysics, playPhysics } from "../lib/tables_physics.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
 import {
   applyOverdue,
@@ -117,6 +121,11 @@ async function create(req: Request): Promise<Response> {
   if (set === null || seats === null || lat === null || lon === null || radius === null) {
     return refuse("invalid_body", "set, seats (2–6), lat, lon and area_radius are required", 400);
   }
+  // The seats of each class (chat spec §6, the table of classes): two for a
+  // grid, dots, dice and the word; up to four for dominoes and physics; up to
+  // six for the deck.
+  const most = ({ grid: 2, dots: 2, dice: 2, word: 2, free: 4, physics: 4, deck: 6 } as Record<string, number>)[game];
+  if (seats > most) return refuse("invalid_body", `a ${game} table seats at most ${most}`, 400);
   const name = body.name === undefined || body.name === null ? null : body.name;
   if (name !== null && (typeof name !== "string" || graphemes(name) < 1 || graphemes(name) > 24)) {
     return refuse("invalid_body", "name is up to 24 characters", 400);
@@ -349,6 +358,7 @@ async function move(req: Request, tableId: string): Promise<Response> {
       return refuse("illegal_move", "a move is a value up to 1 KiB", 409, { reason: "shape" });
     }
     const game = await lockGame(run, tableId);
+    const [{ set: tableSet }] = await run<{ set: string }>(`SELECT set FROM tables WHERE id = $1`, [tableId]);
     if (!game || game.state.turn === null) return refuse("not_your_turn", "no game is running", 409);
     const hash = await sha256hex(new TextEncoder().encode(raw));
     // The same body at the version it was made against answers the same board
@@ -397,11 +407,44 @@ async function move(req: Request, tableId: string): Promise<Response> {
       again = played.again;
       point = played.point;
     }
-    if (point !== null) {
+    // Grid and dice: the con by agreement first (lib/tables_grid.ts playCon);
+    // the claimant scores, not the one who agreed. Then the class's own move.
+    let points = 1;
+    const refusedBy = (reason: string) => refuse("illegal_move", "the move breaks the class's rules", 409, { reason });
+    const conOf = !pass && (s.grid ?? s.dice);
+    const con = conOf ? playCon(conOf, body.move, seat.seat_no) : null;
+    if (con && "refused" in con) return refusedBy(con.refused);
+    if (con) {
+      again = con.again;
+      point = con.point;
+      if (con.reset && s.grid) s.grid = { ...newGrid(tableSet, s.order), claim: null };
+      if (con.reset && s.dice) s.dice = newDice();
+    } else if (!pass && s.grid) {
+      const played = playGrid(s.grid, body.move, seat.seat_no);
+      if ("refused" in played) return refusedBy(played.refused);
+    } else if (!pass && s.dice) {
+      const played = playDice(s.dice, body.move);
+      if ("refused" in played) return refusedBy(played.refused);
+      again = played.again;
+    }
+    if (!pass && s.free) {
+      const played = playFree(s.free, body.move, seat.seat_no);
+      if ("refused" in played) return refusedBy(played.refused);
+      over = played.won;
+      if (played.won) [point, points] = [seat.seat_no, played.points];
+    }
+    if (!pass && s.physics) {
+      const played = playPhysics(s.physics, body.move, seat.seat_no);
+      if ("refused" in played) return refusedBy(played.refused);
+      over = played.over;
+      if (played.knocked > 0) [point, points] = [seat.seat_no, played.knocked];
+    }
+    if (point !== null && points > 0) {
       await run(
-        `INSERT INTO table_scores (seat_id, points) VALUES ($1, 1)
-         ON CONFLICT (seat_id) DO UPDATE SET points = table_scores.points + 1, updated_at = now()`,
-        [seat.id],
+        `INSERT INTO table_scores (seat_id, points)
+         SELECT id, $3 FROM table_seats WHERE table_id = $1 AND seat_no = $2
+         ON CONFLICT (seat_id) DO UPDATE SET points = table_scores.points + $3, updated_at = now()`,
+        [tableId, point, points],
       );
     }
     // What goes into the moves everyone sees: never the hidden word itself.
@@ -475,6 +518,10 @@ async function startRound(run: Query, tableId: string): Promise<void> {
   const playable = state.order.length >= 2;
   if (table.game === "deck" && playable) state.deck = newDeck(state.order);
   if (table.game === "word" && playable) state.word = newWord(state.order[0]);
+  if (table.game === "grid" && playable) state.grid = newGrid(table.set, state.order);
+  if (table.game === "dice" && playable) state.dice = newDice();
+  if (table.game === "free" && playable) state.free = newFree(state.order);
+  if (table.game === "physics" && playable) state.physics = newPhysics(state.order);
   if (playable) state.turn = 0;
   await run(
     `INSERT INTO table_games (table_id, class, state, turn_due, ended_at) VALUES ($1, $2, $3::text::jsonb, $4, $5)`,

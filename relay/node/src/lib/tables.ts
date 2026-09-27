@@ -13,6 +13,10 @@ import type { Limit } from "./rate_limit.ts";
 import type { Dots } from "./tables_dots.ts";
 import { type Deck, deckFor } from "./tables_deck.ts";
 import { type Word, wordFor } from "./tables_word.ts";
+import type { Grid } from "./tables_grid.ts";
+import type { Dice } from "./tables_dice.ts";
+import { type Free, freeFor } from "./tables_free.ts";
+import type { Physics } from "./tables_physics.ts";
 import { log } from "./log.ts";
 
 const HOUR = 60 * 60 * 1000;
@@ -41,6 +45,10 @@ export interface GameState {
   dots?: Dots; // the dots class keeps its field here (lib/tables_dots.ts)
   deck?: Deck; // the deck class: stock and hands, cut per viewer (lib/tables_deck.ts)
   word?: Word; // the text class: the word, shown to its setter only (lib/tables_word.ts)
+  grid?: Grid; // checkers, chess: pieces by cell and the con claimed (lib/tables_grid.ts)
+  dice?: Dice; // backgammon: the roll of this turn and the con claimed (lib/tables_dice.ts)
+  free?: Free; // dominoes: boneyard and hands, cut per viewer (lib/tables_free.ts)
+  physics?: Physics; // chapayev: pieces by cell (lib/tables_physics.ts)
 }
 
 export const emptyState = (): GameState => ({ order: [], turn: null, passes: {}, board: [] });
@@ -288,6 +296,10 @@ export function boardFor(
   if (s.dots) state.dots = s.dots;
   if (s.deck) state.deck = deckFor(s.deck, viewer);
   if (s.word) state.word = wordFor(s.word, viewer);
+  if (s.grid) state.grid = s.grid;
+  if (s.dice) state.dice = s.dice;
+  if (s.free) state.free = freeFor(s.free, viewer);
+  if (s.physics) state.physics = s.physics;
   return {
     seq: game.seq,
     state,

@@ -44,6 +44,7 @@ import "./routes/inbox.ts"; // offers to talk and conversations in one answer (�
 import "./routes/legal.ts"; // GET /legal/manifest, POST /legal/accept (§4.1)
 import "./routes/offer_links.ts"; // GET /o/:code and /o/:code/go: an offer's link (offers spec §6.2)
 import "./routes/adv.ts"; // /adv/*: the advertising cabinet — sign-in, venues, envelopes, offers (offers spec §2.1)
+import "./routes/offer_complaints.ts"; // POST /offers/:id/complaints: the discount was not given (offers spec §10)
 
 type Handler = (req: Request) => Response | Promise<Response>;
 

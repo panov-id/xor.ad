@@ -16,13 +16,22 @@ import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { type Query, transaction } from "../lib/db.ts";
 import { type Caller, callerOf, refuse } from "../lib/identity_guard.ts";
-import { base64urlToBytes, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
+import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll } from "../lib/rate_limit.ts";
 import { log } from "../lib/log.ts";
 import { newDots, playDots } from "../lib/tables_dots.ts";
+import { newDeck, playDeck } from "../lib/tables_deck.ts";
+import { newWord, playWord } from "../lib/tables_word.ts";
+import { newGrid, playCon, playGrid } from "../lib/tables_grid.ts";
+import { newDice, playDice } from "../lib/tables_dice.ts";
+import { newFree, playFree } from "../lib/tables_free.ts";
+import { newPhysics, playPhysics } from "../lib/tables_physics.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
 import {
   applyOverdue,
+  boardFor,
+  scoreOf,
+  tableEvent,
   bandBetween,
   blockedEither,
   CLASSES,
@@ -36,6 +45,8 @@ import {
   SEAT_LIMITS,
   STICKER_LIMITS,
   TABLE_CREATE_LIMITS,
+  TICKET_LIMITS,
+  TICKET_SECONDS,
 } from "../lib/tables.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
@@ -88,38 +99,6 @@ async function atTable(
 const touch = (run: Query, tableId: string) =>
   run(`UPDATE tables SET last_move_at = now() WHERE id = $1`, [tableId]);
 
-// The board as this seat may see it. No class here keeps a hand yet, so
-// nothing is cut; when one does, this is the one place that cuts it (§6.1).
-// The table's score by seat: it lives on the seat and outlasts games (§6.1,
-// table_scores); only live seats — the one who left does not take it along.
-async function scoreOf(run: Query, tableId: string): Promise<Record<string, number>> {
-  const rows = await run<{ seat_no: number; points: number }>(
-    `SELECT s.seat_no, sc.points FROM table_scores sc JOIN table_seats s ON s.id = sc.seat_id
-      WHERE s.table_id = $1 AND s.left_at IS NULL`,
-    [tableId],
-  );
-  return Object.fromEntries(rows.map((r) => [String(r.seat_no), r.points]));
-}
-
-function boardFor(
-  game: { state: GameState; seq: number; pending: unknown; turn_due: Date | null } | null,
-  score: Record<string, number> = {},
-  over = false,
-) {
-  if (!game) return null;
-  const s = game.state;
-  // The contract's Board (docs/api/openapi.yaml): whose turn by seat, the
-  // turn's term as expires_at; score by seat from table_scores.
-  return {
-    seq: game.seq,
-    state: s.dots ? { order: s.order, moves: s.board, dots: s.dots } : { order: s.order, moves: s.board },
-    turn: s.turn === null ? null : s.order[s.turn] ?? null,
-    score,
-    over,
-    expires_at: game.turn_due ? Math.floor(new Date(game.turn_due).getTime() / 1000) : null,
-    pending: game.pending ?? null,
-  };
-}
 
 async function create(req: Request): Promise<Response> {
   const caller = await callerOf(req);
@@ -142,6 +121,11 @@ async function create(req: Request): Promise<Response> {
   if (set === null || seats === null || lat === null || lon === null || radius === null) {
     return refuse("invalid_body", "set, seats (2–6), lat, lon and area_radius are required", 400);
   }
+  // The seats of each class (chat spec §6, the table of classes): two for a
+  // grid, dots, dice and the word; up to four for dominoes and physics; up to
+  // six for the deck.
+  const most = ({ grid: 2, dots: 2, dice: 2, word: 2, free: 4, physics: 4, deck: 6 } as Record<string, number>)[game];
+  if (seats > most) return refuse("invalid_body", `a ${game} table seats at most ${most}`, 400);
   const name = body.name === undefined || body.name === null ? null : body.name;
   if (name !== null && (typeof name !== "string" || graphemes(name) < 1 || graphemes(name) > 24)) {
     return refuse("invalid_body", "name is up to 24 characters", 400);
@@ -219,8 +203,8 @@ async function look(req: Request, tableId: string): Promise<Response> {
       [tableId],
     );
     // Lines from the moment of sitting down, and none of those the caller hid.
-    const lines = await run<{ id: string; seat: number; kind: string; text: string | null; sticker: string | null; created_at: number }>(
-      `SELECT l.id, l.seat_no AS seat, l.kind, l.text, l.sticker,
+    const lines = await run<{ id: string; seat: number; kind: string; text: string | null; sticker: string | null; refuses_seat: number | null; created_at: number }>(
+      `SELECT l.id, l.seat_no AS seat, l.kind, l.text, l.sticker, l.refuses_seat,
               floor(extract(epoch from l.created_at))::int AS created_at FROM table_lines l
         WHERE l.table_id = $1 AND l.visible_at IS NOT NULL AND l.created_at >= $2
           AND NOT EXISTS (SELECT 1 FROM hidden_messages h WHERE h.identity = $3 AND h.table_line_id = l.id)
@@ -238,7 +222,7 @@ async function look(req: Request, tableId: string): Promise<Response> {
       seat: seat.seat_no,
       is_playing: seat.playing,
       seats,
-      board: boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last),
+      board: boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last, seat.seat_no),
       lines,
     }, 200, sunsetHeader());
   });
@@ -280,6 +264,7 @@ async function sit(req: Request, tableId: string): Promise<Response> {
        RETURNING seat_no`,
       [tableId, me],
     );
+    await tableEvent(run, tableId, "seat");
     return json({ seat: seat.seat_no }, 200, sunsetHeader());
   }).catch(unavailable);
 }
@@ -312,6 +297,7 @@ async function speak(req: Request, tableId: string): Promise<Response> {
         [caller.brand ?? "unattributed", tableId, caller.identityId, body.sticker, seat.seat_no],
       );
       await touch(run, tableId);
+      await tableEvent(run, tableId, "line", line.id);
       return json({ id: line.id }, 200, sunsetHeader());
     }
     if (kind !== "line" && kind !== "application" && kind !== "refusal") {
@@ -354,6 +340,7 @@ async function speak(req: Request, tableId: string): Promise<Response> {
       [caller.brand ?? "unattributed", tableId, caller.identityId, text, seat.seat_no, kind, target ?? null, clean],
     );
     await touch(run, tableId);
+    if (clean) await tableEvent(run, tableId, "line", line.id);
     return json({ id: line.id }, 202, sunsetHeader());
   });
 }
@@ -371,6 +358,7 @@ async function move(req: Request, tableId: string): Promise<Response> {
       return refuse("illegal_move", "a move is a value up to 1 KiB", 409, { reason: "shape" });
     }
     const game = await lockGame(run, tableId);
+    const [{ set: tableSet }] = await run<{ set: string }>(`SELECT set FROM tables WHERE id = $1`, [tableId]);
     if (!game || game.state.turn === null) return refuse("not_your_turn", "no game is running", 409);
     const hash = await sha256hex(new TextEncoder().encode(raw));
     // The same body at the version it was made against answers the same board
@@ -380,7 +368,7 @@ async function move(req: Request, tableId: string): Promise<Response> {
       [game.id],
     );
     if (body.seq === game.seq - 1 && last?.last_move_hash === hash) {
-      return json({ board: boardFor(game) }, 200, sunsetHeader());
+      return json({ board: boardFor(game, {}, false, seat.seat_no) }, 200, sunsetHeader());
     }
     if (body.seq !== game.seq) return refuse("stale_seq", "the board has moved on", 409, { seq: game.seq });
     const s = game.state;
@@ -403,7 +391,67 @@ async function move(req: Request, tableId: string): Promise<Response> {
         );
       }
     }
-    s.board.push(pass ? { seat: seat.seat_no, pass: true } : { seat: seat.seat_no, move: body.move });
+    // The deck (lib/tables_deck.ts): the card from the hand; an empty hand wins the deal.
+    // The word (lib/tables_word.ts): the setter's word, then letters; a word
+    // guessed scores the guesser.
+    let point: number | null = null;
+    if (!pass && s.deck) {
+      const played = playDeck(s.deck, body.move, seat.seat_no);
+      if ("refused" in played) return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: played.refused });
+      over = played.won;
+      if (played.won) point = seat.seat_no;
+    }
+    if (!pass && s.word) {
+      const played = playWord(s.word, body.move, seat.seat_no);
+      if ("refused" in played) return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: played.refused });
+      again = played.again;
+      point = played.point;
+    }
+    // Grid and dice: the con by agreement first (lib/tables_grid.ts playCon);
+    // the claimant scores, not the one who agreed. Then the class's own move.
+    let points = 1;
+    const refusedBy = (reason: string) => refuse("illegal_move", "the move breaks the class's rules", 409, { reason });
+    const conOf = !pass && (s.grid ?? s.dice);
+    const con = conOf ? playCon(conOf, body.move, seat.seat_no) : null;
+    if (con && "refused" in con) return refusedBy(con.refused);
+    if (con) {
+      again = con.again;
+      point = con.point;
+      if (con.reset && s.grid) s.grid = { ...newGrid(tableSet, s.order), claim: null };
+      if (con.reset && s.dice) s.dice = newDice();
+    } else if (!pass && s.grid) {
+      const played = playGrid(s.grid, body.move, seat.seat_no);
+      if ("refused" in played) return refusedBy(played.refused);
+    } else if (!pass && s.dice) {
+      const played = playDice(s.dice, body.move);
+      if ("refused" in played) return refusedBy(played.refused);
+      again = played.again;
+    }
+    if (!pass && s.free) {
+      const played = playFree(s.free, body.move, seat.seat_no);
+      if ("refused" in played) return refusedBy(played.refused);
+      over = played.won;
+      if (played.won) [point, points] = [seat.seat_no, played.points];
+    }
+    if (!pass && s.physics) {
+      const played = playPhysics(s.physics, body.move, seat.seat_no);
+      if ("refused" in played) return refusedBy(played.refused);
+      over = played.over;
+      if (played.knocked > 0) [point, points] = [seat.seat_no, played.knocked];
+    }
+    if (point !== null && points > 0) {
+      await run(
+        `INSERT INTO table_scores (seat_id, points)
+         SELECT id, $3 FROM table_seats WHERE table_id = $1 AND seat_no = $2
+         ON CONFLICT (seat_id) DO UPDATE SET points = table_scores.points + $3, updated_at = now()`,
+        [tableId, point, points],
+      );
+    }
+    // What goes into the moves everyone sees: never the hidden word itself.
+    const shown = s.word && typeof body.move === "object" && body.move !== null && "word" in body.move
+      ? { word: "set" }
+      : body.move;
+    s.board.push(pass ? { seat: seat.seat_no, pass: true } : { seat: seat.seat_no, move: shown });
     if (pass) s.passes[seat.seat_no] = (s.passes[seat.seat_no] ?? 0) + 1;
     else delete s.passes[seat.seat_no];
     if (!again) s.turn = (turn + 1) % s.order.length;
@@ -416,14 +464,16 @@ async function move(req: Request, tableId: string): Promise<Response> {
     );
     // The move in words, seen by everyone seated (§6, 09.09.2026); the engine
     // writes it, so it needs no queue.
-    await run(
+    const [said] = await run<{ id: string }>(
       `INSERT INTO table_lines (brand, table_id, author_identity, text, seat_no, kind, visible_at)
-       SELECT brand, id, NULL, $2, $3, 'move', now() FROM tables WHERE id = $1`,
+       SELECT brand, id, NULL, $2, $3, 'move', now() FROM tables WHERE id = $1 RETURNING id`,
       [tableId, pass ? `seat ${seat.seat_no} passed` : `seat ${seat.seat_no} moved`, seat.seat_no],
     );
     await touch(run, tableId);
+    await tableEvent(run, tableId, "line", said.id);
+    await tableEvent(run, tableId, "board");
     return json(
-      { board: boardFor({ ...game, seq: after.seq, turn_due: due }, await scoreOf(run, tableId), over) },
+      { board: boardFor({ ...game, seq: after.seq, turn_due: due }, await scoreOf(run, tableId), over, seat.seat_no) },
       200,
       sunsetHeader(),
     );
@@ -466,12 +516,20 @@ async function startRound(run: Query, tableId: string): Promise<void> {
   const state: GameState = { ...emptyState(), order: players.map((p) => p.seat_no) };
   if (table.game === "dots") state.dots = newDots(table.set);
   const playable = state.order.length >= 2;
+  if (table.game === "deck" && playable) state.deck = newDeck(state.order);
+  if (table.game === "word" && playable) state.word = newWord(state.order[0]);
+  if (table.game === "grid" && playable) state.grid = newGrid(table.set, state.order);
+  if (table.game === "dice" && playable) state.dice = newDice();
+  if (table.game === "free" && playable) state.free = newFree(state.order);
+  if (table.game === "physics" && playable) state.physics = newPhysics(state.order);
   if (playable) state.turn = 0;
   await run(
     `INSERT INTO table_games (table_id, class, state, turn_due, ended_at) VALUES ($1, $2, $3::text::jsonb, $4, $5)`,
     [tableId, table.game, JSON.stringify(state), playable ? new Date(Date.now() + MOVE_WINDOW_MS) : null, playable ? null : new Date()],
   );
   await touch(run, tableId);
+  await tableEvent(run, tableId, "board");
+  await tableEvent(run, tableId, "seat");
 }
 
 async function propose(req: Request, tableId: string): Promise<Response> {
@@ -582,17 +640,43 @@ async function giveUp(req: Request, tableId: string): Promise<Response> {
   return await atTable(req, tableId, async (run, _caller, seat) => {
     if (!seat.playing) return refuse("refused", "only a player resigns", 409);
     await resign(run, tableId, seat.seat_no);
-    await run(
+    const [said] = await run<{ id: string }>(
       `INSERT INTO table_lines (brand, table_id, author_identity, text, seat_no, kind, visible_at)
-       SELECT brand, id, NULL, $2, $3, 'move', now() FROM tables WHERE id = $1`,
+       SELECT brand, id, NULL, $2, $3, 'move', now() FROM tables WHERE id = $1 RETURNING id`,
       [tableId, `seat ${seat.seat_no} resigned`, seat.seat_no],
     );
     await touch(run, tableId);
+    await tableEvent(run, tableId, "line", said.id);
+    await tableEvent(run, tableId, "board");
+    await tableEvent(run, tableId, "seat");
     return new Response(null, { status: 204, headers: sunsetHeader() });
   });
 }
 
+// POST /tables/:id/ticket — a one-time ticket for the table's socket (protocol
+// §4.6, §4.4), only from a live seat (SEC-4), thirty seconds (SEC-15). The
+// room it opens carries `line`, `board` and `seat` frames and is closed 4005
+// when the seat is lost (chat/relay.ts).
+async function ticket(req: Request, tableId: string): Promise<Response> {
+  return await atTable(req, tableId, async (run, caller) => {
+    const allowed = checkAll(TICKET_LIMITS, caller.identityId);
+    if (!allowed.allowed) {
+      return refuse("rate_limited", "too many tickets this minute", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
+    const token = bytesToBase64url(crypto.getRandomValues(new Uint8Array(32)));
+    await run(
+      `INSERT INTO socket_tickets (token_hash, session, table_id, expires_at)
+       VALUES ($1, $2, $3, now() + interval '${TICKET_SECONDS} seconds')`,
+      [await sha256hex(new TextEncoder().encode(token)), caller.sessionId, tableId],
+    );
+    return json({ ticket: token, expires_in: TICKET_SECONDS }, 200, sunsetHeader());
+  });
+}
+
 route("POST", "/tables", (c) => create(c.req));
+route("POST", "/tables/:id/ticket", (c) => ticket(c.req, c.params.id));
 route("POST", "/tables/:id/like", (c) => like(c.req, c.params.id));
 route("DELETE", "/tables/:id/like", (c) => unlike(c.req, c.params.id));
 route("POST", "/tables/:id/resign", (c) => giveUp(c.req, c.params.id));

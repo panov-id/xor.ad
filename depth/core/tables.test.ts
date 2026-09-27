@@ -41,19 +41,27 @@ Deno.test({
     const who = { 1: a, 2: b } as Record<number, typeof a>;
     let board = seen.body.board as Board;
     const first = freeEdges(dots)[0];
-    const moved = await who[board.turn].tables.move(id, board.seq, { edge: first });
+    const moved = await who[board.turn!].tables.move(id, board.seq, { edge: first });
     assertEquals(moved.status, 200, JSON.stringify(moved.body));
     board = moved.body.board;
-    const again = await who[board.turn].tables.move(id, board.seq, { edge: first });
-    assertEquals(again.status, 409, "a taken edge was accepted");
+    const again = await who[board.turn!].tables.move(id, board.seq, { edge: first });
+    const refusal = (again.body as unknown as { error?: { code?: string; reason?: string } }).error;
+    assertEquals([again.status, refusal?.code, refusal?.reason], [409, "illegal_move", "the edge is taken"], JSON.stringify(again.body));
+
+    // A pass is {seq, pass: true}: the node takes it and the turn moves on.
+    const passer = board.turn!;
+    const passed = await who[passer].tables.pass(id, board.seq);
+    assertEquals(passed.status, 200, JSON.stringify(passed.body));
+    board = passed.body.board;
+    assert(board.turn !== passer, "the pass did not hand the turn on");
 
     // Whoever's turn it is, as the core reads it, is the one the node lets move.
     for (;;) {
-      const view = (await who[board.turn].tables.view(id)).body;
+      const view = (await who[board.turn!].tables.view(id)).body;
       assert(turnOf(view).mine, "the core says it is not my turn while the node waits for me");
       const edges = freeEdges(dotsOf(view.board)!);
       if (edges.length === 0) break;
-      const r = await who[board.turn].tables.move(id, view.board!.seq, { edge: edges[0] });
+      const r = await who[board.turn!].tables.move(id, view.board!.seq, { edge: edges[0] });
       assertEquals(r.status, 200, JSON.stringify(r.body));
       board = r.body.board;
       if (board.over) break;
@@ -62,5 +70,28 @@ Deno.test({
     assertEquals(end.over, true);
     assertEquals(Object.values(end.score).reduce((x, y) => x + y, 0), 4, "four boxes on a 2×2 field");
     assertEquals(turnOf((await a.tables.view(id)).body).secondsLeft, null, "a finished game still shows a clock");
+  },
+});
+
+Deno.test({
+  name: "a refusal carries the applicant's seat; without it the node refuses; the tables door does not step out of /tables",
+  ignore: !node,
+  fn: async () => {
+    const a = await person("Женя");
+    const b = await person("Аня");
+    const id = (await a.tables.create({ class: "dots", set: "2x2", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000 })).body.id;
+    await b.tables.sit(id);
+    assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 202);
+    const refused = await a.tables.refuse(id, 2, "в другой раз");
+    assertEquals(refused.status, 202, `a refusal naming the applicant's seat was not taken: ${JSON.stringify(refused.body)}`);
+    const wrong = await a.tables.refuse(id, 9, "в другой раз");
+    assert(wrong.status === 400 || wrong.status === 409, `a refusal of a seat with no application was taken: ${wrong.status}`);
+    let thrown = "";
+    try {
+      await a.client.tableCall("GET", "/tables/../inbox");
+    } catch (e) {
+      thrown = (e as Error).message;
+    }
+    assertEquals(thrown, "tableCall is for /tables only", "the tables door let a path out to /inbox");
   },
 });

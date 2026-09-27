@@ -85,8 +85,8 @@ components:
       type: apiKey
       in: cookie
       name: __Host-adv
-      description: "The venue cabinet session (offers/SPEC_EN.md §2.1) — a cookie with HttpOnly, Secure, SameSite=Lax, Path=/, no Domain, on its own origin adv.<storefront> (2026-09-19: a shared origin with the app handed the cabinet to any XSS there) from the same magic link as the panel, role advertiser; every request checks ownership, not only the role."
-      x-description-ru: "Сессия кабинета заведения (offers/SPEC_RU.md §2.1) — cookie с HttpOnly, Secure, SameSite=Lax, Path=/, без Domain, на своём источнике adv.<витрина> (19.09.2026: общий источник с приложением отдавал кабинет любой XSS в нём) по той же ссылке на почту, что у панели, роль advertiser; каждый запрос проверяет владение, а не только роль."
+      description: "The venue cabinet session (offers/SPEC_EN.md §2.1) — a cookie with HttpOnly, Secure, SameSite=Lax, Path=/, no Domain, on its own origin adv.<storefront> (2026-09-19: a shared origin with the app handed the cabinet to any XSS there) an account of its own in the database (db/067), not a panel role; every request checks ownership. The storefront is named by the Origin; a read without one — a browser sends none on a same-origin GET — by X-Forwarded-Host, else Host; a change without an Origin of ours is refused (CSRF), and a foreign Origin is refused on any method (27.09.2026)."
+      x-description-ru: "Сессия кабинета заведения (offers/SPEC_RU.md §2.1) — cookie с HttpOnly, Secure, SameSite=Lax, Path=/, без Domain, на своём источнике adv.<витрина> (19.09.2026: общий источник с приложением отдавал кабинет любой XSS в нём) своя учётка в базе (db/067), а не роль панели; каждый запрос проверяет владение. Витрину называет Origin; чтение без него — браузер не шлёт его на GET к тому же адресу — X-Forwarded-Host, иначе Host; изменение без нашего Origin отклоняется (CSRF), чужой Origin — на любом методе (27.09.2026)."
   schemas:
     Error:
       type: object
@@ -344,6 +344,7 @@ components:
         kind: {type: string, enum: [line, application, refusal, sticker, move, congratulation]}
         text: {type: string}
         sticker: {type: string}
+        refuses_seat: {type: integer, nullable: true, description: "A refusal only: the seat of the applicant refused (db/070); seat is the player who refused.", x-description-ru: "Только у отказа: место отказанного заявителя (db/070); seat — отказавший игрок."}
         created_at: {type: integer, format: unix-seconds}
     TableLineCreate:
       type: object
@@ -368,14 +369,14 @@ components:
       type: object
       required: [kind]
       properties:
-        kind: {type: string, enum: [rematch, draw, undo]}
+        kind: {type: string, enum: [rematch, draw, undo], x-built: [rematch], description: "At a table only rematch is built (2026-09-27); draw and undo are spec — the node answers 400.", x-description-ru: "За столом построен только rematch (27.09.2026); draw и undo — спека, узел отвечает 400."}
         class: {type: string}
         set: {type: string}
     ProposalAnswer:
       type: object
       required: [answer]
       properties:
-        answer: {type: string, enum: [accept, decline, counter]}
+        answer: {type: string, enum: [accept, decline, counter], x-built: [accept, decline], description: "At a table accept and decline are built (2026-09-27); counter is spec — the node answers 400.", x-description-ru: "За столом построены accept и decline (27.09.2026); counter — спека, узел отвечает 400."}
         class: {type: string}
         set: {type: string}
     Seat:
@@ -580,13 +581,14 @@ components:
         contact: {type: string}
     Venue:
       type: object
-      required: [id, name, address, verification_status, verified_at, envelope_expires_at]
+      required: [id, name, address, verification_status, verified_at, envelope_expires_at, place]
       properties:
         id: {type: string, format: uuid}
         name: {type: string}
         address: {type: string}
         verification_status: {type: string, enum: [unverified, verified, suspended]}
         verified_at: {type: string, format: date-time, nullable: true}
+        place: {type: object, nullable: true, description: "lat, lon, area_radius as given; null until given (db/075).", x-description-ru: "lat, lon, area_radius, как даны; null, пока не даны (db/075).", properties: {lat: {type: number}, lon: {type: number}, area_radius: {type: integer}}}
         envelope_expires_at: {type: string, format: date-time, nullable: true, description: "The end of the live envelope, if one is out.", x-description-ru: "Срок живого конверта, если он отправлен."}
     VenueCreate:
       type: object
@@ -594,6 +596,9 @@ components:
       properties:
         name: {type: string}
         address: {type: string}
+        lat: {type: number, minimum: -90, maximum: 90, description: "The venue's point; with lon, and area_radius or its default 1000. Without a point the venue publishes nothing (db/075, offers/SPEC_EN.md §7).", x-description-ru: "Точка заведения; вместе с lon и area_radius или его значением по умолчанию 1000. Без точки заведение ничего не публикует (db/075, offers/SPEC_RU.md §7)."}
+        lon: {type: number, minimum: -180, maximum: 180}
+        area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000], description: "The radius its offers are shown in, the five steps of a phrase.", x-description-ru: "Радиус показа его офферов, пять ступеней фразы."}
     VenueCode:
       type: object
       required: [code]
@@ -2038,6 +2043,15 @@ paths:
 
         A card's centre is the grid node its own radius rounds to, never the
         centre it was published with. Nothing about the author is in a card.
+
+
+        Venue offers (kind offer, id = the offer's id, offers/SPEC_EN.md §7;
+        2026-09-27): on the first page only, of the storefront the key names —
+        a face with no key sees none — from verified venues whose circle meets
+        the viewer's, the venue's point rounded like a phrase's. One commercial
+        card per ten phrases on the page, a neighbour's phrase with a discount
+        counting towards it, each after the tenth, twentieth… phrase; fewer than
+        ten phrases, no offers.
       x-description-ru: >-
         С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору
         (экран 3; протокол §6, решено 16.09.2026). Лайкнутого зрителем в выдаче
@@ -2054,6 +2068,15 @@ paths:
 
         Центр карточки — узел сетки, к которому округлил её собственный радиус,
         а не тот центр, с которым публиковали. Об авторе в карточке нет ничего.
+
+
+        Офферы заведений (kind offer, id — id оффера, offers/SPEC_RU.md §7;
+        27.09.2026): только на первой странице, той витрины, что назвал ключ, —
+        лицо без ключа их не видит; от verified-заведений, чей круг пересекает
+        круг зрителя, точка заведения округлена как у фразы. Одна коммерческая
+        карточка на десять фраз страницы, фраза соседа со скидкой считается в
+        ту же квоту, каждая после десятой, двадцатой… фразы; меньше десяти фраз —
+        офферов нет.
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -2560,7 +2583,8 @@ paths:
       tags: [tables]
       summary: "A one-time ticket for the table's socket"
       x-summary-ru: "Одноразовый билет для сокета стола"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "As for a conversation (protocol §4.4): the ticket goes into Sec-WebSocket-Protocol next to the subprotocol xor.p1."
       x-description-ru: "Как у беседы (протокол §4.4): билет едет в Sec-WebSocket-Protocol рядом с субпротоколом xor.p1."
@@ -2575,7 +2599,7 @@ paths:
         "404": {$ref: "#/components/responses/ApiError"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The ticket., x-description-ru: Билет., content: {application/json: {schema: {type: object, properties: {ticket: {type: string}}}}}}
+        "200": {description: The ticket., x-description-ru: Билет., content: {application/json: {schema: {type: object, properties: {ticket: {type: string}, expires_in: {type: integer, description: Seconds (ticket.lifetime)., x-description-ru: Секунды (ticket.lifetime).}}}}}}
   /tables/{id}/lines:
     post:
       tags: [tables]
@@ -2685,7 +2709,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "204": {description: Done., x-description-ru: Сделано.}
+        "200": {description: "What the answer did: declined, waiting for the other players, or started — every player accepted and the round began.", x-description-ru: "Что сделал ответ: declined, waiting — ждём остальных играющих, started — все согласились, круг начался.", content: {application/json: {schema: {type: object, properties: {state: {type: string, enum: [declined, waiting, started]}}}}}}
   /tables/{id}/resign:
     post:
       tags: [tables]
@@ -3375,10 +3399,11 @@ paths:
       tags: [offers]
       summary: "Complain that the discount was not given"
       x-summary-ru: "Пожаловаться: скидку не дали"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/offer_complaints.ts
       security: [{identitySignature: []}]
-      description: "Private; the e-mail is required; beyond the monthly limit accepted with counts_towards_autohide = false; 3 counting from different people hide the offer; a report counts only if the complainant's first publication is older than a day and came before the offer's day, frozen at the moment of the report (offers/SPEC_EN.md §3, §10, §10.2)."
-      x-description-ru: "Приватна; почта обязательна; сверх месячного лимита принимается с counts_towards_autohide = false; 3 засчитанные от разных людей скрывают оффер; засчитывается жалоба того, чья первая публикация старше суток и раньше дня выхода оффера, значение замораживается в момент жалобы (offers/SPEC_RU.md §3, §10, §10.2)."
+      description: "Private; the e-mail is required; beyond the monthly limit (5 counting per calendar month, UTC) or from an identity that already complained about this offer, accepted with counts_towards_autohide = false; 3 counting from different people hide the offer; a report counts only if the complainant's first accepted phrase came out on a UTC day no later than the day before yesterday and before the offer's day, frozen at the moment of the report (offers/SPEC_EN.md §3, §10, §10.2; db/071). The venue is told by mail that one arrived — not by whom, not when, not the text."
+      x-description-ru: "Приватна; почта обязательна; сверх месячного лимита (5 засчитанных за календарный месяц по UTC) или от личности, уже жаловавшейся на этот оффер, принимается с counts_towards_autohide = false; 3 засчитанные от разных людей скрывают оффер; засчитывается жалоба того, чья первая принятая фраза вышла по UTC не позже позавчерашнего дня и раньше дня выхода оффера, значение замораживается в момент жалобы (offers/SPEC_RU.md §3, §10, §10.2; db/071). Заведение узнаёт письмом, что жалоба пришла, — не от кого, не когда и без текста."
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -3389,8 +3414,11 @@ paths:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "202": {description: Accepted; whether it counts is frozen now., x-description-ru: Принята; засчитана ли — заморожено сейчас., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}, counts_towards_autohide: {type: boolean}}}}}}
+        "202": {description: Accepted; whether it counts is frozen now., x-description-ru: Принята; засчитана ли — заморожено сейчас., content: {application/json: {schema: {type: object, required: [id, counts_towards_autohide], properties: {id: {type: string, format: uuid}, counts_towards_autohide: {type: boolean}}}}}}
         "422": {description: "No e-mail: the only way to answer — the form names this reason", x-description-ru: "Нет почты: единственного способа ответить — форма называет эту причину"}
+        "400": {description: "The text is longer than 2000 characters; code invalid_body.", x-description-ru: "Текст длиннее 2000 символов; code invalid_body."}
+        "404": {description: No such offer., x-description-ru: Такого оффера нет.}
+        "503": {$ref: "#/components/responses/Unavailable"}
   /adv/sign-in:
     post:
       tags: [offers]
@@ -3502,11 +3530,11 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "The name, the address or both. A new address burns the live envelope and sends a verified venue back to unverified; a suspended one stays suspended (offers/SPEC_EN.md §11)."
-      x-description-ru: "Имя, адрес или оба. Новый адрес гасит живой конверт и возвращает verified-заведение в unverified; suspended остаётся suspended (offers/SPEC_RU.md §11)."
+      description: "The name, the address, the place or several. A new address or a new place burns the live envelope and sends a verified venue back to unverified — a venue proved in one street must not show its offers in another; a suspended one stays suspended (offers/SPEC_EN.md §11)."
+      x-description-ru: "Имя, адрес, точка или несколько. Новый адрес или новая точка гасят живой конверт и возвращают verified-заведение в unverified — заведение, доказанное на одной улице, не показывает офферы на другой; suspended остаётся suspended (offers/SPEC_RU.md §11)."
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
-      requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {name: {type: string, maxLength: 128}, address: {type: string, maxLength: 256}}}}}}
+      requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {name: {type: string, maxLength: 128}, address: {type: string, maxLength: 256}, lat: {type: number}, lon: {type: number}, area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}}}}}}
       responses:
         "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
         "400": {description: "The body is not what the operation takes; code invalid_body.", x-description-ru: "Тело не то, что принимает операция; code invalid_body."}
@@ -3597,7 +3625,7 @@ paths:
         "404": {description: "No such thing among one's own — somebody else's answers the same.", x-description-ru: "Среди своих такого нет — чужое отвечает так же."}
         "503": {$ref: "#/components/responses/Unavailable"}
         "201": {description: Published; Location names the offer., x-description-ru: Опубликован; Location называет оффер., headers: {Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/AdvOffer"}}}}
-        "409": {description: "The venue is not verified, the e-mail not confirmed, or repeated_from names a live offer; code refused.", x-description-ru: "Заведение не verified, почта не подтверждена или repeated_from называет живой оффер; code refused."}
+        "409": {description: "The venue is not verified or has no place on the map (db/075), the e-mail not confirmed, or repeated_from names a live offer; code refused.", x-description-ru: "Заведение не verified или без точки на карте (db/075), почта не подтверждена или repeated_from называет живой оффер; code refused."}
         "422": {description: "Refused by an automatic check, code refused; error.reason is one of link_refused, discount_until_out_of_range, conditions_too_long, duplicate.", x-description-ru: "Отказ автопроверки, code refused; error.reason — одно из link_refused, discount_until_out_of_range, conditions_too_long, duplicate."}
   /adv/complaints:
     get:

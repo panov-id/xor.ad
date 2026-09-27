@@ -253,5 +253,6 @@
   "table.board": "board",
   "table.notYourTurn": "it is not your turn",
   "table.stale": "the board changed meanwhile — look again",
-  "table.refused": "not accepted"
+  "table.refused": "not accepted",
+  "table.notStarted": "the game has not started yet"
 }

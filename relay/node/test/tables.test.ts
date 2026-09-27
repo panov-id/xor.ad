@@ -35,6 +35,9 @@ await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
 await import("../src/routes/away.ts");
 await import("../src/routes/feed_queue.ts");
+// The rooms' listeners, once and before any test: started inside one, they
+// count as that test's leak (as session_freeze.test.ts does).
+await (await import("../src/chat/relay.ts")).listenForRooms();
 
 const KEY_ID = "ak_pub_tablestest0000001";
 await database.queryOrThrow(
@@ -185,13 +188,13 @@ Deno.test("a move needs the board's version: a repeat answers the same board, a 
   const { a, b, id } = await game();
   const start = await board(a, id);
   assertEquals([start.state.order, start.turn], [[1, 2], 1]);
-  assertEquals(code(await signed(b, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" })), "not_your_turn");
-  const moved = await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" });
+  assertEquals(code(await signed(b, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } })), "not_your_turn");
+  const moved = await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } });
   assertEquals(moved.status, 200, JSON.stringify(moved.body));
   assertEquals(moved.body.board.turn, 2);
-  const again = await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" });
+  const again = await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } });
   assertEquals(again.body.board.seq, moved.body.board.seq);
-  const stale = await signed(b, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e5" });
+  const stale = await signed(b, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "d6", to: "e5" } });
   assertEquals(code(stale), "stale_seq");
   // The move in words is a line everyone seated sees.
   const lines = (await signed(b, "GET", `/tables/${id}`)).body.lines as { kind: string }[];
@@ -208,11 +211,11 @@ Deno.test("an overdue turn is a pass; three in a row make a spectator and end a 
   assertEquals(once.turn, 2);
   // B plays, A lapses twice more — by the job this time, not by a request.
   const s = await board(b, id);
-  assertEquals((await signed(b, "POST", `/tables/${id}/moves`, { seq: s.seq, move: "d5" })).status, 200);
+  assertEquals((await signed(b, "POST", `/tables/${id}/moves`, { seq: s.seq, move: { from: "b6", to: "a5" } })).status, 200);
   await overdue();
   await tables.autopass();
   const t = await board(b, id);
-  assertEquals((await signed(b, "POST", `/tables/${id}/moves`, { seq: t.seq, move: "c5" })).status, 200);
+  assertEquals((await signed(b, "POST", `/tables/${id}/moves`, { seq: t.seq, move: { from: "f6", to: "g5" } })).status, 200);
   await overdue();
   await tables.autopass();
   const [seat] = await database.queryOrThrow<{ playing: boolean }>(
@@ -409,12 +412,34 @@ Deno.test({
 
     // Another brand's moderator cannot decide it; the right one does, once.
     const stranger = await panelAs("moderator", "some-other-brand");
+    await database.queryOrThrow(`DELETE FROM moderation_verdicts WHERE brand = $1`, [brand]);
     assertEquals((await stranger("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
+    assertEquals(
+      (await database.queryOrThrow(`SELECT 1 FROM moderation_verdicts WHERE brand = $1`, [brand])).length, 0,
+      "a decision that did not apply is not a verdict",
+    );
     assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 200);
+    assertEquals(
+      (await database.queryOrThrow(`SELECT 1 FROM moderation_verdicts WHERE brand = $1`, [brand])).length, 1,
+      "a decision at a table is the watchdog's verdict for its face (db/072)",
+    );
     assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
     const shown = ((await signed(a, "GET", `/tables/${id}`)).body.lines as { id: string }[]).map((l) => l.id);
     assert(shown.includes(line.body.id), "published: the line is public");
+    // The name's verdict goes to the author's own rooms as name_verdict with table (G1e).
+    const relay = await import("../src/chat/relay.ts");
+    const got: { type: string; data: unknown }[] = [];
+    const key = `table:${id}`;
+    relay.roomsForTest().set(key, new Set([{
+      socket: { readyState: WebSocket.OPEN, send: (t: string) => got.push(JSON.parse(t)), close() {} } as unknown as WebSocket,
+      session: a.session_id, chat: key, seq: 0, table: id, identity: a.identity_id,
+    }]));
     assertEquals((await moderator("POST", `/admin/table-queue/names/${id}/refuse`)).status, 200);
+    const until = Date.now() + 3000;
+    while (Date.now() < until && !got.some((f) => f.type === "name_verdict")) await new Promise((r) => setTimeout(r, 20));
+    relay.roomsForTest().delete(key);
+    assertEquals(got.find((f) => f.type === "name_verdict")?.data, { accepted: false, table: id },
+      "the author was not told the name's verdict");
     const [t] = await database.queryOrThrow<{ name: string | null; name_pending: string | null }>(
       `SELECT name, name_pending FROM tables WHERE id = $1`, [id]);
     assertEquals([t.name, t.name_pending], [null, null], "a refused name leaves the table nameless");
@@ -435,6 +460,269 @@ Deno.test("a refused applicant sits out the round; the one not refused plays", a
   assertEquals(code(await signed(a, "POST", `/tables/${id}/lines`, { kind: "refusal", text: "в другой раз" })), "invalid_body");
   const no = await signed(a, "POST", `/tables/${id}/lines`, { kind: "refusal", text: "в другой раз", seat: 3 });
   assertEquals(no.status, 202, JSON.stringify(no.body));
+  // The line says whom it refuses, not only who spoke (verifier of G1e).
+  const refusal = ((await signed(c, "GET", `/tables/${id}`)).body.lines as { id: string; seat: number; refuses_seat: number | null }[])
+    .find((l) => l.id === no.body.id);
+  assertEquals([refusal?.seat, refusal?.refuses_seat], [1, 3], "the refusal line does not name the refused seat");
   await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
   assertEquals((await board(a, id)).state.order, [1, 2], "seat 3 was refused and waits");
+});
+
+// G1e: the table's socket (protocol §4.4, §4.6). Rooms are put in by hand, as
+// session_freeze.test.ts does: a room needs a socket, the frames it would be
+// sent do not.
+Deno.test({
+  name: "a table's room gets the board, the line and the seat as frames, and 4005 when its seat is lost",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const relay = await import("../src/chat/relay.ts");
+    const { a, b, id } = await game();
+    // A ticket only from a live seat, like the table itself (SEC-4).
+    const bought = await signed(a, "POST", `/tables/${id}/ticket`);
+    assertEquals([bought.status, typeof bought.body.ticket], [200, "string"], JSON.stringify(bought.body));
+    assertEquals((await signed(await person(), "POST", `/tables/${id}/ticket`)).status, 404);
+
+    const sent = new Map<string, { type: string; data: Record<string, unknown> }[]>();
+    const closed = new Map<string, number>();
+    const fake = (name: string): WebSocket => {
+      sent.set(name, []);
+      return {
+        readyState: WebSocket.OPEN,
+        send: (text: string) => sent.get(name)!.push(JSON.parse(text)),
+        close: (code: number) => closed.set(name, code),
+      } as unknown as WebSocket;
+    };
+    const key = `table:${id}`;
+    relay.roomsForTest().set(key, new Set([
+      { socket: fake("a"), session: a.session_id, chat: key, seq: 0, table: id, identity: a.identity_id },
+      { socket: fake("b"), session: b.session_id, chat: key, seq: 0, table: id, identity: b.identity_id },
+    ]));
+    const waitFor = async (name: string, type: string) => {
+      const until = Date.now() + 3000;
+      while (Date.now() < until && !sent.get(name)!.some((f) => f.type === type)) {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      return sent.get(name)!.find((f) => f.type === type);
+    };
+    try {
+      const start = await board(a, id);
+      assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } })).status, 200);
+      const boardFrame = await waitFor("b", "board");
+      assert(boardFrame, `no board frame reached the other seat: ${JSON.stringify(sent.get("b"))}`);
+      assertEquals(boardFrame!.data.turn, 2, "the frame carries the board after the move");
+      const moveLine = await waitFor("b", "line");
+      assertEquals(moveLine?.data.kind, "move");
+      assert(!JSON.stringify([...sent.values()]).includes(a.identity_id), "no identity in any frame");
+
+      const c = await person();
+      await signed(c, "POST", `/tables/${id}/seat`);
+      const seatFrame = await waitFor("a", "seat");
+      assertEquals(seatFrame?.data, { playing: 2, watching: 1 });
+
+      assertEquals((await signed(b, "DELETE", `/tables/${id}/seat`)).status, 204);
+      const until = Date.now() + 3000;
+      while (Date.now() < until && !closed.has("b")) await new Promise((resolve) => setTimeout(resolve, 20));
+      assertEquals(closed.get("b"), 4005, "the room of the one who stood up is closed 4005");
+      assertEquals(closed.has("a"), false, "the others' rooms stay open");
+    } finally {
+      relay.roomsForTest().delete(key);
+    }
+  },
+});
+
+// A table of a class, two playing: A sets it up, B sits and applies, A opens the round.
+async function gameOf(klass: string, set: string): Promise<{ a: Person; b: Person; id: string }> {
+  const a = await person();
+  const b = await person();
+  const made = await signed(a, "POST", "/tables", { class: klass, set, seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce() });
+  const id = made.body.id as string;
+  await signed(b, "POST", `/tables/${id}/seat`);
+  await signed(b, "POST", `/tables/${id}/lines`, { kind: "application", text: "сыграю" });
+  await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
+  return { a, b, id };
+}
+// Each class carries its own state (dots, deck, word, grid, dice, free,
+// physics); the test reads the fields of the class it plays.
+// deno-lint-ignore no-explicit-any
+type Seen = { seq: number; turn: number; over: boolean; score: Record<string, number>; state: Record<string, any> };
+const seen = async (who: Person, id: string) => (await signed(who, "GET", `/tables/${id}`)).body.board as Seen;
+
+Deno.test({ name: "deck: the node deals, each sees their own hand and the others' backs, a card must be in the hand, an empty hand wins", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("deck", "durak36");
+  const mine = await seen(a, id);
+  const theirs = await seen(b, id);
+  assertEquals(mine.state.deck.hands["1"].length, 6, "A sees six cards of their own");
+  assertEquals(mine.state.deck.hands["2"], { count: 6 }, "A sees only the size of B's hand");
+  assertEquals(theirs.state.deck.hands["1"], { count: 6 }, "B sees only the size of A's hand");
+  assertEquals(mine.state.deck.stock, { count: 24 });
+  const notMine = (theirs.state.deck.hands["2"] as string[])[0];
+  const refused = await signed(a, "POST", `/tables/${id}/moves`, { seq: mine.seq, move: { play: notMine } });
+  assertEquals([code(refused), refused.body.error.reason], ["illegal_move", "the card is not in your hand"]);
+  // One card left in A's hand: playing it wins the deal.
+  const last = (mine.state.deck.hands["1"] as string[])[0];
+  await database.queryOrThrow(
+    `UPDATE table_games SET state = jsonb_set(state, '{deck,hands,1}', to_jsonb(ARRAY[$2::text])) WHERE table_id = $1 AND ended_at IS NULL`,
+    [id, last],
+  );
+  const won = await signed(a, "POST", `/tables/${id}/moves`, { seq: mine.seq, move: { play: last } });
+  assertEquals(won.status, 200, JSON.stringify(won.body));
+  assertEquals([won.body.board.over, won.body.board.score["1"]], [true, 1], "an empty hand wins the deal");
+});
+
+Deno.test({ name: "word: the setter's word is hidden from the others and from the moves, letters are not repeated, a guessed word scores", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("word", "hangman");
+  let s = await seen(a, id);
+  assertEquals(s.state.word.setter, 1);
+  const flagged = await signed(a, "POST", `/tables/${id}/moves`, { seq: s.seq, move: { word: "telegram" } });
+  assertEquals(flagged.body.error?.reason, "set another word", "a contact word passes the rules first");
+  assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: s.seq, move: { word: "кот" } })).status, 200);
+  const guesser = await seen(b, id);
+  assertEquals([guesser.state.word.word, guesser.state.word.mask], [null, "___"], "the guesser sees the word masked");
+  assertEquals((await seen(a, id)).state.word.word, "кот", "the setter sees their own word");
+  assert(!JSON.stringify(guesser).includes("кот"), `the word leaks to the guesser: ${JSON.stringify(guesser)}`);
+  const guess = async (letter: string) => {
+    const now = await seen(b, id);
+    return await signed(b, "POST", `/tables/${id}/moves`, { seq: now.seq, move: { letter } });
+  };
+  assertEquals((await guess("к")).status, 200);
+  assertEquals((await guess("к")).body.error?.reason, "that letter was tried");
+  assertEquals((await guess("о")).status, 200);
+  const done = await guess("т");
+  assertEquals(done.status, 200, JSON.stringify(done.body));
+  s = done.body.board;
+  assertEquals(s.score["2"], 1, "a guessed word scores the guesser");
+  assertEquals([s.state.word.setter, s.turn], [2, 2], "the guesser sets the next word");
+});
+
+// G1g: the last four classes, one test each, and the seats of a class.
+const moveAs = async (who: Person, id: string, move: unknown) =>
+  signed(who, "POST", `/tables/${id}/moves`, { seq: (await seen(who, id)).seq, move });
+const reasonOf = (r: { body: { error?: { reason?: string } } }) => r.body.error?.reason;
+const setState = (id: string, path: string, value: unknown) =>
+  database.queryOrThrow(
+    `UPDATE table_games SET state = jsonb_set(state, $2::text[], $3::text::jsonb) WHERE table_id = $1 AND ended_at IS NULL`,
+    [id, path, JSON.stringify(value)],
+  );
+
+Deno.test({ name: "a class seats no more than the spec's table says: the word two", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const a = await person();
+  const three = await signed(a, "POST", "/tables", { class: "word", set: "hangman", seats: 3, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce() });
+  assertEquals([three.status, three.body.error?.message], [400, "a word table seats at most 2"]);
+});
+
+Deno.test({ name: "grid: one's own piece blocks the cell, and a con ends only when the other side agrees", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("grid", "checkers");
+  assertEquals(reasonOf(await moveAs(a, id, { from: "c3", to: "b2" })), "the cell is taken by your own piece");
+  assertEquals(reasonOf(await moveAs(a, id, { from: "d6", to: "e5" })), "no piece of yours on that cell");
+  assertEquals((await moveAs(a, id, { con: "won" })).status, 200);
+  assertEquals(reasonOf(await moveAs(b, id, { con: "won" })) ?? "claimed", "claimed");
+  // B claimed too, so B's claim stands; A agrees to it.
+  const agreed = await moveAs(a, id, { con: "agree" });
+  assertEquals(agreed.status, 200, JSON.stringify(agreed.body));
+  assertEquals(agreed.body.board.score["2"], 1, "the claimant scores once the other side agrees");
+  assertEquals(agreed.body.board.state.grid.cells["c3"]?.seat, 1, "a new con starts from the start");
+});
+
+Deno.test({ name: "dice: the node rolls once a turn, the move comes after the roll, and a claim not agreed to is dropped", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("dice", "backgammon");
+  assertEquals(reasonOf(await moveAs(a, id, { move: "13/7" })), "roll first");
+  const rolled = await moveAs(a, id, { roll: true });
+  const dice = rolled.body.board.state.dice.rolled as number[];
+  assert(dice.length === 2 && dice.every((d) => d >= 1 && d <= 6), `not two dice: ${JSON.stringify(dice)}`);
+  assertEquals(rolled.body.board.turn, 1, "the roller keeps the turn to move");
+  assertEquals(reasonOf(await moveAs(a, id, { roll: true })), "the dice are already rolled this turn");
+  assertEquals((await moveAs(a, id, { move: "13/7 13/10" })).body.board.turn, 2);
+  await moveAs(b, id, { con: "won" });
+  await moveAs(a, id, { roll: true });
+  assertEquals((await seen(a, id)).state.dice.claim, null, "a move instead of agreeing drops the claim");
+});
+
+Deno.test({ name: "dominoes: hands are cut per seat, a bone must match its end, the empty hand scores the others' pips", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("free", "double-six");
+  const mine = await seen(a, id);
+  assertEquals([mine.state.free.hands["1"].length, mine.state.free.hands["2"], mine.state.free.boneyard], [7, { count: 7 }, { count: 14 }]);
+  await setState(id, "{free,hands,1}", ["6:6", "1:2"]);
+  await setState(id, "{free,line}", ["3:4"]);
+  assertEquals(reasonOf(await moveAs(a, id, { play: "6:6", end: "right" })), "the bone does not match that end");
+  await setState(id, "{free,hands,1}", ["4:5"]);
+  const theirs = (await seen(b, id)).state.free.hands["2"] as string[];
+  const expected = theirs.reduce((sum, bone) => sum + bone.split(":").reduce((s2, h) => s2 + Number(h), 0), 0);
+  const won = await moveAs(a, id, { play: "5:4", end: "right" });
+  assertEquals(won.status, 200, JSON.stringify(won.body));
+  assertEquals([won.body.board.over, won.body.board.score["1"]], [true, expected], "the empty hand scores the pips left");
+  assertEquals(won.body.board.state.free.line, ["3:4", "4:5"], "the bone turns to match");
+});
+
+Deno.test({ name: "physics: a flick slides until it hits, pushes a piece off the board for a point, and the last side standing ends it", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, id } = await gameOf("physics", "chapayev");
+  await setState(id, "{physics,cells}", { "3:5": 1, "3:7": 2, "0:0": 1 });
+  assertEquals(reasonOf(await moveAs(a, id, { flick: { piece: "3:7", dir: [0, 1], power: 2 } })), "no piece of yours there");
+  const flicked = await moveAs(a, id, { flick: { piece: "3:5", dir: [0, 1], power: 3 } });
+  assertEquals(flicked.status, 200, JSON.stringify(flicked.body));
+  assertEquals(flicked.body.board.state.physics.cells, { "3:6": 1, "0:0": 1 }, "stopped where it hit, the other pushed off");
+  assertEquals([flicked.body.board.score["1"], flicked.body.board.over], [1, true]);
+});
+
+// G1f: the same through a real socket — a ticket bought by a signed call,
+// spent by a WebSocket in Sec-WebSocket-Protocol on a served GET /chat, frames
+// read off the wire, and the close the seat's loss makes (session_freeze.test.ts
+// serves relayUpgrade the same way).
+Deno.test({
+  name: "a live socket to a table: a ticket opens it, a move and a line arrive as frames, standing up closes it 4005",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const relay = await import("../src/chat/relay.ts");
+    const { a, b, id } = await game();
+    const server = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen() {} }, relay.relayUpgrade);
+    const frames: { type: string; data: Record<string, unknown> }[] = [];
+    let closedWith: number | null = null;
+    try {
+      const token = (await signed(b, "POST", `/tables/${id}/ticket`)).body.ticket as string;
+      const socket = new WebSocket(`ws://127.0.0.1:${server.addr.port}/chat`, ["xor.p1", `ticket.${token}`]);
+      socket.onmessage = (event) => frames.push(JSON.parse(event.data));
+      socket.onerror = () => {};
+      const shut = new Promise<void>((resolve) => {
+        socket.onclose = (event) => {
+          closedWith = event.code;
+          resolve();
+        };
+      });
+      await new Promise<void>((resolve, reject) => {
+        socket.onopen = () => resolve();
+        setTimeout(() => reject(new Error("the table's socket did not open within five seconds")), 5000);
+      });
+      // The node puts the room in on its own open; wait until it is there.
+      const until = Date.now() + 3000;
+      while (Date.now() < until && !(relay.roomsForTest().get(`table:${id}`)?.size)) {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      const waitFor = async (type: string) => {
+        const end = Date.now() + 3000;
+        while (Date.now() < end && !frames.some((f) => f.type === type)) await new Promise((r) => setTimeout(r, 20));
+        return frames.find((f) => f.type === type);
+      };
+      const start = await board(a, id);
+      assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } })).status, 200);
+      const moved = await waitFor("board");
+      assert(moved, `no board frame came over the wire: ${JSON.stringify(frames)}`);
+      assertEquals(moved!.data.turn, 2);
+      const said = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "твой ход" });
+      const end = Date.now() + 3000;
+      while (Date.now() < end && !frames.some((f) => f.type === "line" && f.data.id === said.body.id)) {
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      assert(frames.some((f) => f.type === "line" && f.data.text === "твой ход"), `the line did not arrive: ${JSON.stringify(frames)}`);
+
+      assertEquals((await signed(b, "DELETE", `/tables/${id}/seat`)).status, 204);
+      await Promise.race([shut, new Promise((r) => setTimeout(r, 5000))]);
+      // The code travels as a frame before the close (protocol §4.4 `closed`),
+      // so either the close or that frame says 4005.
+      const said4005 = closedWith === 4005 || frames.some((f) => f.type === "closed" && f.data.code === 4005);
+      assert(said4005, `standing up did not close the socket 4005: close ${closedWith}, frames ${JSON.stringify(frames.map((f) => f.type))}`);
+    } finally {
+      await server.shutdown();
+    }
+  },
 });

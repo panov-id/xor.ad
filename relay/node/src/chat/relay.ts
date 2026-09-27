@@ -21,6 +21,7 @@ import { config } from "../config.ts";
 import { sha256hex } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
+import { boardNow } from "../lib/tables.ts";
 
 export const NODE_ROLE = Deno.env.get("NODE_ROLE") ?? "relay"; // core | relay
 const VERSION = "xor.p1";
@@ -28,8 +29,13 @@ const VERSION = "xor.p1";
 interface Room {
   socket: WebSocket;
   session: string;
+  // The registry key: a chat's id, or "table:<id>" for a table's room (step 8).
   chat: string;
   seq: number;
+  // A table's room only: the table, and the identity whose seat keeps it open
+  // (4005 when that seat is lost). The identity never leaves the node.
+  table?: string;
+  identity?: string;
   // Lines were held back while its person was away: the next hand-over gives
   // everything that waited, not only the line that woke it.
   held?: boolean;
@@ -106,6 +112,8 @@ async function away(session: string): Promise<boolean> {
 }
 
 async function hand(room: Room, localId: string | null): Promise<void> {
+  // A table's room has no queue: its frames come from table_event.
+  if (room.table) return;
   if (await away(room.session)) {
     room.held = true;
     return;
@@ -209,6 +217,87 @@ function ensureListeningSession(): Promise<void> {
   return listeningSession;
 }
 
+// Step 8, tables (protocol §4.4): `NOTIFY table_event` "<table>|board",
+// "<table>|seat" or "<table>|line|<id>" — the state is read here, once per
+// notice, and the same frame goes to every room of the table. Public by
+// construction (§6.1): nothing in it depends on who is watching, since no
+// class keeps a hand yet.
+let listeningTables: Promise<void> | null = null;
+function ensureListeningTables(): Promise<void> {
+  listeningTables ??= listen("table_event", (payload) => {
+    const [table, kind, id] = payload.split("|");
+    const set = rooms.get(`table:${table}`);
+    if (!set || set.size === 0) return;
+    // The board is cut per seat — one's own hand, a word to its setter only
+    // (§6.1) — so each room gets the board as its own seat sees it.
+    if (kind === "board") {
+      for (const room of set) {
+        boardFrameFor(table, room.identity ?? null)
+          .then((data) => {
+            frame(room, "board", data);
+            inc("relay_chat_frames_total", { type: "board" });
+          })
+          .catch((error) => log("error", "table frame failed", { error: String(error) }));
+      }
+      return;
+    }
+    tableFrame(table, kind, id)
+      .then((built) => {
+        if (!built) return;
+        for (const room of set) frame(room, built.type, built.data);
+        inc("relay_chat_frames_total", { type: built.type });
+      })
+      .catch((error) => log("error", "table frame failed", { error: String(error) }));
+  });
+  return listeningTables;
+}
+
+// The board as the room's own seat sees it; a room whose seat is gone sees
+// nothing hidden (and is being closed 4005 anyway).
+export async function boardFrameFor(table: string, identity: string | null): Promise<unknown> {
+  const [mine] = identity
+    ? await queryOrThrow<{ seat_no: number }>(
+      `SELECT seat_no FROM table_seats WHERE table_id = $1 AND identity = $2 AND left_at IS NULL`,
+      [table, identity],
+    )
+    : [];
+  return await boardNow(queryOrThrow, table, mine?.seat_no ?? null);
+}
+
+export async function tableFrame(table: string, kind: string, id?: string): Promise<{ type: string; data: unknown } | null> {
+  if (kind === "seat") {
+    const [counts] = await queryOrThrow<{ playing: number; watching: number }>(
+      `SELECT count(*) FILTER (WHERE playing_from IS NOT NULL)::int AS playing,
+              count(*) FILTER (WHERE playing_from IS NULL)::int AS watching
+         FROM table_seats WHERE table_id = $1 AND left_at IS NULL`,
+      [table],
+    );
+    return { type: "seat", data: counts };
+  }
+  if (kind === "line" && id) {
+    const [line] = await queryOrThrow<Record<string, unknown>>(
+      `SELECT id, seat_no AS seat, kind, text, sticker, refuses_seat, floor(extract(epoch from created_at))::int AS created_at
+         FROM table_lines WHERE id = $1 AND table_id = $2 AND visible_at IS NOT NULL`,
+      [id, table],
+    );
+    return line ? { type: "line", data: line } : null;
+  }
+  return null;
+}
+
+// 4005 (protocol §4.4): the seat is lost — stood up, kicked, blocked away,
+// stepped away. `NOTIFY seat_left` "<table>:<seat>:<identity>" (lib/tables.ts).
+let listeningSeatLeft: Promise<void> | null = null;
+function ensureListeningSeatLeft(): Promise<void> {
+  listeningSeatLeft ??= listen("seat_left", (payload) => {
+    const [table, , identity] = payload.split(":");
+    for (const room of rooms.get(`table:${table}`) ?? []) {
+      if (room.identity === identity) closeRoom(room, 4005, "the seat at the table is lost");
+    }
+  });
+  return listeningSeatLeft;
+}
+
 function ensureListening(): Promise<void> {
   listening ??= listen("chat_message", (payload) => {
     // "<chat>:<local id>" for a new line; "<chat>::<session>" when a session
@@ -231,6 +320,8 @@ export async function listenForRooms(): Promise<void> {
   await ensureListeningRekey();
   await ensureListeningSys();
   await ensureListeningSession();
+  await ensureListeningTables();
+  await ensureListeningSeatLeft();
 }
 
 // Every room, closed with 1001 "going away": the node is stopping, and a
@@ -285,12 +376,12 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   // 2026-09-26). The answer is a bad ticket's, so the lock is not told.
   let failed = false;
   const [spent] = token
-    ? await queryOrThrow<{ session: string; chat: string }>(
+    ? await queryOrThrow<{ session: string; chat: string | null; table_id: string | null; identity: string }>(
       `DELETE FROM socket_tickets t USING sessions s
         WHERE t.token_hash = $1 AND t.expires_at > now()
           AND s.id = t.session AND s.frozen_at IS NULL
           AND NOT EXISTS (SELECT 1 FROM vault_shares v WHERE v.session = s.id AND v.locked_at IS NOT NULL)
-        RETURNING t.session, t.chat`,
+        RETURNING t.session, t.chat, t.table_id, s.identity`,
       [await sha256hex(new TextEncoder().encode(token))],
     ).catch(() => { failed = true; return []; })
     : [];
@@ -308,7 +399,9 @@ export async function relayUpgrade(req: Request): Promise<Response> {
     return response;
   }
   await listenForRooms();
-  const room: Room = { socket, session: spent.session, chat: spent.chat, seq: 0 };
+  const room: Room = spent.table_id
+    ? { socket, session: spent.session, chat: `table:${spent.table_id}`, seq: 0, table: spent.table_id, identity: spent.identity }
+    : { socket, session: spent.session, chat: spent.chat!, seq: 0 };
   socket.onopen = () => {
     const set = rooms.get(room.chat) ?? new Set();
     // One room per (chat, session): an older socket of the same session is

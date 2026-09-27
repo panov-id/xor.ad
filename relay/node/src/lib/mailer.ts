@@ -221,6 +221,27 @@ export async function sendOfferLinkOff(to: string, brand: LetterBrand, venue: st
   );
 }
 
+// A complaint that the discount was not given reached one of the venue's
+// offers (offers spec §10). The letter says only that one arrived and where to
+// read it: the text lives in the cabinet, and a letter is no place for a
+// stranger's words about a named person behind the counter. Nothing about the
+// complainant, and no time.
+export async function sendOfferComplaint(to: string, brand: LetterBrand, venue: string, cabinet: string): Promise<boolean> {
+  return await deliver(
+    "offer_complaint",
+    brand,
+    to,
+    "A complaint about one of your offers",
+    "A complaint about an offer",
+    [
+      { kind: "text", value: `Someone says a discount of ${venue} was not given as announced.` },
+      { kind: "text", value: "Read it and answer privately in the cabinet; a moderator decides:" },
+      { kind: "reference", value: cabinet },
+    ],
+    CABINET_FOOTNOTE,
+  );
+}
+
 export async function sendWelcome(
   to: string,
   opts: { lang?: string; accent?: string; mode?: string; source?: string | null; brand?: string },
@@ -832,7 +853,7 @@ export const MAIL_KINDS = [
   "backup_stale", "moderation_stopped", "job_tombstone",
   // The advertising cabinet: its sign-in link, and the offer link switched off
   // by two reports (offers spec §2.1, §10.1).
-  "adv_link", "offer_link_off",
+  "adv_link", "offer_link_off", "offer_complaint",
   // Not through deliver(): the welcome letter has its own sender and counts
   // itself, under this kind (H4, B53).
   "welcome",

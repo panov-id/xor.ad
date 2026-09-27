@@ -62,7 +62,10 @@ configured("the allowed list is exactly what the node reads from a request, plus
     const text = await Deno.readTextFile(entry);
     for (const m of text.matchAll(/headers\.get\("(x-[a-z-]+)"\)/g)) read.add(m[1]);
   }
-  const edgeOnly = new Set(["x-forwarded-for", "x-real-ip", "x-client-ip", "x-origin-token", "x-metrics-token"]);
+  // x-forwarded-host: the cabinet's proxy names the address a same-origin read
+  // was sent to (lib/adv.ts, brandOfCabinet); a browser sending it across
+  // origins meets the preflight, which does not allow it.
+  const edgeOnly = new Set(["x-forwarded-for", "x-real-ip", "x-client-ip", "x-origin-token", "x-metrics-token", "x-forwarded-host"]);
   const fromBrowser = [...read].filter((h) => !edgeOnly.has(h)).sort();
   const listed = SIGNED_REQUEST_HEADERS.filter((h) => h.startsWith("x-")).sort();
   assertEquals(listed, fromBrowser, "the node reads a header from a browser that the preflight does not allow, or allows one nobody reads");

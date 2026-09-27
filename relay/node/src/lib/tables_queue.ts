@@ -7,7 +7,8 @@
 // name (§6.1). The moderator sees the text and the table's brand, never an
 // identity, and a tenant's moderator only their own brand.
 
-import { query, queryOrThrow } from "./db.ts";
+import { query, transaction } from "./db.ts";
+import { tableEvent } from "./tables.ts";
 
 // What waits, for the queue and for the watchdog: one row per item, with its
 // brand and the moment it began to wait.
@@ -47,15 +48,31 @@ export async function decideTable(
   id: string,
   verdict: "publish" | "refuse",
   brand: string | null,
-): Promise<boolean> {
+): Promise<string | null> {
   const fence = `AND ($2::text IS NULL OR brand = $2)`;
   const sql = kind === "line"
     ? verdict === "publish"
-      ? `UPDATE table_lines SET visible_at = now() WHERE id = $1 AND visible_at IS NULL ${fence} RETURNING id`
-      : `DELETE FROM table_lines WHERE id = $1 AND visible_at IS NULL ${fence} RETURNING id`
+      ? `UPDATE table_lines SET visible_at = now() WHERE id = $1 AND visible_at IS NULL ${fence} RETURNING brand, table_id`
+      : `DELETE FROM table_lines WHERE id = $1 AND visible_at IS NULL ${fence} RETURNING brand, table_id`
     : verdict === "publish"
     ? `UPDATE tables SET name = name_pending, name_pending = NULL
-        WHERE id = $1 AND name_pending IS NOT NULL ${fence} RETURNING id`
-    : `UPDATE tables SET name_pending = NULL WHERE id = $1 AND name_pending IS NOT NULL ${fence} RETURNING id`;
-  return (await queryOrThrow(sql, [id, brand])).length > 0;
+        WHERE id = $1 AND name_pending IS NOT NULL ${fence} RETURNING brand, id AS table_id, created_by`
+    : `UPDATE tables SET name_pending = NULL WHERE id = $1 AND name_pending IS NOT NULL ${fence}
+       RETURNING brand, id AS table_id, created_by`;
+  // The face it was decided for, or null when nothing applied: the watchdog
+  // counts a decision by face (lib/moderation_watch.ts, db/072).
+  return await transaction(async (run) => {
+    const [done] = await run<{ brand: string; table_id: string; created_by?: string | null }>(sql, [id, brand]);
+    if (!done) return null;
+    // The frames (protocol §4.4): a published line to the table's rooms; the
+    // name's verdict to the author's own sessions, `name_verdict` with
+    // `table`, as a profile name's goes (lib/sessions.ts, session_frame).
+    if (kind === "line" && verdict === "publish") await tableEvent(run, done.table_id, "line", id);
+    if (kind === "name" && done.created_by) {
+      const sessions = await run<{ id: string }>(`SELECT id FROM sessions WHERE identity = $1`, [done.created_by]);
+      const body = JSON.stringify({ type: "name_verdict", data: { accepted: verdict === "publish", table: done.table_id } });
+      for (const s of sessions) await run(`SELECT pg_notify('session_frame', $1)`, [`${s.id}|${body}`]);
+    }
+    return done.brand;
+  });
 }

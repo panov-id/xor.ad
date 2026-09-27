@@ -63,9 +63,14 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
   const [, tick] = useState(0);
 
   const load = useCallback(async () => {
-    const answer = await tables.view(tableId);
-    if (answer.status === 200) setView(answer.body);
-    else setError(tableRefusal(answer));
+    // A read that throws (locked, no network) is said, not dropped.
+    try {
+      const answer = await tables.view(tableId);
+      if (answer.status === 200) setView(answer.body);
+      else setError(tableRefusal(answer));
+    } catch (e) {
+      setError((e as Error).message);
+    }
   }, [tables, tableId]);
 
   // No socket for tables yet (ticket is spec): the view is read every 2 s,
@@ -79,9 +84,12 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
 
   async function act(run: () => Promise<{ status: number; body: unknown }>) {
     setError(null);
-    const answer = await run();
-    const refused = tableRefusal(answer as never);
-    if (refused) setError(refused);
+    try {
+      const refused = tableRefusal(await run() as never);
+      if (refused) setError(refused);
+    } catch (e) {
+      setError((e as Error).message);
+    }
     await load();
   }
 
@@ -101,6 +109,7 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
       </header>
       {!board || board.over
         ? <p data-testid="over">{say("table.over")}</p>
+        : board.turn === null ? <p data-testid="turn">{say("table.notStarted")}</p>
         : <p data-testid="turn">{turn.mine ? say("table.yourTurn") : `${say("table.turn")}: ${turn.name ?? "—"}`} · {turn.secondsLeft} {say("table.seconds")}</p>}
       {score.length > 0 && <p data-testid="score">{say("table.score")}: {score.map((s) => `${s.name} ${board!.score[String(s.seat)]}`).join(" · ")}</p>}
       {dotsOf(board) && (
@@ -121,7 +130,7 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
         {turn.mine && board && <button onClick={() => act(() => tables.pass(tableId, board.seq))}>{say("table.pass")}</button>}
         {view.is_playing && board && !board.over && <button onClick={() => act(() => tables.resign(tableId))}>{say("table.resign")}</button>}
         <button onClick={() => act(() => tables.like(tableId))}>{say("table.like")}</button>
-        <button onClick={async () => { await tables.stand(tableId); onLeave(); }}>{say("table.stand")}</button>
+        <button onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })}>{say("table.stand")}</button>
       </nav>
     </main>
   );

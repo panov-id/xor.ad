@@ -246,8 +246,17 @@ function ensureListeningTables(): Promise<void> {
     tableFrame(table, kind, id)
       .then((built) => {
         if (!built) return;
-        for (const room of set) frame(room, built.type, built.data);
-        inc("relay_chat_frames_total", { type: built.type });
+        // Only a room with a live seat gets the table's lines and seats: a
+        // room whose seat is gone is closed 4005 as the board does (V7).
+        for (const room of set) {
+          seatedAt(table, room.identity ?? null)
+            .then((seated) => {
+              if (!seated) return closeRoom(room, 4005, "the seat at the table is lost");
+              frame(room, built.type, built.data);
+              inc("relay_chat_frames_total", { type: built.type });
+            })
+            .catch((error) => log("error", "table frame failed", { error: String(error) }));
+        }
       })
       .catch((error) => log("error", "table frame failed", { error: String(error) }));
   });
@@ -256,6 +265,15 @@ function ensureListeningTables(): Promise<void> {
 
 // The board as the room's own seat sees it, or null for a room whose seat is
 // gone: it gets no board at all (X1, 27.09.2026) and is closed 4005 by the caller.
+async function seatedAt(table: string, identity: string | null): Promise<boolean> {
+  if (!identity) return false;
+  const [mine] = await queryOrThrow<{ seat_no: number }>(
+    `SELECT seat_no FROM table_seats WHERE table_id = $1 AND identity = $2 AND left_at IS NULL`,
+    [table, identity],
+  );
+  return mine !== undefined;
+}
+
 export async function boardFrameFor(table: string, identity: string | null): Promise<unknown | null> {
   const [mine] = identity
     ? await queryOrThrow<{ seat_no: number }>(

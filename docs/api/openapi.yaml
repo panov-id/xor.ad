@@ -2533,7 +2533,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "204": {description: Done., x-description-ru: Сделано.}
+        "200": {description: "Seated, or already at this table: the seat number.", x-description-ru: "Сел или уже сидит за этим столом: номер места.", content: {application/json: {schema: {type: object, properties: {seat: {type: integer}}}}}}
         "409": {$ref: "#/components/responses/ApiError"}
     delete:
       tags: [tables]
@@ -2619,7 +2619,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The board after the move., x-description-ru: Доска после хода., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
+        "200": {description: "The board after the move, as {board}.", x-description-ru: "Доска после хода, как {board}.", content: {application/json: {schema: {type: object, properties: {board: {$ref: "#/components/schemas/Board"}}}}}}
         "409": {$ref: "#/components/responses/ApiError"}
   /tables/{id}/confirm:
     post:
@@ -2662,7 +2662,7 @@ paths:
         "409": {description: pending_exists — an open proposal is already there; refused — a spectator cannot propose., x-description-ru: pending_exists — открытое предложение уже есть; refused — зритель предлагать не может., content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "201": {description: The proposal id., x-description-ru: id предложения., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
+        "200": {description: The proposal id., x-description-ru: id предложения., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
   /tables/{id}/proposals/{pid}:
     post:
       tags: [tables]
@@ -3835,6 +3835,7 @@ paths:
                 required: [state]
                 properties:
                   state: {type: string, enum: [approved]}
+                  recovery_wrapped_key: {type: string, description: "The long key under the paper code, as POST /recovery/claim answers it: the new device keeps it to reissue the code (finding T1, 2026-09-27). Only here, signed — never on the unsigned state route.", x-description-ru: "Длинный ключ под бумажным кодом, как его отдаёт POST /recovery/claim: новое устройство хранит его для перевыпуска кода (находка T1, 27.09.2026). Только здесь, под подписью, — никогда на неподписанном маршруте состояния."}
         "400": {$ref: "#/components/responses/BadVersion"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/Conflict"}

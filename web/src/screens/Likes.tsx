@@ -9,6 +9,9 @@ import { useEffect, useState } from "react";
 import type { Client, Liked } from "../../../depth/core/client.ts";
 import { likedPhrases, unlikePhrase } from "../api/actions.ts";
 import { say } from "../locales/say.ts";
+import { Button } from "../ui/Button.tsx";
+import { Card } from "../ui/Card.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
 
 export function Likes({ client, onBack }: { client: Client; onBack: () => void }) {
   const [items, setItems] = useState<Liked[]>([]);
@@ -42,10 +45,7 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
 
   return (
     <main className="screen likes" data-screen="likes">
-      <header>
-        <h1>{say("web.likes.title")}</h1>
-        <button type="button" onClick={onBack} data-testid="back">{say("web.likes.back")}</button>
-      </header>
+      <HeaderScreen title={say("web.likes.title")} onBack={onBack} backLabel={say("web.likes.back")} />
       {error && <p className="error" data-testid="error">{error}</p>}
       {state === "ready" && items.length === 0 && (
         <section className="empty" data-testid="quiet">
@@ -55,7 +55,7 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
       )}
       <ul className="cards" data-testid="liked">
         {items.map((item) => (
-          <li key={item.id} className="card" data-testid="liked-card" data-id={item.id}>
+          <Card as="li" key={item.id} data-testid="liked-card" data-id={item.id}>
             {item.offer && <span className="offer">−{item.offer.discount_value}</span>}
             <p>{item.text}</p>
             <span className="muted">
@@ -63,14 +63,14 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
               {item.state === "matched" ? say("web.likes.matched") : ""}
             </span>
             {item.state === "liked" && !item.offer && !spent[item.id] && (
-              <button type="button" onClick={() => takeBack(item)} data-testid="unlike">{say("web.likes.unlike")}</button>
+              <Button type="button" kind="text" onClick={() => takeBack(item)} data-testid="unlike">{say("web.likes.unlike")}</Button>
             )}
             {spent[item.id] && <span className="muted" data-testid="spent">{say("web.likes.spent")}</span>}
-          </li>
+          </Card>
         ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
-      {next && state === "ready" && <button type="button" onClick={() => load(next)} data-testid="more">{say("liked.more")}</button>}
+      {next && state === "ready" && <Button type="button" onClick={() => load(next)} data-testid="more">{say("liked.more")}</Button>}
     </main>
   );
 }

@@ -9,7 +9,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { ANNOUNCE_MS, announce, isStep, nearby, type Step } from "../a11y/nearby.ts";
-import type { Sent } from "../api/actions.ts";
+import { modes, type Sent } from "../api/actions.ts";
+import { Button } from "../ui/Button.tsx";
+import { Card } from "../ui/Card.tsx";
 import { say } from "../locales/say.ts";
 
 export interface FeedCard {
@@ -126,9 +128,9 @@ export function Feed(
         </label>
       </header>
       <nav className="actions">
-        <button type="button" className="primary" onClick={onWrite} data-testid="write">{say("feed.write")}</button>
-        <button type="button" onClick={onLikes} data-testid="likes">{say("liked.title")}</button>
-        {onNewTable && <button type="button" onClick={onNewTable} data-testid="new-table">{say("web.feed.newTable")}</button>}
+        <Button type="button" kind="pill" onClick={onWrite} data-testid="write">{say("feed.write")}</Button>
+        <Button type="button" onClick={onLikes} data-testid="likes">{say("liked.title")}</Button>
+        {onNewTable && <Button type="button" onClick={onNewTable} data-testid="new-table">{say("web.feed.newTable")}</Button>}
       </nav>
       {sent && (
         <p className="warn" data-testid="sent" data-state={sent.state}>
@@ -148,32 +150,32 @@ export function Feed(
           <h2>{say("web.feed.empty")}</h2>
           <p className="muted">{say("web.feed.empty_hint")}</p>
           {radius < 10000 && (
-            <button type="button" onClick={() => onRadius(RADII[RADII.indexOf(radius) + 1])}>
+            <Button type="button" onClick={() => onRadius(RADII[RADII.indexOf(radius) + 1])}>
               {say("web.feed.wider", { radius: label(RADII[RADII.indexOf(radius) + 1]) })}
-            </button>
+            </Button>
           )}
         </section>
       )}
       <ul className="cards" data-testid="cards">
         {items.filter((card) => card.id !== gone?.id).map((card) => card.kind === "table"
           ? (
-            <li key={card.id} className="card table-card" data-testid="table-card" data-id={card.id} onClick={() => onTable?.(card.id)} role="button" tabIndex={0}
+            <Card as="li" key={card.id} kind="nested" className="table-card" data-testid="table-card" data-id={card.id} onClick={() => onTable?.(card.id)} role="button" tabIndex={0}
               onKeyDown={(k) => (k.key === "Enter" || k.key === " ") && onTable?.(card.id)}>
               <p>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {card.game} {card.set}</p>
               <span className="muted">{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · ♥ {card.like_count ?? 0}</span>
-            </li>
+            </Card>
           )
           : (
-          <li key={card.id} className="card" data-testid="card" data-id={card.id} onClick={() => onOpen(card)} role="button" tabIndex={0}>
+          <Card as="li" key={card.id} data-testid="card" data-id={card.id} onClick={() => onOpen(card)} role="button" tabIndex={0}>
             {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
             <p>{card.text}</p>
-            <span className="muted">{card.mode} · {card.lang} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
-          </li>
+            <span className="muted">{modes().find((m) => m.value === card.mode)?.label ?? card.mode} · {card.lang} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
+          </Card>
           ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
       {next && state === "ready" && (
-        <button type="button" onClick={() => load(next)} data-testid="more">{say("liked.more")}</button>
+        <Button type="button" onClick={() => load(next)} data-testid="more">{say("liked.more")}</Button>
       )}
       <footer className="muted">
         {say("web.feed.keys", { state: sealed === "unlocked" ? say("web.feed.keys_unlocked") : sealed === "unlocked-new-wrap" ? say("web.feed.keys_new_wrap") : sealed === "ok" ? say("web.feed.keys_ok") : say("web.feed.keys_bad") })}

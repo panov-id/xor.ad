@@ -104,6 +104,6 @@ venues, offers) were added. Web e2e: 28 passed.
   rendered as empty phones: the WD0 sheet PNGs were blank; the table above was built from
   the SVG and is unaffected.
 
-Left for WD3: the seven screens are not yet built on the `web/src/ui/*` components
-(HeaderScreen, Button, Composer, Card). Card still prints raw codes "alone · und", and
-focused fields have a double ring.
+Stage 2 (on `830f603`): the seven screens are built on `web/src/ui/*` — `HeaderScreen` (Composer, Likes, Card, Unlock, Register), `Button` (all seven; "write" is a `pill`), `Card` (feed, likes, the table card as `nested`). The phrase's mode is shown in words (`modes()`), not as a code. The composer screen got its own class `composer-screen`: `.composer` from `chat.css:15` made it a flex row. e2e: 33 passed (two `test.fail()` in other specs are expected). Shoot: 34 opened, 0 not.
+
+Left for WD3: the offer complaint form in Card still uses the old buttons; the phrase language is the code "und"; focused fields have a double ring.

@@ -354,6 +354,7 @@ components:
         kind: {type: string, enum: [line, application, refusal, sticker]}
         text: {type: string, description: Up to 128 graphemes (phrase.length)., x-description-ru: До 128 графем (phrase.length).}
         sticker: {type: string}
+        seat: {type: integer, description: "Required with refusal: the seat of an applicant of this round, who then sits the round out (db/070, 2026-09-27).", x-description-ru: "Обязателен у refusal: место заявителя этого круга, который тогда пропускает круг (db/070, 27.09.2026)."}
     Move:
       type: object
       description: A move in the board class's terms, or a pass. seq is the expected board version (monotonic); the same body at the same seq answers the same board, a foreign version gets 409 stale_seq (protocol §4.6, 2026-09-16).
@@ -579,12 +580,14 @@ components:
         contact: {type: string}
     Venue:
       type: object
+      required: [id, name, address, verification_status, verified_at, envelope_expires_at]
       properties:
         id: {type: string, format: uuid}
         name: {type: string}
         address: {type: string}
         verification_status: {type: string, enum: [unverified, verified, suspended]}
-        verified_at: {type: string, format: date-time}
+        verified_at: {type: string, format: date-time, nullable: true}
+        envelope_expires_at: {type: string, format: date-time, nullable: true, description: "The end of the live envelope, if one is out.", x-description-ru: "Срок живого конверта, если он отправлен."}
     VenueCreate:
       type: object
       required: [name, address]
@@ -612,19 +615,25 @@ components:
         repeated_from: {type: string, format: uuid}
     AdvOffer:
       type: object
+      description: "An offer as the cabinet sees it (routes/adv.ts); of the figures only redirect_hits and complaints (offers/SPEC_EN.md §2.1)."
+      x-description-ru: "Оффер глазами кабинета (routes/adv.ts); из цифр только redirect_hits и complaints (offers/SPEC_RU.md §2.1)."
       properties:
         id: {type: string, format: uuid}
         venue_id: {type: string, format: uuid}
         offer_text: {type: string}
         discount_value: {type: string}
-        conditions: {type: string}
-        promo_code: {type: string}
-        redirect: {type: string}
-        redirect_disabled_at: {type: string, format: date-time}
+        conditions: {type: string, nullable: true}
+        promo_code: {type: string, nullable: true}
+        external_url: {type: string, nullable: true, description: "The owner's own link; people see only the storefront's /o/ link.", x-description-ru: "Своя ссылка владельца; люди видят только ссылку /o/ витрины."}
+        redirect_code: {type: string}
+        link: {type: string, format: uri, description: "https://<storefront>/o/<redirect_code> — what the card carries.", x-description-ru: "https://<витрина>/o/<redirect_code> — то, что несёт карточка."}
+        link_disabled: {type: boolean}
+        redirect_disabled_at: {type: string, format: date-time, nullable: true}
         redirect_hits: {type: integer, description: "The only reach figure — clicks, without a person (offers/SPEC_EN.md §2.1).", x-description-ru: "Единственная цифра охвата — переходы, без человека (offers/SPEC_RU.md §2.1)."}
-        complaints: {type: integer}
-        status: {type: string, enum: [active, expired, hidden]}
+        complaints: {type: integer, description: "Complaints that the discount was not given, of every status.", x-description-ru: "Жалобы «скидку не дали», любого статуса."}
+        repeated_from_offer_id: {type: string, format: uuid, nullable: true}
         discount_until: {type: string, format: date-time}
+        status: {type: string, enum: [active, expired, hidden]}
         published_at: {type: string, format: date-time}
         expires_at: {type: string, format: date-time}
     AdvComplaint:
@@ -637,7 +646,7 @@ components:
         text: {type: string}
         date: {type: string, format: date}
         status: {type: string, enum: [pending, resolved, rejected]}
-        response: {type: string}
+        response: {type: string, nullable: true}
     ComplaintResponse:
       type: object
       required: [text]
@@ -1382,6 +1391,94 @@ paths:
         "200": {description: "At most 200, oldest first, a plain array; x-total-count counts the whole queue, not the page (2026-09-22).", x-description-ru: "Не больше 200, старые первыми, плоским массивом; x-total-count считает всю очередь, а не страницу (22.09.2026)."}
         "401": {description: no panel session, x-description-ru: нет сессии панели}
         "403": {description: "no feed_queue.read", x-description-ru: "нет права feed_queue.read"}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue:
+    get:
+      tags: [admin]
+      summary: Table lines and table names the rules flagged, waiting for a verdict
+      x-summary-ru: Реплики и имена столов, помеченные правилами и ждущие вердикта
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      description: "What the feed's first tier of rules flagged at tables (chat spec §6.1, §8.3): [{kind: line | name, id, brand, text, waiting_seconds}] — a line's id or the table's id for a name; never an identity. A tenant's moderator sees their own brand only. Built 2026-09-27."
+      x-description-ru: "То, что первый уровень правил ленты пометил за столами (спека чата §6.1, §8.3): [{kind: line | name, id, brand, text, waiting_seconds}] — id реплики либо id стола для имени; личности нет. Модератор тенанта видит только свой бренд. Построено 27.09.2026."
+      responses:
+        "200": {description: "At most 200, oldest first, a plain array with x-total-count.", x-description-ru: "Не больше 200, старые первыми, плоским массивом с x-total-count."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.read", x-description-ru: "нет права feed_queue.read"}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue/lines/{id}/publish:
+    post:
+      tags: [admin]
+      summary: Publish a table line from the queue
+      x-summary-ru: Опубликовать реплику стола из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once: visible_at is stamped.", x-description-ru: "Вердикт, применён один раз: ставится visible_at."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: A malformed id., x-description-ru: Кривой id.}
+        "409": {description: "Already decided, swept with its table, of another brand, or never existed.", x-description-ru: "Уже решено, убрано со столом, чужой бренд или не существовало."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue/lines/{id}/refuse:
+    post:
+      tags: [admin]
+      summary: Refuse a table line from the queue
+      x-summary-ru: Отклонить реплику стола из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once: the line is deleted.", x-description-ru: "Вердикт, применён один раз: реплика удаляется."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: A malformed id., x-description-ru: Кривой id.}
+        "409": {description: "Already decided, swept with its table, of another brand, or never existed.", x-description-ru: "Уже решено, убрано со столом, чужой бренд или не существовало."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue/names/{id}/publish:
+    post:
+      tags: [admin]
+      summary: Accept a table's name from the queue
+      x-summary-ru: Принять имя стола из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once: name_pending moves into name.", x-description-ru: "Вердикт, применён один раз: name_pending переезжает в name."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: A malformed id., x-description-ru: Кривой id.}
+        "409": {description: "Already decided, the table closed, of another brand, or never existed.", x-description-ru: "Уже решено, стол закрыт, чужой бренд или не существовало."}
+        "503": {description: database unavailable, x-description-ru: база недоступна}
+  /admin/table-queue/names/{id}/refuse:
+    post:
+      tags: [admin]
+      summary: Refuse a table's name from the queue
+      x-summary-ru: Отклонить имя стола из очереди
+      x-status: built
+      x-internal: true
+      x-source: relay/node/src/routes/feed_queue.ts
+      security: [{panelSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "200": {description: "The verdict, applied once: the table lives on without a name (chat spec §6.1).", x-description-ru: "Вердикт, применён один раз: стол живёт без имени (спека чата §6.1)."}
+        "401": {description: no panel session, x-description-ru: нет сессии панели}
+        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
+        "404": {description: A malformed id., x-description-ru: Кривой id.}
+        "409": {description: "Already decided, the table closed, of another brand, or never existed.", x-description-ru: "Уже решено, стол закрыт, чужой бренд или не существовало."}
         "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/feed-queue/{id}/publish:
     post:
@@ -2436,7 +2533,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "204": {description: Done., x-description-ru: Сделано.}
+        "200": {description: "Seated, or already at this table: the seat number.", x-description-ru: "Сел или уже сидит за этим столом: номер места.", content: {application/json: {schema: {type: object, properties: {seat: {type: integer}}}}}}
         "409": {$ref: "#/components/responses/ApiError"}
     delete:
       tags: [tables]
@@ -2522,7 +2619,7 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The board after the move., x-description-ru: Доска после хода., content: {application/json: {schema: {$ref: "#/components/schemas/Board"}}}}
+        "200": {description: "The board after the move, as {board}.", x-description-ru: "Доска после хода, как {board}.", content: {application/json: {schema: {type: object, properties: {board: {$ref: "#/components/schemas/Board"}}}}}}
         "409": {$ref: "#/components/responses/ApiError"}
   /tables/{id}/confirm:
     post:
@@ -2565,7 +2662,7 @@ paths:
         "409": {description: pending_exists — an open proposal is already there; refused — a spectator cannot propose., x-description-ru: pending_exists — открытое предложение уже есть; refused — зритель предлагать не может., content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "201": {description: The proposal id., x-description-ru: id предложения., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
+        "200": {description: The proposal id., x-description-ru: id предложения., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
   /tables/{id}/proposals/{pid}:
     post:
       tags: [tables]
@@ -3256,10 +3353,11 @@ paths:
       tags: [offers]
       summary: "Report the offer link"
       x-summary-ru: "Пожаловаться на ссылку оффера"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/offer_links.ts
       security: [{identitySignature: []}]
-      description: "No e-mail, not an appeal but a signal; two counting reports from different people disable the link at once; a report that does not count goes to the moderator with high priority and disables nothing; it never spends COMPLAINT_MONTHLY_LIMIT (offers/SPEC_EN.md §10.1, table offer_link_reports)."
-      x-description-ru: "Без почты, не обращение, а сигнал; две засчитанные жалобы разных людей гасят ссылку сразу; незасчитанная идёт модератору с высоким приоритетом и ничего не гасит; COMPLAINT_MONTHLY_LIMIT не расходует (offers/SPEC_RU.md §10.1, таблица offer_link_reports)."
+      description: "No e-mail, a signal and not an appeal. It counts when the reporter's first accepted phrase came out on a UTC day no later than the day before yesterday and before the offer's day; one person counts once; the second counting report switches the link off at once and the venue is told by mail; the offer stays. The answer is the same whether the report counted or not (offers/SPEC_EN.md §10.1, table offer_link_reports, db/069). The storefront key, when sent, bounds the lookup to its brand."
+      x-description-ru: "Без почты, сигнал, а не обращение. Засчитывается, если первая принятая фраза жалующегося вышла по UTC не позже позавчерашнего дня и раньше дня оффера; один человек считается один раз; вторая засчитанная жалоба гасит ссылку сразу, заведению уходит письмо; оффер остаётся. Ответ одинаков, засчитана жалоба или нет (offers/SPEC_RU.md §10.1, таблица offer_link_reports, db/069). Ключ витрины, если прислан, ограничивает поиск её брендом."
       parameters:
         - {name: code, in: path, required: true, schema: {type: string, minLength: 10}}
         - {$ref: "#/components/parameters/ProtocolVersion"}
@@ -3269,7 +3367,9 @@ paths:
         "409": {$ref: "#/components/responses/Conflict"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "204": {description: Done., x-description-ru: Сделано.}
+        "404": {description: No such code., x-description-ru: Такого кода нет.}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "202": {description: Received., x-description-ru: Принята., content: {application/json: {schema: {type: object, required: [state], properties: {state: {type: string, const: received}}}}}}
   /offers/{id}/complaints:
     post:
       tags: [offers]
@@ -3291,153 +3391,247 @@ paths:
         "429": {$ref: "#/components/responses/RateLimited"}
         "202": {description: Accepted; whether it counts is frozen now., x-description-ru: Принята; засчитана ли — заморожено сейчас., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}, counts_towards_autohide: {type: boolean}}}}}}
         "422": {description: "No e-mail: the only way to answer — the form names this reason", x-description-ru: "Нет почты: единственного способа ответить — форма называет эту причину"}
+  /adv/sign-in:
+    post:
+      tags: [offers]
+      summary: "Ask for a sign-in link"
+      x-summary-ru: "Запросить ссылку входа"
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
+      security: []
+      description: "Always 204 and a fresh browser half, cookie __Host-adv-link; a link is mailed only to a registered address, 15 minutes, one use. The asker's address and the mailbox have ceilings; the mailbox's is charged only for a real account (offers/SPEC_EN.md §2.1). Only from the cabinet's own origin adv.<storefront>, which also names the storefront."
+      x-description-ru: "Всегда 204 и свежая браузерная половина, cookie __Host-adv-link; ссылка уходит письмом только на зарегистрированный адрес, 15 минут, одно использование. У адреса запросившего и у ящика свои пределы; предел ящика расходуется только для настоящей учётки (offers/SPEC_RU.md §2.1). Только со своего источника adv.<витрина>, он же называет витрину."
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [email], properties: {email: {type: string, format: email}}}}}}
+      responses:
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "400": {description: "The body is not what the operation takes; code invalid_body.", x-description-ru: "Тело не то, что принимает операция; code invalid_body."}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: "Done; Set-Cookie carries __Host-adv-link.", x-description-ru: "Сделано; Set-Cookie несёт __Host-adv-link."}
+  /adv/session:
+    post:
+      tags: [offers]
+      summary: "Open a session by the link"
+      x-summary-ru: "Открыть сессию по ссылке"
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
+      security: []
+      description: "The token from the link and the half in cookie __Host-adv-link of the browser that asked; only the hash of both is stored (db/067). Spent on the first try, right or wrong. Sets cookie __Host-adv for 30 days and confirms the e-mail. Only from the cabinet's own origin adv.<storefront>, which also names the storefront."
+      x-description-ru: "Токен из ссылки и половина в cookie __Host-adv-link браузера, который просил; хранится только хеш обоих (db/067). Тратится с первой попытки, верной или нет. Ставит cookie __Host-adv на 30 дней и подтверждает почту. Только со своего источника adv.<витрина>, он же называет витрину."
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [token], properties: {token: {type: string, pattern: "^[0-9a-f]{64}$"}}}}}}
+      responses:
+        "401": {description: "Invalid or expired link, another browser, or not from the cabinet's origin.", x-description-ru: "Ссылка неверна или истекла, другой браузер или не со своего источника кабинета."}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "204": {description: "Signed in; Set-Cookie carries __Host-adv.", x-description-ru: "Вход выполнен; Set-Cookie несёт __Host-adv."}
+  /adv/sign-out:
+    post:
+      tags: [offers]
+      summary: "Sign out of the cabinet"
+      x-summary-ru: "Выйти из кабинета"
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
+      security: []
+      description: "Deletes the session row named by cookie __Host-adv and clears the cookie; the session ends on the next request."
+      x-description-ru: "Удаляет строку сессии по cookie __Host-adv и стирает cookie; сессия кончается на следующем запросе."
+      responses:
+        "204": {description: Done., x-description-ru: Сделано.}
+  /adv/me:
+    get:
+      tags: [offers]
+      summary: "Who is signed in"
+      x-summary-ru: "Кто вошёл"
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
+      security: [{advertiserSession: []}]
+      description: "The account's e-mail, whether it is confirmed, and the storefront."
+      x-description-ru: "Почта учётки, подтверждена ли она, и витрина."
+      responses:
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "200": {description: The account., x-description-ru: Учётная запись., content: {application/json: {schema: {type: object, required: [email, email_confirmed, brand], properties: {email: {type: string, format: email}, email_confirmed: {type: boolean}, brand: {type: string}}}}}}
   /adv/signup:
     post:
       tags: [offers]
       summary: "Register a venue account"
       x-summary-ru: "Завести учётную запись заведения"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: []
-      description: "Always 204 — says nothing about whether the address is known; the confirming link comes by e-mail (offers/SPEC_EN.md §2.1)."
-      x-description-ru: "Всегда 204 — не говорит, известен ли адрес; подтверждающая ссылка приходит на почту (offers/SPEC_RU.md §2.1)."
+      description: "Always 204 — an address already registered is neither an error nor a second account. Sets the browser half of the sign-in link, cookie __Host-adv-link, and mails the link; the first sign-in confirms the address (offers/SPEC_EN.md §2.1; db/067). Only from the cabinet's own origin adv.<storefront>, which also names the storefront."
+      x-description-ru: "Всегда 204 — уже зарегистрированный адрес не ошибка и не вторая учётка. Ставит браузерную половину ссылки входа, cookie __Host-adv-link, и шлёт ссылку письмом; первый вход подтверждает почту (offers/SPEC_RU.md §2.1; db/067). Только со своего источника adv.<витрина>, он же называет витрину."
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/AdvertiserSignup"}}}}
       responses:
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "400": {description: "The body is not what the operation takes; code invalid_body.", x-description-ru: "Тело не то, что принимает операция; code invalid_body."}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "204": {description: Done., x-description-ru: Сделано.}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "204": {description: "Done; Set-Cookie carries __Host-adv-link.", x-description-ru: "Сделано; Set-Cookie несёт __Host-adv-link."}
   /adv/venues:
     get:
       tags: [offers]
       summary: "My venues"
       x-summary-ru: "Мои заведения"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "Only the account own venues with their verification status."
-      x-description-ru: "Только свои заведения со статусом верификации."
+      description: "Only the account's own venues, with their verification status and the end of a live envelope, as {items}."
+      x-description-ru: "Только свои заведения, со статусом верификации и сроком живого конверта, в виде {items}."
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/Venue"}}}}}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: object, required: [items], properties: {items: {type: array, items: {$ref: "#/components/schemas/Venue"}}}}}}}
     post:
       tags: [offers]
       summary: "Add a venue"
       x-summary-ru: "Добавить заведение"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "unverified until the envelope code (offers/SPEC_EN.md §11); needs a confirmed e-mail."
-      x-description-ru: "unverified до кода из конверта (offers/SPEC_RU.md §11); нужна подтверждённая почта."
+      description: "unverified until the envelope code (offers/SPEC_EN.md §11); an address suspended within the last year (db/056) comes back suspended."
+      x-description-ru: "unverified до кода из конверта (offers/SPEC_RU.md §11); адрес, приостановленный за последний год (db/056), возвращается suspended."
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCreate"}}}}
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "400": {description: "The body is not what the operation takes; code invalid_body.", x-description-ru: "Тело не то, что принимает операция; code invalid_body."}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "201": {description: Created; Location names the venue., x-description-ru: Создано; Location называет заведение., headers: {Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/Venue"}}}}
   /adv/venues/{id}:
     patch:
       tags: [offers]
       summary: "Change a venue"
       x-summary-ru: "Изменить заведение"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "A new address sends the venue back to unverified — a new envelope (offers/SPEC_EN.md §11)."
-      x-description-ru: "Новый адрес возвращает заведение в unverified — новый конверт (offers/SPEC_RU.md §11)."
+      description: "The name, the address or both. A new address burns the live envelope and sends a verified venue back to unverified; a suspended one stays suspended (offers/SPEC_EN.md §11)."
+      x-description-ru: "Имя, адрес или оба. Новый адрес гасит живой конверт и возвращает verified-заведение в unverified; suspended остаётся suspended (offers/SPEC_RU.md §11)."
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
-      requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCreate"}}}}
+      requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {name: {type: string, maxLength: 128}, address: {type: string, maxLength: 256}}}}}}
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "400": {description: "The body is not what the operation takes; code invalid_body.", x-description-ru: "Тело не то, что принимает операция; code invalid_body."}
+        "404": {description: "No such thing among one's own — somebody else's answers the same.", x-description-ru: "Среди своих такого нет — чужое отвечает так же."}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "200": {description: The venue., x-description-ru: Заведение., content: {application/json: {schema: {$ref: "#/components/schemas/Venue"}}}}
   /adv/venues/{id}/envelope:
     post:
       tags: [offers]
       summary: "Order the envelope"
       x-summary-ru: "Заказать конверт"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "An activation code posted to the venue address, alive 30 days (ACTIVATION_CODE_TTL)."
-      x-description-ru: "Код активации письмом на адрес заведения, живёт 30 дней (ACTIVATION_CODE_TTL)."
+      description: "A new code for the venue's address, alive 30 days (ACTIVATION_CODE_TTL), five attempts; it supersedes a live one. The cabinet never sees the code — it goes on paper (db/068)."
+      x-description-ru: "Новый код на адрес заведения, живёт 30 дней (ACTIVATION_CODE_TTL), пять попыток; заменяет живой. Кабинет кода не видит — он уходит на бумаге (db/068)."
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
-        "202": {description: Ordered., x-description-ru: Заказан.}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "404": {description: "No such thing among one's own — somebody else's answers the same.", x-description-ru: "Среди своих такого нет — чужое отвечает так же."}
+        "409": {description: "The venue is already verified, or the e-mail is not confirmed; code refused.", x-description-ru: "Заведение уже verified или почта не подтверждена; code refused."}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "202": {description: Ordered., x-description-ru: Заказан., content: {application/json: {schema: {type: object, required: [envelope_expires_at], properties: {envelope_expires_at: {type: string, format: date-time}}}}}}
   /adv/venues/{id}/verify:
     post:
       tags: [offers]
       summary: "Enter the envelope code"
       x-summary-ru: "Ввести код из конверта"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "verified on a right code; attempts counted, the code burnt after several wrong ones (offers/SPEC_EN.md §2.1, §11)."
-      x-description-ru: "verified при верном коде; попытки считаются, после нескольких неверных код гасится (offers/SPEC_RU.md §2.1, §11)."
+      description: "verified on the right code; a wrong one spends an attempt of the live envelope, the fifth burns it (offers/SPEC_EN.md §2.1, §11). Case and dashes do not matter."
+      x-description-ru: "verified при верном коде; неверный расходует попытку живого конверта, пятый гасит его (offers/SPEC_RU.md §2.1, §11). Регистр и дефисы не важны."
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCode"}}}}
       responses:
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "404": {description: "No such thing among one's own — somebody else's answers the same.", x-description-ru: "Среди своих такого нет — чужое отвечает так же."}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The venue., x-description-ru: Заведение., content: {application/json: {schema: {$ref: "#/components/schemas/Venue"}}}}
-        "422": {description: Wrong code; the attempt is counted., x-description-ru: Код неверный; попытка засчитана.}
-        "409": {description: The code is burnt — a new envelope is needed., x-description-ru: Код погашен — нужен новый конверт.}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "200": {description: Verified., x-description-ru: Подтверждено., content: {application/json: {schema: {type: object, required: [verification_status], properties: {verification_status: {type: string, const: verified}}}}}}
+        "422": {description: "Wrong code; the attempt is counted and error.attempts_left says how many remain.", x-description-ru: "Код неверный; попытка засчитана, error.attempts_left говорит, сколько осталось."}
+        "409": {description: "No live envelope — used, burnt or expired; a new one is needed. Code refused.", x-description-ru: "Живого конверта нет — использован, погашен или истёк; нужен новый. Code refused."}
   /adv/venues/not-us:
     post:
       tags: [offers]
       summary: "It's not us"
       x-summary-ru: "Это не мы"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: []
-      description: "No session: the code from an envelope nobody at this address ordered puts that venue into suspended at once; lifted only by a new envelope; wrong codes spend the same attempt counter as /verify (owner's decision of 2026-09-19; offers/SPEC_EN.md §11)."
-      x-description-ru: "Без сессии: код из конверта, который по этому адресу никто не заказывал, сразу ставит заведению suspended; снимается только новым конвертом; неверные коды расходуют тот же счётчик попыток, что /verify (решение владельца 19.09.2026; offers/SPEC_RU.md §11)."
+      description: "No session: the code from an envelope nobody at this address ordered puts that venue into suspended at once and spends the envelope; lifted only by a new envelope. Wrong codes spend the ceiling of the caller's address, shared with /verify — without a session there is no venue to charge (owner's decision of 2026-09-19; offers/SPEC_EN.md §11)."
+      x-description-ru: "Без сессии: код из конверта, который по этому адресу никто не заказывал, сразу ставит заведению suspended и гасит конверт; снимается только новым конвертом. Неверные коды расходуют предел адреса вызывающего, общий с /verify — без сессии нет заведения, с которого списать (решение владельца 19.09.2026; offers/SPEC_RU.md §11)."
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/VenueCode"}}}}
       responses:
         "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "204": {description: "Always 204, for a right and a wrong code alike: the answer does not tell whether a code exists; a right one suspends the venue (review panel 2026-09-19)", x-description-ru: "Всегда 204, на верный и неверный код одинаково: ответ не выдаёт, существует ли код; верный приостанавливает заведение (панель ревью 19.09.2026)"}
   /adv/offers:
     get:
       tags: [offers]
       summary: "My offers"
       x-summary-ru: "Мои офферы"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "Live and expired, with redirect_hits and the complaint count — the only figures (offers/SPEC_EN.md §2.1)."
-      x-description-ru: "Живые и истёкшие, с redirect_hits и числом жалоб — других цифр нет (offers/SPEC_RU.md §2.1)."
+      description: "Live and expired, newest first, as {items}; of the figures only redirect_hits (offers/SPEC_EN.md §2.1). A card past expires_at reads expired."
+      x-description-ru: "Живые и истёкшие, новые первыми, в виде {items}; из цифр только redirect_hits (offers/SPEC_RU.md §2.1). Карточка после expires_at читается expired."
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/AdvOffer"}}}}}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: object, required: [items], properties: {items: {type: array, items: {$ref: "#/components/schemas/AdvOffer"}}}}}}}
     post:
       tags: [offers]
       summary: "Publish an offer"
       x-summary-ru: "Опубликовать оффер"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "Only from a verified venue; published at once and whole after the automatic checks, refused with a reason otherwise (offers/SPEC_EN.md §6, §6.1)."
-      x-description-ru: "Только от verified-заведения; публикуется сразу и целиком после автопроверок, иначе отказ с причиной (offers/SPEC_RU.md §6, §6.1)."
+      description: "Only from one's own verified venue; published at once and whole, the card for 4:20 and the discount to discount_until, at most 90 days (offers/SPEC_EN.md §3, §6, §6.1, §8). The node refuses a link shortener, a link that is not http(s), a term out of range and the text of one's own live offer; the reputation lists and the stop words are not checked yet. «Show again» is repeated_from, only from an offer no longer live."
+      x-description-ru: "Только от своего verified-заведения; публикуется сразу и целиком, карточка на 4:20, скидка до discount_until, не дальше 90 дней (offers/SPEC_RU.md §3, §6, §6.1, §8). Узел отказывает сокращателю ссылок, ссылке не на http(s), сроку вне пределов и тексту своего живого оффера; репутационные списки и стоп-слова пока не проверяются. «Показать снова» — repeated_from, только от уже не живого оффера."
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/OfferCreate"}}}}
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "400": {description: "The body is not what the operation takes; code invalid_body.", x-description-ru: "Тело не то, что принимает операция; code invalid_body."}
+        "404": {description: "No such thing among one's own — somebody else's answers the same.", x-description-ru: "Среди своих такого нет — чужое отвечает так же."}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "201": {description: Published; Location names the offer., x-description-ru: Опубликован; Location называет оффер., headers: {Location: {schema: {type: string}}}, content: {application/json: {schema: {$ref: "#/components/schemas/AdvOffer"}}}}
-        "422": {description: Refused by an automatic check; the reason in ApiError.reason., x-description-ru: Отказ автопроверки; причина в ApiError.reason.}
+        "409": {description: "The venue is not verified, the e-mail not confirmed, or repeated_from names a live offer; code refused.", x-description-ru: "Заведение не verified, почта не подтверждена или repeated_from называет живой оффер; code refused."}
+        "422": {description: "Refused by an automatic check, code refused; error.reason is one of link_refused, discount_until_out_of_range, conditions_too_long, duplicate.", x-description-ru: "Отказ автопроверки, code refused; error.reason — одно из link_refused, discount_until_out_of_range, conditions_too_long, duplicate."}
   /adv/complaints:
     get:
       tags: [offers]
       summary: "Complaints on my offers"
       x-summary-ru: "Жалобы на мои офферы"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "Text and date, without the complainant and the time (offers/SPEC_EN.md §10)."
-      x-description-ru: "Текст и дата, без заявителя и без времени (offers/SPEC_RU.md §10)."
+      description: "On one's own offers, newest first, as {items}: text and the UTC date, without the complainant, the address and the time, and the venue's answer if given (offers/SPEC_EN.md §10; db/071)."
+      x-description-ru: "На свои офферы, новые первыми, в виде {items}: текст и дата по UTC, без заявителя, адреса и времени, и ответ заведения, если дан (offers/SPEC_RU.md §10; db/071)."
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
-        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: array, items: {$ref: "#/components/schemas/AdvComplaint"}}}}}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "200": {description: The list., x-description-ru: Список., content: {application/json: {schema: {type: object, required: [items], properties: {items: {type: array, items: {$ref: "#/components/schemas/AdvComplaint"}}}}}}}
   /adv/complaints/{id}/response:
     post:
       tags: [offers]
       summary: "Answer a complaint"
       x-summary-ru: "Ответить на жалобу"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/adv.ts
       security: [{advertiserSession: []}]
-      description: "Private, to the moderator; lives beside the complaint (offers/SPEC_EN.md §10.3)."
-      x-description-ru: "Приватно, модератору; живёт рядом с жалобой (offers/SPEC_RU.md §10.3)."
+      description: "Private, to the moderator; lives beside the complaint (offers/SPEC_EN.md §10.3). One answer per complaint, never rewritten — an answer changed after the decision would reopen what it said yesterday (§3.1)."
+      x-description-ru: "Приватно, модератору; живёт рядом с жалобой (offers/SPEC_RU.md §10.3). Один ответ на жалобу, без переписывания — ответ, изменённый после решения, вернул бы спор о том, что там было вчера (§3.1)."
       parameters:
         - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/ComplaintResponse"}}}}
       responses:
-        "429": {$ref: "#/components/responses/RateLimited"}
+        "401": {description: "No session of this cabinet, or not from the cabinet's own origin adv.<storefront>.", x-description-ru: "Нет сессии этого кабинета или запрос не со своего источника adv.<витрина>."}
+        "400": {description: "No text, or longer than 1000; code invalid_body.", x-description-ru: "Нет текста или длиннее 1000; code invalid_body."}
+        "404": {description: "No such complaint on one's own offers — somebody else's answers the same.", x-description-ru: "Такой жалобы на свои офферы нет — чужая отвечает так же."}
+        "409": {description: "The complaint already has its answer; code refused.", x-description-ru: "У жалобы уже есть ответ; code refused."}
+        "503": {$ref: "#/components/responses/Unavailable"}
         "204": {description: Done., x-description-ru: Сделано.}
   /admin/offer-complaints/{id}/decision:
     post:
@@ -3641,6 +3835,7 @@ paths:
                 required: [state]
                 properties:
                   state: {type: string, enum: [approved]}
+                  recovery_wrapped_key: {type: string, description: "The long key under the paper code, as POST /recovery/claim answers it: the new device keeps it to reissue the code (finding T1, 2026-09-27). Only here, signed — never on the unsigned state route.", x-description-ru: "Длинный ключ под бумажным кодом, как его отдаёт POST /recovery/claim: новое устройство хранит его для перевыпуска кода (находка T1, 27.09.2026). Только здесь, под подписью, — никогда на неподписанном маршруте состояния."}
         "400": {$ref: "#/components/responses/BadVersion"}
         "401": {$ref: "#/components/responses/Unauthorized"}
         "409": {$ref: "#/components/responses/Conflict"}

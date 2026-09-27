@@ -344,7 +344,20 @@ async function ackReply(req: Request, lookupId: string): Promise<Response> {
       await run(`UPDATE session_invites SET reply_envelope = NULL WHERE lookup_id = $1`, [lookupId]);
       inc("relay_transfer_total", { result: "reply_acknowledged" });
     }
-    return json({ state: "approved" }, 200, sunsetHeader());
+    // The long key under the paper code, as a claim by code hands it back: a
+    // reissue opens it under the current code and seals it under the next, and
+    // a moved identity whose new device never held it could not reissue at all
+    // (finding T1, R3). Here and not on the state route: that one is unsigned,
+    // and whoever overheard the nine characters would get the ciphertext to try
+    // paper codes against offline. Repeated on a repeated ack — a lost answer.
+    const [me] = await run<{ recovery_wrapped_key: Uint8Array | null }>(
+      `SELECT recovery_wrapped_key FROM identities WHERE id = $1`,
+      [caller.identityId],
+    );
+    return json({
+      state: "approved",
+      ...(me?.recovery_wrapped_key ? { recovery_wrapped_key: bytesToBase64url(me.recovery_wrapped_key) } : {}),
+    }, 200, sunsetHeader());
   }).catch((error) => {
     log("error", "transfer ack failed", { error: String(error) });
     return refuse("unavailable", "the node cannot write right now", 503);

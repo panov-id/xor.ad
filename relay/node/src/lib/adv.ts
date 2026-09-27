@@ -12,14 +12,10 @@
 // Domain — and every request reads it, so signing out or losing the account
 // ends it at once.
 
-import { config, type Brand } from "../config.ts";
+import type { Brand } from "../config.ts";
 import { allBrands } from "./brand_registry.ts";
 import { query } from "./db.ts";
 import { sha256hex } from "./hash.ts";
-import { type Block, letter } from "./email_shell.ts";
-import { sendSmtp } from "./smtp.ts";
-import { log } from "./log.ts";
-import { withoutAddresses } from "./mailer.ts";
 import type { Limit } from "./rate_limit.ts";
 
 export const LINK_TTL_MS = 15 * 60_000;
@@ -93,37 +89,6 @@ export async function advertiserOf(req: Request, brand: Brand): Promise<Advertis
   );
   if (rows === null) return "unavailable";
   return rows[0] ?? null;
-}
-
-// Letters of the cabinet. Best effort: the routes that send them answer the
-// same whatever happens, so a failure goes to the log, never to the caller.
-export async function sendAdvLetter(
-  to: string, brand: Brand, subject: string, title: string, blocks: Block[],
-): Promise<void> {
-  if (config.mail.transport === "none") return;
-  const { html, text } = letter({
-    brand,
-    title,
-    blocks,
-    footnote: "You are receiving this because this address is registered in the advertising cabinet.",
-  });
-  try {
-    if (config.mail.transport === "smtp") {
-      await sendSmtp({ host: config.mail.smtp.host, port: config.mail.smtp.port, from: brand.from, to, subject, html });
-      return;
-    }
-    const key = config.resend.keysByBrand[brand.key] || config.resend.key;
-    if (!key) throw new Error(`no Resend key for brand ${brand.key}`);
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: config.resend.fromOverride || brand.from, to: [to], subject, html, text }),
-      signal: AbortSignal.timeout(20_000),
-    });
-    if (!res.ok) throw new Error(`Resend refused the letter: ${res.status}`);
-  } catch (error) {
-    log("error", "advertiser mail failed", { brand: brand.key, error: withoutAddresses(String(error)) });
-  }
 }
 
 export const cabinetUrl = (brand: Brand) => `https://adv.${brand.domain}`;

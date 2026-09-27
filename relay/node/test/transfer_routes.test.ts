@@ -595,6 +595,38 @@ Deno.test("an approved move counts the old session's freeze and burn once", asyn
 const heldReply = async (lookupId: string) => (await database.queryOrThrow<{ reply_envelope: Uint8Array | null }>(
   `SELECT reply_envelope FROM session_invites WHERE lookup_id = $1`, [lookupId]))[0].reply_envelope;
 
+// Finding T1 (R3): the new device of a move reissues the paper code by
+// rewrapping the long key it holds under the current code, and a moved device
+// held none. The ack — signed by the new session, not the unsigned state route —
+// hands back the node's copy, and the reissue from the new device then works:
+// the old code stops, the new one lifts the identity.
+Deno.test("after a move the ack hands back the key under the code, and the new device can reissue it", async () => {
+  const { old, lookupId, invited, sessionId, ack } = await approvedMove();
+  const [stored] = await database.queryOrThrow<{ recovery_wrapped_key: Uint8Array }>(
+    `SELECT recovery_wrapped_key FROM identities WHERE id = $1`, [old.identity_id]);
+  const acked = await ack();
+  assertEquals(acked.status, 200, JSON.stringify(acked.body));
+  const body = acked.body as { state: string; recovery_wrapped_key?: string };
+  assertEquals(body.recovery_wrapped_key, auth.bytesToBase64url(stored.recovery_wrapped_key),
+    "the ack did not hand the new device the key under the paper code: it cannot reissue the code");
+  assert(!("recovery_wrapped_key" in ((await call("GET", `/sessions/${lookupId}`)).body as object)),
+    "the unsigned state route never carries it");
+
+  const next = crypto.randomUUID();
+  const reissued = await signedCall(invited.pair.privateKey, sessionId, "POST", "/recovery/reissue", {
+    nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))),
+    current: { lookup_id: old.paper },
+    next: { lookup_id: next, wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))) },
+  });
+  assertEquals(reissued.status, 204, JSON.stringify(reissued.body));
+  const fresh = await device();
+  const claim = (paper: string) =>
+    call("POST", "/recovery/claim", { body: { lookup_id: paper, sign_pub: fresh.signPub,
+      wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))), label: "tablet" } });
+  assertEquals((await claim(old.paper)).status, 404, "the old code no longer lifts the identity");
+  assertEquals((await claim(next)).status, 200, "the new one does");
+});
+
 Deno.test("a second GET before the ack gets the reply again", async () => {
   const { lookupId, sessionId } = await approvedMove();
   const first = await call("GET", `/sessions/${lookupId}`);
@@ -689,7 +721,8 @@ Deno.test("a GET after the ack does not get the reply envelope", async () => {
   const { lookupId, ack } = await approvedMove();
   const acked = await ack();
   assertEquals(acked.status, 200, JSON.stringify(acked.body));
-  assertEquals(acked.body, { state: "approved" });
+  // The ack carries the key under the paper code since R3; the state is what this test is about.
+  assertEquals((acked.body as { state: string }).state, "approved");
   const after = await call("GET", `/sessions/${lookupId}`);
   assertEquals(after.status, 200);
   assertEquals(after.body, { state: "approved" },

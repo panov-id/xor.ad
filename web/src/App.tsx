@@ -37,6 +37,7 @@ import { Unlock } from "./screens/Unlock.tsx";
 import { Arrival } from "./screens/Arrival.tsx";
 import { Departure } from "./screens/Departure.tsx";
 import { Cabinet } from "./adv/Cabinet.tsx";
+import { Table } from "./screens/Table.tsx";
 import { Blocked } from "./screens/Blocked.tsx";
 import { Hidden } from "./screens/Hidden.tsx";
 import { forget, readRecord, type Record_ } from "./vault.ts";
@@ -65,6 +66,7 @@ type Screen =
   | { at: "reissue" }
   | { at: "departure" }
   | { at: "hidden" }
+  | { at: "table"; tableId: string }
   | { at: "blocked" }
   | { at: "arrival" }
   | { at: "reset" }
@@ -125,6 +127,10 @@ function Face() {
     if (profile?.stepped_away_until && profile.stepped_away_until > Date.now() / 1000) {
       return setScreen({ at: "away", until: profile.stepped_away_until });
     }
+    // `/t/<id>` — a table's own link (W8): the node does not put tables in
+    // the feed yet, so a table is entered by its id, after the PIN.
+    const table = /^\/t\/([0-9a-f-]{36})\/?$/i.exec(location.pathname);
+    if (table) return setScreen({ at: "table", tableId: table[1] });
     setScreen({ at: "feed" });
   }
 
@@ -289,6 +295,8 @@ function Face() {
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
+    case "table":
+      return <Table client={seated!.client} tableId={screen.tableId} onLeave={() => { history.replaceState(null, "", "/"); setScreen({ at: "feed" }); }} />;
     case "hidden":
       return <Hidden client={seated!.client} onBack={() => { setEdits((n) => n + 1); me(); }} />;
     case "blocked":

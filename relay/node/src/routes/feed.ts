@@ -34,6 +34,7 @@ import { query } from "../lib/db.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { cursorConfigured, openCursor, sealCursor } from "../lib/cursor.ts";
+import { interleave, tablesForFeed } from "../lib/tables_feed.ts";
 
 // 128 graphemes on the node; the DDL's 2048 bytes is the wide net beneath it.
 const TEXT_MAX_GRAPHEMES = 128;
@@ -554,11 +555,23 @@ async function deliver(req: Request, url: URL): Promise<Response> {
     const slot = Math.floor((index + 1) / 10) - 1;
     if ((index + 1) % 10 === 0 && offers[slot]) withOffers.push(offers[slot]);
   });
+  // Tables beside the phrases and offers, on the first page only (§6.1;
+  // lib/tables_feed.ts): a quarter of the cards at most — so no more than a
+  // third of the phrases — at random. At least one even on a page without
+  // phrases: a table with one seated that never makes the feed never gathers
+  // its company (§6.1, the order when space is short). Put in after the offers,
+  // without touching where they go.
+  const tables = cursorAt ? [] : await tablesForFeed(
+    caller.identityId,
+    { lat, lon },
+    usedRadius,
+    Math.max(1, Math.min(Math.ceil(PAGE_SIZE / 4), Math.floor(rows.length / 3))),
+  );
 
   const last = rows[rows.length - 1];
   inc("relay_feed_total", { result: "delivered" });
   return json({
-    items: withOffers,
+    items: interleave(withOffers, tables),
     next: rows.length === PAGE_SIZE && last
       ? await sealCursor("feed", last.visible_at_cursor, last.id)
       : null,

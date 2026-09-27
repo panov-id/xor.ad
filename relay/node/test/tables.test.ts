@@ -35,6 +35,7 @@ await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
 await import("../src/routes/away.ts");
 await import("../src/routes/feed_queue.ts");
+await import("../src/routes/feed.ts");
 // The rooms' listeners, once and before any test: started inside one, they
 // count as that test's leak (as session_freeze.test.ts does).
 await (await import("../src/chat/relay.ts")).listenForRooms();
@@ -593,6 +594,39 @@ Deno.test({ name: "word: the setter's word is hidden from the others and from th
   s = done.body.board;
   assertEquals(s.score["2"], 1, "a guessed word scores the guesser");
   assertEquals([s.state.word.setter, s.turn], [2, 2], "the guesser sets the next word");
+});
+
+// G1h: a table in the feed (§6.1) — the only way a neighbour learns of it.
+Deno.test({ name: "a table shows in a neighbour's feed as a card, updates as people sit, and leaves when its places are taken", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const a = await person();
+  // A place of its own: the other tests' tables stand at 52.52, 13.4, and the
+  // feed picks at most a quarter of the page among them at random.
+  const lat = -30 + Math.random() * 10;
+  const lon = -60 + Math.random() * 10;
+  const made = await signed(a, "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat, lon, area_radius: 1000, nonce: nonce() });
+  const id = made.body.id as string;
+  const cardFor = async (who: Person) => {
+    const feed = await signed(who, "GET", `/feed?lat=${lat + 0.001}&lon=${lon + 0.001}&radius=1000`);
+    assertEquals(feed.status, 200, JSON.stringify(feed.body));
+    return (feed.body.items as { kind: string; id: string }[]).find((i) => i.kind === "table" && i.id === id) as
+      | Record<string, unknown>
+      | undefined;
+  };
+  const neighbour = await person();
+  const card = await cardFor(neighbour);
+  assert(card, "the neighbour's feed has no card of the table");
+  assertEquals([card!.game, card!.seats, card!.free_seats, card!.playing, card!.watching], ["grid", 2, 1, 1, 0]);
+  assert(!JSON.stringify(card).includes(a.identity_id), "no identity on the card");
+  assertEquals(await cardFor(await person(14)), undefined, "outside the band: no card");
+  assertEquals(await cardFor(a), undefined, "one's own table is not a card in one's own feed");
+
+  const c = await person();
+  assertEquals((await signed(c, "POST", `/tables/${id}/seat`)).status, 200, "sat down by the card's id");
+  assertEquals((await cardFor(neighbour))?.watching, 1, "the card shows the one who sat down");
+
+  await signed(c, "POST", `/tables/${id}/lines`, { kind: "application", text: "играю" });
+  await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
+  assertEquals(await cardFor(neighbour), undefined, "a table whose places are all taken leaves the feed");
 });
 
 // G1g: the last four classes, one test each, and the seats of a class.

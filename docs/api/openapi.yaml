@@ -207,7 +207,10 @@ components:
       properties:
         kind: {type: string, enum: [phrase, table, offer], description: "offer — a venue's offer (2026-09-19, offers/SPEC_EN.md §7); a private author's offer stays a phrase with offer filled.", x-description-ru: "offer — оффер заведения (19.09.2026, offers/SPEC_RU.md §7); оффер частника остаётся фразой с заполненным offer."}
         offer: {$ref: "#/components/schemas/OfferCard"}
-        game: {type: string, description: Table only., x-description-ru: Только у стола.}
+        game: {type: string, description: "Table only: the board class (grid, free, dots, deck, dice, physics, word).", x-description-ru: "Только у стола: класс доски (grid, free, dots, deck, dice, physics, word)."}
+        set: {type: string, description: "Table only: the set within the class.", x-description-ru: "Только у стола: набор внутри класса."}
+        seats: {type: integer, description: "Table only: the places to play the set has.", x-description-ru: "Только у стола: сколько мест для игры у набора."}
+        free_seats: {type: integer, description: "Table only: seats minus those playing; a table with none free leaves the feed (2026-09-27).", x-description-ru: "Только у стола: мест минус играющие; стол без свободных уходит из ленты (27.09.2026)."}
         playing: {type: integer, description: Table only., x-description-ru: Только у стола.}
         watching: {type: integer, description: Table only., x-description-ru: Только у стола.}
         name: {type: string, description: "Table only, and only after the queue's verdict (2026-09-17).", x-description-ru: "Только у стола и только после вердикта очереди (17.09.2026)."}

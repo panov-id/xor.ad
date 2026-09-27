@@ -262,6 +262,24 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.match(frame, /привет/);
     app.unmount();
   }],
+  ["deck: a card in one's hand and the card played come out through plain(), not as terminal codes (V6)", async () => {
+    const app = render(h(Table, {
+      say, onPick: () => {}, now: NOW * 1000,
+      view: view({
+        class: "deck" as never,
+        board: {
+          seq: 2, turn: 1, score: {}, expires_at: NOW + 30,
+          state: { deck: { hands: { "1": { count: 5 }, "2": ["7\u001B[2J", "Q‮♥"] }, stock: { count: 20 }, played: ["9\u001B[31m"] } },
+        },
+      }),
+    }));
+    await settle();
+    const frame = app.lastFrame()!;
+    assert.doesNotMatch(frame, /\u001B\[2J|\u001B\[31m|‮/, "a card's control codes reached the screen");
+    assert.match(frame, /\[7·\]/, "the card with a code in it is not drawn with a dot in its place");
+    assert.match(frame, /на столе: 9·/, "the played card with a code in it is not drawn with a dot in its place");
+    app.unmount();
+  }],
   ["deck: one's own hand as cards, the others' as a number; tab to the board, a card played on one's turn only", async () => {
     const moves: unknown[] = [];
     const deckView = (turn: number) => view({

@@ -993,6 +993,29 @@ test("an age crossing 20/21 upwards is asked first, and going back down is refus
   back.unmount();
 });
 
+// 4.4.1 · the feed card draws a phrase through plain(): the node is the
+// adversary, and a phrase must not repaint the screen or reorder its tail (V6).
+test("the full-screen card draws a phrase's control codes as dots", async () => {
+  const client = {
+    feed: () => Promise.resolve({ items: [{ id: "p1", text: "фраза\u001B[2J\u001B]0;узел\u0007 и‮хвост", like_count: 0 }] }),
+    like: () => Promise.resolve({ status: 200, body: { state: "liked" } }),
+    hide: () => Promise.resolve("h"),
+  };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+  }));
+  await settle(150);
+  await type(app, ENTER);
+  const frame = app.lastFrame()!;
+  assert.doesNotMatch(frame, /\u001B\[2J|\u001B\]0;|‮/, "a phrase's control codes reached the screen");
+  assert.match(frame, /фраза·· и·хвост/, "the phrase is not drawn with dots where its codes were");
+  app.unmount();
+});
+
 // 4.4.1 · a card on the whole screen: the first arrow explains, then → likes
 // and ← hides; someone else's end is a word only when the node says "soon".
 test("the full-screen card explains its arrows once, then likes, hides and goes back", async () => {

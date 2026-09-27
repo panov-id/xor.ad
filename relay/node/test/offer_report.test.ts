@@ -250,6 +250,13 @@ Deno.test({ name: "a complaint that the discount was not given: filed, counted o
   }
   assertEquals((await cabinet("GET", "/adv/offers")).body.items.map((o: { complaints: number }) => o.complaints), [5]);
   const target = first.body.id as string;
+  // The moderator reads the answer: what nobody can see is refused, and the
+  // refused one does not use up the single answer (V6, 27.09.2026).
+  for (const hidden of ["условие\u001b[2J было", "условие‮ было", "условие было"]) {
+    const took = await cabinet("POST", `/adv/complaints/${target}/response`, { text: hidden });
+    assertEquals(took.status, 400, `a venue's answer ${JSON.stringify(hidden)} was taken`);
+    assertEquals(took.body.error.message, "text has characters nobody can see");
+  }
   assertEquals((await cabinet("POST", `/adv/complaints/${target}/response`, { text: "условие было в тексте" })).status, 204);
   assertEquals((await cabinet("POST", `/adv/complaints/${target}/response`, { text: "передумали" })).status, 409,
     "one answer, never rewritten");

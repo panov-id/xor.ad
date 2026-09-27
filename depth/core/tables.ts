@@ -124,3 +124,48 @@ export function openApplications(view: TableView): TableLine[] {
   const refused = new Set(view.lines.filter((l) => l.kind === "refusal").map((l) => l.seat));
   return view.lines.filter((l) => l.kind === "application" && !refused.has(l.seat));
 }
+
+// The dots class (G1c): n×n boxes; an edge is "h:r:c" — above box r,c, r in
+// 0..n — or "v:r:c" — left of box r,c, c in 0..n; a box "r:c" names the seat
+// that closed it. The node keeps the rules; the core only draws and lists.
+export interface Dots { n: number; edges: string[]; boxes: Record<string, number> }
+
+export function dotsOf(board: Board | null): Dots | null {
+  const dots = board?.state.dots as Dots | undefined;
+  return dots && typeof dots.n === "number" && Array.isArray(dots.edges) ? dots : null;
+}
+
+export function freeEdges(dots: Dots): string[] {
+  const taken = new Set(dots.edges);
+  const all: string[] = [];
+  for (let r = 0; r <= dots.n; r++) for (let c = 0; c < dots.n; c++) all.push(`h:${r}:${c}`);
+  for (let r = 0; r < dots.n; r++) for (let c = 0; c <= dots.n; c++) all.push(`v:${r}:${c}`);
+  return all.filter((e) => !taken.has(e));
+}
+
+// Text rows: "·" a dot, "───" and "│" taken edges, the closer's seat number
+// inside a box; `mark` shows the edge about to be taken as "═══" or "║".
+export function drawDots(dots: Dots, mark?: string): string[] {
+  const taken = new Set(dots.edges);
+  const rows: string[] = [];
+  for (let r = 0; r <= dots.n; r++) {
+    let line = "·";
+    for (let c = 0; c < dots.n; c++) {
+      const e = `h:${r}:${c}`;
+      line += (e === mark ? "═══" : taken.has(e) ? "───" : "   ") + "·";
+    }
+    rows.push(line);
+    if (r === dots.n) break;
+    let cells = "";
+    for (let c = 0; c <= dots.n; c++) {
+      const e = `v:${r}:${c}`;
+      cells += e === mark ? "║" : taken.has(e) ? "│" : " ";
+      if (c < dots.n) {
+        const seat = dots.boxes[`${r}:${c}`];
+        cells += seat === undefined ? "   " : ` ${seat} `;
+      }
+    }
+    rows.push(cells);
+  }
+  return rows;
+}

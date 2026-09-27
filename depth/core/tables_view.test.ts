@@ -1,7 +1,20 @@
 // What the table screens read off a TableView (G2): whose turn and how long,
 // and which applications still wait. Pure — the live path waits for G1.
 import { assertEquals } from "jsr:@std/assert@1";
-import { openApplications, type TableView, turnOf } from "./tables.ts";
+import { drawDots, freeEdges, openApplications, type TableView, turnOf } from "./tables.ts";
+
+Deno.test("the dots board draws taken edges, the closer's seat in a closed box, and the edge about to be taken", () => {
+  const dots = { n: 2, edges: ["h:0:0", "h:1:0", "v:0:0", "v:0:1"], boxes: { "0:0": 1 } };
+  assertEquals(drawDots(dots, "h:0:1"), [
+    "·───·═══·",
+    "│ 1 │    ",
+    "·───·   ·",
+    "         ",
+    "·   ·   ·",
+  ]);
+  assertEquals(freeEdges(dots).length, 2 * 3 + 3 * 2 - 4, "a free edge is lost or a taken one offered");
+  assertEquals(freeEdges(dots).includes("h:0:0"), false);
+});
 
 const view = (over: Partial<TableView> = {}): TableView => ({
   id: "t", class: "dots", set: "3x3", seat: 2, is_playing: true, playing: 2, watching: 0,

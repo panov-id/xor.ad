@@ -2,17 +2,19 @@
 // it, who sits, whose turn and how long, the lines since one's own seating.
 // Said aloud, as §4.9 asks: no end-to-end encryption here, and a line waits
 // for the moderation queue like a phrase. The board lives in the process only.
-import { createElement as h } from "react";
+import { createElement as h, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
-import { Head, Menu } from "./parts.ts";
-import { openApplications, type TableView, turnOf } from "../core/tables.ts";
+import { Head, Menu, useKeys } from "./parts.ts";
+import { dotsOf, drawDots, freeEdges, openApplications, type TableView, turnOf } from "../core/tables.ts";
 
-export type TableAction = "pass" | "say" | "stand" | "resign" | "like";
+export type TableAction = "move" | "pass" | "say" | "stand" | "resign" | "like";
 
 export function Table(
-  { say, view, onPick, now }: { say: Say; view: TableView; onPick: (action: TableAction) => void; now?: number },
+  { say, view, onPick, onMove, now }: {
+    say: Say; view: TableView; onPick: (action: TableAction) => void; onMove?: (move: unknown) => void; now?: number;
+  },
 ): ReactElement {
   const turn = turnOf(view, now);
   const board = view.board;
@@ -25,7 +27,18 @@ export function Table(
   const moves = board?.state.moves ?? [];
   const nameOf = (seat: number) => view.seats.find((s) => s.seat === seat)?.name ?? `#${seat}`;
   const waiting = openApplications(view);
+  // Dots (G1c): [ and ] walk the free edges, the marked one goes on "move".
+  const dots = dotsOf(board);
+  const free = dots ? freeEdges(dots) : [];
+  const [at, setAt] = useState(0);
+  const edge = free.length ? free[Math.min(at, free.length - 1)] : undefined;
+  useKeys((input) => {
+    if (!free.length) return;
+    if (input === "]") setAt((i) => (Math.min(i, free.length - 1) + 1) % free.length);
+    if (input === "[") setAt((i) => (Math.min(i, free.length - 1) - 1 + free.length) % free.length);
+  });
   const actions: Array<{ key: TableAction; label: string; disabled?: boolean }> = [
+    ...(dots ? [{ key: "move" as const, label: `${say("table.move")} ${edge ?? ""}`, disabled: !turn.mine || !edge }] : []),
     { key: "pass", label: say("table.pass"), disabled: !turn.mine },
     { key: "say", label: say("table.say") },
     { key: "resign", label: say("table.resign"), disabled: !view.is_playing || !board || !!board.over },
@@ -49,6 +62,7 @@ export function Table(
           : turn.mine ? `${say("table.yourTurn")} · ${turn.secondsLeft} ${say("table.seconds")}`
           : `${say("table.turn")}: ${turn.name ?? "—"} · ${turn.secondsLeft} ${say("table.seconds")}`),
         score ? h(Text, null, `${say("table.score")}: ${score}`) : null,
+        ...(dots ? drawDots(dots, turn.mine ? edge : undefined).map((row, i) => h(Text, { key: `d${i}` }, row)) : []),
         ...moves.slice(-5).map((m, i) =>
           h(Text, { key: `m${i}`, dimColor: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : JSON.stringify(m.move)}`)
         ),
@@ -61,6 +75,10 @@ export function Table(
       ),
       ...waiting.map((l) => h(Text, { key: `w${l.id}`, color: "yellow" }, `${say("table.application")}: ${nameOf(l.seat)}`)),
     ),
-    h(Menu, { actions, onPick: (key) => onPick(key as TableAction), hint: say("common.rowActions") }),
+    h(Menu, {
+      actions,
+      onPick: (key) => key === "move" && edge ? onMove?.({ edge }) : onPick(key as TableAction),
+      hint: dots ? `[ ] ${say("table.edge")} · ${say("common.rowActions")}` : say("common.rowActions"),
+    }),
   );
 }

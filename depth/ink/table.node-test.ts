@@ -61,6 +61,21 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.equal(picked, "pass");
     app.unmount();
   }],
+  ["dots: the board is drawn, ] marks the next free edge, and enter moves with it", async () => {
+    let moved: unknown = null;
+    const dots = { n: 2, edges: ["h:0:0"], boxes: {} };
+    const v = view({ board: { seq: 3, state: { dots }, turn: 2, score: {}, expires_at: NOW + 45 } });
+    const app = render(h(Table, { say, view: v, onPick: () => {}, onMove: (m) => (moved = m), now: NOW * 1000 }));
+    await settle();
+    assert.match(app.lastFrame()!, /·───·═══·/, "the first free edge is not marked on the board");
+    app.stdin.write("]");
+    await settle();
+    assert.match(app.lastFrame()!, /ход h:1:0/, "] did not step to the next free edge");
+    app.stdin.write("\r");
+    await settle();
+    assert.deepEqual(moved, { edge: "h:1:0" });
+    app.unmount();
+  }],
 ];
 
 setTimeout(async () => {

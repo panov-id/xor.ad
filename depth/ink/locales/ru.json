@@ -247,5 +247,7 @@
   "table.say": "сказать",
   "table.resign": "сдаться",
   "table.like": "лайк",
-  "table.stand": "встать"
+  "table.stand": "встать",
+  "table.move": "ход",
+  "table.edge": "ребро"
 }

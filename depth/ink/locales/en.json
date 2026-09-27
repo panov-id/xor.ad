@@ -247,5 +247,7 @@
   "table.say": "say",
   "table.resign": "resign",
   "table.like": "like",
-  "table.stand": "stand up"
+  "table.stand": "stand up",
+  "table.move": "move",
+  "table.edge": "edge"
 }

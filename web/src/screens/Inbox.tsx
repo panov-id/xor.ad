@@ -6,7 +6,7 @@
 // look of a tab sees everything live as new.
 
 import { useEffect, useState } from "react";
-import type { Client, InboxEvents } from "../../../depth/core/client.ts";
+import type { Client } from "../../../depth/core/client.ts";
 import type { ChatRow } from "../chat/keys.ts";
 import { say } from "../locales/say.ts";
 import "../chat/chat.css";
@@ -78,7 +78,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
     }
   }
   const [rows, setRows] = useState<InboxRow[]>([]);
-  const [events, setEvents] = useState<InboxEvents | null>(null);
+  const [tab, setTab] = useState<"offers" | "chats" | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -88,7 +88,6 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
       const since = Number(sessionStorage.getItem(LAST_LOOK) ?? "") || undefined;
       const page = await client.inboxSince(since);
       setRows(page.items as unknown as InboxRow[]);
-      setEvents(page.events);
       setState("ready");
       sessionStorage.setItem(LAST_LOOK, String(Math.floor(Date.now() / 1000)));
     } catch (e) {
@@ -101,6 +100,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
 
   const matches = rows.filter((r): r is MatchRow => r.kind === "match");
   const chats = rows.filter((r): r is InboxChatRow => r.kind === "chat");
+  const shown = tab ?? (chats.length > 0 ? "chats" : "offers");
   return (
     <main className="screen inbox" data-screen="inbox">
       <header className="ui-header ui-header-rule">
@@ -114,9 +114,22 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
           <p className="muted">{say("web.inbox.empty_hint")}</p>
         </section>
       )}
-      {matches.length > 0 && <h2>{say("web.inbox.offers")}</h2>}
-      <ul className="cards" data-testid="matches">
-        {matches.map((m) => (
+      {/* Two tabs, as the bottom row of screen-20-21-22-24: offers to talk and
+          conversations; the dot says a tab holds something new since the last
+          look. It opens on the conversations when there are any. */}
+      {rows.length + declined.length > 0 && (
+        <div className="talk-tabs" role="tablist" aria-label={say("web.inbox.title")}>
+          {(["offers", "chats"] as const).map((t) => (
+            <button key={t} type="button" role="tab" id={`tab-${t}`} aria-controls={`panel-${t}`} aria-selected={shown === t}
+              className={shown === t ? "talk-tab talk-tab-on" : "talk-tab"} onClick={() => setTab(t)} data-testid={`tab-${t}`}>
+              {say(t === "offers" ? "web.inbox.offers" : "web.inbox.chats")}
+              {(t === "offers" ? matches : chats).some((r) => marksOf(r).startsWith("●")) && <span className="ui-dot talk-tab-dot" aria-hidden="true" />}
+            </button>
+          ))}
+        </div>
+      )}
+      <ul className="cards" data-testid="matches" role="tabpanel" id="panel-offers" aria-labelledby="tab-offers" hidden={shown !== "offers"}>
+        {shown === "offers" && matches.map((m) => (
           <Card as="li" key={m.id} kind="nested" data-testid="match" data-id={m.id}>
             <div className="row">
               <strong>{m.name}, {m.age}</strong>
@@ -127,7 +140,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
             <Button kind="secondary" type="button" onClick={() => onOpenMatch(m)} data-testid="open-match">{say("inbox.enter")}</Button>
           </Card>
         ))}
-        {declined.filter((d) => !matches.some((m) => m.id === d.id)).map((d) => (
+        {shown === "offers" && declined.filter((d) => !matches.some((m) => m.id === d.id)).map((d) => (
           <Card as="li" key={d.id} className="declined" kind="nested" data-testid="match" data-id={d.id} data-declined="yes">
             <div className="row">
               <strong>{d.name}, {d.age}</strong>
@@ -138,25 +151,24 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
           </Card>
         ))}
       </ul>
-      {chats.length > 0 && <h2>{say("web.inbox.chats")}</h2>}
-      <ul className="cards" data-testid="chats">
-        {chats.map((c) => (
-          <Card as="li" key={c.id}data-testid="chat" data-id={c.id} data-state={c.state}>
-            <div className="row">
-              <strong>{c.name}, {c.age}</strong>
-              <span className="mark">{marksOf(c)}</span>
-            </div>
-            <span className="muted">{c.state === "ended" ? say("web.inbox.ended") : say("web.inbox.span", { n: c.my_span })}</span>
-            <Button kind="secondary" type="button" onClick={() => onOpenChat(c)} data-testid="open-chat">{say("inbox.enter")}</Button>
-          </Card>
+      {/* A conversation is the kit's row-chat: name, a line, the marks; the dot
+          and «ждёт вас» on the right when replies wait. */}
+      <ul className="rows talk-chats" data-testid="chats" role="tabpanel" id="panel-chats" aria-labelledby="tab-chats" hidden={shown !== "chats"}>
+        {shown === "chats" && chats.map((c) => (
+          <li key={c.id} data-testid="chat" data-id={c.id} data-state={c.state}>
+            <button type="button" className="ui-inbox-row" onClick={() => onOpenChat(c)} data-testid="open-chat">
+              <span className="ui-inbox-name">{c.name}, {c.age}</span>
+              <span className="ui-inbox-line">{c.state === "ended" ? say("web.inbox.ended") : say("web.inbox.span", { n: c.my_span })}</span>
+              <span className="ui-inbox-foot">
+                <span className="ui-inbox-time">{marksOf(c)}</span>
+                {(c.pending_messages ?? 0) > 0 && <span className="ui-inbox-wait">{say("web.inbox.waits_you")}</span>}
+              </span>
+              {marksOf(c).startsWith("●") && <span className="ui-dot" aria-hidden="true" />}
+            </button>
+          </li>
         ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
-      {events && (
-        <footer className="muted" data-testid="events">
-          {say("web.inbox.since", { events: JSON.stringify(events) })}
-        </footer>
-      )}
     </main>
   );
 }

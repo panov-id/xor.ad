@@ -552,6 +552,52 @@ Deno.test({
   },
 });
 
+// V7 · a room whose identity holds no seat at the table gets no line and no
+// seat frame — the board already closed such a room 4005 (X1); the line and
+// the seat went out to it unchecked, before any board.
+Deno.test({
+  name: "V7: a room with no seat at the table gets no line or seat frame, and is closed 4005",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const relay = await import("../src/chat/relay.ts");
+    const { a, id } = await game();
+    const stranger = await person();
+    const sent = new Map<string, { type: string }[]>();
+    const closed = new Map<string, number>();
+    const fake = (name: string): WebSocket => {
+      sent.set(name, []);
+      return {
+        readyState: WebSocket.OPEN,
+        send: (text: string) => sent.get(name)!.push(JSON.parse(text)),
+        close: (code: number) => closed.set(name, code),
+      } as unknown as WebSocket;
+    };
+    const key = `table:${id}`;
+    relay.roomsForTest().set(key, new Set([
+      { socket: fake("a"), session: a.session_id, chat: key, seq: 0, table: id, identity: a.identity_id },
+      { socket: fake("x"), session: stranger.session_id, chat: key, seq: 0, table: id, identity: stranger.identity_id },
+    ]));
+    const waitFor = async (check: () => boolean) => {
+      const until = Date.now() + 3000;
+      while (Date.now() < until && !check()) await new Promise((resolve) => setTimeout(resolve, 20));
+    };
+    try {
+      assertEquals((await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "привет" })).status, 202);
+      const c = await person();
+      await signed(c, "POST", `/tables/${id}/seat`);
+      await waitFor(() => sent.get("a")!.some((f) => f.type === "line") && sent.get("a")!.some((f) => f.type === "seat"));
+      assert(sent.get("a")!.some((f) => f.type === "line"), `the seated room got no line: ${JSON.stringify(sent.get("a"))}`);
+      await waitFor(() => closed.has("x"));
+      const leaked = sent.get("x")!.filter((f) => f.type === "line" || f.type === "seat").map((f) => f.type);
+      assertEquals(leaked, [], "a room with no seat got the table's lines or seats");
+      assertEquals(closed.get("x"), 4005, "a room with no seat was not closed 4005");
+    } finally {
+      relay.roomsForTest().delete(key);
+    }
+  },
+});
+
 // A table of a class, two playing: A sets it up, B sits and applies, A opens the round.
 async function gameOf(klass: string, set: string): Promise<{ a: Person; b: Person; id: string }> {
   const a = await person();

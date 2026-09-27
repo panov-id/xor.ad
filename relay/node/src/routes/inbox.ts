@@ -57,7 +57,7 @@ async function inbox(req: Request): Promise<Response> {
 
   const matches = cut?.run === "c" ? [] : await query<{
     id: string; name: string; age: number; text: string | null; mode: string; waiting: boolean; created_at: Date; at: string;
-    arrived: boolean; answered: boolean;
+    arrived: boolean; answered: boolean; consented: boolean;
     interest: boolean; offer_id: string | null; offer_text: string | null; offer_mode: string;
     discount_value: string | null; conditions: string | null;
   }>(
@@ -66,6 +66,9 @@ async function inbox(req: Request): Promise<Response> {
             (extract(epoch from m.created_at) * 1000000)::bigint::text AS at,
             (m.created_at > to_timestamp($4)) AS arrived,
             (theirs.accepted_at IS NOT NULL AND theirs.accepted_at > to_timestamp($4)) AS answered,
+            -- My own consent (P10): the node knows it, so a client that lost
+            -- its memory still sees "waiting for the answer" after a restart.
+            (mine.accepted_at IS NOT NULL) AS consented,
             -- The other side came to my offer (§8.5, db/062; P5): they have no
             -- phrase in the match, and the reason is my offer — shown as such.
             (theirs.message_id IS NULL) AS interest,
@@ -157,6 +160,9 @@ async function inbox(req: Request): Promise<Response> {
         }
         : {}),
       waiting_for_you: m.waiting, state: "pending",
+      // A row here has no chat and is not declined by me (the WHERE above):
+      // either I agreed and wait for them, or I have not answered yet.
+      my_consent: m.consented ? "waiting" : "none",
       // Since the last visit (§8.12): the offer arrived, or the other side
       // agreed to it, after `since`.
       arrived_since: m.arrived, answered_since: m.answered,

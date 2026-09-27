@@ -35,6 +35,11 @@ export function hasInvisible(text: string): boolean {
 
 // The cleaned name, or null when nothing visible is left or something invisible is in it.
 export function cleanName(raw: string): string | null {
+  // The raw text is asked first: trim and the whitespace collapse below eat
+  // CR, VT, FF, U+FEFF and U+2028 as "space", and a check on the cleaned copy
+  // let them through to the database (V5, 27.09.2026). Tab, line feed and the
+  // spelling characters are all that may stand between visible letters.
+  if (INVISIBLE.test(raw.replace(/[\t\n]/g, "").replace(SPELLING, ""))) return null;
   const name = raw.normalize("NFC").trim().replace(/\s+/g, " ");
   if (STRAY_JOINER.test(name) || STRAY_SELECTOR.test(name)) return null;
   // Trimmed again once the spelling is out: a space between two joiners

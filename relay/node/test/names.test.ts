@@ -29,6 +29,19 @@ Deno.test("a joiner or a selector between letters is refused, not drawn as nothi
   assertEquals(cleanName(`${ZWJ}\u{1F525}`), null, "a leading joiner passed");
 });
 
+Deno.test("invisible characters the whitespace collapse would eat are refused, not washed", () => {
+  for (const [label, ch] of [["CR", "\r"], ["VT", "\v"], ["FF", "\f"], ["U+FEFF", "﻿"], ["U+2028", " "], ["U+2029", " "]]) {
+    for (const name of [`Аня${ch}Петрова`, `${ch}Аня`, `Аня${ch}`]) {
+      assertEquals(cleanName(name), null, `${label} passed in ${JSON.stringify(name)}`);
+    }
+  }
+});
+
+Deno.test("a tab or a line feed still collapses to a space", () => {
+  assertEquals(cleanName("Аня\tПетрова"), "Аня Петрова");
+  assertEquals(cleanName("Аня\nПетрова\n"), "Аня Петрова");
+});
+
 Deno.test("an ordinary name is trimmed and kept", () => {
   assertEquals(cleanName("  Аня   Петрова "), "Аня Петрова");
   assertEquals(cleanName("​"), null);

@@ -66,20 +66,27 @@ async function call(
   return { status: response.status, body: text ? JSON.parse(text) : null, cookies, headers: response.headers };
 }
 
-// The letter a sign-up mails, as the node writes it: a token under the half
-// the node left in the browser, and the contact that sign-up gave (db/077).
+// The letter a sign-up mails, as the node writes it: the node's own link row,
+// contact and all (db/077), re-keyed to a token the test knows under the half
+// the node left in the browser. The contact is read from what the node stored,
+// not written by the test — a test that wrote it proved nothing (V4, 27.09.2026).
 async function letterOf(email: string, contact: string, origin = "https://adv.alpha.test") {
   const up = await call("POST", "/adv/signup", { origin, body: { email, contact } });
   assertEquals(up.status, 204);
+  await lettersSettled();
   const half = up.cookies["__Host-adv-link"];
   assertMatch(half, /^[0-9a-f]{64}$/);
   const token = crypto.getRandomValues(new Uint8Array(32)).reduce((s, b) => s + b.toString(16).padStart(2, "0"), "");
-  await database.queryOrThrow(
-    `INSERT INTO advertiser_links (link_hash, advertiser_id, expires_at, contact)
-       SELECT $1, id, now() + interval '15 minutes', $4 FROM advertisers WHERE lower(email) = lower($2)
-          AND brand = $3`,
-    [await linkHash(token, half), email, new URL(origin).host.replace(/^adv\./, "").split(".")[0], contact],
+  const [row] = await database.queryOrThrow<{ contact: string | null }>(
+    `UPDATE advertiser_links SET link_hash = $1
+      WHERE link_hash = (SELECT l.link_hash FROM advertiser_links l JOIN advertisers a ON a.id = l.advertiser_id
+                          WHERE lower(a.email) = lower($2) AND a.brand = $3
+                          ORDER BY l.expires_at DESC LIMIT 1)
+      RETURNING contact`,
+    [await linkHash(token, half), email, new URL(origin).host.replace(/^adv\./, "").split(".")[0]],
   );
+  assert(row, `the node mailed no link to ${email}`);
+  assertEquals(row.contact, contact, "the node's link does not carry the contact the sign-up gave");
   return { token, half };
 }
 

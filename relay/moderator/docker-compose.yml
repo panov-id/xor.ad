@@ -1,0 +1,32 @@
+# The first-tier moderator model (E2): Ollama with qwen2.5:3b-instruct, on a
+# network with no way out. The node joins `moderator` and is started with
+# MODERATOR_URL=http://moderator:11434; nothing else can reach the model and
+# the model can reach nothing (`internal: true` — no gateway, no DNS outside).
+#
+#   docker compose -f relay/moderator/docker-compose.yml up -d
+#
+# The weights live in the external volume `moderator-models`, filled once as
+# relay/moderator/README_EN.md says; the stand never pulls.
+services:
+  moderator:
+    image: ollama/ollama:0.3.14
+    restart: unless-stopped
+    networks: [moderator]
+    volumes:
+      - moderator-models:/root/.ollama
+    environment:
+      OLLAMA_KEEP_ALIVE: "24h"
+    mem_limit: 4g
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      retries: 30
+
+networks:
+  moderator:
+    name: moderator
+    internal: true
+
+volumes:
+  moderator-models:
+    external: true

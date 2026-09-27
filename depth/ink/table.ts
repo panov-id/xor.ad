@@ -293,3 +293,51 @@ export function NewTable(
     error ? h(Text, { color: "red" }, error) : null,
   );
 }
+
+// Seated elsewhere (C5): the node refused a seat with already_seated and named
+// the table one sits at ({error: {code, table}}, xor-ad-8c). The terminal
+// names it too and offers: back to it, or stand up there and sit down here.
+export function SeatedElsewhere(
+  { say, tables, there, here, onOpen, onBack, onError }: {
+    say: Say;
+    tables: Pick<Tables, "view" | "stand" | "sit">;
+    there: string;
+    here: string;
+    onOpen: (tableId: string) => void;
+    onBack: () => void;
+    onError: (message: string) => void;
+  },
+): ReactElement {
+  const [name, setName] = useState<string | null>(null);
+  useEffect(() => {
+    tables.view(there)
+      .then((a) => setName(a.status === 200 ? `${plain(a.body.name ?? a.body.class, 48)}` : "?"))
+      .catch((e: Error) => onError(e.message));
+  }, [there]);
+  return h(
+    Box,
+    { flexDirection: "column", gap: 1 },
+    h(Head, { title: say("table.seatedElsewhere", { name: name ?? "…" }) }),
+    h(Menu, {
+      actions: [
+        { key: "there", label: say("table.backThere") },
+        { key: "move", label: say("table.standThere") },
+        { key: "back", label: say("common.back") },
+      ],
+      onPick: (key) => {
+        if (key === "back") return onBack();
+        if (key === "there") return onOpen(there);
+        void tables.stand(there)
+          .then(() => tables.sit(here))
+          .then((a) => {
+            if (a.status >= 400) {
+              const e = (a.body as { error?: { code?: string } } | null)?.error;
+              return onError(`${say("table.refused")}: ${plain(e?.code ?? a.status, 80)}`);
+            }
+            onOpen(here);
+          })
+          .catch((e: Error) => onError(e.message));
+      },
+    }),
+  );
+}

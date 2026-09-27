@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
-import { NewTable, Table, type TableAction, TableRoom } from "./table.ts";
+import { NewTable, SeatedElsewhere, Table, type TableAction, TableRoom } from "./table.ts";
 import { strings } from "./strings.ts";
 import type { TableView } from "../core/tables.ts";
 
@@ -164,6 +164,37 @@ const cases: Array<[string, () => Promise<void>]> = [
     app.stdin.write("\r");
     await settle();
     assert.deepEqual(moved, [], "the focus jumped back to the board and a key meant for the row played a card");
+    app.unmount();
+  }],
+  ["seated elsewhere: the old table is named, and «stand up there» stands there, sits here and opens it", async () => {
+    const calls: string[] = [];
+    let opened: string | null = null;
+    const tables = {
+      view: () => Promise.resolve({ status: 200, body: view({ name: "\u001B[2Jдомино у реки" }) }),
+      stand: (id: string) => { calls.push(`stand ${id}`); return Promise.resolve({ status: 204, body: null }); },
+      sit: (id: string) => { calls.push(`sit ${id}`); return Promise.resolve({ status: 200, body: { seat: 2 } }); },
+    };
+    const app = render(h(SeatedElsewhere, {
+      say, tables: tables as never, there: "old", here: "new", onOpen: (id: string) => (opened = id), onBack: () => {},
+      onError: (m: string) => { throw new Error(m); },
+    }));
+    await settle();
+    assert.match(app.lastFrame()!, /вы уже за столом «·?домино у реки»/, "the old table is not named, or its name was not cleaned");
+    for (const k of ["\u001B[C", "\r"]) { app.stdin.write(k); await settle(); }
+    assert.deepEqual(calls, ["stand old", "sit new"]);
+    assert.equal(opened, "new", "the new table was not opened after moving");
+    app.unmount();
+  }],
+  ["grid: tab out of the board and back keeps the field in hand", async () => {
+    const moves: unknown[] = [];
+    const grid = view({
+      class: "grid" as never,
+      board: { seq: 1, turn: 2, score: {}, expires_at: NOW + 30, state: { grid: { cells: { c3: { seat: 2, piece: "M" } }, claim: null } } },
+    });
+    const app = render(h(Table, { say, view: grid, onPick: () => {}, onMove: (m: unknown) => moves.push(m), now: NOW * 1000 }));
+    await settle();
+    for (const k of ["\t", "c", "\t", "\t", "3", "\u001B[B", "d4", "\u001B[B", "\r"]) { app.stdin.write(k); await settle(); }
+    assert.deepEqual(moves, [{ from: "c3", to: "d4" }], "tab moved the grid's field, and the move went out wrong");
     app.unmount();
   }],
   ["«сказать» opens a line, sends it to the node and leaves the keys alive", async () => {

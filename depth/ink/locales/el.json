@@ -313,5 +313,8 @@
   "game.theirTurn": "{name}'s turn",
   "game.accept": "accept",
   "game.decline": "decline",
-  "game.offerArrived": "a game is offered — open «game»"
+  "game.offerArrived": "a game is offered — open «game»",
+  "table.seatedElsewhere": "you already sit at «{name}»",
+  "table.backThere": "back to it",
+  "table.standThere": "stand up there and sit here"
 }

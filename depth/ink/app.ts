@@ -25,7 +25,7 @@ import { RaisedHere, RaisedHerePin } from "./screens/restore.ts";
 import { IDLE_MS, IdleTimer } from "../core/lock.ts";
 import { Lock } from "./screens/lock.ts";
 import { Closed } from "./screens/closed.ts";
-import { NewTable, TableRoom } from "./table.ts";
+import { NewTable, SeatedElsewhere, TableRoom } from "./table.ts";
 import { openTable, Tables } from "../core/tables.ts";
 import { Waiting } from "./screens/pending.ts";
 import type { SessionClose } from "./screens/closed.ts";
@@ -47,6 +47,7 @@ type Where =
   | { screen: "feed" }
   | { screen: "newTable" }
   | { screen: "table"; id: string }
+  | { screen: "seatedElsewhere"; there: string; here: string }
   | { screen: "write" }
   | { screen: "inbox" }
   | { screen: "hidden" }
@@ -300,7 +301,11 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
             void new Tables(client).sit(id)
               .then((a) => {
                 if (a.status >= 400) {
-                  const e = (a.body as { error?: { code?: string } } | null)?.error;
+                  const e = (a.body as { error?: { code?: string; table?: string } } | null)?.error;
+                  // Seated at another table: the node names it (C5).
+                  if (e?.code === "already_seated" && typeof e.table === "string") {
+                    return setWhere({ screen: "seatedElsewhere", there: e.table, here: id });
+                  }
                   return fail(`${say("table.refused")}: ${plain(e?.code ?? a.status, 80)}`);
                 }
                 setWhere({ screen: "table", id });
@@ -315,6 +320,16 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
           place: place!,
           onSet: (id) => setWhere({ screen: "table", id }),
           onBack: feed,
+        });
+      case "seatedElsewhere":
+        return h(SeatedElsewhere, {
+          say,
+          tables: new Tables(client),
+          there: where.there,
+          here: where.here,
+          onOpen: (id) => setWhere({ screen: "table", id }),
+          onBack: feed,
+          onError: fail,
         });
       case "table":
         return h(TableRoom, {

@@ -313,5 +313,8 @@
   "game.theirTurn": "ходит собеседник: {name}",
   "game.accept": "принять",
   "game.decline": "отказаться",
-  "game.offerArrived": "вам предлагают игру — откройте «игра»"
+  "game.offerArrived": "вам предлагают игру — откройте «игра»",
+  "table.seatedElsewhere": "вы уже за столом «{name}»",
+  "table.backThere": "вернуться к нему",
+  "table.standThere": "встать там и сесть здесь"
 }

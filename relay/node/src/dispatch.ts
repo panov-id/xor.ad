@@ -37,11 +37,13 @@ import "./routes/feed_queue.ts"; // the moderator's queue of the feed, in the pa
 import "./routes/profile.ts"; // PATCH /identities/me: the profile edited, the name queued (§8.2)
 import "./routes/appearance.ts"; // GET/PUT /identities/appearance: theme, contrast, accent per face (screen 22)
 import "./routes/away.ts"; // POST/DELETE /away: stepping away and coming back (§8.2)
+import "./routes/tables.ts"; // step 8: tables, a game for a company (§6, §6.1)
 import "./routes/support.ts";
 import "./routes/support_admin.ts"; // GET /admin/support, answer: the team's side (protocol §4.10a) // POST/GET /support, /support/:no/seen: screen 14 (protocol §4.10)
 import "./routes/inbox.ts"; // offers to talk and conversations in one answer (§8.12)
 import "./routes/legal.ts"; // GET /legal/manifest, POST /legal/accept (§4.1)
 import "./routes/offer_links.ts"; // GET /o/:code and /o/:code/go: an offer's link (offers spec §6.2)
+import "./routes/adv.ts"; // /adv/*: the advertising cabinet — sign-in, venues, envelopes, offers (offers spec §2.1)
 
 type Handler = (req: Request) => Response | Promise<Response>;
 

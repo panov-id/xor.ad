@@ -415,6 +415,7 @@ components:
         age: {type: integer}
         phrase: {type: object, properties: {text: {type: string}, mode: {type: string}}}
         waiting_for_you: {type: boolean}
+        my_consent: {type: string, enum: [waiting, none], description: "On a match and an offer_interest row since 2026-09-27 (P10): whether one has consented already. An agreed match becomes a chat row, a declined one is hidden, so the row never says agreed or not_now.", x-description-ru: "У строки мэтча и offer_interest с 27.09.2026 (P10): дал ли я уже согласие. Согласованный мэтч становится строкой чата, отклонённый скрыт, поэтому agreed и not_now в строке не бывает."}
         offer:
           type: object
           description: "On an offer_interest row since 2026-09-26 (§8.5, db/062; P5 → P3b): somebody liked my offer and the match was born one-sided — they have no phrase in it. The reason is one for both, so `phrase` carries the offer's text on both rows, and the author's row adds `offer`: its id, text and mode from the match's snapshot, and the discount with its conditions while the offer is still in the feed. The one who came sees an ordinary match whose `phrase` is the offer."
@@ -2335,7 +2336,8 @@ paths:
       tags: [tables]
       summary: "Set a table"
       x-summary-ru: "Поставить стол"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "Board class, set, area and seats; the author is seated and stands up from their previous table (chat spec §6.1). Refusals 409 stepped_away, 409 already_seated is not raised — the previous seat is left."
       x-description-ru: "Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away; already_seated не поднимается — прежнее место освобождается."
@@ -2355,7 +2357,8 @@ paths:
       tags: [tables]
       summary: "The table minus what is hidden"
       x-summary-ru: "Стол без скрытого"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "The board, {playing, watching}, lines since your own seating, your seat; your own hand, the backs of others' (chat spec §6.1)."
       x-description-ru: "Доска, {playing, watching}, реплики с момента своей посадки, своё место; рука своя, рубашки чужих (спека чата §6.1)."
@@ -2376,7 +2379,8 @@ paths:
       tags: [tables]
       summary: "Like a table without sitting down"
       x-summary-ru: "Лайкнуть стол, не садясь"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "A bookmark with a public counter, neither a match nor an offer to talk; the table leaves this person's feed for GET /likes (chat spec §6.1; the owner's decision of 2026-09-17, agreed 2026-09-17)."
       x-description-ru: "Закладка с публичным счётчиком, ни мэтча, ни предложения; стол уходит из ленты этого человека в GET /likes (спека чата §6.1; решение владельца 17.09.2026, утверждено 17.09.2026)."
@@ -2396,7 +2400,8 @@ paths:
       tags: [tables]
       summary: "Take a table like back"
       x-summary-ru: "Снять лайк стола"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "like_count goes down and the table returns to the feed (chat spec §6.1, 2026-09-17, agreed 2026-09-17)."
       x-description-ru: "like_count уменьшается, стол возвращается в ленту (спека чата §6.1, 17.09.2026, утверждено 17.09.2026)."
@@ -2417,7 +2422,8 @@ paths:
       tags: [tables]
       summary: "Sit down"
       x-summary-ru: "Подсесть"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "Refusal unavailable when the age bands fail or a blocked person sits there — one answer, not an oracle; already_seated when you sit elsewhere (chat spec §6.1)."
       x-description-ru: "Отказ unavailable, если не проходят полосы возраста или за столом заблокированный — ответ один, не оракул; already_seated, если сидишь за другим (спека чата §6.1)."
@@ -2436,7 +2442,8 @@ paths:
       tags: [tables]
       summary: "Stand up"
       x-summary-ru: "Встать"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "Coming back is the same POST; history starts afresh from the seating (chat spec §6.1)."
       x-description-ru: "Вернуться — тем же POST; история заново с посадки (спека чата §6.1)."
@@ -2477,7 +2484,8 @@ paths:
       tags: [tables]
       summary: "A line, an application, a refusal or a sticker"
       x-summary-ru: "Реплика, заявка, отказ или стикер"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "line/application/refusal — 202, published by the queue's verdict; sticker — 200, no queue. One application per game; a refusal without text is not accepted (chat spec §6.1)."
       x-description-ru: "line/application/refusal — 202, публикуется вердиктом очереди; sticker — 200, без очереди. Одна заявка на игру; отказ без текста не принимается (спека чата §6.1)."
@@ -2499,7 +2507,8 @@ paths:
       tags: [tables]
       summary: "A move or a pass"
       x-summary-ru: "Ход или пас"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "In the board class's terms; refusals not_your_turn, illegal_move with the engine's reason; three passes in a row send you to the spectators (table.move.window, table.pass.limit)."
       x-description-ru: "В терминах класса доски; отказы not_your_turn, illegal_move с причиной движка; три паса подряд — в зрители (table.move.window, table.pass.limit)."
@@ -2540,7 +2549,8 @@ paths:
       tags: [tables]
       summary: "Propose: play again, a draw, an undo"
       x-summary-ru: "Предложить: сыграть ещё, ничью, откат"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "The undo fires on every player's consent and steps back exactly one snapshot (chat spec §6)."
       x-description-ru: "Откат срабатывает при согласии всех играющих и ровно на один снимок (спека чата §6)."
@@ -2561,7 +2571,8 @@ paths:
       tags: [tables]
       summary: "Answer a proposal"
       x-summary-ru: "Ответить на предложение"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "accept / decline / counter — a counter names another class and set (chat spec §6)."
       x-description-ru: "accept / decline / counter — встречное называет другой класс и набор (спека чата §6)."
@@ -2583,7 +2594,8 @@ paths:
       tags: [tables]
       summary: "Resign"
       x-summary-ru: "Сдаться"
-      x-status: spec
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
       description: "A one-sided announcement; no result is recorded (chat spec §6)."
       x-description-ru: "Одностороннее объявление; результат не записывается (спека чата §6)."

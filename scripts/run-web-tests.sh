@@ -17,8 +17,8 @@ mkdir -p "$root/web/e2e/results"
 keep=0
 [ "${1:-}" = "--keep" ] && keep=1
 cleanup() {
-  if [ "$keep" -eq 1 ]; then echo "stand kept: ${compose[*]} down -v"; return; fi
-  "${compose[@]}" down -v --remove-orphans >/dev/null 2>&1 || true
+  if [ "$keep" -eq 1 ]; then echo "stand kept: ${compose[*]} down -v --rmi local"; return; fi
+  "${compose[@]}" down -v --rmi local --remove-orphans >/dev/null 2>&1 || true
 }
 trap cleanup EXIT INT TERM
 

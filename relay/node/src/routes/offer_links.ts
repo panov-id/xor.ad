@@ -17,8 +17,10 @@
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
-import { query } from "../lib/db.ts";
-import { refuse } from "../lib/identity_guard.ts";
+import { query, transaction } from "../lib/db.ts";
+import { callerOf, refuse } from "../lib/identity_guard.ts";
+import { brandByKey } from "../lib/brand_registry.ts";
+import { sendAdvLetter } from "../lib/adv.ts";
 import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll, OFFER_LINK_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
@@ -53,6 +55,11 @@ function webTarget(raw: string | null): URL | null {
     return null;
   }
 }
+
+// §10.1: two counting reports from different people switch the link off.
+export const LINK_REPORTS_TO_DISABLE = 2;
+// Per identity: a person reports a handful of links, not a page of them.
+const LINK_REPORT_LIMITS = [{ name: "offer-link-report", max: 20, windowMs: 60 * 60 * 1000 }];
 
 const NO_STORE = { "cache-control": "no-store", "referrer-policy": "no-referrer" };
 
@@ -133,4 +140,83 @@ async function go(req: Request, code: string): Promise<Response> {
 route("GET", "/o/:code", (c) => exit(c.req, c.params.code));
 route("GET", "/o/:code/go", (c) => go(c.req, c.params.code));
 
-export { exit, go };
+// POST /o/:code/report — "this link is bad" from the exit screen (offers spec
+// §10.1). Signed by an identity, no email. A report counts when the reporter's
+// first accepted phrase came out on a UTC day no later than the day before
+// yesterday and before the offer's day; the second counting report from a
+// different person switches the link off at once, and the venue hears of it by
+// mail. The offer lives on. The answer is 202 whatever the count, so a reporter
+// cannot learn whether theirs was the one that counted.
+async function report(req: Request, code: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  const limited = checkAll(LINK_REPORT_LIMITS, caller.identityId);
+  if (!limited.allowed) {
+    return refuse("rate_limited", "too many reports this hour", 429, {}, {
+      "retry-after": String(limited.retryAfterSeconds),
+    });
+  }
+  if (!CODE.test(code)) return refuse("not_found", "no such link", 404);
+  const outcome = await transaction(async (run) => {
+    // The lock first: two reports at once must not both read one counting row.
+    const [offer] = await run<{ id: string; disabled: boolean; published_at: Date }>(
+      `SELECT id, redirect_disabled_at IS NOT NULL AS disabled, published_at
+         FROM offers WHERE redirect_code = $1 AND ($2::text IS NULL OR brand = $2) FOR UPDATE`,
+      [code, caller.brand],
+    );
+    if (!offer) return "not_found" as const;
+    const [made] = await run<{ counts: boolean }>(
+      `INSERT INTO offer_link_reports (offer_id, reporter, counts)
+         SELECT $1, $2, coalesce(
+           (SELECT first_published_at <= (now() AT TIME ZONE 'UTC')::date - 2
+                   AND first_published_at < ($3::timestamptz AT TIME ZONE 'UTC')::date
+              FROM identity_stats WHERE identity = $2), false)
+       ON CONFLICT DO NOTHING RETURNING counts`,
+      [offer.id, caller.identityId, offer.published_at],
+    );
+    if (!made?.counts || offer.disabled) return null;
+    const [{ n }] = await run<{ n: number }>(
+      `SELECT count(*)::int AS n FROM offer_link_reports WHERE offer_id = $1 AND counts`, [offer.id],
+    );
+    if (n < LINK_REPORTS_TO_DISABLE) return null;
+    await run(`UPDATE offers SET redirect_disabled_at = now() WHERE id = $1`, [offer.id]);
+    const [owner] = await run<{ email: string; venue: string; brand: string }>(
+      `SELECT a.email, v.name AS venue, o.brand FROM offers o JOIN venues v ON v.id = o.venue_id
+         JOIN advertisers a ON a.id = v.advertiser_id WHERE o.id = $1`,
+      [offer.id],
+    );
+    return owner ?? null;
+  }).catch((error) => {
+    log("error", "a link report failed", { error: String(error) });
+    return "unavailable" as const;
+  });
+  if (outcome === "unavailable") return refuse("unavailable", "the node cannot write right now", 503);
+  if (outcome === "not_found") return refuse("not_found", "no such link", 404);
+  if (outcome) {
+    inc("relay_offer_link_total", { result: "switched_off" });
+    const brand = await brandByKey(outcome.brand);
+    if (brand) {
+      // Articles 17(1)(a), 17(3) DSA: what was restricted, on what ground, how
+      // it was decided and how to contest it (§10.1).
+      sendAdvLetter(outcome.email, brand, "A link of your offer was switched off", "The offer's link is off", [
+        { kind: "text", value: `The link of an offer of ${outcome.venue} no longer sends anyone on.` },
+        {
+          kind: "text",
+          value: "Why: two people who had written in the feed before the offer came out, their first phrase " +
+            "more than a day old, reported that it leads to a phishing or malicious site (agreement §10). " +
+            "The decision was automatic; the offer itself stays in the feed.",
+        },
+        {
+          kind: "text",
+          value: "To contest it, answer this letter and a person will look; you may also turn to the Digital " +
+            "Services Coordinator or to a court.",
+        },
+      ]).catch(() => {});
+    }
+  }
+  return json({ state: "received" }, 202);
+}
+
+route("POST", "/o/:code/report", (c) => report(c.req, c.params.code));
+
+export { exit, go, report };

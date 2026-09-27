@@ -38,6 +38,9 @@ import { Arrival } from "./screens/Arrival.tsx";
 import { Departure } from "./screens/Departure.tsx";
 import { Cabinet } from "./adv/Cabinet.tsx";
 import { Table } from "./screens/Table.tsx";
+import { NewTable } from "./screens/NewTable.tsx";
+import { Tables } from "../../depth/core/tables.ts";
+import { tableRefusal } from "./api/tables.ts";
 import { Blocked } from "./screens/Blocked.tsx";
 import { Hidden } from "./screens/Hidden.tsx";
 import { forget, readRecord, type Record_ } from "./vault.ts";
@@ -67,6 +70,7 @@ type Screen =
   | { at: "departure" }
   | { at: "hidden" }
   | { at: "table"; tableId: string }
+  | { at: "new-table" }
   | { at: "blocked" }
   | { at: "arrival" }
   | { at: "reset" }
@@ -169,6 +173,16 @@ function Face() {
     setScreen(to);
   };
   const toFeed = () => setScreen({ at: "feed" });
+
+  // A table from the feed (W10): a seat first — the node says no to a full
+  // table or a closed one, and the feed says why; seated, the table screen.
+  const [tableNotice, setTableNotice] = useState<string | null>(null);
+  async function enterTable(id: string) {
+    setTableNotice(null);
+    const sat = await new Tables(seated!.client).sit(id).catch((e: Error) => ({ status: 0, body: { error: { reason: e.message } } }));
+    if (sat.status >= 200 && sat.status < 300) return leaveFeed({ at: "table", tableId: id });
+    setTableNotice(tableRefusal(sat as never) ?? String(sat.status));
+  }
   const me = () => setScreen({ at: "me" });
 
   const nav = seated && (screen.at === "feed" || screen.at === "inbox" || screen.at === "me") && (
@@ -208,6 +222,9 @@ function Face() {
             radius={radius}
             onRadius={setRadius}
             onOpen={(card) => leaveFeed({ at: "card", card })}
+            onTable={(id) => void enterTable(id)}
+            onNewTable={() => leaveFeed({ at: "new-table" })}
+            notice={tableNotice}
             onWrite={() => leaveFeed({ at: "composer" })}
             onLikes={() => leaveFeed({ at: "likes" })}
             sent={sent}
@@ -295,6 +312,8 @@ function Face() {
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
+    case "new-table":
+      return <NewTable client={seated!.client} at={at} radius={radius} onMade={(id) => setScreen({ at: "table", tableId: id })} onBack={toFeed} />;
     case "table":
       return <Table client={seated!.client} tableId={screen.tableId} onLeave={() => { history.replaceState(null, "", "/"); setScreen({ at: "feed" }); }} />;
     case "hidden":

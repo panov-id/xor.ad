@@ -294,46 +294,50 @@ shots_src = str(SS.relative_to(R)) if SS.is_relative_to(R) else "$REPORT_SCREENS
 stored_missing = lambda: [m for m in missing if m.removesuffix(".png") not in LIVE_SHOTS]
 
 # ---------- the web face ----------
-# The last frame of every end-to-end test of web/ (webshots.sh). A caption says
-# which test ended on this screen, not what the screen is: nobody looked at it
-# but the test. A spec with no caption here is shown under its own name.
-WEB_TESTS = {
-    "register-feed": "регистрация с ПИНом и бумажным кодом, затем лента",
-    "compose-like": "фраза опубликована, другой человек лайкнул её с карточки и нашёл в «лайкнутом»",
-    "chat": "двое встретились через лайки и говорят под шифром; второй вернулся в беседу после перезагрузки",
-    "unlock-chat": "после перезагрузки беседа открывается только через ПИН",
-    "decline": "«не сейчас» и его отмена; устройству без свёртки сказано просить ключи",
-    "rekey": "ключи не открылись, второй согласился на новые, беседа идёт под новой эпохой",
-    "close-code": "узел назвал причину закрытия комнаты кадром closed",
-    "me": "экран «я»: смена ПИНа, отлучка, мотивировки",
-    "restore": "подъём личности по бумажному коду на чистом устройстве",
-    "reissue": "перевыпуск бумажного кода",
-    "offer": "экран выхода по ссылке оффера",
-    "a11y": "проверка доступности axe",
+# Every screen the web opens, shot by scripts/design/shoot-web.sh in its dark
+# scheme (webshots.sh). A caption names the state the screen was shot in and,
+# when the gate scripts/check-web-design.sh holds it against a sheet, the sheet
+# and the phone it is compared with (scripts/design/web-design-map.tsv).
+WEB_STATES = {
+    "Splash": "заставка", "Register": "регистрация: бумажный код", "Feed": "лента",
+    "Composer": "новая фраза", "Card": "карточка фразы", "Card-liked": "карточка после лайка",
+    "Likes": "«лайкнутое»", "Card-matched": "встречный лайк — мэтч", "Inbox": "разговоры",
+    "Match": "мэтч: предложение поговорить", "Match-waiting": "мэтч: согласились, ждём второго",
+    "Chat": "беседа под шифром", "ChatGame": "игра в беседе", "Me": "«я»",
+    "Me-edit-name": "«я»: имя", "Hidden": "скрытое", "Me-away": "«я»: отойти",
+    "Me-pin": "«я»: смена ПИНа", "Departure": "перенос: уход", "Reissue": "новый бумажный код",
+    "Me-reset": "«я»: начать заново", "Unlock": "ПИН после перезагрузки", "NewTable": "новый стол",
+    "Table": "стол", "TableBoards": "стол: партия идёт", "Blocked": "заблокированные",
+    "Statements": "мотивировка ограничения", "Cabinet-sign-in": "кабинет: вход",
+    "Cabinet-sent": "кабинет: письмо отправлено", "Cabinet-venues": "кабинет: заведение",
+    "Cabinet-new-offer": "кабинет: новый оффер", "Cabinet-offers": "кабинет: живой оффер",
+    "Offer": "выход по ссылке оффера", "Restore": "подъём по бумажному коду", "Arrival": "перенос: приход",
 }
 _web_list = D / "webshots.list"
 web_shots = [Path(l) for l in _web_list.read_text().split("\n") if l.strip()] if _web_list.is_file() else []
 web_tally = (D / "webshots.txt").read_text().strip().replace("\n", "; ") if (D / "webshots.txt").is_file() else ""
 web_rc = (D / "webshots.rc").read_text().strip() if (D / "webshots.rc").is_file() else None
+web_design = (D / "webdesign.txt").read_text().strip() if (D / "webdesign.txt").is_file() else ""
+_map = R / "scripts/design/web-design-map.tsv"
+WEB_SHEETS = {}
+if _map.is_file():
+    for line in _map.read_text().split("\n"):
+        if line and not line.startswith("#"):
+            shot, sheet, phone = line.split("\t")[:3]
+            WEB_SHEETS[shot] = f"{sheet.removeprefix('screen-')} · телефон {int(phone) + 1}"
 
 
 def web_caption(p):
-    folder = p.parent.name
-    spec = max((k for k in WEB_TESTS if folder.startswith(k + "-")), key=len, default=None)
-    side = p.stem.rsplit("-", 1)[-1]
-    return f"{WEB_TESTS.get(spec, folder)} · страница {side}"
+    state = p.stem.removesuffix("-dark")
+    sheet = WEB_SHEETS.get(p.stem)
+    return WEB_STATES.get(state, state) + (f" · лист {sheet}" if sheet else " · пары на листах нет")
 
 
 def web_html():
     if not web_shots:
-        return '<p class="lead">Экраны веб-лица не сняты: <code>scripts/report/webshots.sh</code> картинок не оставил.</p>'
-    figs, seen = [], set()
+        return '<p class="lead">Экраны веб-лица не сняты: <code>scripts/design/shoot-web.sh</code> картинок не оставил.</p>'
+    figs = []
     for i, p in enumerate(web_shots):
-        # Several tests end on the same screen; a picture is shown once.
-        digest = hashlib.sha256(p.read_bytes()).hexdigest()
-        if digest in seen:
-            continue
-        seen.add(digest)
         dst = OUT / "img" / f"web-{i:02d}.png"
         dst.parent.mkdir(exist_ok=True)
         shutil.copy(p, dst)
@@ -542,7 +546,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 </div>
 
 <h3 class="ch">Веб-лицо <code>web/</code> — последние кадры его сквозных тестов</h3>
-<p class="lead">Одноразовый стенд <code>docker-compose.web.yml</code>, телефонный экран Pixel 5; прогон при сборке отчёта: {e(web_tally or "итог не записан")}, код {e(web_rc or "неизвестен")}. Каждый снимок — то, на чём тест закончился; у теста с двумя людьми страниц несколько, одинаковые картинки показаны один раз. Подпись называет тест, а не экран.</p>
+<p class="lead">Сквозные тесты веба на одноразовом стенде <code>docker-compose.web.yml</code> при сборке отчёта: {e(web_tally or "итог не записан")}, код {e(web_rc or "неизвестен")}. Снимки — съёмка <code>scripts/design/shoot-web.sh</code> на своём стенде: каждое состояние, которое открывает веб, 375×812, тёмная схема. Подпись называет состояние и лист, с которым его держат ворота <code>scripts/check-web-design.sh</code>: {e(web_design or "итог не записан")}.</p>
 {web_html()}
 
 <h3 class="ch">Терминал depth — настоящие кадры</h3>

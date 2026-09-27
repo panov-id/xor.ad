@@ -245,7 +245,9 @@ async function sit(req: Request, tableId: string): Promise<Response> {
       [me],
     );
     if (here && here.table_id === tableId) return json({ seat: here.seat_no }, 200, sunsetHeader());
-    if (here) return refuse("already_seated", "stand up from your table first", 409);
+    // One's own table, and only to its own seated person: the screen says
+    // "you are at …" and stands you up there (C5).
+    if (here) return refuse("already_seated", "stand up from your table first", 409, { table: here.table_id });
     // Bands each with each, and no block either way — one answer for both, so
     // the refusal is not an oracle (§6.1).
     const [bar] = await run(

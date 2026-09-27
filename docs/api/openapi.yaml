@@ -2558,8 +2558,8 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
-      description: "Refusal unavailable when the age bands fail or a blocked person sits there — one answer, not an oracle; already_seated when you sit elsewhere (chat spec §6.1)."
-      x-description-ru: "Отказ unavailable, если не проходят полосы возраста или за столом заблокированный — ответ один, не оракул; already_seated, если сидишь за другим (спека чата §6.1)."
+      description: "Refusal unavailable when the age bands fail or a blocked person sits there — one answer, not an oracle; already_seated when you sit elsewhere, with `table` — the id of your own table, so the screen can say where you are and stand you up there; nobody else's (chat spec §6.1; 2026-09-27)."
+      x-description-ru: "Отказ unavailable, если не проходят полосы возраста или за столом заблокированный — ответ один, не оракул; already_seated, если сидишь за другим, с `table` — id своего стола, чтобы экран сказал, где ты, и дал встать там; чужого не называет никогда (спека чата §6.1; 27.09.2026)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}

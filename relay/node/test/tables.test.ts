@@ -187,7 +187,9 @@ Deno.test("sitting: one table at a time, and a band and a block get the same ref
   const first = (await setUp(a)).body.id as string;
   const second = (await setUp(b)).body.id as string;
   // B sits at their own; A's table is elsewhere.
-  assertEquals(code(await signed(b, "POST", `/tables/${first}/seat`)), "already_seated");
+  const refused = await signed(b, "POST", `/tables/${first}/seat`);
+  assertEquals(code(refused), "already_seated");
+  assertEquals(refused.body.error.table, second, "the refusal names one's own table, not the one asked for");
   // B setting up their own did not touch A's: A still sits there.
   const [closed] = await database.queryOrThrow<{ closed: boolean }>(
     `SELECT closed_at IS NOT NULL AS closed FROM tables WHERE id = $1`, [first]);

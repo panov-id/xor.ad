@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import type { Client, Liked } from "../../../depth/core/client.ts";
 import { likedPhrases, unlikePhrase } from "../api/actions.ts";
+import { say } from "../locales/say.ts";
 
 export function Likes({ client, onBack }: { client: Client; onBack: () => void }) {
   const [items, setItems] = useState<Liked[]>([]);
@@ -34,7 +35,7 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
     const outcome = await unlikePhrase(client, item.id);
     if (outcome === "unliked") setItems((was) => was.filter((i) => i.id !== item.id));
     else if (outcome === "spent") setSpent((was) => ({ ...was, [item.id]: true }));
-    else setError("Не получилось снять лайк. Повторите.");
+    else setError(say("web.likes.unlike_failed"));
   }
 
   const when = (seconds: number) => new Date(seconds * 1000).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
@@ -42,14 +43,14 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
   return (
     <main className="screen likes" data-screen="likes">
       <header>
-        <h1>Лайкнутое</h1>
-        <button type="button" onClick={onBack} data-testid="back">← лента</button>
+        <h1>{say("web.likes.title")}</h1>
+        <button type="button" onClick={onBack} data-testid="back">{say("web.likes.back")}</button>
       </header>
       {error && <p className="error" data-testid="error">{error}</p>}
       {state === "ready" && items.length === 0 && (
         <section className="empty" data-testid="quiet">
-          <h2>Пока ничего</h2>
-          <p className="muted">Лайкнутые фразы соберутся здесь, пока живы.</p>
+          <h2>{say("web.likes.empty")}</h2>
+          <p className="muted">{say("web.likes.empty_hint")}</p>
         </section>
       )}
       <ul className="cards" data-testid="liked">
@@ -59,17 +60,17 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
             <p>{item.text}</p>
             <span className="muted">
               ♥ {item.like_count} · {when(item.liked_at)}
-              {item.state === "matched" ? " · мэтч — во входящих" : ""}
+              {item.state === "matched" ? say("web.likes.matched") : ""}
             </span>
             {item.state === "liked" && !item.offer && !spent[item.id] && (
-              <button type="button" onClick={() => takeBack(item)} data-testid="unlike">вернуть лайк</button>
+              <button type="button" onClick={() => takeBack(item)} data-testid="unlike">{say("web.likes.unlike")}</button>
             )}
-            {spent[item.id] && <span className="muted" data-testid="spent">лайк уже дал мэтч — не вернуть</span>}
+            {spent[item.id] && <span className="muted" data-testid="spent">{say("web.likes.spent")}</span>}
           </li>
         ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
-      {next && state === "ready" && <button type="button" onClick={() => load(next)} data-testid="more">показать ещё</button>}
+      {next && state === "ready" && <button type="button" onClick={() => load(next)} data-testid="more">{say("liked.more")}</button>}
     </main>
   );
 }

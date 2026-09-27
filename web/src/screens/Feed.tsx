@@ -8,8 +8,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
-import { ANNOUNCE_MS, announce, isStep, NEARBY, type Step } from "../a11y/nearby.ts";
+import { ANNOUNCE_MS, announce, isStep, nearby, type Step } from "../a11y/nearby.ts";
 import type { Sent } from "../api/actions.ts";
+import { say } from "../locales/say.ts";
 
 export interface FeedCard {
   id: string;
@@ -25,7 +26,7 @@ export interface FeedCard {
 }
 
 export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
-const label = (r: Radius) => (r >= 1000 ? `${r / 1000} км` : `${r} м`);
+const label = (r: Radius) => (r >= 1000 ? say("web.feed.km", { n: r / 1000 }) : say("web.feed.m", { n: r }));
 
 export function Feed(
   { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, sent, gone }: {
@@ -97,42 +98,42 @@ export function Feed(
     <main className="screen feed" data-screen="feed" data-sealed={sealed}>
       <header>
         <div>
-          <h1>Лента</h1>
+          <h1>{say("web.feed.title")}</h1>
           {/* What the reader hears: the announced step, not every flicker of it. */}
           <p className="muted nearby" aria-live="polite" role="status" data-testid="nearby" data-step={said ?? undefined}>
-            {said ? NEARBY[said] : ""}
+            {said ? nearby(said) : ""}
           </p>
         </div>
         <label className="radius">
-          <span className="visually-hidden">радиус круга</span>
+          <span className="visually-hidden">{say("web.feed.radius")}</span>
           <select value={radius} onChange={(e) => onRadius(Number(e.target.value) as Radius)} data-testid="radius">
             {RADII.map((r) => <option key={r} value={r}>{label(r)}</option>)}
           </select>
         </label>
       </header>
       <nav className="actions">
-        <button type="button" className="primary" onClick={onWrite} data-testid="write">написать</button>
-        <button type="button" onClick={onLikes} data-testid="likes">лайкнутое</button>
+        <button type="button" className="primary" onClick={onWrite} data-testid="write">{say("feed.write")}</button>
+        <button type="button" onClick={onLikes} data-testid="likes">{say("liked.title")}</button>
       </nav>
       {sent && (
         <p className="warn" data-testid="sent" data-state={sent.state}>
-          {sent.state === "published" ? "Ваша фраза вышла: " : "Ваша фраза читается — выйдет после проверки: "}
+          {sent.state === "published" ? say("web.feed.sent_out") : say("web.feed.sent_held")}
           «{sent.text}»
         </p>
       )}
       {gone && (
         <p className="muted" data-testid="gone" data-why={gone.why}>
-          {gone.why === "hidden" ? "Фраза скрыта из вашей ленты." : "Автор заблокирован: его фраз здесь больше нет."}
+          {gone.why === "hidden" ? say("web.feed.hidden") : say("web.feed.blocked")}
         </p>
       )}
       {state === "failed" && <p className="error" data-testid="error">{error}</p>}
       {state === "ready" && items.length === 0 && (
         <section className="empty" data-testid="quiet">
-          <h2>Здесь пока тихо</h2>
-          <p className="muted">В вашем круге сейчас никто не говорит.</p>
+          <h2>{say("web.feed.empty")}</h2>
+          <p className="muted">{say("web.feed.empty_hint")}</p>
           {radius < 10000 && (
             <button type="button" onClick={() => onRadius(RADII[RADII.indexOf(radius) + 1])}>
-              шире круг — {label(RADII[RADII.indexOf(radius) + 1])}
+              {say("web.feed.wider", { radius: label(RADII[RADII.indexOf(radius) + 1]) })}
             </button>
           )}
         </section>
@@ -142,16 +143,16 @@ export function Feed(
           <li key={card.id} className="card" data-testid="card" data-id={card.id} onClick={() => onOpen(card)} role="button" tabIndex={0}>
             {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
             <p>{card.text}</p>
-            <span className="muted">{card.mode} · {card.lang} · ♥ {card.like_count}{card.soon ? " · скоро исчезнет" : ""}</span>
+            <span className="muted">{card.mode} · {card.lang} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
           </li>
         ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
       {next && state === "ready" && (
-        <button type="button" onClick={() => load(next)} data-testid="more">показать ещё</button>
+        <button type="button" onClick={() => load(next)} data-testid="more">{say("liked.more")}</button>
       )}
       <footer className="muted">
-        ключи: {sealed === "unlocked" ? "отперто ПИНом, обёртка та же" : sealed === "unlocked-new-wrap" ? "отперто ПИНом, обёртка НЕ та" : sealed === "ok" ? "печать хранилища сходится" : "печать хранилища не сходится"}
+        {say("web.feed.keys", { state: sealed === "unlocked" ? say("web.feed.keys_unlocked") : sealed === "unlocked-new-wrap" ? say("web.feed.keys_new_wrap") : sealed === "ok" ? say("web.feed.keys_ok") : say("web.feed.keys_bad") })}
       </footer>
     </main>
   );

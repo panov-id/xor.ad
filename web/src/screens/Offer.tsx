@@ -11,6 +11,7 @@
 // forwards /o/* to the node, vite.config.ts).
 
 import { useEffect, useState } from "react";
+import { say } from "../locales/say.ts";
 
 type Exit = { domain: string; disabled: boolean };
 type State = { at: "loading" } | { at: "ok"; exit: Exit } | { at: "missing" } | { at: "failed" };
@@ -42,46 +43,46 @@ export function Offer({ code, onHome }: { code: string; onHome: () => void }) {
   return (
     <main className="screen offer-exit" data-screen="offer-exit" data-state={state.at}>
       <header>
-        <h1>Ссылка из оффера</h1>
+        <h1>{say("web.offer.title")}</h1>
       </header>
       {state.at === "loading" && <p className="muted" data-testid="loading" role="status" aria-live="polite">…</p>}
       {state.at === "missing" && (
         <section className="empty" data-testid="missing">
-          <h2>Такой ссылки нет</h2>
-          <p className="muted">Проверьте код в адресе: у нас ссылки с таким кодом не было или её уже нет.</p>
+          <h2>{say("web.offer.noSuch")}</h2>
+          <p className="muted">{say("web.offer.checkCode")}</p>
         </section>
       )}
       {state.at === "failed" && (
         <section className="empty" data-testid="failed">
-          <h2>У нас не получилось</h2>
-          <p className="muted">Повторите чуть позже.</p>
+          <h2>{say("web.offer.failed")}</h2>
+          <p className="muted">{say("web.offer.later")}</p>
         </section>
       )}
       {state.at === "ok" && (
         <section className="exit" data-testid="exit" data-disabled={state.exit.disabled}>
           <p>
-            Ссылка ведёт на сайт <strong data-testid="domain">{state.exit.domain}</strong>.
+            {say("web.offer.leadsTo")} <strong data-testid="domain">{state.exit.domain}</strong>.
           </p>
           {state.exit.disabled
             ? (
               <p className="warn" data-testid="disabled">
-                Ссылка погашена: оффер снят, скрыт по жалобам или скидка кончилась. Дальше она не ведёт.
+                {say("web.offer.disabled")}
               </p>
             )
             : (
               <>
                 <p className="muted">
-                  Мы не проверяем, что там сегодня: смотрите на домен, а не на обещание. Переход считается один раз.
+                  {say("web.offer.warn")}
                 </p>
                 <a className="button primary" href={`/o/${encodeURIComponent(code)}/go`} rel="noopener noreferrer nofollow" data-testid="go">
-                  перейти на {state.exit.domain}
+                  {say("web.offer.go", { domain: state.exit.domain })}
                 </a>
               </>
             )}
         </section>
       )}
       <footer>
-        <button type="button" onClick={onHome} data-testid="home">на главную</button>
+        <button type="button" onClick={onHome} data-testid="home">{say("web.offer.home")}</button>
       </footer>
     </main>
   );

@@ -6,15 +6,16 @@
 import { useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { forget, PinRefused, type Record_, unlockAfterReload } from "../vault.ts";
+import { say } from "../locales/say.ts";
 
 // The node's refusal as one line, in the terminal's words (depth/ink/locales/
 // ru.json pin.*, verbatim). 401 is a session the tenth miss froze — the guard
 // answers before the PIN is checked — and reads as the lock; 429 is "too
 // soon", the PIN was not checked, so no attempts are named (verifier of W1c).
 function pinLine(e: PinRefused): string {
-  if (e.code === "pin_mismatch") return `ПИН не подходит. Осталось попыток: ${e.attemptsLeft ?? "?"}`;
-  if (e.code === "pin_locked" || e.code === "unauthorized" || e.code === "status_401") return "Вход закрыт до бумажного кода.";
-  if (e.code === "rate_limited") return `Слишком рано после прошлой попытки. Ещё раз через ${e.retryAfter ?? "?"} с.`;
+  if (e.code === "pin_mismatch") return say("pin.mismatch", { n: e.attemptsLeft ?? "?" });
+  if (e.code === "pin_locked" || e.code === "unauthorized" || e.code === "status_401") return say("pin.locked");
+  if (e.code === "rate_limited") return say("pin.wait", { n: e.retryAfter ?? "?" });
   return e.message;
 }
 
@@ -37,7 +38,7 @@ export function Unlock({ record, onDone, onForget, onRestore }: { record: Record
         // it (WebCrypto's OperationError carries no words): only the paper
         // code gets back. The line is the lock's own until chat_RU.md says
         // one for this case (owner.md, 27.09.2026).
-        setError("Вход закрыт до бумажного кода.");
+        setError(say("pin.locked"));
       }
       setPin("");
     } finally {
@@ -47,19 +48,19 @@ export function Unlock({ record, onDone, onForget, onRestore }: { record: Record
 
   return (
     <main className="screen unlock" data-screen="unlock">
-      <header><h1>ПИН</h1></header>
-      <p className="muted">Это устройство помнит вас. Введите ПИН, чтобы продолжить.</p>
+      <header><h1>{say("reg.pin")}</h1></header>
+      <p className="muted">{say("web.unlock.remembers")}</p>
       <label>
-        ПИН
+        {say("reg.pin")}
         <input type="password" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" data-testid="unlock-pin" autoFocus />
       </label>
       {error && <p className="error" data-testid="error">{error}</p>}
       <button type="button" className="primary" disabled={pin.length !== 6 || busy} onClick={unlock} data-testid="unlock">
-        {busy ? "спрашиваем узел…" : "открыть"}
+        {busy ? say("web.unlock.asking") : say("inbox.enter")}
       </button>
-      {error && <button type="button" onClick={onRestore} data-testid="unlock-restore">открыть устройство бумажным кодом</button>}
+      {error && <button type="button" onClick={onRestore} data-testid="unlock-restore">{say("web.unlock.restore")}</button>}
       <button type="button" onClick={async () => { await forget(); onForget(); }} data-testid="forget">
-        это не я — забыть это устройство
+        {say("web.unlock.forget")}
       </button>
     </main>
   );

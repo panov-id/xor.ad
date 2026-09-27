@@ -12,6 +12,9 @@ export default defineConfig({
   use: {
     baseURL: process.env.WEB_URL ?? "http://localhost:4173",
     ...devices["Pixel 5"],
+    // The page picks its language from the browser (web/src/locales/say.ts,
+    // W13); the specs read the Russian words.
+    locale: "ru-RU",
     trace: "retain-on-failure",
     // The cabinet's service is https with the stand's own certificate (A1).
     ignoreHTTPSErrors: true,

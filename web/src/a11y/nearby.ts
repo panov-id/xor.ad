@@ -12,17 +12,17 @@
 //   once in ANNOUNCE_MS — a handle dragged across five radii in a second is one
 //   announcement, the last, not five.
 
+import { say } from "../locales/say.ts";
+
 export type Step = "none" | "few" | "about_ten" | "tens" | "hundreds";
 
-export const NEARBY: Record<Step, string> = {
-  none: "здесь пока никого",
-  few: "рядом мало людей",
-  about_ten: "рядом около десятка",
-  tens: "рядом десятки",
-  hundreds: "рядом сотни",
-};
+const STEPS: readonly Step[] = ["none", "few", "about_ten", "tens", "hundreds"];
 
-export const isStep = (s: unknown): s is Step => typeof s === "string" && s in NEARBY;
+// The words of a step, made when asked (W14): a list built when the module
+// loads keeps the language the page had then.
+export const nearby = (step: Step): string => say(`web.nearby.${step}`);
+
+export const isStep = (s: unknown): s is Step => typeof s === "string" && (STEPS as readonly string[]).includes(s);
 
 // Not more often than this: a polite region that changes twice a second is a
 // reader talking over itself.

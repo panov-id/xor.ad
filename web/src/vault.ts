@@ -42,6 +42,7 @@ import { base64url, type SigningKey } from "../../depth/core/sign.ts";
 import { HeldKey } from "../../depth/core/transfer.ts";
 import { Arrival } from "../../depth/core/transfer_move.ts";
 import { API_KEY, NODE_BASE } from "./config.ts";
+import { say } from "./locales/say.ts";
 
 const DB = "xor-vault";
 const STORE = "identity";
@@ -213,7 +214,7 @@ async function unsealLong(record: Record_, key: CryptoKey): Promise<CryptoKey> {
 // left, or the lock — the counter is the node's (chat spec §8.2).
 export class PinRefused extends Error {
   constructor(public readonly code: string, public readonly attemptsLeft?: number, public readonly retryAfter?: number) {
-    super(code === "pin_locked" ? "десять неверных ПИНов: вход закрыт до бумажного кода" : "неверный ПИН");
+    super(code === "pin_locked" ? say("web.vault.pinLocked") : say("web.vault.pinWrong"));
   }
 }
 

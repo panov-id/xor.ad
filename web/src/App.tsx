@@ -173,8 +173,8 @@ function Face() {
 
   const nav = seated && (screen.at === "feed" || screen.at === "inbox" || screen.at === "me") && (
     <nav className="nav screen" style={{ minHeight: 0, paddingBottom: 0 }} data-testid="nav">
-      <button type="button" aria-current={screen.at === "feed" ? "page" : undefined} onClick={() => setScreen({ at: "feed" })} data-testid="nav-feed">лента</button>
-      <button type="button" aria-current={screen.at === "inbox" ? "page" : undefined} onClick={() => leaveFeed({ at: "inbox" })} data-testid="nav-inbox">разговоры</button>
+      <button type="button" aria-current={screen.at === "feed" ? "page" : undefined} onClick={() => setScreen({ at: "feed" })} data-testid="nav-feed">{say("web.nav.feed")}</button>
+      <button type="button" aria-current={screen.at === "inbox" ? "page" : undefined} onClick={() => leaveFeed({ at: "inbox" })} data-testid="nav-inbox">{say("web.nav.inbox")}</button>
       <button type="button" aria-current={screen.at === "me" ? "page" : undefined} onClick={() => leaveFeed({ at: "me" })} data-testid="tab-me">{say("me.title")}</button>
     </nav>
   );

@@ -221,7 +221,9 @@ function Face() {
     case "unlock":
       return <Unlock record={screen.record} onDone={unlocked} onForget={() => setScreen({ at: "splash" })} onRestore={() => setScreen({ at: "restore" })} />;
     case "offer":
-      return <Offer code={screen.code} onHome={() => { history.replaceState(null, "", "/"); setScreen({ at: "loading" }); location.reload(); }} />;
+      // The report on the link is signed: offered only to an identity open in
+      // this tab already (WS3); the link does not unlock one for it.
+      return <Offer code={screen.code} client={seated?.client ?? null} onHome={() => { history.replaceState(null, "", "/"); setScreen({ at: "loading" }); location.reload(); }} />;
     case "feed":
       return (
         <div className="tabbed">

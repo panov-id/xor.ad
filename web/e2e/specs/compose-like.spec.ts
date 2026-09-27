@@ -57,10 +57,12 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     await a.getByTestId("write").click();
     await expect(a.locator('[data-screen="composer"]')).toBeVisible();
     // The node's limit reached the counter (GET /limits), not a number of ours.
-    await expect(a.getByTestId("counter")).toHaveText(/^0 \/ \d+$/);
+    await expect(a.getByTestId("counter")).toHaveText(/^осталось \d+$/);
     await expect(a.getByTestId("send")).toBeDisabled();
     await a.getByTestId("text").fill(phrase);
-    await a.getByTestId("mode").selectOption("company");
+    // Sheet 04: the mode is three segments, not a list (WS4).
+    await a.getByTestId("mode-company").click();
+    await expect(a.getByTestId("mode")).toHaveAttribute("data-value", "company");
     await a.getByTestId("send").click();
 
     // Back on the feed with the node's verdict: a clean phrase is out (200 — P1).

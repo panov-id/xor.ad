@@ -188,13 +188,13 @@ Deno.test("a move needs the board's version: a repeat answers the same board, a 
   const { a, b, id } = await game();
   const start = await board(a, id);
   assertEquals([start.state.order, start.turn], [[1, 2], 1]);
-  assertEquals(code(await signed(b, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" })), "not_your_turn");
-  const moved = await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" });
+  assertEquals(code(await signed(b, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } })), "not_your_turn");
+  const moved = await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } });
   assertEquals(moved.status, 200, JSON.stringify(moved.body));
   assertEquals(moved.body.board.turn, 2);
-  const again = await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" });
+  const again = await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } });
   assertEquals(again.body.board.seq, moved.body.board.seq);
-  const stale = await signed(b, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e5" });
+  const stale = await signed(b, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "d6", to: "e5" } });
   assertEquals(code(stale), "stale_seq");
   // The move in words is a line everyone seated sees.
   const lines = (await signed(b, "GET", `/tables/${id}`)).body.lines as { kind: string }[];
@@ -211,11 +211,11 @@ Deno.test("an overdue turn is a pass; three in a row make a spectator and end a 
   assertEquals(once.turn, 2);
   // B plays, A lapses twice more — by the job this time, not by a request.
   const s = await board(b, id);
-  assertEquals((await signed(b, "POST", `/tables/${id}/moves`, { seq: s.seq, move: "d5" })).status, 200);
+  assertEquals((await signed(b, "POST", `/tables/${id}/moves`, { seq: s.seq, move: { from: "b6", to: "a5" } })).status, 200);
   await overdue();
   await tables.autopass();
   const t = await board(b, id);
-  assertEquals((await signed(b, "POST", `/tables/${id}/moves`, { seq: t.seq, move: "c5" })).status, 200);
+  assertEquals((await signed(b, "POST", `/tables/${id}/moves`, { seq: t.seq, move: { from: "f6", to: "g5" } })).status, 200);
   await overdue();
   await tables.autopass();
   const [seat] = await database.queryOrThrow<{ playing: boolean }>(
@@ -507,7 +507,7 @@ Deno.test({
     };
     try {
       const start = await board(a, id);
-      assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" })).status, 200);
+      assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } })).status, 200);
       const boardFrame = await waitFor("b", "board");
       assert(boardFrame, `no board frame reached the other seat: ${JSON.stringify(sent.get("b"))}`);
       assertEquals(boardFrame!.data.turn, 2, "the frame carries the board after the move");
@@ -595,6 +595,75 @@ Deno.test({ name: "word: the setter's word is hidden from the others and from th
   assertEquals([s.state.word.setter, s.turn], [2, 2], "the guesser sets the next word");
 });
 
+// G1g: the last four classes, one test each, and the seats of a class.
+const moveAs = async (who: Person, id: string, move: unknown) =>
+  signed(who, "POST", `/tables/${id}/moves`, { seq: (await seen(who, id)).seq, move });
+const reasonOf = (r: { body: { error?: { reason?: string } } }) => r.body.error?.reason;
+const setState = (id: string, path: string, value: unknown) =>
+  database.queryOrThrow(
+    `UPDATE table_games SET state = jsonb_set(state, $2::text[], $3::text::jsonb) WHERE table_id = $1 AND ended_at IS NULL`,
+    [id, path, JSON.stringify(value)],
+  );
+
+Deno.test({ name: "a class seats no more than the spec's table says: the word two", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const a = await person();
+  const three = await signed(a, "POST", "/tables", { class: "word", set: "hangman", seats: 3, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce() });
+  assertEquals([three.status, three.body.error?.message], [400, "a word table seats at most 2"]);
+});
+
+Deno.test({ name: "grid: one's own piece blocks the cell, and a con ends only when the other side agrees", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("grid", "checkers");
+  assertEquals(reasonOf(await moveAs(a, id, { from: "c3", to: "b2" })), "the cell is taken by your own piece");
+  assertEquals(reasonOf(await moveAs(a, id, { from: "d6", to: "e5" })), "no piece of yours on that cell");
+  assertEquals((await moveAs(a, id, { con: "won" })).status, 200);
+  assertEquals(reasonOf(await moveAs(b, id, { con: "won" })) ?? "claimed", "claimed");
+  // B claimed too, so B's claim stands; A agrees to it.
+  const agreed = await moveAs(a, id, { con: "agree" });
+  assertEquals(agreed.status, 200, JSON.stringify(agreed.body));
+  assertEquals(agreed.body.board.score["2"], 1, "the claimant scores once the other side agrees");
+  assertEquals(agreed.body.board.state.grid.cells["c3"]?.seat, 1, "a new con starts from the start");
+});
+
+Deno.test({ name: "dice: the node rolls once a turn, the move comes after the roll, and a claim not agreed to is dropped", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("dice", "backgammon");
+  assertEquals(reasonOf(await moveAs(a, id, { move: "13/7" })), "roll first");
+  const rolled = await moveAs(a, id, { roll: true });
+  const dice = rolled.body.board.state.dice.rolled as number[];
+  assert(dice.length === 2 && dice.every((d) => d >= 1 && d <= 6), `not two dice: ${JSON.stringify(dice)}`);
+  assertEquals(rolled.body.board.turn, 1, "the roller keeps the turn to move");
+  assertEquals(reasonOf(await moveAs(a, id, { roll: true })), "the dice are already rolled this turn");
+  assertEquals((await moveAs(a, id, { move: "13/7 13/10" })).body.board.turn, 2);
+  await moveAs(b, id, { con: "won" });
+  await moveAs(a, id, { roll: true });
+  assertEquals((await seen(a, id)).state.dice.claim, null, "a move instead of agreeing drops the claim");
+});
+
+Deno.test({ name: "dominoes: hands are cut per seat, a bone must match its end, the empty hand scores the others' pips", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, b, id } = await gameOf("free", "double-six");
+  const mine = await seen(a, id);
+  assertEquals([mine.state.free.hands["1"].length, mine.state.free.hands["2"], mine.state.free.boneyard], [7, { count: 7 }, { count: 14 }]);
+  await setState(id, "{free,hands,1}", ["6:6", "1:2"]);
+  await setState(id, "{free,line}", ["3:4"]);
+  assertEquals(reasonOf(await moveAs(a, id, { play: "6:6", end: "right" })), "the bone does not match that end");
+  await setState(id, "{free,hands,1}", ["4:5"]);
+  const theirs = (await seen(b, id)).state.free.hands["2"] as string[];
+  const expected = theirs.reduce((sum, bone) => sum + bone.split(":").reduce((s2, h) => s2 + Number(h), 0), 0);
+  const won = await moveAs(a, id, { play: "5:4", end: "right" });
+  assertEquals(won.status, 200, JSON.stringify(won.body));
+  assertEquals([won.body.board.over, won.body.board.score["1"]], [true, expected], "the empty hand scores the pips left");
+  assertEquals(won.body.board.state.free.line, ["3:4", "4:5"], "the bone turns to match");
+});
+
+Deno.test({ name: "physics: a flick slides until it hits, pushes a piece off the board for a point, and the last side standing ends it", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, id } = await gameOf("physics", "chapayev");
+  await setState(id, "{physics,cells}", { "3:5": 1, "3:7": 2, "0:0": 1 });
+  assertEquals(reasonOf(await moveAs(a, id, { flick: { piece: "3:7", dir: [0, 1], power: 2 } })), "no piece of yours there");
+  const flicked = await moveAs(a, id, { flick: { piece: "3:5", dir: [0, 1], power: 3 } });
+  assertEquals(flicked.status, 200, JSON.stringify(flicked.body));
+  assertEquals(flicked.body.board.state.physics.cells, { "3:6": 1, "0:0": 1 }, "stopped where it hit, the other pushed off");
+  assertEquals([flicked.body.board.score["1"], flicked.body.board.over], [1, true]);
+});
+
 // G1f: the same through a real socket — a ticket bought by a signed call,
 // spent by a WebSocket in Sec-WebSocket-Protocol on a served GET /chat, frames
 // read off the wire, and the close the seat's loss makes (session_freeze.test.ts
@@ -635,7 +704,7 @@ Deno.test({
         return frames.find((f) => f.type === type);
       };
       const start = await board(a, id);
-      assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" })).status, 200);
+      assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: { from: "c3", to: "d4" } })).status, 200);
       const moved = await waitFor("board");
       assert(moved, `no board frame came over the wire: ${JSON.stringify(frames)}`);
       assertEquals(moved!.data.turn, 2);

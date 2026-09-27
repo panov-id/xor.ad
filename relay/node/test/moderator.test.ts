@@ -234,4 +234,37 @@ Deno.test({ name: "E2b: no more than MODERATOR_CONCURRENCY questions are in flig
   assertEquals((await moderator.hintQueuedPhrase(crypto.randomUUID(), "x", config, slow))?.verdict, "reject");
 });
 
+// VF4 · whatever the model says, the phrase stays in the person's queue: a
+// publish or an unsure hint must not publish it either. The row is read after
+// the hint landed and a while later, so a write that follows the hint (and
+// whose failure the hint path would swallow) is seen in the row itself.
+for (const [verdict, answer] of [
+  ["publish", '{"verdict":"publish","reason":"fine"}'],
+  ["unsure", "no verdict here"],
+  ["reject", '{"verdict":"reject","reason":"a link"}'],
+] as const) {
+  Deno.test({
+    name: `VF4: a ${verdict} hint leaves the phrase in the person's queue`,
+    sanitizeOps: false,
+    sanitizeResources: false,
+    async fn() {
+      Deno.env.set("MODERATOR_URL", MODEL_URL);
+      try {
+        reply = answer;
+        const said = await (await author())(`www.example-${verdict}.org`);
+        assertEquals(said.status, 202, JSON.stringify(said.body));
+        assertEquals((await hintOf(said.body.id))?.verdict, verdict, `the ${verdict} hint did not land`);
+        await new Promise((r) => setTimeout(r, 500));
+        const [row] = await database.queryOrThrow<{ visible_at: Date | null; expires_at: Date | null }>(
+          `SELECT visible_at, expires_at FROM feed_messages WHERE id = $1`, [said.body.id],
+        );
+        assert(row, `the phrase is gone after a ${verdict} hint`);
+        assertEquals([row.visible_at, row.expires_at], [null, null], `a ${verdict} hint took the phrase out of the person's queue`);
+      } finally {
+        Deno.env.delete("MODERATOR_URL");
+      }
+    },
+  });
+}
+
 Deno.test({ name: "E2: the stand-in model stops", sanitizeOps: false, sanitizeResources: false, fn: () => model.shutdown() });

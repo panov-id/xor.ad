@@ -18,6 +18,8 @@ export interface MatchRow {
   phrase: { text: string; mode: string };
   waiting_for_you: boolean;
   state: string;
+  // Whether I agreed already and wait for them (relay routes/inbox.ts, P10).
+  my_consent?: "waiting" | "none";
   arrived_since?: boolean;
   answered_since?: boolean;
 }

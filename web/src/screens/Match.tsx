@@ -21,7 +21,9 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack }: {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [declined, setDeclined] = useState(false);
-  const [waiting, setWaiting] = useState(false);
+  // The node remembers my consent (GET /inbox my_consent, P10): after a reload
+  // the match I agreed to waits, and "Поговорить" is not offered again (W7).
+  const [waiting, setWaiting] = useState(row.my_consent === "waiting");
   const [line, setLine] = useState("");
 
   async function talk() {

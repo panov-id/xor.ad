@@ -219,19 +219,22 @@ Deno.test({ name: "a complaint that the discount was not given: filed, counted o
 
   // §10.2: no e-mail, no complaint.
   assertEquals((await complain(a, { text: "не дали" })).status, 422);
-  assertEquals((await call("POST", `/offers/${offer.id}/complaints`, { body: { email: "x@example.test" } })).status, 401);
+  // The field is notifier_email (spec §3, contract): the old name is no address at all.
+  assertEquals((await complain(a, { email: "a@example.test", text: "не дали" })).status, 422, "`email` was read as the complainant's address");
+  assertEquals((await complain(a, { notifier_email: "a@example.test", text: "я".repeat(1001) })).status, 400, "a text past 1000 went through");
+  assertEquals((await call("POST", `/offers/${offer.id}/complaints`, { body: { notifier_email: "x@example.test" } })).status, 401);
 
-  const first = await complain(a, { email: "a@example.test", text: "скидку не дали" });
+  const first = await complain(a, { notifier_email: "a@example.test", text: "скидку не дали" });
   assertEquals([first.status, first.body.counts_towards_autohide], [202, true]);
-  const again = await complain(a, { email: "a@example.test", text: "и снова" });
+  const again = await complain(a, { notifier_email: "a@example.test", text: "и снова" });
   assertEquals([again.status, again.body.counts_towards_autohide], [202, false], "the same person counts once");
-  const tooNew = await complain(fresh, { email: "f@example.test" });
+  const tooNew = await complain(fresh, { notifier_email: "f@example.test" });
   assertEquals([tooNew.status, tooNew.body.counts_towards_autohide], [202, false], "a day-old writer does not count");
-  assertEquals((await complain(b, { email: "b@example.test" })).body.counts_towards_autohide, true);
+  assertEquals((await complain(b, { notifier_email: "b@example.test" })).body.counts_towards_autohide, true);
   const status = async () =>
     (await database.queryOrThrow<{ status: string }>(`SELECT status FROM offers WHERE id = $1`, [offer.id]))[0].status;
   assertEquals(await status(), "active", "two counting complaints hide nothing");
-  assertEquals((await complain(c, { email: "c@example.test" })).body.counts_towards_autohide, true);
+  assertEquals((await complain(c, { notifier_email: "c@example.test" })).body.counts_towards_autohide, true);
   assertEquals(await status(), "hidden", "the third counting complaint from a third person hides the offer");
 
   // The cabinet reads them by text and date, and answers one of them once.
@@ -307,7 +310,7 @@ Deno.test({ name: "a venue's offer reaches the feed of its storefront around the
   assertEquals(far.filter((i) => i.kind === "offer").length, 0, "an offer reached a feed a hundred kilometres away");
 
   // The person complains by the id the card carried.
-  const complaint = await signedCall(viewer, "POST", `/offers/${cards[0].id}/complaints`, { email: "v@example.test", text: "не дали" });
+  const complaint = await signedCall(viewer, "POST", `/offers/${cards[0].id}/complaints`, { notifier_email: "v@example.test", text: "не дали" });
   assertEquals(complaint.status, 202, JSON.stringify(complaint.body));
   assertEquals((await cabinet("GET", "/adv/complaints")).body.items.length, 1);
 

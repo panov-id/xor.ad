@@ -2027,3 +2027,32 @@ test("a complaint about an offer goes only with an e-mail, and says \"sent\" onc
   assert.deepEqual(sent, [["o1", "ann@example.org", "не дали скидку"]]);
   app.unmount();
 });
+
+// V8 · the complaint is reached from the feed: "complain" on an offer card
+// hands its id on; on a neighbour's phrase the action stays greyed.
+test("an offer card in the feed leads to the complaint by its id, a phrase does not", async () => {
+  const complained: string[] = [];
+  const client = {
+    feed: () => Promise.resolve({ items: [
+      { id: "p1", text: "кто на пробежку", name: "Аня", age: 30, distance_m: 100, minutes_ago: 2 },
+      { kind: "offer", id: "o1", text: "кофе за полцены", offer: { discount_value: "-50%" } },
+    ] }),
+  };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+    onComplain: (id: string) => complained.push(id),
+  }));
+  await settle();
+  await settle();
+  assert.match(app.lastFrame()!, /пожаловаться/, "the row does not offer a complaint");
+  // Open, like, hide, block, complain: four to the right.
+  await type(app, RIGHT, RIGHT, RIGHT, RIGHT, ENTER);
+  assert.deepEqual(complained, [], "a neighbour's phrase was complained about as an offer");
+  await type(app, DOWN, ENTER);
+  assert.deepEqual(complained, ["o1"], "the offer card did not lead to its complaint");
+  app.unmount();
+});

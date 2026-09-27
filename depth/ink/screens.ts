@@ -187,7 +187,7 @@ type Phrase = {
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
-  { say, client, place, mine, onWrite, onInbox, onPoint, onMe, onTable, onOpenTable, onError }: {
+  { say, client, place, mine, onWrite, onInbox, onPoint, onMe, onTable, onOpenTable, onComplain, onError }: {
     say: Say;
     client: Client;
     place: Place;
@@ -202,6 +202,8 @@ export function Feed(
     onTable?: () => void;
     // A table card in the feed (G1h): sit down at it.
     onOpenTable?: (tableId: string) => void;
+    // An offer card (kind offer, O1d): the discount was not given.
+    onComplain?: (offerId: string) => void;
     onError: (message: string) => void;
   },
 ): ReactElement {
@@ -216,6 +218,7 @@ export function Feed(
   }, [place.lat, place.lon, place.radius]);
   const chosen = items?.[at];
   const isTable = chosen?.kind === "table";
+  const isOffer = chosen?.kind === "offer";
   const drop = (id: string) => {
     setItems((list) => {
       const left = (list ?? []).filter((p) => p.id !== id);
@@ -301,6 +304,7 @@ export function Feed(
         { key: "like", label: say("feed.like"), disabled: !chosen || isTable },
         { key: "hide", label: say("feed.hide"), disabled: !chosen || isTable },
         { key: "block", label: say("block.item"), disabled: !chosen || isTable },
+        ...(onComplain ? [{ key: "complain", label: say("feed.complain"), disabled: !isOffer }] : []),
         { key: "write", label: say("feed.write") },
         ...(onTable ? [{ key: "table", label: say("feed.table") }] : []),
         { key: "inbox", label: say("feed.inbox") },
@@ -310,6 +314,7 @@ export function Feed(
       ],
       onPick: (key) => {
         if (key === "write") return onWrite();
+        if (key === "complain") return isOffer && chosen && onComplain?.(chosen.id);
         if (key === "table") return onTable?.();
         if (key === "inbox") return onInbox();
         if (key === "point") return onPoint();

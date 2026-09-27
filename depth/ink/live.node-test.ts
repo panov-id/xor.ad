@@ -22,6 +22,8 @@ import { HeldKey } from "../core/transfer.ts";
 import { Arrival, Departure } from "../core/transfer_move.ts";
 import { App } from "./app.ts";
 import { SeatedElsewhere, TableRoom } from "./table.ts";
+import { Feed } from "./screens.ts";
+import { Complaint } from "./screens/complaint.ts";
 import { strings } from "./strings.ts";
 
 const node = process.env.DEPTH_NODE_URL!;
@@ -35,7 +37,7 @@ const DOWN = "\u001B[B", UP = "\u001B[A", RIGHT = "\u001B[C", LEFT = "\u001B[D",
 // The feed's row of actions, in the order the screen draws it. Counting
 // presses by hand broke the moment two actions were inserted, so the test
 // names what it wants instead.
-const FEED_ROW = ["open", "like", "hide", "block", "write", "table", "inbox", "point", "me", "exit"];
+const FEED_ROW = ["open", "like", "hide", "block", "complain", "write", "table", "inbox", "point", "me", "exit"];
 
 async function pickInFeed(app: { stdin: { write: (s: string) => void } }, action: string) {
   const steps = FEED_ROW.indexOf(action);
@@ -673,6 +675,59 @@ async function main() {
       assert.deepEqual(seats, ["Игорь", "Лена"], "the person is not at the new table");
       screen.unmount();
       out("ok   seated elsewhere: the node named the old table, and the screen stood up there and sat down here");
+    }
+    // V8 · a complaint about an offer, from the feed's card to a row on the
+    // node: the offer and ten neighbours' phrases go in as rows (one offer per
+    // ten phrases, routes/feed.ts), the person walks to the card and complains.
+    {
+      const advertiser = crypto.randomUUID(), venue = crypto.randomUUID(), offer = crypto.randomUUID();
+      await sql`INSERT INTO advertisers (id, email, contact) VALUES (${advertiser}, 'cafe@depth.test', 'кофейня')`;
+      await sql`INSERT INTO venues (id, advertiser_id, name, address, verification_status, lat, lon, area_radius)
+                VALUES (${venue}, ${advertiser}, 'Угол', 'ул. Реки 1', 'verified', 48.1, 11.6, 1000)`;
+      await sql`INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, redirect_code, discount_until, status, expires_at)
+                VALUES (${offer}, 'sosed', ${venue}, 'кофе за полцены', '-50%', ${"d" + offer.replaceAll("-", "")},
+                        now() + interval '1 day', 'active', now() + interval '1 hour')`;
+      const join = async (name: string) => {
+        const c = new Client(node, apiKey);
+        await c.register({ name, age: 30 }, { pin: "123456", paperCode: newPaperCode() });
+        await c.confirmPaperCode();
+        return c;
+      };
+      const author = await join("Костя");
+      for (let i = 0; i < 10; i++) {
+        await sql.unsafe(
+          `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+             lat_published, lon_published, visible_at, expires_at)
+           VALUES ($1, 'sosed', $2, $3, 'alone', 'und', 48.1, 11.6, 1000, 48.1, 11.6, now(), now() + interval '3 hours')`,
+          [crypto.randomUUID(), author.identityId, `фраза ${i}`],
+        );
+      }
+      const person = await join("Вера");
+      let complaining: string | null = null;
+      const feedScreen = render(h(Feed, {
+        say, client: person, place: { lat: 48.1, lon: 11.6, radius: 1000 },
+        onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {},
+        onError: (m: string) => out(`     feed error: ${m}`),
+        onComplain: (id: string) => { complaining = id; },
+      }));
+      await until(feedScreen, /кофе за полцены/, 20);
+      const items = (await person.feed({ lat: 48.1, lon: 11.6, radius: 1000 })).items as Array<{ kind?: string; id: string }>;
+      const at = items.findIndex((i) => i.kind === "offer");
+      assert.ok(at >= 0, "no offer card in the live feed");
+      for (let i = 0; i < at; i++) await type(feedScreen, DOWN);
+      await pickInFeed(feedScreen, "complain");
+      assert.equal(complaining, offer, "complain on the offer card did not carry the offer's id");
+      feedScreen.unmount();
+      let back = false;
+      const screen = render(h(Complaint, { say, client: person, offerId: complaining!, onBack: () => { back = true; } }));
+      await until(screen, /скидку не дали/, 10);
+      await type(screen, "vera@example.org", DOWN, "не дали скидку", DOWN, ENTER);
+      await until(screen, /отправлено/, 20);
+      await rowAppears(sql, `SELECT 1 FROM offer_complaints WHERE offer_id = $1 AND notifier_email = 'vera@example.org'`, [offer]);
+      await type(screen, ENTER);
+      assert.ok(back, "back from the sent complaint did not return");
+      screen.unmount();
+      out("ok   an offer card in the live feed led to the complaint, and the complaint landed on the node");
     }
   } catch (e) {
     failed++;

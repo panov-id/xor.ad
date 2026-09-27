@@ -33,6 +33,7 @@ await import("../src/routes/identity.ts");
 await import("../src/routes/tables.ts");
 await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
+await import("../src/routes/away.ts");
 
 const KEY_ID = "ak_pub_tablestest0000001";
 await database.queryOrThrow(
@@ -120,7 +121,7 @@ const nonce = () => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(
 const code = (r: { body: unknown }) => (r.body as { error?: { code?: string } }).error?.code;
 const setUp = (who: Person, n = nonce()) =>
   signed(who, "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: n });
-type Board = { seq: number; turn: number | null; order: number[] };
+type Board = { seq: number; turn: number | null; state: { order: number[] } };
 const board = async (who: Person, id: string) => (await signed(who, "GET", `/tables/${id}`)).body.board as Board;
 
 // Two playing at a fresh table: A sets it up, B sits and applies, A opens the
@@ -129,7 +130,7 @@ async function game(): Promise<{ a: Person; b: Person; id: string }> {
   const a = await person();
   const b = await person();
   const made = await setUp(a);
-  assertEquals(made.status, 200, JSON.stringify(made.body));
+  assertEquals(made.status, 201, JSON.stringify(made.body));
   const id = made.body.id as string;
   assertEquals((await signed(b, "POST", `/tables/${id}/seat`)).body, { seat: 2 });
   assertEquals((await signed(b, "POST", `/tables/${id}/lines`, { kind: "application", text: "возьмите" })).status, 202);
@@ -143,11 +144,13 @@ Deno.test("a table is seen only from a live seat, and a repeat of its nonce gets
   const stranger = await person();
   const n = nonce();
   const made = await setUp(a, n);
-  assertEquals(made.status, 200, JSON.stringify(made.body));
+  assertEquals(made.status, 201, JSON.stringify(made.body));
   assertEquals((await setUp(a, n)).body, made.body);
   const mine = await signed(a, "GET", `/tables/${made.body.id}`);
   assertEquals(mine.status, 200, JSON.stringify(mine.body));
-  assertEquals([mine.body.seat, mine.body.you_play, mine.body.playing, mine.body.watching], [1, true, 1, 0]);
+  assertEquals([mine.body.seat, mine.body.is_playing, mine.body.playing, mine.body.watching], [1, true, 1, 0]);
+  assertEquals(mine.body.seats, [{ seat: 1, name: "Аня", role: "playing" }]);
+  assert(!JSON.stringify(mine.body).includes(a.identity_id), "no identity leaves the node");
   // Not seated and not existing are one answer (SEC-4).
   const theirs = await signed(stranger, "GET", `/tables/${made.body.id}`);
   const none = await signed(stranger, "GET", `/tables/${crypto.randomUUID()}`);
@@ -180,7 +183,7 @@ Deno.test("sitting: one table at a time, and a band and a block get the same ref
 Deno.test("a move needs the board's version: a repeat answers the same board, a stale one is refused", async () => {
   const { a, b, id } = await game();
   const start = await board(a, id);
-  assertEquals([start.order, start.turn], [[1, 2], 1]);
+  assertEquals([start.state.order, start.turn], [[1, 2], 1]);
   assertEquals(code(await signed(b, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" })), "not_your_turn");
   const moved = await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" });
   assertEquals(moved.status, 200, JSON.stringify(moved.body));
@@ -250,7 +253,7 @@ Deno.test("blocking a seat stands the blocker up, the game goes on, and the bloc
   // C blocks seat 2 (B): C stands up, A and B play on.
   assertEquals((await signed(c, "POST", "/blocks", { table: id, seat: 2, nonce: nonce() })).status, 204);
   assertEquals((await signed(c, "GET", `/tables/${id}`)).status, 404, "the blocker stood up");
-  assertEquals((await board(a, id)).order, [1, 2], "the game goes on");
+  assertEquals((await board(a, id)).state.order, [1, 2], "the game goes on");
   assertEquals(code(await signed(c, "POST", `/tables/${id}/seat`)), "unavailable");
   // A seat at a table the caller does not sit at names nobody: 204, no block.
   const d = await person();
@@ -278,4 +281,32 @@ Deno.test("a line is hidden only for the one who hid it, and goes with the table
   await database.queryOrThrow(`UPDATE tables SET closed_at = now() WHERE id = $1`, [id]);
   await tables.pruneTables();
   assertEquals((await signed(a, "GET", "/hidden")).body, []);
+});
+
+Deno.test("a table is liked without sitting, once per person, and only by one who could sit there", async () => {
+  const { id } = await game();
+  const c = await person();
+  const count = async () =>
+    (await database.queryOrThrow<{ n: number }>(`SELECT like_count AS n FROM tables WHERE id = $1`, [id]))[0].n;
+  assertEquals((await signed(c, "POST", `/tables/${id}/like`)).body, { state: "liked" });
+  assertEquals((await signed(c, "POST", `/tables/${id}/like`)).body, { state: "liked" });
+  assertEquals(await count(), 1, "a repeat is not a second like");
+  assertEquals((await signed(c, "DELETE", `/tables/${id}/like`)).status, 204);
+  assertEquals(await count(), 0);
+  const teen = await person(14);
+  assertEquals((await signed(teen, "POST", `/tables/${id}/like`)).status, 404, "outside the band: no such table");
+});
+
+Deno.test("resigning makes a spectator and ends a game of two; stepping away frees the seat", async () => {
+  const { a, b, id } = await game();
+  assertEquals((await signed(b, "POST", `/tables/${id}/resign`)).status, 204);
+  assertEquals((await signed(b, "GET", `/tables/${id}`)).body.is_playing, false);
+  const [running] = await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM table_games WHERE table_id = $1 AND ended_at IS NULL`, [id]);
+  assertEquals(running.n, 0);
+  const away = await signed(a, "POST", "/away", { span: "short", nonce: nonce() });
+  assertEquals(away.status, 200, JSON.stringify(away.body));
+  const [seat] = await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM table_seats WHERE identity = $1 AND left_at IS NULL`, [a.identity_id]);
+  assertEquals(seat.n, 0, "the one who stepped away no longer sits");
 });

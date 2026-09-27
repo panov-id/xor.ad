@@ -7,7 +7,7 @@
 // else it is the 404 of a table that does not exist (SEC-4).
 //
 // Built here: set up, look, sit, stand, speak, move and pass, and the first
-// round opened by a `rematch` proposal. Not yet: liking a table, the socket
+// round opened by a `rematch` proposal, liking a table and resigning. Not yet: the socket
 // ticket, confirming a new game, draw and undo, resigning, congratulating,
 // kicking, and the moderation verdict of a line (lines wait with visible_at
 // NULL until the queue learns about tables).
@@ -30,6 +30,7 @@ import {
   lockGame,
   MOVE_WINDOW_MS,
   RADII,
+  resign,
   SEAT_LIMITS,
   STICKER_LIMITS,
   TABLE_CREATE_LIMITS,
@@ -90,12 +91,15 @@ const touch = (run: Query, tableId: string) =>
 function boardFor(game: { state: GameState; seq: number; pending: unknown; turn_due: Date | null } | null) {
   if (!game) return null;
   const s = game.state;
+  // The contract's Board (docs/api/openapi.yaml): whose turn by seat, the
+  // turn's term as expires_at; score stays empty until a class counts it.
   return {
     seq: game.seq,
-    order: s.order,
+    state: { order: s.order, moves: s.board },
     turn: s.turn === null ? null : s.order[s.turn] ?? null,
-    turn_due: game.turn_due ? Math.floor(new Date(game.turn_due).getTime() / 1000) : null,
-    moves: s.board,
+    score: {},
+    over: false,
+    expires_at: game.turn_due ? Math.floor(new Date(game.turn_due).getTime() / 1000) : null,
     pending: game.pending ?? null,
   };
 }
@@ -141,7 +145,7 @@ async function create(req: Request): Promise<Response> {
       if (!kept || kept.route !== "POST /tables") {
         return refuse("invalid_body", "this nonce was used on another route", 409);
       }
-      return json(kept.response, 200, sunsetHeader());
+      return json(kept.response, 201, sunsetHeader());
     }
     const allowed = checkAll(TABLE_CREATE_LIMITS, caller.identityId);
     if (!allowed.allowed) {
@@ -163,7 +167,7 @@ async function create(req: Request): Promise<Response> {
     await run(`INSERT INTO table_games (table_id, class, state) VALUES ($1, $2, $3::text::jsonb)`, [table.id, game, JSON.stringify(emptyState())]);
     const answer = { id: table.id };
     await run(`UPDATE nonces SET response = $3::text::jsonb WHERE session_id = $1 AND nonce = $2`, [caller.sessionId, nonce, JSON.stringify(answer)]);
-    return json(answer, 200, sunsetHeader());
+    return json(answer, 201, sunsetHeader());
   }).catch(unavailable);
 }
 
@@ -181,8 +185,17 @@ async function look(req: Request, tableId: string): Promise<Response> {
     );
     const game = await lockGame(run, tableId);
     // Lines from the moment of sitting down, and none of those the caller hid.
-    const lines = await run<{ id: string; seat_no: number; kind: string; text: string | null; sticker: string | null }>(
-      `SELECT l.id, l.seat_no, l.kind, l.text, l.sticker FROM table_lines l
+    // Who sits where, by seat and name — never the identity (§8.11).
+    const seats = await run<{ seat: number; name: string; role: string }>(
+      `SELECT s.seat_no AS seat, i.name,
+              CASE WHEN s.playing_from IS NULL THEN 'watching' ELSE 'playing' END AS role
+         FROM table_seats s JOIN identities i ON i.id = s.identity
+        WHERE s.table_id = $1 AND s.left_at IS NULL ORDER BY s.seat_no`,
+      [tableId],
+    );
+    const lines = await run<{ id: string; seat: number; kind: string; text: string | null; sticker: string | null; created_at: number }>(
+      `SELECT l.id, l.seat_no AS seat, l.kind, l.text, l.sticker,
+              floor(extract(epoch from l.created_at))::int AS created_at FROM table_lines l
         WHERE l.table_id = $1 AND l.visible_at IS NOT NULL AND l.created_at >= $2
           AND NOT EXISTS (SELECT 1 FROM hidden_messages h WHERE h.identity = $3 AND h.table_line_id = l.id)
         ORDER BY l.created_at`,
@@ -192,13 +205,13 @@ async function look(req: Request, tableId: string): Promise<Response> {
       id: tableId,
       class: table.game,
       set: table.set,
-      seats: table.seats,
       name: table.name,
       like_count: table.like_count,
       playing: counts.playing,
       watching: counts.watching,
       seat: seat.seat_no,
-      you_play: seat.playing,
+      is_playing: seat.playing,
+      seats,
       board: boardFor(game),
       lines,
     }, 200, sunsetHeader());
@@ -448,7 +461,69 @@ async function answer(req: Request, tableId: string, pid: string): Promise<Respo
   });
 }
 
+// Liking a table without sitting (§6.1, 17.09.2026): only a table the caller
+// could sit at — open, someone seated, bands each with each, no block either
+// way; anything else is the 404 of a table that does not exist.
+async function like(req: Request, tableId: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!UUID.test(tableId)) return notFound();
+  const me = caller.identityId;
+  return await transaction<Response>(async (run) => {
+    const [open] = await run(
+      `SELECT 1 FROM tables t WHERE t.id = $1 AND t.closed_at IS NULL
+          AND EXISTS (SELECT 1 FROM table_seats s WHERE s.table_id = t.id AND s.left_at IS NULL)
+          AND NOT EXISTS (SELECT 1 FROM table_seats s JOIN identities o ON o.id = s.identity JOIN identities me ON me.id = $2
+                           WHERE s.table_id = t.id AND s.left_at IS NULL
+                             AND (NOT ${bandBetween("me", "o")} OR ${blockedEither("me.id", "o.id")}))
+        FOR UPDATE OF t`,
+      [tableId, me],
+    );
+    if (!open) return notFound();
+    const added = await run(
+      `INSERT INTO table_likes (table_id, identity) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING 1`,
+      [tableId, me],
+    );
+    if (added.length > 0) await run(`UPDATE tables SET like_count = like_count + 1 WHERE id = $1`, [tableId]);
+    return json({ state: "liked" }, 200, sunsetHeader());
+  }).catch(unavailable);
+}
+
+async function unlike(req: Request, tableId: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (UUID.test(tableId)) {
+    const done = await transaction(async (run) => {
+      const gone = await run(`DELETE FROM table_likes WHERE table_id = $1 AND identity = $2 RETURNING 1`, [
+        tableId,
+        caller.identityId,
+      ]);
+      if (gone.length > 0) await run(`UPDATE tables SET like_count = like_count - 1 WHERE id = $1`, [tableId]);
+      return true;
+    }).catch((error) => unavailable(error));
+    if (done instanceof Response) return done;
+  }
+  return new Response(null, { status: 204, headers: sunsetHeader() });
+}
+
+async function giveUp(req: Request, tableId: string): Promise<Response> {
+  return await atTable(req, tableId, async (run, _caller, seat) => {
+    if (!seat.playing) return refuse("refused", "only a player resigns", 409);
+    await resign(run, tableId, seat.seat_no);
+    await run(
+      `INSERT INTO table_lines (brand, table_id, author_identity, text, seat_no, kind, visible_at)
+       SELECT brand, id, NULL, $2, $3, 'move', now() FROM tables WHERE id = $1`,
+      [tableId, `seat ${seat.seat_no} resigned`, seat.seat_no],
+    );
+    await touch(run, tableId);
+    return new Response(null, { status: 204, headers: sunsetHeader() });
+  });
+}
+
 route("POST", "/tables", (c) => create(c.req));
+route("POST", "/tables/:id/like", (c) => like(c.req, c.params.id));
+route("DELETE", "/tables/:id/like", (c) => unlike(c.req, c.params.id));
+route("POST", "/tables/:id/resign", (c) => giveUp(c.req, c.params.id));
 route("GET", "/tables/:id", (c) => look(c.req, c.params.id));
 route("POST", "/tables/:id/seat", (c) => sit(c.req, c.params.id));
 route("DELETE", "/tables/:id/seat", (c) => stand(c.req, c.params.id));

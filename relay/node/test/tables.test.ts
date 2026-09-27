@@ -853,3 +853,19 @@ Deno.test({
     assert(!seats.some((s) => s.identity === b.identity_id), "the blocker stays at the table after a block from a chat");
   },
 });
+
+// Graphemes are what a person counts, bytes what the database holds (db/064:
+// a name to 256, a line to 2048). A family emoji is one grapheme and 25 bytes:
+// 24 of them are a name the node let through and the CHECK refused with a 503
+// (verifier of GC2, 27.09.2026). Now the node says 400 before the insert.
+Deno.test({ name: "a name or a line of family emoji too long in bytes is a 400, not a 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const family = "\u{1F468}‍\u{1F469}‍\u{1F467}‍\u{1F466}";
+  const a = await person();
+  const named = await signed(a, "POST", "/tables", {
+    class: "grid", set: "checkers", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: family.repeat(24), nonce: nonce(),
+  });
+  assertEquals([named.status, named.body.error?.reason], [400, "too_many_bytes"], JSON.stringify(named.body));
+  const { b, id } = await game();
+  const said = await signed(b, "POST", `/tables/${id}/lines`, { kind: "line", text: family.repeat(128) });
+  assertEquals([said.status, said.body.error?.reason], [400, "too_many_bytes"], JSON.stringify(said.body));
+});

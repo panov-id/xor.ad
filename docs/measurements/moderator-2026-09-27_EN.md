@@ -58,15 +58,29 @@ measurement sends 35 % of the stream to the queue, so that is about 26 phrases a
 The hint comes after the 202 and does not hold up the author. Above that stream, requests wait
 longer in Ollama's queue; past the `MODERATOR_TIMEOUT_MS` timeout (20 s) there is no hint.
 
+## 4. The node with the real model, and repeatability (E2b)
+
+**Through the node.** `relay/moderator/run-live.sh`: a database migrated to the top; the model on an
+`internal` network; the test `relay/node/test/moderator_live.test.ts` in a container joined to both
+networks. A phrase with a link → `POST /feed` 202 → a row in `moderator_hints`: `reject`,
+`qwen2.5:3b-instruct`, 29013 ms (the first answer, loading the model). The phrase stayed in the
+person's queue. The control break — the node asks for a model that does not exist — is red: «the
+real model's hint never landed».
+
+**Repeatability.** `relay/moderator/repeat.sh`: the corpus twice, a fresh model start each time.
+**201 of 201** verdicts agreed, **0** differed. Both runs' summaries match section 1:
+reject 84, publish 116, unsure 1, misses 4, false catches 3.
+
+Time in these two runs: p50 **3630 ms** and **2688 ms**, p95 **7461 ms** and **7763 ms**. That is
+lower than in section 3 and bears out the caveat there: the first measurement shared the machine
+with other runs. The stream estimate of section 3 can be read as a lower bound.
+
 ## Not checked
 
-- The node end to end with the real model: a node with `MODERATOR_URL` → a row in
-  `moderator_hints`. The hint path is checked by a test with a stand-in model
-  (`relay/node/test/moderator.test.ts`, 4 of 4, control break red). The model is checked by this
-  measurement directly. I did not run the node together with the real model.
-- Whether answers repeat: `temperature 0`, but no second run was made.
 - The corpus is Russian and small (201 phrases); the model was not measured in the storefronts'
   other languages.
+- Repeatability is checked on one machine and one Ollama version (`0.3.14`); not on another CPU
+  or version.
 
 ## How to reproduce
 

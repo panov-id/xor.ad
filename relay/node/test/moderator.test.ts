@@ -202,4 +202,36 @@ Deno.test("E2: the model's answer is read as a verdict only when it is one", asy
   assertEquals(await moderator.askModerator("x", null), null);
 });
 
+Deno.test("E2b: a reason that carries an escape or a bidi mark is kept empty, the verdict stays", async () => {
+  const config = { url: "http://model", model: "m", timeoutMs: 1000 };
+  const answering = (reason: string): typeof fetch => () =>
+    Promise.resolve(Response.json({ message: { content: JSON.stringify({ verdict: "reject", reason }) } }));
+  for (const reason of ["\u001b[31mred", "link ‮txt.exe", "a​b"]) {
+    const hint = await moderator.askModerator("x", config, answering(reason));
+    assertEquals([hint?.verdict, hint?.reason], ["reject", ""], JSON.stringify(reason));
+  }
+  assertEquals((await moderator.askModerator("x", config, answering("a link")))?.reason, "a link");
+});
+
+Deno.test({ name: "E2b: no more than MODERATOR_CONCURRENCY questions are in flight; one over gets no hint", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const config = { url: "http://model", model: "m", timeoutMs: 5000 };
+  let started = 0;
+  let release!: () => void;
+  const gate = new Promise<void>((r) => (release = r));
+  const slow: typeof fetch = async () => {
+    started++;
+    await gate;
+    return Response.json({ message: { content: '{"verdict":"reject","reason":"x"}' } });
+  };
+  // Ids of no phrase: the hint's row is not written, the counting is the point.
+  const asking = Array.from({ length: 5 }, () => moderator.hintQueuedPhrase(crypto.randomUUID(), "x", config, slow));
+  await new Promise((r) => setTimeout(r, 50));
+  assertEquals(started, moderator.moderatorConcurrency(), "more questions went to the model than the limit");
+  release();
+  const answers = await Promise.all(asking);
+  assertEquals(answers.filter((a) => a === null).length, 5 - moderator.moderatorConcurrency(), "the ones over the limit were not dropped");
+  // The limit frees up once the answers are in.
+  assertEquals((await moderator.hintQueuedPhrase(crypto.randomUUID(), "x", config, slow))?.verdict, "reject");
+});
+
 Deno.test({ name: "E2: the stand-in model stops", sanitizeOps: false, sanitizeResources: false, fn: () => model.shutdown() });

@@ -12,6 +12,7 @@ import { ANNOUNCE_MS, announce, isStep, nearby, type Step } from "../a11y/nearby
 import { modes, type Sent } from "../api/actions.ts";
 import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
+import { HeaderFeed } from "../ui/Header.tsx";
 import { say } from "../locales/say.ts";
 
 export interface FeedCard {
@@ -112,21 +113,20 @@ export function Feed(
 
   return (
     <main className="screen feed" data-screen="feed" data-sealed={sealed}>
-      <header>
-        <div>
-          <h1>{say("web.feed.title")}</h1>
-          {/* What the reader hears: the announced step, not every flicker of it. */}
-          <p className="muted nearby" aria-live="polite" role="status" data-testid="nearby" data-step={said ?? undefined}>
-            {said ? nearby(said) : ""}
-          </p>
-        </div>
-        <label className="radius">
-          <span className="visually-hidden">{say("web.feed.radius")}</span>
-          <select value={radius} onChange={(e) => onRadius(Number(e.target.value) as Radius)} data-testid="radius">
-            {RADII.map((r) => <option key={r} value={r}>{label(r)}</option>)}
-          </select>
-        </label>
-      </header>
+      {/* What the reader hears: the announced step, not every flicker of it. */}
+      <HeaderFeed
+        place={say("web.feed.title")}
+        step={said ? nearby(said) : ""}
+        stepProps={{ role: "status", "data-testid": "nearby", "data-step": said ?? undefined }}
+        action={
+          <label className="radius">
+            <span className="visually-hidden">{say("web.feed.radius")}</span>
+            <select value={radius} onChange={(e) => onRadius(Number(e.target.value) as Radius)} data-testid="radius">
+              {RADII.map((r) => <option key={r} value={r}>{label(r)}</option>)}
+            </select>
+          </label>
+        }
+      />
       <nav className="actions">
         <Button type="button" kind="pill" onClick={onWrite} data-testid="write">{say("feed.write")}</Button>
         <Button type="button" onClick={onLikes} data-testid="likes">{say("liked.title")}</Button>

@@ -1,15 +1,21 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
+
+// What a screen hangs on the live step: a role, a testid, the step's own value
+// for the specs (the feed's data-step, WD8).
+type StepProps = HTMLAttributes<HTMLSpanElement> & { [data: `data-${string}`]: string | undefined };
 
 // The kit's headers (components.svg §7), 56 tall, title 20/600 at x 16.
 // HeaderFeed is the header with the step (owner 2026-09-19): the place and
 // how many are near as a word, «Колонаки · рядом десятки», never a number;
-// the step is live for a screen reader. HeaderScreen: back, title, an optional
-// word action in accent-text, a hairline under.
-export function HeaderFeed({ place, step, action }: { place: string; step: string; action?: ReactNode }) {
+// the step is live for a screen reader, and its span is there before the step
+// is known, so the first word is announced too. The dot stands only with a
+// step. HeaderScreen: back, title, an optional word action in accent-text, a
+// hairline under.
+export function HeaderFeed({ place, step, action, stepProps }: { place: string; step: string; action?: ReactNode; stepProps?: StepProps }) {
   return (
     <header className="ui-header">
       <h1 className="ui-header-title">
-        {place} · <span aria-live="polite">{step}</span>
+        {place}{step ? <span aria-hidden="true"> · </span> : null}<span aria-live="polite" {...stepProps}>{step}</span>
       </h1>
       {action}
     </header>

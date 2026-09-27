@@ -37,7 +37,7 @@ let addresses = 0;
 type Answer = { status: number; body: any; cookies: Record<string, string>; headers: Headers };
 
 async function call(
-  method: string, path: string, opts: { body?: unknown; origin?: string | null; cookies?: Record<string, string> } = {},
+  method: string, path: string, opts: { body?: unknown; origin?: string | null; cookies?: Record<string, string>; headers?: Record<string, string> } = {},
 ): Promise<Answer> {
   const url = new URL(`https://relay.test${path}`);
   const found = match(method, url.pathname);
@@ -49,6 +49,7 @@ async function call(
   const origin = opts.origin === undefined ? "https://adv.alpha.test" : opts.origin;
   if (origin) headers.origin = origin;
   if (opts.cookies) headers.cookie = Object.entries(opts.cookies).map(([k, v]) => `${k}=${v}`).join("; ");
+  Object.assign(headers, opts.headers ?? {});
   if (opts.body !== undefined) headers["content-type"] = "application/json";
   const response = await found.h({
     req: new Request(url, { method, headers, body: opts.body === undefined ? undefined : JSON.stringify(opts.body) }),
@@ -104,6 +105,24 @@ Deno.test({ name: "the cabinet: sign-in, a venue proved by its envelope, an offe
   // The cookie is refused from another origin, and from none.
   assertEquals((await call("GET", "/adv/me", { cookies: me, origin: "https://adv.beta.test" })).status, 401);
   assertEquals((await call("GET", "/adv/me", { cookies: me, origin: null })).status, 401);
+  // A same-origin read carries no Origin (Chromium, 27.09.2026): the address it
+  // was sent to names the storefront — through the cabinet's proxy or directly.
+  for (const header of ["x-forwarded-host", "host"]) {
+    const read = await call("GET", "/adv/me", { cookies: me, origin: null, headers: { [header]: "adv.alpha.test" } });
+    assertEquals(read.status, 200, `a same-origin read by ${header} was refused`);
+  }
+  // Another storefront's address does not open this one's session.
+  assertEquals((await call("GET", "/adv/me", { cookies: me, origin: null, headers: { host: "adv.beta.test" } })).status, 401);
+  // A change without an Origin is refused, whatever the address says: that is
+  // the fence against another site riding the cookie.
+  const blind = await call("POST", "/adv/venues", {
+    cookies: me, origin: null, headers: { host: "adv.alpha.test" }, body: { name: "без источника", address: "Nowhere 1" },
+  });
+  assertEquals(blind.status, 401, "a change without an Origin went through");
+  // And a foreign Origin is refused on a read too, even with our address.
+  assertEquals((await call("GET", "/adv/me", {
+    cookies: me, origin: "https://evil.example", headers: { host: "adv.alpha.test" },
+  })).status, 401);
   // A second sign-up of the same address is not a second account and says nothing.
   assertEquals((await call("POST", "/adv/signup", { body: { email, contact: "x" } })).status, 204);
   assertEquals(

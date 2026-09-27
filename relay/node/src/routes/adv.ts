@@ -17,7 +17,7 @@ import { addressHmac } from "../lib/advertiser_sweeper.ts";
 import { log } from "../lib/log.ts";
 import type { Brand } from "../config.ts";
 import {
-  ADV_LINK_LIMITS, ADV_MAILBOX_LIMITS, type Advertiser, advertiserOf, brandOfOrigin, cabinetUrl, cookie,
+  ADV_LINK_LIMITS, ADV_MAILBOX_LIMITS, type Advertiser, advertiserOf, brandOfCabinet, cabinetUrl, cookie,
   ENVELOPE_CODE_LIMITS, LINK_COOKIE, LINK_TTL_MS, linkHash, randomToken, SESSION_COOKIE, SESSION_TTL_MS,
   setCookie,
 } from "../lib/adv.ts";
@@ -58,7 +58,7 @@ type Ctx = { brand: Brand; me: Advertiser };
 
 // The cabinet's own origin and a live session of it, or the refusal.
 async function session(req: Request): Promise<Ctx | Response> {
-  const brand = await brandOfOrigin(req);
+  const brand = await brandOfCabinet(req);
   if (!brand) return refuse("unauthorized", "not from a cabinet of ours", 401);
   const me = await advertiserOf(req, brand);
   if (me === "unavailable") return unavailable();
@@ -95,7 +95,7 @@ const inFlight = new Set<Promise<unknown>>();
 export const lettersSettled = () => Promise.all([...inFlight]);
 
 async function startSignIn(req: Request, signup: boolean): Promise<Response> {
-  const brand = await brandOfOrigin(req);
+  const brand = await brandOfCabinet(req);
   if (!brand) return refuse("unauthorized", "not from a cabinet of ours", 401);
   const limited = tooMany(ADV_LINK_LIMITS, `${clientAddress(req).ip}|adv-link`);
   if (limited) return limited;
@@ -128,7 +128,7 @@ route("POST", "/adv/sign-in", ({ req }) => startSignIn(req, false));
 // The cabinet page posts the token from the link; the half is in the cookie of
 // the browser that asked. Spent on the first try, right or wrong.
 route("POST", "/adv/session", async ({ req }) => {
-  const brand = await brandOfOrigin(req);
+  const brand = await brandOfCabinet(req);
   if (!brand) return refuse("unauthorized", "not from a cabinet of ours", 401);
   const body = await readJson<{ token?: unknown }>(req);
   const token = typeof body?.token === "string" ? body.token : "";

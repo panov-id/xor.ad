@@ -54,16 +54,34 @@ export function setCookie(name: string, value: string, maxAgeSeconds: number): s
   return `${name}=${value}; Max-Age=${maxAgeSeconds}; Path=/; Secure; HttpOnly; SameSite=Lax`;
 }
 
+const SAFE_METHODS = new Set(["GET", "HEAD"]);
+
 // The storefront whose cabinet this request came from, or null.
-export async function brandOfOrigin(req: Request): Promise<Brand | null> {
+//
+// A browser sends no Origin on a same-origin GET (Chromium 129, measured
+// 27.09.2026: GET origin=null, POST origin set), so a cabinet served from the
+// node's own address answered 401 to every read. A read names its storefront
+// by the address it was sent to — X-Forwarded-Host from the cabinet's proxy,
+// else Host. Naming another one gains nothing: the session must belong to the
+// storefront named. A request that changes something must carry an Origin of
+// ours, which is what keeps another site from riding the cookie (CSRF); and an
+// Origin that is present and not ours is refused on any method.
+export async function brandOfCabinet(req: Request): Promise<Brand | null> {
   const origin = req.headers.get("origin");
-  if (!origin) return null;
   let host: string;
-  try {
-    host = new URL(origin).host.toLowerCase();
-  } catch {
+  if (origin) {
+    try {
+      host = new URL(origin).host;
+    } catch {
+      return null;
+    }
+  } else if (SAFE_METHODS.has(req.method)) {
+    host = (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "").split(",")[0].trim();
+  } else {
     return null;
   }
+  host = host.toLowerCase();
+  if (!host) return null;
   return (await allBrands()).find((brand) => `adv.${brand.domain.toLowerCase()}` === host) ?? null;
 }
 

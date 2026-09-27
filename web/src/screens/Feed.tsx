@@ -22,6 +22,15 @@ export interface FeedCard {
   // A venue's offer comes as kind "offer" with the venue's name (O2).
   offer?: { discount_value: string; conditions?: string | null; venue_name?: string };
   kind?: string;
+  // A table (G1h, W10): kind "table", between the phrases; never full, never
+  // one's own or one liked. `game` is the class, as FeedItem names it.
+  game?: string;
+  set?: string;
+  seats?: number;
+  free_seats?: number;
+  playing?: number;
+  watching?: number;
+  name?: string | null;
   soon?: boolean;
 }
 
@@ -29,8 +38,13 @@ export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 const label = (r: Radius) => (r >= 1000 ? say("web.feed.km", { n: r / 1000 }) : say("web.feed.m", { n: r }));
 
 export function Feed(
-  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, sent, gone }: {
+  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, sent, gone, onTable, onNewTable, notice }: {
     client: Client;
+    // A table card sits down at the table; "new table" makes one (W10).
+    onTable?: (id: string) => void;
+    onNewTable?: () => void;
+    // A refusal to seat, said on the feed.
+    notice?: string | null;
     sealed: "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
     at: { lat: number; lon: number };
     radius: Radius;
@@ -114,6 +128,7 @@ export function Feed(
       <nav className="actions">
         <button type="button" className="primary" onClick={onWrite} data-testid="write">{say("feed.write")}</button>
         <button type="button" onClick={onLikes} data-testid="likes">{say("liked.title")}</button>
+        {onNewTable && <button type="button" onClick={onNewTable} data-testid="new-table">{say("web.feed.newTable")}</button>}
       </nav>
       {sent && (
         <p className="warn" data-testid="sent" data-state={sent.state}>
@@ -127,6 +142,7 @@ export function Feed(
         </p>
       )}
       {state === "failed" && <p className="error" data-testid="error">{error}</p>}
+      {notice && <p className="error" data-testid="table-refused">{notice}</p>}
       {state === "ready" && items.length === 0 && (
         <section className="empty" data-testid="quiet">
           <h2>{say("web.feed.empty")}</h2>
@@ -139,13 +155,21 @@ export function Feed(
         </section>
       )}
       <ul className="cards" data-testid="cards">
-        {items.filter((card) => card.id !== gone?.id).map((card) => (
+        {items.filter((card) => card.id !== gone?.id).map((card) => card.kind === "table"
+          ? (
+            <li key={card.id} className="card table-card" data-testid="table-card" data-id={card.id} onClick={() => onTable?.(card.id)} role="button" tabIndex={0}
+              onKeyDown={(k) => (k.key === "Enter" || k.key === " ") && onTable?.(card.id)}>
+              <p>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {card.game} {card.set}</p>
+              <span className="muted">{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · ♥ {card.like_count ?? 0}</span>
+            </li>
+          )
+          : (
           <li key={card.id} className="card" data-testid="card" data-id={card.id} onClick={() => onOpen(card)} role="button" tabIndex={0}>
             {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
             <p>{card.text}</p>
             <span className="muted">{card.mode} · {card.lang} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
           </li>
-        ))}
+          ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
       {next && state === "ready" && (

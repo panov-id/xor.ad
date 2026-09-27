@@ -96,7 +96,7 @@ export async function tablesForFeed(
 // it follows (routes/feed.ts puts it there): a table due after that phrase
 // goes after the offer instead.
 export function interleave<T>(cards: T[], tables: TableCard[]): (T | TableCard)[] {
-  const kindOf = (card: unknown) => (card as { kind?: string }).kind;
+  const kindOf = (card: unknown) => (card as { kind?: string } | undefined)?.kind;
   const out: (T | TableCard)[] = [];
   let t = 0;
   let phrases = 0;

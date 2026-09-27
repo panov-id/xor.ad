@@ -20,3 +20,7 @@ timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
 # shellcheck disable=SC2086
 timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
   node --experimental-transform-types ink/screens.node-test.ts
+# The table screen (G2) has its own set.
+# shellcheck disable=SC2086
+timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
+  node --experimental-transform-types ink/table.node-test.ts

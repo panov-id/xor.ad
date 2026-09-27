@@ -74,15 +74,34 @@ Deno.test("the boundaries the measurement named, kept: a bare dot as a word, spa
   }
 });
 
-Deno.test("the widened rules still read 100 KB of the worst shapes in under 50 ms each", () => {
+Deno.test("the widened rules read 100 KB of the worst shapes in time that grows with the length, not its square", () => {
   // As B106 measured the scrub: the phrase is 128 graphemes on the node, but a
-  // regex is judged on what it would do with more.
-  const worst = ["a.".repeat(50_000), "[.]".repeat(34_000), "тг ".repeat(34_000), "пример.рф ".repeat(10_000), "(.)a".repeat(25_000), "-.".repeat(50_000)];
-  for (const text of worst) {
-    const started = performance.now();
-    readText(text);
-    const took = performance.now() - started;
-    assertEquals(took < 50, true, `${text.slice(0, 8)}… ×${text.length} took ${Math.round(took)} ms`);
+  // regex is judged on what it would do with more. Judged by growth, not by
+  // milliseconds: an absolute ceiling of 50 ms went red on a machine under load
+  // (load average 36 on 8 cores, 27.09.2026) while the rules were as linear as
+  // ever. Eight times the text takes about eight times as long when linear and
+  // sixty-four when quadratic; both lengths are read in the same run, so a busy
+  // machine slows them alike.
+  const shapes = ["a.", "[.]", "тг ", "пример.рф ", "(.)a", "-."];
+  const GROWTH = 8;
+  const fastest = (text: string) => {
+    let best = Infinity;
+    for (let round = 0; round < 5; round++) {
+      const started = performance.now();
+      readText(text);
+      best = Math.min(best, performance.now() - started);
+    }
+    return Math.max(best, 0.05); // below the timer's grain the ratio is noise
+  };
+  for (const shape of shapes) {
+    const long = Math.floor(100_000 / shape.length);
+    const small = fastest(shape.repeat(long / GROWTH));
+    const large = fastest(shape.repeat(long));
+    const ratio = large / small;
+    assertEquals(
+      ratio < GROWTH * 3, true,
+      `"${shape}" ×${long}: ${large.toFixed(1)} ms against ${small.toFixed(1)} ms at an eighth — ${ratio.toFixed(1)}× for 8× the text`,
+    );
   }
 });
 

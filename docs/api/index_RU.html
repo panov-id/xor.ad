@@ -34,7 +34,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>API узла</h1><a href="index_EN.html">English</a></div>
-<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 142 операций, OpenAPI 3.1.0, 2026-09-17.</p>
+<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 146 операций, OpenAPI 3.1.0, 2026-09-17.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-offers">offers</a><a href="#tag-support">support</a><a href="#schemas">Схемы</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (dispatch.ts).</p>
@@ -1201,12 +1201,13 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p class="src">Источник: <code>relay/node/src/routes/offer_links.ts</code></p>
 </section>
 <section class="op" id="post-o--code--report">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/o/{code}/report</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/o/{code}/report</code><span class="chip s-built">построено</span></div>
 <p><strong>Пожаловаться на ссылку оффера</strong></p>
-<p>Без почты, не обращение, а сигнал; две засчитанные жалобы разных людей гасят ссылку сразу; незасчитанная идёт модератору с высоким приоритетом и ничего не гасит; COMPLAINT_MONTHLY_LIMIT не расходует (offers/SPEC_RU.md §10.1, таблица offer_link_reports).</p>
+<p>Без почты, сигнал, а не обращение. Засчитывается, если первая принятая фраза жалующегося вышла по UTC не позже позавчерашнего дня и раньше дня оффера; один человек считается один раз; вторая засчитанная жалоба гасит ссылку сразу, заведению уходит письмо; оффер остаётся. Ответ одинаков, засчитана жалоба или нет (offers/SPEC_RU.md §10.1, таблица offer_link_reports, db/069). Ключ витрины, если прислан, ограничивает поиск её брендом.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>code</code></td><td>path</td><td><code>string</code> <span class="src">minLength: 10</span></td><td>да</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td>Такого кода нет.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Принята.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/offer_links.ts</code></p>
 </section>
 <section class="op" id="post-offers--id--complaints">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/offers/{id}/complaints</code><span class="chip s-spec">спека</span></div>
@@ -1218,83 +1219,128 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p><a href="#schema-offercomplaintcreate"><code>OfferComplaintCreate</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Принята; засчитана ли — заморожено сейчас.</td><td><code>object</code></td></tr><tr><td><code>422</code></td><td>Нет почты: единственного способа ответить — форма называет эту причину</td><td></td></tr></table></div>
 </section>
+<section class="op" id="post-adv-sign-in">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/sign-in</code><span class="chip s-built">построено</span></div>
+<p><strong>Запросить ссылку входа</strong></p>
+<p>Всегда 204 и свежая браузерная половина, cookie __Host-adv-link; ссылка уходит письмом только на зарегистрированный адрес, 15 минут, одно использование. У адреса запросившего и у ящика свои пределы; предел ящика расходуется только для настоящей учётки (offers/SPEC_RU.md §2.1). Только со своего источника adv.&lt;витрина&gt;, он же называет витрину.</p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>Тело не то, что принимает операция; code invalid_body.</td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано; Set-Cookie несёт __Host-adv-link.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
+</section>
+<section class="op" id="post-adv-session">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/session</code><span class="chip s-built">построено</span></div>
+<p><strong>Открыть сессию по ссылке</strong></p>
+<p>Токен из ссылки и половина в cookie __Host-adv-link браузера, который просил; хранится только хеш обоих (db/067). Тратится с первой попытки, верной или нет. Ставит cookie __Host-adv на 30 дней и подтверждает почту. Только со своего источника adv.&lt;витрина&gt;, он же называет витрину.</p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Тело запроса · <code>application/json</code></h3>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>token</code></td><td><code>string</code> <span class="src">pattern: &quot;^[0-9a-f]{64}$&quot;</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Ссылка неверна или истекла, другой браузер или не со своего источника кабинета.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Вход выполнен; Set-Cookie несёт __Host-adv.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
+</section>
+<section class="op" id="post-adv-sign-out">
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/sign-out</code><span class="chip s-built">построено</span></div>
+<p><strong>Выйти из кабинета</strong></p>
+<p>Удаляет строку сессии по cookie __Host-adv и стирает cookie; сессия кончается на следующем запросе.</p>
+<h3>Доступ</h3><p>без доступа</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
+</section>
+<section class="op" id="get-adv-me">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/me</code><span class="chip s-built">построено</span></div>
+<p><strong>Кто вошёл</strong></p>
+<p>Почта учётки, подтверждена ли она, и витрина.</p>
+<h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Учётная запись.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
+</section>
 <section class="op" id="post-adv-signup">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/signup</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/signup</code><span class="chip s-built">построено</span></div>
 <p><strong>Завести учётную запись заведения</strong></p>
-<p>Всегда 204 — не говорит, известен ли адрес; подтверждающая ссылка приходит на почту (offers/SPEC_RU.md §2.1).</p>
+<p>Всегда 204 — уже зарегистрированный адрес не ошибка и не вторая учётка. Ставит браузерную половину ссылки входа, cookie __Host-adv-link, и шлёт ссылку письмом; первый вход подтверждает почту (offers/SPEC_RU.md §2.1; db/067). Только со своего источника adv.&lt;витрина&gt;, он же называет витрину.</p>
 <h3>Доступ</h3><p>без доступа</p>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-advertisersignup"><code>AdvertiserSignup</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>Тело не то, что принимает операция; code invalid_body.</td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано; Set-Cookie несёт __Host-adv-link.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="get-adv-venues">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/venues</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/venues</code><span class="chip s-built">построено</span></div>
 <p><strong>Мои заведения</strong></p>
-<p>Только свои заведения со статусом верификации.</p>
+<p>Только свои заведения, со статусом верификации и сроком живого конверта, в виде {items}.</p>
 <h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<a href="#schema-venue"><code>Venue</code></a>&gt;</td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-venues">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues</code><span class="chip s-built">построено</span></div>
 <p><strong>Добавить заведение</strong></p>
-<p>unverified до кода из конверта (offers/SPEC_RU.md §11); нужна подтверждённая почта.</p>
+<p>unverified до кода из конверта (offers/SPEC_RU.md §11); адрес, приостановленный за последний год (db/056), возвращается suspended.</p>
 <h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-venuecreate"><code>VenueCreate</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Создано; Location называет заведение.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>Тело не то, что принимает операция; code invalid_body.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Создано; Location называет заведение.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="patch-adv-venues--id">
-<div class="op-head"><span class="method m-patch">patch</span><code class="path">/adv/venues/{id}</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-patch">patch</span><code class="path">/adv/venues/{id}</code><span class="chip s-built">построено</span></div>
 <p><strong>Изменить заведение</strong></p>
-<p>Новый адрес возвращает заведение в unverified — новый конверт (offers/SPEC_RU.md §11).</p>
+<p>Имя, адрес или оба. Новый адрес гасит живой конверт и возвращает verified-заведение в unverified; suspended остаётся suspended (offers/SPEC_RU.md §11).</p>
 <h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
-<p><a href="#schema-venuecreate"><code>VenueCreate</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Заведение.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>name</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code> <span class="src">maxLength: 256</span></td><td>нет</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>Тело не то, что принимает операция; code invalid_body.</td><td></td></tr><tr><td><code>404</code></td><td>Среди своих такого нет — чужое отвечает так же.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Заведение.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-venues--id--envelope">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/envelope</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/envelope</code><span class="chip s-built">построено</span></div>
 <p><strong>Заказать конверт</strong></p>
-<p>Код активации письмом на адрес заведения, живёт 30 дней (ACTIVATION_CODE_TTL).</p>
+<p>Новый код на адрес заведения, живёт 30 дней (ACTIVATION_CODE_TTL), пять попыток; заменяет живой. Кабинет кода не видит — он уходит на бумаге (db/068).</p>
 <h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Заказан.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>404</code></td><td>Среди своих такого нет — чужое отвечает так же.</td><td></td></tr><tr><td><code>409</code></td><td>Заведение уже verified или почта не подтверждена; code refused.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>Заказан.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-venues--id--verify">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/verify</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/{id}/verify</code><span class="chip s-built">построено</span></div>
 <p><strong>Ввести код из конверта</strong></p>
-<p>verified при верном коде; попытки считаются, после нескольких неверных код гасится (offers/SPEC_RU.md §2.1, §11).</p>
+<p>verified при верном коде; неверный расходует попытку живого конверта, пятый гасит его (offers/SPEC_RU.md §2.1, §11). Регистр и дефисы не важны.</p>
 <h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-venuecode"><code>VenueCode</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Заведение.</td><td><a href="#schema-venue"><code>Venue</code></a></td></tr><tr><td><code>422</code></td><td>Код неверный; попытка засчитана.</td><td></td></tr><tr><td><code>409</code></td><td>Код погашен — нужен новый конверт.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>404</code></td><td>Среди своих такого нет — чужое отвечает так же.</td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Подтверждено.</td><td><code>object</code></td></tr><tr><td><code>422</code></td><td>Код неверный; попытка засчитана, error.attempts_left говорит, сколько осталось.</td><td></td></tr><tr><td><code>409</code></td><td>Живого конверта нет — использован, погашен или истёк; нужен новый. Code refused.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-venues-not-us">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/not-us</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/venues/not-us</code><span class="chip s-built">построено</span></div>
 <p><strong>Это не мы</strong></p>
-<p>Без сессии: код из конверта, который по этому адресу никто не заказывал, сразу ставит заведению suspended; снимается только новым конвертом; неверные коды расходуют тот же счётчик попыток, что /verify (решение владельца 19.09.2026; offers/SPEC_RU.md §11).</p>
+<p>Без сессии: код из конверта, который по этому адресу никто не заказывал, сразу ставит заведению suspended и гасит конверт; снимается только новым конвертом. Неверные коды расходуют предел адреса вызывающего, общий с /verify — без сессии нет заведения, с которого списать (решение владельца 19.09.2026; offers/SPEC_RU.md §11).</p>
 <h3>Доступ</h3><p>без доступа</p>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-venuecode"><code>VenueCode</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Всегда 204, на верный и неверный код одинаково: ответ не выдаёт, существует ли код; верный приостанавливает заведение (панель ревью 19.09.2026)</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Всегда 204, на верный и неверный код одинаково: ответ не выдаёт, существует ли код; верный приостанавливает заведение (панель ревью 19.09.2026)</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="get-adv-offers">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/offers</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/adv/offers</code><span class="chip s-built">построено</span></div>
 <p><strong>Мои офферы</strong></p>
-<p>Живые и истёкшие, с redirect_hits и числом жалоб — других цифр нет (offers/SPEC_RU.md §2.1).</p>
+<p>Живые и истёкшие, новые первыми, в виде {items}; из цифр только redirect_hits (offers/SPEC_RU.md §2.1). Карточка после expires_at читается expired.</p>
 <h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td>array&lt;<a href="#schema-advoffer"><code>AdvOffer</code></a>&gt;</td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Список.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="post-adv-offers">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/offers</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/adv/offers</code><span class="chip s-built">построено</span></div>
 <p><strong>Опубликовать оффер</strong></p>
-<p>Только от verified-заведения; публикуется сразу и целиком после автопроверок, иначе отказ с причиной (offers/SPEC_RU.md §6, §6.1).</p>
+<p>Только от своего verified-заведения; публикуется сразу и целиком, карточка на 4:20, скидка до discount_until, не дальше 90 дней (offers/SPEC_RU.md §3, §6, §6.1, §8). Узел отказывает сокращателю ссылок, ссылке не на http(s), сроку вне пределов и тексту своего живого оффера; репутационные списки и стоп-слова пока не проверяются. «Показать снова» — repeated_from, только от уже не живого оффера.</p>
 <h3>Доступ</h3><p>Сессия кабинета заведения (offers/SPEC_RU</p>
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-offercreate"><code>OfferCreate</code></a></p>
-<h3>Ответы</h3><div class="table"><table><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Опубликован; Location называет оффер.</td><td><a href="#schema-advoffer"><code>AdvOffer</code></a></td></tr><tr><td><code>422</code></td><td>Отказ автопроверки; причина в ApiError.reason.</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td>Нет сессии этого кабинета или запрос не со своего источника adv.&lt;витрина&gt;.</td><td></td></tr><tr><td><code>400</code></td><td>Тело не то, что принимает операция; code invalid_body.</td><td></td></tr><tr><td><code>404</code></td><td>Среди своих такого нет — чужое отвечает так же.</td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>Опубликован; Location называет оффер.</td><td><a href="#schema-advoffer"><code>AdvOffer</code></a></td></tr><tr><td><code>409</code></td><td>Заведение не verified, почта не подтверждена или repeated_from называет живой оффер; code refused.</td><td></td></tr><tr><td><code>422</code></td><td>Отказ автопроверки, code refused; error.reason — одно из link_refused, discount_until_out_of_range, conditions_too_long, duplicate.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/adv.ts</code></p>
 </section>
 <section class="op" id="get-adv-complaints">
 <div class="op-head"><span class="method m-get">get</span><code class="path">/adv/complaints</code><span class="chip s-spec">спека</span></div>
@@ -1467,7 +1513,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <section class="op" id="schema-advertisersignup"><div class="op-head"><code class="path">AdvertiserSignup</code></div>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>email</code></td><td><code>string</code> <span class="src">format: &quot;email&quot;</span></td><td>да</td><td></td></tr><tr><td><code>contact</code></td><td><code>string</code></td><td>да</td><td></td></tr></table></div></section>
 <section class="op" id="schema-venue"><div class="op-head"><code class="path">Venue</code></div>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>verification_status</code></td><td><code>string</code> <span class="src">enum: [&quot;unverified&quot;, &quot;verified&quot;, &quot;suspended&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>verified_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr><tr><td><code>name</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>verification_status</code></td><td><code>string</code> <span class="src">enum: [&quot;unverified&quot;, &quot;verified&quot;, &quot;suspended&quot;]</span></td><td>да</td><td></td></tr><tr><td><code>verified_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>да</td><td></td></tr><tr><td><code>envelope_expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>да</td><td>Срок живого конверта, если он отправлен.</td></tr></table></div></section>
 <section class="op" id="schema-venuecreate"><div class="op-head"><code class="path">VenueCreate</code></div>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>name</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>address</code></td><td><code>string</code></td><td>да</td><td></td></tr></table></div></section>
 <section class="op" id="schema-venuecode"><div class="op-head"><code class="path">VenueCode</code></div>
@@ -1476,7 +1522,8 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Форма кабинета. Опубликованный оффер не редактируется; «Показать снова» — новый оффер с repeated_from (offers/SPEC_RU.md §3.1, §8).</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>venue_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr><tr><td><code>offer_text</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>да</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code> <span class="src">maxLength: 32</span></td><td>да</td><td></td></tr><tr><td><code>conditions</code></td><td><code>string</code> <span class="src">maxLength: 128</span></td><td>нет</td><td></td></tr><tr><td><code>promo_code</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>external_url</code></td><td><code>string</code> <span class="src">format: &quot;uri&quot;</span></td><td>нет</td><td>Людям не показывается; сокращатели отклоняются (offers/SPEC_RU.md §6.1–6.2).</td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>да</td><td></td></tr><tr><td><code>repeated_from</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-advoffer"><div class="op-head"><code class="path">AdvOffer</code></div>
-<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>venue_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>offer_text</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>conditions</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>promo_code</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>redirect</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>redirect_disabled_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>redirect_hits</code></td><td><code>integer</code></td><td>нет</td><td>Единственная цифра охвата — переходы, без человека (offers/SPEC_RU.md §2.1).</td></tr><tr><td><code>complaints</code></td><td><code>integer</code></td><td>нет</td><td></td></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;active&quot;, &quot;expired&quot;, &quot;hidden&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>published_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
+<p>Оффер глазами кабинета (routes/adv.ts). Числа жалоб пока нет: жалобы на скидку не построены.</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>venue_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>offer_text</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>discount_value</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>conditions</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>promo_code</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>external_url</code></td><td><code>string</code></td><td>нет</td><td>Своя ссылка владельца; люди видят только ссылку /o/ витрины.</td></tr><tr><td><code>redirect_code</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>link</code></td><td><code>string</code> <span class="src">format: &quot;uri&quot;</span></td><td>нет</td><td>https://&lt;витрина&gt;/o/&lt;redirect_code&gt; — то, что несёт карточка.</td></tr><tr><td><code>link_disabled</code></td><td><code>boolean</code></td><td>нет</td><td></td></tr><tr><td><code>redirect_disabled_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>redirect_hits</code></td><td><code>integer</code></td><td>нет</td><td>Единственная цифра охвата — переходы, без человека (offers/SPEC_RU.md §2.1).</td></tr><tr><td><code>repeated_from_offer_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>discount_until</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;active&quot;, &quot;expired&quot;, &quot;hidden&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>published_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>expires_at</code></td><td><code>string</code> <span class="src">format: &quot;date-time&quot;</span></td><td>нет</td><td></td></tr></table></div></section>
 <section class="op" id="schema-advcomplaint"><div class="op-head"><code class="path">AdvComplaint</code></div>
 <p>Только текст и дата — без заявителя и без времени (offers/SPEC_RU.md §10).</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>offer_id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>text</code></td><td><code>string</code></td><td>нет</td><td></td></tr><tr><td><code>date</code></td><td><code>string</code> <span class="src">format: &quot;date&quot;</span></td><td>нет</td><td></td></tr><tr><td><code>status</code></td><td><code>string</code> <span class="src">enum: [&quot;pending&quot;, &quot;resolved&quot;, &quot;rejected&quot;]</span></td><td>нет</td><td></td></tr><tr><td><code>response</code></td><td><code>string</code></td><td>нет</td><td></td></tr></table></div></section>

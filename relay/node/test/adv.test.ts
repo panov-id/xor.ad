@@ -202,12 +202,14 @@ Deno.test({ name: "an envelope burns after five wrong codes, and 'not us' suspen
   const [{ code }] = await database.queryOrThrow<{ code: string }>(
     `SELECT code FROM venue_envelopes WHERE venue_id = $1 AND used_at IS NULL AND burned_at IS NULL`, [venue],
   );
-  assertEquals((await call("POST", "/adv/venues/not-us", { origin: null, body: { code: "444444-444444" } })).status, 422);
+  // A wrong code answers as a right one does, and changes nothing.
+  assertEquals((await call("POST", "/adv/venues/not-us", { origin: null, body: { code: "444444-444444" } })).status, 204);
+  assertEquals((await database.queryOrThrow<{ s: string }>(`SELECT verification_status AS s FROM venues WHERE id = $1`, [venue]))[0].s, "unverified");
   assertEquals((await call("POST", "/adv/venues/not-us", { origin: null, body: { code } })).status, 204);
   const [row] = await database.queryOrThrow<{ verification_status: string }>(
     `SELECT verification_status FROM venues WHERE id = $1`, [venue],
   );
   assertEquals(row.verification_status, "suspended");
-  assertEquals((await call("POST", "/adv/venues/not-us", { origin: null, body: { code } })).status, 422, "spent");
+  assertEquals((await call("POST", "/adv/venues/not-us", { origin: null, body: { code } })).status, 204, "spent, and still the same answer");
   await lettersSettled();
 } });

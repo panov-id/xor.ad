@@ -19,8 +19,9 @@ import type { Brand } from "../config.ts";
 import {
   ADV_LINK_LIMITS, ADV_MAILBOX_LIMITS, type Advertiser, advertiserOf, brandOfOrigin, cabinetUrl, cookie,
   ENVELOPE_CODE_LIMITS, LINK_COOKIE, LINK_TTL_MS, linkHash, randomToken, SESSION_COOKIE, SESSION_TTL_MS,
-  sendAdvLetter, setCookie,
+  setCookie,
 } from "../lib/adv.ts";
+import { sendAdvertiserLink, withoutAddresses } from "../lib/mailer.ts";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TEXT_MAX = 256;
@@ -86,11 +87,7 @@ async function mailLink(brand: Brand, email: string, half: string): Promise<void
     [await linkHash(token, half), account.id, LINK_TTL_MS / 1000],
   );
   if (stored === null) return;
-  await sendAdvLetter(email, brand, `Sign in to the ${brand.name} advertising cabinet`, "Sign in to the cabinet", [
-    { kind: "text", value: "Open this link in the same browser you asked from:" },
-    { kind: "reference", value: `${cabinetUrl(brand)}/enter#${token}` },
-    { kind: "text", value: "It expires in 15 minutes and can be used once." },
-  ]);
+  await sendAdvertiserLink(email, brand, `${cabinetUrl(brand)}/enter#${token}`);
 }
 
 // Links still being mailed after their answer left; a test waits for them.
@@ -119,7 +116,7 @@ async function startSignIn(req: Request, signup: boolean): Promise<Response> {
   const half = randomToken();
   // Not awaited: the letter's timing must not say who is registered.
   const sending = mailLink(brand, email, half)
-    .catch((error) => log("error", "advertiser link failed", { error: String(error) }))
+    .catch((error) => log("error", "advertiser link failed", { error: withoutAddresses(String(error)) }))
     .finally(() => inFlight.delete(sending));
   inFlight.add(sending);
   return noContent({ "set-cookie": setCookie(LINK_COOKIE, half, LINK_TTL_MS / 1000) });
@@ -374,7 +371,8 @@ route("POST", "/adv/venues/not-us", async ({ req }) => {
   const limited = tooMany(ENVELOPE_CODE_LIMITS, `${clientAddress(req).ip}|envelope-code`);
   if (limited) return limited;
   const code = normalCode((await readJson<{ code?: unknown }>(req))?.code);
-  if (!code) return refuse("invalid_body", "that code is not the one in the envelope", 422);
+  // Always 204, right code or wrong: the answer must not tell whether a code exists (review panel 2026-09-19).
+  if (!code) return noContent();
   const done = await transaction(async (run) => {
     const [envelope] = await run<{ venue_id: string }>(
       `UPDATE venue_envelopes SET burned_at = now(), code = NULL
@@ -388,7 +386,7 @@ route("POST", "/adv/venues/not-us", async ({ req }) => {
     return true;
   }).catch(() => null);
   if (done === null) return unavailable();
-  if (!done) return refuse("invalid_body", "that code is not the one in the envelope", 422);
+  if (!done) return noContent();
   return noContent();
 });
 
@@ -447,8 +445,8 @@ route("POST", "/adv/offers", async ({ req }) => {
   const body = await readJson<Record<string, unknown>>(req);
   if (!body) return bad("an offer is a JSON object");
   const venueId = typeof body.venue_id === "string" && UUID.test(body.venue_id) ? body.venue_id : null;
-  const offerText = text(body.offer_text);
-  const discount = text(body.discount_value, 64);
+  const offerText = text(body.offer_text, 128);
+  const discount = text(body.discount_value, 32);
   if (!venueId || !offerText || !discount) return bad("an offer needs a venue, a text and a discount");
   const conditions = body.conditions == null || body.conditions === "" ? null : text(body.conditions, 128);
   if (conditions === null && body.conditions != null && body.conditions !== "") {
@@ -505,7 +503,7 @@ route("POST", "/adv/offers", async ({ req }) => {
     );
     return row;
   }).catch((error) => {
-    log("error", "offer publication failed", { error: String(error) });
+    log("error", "offer publication failed", { error: withoutAddresses(String(error)) });
     return "unavailable" as const;
   });
   if (result === "unavailable") return unavailable();

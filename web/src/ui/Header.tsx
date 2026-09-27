@@ -20,7 +20,7 @@ export function HeaderScreen({ title, onBack, backLabel = "назад", action }
   return (
     <header className="ui-header ui-header-rule">
       {onBack ? (
-        <button type="button" className="ui-icon" aria-label={backLabel} onClick={onBack}>
+        <button type="button" className="ui-icon" aria-label={backLabel} onClick={onBack} data-testid="back">
           <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><path d="M26 14 L18 22 L26 30" /></svg>
         </button>
       ) : null}

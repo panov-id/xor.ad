@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { blockList, type BlockRow, day, unblock } from "../api/lists.ts";
 import { say } from "../api/me.ts";
+import { Button } from "../ui/Button.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
+import "./place.css";
 
 export function Blocked({ client, onBack }: { client: Client; onBack: () => void }) {
   const [rows, setRows] = useState<BlockRow[] | null>(null);
@@ -15,18 +18,18 @@ export function Blocked({ client, onBack }: { client: Client; onBack: () => void
 
   return (
     <main className="screen blocked-list" data-screen="blocked" data-count={rows?.length ?? ""}>
-      <header><h1>{say("blocked.count", { n: rows?.length ?? 0 })}</h1><button type="button" onClick={onBack} data-testid="back">{say("common.back")}</button></header>
+      <HeaderScreen title={say("blocked.count", { n: rows?.length ?? 0 })} onBack={onBack} backLabel={say("common.back")} />
       {error && <p className="error" data-testid="error">{error}</p>}
       {rows === null
         ? <p className="muted" data-testid="loading">…</p>
         : (
-          <ul className="rows">
+          <ul className="place-rows">
             {rows.map((row) => (
               <li key={row.id} data-testid="blocked-row">
-                <span>{say("blocked.since", { date: day(row.since) })}</span>
-                <button type="button" onClick={() => void unblock(client, row.id).then(load).catch((e: Error) => setError(e.message))} data-testid="blocked-lift">
+                <span className="place-row-text">{say("blocked.since", { date: day(row.since) })}</span>
+                <Button kind="text" type="button" onClick={() => void unblock(client, row.id).then(load).catch((e: Error) => setError(e.message))} data-testid="blocked-lift">
                   {say("blocked.lift")}
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

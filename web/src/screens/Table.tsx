@@ -9,6 +9,9 @@ import { applyFrame, dotsOf, frameNeedsView, openApplications, type TableView, T
 import { say } from "../api/me.ts";
 import { connectTable } from "../api/tableRoom.ts";
 import { tableRefusal } from "../api/tables.ts";
+import { Button } from "../ui/Button.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
+import "./place.css";
 import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
 
 export function Table({ client, tableId, onLeave }: { client: Client; tableId: string; onLeave: () => void }) {
@@ -58,19 +61,19 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
     await load();
   }
 
-  if (!view) return <main className="table"><p>{error ?? "…"}</p></main>;
+  if (!view) return <main className="screen table"><p className="place-meta">{error ?? "…"}</p></main>;
   const turn = turnOf(view);
   const board = view.board;
   const nameOf = (seat: number) => view.seats.find((s) => s.seat === seat)?.name ?? `#${seat}`;
   const score = board ? view.seats.filter((s) => board.score[String(s.seat)] !== undefined) : [];
 
   return (
-    <main className="table" data-testid="table" data-id={tableId}>
-      <header>
-        <h1>{say("table.title")}{view.name ? ` · «${view.name}»` : ""} · {view.class}</h1>
+    <main className="screen table" data-testid="table" data-id={tableId}>
+      <HeaderScreen title={`${say("table.title")}${view.name ? ` · «${view.name}»` : ""} · ${view.class}`} />
+      <header className="place-table-head">
         <p>{say("table.playing")} {view.playing} · {say("table.watching")} {view.watching} · ♥ {view.like_count ?? 0}</p>
         <p>{say("table.seated")}: {view.seats.map((s) => (s.seat === view.seat ? say("table.you") : s.name)).join(" · ")}</p>
-        <p role="note">{say("table.open")}</p>
+        <p role="note" className="place-meta">{say("table.open")}</p>
       </header>
       {!board || board.over
         ? <p data-testid="over">{say("table.over")}</p>
@@ -93,23 +96,23 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
           </>
         );
       })()}
-      {error && <p role="alert">{error}</p>}
-      <ul className="lines">
+      {error && <p role="alert" className="error">{error}</p>}
+      <ul className="place-lines">
         {view.lines.filter((l) => l.kind !== "move").map((l) => (
           <li key={l.id}>{nameOf(l.seat)} — {l.kind === "sticker" ? `[${l.sticker}]` : l.text}</li>
         ))}
         {openApplications(view).map((l) => <li key={`w${l.id}`} className="application">{say("table.application")}: {nameOf(l.seat)}</li>)}
       </ul>
-      <form onSubmit={(e) => { e.preventDefault(); const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setLine("")); }}>
+      <form className="place-say" onSubmit={(e) => { e.preventDefault(); const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setLine("")); }}>
         <input value={line} maxLength={128} onChange={(e) => setLine(e.target.value)} aria-label={say("table.say")} data-testid="line-input" />
-        <button type="submit" data-testid="line-send">{say("table.say")}</button>
+        <Button kind="primary" type="submit" data-testid="line-send">{say("table.say")}</Button>
         {/* A watcher asks to play with a line of their own (W15): the words are
             theirs, the kind is an application (§6.1). */}
         {!view.is_playing && (
-          <button type="button" disabled={!line.trim()} data-testid="apply"
+          <Button kind="secondary" type="button" disabled={!line.trim()} data-testid="apply"
             onClick={() => { const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "application", text })).then(() => setLine("")); }}>
             {say("table.application")}
-          </button>
+          </Button>
         )}
       </form>
       {/* A game begins by a proposal (W15): a player alone starts it at once and
@@ -121,23 +124,23 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
             return <p className="muted" data-testid="pending">{say("web.table.waitingAnswers")}</p>;
           }
           return (
-            <p data-testid="pending">
+            <p className="place-actions" data-testid="pending">
               {say("web.table.proposed", { name: nameOf(pending.by ?? 0) })}{" "}
-              <button type="button" data-testid="accept-game" onClick={() => act(() => tables.answer(tableId, pending.id, "accept"))}>{say("web.table.accept")}</button>
-              <button type="button" data-testid="decline-game" onClick={() => act(() => tables.answer(tableId, pending.id, "decline"))}>{say("web.table.decline")}</button>
+              <Button kind="primary" type="button" data-testid="accept-game" onClick={() => act(() => tables.answer(tableId, pending.id, "accept"))}>{say("web.table.accept")}</Button>
+              <Button kind="secondary" type="button" data-testid="decline-game" onClick={() => act(() => tables.answer(tableId, pending.id, "decline"))}>{say("web.table.decline")}</Button>
             </p>
           );
         }
         if (!board || board.over || board.turn === null) {
-          return <button type="button" className="primary" data-testid="start-game" onClick={() => act(() => tables.propose(tableId, "rematch"))}>{say("web.table.start")}</button>;
+          return <Button kind="primary" type="button" data-testid="start-game" onClick={() => act(() => tables.propose(tableId, "rematch"))}>{say("web.table.start")}</Button>;
         }
         return null;
       })()}
-      <nav>
-        {turn.mine && board && <button onClick={() => act(() => tables.pass(tableId, board.seq))}>{say("table.pass")}</button>}
-        {view.is_playing && board && !board.over && <button onClick={() => act(() => tables.resign(tableId))}>{say("table.resign")}</button>}
-        <button onClick={() => act(() => tables.like(tableId))}>{say("table.like")}</button>
-        <button onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })}>{say("table.stand")}</button>
+      <nav className="place-actions">
+        {turn.mine && board && <Button kind="secondary" onClick={() => act(() => tables.pass(tableId, board.seq))}>{say("table.pass")}</Button>}
+        {view.is_playing && board && !board.over && <Button kind="danger" onClick={() => act(() => tables.resign(tableId))}>{say("table.resign")}</Button>}
+        <Button kind="secondary" onClick={() => act(() => tables.like(tableId))}>{say("table.like")}</Button>
+        <Button kind="secondary" onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })}>{say("table.stand")}</Button>
       </nav>
     </main>
   );

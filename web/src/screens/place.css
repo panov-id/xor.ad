@@ -1,0 +1,56 @@
+/* WD5: the screens of the table, the offer's exit, "me" and its lists, the
+   statements and the cabinet, laid out by sheets 17, 19, 25, 26. Geometry on
+   --s-* and --r-*, colour only from the kit (check-web-tokens.sh). */
+
+.screen.table { padding-top: 0; }
+.screen.me, .screen.hidden-list, .screen.blocked-list, .screen.statements,
+.screen.new-table, .screen.offer-exit, .screen.edit, .screen.pin, .screen.reset,
+.screen.step-away, .screen.cabinet { padding-top: 0; }
+
+.place-meta { color: var(--muted); font-size: 14px; margin: 0; }
+.place-label { color: var(--muted); font-size: 14px; font-weight: 600; margin-right: var(--s-1); }
+.place-empty { color: var(--muted); text-align: center; padding: var(--s-8) 0; margin: 0; }
+.place-empty-block { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-8) 0; text-align: center; }
+.place-empty-block h2 { font-size: 26px; font-weight: 400; margin: 0; }
+
+/* Rows of a list or a setting (row-setting): no rim, a hairline between,
+   the action at the right. */
+.place-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.place-rows > li { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: 56px; border-bottom: 1px solid var(--border); }
+.place-row-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.place-setting { flex: 1; display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0; border: 0; border-radius: 0; background: transparent; text-align: left; }
+.place-setting::after { content: "›"; color: var(--muted); font-size: 20px; }
+.place-setting.warn { color: var(--err); }
+.place-setting.chosen { color: var(--accent-text); font-weight: 600; }
+
+.place-cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-3); }
+.place-statement p { margin: 0; }
+
+.place-field { display: flex; flex-direction: column; gap: var(--s-1); font-size: 14px; color: var(--muted); }
+.place-field select, .place-field input { background: var(--panel); border-color: var(--border-control); color: var(--fg); font-size: 16px; }
+
+.place-exit p { margin: 0; }
+.place-link-button { text-decoration: none; }
+.place-footer { margin-top: auto; display: flex; flex-direction: column; }
+
+/* The table (sheet 19): the head under the header, the lines as system lines,
+   the say row at the bottom. */
+.place-table-head { display: flex; flex-direction: column; gap: var(--s-1); }
+.place-table-head p { margin: 0; font-size: 14px; color: var(--muted); }
+.place-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; color: var(--muted); }
+.place-lines .application { color: var(--accent-text); }
+.place-say { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.place-say input { flex: 1 1 60%; min-width: 0; background: var(--panel); }
+.place-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; }
+.screen.table .hand { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.screen.table .hand button { background: var(--panel); border-color: var(--border-control); }
+.screen.table .cells { background: var(--panel); border-radius: var(--r-2); padding: var(--s-3); margin: 0; overflow-x: auto; }
+
+/* The cabinet (sheets 17, 26): venues and offers as kit cards. */
+.place-tabs { display: flex; gap: var(--s-4); border-bottom: 1px solid var(--border); }
+.place-venue h2, .place-offer h2 { font-size: 16px; font-weight: 600; margin: 0; }
+.place-venue p, .place-offer p { margin: 0; }
+.place-discount { color: var(--accent-text); font-size: 20px; font-weight: 600; }
+
+/* A header with no back icon keeps the title on the 16 edge, as the sheets do. */
+.ui-header-rule:not(:has(.ui-icon)) { padding-left: var(--s-4); }

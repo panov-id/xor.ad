@@ -15,6 +15,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import postgres from "postgres";
 import { Client } from "../core/client.ts";
+import { Tables } from "../core/tables.ts";
 import { newPaperCode } from "../core/paper.ts";
 import { raise } from "../core/recovery.ts";
 import { HeldKey } from "../core/transfer.ts";
@@ -176,6 +177,39 @@ async function main() {
     await type(app, ENTER);
     await until(app, /пробежку/, 20);
     out("ok   a table set from the feed opened live, stood in the database, and standing up led back to the feed");
+
+    // Sitting down at a neighbour's table from the feed (C2, G1h): a table
+    // card goes after every third phrase, so two more of Марк's go in — older,
+    // so «пробежку» stays first for the steps below — and Марк sets a table.
+    for (const text of ["кто на каток", "ищу компанию в кино"]) {
+      await sql.unsafe(
+        `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+           lat_published, lon_published, visible_at, expires_at, created_at)
+         VALUES ($1, 'sosed', $2, $3, 'alone', 'und', 59.9343, 30.3351, 1000,
+           59.9343, 30.3351, now() - interval '1 hour', now() + interval '3 hours', now() - interval '1 hour')`,
+        [crypto.randomUUID(), peer.identityId, text],
+      );
+    }
+    const peerTable = await new Tables(peer).create({ class: "dots", set: "3x3", seats: 2, lat: 59.9343, lon: 30.3351, area_radius: 1000 });
+    assert.equal(peerTable.status, 201, `Марк could not set a table: ${JSON.stringify(peerTable.body)}`);
+    await pickInFeed(app, "point");
+    await until(app, /Где ты/);
+    await type(app, DOWN, DOWN, DOWN, ENTER);
+    await until(app, /свободно 1/, 30);
+    // The list wraps and the card's place depends on the page: walk to it by
+    // the frame, not by a count.
+    for (let i = 0; i < 6 && !/› стол/.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
+    await until(app, /› стол/, 10);
+    await pickInFeed(app, "open");
+    await until(app, /стол · dots/, 20);
+    assert.match(app.lastFrame() ?? "", /Марк/, "the table sat down at is not Марк's");
+    await rowAppears(sql, `SELECT 1 FROM table_seats WHERE table_id = $1 AND left_at IS NULL GROUP BY table_id HAVING count(*) = 2`, [peerTable.body.id]);
+    for (let i = 0; i < 8; i++) await type(app, RIGHT);
+    await type(app, ENTER);
+    await until(app, /пробежку/, 20);
+    for (let i = 0; i < 6 && !/›[^\n]*\n\s*кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
+    await until(app, /›[^\n]*\n\s*кто на пробежку/, 10);
+    out("ok   a neighbour's table came in the feed, and sitting down from the row seated the person at it");
 
     // Hiding from the row, and back from the hidden list: the person's own
     // feed only, and reversible (§8.9).

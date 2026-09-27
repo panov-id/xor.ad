@@ -12,7 +12,9 @@
 import { chromium } from "@playwright/test";
 import { existsSync, readFileSync } from "node:fs";
 
-const PHONE = /<g transform="translate\(([\d.]+),([\d.]+)\)" class="k-(?:dark|light)[^"]*">\s*(?:<rect x="-1" y="-1" width="377" height="814"|<rect (?:x="0" y="0" )?width="375" height="812")/g;
+// Both orders of the group's attributes occur (sheets 14-15-18 and 19 write
+// class first); the phone's corner is the translate either way.
+const PHONE = /<g (?:transform="translate\(([\d.]+),([\d.]+)\)" class="k-(?:dark|light)[^"]*"|class="k-(?:dark|light)[^"]*" transform="translate\(([\d.]+),([\d.]+)\)")>\s*(?:<rect x="-1" y="-1" width="377" height="814"|<rect (?:x="0" y="0" )?width="375" height="812")/g;
 const rows = readFileSync("/map", "utf-8").split("\n").filter((l) => l && !l.startsWith("#")).map((l) => l.split("\t"));
 
 const browser = await chromium.launch();
@@ -20,7 +22,7 @@ const page = await browser.newPage();
 const png = (path) => `data:image/png;base64,${readFileSync(path).toString("base64")}`;
 let broken = 0;
 for (const [shot, sheet, index] of rows) {
-  const phones = [...readFileSync(`/design/${sheet}.svg`, "utf-8").matchAll(PHONE)].map((m) => [Number(m[1]), Number(m[2])]);
+  const phones = [...readFileSync(`/design/${sheet}.svg`, "utf-8").matchAll(PHONE)].map((m) => [Number(m[1] ?? m[3]), Number(m[2] ?? m[4])]);
   const at = phones[Number(index)];
   const shotFile = `/shots/${shot}.png`;
   const sheetFile = `/shots/sheets/${sheet}.png`;
@@ -39,7 +41,9 @@ for (const [shot, sheet, index] of rows) {
       return c.getImageData(0, 0, w, h).data;
     };
     const p = draw(shotImg, 0, 0), q = draw(sheetImg, x * 2, y * 2);
-    const far = (d, i, j) => Math.max(Math.abs(d[i] - d[j]), Math.abs(d[i + 1] - d[j + 1]), Math.abs(d[i + 2] - d[j + 2])) > 40;
+    // 16, not 40: a card's panel fill is ~25 off the ground (#262019 on #0d0b0a),
+    // and at 40 the edge was the text's, not the card's (WD6b, 28.09.2026).
+    const far = (d, i, j) => Math.max(Math.abs(d[i] - d[j]), Math.abs(d[i + 1] - d[j + 1]), Math.abs(d[i + 2] - d[j + 2])) > 16;
     let off = 0;
     for (let i = 0; i < p.length; i += 4) if (Math.max(Math.abs(p[i] - q[i]), Math.abs(p[i + 1] - q[i + 1]), Math.abs(p[i + 2] - q[i + 2])) > 48) off++;
     // The content's left edge: in each row, the first pixel away from the

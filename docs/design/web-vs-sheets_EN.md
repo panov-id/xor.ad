@@ -107,3 +107,30 @@ venues, offers) were added. Web e2e: 28 passed.
 Stage 2 (on `830f603`): the seven screens are built on `web/src/ui/*` — `HeaderScreen` (Composer, Likes, Card, Unlock, Register), `Button` (all seven; "write" is a `pill`), `Card` (feed, likes, the table card as `nested`). The phrase's mode is shown in words (`modes()`), not as a code. The composer screen got its own class `composer-screen`: `.composer` from `chat.css:15` made it a flex row. e2e: 33 passed (two `test.fail()` in other specs are expected). Shoot: 34 opened, 0 not.
 
 Left for WD3: the offer complaint form in Card still uses the old buttons; the phrase language is the code "und"; focused fields have a double ring.
+
+## WD6b · 28.09.2026 · the comparison map
+
+The gate `scripts/check-web-design.sh` sets 29 shots against phones on the built sheets
+(`scripts/design/web-design-map.tsv`: each pair records the phone's caption on the sheet).
+The shoot opens 35 states. The cabinet is shot with its data: a venue proved by its
+envelope code and an offer published, so the shot measures the layout, not an empty list.
+
+The edge threshold dropped from 40 to 16: a card's fill (#262019 on #0d0b0a) is about 25
+off the ground, and at 40 the edge was measured by the text, not the card. The edge now
+meets the sheet for Feed (17→0), Match (15→0) and Inbox (5→0).
+
+No pair on the sheets (dark shots):
+
+| shot | why there is no pair |
+|---|---|
+| Hidden | no sheet of the hidden list; U–W on 06-07-10 show a hidden phrase in "me", not the list |
+| Restore | 12-13 restores only by a move (13 Б); no paper-code entry from the splash |
+| Reissue | a new paper code is an item of the 12 list, with no phone of its own |
+| Me-pin | changing the PIN is an item of the 12 list, with no phone of its own |
+| Me-reset | "start again" is a priced row of the 12 list; no confirmation screen |
+| Card-liked, Card-matched | "after a like" on 23 shows the next card, not the "liked" line on this one |
+| ChatGame | 18 shows only a game in progress; the choice and the offer the web shoots are not drawn |
+| Cabinet-sent | sign-in on 17 is one phone; there is no "letter sent" state |
+
+Light shots other than the feed (`Feed-light` ↔ `screen-brands` #9) have no pair: the
+other sheets are dark.

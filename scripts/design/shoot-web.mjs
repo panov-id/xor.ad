@@ -4,7 +4,7 @@
 // and each screen is shot once per scheme. A screen that does not open is a
 // line in shots.tsv with the reason, and the walk goes on.
 import { chromium } from "@playwright/test";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const URL_ = process.env.WEB_URL ?? "http://localhost:4173";
 const OUT = "/out";
@@ -281,6 +281,7 @@ await step("Statements", anya, async () => {
 // letter's link from Mailpit, as web/e2e/specs/adv.spec.ts does.
 const venue = await person(ADV);
 const email = `shoot-${run}@example.test`;
+const venueName = `Пекарня «Колос» ${run}`;
 await step("Cabinet-sign-in", venue, async () => {
   await venue.goto("/adv");
   await seen(screen(venue, "adv-sign-in"));
@@ -305,10 +306,44 @@ await step("Cabinet-venues", venue, async () => {
   if (!token) throw new Error(`no sign-in letter reached ${email}`);
   await venue.goto(`/adv/enter#${token}`);
   await seen(screen(venue, "adv-venues"));
+  // A venue, as sheet 17's second phone has one: added, not yet proved.
+  await id(venue, "venue-name").fill(venueName);
+  await id(venue, "venue-address").fill("Макариу 12, Лимасол");
+  await id(venue, "venue-lat").fill("34.6786");
+  await id(venue, "venue-lon").fill("33.0413");
+  await id(venue, "venue-add").click();
+  await id(venue, "venue").filter({ hasText: venueName }).getByTestId("venue-status").filter({ hasText: "не подтверждена" }).waitFor({ timeout: 15000 });
+});
+
+// The cabinet is measured with its data, not empty (WD6b): the venue proved by
+// its envelope — the code is read from the stand's database by shoot-web.sh,
+// as web/e2e/specs/adv.spec.ts reads it — and an offer published.
+await step("Cabinet-new-offer", venue, async () => {
+  const card = id(venue, "venue").filter({ hasText: venueName });
+  await card.getByTestId("venue-envelope").click();
+  await card.getByTestId("venue-code").waitFor({ timeout: 15000 });
+  writeFileSync(`${OUT}/envelope.want`, venueName);
+  for (let i = 0; i < 60 && !existsSync(`${OUT}/envelope.code`); i++) await venue.waitForTimeout(500);
+  if (!existsSync(`${OUT}/envelope.code`)) throw new Error("no envelope code read for the venue (envelope.code)");
+  const code = readFileSync(`${OUT}/envelope.code`, "utf-8").trim();
+  await card.getByTestId("venue-code").fill(code.toLowerCase().replace("-", " "));
+  await card.getByTestId("venue-verify").click();
+  await card.getByTestId("venue-status").filter({ hasText: /^подтверждена$/ }).waitFor({ timeout: 15000 });
+  await id(venue, "adv-tab-offers").click();
+  await id(venue, "offer-new").click();
+  await id(venue, "offer-venue").waitFor({ timeout: 15000 });
+  await id(venue, "offer-text").fill("Второй круассан за полцены");
+  await id(venue, "offer-discount").fill("−20 %");
+  await id(venue, "offer-conditions").fill("при заказе от двух");
+  await id(venue, "offer-promo").fill("КОЛОС20");
+  await id(venue, "offer-url").fill("https://kolos.example/");
 });
 await step("Cabinet-offers", venue, async () => {
-  await id(venue, "adv-tab-offers").click();
-  await seen(screen(venue, "adv-offers"));
+  await id(venue, "offer-preview").click();
+  await id(venue, "offer-publish").click();
+  await id(venue, "offer-published").waitFor({ timeout: 15000 });
+  await id(venue, "offer-to-list").click();
+  await id(venue, "adv-offer").filter({ hasText: "Второй круассан" }).getByTestId("adv-offer-state").filter({ hasText: "в ленте" }).waitFor({ timeout: 15000 });
 });
 
 const stranger = await person();

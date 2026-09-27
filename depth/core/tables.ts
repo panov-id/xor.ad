@@ -89,10 +89,10 @@ export class Tables {
   }
   // seq is the board the move was made on: the same body again answers the
   // same board, another version 409 stale_seq.
-  move(id: string, seq: number, move: unknown): Promise<Answer<Board>> {
+  move(id: string, seq: number, move: unknown): Promise<Answer<{ board: Board }>> {
     return this.client.tableCall("POST", at(id, "/moves"), { seq, move });
   }
-  pass(id: string, seq: number): Promise<Answer<Board>> {
+  pass(id: string, seq: number): Promise<Answer<{ board: Board }>> {
     return this.client.tableCall("POST", at(id, "/moves"), { seq, pass: true });
   }
   propose(id: string, kind: "rematch" | "draw" | "undo", next?: { class: BoardClass; set: string }): Promise<Answer<{ id: string }>> {

@@ -14,6 +14,7 @@ import { queryOrThrow, savepoint, transaction } from "./db.ts";
 import { log } from "./log.ts";
 import { inc } from "./metrics.ts";
 import { Freezes, freezeSession } from "./sessions.ts";
+import { leaveTable } from "./tables.ts";
 
 type Run = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 
@@ -138,7 +139,13 @@ export async function takeDownLeftByPinLimit(): Promise<number> {
           OR EXISTS (SELECT 1 FROM likes l JOIN feed_messages f ON f.id = l.feed_message_id
                       WHERE l.liker_identity = i.id AND f.expires_at > now())
           OR EXISTS (SELECT 1 FROM match_participants p JOIN matches m ON m.id = p.match_id
-                      WHERE p.identity = i.id AND m.chat_id IS NULL AND m.expires_at > now()))
+                      WHERE p.identity = i.id AND m.chat_id IS NULL AND m.expires_at > now())
+          -- And what the tables and the chats' games hold (GC1b): without these
+          -- a person with only a game or a seat live was never picked.
+          OR EXISTS (SELECT 1 FROM chat_participants p JOIN chat_games g ON g.chat_id = p.chat_id
+                      WHERE p.identity = i.id)
+          OR EXISTS (SELECT 1 FROM table_seats ts WHERE ts.identity = i.id AND ts.left_at IS NULL)
+          OR EXISTS (SELECT 1 FROM table_lines tl WHERE tl.author_identity = i.id AND tl.visible_at IS NULL))
       ORDER BY i.id LIMIT 100`,
   );
   let done = 0;
@@ -287,6 +294,19 @@ export async function takeDownLive(run: Run, me: string): Promise<void> {
       WHERE chat_id IS NULL AND id IN (SELECT match_id FROM match_participants WHERE identity = $1)`,
     [me],
   );
+
+  // The games of one's chats (chat spec §8.2 «отошёл», :1301; GC1b): the chat
+  // outlives a step away, its game does not, and nobody but its two sides can
+  // play it. Their rooms learn the board is gone. Then the table: one's lines
+  // still waiting for the queue, and one's seat (§6.1, leave_table).
+  const games = await run<{ chat_id: string }>(
+    `DELETE FROM chat_games WHERE chat_id IN (SELECT chat_id FROM chat_participants WHERE identity = $1)
+     RETURNING chat_id`,
+    [me],
+  );
+  for (const { chat_id } of games) await run(`SELECT pg_notify('chat_game', $1)`, [`${chat_id}|board`]);
+  await run(`DELETE FROM table_lines WHERE author_identity = $1 AND visible_at IS NULL`, [me]);
+  await leaveTable(run, me);
 }
 
 // The other half of the same line. A like or a phrase checks the identity in

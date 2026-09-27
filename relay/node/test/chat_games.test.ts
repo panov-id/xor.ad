@@ -27,6 +27,8 @@ const database = await import("../src/lib/db.ts");
 const auth = await import("../src/lib/identity_auth.ts");
 const chatGames = await import("../src/lib/chat_games.ts");
 const relay = await import("../src/chat/relay.ts");
+const takeDown = await import("../src/lib/take_down.ts");
+await import("../src/routes/away.ts");
 await import("../src/routes/identity.ts");
 await import("../src/routes/chat_games.ts");
 // The rooms' listeners, once and before any test: started inside one, they
@@ -91,6 +93,9 @@ async function signed(who: Person, method: string, path: string, body?: unknown)
   });
 }
 
+// A known PIN proof, so a test can close an identity (POST /identities/close).
+const PIN = new TextEncoder().encode("1234-chat-games");
+
 async function person(age = 30): Promise<Person> {
   const pair = await crypto.subtle.generateKey(P256, true, ["sign", "verify"]);
   const spki = new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey));
@@ -101,7 +106,7 @@ async function person(age = 30): Promise<Person> {
       wrap_pub: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91))),
       name: "Аня",
       age,
-      auth_hash: await auth.sha256hex(crypto.getRandomValues(new Uint8Array(32))),
+      auth_hash: await auth.sha256hex(PIN),
       share: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(32))),
       recovery_lookup_id: crypto.randomUUID(),
     },
@@ -230,4 +235,53 @@ Deno.test({ name: "a chat's game is only its two sides', and it goes with the co
   await database.transaction((run) => chatGames.sweepChatGames(run));
   const [left] = await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM chat_games WHERE chat_id = $1`, [chat]);
   assertEquals(left.n, 0, "the sweeper leaves the game of an ended chat");
+});
+
+// GC1b (chat spec §8.2, :1301 and «отошёл»): stepping away, closing the
+// identity and the freeze of the tenth PIN miss take down what is live the
+// same way — among it the games of one's chats, one's seat at a table and
+// one's table lines still waiting for the queue.
+const liveGame = async () => {
+  const a = await person();
+  const b = await person();
+  const chat = await chatOf(a, b);
+  await signed(a, "POST", `/chats/${chat}/game`, { class: "dots", set: "2x2" });
+  assertEquals((await signed(b, "POST", `/chats/${chat}/game/answer`, { answer: "accept" })).status, 204);
+  return { a, b, chat };
+};
+const gameRows = async (chat: string) =>
+  (await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM chat_games WHERE chat_id = $1`, [chat]))[0].n;
+
+Deno.test({ name: "stepping away takes the games of one's chats with it", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, chat } = await liveGame();
+  const away = await signed(a, "POST", "/away", { span: "short", nonce: nonce() });
+  assertEquals(away.status, 200, JSON.stringify(away.body));
+  assertEquals(await gameRows(chat), 0, "the game of a chat outlived its player's step away");
+});
+
+Deno.test({ name: "closing the identity takes the games of its chats with it", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, chat } = await liveGame();
+  const closed = await signed(a, "POST", "/identities/close", { auth: auth.bytesToBase64url(PIN), nonce: nonce() });
+  assertEquals(closed.status, 200, JSON.stringify(closed.body));
+  assertEquals(await gameRows(chat), 0, "the game of a chat outlived its player's closed identity");
+});
+
+Deno.test({ name: "the freeze of the tenth PIN miss takes the games of one's chats, and nothing else live keeps it waiting", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { a, chat } = await liveGame();
+  // A seat at a table and a line waiting for the queue, written straight in.
+  const [table] = await database.queryOrThrow<{ id: string }>(
+    `INSERT INTO tables (brand, game, set, seats, lat, lon, area_radius) VALUES ('alpha', 'grid', 'checkers', 2, 52.5, 13.4, 1000) RETURNING id`);
+  await database.queryOrThrow(`INSERT INTO table_seats (table_id, identity, seat_no, playing_from) VALUES ($1, $2, 1, now())`, [table.id, a.identity_id]);
+  await database.queryOrThrow(
+    `INSERT INTO table_lines (brand, table_id, author_identity, text, seat_no, kind) VALUES ('alpha', $1, $2, 'ждёт очереди', 1, 'line')`,
+    [table.id, a.identity_id]);
+  // Frozen with nothing else live — no phrase, no like, no match.
+  await database.queryOrThrow(`UPDATE sessions SET frozen_at = now(), frozen_reason = 'pin_limit' WHERE identity = $1`, [a.identity_id]);
+  await takeDown.takeDownLeftByPinLimit();
+  assertEquals(await gameRows(chat), 0, "the minute's job left the game of a player frozen by the PIN limit");
+  const [left] = await database.queryOrThrow<{ seats: number; lines: number }>(
+    `SELECT (SELECT count(*) FROM table_seats WHERE identity = $1 AND left_at IS NULL)::int AS seats,
+            (SELECT count(*) FROM table_lines WHERE author_identity = $1 AND visible_at IS NULL)::int AS lines`,
+    [a.identity_id]);
+  assertEquals([left.seats, left.lines], [0, 0], "the freeze left a seat at a table or a line waiting for the queue");
 });

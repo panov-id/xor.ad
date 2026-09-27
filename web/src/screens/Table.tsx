@@ -8,6 +8,7 @@ import type { Client } from "../../../depth/core/client.ts";
 import { dotsOf, freeEdges, openApplications, type TableView, Tables, turnOf } from "../../../depth/core/tables.ts";
 import { say } from "../api/me.ts";
 import { tableRefusal } from "../api/tables.ts";
+import { CellsBoard, DeckBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
 
 const CELL = 48, PAD = 16, HIT = 16;
 
@@ -115,6 +116,19 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
       {dotsOf(board) && (
         <DotsBoard view={view} onEdge={turn.mine ? (edge) => act(() => tables.move(tableId, board!.seq, { edge })) : undefined} />
       )}
+      {board && !board.over && (() => {
+        // The other classes (W12): each board reads its own part of the
+        // state; a move goes on the board it was made on, and only in turn.
+        const onMove = turn.mine ? (m: unknown) => void act(() => tables.move(tableId, board.seq, m)) : undefined;
+        return (
+          <>
+            <DeckBoard view={view} onMove={onMove} />
+            <WordBoard view={view} onMove={onMove} />
+            <FreeBoard view={view} onMove={onMove} />
+            <CellsBoard view={view} onMove={onMove} />
+          </>
+        );
+      })()}
       {error && <p role="alert">{error}</p>}
       <ul className="lines">
         {view.lines.filter((l) => l.kind !== "move").map((l) => (

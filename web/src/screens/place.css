@@ -54,3 +54,21 @@
 
 /* A header with no back icon keeps the title on the 16 edge, as the sheets do. */
 .ui-header-rule:not(:has(.ui-icon)) { padding-left: var(--s-4); }
+
+/* WD9: the cabinet against sheet 17 — the strip on top (panel, the address in
+   mono 11 on the left, the sections as words on the right), titles at display
+   26/400, full-width actions, the point's fields without the fieldset's frame. */
+.screen.cabinet { gap: var(--s-3); }
+.cabinet-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); min-height: var(--control-h); margin: 0 calc(-1 * var(--s-4)); padding: 0 var(--s-4); background: var(--panel); }
+.cabinet-where { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.cabinet-nav { display: flex; gap: var(--s-3); }
+.cabinet-nav .ui-button { font-size: 13px; font-weight: 400; color: var(--muted); }
+.cabinet-nav .ui-button[aria-current="page"] { color: var(--fg); font-weight: 600; }
+.screen.cabinet .ui-header { margin-top: var(--s-2); }
+.screen.cabinet .ui-header-title { font-size: 26px; font-weight: 400; }
+.screen.cabinet > .ui-button, .screen.cabinet .add-venue > .ui-button, .screen.cabinet .place-venue .ui-button { width: 100%; }
+.screen.cabinet .add-venue { display: flex; flex-direction: column; gap: var(--s-3); }
+.screen.cabinet fieldset.place { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-3); }
+.screen.cabinet fieldset.place legend { padding: 0; margin-bottom: var(--s-2); font-size: 14px; font-weight: 600; color: var(--fg); }
+.screen.cabinet input, .screen.cabinet select, .screen.cabinet textarea { background: var(--panel); }
+.screen.cabinet [data-testid="adv-sent"] { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-1); background: var(--panel-2); font-size: 14px; }

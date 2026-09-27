@@ -101,6 +101,7 @@ screens_passed, screens_failed = map(int, _screens.groups())
 prose = tomllib.loads((H / "prose_RU.toml").read_text())
 road, steps_p, day, state = prose["roadmap"], prose["steps"], prose["day"], prose["state"]
 flows_p = prose["flows"]
+summ = prose["summary"]
 for block, key in ((road, "as_of"), (steps_p, "as_of"), (day, "date"), (state, "as_of"), (flows_p, "as_of")):
     block[key] = iso(block[key])
 ahead = int(git["unpushed"])
@@ -365,6 +366,7 @@ def flows_tally(face):
 
 steps = [(s["step"], s["node"], s["node_text"], s["depth"], s["depth_text"]) for s in steps_p["steps"]]
 layers = [(l["name"], l["percent"], l["holds"]) for l in road["layers"]]
+overall = round(sum(p for _, p, _ in layers) / len(layers))
 
 
 def layers_html():
@@ -441,6 +443,15 @@ fontcss = (R / "panel/src/fonts.css").read_text().replace("url(/fonts/", "url(fo
 doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Отчёт {measured[:10]}</title>
 <style>{fontcss}{css}</style></head><body>
 
+<section class="p1">
+  <div class="kicker">XOR.AD · SOSED.PLACE · NEIGHBRO.PLACE · {e(measured[:10])}</div>
+  <h1>Прогресс продукта</h1>
+  <div class="p1-top"><div class="big">{overall}%<span>общая готовность<br>среднее по {len(layers)} слоям, оценка {ru_date(road['as_of'])}</span></div>
+  <p class="goal"><b>К чему стремимся.</b> {P(summ['goal'])}</p></div>
+  <table class="p1bars">{"".join(f'<tr><td>{e(n)}</td><td class="pc">{p}%</td><td><div class="bar"><div style="width:{p}%"></div></div></td></tr>' for n, p, _ in layers)}</table>
+  <div class="p1-cols"><div><h3>Готово</h3><ul>{li(summ['ready'])}</ul></div><div><h3>Дальше</h3><ul>{li(summ['next'])}</ul></div></div>
+</section>
+<div style="break-after:page"></div>
 <header class="hero">
   <div class="kicker">XOR.AD · SOSED.PLACE · NEIGHBRO.PLACE · ВЕТКА {e(git['branch']).upper()} · {e(git['head'])}</div>
   <h1>Что есть<br>и чего нет</h1>

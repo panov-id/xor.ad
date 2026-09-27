@@ -12,6 +12,7 @@
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
+import { leaveTable } from "../lib/tables.ts";
 import { clientAddress } from "../lib/client_ip.ts";
 import { checkAll } from "../lib/rate_limit.ts";
 import { findPublishableKey } from "../lib/api_key.ts";
@@ -1170,6 +1171,8 @@ async function closeOnce(sessionId: string, me: string, nonce: Uint8Array, prese
       [me],
     );
     if (shut.length === 0) throw new ClosedUnderUs();
+    // The seat at a table is freed, one of leave_table's five paths (§6.1).
+    await leaveTable(run, me);
 
     const ended = await run<{ chat_id: string }>(
       `UPDATE chat_participants SET gone_at = now()

@@ -967,7 +967,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h2 id="tag-tables">tables</h2>
 <p>Столы — игра компанией (протокол §4.6). Предложено 16.09.2026, не построено.</p>
 <section class="op" id="post-tables">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables</code><span class="chip s-built">построено</span></div>
 <p><strong>Поставить стол</strong></p>
 <p>Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away; already_seated не поднимается — прежнее место освобождается.</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -975,46 +975,52 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-tablecreate"><code>TableCreate</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>id стола.</td><td><code>object</code></td></tr><tr><td><code>409</code></td><td>stepped_away и отказы состояния либо invalid_body на повторный nonce (протокол §2).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="get-tables--id">
-<div class="op-head"><span class="method m-get">get</span><code class="path">/tables/{id}</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-get">get</span><code class="path">/tables/{id}</code><span class="chip s-built">построено</span></div>
 <p><strong>Стол без скрытого</strong></p>
 <p>Доска, {playing, watching}, реплики с момента своей посадки, своё место; рука своя, рубашки чужих (спека чата §6.1).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Стол.</td><td><a href="#schema-tableview"><code>TableView</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="post-tables--id--like">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/like</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/like</code><span class="chip s-built">построено</span></div>
 <p><strong>Лайкнуть стол, не садясь</strong></p>
 <p>Закладка с публичным счётчиком, ни мэтча, ни предложения; стол уходит из ленты этого человека в GET /likes (спека чата §6.1; решение владельца 17.09.2026, утверждено 17.09.2026).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>state liked; повтор отвечает тем же.</td><td><a href="#schema-likeresult"><code>LikeResult</code></a></td></tr><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>stepped_away (ApiError).</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="delete-tables--id--like">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/like</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/like</code><span class="chip s-built">построено</span></div>
 <p><strong>Снять лайк стола</strong></p>
 <p>like_count уменьшается, стол возвращается в ленту (спека чата §6.1, 17.09.2026, утверждено 17.09.2026).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Снят.</td><td></td></tr><tr><td><code>404</code></td><td></td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="post-tables--id--seat">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/seat</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/seat</code><span class="chip s-built">построено</span></div>
 <p><strong>Подсесть</strong></p>
 <p>Отказ unavailable, если не проходят полосы возраста или за столом заблокированный — ответ один, не оракул; already_seated, если сидишь за другим (спека чата §6.1).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="delete-tables--id--seat">
-<div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/seat</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-delete">delete</span><code class="path">/tables/{id}/seat</code><span class="chip s-built">построено</span></div>
 <p><strong>Встать</strong></p>
 <p>Вернуться — тем же POST; история заново с посадки (спека чата §6.1).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="post-tables--id--ticket">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/ticket</code><span class="chip s-spec">спека</span></div>
@@ -1025,7 +1031,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>404</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Билет.</td><td><code>object</code></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--lines">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/lines</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/lines</code><span class="chip s-built">построено</span></div>
 <p><strong>Реплика, заявка, отказ или стикер</strong></p>
 <p>line/application/refusal — 202, публикуется вердиктом очереди; sticker — 200, без очереди. Одна заявка на игру; отказ без текста не принимается (спека чата §6.1).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -1033,9 +1039,10 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-tablelinecreate"><code>TableLineCreate</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>202</code></td><td>В очереди.</td><td></td></tr><tr><td><code>200</code></td><td>Стикер поставлен.</td><td></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="post-tables--id--moves">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/moves</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/moves</code><span class="chip s-built">построено</span></div>
 <p><strong>Ход или пас</strong></p>
 <p>В терминах класса доски; отказы not_your_turn, illegal_move с причиной движка; три паса подряд — в зрители (table.move.window, table.pass.limit).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -1043,6 +1050,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-move"><code>Move</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Доска после хода.</td><td><a href="#schema-board"><code>Board</code></a></td></tr><tr><td><code>409</code></td><td></td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="post-tables--id--confirm">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/confirm</code><span class="chip s-spec">спека</span></div>
@@ -1053,7 +1061,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
 </section>
 <section class="op" id="post-tables--id--proposals">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals</code><span class="chip s-built">построено</span></div>
 <p><strong>Предложить: сыграть ещё, ничью, откат</strong></p>
 <p>Откат срабатывает при согласии всех играющих и ровно на один снимок (спека чата §6).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -1061,9 +1069,10 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposal"><code>Proposal</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>409</code></td><td>pending_exists — открытое предложение уже есть; refused — зритель предлагать не может.</td><td><a href="#schema-apierror"><code>ApiError</code></a></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>201</code></td><td>id предложения.</td><td><code>object</code></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="post-tables--id--proposals--pid">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals/{pid}</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/proposals/{pid}</code><span class="chip s-built">построено</span></div>
 <p><strong>Ответить на предложение</strong></p>
 <p>accept / decline / counter — встречное называет другой класс и набор (спека чата §6).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
@@ -1071,14 +1080,16 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <h3>Тело запроса · <code>application/json</code></h3>
 <p><a href="#schema-proposalanswer"><code>ProposalAnswer</code></a></p>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="post-tables--id--resign">
-<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/resign</code><span class="chip s-spec">спека</span></div>
+<div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/resign</code><span class="chip s-built">построено</span></div>
 <p><strong>Сдаться</strong></p>
 <p>Одностороннее объявление; результат не записывается (спека чата §6).</p>
 <h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
 <h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>id</code></td><td>path</td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr></table></div>
 <h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>204</code></td><td>Сделано.</td><td></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
 </section>
 <section class="op" id="post-tables--id--congratulate">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables/{id}/congratulate</code><span class="chip s-spec">спека</span></div>

@@ -150,6 +150,17 @@ export async function applyOverdue(run: Query, tableId: string): Promise<void> {
   }
 }
 
+// Resigning (§6): a one-sided declaration with no result — the seat stops
+// playing and stays at the table as a spectator; a game of two is over.
+export async function resign(run: Query, tableId: string, seat: number): Promise<void> {
+  await run(`UPDATE table_seats SET playing_from = NULL WHERE table_id = $1 AND seat_no = $2 AND left_at IS NULL`, [
+    tableId,
+    seat,
+  ]);
+  const game = await lockGame(run, tableId);
+  if (game) await dropFromOrder(run, game, seat, new Date());
+}
+
 // leave_table(identity) of §6.1 — a transaction step, not a database object
 // (DATA-3): left_at and NOTIFY seat_left; the leaver's proposal goes; a
 // playing leaver leaves the order; the last one out closes the table.

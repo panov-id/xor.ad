@@ -31,6 +31,7 @@
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
+import { leaveTable } from "../lib/tables.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, sunsetHeader } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
@@ -130,6 +131,8 @@ async function stepAwayOnce(req: Request): Promise<Response> {
     // B108). The nonce is already written: thrown, so it goes back too.
     const gone = await stillHere(run, me, caller.sessionId);
     if (gone?.closed) throw new NoLongerLive();
+    // The seat at a table is freed (§8.2, §6.1; lib/tables.ts).
+    await leaveTable(run, me);
 
     // Every live conversation of one's own: the mark, and one line to the other side.
     const chats = await run<{ chat_id: string }>(

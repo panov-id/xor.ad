@@ -21,7 +21,7 @@ import { checkAll } from "../lib/rate_limit.ts";
 import { log } from "../lib/log.ts";
 import { startState, stepGame } from "../lib/tables_engine.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
-import { hasInvisible } from "../lib/names.ts";
+import { foldLines, hasInvisible } from "../lib/names.ts";
 import {
   applyOverdue,
   boardFor,
@@ -309,7 +309,7 @@ async function speak(req: Request, tableId: string): Promise<Response> {
     if (kind !== "line" && kind !== "application" && kind !== "refusal") {
       return refuse("invalid_body", "kind is line, application, refusal or sticker", 400);
     }
-    const text = typeof body?.text === "string" ? body.text.trim() : "";
+    const text = typeof body?.text === "string" ? foldLines(body.text).trim() : "";
     if (!text || graphemes(text) > 128) return refuse("invalid_body", "text is 1 to 128 characters", 400);
     if (bytes(text) > 2048) return tooManyBytes();
     if (hasInvisible(text)) return refuse("invalid_body", "the line has characters nobody can see", 400);

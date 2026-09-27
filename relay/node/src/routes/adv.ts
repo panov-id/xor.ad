@@ -6,7 +6,7 @@
 // holding the role is not owning the row, so a venue or an offer of somebody
 // else answers 404, as one that does not exist.
 
-import { hasInvisible } from "../lib/names.ts";
+import { foldLines, hasInvisible } from "../lib/names.ts";
 import { route } from "../lib/router.ts";
 import { isEmail, json, readJson } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
@@ -54,8 +54,11 @@ function tooMany(limits: Parameters<typeof checkAll>[0], key: string): Response 
 
 // A venue's and an offer's words reach the feed; what nobody can see is
 // refused before anything else is read (FX3).
+// Line breaks are folded in the body itself (V11), so what is read from it
+// afterwards and stored is the folded text, not only what was checked.
 function invisibleIn(body: Record<string, unknown> | null, fields: string[]): Response | null {
   for (const field of fields) {
+    if (body && typeof body[field] === "string") body[field] = foldLines(body[field] as string);
     const value = body?.[field];
     if (typeof value === "string" && hasInvisible(value)) {
       return refuse("invalid_body", `${field} has characters nobody can see`, 400);

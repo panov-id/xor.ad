@@ -9,8 +9,9 @@
 import { useEffect, useState } from "react";
 import "../screens/place.css";
 import { Button } from "../ui/Button.tsx";
+import { Chip } from "../ui/Chip.tsx";
 import {
-  addVenue, me, movePlace, type Offer, offers, openSession, orderEnvelope, type Place, publish, RADII, type Refusal, signIn,
+  addVenue, answerComplaint, type Complaint, complaints, me, movePlace, notUs, type Offer, offers, openSession, orderEnvelope, type Place, publish, RADII, type Refusal, signIn,
   signUp, type Venue, venues, verify, when,
 } from "./api.ts";
 import { say } from "../locales/say.ts";
@@ -189,7 +190,36 @@ function Venues({ onError }: { onError: (e: string | null) => void }) {
         <PlaceFields value={place} onChange={setPlace} prefix="venue" />
         <Button kind="primary" type="button" disabled={!name.trim() || !address.trim()} onClick={() => void add()} data-testid="venue-add">{say("web.cabinet.addVenue")}</Button>
       </section>
+      <NotUs />
     </>
+  );
+}
+
+// Sheet 17, «это не мы»: a code from an envelope nobody here ordered suspends
+// that venue at once (SPEC §11). The node answers 204 to a right and a wrong
+// code alike, so the screen does not say which it was — the field clears.
+function NotUs() {
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function send() {
+    setBusy(true);
+    try {
+      await notUs(code.trim());
+      setCode("");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="place-not-us" data-testid="adv-not-us">
+      <h2>{say("web.cabinet.notUsTitle")}</h2>
+      <p className="muted">{say("web.cabinet.notUsNote")}</p>
+      <label className="place-field">
+        {say("web.cabinet.envelopeCode")}
+        <input value={code} onChange={(e) => setCode(e.target.value)} data-testid="adv-not-us-code" autoComplete="off" />
+      </label>
+      <Button kind="secondary" type="button" disabled={busy || code.replace(/[\s-]/g, "").length !== 12} onClick={() => void send()} data-testid="adv-not-us-send">{say("web.cabinet.notUs")}</Button>
+    </section>
   );
 }
 
@@ -283,10 +313,69 @@ function Offers({ onNew, onError }: { onNew: () => void; onError: (e: string | n
           <p>{o.offer_text}</p>
           <p className="muted">{say("web.cabinet.discountUntil", { until: when(o.discount_until) })}</p>
           <p className="muted">{say("web.cabinet.hits", { n: o.redirect_hits })}</p>
+          {(o.complaints ?? 0) > 0 && (
+            <p className="place-count" data-testid="adv-offer-complaints">
+              <span className="muted">{say("web.cabinet.complaints")}</span> <span className="place-count-bad">{o.complaints}</span>
+            </p>
+          )}
           {o.external_url && <p className="muted" data-testid="adv-offer-link">{say("web.cabinet.link", { link: o.link.replace(/^https:\/\//, "") })}{o.link_disabled ? say("web.cabinet.linkOff") : ""}</p>}
         </article>
       ))}
+      <Complaints onError={onError} />
     </>
+  );
+}
+
+// Sheet 17, «Жалобы «скидку не дали»»: text and date, no person (SPEC §10);
+// the one private answer to the moderator, never rewritten (409 on a second).
+function Complaints({ onError }: { onError: (e: string | null) => void }) {
+  const [rows, setRows] = useState<Complaint[] | null>(null);
+  const load = () => complaints().then((a) => a.status === 200 ? setRows(a.body!.items) : onError(say("web.cabinet.notTaken", { status: a.status })));
+  useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!rows || rows.length === 0) return null;
+  return (
+    <section className="place-complaints" data-testid="adv-complaints">
+      <h2>{say("web.cabinet.complaintsTitle")}</h2>
+      {rows.map((c) => <ComplaintRow key={c.id} complaint={c} onAnswered={load} onError={onError} />)}
+    </section>
+  );
+}
+
+function ComplaintRow({ complaint, onAnswered, onError }: { complaint: Complaint; onAnswered: () => void; onError: (e: string | null) => void }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function send() {
+    setBusy(true);
+    onError(null);
+    try {
+      const answer = await answerComplaint(complaint.id, text.trim());
+      if (answer.status !== 204) return onError(answer.body?.error?.message ?? say("web.cabinet.notTaken", { status: answer.status }));
+      setText("");
+      await onAnswered();
+    } finally {
+      setBusy(false);
+    }
+  }
+  const state = complaint.status === "resolved" ? say("web.cabinet.complaintResolved")
+    : complaint.status === "rejected" ? say("web.cabinet.complaintRejected")
+    : complaint.response ? null : say("web.cabinet.complaintWaits");
+  return (
+    <article className="ui-card ui-card-nested place-complaint" data-testid="adv-complaint" data-status={complaint.status}>
+      <p className="muted">{when(`${complaint.date}T00:00:00Z`).split(",")[0]}</p>
+      <p>{complaint.text}</p>
+      {state && <p className={complaint.status === "pending" ? "warn" : "muted"}>{state}</p>}
+      {complaint.response
+        ? <p className="muted" data-testid="adv-complaint-response">{complaint.response}</p>
+        : (
+          <div className="place-answer">
+            <label className="place-field">
+              {say("web.cabinet.answerLabel")}
+              <input value={text} maxLength={1000} onChange={(e) => setText(e.target.value)} data-testid="adv-complaint-text" />
+            </label>
+            <Button kind="primary" type="button" disabled={busy || !text.trim()} onClick={() => void send()} data-testid="adv-complaint-send">{say("web.cabinet.answer")}</Button>
+          </div>
+        )}
+    </article>
   );
 }
 
@@ -309,6 +398,7 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
   const [done, setDone] = useState<Offer | null>(null);
   const [refused, setRefused] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
   useEffect(() => {
     void venues().then((a) => {
       const verified = a.status === 200 ? a.body!.items.filter((v) => v.verification_status === "verified") : [];
@@ -334,6 +424,30 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
     } finally {
       setBusy(false);
     }
+  }
+  if (previewing && !done) {
+    // Sheet 17, «Так увидит сосед»: the card as the feed draws it, from the
+    // form alone; publishing is at once and whole, so this is the last look.
+    const at = rows?.find((v) => v.id === venue);
+    return (
+      <section className="place-preview" data-testid="offer-preview-card">
+        <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.previewTitle")}</h1></header>
+        <article className="ui-card place-offer">
+          <div className="row">
+            <Chip label={say("web.cabinet.offerChip")} tone="accent" outline />
+            <span className="place-discount">{discount.trim()}</span>
+          </div>
+          {at && <h2>{at.name}</h2>}
+          <p>{text.trim()}</p>
+          {conditions.trim() && <p className="muted">{say("web.cabinet.field.terms")}: {conditions.trim()}</p>}
+          <p className="muted">{say("web.cabinet.discountUntil", { until: when(new Date(until).toISOString()) })}</p>
+        </article>
+        <p className="muted">{say("web.cabinet.publishNote")}</p>
+        {refused && <p className="error" data-testid="offer-refused">{say("web.cabinet.refused", { reason: refused })}</p>}
+        <Button kind="primary" type="button" disabled={busy} onClick={() => void go()} data-testid="offer-publish">{say("web.cabinet.publish")}</Button>
+        <Button kind="secondary" type="button" onClick={() => setPreviewing(false)} data-testid="offer-to-form">{say("web.cabinet.toForm")}</Button>
+      </section>
+    );
   }
   if (done) {
     return (
@@ -386,9 +500,7 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
             <input value={url} onChange={(e) => setUrl(e.target.value)} data-testid="offer-url" />
             <span className="muted">{say("web.cabinet.noShorteners")}</span>
           </label>
-          <p className="muted">{say("web.cabinet.publishNote")}</p>
-          {refused && <p className="error" data-testid="offer-refused">{say("web.cabinet.refused", { reason: refused })}</p>}
-          <Button kind="primary" type="button" disabled={!venue || !text.trim() || !discount.trim() || busy} onClick={() => void go()} data-testid="offer-publish">{say("web.cabinet.publish")}</Button>
+          <Button kind="secondary" type="button" disabled={!venue || !text.trim() || !discount.trim()} onClick={() => { setRefused(null); setPreviewing(true); }} data-testid="offer-preview">{say("web.cabinet.preview")}</Button>
         </>
       )}
     </>

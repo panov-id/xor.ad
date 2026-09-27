@@ -12,6 +12,8 @@ import { say } from "../locales/say.ts";
 import "../chat/chat.css";
 import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
+import { Chip } from "../ui/Chip.tsx";
+import { modes } from "../api/actions.ts";
 import "./talk.css";
 
 export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclined }: {
@@ -71,13 +73,18 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
         </button>
         <h1 className="ui-header-title">{row.name}, {row.age}</h1>
       </header>
-      <Card as="section">
+      {/* Sheet 24, «Мэтч»: the other person's card on panel-2 — name, the
+          phrase's mode as a chip, the phrase — then the hint with its accent
+          edge. The sheet's lifespan bar is left out: the inbox row carries no
+          expiry to draw it from. */}
+      <Card as="section" kind="nested" className="match-card">
+        <strong>{row.name}, {row.age}</strong>
+        <Chip label={modes().find((m) => m.value === row.phrase.mode)?.label ?? row.phrase.mode} />
         <p>{row.phrase.text}</p>
-        <span className="muted">{row.phrase.mode}</span>
       </Card>
-      <p className="muted">
-        {row.waiting_for_you ? say("web.match.agreed") : say("web.match.hint")}
-      </p>
+      <Card as="section" kind="nested" className="match-hint">
+        <p>{row.waiting_for_you ? say("web.match.agreed") : say("web.match.hint")}</p>
+      </Card>
       {error && <p className="error" data-testid="error">{error}</p>}
       {!waiting && (
         <div className="actions">

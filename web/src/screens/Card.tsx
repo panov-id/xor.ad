@@ -95,7 +95,7 @@ export function Card(
         {card.kind === "offer" && (complained
           ? <p data-testid="complained">{say("web.card.complained")}</p>
           : !complaining
-          ? <button type="button" disabled={busy} onClick={() => setComplaining(true)} data-testid="complain">{say("web.card.complain")}</button>
+          ? <Button kind="text" type="button" disabled={busy} onClick={() => setComplaining(true)} data-testid="complain">{say("web.card.complain")}</Button>
           : (
             <section className="confirm" data-testid="complain-form">
               <label>
@@ -106,8 +106,8 @@ export function Card(
                 {say("web.card.complain_text")}
                 <textarea value={text} maxLength={1000} onChange={(e) => setText(e.target.value)} data-testid="complain-text" />
               </label>
-              <button type="button" className="danger" disabled={busy || !email.includes("@")} onClick={() => void complain()} data-testid="complain-send">{say("web.card.complain_send")}</button>
-              <button type="button" onClick={() => setComplaining(false)}>{say("web.card.cancel")}</button>
+              <Button kind="danger" type="button" disabled={busy || !email.includes("@")} onClick={() => void complain()} data-testid="complain-send">{say("web.card.complain_send")}</Button>
+              <Button kind="secondary" type="button" onClick={() => setComplaining(false)}>{say("web.card.cancel")}</Button>
             </section>
           ))}
         {!confirmBlock

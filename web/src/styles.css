@@ -17,7 +17,7 @@ h2 { font-size: 18px; margin: 0; }
 label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); }
 label.row { flex-direction: row; align-items: flex-start; gap: 10px; color: var(--fg); }
 input, select { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--border-control); border-radius: var(--r-1); padding: 10px var(--s-3); min-height: var(--control-h); }
-input:focus { outline: none; border-color: var(--accent); }
+input:focus { outline: none; }
 button { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--border-control); border-radius: var(--r-2); padding: 0 var(--s-4); min-height: var(--control-h); cursor: pointer; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 button:disabled { opacity: 0.4; cursor: default; }
@@ -31,7 +31,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 footer { margin-top: auto; }
 /* W2: the composer, the card full-screen, "liked". */
 textarea { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--border-control); border-radius: var(--r-1); padding: 10px var(--s-3); resize: vertical; }
-textarea:focus { outline: none; border-color: var(--accent); }
+textarea:focus { outline: none; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .card[role="button"] { cursor: pointer; }
 .card[role="button"]:hover { border-color: var(--accent); }
@@ -44,7 +44,7 @@ button.danger { border-color: var(--err); color: var(--err); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 a.button { display: inline-block; text-decoration: none; text-align: center; color: var(--fg); border: 1px solid var(--border-control); border-radius: var(--r-2); padding: 10px var(--s-4); min-height: var(--control-h); }
 a.button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
-button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; } /* kit field-focus: the rim stays, one 2 px accent-text ring 2 px outside */
 .tabs { max-width: 375px; margin: 0 auto; display: flex; gap: var(--s-2); padding: var(--s-3) var(--s-4) 0; }
 .tab { flex: 1; }
 .tab.on { border-color: var(--accent); color: var(--accent-text); }

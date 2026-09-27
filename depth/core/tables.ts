@@ -3,7 +3,7 @@
 // protocol §4.6–4.7, whose shapes the node no longer follows.
 //
 // The core states facts; the words are the screens' (depth/ink, web).
-import type { Answer, Client, Radius } from "./client.ts";
+import type { Answer, Client, Frame, Radius, Room } from "./client.ts";
 
 const nonce = () => {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
@@ -29,6 +29,9 @@ export interface TableLine {
   kind: "line" | "application" | "refusal" | "sticker" | "move" | "congratulation";
   text?: string;
   sticker?: string;
+  // On a refusal: the seat whose application it answers; `seat` stays the
+  // one who refused (G1e, 838ed40).
+  refuses_seat?: number | null;
   created_at: number;
 }
 export interface TableView {
@@ -120,13 +123,42 @@ export function turnOf(view: TableView, now = Date.now()): { mine: boolean; name
   };
 }
 
-// Applications from those still watching. Whom a refusal answers is not in
-// the line: its seat is its author's (seat_no, measured live on G1c), so a
-// refused application stays listed until the node says whom it refused.
+// Applications from those still watching and not refused: a refusal names
+// the refused seat in refuses_seat (G1e); its own seat is the refuser's.
 export function openApplications(view: TableView): TableLine[] {
   const watching = new Set(view.seats.filter((s) => s.role === "watching").map((s) => s.seat));
-  return view.lines.filter((l) => l.kind === "application" && watching.has(l.seat));
+  const refused = new Set(view.lines.filter((l) => l.kind === "refusal" && typeof l.refuses_seat === "number").map((l) => l.refuses_seat));
+  return view.lines.filter((l) => l.kind === "application" && watching.has(l.seat) && !refused.has(l.seat));
 }
+
+// The table's socket (protocol §4.4; G1e): a ticket, then the room
+// "table:<id>" on GET /chat. Frames: board — the board whole; seat —
+// {playing, watching}; line — one published line; name_verdict — to the
+// table's author. Losing the seat closes the room 4005.
+export async function openTable(client: Client, id: string): Promise<Room> {
+  const answer = await client.tableCall<{ ticket: string }>("POST", at(id, "/ticket"));
+  if (answer.status !== 200) throw new Error(`no table ticket: ${answer.status} ${JSON.stringify(answer.body)}`);
+  return client.openRoomWith(answer.body.ticket);
+}
+
+// A frame laid onto the view the screen holds, instead of reading the table
+// again every 2 s. Unknown frames leave it as it was.
+export function applyFrame(view: TableView, frame: Frame): TableView {
+  const data = frame.data as Record<string, unknown> | null;
+  if (frame.type === "board") return { ...view, board: data as unknown as Board | null };
+  if (frame.type === "seat" && data) {
+    return { ...view, playing: Number(data.playing ?? view.playing), watching: Number(data.watching ?? view.watching) };
+  }
+  if (frame.type === "line" && data && typeof data.id === "string") {
+    if (view.lines.some((l) => l.id === data.id)) return view;
+    return { ...view, lines: [...view.lines, data as unknown as TableLine] };
+  }
+  return view;
+}
+
+// 4005: the seat is gone (stood up, dropped, kicked) — the room will not
+// come back with a new ticket; the screen leaves the table.
+export const SEAT_LOST = 4005;
 
 // The dots class (G1c): n×n boxes; an edge is "h:r:c" — above box r,c, r in
 // 0..n — or "v:r:c" — left of box r,c, c in 0..n; a box "r:c" names the seat

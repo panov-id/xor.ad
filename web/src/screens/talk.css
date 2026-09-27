@@ -43,3 +43,10 @@
 .talk-sets { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .talk-set { min-height: var(--control-h); padding: 0 var(--s-4); border-radius: var(--r-pill); border: 1px solid var(--border-control); background: none; font-size: 14px; }
 .talk-set-on { background: var(--fg); border-color: var(--fg); color: var(--bg); font-weight: 600; }
+/* WD7: the match as sheet 24 — the other's card with a chip, the hint on
+   panel-2 with a 4 px accent edge (card-hint), the two buttons at the bottom. */
+.match .match-card { gap: var(--s-2); }
+.match .match-card p { font-size: 20px; font-weight: 600; }
+.match .match-hint { border-left: 4px solid var(--accent); }
+.match .match-hint p { font-size: 14px; font-weight: 400; color: var(--fg); }
+.match .actions { margin-top: auto; }

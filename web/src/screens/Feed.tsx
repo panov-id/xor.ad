@@ -168,8 +168,11 @@ export function Feed(
           : (
           <Card as="li" key={card.id} data-testid="card" data-id={card.id} onClick={() => onOpen(card)} role="button" tabIndex={0}>
             {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
-            <p>{card.text}</p>
-            <span className="muted">{modes().find((m) => m.value === card.mode)?.label ?? card.mode} · {card.lang} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
+            {/* The node files every phrase as "und" (relay routes/feed.ts): an
+                undetermined language is no word for a person and no lang for a
+                reader; a known one is both. */}
+            <p lang={card.lang && card.lang !== "und" ? card.lang : undefined}>{card.text}</p>
+            <span className="muted">{modes().find((m) => m.value === card.mode)?.label ?? card.mode}{card.lang && card.lang !== "und" ? ` · ${card.lang}` : ""} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
           </Card>
           ))}
       </ul>

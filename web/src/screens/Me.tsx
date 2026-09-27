@@ -62,6 +62,10 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
               type="button"
               className={row.red ? "place-setting warn" : "place-setting"}
               data-testid={row.testid}
+              // Name and age open with the profile's value: until it has come
+              // the row is shown but not pressable, instead of a press that does
+              // nothing (it lost shoot-web's Me-edit-name to that race, WD7).
+              disabled={(row.key === "name" || row.key === "age") && !profile}
               onClick={() => {
                 if (row.key === "name") return profile && onOpen("name", profile.pending ?? profile.name);
                 if (row.key === "age") return profile && onOpen("age", String(profile.age));

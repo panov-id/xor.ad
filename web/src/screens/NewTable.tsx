@@ -7,6 +7,9 @@ import type { Client, Radius } from "../../../depth/core/client.ts";
 import { type BoardClass, Tables } from "../../../depth/core/tables.ts";
 import { tableRefusal } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
+import { Button } from "../ui/Button.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
+import "./place.css";
 
 // The sets each class knows (relay/node/src/lib/tables_*.ts) and the most
 // seats it takes (routes/tables.ts).
@@ -54,8 +57,8 @@ export function NewTable({ client, at, radius, onMade, onBack }: {
 
   return (
     <main className="screen new-table" data-screen="new-table">
-      <header><h1>{say("web.newTable.title")}</h1></header>
-      <label>
+      <HeaderScreen title={say("web.newTable.title")} onBack={onBack} backLabel={say("common.back")} />
+      <label className="place-field">
         {say("web.newTable.class")}
         <select value={kind} onChange={(e) => {
           const next = CLASSES.find((c) => c.value === e.target.value)!;
@@ -66,26 +69,26 @@ export function NewTable({ client, at, radius, onMade, onBack }: {
           {CLASSES.map((c) => <option key={c.value} value={c.value}>{c.value}</option>)}
         </select>
       </label>
-      <label>
+      <label className="place-field">
         {say("web.newTable.set")}
         <select value={set} onChange={(e) => setSet(e.target.value)} data-testid="new-table-set">
           {chosen.sets.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </label>
-      <label>
+      <label className="place-field">
         {say("web.newTable.seats")}
         <select value={seats} onChange={(e) => setSeats(Number(e.target.value))} data-testid="new-table-seats">
           {Array.from({ length: chosen.most - 1 }, (_, i) => i + 2).map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
       </label>
-      <label>
+      <label className="place-field">
         {say("web.newTable.name")}
         <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} data-testid="new-table-name" />
       </label>
-      <p className="muted">{say("table.open")}</p>
+      <p className="place-meta">{say("table.open")}</p>
       {error && <p className="error" data-testid="error">{error}</p>}
-      <button type="button" className="primary" disabled={busy} onClick={() => void make()} data-testid="new-table-go">{say("web.newTable.go")}</button>
-      <button type="button" onClick={onBack} data-testid="new-table-back">{say("common.back")}</button>
+      <Button kind="primary" type="button" disabled={busy} onClick={() => void make()} data-testid="new-table-go">{say("web.newTable.go")}</Button>
+      <Button kind="secondary" type="button" onClick={onBack} data-testid="new-table-back">{say("common.back")}</Button>
     </main>
   );
 }

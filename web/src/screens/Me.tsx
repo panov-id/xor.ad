@@ -9,6 +9,9 @@ import type { Client } from "../../../depth/core/client.ts";
 import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan, awayCounts, graphemes, NAME_MAX, pinRefusal, profileRefusal, resetCounts, say } from "../api/me.ts";
 import { blockList, hiddenList } from "../api/lists.ts";
 import { changePinAndReseal, forget } from "../vault.ts";
+import { Button } from "../ui/Button.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
+import "./place.css";
 
 export type MeRow = "statements" | "name" | "age" | "hidden" | "blocked" | "away" | "pin" | "move" | "reissue" | "reset";
 
@@ -50,14 +53,14 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
   ];
   return (
     <main className="screen me" data-screen="me" data-name-state={profile?.pending ? "pending" : "accepted"}>
-      <header><h1>{say("me.title")}</h1><button type="button" onClick={onBack} data-testid="me-back">{say("common.back")}</button></header>
+      <HeaderScreen title={say("me.title")} action={<Button kind="text" type="button" onClick={onBack} data-testid="me-back">{say("common.back")}</Button>} />
       {error && <p className="error" data-testid="error">{error}</p>}
-      <ul className="rows">
+      <ul className="place-rows">
         {rows.map((row) => (
           <li key={row.key}>
             <button
               type="button"
-              className={row.red ? "row warn" : "row"}
+              className={row.red ? "place-setting warn" : "place-setting"}
               data-testid={row.testid}
               onClick={() => {
                 if (row.key === "name") return profile && onOpen("name", profile.pending ?? profile.name);
@@ -103,7 +106,7 @@ export function EditProfile({ client, field, current, onDone, onBack }: {
   }
   return (
     <main className="screen edit" data-screen={`edit-${field}`}>
-      <header><h1>{say(field === "name" ? "me.name" : "me.age")}</h1></header>
+      <HeaderScreen title={say(field === "name" ? "me.name" : "me.age")} />
       <p className="muted">{say(field === "name" ? "me.nameHint" : "me.ageHint")}</p>
       <label>
         {say(field === "name" ? "me.name" : "me.age")}
@@ -120,22 +123,22 @@ export function EditProfile({ client, field, current, onDone, onBack }: {
         ? (
           <>
             <p className="warn">{say("me.band21")}</p>
-            <button type="button" className="primary" onClick={() => { setAsking(false); void send(); }} data-testid="edit-save">{say("me.save")}</button>
-            <button type="button" onClick={() => setAsking(false)}>{say("me.cancel")}</button>
+            <button type="button" className="ui-button ui-primary" onClick={() => { setAsking(false); void send(); }} data-testid="edit-save">{say("me.save")}</button>
+            <button type="button" className="ui-button ui-secondary" onClick={() => setAsking(false)}>{say("me.cancel")}</button>
           </>
         )
         : (
           <>
             <button
               type="button"
-              className="primary"
+              className="ui-button ui-primary"
               disabled={busy || value.trim() === "" || value.trim() === current}
               onClick={() => (crossesUp() ? setAsking(true) : void send())}
               data-testid="edit-save"
             >
               {say("me.save")}
             </button>
-            <button type="button" onClick={onBack} data-testid="edit-back">{say("common.back")}</button>
+            <button type="button" className="ui-button ui-secondary" onClick={onBack} data-testid="edit-back">{say("common.back")}</button>
           </>
         )}
     </main>
@@ -177,12 +180,12 @@ export function ChangePin({ client, onBack }: { client: Client; onBack: () => vo
   );
   return (
     <main className="screen pin" data-screen="change-pin" data-changed={changed ? "yes" : "no"}>
-      <header><h1>{say("pin.title")}</h1></header>
+      <HeaderScreen title={say("pin.title")} />
       {changed
         ? (
           <>
             <p data-testid="pin-changed">{say("pin.changed")}</p>
-            <button type="button" className="primary" onClick={onBack} data-testid="pin-back">{say("common.back")}</button>
+            <button type="button" className="ui-button ui-primary" onClick={onBack} data-testid="pin-back">{say("common.back")}</button>
           </>
         )
         : (
@@ -192,8 +195,8 @@ export function ChangePin({ client, onBack }: { client: Client; onBack: () => vo
             {field("again", say("pin.again"), "pin-again")}
             {differ && <p className="error">{say("reg.pinMismatch")}</p>}
             {refused && <p className="error" data-testid="error">{refused}</p>}
-            <button type="button" className="primary" disabled={!ready} onClick={() => void send()} data-testid="pin-go">{busy ? "…" : say("pin.go")}</button>
-            <button type="button" onClick={onBack} data-testid="pin-back">{say("common.back")}</button>
+            <button type="button" className="ui-button ui-primary" disabled={!ready} onClick={() => void send()} data-testid="pin-go">{busy ? "…" : say("pin.go")}</button>
+            <button type="button" className="ui-button ui-secondary" onClick={onBack} data-testid="pin-back">{say("common.back")}</button>
           </>
         )}
     </main>
@@ -229,7 +232,7 @@ export function StartAgain({ client, onClosed, onBack }: { client: Client; onClo
   }
   return (
     <main className="screen reset" data-screen="reset">
-      <header><h1>{say("reset.title")}</h1></header>
+      <HeaderScreen title={say("reset.title")} />
       <p className="warn">{say("reset.warning")}</p>
       <p data-testid="reset-price">{counts ? say("reset.price", { phrases: String(counts.phrases), chats: String(counts.chats) }) : "…"}</p>
       <p className="warn">{say("reset.code")}</p>
@@ -238,8 +241,8 @@ export function StartAgain({ client, onClosed, onBack }: { client: Client; onClo
         <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="reset-pin" />
       </label>
       {refused && <p className="error" data-testid="error">{refused}</p>}
-      <button type="button" className="primary" disabled={pin.length !== 6 || counts === null || busy} onClick={() => void send()} data-testid="reset-go">{say("reset.go")}</button>
-      <button type="button" onClick={onBack} data-testid="reset-back">{say("common.back")}</button>
+      <button type="button" className="ui-button ui-primary" disabled={pin.length !== 6 || counts === null || busy} onClick={() => void send()} data-testid="reset-go">{say("reset.go")}</button>
+      <button type="button" className="ui-button ui-secondary" onClick={onBack} data-testid="reset-back">{say("common.back")}</button>
     </main>
   );
 }
@@ -261,11 +264,11 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
   };
   return (
     <main className="screen step-away" data-screen="step-away">
-      <header><h1>{say("away.item")}</h1></header>
-      <ul className="rows">
+      <HeaderScreen title={say("away.item")} />
+      <ul className="place-rows">
         {AWAY_ORDER.map((s) => (
           <li key={s}>
-            <button type="button" className={span === s ? "row chosen" : "row"} onClick={() => setSpan(s)} data-testid={`away-${s}`}>{say(`away.${s}`)}</button>
+            <button type="button" className={span === s ? "place-setting chosen" : "place-setting"} onClick={() => setSpan(s)} data-testid={`away-${s}`}>{say(`away.${s}`)}</button>
           </li>
         ))}
       </ul>
@@ -274,7 +277,7 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
       {error && <p className="error" data-testid="error">{error}</p>}
       <button
         type="button"
-        className="primary"
+        className="ui-button ui-primary"
         disabled={span === null || busy}
         onClick={() => {
           if (!span) return;
@@ -285,7 +288,7 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
       >
         {say("away.go")}
       </button>
-      <button type="button" onClick={onBack} data-testid="away-back">{say("common.back")}</button>
+      <button type="button" className="ui-button ui-secondary" onClick={onBack} data-testid="away-back">{say("common.back")}</button>
     </main>
   );
 }
@@ -313,7 +316,7 @@ export function Away({ client, until, onBack }: { client: Client; until: number;
       {error && <p className="error" data-testid="error">{error}</p>}
       <button
         type="button"
-        className="primary"
+        className="ui-button ui-primary"
         onClick={() => {
           if (!asking) return setAsking(true);
           client.comeBack().then(onBack).catch((e: Error) => setError(e.message));

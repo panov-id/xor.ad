@@ -7,6 +7,7 @@
 // where the sheet draws a control without words, the control's own name.
 
 import { useEffect, useState } from "react";
+import "../screens/place.css";
 import {
   addVenue, me, movePlace, type Offer, offers, openSession, orderEnvelope, type Place, publish, RADII, type Refusal, signIn,
   signUp, type Venue, venues, verify, when,
@@ -54,7 +55,7 @@ export function Cabinet() {
       {view === "sign-in" && <SignIn onSent={() => setView("sent")} onError={setError} />}
       {view === "sent" && (
         <>
-          <h1>{say("web.cabinet.title")}</h1>
+          <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.title")}</h1></header>
           <p data-testid="adv-sent">{say("web.cabinet.sent")}</p>
           <p className="muted">{say("web.cabinet.linkOnce")}</p>
         </>
@@ -68,7 +69,7 @@ export function Cabinet() {
         </>
       )}
       {(view === "venues" || view === "offers" || view === "new-offer") && (
-        <nav className="tabs">
+        <nav className="tabs place-tabs">
           <button type="button" aria-current={view === "venues" ? "page" : undefined} onClick={() => setView("venues")} data-testid="adv-tab-venues">{say("web.cabinet.tabVenues")}</button>
           <button type="button" aria-current={view !== "venues" ? "page" : undefined} onClick={() => setView("offers")} data-testid="adv-tab-offers">{say("web.cabinet.myOffers")}</button>
         </nav>
@@ -100,7 +101,7 @@ function SignIn({ onSent, onError }: { onSent: () => void; onError: (e: string |
   }
   return (
     <>
-      <h1>{say("web.cabinet.title")}</h1>
+      <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.title")}</h1></header>
       <p className="muted">{say("web.cabinet.linkOnly")}</p>
       <label>
         {say("web.cabinet.email")}
@@ -110,7 +111,7 @@ function SignIn({ onSent, onError }: { onSent: () => void; onError: (e: string |
         {say("web.cabinet.contact")}
         <input value={contact} onChange={(e) => setContact(e.target.value)} data-testid="adv-contact" />
       </label>
-      <button type="button" className="primary" disabled={!email.includes("@") || busy} onClick={() => void go()} data-testid="adv-send">{say("web.cabinet.getLink")}</button>
+      <button type="button" className="ui-button ui-primary" disabled={!email.includes("@") || busy} onClick={() => void go()} data-testid="adv-send">{say("web.cabinet.getLink")}</button>
     </>
   );
 }
@@ -167,7 +168,7 @@ function Venues({ onError }: { onError: (e: string | null) => void }) {
   }
   return (
     <>
-      <h1>{say("web.cabinet.verification")}</h1>
+      <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.verification")}</h1></header>
       {rows === null ? <p className="muted">…</p> : rows.map((v) => <VenueRow key={v.id} venue={v} onChanged={load} onError={onError} />)}
       <p className="muted">{say("web.cabinet.unverifiedNote")}</p>
       <section className="add-venue">
@@ -225,7 +226,7 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
     onError(refusal?.error?.message ?? say("web.cabinet.notTaken", { status: answer.status }));
   }
   return (
-    <article className="venue" data-testid="venue" data-status={venue.verification_status}>
+    <article className="ui-card place-venue" data-testid="venue" data-status={venue.verification_status}>
       <h2>{venue.name}</h2>
       <p className="muted">{venue.address}</p>
       <p data-testid="venue-status">{STATUS[venue.verification_status] ?? venue.verification_status}</p>
@@ -249,7 +250,7 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
               {say("web.cabinet.envelopeCode")}
               <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} data-testid="venue-code" autoComplete="off" />
             </label>
-            <button type="button" className="primary" disabled={code.replace(/[\s-]/g, "").length !== 12} onClick={() => void check()} data-testid="venue-verify">{say("web.cabinet.confirm")}</button>
+            <button type="button" className="ui-button ui-primary" disabled={code.replace(/[\s-]/g, "").length !== 12} onClick={() => void check()} data-testid="venue-verify">{say("web.cabinet.confirm")}</button>
           </>
         )
         : <button type="button" onClick={() => void order()} data-testid="venue-envelope">{say("web.cabinet.orderEnvelope")}</button>)}
@@ -265,12 +266,12 @@ function Offers({ onNew, onError }: { onNew: () => void; onError: (e: string | n
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <>
-      <h1>{say("web.cabinet.myOffersTitle")}</h1>
+      <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.myOffersTitle")}</h1></header>
       <button type="button" onClick={onNew} data-testid="offer-new">{say("web.cabinet.newOffer")}</button>
       {rows?.map((o) => (
-        <article key={o.id} className="offer" data-testid="adv-offer" data-status={o.status}>
+        <article key={o.id} className="ui-card place-offer" data-testid="adv-offer" data-status={o.status}>
           <p data-testid="adv-offer-state">{o.status === "active" ? say("web.cabinet.offerLive") : say("web.cabinet.offerExpired")}</p>
-          <p className="discount">{o.discount_value}</p>
+          <p className="discount place-discount">{o.discount_value}</p>
           <p>{o.offer_text}</p>
           <p className="muted">{say("web.cabinet.discountUntil", { until: when(o.discount_until) })}</p>
           <p className="muted">{say("web.cabinet.hits", { n: o.redirect_hits })}</p>
@@ -329,7 +330,7 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
   if (done) {
     return (
       <section data-testid="offer-published">
-        <h1>{say("web.cabinet.published")}</h1>
+        <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.published")}</h1></header>
         <p>{say("web.cabinet.publishedNote")}</p>
         {done.external_url && <p data-testid="offer-published-link">{say("web.cabinet.link", { link: done.link.replace(/^https:\/\//, "") })}</p>}
         <p className="muted">{say("web.cabinet.cardLives", { until: when(done.discount_until) })}</p>
@@ -340,7 +341,7 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
   }
   return (
     <>
-      <h1>{say("web.cabinet.newOfferTitle")}</h1>
+      <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.newOfferTitle")}</h1></header>
       {rows !== null && rows.length === 0 && <p className="muted" data-testid="offer-no-venue">{say("web.cabinet.noVenue")}</p>}
       {rows !== null && rows.length > 0 && (
         <>
@@ -379,7 +380,7 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
           </label>
           <p className="muted">{say("web.cabinet.publishNote")}</p>
           {refused && <p className="error" data-testid="offer-refused">{say("web.cabinet.refused", { reason: refused })}</p>}
-          <button type="button" className="primary" disabled={!venue || !text.trim() || !discount.trim() || busy} onClick={() => void go()} data-testid="offer-publish">{say("web.cabinet.publish")}</button>
+          <button type="button" className="ui-button ui-primary" disabled={!venue || !text.trim() || !discount.trim() || busy} onClick={() => void go()} data-testid="offer-publish">{say("web.cabinet.publish")}</button>
         </>
       )}
     </>

@@ -7,7 +7,7 @@ Design screenshots come from $REPORT_SCREENSHOTS (default testing/screenshots,
 which is gitignored and so absent in a fresh worktree); a missing one is drawn
 as a labelled gap and named on stderr instead of failing the build.
 """
-import csv, html, json, os, re, shutil, sys, tomllib
+import csv, hashlib, html, json, os, re, shutil, sys, tomllib
 from datetime import datetime
 from pathlib import Path
 
@@ -326,8 +326,13 @@ def web_caption(p):
 def web_html():
     if not web_shots:
         return '<p class="lead">Экраны веб-лица не сняты: <code>scripts/report/webshots.sh</code> картинок не оставил.</p>'
-    figs = []
+    figs, seen = [], set()
     for i, p in enumerate(web_shots):
+        # Several tests end on the same screen; a picture is shown once.
+        digest = hashlib.sha256(p.read_bytes()).hexdigest()
+        if digest in seen:
+            continue
+        seen.add(digest)
         dst = OUT / "img" / f"web-{i:02d}.png"
         dst.parent.mkdir(exist_ok=True)
         shutil.copy(p, dst)
@@ -526,7 +531,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 </div>
 
 <h3 class="ch">Веб-лицо <code>web/</code> — последние кадры его сквозных тестов</h3>
-<p class="lead">Одноразовый стенд <code>docker-compose.web.yml</code>, телефонный экран Pixel 5; прогон при сборке отчёта: {e(web_tally or "итог не записан")}, код {e(web_rc or "неизвестен")}. Каждый снимок — то, на чём тест закончился; у теста с двумя людьми страниц несколько. Подпись называет тест.</p>
+<p class="lead">Одноразовый стенд <code>docker-compose.web.yml</code>, телефонный экран Pixel 5; прогон при сборке отчёта: {e(web_tally or "итог не записан")}, код {e(web_rc or "неизвестен")}. Каждый снимок — то, на чём тест закончился; у теста с двумя людьми страниц несколько, одинаковые картинки показаны один раз. Подпись называет тест, а не экран.</p>
 {web_html()}
 
 <h3 class="ch">Терминал depth — настоящие кадры</h3>

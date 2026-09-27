@@ -1,7 +1,7 @@
 // cleanName: what a name may be spelled with. Emoji spelling is allowed — a
 // family is four people and three joiners — and nothing else that draws nothing.
 import { assertEquals } from "jsr:@std/assert@1";
-import { cleanName } from "../src/lib/names.ts";
+import { cleanName, foldLines, hasInvisible } from "../src/lib/names.ts";
 
 const ZWJ = "‍";
 
@@ -35,6 +35,13 @@ Deno.test("invisible characters the whitespace collapse would eat are refused, n
       assertEquals(cleanName(name), null, `${label} passed in ${JSON.stringify(name)}`);
     }
   }
+});
+
+Deno.test("foldLines turns CRLF and a lone CR into LF, and leaves the rest", () => {
+  assertEquals(foldLines("a\r\nb\rc\nd"), "a\nb\nc\nd");
+  assertEquals(foldLines("a\r\n\r\nb"), "a\n\nb", "two CRLF are two breaks, not one");
+  assertEquals(hasInvisible(foldLines("a\r\nb")), false, "a folded CRLF is still refused");
+  assertEquals(hasInvisible("a\r\nb"), true, "an unfolded CR is let through");
 });
 
 Deno.test("a tab or a line feed still collapses to a space", () => {

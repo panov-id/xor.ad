@@ -1,4 +1,4 @@
-// Games in a chat of two (chat spec §6, screen 18; protocol §4.7; db/076).
+// Games in a chat of two (chat spec §6, screen 18; protocol §4.7; db/082).
 //
 // Propose or change a game, answer it, move, resign, play again, end it. The
 // engine is the table's; the frames go to the conversation's rooms (NOTIFY

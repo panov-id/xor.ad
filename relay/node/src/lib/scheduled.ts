@@ -305,7 +305,7 @@ export function registerScheduledJobs(): void {
 
   handle(SWEEP_TABLES, async () => {
     await pruneTables();
-    // And the games of chats that ended for either side or ran out of term (db/076).
+    // And the games of chats that ended for either side or ran out of term (db/082).
     await transaction((run) => sweepChatGames(run));
     return new Date(Date.now() + A_MINUTE_MS);
   });

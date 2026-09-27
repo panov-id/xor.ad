@@ -1,4 +1,4 @@
-// The game of a chat of two (chat spec §6, screen 18; protocol §4.7; db/076).
+// The game of a chat of two (chat spec §6, screen 18; protocol §4.7; db/082).
 // The engine is the table's (lib/tables_engine.ts): the rules are the class's.
 // What differs is the place: two people who matched, a conversation that has a
 // term of its own for each side, and a game that dies with it.

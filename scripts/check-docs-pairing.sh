@@ -81,7 +81,11 @@ UNITS = {"КБ": "KB", "МБ": "MB", "ГБ": "GB"}
 # `202` inside the next span through as a bare figure. The pair agreed; the
 # reading of it did not.
 FENCE = re.compile(r"^[ \t]*```.*$", re.MULTILINE)
-NOISE = re.compile(r"https?://\S+|`[^`]*`|[0-9a-f]{7,}|\b\S+\.(?:woff2|js|css|mjs|jpg|png|svg|sh|py)\b")
+# A URL ends where Markdown or prose ends it — at ) ] | > < , or a quote — and
+# not at the next space: «(https://x/y),27.09.2026» used to lose the date with
+# the address, and a date moved in one half only went unseen (7a, T2). A date
+# inside the address itself (?d=27.09.2026) is the address, and stays cut.
+NOISE = re.compile(r"https?://[^\s)\]|<>,\"'`]+|`[^`]*`|[0-9a-f]{7,}|\b\S+\.(?:woff2|js|css|mjs|jpg|png|svg|sh|py)\b")
 
 # Only figures distinctive enough to carry a decision. A bare 5 is written «5» in
 # one language and "five" in the other often enough that comparing them reports
@@ -133,6 +137,50 @@ def canonical(figure):
     return figure
 
 
+# A small number with its unit is a decision, not style (T2, 27.09.2026): «60 в
+# минуту», «30 дней», «5 мин» — a limit or a term that moved in one half only
+# (60 → 61 in the English, found in D4) passed as a bare two-digit figure. The
+# unit is what says the number is not «five people»; so a number next to a unit
+# of time, a rate or a percent is compared always, in one canonical shape per
+# unit, whichever language wrote it. A number written as a word stays unseen.
+UNIT_WORDS = (
+    ("min", r"минут(?:а|ы|у|ам|ами|ах)?|мин|minutes?|mins?"),
+    ("s", r"секунд(?:а|ы|у|ам|ами|ах)?|сек|seconds?|secs?"),
+    ("ms", r"мс|ms|milliseconds?"),
+    ("h", r"час(?:а|ов|ам|ами|ах)?|ч|hours?|hrs?|h"),
+    ("d", r"дн(?:я|ей|ям|ями|ях)|день|сут(?:ки|ок|кам|ками)|days?"),
+    ("w", r"недел(?:я|и|ю|ь|ям|ями|ях)|weeks?"),
+    ("mo", r"месяц(?:а|у|ев|ам|ами|ах)?|months?"),
+    # Years are left out: «с 13 лет», «до 20 лет» is an age, which the English
+    # writes as a bare number («from 13», «under 20») — measured on the three
+    # repositories, every «лет» mismatch was an age, none a term.
+)
+UNIT_ALT = "|".join(f"(?P<{name}>{words})" for name, words in UNIT_WORDS)
+UNIT_ANY = "|".join(words for _, words in UNIT_WORDS)
+# «60 в минуту», «60 per minute», «60 a minute», «60/min» — a rate, also with
+# one word between («50 промахов за час», «50 misses an hour») that is not a
+# unit itself: «20 минут / час» is a list, not a rate. "/" counts only right
+# after the number. A number is never read out of a decimal («85.5 ч») or out
+# of a ratio («14/600»); the plain
+# «30 дней» — a term, and «a 260-minute chat» the same as «260 минут»; «15 %» —
+# a share.
+UNIT_FIGURE = re.compile(
+    rf"(?<![\d.,/])\b(?P<n>\d+)(?:\s*-\s*|\s*)"
+    rf"(?:(?P<rate>/|(?:(?!(?:{UNIT_ANY})\b)[^\W\d]+\s+)?(?:в|за|per|an?)\s+))?(?:{UNIT_ALT})(?![\w])"
+    r"|\b(?P<pn>\d+)\s*%",
+    re.IGNORECASE,
+)
+
+
+def unit_figures(text):
+    for match in UNIT_FIGURE.finditer(text):
+        if match["pn"]:
+            yield f"{match['pn']}%"
+            continue
+        unit = next(name for name, _ in UNIT_WORDS if match[name])
+        yield f"{match['n']}/{unit}" if match["rate"] else f"{match['n']} {unit}"
+
+
 def figures(path):
     counts = collections.Counter()
     raw = path.read_text(encoding="utf-8")
@@ -156,6 +204,8 @@ def figures(path):
         figure = re.sub(r"\s+", " ", figure)
         if DISTINCTIVE.search(figure):
             counts[canonical(figure)] += 1
+    for figure in unit_figures(text):
+        counts[figure] += 1
     return counts
 
 # Обход от корня репозитория, а не от docs/. Раньше сверялись только документы

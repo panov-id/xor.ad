@@ -154,11 +154,14 @@ export type Field = { key: string; label: string; value: string; choices?: strin
 // A column of fields: up and down move between them, typing edits the one in
 // hand, and a field with choices is turned by left and right instead.
 export function Fields(
-  { fields, onChange, hint, active = true, at: outerAt, onMove }: {
+  { fields, onChange, hint, active = true, at: outerAt, onMove, tab = true }: {
     fields: Field[];
     onChange: (key: string, value: string) => void;
     hint?: string;
     active?: boolean;
+    // false where tab belongs to the screen around (a table's board and row):
+    // the field then stays put (verifier, 2026-09-27).
+    tab?: boolean;
     at?: number;
     onMove?: (at: number) => void;
   },
@@ -170,7 +173,7 @@ export function Fields(
   useKeys((input, key) => {
     if (!active) return;
     if (key.upArrow) return setAt((i) => (i - 1 + fields.length) % fields.length);
-    if (key.downArrow || key.tab) return setAt((i) => (i + 1) % fields.length);
+    if (key.downArrow || (tab && key.tab)) return setAt((i) => (i + 1) % fields.length);
     if (!current) return;
     if (current.choices) {
       const i = current.choices.indexOf(current.value);
@@ -216,7 +219,7 @@ export function Head({ title, lines }: { title: string; lines?: string[] }): Rea
 // with left and right also moved the row's cursor — and enter then quit the
 // program instead of going on (caught by the screens' test, 2026-09-22).
 export function Form(
-  { fields, onChange, actions, onPick, fieldsHint, actionsHint, active = true }: {
+  { fields, onChange, actions, onPick, fieldsHint, actionsHint, active = true, tab = true }: {
     fields: Field[];
     onChange: (key: string, value: string) => void;
     actions: Action[];
@@ -224,6 +227,7 @@ export function Form(
     fieldsHint?: string;
     actionsHint?: string;
     active?: boolean;
+    tab?: boolean;
   },
 ): ReactElement {
   const [at, setAt] = useState(0);
@@ -241,6 +245,7 @@ export function Form(
       onChange,
       hint: fieldsHint,
       active: active && !onMenu,
+      tab,
       at: Math.min(at, fields.length - 1),
       onMove: (next) => setAt(Math.max(0, Math.min(next, fields.length - 1))),
     }),

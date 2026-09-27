@@ -166,6 +166,18 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.deepEqual(moved, [], "the focus jumped back to the board and a key meant for the row played a card");
     app.unmount();
   }],
+  ["grid: tab out of the board and back keeps the field in hand", async () => {
+    const moves: unknown[] = [];
+    const grid = view({
+      class: "grid" as never,
+      board: { seq: 1, turn: 2, score: {}, expires_at: NOW + 30, state: { grid: { cells: { c3: { seat: 2, piece: "M" } }, claim: null } } },
+    });
+    const app = render(h(Table, { say, view: grid, onPick: () => {}, onMove: (m: unknown) => moves.push(m), now: NOW * 1000 }));
+    await settle();
+    for (const k of ["\t", "c", "\t", "\t", "3", "\u001B[B", "d4", "\u001B[B", "\r"]) { app.stdin.write(k); await settle(); }
+    assert.deepEqual(moves, [{ from: "c3", to: "d4" }], "tab moved the grid's field, and the move went out wrong");
+    app.unmount();
+  }],
   ["«сказать» opens a line, sends it to the node and leaves the keys alive", async () => {
     const sent: unknown[] = [];
     const room = { closed: new Promise<number>(() => {}), next: () => new Promise(() => {}), close: () => {} };

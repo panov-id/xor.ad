@@ -61,6 +61,7 @@ function Word({ say, view, onMove, active }: { say: Say; view: TableView; onMove
     onMove
       ? h(Form, {
         active,
+        tab: false,
         fields: [{ key: "v", label: setting ? say("board.set_word") : say("board.letter"), value }],
         onChange: (_k, v) => setValue(setting ? v.slice(0, 24) : v.slice(0, 1)),
         actions: [{ key: "go", label: setting ? say("board.set") : say("board.guess"), disabled: !value.trim() }],
@@ -162,6 +163,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
     onMove && grid
       ? h(Form, {
         active,
+        tab: false,
         fields: [{ key: "a", label: say("board.from"), value: a }, { key: "b", label: say("board.to"), value: b }],
         onChange: (k, v) => (k === "a" ? setA(v.slice(0, 2)) : setB(v.slice(0, 2))),
         actions: [{ key: "go", label: say("table.move"), disabled: !a.trim() || !b.trim() }, ...con],
@@ -171,6 +173,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
     onMove && physics
       ? h(Form, {
         active,
+        tab: false,
         fields: [
           { key: "a", label: say("board.piece"), value: a },
           { key: "b", label: say("board.direction"), value: b },

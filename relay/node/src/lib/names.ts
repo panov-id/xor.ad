@@ -8,7 +8,12 @@
 // One rule for registration and for PATCH /identities/me: two routes that
 // cleaned names differently would let the second one wash what the first refused.
 
-const INVISIBLE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
+// Beyond the controls and format characters: what Unicode itself calls
+// ignorable — the Hangul fillers U+115F, U+1160, U+3164, U+FFA0, the combining
+// grapheme joiner U+034F, U+17B4, the Mongolian selectors — draws nothing and
+// passed (V13, review, 27.09.2026). And the blank braille cell U+2800: not
+// ignorable by Unicode, but a character that is a blank on every screen.
+const INVISIBLE = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Default_Ignorable_Code_Point}\u2800]/u;
 
 // Except these: the zero-width joiner and the variation selectors are how an
 // emoji is spelled — "👨‍👩‍👧‍👦" is four people and three joiners. Refusing them

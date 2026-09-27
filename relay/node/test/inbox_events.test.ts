@@ -229,6 +229,24 @@ test("a new offer to talk, and the other side's agreement, are events since the 
   assertEquals(afterAll.items.find((i) => i.id === id)?.waiting_for_you, true, "the state went with the event");
 });
 
+test("a match row tells what is left of both phrases — the other's end to its match partner only, and my own phrase as mine (§8.11, N1)", async () => {
+  const { a, b, id } = await freshMatch();
+  const ends = async (identity: string) => Number((await database.queryOrThrow<{ e: string }>(
+    `SELECT floor(extract(epoch from expires_at))::bigint::text AS e FROM feed_messages WHERE author_identity = $1`, [identity]))[0].e);
+  const [endA, endB] = [await ends(a.identity_id), await ends(b.identity_id)];
+  type Row = { phrase: { text: string; expires_at?: number }; my_phrase?: { text: string; mode: string; expires_at?: number } };
+
+  const rowA = (await inbox(a)).items.find((i) => i.id === id) as unknown as Row;
+  assertEquals(rowA.phrase.text, "гуляю у залива");
+  assertEquals(rowA.phrase.expires_at, endB, "the other side's phrase does not carry its end to its match partner");
+  assertEquals(rowA.my_phrase, { text: "кто на набережную?", mode: "alone", expires_at: endA }, "my own phrase in the match is not mine, or not with my end");
+
+  const rowB = (await inbox(b)).items.find((i) => i.id === id) as unknown as Row;
+  assertEquals(rowB.my_phrase?.text, "гуляю у залива", "the other side's row names somebody else's phrase as its own");
+  assertEquals(rowB.my_phrase?.expires_at, endB);
+  assertEquals(rowB.phrase.expires_at, endA);
+});
+
 test("an opened conversation, replies queued for this session and a term in its last fifth are events (P3)", async () => {
   const { a, b, id } = await freshMatch();
   await consent(a, id);
@@ -323,7 +341,10 @@ test("a like on my offer is interest in it in my inbox, with the offer, and a ma
   const match = theirs.items.find((i) => i.id === matchId);
   assert(match, "the offer's match is not in the taker's inbox");
   assertEquals(match.kind, "match", "the taker's own inbox names the match as interest in an offer");
-  assertEquals(match.phrase, { text: "отдам две табуретки", mode: "company" }, "the taker does not see the offer as the match's phrase");
+  // With its end since N1: the offer is the match's phrase, told to its partner (§8.11).
+  const { expires_at: offerEnd, ...offerPhrase } = match.phrase as { text: string; mode: string; expires_at?: number };
+  assertEquals(offerPhrase, { text: "отдам две табуретки", mode: "company" }, "the taker does not see the offer as the match's phrase");
+  assert(typeof offerEnd === "number" && offerEnd > nowSeconds(), "the taker is not told what is left of the offer's phrase");
   assert(!("offer" in match), "the taker was given the offer block");
   assertEquals(theirs.events.new_matches, 1);
 

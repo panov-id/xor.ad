@@ -428,7 +428,20 @@ components:
         id: {type: string, format: uuid}
         name: {type: string}
         age: {type: integer}
-        phrase: {type: object, properties: {text: {type: string}, mode: {type: string}}}
+        phrase:
+          type: object
+          properties:
+            text: {type: string}
+            mode: {type: string}
+            expires_at: {type: integer, format: unix-seconds, description: "On a match row since 2026-09-28 (N1): the end of the other side's phrase, while it is in the feed — the one exception to «someone else's end never leaves the node» (chat spec §8.11, «Match», 2026-09-14): told to its match partner only. Screen 24 draws it as a bar, never as a number.", x-description-ru: "У строки мэтча с 28.09.2026 (N1): конец фразы собеседника, пока она в ленте, — единственное исключение из «чужой срок не уходит наружу» (спека чата §8.11, «Мэтч», 14.09.2026): раскрывается только собеседнику по мэтчу. Экран 24 рисует его полосой, а не числом."}
+        my_phrase:
+          type: object
+          description: "On a match row since 2026-09-28 (N1): one's own phrase in this match — text, mode and its end while it is in the feed (screen 24's first card). Read from one's own side of the match only; on an offer_interest row one's side is `offer`, and there is no my_phrase."
+          x-description-ru: "У строки мэтча с 28.09.2026 (N1): своя фраза в этом мэтче — текст, режим и конец, пока она в ленте (первая карточка экрана 24). Читается только со своей стороны мэтча; у строки offer_interest своя сторона — `offer`, и my_phrase нет."
+          properties:
+            text: {type: string}
+            mode: {type: string}
+            expires_at: {type: integer, format: unix-seconds}
         waiting_for_you: {type: boolean}
         my_consent: {type: string, enum: [waiting, none], description: "On a match and an offer_interest row since 2026-09-27 (P10): whether one has consented already. An agreed match becomes a chat row, a declined one is hidden, so the row never says agreed or not_now.", x-description-ru: "У строки мэтча и offer_interest с 27.09.2026 (P10): дал ли я уже согласие. Согласованный мэтч становится строкой чата, отклонённый скрыт, поэтому agreed и not_now в строке не бывает."}
         offer:

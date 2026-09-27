@@ -6,7 +6,7 @@
 // look of a tab sees everything live as new.
 
 import { useEffect, useState } from "react";
-import type { Client, InboxEvents } from "../../../depth/core/client.ts";
+import type { Client } from "../../../depth/core/client.ts";
 import type { ChatRow } from "../chat/keys.ts";
 import { say } from "../locales/say.ts";
 import "../chat/chat.css";
@@ -79,7 +79,6 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
   }
   const [rows, setRows] = useState<InboxRow[]>([]);
   const [tab, setTab] = useState<"offers" | "chats" | null>(null);
-  const [events, setEvents] = useState<InboxEvents | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -89,7 +88,6 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
       const since = Number(sessionStorage.getItem(LAST_LOOK) ?? "") || undefined;
       const page = await client.inboxSince(since);
       setRows(page.items as unknown as InboxRow[]);
-      setEvents(page.events);
       setState("ready");
       sessionStorage.setItem(LAST_LOOK, String(Math.floor(Date.now() / 1000)));
     } catch (e) {
@@ -171,11 +169,6 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
         ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
-      {events && (
-        <footer className="muted" data-testid="events">
-          {say("web.inbox.since", { events: JSON.stringify(events) })}
-        </footer>
-      )}
     </main>
   );
 }

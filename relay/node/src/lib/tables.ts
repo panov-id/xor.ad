@@ -22,6 +22,8 @@ export const IDLE_MINUTES = 60; // table.idle.span
 export const TABLE_CREATE_LIMITS: Limit[] = [{ name: "tables-create", max: 4, windowMs: HOUR }]; // tables.create.hour
 export const SEAT_LIMITS: Limit[] = [{ name: "seat-attempts", max: 30, windowMs: HOUR }]; // seat.attempts.hour
 export const STICKER_LIMITS: Limit[] = [{ name: "table-sticker", max: 6, windowMs: 60_000 }]; // sticker.minute
+export const TICKET_LIMITS: Limit[] = [{ name: "table-ticket", max: 60, windowMs: 60_000 }]; // as chat.messages.minute, a ticket is a socket
+export const TICKET_SECONDS = 30; // ticket.lifetime
 
 export const CLASSES = ["grid", "free", "dots", "deck", "dice", "physics", "word"] as const;
 export const RADII = [100, 300, 1000, 3000, 10000];
@@ -139,9 +141,12 @@ export async function applyOverdue(run: Query, tableId: string): Promise<void> {
         [tableId, seat],
       );
       await dropFromOrder(run, game, seat, due);
+      await tableEvent(run, tableId, "seat");
     } else {
       await advance(run, game, due);
     }
+    // One frame per applied pass: each has its own seq (OPS-12).
+    await tableEvent(run, tableId, "board");
     game.seq += 1;
     const [next] = await run<{ turn_due: Date | null; ended: boolean }>(
       `SELECT turn_due, ended_at IS NOT NULL AS ended FROM table_games WHERE id = $1`,
@@ -174,7 +179,9 @@ export async function leaveTable(run: Query, identity: string): Promise<string |
     [identity],
   );
   if (!seat) return null;
-  await run(`SELECT pg_notify('seat_left', $1)`, [`${seat.table_id}:${seat.seat_no}`]);
+  // "<table>:<seat>:<identity>": the relay closes that identity's room of the
+  // table 4005 (protocol §4.4). The identity stays inside the node.
+  await run(`SELECT pg_notify('seat_left', $1)`, [`${seat.table_id}:${seat.seat_no}:${identity}`]);
   const game = await lockGame(run, seat.table_id);
   if (game) {
     if (game.pending?.by === seat.seat_no) {
@@ -187,6 +194,8 @@ export async function leaveTable(run: Query, identity: string): Promise<string |
         AND NOT EXISTS (SELECT 1 FROM table_seats WHERE table_id = $1 AND left_at IS NULL)`,
     [seat.table_id],
   );
+  await tableEvent(run, seat.table_id, "seat");
+  if (seat.playing) await tableEvent(run, seat.table_id, "board");
   return seat.table_id;
 }
 
@@ -245,3 +254,56 @@ export const HIDEABLE_LINE = `SELECT l.id FROM table_lines l
    WHERE l.id = $2 AND l.visible_at IS NOT NULL AND l.created_at >= s.joined_at
      AND l.kind IN ('line', 'application', 'refusal')
      AND l.author_identity IS DISTINCT FROM $1`;
+
+// The board as this seat may see it. No class here keeps a hand yet, so
+// nothing is cut; when one does, this is the one place that cuts it (§6.1).
+// The table's score by seat: it lives on the seat and outlasts games (§6.1,
+// table_scores); only live seats — the one who left does not take it along.
+export async function scoreOf(run: Query, tableId: string): Promise<Record<string, number>> {
+  const rows = await run<{ seat_no: number; points: number }>(
+    `SELECT s.seat_no, sc.points FROM table_scores sc JOIN table_seats s ON s.id = sc.seat_id
+      WHERE s.table_id = $1 AND s.left_at IS NULL`,
+    [tableId],
+  );
+  return Object.fromEntries(rows.map((r) => [String(r.seat_no), r.points]));
+}
+
+export function boardFor(
+  game: { state: GameState; seq: number; pending: unknown; turn_due: Date | null } | null,
+  score: Record<string, number> = {},
+  over = false,
+) {
+  if (!game) return null;
+  const s = game.state;
+  // The contract's Board (docs/api/openapi.yaml): whose turn by seat, the
+  // turn's term as expires_at; score by seat from table_scores.
+  return {
+    seq: game.seq,
+    state: s.dots ? { order: s.order, moves: s.board, dots: s.dots } : { order: s.order, moves: s.board },
+    turn: s.turn === null ? null : s.order[s.turn] ?? null,
+    score,
+    over,
+    expires_at: game.turn_due ? Math.floor(new Date(game.turn_due).getTime() / 1000) : null,
+    pending: game.pending ?? null,
+  };
+}
+
+// The board as a frame carries it (protocol §4.4 `board`): the running game,
+// or the last one over, with the table's score — what GET /tables/:id answers.
+export async function boardNow(run: Query, tableId: string) {
+  const running = await lockGame(run, tableId);
+  const [last] = running ? [] : await run<{ state: GameState; seq: number; pending: unknown; turn_due: Date | null }>(
+    `SELECT state, seq, pending, NULL::timestamptz AS turn_due FROM table_games
+      WHERE table_id = $1 ORDER BY started_at DESC LIMIT 1`,
+    [tableId],
+  );
+  return boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last);
+}
+
+// Frames for a table's rooms (chat/relay.ts): `NOTIFY table_event` with
+// "<table>|board", "<table>|seat" or "<table>|line|<line id>". The relay reads
+// the state itself, so the notice stays far under Postgres's 8000 bytes
+// whatever the board holds. Sent inside the writing transaction: it arrives
+// on commit and not at all on a rollback.
+export const tableEvent = (run: Query, tableId: string, kind: "board" | "seat" | "line", id = "") =>
+  run(`SELECT pg_notify('table_event', $1)`, [`${tableId}|${kind}${id ? `|${id}` : ""}`]);

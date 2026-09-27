@@ -35,6 +35,9 @@ await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
 await import("../src/routes/away.ts");
 await import("../src/routes/feed_queue.ts");
+// The rooms' listeners, once and before any test: started inside one, they
+// count as that test's leak (as session_freeze.test.ts does).
+await (await import("../src/chat/relay.ts")).listenForRooms();
 
 const KEY_ID = "ak_pub_tablestest0000001";
 await database.queryOrThrow(
@@ -414,7 +417,20 @@ Deno.test({
     assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
     const shown = ((await signed(a, "GET", `/tables/${id}`)).body.lines as { id: string }[]).map((l) => l.id);
     assert(shown.includes(line.body.id), "published: the line is public");
+    // The name's verdict goes to the author's own rooms as name_verdict with table (G1e).
+    const relay = await import("../src/chat/relay.ts");
+    const got: { type: string; data: unknown }[] = [];
+    const key = `table:${id}`;
+    relay.roomsForTest().set(key, new Set([{
+      socket: { readyState: WebSocket.OPEN, send: (t: string) => got.push(JSON.parse(t)), close() {} } as unknown as WebSocket,
+      session: a.session_id, chat: key, seq: 0, table: id, identity: a.identity_id,
+    }]));
     assertEquals((await moderator("POST", `/admin/table-queue/names/${id}/refuse`)).status, 200);
+    const until = Date.now() + 3000;
+    while (Date.now() < until && !got.some((f) => f.type === "name_verdict")) await new Promise((r) => setTimeout(r, 20));
+    relay.roomsForTest().delete(key);
+    assertEquals(got.find((f) => f.type === "name_verdict")?.data, { accepted: false, table: id },
+      "the author was not told the name's verdict");
     const [t] = await database.queryOrThrow<{ name: string | null; name_pending: string | null }>(
       `SELECT name, name_pending FROM tables WHERE id = $1`, [id]);
     assertEquals([t.name, t.name_pending], [null, null], "a refused name leaves the table nameless");
@@ -437,4 +453,67 @@ Deno.test("a refused applicant sits out the round; the one not refused plays", a
   assertEquals(no.status, 202, JSON.stringify(no.body));
   await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
   assertEquals((await board(a, id)).state.order, [1, 2], "seat 3 was refused and waits");
+});
+
+// G1e: the table's socket (protocol §4.4, §4.6). Rooms are put in by hand, as
+// session_freeze.test.ts does: a room needs a socket, the frames it would be
+// sent do not.
+Deno.test({
+  name: "a table's room gets the board, the line and the seat as frames, and 4005 when its seat is lost",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const relay = await import("../src/chat/relay.ts");
+    const { a, b, id } = await game();
+    // A ticket only from a live seat, like the table itself (SEC-4).
+    const bought = await signed(a, "POST", `/tables/${id}/ticket`);
+    assertEquals([bought.status, typeof bought.body.ticket], [200, "string"], JSON.stringify(bought.body));
+    assertEquals((await signed(await person(), "POST", `/tables/${id}/ticket`)).status, 404);
+
+    const sent = new Map<string, { type: string; data: Record<string, unknown> }[]>();
+    const closed = new Map<string, number>();
+    const fake = (name: string): WebSocket => {
+      sent.set(name, []);
+      return {
+        readyState: WebSocket.OPEN,
+        send: (text: string) => sent.get(name)!.push(JSON.parse(text)),
+        close: (code: number) => closed.set(name, code),
+      } as unknown as WebSocket;
+    };
+    const key = `table:${id}`;
+    relay.roomsForTest().set(key, new Set([
+      { socket: fake("a"), session: a.session_id, chat: key, seq: 0, table: id, identity: a.identity_id },
+      { socket: fake("b"), session: b.session_id, chat: key, seq: 0, table: id, identity: b.identity_id },
+    ]));
+    const waitFor = async (name: string, type: string) => {
+      const until = Date.now() + 3000;
+      while (Date.now() < until && !sent.get(name)!.some((f) => f.type === type)) {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      return sent.get(name)!.find((f) => f.type === type);
+    };
+    try {
+      const start = await board(a, id);
+      assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: start.seq, move: "e4" })).status, 200);
+      const boardFrame = await waitFor("b", "board");
+      assert(boardFrame, `no board frame reached the other seat: ${JSON.stringify(sent.get("b"))}`);
+      assertEquals(boardFrame!.data.turn, 2, "the frame carries the board after the move");
+      const moveLine = await waitFor("b", "line");
+      assertEquals(moveLine?.data.kind, "move");
+      assert(!JSON.stringify([...sent.values()]).includes(a.identity_id), "no identity in any frame");
+
+      const c = await person();
+      await signed(c, "POST", `/tables/${id}/seat`);
+      const seatFrame = await waitFor("a", "seat");
+      assertEquals(seatFrame?.data, { playing: 2, watching: 1 });
+
+      assertEquals((await signed(b, "DELETE", `/tables/${id}/seat`)).status, 204);
+      const until = Date.now() + 3000;
+      while (Date.now() < until && !closed.has("b")) await new Promise((resolve) => setTimeout(resolve, 20));
+      assertEquals(closed.get("b"), 4005, "the room of the one who stood up is closed 4005");
+      assertEquals(closed.has("a"), false, "the others' rooms stay open");
+    } finally {
+      relay.roomsForTest().delete(key);
+    }
+  },
 });

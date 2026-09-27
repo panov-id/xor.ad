@@ -857,6 +857,10 @@ async function deliver(
   blocks: Block[],
   footnote?: string,
 ): Promise<boolean> {
+  // A node without mail sends nothing and fails nothing. Each sender used to
+  // check this itself, and the two that did not counted every letter as
+  // failed, which lights MailFailing on a node that was never meant to mail.
+  if (config.mail.transport === "none") return false;
   // Was `<p>line<br>line</p>`: the content arrived intact and looked like a
   // pasted note. The shell gives it the face the letter is written on behalf of,
   // and builds the plain-text part from the same blocks so the two cannot drift.

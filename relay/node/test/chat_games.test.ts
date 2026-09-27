@@ -203,7 +203,7 @@ Deno.test({ name: "the hangman word stays with its setter in a chat too: not in 
     const set = await signed(a, "POST", `/chats/${chat}/game/word`, { word: "кот" });
     assertEquals(set.status, 202, JSON.stringify(set.body));
     const theirs = await view(b, chat);
-    assertEquals([theirs.board.state.word.word, theirs.board.state.word.mask], [null, "___"]);
+    assertEquals([theirs.board.state.word.word, theirs.board.state.word.mask], [null, "___"], "the other side sees the word, not its mask");
     assertEquals((await view(a, chat)).board.state.word.word, "кот");
     await room.waitFor("b", "board", 2);
     assert(!JSON.stringify(theirs).includes("кот"), `the word leaks in the other side's answer: ${JSON.stringify(theirs)}`);

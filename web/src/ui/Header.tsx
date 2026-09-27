@@ -22,7 +22,11 @@ export function HeaderFeed({ place, step, action, stepProps }: { place: string; 
   );
 }
 
-export function HeaderScreen({ title, onBack, backLabel = "назад", action }: { title: string; onBack?: () => void; backLabel?: string; action?: ReactNode }) {
+// «назад» is the screen's word (say("common.back") or its own): a back button
+// comes with its label, so the kit names no word of its own (check-web-i18n).
+type Back = { onBack: () => void; backLabel: string } | { onBack?: undefined; backLabel?: undefined };
+
+export function HeaderScreen({ title, onBack, backLabel, action }: { title: string; action?: ReactNode } & Back) {
   return (
     <header className="ui-header ui-header-rule">
       {onBack ? (

@@ -1,16 +1,16 @@
 // The components one by one, as the kit sheet shows them (panel/design/app-kit.svg),
 // for a snapshot next to the sheet: served by the dev server at
-// /src/ui/gallery.html, never part of the built page. ?light wears k-light.
+// /dev/gallery.html, never part of the built page. ?light wears k-light.
 import { createRoot } from "react-dom/client";
-import "../../../panel/design/kit/tokens.css";
-import "../../../panel/design/kit/schemes.css";
-import "../styles.css";
-import { Button } from "./Button.tsx";
-import { Card } from "./Card.tsx";
-import { Chip } from "./Chip.tsx";
-import { Composer } from "./Composer.tsx";
-import { HeaderFeed, HeaderScreen } from "./Header.tsx";
-import { InboxRow } from "./InboxRow.tsx";
+import "../../panel/design/kit/tokens.css";
+import "../../panel/design/kit/schemes.css";
+import "../src/styles.css";
+import { Button } from "../src/ui/Button.tsx";
+import { Card } from "../src/ui/Card.tsx";
+import { Chip } from "../src/ui/Chip.tsx";
+import { Composer } from "../src/ui/Composer.tsx";
+import { HeaderFeed, HeaderScreen } from "../src/ui/Header.tsx";
+import { InboxRow } from "../src/ui/InboxRow.tsx";
 
 if (location.search.includes("light")) document.documentElement.classList.replace("k-dark", "k-light");
 const noop = () => {};
@@ -18,7 +18,7 @@ const noop = () => {};
 function Gallery() {
   return (
     <main className="screen">
-      <section id="headers"><HeaderFeed place="Колонаки" step="рядом десятки" /><HeaderScreen title="Настройки" onBack={noop} action="готово" /></section>
+      <section id="headers"><HeaderFeed place="Колонаки" step="рядом десятки" /><HeaderScreen title="Настройки" onBack={noop} backLabel="назад" action="готово" /></section>
       <section id="buttons" className="rows">
         <Button kind="primary">Дальше</Button>
         <Button kind="primary" disabled reason="нужно согласие">Дальше</Button>

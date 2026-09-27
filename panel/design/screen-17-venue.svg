@@ -20,6 +20,18 @@
     @font-face { font-family: "JetBrains Mono"; font-weight: 400; unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
       src: url(/fonts/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxPcwhsk.woff2) format("woff2"); }
     text { font-family: "Golos Text", Inter, system-ui, sans-serif; }
+    /* geometry, the same in every scheme: names and values from docs/design-system-app_RU.md («шкала радиусов», --s-*),
+       each checked against components.svg */
+    :root, .k-dark, .k-light {
+      --r-1: 8px;       /* field, message-input, row-chat, the segments thumb: rx 8 */
+      --r-2: 13px;      /* button-primary/secondary/danger, k-card, k-bub, the segments track: rx 13 */
+      --r-pill: 999px;  /* button-pill rx 22 of 44, chip rx 12 of 24, composer-float rx 26 of 52: half the height */
+      --r-round: 50%;   /* dot, like circle, send circle */
+      --s-1: 4px; --s-2: 8px; --s-3: 12px;
+      --s-4: 16px;      /* screen gutter (375 − 343) / 2; a card's text and button inset; header text x 16 */
+      --s-6: 24px; --s-8: 32px; --s-12: 48px;
+      --control-h: 44px; /* every button, field and hit zone */
+    }
     .k-dark {
       --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;
       --fg: #f0e7dc; --muted: #9a8d7c; --muted-2: #6b5f4c; --on-fg-muted: #6b5f4c;

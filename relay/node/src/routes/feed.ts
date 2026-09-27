@@ -19,7 +19,7 @@
 // The verdict, the delivery, and the geo rounding of the delivery are their own
 // pieces.
 
-import { hasInvisible } from "../lib/names.ts";
+import { foldLines, hasInvisible } from "../lib/names.ts";
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
@@ -66,7 +66,7 @@ async function publish(req: Request): Promise<Response> {
   const body = await readJson<FeedBody>(req);
   if (!body) return refuse("invalid_body", "the body is not json", 400);
 
-  const text = body.text;
+  const text = typeof body.text === "string" ? foldLines(body.text) : body.text;
   if (typeof text !== "string" || text.trim().length < 1) {
     return refuse("invalid_body", "the phrase is missing", 400);
   }

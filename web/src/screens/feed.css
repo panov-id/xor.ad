@@ -1,0 +1,68 @@
+/* The feed's screens on sheets 01–08 (WD3): the tab bar at the foot and the
+   layout of splash, registration, unlock, feed, card, composer and likes.
+   Colours only from the kit's tokens (scripts/check-web-tokens.sh); the
+   shared button, input and card are the kit components' (WD2), not here. */
+
+/* A tabbed screen leaves the bar's 64 free at its foot. */
+.tabbed .screen { padding-bottom: 88px; }
+/* No line of a tabbed screen may widen the page: one unbroken string (the
+   inbox's footer printed raw JSON 631 wide, 27.09.2026) made a phone's layout
+   viewport 656 for 393, zoomed the page out and moved the fixed bar from under
+   the finger. */
+.tabbed .screen { overflow-wrap: anywhere; min-width: 0; }
+
+/* Kit `tabbar`: 375x64 on the ground, a hairline on top, three tabs of 125,
+   icon 44 at y=2, label at the baseline 54, the active one over a 32x3 bar. */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  max-width: 375px; height: 64px; margin: 0 auto;
+  display: flex; background: var(--bg); border-top: 1px solid var(--border);
+}
+.tabbar .tab {
+  flex: 1; position: relative; display: flex; flex-direction: column; align-items: center;
+  padding: 1px 0 0; border: 0; border-radius: 0; background: none;
+  font-size: 14px; font-weight: 400; line-height: 1; color: var(--muted);
+}
+.tabbar .tab svg { display: block; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar .tab span { margin-top: -2px; }
+.tabbar .tab[aria-current="page"] { font-weight: 600; color: var(--fg); }
+.tabbar .tab[aria-current="page"] svg { stroke: var(--fg); }
+.tabbar .tab[aria-current="page"]::after {
+  content: ""; position: absolute; left: 50%; bottom: 1px; width: 32px; height: 3px;
+  margin-left: -16px; background: var(--accent);
+}
+.tabbar .tab:focus-visible { outline-offset: -2px; }
+
+/* The feed's screens start with their header band (kit HeaderScreen, 56): the
+   screen's own 24 top is the band's, and the band stays on top as it scrolls. */
+:is([data-screen="feed"], [data-screen="card"], [data-screen="composer"], [data-screen="likes"],
+    [data-screen="unlock"], [data-screen^="register-"]) { padding-top: 0; }
+:is([data-screen="feed"], [data-screen="card"], [data-screen="composer"], [data-screen="likes"],
+    [data-screen="unlock"], [data-screen^="register-"]) > header { position: sticky; top: 0; z-index: 5; background: var(--bg); }
+/* Sheet 25: the likes' title in the middle of the band. */
+[data-screen="likes"] > .ui-header .ui-header-title { text-align: center; }
+[data-screen="likes"] > .ui-header::after { content: ""; width: 44px; }
+
+/* Sheet 03: the feed keeps its own band (the nearby step is a live region the
+   specs read by testid): the title 20/600 with the step, the radius at its right. */
+[data-screen="feed"] > header { min-height: 56px; margin: 0 -16px; padding: 0 16px; display: flex; align-items: center; gap: 8px; }
+[data-screen="feed"] > header h1 { font-size: 20px; font-weight: 600; line-height: 1.2; }
+[data-screen="feed"] > header > div { display: flex; align-items: baseline; gap: 8px; margin-right: auto; }
+[data-screen="feed"] > header .nearby { margin: 0; }
+[data-screen="feed"] > header .radius select { min-height: 44px; padding: 8px 10px; font-size: 14px; }
+/* The floating composer of sheet 03 (kit `composer-float`, 327x52 at x=24,
+   12 above the tab bar): "write" is the kit's pill (Button kind="pill"),
+   placed where the sheet's is. */
+[data-screen="feed"] [data-testid="write"] {
+  position: fixed; left: 0; right: 0; bottom: 76px; z-index: 6;
+  width: 327px; height: 52px; margin: 0 auto;
+}
+.tabbed [data-screen="feed"] { padding-bottom: 152px; }
+
+/* Sheet 23: the phrase takes the screen, the actions at the foot. */
+[data-screen="card"] .phrase { flex: 1; justify-content: center; }
+
+/* Sheets 01, 02, 13: the primary action at the foot of the screen, 343 wide. */
+:is([data-screen="splash"], [data-screen="unlock"], [data-screen^="register-"]) .ui-primary { width: 100%; }
+:is([data-screen="unlock"], [data-screen^="register-"]) .ui-primary { margin-top: auto; }
+[data-screen="splash"] { gap: 12px; }

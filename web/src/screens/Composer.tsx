@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { say } from "../locales/say.ts";
 import { modes, sayPhrase, type Mode, type Sent } from "../api/actions.ts";
+import { Button } from "../ui/Button.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
 
 export function Composer(
   { client, at, radius, onSent, onBack }: {
@@ -56,11 +58,8 @@ export function Composer(
   }
 
   return (
-    <main className="screen composer" data-screen="composer">
-      <header>
-        <h1>{say("write.title")}</h1>
-        <button type="button" onClick={onBack} data-testid="back">{say("common.back")}</button>
-      </header>
+    <main className="screen composer-screen" data-screen="composer">
+      <HeaderScreen title={say("write.title")} onBack={onBack} backLabel={say("common.back")} />
       <p className="muted">{say("web.composer.hint")}</p>
       <label>
         {say("web.composer.phrase")}
@@ -92,9 +91,9 @@ export function Composer(
         </label>
       </details>
       {refused && <p className="error" data-testid="refused" style={{ whiteSpace: "pre-line" }}>{refused}</p>}
-      <button type="button" className="primary" disabled={empty || busy} onClick={send} data-testid="send">
+      <Button type="button" kind="primary" disabled={empty || busy} onClick={send} data-testid="send">
         {busy ? "…" : say("write.send")}
-      </button>
+      </Button>
     </main>
   );
 }

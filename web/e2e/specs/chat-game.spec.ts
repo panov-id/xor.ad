@@ -77,8 +77,9 @@ test("two in a conversation play dots: one offers, the other accepts on the sock
 
   // A offers dots 2x2 through the game's own controls.
   await anya.getByTestId("game-toggle").click();
-  await anya.getByTestId("game-class").selectOption("dots");
-  await anya.getByTestId("game-set").selectOption("2x2");
+  await anya.getByTestId("game-class-dots").click();
+  await anya.getByTestId("game-set-2x2").click();
+  await expect(anya.getByTestId("game-set-2x2")).toHaveAttribute("aria-checked", "true");
   await anya.getByTestId("game-propose").click();
   await expect(anya.getByTestId("game-waiting")).toBeVisible({ timeout: 15000 });
 

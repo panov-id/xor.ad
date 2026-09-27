@@ -176,6 +176,20 @@ Deno.test("a phrase refuses what nobody can see", async () => {
   assertEquals((await send("гуляю‮ у реки")).status, 400, "a phrase with a direction override was taken");
 });
 
+// V11: a line break sent as CRLF or a lone CR is a line break, not a CR the
+// rule above refuses — and it is stored as LF, not only let through.
+Deno.test("a phrase's CRLF and lone CR are stored as LF, not refused", async () => {
+  for (const [label, sent] of [["CRLF", "гуляю у реки\r\nкто рядом"], ["CR", "гуляю у реки\rкто рядом"]]) {
+    const me = await author();
+    const answer = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: sent }));
+    assert(answer.status === 200 || answer.status === 202, `a phrase with ${label} was refused: ${answer.status} ${JSON.stringify(answer.body)}`);
+    const [row] = await database.queryOrThrow<{ text: string }>(
+      `SELECT text FROM feed_messages WHERE author_identity = $1`, [me.identity_id],
+    );
+    assertEquals(row?.text, "гуляю у реки\nкто рядом", `a phrase with ${label} was not stored with LF`);
+  }
+});
+
 Deno.test("a phrase is accepted for checking, not published", async () => {
   const me = await author();
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());

@@ -33,6 +33,12 @@ export function hasInvisible(text: string): boolean {
   return text.trim().length > 0 && cleanName(text) === null;
 }
 
+// A line break as a browser may send it: CRLF from a pasted or programmatic
+// value (measured on the composer, V10), a lone CR from old clients. Folded to
+// LF before hasInvisible and before storing, so a plain break is not refused
+// as a CR (V11, 27.09.2026). Names do not take this: a name has no lines.
+export const foldLines = (text: string): string => text.replace(/\r\n?/g, "\n");
+
 // The cleaned name, or null when nothing visible is left or something invisible is in it.
 export function cleanName(raw: string): string | null {
   // The raw text is asked first: trim and the whitespace collapse below eat

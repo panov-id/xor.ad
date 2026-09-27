@@ -4,7 +4,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { Client } from "./client.ts";
 import { newPaperCode } from "./paper.ts";
-import { type Board, dotsOf, freeEdges, Tables, turnOf } from "./tables.ts";
+import { applyFrame, type Board, dotsOf, frameNeedsView, freeEdges, openTable, SEAT_LOST, Tables, turnOf } from "./tables.ts";
 
 const node = Deno.env.get("DEPTH_NODE_URL");
 const apiKey = Deno.env.get("DEPTH_API_KEY");
@@ -93,5 +93,35 @@ Deno.test({
       thrown = (e as Error).message;
     }
     assertEquals(thrown, "tableCall is for /tables only", "the tables door let a path out to /inbox");
+  },
+});
+
+Deno.test({
+  name: "the table's socket: a ticket opens the room, a seat and a line come as frames, and standing up closes it 4005",
+  ignore: !node,
+  fn: async () => {
+    const a = await person("Женя");
+    const b = await person("Аня");
+    const id = (await a.tables.create({ class: "dots", set: "2x2", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000 })).body.id;
+    const room = await openTable(a.client, id);
+    assertEquals(await room.protocol(), "xor.p1");
+    let view = (await a.tables.view(id)).body;
+    await b.tables.sit(id);
+    // Frames until the seat frame shows two at the table.
+    for (let i = 0; i < 10 && view.playing + view.watching < 2; i++) {
+      const f = await room.next(5000);
+      view = frameNeedsView(f) ? { ...applyFrame(view, f), ...(await a.tables.view(id)).body } : applyFrame(view, f);
+    }
+    assertEquals(view.playing + view.watching, 2, "the seat frame never said somebody sat down");
+    assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 202);
+    let line = view.lines.find((l) => l.kind === "application");
+    for (let i = 0; i < 10 && !line; i++) {
+      view = applyFrame(view, await room.next(5000));
+      line = view.lines.find((l) => l.kind === "application");
+    }
+    assert(line, "the application never came as a line frame");
+    assertEquals(line.text, "сыграю");
+    await a.tables.stand(id);
+    assertEquals(await room.closedWithin(5000), SEAT_LOST, "standing up did not close the room 4005");
   },
 });

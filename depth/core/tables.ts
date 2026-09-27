@@ -123,12 +123,16 @@ export function turnOf(view: TableView, now = Date.now()): { mine: boolean; name
   };
 }
 
-// Applications from those still watching and not refused: a refusal names
-// the refused seat in refuses_seat (G1e); its own seat is the refuser's.
+// Applications from those still watching, not answered by a refusal that
+// came after them: a refusal names the refused seat in refuses_seat (G1e) and
+// holds for its round only — after a rematch the same seat may apply again,
+// and the node takes it (verifier, live, 2026-09-27). Lines come in order.
 export function openApplications(view: TableView): TableLine[] {
   const watching = new Set(view.seats.filter((s) => s.role === "watching").map((s) => s.seat));
-  const refused = new Set(view.lines.filter((l) => l.kind === "refusal" && typeof l.refuses_seat === "number").map((l) => l.refuses_seat));
-  return view.lines.filter((l) => l.kind === "application" && watching.has(l.seat) && !refused.has(l.seat));
+  return view.lines.filter((l, i) =>
+    l.kind === "application" && watching.has(l.seat) &&
+    !view.lines.slice(i + 1).some((r) => r.kind === "refusal" && r.refuses_seat === l.seat)
+  );
 }
 
 // The table's socket (protocol §4.4; G1e): a ticket, then the room
@@ -141,8 +145,11 @@ export async function openTable(client: Client, id: string): Promise<Room> {
   return client.openRoomWith(answer.body.ticket);
 }
 
-// A frame laid onto the view the screen holds, instead of reading the table
-// again every 2 s. Unknown frames leave it as it was.
+// A frame laid onto the view the screen holds. A line goes on as it is; a
+// board or a seat frame changes who plays, whose seat and whose turn, which
+// only GET /tables/:id says whole — so frameNeedsView tells the screen to read
+// the table once (verifier, 2026-09-27: after a rematch the frames alone left
+// a new player is_playing false). Unknown frames leave the view as it was.
 export function applyFrame(view: TableView, frame: Frame): TableView {
   const data = frame.data as Record<string, unknown> | null;
   if (frame.type === "board") return { ...view, board: data as unknown as Board | null };
@@ -155,6 +162,8 @@ export function applyFrame(view: TableView, frame: Frame): TableView {
   }
   return view;
 }
+
+export const frameNeedsView = (frame: Frame) => frame.type === "board" || frame.type === "seat";
 
 // 4005: the seat is gone (stood up, dropped, kicked) — the room will not
 // come back with a new ticket; the screen leaves the table.

@@ -1,7 +1,7 @@
 // What the table screens read off a TableView (G2): whose turn and how long,
 // and which applications still wait. Pure — the live path waits for G1.
 import { assertEquals } from "jsr:@std/assert@1";
-import { applyFrame, drawDots, freeEdges, openApplications, type TableView, turnOf } from "./tables.ts";
+import { applyFrame, drawDots, frameNeedsView, freeEdges, openApplications, type TableView, turnOf } from "./tables.ts";
 
 Deno.test("the dots board draws taken edges, the closer's seat in a closed box, and the edge about to be taken", () => {
   const dots = { n: 2, edges: ["h:0:0", "h:1:0", "v:0:0", "v:0:1"], boxes: { "0:0": 1 } };
@@ -82,4 +82,18 @@ Deno.test("frames from the table's socket lay onto the view: board whole, seat c
   const twice = applyFrame(once, { type: "line", seq: 0, data: line });
   assertEquals(twice.lines.filter((l) => l.id === "l9").length, 1, "the same line frame was added twice");
   assertEquals(applyFrame(start, { type: "name_verdict", seq: 0, data: { accepted: true } }), start);
+});
+
+Deno.test("a refusal holds for its round: an application after it is open again, as the node takes it", () => {
+  const seats = [{ seat: 1, name: "Аня", role: "playing" as const }, { seat: 3, name: "Костя", role: "watching" as const }];
+  const lines = [
+    { id: "a", seat: 3, kind: "application" as const, text: "можно?", created_at: 1 },
+    { id: "r", seat: 1, kind: "refusal" as const, text: "в другой раз", refuses_seat: 3, created_at: 2 },
+    { id: "b", seat: 3, kind: "application" as const, text: "а теперь?", created_at: 3 },
+  ];
+  assertEquals(openApplications(view({ seats, lines })).map((l) => l.id), ["b"], "an application after the refusal is hidden for good");
+});
+
+Deno.test("a board or a seat frame asks for the table again; a line does not", () => {
+  assertEquals([frameNeedsView({ type: "board", seq: 0, data: null }), frameNeedsView({ type: "seat", seq: 0, data: {} }), frameNeedsView({ type: "line", seq: 0, data: {} })], [true, true, false]);
 });

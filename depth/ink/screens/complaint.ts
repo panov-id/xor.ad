@@ -52,8 +52,8 @@ export function Complaint(
         client.complain(offerId, email.trim(), text.trim() || undefined)
           .then((answer) => {
             if (answer.status >= 200 && answer.status < 300) return setState("sent");
-            const code = (answer.body as { error?: { code?: string } } | null)?.error?.code ?? String(answer.status);
-            setError(`${say("complaint.refused")}: ${code}`);
+            const error = (answer.body as { error?: { code?: string; message?: string } } | null)?.error;
+            setError(`${say("complaint.refused")}: ${error?.message ?? error?.code ?? String(answer.status)}`);
             setState("edit");
           })
           .catch((e: Error) => { setError(e.message); setState("edit"); });

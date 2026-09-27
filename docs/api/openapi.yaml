@@ -85,8 +85,8 @@ components:
       type: apiKey
       in: cookie
       name: __Host-adv
-      description: "The venue cabinet session (offers/SPEC_EN.md §2.1) — a cookie with HttpOnly, Secure, SameSite=Lax, Path=/, no Domain, on its own origin adv.<storefront> (2026-09-19: a shared origin with the app handed the cabinet to any XSS there) from the same magic link as the panel, role advertiser; every request checks ownership, not only the role."
-      x-description-ru: "Сессия кабинета заведения (offers/SPEC_RU.md §2.1) — cookie с HttpOnly, Secure, SameSite=Lax, Path=/, без Domain, на своём источнике adv.<витрина> (19.09.2026: общий источник с приложением отдавал кабинет любой XSS в нём) по той же ссылке на почту, что у панели, роль advertiser; каждый запрос проверяет владение, а не только роль."
+      description: "The venue cabinet session (offers/SPEC_EN.md §2.1) — a cookie with HttpOnly, Secure, SameSite=Lax, Path=/, no Domain, on its own origin adv.<storefront> (2026-09-19: a shared origin with the app handed the cabinet to any XSS there) an account of its own in the database (db/067), not a panel role; every request checks ownership. The storefront is named by the Origin; a read without one — a browser sends none on a same-origin GET — by X-Forwarded-Host, else Host; a change without an Origin of ours is refused (CSRF), and a foreign Origin is refused on any method (27.09.2026)."
+      x-description-ru: "Сессия кабинета заведения (offers/SPEC_RU.md §2.1) — cookie с HttpOnly, Secure, SameSite=Lax, Path=/, без Domain, на своём источнике adv.<витрина> (19.09.2026: общий источник с приложением отдавал кабинет любой XSS в нём) своя учётка в базе (db/067), а не роль панели; каждый запрос проверяет владение. Витрину называет Origin; чтение без него — браузер не шлёт его на GET к тому же адресу — X-Forwarded-Host, иначе Host; изменение без нашего Origin отклоняется (CSRF), чужой Origin — на любом методе (27.09.2026)."
   schemas:
     Error:
       type: object

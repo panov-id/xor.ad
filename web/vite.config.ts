@@ -57,10 +57,48 @@ const core = fileURLToPath(new URL("../depth/core", import.meta.url));
 // And the terminal's words: the "me" screens say what depth says, verbatim.
 const locales = fileURLToPath(new URL("../depth/ink/locales", import.meta.url));
 
+// The page's Content-Security-Policy (FX5′, 27.09.2026). A script that runs on
+// the page can do whatever the page can — take the long key it holds after the
+// PIN, or the PIN as it is typed (X3) — so the only fence is that no script but
+// the page's own runs at all: no inline script, no eval, no plugin, no <base>.
+// 'wasm-unsafe-eval' is not eval: it lets WebAssembly compile, which Argon2
+// (hash-wasm, depth/core pin.ts) needs; eval and new Function stay refused.
+// Everything the page calls is its own origin — the node is forwarded here,
+// as a gateway forwards it — and 'self' covers ws:/wss: to the same host.
+const CSP_PAGE = [
+  "default-src 'self'",
+  "script-src 'self' 'wasm-unsafe-eval'",
+  "style-src 'self'",
+  "img-src 'self' data: blob:",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'self'",
+].join("; ");
+// frame-ancestors is ignored in a <meta> (CSP3 §6.1): only the header carries
+// it, so a page served elsewhere without this header can still be framed.
+const CSP_HEADER = `${CSP_PAGE}; frame-ancestors 'none'`;
+
+// Into the built page only: the dev server injects its own inline React
+// Refresh preamble, which this policy would refuse. The page as it is served —
+// by preview, by a gateway, from a bucket — carries the policy with it.
+const csp = {
+  name: "xor-csp",
+  apply: "build" as const,
+  transformIndexHtml: (html: string) =>
+    html.replace("<head>", `<head>\n    <meta http-equiv="Content-Security-Policy" content="${CSP_PAGE}" />`),
+};
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), csp],
   server: { proxy, fs: { allow: [".", core, locales] }, allowedHosts: ["host.docker.internal", "web"] },
-  preview: { proxy, allowedHosts: ["host.docker.internal", "web", "web-adv"], ...(tls ? { https: tls } : {}) },
+  preview: {
+    proxy,
+    allowedHosts: ["host.docker.internal", "web", "web-adv"],
+    headers: { "content-security-policy": CSP_HEADER },
+    ...(tls ? { https: tls } : {}),
+  },
   // depth/core names hash-wasm bare; resolved from this package's node_modules,
   // as depth/deno.json maps it for Deno.
   resolve: { alias: { "hash-wasm": fileURLToPath(new URL("./node_modules/hash-wasm", import.meta.url)) } },

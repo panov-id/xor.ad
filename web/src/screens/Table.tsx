@@ -5,9 +5,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
-import { dotsOf, freeEdges, openApplications, type TableView, Tables, turnOf } from "../../../depth/core/tables.ts";
+import { applyFrame, dotsOf, frameNeedsView, freeEdges, openApplications, type TableView, Tables, turnOf } from "../../../depth/core/tables.ts";
 import { say } from "../api/me.ts";
+import { connectTable } from "../api/tableRoom.ts";
 import { tableRefusal } from "../api/tables.ts";
+import { CellsBoard, DeckBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
 
 const CELL = 48, PAD = 16, HIT = 16;
 
@@ -73,14 +75,23 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
     }
   }, [tables, tableId]);
 
-  // No socket for tables yet (ticket is spec): the view is read every 2 s,
-  // and the clock ticks between reads.
+  // The table's socket (C1): the view read once, then each frame laid on it;
+  // a board or seat frame changes who plays, which only the table read whole
+  // says, so it reads the table again (depth/core frameNeedsView). A reconnect
+  // reads it whole too — frames missed meanwhile are not replayed. The clock
+  // ticks between frames.
   useEffect(() => {
     void load();
-    const reading = setInterval(load, 2000);
+    const room = connectTable(client, tableId, (event) => {
+      if (event.kind === "connected") return void load();
+      if (event.kind === "gone") return onLeave();
+      if (event.kind !== "frame") return;
+      setView((v) => (v ? applyFrame(v, event.frame) : v));
+      if (frameNeedsView(event.frame)) void load();
+    });
     const clock = setInterval(() => tick((n) => n + 1), 1000);
-    return () => { clearInterval(reading); clearInterval(clock); };
-  }, [load]);
+    return () => { room.stop(); clearInterval(clock); };
+  }, [load]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function act(run: () => Promise<{ status: number; body: unknown }>) {
     setError(null);
@@ -115,6 +126,19 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
       {dotsOf(board) && (
         <DotsBoard view={view} onEdge={turn.mine ? (edge) => act(() => tables.move(tableId, board!.seq, { edge })) : undefined} />
       )}
+      {board && !board.over && (() => {
+        // The other classes (W12): each board reads its own part of the
+        // state; a move goes on the board it was made on, and only in turn.
+        const onMove = turn.mine ? (m: unknown) => void act(() => tables.move(tableId, board.seq, m)) : undefined;
+        return (
+          <>
+            <DeckBoard view={view} onMove={onMove} />
+            <WordBoard view={view} onMove={onMove} />
+            <FreeBoard view={view} onMove={onMove} />
+            <CellsBoard view={view} onMove={onMove} />
+          </>
+        );
+      })()}
       {error && <p role="alert">{error}</p>}
       <ul className="lines">
         {view.lines.filter((l) => l.kind !== "move").map((l) => (

@@ -65,8 +65,12 @@ const listenClose = (page: Page, url: string, ticket: string) =>
 
 test("the node names 4003 in a closed frame that reaches the browser, through the proxy as directly", async ({ browser }) => {
   test.setTimeout(180_000);
-  const a = await browser.newContext({ viewport: { width: 393, height: 851 } });
-  const b = await browser.newContext({ viewport: { width: 393, height: 851 } });
+  // The page's CSP (FX5′) allows its own origin only, as a real page reaches
+  // the node through its gateway; this probe also opens the node directly and
+  // polls with page functions, both of which the policy refuses — rightly.
+  // What it measures is the node's close code, not the policy (csp.spec.ts).
+  const a = await browser.newContext({ viewport: { width: 393, height: 851 }, bypassCSP: true });
+  const b = await browser.newContext({ viewport: { width: 393, height: 851 }, bypassCSP: true });
   const anya = await personIn(a, "Аня");
   const boris = await personIn(b, "Борис");
 

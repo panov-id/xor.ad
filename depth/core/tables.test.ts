@@ -2,12 +2,14 @@
 // scripts/run-depth-tests.sh starts one. A game of dots on a 2×2 field played
 // to the end by two people, every call signed by the core.
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import postgres from "npm:postgres@3.4.4";
 import { Client } from "./client.ts";
 import { newPaperCode } from "./paper.ts";
 import { applyFrame, type Board, dotsOf, frameNeedsView, freeEdges, openTable, SEAT_LOST, Tables, turnOf } from "./tables.ts";
 
 const node = Deno.env.get("DEPTH_NODE_URL");
 const apiKey = Deno.env.get("DEPTH_API_KEY");
+const databaseUrl = Deno.env.get("DEPTH_DATABASE_URL");
 
 async function person(name: string) {
   const c = new Client(node!, apiKey!);
@@ -123,5 +125,39 @@ Deno.test({
     assertEquals(line.text, "сыграю");
     await a.tables.stand(id);
     assertEquals(await room.closedWithin(5000), SEAT_LOST, "standing up did not close the room 4005");
+  },
+});
+
+Deno.test({
+  name: "a neighbour's table comes in the feed as a card after the third phrase, and sitting down at it seats you",
+  ignore: !node || !databaseUrl,
+  fn: async () => {
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const me = await person("Аня");
+      const neighbour = await person("Костя");
+      // A table card goes after every third phrase (G1h): three of a third person's first.
+      const talker = await person("Оля");
+      for (let i = 0; i < 3; i++) {
+        await sql.unsafe(
+          `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+             lat_published, lon_published, visible_at, expires_at)
+           VALUES ($1, 'sosed', $2, $3, 'alone', 'und', 47.37, 8.54, 1000, 47.37, 8.54, now(), now() + interval '3 hours')`,
+          [crypto.randomUUID(), talker.client.identityId, `фраза ${i}`],
+        );
+      }
+      const made = await neighbour.tables.create({ class: "dots", set: "3x3", seats: 2, lat: 47.37, lon: 8.54, area_radius: 1000 });
+      assertEquals(made.status, 201, JSON.stringify(made.body));
+      const feed = await me.client.feed({ lat: 47.37, lon: 8.54, radius: 1000 });
+      const card = (feed.items as Array<{ kind?: string; id: string; game?: string; free_seats?: number }>).find((i) => i.kind === "table");
+      assert(card, `no table card in the feed: ${JSON.stringify(feed.items)}`);
+      assertEquals([card.id, card.game, card.free_seats], [made.body.id, "dots", 1]);
+      const sat = await me.tables.sit(card.id);
+      assert(sat.status >= 200 && sat.status < 300, `sitting down was refused: ${sat.status} ${JSON.stringify(sat.body)}`);
+      const view = (await me.tables.view(card.id)).body;
+      assertEquals(view.seats.map((s) => s.name).sort(), ["Аня", "Костя"], "the one who sat down is not at the table");
+    } finally {
+      await sql.end();
+    }
   },
 });

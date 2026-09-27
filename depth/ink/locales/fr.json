@@ -268,5 +268,7 @@
   "table.seats": "seats",
   "table.name": "name (optional)",
   "table.put": "set",
-  "feed.table": "table"
+  "feed.table": "table",
+  "table.sit": "sit down",
+  "table.free": "free"
 }

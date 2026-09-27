@@ -268,5 +268,7 @@
   "table.seats": "мест",
   "table.name": "название (необязательно)",
   "table.put": "поставить",
-  "feed.table": "стол"
+  "feed.table": "стол",
+  "table.sit": "сесть",
+  "table.free": "свободно"
 }

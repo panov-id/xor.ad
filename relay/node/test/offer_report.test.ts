@@ -29,6 +29,7 @@ await import("../src/routes/identity.ts");
 await import("../src/routes/offer_links.ts");
 await import("../src/routes/offer_complaints.ts");
 await import("../src/routes/adv.ts");
+await import("../src/routes/feed.ts");
 const { sha256hex } = await import("../src/lib/hash.ts");
 
 const KEY_ID = "ak_pub_offerreporttest01";
@@ -249,4 +250,69 @@ Deno.test({ name: "a complaint that the discount was not given: filed, counted o
   const rival = await cabinetOf((await seedOffer()).advertiser);
   assertEquals((await rival("GET", "/adv/complaints")).body.items.length, 0);
   assertEquals((await rival("POST", `/adv/complaints/${target}/response`, { text: "чужой" })).status, 404);
+} });
+
+// The main road of an offer (O2): the cabinet publishes, a person nearby sees
+// it in the feed with its id, and a complaint by that id goes through.
+Deno.test({ name: "a venue's offer reaches the feed of its storefront around the venue, and a complaint by its id goes through", ...pooled, fn: async () => {
+  reset();
+  const advertiser = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO advertisers (id, email, contact, brand, email_confirmed_at) VALUES ($1, $2, 'c', 'alpha', now())`,
+    [advertiser, `${advertiser}@example.test`],
+  );
+  const cabinet = await cabinetOf(advertiser);
+  // A place far from every other test's phrases: this feed is ours alone.
+  const here = { lat: 34.9 + Math.random() * 0.5, lon: 33.1 + Math.random() * 0.5 };
+  const made = await cabinet("POST", "/adv/venues", {
+    name: "Пекарня у рынка", address: "Ermou 12, Nicosia", lat: here.lat, lon: here.lon, area_radius: 1000,
+  });
+  assertEquals(made.status, 201, JSON.stringify(made.body));
+  assertEquals(made.body.place, { lat: here.lat, lon: here.lon, area_radius: 1000 });
+  const offerBody = {
+    venue_id: made.body.id, offer_text: "второй кофе бесплатно", discount_value: "1+1",
+    discount_until: new Date(Date.now() + 86_400_000).toISOString(), external_url: "https://bakery.example/",
+  };
+  // Proved by its envelope, as the cabinet test walks it; here the row says so.
+  await database.queryOrThrow(`UPDATE venues SET verification_status = 'verified', verified_at = now() WHERE id = $1`, [made.body.id]);
+  const published = await cabinet("POST", "/adv/offers", offerBody);
+  assertEquals(published.status, 201, JSON.stringify(published.body));
+
+  // The neighbourhood: nine phrases are too few for an offer, ten make room for one.
+  const author = await person(3);
+  const phrase = (i: number) =>
+    database.queryOrThrow(
+      `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+                                  lat_published, lon_published, visible_at, expires_at)
+         VALUES ($1, 'alpha', $2, $3, 'alone', 'und', $4, $5, 1000, $4, $5, now(), now() + interval '3 hours')`,
+      [crypto.randomUUID(), author.identity_id, `фраза ${i}`, here.lat, here.lon],
+    );
+  for (let i = 0; i < 9; i++) await phrase(i);
+  const viewer = await person(3);
+  const read = async () =>
+    (await signedCall(viewer, "GET", `/feed?lat=${here.lat}&lon=${here.lon}&radius=1000`)).body.items as {
+      kind: string; id: string; offer?: { venue_name?: string; redirect?: string }; lat: number;
+    }[];
+  assertEquals((await read()).filter((i) => i.kind === "offer").length, 0, "nine phrases made room for an offer");
+  await phrase(9);
+  const items = await read();
+  const cards = items.filter((i) => i.kind === "offer");
+  assertEquals(cards.map((c) => c.id), [published.body.id], "the cabinet's offer is not in the feed around its venue");
+  assertEquals(items.indexOf(cards[0]), 10, "the offer goes after the tenth phrase");
+  assertEquals(cards[0].offer?.venue_name, "Пекарня у рынка");
+  assertEquals(cards[0].offer?.redirect, `alpha.test/o/${published.body.redirect_code}`);
+
+  // Far away, nobody sees it.
+  const far = (await signedCall(viewer, "GET", `/feed?lat=${here.lat + 1}&lon=${here.lon}&radius=1000`)).body.items as { kind: string }[];
+  assertEquals(far.filter((i) => i.kind === "offer").length, 0, "an offer reached a feed a hundred kilometres away");
+
+  // The person complains by the id the card carried.
+  const complaint = await signedCall(viewer, "POST", `/offers/${cards[0].id}/complaints`, { email: "v@example.test", text: "не дали" });
+  assertEquals(complaint.status, 202, JSON.stringify(complaint.body));
+  assertEquals((await cabinet("GET", "/adv/complaints")).body.items.length, 1);
+
+  // A venue with no place publishes nothing: there is no feed it could reach.
+  const nowhere = await cabinet("POST", "/adv/venues", { name: "Без точки", address: "Somewhere 1" });
+  await database.queryOrThrow(`UPDATE venues SET verification_status = 'verified', verified_at = now() WHERE id = $1`, [nowhere.body.id]);
+  assertEquals((await cabinet("POST", "/adv/offers", { ...offerBody, venue_id: nowhere.body.id, offer_text: "другое" })).status, 409);
 } });

@@ -129,7 +129,7 @@ Deno.test({ name: "the cabinet: sign-in, a venue proved by its envelope, an offe
     (await database.queryOrThrow(`SELECT 1 FROM advertisers WHERE lower(email) = lower($1)`, [email])).length, 1,
   );
 
-  const made = await call("POST", "/adv/venues", { cookies: me, body: { name: "Кофейня на Макариу", address: "Makariou 1, Nicosia" } });
+  const made = await call("POST", "/adv/venues", { cookies: me, body: { name: "Кофейня на Макариу", address: "Makariou 1, Nicosia", lat: 35.1676, lon: 33.3616, area_radius: 300 } });
   assertEquals(made.status, 201);
   assertEquals(made.body.verification_status, "unverified");
   assertEquals(made.headers.get("location"), `/adv/venues/${made.body.id}`);

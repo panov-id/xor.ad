@@ -179,7 +179,27 @@ route("GET", "/adv/me", async ({ req }) => {
 
 // --- venues -------------------------------------------------------------------
 
-type VenueRow = { id: string; name: string; address: string; verification_status: string; verified_at: Date | null };
+// The venue's point and the radius its offers are shown in (db/075; offers
+// spec §7: the zone of a business offer is its venue's address). Given by the
+// cabinet with the address; no geocoder. Absent is allowed — such a venue
+// publishes nothing until it has one; half of it is not.
+const RADII = [100, 300, 1000, 3000, 10000];
+type Place = { lat: number; lon: number; area_radius: number };
+function placeOf(body: Record<string, unknown> | null): Place | null | "bad" {
+  const { lat, lon, area_radius } = body ?? {};
+  if (lat === undefined && lon === undefined && area_radius === undefined) return null;
+  if (typeof lat !== "number" || !Number.isFinite(lat) || lat < -90 || lat > 90) return "bad";
+  if (typeof lon !== "number" || !Number.isFinite(lon) || lon < -180 || lon > 180) return "bad";
+  const radius = area_radius === undefined ? 1000 : area_radius;
+  if (typeof radius !== "number" || !RADII.includes(radius)) return "bad";
+  return { lat, lon, area_radius: radius };
+}
+
+type VenueRow = {
+  id: string; name: string; address: string; verification_status: string; verified_at: Date | null;
+  lat: number | null; lon: number | null; area_radius: number | null;
+};
+const VENUE_COLUMNS = "id, name, address, verification_status, verified_at, lat, lon, area_radius";
 
 const venueJson = (v: VenueRow & { envelope_expires_at?: Date | null }) => ({
   id: v.id,
@@ -188,13 +208,15 @@ const venueJson = (v: VenueRow & { envelope_expires_at?: Date | null }) => ({
   verification_status: v.verification_status,
   verified_at: v.verified_at,
   envelope_expires_at: v.envelope_expires_at ?? null,
+  place: v.lat === null ? null : { lat: v.lat, lon: v.lon, area_radius: v.area_radius },
 });
 
 route("GET", "/adv/venues", async ({ req }) => {
   const ctx = await session(req);
   if (ctx instanceof Response) return ctx;
   const rows = await query<VenueRow & { envelope_expires_at: Date | null }>(
-    `SELECT v.id, v.name, v.address, v.verification_status, v.verified_at, e.expires_at AS envelope_expires_at
+    `SELECT v.id, v.name, v.address, v.verification_status, v.verified_at, v.lat, v.lon, v.area_radius,
+            e.expires_at AS envelope_expires_at
        FROM venues v
        LEFT JOIN venue_envelopes e ON e.venue_id = v.id AND e.used_at IS NULL AND e.burned_at IS NULL
                                   AND e.expires_at > now()
@@ -217,18 +239,21 @@ async function suspendedAddress(address: string): Promise<boolean | null> {
 route("POST", "/adv/venues", async ({ req }) => {
   const ctx = await session(req);
   if (ctx instanceof Response) return ctx;
-  const body = await readJson<{ name?: unknown; address?: unknown }>(req);
+  const body = await readJson<Record<string, unknown>>(req);
   const name = text(body?.name, 128);
   const address = text(body?.address);
   if (!name || !address) return bad("a venue needs a name and an address");
+  const place = placeOf(body);
+  if (place === "bad") return bad(`a place is lat, lon and an area_radius of ${RADII.join(", ")} metres`);
   const held = await suspendedAddress(address);
   if (held === null) return unavailable();
   const id = crypto.randomUUID();
   const status = held ? "suspended" : "unverified";
   const made = await query<VenueRow>(
-    `INSERT INTO venues (id, advertiser_id, name, address, verification_status) VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, address, verification_status, verified_at`,
-    [id, ctx.me.id, name, address, status],
+    `INSERT INTO venues (id, advertiser_id, name, address, verification_status, lat, lon, area_radius)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING ${VENUE_COLUMNS}`,
+    [id, ctx.me.id, name, address, status, place?.lat ?? null, place?.lon ?? null, place?.area_radius ?? null],
   );
   if (made === null) return unavailable();
   return json(venueJson(made[0]), 201, { location: `/adv/venues/${id}` });
@@ -238,24 +263,28 @@ route("PATCH", "/adv/venues/:id", async ({ req, params }) => {
   const ctx = await session(req);
   if (ctx instanceof Response) return ctx;
   if (!UUID.test(params.id)) return notFound();
-  const body = await readJson<{ name?: unknown; address?: unknown }>(req);
+  const body = await readJson<Record<string, unknown>>(req);
   const name = body?.name === undefined ? undefined : text(body.name, 128);
   const address = body?.address === undefined ? undefined : text(body.address);
-  if (name === null || address === null || (name === undefined && address === undefined)) {
-    return bad("change the name, the address, or both");
+  const place = placeOf(body);
+  if (place === "bad") return bad(`a place is lat, lon and an area_radius of ${RADII.join(", ")} metres`);
+  if (name === null || address === null || (name === undefined && address === undefined && place === null)) {
+    return bad("change the name, the address, the place, or several");
   }
   const held = address === undefined ? false : await suspendedAddress(address);
   if (held === null) return unavailable();
   const updated = await transaction(async (run) => {
     const [venue] = await run<VenueRow>(
-      `SELECT id, name, address, verification_status, verified_at FROM venues
-        WHERE id = $1 AND advertiser_id = $2 FOR UPDATE`,
+      `SELECT ${VENUE_COLUMNS} FROM venues WHERE id = $1 AND advertiser_id = $2 FOR UPDATE`,
       [params.id, ctx.me.id],
     );
     if (!venue) return null;
-    const moved = address !== undefined && address !== venue.address;
-    // A new address is proved by its own envelope; the old envelope went to
-    // the old one and is burned. A suspended venue stays suspended.
+    const moved = (address !== undefined && address !== venue.address) ||
+      (place !== null && (place.lat !== venue.lat || place.lon !== venue.lon || place.area_radius !== venue.area_radius));
+    // A new address or a new point is proved by its own envelope: a venue
+    // verified in one street must not show its offers in another's feed. The
+    // old envelope went to the old place and is burned. A suspended venue
+    // stays suspended.
     const status = held ? "suspended" : moved && venue.verification_status === "verified"
       ? "unverified"
       : venue.verification_status;
@@ -265,9 +294,11 @@ route("PATCH", "/adv/venues/:id", async ({ req, params }) => {
     }
     const [row] = await run<VenueRow>(
       `UPDATE venues SET name = $2, address = $3, verification_status = $4,
-                         verified_at = CASE WHEN $4 = 'verified' THEN verified_at END
-        WHERE id = $1 RETURNING id, name, address, verification_status, verified_at`,
-      [venue.id, name ?? venue.name, address ?? venue.address, status],
+                         verified_at = CASE WHEN $4 = 'verified' THEN verified_at END,
+                         lat = $5, lon = $6, area_radius = $7
+        WHERE id = $1 RETURNING ${VENUE_COLUMNS}`,
+      [venue.id, name ?? venue.name, address ?? venue.address, status,
+        place?.lat ?? venue.lat, place?.lon ?? venue.lon, place?.area_radius ?? venue.area_radius],
     );
     return row;
   }).catch(() => "unavailable" as const);
@@ -471,12 +502,15 @@ route("POST", "/adv/offers", async ({ req }) => {
     : null;
 
   const result = await transaction(async (run) => {
-    const [venue] = await run<{ verification_status: string }>(
-      `SELECT verification_status FROM venues WHERE id = $1 AND advertiser_id = $2 FOR UPDATE`,
+    const [venue] = await run<{ verification_status: string; placed: boolean }>(
+      `SELECT verification_status, lat IS NOT NULL AS placed FROM venues WHERE id = $1 AND advertiser_id = $2 FOR UPDATE`,
       [venueId, ctx.me.id],
     );
     if (!venue) return "not_found" as const;
     if (venue.verification_status !== "verified") return "not_verified" as const;
+    // An offer is shown around its venue (§7, db/075); without a point there is
+    // no feed it could reach, and publishing it would be a card nobody sees.
+    if (!venue.placed) return "no_place" as const;
     if (repeatedFrom) {
       // §8: again from one's own expired or cleared offer, never from a live one.
       const [source] = await run<{ live: boolean }>(
@@ -510,6 +544,9 @@ route("POST", "/adv/offers", async ({ req }) => {
   if (result === "unavailable") return unavailable();
   if (result === "not_found") return notFound();
   if (result === "not_verified") return refuse("refused", "only a verified venue publishes", 409);
+  if (result === "no_place") {
+    return refuse("refused", "the venue has no place on the map: give it lat, lon and area_radius", 409);
+  }
   if (result === "source_live") return refuse("refused", "that offer is still live", 409);
   if (result === "duplicate") {
     return refuse("refused", "the same text is already live", 422, { reason: "duplicate" });

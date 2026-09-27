@@ -21,7 +21,7 @@ import { raise } from "../core/recovery.ts";
 import { HeldKey } from "../core/transfer.ts";
 import { Arrival, Departure } from "../core/transfer_move.ts";
 import { App } from "./app.ts";
-import { TableRoom } from "./table.ts";
+import { SeatedElsewhere, TableRoom } from "./table.ts";
 import { strings } from "./strings.ts";
 
 const node = process.env.DEPTH_NODE_URL!;
@@ -649,6 +649,30 @@ async function main() {
       await until(guesser, /к _ _/, 20);
       guesser.unmount();
       out("ok   word from the table's screen: the setter set a word, the guesser named a letter and saw it in the mask");
+    }
+    {
+      // Seated elsewhere (C5, GC2): the node names the table one sits at, and
+      // the screen stands up there and sits down here.
+      const me = await joiner("Лена"), host = await joiner("Игорь");
+      const mine = (await new Tables(me).create({ class: "dots", set: "2x2", seats: 2, lat: 55.2, lon: 37.2, area_radius: 1000 })).body.id;
+      const theirs = (await new Tables(host).create({ class: "dots", set: "2x2", seats: 2, lat: 55.2, lon: 37.2, area_radius: 1000 })).body.id;
+      const refused = await new Tables(me).sit(theirs);
+      const error = (refused.body as { error?: { code?: string; table?: string } }).error;
+      assert.deepEqual([refused.status, error?.code, error?.table], [409, "already_seated", mine], `the node did not name the table: ${JSON.stringify(refused.body)}`);
+      let opened: string | null = null;
+      const screen = render(h(SeatedElsewhere, {
+        say, tables: new Tables(me), there: mine, here: theirs, onOpen: (id: string) => (opened = id), onBack: () => {},
+        onError: (m: string) => { throw new Error(m); },
+      }));
+      await until(screen, /вы уже за столом/, 20);
+      await ready();
+      await type(screen, RIGHT, ENTER);
+      for (let i = 0; i < 40 && opened === null; i++) await new Promise((done) => setTimeout(done, 100));
+      assert.equal(opened, theirs, "the screen did not move the person to the new table");
+      const seats = (await new Tables(host).view(theirs)).body.seats.map((s) => s.name).sort();
+      assert.deepEqual(seats, ["Игорь", "Лена"], "the person is not at the new table");
+      screen.unmount();
+      out("ok   seated elsewhere: the node named the old table, and the screen stood up there and sat down here");
     }
   } catch (e) {
     failed++;

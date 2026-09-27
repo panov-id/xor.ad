@@ -272,9 +272,9 @@ export function Feed(
         Text,
         { bold: i === at },
         `${i === at ? "›" : " "} ${plain(p.name ?? "?", 48)}, ${plain(p.age ?? "?", 3)} · `,
-        say("feed.distance", { meters: p.distance_m ?? 0 }),
+        say("feed.distance", { meters: plain(p.distance_m ?? 0, 6) }),
         " · ",
-        say("feed.minutes", { minutes: p.minutes_ago ?? 0 }),
+        say("feed.minutes", { minutes: plain(p.minutes_ago ?? 0, 6) }),
       ),
       h(Text, null, `  ${plain(p.text, 200)}`),
     );

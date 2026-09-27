@@ -316,5 +316,7 @@
   "game.offerArrived": "вам предлагают игру — откройте «игра»",
   "table.seatedElsewhere": "вы уже за столом «{name}»",
   "table.backThere": "вернуться к нему",
-  "table.standThere": "встать там и сесть здесь"
+  "table.standThere": "встать там и сесть здесь",
+  "table.keptThere": "вы остались за прежним столом",
+  "table.lostBoth": "вернуться за прежний стол не вышло — он закрыт"
 }

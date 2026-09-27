@@ -49,3 +49,52 @@ export async function unlock(page: Page, pin: string): Promise<void> {
   await page.getByTestId("unlock-pin").fill(pin);
   await page.getByTestId("unlock").click();
 }
+
+// A phrase through the composer, as a person writes one (W16): the node's
+// answer is read on the feed.
+export async function writePhrase(page: Page, text: string): Promise<void> {
+  await page.getByTestId("write").click();
+  await expect(page.locator('[data-screen="composer"]')).toBeVisible();
+  await page.getByTestId("text").fill(text);
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("sent")).toHaveAttribute("data-state", "published", { timeout: 15000 });
+}
+
+// A table from the feed's "new table" (W10), and the one who set it lands at it.
+export async function newTable(page: Page, t: { name: string; kind?: string; set?: string }): Promise<void> {
+  await page.getByTestId("new-table").click();
+  await expect(page.locator('[data-screen="new-table"]')).toBeVisible();
+  if (t.kind) await page.getByTestId("new-table-class").selectOption(t.kind);
+  if (t.set) await page.getByTestId("new-table-set").selectOption(t.set);
+  await page.getByTestId("new-table-name").fill(t.name);
+  await page.getByTestId("new-table-go").click();
+  await expect(page.getByTestId("table")).toBeVisible({ timeout: 30000 });
+}
+
+// A neighbour reads the feed again and sits down by the table's card.
+export async function sitFromFeed(page: Page, name: string): Promise<void> {
+  await page.getByTestId("nav-inbox").click();
+  await page.getByTestId("nav-feed").click();
+  const card = page.getByTestId("table-card").filter({ hasText: name });
+  await expect(card).toHaveCount(1, { timeout: 30000 });
+  await card.click();
+  await expect(page.getByTestId("table")).toBeVisible({ timeout: 30000 });
+}
+
+// Two at a table and a game begun, all by the screen (W15): the one who set
+// it writes three phrases for the table to stand among and sets it; the other
+// sits by its card and applies with a line of their own; the first starts the
+// game, which takes the applicant in.
+export async function twoAtATable(first: Page, second: Page, t: { name: string; kind?: string; set?: string }): Promise<void> {
+  for (const text of ["кто на пляж?", "ищу компанию на ужин", "есть кто в парке?"]) {
+    await writePhrase(first, `${text} ${Date.now().toString(36)}`);
+  }
+  await newTable(first, t);
+  await sitFromFeed(second, t.name);
+  await second.getByTestId("line-input").fill("сыграю");
+  await second.getByTestId("apply").click();
+  await expect(first.getByTestId("table")).toContainText("заявка", { timeout: 15000 });
+  await first.getByTestId("start-game").click();
+  await expect(first.getByTestId("turn")).not.toContainText("партия ещё не началась", { timeout: 15000 });
+  await expect(second.getByTestId("turn")).not.toContainText("партия ещё не началась", { timeout: 15000 });
+}

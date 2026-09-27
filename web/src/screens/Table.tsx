@@ -111,7 +111,7 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
   const score = board ? view.seats.filter((s) => board.score[String(s.seat)] !== undefined) : [];
 
   return (
-    <main className="table" data-testid="table">
+    <main className="table" data-testid="table" data-id={tableId}>
       <header>
         <h1>{say("table.title")}{view.name ? ` · «${view.name}»` : ""} · {view.class}</h1>
         <p>{say("table.playing")} {view.playing} · {say("table.watching")} {view.watching} · ♥ {view.like_count ?? 0}</p>
@@ -147,9 +147,38 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
         {openApplications(view).map((l) => <li key={`w${l.id}`} className="application">{say("table.application")}: {nameOf(l.seat)}</li>)}
       </ul>
       <form onSubmit={(e) => { e.preventDefault(); const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setLine("")); }}>
-        <input value={line} maxLength={128} onChange={(e) => setLine(e.target.value)} aria-label={say("table.say")} />
-        <button type="submit">{say("table.say")}</button>
+        <input value={line} maxLength={128} onChange={(e) => setLine(e.target.value)} aria-label={say("table.say")} data-testid="line-input" />
+        <button type="submit" data-testid="line-send">{say("table.say")}</button>
+        {/* A watcher asks to play with a line of their own (W15): the words are
+            theirs, the kind is an application (§6.1). */}
+        {!view.is_playing && (
+          <button type="button" disabled={!line.trim()} data-testid="apply"
+            onClick={() => { const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "application", text })).then(() => setLine("")); }}>
+            {say("table.application")}
+          </button>
+        )}
       </form>
+      {/* A game begins by a proposal (W15): a player alone starts it at once and
+          takes the applicants in; with others playing, each has to agree. */}
+      {view.is_playing && (() => {
+        const pending = board?.pending as { id: string; by?: number; answers?: Record<string, string> } | null | undefined;
+        if (pending) {
+          if (pending.by === view.seat || pending.answers?.[String(view.seat)] === "accept") {
+            return <p className="muted" data-testid="pending">{say("web.table.waitingAnswers")}</p>;
+          }
+          return (
+            <p data-testid="pending">
+              {say("web.table.proposed", { name: nameOf(pending.by ?? 0) })}{" "}
+              <button type="button" data-testid="accept-game" onClick={() => act(() => tables.answer(tableId, pending.id, "accept"))}>{say("web.table.accept")}</button>
+              <button type="button" data-testid="decline-game" onClick={() => act(() => tables.answer(tableId, pending.id, "decline"))}>{say("web.table.decline")}</button>
+            </p>
+          );
+        }
+        if (!board || board.over || board.turn === null) {
+          return <button type="button" className="primary" data-testid="start-game" onClick={() => act(() => tables.propose(tableId, "rematch"))}>{say("web.table.start")}</button>;
+        }
+        return null;
+      })()}
       <nav>
         {turn.mine && board && <button onClick={() => act(() => tables.pass(tableId, board.seq))}>{say("table.pass")}</button>}
         {view.is_playing && board && !board.over && <button onClick={() => act(() => tables.resign(tableId))}>{say("table.resign")}</button>}

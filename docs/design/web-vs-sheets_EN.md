@@ -84,3 +84,26 @@ checked separately: `cmp` on the shots, `tokens.css:19-24`, and `Table.tsx:68` w
 - Blocked, Statements and TableBoards were not shot. The reasons in the table are read from
   the script's last step and were not investigated further.
 - Sheets 17 and 25 were checked by component list, without looking at the PNG.
+
+## WD3 · 27.09.2026 · feed
+
+Run of `scripts/design/shoot-web.sh` on `e052cd5` with the WD3 changes: **34 states shot,
+0 did not open**. Blocked, Statements, TableBoards and the cabinet (sign-in, "sent",
+venues, offers) were added. Web e2e: 28 passed.
+
+- Navigation is the bottom tab bar from the kit's `tabbar` symbol: 64px, the kit's icons, and
+  a 32×3 accent bar under the active tab (`web/src/App.tsx`, `web/src/screens/feed.css`). The
+  three top buttons are gone.
+- Feed, Card, Composer, Likes, Unlock and Register have a 56px header with a 20/600 title and back on the
+  left. On the feed, "write" sits where the floating 327×52 composer is, 12px above the bar.
+  On Splash, Register and Unlock the primary button is at the foot, 343 wide.
+- Tabbed screens wrap long lines. The inbox footer printed raw JSON `{"new_matches"…}`
+  631 wide, which widened a phone's layout viewport to 656 for a 393 screen and moved the
+  bar out from under taps. Printing the JSON remains an inbox defect.
+- The shoot renders the built sheets `panel/design/screen-*.svg`. The sources in `sheets/`
+  rendered as empty phones: the WD0 sheet PNGs were blank; the table above was built from
+  the SVG and is unaffected.
+
+Left for WD3: the seven screens are not yet built on the `web/src/ui/*` components
+(HeaderScreen, Button, Composer, Card). Card still prints raw codes "alone · und", and
+focused fields have a double ring.

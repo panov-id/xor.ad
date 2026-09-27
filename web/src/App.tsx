@@ -14,7 +14,7 @@
 // retired hole of SEC-2 and went with W1d, once the vault kept the wrap pair
 // (verifier of W1d, 2026-09-27).
 
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import type { Client, Radius, Statement } from "../../depth/core/client.ts";
 import type { Sent } from "./api/actions.ts";
 import { say } from "./api/me.ts";
@@ -45,6 +45,7 @@ import { Blocked } from "./screens/Blocked.tsx";
 import { Hidden } from "./screens/Hidden.tsx";
 import { forget, readRecord, type Record_ } from "./vault.ts";
 import "./chat/chat.css";
+import "./screens/feed.css";
 
 type Sealed = "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
 type Seated = { client: Client; keys: ChatKeys; sealed: Sealed };
@@ -187,11 +188,19 @@ function Face() {
   }
   const me = () => setScreen({ at: "me" });
 
+  // The tab bar at the foot (sheet 03, kit `tabbar`): three tabs of 125, the
+  // kit's line icons, the active one in meta-strong over a 32x3 accent bar.
+  const tab = (at: "feed" | "inbox" | "me", icon: ReactNode, label: string, testid: string, go: () => void) => (
+    <button type="button" className="tab" aria-current={screen.at === at ? "page" : undefined} onClick={go} data-testid={testid}>
+      <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">{icon}</svg>
+      <span>{label}</span>
+    </button>
+  );
   const nav = seated && (screen.at === "feed" || screen.at === "inbox" || screen.at === "me") && (
-    <nav className="nav screen" style={{ minHeight: 0, paddingBottom: 0 }} data-testid="nav">
-      <button type="button" aria-current={screen.at === "feed" ? "page" : undefined} onClick={() => setScreen({ at: "feed" })} data-testid="nav-feed">{say("web.nav.feed")}</button>
-      <button type="button" aria-current={screen.at === "inbox" ? "page" : undefined} onClick={() => leaveFeed({ at: "inbox" })} data-testid="nav-inbox">{say("web.nav.inbox")}</button>
-      <button type="button" aria-current={screen.at === "me" ? "page" : undefined} onClick={() => leaveFeed({ at: "me" })} data-testid="tab-me">{say("me.title")}</button>
+    <nav className="tabbar" data-testid="nav">
+      {tab("feed", <path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" />, say("web.nav.feed"), "nav-feed", () => setScreen({ at: "feed" }))}
+      {tab("inbox", <path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" />, say("web.nav.inbox"), "nav-inbox", () => leaveFeed({ at: "inbox" }))}
+      {tab("me", <><circle cx="22" cy="17" r="4.5" /><path d="M13 31 C13 25 31 25 31 31" /></>, say("me.title"), "tab-me", () => leaveFeed({ at: "me" }))}
     </nav>
   );
 
@@ -215,8 +224,7 @@ function Face() {
       return <Offer code={screen.code} onHome={() => { history.replaceState(null, "", "/"); setScreen({ at: "loading" }); location.reload(); }} />;
     case "feed":
       return (
-        <>
-          {nav}
+        <div className="tabbed">
           <Feed
             client={seated!.client}
             sealed={seated!.sealed}
@@ -232,7 +240,8 @@ function Face() {
             sent={sent}
             gone={gone}
           />
-        </>
+          {nav}
+        </div>
       );
     case "composer":
       return (
@@ -263,8 +272,7 @@ function Face() {
       return <Likes client={seated!.client} onBack={toFeed} />;
     case "inbox":
       return (
-        <>
-          {nav}
+        <div className="tabbed">
           <Inbox
             client={seated!.client}
             onOpenMatch={(row) => setScreen({ at: "match", row })}
@@ -272,7 +280,8 @@ function Face() {
             declined={declined}
             onUndone={(row) => setDeclined((d) => d.filter((x) => x.id !== row.id))}
           />
-        </>
+          {nav}
+        </div>
       );
     case "match":
       return (
@@ -292,8 +301,7 @@ function Face() {
       return <Statements items={statements ?? []} onDone={screen.from === "me" ? me : toFeed} />;
     case "me":
       return (
-        <>
-          {nav}
+        <div className="tabbed">
           <Me
             client={seated!.client}
             restrictions={statements?.length ?? 0}
@@ -311,7 +319,8 @@ function Face() {
               setScreen({ at: "reset" });
             }}
           />
-        </>
+          {nav}
+        </div>
       );
     case "edit":
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;

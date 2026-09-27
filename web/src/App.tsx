@@ -92,7 +92,10 @@ export function App() {
   // The client in the page's own scope, for the e2e run to drive the parts of
   // the path that have no screen in W3 (a phrase, a like): the keys are the
   // tab's already, this adds no reach a script on the page would not have.
+  // Only in the stand's build (VITE_STAND=1): a real page does not hand the
+  // long key to every script in the tab (V3); Vite drops the branch otherwise.
   useEffect(() => {
+    if (import.meta.env.VITE_STAND !== "1") return;
     (globalThis as unknown as { xor?: unknown }).xor = seated ? { client: seated.client, keys: seated.keys } : undefined;
   }, [seated]);
 

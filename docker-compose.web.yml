@@ -80,7 +80,7 @@ services:
     build:
       context: .
       dockerfile: web/Dockerfile
-      args: { VITE_API_KEY: ak_pub_webtest0000000001, VITE_BRAND: sosed }
+      args: { VITE_API_KEY: ak_pub_webtest0000000001, VITE_BRAND: sosed, VITE_STAND: "1" }
     depends_on: { node: { condition: service_healthy } }
     environment: { WEB_NODE_URL: "http://node:8080" }
     # No host port by default: two or three worktrees run this stand at once

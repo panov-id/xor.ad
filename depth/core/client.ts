@@ -397,10 +397,11 @@ export class Client {
   #ephemeral = new Map<string, { eph: Ephemeral; epoch: number }>();
   #conversations = new Map<string, { conversation: Conversation; epoch: number }>();
 
-  // Tables (G2) live in tables.ts and reach the node through this one door,
-  // which opens on /tables only: the rest of the core stays behind #call.
+  // Tables (G2) live in tables.ts and reach the node through this door. It
+  // opens on /tables and its own segments only: "/tables/../inbox" collapses
+  // in new URL and would leave the tables (verifier, 2026-09-27).
   tableCall<T>(method: string, path: string, body?: unknown): Promise<Answer<T>> {
-    if (!path.startsWith("/tables")) throw new Error("tableCall is for /tables only");
+    if (!/^\/tables(\/[^/.%][^/%]*)*$/.test(path)) throw new Error("tableCall is for /tables only");
     return this.#call<T>(method, path, body);
   }
 

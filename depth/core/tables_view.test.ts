@@ -35,11 +35,22 @@ Deno.test("a game over or gone has no turn and no clock", () => {
   assertEquals(turnOf(view({ board: { seq: 9, state: {}, turn: 2, score: {}, over: true, expires_at: 0 } })).mine, false);
 });
 
-Deno.test("an application stays open until a refusal names its seat", () => {
+Deno.test("an application is open while its author still watches; one who plays is not asked about", () => {
+  const seats = [
+    { seat: 1, name: "Аня", role: "playing" as const },
+    { seat: 2, name: "Женя", role: "playing" as const },
+    { seat: 3, name: "Костя", role: "watching" as const },
+  ];
   const lines = [
     { id: "a", seat: 3, kind: "application" as const, text: "можно?", created_at: 1 },
-    { id: "b", seat: 4, kind: "application" as const, text: "и я", created_at: 2 },
-    { id: "c", seat: 3, kind: "refusal" as const, text: "в другой раз", created_at: 3 },
+    { id: "b", seat: 2, kind: "application" as const, text: "и я", created_at: 2 },
+    // A refusal's seat is its author's (G1c), not the refused one's.
+    { id: "c", seat: 1, kind: "refusal" as const, text: "в другой раз", created_at: 3 },
   ];
-  assertEquals(openApplications(view({ lines })).map((l) => l.id), ["b"]);
+  assertEquals(openApplications(view({ seats, lines })).map((l) => l.id), ["a"]);
+});
+
+Deno.test("before the first game the board has no turn and no clock, not a zero", () => {
+  const empty = view({ board: { seq: 0, state: {}, turn: null, score: {}, over: false, expires_at: null } });
+  assertEquals(turnOf(empty), { mine: false, name: null, secondsLeft: null });
 });

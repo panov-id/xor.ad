@@ -59,6 +59,7 @@ export function Table(
         { flexDirection: "column" },
         h(Text, { color: turn.mine ? "green" : undefined },
           board.over ? say("table.over")
+          : board.turn === null ? say("table.notStarted")
           : turn.mine ? `${say("table.yourTurn")} · ${turn.secondsLeft} ${say("table.seconds")}`
           : `${say("table.turn")}: ${turn.name ?? "—"} · ${turn.secondsLeft} ${say("table.seconds")}`),
         score ? h(Text, null, `${say("table.score")}: ${score}`) : null,

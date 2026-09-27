@@ -114,9 +114,13 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
         <p>{row.phrase.text}</p>
         <Life end={theirs.expires_at} tone="theirs" />
       </Card>
-      <Card as="section" kind="nested" className="match-hint">
-        <p>{row.waiting_for_you ? say("web.match.agreed") : say("web.match.hint")}</p>
-      </Card>
+      {/* Sheet 06 B, waiting: no hint — the two phrases as short quotes, the
+          lines in the queue, and the line to write at the foot. */}
+      {!waiting && (
+        <Card as="section" kind="nested" className="match-hint">
+          <p>{row.waiting_for_you ? say("web.match.agreed") : say("web.match.hint")}</p>
+        </Card>
+      )}
       {error && <p className="error" data-testid="error">{error}</p>}
       {!waiting && (
         <div className="actions">
@@ -125,17 +129,17 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
         </div>
       )}
       {waiting && (
-        <section data-testid="waiting">
+        <section className="match-waiting" data-testid="waiting">
           <h2>{say("web.match.waiting")}</h2>
+          <ul className="lines" data-testid="queued">
+            {keys.queued(row.id).map((l, i) => <li key={i} className="line mine">{l}<span className="muted">{say("chat.queued")}</span></li>)}
+          </ul>
           <p className="muted">{say("web.match.queue_hint")}</p>
+          <Button kind="text" type="button" onClick={onWaiting} data-testid="to-inbox">{say("web.match.to_inbox")}</Button>
           <form className="composer" onSubmit={(e) => { e.preventDefault(); if (line.trim()) { keys.queue(row.id, line.trim()); setLine(""); } }}>
             <input value={line} onChange={(e) => setLine(e.target.value)} placeholder={say("web.match.line")} data-testid="queued-line" />
             <Button kind="secondary" type="submit">{say("web.match.enqueue")}</Button>
           </form>
-          <ul className="lines" data-testid="queued">
-            {keys.queued(row.id).map((l, i) => <li key={i} className="line mine">{l}<span className="muted">{say("chat.queued")}</span></li>)}
-          </ul>
-          <Button kind="secondary" type="button" onClick={onWaiting} data-testid="to-inbox">{say("web.match.to_inbox")}</Button>
         </section>
       )}
     </main>

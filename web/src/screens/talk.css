@@ -31,7 +31,7 @@
 .talk-tabs { display: flex; gap: var(--s-4); border-bottom: 1px solid var(--border); }
 .talk-tab { position: relative; min-height: var(--control-h); padding: 0; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 14px; font-weight: 600; border-bottom: 3px solid transparent; }
 .talk-tab-on { color: var(--fg); border-bottom-color: var(--accent); }
-.talk-tab-dot { position: absolute; top: 10px; right: -10px; }
+.talk-tab .talk-tab-dot { position: absolute; top: 10px; right: -12px; }
 .talk-chats li { list-style: none; }
 .talk-chats .ui-inbox-row { min-height: 72px; }
 /* WD4b: «во что сыграть?» — 18D: rows 48 on panel-2 with a hairline, the chosen

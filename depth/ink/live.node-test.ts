@@ -33,7 +33,7 @@ const DOWN = "\u001B[B", UP = "\u001B[A", RIGHT = "\u001B[C", LEFT = "\u001B[D",
 // The feed's row of actions, in the order the screen draws it. Counting
 // presses by hand broke the moment two actions were inserted, so the test
 // names what it wants instead.
-const FEED_ROW = ["open", "like", "hide", "block", "write", "inbox", "point", "me", "exit"];
+const FEED_ROW = ["open", "like", "hide", "block", "write", "table", "inbox", "point", "me", "exit"];
 
 async function pickInFeed(app: { stdin: { write: (s: string) => void } }, action: string) {
   const steps = FEED_ROW.indexOf(action);
@@ -162,6 +162,20 @@ async function main() {
     await type(app, DOWN, DOWN, DOWN, ENTER);  // straight on: the point is still filled in
     await until(app, /пробежку/, 30);
     out("ok   a live phrase reached the feed screen");
+
+    // Setting a table from the feed (C2): the defaults — dots 4x4, two seats,
+    // no name — straight into the live table, a row in tables, and standing
+    // up (the last action of the row) back to the feed.
+    await pickInFeed(app, "table");
+    await until(app, /поставить стол/);
+    await type(app, DOWN, DOWN, DOWN, DOWN, ENTER);
+    await until(app, /стол · dots/, 20);
+    assert.match(app.lastFrame() ?? "", /без сквозного шифрования/, "the live table does not say it is open to the node");
+    await rowAppears(sql, `SELECT 1 FROM tables WHERE game = 'dots' AND set = '4x4' AND seats = 2 AND created_at > now() - interval '5 minutes'`, []);
+    for (let i = 0; i < 8; i++) await type(app, RIGHT);
+    await type(app, ENTER);
+    await until(app, /пробежку/, 20);
+    out("ok   a table set from the feed opened live, stood in the database, and standing up led back to the feed");
 
     // Hiding from the row, and back from the hidden list: the person's own
     // feed only, and reversible (§8.9).

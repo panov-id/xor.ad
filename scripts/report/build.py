@@ -285,6 +285,7 @@ def img(src, cap, when=None, cls=""):
 
 
 SH = W / "shots"
+stand = (D / "shots.stand").read_text().strip() if (D / "shots.stand").is_file() else ""
 SS = Path(os.environ.get("REPORT_SCREENSHOTS") or R / "testing/screenshots")
 DS = SS / "design"
 # Named in the report without the local home: relative inside the tree, the
@@ -459,7 +460,7 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 <header class="hero">
   <div class="kicker">XOR.AD · SOSED.PLACE · NEIGHBRO.PLACE · ВЕТКА {e(git['branch']).upper()} · {e(git['head'])}</div>
   <h1>Что есть<br>и чего нет</h1>
-  <p>Полный отчёт о состоянии продукта. Срез на {e(measured)}. Числа в шапке, графики и раздел «Живой контур» замерены скриптами при сборке отчёта; кадры терминала — из прогона тестов экранов, снимки витрин — сделаны сейчас. Проценты готовности — экспертная оценка роадмапа {ru_date(road['as_of'])}; слова без замера — из prose_RU.toml, с датой при каждом блоке.</p>
+  <p>Полный отчёт о состоянии продукта. Срез на {e(measured)}. Числа в шапке, графики и раздел «Живой контур» замерены скриптами при сборке отчёта; кадры терминала — из прогона тестов экранов, снимки витрин и панели — сделаны сейчас с локального стенда этой ветки. Проценты готовности — экспертная оценка роадмапа {ru_date(road['as_of'])}; слова без замера — из prose_RU.toml, с датой при каждом блоке.</p>
 </header>
 {stale_html}
 <section class="kpis">
@@ -534,15 +535,15 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 <p class="lead">{e(pool_sum or pool_why)}</p>
 
 <h2>9. Экраны</h2>
-<h3 class="ch">Живые — сняты при сборке отчёта</h3>
+<h3 class="ch">Витрины и панель — локальный стенд {e(stand)}, сняты при сборке отчёта</h3>
 <div class="shots two">
-{img(SH/'sosed-desktop.png', 'sosed.place — витрина, десктоп', 'сейчас')}
-{img(SH/'neighbro-desktop.png', 'neighbro.place — витрина, десктоп', 'сейчас')}
+{img(SH/'sosed-desktop.png', 'sosed.place — витрина, десктоп', 'локально')}
+{img(SH/'neighbro-desktop.png', 'neighbro.place — витрина, десктоп', 'локально')}
 </div>
 <div class="shots four">
-{img(SH/'sosed-mobile-dark.png', 'sosed.place — телефон, тёмная', 'сейчас', 'phone')}
-{img(SH/'neighbro-mobile-light.png', 'neighbro.place — телефон', 'сейчас', 'phone')}
-{img(SH/'panel-login.png', 'xor.panov.id — вход в панель', 'сейчас', 'wide2')}
+{img(SH/'sosed-mobile-dark.png', 'sosed.place — телефон, тёмная', 'локально', 'phone')}
+{img(SH/'neighbro-mobile-light.png', 'neighbro.place — телефон', 'локально', 'phone')}
+{img(SH/'panel-login.png', 'панель — вход', 'локально', 'wide2')}
 </div>
 
 <h3 class="ch">Веб-лицо <code>web/</code> — последние кадры его сквозных тестов</h3>

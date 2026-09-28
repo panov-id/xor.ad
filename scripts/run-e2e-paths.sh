@@ -20,6 +20,7 @@ root="$(cd "$here/.." && pwd)"
 # name | command | file | the line to break | what stands there instead
 PATHS=(
   "two-people|run-web-two-people.sh two-people|relay/node/src/routes/matches.ts|(c) => act(c.req, c.params.id, \"consent\")|route(\"POST\", \"/matches/:id/consent\", (c) => act(c.req, c.params.id, \"decline\")); // BROKEN by run-e2e-paths"
+  "decline-expire|run-web-two-people.sh decline-expire|relay/node/src/lib/chat_sweeper.ts|p.idle_ttl_minutes * interval '1 minute' <= now()|  + p.idle_ttl_minutes * interval '1 minute' <= now() - interval '1 day' /* BROKEN by run-e2e-paths: no conversation's term comes */\`;"
   "two-devices|run-web-two-people.sh two-devices|relay/node/src/routes/transfer.ts|recovery_wrapped_key: bytesToBase64url(me.recovery_wrapped_key)|      // BROKEN by run-e2e-paths: the move's ack drops recovery_wrapped_key"
   "mixed-depth|run-web-depth-mixed.sh|relay/node/src/routes/matches.ts|(c) => act(c.req, c.params.id, \"consent\")|route(\"POST\", \"/matches/:id/consent\", (c) => act(c.req, c.params.id, \"decline\")); // BROKEN by run-e2e-paths"
 )

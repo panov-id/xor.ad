@@ -229,27 +229,27 @@
     <text x="24" y="302" class="k-body">Мы её не проверяли.</text>
     <use href="kit/components.svg#button-primary" x="24" y="560" data-w="327" data-label="Продолжить"/>
     <use href="kit/components.svg#button-secondary" x="24" y="616" data-w="327" data-label="Отмена"/>
-    <rect x="24" y="672" width="327" height="44" rx="8" data-hit="44" style="fill:none"/>
-    <text x="187.5" y="700" class="k-strong" text-anchor="middle" style="fill:var(--accent-text)">Ссылка ведёт не туда</text>
-    <text x="24" y="780" class="cap">жалоба без почты; хватит двух</text>
-    <text x="24" y="798" class="cap">от разных людей</text>
   </g></g>
 <text x="894" y="2026" class="capb">17 · экран перехода: домен целиком, «мы её</text>
-<text x="894" y="2044" class="capb">не проверяли», продолжить / отмена / жалоба</text>
+<text x="894" y="2044" class="capb">не проверяли», продолжить / отмена; жалобы</text><text x="894" y="2061" class="capb">здесь нет — личность ещё не открыта (WS3)</text>
 <g transform="translate(1317,1180)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c1317_1180"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1317_1180)">
     <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
     <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>
     <text x="50" y="35" class="k-meta" style="fill:var(--fg)">закрыть</text>
-    <text x="24" y="120" class="k-display">Вы покидаете sosed</text>
-    <use href="kit/components.svg#code-display" x="24" y="160" data-value="kolos.cy"/>
-    <text x="24" y="276" class="k-body">Это ссылка автора оффера.</text>
-    <text x="24" y="302" class="k-body">Мы её не проверяли.</text>
-    <use href="kit/components.svg#button-primary" x="24" y="560" data-w="327" data-label="Продолжить"/>
-    <use href="kit/components.svg#button-secondary" x="24" y="616" data-w="327" data-label="Отмена"/>
-    <use href="kit/components.svg#toast" x="16" y="684" data-text="принято — ещё одна погасит ссылку" data-action=""/>
+    <use href="kit/components.svg#chip-outline" x="24" y="79"/>
+    <text x="351" y="100" class="k-display" text-anchor="end">−20 %</text>
+    <text x="24" y="136" class="k-display">Пекарня «Колос»</text>
+    <text x="24" y="184" class="k-display">Второй круассан за</text>
+    <text x="24" y="220" class="k-display">полцены до вечера.</text>
+    <text x="24" y="264" class="k-meta" style="fill:var(--fg)">скидка до 30 сентября, 18:00</text>
+    <rect x="24" y="600" width="327" height="44" rx="8" data-hit="44" style="fill:none"/>
+    <text x="187.5" y="628" class="k-strong" text-anchor="middle" style="fill:var(--accent-text)">Ссылка ведёт не туда</text>
+    <use href="kit/components.svg#toast" x="16" y="684" data-text="принято" data-action=""/>
+    <text x="24" y="780" class="cap">жалоба без почты, подписана личностью;</text>
+    <text x="24" y="798" class="cap">хватит двух от разных людей</text>
   </g></g>
-<text x="1317" y="2026" class="capb">17 · после «ссылка ведёт не туда»: строка</text>
-<text x="1317" y="2044" class="capb">подтверждения «жалоба принята — ещё одна</text><text x="1317" y="2061" class="capb">погасит ссылку»; переход остаётся</text>
+<text x="1317" y="2026" class="capb">17 · «ссылка ведёт не туда» — на карточке</text>
+<text x="1317" y="2044" class="capb">оффера в ленте, где личность открыта;</text><text x="1317" y="2061" class="capb">после — строка «принято» (WS3, 28.09)</text>
 <g transform="translate(1740,1180)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg);stroke:#1c140d;stroke-width:2"/><clipPath id="c1740_1180"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c1740_1180)">
     <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
     <use href="kit/components.svg#icon-button" x="6" y="6" data-icon="icon-close" data-name="закрыть"/>

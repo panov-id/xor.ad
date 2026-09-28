@@ -34,6 +34,26 @@ export function Card(
   const [text, setText] = useState("");
   const [complained, setComplained] = useState(false);
 
+  // "The link leads somewhere else" (offers spec §10.1): only from here, where
+  // the identity is open — the exit screen opens before unlocking, so it
+  // never had one to sign with (owner's decision 28.09, WS3). The node answers
+  // 202 whether the report counted, so the card says only "принято".
+  const linkCode = card.kind === "offer" && card.offer?.redirect_disabled === false
+    ? card.offer.redirect?.split("/o/").pop() ?? null
+    : null;
+  const [report, setReport] = useState<"idle" | "sending" | "sent" | "failed">("idle");
+
+  async function reportLink() {
+    if (!linkCode) return;
+    setReport("sending");
+    try {
+      const answer = await client.request("POST", `/o/${encodeURIComponent(linkCode)}/report`);
+      setReport(answer.status === 202 ? "sent" : "failed");
+    } catch {
+      setReport("failed");
+    }
+  }
+
   async function complain() {
     await act(async () => {
       const answer = await client.request<{ error?: { message?: string } }>(
@@ -110,6 +130,14 @@ export function Card(
               <Button kind="secondary" type="button" onClick={() => setComplaining(false)}>{say("web.card.cancel")}</Button>
             </section>
           ))}
+        {linkCode && (report === "sent"
+          ? <p className="offer-toast" role="status" data-testid="reported">{say("web.offer.reported")}</p>
+          : (
+            <Button kind="text" type="button" disabled={busy || report === "sending"} onClick={() => void reportLink()} data-testid="report">
+              {say("web.offer.wrong")}
+            </Button>
+          ))}
+        {report === "failed" && <p className="error" data-testid="report-failed">{say("web.offer.later")}</p>}
         {!confirmBlock
           ? (
             <Button type="button" disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block">

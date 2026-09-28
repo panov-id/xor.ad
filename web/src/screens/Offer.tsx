@@ -8,10 +8,9 @@
 //
 // Unsigned: the link is for anybody, registered or not, so reading it needs
 // no client. The call is a plain fetch of the page's own origin (the gateway
-// forwards /o/* to the node, vite.config.ts). Only the report is signed.
+// forwards /o/* to the node, vite.config.ts).
 
 import { useEffect, useState } from "react";
-import type { Client } from "../../../depth/core/client.ts";
 import { BRAND } from "../config.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
@@ -39,30 +38,16 @@ export async function readExit(code: string, fetcher: typeof fetch = fetch): Pro
 
 // Sheet 17, the exit screen: the storefront one is leaving, the domain whole
 // in the code block, "the author's link, we did not check it", continue or
-// cancel, and "the link leads somewhere else" (offers spec §10.1). The report
-// is signed (POST /o/<code>/report), so it is offered only to an identity
-// already open in this tab; the page does not unlock one for it. The node
-// answers the same whether the report counted, so the page says only
-// "принято" and never how many more it takes.
-export function Offer({ code, onHome, client }: { code: string; onHome: () => void; client?: Client | null }) {
+// cancel. "The link leads somewhere else" is not here: a link opens the page
+// fresh, before any identity is unlocked, so the report lives on the offer's
+// card in the feed (Card.tsx; owner's decision 28.09, WS3).
+export function Offer({ code, onHome }: { code: string; onHome: () => void }) {
   const [state, setState] = useState<State>({ at: "loading" });
-  const [report, setReport] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   useEffect(() => {
     let live = true;
     readExit(code).then((s) => { if (live) setState(s); });
     return () => { live = false; };
   }, [code]);
-
-  async function send() {
-    if (!client) return;
-    setReport("sending");
-    try {
-      const answer = await client.request("POST", `/o/${encodeURIComponent(code)}/report`);
-      setReport(answer.status === 202 ? "sent" : "failed");
-    } catch {
-      setReport("failed");
-    }
-  }
 
   if (state.at === "ok") {
     return (
@@ -88,14 +73,6 @@ export function Offer({ code, onHome, client }: { code: string; onHome: () => vo
             </a>
           )}
           <Button kind="secondary" type="button" onClick={onHome} data-testid="home">{say("web.offer.cancel")}</Button>
-          {client && !state.exit.disabled && (report === "sent"
-            ? <p className="offer-toast" role="status" data-testid="reported">{say("web.offer.reported")}</p>
-            : (
-              <button type="button" className="offer-report" disabled={report === "sending"} onClick={() => void send()} data-testid="report">
-                {say("web.offer.wrong")}
-              </button>
-            ))}
-          {report === "failed" && <p className="error" data-testid="report-failed">{say("web.offer.later")}</p>}
         </footer>
       </main>
     );

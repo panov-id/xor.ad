@@ -23,7 +23,9 @@ export interface FeedCard {
   like_count: number;
   // A neighbour's offer: the node nests the discount (routes/feed.ts deliver).
   // A venue's offer comes as kind "offer" with the venue's name (O2).
-  offer?: { discount_value: string; conditions?: string | null; venue_name?: string };
+  // A venue's offer also carries its exit link, `<domain>/o/<code>`, and
+  // whether the node switched it off — the card reports a bad link (WS3).
+  offer?: { discount_value: string; conditions?: string | null; venue_name?: string; redirect?: string; redirect_disabled?: boolean };
   kind?: string;
   // A table (G1h, W10): kind "table", between the phrases; never full, never
   // one's own or one liked. `game` is the class, as FeedItem names it.

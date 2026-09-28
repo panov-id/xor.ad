@@ -9,6 +9,7 @@
 
 import postgres from "postgres";
 import { expect, test } from "../fixtures/address.ts";
+import { runLabel } from "./helpers.ts";
 
 // The cabinet's own https service (docker-compose.web.yml web-adv).
 const ADV = process.env.ADV_URL ?? "https://web-adv:4173";
@@ -31,9 +32,9 @@ async function linkFromLetter(to: string): Promise<string> {
 
 test("the cabinet: a link by mail, a venue proved by its envelope, an offer published", async ({ page }) => {
   test.setTimeout(120_000);
-  const email = `kolos-${Date.now().toString(36)}@example.test`;
-  const venueName = `Пекарня «Колос» ${Date.now().toString(36)}`;
-  const text = `Второй круассан за полцены ${Date.now().toString(36)}`;
+  const email = `kolos-${runLabel()}@example.test`;
+  const venueName = `Пекарня «Колос» ${runLabel()}`;
+  const text = `Второй круассан за полцены ${runLabel()}`;
 
   page.on("console", (m) => console.log(`[adv ${m.type()}] ${m.text()}`));
   page.on("pageerror", (e) => console.log(`[adv pageerror] ${e.message}`));

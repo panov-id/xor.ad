@@ -7,7 +7,7 @@
 // composer and the card, as a person makes them.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
 
 
 function watch(page: Page, who: string) {
@@ -54,7 +54,7 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   const boris = await personIn(b, "Борис");
 
   // Two phrases in the same circle, published by the rules at once (FEED_VERDICT=rules).
-  const run = Date.now().toString(36);
+  const run = runLabel();
   const aText = `гуляю у реки, если кто рядом ${run}`;
   const bText = `иду к реке ${run}`;
   await writePhrase(anya, aText);

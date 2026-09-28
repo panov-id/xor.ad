@@ -5,7 +5,7 @@
 // table — both screens name her among the seated.
 
 import { expect, test } from "../fixtures/address.ts";
-import { newTable, register, sitFromFeed, writePhrase } from "./helpers.ts";
+import { newTable, register, runLabel, sitFromFeed, writePhrase } from "./helpers.ts";
 
 test("a table set from the feed comes into a neighbour's feed, and its card seats her", async ({ browser }) => {
   test.setTimeout(150_000);
@@ -16,9 +16,9 @@ test("a table set from the feed comes into a neighbour's feed, and its card seat
 
   // Phrases for the table to stand among (a table goes after every third).
   for (const text of ["кто на пляж?", "ищу компанию на ужин", "есть кто в парке?"]) {
-    await writePhrase(zhenya, `${text} ${Date.now().toString(36)}`);
+    await writePhrase(zhenya, `${text} ${runLabel()}`);
   }
-  const name = `фонтан ${Date.now().toString(36)}`;
+  const name = `фонтан ${runLabel()}`;
   await newTable(zhenya, { name });
   await expect(zhenya.getByTestId("table")).toContainText(`«${name}»`);
 

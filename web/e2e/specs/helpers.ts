@@ -121,7 +121,7 @@ export async function sitFromFeed(page: Page, name: string): Promise<void> {
 // game, which takes the applicant in.
 export async function twoAtATable(first: Page, second: Page, t: { name: string; kind?: string; set?: string }): Promise<void> {
   for (const text of ["кто на пляж?", "ищу компанию на ужин", "есть кто в парке?"]) {
-    await writePhrase(first, `${text} ${Date.now().toString(36)}`);
+    await writePhrase(first, `${text} ${runLabel()}`);
   }
   await newTable(first, t);
   await sitFromFeed(second, t.name);

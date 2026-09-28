@@ -8,7 +8,7 @@
 // the composer and the card, as chat.spec.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
 
 const PIN = "246813";
 
@@ -54,7 +54,7 @@ test("a conversation opens again after a cold start: the PIN raises the same wra
   const anya = await personIn(a, "Аня");
   const boris = await personIn(b, "Борис");
 
-  const run = Date.now().toString(36);
+  const run = runLabel();
   const aText = `гуляю у реки, если кто рядом ${run}`;
   const bText = `иду к реке ${run}`;
   await writePhrase(anya, aText);

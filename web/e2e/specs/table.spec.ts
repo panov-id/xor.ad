@@ -4,7 +4,7 @@
 // shows it taken. The table's own link /t/<id> opens it after the PIN.
 
 import { expect, test } from "../fixtures/address.ts";
-import { PIN, register, twoAtATable, unlock } from "./helpers.ts";
+import { PIN, register, runLabel, unlock, twoAtATable } from "./helpers.ts";
 
 test("a dots game begun on the screen, a move on one screen shows on the other, and the link opens it after the PIN", async ({ browser }) => {
   test.setTimeout(180_000);
@@ -12,7 +12,7 @@ test("a dots game begun on the screen, a move on one screen shows on the other, 
   const anya = await (await browser.newContext({ viewport: { width: 393, height: 851 } })).newPage();
   await register(zhenya, { name: "Женя", age: "30" });
   await register(anya, { name: "Аня", age: "28" });
-  await twoAtATable(zhenya, anya, { name: `точки ${Date.now().toString(36)}`, kind: "dots", set: "2x2" });
+  await twoAtATable(zhenya, anya, { name: `точки ${runLabel()}`, kind: "dots", set: "2x2" });
   await expect(zhenya.getByTestId("dots")).toBeVisible();
   await expect(zhenya.getByTestId("table")).toContainText("сидят");
 

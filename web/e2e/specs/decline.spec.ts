@@ -5,7 +5,7 @@
 // still shows the offer, nothing tells them.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
 
 
 async function register(page: Page, name: string) {
@@ -48,7 +48,7 @@ test("not now is this side's alone and can be taken back; a device with no wrap 
   const anya = await personIn(a, "Аня");
   const boris = await personIn(b, "Борис");
 
-  const run = Date.now().toString(36);
+  const run = runLabel();
   const aText = `кто на набережную? ${run}`;
   const bText = `гуляю у залива ${run}`;
   await writePhrase(anya, aText);

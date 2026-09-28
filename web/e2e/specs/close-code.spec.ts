@@ -9,7 +9,7 @@
 // why the code now travels in a frame of its own before the close.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
 
 
 async function register(page: Page, name: string) {
@@ -74,7 +74,7 @@ test("the node names 4003 in a closed frame that reaches the browser, through th
   const anya = await personIn(a, "Аня");
   const boris = await personIn(b, "Борис");
 
-  const run = Date.now().toString(36);
+  const run = runLabel();
   const aText = `фраза для зонда ${run}`;
   const bText = `ответная для зонда ${run}`;
   await writePhrase(anya, aText);

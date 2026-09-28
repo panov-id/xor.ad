@@ -6,13 +6,13 @@
 
 import postgres from "postgres";
 import { expect, test } from "../fixtures/address.ts";
-import { register } from "./helpers.ts";
+import { register, runLabel } from "./helpers.ts";
 
 const DATABASE = process.env.DATABASE_URL ?? "postgres://relay:test@postgres:5432/relay_test";
 
 test("a venue's offer in the feed takes a complaint with an address, and the node accepts it", async ({ page }) => {
   test.setTimeout(120_000);
-  const text = `Второй кофе бесплатно ${Date.now().toString(36)}`;
+  const text = `Второй кофе бесплатно ${runLabel()}`;
   const sql = postgres(DATABASE, { max: 1 });
   let offerId: string;
   try {
@@ -26,7 +26,7 @@ test("a venue's offer in the feed takes a complaint with an address, and the nod
       RETURNING id`;
     const [offer] = await sql<{ id: string }[]>`
       INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, redirect_code, discount_until, status, expires_at)
-      VALUES (gen_random_uuid(), 'sosed', ${venue.id}, ${text}, '−10 %', ${Date.now().toString(36)}, now() + interval '7 days', 'active',
+      VALUES (gen_random_uuid(), 'sosed', ${venue.id}, ${text}, '−10 %', ${runLabel()}, now() + interval '7 days', 'active',
               now() + interval '260 minutes')
       RETURNING id`;
     offerId = offer.id;
@@ -57,8 +57,8 @@ test("a venue's offer in the feed takes a complaint with an address, and the nod
 // opens before any identity is unlocked, the card has one to sign with.
 test("a venue's offer in the feed reports its link, signed, and the node takes it", async ({ page }) => {
   test.setTimeout(120_000);
-  const text = `Круассан за полцены ${Date.now().toString(36)}`;
-  const code = `wslink${Date.now().toString(36)}`;
+  const text = `Круассан за полцены ${runLabel()}`;
+  const code = `wslink${runLabel()}`;
   const sql = postgres(DATABASE, { max: 1 });
   let offerId: string;
   try {

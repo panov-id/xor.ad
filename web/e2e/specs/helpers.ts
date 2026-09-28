@@ -7,6 +7,13 @@ import { expect, type Page } from "../fixtures/address.ts";
 
 export const PIN = "123456";
 
+// A label that tells this run's phrases apart, in letters only: seven digits
+// in a row are a telephone to the queue's rules (relay feed_verdict.ts PHONE),
+// and the phrase would wait for a human instead of reaching the feed.
+export function runLabel(): string {
+  return Date.now().toString(36).replace(/[0-9]/g, (d) => "abcdefghij"[Number(d)]);
+}
+
 export function watch(page: Page, feedAnswers: number[]): void {
   page.on("response", (r) => {
     if (new URL(r.url()).pathname === "/feed" && r.request().method() === "GET") feedAnswers.push(r.status());

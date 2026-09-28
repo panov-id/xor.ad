@@ -6,7 +6,7 @@
 // is the proof a person can watch. Run by scripts/run-web-two-people.sh.
 
 import { expect, test, type Browser, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, register, twoAtATable, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, register, runLabel, twoAtATable, writePhrase } from "./helpers.ts";
 
 const VIDEO = { dir: "results/two-people", size: { width: 393, height: 851 } };
 
@@ -27,7 +27,7 @@ test("two people: registration, a phrase each, a mutual like, consent, the chat,
   const boris = await person(browser, { name: "Борис", age: "31" });
   try {
     // A phrase each, in the same circle.
-    const run = Date.now().toString(36);
+    const run = runLabel();
     const aText = `гуляю у реки ${run}`;
     const bText = `иду к мосту ${run}`;
     await writePhrase(anya, aText);

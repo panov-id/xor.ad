@@ -9,7 +9,7 @@
 // the conversation there too. Run by scripts/run-web-two-people.sh two-devices.
 
 import { expect, test, type Browser, type Page } from "../fixtures/address.ts";
-import { PIN, likeByCard, openMatch, register, unlock, writePhrase } from "./helpers.ts";
+import { PIN, likeByCard, openMatch, register, runLabel, unlock, writePhrase } from "./helpers.ts";
 
 const SIZE = { width: 393, height: 851 };
 
@@ -67,7 +67,7 @@ test("the second device: a move under the PIN, a first PIN, the chat goes on; th
   const paper = await register(old, { name: "Борис", age: "31" });
 
   // The match and the conversation, from the first device.
-  const run = Date.now().toString(36);
+  const run = runLabel();
   await writePhrase(anya, `гуляю у реки ${run}`);
   await writePhrase(old, `иду к мосту ${run}`);
   expect(await likeByCard(anya, `иду к мосту ${run}`)).toBe("liked");

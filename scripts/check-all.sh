@@ -152,12 +152,14 @@ run_in_docker test-migration-upgrade  "$here/test-migration-upgrade.sh"
 run_in_docker test-depth               "$here/run-depth-tests.sh"
 run_in_docker test-depth-ui            "$here/run-depth-ui-tests.sh"
 run_in_docker test-depth-live-ui       "$here/run-depth-live-ui.sh"
+run_in_docker test-e2e-paths          "$here/run-e2e-paths.sh"
 opt_in_docker check-depth-i18n         "$here/check-depth-i18n.sh"
 
 if [ "$with_tests" = 1 ]; then
   echo
   echo "ПРОБЫ ВОРОТ"
   run test-design-palettes          bash "$here/test_design-palettes.sh"
+  run test_e2e-paths-breaks         bash "$here/run-e2e-paths.sh" --breaks
   # Веб против листов (WD6): съёмка на своём стенде, доля отличий — храповиком
   # по scripts/design/web-design-baseline.tsv; проба ломает отступ на 8.
   run check-web-design          bash "$here/check-web-design.sh" --shoot

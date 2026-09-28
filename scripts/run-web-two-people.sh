@@ -17,9 +17,13 @@ mkdir -p "$root/web/e2e/results"
 rm -rf "$root/web/e2e/results/$spec"
 cleanup() { "${compose[@]}" down -v --rmi local --remove-orphans >/dev/null 2>&1 || true; }
 trap cleanup EXIT INT TERM
-echo "== build and start: postgres, migrations, seed, node, web"
+echo "== build and start: postgres, migrations, seed, node, web (and the panel if the spec needs it)"
+# A spec that walks into the moderator's panel (it reads PANEL_URL) gets the
+# panel too; the others do not pay for its build.
+services=(web web-adv)
+grep -q PANEL_URL "$root/web/e2e/specs/$spec.spec.ts" 2>/dev/null && services+=(panel)
 "${compose[@]}" build e2e web web-adv node >/dev/null || exit 1
-"${compose[@]}" up -d --wait web web-adv || exit 1
+"${compose[@]}" up -d --wait "${services[@]}" || exit 1
 echo "== $spec"
 "${compose[@]}" run --rm e2e npx playwright test "specs/$spec.spec.ts"
 status=$?

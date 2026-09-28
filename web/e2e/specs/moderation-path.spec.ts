@@ -10,14 +10,13 @@
 // The model only says: both phrases carry "reject" from the stub, and one is
 // published anyway, because the person decides (lib/moderator.ts).
 //
-// Needs the panel service of the stand up (scripts/run-web-tests.sh brings
-// only the page); run it with the panel:
-//   docker compose -f docker-compose.web.yml up -d --wait panel web web-adv
-//   docker compose -f docker-compose.web.yml run --rm e2e npx playwright test specs/moderation-path.spec.ts
+// Needs the panel service of the stand; scripts/run-web-two-people.sh brings it
+// up for a spec that reads PANEL_URL:
+//   scripts/run-web-two-people.sh moderation-path
 
 import { type BrowserContext, expect, type Page, test } from "../fixtures/address.ts";
 import { devices } from "@playwright/test";
-import { PIN, register, unlock } from "./helpers.ts";
+import { PIN, register, runLabel, unlock } from "./helpers.ts";
 
 const PANEL_URL = process.env.PANEL_URL ?? "";
 const SECRET = process.env.PANEL_SESSION_SECRET ?? "";
@@ -65,9 +64,11 @@ async function feedAgain(page: Page): Promise<void> {
 }
 
 test("a flagged phrase waits with the model's hint, the moderator decides in the panel, and the authors see the outcome", async ({ browser }) => {
-  test.skip(!PANEL_URL || !SECRET, "the stand's panel and its session secret (docker-compose.web.yml e2e)");
+  // Not a skip: a skipped path exits 0, and run-e2e-paths.sh would count it green.
+  expect(PANEL_URL && SECRET, "the stand's panel and its session secret (docker-compose.web.yml e2e)").toBeTruthy();
   test.setTimeout(180_000);
-  const stamp = Date.now().toString(36);
+  // Letters only: seven digits in a row read as a phone to the PHONE rule.
+  const stamp = runLabel();
   // A site and a messenger: "link" and "contact" of lib/feed_verdict.ts readText.
   const toPublish = `кто со мной на пробежку, маршрут на бег.рф ${stamp}`;
   const toRefuse = `пиши в тг, договоримся ${stamp}`;

@@ -4,8 +4,9 @@
 // "it is me" on the old one), seals it there under a first PIN, reloads and
 // opens with that PIN; the conversation is silent there until he asks for new
 // keys and Аня agrees (chat-flows §11), then it goes on from the new device.
-// Then the paper code raises him on a third, clean browser, and the same
-// reissue carries the conversation there too. Run by scripts/run-web-two-devices.sh.
+// On the new device he reissues the paper code; on a third, clean browser the
+// old code is refused and the new one raises him, and the same rekey carries
+// the conversation there too. Run by scripts/run-web-two-people.sh two-devices.
 
 import { expect, test, type Browser, type Page } from "../fixtures/address.ts";
 import { PIN, likeByCard, openMatch, register, unlock, writePhrase } from "./helpers.ts";
@@ -58,7 +59,7 @@ async function leaveChat(page: Page): Promise<void> {
   await page.getByTestId("nav-feed").click();
 }
 
-test("the second device: a move under the PIN, a first PIN, the chat goes on; then the paper code on a third", async ({ browser }) => {
+test("the second device: a move under the PIN, a first PIN, the chat goes on; then a new paper code, and it on a third", async ({ browser }) => {
   test.setTimeout(360_000);
   const anya = await fresh(browser);
   await register(anya, { name: "Аня", age: "28" });
@@ -116,13 +117,33 @@ test("the second device: a move under the PIN, a first PIN, the chat goes on; th
   await say(anya, second, "вижу, слышно");
   await leaveChat(second);
 
-  console.log("[step] The paper code on a third device");
+  console.log("[step] A new paper code, reissued on the new device");
+  // The long key under the paper code came with the move (T1): without it the
+  // new device could not reissue, and the moved identity would keep a code it
+  // cannot change.
+  await second.getByTestId("tab-me").click();
+  await second.getByTestId("me-reissue").click();
+  await expect(second.locator('[data-screen="reissue-1"]')).toBeVisible();
+  await second.getByTestId("reissue-current").fill(paper.join(" "));
+  await second.getByTestId("reissue-next").click();
+  await expect(second.locator('[data-screen="reissue-2"]'), "the moved device could not reissue the paper code").toBeVisible({ timeout: 30000 });
+  const next = (await second.getByTestId("reissue-code").textContent())!.trim().split(" ");
+  expect(next.join("")).not.toBe(paper.join(""));
+  await second.getByTestId("reissue-group-2").fill(next[1]);
+  await second.getByTestId("reissue-group-4").fill(next[3]);
+  await second.getByTestId("reissue-confirm").click();
+  await expect(second.locator('[data-screen="me"]')).toBeVisible({ timeout: 30000 });
+
+  console.log("[step] The paper code on a third device: the old one refused, the new one raises");
   const third = await fresh(browser);
   await third.goto("/");
   await third.getByTestId("restore").click();
   await third.getByTestId("restore-code").fill(paper.join(" "));
   await third.getByTestId("restore-pin").fill("975310");
   await third.getByTestId("restore-pin-again").fill("975310");
+  await third.getByTestId("restore-go").click();
+  await expect(third.getByTestId("error"), "the old paper code still raises the identity after a reissue").toContainText("Код не подошёл", { timeout: 30000 });
+  await third.getByTestId("restore-code").fill(next.join(" "));
   await third.getByTestId("restore-go").click();
   await expect(third.locator('[data-screen="feed"]')).toBeVisible({ timeout: 45000 });
   await rekeyOnNewDevice(third, anya, 2);

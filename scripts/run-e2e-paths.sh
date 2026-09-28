@@ -7,6 +7,12 @@
 #   scripts/run-e2e-paths.sh           every path; exit 1 if any is red
 #   scripts/run-e2e-paths.sh --breaks  each path with its own break in the node:
 #                                      the spec must go red; exit 1 if one stays green
+#   E2E_PATHS_ONLY=<name> ...          one path of PATHS, not all
+#
+# Under --breaks a path first runs as it is: red already, its red under the
+# break would prove nothing, so that is a spoiled run ("брак прогона"), counted
+# apart and failing the whole, not a break caught (decline-expire:135 on
+# 8077848f was red with no break and read as "caught", 28.09.2026).
 #
 # A path joins by a row in PATHS: its name, the command that runs it (a script
 # of scripts/ and its arguments), the file its break edits, the
@@ -27,11 +33,12 @@ PATHS=(
 
 mode="${1:-}"
 logs="$(mktemp -d)"
-failed=0; total=0
+failed=0; total=0; spoiled=0
 
 for row in "${PATHS[@]}"; do
   IFS='|' read -r spec command file match instead <<<"$row"
   read -r script args <<<"$command"
+  [ -n "${E2E_PATHS_ONLY:-}" ] && [ "$spec" != "$E2E_PATHS_ONLY" ] && continue
   total=$((total + 1))
   if [ "$mode" != "--breaks" ]; then
     bash "$here/$script" $args >"$logs/$spec.log" 2>&1
@@ -51,6 +58,13 @@ for row in "${PATHS[@]}"; do
   if [ "$hits" != 1 ]; then
     failed=$((failed + 1))
     printf '  ✗ %-14s поломка не встала: «%s» в %s найдено %s раз, нужно 1\n' "$spec" "$match" "$file" "$hits"
+    continue
+  fi
+  bash "$here/$script" $args >"$logs/$spec.clean.log" 2>&1
+  code=$?
+  if [ "$code" != 0 ]; then
+    failed=$((failed + 1)); spoiled=$((spoiled + 1))
+    printf '  ✗ %-14s брак прогона: красный и без поломки — %s\n' "$spec" "$(grep -m1 -E 'Error:' "$logs/$spec.clean.log" | sed 's/^ *//')"
     continue
   fi
   cp "$target" "$logs/$spec.orig"
@@ -78,4 +92,6 @@ done
 rm -rf "$logs"
 label=$([ "$mode" = "--breaks" ] && echo "поломок поймано" || echo "путей зелёных")
 echo "$label $((total - failed)) из $total"
+[ "$spoiled" = 0 ] || echo "брак прогона: $spoiled — путь красный и без поломки, его поломка не проверена"
+[ "$total" != 0 ] || { echo "ни одного пути: E2E_PATHS_ONLY=${E2E_PATHS_ONLY:-} нет в PATHS"; exit 1; }
 [ "$failed" = 0 ]

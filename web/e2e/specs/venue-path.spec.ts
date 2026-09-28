@@ -119,7 +119,7 @@ test("a venue's path: cabinet, envelope, offer, the neighbour's feed, its link, 
   await page.getByTestId("complain-email").fill("sosed@example.test");
   await page.getByTestId("complain-text").fill(said);
   await page.getByTestId("complain-send").click();
-  await expect(page.getByTestId("complained")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("complained"), "the node took the neighbour's complaint on the venue's offer").toBeVisible({ timeout: 15000 });
   expect(sent).toEqual([202]);
 
   // The cabinet sees it, waiting for the venue's answer.

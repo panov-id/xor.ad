@@ -4,6 +4,57 @@
 # and nothing touches the shared local stand.
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# --breaks: each break below is put into the node's source, the suite is run
+# on a stand of its own, and it must go red; then the file is put back. As in
+# scripts/run-e2e-paths.sh (T10): the copy is restored by an EXIT trap, which
+# INT, TERM and HUP reach, and a copy also lies in an ignored folder, so the
+# next run undoes a break a kill -9 left behind.
+#   file | the line to find | the line put instead
+BREAKS=(
+  "relay/node/src/routes/chats.ts|route(\"POST\", \"/chats/:id/rekey\", (c) => rekey(c.req, c.params.id));|// BROKEN by run-depth-live-ui: no rekey reaches the node"
+)
+pending="$root/testing/results/.break-pending-depth-live-ui"
+# The inner run under a break is told so, or it would undo the break it runs on.
+if [ -z "${DEPTH_LIVE_UI_UNDER_BREAK:-}" ] && [ -f "$pending/file" ]; then
+  left="$(cat "$pending/file")"
+  cp "$pending/orig" "$left" && rm -rf "$pending"
+  echo "  ! прошлый прогон оборван посреди поломки: $left восстановлен из копии" >&2
+fi
+if [ "${1:-}" = "--breaks" ]; then
+  set +e
+  broken=""
+  restore() { [ -n "$broken" ] && cp "$pending/orig" "$broken" && rm -rf "$pending"; broken=""; }
+  trap restore EXIT
+  trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
+  failed=0; total=0
+  for row in "${BREAKS[@]}"; do
+    IFS='|' read -r file match instead <<<"$row"
+    total=$((total + 1)); target="$root/$file"
+    if [ "$(grep -cF -- "$match" "$target")" != 1 ]; then
+      failed=$((failed + 1)); echo "  ✗ поломка не встала: «$match» в $file"; continue
+    fi
+    mkdir -p "$pending"; cp "$target" "$pending/orig"; printf '%s' "$target" >"$pending/file"; broken="$target"
+    MATCH="$match" INSTEAD="$instead" python3 - "$target" <<'EOF'
+import os, sys
+p = sys.argv[1]
+lines = open(p).read().split("\n")
+lines = [os.environ["INSTEAD"] if os.environ["MATCH"] in l else l for l in lines]
+open(p, "w").write("\n".join(lines))
+EOF
+    log="$(mktemp)"
+    DEPTH_LIVE_UI_UNDER_BREAK=1 bash "$0" >"$log" 2>&1; code=$?
+    restore
+    if [ "$code" = 0 ]; then
+      failed=$((failed + 1)); echo "  ✗ $file: остался зелёным с поломкой"
+    else
+      echo "  ✓ $file: красный — $(grep -m1 -E 'not ok|Error|FAIL' "$log" | sed 's/^ *//')"
+    fi
+    rm -f "$log"
+  done
+  echo "поломок поймано $((total - failed)) из $total"
+  [ "$failed" = 0 ]; exit
+fi
 deno="denoland/deno:alpine-2.1.4"
 node_image="node:24.21.0-alpine"
 pg_image="postgres:16.13-alpine"

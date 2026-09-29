@@ -13,7 +13,11 @@ Deno.env.set("STORAGE_TRANSPORT", "fs");
 Deno.env.set("STORAGE_DIR", await Deno.makeTempDir());
 Deno.env.set("SESSION_SECRET", "adv-secret");
 Deno.env.set("NODE_ENV_NAME", "test");
-Deno.env.set("MAIL_TRANSPORT", "none");
+// The letters go out through Resend and are caught at its door: the test
+// signs in by the link the node mailed, so a letter that never left, or left
+// with a link that opens nothing, turns this red (V4, 29.09.2026).
+Deno.env.set("MAIL_TRANSPORT", "resend");
+Deno.env.set("RESEND_API_KEY", "re_test_adv");
 Deno.env.set("ORIGIN_TOKEN", "adv-origin-token");
 Deno.env.set("VAULT_SHARE_KEY", "adv-vault-key");
 Deno.env.set(
@@ -29,6 +33,18 @@ const database = await import("../src/lib/db.ts");
 const { reset } = await import("../src/lib/rate_limit.ts");
 const { linkHash } = await import("../src/lib/adv.ts");
 const { lettersSettled } = await import("../src/routes/adv.ts");
+
+type Letter = { to: string[]; subject: string; text: string };
+const letters: Letter[] = [];
+const realFetch = globalThis.fetch;
+globalThis.fetch = ((input: Request | URL | string, init?: RequestInit) => {
+  const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+  if (url.startsWith("https://api.resend.com/")) {
+    letters.push(JSON.parse(String(init?.body)));
+    return Promise.resolve(new Response(JSON.stringify({ id: crypto.randomUUID() }), { status: 200 }));
+  }
+  return realFetch(input, init);
+}) as typeof fetch;
 
 // The pool keeps its connection open across tests (test/batch_counts.test.ts).
 const pooled = { sanitizeOps: false, sanitizeResources: false };
@@ -66,26 +82,28 @@ async function call(
   return { status: response.status, body: text ? JSON.parse(text) : null, cookies, headers: response.headers };
 }
 
-// The letter a sign-up mails, as the node writes it: the node's own link row,
-// contact and all (db/083), re-keyed to a token the test knows under the half
-// the node left in the browser. The contact is read from what the node stored,
-// not written by the test — a test that wrote it proved nothing (V4, 27.09.2026).
+// The letter a sign-up mails, as it left the node: the token is read from the
+// link in the letter caught at Resend, and must open, with the half the node
+// left in the browser, the node's own link row, contact and all (db/083). The
+// token was once written into the row by the test, and a node that mailed
+// nothing, or mailed a dead link, stayed green (V4, 27.09.2026 and 29.09.2026).
 async function letterOf(email: string, contact: string, origin = "https://adv.alpha.test") {
+  const sent = letters.length;
   const up = await call("POST", "/adv/signup", { origin, body: { email, contact } });
   assertEquals(up.status, 204);
   await lettersSettled();
   const half = up.cookies["__Host-adv-link"];
   assertMatch(half, /^[0-9a-f]{64}$/);
-  const token = crypto.getRandomValues(new Uint8Array(32)).reduce((s, b) => s + b.toString(16).padStart(2, "0"), "");
+  const mine = letters.slice(sent).filter((l) => l.to.includes(email));
+  assertEquals(mine.length, 1, `the node mailed ${mine.length} letters to ${email}, not one`);
+  const link = mine[0].text.match(/https:\/\/\S+\/enter#([0-9a-f]+)/);
+  assert(link, `the letter to ${email} carries no cabinet link: ${mine[0].text}`);
+  assertEquals(new URL(link[0]).origin, origin, "the letter's link leads to another cabinet");
+  const token = link[1];
   const [row] = await database.queryOrThrow<{ contact: string | null }>(
-    `UPDATE advertiser_links SET link_hash = $1
-      WHERE link_hash = (SELECT l.link_hash FROM advertiser_links l JOIN advertisers a ON a.id = l.advertiser_id
-                          WHERE lower(a.email) = lower($2) AND a.brand = $3
-                          ORDER BY l.expires_at DESC LIMIT 1)
-      RETURNING contact`,
-    [await linkHash(token, half), email, new URL(origin).host.replace(/^adv\./, "").split(".")[0]],
+    `SELECT contact FROM advertiser_links WHERE link_hash = $1`, [await linkHash(token, half)],
   );
-  assert(row, `the node mailed no link to ${email}`);
+  assert(row, `the link mailed to ${email} opens no link row with the browser's half`);
   assertEquals(row.contact, contact, "the node's link does not carry the contact the sign-up gave");
   return { token, half };
 }

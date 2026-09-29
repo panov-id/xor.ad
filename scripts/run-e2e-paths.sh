@@ -36,6 +36,23 @@ PATHS=(
 
 mode="${1:-}"
 logs="$(mktemp -d)"
+# The break in flight: its file and the copy it came from. Restored on any
+# exit, a kill in the middle included (T10: after TaskStop matches.ts stayed
+# broken). A copy also lies in the tree, so a run killed with -9, which no
+# trap sees, is undone by the next one.
+pending="$root/web/e2e/results/.break-pending"
+broken=""
+restore() {
+  [ -n "$broken" ] || return 0
+  cp "$pending/orig" "$broken" && rm -rf "$pending" && broken=""
+}
+trap 'restore; rm -rf "$logs"' EXIT
+trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
+if [ -f "$pending/file" ]; then
+  broken="$(cat "$pending/file")"
+  echo "  ! прошлый прогон оборван посреди поломки: $broken восстановлен из копии" >&2
+  restore
+fi
 failed=0; total=0; spoiled=0
 
 for row in "${PATHS[@]}"; do
@@ -71,6 +88,8 @@ for row in "${PATHS[@]}"; do
     continue
   fi
   cp "$target" "$logs/$spec.orig"
+  mkdir -p "$pending"; cp "$target" "$pending/orig"; printf '%s' "$target" >"$pending/file"
+  broken="$target"
   MATCH="$match" INSTEAD="$instead" python3 - "$target" <<'EOF'
 import os, sys
 p = sys.argv[1]
@@ -80,7 +99,7 @@ open(p, "w").write("\n".join(lines))
 EOF
   bash "$here/$script" $args >"$logs/$spec.log" 2>&1
   code=$?
-  cp "$logs/$spec.orig" "$target"
+  restore
   if ! cmp -s "$logs/$spec.orig" "$target"; then
     echo "  ✗ $file не восстановлен — копия в $logs/$spec.orig" >&2; exit 2
   fi

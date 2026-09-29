@@ -56,7 +56,8 @@ Deno.test({
         laid.push(match.id);
       }
 
-      const { items, events } = await me.inboxSince(0);
+      const { items, events, truncated } = await me.inboxSince(0);
+      assertEquals(truncated, false, "the inbox says it was cut short: rows were left past the last page read");
       const got = new Set(items.filter((r) => r.kind === "match").map((r) => r.id as string));
       const lost = laid.filter((id) => !got.has(id));
       assertEquals(lost.length, 0, `${lost.length} of ${MATCHES} matches did not come: the inbox stopped at a page`);

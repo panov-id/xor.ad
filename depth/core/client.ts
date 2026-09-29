@@ -17,6 +17,8 @@ import { PendingQueue } from "./pending.ts";
 import { decodeSealable, encodeSealable, open as openSealed, seal, vaultKey } from "./lock.ts";
 
 const PROTOCOL_MAJOR = "1";
+// The inbox is read to this many pages of a hundred (inboxSince).
+const INBOX_PAGES = 10;
 const random = (n: number) => crypto.getRandomValues(new Uint8Array(n));
 
 async function sha256hex(bytes: Uint8Array): Promise<string> {
@@ -715,12 +717,14 @@ export class Client {
   // Pages of a hundred (routes/inbox.ts PAGE), followed by `next` to the end:
   // a person with more lost every row past the hundredth (T15). `events` is
   // counted over everything live on every page, so it is taken once, from the
-  // first. Ten pages is a thousand rows; past that the cursor is not trusted.
-  async inboxSince(since?: number): Promise<{ items: Array<Record<string, unknown>>; events: InboxEvents }> {
+  // first. Ten pages is a thousand rows; past that the cursor is not trusted,
+  // and the cut is said out loud: `truncated` is true when a `next` was left.
+  async inboxSince(since?: number): Promise<{ items: Array<Record<string, unknown>>; events: InboxEvents; truncated: boolean }> {
     const items: Array<Record<string, unknown>> = [];
     let events: InboxEvents | undefined;
     let after: string | undefined;
-    for (let page = 0; page < 10; page++) {
+    let more = false;
+    for (let page = 0; page < INBOX_PAGES; page++) {
       const query = new URLSearchParams();
       if (since !== undefined) query.set("since", String(Math.floor(since)));
       if (after) query.set("after", after);
@@ -729,10 +733,11 @@ export class Client {
       if (answer.status !== 200) throw new Error(`inbox refused: ${answer.status}`);
       items.push(...answer.body.items);
       events ??= answer.body.events;
-      if (!answer.body.next) break;
+      more = answer.body.next !== undefined;
+      if (!more) break;
       after = answer.body.next;
     }
-    return { items, events: events! };
+    return { items, events: events!, truncated: more };
   }
 
   // DELETE /chats/:id — closed by hand, for both at once (screen 8).

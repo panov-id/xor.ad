@@ -148,8 +148,32 @@ async function main() {
     await typeUntil(app, reply, new RegExp(reply));
     await type(app, DOWN, ENTER); // the actions under the field: send (rooms.ts Chat)
     signal("depth-said", reply);
-    await waitFor("web-heard", 60);
+    const next = await waitFor("web-heard", 60);
     out("ok   the terminal's line reached the browser");
+
+    // 6 · new keys (T19), only when the browser's spec says "rekey": he asks
+    // from the chat's actions, she agrees on the page, and her line under the
+    // new epoch opens here — with the keys both now hold, not the old ones.
+    // The terminal asks because the page offers asking only once its keys
+    // failed (web/src/screens/Chat.tsx); agreeing it offers always.
+    if (next === "rekey") {
+      // The chat's actions: send, code, span, end, block, back, game, rekey.
+      for (let i = 0; i < 8; i++) await type(app, LEFT);
+      for (let i = 0; i < 7; i++) await type(app, RIGHT);
+      await type(app, ENTER);
+      await until(app, /Просьба о новых ключах отправлена/, 30);
+      signal("depth-asked-rekey");
+      out("ok   the terminal asked for new keys");
+      await waitFor("web-agreed-rekey", 90);
+      await until(app, /Ключи беседы обновлены \(эпоха \d+\)/, 30);
+      const epoch = /Ключи беседы обновлены \(эпоха (\d+)\)/.exec(app.lastFrame() ?? "")![1];
+      signal("depth-rekeyed", epoch);
+      out(`ok   the terminal holds the new keys at epoch ${epoch}`);
+      const after = await waitFor("web-said-rekeyed", 60);
+      await until(app, new RegExp(after), 30);
+      signal("depth-heard-rekeyed");
+      out("ok   the browser's line under the new keys reached the terminal");
+    }
   } catch (e) {
     signal("depth-failed", (e as Error).message);
     throw e;

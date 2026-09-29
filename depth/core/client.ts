@@ -17,6 +17,8 @@ import { PendingQueue } from "./pending.ts";
 import { decodeSealable, encodeSealable, open as openSealed, seal, vaultKey } from "./lock.ts";
 
 const PROTOCOL_MAJOR = "1";
+// The inbox is read to this many pages of a hundred (inboxSince).
+const INBOX_PAGES = 10;
 const random = (n: number) => crypto.getRandomValues(new Uint8Array(n));
 
 async function sha256hex(bytes: Uint8Array): Promise<string> {
@@ -712,11 +714,30 @@ export class Client {
   // given (unix seconds) counted in `events` and flagged on the rows (§8.12,
   // step 8). depth keeps no history on disk, so the moment is the last look
   // at the inbox in this run, or nothing: then everything live is new.
-  async inboxSince(since?: number): Promise<{ items: Array<Record<string, unknown>>; events: InboxEvents }> {
-    const path = since === undefined ? "/inbox" : `/inbox?since=${Math.floor(since)}`;
-    const answer = await this.#call<{ items: Array<Record<string, unknown>>; events: InboxEvents }>("GET", path);
-    if (answer.status !== 200) throw new Error(`inbox refused: ${answer.status}`);
-    return { items: answer.body.items, events: answer.body.events };
+  // Pages of a hundred (routes/inbox.ts PAGE), followed by `next` to the end:
+  // a person with more lost every row past the hundredth (T15). `events` is
+  // counted over everything live on every page, so it is taken once, from the
+  // first. Ten pages is a thousand rows; past that the cursor is not trusted,
+  // and the cut is said out loud: `truncated` is true when a `next` was left.
+  async inboxSince(since?: number): Promise<{ items: Array<Record<string, unknown>>; events: InboxEvents; truncated: boolean }> {
+    const items: Array<Record<string, unknown>> = [];
+    let events: InboxEvents | undefined;
+    let after: string | undefined;
+    let more = false;
+    for (let page = 0; page < INBOX_PAGES; page++) {
+      const query = new URLSearchParams();
+      if (since !== undefined) query.set("since", String(Math.floor(since)));
+      if (after) query.set("after", after);
+      const path = query.size ? `/inbox?${query}` : "/inbox";
+      const answer = await this.#call<{ items: Array<Record<string, unknown>>; events: InboxEvents; next?: string }>("GET", path);
+      if (answer.status !== 200) throw new Error(`inbox refused: ${answer.status}`);
+      items.push(...answer.body.items);
+      events ??= answer.body.events;
+      more = answer.body.next !== undefined;
+      if (!more) break;
+      after = answer.body.next;
+    }
+    return { items, events: events!, truncated: more };
   }
 
   // DELETE /chats/:id — closed by hand, for both at once (screen 8).

@@ -4,6 +4,7 @@
 // drift in what "registered" means.
 
 import { expect, type Page } from "../fixtures/address.ts";
+import type { Browser } from "@playwright/test";
 
 export const PIN = "123456";
 
@@ -12,6 +13,24 @@ export const PIN = "123456";
 // and the phrase would wait for a human instead of reaching the feed.
 export function runLabel(): string {
   return Date.now().toString(36).replace(/[0-9]/g, (d) => "abcdefghij"[Number(d)]);
+}
+
+// The feed carries one offer per ten phrases and none below ten (routes/feed.ts,
+// offers spec §7), and a person gets four an hour (lib/feed_limits.ts): three
+// neighbours write ten, by the screen, so a venue's offer has a slot. A spec
+// that shows an offer calls this rather than living on phrases other specs
+// left on the stand — alone on its own stand it had none (R5, 28.09).
+export async function tenPhrases(browser: Browser, label: string): Promise<void> {
+  const lines = ["кто на пляж", "ищу компанию на ужин", "есть кто в парке", "где тут хороший кофе",
+    "кто бегает по утрам", "потерялся кот рыжий", "ищу партнёра по теннису", "кто знает мастера",
+    "продаю велосипед", "сегодня ветрено"];
+  for (let i = 0; i < 3; i++) {
+    const context = await browser.newContext();
+    const author = await context.newPage();
+    await register(author, { name: ["Вера", "Глеб", "Дина"][i], age: "30" });
+    for (const line of lines.slice(i * 4, i * 4 + 4)) await writePhrase(author, `${line} ${label}`);
+    await context.close();
+  }
 }
 
 export function watch(page: Page, feedAnswers: number[]): void {

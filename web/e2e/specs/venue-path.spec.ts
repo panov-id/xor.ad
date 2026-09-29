@@ -8,7 +8,7 @@
 
 import postgres from "postgres";
 import { expect, test } from "../fixtures/address.ts";
-import { register, runLabel, writePhrase } from "./helpers.ts";
+import { register, runLabel, tenPhrases } from "./helpers.ts";
 
 const ADV = process.env.ADV_URL ?? "https://web-adv:4173";
 const MAILPIT = process.env.MAILPIT_URL ?? "http://mailpit:8025";
@@ -85,18 +85,8 @@ test("a venue's path: cabinet, envelope, offer, the neighbour's feed, its link, 
   const redirect = /sosed\.place\/o\/(\S+)/.exec(published)?.[1];
   expect(redirect, `the cabinet shows the offer's link, got "${published}"`).toBeTruthy();
 
-  // The feed carries one offer per ten phrases, none below ten (routes/feed.ts,
-  // offers spec §7), and a person gets four an hour (feed_limits.ts): three
-  // neighbours write ten, by the screen, so the offer has a slot.
-  const lines = ["кто на пляж", "ищу компанию на ужин", "есть кто в парке", "где тут хороший кофе",
-    "кто бегает по утрам", "потерялся кот рыжий", "ищу партнёра по теннису", "кто знает мастера",
-    "продаю велосипед", "сегодня ветрено"];
-  for (let i = 0; i < 3; i++) {
-    const author = await (await browser.newContext()).newPage();
-    await register(author, { name: ["Вера", "Глеб", "Дина"][i], age: "30" });
-    for (const line of lines.slice(i * 4, i * 4 + 4)) await writePhrase(author, `${line} ${stamp}`);
-    await author.context().close();
-  }
+  // Ten phrases around, so the offer has a slot in the feed (helpers.ts).
+  await tenPhrases(browser, stamp);
 
   // The neighbour: the offer is in the feed, as the cabinet published it.
   await register(page);

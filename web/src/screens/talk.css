@@ -69,3 +69,14 @@
 /* WD13: sheet 06 (the map's match) starts with the header band — no screen
    top — and puts the two buttons right under the cards, not at the foot. */
 .screen.match { padding-top: 0; }
+/* N4: the starters at the head of a conversation ("Liked, in order", chat
+   spec) and an extra like's card in the middle (§8.7) — one look for both,
+   since the card is a starter that arrived later: the number, the mark in
+   muted 13/600, the quote below. */
+.chat .starters { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3); border-radius: var(--r-2); background: var(--panel); }
+.chat .starters h2 { margin: 0; }
+.chat .starters ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.chat .starters li, .chat .line.extra-like { display: flex; flex-direction: column; gap: 2px; }
+.chat .starter-mark { color: var(--muted); font-size: 13px; font-weight: 600; }
+.chat .starters q, .chat .line.extra-like q { quotes: "«" "»"; font-size: 16px; }
+.chat .line.extra-like { align-self: center; text-align: center; background: var(--panel-2); }

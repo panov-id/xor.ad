@@ -18,6 +18,9 @@ export type RoomEvent =
   | { kind: "connected" }
   | { kind: "message"; id: string; ciphertext: string; createdAt: number }
   | { kind: "rekey"; epoch: number }
+  // A like given inside the live conversation (chat spec §8.7): a starter at
+  // the next position, the wording told from this reader's side.
+  | { kind: "extra_like"; position: number; text: string; mode: string; direction: "they_liked_yours" | "you_liked_theirs" }
   | { kind: "sys"; data: unknown }
   | { kind: "reconnecting"; attempt: number; inMs: number; code: number }
   | { kind: "over" }
@@ -90,6 +93,12 @@ export function connectRoom(client: Client, chatId: string, on: (event: RoomEven
     } else if (frame.type === "rekey") {
       const d = frame.data as { epoch?: unknown };
       if (typeof d?.epoch === "number") on({ kind: "rekey", epoch: d.epoch });
+    } else if (frame.type === "extra_like") {
+      const d = frame.data as { position?: unknown; text?: unknown; mode?: unknown; direction?: unknown };
+      if (typeof d?.position === "number" && typeof d.text === "string" &&
+        (d.direction === "they_liked_yours" || d.direction === "you_liked_theirs")) {
+        on({ kind: "extra_like", position: d.position, text: d.text, mode: typeof d.mode === "string" ? d.mode : "", direction: d.direction });
+      }
     } else if (frame.type === "closed") {
       // The node names the close it is about to make (protocol §4.4, frame
       // `closed`). Measured in the e2e stand (W3b, 2026-09-26): a close with

@@ -24,7 +24,15 @@ import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
 import "./talk.css";
 
-interface Line { id: string; text: string; mine: boolean; at: number; state?: "sent" | "queued" | "failed" }
+interface Line {
+  id: string; text: string; mine: boolean; at: number; state?: "sent" | "queued" | "failed";
+  // An extra like (§8.7): a card in the middle, not a bubble.
+  extra?: { position: number; direction: "they_liked_yours" | "you_liked_theirs" };
+}
+
+// A starter of the conversation (chat spec: "Liked, in order"; relay
+// routes/inbox.ts, N1): who liked it is told from this reader's side.
+interface Starter { position: number; text: string; mode: string; liked_by: "me" | "them" }
 
 type Status = { key: string; values?: Record<string, string | number> } | { error: string };
 
@@ -60,6 +68,9 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
   // board or proposal frame the chat's socket brings.
   const [gameOpen, setGameOpen] = useState(false);
   const [gameBump, setGameBump] = useState(0);
+  // Starters that came as extra_like frames while this screen was open; the
+  // inbox row carries them too once it is read again.
+  const [extraStarters, setExtraStarters] = useState<Starter[]>([]);
   const stop = useRef<{ stop(): void } | null>(null);
   const rowRef = useRef(row);
   rowRef.current = row;
@@ -116,6 +127,17 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
           setStatus({ key: "web.chat.rekeying", values: { epoch: event.epoch } });
           setTurn((t) => t + 1);
           break;
+        case "extra_like": {
+          // The same entity as a starter, arrived later (§8.7): a card with
+          // the number the header gives it, and a row in the header.
+          const liked_by = event.direction === "they_liked_yours" ? "them" : "me";
+          setExtraStarters((was) => was.some((s) => s.position === event.position) ? was
+            : [...was, { position: event.position, text: event.text, mode: event.mode, liked_by }]);
+          const id = `extra-${event.position}`;
+          setLines((was) => was.some((l) => l.id === id) ? was
+            : [...was, { id, text: event.text, mine: false, at: Date.now() / 1000, extra: { position: event.position, direction: event.direction } }]);
+          break;
+        }
         case "sys": {
           const type = (event.data as { type?: unknown } | null)?.type;
           if (type === "board" || type === "proposal") {
@@ -171,6 +193,11 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
 
   const askedByPeer = row.rekey_requested;
   const waitingForPeer = row.key_epoch > row.peer.key_epoch;
+  // The header's list, by position: the number is the one an extra like's
+  // card repeats, so it is the node's position and nothing else.
+  const givenStarters = (row as InboxChatRow & { starters?: Starter[] }).starters ?? [];
+  const starters = [...givenStarters, ...extraStarters.filter((e) => !givenStarters.some((s) => s.position === e.position))]
+    .sort((a, b) => a.position - b.position);
   return (
     <main className="screen chat" data-screen="chat" data-id={given.id} data-keys={keysState} data-over={over ? "yes" : "no"} data-epoch={row.key_epoch} data-rekey-requested={askedByPeer ? "yes" : "no"}>
       <header className="ui-header ui-header-rule">
@@ -179,6 +206,19 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         </button>
         <h1 className="ui-header-title">{row.name}, {row.age}</h1>
       </header>
+      {starters.length > 0 && (
+        <section className="starters" data-testid="starters" aria-labelledby="starters-title">
+          <h2 id="starters-title">{say("web.chat.starters")}</h2>
+          <ol>
+            {starters.map((s) => (
+              <li key={s.position} data-testid="starter" data-position={s.position} data-liked-by={s.liked_by}>
+                <span className="starter-mark">{s.position}. {say(s.liked_by === "me" ? "web.chat.you_liked" : "web.chat.they_liked")}</span>
+                <q>{s.text}</q>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
       <p className="status" data-testid="status">{"error" in status ? status.error : say(status.key, status.values)}</p>
       {safety && <p className="code" data-testid="safety">{safety}</p>}
       {/* Ending the conversation by hand, for both (W17; DELETE /chats/:id, the
@@ -220,7 +260,12 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
       )}
       {!over && gameOpen && <ChatGame client={client} chatId={given.id} bump={gameBump} />}
       <ul className="lines" data-testid="lines">
-        {lines.map((l) => (
+        {lines.map((l) => l.extra ? (
+          <li key={l.id} className="line extra-like" data-testid="extra-like" data-position={l.extra.position} data-direction={l.extra.direction}>
+            <span className="starter-mark">{l.extra.position}. {say(l.extra.direction === "they_liked_yours" ? "web.chat.extra_they" : "web.chat.extra_you")}</span>
+            <q>{l.text}</q>
+          </li>
+        ) : (
           <li key={l.id} className={`line ${l.mine ? "mine" : "theirs"}`} data-testid={l.mine ? "mine" : "theirs"} data-state={l.state ?? ""}>
             {l.text}
             <span className="muted">{new Date(l.at * 1000).toTimeString().slice(0, 5)}{l.state === "failed" ? say("web.chat.not_delivered") : ""}</span>

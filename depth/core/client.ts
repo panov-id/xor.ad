@@ -712,11 +712,27 @@ export class Client {
   // given (unix seconds) counted in `events` and flagged on the rows (§8.12,
   // step 8). depth keeps no history on disk, so the moment is the last look
   // at the inbox in this run, or nothing: then everything live is new.
+  // Pages of a hundred (routes/inbox.ts PAGE), followed by `next` to the end:
+  // a person with more lost every row past the hundredth (T15). `events` is
+  // counted over everything live on every page, so it is taken once, from the
+  // first. Ten pages is a thousand rows; past that the cursor is not trusted.
   async inboxSince(since?: number): Promise<{ items: Array<Record<string, unknown>>; events: InboxEvents }> {
-    const path = since === undefined ? "/inbox" : `/inbox?since=${Math.floor(since)}`;
-    const answer = await this.#call<{ items: Array<Record<string, unknown>>; events: InboxEvents }>("GET", path);
-    if (answer.status !== 200) throw new Error(`inbox refused: ${answer.status}`);
-    return { items: answer.body.items, events: answer.body.events };
+    const items: Array<Record<string, unknown>> = [];
+    let events: InboxEvents | undefined;
+    let after: string | undefined;
+    for (let page = 0; page < 10; page++) {
+      const query = new URLSearchParams();
+      if (since !== undefined) query.set("since", String(Math.floor(since)));
+      if (after) query.set("after", after);
+      const path = query.size ? `/inbox?${query}` : "/inbox";
+      const answer = await this.#call<{ items: Array<Record<string, unknown>>; events: InboxEvents; next?: string }>("GET", path);
+      if (answer.status !== 200) throw new Error(`inbox refused: ${answer.status}`);
+      items.push(...answer.body.items);
+      events ??= answer.body.events;
+      if (!answer.body.next) break;
+      after = answer.body.next;
+    }
+    return { items, events: events! };
   }
 
   // DELETE /chats/:id — closed by hand, for both at once (screen 8).

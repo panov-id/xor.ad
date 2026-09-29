@@ -100,6 +100,7 @@
   "web.chat.they_liked": "Собеседнику понравилось",
   "web.chat.extra_they": "вашему собеседнику понравилось ещё одно ваше сообщение",
   "web.chat.extra_you": "вам понравилось ещё одно сообщение собеседника",
+  "web.chat.starter_removed": "фраза снята",
   "web.chat.connected": "на связи",
   "web.chat.endAsk": "Беседа закончится у обоих, и вернуть её нельзя.",
   "web.chat.failed": "не подключиться: {message}",

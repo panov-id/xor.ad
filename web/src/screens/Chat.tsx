@@ -32,7 +32,7 @@ interface Line {
 
 // A starter of the conversation (chat spec: "Liked, in order"; relay
 // routes/inbox.ts, N1): who liked it is told from this reader's side.
-interface Starter { position: number; text: string; mode: string; liked_by: "me" | "them" }
+interface Starter { position: number; text: string; mode: string; liked_by: "me" | "them"; removed?: boolean }
 
 type Status = { key: string; values?: Record<string, string | number> } | { error: string };
 
@@ -213,7 +213,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
             {starters.map((s) => (
               <li key={s.position} data-testid="starter" data-position={s.position} data-liked-by={s.liked_by}>
                 <span className="starter-mark">{s.position}. {say(s.liked_by === "me" ? "web.chat.you_liked" : "web.chat.they_liked")}</span>
-                <q>{s.text}</q>
+                {s.removed ? <span className="muted" data-testid="starter-removed">{say("web.chat.starter_removed")}</span> : <q>{s.text}</q>}
               </li>
             ))}
           </ol>

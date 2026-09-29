@@ -122,7 +122,53 @@ export interface InboxItem {
   opened_since?: boolean;
   pending_messages?: number;
   ending_soon?: boolean;
+  // On a chat row (N1): the starters, as the node numbers them.
+  starters?: ChatStarter[];
   [more: string]: unknown;
+}
+
+// A starter of a conversation (chat spec "Liked, in order", §8.7; relay
+// routes/inbox.ts): who liked it is told from this side, and a phrase taken
+// down under Article 16 keeps its number with the text gone (removed).
+export interface ChatStarter {
+  position: number;
+  text: string;
+  mode: string;
+  liked_by: "me" | "them";
+  removed: boolean;
+}
+
+// The starters of an inbox row, checked like anything from the node and put
+// in the order of their number — the number an extra like's card repeats.
+export function startersOf(row: { starters?: unknown } | null | undefined): ChatStarter[] {
+  const given = Array.isArray(row?.starters) ? row.starters : [];
+  const out: ChatStarter[] = [];
+  for (const s of given as Array<Record<string, unknown>>) {
+    if (typeof s?.position !== "number" || !Number.isInteger(s.position) || s.position < 1) continue;
+    if (s.liked_by !== "me" && s.liked_by !== "them") continue;
+    out.push({
+      position: s.position,
+      text: typeof s.text === "string" ? s.text : "",
+      mode: typeof s.mode === "string" ? s.mode : "",
+      liked_by: s.liked_by,
+      removed: s.removed === true,
+    });
+  }
+  return out.sort((a, b) => a.position - b.position);
+}
+
+// An extra like arriving in a live conversation (§8.7): the data of a room
+// frame of type extra_like, or null when it is not one. The direction becomes
+// the header's mark: they liked one's phrase, or one liked theirs.
+export function extraLikeOf(frame: { type: string; data: unknown }): (ChatStarter & { direction: "they_liked_yours" | "you_liked_theirs" }) | null {
+  if (frame.type !== "extra_like") return null;
+  const d = frame.data as Record<string, unknown> | null;
+  if (typeof d?.position !== "number" || !Number.isInteger(d.position) || d.position < 1 || typeof d.text !== "string") return null;
+  if (d.direction !== "they_liked_yours" && d.direction !== "you_liked_theirs") return null;
+  return {
+    position: d.position, text: d.text, mode: typeof d.mode === "string" ? d.mode : "",
+    liked_by: d.direction === "they_liked_yours" ? "them" : "me", removed: false, direction: d.direction,
+  };
 }
 
 export class Client {

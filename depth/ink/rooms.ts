@@ -9,7 +9,8 @@ import { createElement as h, useEffect, useMemo, useRef, useState } from "react"
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
 import type { Client, InboxEvents, Liked as LikedCard, Statement } from "../core/client.ts";
-import { CursorRefused } from "../core/client.ts";
+import { CursorRefused, extraLikeOf, startersOf } from "../core/client.ts";
+import type { ChatStarter } from "../core/client.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
 import { afterClose, reconnectDelay } from "../core/reconnect.ts";
@@ -316,7 +317,26 @@ export function Chat(
     onClosed?: (code: number) => void;
   },
 ): ReactElement {
-  const [lines, setLines] = useState<Array<{ mine: boolean; text: string; broken?: boolean }>>([]);
+  const [lines, setLines] = useState<Array<{
+    mine: boolean; text: string; broken?: boolean;
+    // An extra like (§8.7): a card in the middle with the header's number.
+    extra?: { position: number; direction: "they_liked_yours" | "you_liked_theirs" };
+  }>>([]);
+  // The starters (chat spec "Liked, in order"; N1): read from the inbox row on
+  // opening, and grown by extra_like frames while the screen is open.
+  const [starters, setStarters] = useState<ChatStarter[]>([]);
+  useEffect(() => {
+    if (typeof client.inbox !== "function") return;
+    let live = true;
+    client.inbox()
+      .then((rows) => {
+        if (!live) return;
+        const given = startersOf(rows.find((r) => r.kind === "chat" && r.id === chatId));
+        setStarters((was) => startersOf({ starters: [...given, ...was.filter((w) => !given.some((g) => g.position === w.position))] }));
+      })
+      .catch((e: Error) => onError(e.message));
+    return () => { live = false; };
+  }, [chatId]);
   const [draft, setDraft] = useState("");
   const [code, setCode] = useState<string | null>(null);
   const [showCode, setShowCode] = useState(false);
@@ -492,6 +512,14 @@ export function Chat(
             await readRekey(typeof epoch === "number" ? epoch : undefined).catch((e: Error) => onError(e.message));
             continue;
           }
+          const extra = extraLikeOf(frame);
+          if (extra) {
+            const { direction, ...starter } = extra;
+            setStarters((was) => was.some((s) => s.position === starter.position) ? was : startersOf({ starters: [...was, starter] }));
+            setLines((all) => all.some((l) => l.extra?.position === starter.position) ? all
+              : [...all, { mine: false, text: starter.text, extra: { position: starter.position, direction } }]);
+            continue;
+          }
           if (isGameFrame(frame)) {
             setGameTick((t) => t + 1);
             const offer = frame.type === "proposal" ? frame.data as { mine?: boolean } | null : null;
@@ -558,11 +586,33 @@ export function Chat(
       counting ? { color: "red" } : { dimColor: true },
       say("chat.fades", { span: say(`chat.spanShort${span}`) }) + (counting ? ` · ${clock}` : ""),
     ),
+    starters.length > 0
+      ? h(
+        Box,
+        { flexDirection: "column" },
+        h(Text, { bold: true }, say("chat.starters")),
+        ...starters.map((s) =>
+          h(
+            Text,
+            { key: `s${s.position}`, dimColor: s.removed },
+            `${s.position}. ${say(s.liked_by === "me" ? "chat.youLiked" : "chat.theyLiked")}: ` +
+              (s.removed ? say("chat.starterRemoved") : `«${plain(s.text, 160)}»`),
+          )
+        ),
+      )
+      : null,
     h(
       Box,
       { flexDirection: "column" },
       ...lines.map((l, i) =>
-        h(
+        l.extra
+          ? h(
+            Box,
+            { key: i, flexDirection: "column", alignItems: "center", borderStyle: "single", paddingX: 1 },
+            h(Text, { dimColor: true }, `${l.extra.position}. ${say(l.extra.direction === "they_liked_yours" ? "chat.extraTheirs" : "chat.extraMine")}`),
+            h(Text, null, `«${plain(l.text, 160)}»`),
+          )
+          : h(
           Text,
           { key: i, dimColor: l.broken === true },
           l.broken === true

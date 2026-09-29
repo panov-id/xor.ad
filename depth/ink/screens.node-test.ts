@@ -1120,7 +1120,9 @@ test("the paper code is offered on the \"me\" screen: a new one, and opening thi
 // a line is sealed at its writer's epoch and opens only for a reader at the
 // same one, as the real keys do. One side asks, the other is shown the
 // question and must agree: without the agreement the next line stays shut.
-function rekeyNode() {
+// With `echo` the node is the real one (relay/node/src/chat/relay.ts: every
+// room of the chat hears `rekey`, the asking side's own included, T19).
+function rekeyNode({ echo = false } = {}) {
   const epoch: Record<"a" | "b", number> = { a: 0, b: 0 };
   const queues: Record<"a" | "b", Array<{ type: string; data: unknown }>> = { a: [], b: [] };
   const wakers: Record<"a" | "b", () => void> = { a: () => {}, b: () => {} };
@@ -1142,15 +1144,21 @@ function rekeyNode() {
         closed: new Promise<number>(() => {}),
       }),
       rekeyRequested: () => Promise.resolve(epoch[other] > epoch[me]),
+      inbox: () => Promise.resolve([{
+        kind: "chat", id: "k1", key_epoch: epoch[me], rekey_requested: epoch[other] > epoch[me],
+        peer: { key_epoch: epoch[other] },
+      }]),
       requestRekey: () => {
         epoch[me] = Math.max(epoch.a, epoch.b) + 1;
         push(other, { type: "rekey", data: { epoch: epoch[me] } });
+        if (echo) push(me, { type: "rekey", data: { epoch: epoch[me] } });
         return Promise.resolve(answer("waiting"));
       },
       acceptRekey: () => {
         if (epoch[other] !== epoch[me] + 1) return Promise.reject(new Error("the other side has not asked for new keys"));
         epoch[me] = epoch[other];
         push(other, { type: "rekey", data: { epoch: epoch[me] } });
+        if (echo) push(me, { type: "rekey", data: { epoch: epoch[me] } });
         return Promise.resolve(answer("agreed"));
       },
       sayInChat: (_c: string, text: string) => {
@@ -1205,6 +1213,32 @@ test("one side asks for new keys, the other is asked and agrees, and a line afte
   await type(anya, DOWN, ...Array(12).fill(LEFT), ENTER);
   await waitFor(shows(boris, /Аня: после новых ключей/), 3);
   assert.doesNotMatch(boris.lastFrame()!, /не открылась|sealed at epoch/, "the line after the reissue did not open");
+  anya.unmount();
+  boris.unmount();
+  noErrors();
+});
+
+// T19 · the node sends `rekey` to the asking side too. That echo is not the
+// other's agreement: the asking side keeps waiting, and says the keys are new
+// only once the other side holds the new epoch (mixed-rekey caught the screen
+// saying "обновлены" before anyone agreed).
+test("the echo of one's own request is not the agreement: the asking side waits until the other agrees", async () => {
+  const node = rekeyNode({ echo: true });
+  const anya = chatOf(node.a, "Борис");
+  const boris = chatOf(node.b, "Аня");
+  await settle();
+  await toLastAction(anya);
+  await type(anya, ENTER);
+  await waitFor(shows(boris, /Собеседник просит новые ключи беседы/), 3);
+  await waitFor(shows(anya, /ждём, когда согласится собеседник/), 3);
+  for (let i = 0; i < 6; i++) await settle(); // time for the echo to land
+  assert.doesNotMatch(anya.lastFrame()!, /Ключи беседы обновлены/, "the asking side took its own echo for the agreement");
+  assert.match(anya.lastFrame()!, /ждём, когда согласится собеседник/, "the asking side stopped waiting before the agreement");
+  await toLastAction(boris);
+  await type(boris, ENTER);
+  await waitFor(shows(anya, /Ключи беседы обновлены \(эпоха 1\)/), 3);
+  await waitFor(shows(boris, /Ключи беседы обновлены \(эпоха 1\)/), 3);
+  assert.doesNotMatch(anya.lastFrame()!, /ждём, когда согласится/, "the asking side still waits after the agreement");
   anya.unmount();
   boris.unmount();
   noErrors();

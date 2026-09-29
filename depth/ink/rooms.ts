@@ -414,16 +414,24 @@ export function Chat(
   }, [chatId]);
   // Whether the other side has asked for new keys, as the node's inbox says:
   // on opening (a device that was away learns it here) and on every `rekey`
-  // frame. A frame that is not a question is the answer to one's own request.
+  // frame. A frame that is not a question is the answer to one's own request —
+  // once the other side holds that epoch too: the node sends `rekey` to every
+  // room of the chat, the asking side's own included, and that echo is not an
+  // agreement (T19; the inbox row names both sides' epochs).
   const readRekey = async (frameEpoch?: number) => {
     // Stand-ins in the screen tests that know nothing of keys have no such call.
     if (typeof client.rekeyRequested !== "function") return;
     const asked = await client.rekeyRequested(chatId);
     setPeerAsks(asked);
-    if (!asked && typeof frameEpoch === "number") {
-      setWaiting(false);
-      setRekeyed(frameEpoch);
+    if (asked || typeof frameEpoch !== "number") return;
+    if (typeof client.inbox === "function") {
+      const row = (await client.inbox()).find((i) => i.kind === "chat" && i.id === chatId) as
+        | { peer?: { key_epoch?: number } }
+        | undefined;
+      if ((row?.peer?.key_epoch ?? frameEpoch) < frameEpoch) return;
     }
+    setWaiting(false);
+    setRekeyed(frameEpoch);
   };
   useEffect(() => {
     void readRekey().catch((e: Error) => onError(e.message));

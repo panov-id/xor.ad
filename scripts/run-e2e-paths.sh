@@ -32,6 +32,8 @@ PATHS=(
   "offer-complaint|run-web-two-people.sh offer-complaint|relay/node/src/routes/offer_links.ts|route(\"POST\", \"/o/:code/report\", (c) => report(c.req, c.params.code));|// BROKEN by run-e2e-paths: no report of an offer's link reaches the node"
   "mixed-depth|run-web-depth-mixed.sh|relay/node/src/routes/matches.ts|(c) => act(c.req, c.params.id, \"consent\")|route(\"POST\", \"/matches/:id/consent\", (c) => act(c.req, c.params.id, \"decline\")); // BROKEN by run-e2e-paths"
   "moderation-path|run-web-two-people.sh moderation-path|relay/node/src/routes/feed_queue.ts|decide(req, params.id, \"publish\"));|route(\"POST\", \"/admin/feed-queue/:id/publish\", ({ req, params }) => decide(req, params.id, \"refuse\")); // BROKEN by run-e2e-paths"
+  "chat-end|run-web-two-people.sh chat|relay/node/src/routes/chats.ts|route(\"DELETE\", \"/chats/:id\", (c) => close(c.req, c.params.id));|// BROKEN by run-e2e-paths: no conversation is ended by hand"
+  "decline-undo|run-web-two-people.sh decline|relay/node/src/routes/matches.ts|(c) => act(c.req, c.params.id, \"undo\")|// BROKEN by run-e2e-paths: a declined match is not taken back"
 )
 
 mode="${1:-}"

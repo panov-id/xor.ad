@@ -74,7 +74,7 @@ value	unit	kind	why	example
 600	m	prose.figure	встречено в: - **Location**: the static "Kolonaki · 600 m" is gone. Distance is **never computed**. Matching 	xor.ad/docs/app-prototype-spec_EN.md:47
 64	bytes	sample.data	длина вывода Argon2id в диаграмме обмена	xor.ad/docs/chat-flows_EN.md:137
 64	MB	external.fact	встречено в: - **Billing:** CPU $0.02/CPU-hr (actual), RAM $0.005/GB-hr in 64 MB blocks	xor.ad/docs/archive/backend-portable-bunny_EN.md:99
-65	min	external.fact	встречено в: A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fix	xor.ad/docs/chat_EN.md:2306
+65	min	external.fact	встречено в: A quarter is a **display** threshold, not a deadline, and the fraction matters more than any fix	xor.ad/docs/chat_EN.md:2308
 6	h	external.fact	глубина восстановления чужой услуги (PITR), не наш предел	xor.ad/docs/archive/backend-free-stack_RU.md:66
 700	m	prose.figure	встречено в: Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a value stops being a mark	xor.ad/docs/chat_EN.md:1618
 7.86	MB	measurement	встречено в: bundles, six mockups and three fonts — **7.86 MB**. Purging is beside the	xor.ad/docs/archive/open-work_EN.md:1627
@@ -112,3 +112,4 @@ value	unit	kind	why	example
 40	min	prose.figure	порог молчания координатора артели (два тика кольца по 20 минут) — правило работы сессий, не предел платформы	xor.ad/docs/parallel-sessions_EN.md:145
 9	min	prose.figure	порог тревоги ModerationQueueStopped (alerts.yml) — на минуту раньше предела moderation.queue.wait 10 мин, чтобы уборщик не снял фразу раньше тревоги; правило наблюдения, не предел платформы	xor.ad/docs/watchdogs_EN.md:143
 8.5	min	sample.data	вход теста С6: 8,5 минуты ожидания — ещё не остановка (порог 9)	xor.ad/docs/archive/test-map_EN.md:496
+100	KB	measurement	размер входа в замере времени правил ленты, а не предел	xor.ad/docs/measurements/feed-rules-2026-09-27_EN.md:68

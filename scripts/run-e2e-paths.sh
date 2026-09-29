@@ -35,6 +35,11 @@ PATHS=(
   "moderation-path|run-web-two-people.sh moderation-path|relay/node/src/routes/feed_queue.ts|decide(req, params.id, \"publish\"));|route(\"POST\", \"/admin/feed-queue/:id/publish\", ({ req, params }) => decide(req, params.id, \"refuse\")); // BROKEN by run-e2e-paths"
   "chat-end|run-web-two-people.sh chat|relay/node/src/routes/chats.ts|route(\"DELETE\", \"/chats/:id\", (c) => close(c.req, c.params.id));|// BROKEN by run-e2e-paths: no conversation is ended by hand"
   "decline-undo|run-web-two-people.sh decline|relay/node/src/routes/matches.ts|(c) => act(c.req, c.params.id, \"undo\")|// BROKEN by run-e2e-paths: a declined match is not taken back"
+  "rekey|run-web-two-people.sh rekey|relay/node/src/routes/chats.ts|route(\"POST\", \"/chats/:id/rekey\", (c) => rekey(c.req, c.params.id));|// BROKEN by run-e2e-paths: no side asks for new keys"
+  "reissue|run-web-two-people.sh reissue|relay/node/src/routes/identity.ts|route(\"POST\", \"/recovery/reissue\", (c) => reissueCode(c.req));|// BROKEN by run-e2e-paths: no paper code is reissued"
+  "table|run-web-two-people.sh table|relay/node/src/routes/tables.ts|route(\"POST\", \"/tables/:id/seat\", (c) => sit(c.req, c.params.id));|// BROKEN by run-e2e-paths: nobody sits at a table"
+  "lists|run-web-two-people.sh lists|relay/node/src/routes/hidden.ts|route(\"DELETE\", \"/hidden/:id\", (c) => unhide(c.req, c.params.id));|// BROKEN by run-e2e-paths: a hidden phrase never comes back"
+  "consent-wait|run-web-two-people.sh consent-wait|relay/node/src/routes/inbox.ts|(mine.accepted_at IS NOT NULL) AS consented,|            false AS consented, -- BROKEN by run-e2e-paths: after a reload the inbox forgets my consent"
 )
 
 mode="${1:-}"

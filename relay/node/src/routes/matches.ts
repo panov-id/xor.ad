@@ -3,7 +3,9 @@
 //
 // A match is not a chat but an offer to talk that both must accept. Consent
 // writes accepted_at; "not now" writes declined_at at once and is seen only by
-// its own side — nothing tells the other person (screen 6). The undo has no
+// its own side (screen 6) — unless the other side agreed and waits: then its
+// inbox says my_consent "gone", «предложение ушло» (Q9, §8.5, owner
+// 18.09.2026, over 28.08's "own side only"). The undo has no
 // timer (owner's decision, 2026-09-18): while the match lives, the decline can
 // be taken back.
 //

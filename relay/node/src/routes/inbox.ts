@@ -5,7 +5,8 @@
 //
 // What a row carries is what a match already discloses: the other side's name,
 // age, phrase and its mode. What it never carries: the other side's decline
-// (seen only by whoever declined, screen 6), the other side's term, and
+// (seen only by whoever declined, screen 6) — save to the one who agreed and
+// waits, as my_consent "gone" (Q9, §8.5) — the other side's term, and
 // `unread` — the device counts that, the node knows nothing about reading
 // (owner's decision, 2026-09-17). What it carries since P3 (§8.12, step 8):
 // what happened since the moment the client names in ?since — an offer that
@@ -57,7 +58,7 @@ async function inbox(req: Request): Promise<Response> {
 
   const matches = cut?.run === "c" ? [] : await query<{
     id: string; name: string; age: number; text: string | null; mode: string; waiting: boolean; created_at: Date; at: string;
-    arrived: boolean; answered: boolean; consented: boolean;
+    arrived: boolean; answered: boolean; consented: boolean; gone: boolean;
     interest: boolean; offer_id: string | null; offer_text: string | null; offer_mode: string;
     discount_value: string | null; conditions: string | null;
     their_ends: string | null; my_ends: string | null; mine_is_phrase: boolean;
@@ -70,6 +71,10 @@ async function inbox(req: Request): Promise<Response> {
             -- My own consent (P10): the node knows it, so a client that lost
             -- its memory still sees "waiting for the answer" after a restart.
             (mine.accepted_at IS NOT NULL) AS consented,
+            -- I agreed and the other said "not now" (Q9, §8.5, owner 18.09.2026):
+            -- the waiting conversation becomes «предложение ушло»; taken back,
+            -- the wait returns. Unagreed, their decline stays theirs alone.
+            (mine.accepted_at IS NOT NULL AND theirs.declined_at IS NOT NULL) AS gone,
             -- The other side came to my offer (§8.5, db/062; P5): they have no
             -- phrase in the match, and the reason is my offer — shown as such.
             (theirs.message_id IS NULL) AS interest,
@@ -179,7 +184,7 @@ async function inbox(req: Request): Promise<Response> {
       waiting_for_you: m.waiting, state: "pending",
       // A row here has no chat and is not declined by me (the WHERE above):
       // either I agreed and wait for them, or I have not answered yet.
-      my_consent: m.consented ? "waiting" : "none",
+      my_consent: m.gone ? "gone" : m.consented ? "waiting" : "none",
       // Since the last visit (§8.12): the offer arrived, or the other side
       // agreed to it, after `since`.
       arrived_since: m.arrived, answered_since: m.answered,

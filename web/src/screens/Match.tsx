@@ -2,9 +2,11 @@
 // side's ephemeral half with the consent (§8.13); "не сейчас" is seen by this
 // side only, and can be taken back while the match lives. The conversation
 // opens for the first to press at once and waits for the second (owner's
-// decision, 2026-09-18): lines written meanwhile wait on this device.
+// decision, 2026-09-18): lines written meanwhile wait on this device. The
+// second's "не сейчас" turns that wait into the tombstone «предложение ушло»
+// and takes the queue with it (Q9, §8.5): the wait asks the inbox for it.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChatKeys } from "../chat/keys.ts";
 import type { Client } from "../../../depth/core/client.ts";
 import type { MatchRow } from "./Inbox.tsx";
@@ -17,6 +19,9 @@ import { modes } from "../api/actions.ts";
 import "./talk.css";
 
 type Phrase = { text: string; mode: string; expires_at?: number };
+
+// How often a waiting match asks the inbox whether the other said "not now".
+const WAIT_LOOK_MS = 5000;
 
 // A phrase lives 4 h 20 min in the feed (limits feed.phrase.span; relay
 // lib/feed_verdict.ts PHRASE_SPAN): the bar is the share of that left.
@@ -55,7 +60,28 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
   const [declined, setDeclined] = useState(false);
   // The node remembers my consent (GET /inbox my_consent, P10): after a reload
   // the match I agreed to waits, and "Поговорить" is not offered again (W7).
-  const [waiting, setWaiting] = useState(row.my_consent === "waiting");
+  const [waiting, setWaiting] = useState(row.my_consent === "waiting" || row.my_consent === "gone");
+  // The other said "not now" to my wait (GET /inbox my_consent "gone", Q9);
+  // their undo, while the match lives, brings the wait back.
+  const [gone, setGone] = useState(row.my_consent === "gone");
+  useEffect(() => {
+    if (!waiting) return;
+    let live = true;
+    const look = async () => {
+      try {
+        const mine = (await client.inbox()).find((r) => r.id === row.id) as MatchRow | undefined;
+        if (!live || !mine) return;
+        const now = mine.my_consent === "gone";
+        if (now) keys.dropQueued(row.id);
+        setGone(now);
+      } catch {
+        // The next look tries again; the wait is not an error to show.
+      }
+    };
+    void look();
+    const timer = setInterval(look, WAIT_LOOK_MS);
+    return () => { live = false; clearInterval(timer); };
+  }, [waiting, client, keys, row.id]);
   const [line, setLine] = useState("");
 
   async function talk() {
@@ -90,7 +116,7 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
   }
 
   return (
-    <main className="screen match" data-screen="match" data-id={row.id} data-waiting={waiting ? "yes" : "no"}>
+    <main className="screen match" data-screen="match" data-id={row.id} data-waiting={waiting ? "yes" : "no"} data-gone={gone ? "yes" : "no"}>
       <header className="ui-header ui-header-rule">
         <button type="button" className="ui-icon" onClick={onBack} data-testid="back" aria-label={say("common.back")}>
           <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><path d="M26 14 L18 22 L26 30" /></svg>
@@ -128,7 +154,13 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
           <Button kind="secondary" type="button" disabled={busy} onClick={notNow} data-testid="not-now">{declined ? say("inbox.undo") : say("inbox.notNow")}</Button>
         </div>
       )}
-      {waiting && (
+      {waiting && gone && (
+        <section className="tombstone" data-testid="tombstone">
+          <h2>{say("web.match.gone")}</h2>
+          <Button kind="text" type="button" onClick={onBack} data-testid="to-inbox">{say("web.match.to_inbox")}</Button>
+        </section>
+      )}
+      {waiting && !gone && (
         <section className="match-waiting" data-testid="waiting">
           <h2>{say("web.match.waiting")}</h2>
           <ul className="lines" data-testid="queued">

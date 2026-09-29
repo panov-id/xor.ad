@@ -97,9 +97,6 @@ test("lines written while waiting stand without a mark and reach the other at th
 });
 
 test("the second's not now turns the first's waiting conversation into «предложение ушло»", async ({ browser }) => {
-  // Not built yet: the node keeps a decline to its own side (chat_RU.md:2081,
-  // superseded by :2135, owner 18.09.2026). Task Q9 builds it and drops this.
-  test.fail(true, "Q9: the decline is not told to the waiting side yet");
   test.setTimeout(240_000);
   const { anya, boris, matchId, close } = await twoWithAMatch(browser);
 
@@ -116,7 +113,7 @@ test("the second's not now turns the first's waiting conversation into «пре�
   // the queue goes with it — nothing of it was ever on the node.
   const waiting = anya.locator(`[data-screen="match"][data-id="${matchId}"]`);
   await expect(waiting.getByTestId("tombstone"), "the first side is never told the offer went (§8.5: «предложение ушло»)")
-    .toContainText("предложение ушло", { timeout: 30000 });
+    .toContainText(/предложение ушло/i, { timeout: 30000 });
   await expect(waiting.getByTestId("queued-line")).toHaveCount(0);
 
   await close();

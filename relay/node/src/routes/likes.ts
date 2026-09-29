@@ -203,7 +203,7 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
     const [chat] = await run<{ id: string }>(
       `SELECT c.id FROM chats c
         WHERE c.pair_key = $1
-          AND EXISTS (SELECT 1 FROM chat_participants p WHERE p.chat_id = c.id AND p.gone_at IS NULL)
+          AND NOT EXISTS (SELECT 1 FROM chat_participants p WHERE p.chat_id = c.id AND p.gone_at IS NOT NULL)
         FOR UPDATE OF c`,
       [pk],
     );

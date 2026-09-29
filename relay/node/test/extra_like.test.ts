@@ -275,3 +275,15 @@ test("a side with no open room learns of the extra like from its inbox, and the 
     relay.roomsForTest().delete(chat);
   }
 });
+
+test("a like after the other side left the conversation writes no starter into it (§8.7, chat_RU.md:2316, N2)", async () => {
+  const { a, b, chat, later } = await openChat();
+  // b's term ran out: the sweeper marks only b gone. For every reader the chat is over.
+  await database.queryOrThrow(
+    `UPDATE chat_participants SET gone_at = now() WHERE chat_id = $1 AND identity = $2`, [chat, b.identity_id]);
+  await signed(a, "POST", `/feed/${later}/like`);
+  const rows = await database.queryOrThrow<{ position: number }>(
+    `SELECT position FROM chat_starters WHERE chat_id = $1 ORDER BY position`, [chat]);
+  assertEquals(rows.map((r) => r.position), [1, 2],
+    "a like went into a conversation the other side had already left — a silent one-sided oracle");
+});

@@ -29,7 +29,7 @@ import { reportTombstones } from "./tombstone_watch.ts";
 import { DSA_NOTICE_NOTIFY, retryArrivalLetters, retryDecisionLetters, sendNightPathSummaries } from "./notice_notify.ts";
 import { sweepExpiredMatches } from "./match_sweeper.ts";
 import { sweepExpiredPending } from "./pending_sweeper.ts";
-import { sweepChats } from "./chat_sweeper.ts";
+import { nextChatTerm, sweepChats } from "./chat_sweeper.ts";
 import { wakeReturned } from "./away_waker.ts";
 import { watchBackup } from "./backup_watch.ts";
 import { watchModeration } from "./moderation_watch.ts";
@@ -293,7 +293,15 @@ export function registerScheduledJobs(): void {
 
   handle(SWEEP_CHATS, async () => {
     await sweepChats();
-    return new Date(Date.now() + A_MINUTE_MS);
+    // At the nearest term if it comes within the minute (R10, decided by
+    // quorum 28.09.2026): the room of a side whose term passed is closed then,
+    // not up to a minute later. Half a second past it, so the term has passed
+    // when the run looks; never sooner than a second, so a term in the past
+    // does not spin the job.
+    const minute = Date.now() + A_MINUTE_MS;
+    const next = await nextChatTerm();
+    if (!next) return new Date(minute);
+    return new Date(Math.min(minute, Math.max(Date.now() + 1000, next.getTime() + 500)));
   });
 
   // Step 8 (§6.1): overdue turns become passes every 30 seconds, and tables

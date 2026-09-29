@@ -58,12 +58,9 @@ restore() {
 }
 trap 'restore; rm -rf "$logs"' EXIT
 trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
-if [ -f "$pending/file" ]; then
-  broken="$(cat "$pending/file")"
-  echo "  ! прошлый прогон оборван посреди поломки: $broken восстановлен из копии" >&2
-  restore
-fi
-failed=0; total=0; spoiled=0
+. "$here/lib/breaks.sh"
+breaks_undo_left "$pending"
+failed=0; total=0; spoiled=0; unproven=0
 
 for row in "${PATHS[@]}"; do
   IFS='|' read -r spec command file match instead <<<"$row"
@@ -113,17 +110,16 @@ EOF
   if ! cmp -s "$logs/$spec.orig" "$target"; then
     echo "  ✗ $file не восстановлен — копия в $logs/$spec.orig" >&2; exit 2
   fi
-  if [ "$code" = 0 ]; then
-    failed=$((failed + 1))
-    printf '  ✗ %-14s остался зелёным с поломкой в %s\n' "$spec" "$file"
-  else
-    printf '  ✓ %-14s красный: %s\n' "$spec" "$(grep -m1 -E 'Error:' "$logs/$spec.log" | sed 's/^ *//')"
-  fi
+  # Caught only on a Playwright test that failed (W10-G1): a node that did not
+  # start under a break is red too, and proves nothing.
+  breaks_judge "$spec" "$code" "$logs/$spec.log" '[0-9]+ failed'
+  case $? in 0) ;; 2) failed=$((failed + 1)); unproven=$((unproven + 1)) ;; *) failed=$((failed + 1)) ;; esac
 done
 
 rm -rf "$logs"
 label=$([ "$mode" = "--breaks" ] && echo "поломок поймано" || echo "путей зелёных")
 echo "$label $((total - failed)) из $total"
 [ "$spoiled" = 0 ] || echo "брак прогона: $spoiled — путь красный и без поломки, его поломка не проверена"
+[ "$unproven" = 0 ] || echo "BREAK BROKEN: $unproven — красный не от теста, поломка не проверена"
 [ "$total" != 0 ] || { echo "ни одного пути: E2E_PATHS_ONLY=${E2E_PATHS_ONLY:-} нет в PATHS"; exit 1; }
 [ "$failed" = 0 ]

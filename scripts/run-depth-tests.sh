@@ -11,6 +11,12 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+. "$root/scripts/lib/breaks.sh"
+# A break a kill -9 left in the tree is undone on every start, not only under
+# --breaks (W10-G1); the inner run under a break is told so, or it would undo
+# the break it runs on. The copy lies in an ignored folder.
+pending="$root/testing/results/.break-pending-depth-tests"
+[ -n "${DEPTH_TESTS_UNDER_BREAK:-}" ] || breaks_undo_left "$pending"
 
 # --breaks (T28): the suite runs as it is, then once per break below with one
 # line of the node or the core changed, and must go red in the named test file
@@ -23,7 +29,6 @@ if [ "${1:-}" = "--breaks" ]; then
     "relay/node/src/routes/inbox.ts|...(next ? { next } : {})|/* BROKEN by run-depth-tests: no next */|inbox_pages.test.ts"
     "depth/core/reconnect.ts|code === 1001|code === -1 /* BROKEN by run-depth-tests: 1001 */|reconnect.test.ts"
   )
-  pending="$root/depth/.break-pending"
   broken=""
   restore() {
     [ -n "$broken" ] || return 0
@@ -32,11 +37,6 @@ if [ "${1:-}" = "--breaks" ]; then
   logs="$(mktemp -d)"
   trap 'restore; rm -rf "$logs"' EXIT
   trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
-  if [ -f "$pending/file" ]; then
-    broken="$(cat "$pending/file")"
-    echo "  ! прошлый прогон оборван посреди поломки: $broken восстановлен из копии" >&2
-    restore
-  fi
   if ! bash "$0" >"$logs/clean.log" 2>&1; then
     echo "  ✗ брак прогона: набор красный и без поломки"; tail -5 "$logs/clean.log"; exit 1
   fi
@@ -54,13 +54,10 @@ import os, sys
 p = sys.argv[1]; s = open(p).read()
 open(p, "w").write(s.replace(os.environ["MATCH"], os.environ["INSTEAD"], 1))
 EOF
-    code=0; bash "$0" >"$logs/$guard.log" 2>&1 || code=$?
+    code=0; DEPTH_TESTS_UNDER_BREAK=1 bash "$0" >"$logs/$guard.log" 2>&1 || code=$?
     restore
-    if [ "$code" != 0 ] && sed 's/\x1b\[[0-9;]*m//g' "$logs/$guard.log" | grep -qE "=> .*$guard"; then
-      caught=$((caught + 1)); printf '  ✓ %-22s красный на поломке %s\n' "$guard" "$file"
-    else
-      printf '  ✗ %-22s не покраснел на поломке %s (код %s)\n' "$guard" "$file" "$code"
-    fi
+    # Caught only when the named test file failed (W10-G1).
+    if breaks_judge "$guard" "$code" "$logs/$guard.log" "=> .*$guard"; then caught=$((caught + 1)); fi
   done
   echo "поймано $caught из ${#breaks[@]}"
   [ "$caught" = "${#breaks[@]}" ]

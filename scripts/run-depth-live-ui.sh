@@ -16,11 +16,8 @@ BREAKS=(
 )
 pending="$root/testing/results/.break-pending-depth-live-ui"
 # The inner run under a break is told so, or it would undo the break it runs on.
-if [ -z "${DEPTH_LIVE_UI_UNDER_BREAK:-}" ] && [ -f "$pending/file" ]; then
-  left="$(cat "$pending/file")"
-  cp "$pending/orig" "$left" && rm -rf "$pending"
-  echo "  ! прошлый прогон оборван посреди поломки: $left восстановлен из копии" >&2
-fi
+. "$root/scripts/lib/breaks.sh"
+[ -n "${DEPTH_LIVE_UI_UNDER_BREAK:-}" ] || breaks_undo_left "$pending"
 if [ "${1:-}" = "--breaks" ]; then
   set +e
   broken=""
@@ -45,11 +42,8 @@ EOF
     log="$(mktemp)"
     DEPTH_LIVE_UI_UNDER_BREAK=1 bash "$0" >"$log" 2>&1; code=$?
     restore
-    if [ "$code" = 0 ]; then
-      failed=$((failed + 1)); echo "  ✗ $file: остался зелёным с поломкой"
-    else
-      echo "  ✓ $file: красный — $(grep -m1 -E 'not ok|Error|FAIL' "$log" | sed 's/^ *//')"
-    fi
+    # Caught only on a FAIL line of live.node-test.ts (W10-G1).
+    breaks_judge "$file" "$code" "$log" '^FAIL ' || failed=$((failed + 1))
     rm -f "$log"
   done
   echo "поломок поймано $((total - failed)) из $total"

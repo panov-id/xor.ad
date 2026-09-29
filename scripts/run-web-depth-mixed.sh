@@ -13,6 +13,11 @@
 # The project name carries this run's PID, so two runs do not share a stand.
 set -uo pipefail
 MIXED_SPEC="${1:-${MIXED_SPEC:-mixed-depth}}"
+# The terminal's side: ink/<spec>.node-test.ts with - as _ when the spec has
+# one of its own (W10-MX: mixed-table), else mixed.node-test.ts, which walks
+# mixed-depth and mixed-rekey both.
+depth_test="ink/mixed.node-test.ts"
+[ -f "$(dirname "${BASH_SOURCE[0]}")/../depth/ink/${MIXED_SPEC//-/_}.node-test.ts" ] && depth_test="ink/${MIXED_SPEC//-/_}.node-test.ts"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 project="web-mixed-$$"
 compose=(docker compose -f "$root/docker-compose.web.yml" -p "$project")
@@ -54,7 +59,7 @@ docker run --name "$depth_name" --network "${project}_default" -v "$mods" \
   -e DEPTH_NODE_URL=http://node:8080 -e DEPTH_API_KEY=ak_pub_webtest0000000001 \
   -e MIXED_SYNC="/repo/web/e2e/results/mixed-sync-$project" -e MIXED_RUN="$run_id" \
   -v "$root":/repo -w /repo/depth "$node_image" \
-  timeout 400 node --experimental-transform-types ink/mixed.node-test.ts >"$depth_log" 2>&1 &
+  timeout 400 node --experimental-transform-types "$depth_test" >"$depth_log" 2>&1 &
 depth_pid=$!
 "${compose[@]}" run --rm -e MIXED_RUN="$run_id" -e MIXED_SYNC="/app/results/mixed-sync-$project" e2e npx playwright test "specs/$MIXED_SPEC.spec.ts"
 web_status=$?

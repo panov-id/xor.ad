@@ -10,6 +10,7 @@
 // would be caught by the number.
 
 import { type BrowserContext, expect, type Page, test } from "../fixtures/address.ts";
+import { runLabel } from "./helpers.ts";
 
 const noise = (page: Page, who: string) => {
   page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log(`[${who} ${m.type()}] ${m.text()}`); });
@@ -43,7 +44,7 @@ async function register(page: Page, name: string): Promise<void> {
 }
 
 test("a phrase goes out at 200, another person likes it from the card, and finds it under 'liked'", async ({ browser }) => {
-  const phrase = `кто на набережную к девяти? ${Date.now().toString(36)}`;
+  const phrase = `кто на набережную к девяти? ${runLabel()}`;
   const contexts: BrowserContext[] = [];
   try {
     // A: registers, writes, sees the verdict.
@@ -87,7 +88,7 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     const offerPosts: number[] = [];
     c.on("response", (r) => { if (new URL(r.url()).pathname === "/feed" && r.request().method() === "POST") offerPosts.push(r.status()); });
     await register(c, "Вера");
-    const offerText = `отдам две табуретки ${Date.now().toString(36)}`;
+    const offerText = `отдам две табуретки ${runLabel()}`;
     await c.getByTestId("write").click();
     await c.getByTestId("text").fill(offerText);
     await c.getByTestId("offer-fields").locator("summary").click();
@@ -122,7 +123,7 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     expect(likePosts).toEqual([409]);
     await b.getByTestId("back").click();
     await b.getByTestId("write").click();
-    await b.getByTestId("text").fill(`а я на набережную к десяти ${Date.now().toString(36)}`);
+    await b.getByTestId("text").fill(`а я на набережную к десяти ${runLabel()}`);
     await b.getByTestId("send").click();
     await expect(b.locator('[data-screen="feed"]')).toBeVisible({ timeout: 15000 });
     await expect(b.getByTestId("sent")).toHaveAttribute("data-state", "published");

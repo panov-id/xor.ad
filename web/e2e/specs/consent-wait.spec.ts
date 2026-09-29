@@ -3,7 +3,7 @@
 // the wait instead of offering "Поговорить" a second time.
 
 import { expect, test } from "../fixtures/address.ts";
-import { PIN, likeByCard, openMatch, register, unlock, writePhrase } from "./helpers.ts";
+import { PIN, likeByCard, openMatch, register, runLabel, unlock, writePhrase } from "./helpers.ts";
 
 test("after a reload, a match I agreed to shows the wait, not the button", async ({ browser }) => {
   test.setTimeout(150_000);
@@ -12,7 +12,7 @@ test("after a reload, a match I agreed to shows the wait, not the button", async
   await register(anya);
   await register(boris, { name: "Борис", age: "31" });
 
-  const run = Date.now().toString(36);
+  const run = runLabel();
   const aText = `гуляю у моря, если кто рядом ${run}`;
   const bText = `иду к морю ${run}`;
   await writePhrase(anya, aText);

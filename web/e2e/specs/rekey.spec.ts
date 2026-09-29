@@ -7,7 +7,7 @@
 // says so; here the screens do the asking and the agreeing.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
 
 
 async function register(page: Page, name: string) {
@@ -62,7 +62,7 @@ test("a side whose keys do not open asks for new ones, the other agrees on the s
   const anya = await personIn(a, "Аня");
   const boris = await personIn(b, "Борис");
 
-  const run = Date.now().toString(36);
+  const run = runLabel();
   const aText = `у моста через час ${run}`;
   const bText = `иду к мосту ${run}`;
   await writePhrase(anya, aText);

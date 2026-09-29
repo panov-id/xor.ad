@@ -14,6 +14,19 @@ import { inc } from "./metrics.ts";
 export const TERM_PASSED = `COALESCE(p.last_own_message_at, c.created_at)
   + p.idle_ttl_minutes * interval '1 minute' <= now()`;
 
+// The nearest term still to come, for the sweeper's next wake-up: a side whose
+// term passes between two minutely runs was served and could write for up to a
+// minute after it (R10, decided by quorum 28.09.2026). Null when no side is
+// still inside its term.
+export async function nextChatTerm(): Promise<Date | null> {
+  const [row] = await queryOrThrow<{ next: Date | null }>(
+    `SELECT min(COALESCE(p.last_own_message_at, c.created_at) + p.idle_ttl_minutes * interval '1 minute') AS next
+       FROM chat_participants p JOIN chats c ON c.id = p.chat_id
+      WHERE p.gone_at IS NULL`,
+  );
+  return row?.next ? new Date(row.next) : null;
+}
+
 // Batches, each its own transaction with its NOTIFY inside: a room is told
 // "over" only once the ending is committed, and a minute with a thousand
 // expiries does not hold one long lock (step-7 panel, 2026-09-21). The loop

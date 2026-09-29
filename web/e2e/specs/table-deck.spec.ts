@@ -4,7 +4,7 @@
 // card on the table and one card fewer in the mover's hand.
 
 import { expect, test } from "../fixtures/address.ts";
-import { register, twoAtATable } from "./helpers.ts";
+import { register, runLabel, twoAtATable } from "./helpers.ts";
 
 test("a deck table: my hand is cards, the other's a number, and a played card shows on both screens", async ({ browser }) => {
   test.setTimeout(180_000);
@@ -12,7 +12,7 @@ test("a deck table: my hand is cards, the other's a number, and a played card sh
   const anya = await (await browser.newContext({ viewport: { width: 393, height: 851 } })).newPage();
   await register(zhenya, { name: "Женя", age: "30" });
   await register(anya, { name: "Аня", age: "28" });
-  await twoAtATable(zhenya, anya, { name: `карты ${Date.now().toString(36)}`, kind: "deck", set: "36" });
+  await twoAtATable(zhenya, anya, { name: `карты ${runLabel()}`, kind: "deck", set: "36" });
 
   for (const page of [zhenya, anya]) {
     await expect(page.getByTestId("hand").getByRole("button")).toHaveCount(6, { timeout: 15000 });

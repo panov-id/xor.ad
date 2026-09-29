@@ -36,8 +36,10 @@ async function openChat(page: Page): Promise<void> {
 }
 
 test("two people, one in the browser and one in the terminal: a like each way, consent, a line each way", async ({ page }) => {
+  // Without the terminal's side there is nobody to meet: the whole web suite
+  // (run-web-tests.sh) passes over it, and run-web-depth-mixed.sh runs it.
+  test.skip(run === "", "the terminal's side runs only under scripts/run-web-depth-mixed.sh");
   test.setTimeout(360_000);
-  expect(run, "MIXED_RUN is not set: run this through scripts/run-web-depth-mixed.sh").not.toBe("");
   try {
     await register(page, { name: "Аня", age: "28" });
     const mine = `гуляю у реки ${run}`;

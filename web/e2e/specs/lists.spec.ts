@@ -5,11 +5,11 @@
 // step is read back from the node's answers too.
 
 import { expect, test } from "../fixtures/address.ts";
-import { register } from "./helpers.ts";
+import { register, runLabel } from "./helpers.ts";
 
 test("a hidden phrase comes back from 'hidden', a block is lifted from 'blocked'", async ({ browser }) => {
   test.setTimeout(150_000);
-  const phrase = `кто на рынок к десяти? ${Date.now().toString(36)}`;
+  const phrase = `кто на рынок к десяти? ${runLabel()}`;
   const a = await (await browser.newContext()).newPage();
   await register(a);
   await a.getByTestId("write").click();

@@ -1,0 +1,5 @@
+{
+  "//": "Only for type-checking the Ink screens (scripts/run-depth-ui-tests.sh, T23b): packages and their types (@types/react, @types/node) resolve from the screens' node_modules volume, next to this file's package.json. The core keeps depth/deno.json.",
+  "nodeModulesDir": "manual",
+  "lock": false
+}

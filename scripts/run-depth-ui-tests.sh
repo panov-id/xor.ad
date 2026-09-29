@@ -16,6 +16,14 @@ mods="-v depth-node-modules-$lock_hash:/repo/depth/node_modules"
 # shellcheck disable=SC2086
 timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
   sh -c '[ -f node_modules/.lock-ok ] || { npm ci --no-audit --no-fund && touch node_modules/.lock-ok; }' >/dev/null
+# Types of the screens before running them (T23b, 29.09.2026): until then no
+# script type-checked ink/, and a call that disagreed with its own annotation
+# lived in rooms.ts. Deno checks against the same node_modules volume, with
+# @types/react and @types/node from devDependencies (depth/ink.check.json).
+# shellcheck disable=SC2086
+timeout 300 docker run --rm -v depth-test-deno-cache:/deno-dir -e DENO_DIR=/deno-dir -v "$root":/repo $mods \
+  -w /repo/depth denoland/deno:alpine-2.1.4 \
+  sh -c 'deno check --config ink.check.json $(find ink -name "*.ts" ! -name "*.node-test.ts")'
 # Крышка времени: зависший рендер иначе вешает и эти ворота, и check-all.
 # shellcheck disable=SC2086
 timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \

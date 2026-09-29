@@ -9,6 +9,9 @@
 import { createElement as h, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text, useInput, useStdin } from "ink";
+// Imported, not taken as a global: the screens run in Node, but their type
+// check runs in Deno, which knows Node's timers only by module (T23b).
+import { setImmediate } from "node:timers";
 
 type KeyHandler = Parameters<typeof useInput>[0];
 type Keypress = Parameters<KeyHandler>;

@@ -345,6 +345,23 @@ async function main() {
     assert.equal(Number(mine?.span), 260, "the span changed on the screen but not on the node");
     out("ok   the chat's own span went to the node");
 
+    // 7b · the key reissue against the node (§8.13, T18): Марк asks for new
+    // keys, the screen is shown the question and agrees from the row's last
+    // action ("согласиться на новые ключи"); both halves then stand at epoch 1
+    // on the node, and Марк's line sealed with the new keys opens on the screen.
+    const rekeyChat = peerChat.chat_id as string;
+    assert.equal((await peer.requestRekey(rekeyChat)).status, 200, "the other side could not ask for new keys");
+    await until(app, /Собеседник просит новые ключи беседы/, 20);
+    for (let i = 0; i < 10; i++) await type(app, RIGHT);
+    await type(app, ENTER);
+    await until(app, /Ключи беседы обновлены \(эпоха 1\)/, 20);
+    const epochs = await sql`SELECT key_epoch FROM chat_participants WHERE chat_id = ${rekeyChat} ORDER BY key_epoch`;
+    assert.deepEqual(epochs.map((r) => Number(r.key_epoch)), [1, 1], "the agreement on the screen did not bring both halves to epoch 1");
+    assert.equal((await peer.sayInChat(rekeyChat, "после новых ключей", back.body.match_id!)).status, 202, "the other side's line after the reissue was refused");
+    await until(app, /Марк: после новых ключей/, 20);
+    assert.doesNotMatch(app.lastFrame() ?? "", /сообщение не открылось/, "a line after the reissue did not open on the screen");
+    out("ok   new keys: the other side asked, the screen agreed, and a line under the new keys opened");
+
     // 7a · a game in the conversation against the node (GC2, V10): the other
     // side proposes dots 2x2, the proposal frame reaches the screen on the
     // chat's socket, the screen opens "игра" (last in the row) and accepts; the

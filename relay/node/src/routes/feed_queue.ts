@@ -30,14 +30,17 @@ route("GET", "/admin/feed-queue", async ({ req }) => {
   if (isDenied(access)) return access.response;
   const rows = await query<{
     id: string; brand: string; text: string; mode: string; name: string; name_state: string; waiting: string; total: string;
+    hint_verdict: string | null; hint_reason: string | null;
   }>(
     `SELECT f.id, f.brand, f.text, f.mode, coalesce(a.name_pending, a.name) AS name, a.name_state,
             floor(extract(epoch from now() - f.created_at))::bigint::text AS waiting,
+            h.verdict AS hint_verdict, h.reason AS hint_reason,
             -- The whole queue, not the page: the header used to be the page's
             -- length, and above 200 it said 200 (feed-queue panel, 2026-09-22).
             count(*) OVER ()::text AS total
        FROM feed_messages f
        LEFT JOIN identities a ON a.id = f.author_identity
+       LEFT JOIN moderator_hints h ON h.feed_message_id = f.id
       WHERE f.visible_at IS NULL AND ($1::text IS NULL OR f.brand = $1)
       ORDER BY f.created_at
       LIMIT 200`,
@@ -51,6 +54,9 @@ route("GET", "/admin/feed-queue", async ({ req }) => {
     // An author who closed their identity leaves the phrase with no name;
     // it is still decidable, and says so.
     name: r.name ?? "", name_state: r.name_state ?? "gone", waiting_seconds: Number(r.waiting),
+    // The local model's word on the phrase (§8.14, lib/moderator.ts), shown
+    // beside it; null when no model is wired, or it failed or has not answered.
+    hint: r.hint_verdict ? { verdict: r.hint_verdict, reason: r.hint_reason ?? "" } : null,
   }));
   return json(items, 200, { "x-total-count": rows[0]?.total ?? "0" });
 });

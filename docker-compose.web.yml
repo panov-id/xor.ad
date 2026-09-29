@@ -59,14 +59,53 @@ services:
     image: axllent/mailpit:v1.21.8
     mem_limit: 128m
 
+  # The first-tier model of §8.14 stands in here as a stub with Ollama's shape
+  # (POST /api/chat → { message: { content } }): it says "reject" to every
+  # phrase it is asked about. The node asks only about phrases the rules sent to
+  # the queue (lib/moderator.ts), so what the stub says is the hint the panel
+  # shows — a real model's judgement is relay/moderator's measurement, not this.
+  moderator:
+    image: denoland/deno:alpine-2.1.4
+    command:
+      - eval
+      - >-
+        Deno.serve({ port: 11434, hostname: "0.0.0.0" }, () => Response.json({ message: { content: JSON.stringify({ verdict: "reject", reason: "stub: a link" }) } }))
+    mem_limit: 128m
+
+  # One moderator of the panel, written where the node reads its operators
+  # (lib/auth.ts: panel/<env>/users/<sha256(email)>.json in the fs storage).
+  # The panel is invite-only, and inviting needs an operator already, so the
+  # stand's first one is laid down here as the wizard lays it on a box. The
+  # directory is opened to the node's non-root user, which writes there too.
+  panel-user:
+    image: alpine:3.20
+    volumes: ["node-data:/data"]
+    command:
+      - sh
+      - -c
+      - >-
+        d=/data/panel/test/users && mkdir -p $$d &&
+        h=$$(printf %s moderator@webtest.invalid | sha256sum | cut -d' ' -f1) &&
+        printf '{"email":"moderator@webtest.invalid","role":"moderator","brand":null,"created_at":"2026-09-28T00:00:00Z"}' > $$d/$$h.json &&
+        chmod -R a+rwX /data
+    restart: "no"
+
   node:
     build: { context: ./relay/node }
-    depends_on: { seed: { condition: service_completed_successfully }, mailpit: { condition: service_started } }
+    depends_on:
+      seed: { condition: service_completed_successfully }
+      panel-user: { condition: service_completed_successfully }
+      mailpit: { condition: service_started }
+      moderator: { condition: service_started }
+    volumes: ["node-data:/data"]
     environment:
       DATABASE_URL: "postgres://relay:test@postgres:5432/relay_test"
       VAULT_SHARE_KEY: web-test-vault-key
       STORAGE_TRANSPORT: fs
-      STORAGE_DIR: /tmp/data
+      # Under /data: the node reads and writes only there (--allow-read=/data in
+      # its image), so a record elsewhere is one it never sees — the panel's
+      # operator laid in /tmp/data answered 401.
+      STORAGE_DIR: /data
       # The cabinet's sign-in letter (A1) goes to Mailpit; the spec reads the link there.
       MAIL_TRANSPORT: smtp
       MAIL_SMTP_HOST: mailpit
@@ -75,6 +114,12 @@ services:
       NODE_ID: web-test
       ALLOWED_ORIGINS: ""
       FEED_VERDICT: rules
+      # The model behind its flag (§8.14): set, the node asks it about every
+      # phrase the rules queue; the stub above answers.
+      MODERATOR_URL: "http://moderator:11434"
+      # The panel's sessions: the moderator spec mints its token from this.
+      SESSION_SECRET: web-test-panel-secret
+      PANEL_URL: "http://panel:5173"
       # The stand trusts X-Client-IP under this token, as production trusts Bunny (client_ip.ts):
       # every spec comes from an address of its own (web/e2e/fixtures/address.ts; W5c).
       ORIGIN_TOKEN: web-test-origin-token
@@ -123,6 +168,31 @@ services:
       retries: 60
     mem_limit: 512m
 
+  # The moderator's panel, built from the current sources and served as the
+  # static bundle it ships as. The browser reaches it at http://panel:5173 and
+  # the node at http://node:8080 (ALLOWED_ORIGINS is empty on the stand).
+  # Not started by the page's specs; a run that needs it names it.
+  panel:
+    image: node:20.18-alpine
+    working_dir: /app
+    volumes: ["./panel:/src:ro"]
+    environment: { VITE_RELAY_API_URL: "http://node:8080" }
+    command:
+      - sh
+      - -c
+      - >-
+        tar -C /src --exclude=node_modules --exclude=dist -cf - . | tar -xf - &&
+        npm ci --no-audit --no-fund --loglevel=error &&
+        npx vite build --logLevel error &&
+        exec npx --yes serve@14.2.4 -s dist -l 5173
+    depends_on: { node: { condition: service_healthy } }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5173/ >/dev/null 2>&1 || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 200
+    mem_limit: 1g
+
   # In the page's own network namespace, so the browser opens
   # http://localhost:4173 — a secure context, which WebCrypto (the PIN, the
   # keys, the signature) needs; a container name over plain http is not one.
@@ -136,7 +206,16 @@ services:
       ADV_URL: "https://web-adv:4173"
       MAILPIT_URL: "http://mailpit:8025"
       DATABASE_URL: "postgres://relay:test@postgres:5432/relay_test"
+      # The moderation path (moderation-path.spec.ts): the panel, and the
+      # node's session secret and environment to sign its moderator in with.
+      PANEL_URL: "http://panel:5173"
+      PANEL_SESSION_SECRET: web-test-panel-secret
+      PANEL_ENV_NAME: test
     volumes:
       - ./web/e2e/results:/app/results
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     mem_limit: 3g
+
+volumes:
+  # The node's fs storage, so the panel-user service can lay the first operator in it.
+  node-data: {}

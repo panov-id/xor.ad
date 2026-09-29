@@ -29,7 +29,13 @@ type Waiting = {
   // "gone": the author closed their identity while the phrase waited.
   name_state: "accepted" | "pending" | "rejected" | "gone";
   waiting_seconds: number;
+  // The local model's word on the phrase (§8.14): a hint beside it, never the
+  // verdict. Null when no model is wired, or it failed or has not answered yet.
+  hint: { verdict: "publish" | "reject" | "unsure"; reason: string } | null;
 };
+
+export const hintLabel = (hint: Waiting["hint"]): string | null =>
+  hint === null ? null : hint.reason ? `model: ${hint.verdict} — ${hint.reason}` : `model: ${hint.verdict}`;
 
 export const REFRESH_EVERY_MS = 15_000;
 // moderation.queue.wait is 10 minutes (docs/facts/limits.tsv); amber from 8.
@@ -134,6 +140,18 @@ export const FeedQueueList = () => {
             ),
           },
           { key: "text", label: "Phrase", render: (row) => row.text },
+          {
+            key: "hint",
+            label: "Model",
+            // The model reads only what the rules queued, and only says; the
+            // person beside it decides (lib/moderator.ts).
+            render: (row) =>
+              row.hint === null ? <span className="text-muted">—</span> : (
+                <Badge tone={row.hint.verdict === "reject" ? "danger" : row.hint.verdict === "publish" ? undefined : "warn"}>
+                  {hintLabel(row.hint)}
+                </Badge>
+              ),
+          },
           { key: "mode", label: "Mode", render: (row) => <span className="text-muted">{row.mode}</span> },
           {
             key: "id",

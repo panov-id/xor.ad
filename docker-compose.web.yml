@@ -198,7 +198,9 @@ services:
   # keys, the signature) needs; a container name over plain http is not one.
   e2e:
     build: { context: ./web/e2e }
-    depends_on: { web: { condition: service_healthy }, web-adv: { condition: service_healthy } }
+    # The panel too: run-web-tests.sh brings up what e2e depends on, and the
+    # moderation path walks into the panel (PANEL_URL below).
+    depends_on: { web: { condition: service_healthy }, web-adv: { condition: service_healthy }, panel: { condition: service_healthy } }
     network_mode: "service:web"
     environment:
       WEB_URL: "http://localhost:4173"
@@ -211,6 +213,8 @@ services:
       PANEL_URL: "http://panel:5173"
       PANEL_SESSION_SECRET: web-test-panel-secret
       PANEL_ENV_NAME: test
+      # Playwright's output folder is this run's own (playwright.config.ts).
+      E2E_RUN: "${COMPOSE_PROJECT_NAME:-local}"
     volumes:
       - ./web/e2e/results:/app/results
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"

@@ -127,7 +127,7 @@ are gone and what follows is only what is genuinely unbuilt.
       location pre-filled — today it is the vote-complaint, which is a different
       thing
 - [ ] The same item on an offer card, next to the complaint about the discount
-- [ ] **Showing the statement of reasons in the app where the author has no
+- [x] **Showing the statement of reasons in the app where the author has no
       email (SPEC §7) — must ship WITH the feed, not after it.** We never ask for
       an address: an identity is a key pair, and an author usually has no
       electronic contact at all. Art. 17(2) requires no letter in that case, but
@@ -141,6 +141,10 @@ are gone and what follows is only what is genuinely unbuilt.
       restrict and no harm. The day a feed ships without that screen, the first
       restriction becomes exactly that silent removal.
       (SPEC §7)
+
+      Closed: the node addresses the statement to the phrase's author itself, and the app reads it
+      with `GET /statements` (P8, `d9b928c`; `relay/node/src/routes/statements.ts`, test
+      `dsa_decision_feed.test.ts`), `depth` since 2026-09-22; entry `DSA-reasons-no-mail` in `facts/open.tsv`.
 - [x] The wording of refusal reasons — shared with the feed mechanic, assembled
       on 2026-08-31 in `docs/refusal-wordings_{RU,EN}.md`: twelve texts across six
       classes of refusal, including §10 of the mechanics and the Article 17

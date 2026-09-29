@@ -19,7 +19,6 @@ date	kind	why	example
 2024-02-02	external.fact	назначение кипрского органа советом министров	xor.ad/docs/dsa/README_RU.md:233
 2025-12-31	external.fact	редакция чужих условий обработки данных	xor.ad/docs/article-30-register_RU.md:211
 2026-07-06	document.stamp	дата, когда написаны заметки по интерфейсу	xor.ad/docs/app-ui-notes_EN.md:54
-2026-07-07	document.stamp	снимок дорожной карты, документ объявлен историческим	xor.ad/docs/roadmap_RU.md:3
 2026-07-15	document.stamp	дата сбора обзора поставщиков	xor.ad/docs/archive/backend-alternatives_EN.md:180
 2026-07-22	external.fact	чужой проект закрыт в этот день	xor.ad/docs/archive/open-work_EN.md:482
 2026-07-30	document.stamp	дата написания разбора визуального стиля	xor.ad/docs/brutalism_EN.md:3
@@ -30,3 +29,6 @@ date	kind	why	example
 2026-07-26	document.stamp	дата снимка обзора многоарендности, а не выбора	xor.ad/docs/tenancy-review_RU.md:7
 2026-09-19	panel.date	дата панели «свежий глаз» по огоньку, на которую ссылается правило чипов в дизайн-системе (RU 19.09.2026, EN 2026-09-19); решение о чипах — часть решения «огонёк» 18.09.2026	xor.ad/docs/design-system-app_EN.md:172
 2026-02-16	external.fact	дата редакции 1.2 договора обработки у хостера, а не наше решение	xor.ad/docs/article-30-register_EN.md:292
+2026-09-28	document.stamp	заголовки срезов сравнения веба с листами (WD6b, WD6c), дата работы, а не выбора	xor.ad/docs/design/web-vs-sheets_EN.md:111
+2026-09-29	state.report	срез роадмапа и замеры в нём (curl, count-tests, прогоны), и дата постройки экрана в отчёте спеки чата	xor.ad/docs/roadmap_RU.md:1
+2026-07-07	document.stamp	дата черновика дизайн-системы и обновления прогресса чеклиста ревью, а не выбор	xor.ad/docs/design-system_EN.md:19

@@ -34,3 +34,7 @@ timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
   node --experimental-transform-types ink/table.node-test.ts
 timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
   node --experimental-transform-types ink/chat_game.node-test.ts
+# The conversation's starters and extra likes (N3).
+# shellcheck disable=SC2086
+timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
+  node --experimental-transform-types ink/starters.node-test.ts

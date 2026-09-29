@@ -496,19 +496,19 @@ components:
         liked_by: {type: string, enum: [me, them], description: "From the reader's side: me — the reader liked this phrase, them — the other side did.", x-description-ru: "Со стороны читающего: me — эту фразу лайкнул читающий, them — вторая сторона."}
     ExtraLikeFrame:
       type: object
-      x-status: spec
-      description: "Not built. The data of a room frame of type extra_like (§8.7): a like given inside a live conversation adds a starter at the next position, and both rooms get it; the card is drawn centred, with the quote and the number matching the header. direction is from the reader's side."
-      x-description-ru: "Не построено. Данные кадра комнаты типа extra_like (§8.7): лайк внутри живой беседы добавляет стартер на следующей позиции, обе комнаты получают кадр; карточка по центру, с цитатой и номером, совпадающим с шапкой. direction — со стороны читающего."
+      x-status: built
+      description: "Built 2026-09-30 (N2). The data of a room frame of type extra_like (§8.7): a like given inside a live conversation adds a starter at the next position, and both rooms get it; the card is drawn centred, with the quote and the number matching the header. direction is from the reader's side. The row in chat_starters and the frame are written in the like's transaction; a side with no open room learns from GET /inbox (events.extra_likes)."
+      x-description-ru: "Построено 30.09.2026 (N2). Данные кадра комнаты типа extra_like (§8.7): лайк внутри живой беседы добавляет стартер на следующей позиции, обе комнаты получают кадр; карточка по центру, с цитатой и номером, совпадающим с шапкой. direction — со стороны читающего. Строка в chat_starters и кадр пишутся в транзакции лайка; сторона без открытой комнаты узнаёт из GET /inbox (events.extra_likes)."
       required: [kind, position, text, mode, direction]
       properties:
         kind: {type: string, enum: [extra_like]}
         position: {type: integer, minimum: 1}
         text: {type: string}
         mode: {type: string}
-        direction: {type: string, enum: [they_liked_yours], description: "The spec (§8.7) names only they_liked_yours; the mirror value for the one who liked is not named yet.", x-description-ru: "Спека (§8.7) называет только they_liked_yours; зеркальное значение для лайкнувшего пока не названо."}
+        direction: {type: string, enum: [they_liked_yours, you_liked_theirs], description: "they_liked_yours — the other side liked the reader's phrase; you_liked_theirs — the reader liked theirs. The spec (§8.7) names only they_liked_yours; the mirror value was named with the build (N2, 2026-09-30).", x-description-ru: "they_liked_yours — вторая сторона лайкнула фразу читающего; you_liked_theirs — читающий лайкнул её фразу. Спека (§8.7) называет только they_liked_yours; зеркальное значение названо при постройке (N2, 30.09.2026)."}
     InboxEvents:
       type: object
-      required: [new_matches, waiting_for_you, new_chats, pending_messages, ending_soon]
+      required: [new_matches, waiting_for_you, new_chats, pending_messages, ending_soon, extra_likes]
       description: "What happened since the client's last visit (§8.12, step 8 of §13; built 2026-09-26): counted at GET /inbox from matches, match_participants, chats, chat_participants and pending_deliveries against ?since — no notifications table, nothing written by the routes that make the events. Over everything live, not over the page: the badge on the tab. Without ?since every live row counts as new. While the socket is open the same events arrive as frames (§8.1); this is the cold path."
       x-description-ru: "Что случилось после последнего визита клиента (§8.12, шаг 8 §13; построено 26.09.2026): считается при GET /inbox из matches, match_participants, chats, chat_participants и pending_deliveries относительно ?since — таблицы уведомлений нет, маршруты, порождающие события, ничего не пишут. По всему живому, а не по странице: счётчик на табе. Без ?since новым считается всё живое. Пока сокет открыт, те же события приходят кадрами (§8.1); здесь — холодный путь."
       properties:
@@ -517,6 +517,7 @@ components:
         new_chats: {type: integer, description: "Conversations that opened after ?since.", x-description-ru: "Беседы, открывшиеся после ?since."}
         pending_messages: {type: integer, description: "Replies waiting in this session's delivery queue across one's live conversations (§8.8).", x-description-ru: "Реплики в очереди доставки этой сессии по всем живым беседам (§8.8)."}
         ending_soon: {type: integer, description: "Conversations whose own term is in its last fifth.", x-description-ru: "Беседы, чей свой срок в последней пятой части."}
+        extra_likes: {type: integer, description: "Since 2026-09-30 (N2, §8.7): starters an extra like added to one's live conversations after ?since, either side's — both see the row. The chat's own header starters are not counted.", x-description-ru: "С 30.09.2026 (N2, §8.7): стартеры, добавленные экстра-лайком в живые беседы после ?since, чьим угодно — строку видят оба. Стартеры шапки, записанные с беседой, не считаются."}
     IdentityCreate:
       type: object
       required: [sign_pub, wrap_pub, name, age, auth_hash, share, recovery_lookup_id]
@@ -1001,8 +1002,8 @@ paths:
       x-status: built
       x-source: relay/node/src/chat/relay.ts
       security: []
-      description: "Sec-WebSocket-Protocol offers `xor.p1, ticket.<t>` with a ticket from POST /chats/{id}/ticket; the node answers xor.p1. Frames go node to client only, as {type, seq, data}; type message carries {id, ciphertext, created_at}. What waits in the queue comes on opening, the rest as it is written. Close codes: 4001 ticket expired, spent or wrong; 4002 session frozen; 4004 no xor.p1 offered; 1011 the node failed; 1000 replaced by a newer socket of the same session. 4003 the conversation is over (closed by hand or a term that came). Not yet: 1001 on restart (built 2026-09-21)."
-      x-description-ru: "Sec-WebSocket-Protocol предлагает `xor.p1, ticket.<t>` с билетом из POST /chats/{id}/ticket; узел отвечает xor.p1. Кадры идут только от узла к клиенту, в виде {type, seq, data}; тип message несёт {id, ciphertext, created_at}. Ждущее в очереди приходит при открытии, остальное — по мере записи. Коды закрытия: 4001 билет просрочен, погашен или не тот; 4002 сессия заморожена; 4004 не предложен xor.p1; 1011 ошибка узла; 1000 заменён новым сокетом той же сессии. 4003 беседа кончилась (закрыта руками или вышел срок). Ещё нет: 1001 при перезапуске (построено 21.09.2026)."
+      description: "Sec-WebSocket-Protocol offers `xor.p1, ticket.<t>` with a ticket from POST /chats/{id}/ticket; the node answers xor.p1. Frames go node to client only, as {type, seq, data}; type message carries {id, ciphertext, created_at}. What waits in the queue comes on opening, the rest as it is written. Close codes: 4001 ticket expired, spent or wrong; 4002 session frozen; 4004 no xor.p1 offered; 1011 the node failed; 1000 replaced by a newer socket of the same session. 4003 the conversation is over (closed by hand or a term that came). Type extra_like (since 2026-09-30) carries ExtraLikeFrame (#/components/schemas/ExtraLikeFrame) to both rooms of the chat. Not yet: 1001 on restart (built 2026-09-21)."
+      x-description-ru: "Sec-WebSocket-Protocol предлагает `xor.p1, ticket.<t>` с билетом из POST /chats/{id}/ticket; узел отвечает xor.p1. Кадры идут только от узла к клиенту, в виде {type, seq, data}; тип message несёт {id, ciphertext, created_at}. Ждущее в очереди приходит при открытии, остальное — по мере записи. Коды закрытия: 4001 билет просрочен, погашен или не тот; 4002 сессия заморожена; 4004 не предложен xor.p1; 1011 ошибка узла; 1000 заменён новым сокетом той же сессии. 4003 беседа кончилась (закрыта руками или вышел срок). Тип extra_like (с 30.09.2026) несёт ExtraLikeFrame (#/components/schemas/ExtraLikeFrame) в обе комнаты беседы. Ещё нет: 1001 при перезапуске (построено 21.09.2026)."
       responses:
         "101": {description: Switching to the room., x-description-ru: Переход в комнату.}
         "426": {description: Not a WebSocket upgrade., x-description-ru: Это не апгрейд до WebSocket.}

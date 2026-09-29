@@ -19,6 +19,11 @@
 //   ending_soon      conversations whose own term ends within the last fifth of
 //                    it — for a 10-minute span the last 2 minutes, for 260 the
 //                    last 52
+//   extra_likes      starters added to a live conversation after `since` by an
+//                    extra like (§8.7; "position greater than seen", counted
+//                    by time since the node keeps no seen position) — either
+//                    side's like, since both see the row. The header's own
+//                    starters are written with the chat and are not counted.
 //
 // Where the socket is open the same events arrive as frames (§8.1); this is
 // the cold path only.
@@ -32,6 +37,7 @@ export type InboxEvents = {
   new_chats: number;
   pending_messages: number;
   ending_soon: number;
+  extra_likes: number;
 };
 
 // The share of one's own span that counts as "soon": the last fifth.
@@ -63,7 +69,7 @@ export const ENDING_SOON = `NOT (${TERM_PASSED}) AND COALESCE(p.last_own_message
 // and a badge that counts only the first hundred rows lies quietly past that.
 export async function inboxEvents(me: string, sessionId: string, since: number | null): Promise<InboxEvents | null> {
   const [row] = (await query<{
-    new_matches: number; waiting_for_you: number; new_chats: number; pending_messages: number; ending_soon: number;
+    new_matches: number; waiting_for_you: number; new_chats: number; pending_messages: number; ending_soon: number; extra_likes: number;
   }>(
     `WITH offers AS (
        SELECT m.created_at, theirs.accepted_at AS theirs_at, mine.accepted_at AS mine_at
@@ -81,7 +87,9 @@ export async function inboxEvents(me: string, sessionId: string, since: number |
             (SELECT count(*) FROM offers WHERE theirs_at IS NOT NULL AND mine_at IS NULL AND theirs_at > to_timestamp($3))::int AS waiting_for_you,
             (SELECT count(*) FROM talks WHERE created_at > to_timestamp($3))::int AS new_chats,
             (SELECT count(*) FROM pending_deliveries d JOIN talks t ON t.id = d.chat WHERE d.recipient_session = $2)::int AS pending_messages,
-            (SELECT count(*) FROM talks WHERE soon)::int AS ending_soon`,
+            (SELECT count(*) FROM talks WHERE soon)::int AS ending_soon,
+            (SELECT count(*) FROM chat_starters s JOIN talks t ON t.id = s.chat_id
+              WHERE s.created_at > t.created_at AND s.created_at > to_timestamp($3))::int AS extra_likes`,
     [me, sessionId, since ?? 0],
   )) ?? [null];
   return row;

@@ -324,6 +324,13 @@ export function Chat(
   const [changed, setChanged] = useState(false);
   const [blocking, setBlocking] = useState(false);
   const [peerAway, setPeerAway] = useState(false);
+  // The key reissue of §8.13 (T16): one side asks for new keys, the other is
+  // asked and agrees; until then new lines do not open. `peerAsks` is the
+  // question on this side, `waiting` is one's own request not yet answered,
+  // `rekeyed` the epoch both now hold.
+  const [peerAsks, setPeerAsks] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+  const [rekeyed, setRekeyed] = useState<number | null>(null);
   // The chat's game (GC2): the panel, and a tick that moves on every board or
   // proposal frame so the panel reads the game again; an offer from the other
   // side is marked while the panel is shut.
@@ -405,6 +412,38 @@ export function Chat(
       })
       .catch((e: Error) => onError(e.message));
   }, [chatId]);
+  // Whether the other side has asked for new keys, as the node's inbox says:
+  // on opening (a device that was away learns it here) and on every `rekey`
+  // frame. A frame that is not a question is the answer to one's own request.
+  const readRekey = async (frameEpoch?: number) => {
+    // Stand-ins in the screen tests that know nothing of keys have no such call.
+    if (typeof client.rekeyRequested !== "function") return;
+    const asked = await client.rekeyRequested(chatId);
+    setPeerAsks(asked);
+    if (!asked && typeof frameEpoch === "number") {
+      setWaiting(false);
+      setRekeyed(frameEpoch);
+    }
+  };
+  useEffect(() => {
+    void readRekey().catch((e: Error) => onError(e.message));
+  }, [chatId]);
+  const rekey = () => {
+    const agreeing = peerAsks;
+    const asked = agreeing ? client.acceptRekey(chatId) : client.requestRekey(chatId);
+    void asked
+      .then((answer) => {
+        if (answer.status !== 200) throw new Error(say("chat.rekeyRefused", { status: answer.status }));
+        setPeerAsks(false);
+        if (answer.body.state === "agreed") {
+          setWaiting(false);
+          setRekeyed(answer.body.epoch);
+        } else {
+          setWaiting(true);
+        }
+      })
+      .catch((e: Error) => onError(e.message));
+  };
   useEffect(() => {
     let room: { next: () => Promise<{ type: string; data: unknown }>; close: () => void } | null = null;
     let live = true;
@@ -438,6 +477,11 @@ export function Chat(
           // live; their first line here takes it off.
           if (frame.type === "sys" && (frame.data as { kind?: string })?.kind === "peer_stepped_away") {
             setPeerAway(true);
+            continue;
+          }
+          if (frame.type === "rekey") {
+            const epoch = (frame.data as { epoch?: unknown } | null)?.epoch;
+            await readRekey(typeof epoch === "number" ? epoch : undefined).catch((e: Error) => onError(e.message));
             continue;
           }
           if (isGameFrame(frame)) {
@@ -546,6 +590,9 @@ export function Chat(
     blocking ? h(Text, { color: "red" }, `${say("block.confirm")} ${say("block.what")}`) : null,
     peerAway ? h(Text, { color: "yellow" }, say("chat.peerAway")) : null,
     gameOffered && !gameOpen ? h(Text, { color: "yellow" }, say("game.offerArrived")) : null,
+    peerAsks ? h(Text, { color: "yellow" }, say("chat.rekeyPeerAsks")) : null,
+    waiting && !peerAsks ? h(Text, { dimColor: true }, say("chat.rekeyWaiting")) : null,
+    rekeyed !== null && !peerAsks && !waiting ? h(Text, { dimColor: true }, say("chat.rekeyDone", { epoch: rekeyed })) : null,
     gameOpen
       ? h(
         Box,
@@ -570,9 +617,13 @@ export function Chat(
         { key: "back", label: say("common.back") },
         // Last, so the rows before it keep their places (GC2).
         { key: "game", label: say("chat.game") },
+        // After the game for the same reason (T16). Asked by the other side it
+        // is the agreement; otherwise one's own request, shut while it waits.
+        { key: "rekey", label: say(peerAsks ? "chat.rekeyAgree" : "chat.rekeyAsk"), disabled: waiting && !peerAsks },
       ],
       onPick: (key) => {
         if (key === "back") return onBack();
+        if (key === "rekey") return rekey();
         if (key === "code") return void openCode();
         if (key === "game") {
           setGameOffered(false);

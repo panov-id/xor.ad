@@ -1114,6 +1114,102 @@ test("the paper code is offered on the \"me\" screen: a new one, and opening thi
   app.unmount();
 });
 
+// ── T16 · the key reissue between two people (§8.13, chat_RU.md: "the screen
+// is not built: the terminal in the test agrees by itself") ──
+// Two conversation screens over one stand-in node. Each side holds an epoch;
+// a line is sealed at its writer's epoch and opens only for a reader at the
+// same one, as the real keys do. One side asks, the other is shown the
+// question and must agree: without the agreement the next line stays shut.
+function rekeyNode() {
+  const epoch: Record<"a" | "b", number> = { a: 0, b: 0 };
+  const queues: Record<"a" | "b", Array<{ type: string; data: unknown }>> = { a: [], b: [] };
+  const wakers: Record<"a" | "b", () => void> = { a: () => {}, b: () => {} };
+  const push = (to: "a" | "b", frame: { type: string; data: unknown }) => {
+    queues[to].push(frame);
+    wakers[to]();
+  };
+  let seq = 0;
+  const side = (me: "a" | "b") => {
+    const other = me === "a" ? "b" : "a";
+    const answer = (state: string) => ({ status: 200, body: { state, epoch: epoch[me] } });
+    return {
+      openConversation: () => Promise.resolve({ safetyCode: "0000 0000 0000 0000 0000" }),
+      openRoom: () => Promise.resolve({
+        next: () => queues[me].length
+          ? Promise.resolve(queues[me].shift()!)
+          : new Promise<{ type: string; data: unknown }>((r) => (wakers[me] = () => r(queues[me].shift()!))),
+        close: () => {},
+        closed: new Promise<number>(() => {}),
+      }),
+      rekeyRequested: () => Promise.resolve(epoch[other] > epoch[me]),
+      requestRekey: () => {
+        epoch[me] = Math.max(epoch.a, epoch.b) + 1;
+        push(other, { type: "rekey", data: { epoch: epoch[me] } });
+        return Promise.resolve(answer("waiting"));
+      },
+      acceptRekey: () => {
+        if (epoch[other] !== epoch[me] + 1) return Promise.reject(new Error("the other side has not asked for new keys"));
+        epoch[me] = epoch[other];
+        push(other, { type: "rekey", data: { epoch: epoch[me] } });
+        return Promise.resolve(answer("agreed"));
+      },
+      sayInChat: (_c: string, text: string) => {
+        push(other, { type: "message", data: { id: `l${++seq}`, ciphertext: JSON.stringify({ text, at: epoch[me] }) } });
+        return Promise.resolve({ status: 202, body: { accepted: true } });
+      },
+      read: (_c: string, ciphertext: string) => {
+        const sealed = JSON.parse(ciphertext) as { text: string; at: number };
+        return sealed.at === epoch[me]
+          ? Promise.resolve(sealed.text)
+          : Promise.reject(new Error(`sealed at epoch ${sealed.at}, held ${epoch[me]}`));
+      },
+      forget: () => {},
+    };
+  };
+  return { epoch, a: side("a"), b: side("b") };
+}
+const chatOf = (client: unknown, name: string) =>
+  render(h(Chat, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    chatId: "k1", name, age: 30, limit: 256, span: 60, endsAt: Math.floor(Date.now() / 1000) + 3000,
+    onBack: () => {}, onError: collect,
+  }));
+// The last action of the conversation's row, where the reissue stands.
+const toLastAction = async (app: { stdin: { write: (s: string) => void } }) =>
+  type(app, DOWN, ...Array(12).fill(RIGHT));
+
+test("one side asks for new keys, the other is asked and agrees, and a line after it opens", async () => {
+  const node = rekeyNode();
+  const anya = chatOf(node.a, "Борис");
+  const boris = chatOf(node.b, "Аня");
+  await settle();
+  assert.match(anya.lastFrame()!, /попросить новые ключи/, "the conversation offers no reissue");
+  await toLastAction(anya);
+  await type(anya, ENTER);
+  await waitFor(shows(anya, /ждём, когда согласится собеседник/), 3);
+  await waitFor(shows(boris, /Собеседник просит новые ключи беседы/), 3);
+  assert.match(boris.lastFrame()!, /согласиться на новые ключи/, "the asked side is not offered to agree");
+  assert.equal(node.epoch.a, 1);
+  assert.equal(node.epoch.b, 0, "the asked side moved before agreeing");
+  await toLastAction(boris);
+  await type(boris, ENTER);
+  await waitFor(() => node.epoch.b === 1, 3);
+  await waitFor(shows(boris, /Ключи беседы обновлены \(эпоха 1\)/), 3);
+  await waitFor(shows(anya, /Ключи беседы обновлены \(эпоха 1\)/), 3);
+  assert.doesNotMatch(anya.lastFrame()!, /ждём, когда согласится/, "the asking side still waits after the agreement");
+  // A line written after the reissue opens on the other side.
+  await type(anya, UP, ..."после новых ключей".split(""));
+  // The row keeps its cursor on the reissue; "send" is the first action.
+  await type(anya, DOWN, ...Array(12).fill(LEFT), ENTER);
+  await waitFor(shows(boris, /Аня: после новых ключей/), 3);
+  assert.doesNotMatch(boris.lastFrame()!, /не открылась|sealed at epoch/, "the line after the reissue did not open");
+  anya.unmount();
+  boris.unmount();
+  noErrors();
+});
+
 // ── B9 · keys that arrive together (depth.liveui.flaky) ──
 // Over a slow ssh, typed fast, or sent by a test whose timer came due together
 // with React's draw, a key reaches the screen before the previous key's change

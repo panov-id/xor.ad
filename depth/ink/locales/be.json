@@ -319,5 +319,11 @@
   "table.backThere": "back to it",
   "table.standThere": "stand up there and sit here",
   "table.keptThere": "you stay at your table",
-  "table.lostBoth": "could not go back to your table — it has closed"
+  "table.lostBoth": "could not go back to your table — it has closed",
+  "chat.rekeyAsk": "ask for new keys",
+  "chat.rekeyAgree": "agree to new keys",
+  "chat.rekeyPeerAsks": "The other side asks for new keys for this conversation. New lines will not open until you agree.",
+  "chat.rekeyWaiting": "Asked for new keys — waiting for the other side to agree.",
+  "chat.rekeyDone": "The conversation's keys are renewed (epoch {epoch}).",
+  "chat.rekeyRefused": "the node did not take the new keys: {status}"
 }

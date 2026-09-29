@@ -21,7 +21,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if [ "${1:-}" = "--breaks" ]; then
   breaks=(
     "relay/node/src/routes/inbox.ts|...(next ? { next } : {})|/* BROKEN by run-depth-tests: no next */|inbox_pages.test.ts"
-    "depth/core/reconnect.ts|if (code === 1001 || |if (/* BROKEN by run-depth-tests: 1001 */ |reconnect.test.ts"
+    "depth/core/reconnect.ts|code === 1001|code === -1 /* BROKEN by run-depth-tests: 1001 */|reconnect.test.ts"
   )
   pending="$root/depth/.break-pending"
   broken=""
@@ -54,7 +54,7 @@ import os, sys
 p = sys.argv[1]; s = open(p).read()
 open(p, "w").write(s.replace(os.environ["MATCH"], os.environ["INSTEAD"], 1))
 EOF
-    bash "$0" >"$logs/$guard.log" 2>&1; code=$?
+    code=0; bash "$0" >"$logs/$guard.log" 2>&1 || code=$?
     restore
     if [ "$code" != 0 ] && sed 's/\x1b\[[0-9;]*m//g' "$logs/$guard.log" | grep -qE "=> .*$guard"; then
       caught=$((caught + 1)); printf '  ✓ %-22s красный на поломке %s\n' "$guard" "$file"

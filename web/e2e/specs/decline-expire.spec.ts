@@ -19,7 +19,21 @@ import { expect, test, type Browser, type Page } from "../fixtures/address.ts";
 import { likeByCard, openMatch, register, runLabel, writePhrase } from "./helpers.ts";
 
 const DATABASE = process.env.DATABASE_URL ?? "postgres://relay:test@postgres:5432/relay_test";
-const SWEEP = 90_000;
+// How long a term's end may take to reach the screen, as the sum of what it
+// waits on — change any of these at their source and change it here too:
+// - the sweepers run once a minute, counted from the end of the last run
+//   (relay/node/src/lib/scheduled.ts A_MINUTE_MS, SWEEP_CHATS and the match
+//   sweeper alike);
+// - a 4003 that falls on a dropped socket reaches the page only on the next way
+//   in (web/src/chat/room.ts: the ticket answers 404), after a pause that grows
+//   to half a minute (depth/core/reconnect.ts CAP_MS);
+// - the job queue and a stand loaded by other runs add their own delay: seen
+//   1.3 min for the whole path, and red at 90 s under load (check-all
+//   8077848f, 2026-09-28).
+const SWEEPER_PERIOD_MS = 60_000;
+const RECONNECT_CAP_MS = 30_000;
+const LOAD_MARGIN_MS = 30_000;
+const SWEEP = SWEEPER_PERIOD_MS + RECONNECT_CAP_MS + LOAD_MARGIN_MS;
 
 async function twoWithAMatch(browser: Browser): Promise<{ anya: Page; boris: Page; matchId: string; close: () => Promise<void> }> {
   const a = await browser.newContext({ viewport: { width: 393, height: 851 } });
@@ -83,9 +97,6 @@ test("lines written while waiting stand without a mark and reach the other at th
 });
 
 test("the second's not now turns the first's waiting conversation into «предложение ушло»", async ({ browser }) => {
-  // Not built yet: the node keeps a decline to its own side (chat_RU.md:2081,
-  // superseded by :2135, owner 18.09.2026). Task Q9 builds it and drops this.
-  test.fail(true, "Q9: the decline is not told to the waiting side yet");
   test.setTimeout(240_000);
   const { anya, boris, matchId, close } = await twoWithAMatch(browser);
 
@@ -102,14 +113,14 @@ test("the second's not now turns the first's waiting conversation into «пре�
   // the queue goes with it — nothing of it was ever on the node.
   const waiting = anya.locator(`[data-screen="match"][data-id="${matchId}"]`);
   await expect(waiting.getByTestId("tombstone"), "the first side is never told the offer went (§8.5: «предложение ушло»)")
-    .toContainText("предложение ушло", { timeout: 30000 });
+    .toContainText(/предложение ушло/i, { timeout: 30000 });
   await expect(waiting.getByTestId("queued-line")).toHaveCount(0);
 
   await close();
 });
 
 test("a match whose term ran out leaves both inboxes silently", async ({ browser }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(60_000 + 2 * SWEEP);
   const { anya, boris, matchId, close } = await twoWithAMatch(browser);
   await anya.getByTestId("back").click();
   await boris.getByTestId("nav-inbox").click();
@@ -133,7 +144,7 @@ test("a match whose term ran out leaves both inboxes silently", async ({ browser
 });
 
 test("a conversation whose term came: the tombstone to the one watching, a silent row for the other", async ({ browser }) => {
-  test.setTimeout(300_000);
+  test.setTimeout(90_000 + 2 * SWEEP);
   const { anya, boris, close } = await twoWithAMatch(browser);
   await anya.getByTestId("talk").click();
   await expect(anya.getByTestId("waiting")).toBeVisible({ timeout: 15000 });

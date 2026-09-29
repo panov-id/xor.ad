@@ -340,7 +340,18 @@ Deno.test("both agree on the offer's match: the header is the offer alone, and t
   };
   assertEquals(await consentOf(taker), "waiting", "the inbox forgets that I already agreed");
   assertEquals(await consentOf(neighbour), "none", "the inbox says I agreed before I did");
-  const second = await signedCall(neighbour, "POST", `/matches/${matchId}/consent`, await half(neighbour));
+  // Q9 (§8.5, owner 18.09.2026): the second's "not now" is told to the one
+  // who agreed and waits — «предложение ушло»; taken back, the wait returns.
+  // The one who declined sees nothing of it: the row is hidden on its side.
+  const declined = await signedCall(neighbour, "POST", `/matches/${matchId}/decline`);
+  assertEquals(declined.status, 204);
+  assertEquals(await consentOf(taker), "gone", "the waiting side is not told the offer went");
+  assertEquals(await consentOf(neighbour), undefined, "a declined match stays in the decliner's inbox");
+  const undone = await signedCall(neighbour, "DELETE", `/matches/${matchId}/decline`);
+  assertEquals(undone.status, 204);
+  assertEquals(await consentOf(taker), "waiting", "the decline taken back does not return the wait");
+  assertEquals(await consentOf(neighbour), "none");
+  const second =await signedCall(neighbour, "POST", `/matches/${matchId}/consent`, await half(neighbour));
   assertEquals(second.body.state, "agreed", JSON.stringify(second.body));
   const chatId = second.body.chat_id as string;
   assertEquals(await consentOf(taker), undefined, "an agreed match stays a match row instead of becoming the chat");

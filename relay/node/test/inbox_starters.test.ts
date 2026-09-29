@@ -364,3 +364,15 @@ test("a consent that waited on the pair's counters past the decision does not op
   const answer = await waiting;
   assertEquals(answer.status, 404, `a consent that waited opened a conversation on a phrase taken down: ${JSON.stringify(answer.body)}`);
 });
+
+test("a conversation holds one starter per phrase: the same phrase again is refused by the database (N1c, db/084)", async () => {
+  const { chatId, lowPhrase } = await openedPair();
+  const [row] = await database.queryOrThrow<{ liked_by: string }>(
+    `SELECT liked_by FROM chat_starters WHERE chat_id = $1 AND message_id = $2`, [chatId, lowPhrase]);
+  let refused = "";
+  await database.queryOrThrow(
+    `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by, message_id) VALUES ($1, 9, 'again', 'alone', $2, $3)`,
+    [chatId, row.liked_by, lowPhrase],
+  ).catch((e: Error) => (refused = String(e)));
+  assert(/chat_starters_one_per_phrase/.test(refused), `a second starter of the same phrase was written: ${refused || "no error"}`);
+});

@@ -8,3 +8,6 @@
 -- before this and for an offer's starter, which has no phrase.
 ALTER TABLE chat_starters ADD COLUMN IF NOT EXISTS message_id uuid;
 CREATE INDEX IF NOT EXISTS chat_starters_by_message ON chat_starters (message_id) WHERE message_id IS NOT NULL;
+-- One starter per phrase in a conversation: a like taken back and given again
+-- must not write a second row for the same phrase (N2, the extra like).
+CREATE UNIQUE INDEX IF NOT EXISTS chat_starters_one_per_phrase ON chat_starters (chat_id, message_id) WHERE message_id IS NOT NULL;

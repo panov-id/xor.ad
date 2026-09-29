@@ -8,9 +8,11 @@
 #
 #   scripts/run-web-depth-mixed.sh
 #   MIXED_SPEC=mixed-rekey scripts/run-web-depth-mixed.sh   # the browser's spec (T19: new keys)
+#   scripts/run-web-depth-mixed.sh mixed-rekey               # the same, as run-e2e-paths.sh calls it
 #
 # The project name carries this run's PID, so two runs do not share a stand.
 set -uo pipefail
+MIXED_SPEC="${1:-${MIXED_SPEC:-mixed-depth}}"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 project="web-mixed-$$"
 compose=(docker compose -f "$root/docker-compose.web.yml" -p "$project")
@@ -54,7 +56,7 @@ docker run --name "$depth_name" --network "${project}_default" -v "$mods" \
   -v "$root":/repo -w /repo/depth "$node_image" \
   timeout 400 node --experimental-transform-types ink/mixed.node-test.ts >"$depth_log" 2>&1 &
 depth_pid=$!
-"${compose[@]}" run --rm -e MIXED_RUN="$run_id" -e MIXED_SYNC="/app/results/mixed-sync-$project" e2e npx playwright test "specs/${MIXED_SPEC:-mixed-depth}.spec.ts"
+"${compose[@]}" run --rm -e MIXED_RUN="$run_id" -e MIXED_SYNC="/app/results/mixed-sync-$project" e2e npx playwright test "specs/$MIXED_SPEC.spec.ts"
 web_status=$?
 wait "$depth_pid"; depth_status=$?
 echo "── terminal side ──"; cat "$depth_log"

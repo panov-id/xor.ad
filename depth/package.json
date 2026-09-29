@@ -13,6 +13,8 @@
     "react": "19.1.0"
   },
   "devDependencies": {
+    "@types/node": "24.19.0",
+    "@types/react": "19.1.17",
     "ink-testing-library": "4.0.0",
     "postgres": "3.4.4"
   }

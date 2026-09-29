@@ -453,7 +453,7 @@ export function Chat(
       .catch((e: Error) => onError(e.message));
   };
   useEffect(() => {
-    let room: { next: () => Promise<{ type: string; data: unknown }>; close: () => void } | null = null;
+    let room: { next: (timeoutMs?: number) => Promise<{ type: string; data: unknown }>; close: () => void } | null = null;
     let live = true;
     (async () => {
       const conversation = await client.openConversation(chatId, matchId);

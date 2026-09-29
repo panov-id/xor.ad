@@ -7,6 +7,7 @@
 # when both sides pass.
 #
 #   scripts/run-web-depth-mixed.sh
+#   MIXED_SPEC=mixed-rekey scripts/run-web-depth-mixed.sh   # the browser's spec (T19: new keys)
 #
 # The project name carries this run's PID, so two runs do not share a stand.
 set -uo pipefail
@@ -53,7 +54,7 @@ docker run --name "$depth_name" --network "${project}_default" -v "$mods" \
   -v "$root":/repo -w /repo/depth "$node_image" \
   timeout 400 node --experimental-transform-types ink/mixed.node-test.ts >"$depth_log" 2>&1 &
 depth_pid=$!
-"${compose[@]}" run --rm -e MIXED_RUN="$run_id" -e MIXED_SYNC="/app/results/mixed-sync-$project" e2e npx playwright test specs/mixed-depth.spec.ts
+"${compose[@]}" run --rm -e MIXED_RUN="$run_id" -e MIXED_SYNC="/app/results/mixed-sync-$project" e2e npx playwright test "specs/${MIXED_SPEC:-mixed-depth}.spec.ts"
 web_status=$?
 wait "$depth_pid"; depth_status=$?
 echo "── terminal side ──"; cat "$depth_log"

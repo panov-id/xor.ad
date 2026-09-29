@@ -13,6 +13,9 @@ project="web-e2e-$$"
 compose=(docker compose -f "$root/docker-compose.web.yml" -p "$project")
 export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
 mkdir -p "$root/web/e2e/results"
+# What runs a day old left behind: nothing reads it, and it is never committed.
+find "$root/web/e2e/results" -mindepth 1 -maxdepth 1 \( -name 'run-*' -o -name 'mixed-sync-*' -o -name 'mixed-depth-*.log' \) \
+  -mmin +1440 -exec rm -rf {} + 2>/dev/null || true
 
 keep=0
 [ "${1:-}" = "--keep" ] && keep=1

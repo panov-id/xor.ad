@@ -112,7 +112,7 @@ async function inbox(req: Request): Promise<Response> {
     id: string; name: string; age: number; ends: string; span: number; created_at: Date; over: boolean;
     peer_id: string; peer_long: string; peer_half: string | null; peer_sig: string | null; match_id: string | null;
     my_epoch: number; peer_epoch: number; at: string;
-    starters: Array<{ position: number; text: string; mode: string; liked_by: "me" | "them" }>;
+    starters: Array<{ position: number; text: string; mode: string; liked_by: "me" | "them"; removed: boolean }>;
     opened: boolean; soon: boolean; pending: number; activity: string;
   }>(
     `SELECT c.id, them.name, them.age, c.created_at, (o.gone_at IS NOT NULL) AS over,
@@ -136,7 +136,10 @@ async function inbox(req: Request): Promise<Response> {
             -- and the identity itself never leaves (db/031, liked_by).
             (SELECT coalesce(json_agg(json_build_object(
                       'position', s.position, 'text', s.text_snapshot, 'mode', s.mode,
-                      'liked_by', CASE WHEN s.liked_by = $1 THEN 'me' ELSE 'them' END) ORDER BY s.position), '[]')
+                      'liked_by', CASE WHEN s.liked_by = $1 THEN 'me' ELSE 'them' END,
+                      -- Taken down under Article 16 (routes/dsa.ts): the row
+                      -- keeps its number, the text is gone.
+                      'removed', s.text_snapshot = '') ORDER BY s.position), '[]')
                FROM chat_starters s WHERE s.chat_id = c.id) AS starters,
             (extract(epoch from c.last_activity_at) * 1000000)::bigint::text AS at
        FROM chat_participants p

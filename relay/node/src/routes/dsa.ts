@@ -341,6 +341,28 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       if (!recipient) return { ok: false as const, reason: "no_recipient" as const };
       if (phrase && (restriction === "removed" || restriction === "hidden")) {
         await tx(`DELETE FROM feed_messages WHERE id = $1`, [notice.target_id]);
+        // What was taken down under Article 16 is not handed on (N1, the
+        // verifier's probe): the copies of the phrase are the ways it would
+        // still leave the node.
+        // The matches it made that are not yet a conversation go out as
+        // expiry puts them out (chat spec :1807; lib/take_down.ts, a second
+        // back for a consent that started under an earlier now()).
+        await tx(
+          `UPDATE matches SET expires_at = least(expires_at, now() - interval '1 second')
+            WHERE chat_id IS NULL
+              AND id IN (SELECT match_id FROM match_participants WHERE message_id = $1)`,
+          [notice.target_id],
+        );
+        // In a conversation already open its starter stays — the header's
+        // numbers must not move — with the text gone: an empty snapshot is
+        // "removed", since no phrase is published empty (routes/inbox.ts).
+        // The starter of this phrase is the one liked by the other side.
+        await tx(
+          `UPDATE chat_starters s SET text_snapshot = ''
+             FROM matches m JOIN match_participants p ON p.match_id = m.id
+            WHERE m.chat_id = s.chat_id AND p.message_id = $1 AND s.liked_by <> p.identity`,
+          [notice.target_id],
+        );
       }
 
       const created = await tx<{ id: string }>(

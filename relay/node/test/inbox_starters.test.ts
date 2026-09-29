@@ -29,6 +29,12 @@ await import("../src/routes/likes.ts");
 await import("../src/routes/matches.ts");
 await import("../src/routes/chats.ts");
 await import("../src/routes/inbox.ts");
+await import("../src/routes/dsa.ts");
+const { config } = await import("../src/config.ts");
+const { sign } = await import("../src/lib/jwt.ts");
+const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
+const { usersDir } = await import("../src/lib/auth.ts");
+const { sha256hex: hashOf } = await import("../src/lib/hash.ts");
 
 const KEY_ID = "ak_pub_inboxstarterstest";
 await database.queryOrThrow(
@@ -143,7 +149,7 @@ async function inbox(who: Who, since?: number): Promise<Page> {
 
 const test = (name: string, fn: () => Promise<void>) => Deno.test({ name, sanitizeOps: false, sanitizeResources: false, fn });
 
-type Starter = { position: number; text: string; mode: string; liked_by: "me" | "them" };
+type Starter = { position: number; text: string; mode: string; liked_by: "me" | "them"; removed: boolean };
 const startersOf = (page: Page, chatId: string): Starter[] => {
   const row = page.items.find((item) => item.kind === "chat" && item.id === chatId);
   assert(row, `the conversation ${chatId} is not in the inbox: ${JSON.stringify(page.items)}`);
@@ -189,4 +195,94 @@ test("after the consent both see the same starters from the first minute, in the
   assertEquals(forHigh.map((s) => s.liked_by), ["them", "me"], "the second side's marks are wrong");
   const raw = JSON.stringify(forLow) + JSON.stringify(forHigh);
   assert(!raw.includes(low.identity_id) && !raw.includes(high.identity_id), "a starter carries an identity");
+});
+
+// ── What is taken down is not handed on (the verifier of N1) ──────────────────
+
+// The platform's administrator upholds an Article 16 notice about a phrase,
+// through the decision route, as dsa_decision_feed.test.ts does.
+async function takenDownByNotice(phraseId: string) {
+  const [notice] = await database.queryOrThrow<{ id: string }>(
+    `INSERT INTO dsa_notices (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state, acknowledged_at, notifier_email)
+     VALUES ('alpha', 'feed_message', $1, 'names a private address', true, 'received', 'received', now(), NULL)
+     RETURNING id`,
+    [phraseId],
+  );
+  const email = "admin@platform.test";
+  await scopedForBrand(null).put(`${usersDir()}/${await hashOf(email)}.json`, {
+    email, role: "admin", brand: null, created_at: "2026-09-15T00:00:00.000Z",
+  });
+  const token = await sign({ sub: email, role: "admin", brand: null, env: config.envName, exp: Math.floor(Date.now() / 1000) + 3600 }, "inbox-starters-secret");
+  const url = new URL(`https://relay.test/admin/dsa-notices/${notice.id}/decide`);
+  const found = match("POST", url.pathname);
+  assert(found, "no route for the decision");
+  const response = await found.h({
+    req: new Request(url, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        decision: "upheld", facts: "The phrase names a private address.", restriction: "removed",
+        ground_kind: "legal", ground_text: "Article 16 notice; unlawful under national law.",
+      }),
+    }),
+    params: found.params,
+    url,
+  });
+  assertEquals(response.status, 200, `the decision failed: ${await response.text()}`);
+}
+
+// Two people, a match, the likes in the reverse order of the identities.
+async function pairMatched() {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const one = await author();
+  const two = await author();
+  const [low, high] = one.identity_id < two.identity_id ? [one, two] : [two, one];
+  const lowPhrase = await seedPhrase(low.identity_id, "кто на набережную?");
+  const highPhrase = await seedPhrase(high.identity_id, "гуляю у залива");
+  await signed(low, "POST", `/feed/${highPhrase}/like`);
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  const back = await signed(high, "POST", `/feed/${lowPhrase}/like`);
+  assertEquals((back.body as { state?: string }).state, "matched", `no match: ${JSON.stringify(back.body)}`);
+  return { low, high, lowPhrase, highPhrase, matchId: (back.body as { match_id: string }).match_id };
+}
+
+test("a phrase taken down under Article 16 after the conversation opened keeps its number with the text gone, for both (N1, P1)", async () => {
+  const { low, high, lowPhrase, matchId } = await pairMatched();
+  await consent(low, matchId);
+  const chatId = (await consent(high, matchId)).body as { chat_id?: string };
+  assert(chatId.chat_id, "no conversation opened");
+  await takenDownByNotice(lowPhrase);
+  for (const who of [low, high]) {
+    const list = startersOf(await inbox(who), chatId.chat_id);
+    assertEquals(list.map((s) => s.position), [1, 2], "the header's numbers moved");
+    assertEquals(list[0].text, "гуляю у залива", "the phrase not taken down lost its text");
+    assertEquals(list[0].removed, false);
+    assertEquals(list[1].text, "", "the phrase taken down under Article 16 is still handed out");
+    assertEquals(list[1].removed, true, "the starter taken down is not marked removed");
+  }
+});
+
+test("a phrase taken down under Article 16 before the consent puts out the match it made: no conversation opens with it (N1, P2)", async () => {
+  const { low, high, highPhrase, matchId } = await pairMatched();
+  await consent(low, matchId);
+  await takenDownByNotice(highPhrase);
+  const answer = await consent(high, matchId);
+  assert(!(answer.body as { chat_id?: string })?.chat_id, `a conversation opened on a match of a phrase taken down: ${JSON.stringify(answer.body)}`);
+  for (const who of [low, high]) {
+    const rows = (await inbox(who)).items.filter((i) => i.id === matchId || i.kind === "chat");
+    assertEquals(rows, [], "the match of a phrase taken down is still in the inbox");
+  }
+});
+
+test("a phrase gone before the consent has no like left, and its starter comes last (N1, NULLS LAST)", async () => {
+  const { low, high, highPhrase, matchId } = await pairMatched();
+  // Its author takes it down: the like on it goes by cascade; the match stays.
+  const gone = await signed(high, "DELETE", `/feed/${highPhrase}`);
+  assertEquals(gone.status, 204, JSON.stringify(gone.body));
+  await consent(low, matchId);
+  const opened = (await consent(high, matchId)).body as { chat_id?: string };
+  assert(opened.chat_id, `no conversation opened: ${JSON.stringify(opened)}`);
+  const list = startersOf(await inbox(low), opened.chat_id);
+  assertEquals(list.map((s) => s.text), ["кто на набережную?", "гуляю у залива"], "a starter without its like is not last");
 });

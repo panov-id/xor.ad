@@ -481,19 +481,20 @@ components:
             ephemeral_signature: {type: string, description: "By the peer's long key over bytes that depend on peer.key_epoch: at 0 — \"xor.ephemeral.v1\\n<match_id>\\n\" ‖ SPKI (consent); from 1 — \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI (reissue). A client binds it to the epoch it itself published at, never to the epoch the node reports.", x-description-ru: "Долгим ключом собеседника над байтами, зависящими от peer.key_epoch: 0 — \"xor.ephemeral.v1\\n<match_id>\\n\" ‖ SPKI (согласие); от 1 — \"xor.rekey.v1\\n<chat_id>\\n<epoch>\\n\" ‖ SPKI (перевыпуск). Клиент привязывает её к эпохе, на которой публиковал сам, а не к той, что сообщает узел."}
         starters:
           type: array
-          description: "On a chat row since 2026-09-30 (N1; §8.7, chat spec: the starters are visible to both from the first minute): the phrases the match was made of, in position order — the same rows for both sides, each marked from the reader's side: liked_by me — I liked it (their phrase), them — they liked it (mine). An extra like later in the conversation (§8.7) adds a row at the next position. A match of an offer gives one row or none."
-          x-description-ru: "У строки чата с 30.09.2026 (N1; §8.7 спеки чата: стартеры видны обоим с первой минуты): фразы, из которых сложился мэтч, по position — одни и те же строки у обеих сторон, каждая помечена со стороны читающего: liked_by me — лайкнул я (его фразу), them — лайкнул он (мою). Экстра-лайк позже в беседе (§8.7) добавляет строку на следующей позиции. Мэтч оффера даёт одну строку или ни одной."
+          description: "On a chat row since 2026-09-30 (N1; §8.7, chat spec: the starters are visible to both from the first minute): the phrases the match was made of, in position order — the same rows for both sides, each marked from the reader's side: liked_by me — I liked it (their phrase), them — they liked it (mine). An extra like later in the conversation adds a row at the next position — spec (§8.7), not built. A match of an offer gives one row or none. A starter whose phrase was taken down under Article 16 keeps its position with text empty and removed true."
+          x-description-ru: "У строки чата с 30.09.2026 (N1; §8.7 спеки чата: стартеры видны обоим с первой минуты): фразы, из которых сложился мэтч, по position — одни и те же строки у обеих сторон, каждая помечена со стороны читающего: liked_by me — лайкнул я (его фразу), them — лайкнул он (мою). Экстра-лайк позже в беседе добавляет строку на следующей позиции — спека (§8.7), не построено. Мэтч оффера даёт одну строку или ни одной. Стартер фразы, снятой по ст. 16, сохраняет позицию с пустым text и removed true."
           items: {$ref: "#/components/schemas/ChatStarter"}
     ChatStarter:
       type: object
-      description: "A starter of a conversation (§8.7): a phrase copied into chat_starters when the match became a chat, or later by an extra like. The copy outlives the phrase."
-      x-description-ru: "Стартер беседы (§8.7): фраза, скопированная в chat_starters, когда мэтч стал беседой, или позже экстра-лайком. Копия переживает фразу."
-      required: [position, text, mode, liked_by]
+      description: "A starter of a conversation (§8.7): a phrase copied into chat_starters when the match became a chat (later also by an extra like — spec, §8.7, not built). The copy outlives the phrase's expiry and its author's take-down, but not a take-down under Article 16: then the text is emptied and removed is true."
+      x-description-ru: "Стартер беседы (§8.7): фраза, скопированная в chat_starters, когда мэтч стал беседой (позже и экстра-лайком — спека, §8.7, не построено). Копия переживает истечение фразы и снятие автором, но не снятие по ст. 16: тогда текст стирается и removed — true."
+      required: [position, text, mode, liked_by, removed]
       properties:
         position: {type: integer, minimum: 1}
         text: {type: string}
         mode: {type: string}
         liked_by: {type: string, enum: [me, them], description: "From the reader's side: me — the reader liked this phrase, them — the other side did.", x-description-ru: "Со стороны читающего: me — эту фразу лайкнул читающий, them — вторая сторона."}
+        removed: {type: boolean, description: "The phrase was taken down under Article 16 (DSA): text is empty, the position stays so the header's numbers do not move.", x-description-ru: "Фраза снята по ст. 16 (DSA): text пуст, позиция остаётся, чтобы номера в шапке не сдвинулись."}
     ExtraLikeFrame:
       type: object
       x-status: spec

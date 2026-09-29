@@ -505,7 +505,7 @@ components:
         position: {type: integer, minimum: 1}
         text: {type: string}
         mode: {type: string}
-        direction: {type: string, enum: [they_liked_yours], description: "The spec (§8.7) names only they_liked_yours; the mirror value for the one who liked is not named yet.", x-description-ru: "Спека (§8.7) называет только they_liked_yours; зеркальное значение для лайкнувшего пока не названо."}
+        direction: {type: string, enum: [they_liked_yours, you_liked_theirs], description: "The two wordings of §8.7, one per viewer: they_liked_yours — \"your conversation partner liked another of your messages\", you_liked_theirs — \"you liked another of your partner's messages\" (chat spec §8.7, the last paragraph).", x-description-ru: "Две формулировки §8.7, по одной на зрителя: they_liked_yours — «вашему собеседнику понравилось ещё одно ваше сообщение», you_liked_theirs — «вам понравилось ещё одно сообщение собеседника» (спека чата §8.7, последний абзац)."}
     InboxEvents:
       type: object
       required: [new_matches, waiting_for_you, new_chats, pending_messages, ending_soon]

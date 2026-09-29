@@ -305,6 +305,17 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
       `SELECT 1 FROM identity_stats WHERE identity = ANY($1::uuid[]) ORDER BY identity FOR UPDATE`,
       [[me, phrase.author]],
     );
+    // After the counters lock a close, a time away or the tenth PIN miss holds
+    // while it takes down what is live (lib/take_down.ts): the take-back that
+    // waited on it answers as the guard would now (takedown_routes.test.ts).
+    const away = await stillHere(run, me, caller.sessionId);
+    if (away) {
+      return away.closed
+        ? refuse("unauthorized", "the request is not signed by a live session", 401)
+        : refuse("stepped_away", "you are away until the time you chose", 409, {
+          until: Math.floor(away.awayUntil!.getTime() / 1000),
+        });
+    }
     const [matched] = await run<{ n: number }>(
       // Live matches only: nothing sweeps matches yet, and an expired row left
       // behind held every later like of the pair for ever (review panel,

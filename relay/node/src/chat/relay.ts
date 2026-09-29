@@ -468,6 +468,20 @@ export async function relayUpgrade(req: Request): Promise<Response> {
     set.add(room);
     rooms.set(room.chat, set);
     inc("relay_chat_rooms_total", { result: "opened" });
+    // The ticket was spent before the handshake; a conversation that ended in
+    // between announced its `chat_closed` to no room of ours (R4b, T4b). Asked
+    // only once the room is listed: an end after this is heard, one before is
+    // read here. Every ending writes gone_at on a side (sweeper, close, block,
+    // leave), and the first end is the end for both.
+    if (!room.table) {
+      queryOrThrow<{ over: boolean }>(
+        `SELECT NOT EXISTS (SELECT 1 FROM chats WHERE id = $1)
+             OR EXISTS (SELECT 1 FROM chat_participants WHERE chat_id = $1 AND gone_at IS NOT NULL) AS over`,
+        [room.chat],
+      ).then(([row]) => {
+        if (row?.over) closeRoom(room, 4003, "the conversation is over");
+      }).catch((error) => log("error", "room opening end check failed", { error: String(error) }));
+    }
     hand(room, null).catch((error) => log("error", "room opening hand-over failed", { error: String(error) }));
   };
   socket.onclose = () => {

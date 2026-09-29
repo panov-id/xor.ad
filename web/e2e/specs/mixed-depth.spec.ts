@@ -8,7 +8,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { expect, test, type Page } from "../fixtures/address.ts";
 import { likeByCard, openMatch, register, writePhrase } from "./helpers.ts";
 
-const sync = "/app/results/mixed-sync";
+const sync = process.env.MIXED_SYNC ?? "/app/results/mixed-sync";
 const run = process.env.MIXED_RUN ?? "";
 
 function signal(step: string, body = ""): void {

@@ -175,7 +175,7 @@ async function halfFor(who: Who, matchId: string) {
 }
 const consent = async (who: Who, matchId: string) => signed(who, "POST", `/matches/${matchId}/consent`, await halfFor(who, matchId));
 
-type Events = { new_matches: number; waiting_for_you: number; new_chats: number; pending_messages: number; ending_soon: number };
+type Events = { new_matches: number; waiting_for_you: number; new_chats: number; pending_messages: number; ending_soon: number; extra_likes: number };
 type Page = { items: Array<Record<string, unknown>>; events: Events; since?: number };
 async function inbox(who: Who, since?: number): Promise<Page> {
   const answer = await signed(who, "GET", since === undefined ? "/inbox" : `/inbox?since=${since}`);
@@ -365,5 +365,5 @@ test("since that is not a moment is refused, and a stranger's inbox has no event
   }
   const empty = await inbox(me, 0);
   assertEquals(empty.items.length, 0);
-  assertEquals(empty.events, { new_matches: 0, waiting_for_you: 0, new_chats: 0, pending_messages: 0, ending_soon: 0 });
+  assertEquals(empty.events, { new_matches: 0, waiting_for_you: 0, new_chats: 0, pending_messages: 0, ending_soon: 0, extra_likes: 0 });
 });

@@ -346,6 +346,36 @@ function ensureListeningSeatLeft(): Promise<void> {
   return listeningSeatLeft;
 }
 
+// §8.7, an extra like (routes/likes.ts): `NOTIFY chat_extra_like` carries
+// "<chat>|<liker identity>|<json {position, text, mode}>". Every room of the
+// chat gets an `extra_like` frame, direction from its own side — the identity
+// behind the room's session is read here and never leaves the node.
+let listeningExtraLike: Promise<void> | null = null;
+function ensureListeningExtraLike(): Promise<void> {
+  listeningExtraLike ??= listen("chat_extra_like", (payload) => {
+    const [chat, liker, ...rest] = payload.split("|");
+    let starter: { position: number; text: string; mode: string };
+    try { starter = JSON.parse(rest.join("|")); } catch { return; }
+    for (const room of rooms.get(chat) ?? []) {
+      if (room.table) continue;
+      queryOrThrow<{ identity: string }>(`SELECT identity FROM sessions WHERE id = $1`, [room.session])
+        .then(([who]) => {
+          if (!who) return;
+          frame(room, "extra_like", {
+            kind: "extra_like",
+            position: starter.position,
+            text: starter.text,
+            mode: starter.mode,
+            direction: who.identity === liker ? "you_liked_theirs" : "they_liked_yours",
+          });
+          inc("relay_chat_frames_total", { type: "extra_like" });
+        })
+        .catch((error) => log("error", "extra like frame failed", { error: String(error) }));
+    }
+  });
+  return listeningExtraLike;
+}
+
 function ensureListening(): Promise<void> {
   listening ??= listen("chat_message", (payload) => {
     // "<chat>:<local id>" for a new line; "<chat>::<session>" when a session
@@ -371,6 +401,7 @@ export async function listenForRooms(): Promise<void> {
   await ensureListeningTables();
   await ensureListeningSeatLeft();
   await ensureListeningChatGames();
+  await ensureListeningExtraLike();
 }
 
 // Every room, closed with 1001 "going away": the node is stopping, and a

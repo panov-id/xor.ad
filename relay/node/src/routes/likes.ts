@@ -19,7 +19,7 @@
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
-import { query, transaction } from "../lib/db.ts";
+import { type Query, query, transaction } from "../lib/db.ts";
 import { stillHere } from "../lib/take_down.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
@@ -47,6 +47,27 @@ const liked = () => json({ state: "liked" }, 200, sunsetHeader());
 // spent, and a take-back had no word of its own — answering "liked" to it
 // would say the opposite of what happened.
 const unliked = () => json({ state: "unliked" }, 200, sunsetHeader());
+
+// §8.7: the row in chat_starters and the NOTIFY both rooms are served from, in
+// the like's own transaction — the NOTIFY is delivered on commit or not at all,
+// and a side whose socket is closed reads the same row from GET /inbox. One-sided
+// delivery is forbidden (chat spec §8.7): the row is the delivery, the frame is
+// transit. The chat row is locked by the caller, so the next position is safe.
+async function extraLike(
+  run: Query,
+  chatId: string, liker: string, phraseId: string,
+): Promise<void> {
+  const [added] = await run<{ position: number; text: string; mode: string }>(
+    `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by)
+     SELECT $1, coalesce((SELECT max(position) FROM chat_starters WHERE chat_id = $1), 0) + 1,
+            f.text, f.mode, $2
+       FROM feed_messages f WHERE f.id = $3
+     RETURNING position, text_snapshot AS text, mode`,
+    [chatId, liker, phraseId],
+  );
+  if (!added) return;
+  await run(`SELECT pg_notify('chat_extra_like', $1)`, [`${chatId}|${liker}|${JSON.stringify(added)}`]);
+}
 
 async function likePhrase(req: Request, target: string): Promise<Response> {
   const caller = await callerOf(req);
@@ -173,6 +194,25 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
         : liked();
     }
 
+    // §8.6 and §8.7: while the pair's chat lives, no match is made — without
+    // this a mutual like took over the pair's match row and lost its chat, and
+    // agreeing then failed on chats.pair_key (step 5 panel, 2026-09-21, data
+    // lens). The like goes into that chat instead: a starter at the next
+    // position, and a frame to both sides. Checked before the pairing: an
+    // extra like needs no like back, only the open conversation.
+    const [chat] = await run<{ id: string }>(
+      `SELECT c.id FROM chats c
+        WHERE c.pair_key = $1
+          AND NOT EXISTS (SELECT 1 FROM chat_participants p WHERE p.chat_id = c.id AND p.gone_at IS NOT NULL)
+        FOR UPDATE OF c`,
+      [pk],
+    );
+    if (chat) {
+      await extraLike(run, chat.id, me, target);
+      inc("relay_like_total", { result: "liked" });
+      return liked();
+    }
+
     // §8.5: a match counts only while both phrases are alive, both names stand
     // and both ages are still inside each other's band — checked now, not at
     // the moment of the first like.
@@ -199,22 +239,6 @@ async function likePhrase(req: Request, target: string): Promise<Response> {
       [me, target],
     );
     if (!pairing) {
-      inc("relay_like_total", { result: "liked" });
-      return liked();
-    }
-
-    // §8.6: while the pair's chat lives, no match is made — the like counts and
-    // goes no further. Without this a mutual like took over the pair's match row
-    // and lost its chat, and agreeing then failed on chats.pair_key (step 5
-    // panel, 2026-09-21, data lens). The phrase joining the chat's header
-    // (§8.7) is not built yet.
-    const [chatLives] = await run<{ n: number }>(
-      `SELECT count(*)::int AS n FROM chats c
-        WHERE c.pair_key = $1
-          AND EXISTS (SELECT 1 FROM chat_participants p WHERE p.chat_id = c.id AND p.gone_at IS NULL)`,
-      [pk],
-    );
-    if (chatLives.n > 0) {
       inc("relay_like_total", { result: "liked" });
       return liked();
     }
@@ -305,6 +329,17 @@ async function unlikePhrase(req: Request, target: string): Promise<Response> {
       `SELECT 1 FROM identity_stats WHERE identity = ANY($1::uuid[]) ORDER BY identity FOR UPDATE`,
       [[me, phrase.author]],
     );
+    // After the counters lock a close, a time away or the tenth PIN miss holds
+    // while it takes down what is live (lib/take_down.ts): the take-back that
+    // waited on it answers as the guard would now (takedown_routes.test.ts).
+    const away = await stillHere(run, me, caller.sessionId);
+    if (away) {
+      return away.closed
+        ? refuse("unauthorized", "the request is not signed by a live session", 401)
+        : refuse("stepped_away", "you are away until the time you chose", 409, {
+          until: Math.floor(away.awayUntil!.getTime() / 1000),
+        });
+    }
     const [matched] = await run<{ n: number }>(
       // Live matches only: nothing sweeps matches yet, and an expired row left
       // behind held every later like of the pair for ever (review panel,

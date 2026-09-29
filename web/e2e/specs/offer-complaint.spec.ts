@@ -6,12 +6,13 @@
 
 import postgres from "postgres";
 import { expect, test } from "../fixtures/address.ts";
-import { register, runLabel } from "./helpers.ts";
+import { register, runLabel, tenPhrases } from "./helpers.ts";
 
 const DATABASE = process.env.DATABASE_URL ?? "postgres://relay:test@postgres:5432/relay_test";
 
-test("a venue's offer in the feed takes a complaint with an address, and the node accepts it", async ({ page }) => {
-  test.setTimeout(120_000);
+test("a venue's offer in the feed takes a complaint with an address, and the node accepts it", async ({ browser, page }) => {
+  test.setTimeout(180_000);
+  await tenPhrases(browser, runLabel());
   const text = `Второй кофе бесплатно ${runLabel()}`;
   const sql = postgres(DATABASE, { max: 1 });
   let offerId: string;
@@ -55,8 +56,9 @@ test("a venue's offer in the feed takes a complaint with an address, and the nod
 // "The link leads somewhere else" (offers spec §10.1) lives on the card in the
 // feed, not on the exit screen (owner's decision 28.09, WS3): the exit screen
 // opens before any identity is unlocked, the card has one to sign with.
-test("a venue's offer in the feed reports its link, signed, and the node takes it", async ({ page }) => {
-  test.setTimeout(120_000);
+test("a venue's offer in the feed reports its link, signed, and the node takes it", async ({ browser, page }) => {
+  test.setTimeout(180_000);
+  await tenPhrases(browser, runLabel());
   const text = `Круассан за полцены ${runLabel()}`;
   const code = `wslink${runLabel()}`;
   const sql = postgres(DATABASE, { max: 1 });

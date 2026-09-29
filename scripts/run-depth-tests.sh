@@ -44,6 +44,14 @@ docker ps -a --filter "label=$label_key" --format "{{.ID}} {{.Label \"$label_key
 docker network ls --filter "label=$label_key" --format "{{.ID}} {{.Label \"$label_key\"}}" |
   while read -r id pid; do alive "$pid" || docker network rm "$id" >/dev/null 2>&1 || true; done
 
+# Types first, as the node's run-relay-tests.sh does: until 29.09.2026 no script
+# type-checked depth, and its code was checked only by running it (T23, found
+# by 9e on T19). The core's tests import the node's sources, hence the whole
+# tree. The Ink screens are not checked here: React ships no types and
+# @types/react is not a dependency (T23).
+docker run --rm $cache -v "$root":/repo -w /repo/depth "$image" \
+  sh -c 'deno check $(find core -name "*.ts")'
+
 docker network create --label "$label" "$network" >/dev/null
 docker run -d --label "$label" --name "$db" --network "$network" --network-alias postgres \
   -e POSTGRES_USER=relay -e POSTGRES_PASSWORD=test -e POSTGRES_DB=relay_test \

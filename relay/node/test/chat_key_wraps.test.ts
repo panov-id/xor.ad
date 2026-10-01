@@ -254,7 +254,34 @@ Deno.test("the sweep at one side's term drops both wraps: the other side, still 
   assertEquals(await wraps(id), 0, "the wraps outlived the first term");
   const read = await signedCall(b, "GET", `/chats/${id}/keys`);
   assertEquals(read.status, 404, JSON.stringify(read.body));
-  assertEquals(code(read), "no_wrap");
+  // Over, not merely without a wrap (W13-KW): the chat ended for both at A's
+  // term, and the keys route says so with the same 404 as a chat that is not
+  // one's own — before the sweep and after it alike.
+  assertEquals(code(read), "not_found");
+});
+
+// W13-KW (open.tsv chat.wraps.window; §8.13 "K goes out at the first term"):
+// between one side's term and the minute's sweep the other side, still inside
+// its own term, used to read and write its wrap — MEMBER_ROW looked at the
+// caller's term alone. The chat is over for both at the first term, so the
+// wrap is neither given nor taken from either side, sweep or no sweep.
+Deno.test("before the sweep, the other side's term already closes the wraps to this side", async () => {
+  const a = await person();
+  const b = await person();
+  const id = await chat(a, b);
+  assertEquals((await signedCall(b, "PUT", `/chats/${id}/keys`, { epoch: 0, wrapped_key: wrapOf() })).status, 200);
+  // A's term is over; B's (60 minutes by default) is not; no sweep has run.
+  await database.queryOrThrow(`UPDATE chats SET created_at = now() - interval '30 minutes' WHERE id = $1`, [id]);
+  await database.queryOrThrow(`UPDATE chat_participants SET idle_ttl_minutes = 10 WHERE chat_id = $1 AND identity = $2`, [id, a.identity_id]);
+  const read = await signedCall(b, "GET", `/chats/${id}/keys`);
+  assertEquals(read.status, 404, `B read its wrap after A's term: ${JSON.stringify(read.body)}`);
+  assertEquals(code(read), "not_found", "the chat is over for B too, not merely without a wrap");
+  const put = await signedCall(b, "PUT", `/chats/${id}/keys`, { epoch: 0, wrapped_key: wrapOf() });
+  assertEquals(put.status, 404, `B wrote a wrap after A's term: ${JSON.stringify(put.body)}`);
+  assertEquals(code(put), "not_found");
+  // Inside both terms the same calls go through: the term, not the test, closes them.
+  await database.queryOrThrow(`UPDATE chat_participants SET idle_ttl_minutes = 60 WHERE chat_id = $1 AND identity = $2`, [id, a.identity_id]);
+  assertEquals((await signedCall(b, "GET", `/chats/${id}/keys`)).status, 200, "inside both terms the wrap did not come back");
 });
 
 Deno.test("agreeing to a reissue drops the wraps of the old keys", async () => {

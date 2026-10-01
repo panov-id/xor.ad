@@ -401,6 +401,14 @@ async function rekey(req: Request, chatId: string): Promise<Response> {
 const MEMBER_ROW = `SELECT p.key_epoch FROM chat_participants p
     JOIN chats c ON c.id = p.chat_id
    WHERE p.chat_id = $1 AND p.identity = $2 AND p.gone_at IS NULL AND NOT (${TERM_PASSED})
+     -- The other side's term too (W13-KW, §8.13 "K goes out at the first
+     -- term"): between its term and the minute's sweep this side used to read
+     -- and write its wrap as if the chat were alive (open.tsv chat.wraps.window).
+     AND NOT EXISTS (
+       SELECT 1 FROM chat_participants o
+        WHERE o.chat_id = p.chat_id AND o.identity <> p.identity
+          AND (o.gone_at IS NOT NULL
+               OR COALESCE(o.last_own_message_at, c.created_at) + o.idle_ttl_minutes * interval '1 minute' <= now()))
      AND NOT EXISTS (
        SELECT 1 FROM chat_participants other
          JOIN blocks b ON (b.blocker_identity = p.identity AND b.blocked_identity = other.identity)

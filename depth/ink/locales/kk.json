@@ -164,6 +164,8 @@
   "pin.go": "ауыстыру",
   "pin.changed": "ПИН ауыстырылды.",
   "pin.mismatch": "ПИН сәйкес емес. Қалған әрекет: {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "Кіру қағаз кодқа дейін жабық.",
   "pin.wait": "Соңғы әрекеттен кейін тым ерте. {n} с кейін қайталаңыз.",
   "reset.item": "қайта бастау",

@@ -164,6 +164,8 @@
   "pin.go": "змяніць",
   "pin.changed": "ПІН зменены.",
   "pin.mismatch": "ПІН не падыходзіць. Засталося спроб: {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "Уваход зачынены да папяровага кода.",
   "pin.wait": "Зарана пасля мінулай спробы. Яшчэ раз праз {n} с.",
   "reset.item": "пачаць нанова",

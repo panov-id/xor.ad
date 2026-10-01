@@ -3,7 +3,7 @@
 // 2026-09-24 (python:3.12-slim). Two implementations agreeing is the check;
 // a test that only compares this code with itself would prove nothing.
 import { assertEquals, assertRejects } from "jsr:@std/assert@1";
-import { derivePin, newDeviceSalt } from "./pin.ts";
+import { derivePin, newDeviceSalt, obviousPin } from "./pin.ts";
 
 const hex = (b: Uint8Array) => [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
 const REFERENCE =
@@ -21,4 +21,14 @@ Deno.test("another device salt gives another proof, and a PIN is six digits", as
   const two = await derivePin("482913", newDeviceSalt());
   assertEquals(hex(one.auth) === hex(two.auth), false, "two devices derived the same proof from one PIN");
   await assertRejects(() => derivePin("12345", newDeviceSalt()), Error, "six digits");
+});
+
+// W13-OP · the obvious PINs of §8.2, the page's list: repeats, runs, a year of birth.
+Deno.test("an obvious PIN is a repeat, a run of the digit line, or a year of birth inside; the rest are not", () => {
+  for (const pin of ["000000", "777777", "123456", "654321", "345678", "876543", "019851", "120209", "919301"]) {
+    assertEquals(obviousPin(pin), true, `${pin} was not called obvious`);
+  }
+  for (const pin of ["482913", "135792", "246810", "112233", "019291", "120211", "909090"]) {
+    assertEquals(obviousPin(pin), false, `${pin} was called obvious`);
+  }
 });

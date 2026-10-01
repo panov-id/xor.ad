@@ -2401,3 +2401,36 @@ test("a 429 at the claim is said as the claim's limit with the seconds, and the 
   app.unmount();
   noErrors();
 });
+
+// ── W13-OP · an obvious PIN warns and does not stop; the last three attempts say what the tenth does ──
+import { pinMismatch } from "./screens.ts";
+
+test("an obvious PIN is warned about and still goes on; a plain one is not", async () => {
+  let got: string | null = null;
+  const app = render(h(PinSet, { say, onDone: (pin) => (got = pin) }));
+  await settle();
+  await type(app, "123456", DOWN, "123456");
+  await settle();
+  assert.match(app.lastFrame()!, /Этот ПИН легко угадать/, "a run of the digit line was not called obvious");
+  await type(app, DOWN, ENTER);
+  assert.equal(got, "123456", "the warning stopped the PIN");
+  app.unmount();
+  got = null;
+  const plain = render(h(PinSet, { say, onDone: (pin) => (got = pin) }));
+  await settle();
+  await type(plain, "482913", DOWN, "482913");
+  await settle();
+  assert.doesNotMatch(plain.lastFrame()!, /легко угадать/, "a plain PIN was called obvious");
+  await type(plain, DOWN, ENTER);
+  assert.equal(got, "482913");
+  plain.unmount();
+});
+
+test("the refusal names the attempts left, and from three down what the tenth miss does", () => {
+  assert.equal(pinMismatch(say, 9), "ПИН не подходит. Осталось попыток: 9");
+  assert.equal(pinMismatch(say, 4), "ПИН не подходит. Осталось попыток: 4");
+  for (const n of [3, 2, 1]) {
+    assert.equal(pinMismatch(say, n), `ПИН не подходит. Осталось попыток: ${n} После этого вход на этом устройстве закроется до бумажного кода.`);
+  }
+  assert.equal(pinMismatch(say, undefined), "ПИН не подходит. Осталось попыток: ?");
+});

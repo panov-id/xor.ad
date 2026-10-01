@@ -164,6 +164,8 @@
   "pin.go": "փոխել",
   "pin.changed": "PIN-ը փոխված է։",
   "pin.mismatch": "PIN-ը չի համընկնում։ Մնացած փորձեր՝ {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "Մուտքը փակ է մինչև թղթային կոդը։",
   "pin.wait": "Շատ շուտ է վերջին փորձից հետո։ Կրկին {n} վ հետո։",
   "reset.item": "սկսել նորից",

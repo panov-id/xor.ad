@@ -5,6 +5,7 @@
 // never signs, seals or opens anything by itself — if a screen needs a key, it
 // is asking the wrong question.
 
+import { obviousPin } from "../core/pin.ts";
 import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
@@ -60,6 +61,16 @@ export const digits = (value: string) => value.replace(/\D/g, "").slice(0, 6);
 
 // 1a · the PIN, twice. Its price is said here, before the identity exists, not
 // after (depth-client §2.3).
+// The node's "that PIN does not match", with the second sentence of §8.2 on
+// the last three attempts: what the tenth miss does, said while it can still
+// be avoided (chat_RU.md:1331; W13-OP). One place for the four screens that
+// show a refused PIN: registration, the lock, the change and the move.
+export function pinMismatch(say: Say, attemptsLeft: number | undefined): string {
+  const n = attemptsLeft === undefined ? "?" : String(attemptsLeft);
+  const line = say("pin.mismatch", { n });
+  return attemptsLeft !== undefined && attemptsLeft <= 3 ? `${line} ${say("pin.mismatchLast")}` : line;
+}
+
 export function PinSet(
   { say, onDone, onComeBack, busy, error }: {
     say: Say;
@@ -83,6 +94,9 @@ export function PinSet(
   }, [error]);
   const full = pin.length === 6 && again.length === 6;
   const differ = full && pin !== again;
+  // An obvious PIN warns and does not stop (§8.2, decided 2026-08-26): the
+  // page says the same words at the same moment (Register.tsx).
+  const obvious = pin.length === 6 && obviousPin(pin);
   return h(
     Box,
     { flexDirection: "column", gap: 1 },
@@ -102,6 +116,7 @@ export function PinSet(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
+    obvious ? h(Text, { color: "yellow" }, say("pin.obvious")) : null,
     differ ? h(Text, { color: "red" }, say("reg.pinMismatch")) : null,
     busy ? h(Text, { dimColor: true }, "…") : null,
     error ? h(Text, { color: "red" }, error) : null,

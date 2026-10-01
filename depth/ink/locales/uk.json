@@ -164,6 +164,8 @@
   "pin.go": "змінити",
   "pin.changed": "ПІН змінено.",
   "pin.mismatch": "ПІН не підходить. Залишилося спроб: {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "Вхід закрито до паперового коду.",
   "pin.wait": "Зарано після минулої спроби. Ще раз через {n} с.",
   "reset.item": "почати знову",

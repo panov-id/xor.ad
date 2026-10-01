@@ -164,6 +164,8 @@
   "pin.go": "αλλαγή",
   "pin.changed": "Το PIN άλλαξε.",
   "pin.mismatch": "Το PIN δεν ταιριάζει. Απομένουν προσπάθειες: {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "Η είσοδος είναι κλειστή μέχρι τον χάρτινο κωδικό.",
   "pin.wait": "Πολύ νωρίς μετά την τελευταία προσπάθεια. Ξανά σε {n} δ.",
   "reset.item": "από την αρχή",

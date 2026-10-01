@@ -164,6 +164,8 @@
   "pin.go": "changer",
   "pin.changed": "Le PIN est changé.",
   "pin.mismatch": "Ce PIN ne correspond pas. Essais restants : {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "L'accès est fermé jusqu'au code papier.",
   "pin.wait": "Trop tôt après le dernier essai. Réessayez dans {n} s.",
   "reset.item": "recommencer",

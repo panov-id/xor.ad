@@ -30,7 +30,10 @@ const DOWN = "\u001B[B", UP = "\u001B[A", RIGHT = "\u001B[C", LEFT = "\u001B[D",
 // The page's point (web/src/App.tsx): the terminal stands where the browser does.
 const LAT = "41.9", LON = "12.5";
 
-const FEED_ROW = ["open", "like", "hide", "block", "complain", "write", "table", "inbox", "point", "me", "exit"];
+// The feed's actions by their labels: the row is not fixed — "снять фразу"
+// stands in it only while one's own phrase is up (W11-B), "стол" only at a
+// table — so an action is found by walking right until it is the chosen one.
+const FEED_LABELS: Record<string, string> = { like: "лайк", write: "написать", inbox: "входящие", point: "сменить точку", me: "я" };
 // The chat's actions (rooms.ts Chat): send, code, span, end, block, back, game, rekey.
 const CHAT_ROW = ["send", "code", "span", "end", "block", "back", "game", "rekey"];
 
@@ -50,7 +53,15 @@ async function pickIn(app: Screen, row: string[], action: string) {
   for (let i = 0; i < steps; i++) await type(app, RIGHT);
   await type(app, ENTER);
 }
-const pickInFeed = (app: Screen, action: string) => pickIn(app, FEED_ROW, action);
+async function pickInFeed(app: Screen, action: string) {
+  const label = FEED_LABELS[action];
+  if (!label) throw new Error(`no such action in the feed's row: ${action}`);
+  const chosen = new RegExp(`\\[ ${label} \\]`);
+  for (let i = 0; i < 14; i++) await type(app, LEFT);
+  for (let i = 0; i < 14 && !chosen.test(app.lastFrame() ?? ""); i++) await type(app, RIGHT);
+  if (!chosen.test(app.lastFrame() ?? "")) throw new Error(`the feed's row never offered "${label}":\n${JSON.stringify(app.lastFrame() ?? "").slice(0, 600)}`);
+  await type(app, ENTER);
+}
 const pickInChat = (app: Screen, action: string) => pickIn(app, CHAT_ROW, action);
 
 async function until(app: Screen, what: RegExp, seconds = 20) {

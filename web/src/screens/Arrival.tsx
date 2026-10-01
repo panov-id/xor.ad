@@ -38,7 +38,8 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client, longKey: 
       if ("arrival" in claimed) return setInto(claimed);
       if (claimed.status === 404) return setError(say("move.codeBad"));
       if (claimed.status === 409) return setError(say("move.twice"));
-      if (claimed.status === 429) return setError(say("pin.wait", { n: String(claimed.retryAfter ?? "?") }));
+      // The claim's own limit (§8.2, claim.miss.*), not the PIN's words (W12-C2).
+      if (claimed.status === 429) return setError(say("restore.wait", { n: String(claimed.retryAfter ?? "?") }));
       setError(`the claim was refused: ${claimed.status}`);
     } catch (e) {
       setError((e as Error).message);

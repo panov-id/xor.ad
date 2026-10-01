@@ -24,6 +24,7 @@ import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
 import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
+import { legalGate } from "../lib/legal.ts";
 import { base64urlToBytes, sunsetHeader, verifyByLongKey } from "../lib/identity_auth.ts";
 
 // What the long key signs for a half (§8.13, bound 2026-09-22). The same
@@ -49,6 +50,12 @@ type Action = "consent" | "decline" | "undo";
 async function act(req: Request, matchId: string, action: Action): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
+  // `required` revisions not accepted: no chat is opened (§8.2; W13-LN, behind
+  // LEGAL_REQUIRED). A decline or an undo is not an opening.
+  if (action === "consent") {
+    const gate = await legalGate(caller);
+    if (gate) return gate;
+  }
   const allowed = checkAll(LIKE_LIMITS, caller.identityId);
   if (!allowed.allowed) {
     return refuse("rate_limited", "too many actions this hour", 429, {}, {

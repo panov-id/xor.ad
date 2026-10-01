@@ -1463,7 +1463,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>The error form of /v1.</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>error</code></td><td><code>object</code></td><td>yes</td><td></td></tr></table></div></section>
 <section class="op" id="schema-legalreacceptance"><div class="op-head"><code class="path">LegalReacceptance</code></div>
-<p>409 for any signed request that publishes or opens a chat while an accepted revision is stale (protocol §6).</p>
+<p>409 for any signed request that publishes or opens a chat while an accepted revision is stale (protocol §6). Enforced since 2026-10-01 (W13-LN) on POST /feed and POST /matches/{id}/consent for every document whose reaccept is required, when the node runs with LEGAL_REQUIRED=1; off by default until the faces ask for acceptance.</p>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>error</code></td><td><code>string</code> <span class="src">const: &quot;legal_reacceptance_required&quot;</span></td><td>no</td><td></td></tr><tr><td><code>documents</code></td><td>array&lt;<code>object</code>&gt;</td><td>no</td><td></td></tr></table></div></section>
 <section class="op" id="schema-ok"><div class="op-head"><code class="path">Ok</code></div>
 <div class="table"><table><tr><th>Name</th><th>Type</th><th>Required</th><th>Notes</th></tr><tr><td><code>ok</code></td><td><code>boolean</code></td><td>no</td><td></td></tr></table></div></section>

@@ -25,6 +25,7 @@ import { json, readJson } from "../lib/http.ts";
 import { transaction } from "../lib/db.ts";
 import { stillHere } from "../lib/take_down.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
+import { legalGate } from "../lib/legal.ts";
 import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
@@ -62,6 +63,9 @@ const seconds = (at: Date): number => Math.max(1, Math.ceil((at.getTime() - Date
 async function publish(req: Request): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
+  // `required` revisions not accepted: no publishing (§8.2; W13-LN, behind LEGAL_REQUIRED).
+  const gate = await legalGate(caller);
+  if (gate) return gate;
 
   const body = await readJson<FeedBody>(req);
   if (!body) return refuse("invalid_body", "the body is not json", 400);

@@ -44,11 +44,15 @@ import { tableRefusal } from "./api/tables.ts";
 import { Blocked } from "./screens/Blocked.tsx";
 import { Hidden } from "./screens/Hidden.tsx";
 import { forget, readRecord, type Record_ } from "./vault.ts";
+import { watchIdle } from "./idle.ts";
+import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
 import "./screens/feed.css";
 
 type Sealed = "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
-type Seated = { client: Client; keys: ChatKeys; sealed: Sealed };
+// `keys` is null while the page is locked (W13-WL): the chat keys are thrown
+// away with the lock and made anew from the long key the seal gives back.
+type Seated = { client: Client; keys: ChatKeys | null; sealed: Sealed };
 type Screen =
   | { at: "loading" }
   | { at: "splash" }
@@ -103,6 +107,37 @@ function Face() {
   // feed; null until read, so the read happens once (depth/ink app.ts).
   const [statements, setStatements] = useState<Statement[] | null>(null);
   const [edits, setEdits] = useState(0);
+
+  // ── The lock (W13-WL; screen 12, docs/depth-client_RU.md 2026-09-17) ──
+  // Five minutes without input with an identity on the page: the core is
+  // locked (it refuses every signed call but the PIN's proof), the chat keys
+  // are dropped, and the face is one line (Locked.tsx). Drawing it instead of
+  // the body unmounts the rooms, and unmounting closes their sockets — a
+  // locked page holds no socket. Not `registered` alone: a raised or moved-in
+  // identity has a session before it has a PIN (client.canLock).
+  const [locked, setLocked] = useState(false);
+  useEffect(() => {
+    if (!seated || locked) return;
+    const client = seated.client;
+    const watch = watchIdle(() => {
+      if (!client.canLock || client.locked) return;
+      void client.lock().then(() => {
+        setSeated((was) => (was && was.client === client ? { ...was, keys: null } : was));
+        setLocked(true);
+      });
+    });
+    return () => watch.stop();
+  }, [seated?.client, locked]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Opened by the PIN without a reload: the chat keys sign with the long
+  // key the seal gave back (client.held, as at registration); the screen
+  // goes on where it was.
+  async function reopened(client: Client) {
+    const held = client.held;
+    if (!held) throw new Error("the client holds no long key after the unlock");
+    const longKey = await held.signing();
+    setSeated((was) => (was && was.client === client ? { ...was, keys: new ChatKeys(client, longKey) } : was));
+    setLocked(false);
+  }
 
   useEffect(() => {
     (async () => {
@@ -205,6 +240,11 @@ function Face() {
     </nav>
   );
 
+  // One line and nothing else while locked: no name, no counts, no rooms.
+  if (locked && seated) {
+    return <Locked client={seated.client} onUnlocked={() => void reopened(seated.client)} />;
+  }
+
   switch (screen.at) {
     case "loading":
       return <main className="screen"><p className="muted" data-testid="loading">…</p></main>;
@@ -291,7 +331,7 @@ function Face() {
       return (
         <Match
           client={seated!.client}
-          keys={seated!.keys}
+          keys={seated!.keys!}
           row={screen.row}
           onAgreed={() => setScreen({ at: "inbox" })}
           onWaiting={() => setScreen({ at: "inbox" })}
@@ -300,7 +340,7 @@ function Face() {
         />
       );
     case "chat":
-      return <Chat client={seated!.client} keys={seated!.keys} row={screen.row} onBack={() => setScreen({ at: "inbox" })} />;
+      return <Chat client={seated!.client} keys={seated!.keys!} row={screen.row} onBack={() => setScreen({ at: "inbox" })} />;
     case "statements":
       return <Statements items={statements ?? []} onDone={screen.from === "me" ? me : toFeed} />;
     case "me":

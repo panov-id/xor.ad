@@ -42,6 +42,11 @@ PATHS=(
   "chat-game|run-web-two-people.sh chat-game|relay/node/src/routes/chat_games.ts|if (s.turn === null || s.order[s.turn] !== seat) return refuse(\"not_your_turn\", \"not your turn\", 409);|    if (s.turn === null || s.order[s.turn] !== seat || seat === 2) return refuse(\"not_your_turn\", \"not your turn\", 409); // BROKEN by run-e2e-paths: the judge drops the second side's move"
   "lists|run-web-two-people.sh lists|relay/node/src/routes/hidden.ts|route(\"DELETE\", \"/hidden/:id\", (c) => unhide(c.req, c.params.id));|// BROKEN by run-e2e-paths: a hidden phrase never comes back"
   "consent-wait|run-web-two-people.sh consent-wait|relay/node/src/routes/inbox.ts|(mine.accepted_at IS NOT NULL) AS consented,|            false AS consented, -- BROKEN by run-e2e-paths: after a reload the inbox forgets my consent"
+  "register-feed|run-web-two-people.sh register-feed|relay/node/src/lib/pin_attempts.ts|if (!sameHash(presented, row.auth_hash)) {|  if (false) { // BROKEN by run-e2e-paths: any PIN opens the vault"
+  "restore|run-web-two-people.sh restore|relay/node/src/routes/identity.ts|await freezeSession(run, session.id, \"transfer\", freezes);|      // BROKEN by run-e2e-paths: the raise leaves the lost device live"
+  "restore-pin|run-web-two-people.sh restore-pin|relay/node/src/routes/identity.ts|SET auth_hash = \$2, share_enc = \$3,|          SET share_enc = \$3, -- BROKEN by run-e2e-paths: the PIN change keeps the old PIN"
+  "transfer|run-web-two-people.sh transfer|relay/node/src/routes/transfer.ts|[sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, unlockPub as string | null, label],|      [sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, null, label], // BROKEN by run-e2e-paths: the arriving session gets no unlock key"
+  "unlock-chat|run-web-two-people.sh unlock-chat|relay/node/src/routes/chats.ts|await storeWrap(run, chatId, caller.sessionId, epoch, bytes);|    // BROKEN by run-e2e-paths: the node keeps no wrap of the keys"
 )
 
 mode="${1:-}"

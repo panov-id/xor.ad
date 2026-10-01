@@ -53,15 +53,20 @@ const unliked = () => json({ state: "unliked" }, 200, sunsetHeader());
 // and a side whose socket is closed reads the same row from GET /inbox. One-sided
 // delivery is forbidden (chat spec §8.7): the row is the delivery, the frame is
 // transit. The chat row is locked by the caller, so the next position is safe.
+// The starter carries the phrase's id (db/084): an Article 16 decision empties
+// it by that id (routes/dsa.ts), and a like taken back and given again finds
+// its row already there — one starter per phrase, no second frame (lens of
+// wave 10, 01.10.2026: without the id the taken-down text stayed in the inbox).
 async function extraLike(
   run: Query,
   chatId: string, liker: string, phraseId: string,
 ): Promise<void> {
   const [added] = await run<{ position: number; text: string; mode: string }>(
-    `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by)
+    `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by, message_id)
      SELECT $1, coalesce((SELECT max(position) FROM chat_starters WHERE chat_id = $1), 0) + 1,
-            f.text, f.mode, $2
+            f.text, f.mode, $2, f.id
        FROM feed_messages f WHERE f.id = $3
+     ON CONFLICT (chat_id, message_id) WHERE message_id IS NOT NULL DO NOTHING
      RETURNING position, text_snapshot AS text, mode`,
     [chatId, liker, phraseId],
   );

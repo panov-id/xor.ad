@@ -376,3 +376,32 @@ test("a conversation holds one starter per phrase: the same phrase again is refu
   ).catch((e: Error) => (refused = String(e)));
   assert(/chat_starters_one_per_phrase/.test(refused), `a second starter of the same phrase was written: ${refused || "no error"}`);
 });
+
+// ── The extra like (§8.7) through the route, not by hand (lens of wave 10) ────
+
+test("a phrase liked into an open conversation and then taken down under Article 16 is handed out emptied, to both (§8.7, db/084)", async () => {
+  const { low, high, chatId } = await openedPair();
+  const later = await seedPhrase(high.identity_id, "кто-нибудь идёт на набережную вечером");
+  const liked = await signed(low, "POST", `/feed/${later}/like`);
+  assertEquals(liked.body, { state: "liked" }, `the extra like did not count: ${JSON.stringify(liked.body)}`);
+  assertEquals(await textsFor(low, chatId), ["гуляю у залива", "кто на набережную?", "кто-нибудь идёт на набережную вечером"]);
+  await takenDownByNotice(later);
+  for (const who of [low, high]) {
+    assertEquals(await textsFor(who, chatId), ["гуляю у залива", "кто на набережную?", "<removed>"],
+      "the text of a phrase taken down under Article 16 is still handed out through the extra like's starter");
+  }
+});
+
+test("a like taken back and given again writes one starter, not two (§8.7, db/084)", async () => {
+  const { low, high, chatId } = await openedPair();
+  const later = await seedPhrase(high.identity_id, "кто-нибудь идёт на набережную вечером");
+  assertEquals((await signed(low, "POST", `/feed/${later}/like`)).body, { state: "liked" });
+  const back = await signed(low, "DELETE", `/feed/${later}/like`);
+  assertEquals(back.status, 200, `the take-back failed: ${JSON.stringify(back.body)}`);
+  const again = await signed(low, "POST", `/feed/${later}/like`);
+  assertEquals(again.status, 200, `the second like failed: ${JSON.stringify(again.body)}`);
+  const rows = await database.queryOrThrow<{ position: number; message_id: string }>(
+    `SELECT position, message_id FROM chat_starters WHERE chat_id = $1 ORDER BY position`, [chatId]);
+  assertEquals(rows.map((r) => r.position), [1, 2, 3], "a second like of the same phrase wrote a second starter");
+  assertEquals(rows[2].message_id, later, "the extra like's starter does not carry the phrase's id");
+});

@@ -69,6 +69,8 @@
   "chat.broken": "билдирүү ачылган жок: {message}",
   "chat.codeChanged": "код акыркы салыштыруудан бери өзгөрдү — кайра салыштыргыла",
   "feed.hide": "жашыруу",
+  "feed.takedown": "take the phrase down",
+  "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "жашырылган",
   "hidden.title": "жашырылган сөздөр",
   "hidden.empty": "эч нерсе жашырылган эмес",

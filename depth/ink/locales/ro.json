@@ -69,6 +69,8 @@
   "chat.broken": "un mesaj nu s-a deschis: {message}",
   "chat.codeChanged": "codul s-a schimbat de la ultima comparare — comparați din nou",
   "feed.hide": "ascunde",
+  "feed.takedown": "take the phrase down",
+  "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "ascunse",
   "hidden.title": "fraze ascunse",
   "hidden.empty": "nimic ascuns",

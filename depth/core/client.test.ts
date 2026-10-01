@@ -252,3 +252,38 @@ Deno.test({
     }
   },
 });
+
+// W11-B · taking one's own phrase down: the row is gone and the feed of the
+// other person no longer carries it; somebody else's phrase answers 404 and
+// stays — the node tells "not yours" from "never existed" by nothing.
+Deno.test({
+  name: "my own phrase is taken down and leaves the other person's feed; somebody else's stays and answers not found",
+  ignore: !node || !databaseUrl,
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const sql = postgres(databaseUrl!, { max: 1 });
+    try {
+      const { a, b, phraseOfB } = await twoWithPhrases(sql);
+      const mine = (await sql.unsafe(`SELECT id FROM feed_messages WHERE author_identity = $1`, [a.identityId]))[0].id as string;
+      const seen = async (who: typeof a) =>
+        (await who.feed({ lat: 59.93, lon: 30.33, radius: 1000 })).items
+          .map((item) => (item as { id: string }).id);
+      assert((await seen(b)).includes(mine), "the other person's feed did not carry my phrase to begin with");
+
+      const theirs = await a.takeDown(phraseOfB);
+      assertEquals(theirs.status, 404, `somebody else's phrase did not answer not found: ${JSON.stringify(theirs.body)}`);
+      assertEquals((await sql.unsafe(`SELECT id FROM feed_messages WHERE id = $1`, [phraseOfB])).length, 1, "somebody else's phrase was taken down");
+
+      const gone = await a.takeDown(mine);
+      assertEquals(gone.status, 204, `my own phrase was not taken down: ${JSON.stringify(gone.body)}`);
+      assertEquals((await sql.unsafe(`SELECT id FROM feed_messages WHERE id = $1`, [mine])).length, 0, "the row is still there");
+      assertEquals((await seen(b)).includes(mine), false, "the phrase is still in the other person's feed");
+
+      const again = await a.takeDown(mine);
+      assertEquals(again.status, 404, "a phrase already gone did not answer not found");
+    } finally {
+      await sql.end();
+    }
+  },
+});

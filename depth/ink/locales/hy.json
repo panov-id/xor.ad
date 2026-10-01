@@ -69,6 +69,8 @@
   "chat.broken": "հաղորդագրությունը չբացվեց՝ {message}",
   "chat.codeChanged": "կոդը փոխվել է վերջին համեմատությունից ի վեր՝ համեմատեք նորից",
   "feed.hide": "թաքցնել",
+  "feed.takedown": "take the phrase down",
+  "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "թաքցվածը",
   "hidden.title": "թաքցված արտահայտություններ",
   "hidden.empty": "ոչինչ թաքցված չէ",

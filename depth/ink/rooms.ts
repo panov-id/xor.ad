@@ -28,7 +28,8 @@ export function Write(
     client: Client;
     place: Place;
     limit: number;
-    onDone: (text: string) => void;
+    // `id` is what POST /feed answered: the feed takes the phrase down by it (W11-B).
+    onDone: (text: string, id?: string) => void;
     onBack: () => void;
     onError: (message: string) => void;
   },
@@ -77,7 +78,7 @@ export function Write(
           .then(async (answer) => {
             // Until 23.09.2026 any answer counted as sent, and a refusal showed
             // as "being checked" — the terminal telling a lie on the node's behalf.
-            if (answer.status === 200 || answer.status === 202) return onDone(text.trim());
+            if (answer.status === 200 || answer.status === 202) return onDone(text.trim(), (answer.body as { id?: string } | null)?.id);
             const why = await refusal(answer);
             if (why) return setRefused(why);
             onError(`the phrase was refused: ${answer.status}`);

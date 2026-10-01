@@ -129,7 +129,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
   const [busy, setBusy] = useState(false);
   const [limit, setLimit] = useState(LENGTH_UNTIL_THE_NODE_SPEAKS);
   const [place, setPlace] = useState<Place | undefined>(undefined);
-  const [mine, setMine] = useState<{ text: string; state: string } | undefined>(undefined);
+  const [mine, setMine] = useState<{ id?: string; text: string; state: string } | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
   // Every error a screen reports lands here, and an error's words can carry
   // what the node or the other device sent — a JSON parser quotes its input
@@ -301,6 +301,8 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
           onMe: () => setWhere({ screen: "me" }),
           onTable: () => setWhere({ screen: "newTable" }),
           onComplain: (offerId) => setWhere({ screen: "complaint", offerId }),
+          // My own phrase came down from the feed's row (W11-B): nothing to show.
+          onTakenDown: () => setMine(undefined),
           // Sitting down at a table from the feed (G1h): the seat first, then
           // the live table; a refusal (unavailable, already seated) is said.
           onOpenTable: (id) =>
@@ -352,7 +354,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
           client,
           place: place!,
           limit,
-          onDone: (text) => { setMine({ text, state: "pending" }); feed(); },
+          onDone: (text, id) => { setMine({ id, text, state: "pending" }); feed(); },
           onBack: feed,
           onError: fail,
         });

@@ -10,6 +10,8 @@ import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan, awayCounts, graphemes, NAME_MA
 import { blockList, hiddenList } from "../api/lists.ts";
 import { changePinAndReseal, forget } from "../vault.ts";
 import { Button } from "../ui/Button.tsx";
+import { Icon, type IconName } from "../ui/Icon.tsx";
+import { Info } from "../ui/Info.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import "./place.css";
 
@@ -39,21 +41,21 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
     hiddenList(client).then((r) => setHidden(r.length)).catch(() => setHidden(null));
     blockList(client).then((r) => setBlocked(r.length)).catch(() => setBlocked(0));
   }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
-  const rows: Array<{ key: MeRow; label: string; red?: boolean; testid: string }> = [
-    ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true, testid: "me-statements" }] : []),
-    { key: "name", label: `${say("me.name")}  ${profile ? profile.name + (profile.pending ? ` → ${profile.pending} · ${say("feed.checking")}` : "") : "…"}`, testid: "me-name" },
-    { key: "age", label: `${say("me.age")}  ${profile ? profile.age : "…"}`, testid: "me-age" },
-    { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}`, testid: "me-hidden" },
-    ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }), testid: "me-blocked" }] : []),
-    { key: "away", label: say("away.item"), testid: "me-away" },
-    { key: "pin", label: say("pin.item"), testid: "me-pin" },
-    { key: "move", label: say("move.item"), testid: "me-move" },
-    { key: "reissue", label: say("reissue.item"), testid: "me-reissue" },
-    { key: "reset", label: say("reset.item"), testid: "me-reset" },
+  const rows: Array<{ key: MeRow; label: string; red?: boolean; testid: string; icon?: IconName }> = [
+    ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true, testid: "me-statements", icon: "report" as const }] : []),
+    { key: "name", label: `${say("me.name")}  ${profile ? profile.name + (profile.pending ? ` → ${profile.pending} · ${say("feed.checking")}` : "") : "…"}`, testid: "me-name", icon: "name" },
+    { key: "age", label: `${say("me.age")}  ${profile ? profile.age : "…"}`, testid: "me-age", icon: "me" },
+    { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}`, testid: "me-hidden", icon: "hide" },
+    ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }), testid: "me-blocked", icon: "block" as const }] : []),
+    { key: "away", label: say("away.item"), testid: "me-away", icon: "timer" },
+    { key: "pin", label: say("pin.item"), testid: "me-pin", icon: "key" },
+    { key: "move", label: say("move.item"), testid: "me-move", icon: "arrive" },
+    { key: "reissue", label: say("reissue.item"), testid: "me-reissue", icon: "code" },
+    { key: "reset", label: say("reset.item"), testid: "me-reset", icon: "reset" },
   ];
   return (
     <main className="screen me" data-screen="me" data-name-state={profile?.pending ? "pending" : "accepted"}>
-      <HeaderScreen title={say("me.title")} action={<Button kind="text" type="button" onClick={onBack} data-testid="me-back">{say("common.back")}</Button>} />
+      <HeaderScreen title={say("me.title")} action={<Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="me-back" />} />
       {error && <p className="error" data-testid="error">{error}</p>}
       <ul className="place-rows">
         {rows.map((row) => (
@@ -72,7 +74,8 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
                 onOpen(row.key);
               }}
             >
-              {row.label}
+              {row.icon ? <Icon name={row.icon} /> : null}
+              <span>{row.label}</span>
             </button>
           </li>
         ))}
@@ -127,22 +130,23 @@ export function EditProfile({ client, field, current, onDone, onBack }: {
         ? (
           <>
             <p className="warn">{say("me.band21")}</p>
-            <button type="button" className="ui-button ui-primary" onClick={() => { setAsking(false); void send(); }} data-testid="edit-save">{say("me.save")}</button>
-            <button type="button" className="ui-button ui-secondary" onClick={() => setAsking(false)}>{say("me.cancel")}</button>
+            <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("me.save")} onClick={() => { setAsking(false); void send(); }} data-testid="edit-save" />
+            <Button type="button" icon="close" className="ui-wide" aria-label={say("me.cancel")} onClick={() => setAsking(false)} />
           </>
         )
         : (
           <>
-            <button
+            <Button
               type="button"
-              className="ui-button ui-primary"
+              kind="primary"
+              icon="check"
+              className="ui-wide"
+              aria-label={say("me.save")}
               disabled={busy || value.trim() === "" || value.trim() === current}
               onClick={() => (crossesUp() ? setAsking(true) : void send())}
               data-testid="edit-save"
-            >
-              {say("me.save")}
-            </button>
-            <button type="button" className="ui-button ui-secondary" onClick={onBack} data-testid="edit-back">{say("common.back")}</button>
+            />
+            <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="edit-back" />
           </>
         )}
     </main>
@@ -189,7 +193,7 @@ export function ChangePin({ client, onBack }: { client: Client; onBack: () => vo
         ? (
           <>
             <p data-testid="pin-changed">{say("pin.changed")}</p>
-            <button type="button" className="ui-button ui-primary" onClick={onBack} data-testid="pin-back">{say("common.back")}</button>
+            <Button type="button" kind="primary" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="pin-back" />
           </>
         )
         : (
@@ -199,8 +203,8 @@ export function ChangePin({ client, onBack }: { client: Client; onBack: () => vo
             {field("again", say("pin.again"), "pin-again")}
             {differ && <p className="error">{say("reg.pinMismatch")}</p>}
             {refused && <p className="error" data-testid="error">{refused}</p>}
-            <button type="button" className="ui-button ui-primary" disabled={!ready} onClick={() => void send()} data-testid="pin-go">{busy ? "…" : say("pin.go")}</button>
-            <button type="button" className="ui-button ui-secondary" onClick={onBack} data-testid="pin-back">{say("common.back")}</button>
+            <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("pin.go")} aria-busy={busy} disabled={!ready} onClick={() => void send()} data-testid="pin-go" />
+            <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="pin-back" />
           </>
         )}
     </main>
@@ -237,16 +241,18 @@ export function StartAgain({ client, onClosed, onBack }: { client: Client; onClo
   return (
     <main className="screen reset" data-screen="reset">
       <HeaderScreen title={say("reset.title")} />
-      <p className="warn">{say("reset.warning")}</p>
+      <div className="ui-info-row">
+        <Info label={say("reset.title")} warn data-testid="reset-warning-info"><p>{say("reset.warning")}</p></Info>
+        <Info label={say("reset.title")} warn data-testid="reset-code-info"><p>{say("reset.code")}</p></Info>
+      </div>
       <p data-testid="reset-price">{counts ? say("reset.price", { phrases: String(counts.phrases), chats: String(counts.chats) }) : "…"}</p>
-      <p className="warn">{say("reset.code")}</p>
       <label>
         {say("reset.pin")}
         <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="reset-pin" />
       </label>
       {refused && <p className="error" data-testid="error">{refused}</p>}
-      <button type="button" className="ui-button ui-primary" disabled={pin.length !== 6 || counts === null || busy} onClick={() => void send()} data-testid="reset-go">{say("reset.go")}</button>
-      <button type="button" className="ui-button ui-secondary" onClick={onBack} data-testid="reset-back">{say("common.back")}</button>
+      <Button type="button" kind="danger" icon="reset" className="ui-wide" aria-label={say("reset.go")} disabled={pin.length !== 6 || counts === null || busy} onClick={() => void send()} data-testid="reset-go" />
+      <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="reset-back" />
     </main>
   );
 }
@@ -277,11 +283,14 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
         ))}
       </ul>
       <p className={span ? "warn" : "muted"} data-testid="away-price">{price()}</p>
-      <p className="muted">{say("away.warning")}</p>
+      <div className="ui-info-row"><Info label={say("away.item")} data-testid="away-warning-info"><p>{say("away.warning")}</p></Info></div>
       {error && <p className="error" data-testid="error">{error}</p>}
-      <button
+      <Button
         type="button"
-        className="ui-button ui-primary"
+        kind="primary"
+        icon="timer"
+        className="ui-wide"
+        aria-label={say("away.go")}
         disabled={span === null || busy}
         onClick={() => {
           if (!span) return;
@@ -289,10 +298,8 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
           client.stepAway(span).then(onGone).catch((e: Error) => { setBusy(false); setError(e.message); });
         }}
         data-testid="away-go"
-      >
-        {say("away.go")}
-      </button>
-      <button type="button" className="ui-button ui-secondary" onClick={onBack} data-testid="away-back">{say("common.back")}</button>
+      />
+      <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="away-back" />
     </main>
   );
 }
@@ -318,17 +325,18 @@ export function Away({ client, until, onBack }: { client: Client; until: number;
       <p className="muted">{say("away.until", { time: at, minutes: left })}</p>
       {asking && <p className="warn" data-testid="away-sure">{say("away.sure")}</p>}
       {error && <p className="error" data-testid="error">{error}</p>}
-      <button
+      <Button
         type="button"
-        className="ui-button ui-primary"
+        kind="primary"
+        icon="arrive"
+        className="ui-wide"
+        aria-label={say("away.back")}
         onClick={() => {
           if (!asking) return setAsking(true);
           client.comeBack().then(onBack).catch((e: Error) => setError(e.message));
         }}
         data-testid="away-return"
-      >
-        {say("away.back")}
-      </button>
+      />
     </main>
   );
 }

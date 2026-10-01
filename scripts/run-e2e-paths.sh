@@ -52,6 +52,15 @@ PATHS=(
   "mixed-chat-game|run-web-depth-mixed.sh mixed-chat-game|relay/node/src/routes/chat_games.ts|if (!step.again) s.turn = (s.turn + 1) % s.order.length;|// BROKEN by run-e2e-paths: the turn never passes to the other side"
   "mixed-starters|run-web-depth-mixed.sh mixed-starters|relay/node/src/routes/likes.ts|await run(\`SELECT pg_notify('chat_extra_like', \$1)\`, [\`\${chatId}|\${liker}|\${JSON.stringify(added)}\`]);|// BROKEN by run-e2e-paths: no room hears of the extra like"
   "mixed-chat-end|run-web-depth-mixed.sh mixed-chat-end|relay/node/src/routes/blocks.ts|await run(\`SELECT pg_notify('chat_closed', \$1)\`, [id]);|// BROKEN by run-e2e-paths: a block tells no room to close"
+  # W13-E2: "me" twice, by meaning — the PIN change and "start again" are two
+  # halves of me.spec, each with the break that takes its own half away; the
+  # paper code's reissue by its second half (the new code opens the key, not
+  # only the old one dies — that is the "reissue" row above); the close
+  # frame's code as the browser reads it.
+  "pin-change|run-web-two-people.sh me|relay/node/src/routes/identity.ts|route(\"POST\", \"/vault/pin\", (c) => changePin(c.req));|// BROKEN by run-e2e-paths: no PIN change reaches the node"
+  "start-over|run-web-two-people.sh me|relay/node/src/routes/identity.ts|route(\"POST\", \"/identities/close\", (c) => closeIdentity(c.req));|// BROKEN by run-e2e-paths: no identity is closed"
+  "reissue-paper|run-web-two-people.sh reissue|relay/node/src/routes/identity.ts|UPDATE identities SET recovery_auth_hash = \$2, recovery_wrapped_key = \$3 WHERE id = \$1|      \`UPDATE identities SET recovery_auth_hash = \$2, recovery_wrapped_key = recovery_wrapped_key WHERE id = \$1\`, // BROKEN by run-e2e-paths: the new code opens the old key, which it cannot"
+  "close-code|run-web-two-people.sh close-code|relay/node/src/chat/relay.ts|socket.send(JSON.stringify({ type: \"closed\", seq, data: { code, reason } }));|    socket.send(JSON.stringify({ type: \"closed\", seq, data: { code: 1000, reason } })); // BROKEN by run-e2e-paths: the closed frame names the wrong code"
 )
 
 mode="${1:-}"

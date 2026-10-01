@@ -506,6 +506,41 @@ Ten places where one control is described differently; the direction is named, t
 
 `--r-round` as an avatar (there are no avatars), `--r-pill` (no screen asks for a pill), `--ok` as a separate outcome (only ✓ and an error are needed), "press on hover" (interactions are by touch and keyboard). The tokens stay, but the mockup is not obliged to use them. The motion tokens `--dur-*`, `--ease-*`, `--shift-*` are the "Motion" section; they are introduced here.
 
+## The web's comic face (since 2026-10-01)
+
+Since 2026-10-01 the web face (`web/`) wears comic luxury — the owner's "GTA loading screen".
+The mock is `web/design/comic-2026-10-01.svg`; the screen mocks are built by the `comic.py`
+generator. What is said above about the `k-dark`/`k-light` palette and the storefront characters
+still holds for the panel and the sheets; the web wears a comic scheme over them.
+
+- **Schemes.** `k-comic`, `k-comic-night` (sosed), `k-comic-neighbro`, `k-comic-neighbro-night` in
+  `panel/design/kit/schemes.css`. `scripts/design-palettes.py` builds them in one block, and that
+  block holds every number of the style: outline `--comic-line` 2.5, cut corner `--comic-cut` 16,
+  hard shadow `--comic-drop-x/-y` 4/4, lean `--comic-tilt` 0°, side 16 and block gap 20, header 76,
+  feed scene 200. `web/src/main.tsx` picks the scheme by brand (`BRAND`) and system theme.
+- **Palette.** Day: paper #fffaf0 on cream #f6efe2, ink #141018, sosed's terracotta or neighbro's sea
+  for the chosen thing. Night without neon: #0e1324, panels #18203a, gold accent. Gold foil — the
+  gradient #b8893b → #e9cf8a → #b8893b — on the primary button, the title plate and the like's
+  medallion. The focus ring has its own token `--focus` (ink by day, gold at night); the generator
+  checks it against the ground and the panel at 3:1 and goes red below.
+- **No stars, no halftone.** A like is a gold medallion with ♥ and the count: a pop 0 → 1.2 → 1 in
+  220 ms and a shake, still under `prefers-reduced-motion`. Exclamations in the product are symbols only.
+- **Type.** Headings Russo One (OFL, Cyrillic and Latin in `panel/design/fonts`), text Golos Text 500.
+- **Icons instead of words.** An action button is a 44×44 icon without a caption (`web/src/ui/Icon.tsx`,
+  41 glyphs, a 2.4 outline on a 24 grid). Its name is the `aria-label` from the translation key that
+  used to be its text, so no translation line is new.
+- **ⓘ instead of paragraphs.** An explanation hides behind an ⓘ button (`web/src/ui/Info.tsx`): a balloon
+  with a tail, focus moves in, Esc and a press outside close it, focus comes back. The red variant is for
+  what cannot be undone. States ("already agreed and waiting for you") stay in view.
+- **Times of day.** The feed header stands on the scene of its hour in the time zone of the feed's
+  filter place, not the device's: morning 5–11, day 11–17, sunset 17–21, night 21–5, re-read every minute.
+  Assumption: the place has no zone, on the page or on the node, so it is derived from the longitude
+  (UTC + round(lon/15), no borders, no summer time, up to 1–2 hours off). A non-numeric longitude or a zone
+  Intl refuses gives the device's clock.
+- **Brands.** sosed — a courtyard of panel blocks; neighbro — a coast with palms; four scenes each.
+- **Checks.** Colours only from the kit's tokens — `scripts/check-web-tokens.sh`. `check-web-design` is still
+  measured against the old sheets, so it is red against them; changing its reference waits for the owner.
+
 ## Nothing open
 
 The application design system has no open items: below is the recorded decision

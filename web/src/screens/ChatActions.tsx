@@ -43,25 +43,29 @@ export function ChatActions({ span, busy, askedByPeer, waitingForPeer, onSpan, o
       {asking === "end" && (
         <section className="confirm" data-testid="end-confirm">
           <p>{say("web.chat.endAsk")}</p>
-          <Button kind="danger" type="button" data-testid="end-yes" onClick={() => { setAsking(null); onEnd(); }}>{say("chat.end")}</Button>
-          <Button kind="secondary" type="button" data-testid="end-no" onClick={() => setAsking(null)}>{say("common.back")}</Button>
+          <div className="ui-icon-row">
+            <Button kind="danger" type="button" icon="end" aria-label={say("chat.end")} data-testid="end-yes" onClick={() => { setAsking(null); onEnd(); }} />
+            <Button kind="secondary" type="button" icon="back" aria-label={say("common.back")} data-testid="end-no" onClick={() => setAsking(null)} />
+          </div>
         </section>
       )}
       {asking === "block" && (
         <section className="confirm" data-testid="block-confirm">
           <p className="error">{say("block.confirm")}</p>
           <p>{say("block.what")}</p>
-          <Button kind="danger" type="button" data-testid="block-yes" onClick={() => { setAsking(null); onBlock(); }}>{say("block.item")}</Button>
-          <Button kind="secondary" type="button" data-testid="block-no" onClick={() => setAsking(null)}>{say("common.back")}</Button>
+          <div className="ui-icon-row">
+            <Button kind="danger" type="button" icon="block" aria-label={say("block.item")} data-testid="block-yes" onClick={() => { setAsking(null); onBlock(); }} />
+            <Button kind="secondary" type="button" icon="back" aria-label={say("common.back")} data-testid="block-no" onClick={() => setAsking(null)} />
+          </div>
         </section>
       )}
       {asking === null && (
-        <div className="talk-sets">
-          <Button kind="text" type="button" data-testid="end" onClick={() => setAsking("end")}>{say("chat.end")}</Button>
-          <Button kind="text" type="button" data-testid="block" onClick={() => setAsking("block")}>{say("block.item")}</Button>
+        <div className="ui-icon-row">
+          <Button type="button" icon="end" aria-label={say("chat.end")} data-testid="end" onClick={() => setAsking("end")} />
+          <Button type="button" icon="block" aria-label={say("block.item")} data-testid="block" onClick={() => setAsking("block")} />
           {/* Asked by the other side, the agreement stands in its own card above. */}
           {!askedByPeer && (
-            <Button kind="text" type="button" disabled={busy || waitingForPeer} onClick={() => onRekey("ask")} data-testid="rekey-ask">{say("web.chat.rekey_ask")}</Button>
+            <Button type="button" icon="key" aria-label={say("web.chat.rekey_ask")} disabled={busy || waitingForPeer} onClick={() => onRekey("ask")} data-testid="rekey-ask" />
           )}
         </div>
       )}

@@ -27,6 +27,8 @@ import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
 import "./talk.css";
+import { Icon } from "../ui/Icon.tsx";
+import { Info } from "../ui/Info.tsx";
 
 interface Line {
   id: string; text: string; mine: boolean; at: number; state?: "sent" | "queued" | "failed";
@@ -269,10 +271,10 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
   return (
     <main className="screen chat" data-screen="chat" data-id={given.id} data-keys={keysState} data-over={over ? "yes" : "no"} data-epoch={row.key_epoch} data-rekey-requested={askedByPeer ? "yes" : "no"} data-span={span} data-ends-at={endsAt} data-counting={quiet.counting ? "yes" : "no"} data-blocked={blocked ? "yes" : "no"} data-peer-away={peerAway ? "yes" : "no"} data-missed={missed ? "yes" : "no"}>
       <header className="ui-header ui-header-rule">
-        <button type="button" className="ui-icon" onClick={onBack} data-testid="back" aria-label={say("common.back")}>
-          <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><path d="M26 14 L18 22 L26 30" /></svg>
+        <button type="button" className="ui-icon ui-icon-only" onClick={onBack} data-testid="back" aria-label={say("common.back")}>
+          <Icon name="back" />
         </button>
-        <h1 className="ui-header-title">{row.name}, {row.age}{peerAway && <span className="muted peer-away" data-testid="peer-away"> · {say("chat.peerAway")}</span>}</h1>
+        <h1 className="ui-header-title">{row.name}, {row.age}{peerAway && <span className="peer-away" data-testid="peer-away"> · {say("chat.peerAway")}</span>}</h1>
       </header>
       {!over && missed && (
         <p className="warn" data-testid="missed">{say("web.chat.missed")}</p>
@@ -294,10 +296,10 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
       {/* One's own span, always in view (§8.6 «fades after 1h of YOUR silence»),
           and the counter once the silence has reached a quarter of it. */}
       {!over && (
-        <p className="muted fades" data-testid="fades" data-counting={quiet.counting ? "yes" : "no"}>
-          {say("chat.fades", { span: say(`chat.spanShort${span}`) })}
-          {quiet.counting && <span data-testid="silence-clock"> · {quiet.clock}</span>}
-        </p>
+        <div className="fades ui-icon-row" data-testid="fades" data-counting={quiet.counting ? "yes" : "no"}>
+          <Info label={say("web.chat.span_label")} data-testid="fades-info"><p data-testid="fades-text">{say("chat.fades", { span: say(`chat.spanShort${span}`) })}</p></Info>
+          {quiet.counting && <span data-testid="silence-clock">{quiet.clock}</span>}
+        </div>
       )}
       {safety && <p className="code" data-testid="safety">{safety}</p>}
       {/* The handles (W11-A): the span, the end for both (W17; DELETE /chats/:id),
@@ -329,7 +331,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
       {!over && askedByPeer && (
         <Card as="section" data-testid="rekey-asked">
           <p>{say("web.chat.peer_moved")}</p>
-          <Button kind="primary" type="button" disabled={busy} onClick={() => rekey("agree")} data-testid="rekey-agree">{say("web.chat.rekey_agree")}</Button>
+          <Button kind="primary" type="button" icon="key" className="ui-wide" aria-label={say("web.chat.rekey_agree")} disabled={busy} onClick={() => rekey("agree")} data-testid="rekey-agree" />
         </Card>
       )}
       {!over && !askedByPeer && waitingForPeer && (
@@ -360,14 +362,14 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
       {!over && (
         <form className="composer" onSubmit={(e) => { e.preventDefault(); void send(); }}>
           <input value={text} onChange={(e) => setText(e.target.value)} placeholder={say("web.chat.line")} disabled={keysState !== "open"} data-testid="text" />
-          <Button kind="primary" type="submit" disabled={keysState !== "open" || !text.trim()} data-testid="send">{say("chat.send")}</Button>
+          <Button kind="primary" type="submit" icon="send" className="ui-mid" aria-label={say("chat.send")} disabled={keysState !== "open" || !text.trim()} data-testid="send" />
         </form>
       )}
       <footer className="muted">
         {!over && (
-          <Button kind="secondary" type="button" onClick={() => setGameOpen((o) => !o)} data-testid="game-toggle" aria-pressed={gameOpen}>{say("web.game.title")}</Button>
+          <Button kind="secondary" type="button" icon="random" className="ui-wide" aria-label={say("web.game.title")} onClick={() => setGameOpen((o) => !o)} data-testid="game-toggle" aria-pressed={gameOpen} />
         )}
-        <Button kind="secondary" type="button" onClick={() => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"))} data-testid="show-safety">{say("chat.code")}</Button>
+        <Button kind="secondary" type="button" icon="consent" className="ui-wide" aria-label={say("chat.code")} onClick={() => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"))} data-testid="show-safety" />
       </footer>
     </main>
   );

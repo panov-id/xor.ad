@@ -128,6 +128,13 @@ async function hand(room: Room, localId: string | null): Promise<void> {
   // the next hand-over tries everything again (panel 2026-09-24).
   if (wasHeld) room.held = false;
   for (const row of rows) {
+    // A socket closing under this hand-over (closeRoom, the client's own
+    // close): nothing more goes into it — frame() drops what is not OPEN —
+    // and the rows stay queued until POST /chats/:id/received, so the next
+    // socket of this session is handed them again (open.tsv
+    // relay.hand.frame.lost; W13-HF). Said here so the loop does not walk a
+    // hundred rows into a dead socket, counting frames nobody got.
+    if (room.socket.readyState !== WebSocket.OPEN) return;
     const bytes = row.ciphertext instanceof Uint8Array ? row.ciphertext : new Uint8Array(row.ciphertext);
     let binary = "";
     for (const b of bytes) binary += String.fromCharCode(b);

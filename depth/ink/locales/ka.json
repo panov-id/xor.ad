@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "ახალი გასაღებების მოთხოვნა გაიგზავნა — ველოდებით მეორე მხარის თანხმობას.",
   "chat.rekeyDone": "საუბრის გასაღებები განახლდა (ეპოქა {epoch}).",
   "chat.rekeyRefused": "კვანძმა ახალი გასაღებები არ მიიღო: {status}",
-  "feed.refused": "შენმა ფრაზამ მოდერაცია ვერ გაიარა და მოიხსნა."
+  "feed.refused": "შენმა ფრაზამ მოდერაცია ვერ გაიარა და მოიხსნა.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

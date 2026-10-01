@@ -341,6 +341,19 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.equal(moves.length, 1, "a card went out on another's turn");
     theirs.unmount();
   }],
+  // W13-TN · the name the moderator refused is said to the author under the
+  // head, and the table goes on; nothing is said while no verdict came.
+  ["a refused table name is said on the table, and a table without a verdict says nothing of it", async () => {
+    const refused = render(h(Table, { say, view: view({ name_refused: true }), onPick: () => {}, now: NOW * 1000 }));
+    await settle();
+    assert.match(refused.lastFrame()!, /имя стола не принято/, "a refused name is not said to the author");
+    assert.match(refused.lastFrame()!, /ваш ход/, "the table did not go on after the refused name");
+    refused.unmount();
+    const quiet = render(h(Table, { say, view: view(), onPick: () => {}, now: NOW * 1000 }));
+    await settle();
+    assert.doesNotMatch(quiet.lastFrame()!, /имя стола не принято/, "the line stands with no verdict");
+    quiet.unmount();
+  }],
   ["setting a table sends the class, set, seats, point and name, and opens the table it got", async () => {
     const sent: unknown[] = [];
     let opened: string | null = null;

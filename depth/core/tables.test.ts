@@ -220,3 +220,22 @@ Deno.test({
     assert(/к/.test((view.board!.state.word as { mask: string }).mask), `the letter is not in the mask: ${JSON.stringify(view.board!.state.word)}`);
   },
 });
+
+// W13-TN · the name's verdict (chat spec §6.1, protocol §4.4 name_verdict with
+// `table`): a refused name is said to the author — the view remembers it — and
+// a verdict for another table leaves this view alone; an accepted one needs the
+// view read again, since the name moved from name_pending to name on the node.
+Deno.test("the name_verdict frame marks a refused name on its own table only, and an accepted one asks for the view", () => {
+  const view = {
+    id: "t1", class: "dots" as const, set: "2x2", seat: 1, is_playing: true, playing: 1, watching: 0,
+    seats: [], board: null, lines: [],
+  };
+  const refused = applyFrame(view, { type: "name_verdict", seq: 1, data: { accepted: false, table: "t1" } });
+  assertEquals(refused.name_refused, true, "a refused name is not marked on the view");
+  const other = applyFrame(view, { type: "name_verdict", seq: 2, data: { accepted: false, table: "t2" } });
+  assertEquals(other.name_refused, undefined, "another table's verdict marked this view");
+  const accepted = applyFrame(refused, { type: "name_verdict", seq: 3, data: { accepted: true, table: "t1" } });
+  assertEquals(accepted.name_refused, false, "an accepted name did not lift the mark");
+  assert(frameNeedsView({ type: "name_verdict", seq: 3, data: { accepted: true, table: "t1" } }), "an accepted name does not ask for the view");
+  assert(!frameNeedsView({ type: "name_verdict", seq: 1, data: { accepted: false, table: "t1" } }), "a refused name asks for the view it does not need");
+});

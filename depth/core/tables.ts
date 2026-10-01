@@ -43,6 +43,9 @@ export interface TableView {
   playing: number;
   watching: number;
   name?: string;
+  // The moderator refused the name (name_verdict frame, W13-TN): said to the
+  // author on the screen; the table lives on without a name (§6.1).
+  name_refused?: boolean;
   like_count?: number;
   seats: TableSeat[];
   // null once the game is over and none has started again (G1b).
@@ -160,10 +163,20 @@ export function applyFrame(view: TableView, frame: Frame): TableView {
     if (view.lines.some((l) => l.id === data.id)) return view;
     return { ...view, lines: [...view.lines, data as unknown as TableLine] };
   }
+  // The name's verdict (protocol §4.4, lib/tables_queue.ts): to the author's
+  // every room, so it names its table — another table's leaves this view
+  // alone. No reason comes with it (W13-TN). Accepted, the name moved from
+  // name_pending to name on the node: the view is read again (frameNeedsView).
+  if (frame.type === "name_verdict" && data && typeof data.accepted === "boolean") {
+    if (typeof data.table === "string" && data.table !== view.id) return view;
+    return { ...view, name_refused: !data.accepted };
+  }
   return view;
 }
 
-export const frameNeedsView = (frame: Frame) => frame.type === "board" || frame.type === "seat";
+export const frameNeedsView = (frame: Frame) =>
+  frame.type === "board" || frame.type === "seat" ||
+  (frame.type === "name_verdict" && (frame.data as { accepted?: unknown } | null)?.accepted === true);
 
 // 4005: the seat is gone (stood up, dropped, kicked) — the room will not
 // come back with a new ticket; the screen leaves the table.

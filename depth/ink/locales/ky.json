@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Жаңы ачкычтар жөнүндө өтүнүч жөнөтүлдү — маектештин макул болушун күтүп жатабыз.",
   "chat.rekeyDone": "Маектин ачкычтары жаңыртылды ({epoch}-доор).",
   "chat.rekeyRefused": "түйүн жаңы ачкычтарды кабыл албады: {status}",
-  "feed.refused": "Сиздин фразаңыз модерациядан өткөн жок жана алынып салынды."
+  "feed.refused": "Сиздин фразаңыз модерациядан өткөн жок жана алынып салынды.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Yangi kalitlar so'raldi — narigi tomonning roziligi kutilmoqda.",
   "chat.rekeyDone": "Suhbat kalitlari yangilandi (davr {epoch}).",
   "chat.rekeyRefused": "tugun yangi kalitlarni qabul qilmadi: {status}",
-  "feed.refused": "So'zingiz moderatsiyadan o'tmadi va olib tashlandi."
+  "feed.refused": "So'zingiz moderatsiyadan o'tmadi va olib tashlandi.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

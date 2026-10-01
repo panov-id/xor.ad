@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Ai cerut chei noi — așteptăm acordul interlocutorului.",
   "chat.rekeyDone": "Cheile conversației au fost reînnoite (epoca {epoch}).",
   "chat.rekeyRefused": "nodul nu a primit cheile noi: {status}",
-  "feed.refused": "Fraza ta nu a trecut de moderare și a fost retrasă."
+  "feed.refused": "Fraza ta nu a trecut de moderare și a fost retrasă.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

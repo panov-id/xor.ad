@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Neue Schlüssel angefordert — wir warten, bis der Gesprächspartner zustimmt.",
   "chat.rekeyDone": "Die Schlüssel des Gesprächs wurden erneuert (Epoche {epoch}).",
   "chat.rekeyRefused": "der Knoten hat die neuen Schlüssel nicht angenommen: {status}",
-  "feed.refused": "Deine Phrase hat die Moderation nicht bestanden und wurde entfernt."
+  "feed.refused": "Deine Phrase hat die Moderation nicht bestanden und wurde entfernt.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

@@ -75,6 +75,8 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
       <header className="place-table-head">
         <p>{say("table.playing")} {view.playing} · {say("table.watching")} {view.watching} · ♥ {view.like_count ?? 0}</p>
         <p>{say("table.seated")}: {view.seats.map((s) => (s.seat === view.seat ? say("table.you") : s.name)).join(" · ")}</p>
+        {/* The name the moderator refused (W13-TN, §6.1): the table lives on without one. */}
+        {view.name_refused && <p className="error" data-testid="table-name-refused">{say("table.nameRefused")}</p>}
       </header>
       {!board || board.over
         ? <p data-testid="over">{say("table.over")}</p>

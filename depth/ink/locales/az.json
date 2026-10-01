@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Yeni açarlar istənildi — digər tərəfin razılığı gözlənilir.",
   "chat.rekeyDone": "Söhbətin açarları yeniləndi (epoxa {epoch}).",
   "chat.rekeyRefused": "qovşaq yeni açarları qəbul etmədi: {status}",
-  "feed.refused": "İfadəniz moderasiyadan keçmədi və götürüldü."
+  "feed.refused": "İfadəniz moderasiyadan keçmədi və götürüldü.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

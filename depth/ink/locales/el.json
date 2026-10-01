@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Ζήτησες νέα κλειδιά — περιμένουμε τη συμφωνία της άλλης πλευράς.",
   "chat.rekeyDone": "Τα κλειδιά της συνομιλίας ανανεώθηκαν (εποχή {epoch}).",
   "chat.rekeyRefused": "ο κόμβος δεν δέχτηκε τα νέα κλειδιά: {status}",
-  "feed.refused": "Η φράση σου δεν πέρασε τον έλεγχο και αφαιρέθηκε."
+  "feed.refused": "Η φράση σου δεν πέρασε τον έλεγχο και αφαιρέθηκε.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

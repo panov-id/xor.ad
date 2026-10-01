@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Poproszono o nowe klucze — czekamy, aż rozmówca się zgodzi.",
   "chat.rekeyDone": "Klucze rozmowy zostały odnowione (epoka {epoch}).",
   "chat.rekeyRefused": "węzeł nie przyjął nowych kluczy: {status}",
-  "feed.refused": "Twoja fraza nie przeszła moderacji i została zdjęta."
+  "feed.refused": "Twoja fraza nie przeszła moderacji i została zdjęta.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

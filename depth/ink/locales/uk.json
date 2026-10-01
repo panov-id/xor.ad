@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Прохання про нові ключі надіслано — чекаємо, поки погодиться співрозмовник.",
   "chat.rekeyDone": "Ключі розмови оновлено (епоха {epoch}).",
   "chat.rekeyRefused": "вузол не прийняв нові ключі: {status}",
-  "feed.refused": "Ваша фраза не пройшла модерацію, і її знято."
+  "feed.refused": "Ваша фраза не пройшла модерацію, і її знято.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

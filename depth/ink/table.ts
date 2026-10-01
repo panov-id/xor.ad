@@ -84,6 +84,8 @@ export function Table(
       title: `${say("table.title")}${view.name ? ` · "${plain(view.name, 48)}"` : ""} · ${plain(view.class, 12)}`,
       lines: [counts, `${say("table.seated")}  ${seated}`, say("table.open")],
     }),
+    // The name the moderator refused (W13-TN): the table lives on without one.
+    view.name_refused ? h(Text, { color: "red" }, say("table.nameRefused")) : null,
     board === null
       ? h(Text, { dimColor: true }, say("table.over"))
       : h(

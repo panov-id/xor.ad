@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Claves nuevas solicitadas — esperando a que la otra persona acepte.",
   "chat.rekeyDone": "Las claves de la conversación se han renovado (época {epoch}).",
   "chat.rekeyRefused": "el nodo no aceptó las claves nuevas: {status}",
-  "feed.refused": "Tu frase no pasó la moderación y fue retirada."
+  "feed.refused": "Tu frase no pasó la moderación y fue retirada.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

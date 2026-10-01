@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Նոր բանալիների խնդրանքն ուղարկված է — սպասում ենք մյուս կողմի համաձայնությանը։",
   "chat.rekeyDone": "Զրույցի բանալիները թարմացվել են (դարաշրջան {epoch})։",
   "chat.rekeyRefused": "հանգույցը չընդունեց նոր բանալիները՝ {status}",
-  "feed.refused": "Քո արտահայտությունը չանցավ մոդերացիան և հանվեց։"
+  "feed.refused": "Քո արտահայտությունը չանցավ մոդերացիան և հանվեց։",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

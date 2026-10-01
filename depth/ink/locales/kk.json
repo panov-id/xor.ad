@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Жаңа кілттер туралы өтініш жіберілді — сұхбаттастың келісуін күтіп тұрмыз.",
   "chat.rekeyDone": "Әңгіменің кілттері жаңартылды ({epoch}-дәуір).",
   "chat.rekeyRefused": "түйін жаңа кілттерді қабылдамады: {status}",
-  "feed.refused": "Сіздің сөз тіркесіңіз модерациядан өтпей, алынып тасталды."
+  "feed.refused": "Сіздің сөз тіркесіңіз модерациядан өтпей, алынып тасталды.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

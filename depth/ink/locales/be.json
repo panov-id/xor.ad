@@ -344,5 +344,6 @@
   "chat.rekeyWaiting": "Просьба аб новых ключах адпраўлена — чакаем, калі пагодзіцца субяседнік.",
   "chat.rekeyDone": "Ключы размовы абноўлены (эпоха {epoch}).",
   "chat.rekeyRefused": "вузел не прыняў новыя ключы: {status}",
-  "feed.refused": "Ваша фраза не прайшла мадэрацыю і знята."
+  "feed.refused": "Ваша фраза не прайшла мадэрацыю і знята.",
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
 }

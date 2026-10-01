@@ -13,6 +13,8 @@ import { browserLabel, ENDINGS, MOVE_POLL_MS, useEvery } from "../api/transfer.t
 import { type Arriving, claimArrival, keepArrived } from "../vault.ts";
 import { Button } from "../ui/Button.tsx";
 import "./talk.css";
+import { HeaderScreen } from "../ui/Header.tsx";
+import { Info } from "../ui/Info.tsx";
 
 export function Arrival({ onDone, onBack }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void }) {
   const [code, setCode] = useState("");
@@ -65,25 +67,25 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client, longKey: 
   const ending = ENDINGS[state];
   return (
     <main className="screen arrival" data-screen="arrival" data-state={into ? state : "start"}>
-      <header className="ui-header ui-header-rule"><h1 className="ui-header-title">{say(state === "approved" ? "move.arrivedTitle" : "move.inTitle")}</h1></header>
+      <HeaderScreen title={say(state === "approved" ? "move.arrivedTitle" : "move.inTitle")} />
       {!into
         ? (
           <>
-            <p className="muted">{say("move.inIntro")}</p>
+            <div className="ui-info-row"><Info label={say("move.inTitle")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info></div>
             <label>
               {say("move.code")}
               <input value={code} onChange={(e) => setCode(e.target.value.slice(0, 13))} data-testid="arrive-code" autoComplete="off" />
             </label>
             {busy && <p className="muted">{say("move.deriving")}</p>}
-            <Button kind="primary" type="button" disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go">{say("reg.next")}</Button>
-            <Button kind="secondary" type="button" onClick={onBack} data-testid="arrive-back">{say("common.back")}</Button>
+            <Button kind="primary" type="button" icon="open" className="ui-wide" aria-label={say("reg.next")} disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go" />
+            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />
           </>
         )
         : ending
         ? (
           <>
             <p data-testid="move-ending">{say(ending)}</p>
-            <Button kind="secondary" type="button" onClick={onBack} data-testid="arrive-back">{say("common.back")}</Button>
+            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />
           </>
         )
         : state === "approved"
@@ -99,7 +101,7 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client, longKey: 
               <input type="password" inputMode="numeric" value={again} onChange={(e) => setAgain(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="arrive-pin-again" />
             </label>
             {pin.length === 6 && again.length === 6 && pin !== again && <p className="error">{say("reg.pinMismatch")}</p>}
-            <Button kind="primary" type="button" disabled={!/^\d{6}$/.test(pin) || pin !== again || busy} onClick={() => void keep()} data-testid="arrive-keep">{say("reg.next")}</Button>
+            <Button kind="primary" type="button" icon="check" className="ui-wide" aria-label={say("reg.next")} disabled={!/^\d{6}$/.test(pin) || pin !== again || busy} onClick={() => void keep()} data-testid="arrive-keep" />
           </>
         )
         : (

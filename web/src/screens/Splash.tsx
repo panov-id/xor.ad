@@ -37,15 +37,11 @@ export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; 
       </div>
       <h1>{say("web.splash.tagline")}</h1>
       <p className="muted">{say("web.splash.vanishes")}</p>
-      <Button type="button" kind="primary" onClick={onStart} data-testid="start">
-        {say("web.splash.start")}
-      </Button>
-      <Button type="button" onClick={onRestore} data-testid="restore">
-        {say("web.splash.haveCode")}
-      </Button>
-      <Button type="button" onClick={onArrive} data-testid="arrive">
-        {say("move.inItem")}
-      </Button>
+      <Button type="button" kind="primary" icon="watch" className="ui-wide" aria-label={say("web.splash.start")} onClick={onStart} data-testid="start" />
+      <div className="ui-icon-row splash-pair">
+        <Button type="button" icon="key" className="ui-wide" aria-label={say("web.splash.haveCode")} onClick={onRestore} data-testid="restore" />
+        <Button type="button" icon="arrive" className="ui-wide" aria-label={say("move.inItem")} onClick={onArrive} data-testid="arrive" />
+      </div>
     </main>
   );
 }

@@ -8,6 +8,9 @@ import type { Client } from "../../../depth/core/client.ts";
 import { readPaperText } from "../../../depth/core/paper.ts";
 import { say } from "../api/me.ts";
 import { raiseAndKeep } from "../vault.ts";
+import { Button } from "../ui/Button.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
+import { Info } from "../ui/Info.tsx";
 
 export function Restore({ onDone, onBack }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void }) {
   const [code, setCode] = useState("");
@@ -40,14 +43,14 @@ export function Restore({ onDone, onBack }: { onDone: (client: Client, longKey: 
 
   return (
     <main className="screen restore" data-screen="restore">
-      <header><h1>{say("restore.title")}</h1></header>
-      <p className="muted">{say("restore.intro")}</p>
+      <HeaderScreen title={say("restore.title")} />
+      <div className="ui-info-row"><Info label={say("restore.title")} data-testid="restore-info"><p>{say("restore.intro")}</p></Info></div>
       <label>
         {say("restore.code")}
         <input value={code} onChange={(e) => setCode(e.target.value)} data-testid="restore-code" autoComplete="off" />
         {code !== "" && !codeOk && <span className="warn">{say("restore.bad")}</span>}
       </label>
-      <p className="muted">{say("restore.newPinPrice")}</p>
+      <div className="ui-info-row"><Info label={say("pin.next")} data-testid="restore-pin-info"><p>{say("restore.newPinPrice")}</p></Info></div>
       <label>
         {say("pin.next")}
         <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="restore-pin" />
@@ -58,10 +61,8 @@ export function Restore({ onDone, onBack }: { onDone: (client: Client, longKey: 
       </label>
       {pin.length === 6 && again.length === 6 && pin !== again && <p className="error">{say("reg.pinMismatch")}</p>}
       {error && <p className="error" data-testid="error">{error}</p>}
-      <button type="button" className="primary" disabled={!codeOk || !pinOk || busy} onClick={() => void go()} data-testid="restore-go">
-        {busy ? "…" : say("restore.go")}
-      </button>
-      <button type="button" onClick={onBack} data-testid="restore-back">{say("common.back")}</button>
+      <Button type="button" kind="primary" icon="key" className="ui-wide" aria-label={say("restore.go")} aria-busy={busy} disabled={!codeOk || !pinOk || busy} onClick={() => void go()} data-testid="restore-go" />
+      <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="restore-back" />
     </main>
   );
 }

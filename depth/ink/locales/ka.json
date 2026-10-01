@@ -164,6 +164,8 @@
   "pin.go": "შეცვლა",
   "pin.changed": "PIN შეიცვალა.",
   "pin.mismatch": "PIN არ ემთხვევა. დარჩენილი ცდები: {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "შესვლა დაკეტილია ქაღალდის კოდამდე.",
   "pin.wait": "ბოლო ცდიდან ძალიან ადრეა. კიდევ {n} წმ-ში.",
   "reset.item": "თავიდან დაწყება",

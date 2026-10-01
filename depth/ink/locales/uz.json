@@ -164,6 +164,8 @@
   "pin.go": "almashtirish",
   "pin.changed": "PIN almashtirildi.",
   "pin.mismatch": "PIN mos kelmadi. Qolgan urinishlar: {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "Kirish qog'oz kodgacha yopiq.",
   "pin.wait": "Oxirgi urinishdan keyin juda erta. {n} s dan keyin qayta urining.",
   "reset.item": "qaytadan boshlash",

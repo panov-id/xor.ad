@@ -164,6 +164,8 @@
   "pin.go": "иваз кардан",
   "pin.changed": "ПИН иваз шуд.",
   "pin.mismatch": "ПИН мувофиқ нест. Кӯшишҳои боқимонда: {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "Воридшавӣ то рамзи коғазӣ баста аст.",
   "pin.wait": "Пас аз кӯшиши охирин хеле барвақт аст. Баъд аз {n} с боз кӯшиш кунед.",
   "reset.item": "аз нав оғоз кардан",

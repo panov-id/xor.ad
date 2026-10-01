@@ -14,7 +14,8 @@ import type { ChatStarter } from "../core/client.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
 import { afterClose, reconnectDelay } from "../core/reconnect.ts";
-import type { Place } from "./screens.ts";
+import { pinMismatch, type Place } from "./screens.ts";
+import { obviousPin } from "../core/pin.ts";
 import { ChatGames, isGameFrame } from "../core/chat_games.ts";
 import { ChatGame } from "./chat_game.ts";
 
@@ -1348,7 +1349,7 @@ export function EditProfile(
 // counter answers "change the PIN" and "start again".
 function pinRefusal(say: Say, answer: { status: number; body: unknown; retryAfter?: number }): string | null {
   const error = (answer.body as { error?: { code?: string; attempts_left?: number } } | null)?.error;
-  if (error?.code === "pin_mismatch") return say("pin.mismatch", { n: String(error.attempts_left ?? "?") });
+  if (error?.code === "pin_mismatch") return pinMismatch(say, error.attempts_left);
   if (error?.code === "pin_locked") return say("pin.locked");
   if (error?.code === "rate_limited") return say("pin.wait", { n: String(answer.retryAfter ?? "?") });
   return null;
@@ -1365,6 +1366,7 @@ export function ChangePin(
   const [changed, setChanged] = useState(false);
   const six = (v: string) => v.length === 6;
   const differ = six(values.next) && six(values.again) && values.next !== values.again;
+  const obvious = six(values.next) && obviousPin(values.next);
   const ready = six(values.current) && six(values.next) && values.next === values.again && !sending;
   const send = () => {
     setSending(true);
@@ -1408,6 +1410,7 @@ export function ChangePin(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
+    obvious ? h(Text, { color: "yellow" }, say("pin.obvious")) : null,
     differ ? h(Text, { color: "red" }, say("reg.pinMismatch")) : null,
     sending ? h(Text, { dimColor: true }, "…") : null,
     refused ? h(Text, { color: "red" }, refused) : null,

@@ -164,6 +164,8 @@
   "pin.go": "schimbă",
   "pin.changed": "PIN-ul a fost schimbat.",
   "pin.mismatch": "PIN-ul nu se potrivește. Încercări rămase: {n}",
+  "pin.obvious": "That PIN is easy to guess. You can keep it, but another is better.",
+  "pin.mismatchLast": "After that, entry on this device closes until the paper code.",
   "pin.locked": "Intrarea e închisă până la codul de hârtie.",
   "pin.wait": "Prea devreme după ultima încercare. Din nou peste {n} s.",
   "reset.item": "ia-o de la capăt",

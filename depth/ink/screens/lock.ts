@@ -10,6 +10,7 @@ import { Box, Text } from "ink";
 import type { Client, HeldLongKey } from "../../core/client.ts";
 import type { Say } from "../strings.ts";
 import { useKeys } from "../parts.ts";
+import { pinMismatch } from "../screens.ts";
 
 export function Lock(
   { say, client, hold, onUnlocked, onError }: {
@@ -36,7 +37,7 @@ export function Lock(
       .then((r) => {
         if (r.ok) return onUnlocked();
         const error = (r.answer.body as { error?: { code?: string; attempts_left?: number } } | null)?.error;
-        if (error?.code === "pin_mismatch") return setRefused(say("pin.mismatch", { n: String(error.attempts_left ?? "?") }));
+        if (error?.code === "pin_mismatch") return setRefused(pinMismatch(say, error.attempts_left));
         if (error?.code === "pin_locked") return setRefused(say("pin.locked"));
         if (error?.code === "rate_limited") return setRefused(say("pin.wait", { n: String(r.answer.retryAfter ?? "?") }));
         onError(`unlocking was refused: ${r.answer.status}`);

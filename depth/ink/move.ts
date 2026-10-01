@@ -17,6 +17,7 @@ import type { Answer } from "../core/client.ts";
 import { readPaperText } from "../core/paper.ts";
 import { Arrival, Departure, type MoveClient, type MoveState } from "../core/transfer_move.ts";
 import type { Say } from "./strings.ts";
+import { pinMismatch } from "./screens.ts";
 import { Form, Head, Menu, plain } from "./parts.ts";
 
 export const MOVE_POLL_MS = 5000;
@@ -26,7 +27,7 @@ export type MovingClient = MoveClient & { pinProof(pin: string): Promise<Uint8Ar
 // The same refusals as every other proof of the PIN, in the same words.
 function pinRefusal(say: Say, answer: Answer): string | null {
   const error = (answer.body as { error?: { code?: string; attempts_left?: number } } | null)?.error;
-  if (error?.code === "pin_mismatch") return say("pin.mismatch", { n: String(error.attempts_left ?? "?") });
+  if (error?.code === "pin_mismatch") return pinMismatch(say, error.attempts_left);
   if (error?.code === "pin_locked") return say("pin.locked");
   if (error?.code === "rate_limited") return say("pin.wait", { n: String(answer.retryAfter ?? "?") });
   return null;

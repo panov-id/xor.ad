@@ -2370,3 +2370,34 @@ test("a conversation with no pair yet opens its room, and the rekey frame opens 
   assert.equal(said.length, 1, "the second opening, after the rekey frame, failed or was said again");
   app.unmount();
 });
+
+// W12-C2 · the claim's own limits (chat spec §8.2 :2964; transfer.ts 429 —
+// the node's shared brake or this address's allowance): said as too many
+// attempts with the seconds, not in the PIN's words, and the code typed stays
+// in the field so the next enter is the retry.
+test("a 429 at the claim is said as the claim's limit with the seconds, and the code stays for the retry", async () => {
+  const claims: unknown[] = [];
+  const client = {
+    identityId: "", held: null, longSpki: "",
+    seat: () => {}, firstPin: () => Promise.resolve({ status: 204, body: null }),
+    request: (_method: string, path: string, body?: unknown) => {
+      if (path === "/sessions/claim") {
+        claims.push(body);
+        return Promise.resolve(claims.length === 1 ? { status: 429, body: null, retryAfter: 7 } : { status: 200, body: { state: "claimed" } });
+      }
+      return Promise.resolve({ status: 200, body: { state: "claimed" } });
+    },
+  };
+  const app = render(h(MoveIn, { say, client, label: "depth, linux", onArrived: () => {}, onBack: () => {}, onError: collect, pollMs: 40 }));
+  await settle();
+  await type(app, ..."k7q-m3f-2x9".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /Слишком много попыток/));
+  assert.match(app.lastFrame()!, /Слишком много попыток\. Ещё раз через 7 с\./, "the claim's limit was not said with its seconds");
+  assert.doesNotMatch(app.lastFrame()!, /ПИН|прошлой попытки/, "a claim's 429 was said in the PIN's words");
+  assert.match(app.lastFrame()!, /k7q-m3f-2x9/, "the code left the field after the refusal");
+  await type(app, ENTER);
+  await waitFor(shows(app, /сверка\s+[0-9A-Z]{4}/));
+  assert.equal(claims.length, 2, "enter after the refusal did not claim again");
+  app.unmount();
+  noErrors();
+});

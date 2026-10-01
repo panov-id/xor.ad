@@ -298,7 +298,10 @@ export function MoveIn(
         // 409 is the second claim that cancelled it (§8.2).
         if (claimed.status === 404) return setRefused(say("move.codeBad"));
         if (claimed.status === 409) return setRefused(say("move.twice"));
-        if (claimed.status === 429) return setRefused(say("pin.wait", { n: String(claimed.retryAfter ?? "?") }));
+        // 429 is the claim's own limit — this address's allowance or the node's
+        // shared brake (§8.2, claim.miss.*) — said as such, not in the PIN's
+        // words (W12-C2); the code stays in the field for the retry.
+        if (claimed.status === 429) return setRefused(say("restore.wait", { n: String(claimed.retryAfter ?? "?") }));
         onError(`the claim was refused: ${claimed.status}`);
       })
       .catch((e: Error) => onError(e.message))

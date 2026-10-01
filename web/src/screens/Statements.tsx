@@ -28,7 +28,7 @@ export function Statements({ items, onDone }: { items: Statement[]; onDone: () =
           </Card>
         ))}
       </ul>
-      <Button kind="primary" type="button" onClick={onDone} data-testid="statements-ok">{say("statements.gotIt")}</Button>
+      <Button kind="primary" type="button" icon="check" className="ui-wide" aria-label={say("statements.gotIt")} onClick={onDone} data-testid="statements-ok" />
     </main>
   );
 }

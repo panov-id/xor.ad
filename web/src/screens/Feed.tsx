@@ -163,10 +163,10 @@ export function Feed(
           </label>
         }
       />
-      <nav className="actions">
-        <Button type="button" kind="pill" onClick={onWrite} data-testid="write">{say("feed.write")}</Button>
-        <Button type="button" onClick={onLikes} data-testid="likes">{say("liked.title")}</Button>
-        {onNewTable && <Button type="button" onClick={onNewTable} data-testid="new-table">{say("web.feed.newTable")}</Button>}
+      <nav className="actions ui-icon-row">
+        <Button type="button" kind="primary" icon="write" aria-label={say("feed.write")} onClick={onWrite} data-testid="write" />
+        <Button type="button" icon="likes" aria-label={say("liked.title")} onClick={onLikes} data-testid="likes" />
+        {onNewTable && <Button type="button" icon="table" aria-label={say("web.feed.newTable")} onClick={onNewTable} data-testid="new-table" />}
       </nav>
       {refused > 0 && !sent && (
         <p className="error" data-testid="refused" data-count={refused}>{say("web.feed.refused")}</p>
@@ -177,7 +177,7 @@ export function Feed(
           «{sent.text}»
           {/* In view only while the id is known — not greyed, absent (W11-C). */}
           {sent.id && (
-            <Button type="button" kind="text" disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown">{say("feed.takedown")}</Button>
+            <Button type="button" icon="close" aria-label={say("feed.takedown")} disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown" />
           )}
         </p>
       )}
@@ -196,9 +196,7 @@ export function Feed(
           <h2>{say("web.feed.empty")}</h2>
           <p className="muted">{say("web.feed.empty_hint")}</p>
           {radius < 10000 && (
-            <Button type="button" onClick={() => onRadius(RADII[RADII.indexOf(radius) + 1])}>
-              {say("web.feed.wider", { radius: label(RADII[RADII.indexOf(radius) + 1]) })}
-            </Button>
+            <Button type="button" icon="pin" aria-label={say("web.feed.wider", { radius: label(RADII[RADII.indexOf(radius) + 1]) })} onClick={() => onRadius(RADII[RADII.indexOf(radius) + 1])} />
           )}
         </section>
       )}
@@ -224,7 +222,7 @@ export function Feed(
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
       {next && state === "ready" && (
-        <Button type="button" onClick={() => load(next)} data-testid="more">{say("liked.more")}</Button>
+        <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />
       )}
       <footer className="muted">
         {say("web.feed.keys", { state: sealed === "unlocked" ? say("web.feed.keys_unlocked") : sealed === "unlocked-new-wrap" ? say("web.feed.keys_new_wrap") : sealed === "ok" ? say("web.feed.keys_ok") : say("web.feed.keys_bad") })}

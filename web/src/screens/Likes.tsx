@@ -63,14 +63,14 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
               {item.state === "matched" ? say("web.likes.matched") : ""}
             </span>
             {item.state === "liked" && !item.offer && !spent[item.id] && (
-              <Button type="button" kind="text" onClick={() => takeBack(item)} data-testid="unlike">{say("web.likes.unlike")}</Button>
+              <Button type="button" icon="close" aria-label={say("web.likes.unlike")} onClick={() => takeBack(item)} data-testid="unlike" />
             )}
             {spent[item.id] && <span className="muted" data-testid="spent">{say("web.likes.spent")}</span>}
           </Card>
         ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
-      {next && state === "ready" && <Button type="button" onClick={() => load(next)} data-testid="more">{say("liked.more")}</Button>}
+      {next && state === "ready" && <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />}
     </main>
   );
 }

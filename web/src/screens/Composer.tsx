@@ -11,6 +11,7 @@ import { modes, sayPhrase, type Mode, type Sent } from "../api/actions.ts";
 import { Button } from "../ui/Button.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import "./feed.css";
+import { Info } from "../ui/Info.tsx";
 
 // The steps of a circle the node takes (area_radius, §8.3).
 const STEPS: Radius[] = [100, 300, 1000, 3000, 10000];
@@ -110,7 +111,7 @@ export function Composer(
           </button>
         ))}
       </div>
-      <p className="composer-mono composer-center">{say("web.composer.linked")}</p>
+      <div className="ui-info-row"><Info label={say("web.composer.zone")} data-testid="composer-info"><p>{say("web.composer.linked")}</p></Info></div>
       <details className="offer-fields composer-offer" data-testid="offer-fields">
         <summary><span>{say("web.composer.offer")}</span><span className="composer-aside">{say("web.composer.oneOffer")}</span></summary>
         <label>
@@ -125,9 +126,7 @@ export function Composer(
       {refused && <p className="error" data-testid="refused" style={{ whiteSpace: "pre-line" }}>{refused}</p>}
       <footer className="composer-bar">
         <span className="composer-aside">{empty ? say("web.composer.textFirst") : ""}</span>
-        <Button type="button" kind="primary" disabled={empty || busy} onClick={send} data-testid="send">
-          {busy ? "…" : say("write.send")}
-        </Button>
+        <Button type="button" kind="primary" icon="send" className="ui-send-wide" aria-label={say("write.send")} aria-busy={busy} disabled={empty || busy} onClick={send} data-testid="send" />
       </footer>
     </main>
   );

@@ -96,28 +96,28 @@ export function Card(
       {like?.state === "matched" && <p className="warn" data-testid="matched">{say("web.card.matched")}</p>}
       {like?.state === "refused" && <p className="error" data-testid="refused">{like.why}</p>}
       {error && <p className="error" data-testid="error">{error}</p>}
-      <div className="actions">
+      <div className="actions ui-icon-row card-actions">
         <Button
           type="button"
           kind="primary"
+          icon="like"
+          aria-label={say("web.card.like")}
           disabled={busy || (like !== null && like.state !== "refused")}
           onClick={() => act(async () => setLike(await likePhrase(client, card.id)))}
           data-testid="like"
-        >
-          {say("web.card.like")}
-        </Button>
+        />
         <Button
           type="button"
+          icon="hide"
+          aria-label={say("feed.hide")}
           disabled={busy}
           onClick={() => act(async () => { await hidePhrase(client, card.id); onGone("hidden", card.id); })}
           data-testid="hide"
-        >
-          {say("feed.hide")}
-        </Button>
+        />
         {card.kind === "offer" && (complained
           ? <p data-testid="complained">{say("web.card.complained")}</p>
           : !complaining
-          ? <Button kind="text" type="button" disabled={busy} onClick={() => setComplaining(true)} data-testid="complain">{say("web.card.complain")}</Button>
+          ? <Button type="button" icon="report" aria-label={say("web.card.complain")} disabled={busy} onClick={() => setComplaining(true)} data-testid="complain" />
           : (
             <section className="confirm" data-testid="complain-form">
               <label>
@@ -128,37 +128,37 @@ export function Card(
                 {say("web.card.complain_text")}
                 <textarea value={text} maxLength={1000} onChange={(e) => setText(e.target.value)} data-testid="complain-text" />
               </label>
-              <Button kind="danger" type="button" disabled={busy || !email.includes("@")} onClick={() => void complain()} data-testid="complain-send">{say("web.card.complain_send")}</Button>
-              <Button kind="secondary" type="button" onClick={() => setComplaining(false)}>{say("web.card.cancel")}</Button>
+              <div className="ui-icon-row">
+                <Button kind="primary" type="button" icon="send" aria-label={say("web.card.complain_send")} disabled={busy || !email.includes("@")} onClick={() => void complain()} data-testid="complain-send" />
+                <Button kind="secondary" type="button" icon="close" aria-label={say("web.card.cancel")} onClick={() => setComplaining(false)} />
+              </div>
             </section>
           ))}
         {linkCode && (report === "sent"
           ? <p className="offer-toast" role="status" data-testid="reported">{say("web.offer.reported")}</p>
           : (
-            <Button kind="text" type="button" disabled={busy || report === "sending"} onClick={() => void reportLink()} data-testid="report">
-              {say("web.offer.wrong")}
-            </Button>
+            <Button type="button" icon="link" aria-label={say("web.offer.wrong")} disabled={busy || report === "sending"} onClick={() => void reportLink()} data-testid="report" />
           ))}
         {report === "failed" && <p className="error" data-testid="report-failed">{say("web.offer.later")}</p>}
         {!confirmBlock
           ? (
-            <Button type="button" disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block">
-              {say("block.item")}
-            </Button>
+            <Button type="button" icon="block" aria-label={say("block.item")} disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block" />
           )
           : (
             <section className="confirm" data-testid="block-confirm">
               <p className="muted">{say("web.card.block_warning")}</p>
-              <Button
-                type="button"
-                kind="danger"
-                disabled={busy}
-                onClick={() => act(async () => { await blockByPhrase(client, card.id); onGone("blocked", card.id); })}
-                data-testid="block-confirm-yes"
-              >
-                {say("web.card.block_yes")}
-              </Button>
-              <Button type="button" onClick={() => setConfirmBlock(false)} data-testid="block-confirm-no">{say("web.card.block_no")}</Button>
+              <div className="ui-icon-row">
+                <Button
+                  type="button"
+                  kind="danger"
+                  icon="block"
+                  aria-label={say("web.card.block_yes")}
+                  disabled={busy}
+                  onClick={() => act(async () => { await blockByPhrase(client, card.id); onGone("blocked", card.id); })}
+                  data-testid="block-confirm-yes"
+                />
+                <Button type="button" icon="close" aria-label={say("web.card.block_no")} onClick={() => setConfirmBlock(false)} data-testid="block-confirm-no" />
+              </div>
             </section>
           )}
       </div>

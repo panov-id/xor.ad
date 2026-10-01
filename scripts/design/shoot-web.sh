@@ -84,5 +84,11 @@ for s in "$root"/panel/design/screen-*.svg; do
   cp "$root/testing/screenshots/design/$n.png" "$out/sheets/"
 done
 
+# The comic sheets (since 02.10.2026 the gate's reference, scripts/design/web-design-map.tsv): checked
+# against their generator, then rendered beside the shots.
+echo "== comic sheets"
+python3 "$root/scripts/design/comic-sheets.py" --check || status=1
+"$here/render-comic-sheets.sh" "$out/sheets-comic" >/dev/null || { echo "comic sheets not rendered" >&2; status=1; }
+
 echo "== $(grep -c $'\tok' "$out/shots.tsv") opened, $(grep -vc $'\tok' "$out/shots.tsv") not"
 exit "$status"

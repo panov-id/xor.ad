@@ -95,6 +95,15 @@ export async function unlikePhrase(client: Client, phraseId: string): Promise<"u
   return "refused";
 }
 
+// Taking one's own phrase down (§8.3, W11-C; DELETE /feed/:id): 204 is the
+// only "came down" — the live slot frees, the hour's ceiling does not. 404 is
+// the node's one answer for a phrase that is not mine any more — expired,
+// already gone — and is said with its number, not swallowed.
+export async function takeDownPhrase(client: Client, phraseId: string): Promise<{ ok: true } | { ok: false; status: number }> {
+  const answer = await client.takeDown(phraseId).catch((e: Error) => ({ status: 0, body: { error: e.message } }));
+  return answer.status === 204 ? { ok: true } : { ok: false, status: answer.status };
+}
+
 // Hiding is one's own business (§8.9): the handle comes back, the author
 // never learns. Blocking answers 204 whatever happened, so it never fails here.
 export const hidePhrase = (client: Client, phraseId: string): Promise<string> => client.hide(phraseId);

@@ -13,7 +13,7 @@ import { modes, takeDownPhrase, type Sent } from "../api/actions.ts";
 import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
 import { HeaderFeed } from "../ui/Header.tsx";
-import { phaseAt, zoneOfLongitude } from "../ui/phase.ts";
+import { usePhase } from "../ui/usePhase.ts";
 import { say } from "../locales/say.ts";
 
 export interface FeedCard {
@@ -68,6 +68,7 @@ export function Feed(
     gone?: { why: "hidden" | "blocked"; id: string } | null;
   },
 ) {
+  const phase = usePhase(at.lon);
   const [items, setItems] = useState<FeedCard[]>([]);
   const [next, setNext] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
@@ -151,7 +152,7 @@ export function Feed(
       {/* What the reader hears: the announced step, not every flicker of it. */}
       <HeaderFeed
         place={say("web.feed.title")}
-        phase={phaseAt(new Date(), zoneOfLongitude(at.lon))}
+        phase={phase}
         step={said ? nearby(said) : ""}
         stepProps={{ role: "status", "data-testid": "nearby", "data-step": said ?? undefined }}
         action={

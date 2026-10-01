@@ -17,6 +17,7 @@ import type { Client } from "../../../depth/core/client.ts";
 import type { ChatKeys } from "../chat/keys.ts";
 import { connectRoom } from "../chat/room.ts";
 import { endsAtOf, resetEnd, shiftEnd, silence, spanOf, type Span } from "../chat/span.ts";
+import { isPeerAway, missedSince, sawActivity } from "../chat/away.ts";
 import { blockByChat, endChat as closeForBoth, setSpan } from "../api/chatActions.ts";
 import { ChatActions } from "./ChatActions.tsx";
 import { ChatGame } from "./ChatGame.tsx";
@@ -47,6 +48,12 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
   // error's own text — and becomes words only when shown (W14): a check on
   // it never compares a translated line.
   const [status, setStatus] = useState<Status>({ key: "web.chat.opening_keys" });
+  // The other side stepped away (§8.2, W12-AW): a mark in the header while
+  // the field stays live; their first line here takes it off. And what this
+  // tab did not see (§8.8): the row's last activity after the newest moment
+  // this tab saw — said once on opening, taken off by what then arrives.
+  const [peerAway, setPeerAway] = useState(false);
+  const [missed, setMissed] = useState(() => missedSince(given.id, given.last_activity_at));
   const [keysState, setKeysState] = useState<"opening" | "open" | "failed">("opening");
   const [keysError, setKeysError] = useState<string | null>(null);
   const [over, setOver] = useState(given.state === "ended");
@@ -186,6 +193,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
           break;
         }
         case "sys": {
+          if (isPeerAway(event.data)) { setPeerAway(true); break; }
           const type = (event.data as { type?: unknown } | null)?.type;
           if (type === "board" || type === "proposal") {
             setGameBump((n) => n + 1);
@@ -197,6 +205,12 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
           try {
             const opened = await keys.read(rowRef.current, event.ciphertext, event.id);
             setLines((was) => was.some((l) => l.id === event.id) ? was : [...was, { id: event.id, text: opened, mine: false, at: event.createdAt }]);
+            // Their line: the away mark comes off (§8.2), and this tab has now
+            // seen up to its moment — what reaches the row's last activity is
+            // not missed any more.
+            setPeerAway(false);
+            sawActivity(given.id, event.createdAt);
+            if (!missedSince(given.id, rowRef.current.last_activity_at)) setMissed(false);
             await client.received(given.id, [event.id]);
           } catch (e) {
             setLines((was) => [...was, { id: event.id, text: say("web.chat.not_opened", { message: (e as Error).message }), mine: false, at: event.createdAt, state: "failed" }]);
@@ -216,8 +230,13 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
       if (answer.status === 404) { setOver(true); setStatus({ key: "web.chat.over" }); return; }
       if (answer.status !== 202) throw new Error(say("web.chat.not_sent", { status: answer.status, body: JSON.stringify(answer.body) }));
       setLines((was) => [...was, { id: localId, text: line, mine: true, at: Date.now() / 1000, state: answer.body.accepted ? "sent" : "failed" }]);
-      // My own delivered message is what resets my silence (§8.6).
-      if (answer.body.accepted) setEndsAt(resetEnd(span, Math.floor(Date.now() / 1000)));
+      // My own delivered message is what resets my silence (§8.6), and the
+      // newest moment this tab saw (§8.8).
+      if (answer.body.accepted) {
+        setEndsAt(resetEnd(span, Math.floor(Date.now() / 1000)));
+        sawActivity(given.id, Math.floor(Date.now() / 1000));
+        setMissed(false);
+      }
       setText("");
     } catch (e) {
       setError((e as Error).message);
@@ -248,13 +267,16 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
   const starters = [...givenStarters, ...extraStarters.filter((e) => !givenStarters.some((s) => s.position === e.position))]
     .sort((a, b) => a.position - b.position);
   return (
-    <main className="screen chat" data-screen="chat" data-id={given.id} data-keys={keysState} data-over={over ? "yes" : "no"} data-epoch={row.key_epoch} data-rekey-requested={askedByPeer ? "yes" : "no"} data-span={span} data-ends-at={endsAt} data-counting={quiet.counting ? "yes" : "no"} data-blocked={blocked ? "yes" : "no"}>
+    <main className="screen chat" data-screen="chat" data-id={given.id} data-keys={keysState} data-over={over ? "yes" : "no"} data-epoch={row.key_epoch} data-rekey-requested={askedByPeer ? "yes" : "no"} data-span={span} data-ends-at={endsAt} data-counting={quiet.counting ? "yes" : "no"} data-blocked={blocked ? "yes" : "no"} data-peer-away={peerAway ? "yes" : "no"} data-missed={missed ? "yes" : "no"}>
       <header className="ui-header ui-header-rule">
         <button type="button" className="ui-icon" onClick={onBack} data-testid="back" aria-label={say("common.back")}>
           <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><path d="M26 14 L18 22 L26 30" /></svg>
         </button>
-        <h1 className="ui-header-title">{row.name}, {row.age}</h1>
+        <h1 className="ui-header-title">{row.name}, {row.age}{peerAway && <span className="muted peer-away" data-testid="peer-away"> · {say("chat.peerAway")}</span>}</h1>
       </header>
+      {!over && missed && (
+        <p className="warn" data-testid="missed">{say("web.chat.missed")}</p>
+      )}
       {starters.length > 0 && (
         <section className="starters" data-testid="starters" aria-labelledby="starters-title">
           <h2 id="starters-title">{say("web.chat.starters")}</h2>

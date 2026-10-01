@@ -11,12 +11,12 @@ test.describe("an English browser", () => {
   test("the shared words are the terminal's English", async ({ page }) => {
     await register(page);
     await expect(page.getByTestId("write")).toHaveAccessibleName("write");
-    await expect(page.getByTestId("tab-me")).toHaveText("me");
+    await expect(page.getByTestId("tab-me")).toHaveAccessibleName("me");
   });
 });
 
 test("a Russian browser reads Russian", async ({ page }) => {
   await register(page);
   await expect(page.getByTestId("write")).toHaveAccessibleName("написать");
-  await expect(page.getByTestId("tab-me")).toHaveText("я");
+  await expect(page.getByTestId("tab-me")).toHaveAccessibleName("я");
 });

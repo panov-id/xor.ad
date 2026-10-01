@@ -298,7 +298,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
       {!over && (
         <div className="fades ui-icon-row" data-testid="fades" data-counting={quiet.counting ? "yes" : "no"}>
           <Info label={say("web.chat.span_label")} data-testid="fades-info"><p data-testid="fades-text">{say("chat.fades", { span: say(`chat.spanShort${span}`) })}</p></Info>
-          {quiet.counting && <span data-testid="silence-clock">{quiet.clock}</span>}
+          {quiet.counting && <span data-testid="silence-clock"> · {quiet.clock}</span>}
         </div>
       )}
       {safety && <p className="code" data-testid="safety">{safety}</p>}

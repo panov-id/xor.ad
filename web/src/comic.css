@@ -102,7 +102,7 @@
 .k-comic-face .ui-header-action :is(button, a) { box-shadow: var(--drop); }
 /* the feed's header on its scene (Scene.tsx), as tall as the kit says */
 .ui-header-scene { position: relative; min-height: var(--comic-scene-h, 200px); align-items: flex-start; padding-top: var(--s-4); overflow: hidden; }
-.k-comic-face .ui-header-scene { min-height: var(--comic-scene-h); padding-top: 18px; }
+.k-comic-face .ui-header-scene { min-height: var(--comic-scene-h); padding-top: 18px; align-items: flex-start; }
 .ui-header-scene > :not(.ui-scene) { position: relative; }
 .ui-header-scene .ui-scene { position: absolute; inset: 0; width: 100%; height: 100%; }
 .k-comic-face .ui-header-scene .ui-header-title { background: none; border: 0; transform: none; font-size: 21px; line-height: 30px; padding: 0; color: inherit; display: block; min-height: 0; }

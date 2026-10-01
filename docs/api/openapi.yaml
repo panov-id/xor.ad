@@ -108,8 +108,8 @@ components:
             message: {type: string}
     LegalReacceptance:
       type: object
-      description: 409 for any signed request that publishes or opens a chat while an accepted revision is stale (protocol §6).
-      x-description-ru: 409 на подписанный запрос, который публикует или открывает чат при разошедшейся редакции (протокол §6).
+      description: "409 for any signed request that publishes or opens a chat while an accepted revision is stale (protocol §6). Enforced since 2026-10-01 (W13-LN) on POST /feed and POST /matches/{id}/consent for every document whose reaccept is required, when the node runs with LEGAL_REQUIRED=1; off by default until the faces ask for acceptance."
+      x-description-ru: "409 на подписанный запрос, который публикует или открывает чат при разошедшейся редакции (протокол §6). Исполняется с 01.10.2026 (W13-LN) на POST /feed и POST /matches/{id}/consent по каждому документу с reaccept required, когда узел запущен с LEGAL_REQUIRED=1; по умолчанию выключено, пока лица не просят принятия."
       properties:
         error: {type: string, const: legal_reacceptance_required}
         documents:

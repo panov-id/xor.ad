@@ -95,4 +95,14 @@ test("a venue's offer in the feed reports its link, signed, and the node takes i
   await page.getByTestId("report").click();
   await expect(page.getByTestId("reported")).toHaveText("принято", { timeout: 15000 });
   expect(sent, "the report went to the node signed and was taken").toEqual([202]);
+
+  // And only from the feed (owner's decision 01.10.2026, W12-OC): the exit
+  // screen of the same link — opened fresh, as a link is — has no report
+  // button and no toast; "принято" is the card's line, not the exit's.
+  await page.goto(`/o/${code}`);
+  await expect(page.locator('[data-screen="offer-exit"]')).toHaveAttribute("data-state", "ok", { timeout: 15000 });
+  await expect(page.getByTestId("domain")).toHaveText("kolos.cy");
+  await expect(page.getByTestId("report"), "the exit screen offers the link report (it lives on the card only)").toHaveCount(0);
+  await expect(page.locator('[data-screen="offer-exit"]')).not.toContainText("Ссылка ведёт не туда");
+  await expect(page.locator('[data-screen="offer-exit"]')).not.toContainText("погасит");
 });

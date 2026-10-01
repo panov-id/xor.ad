@@ -147,14 +147,16 @@ def comic(sel, scheme, t):
                    ("ink на secondary", INK, t["secondary"], 4.5), ("border-control на panel", t["border-control"], t["panel"], 3.0),
                    ("bg на fg (таблетка)", t["bg"], t["fg"], 4.5),
                    # the focus ring (WCAG 1.4.11): 3:1 on the ground and on a panel — review panel 01.10.2026, item 1
-                   ("focus на bg (кольцо фокуса)", t["focus"], t["bg"], 3.0), ("focus на panel (кольцо фокуса)", t["focus"], t["panel"], 3.0)]
+                   ("focus на bg (кольцо фокуса)", t["focus"], t["bg"], 3.0), ("focus на panel (кольцо фокуса)", t["focus"], t["panel"], 3.0),
+                   # on the ink tab bar the ink ring vanished (1:1, verifier 01.10.2026): its own token
+                   ("focus-on-tab на tab-bg (кольцо на таб-баре)", t["focus-on-tab"], t["tab-bg"], 3.0)]
           + [(f"{k} на panel", t[k], t["panel"], 4.5) for k in ("cat-amber", "cat-teal", "cat-violet", "err")])
 DAY = {"border": INK, "border-control": INK, "accent-ink": PAPER, "ok": "#2f6b3a", "err": "#a3311f", "warn": "#a3311f", "scrim": INK,
-       "shadow": INK, "ink": INK, "paper": PAPER, "pop": GOLD_MID, "rim": INK, "tab-bg": INK, "tab-ink": PAPER, "focus": INK}
+       "shadow": INK, "ink": INK, "paper": PAPER, "pop": GOLD_MID, "rim": INK, "tab-bg": INK, "tab-ink": PAPER, "focus": INK, "focus-on-tab": GOLD_MID}
 NIGHT = {"bg": NBG, "panel": NPN, "panel-2": "#2a3456", "border": "#070a14", "border-control": GOLD_MID, "fg": NFG, "muted": NMU,
          "accent": GOLD_MID, "accent-ink": INK, "ok": "#9ecb7a", "err": "#ff9a8a", "warn": "#ff9a8a", "scrim": INK, "shadow": INK,
          "on-fg-muted": "#5a6480", "ink": INK, "paper": NPN, "pop": GOLD_MID, "rim": GOLD_0, "sel": GOLD_MID, "sel-ink": INK,
-         "secondary": "#e9dfc9", "off": "#2a3456", "tab-bg": "#070a14", "tab-ink": NFG, "focus": GOLD_MID}
+         "secondary": "#e9dfc9", "off": "#2a3456", "tab-bg": "#070a14", "tab-ink": NFG, "focus": GOLD_MID, "focus-on-tab": GOLD_MID}
 comic(".k-comic", "comic·sosed·day", {**DAY, "bg": SKY, "panel": PAPER, "panel-2": "#ece3d2", "fg": INK, "muted": "#5a4e44",
       "accent": TERRA, "on-fg-muted": "#c9b8a0", "sel": TERRA, "sel-ink": PAPER, "secondary": PAPER, "off": "#ece3d2",
       "cat-amber": "#7a4a00", "cat-teal": "#0d6b68", "cat-violet": "#6b2fa8"})

@@ -253,3 +253,5 @@
 .k-comic-face .ui-header-rule .ui-header-title:empty { visibility: hidden; }
 .k-comic-face .offer-domain { background: var(--gold); color: var(--ink); }
 .k-comic-face [data-screen="splash"] h1 { font-family: "Golos Text", sans-serif; font-weight: 500; letter-spacing: 0; color: var(--fg); }
+/* The ring on the ink tab bar: --focus is ink by day and would vanish there (verifier 01.10.2026). */
+.k-comic-face .tabbar .tab:focus-visible { outline: 3px solid var(--focus-on-tab); outline-offset: -4px; }

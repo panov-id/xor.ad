@@ -104,34 +104,41 @@ export async function makeOfferMatch(run: Query, me: string, offerId: string, pk
   return { state: "matched", matchId: made.id };
 }
 
-// The likes this identity left on live offers while its name waited: once the
-// name is accepted, each becomes the match it would have been (S7: "the like
-// waits as a phrase would"). Its own transaction per pair, under the same
-// locks the like takes, so it can run beside likes and consents.
+// The likes that waited on this identity's name: the ones it left on live
+// offers, and the ones others left on ITS live offers — the author's name
+// gates the match as much as the liker's (makeOfferMatch, their_name), and
+// settling the liker's side alone left a like on an offer "liked" for good
+// once the author's name passed (open.tsv offer.match.authorname, W13-OM).
+// Once the name is accepted, each becomes the match it would have been (S7:
+// "the like waits as a phrase would"). Its own transaction per pair, under
+// the same locks the like takes, so it can run beside likes and consents;
+// makeOfferMatch is always called as the liker, so the pair's locks and rows
+// are the ones a like takes, whichever side's name was the one waiting.
 export async function settleOfferLikes(
   transaction: <T>(run: (query: Query) => Promise<T>) => Promise<T>,
   identity: string,
 ): Promise<string[]> {
   const waiting = await transaction((run) =>
-    run<{ offer: string; author: string }>(
-      `SELECT f.id AS offer, f.author_identity AS author
+    run<{ offer: string; liker: string; author: string }>(
+      `SELECT f.id AS offer, l.liker_identity AS liker, f.author_identity AS author
          FROM likes l JOIN feed_messages f ON f.id = l.feed_message_id
-        WHERE l.liker_identity = $1 AND f.discount_value IS NOT NULL AND ${livePhraseOf("f")}
+        WHERE (l.liker_identity = $1 OR f.author_identity = $1)
+          AND f.discount_value IS NOT NULL AND ${livePhraseOf("f")}
         ORDER BY l.created_at`,
       [identity],
     )
   );
   const made: string[] = [];
   for (const row of waiting) {
-    const pk = await pairKey(identity, row.author);
+    const pk = await pairKey(row.liker, row.author);
     const result = await transaction<OfferMatch>(async (run) => {
       await run(`SET LOCAL lock_timeout = '2s'`);
       await run(`SELECT pg_advisory_xact_lock(hashtext($1))`, [pk]);
       await run(
         `SELECT 1 FROM identity_stats WHERE identity = ANY($1::uuid[]) ORDER BY identity FOR UPDATE`,
-        [[identity, row.author]],
+        [[row.liker, row.author]],
       );
-      return await makeOfferMatch(run, identity, row.offer, pk);
+      return await makeOfferMatch(run, row.liker, row.offer, pk);
     });
     if (result.state === "matched") made.push(result.matchId);
   }

@@ -364,3 +364,37 @@ Deno.test("both agree on the offer's match: the header is the offer alone, and t
   assertEquals(starters[0].liked_by, taker.identity_id, "the offer is shown as liked by someone other than the one who came to it");
   reset();
 });
+
+// W13-OM · open.tsv offer.match.authorname: the likes left on this identity's
+// offers while ITS name waited. settleOfferLikes() took only the likes it left
+// itself (liker_identity), so the author's accepted name made no match of the
+// likes on his offers, and such a like stayed "liked" for good (verifier P5).
+Deno.test("the author's accepted name makes the match of the likes that waited on his offers", async () => {
+  reset();
+  const author = await person();
+  const taker = await person();
+  const other = await person();
+  await setName(author.identity_id, "pending");
+  const offer = await seed(author.identity_id, "отдам комод", { discount: "100%" });
+  assertEquals((await like(taker, offer)).body, { state: "liked" });
+  assertEquals((await like(other, offer)).body, { state: "liked" });
+  assertEquals(await matchOf(author.identity_id, taker.identity_id), null, "a match was made with the author's name unchecked");
+  // Settling the author before the verdict makes nothing.
+  assertEquals(await settleOfferLikes(database.transaction, author.identity_id), []);
+  // The verdict accepts the author's name: both waiting likes become matches.
+  await setName(author.identity_id, "accepted");
+  const settled = await settleOfferLikes(database.transaction, author.identity_id);
+  assertEquals(settled.length, 2, "the likes on the author's offers did not become matches when his name passed");
+  const withTaker = await matchOf(author.identity_id, taker.identity_id);
+  const withOther = await matchOf(author.identity_id, other.identity_id);
+  assert(withTaker && withOther);
+  assertEquals(new Set(settled), new Set([withTaker.id, withOther.id]));
+  // The liker's side is the one that came to the offer: no phrase of its own.
+  const rows = Object.fromEntries((await participants(withTaker.id)).map((r) => [r.identity, r]));
+  assertEquals(rows[taker.identity_id].message_id, null);
+  assertEquals(rows[author.identity_id].message_id, offer);
+  assertEquals(await statMatches(author.identity_id), 2);
+  // Settling again makes nothing new.
+  assertEquals(await settleOfferLikes(database.transaction, author.identity_id), []);
+  reset();
+});

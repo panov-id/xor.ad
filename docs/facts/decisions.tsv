@@ -204,3 +204,4 @@ chat.2026-09-26.feedrules	2026-09-26	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.
 web.2026-09-26.coldunlock	2026-09-26	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.md	решено кворумом 26.09.2026 (web.2026-09-26.coldunlock)	decided by a quorum on 2026-09-26 (web.2026-09-26.coldunlock)
 web.2026-09-27.reload-through-pin	2026-09-27	xor.ad/docs/roadmap_RU.md	xor.ad/docs/roadmap_EN.md	любая перезагрузка — только через ПИН, записи вкладки нет	any reload goes only through the PIN, there is no tab record
 chat.2026-10-01.rekey-both	2026-10-01	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.md	Встречный запрос новых ключей засчитывается как согласие	A counter request for new keys counts as consent
+identity.2026-10-01.pin-grant-keep	2026-10-01	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.md	Прежний ПИН, введённый верно, гасит грант первого ПИНа	The old PIN, entered correctly, extinguishes the first-PIN grant

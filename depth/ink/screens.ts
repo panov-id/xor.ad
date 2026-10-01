@@ -72,6 +72,15 @@ export function PinSet(
 ): ReactElement {
   const [pin, setPin] = useState("");
   const [again, setAgain] = useState("");
+  // A PIN the node refused leaves the fields (W12-PS, open.tsv
+  // pinset.keeps-pin-after-409): kept, the next enter would send it again and
+  // the dots would stand for a PIN already known bad. Not on a step away
+  // (W12-PS2): that refusal comes with the way back (onComeBack, app.ts), and
+  // "вернуться" then the same "дальше" is the path §8.2 draws — the PIN must
+  // still be there (run-depth-live-ui went red on 88022e13).
+  useEffect(() => {
+    if (error && !onComeBack) { setPin(""); setAgain(""); }
+  }, [error]);
   const full = pin.length === 6 && again.length === 6;
   const differ = full && pin !== again;
   return h(

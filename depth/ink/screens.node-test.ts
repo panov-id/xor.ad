@@ -141,6 +141,52 @@ test("the PIN goes on only when both are the same six digits, and is drawn as do
   app.unmount();
 });
 
+// W12-PS / W12-PS2 (open.tsv pinset.keeps-pin-after-409): a PIN the node refused
+// does not stay in the fields — the next enter would send the same one again.
+// Except on a step away: that refusal comes with the way back, and after
+// "вернуться" the same "дальше" must go through with the PIN still there
+// (depth.away.return; live.node-test).
+test("a PIN the node refused leaves both fields, and enter sends nothing until a new one is typed", async () => {
+  const got: string[] = [];
+  const screen = (error?: string) => h(PinSet, { say, error, onDone: (pin) => got.push(pin) });
+  const app = render(screen());
+  await settle();
+  await type(app, "482913", DOWN, "482913", DOWN, ENTER);
+  assert.deepEqual(got, ["482913"], "the PIN did not go on");
+  app.rerender(screen("ПИН не подходит. Осталось попыток: 9"));
+  await settle(); await settle();
+  assert.match(app.lastFrame()!, /ПИН не подходит/, "the refusal is not said");
+  assert.equal(/••••••/.test(app.lastFrame()!), false, "the refused PIN is still in the fields");
+  await type(app, ENTER);
+  assert.deepEqual(got, ["482913"], "enter sent the refused PIN again");
+  await type(app, UP, UP, "111111", DOWN, "111111", DOWN, ENTER);
+  assert.deepEqual(got, ["482913", "111111"], "a new PIN after the refusal did not go on");
+  app.unmount();
+});
+
+test("a PIN refused for a step away stays: after the way back the same next sends it again", async () => {
+  const got: string[] = [];
+  let back = 0;
+  const screen = (error?: string, away = false) =>
+    h(PinSet, { say, error, onComeBack: away ? () => back++ : undefined, onDone: (pin) => got.push(pin) });
+  const app = render(screen());
+  await settle();
+  await type(app, "482913", DOWN, "482913", DOWN, ENTER);
+  assert.deepEqual(got, ["482913"]);
+  // Refused while away: the words, the way back, and the PIN still there.
+  app.rerender(screen("Вы отошли: код можно сменить после возвращения.", true));
+  await settle(); await settle();
+  assert.match(app.lastFrame()!, /Вы отошли/);
+  assert.match(app.lastFrame()!, /••••••[\s\S]*••••••/, "a step away wiped the PIN");
+  await type(app, RIGHT, ENTER); // "вернуться"
+  assert.equal(back, 1, "the way back did not fire");
+  app.rerender(screen(undefined));
+  await settle();
+  await type(app, LEFT, ENTER); // the same "дальше"
+  assert.deepEqual(got, ["482913", "482913"], "the same PIN did not go through after the way back");
+  app.unmount();
+});
+
 test("the paper code goes no further until its second and fourth groups come back", async () => {
   let done = false;
   const groups = ["RTQ4", "8FMK", "2PZN", "XW90"];

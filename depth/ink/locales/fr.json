@@ -152,6 +152,7 @@
   "write.hold": "Nous vérifions l'envoi précédent — le nouveau partira après le verdict.",
   "write.live": "Quatre phrases sont déjà en ligne. La prochaine place se libère à {time}.",
   "me.nameHint": "change sur une page blanche",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "vos interlocuteurs verront le changement",
   "me.band21": "Passer dans la tranche 21+ ?",
   "me.save": "enregistrer",

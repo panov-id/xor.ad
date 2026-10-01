@@ -152,6 +152,7 @@
   "write.hold": "Ստուգում ենք նախորդը — նորը կգնա վճռից հետո։",
   "write.live": "Չորս արտահայտություն արդեն ապրում է։ Մոտակա տեղը կազատվի {time}-ին։",
   "me.nameHint": "փոխվում է մաքուր էջից",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "զրուցակիցները կտեսնեն փոփոխությունը",
   "me.band21": "Անցնե՞լ 21+ գոտի։",
   "me.save": "պահպանել",

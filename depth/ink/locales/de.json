@@ -152,6 +152,7 @@
   "write.hold": "Die vorige wird geprüft — die neue geht nach dem Urteil.",
   "write.live": "Vier Phrasen sind schon live. Der nächste Platz wird um {time} frei.",
   "me.nameHint": "ändert sich nur bei leerem Blatt",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "Ihre Gesprächspartner sehen die Änderung",
   "me.band21": "In das Band 21+ wechseln?",
   "me.save": "speichern",

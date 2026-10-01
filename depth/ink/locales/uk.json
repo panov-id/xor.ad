@@ -152,6 +152,7 @@
   "write.hold": "Перевіряємо попереднє — нове піде після вердикту.",
   "write.live": "Чотири фрази вже живуть. Найближча звільниться о {time}.",
   "me.nameHint": "змінюється з чистого аркуша",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "співрозмовники побачать зміну",
   "me.band21": "Перейти до смуги 21+?",
   "me.save": "зберегти",

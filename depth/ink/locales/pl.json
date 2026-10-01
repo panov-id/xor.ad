@@ -152,6 +152,7 @@
   "write.hold": "Sprawdzamy poprzednią — nowa pójdzie po werdykcie.",
   "write.live": "Cztery frazy już żyją. Najbliższa zwolni się o {time}.",
   "me.nameHint": "zmienia się od czystej karty",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "rozmówcy zobaczą zmianę",
   "me.band21": "Przejść do pasma 21+?",
   "me.save": "zapisz",

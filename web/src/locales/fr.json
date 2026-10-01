@@ -342,5 +342,6 @@
   "web.legal.accept": "accepter",
   "web.legal.accepted": "tout est accepté",
   "web.legal.stale": "la version vient de changer — lisez-la et acceptez-la à nouveau",
-  "web.legal.refused": "acceptez d’abord les nouvelles versions des documents : « moi » → « documents »"
+  "web.legal.refused": "acceptez d’abord les nouvelles versions des documents : « moi » → « documents »",
+  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
 }

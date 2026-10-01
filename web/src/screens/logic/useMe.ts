@@ -7,11 +7,11 @@ import type { Client } from "../../../../depth/core/client.ts";
 import { blockList, hiddenList } from "../../api/lists.ts";
 
 export function useMe({ client, refresh }: { client: Client; refresh: number }) {
-  const [profile, setProfile] = useState<{ name: string; pending?: string; age: number } | null>(null);
+  const [profile, setProfile] = useState<{ name: string; pending?: string; state: "accepted" | "pending" | "rejected"; age: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     client.profile()
-      .then((p) => setProfile({ name: p.name, pending: p.name_pending, age: p.age }))
+      .then((p) => setProfile({ name: p.name, pending: p.name_pending, state: p.name_state, age: p.age }))
       .catch((e: Error) => setError(e.message));
   }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
   // The two lists' sizes, as the terminal's "me" shows them (depth/ink

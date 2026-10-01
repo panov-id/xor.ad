@@ -1126,18 +1126,21 @@ export function Me(
     onError: (message: string) => void;
   },
 ): ReactElement {
-  const [profile, setProfile] = useState<{ name: string; pending?: string; age: number } | null>(null);
+  const [profile, setProfile] = useState<{ name: string; pending?: string; state: "accepted" | "pending" | "rejected"; age: number } | null>(null);
   const [hidden, setHidden] = useState<number | null>(null);
   const [blocked, setBlocked] = useState(0);
   const [at, setAt] = useState(0);
   useEffect(() => {
-    client.profile().then((p) => setProfile({ name: p.name, pending: p.name_pending, age: p.age })).catch((e: Error) => onError(e.message));
+    client.profile().then((p) => setProfile({ name: p.name, pending: p.name_pending, state: p.name_state, age: p.age })).catch((e: Error) => onError(e.message));
     client.hidden().then((list) => setHidden(list.length)).catch(() => {});
     client.blocks().then((list) => setBlocked(list.length)).catch(() => {});
   }, []);
   // The name and the age are rows too since 23.09.2026: enter edits them.
+  // A refused name is said on its row (§8.2, chat_RU.md:866: it is edited
+  // always), and the row opens the editor as for any name (W13-NR).
   const nameShown = profile
-    ? plain(profile.name, 48) + (profile.pending ? ` → ${plain(profile.pending, 48)} · ${say("feed.checking")}` : "")
+    ? plain(profile.name, 48) +
+      (profile.pending ? ` → ${plain(profile.pending, 48)} · ${say("feed.checking")}` : profile.state === "rejected" ? ` · ${say("me.nameRejected")}` : "")
     : "…";
   const rows: Array<{ key: MeRow; label: string; red?: boolean }> = [
     ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true }] : []),

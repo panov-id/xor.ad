@@ -41,7 +41,18 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
   if (legal) return <Legal client={client} onDone={() => setLegal(false)} onBack={() => setLegal(false)} />;
   const rows: Array<{ key: MeRow; label: string; red?: boolean; testid: string; icon?: IconName }> = [
     ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true, testid: "me-statements", icon: "report" as const }] : []),
-    { key: "name", label: `${say("me.name")}  ${profile ? profile.name + (profile.pending ? ` → ${profile.pending} · ${say("feed.checking")}` : "") : "…"}`, testid: "me-name", icon: "name" },
+    // A refused name is said here (§8.2, chat_RU.md:866: it is edited always):
+    // the row carries the words and opens the editor, as it does for any name (W13-NR).
+    {
+      key: "name",
+      label: `${say("me.name")}  ${
+        profile
+          ? profile.name + (profile.pending ? ` → ${profile.pending} · ${say("feed.checking")}` : profile.state === "rejected" ? ` · ${say("web.me.name_rejected")}` : "")
+          : "…"
+      }`,
+      testid: "me-name",
+      icon: "name",
+    },
     { key: "age", label: `${say("me.age")}  ${profile ? profile.age : "…"}`, testid: "me-age", icon: "me" },
     { key: "filter", label: say("web.filter.item"), testid: "me-filter", icon: "me" },
     { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}`, testid: "me-hidden", icon: "hide" },
@@ -57,7 +68,7 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
     { key: "reset", label: say("reset.item"), testid: "me-reset", icon: "reset" },
   ];
   return (
-    <main className={["screen me", brandClass].filter(Boolean).join(" ")} data-screen="me" data-name-state={profile?.pending ? "pending" : "accepted"}>
+    <main className={["screen me", brandClass].filter(Boolean).join(" ")} data-screen="me" data-name-state={profile ? (profile.pending ? "pending" : profile.state) : "accepted"}>
       <HeaderScreen title={say("me.title")} action={<Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="me-back" />} />
       {error && <p className="error" data-testid="error">{error}</p>}
       <ul className="place-rows">

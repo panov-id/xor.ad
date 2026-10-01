@@ -152,6 +152,7 @@
   "write.hold": "Əvvəlkini yoxlayırıq — yenisi qərardan sonra gedəcək.",
   "write.live": "Dörd ifadə artıq yaşayır. Ən yaxını {time} boşalacaq.",
   "me.nameHint": "təmiz vərəqdən dəyişir",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "həmsöhbətlər dəyişikliyi görəcək",
   "me.band21": "21+ zolağına keçilsin?",
   "me.save": "saxla",

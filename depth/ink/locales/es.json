@@ -152,6 +152,7 @@
   "write.hold": "Revisamos lo anterior — lo nuevo saldrá tras el veredicto.",
   "write.live": "Ya hay cuatro frases en vivo. El próximo hueco se libera a las {time}.",
   "me.nameHint": "cambia desde cero",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "tus interlocutores verán el cambio",
   "me.band21": "¿Pasar a la franja 21+?",
   "me.save": "guardar",

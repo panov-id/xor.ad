@@ -152,6 +152,7 @@
   "write.hold": "Oldingisini tekshiryapmiz — yangisi hukmdan keyin ketadi.",
   "write.live": "To'rtta ibora allaqachon tirik. Eng yaqini {time} da bo'shaydi.",
   "me.nameHint": "toza varaqdan o'zgaradi",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "suhbatdoshlar o'zgarishni ko'radi",
   "me.band21": "21+ tasmasiga o'tilsinmi?",
   "me.save": "saqlash",

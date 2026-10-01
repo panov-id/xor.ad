@@ -342,5 +342,6 @@
   "web.legal.accept": "qəbul et",
   "web.legal.accepted": "hər şey qəbul edilib",
   "web.legal.stale": "redaksiya indicə dəyişdi — onu oxuyun və yenidən qəbul edin",
-  "web.legal.refused": "əvvəlcə sənədlərin yeni redaksiyalarını qəbul edin: «mən» → «sənədlər»"
+  "web.legal.refused": "əvvəlcə sənədlərin yeni redaksiyalarını qəbul edin: «mən» → «sənədlər»",
+  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
 }

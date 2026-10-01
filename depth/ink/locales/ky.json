@@ -152,6 +152,7 @@
   "write.hold": "Мурункусун текшерип жатабыз — жаңысы өкүмдөн кийин кетет.",
   "write.live": "Төрт фраза тирүү. Эң жакыны {time} бошойт.",
   "me.nameHint": "таза барактан өзгөрөт",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "маектештер өзгөрүүнү көрөт",
   "me.band21": "21+ тилкесине өтөбүзбү?",
   "me.save": "сактоо",

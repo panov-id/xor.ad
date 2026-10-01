@@ -247,6 +247,7 @@
   "web.register.consent": "принимаю пользовательское соглашение, политику конфиденциальности и правила сообщества",
   "web.register.done": "готово",
   "web.register.easy_pin": "этот ПИН легко угадать",
+  "web.me.name_rejected": "имя не принято, фраза ждёт нового имени",
   "web.register.fourth": "четвёртая",
   "web.register.groups_mismatch": "группы не сходятся с кодом — проверьте, что записали",
   "web.register.left": "осталось {count}",

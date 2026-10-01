@@ -152,6 +152,7 @@
   "write.hold": "Алдыңғысын тексеріп жатырмыз — жаңасы шешімнен кейін кетеді.",
   "write.live": "Төрт сөз тіркесі әлі тірі. Ең жақыны {time} босайды.",
   "me.nameHint": "таза беттен өзгереді",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "сұхбаттастар өзгерісті көреді",
   "me.band21": "21+ жолағына өту керек пе?",
   "me.save": "сақтау",

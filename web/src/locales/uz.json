@@ -342,5 +342,6 @@
   "web.legal.accept": "qabul qilish",
   "web.legal.accepted": "hammasi qabul qilindi",
   "web.legal.stale": "tahrir hozirgina o‘zgardi — uni o‘qing va qayta qabul qiling",
-  "web.legal.refused": "avval hujjatlarning yangi tahrirlarini qabul qiling: «men» → «hujjatlar»"
+  "web.legal.refused": "avval hujjatlarning yangi tahrirlarini qabul qiling: «men» → «hujjatlar»",
+  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
 }

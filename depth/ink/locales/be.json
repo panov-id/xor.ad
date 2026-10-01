@@ -152,6 +152,7 @@
   "write.hold": "Правяраем мінулае — новае пойдзе пасля вердыкту.",
   "write.live": "Чатыры фразы ўжо жывуць. Бліжэйшая вызваліцца ў {time}.",
   "me.nameHint": "мяняецца з чыстага аркуша",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "суразмоўцы ўбачаць змену",
   "me.band21": "Перайсці ў паласу 21+?",
   "me.save": "захаваць",

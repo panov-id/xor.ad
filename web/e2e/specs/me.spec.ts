@@ -4,8 +4,14 @@
 // "start again", after which the device remembers nothing. Every step is
 // read back from the node's answers, not from the screen alone.
 
-import { expect, test } from "../fixtures/address.ts";
-import { PIN, register, unlock, watch } from "./helpers.ts";
+import { expect, test, type Page } from "../fixtures/address.ts";
+import { devices } from "@playwright/test";
+import { PIN, register, runLabel, unlock, watch } from "./helpers.ts";
+
+const PANEL_URL = process.env.PANEL_URL ?? "";
+const SECRET = process.env.PANEL_SESSION_SECRET ?? "";
+const ENV_NAME = process.env.PANEL_ENV_NAME ?? "test";
+const MODERATOR = "moderator@webtest.invalid";
 
 test("me: the name to the queue, the PIN changed and the vault re-sealed, away and back, start again", async ({ page }) => {
   const feedAnswers: number[] = [];
@@ -106,4 +112,75 @@ test("me: the name to the queue, the PIN changed and the vault re-sealed, away a
   expect(nodeAnswers.filter(([, p]) => p === "/identities/close").map(([, , s]) => s)).toEqual([200]);
   await page.reload();
   await expect(page.locator('[data-screen="splash"]')).toBeVisible({ timeout: 15000 });
+});
+
+// W13-NR · a refused name is said to its author (§8.2, chat_RU.md:866). The
+// name goes to the queue with a phrase; the moderator refuses the name in the
+// panel (as moderation-path.spec walks it); "me" then says the name was not
+// accepted and the phrase waits — and the row still opens the editor.
+async function panelToken(): Promise<string> {
+  const b64 = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64url");
+  const enc = new TextEncoder();
+  const header = b64(enc.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
+  const payload = b64(enc.encode(JSON.stringify({
+    sub: MODERATOR, role: "moderator", brand: null, env: ENV_NAME, exp: Math.floor(Date.now() / 1000) + 3600,
+  })));
+  const key = await crypto.subtle.importKey("raw", enc.encode(SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(`${header}.${payload}`)));
+  return `${header}.${payload}.${b64(sig)}`;
+}
+
+async function writeFlagged(page: Page, text: string): Promise<void> {
+  const posts: number[] = [];
+  page.on("response", (r) => { if (new URL(r.url()).pathname === "/feed" && r.request().method() === "POST") posts.push(r.status()); });
+  await page.getByTestId("write").click();
+  await expect(page.locator('[data-screen="composer"]')).toBeVisible();
+  await page.getByTestId("text").fill(text);
+  await page.getByTestId("send").click();
+  await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 15000 });
+  expect(posts, "the rules did not send the phrase to the queue").toEqual([202]);
+}
+
+test("a name the moderator refused is said on «me», and the row still opens the editor", async ({ browser }) => {
+  expect(PANEL_URL && SECRET, "the stand's panel and its session secret (docker-compose.web.yml e2e)").toBeTruthy();
+  test.setTimeout(180_000);
+  const stamp = runLabel();
+  const a = await browser.newContext({ viewport: { width: 393, height: 851 } });
+  const page = await a.newPage();
+  watch(page, []);
+  await register(page);
+  // The name to the queue, then a phrase that waits there with it.
+  await page.getByTestId("tab-me").click();
+  await page.getByTestId("me-name").click();
+  await page.getByTestId("edit-value").fill("Оля");
+  await page.getByTestId("edit-save").click();
+  await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "pending", { timeout: 15000 });
+  await page.getByTestId("me-back").click();
+  await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 15000 });
+  await writeFlagged(page, `пиши в тг, договоримся ${stamp}`);
+
+  // The moderator: the name, not the phrase.
+  // On a desktop and without the storefront's headers, as moderation-path.spec
+  // explains: at a phone's width the panel has no "Feed queue" link, and the
+  // node's CORS refuses the Bunny headers from the panel.
+  const m = await (await browser.newContext({ ...devices["Desktop Chrome"] })).newPage();
+  await m.context().setExtraHTTPHeaders({});
+  const token = await panelToken();
+  await m.addInitScript(([k, v]) => window.localStorage.setItem(k, v), ["panel_jwt", token]);
+  await m.goto(PANEL_URL);
+  await m.getByRole("link", { name: "Feed queue" }).click();
+  await expect(m.getByRole("heading", { name: "Feed queue" })).toBeVisible();
+  const row = m.getByRole("row", { name: new RegExp(`тг, договоримся ${stamp}`) });
+  await expect(row).toBeVisible({ timeout: 15000 });
+  await row.getByRole("button", { name: "Refuse name" }).click();
+  await expect(row.getByText("name rejected")).toBeVisible({ timeout: 15000 });
+
+  // The author: "me" says the name was not accepted, and the row opens the editor.
+  await page.getByTestId("tab-me").click();
+  await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "rejected", { timeout: 15000 });
+  await expect(page.getByTestId("me-name")).toContainText("имя не принято, фраза ждёт нового имени");
+  await expect(page.getByTestId("me-name")).not.toContainText("на проверке");
+  await page.getByTestId("me-name").click();
+  await expect(page.locator('[data-screen="edit-name"]')).toBeVisible();
+  await a.close();
 });

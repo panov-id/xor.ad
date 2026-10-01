@@ -342,5 +342,6 @@
   "web.legal.accept": "accept",
   "web.legal.accepted": "everything is accepted",
   "web.legal.stale": "the revision has just changed — read it and accept it again",
-  "web.legal.refused": "first accept the new revisions of the documents: “me” → “documents”"
+  "web.legal.refused": "first accept the new revisions of the documents: “me” → “documents”",
+  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
 }

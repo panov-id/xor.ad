@@ -342,5 +342,6 @@
   "web.legal.accept": "αποδοχή",
   "web.legal.accepted": "όλα έγιναν αποδεκτά",
   "web.legal.stale": "η έκδοση μόλις άλλαξε — διαβάστε την και αποδεχτείτε ξανά",
-  "web.legal.refused": "αποδεχτείτε πρώτα τις νέες εκδόσεις των εγγράφων: «εγώ» → «έγγραφα»"
+  "web.legal.refused": "αποδεχτείτε πρώτα τις νέες εκδόσεις των εγγράφων: «εγώ» → «έγγραφα»",
+  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
 }

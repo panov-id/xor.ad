@@ -342,5 +342,6 @@
   "web.legal.accept": "прийняти",
   "web.legal.accepted": "усе прийнято",
   "web.legal.stale": "редакція щойно змінилася — прочитайте її та прийміть знову",
-  "web.legal.refused": "спершу прийміть нові редакції документів: «я» → «документи»"
+  "web.legal.refused": "спершу прийміть нові редакції документів: «я» → «документи»",
+  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
 }

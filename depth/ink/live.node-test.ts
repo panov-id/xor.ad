@@ -481,7 +481,14 @@ async function main() {
 
     // 10 · the name, edited from "me" against the node: the step away took the
     // phrases, so the slate is clean and the new name goes to the queue (202).
+    // 10a · W13-NR · a name the queue refused is said on "me" (§8.2): the row
+    // carries the words, and enter below edits it as any name. The verdict is
+    // written as refuseName() leaves it; the state goes back before the edit.
+    await sql`UPDATE identities SET name_state = 'rejected', name_pending = NULL WHERE id = ${me.id}`;
     await pickInFeed(app, "me");
+    await until(app, /имя  Аня · имя не принято, фраза ждёт нового имени/, 20);
+    out("ok   a refused name is said on the screen, with the phrase waiting for a new one");
+    await sql`UPDATE identities SET name_state = 'accepted' WHERE id = ${me.id}`;
     // The name as the node has it, not the row's "…": enter on the name opens
     // nothing until the profile has come (B9, 1 of 10 under stress).
     await until(app, /имя  Аня/, 20);

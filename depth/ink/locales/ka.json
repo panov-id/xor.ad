@@ -152,6 +152,7 @@
   "write.hold": "წინას ვამოწმებთ — ახალი ვერდიქტის შემდეგ წავა.",
   "write.live": "ოთხი ფრაზა უკვე ცოცხალია. უახლოესი გათავისუფლდება {time}-ზე.",
   "me.nameHint": "იცვლება სუფთა ფურცლიდან",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "თანამოსაუბრეები ცვლილებას დაინახავენ",
   "me.band21": "გადავიდეთ 21+ ზოლში?",
   "me.save": "შენახვა",

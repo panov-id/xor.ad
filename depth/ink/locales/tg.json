@@ -343,5 +343,6 @@
   "chat.rekeyWaiting": "Дархост барои калидҳои нав фиристода шуд — интизори розигии ҳамсӯҳбат ҳастем.",
   "chat.rekeyDone": "Калидҳои сӯҳбат нав карда шуданд (давраи {epoch}).",
   "chat.rekeyRefused": "гиреҳ калидҳои навро қабул накард: {status}",
-  "feed.refused": "Ибораи шумо аз модератсия нагузашт ва бардошта шуд."
+  "feed.refused": "Ибораи шумо аз модератсия нагузашт ва бардошта шуд.",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one"
 }

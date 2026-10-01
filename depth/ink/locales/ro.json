@@ -152,6 +152,7 @@
   "write.hold": "Verificăm ce ați trimis înainte — cea nouă pleacă după verdict.",
   "write.live": "Patru fraze sunt deja active. Următorul loc se eliberează la {time}.",
   "me.nameHint": "se schimbă doar de la zero",
+  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
   "me.ageHint": "interlocutorii vor vedea schimbarea",
   "me.band21": "Treceți în banda 21+?",
   "me.save": "salvează",

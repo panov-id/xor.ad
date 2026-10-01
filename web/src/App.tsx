@@ -14,7 +14,7 @@
 // retired hole of SEC-2 and went with W1d, once the vault kept the wrap pair
 // (verifier of W1d, 2026-09-27).
 
-import { type ReactNode, useEffect, useState } from "react";
+import { lazy, type ReactNode, Suspense, useEffect, useState } from "react";
 import type { Client, Radius, Statement } from "../../depth/core/client.ts";
 import type { Sent } from "./api/actions.ts";
 import { say } from "./api/me.ts";
@@ -37,7 +37,6 @@ import { Unlock } from "./screens/Unlock.tsx";
 import { Arrival } from "./screens/Arrival.tsx";
 import { Departure } from "./screens/Departure.tsx";
 import { Cabinet } from "./adv/Cabinet.tsx";
-import { KitPreview } from "./ui/KitPreview.tsx";
 import { Table } from "./screens/Table.tsx";
 import { NewTable } from "./screens/NewTable.tsx";
 import { Tables } from "../../depth/core/tables.ts";
@@ -88,11 +87,14 @@ type Screen =
 // deployment, under /adv on the stand. Decided once per load, so the face's
 // hooks below are never called conditionally.
 // The comic kit's page (ui/KitPreview.tsx): the stand's build only, at /kit.
-const KIT = import.meta.env.VITE_STAND === "1" && location.pathname === "/kit";
+// Loaded by a dynamic import() under the build-time flag, so a real build
+// (VITE_STAND unset) drops the page from its bundle (review panel 01.10.2026, item 3).
+const KitPreview = import.meta.env.VITE_STAND === "1" ? lazy(() => import("./ui/KitPreview.tsx").then((m) => ({ default: m.KitPreview }))) : null;
+const KIT = KitPreview !== null && location.pathname === "/kit";
 const CABINET = location.hostname.startsWith("adv.") || /^\/adv(\/|$)/.test(location.pathname);
 
 export function App() {
-  if (KIT) return <KitPreview />;
+  if (KIT && KitPreview) return <Suspense fallback={null}><KitPreview /></Suspense>;
   return CABINET ? <Cabinet /> : <Face />;
 }
 

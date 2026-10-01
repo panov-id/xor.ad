@@ -98,3 +98,117 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .ui-inbox-time { font-family: "JetBrains Mono", ui-monospace, monospace; color: var(--muted); }
 .ui-inbox-wait { font-size: 14px; color: var(--accent-text); }
 .ui-dot { position: absolute; top: 18px; right: var(--s-3); width: 8px; height: 8px; border-radius: var(--r-round); background: var(--accent); }
+/* ── Comic, «загрузочный экран GTA» (owner 2026-10-01, web/design/comic-2026-10-01.svg).
+   main.tsx puts k-comic-face and the brand's comic scheme (schemes.css: k-comic[-night],
+   k-comic-neighbro[-night]) on <html>; every rule below is under .k-comic-face, so
+   it outranks the screens' sheets. Outline, hard shadow, the panel's top-right
+   corner cut and the cards' lean are kit tokens (--comic-*, schemes.css); Russo One caps for headings, Golos 500
+   for text. Colours only by token (scripts/check-web-tokens.sh). */
+.k-comic-face { --line: var(--comic-line); --cut: var(--comic-cut); --drop: var(--comic-drop-x) var(--comic-drop-y) 0 var(--shadow); --gold: linear-gradient(90deg, var(--gold-1), var(--gold-2), var(--gold-1)); }
+.k-comic-face body { font-weight: 500; }
+.k-comic-face :is(h1, h2, .ui-header-title) { font-family: "Russo One", "Golos Text", sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .01em; }
+.k-comic-face :is(button, a.button, input, select, textarea) { border: var(--line) solid var(--ink); border-radius: 0; }
+.k-comic-face :is(input, select, textarea) { background: var(--panel); }
+.k-comic-face :is(button, a.button):not(.ui-text):not(.ui-inbox-row):not(.tab):not(:disabled) { box-shadow: var(--comic-drop-x) var(--comic-drop-y) 0 var(--ink); }
+.k-comic-face :is(button, a.button):not(:disabled):active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+.k-comic-face button:focus-visible, .k-comic-face a:focus-visible { outline: 3px solid var(--accent-text); outline-offset: 3px; }
+
+/* Buttons */
+.k-comic-face .ui-button { font-weight: 600; border-radius: 0; }
+.k-comic-face .ui-primary { background: var(--gold); color: var(--ink); border-color: var(--ink); }
+.k-comic-face .ui-primary:disabled { background: var(--panel-2); border-color: var(--muted); color: var(--muted); box-shadow: none; }
+.k-comic-face .ui-secondary { background: var(--panel); color: var(--fg); }
+.k-comic-face .ui-danger { background: var(--panel); color: var(--err); border-color: var(--err); }
+.k-comic-face .ui-pill { background: var(--gold); color: var(--ink); border-color: var(--ink); border-radius: 0; }
+.k-comic-face .ui-text { border-color: transparent; background: transparent; box-shadow: none; }
+/* Icon-only: 44×44, the glyph at 24, no words — the name is the aria-label. */
+.ui-icon-only { width: var(--control-h); min-width: var(--control-h); padding: 0; display: inline-grid; place-items: center; }
+.k-comic-face .ui-icon-only { --icon-fill: var(--paper); }
+.k-comic-face .ui-primary.ui-icon-only { --icon-fill: var(--pop); }
+.ui-glyph { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ui-glyph .f { fill: var(--icon-fill, transparent); }
+.ui-glyph .dot { fill: currentColor; stroke: none; }
+
+/* Cards: paper, ink outline, the corner cut by a triangle of the ground with the
+   outline's diagonal across it, the hard shadow; a list's cards lean by turns. */
+.k-comic-face :is(.ui-card, .card) { position: relative; background: var(--panel); border: var(--line) solid var(--ink); border-radius: 0; box-shadow: var(--drop); border-color: var(--rim); }
+.k-comic-face :is(.ui-card, .card)::after {
+  content: ""; position: absolute; top: calc(-1 * var(--line)); right: calc(-1 * var(--line)); width: var(--cut); height: var(--cut); pointer-events: none;
+  background: linear-gradient(225deg, var(--bg) calc(var(--cut) * .7071 - 1px), var(--rim) calc(var(--cut) * .7071 - 1px), var(--rim) calc(var(--cut) * .7071 - 1px + var(--line)), transparent calc(var(--cut) * .7071 - 1px + var(--line)));
+}
+.k-comic-face .ui-card-nested { background: var(--panel-2); }
+.k-comic-face .ui-card-own { border-style: dashed; color: var(--muted); }
+.k-comic-face .cards > :nth-child(odd) { transform: rotate(calc(-1 * var(--comic-tilt))); }
+.k-comic-face .cards > :nth-child(even) { transform: rotate(var(--comic-tilt)); }
+.k-comic-face .card[role="button"]:hover { border-color: var(--ink); box-shadow: calc(var(--comic-drop-x) + 2px) calc(var(--comic-drop-y) + 2px) 0 var(--shadow); }
+
+/* Chips: a flat plate with an ink rim. */
+.k-comic-face .ui-chip { border-radius: 0; border: 2px solid var(--ink); background: var(--pop); color: var(--ink); text-transform: uppercase; font-size: 12px; letter-spacing: .03em; }
+.k-comic-face .ui-chip-teal { background: var(--pop-3); }
+.k-comic-face .ui-chip-violet, .k-comic-face .ui-chip-accent { background: var(--accent); color: var(--accent-ink); }
+.k-comic-face .ui-chip-muted { background: var(--panel-2); color: var(--muted); border-color: var(--muted); }
+.k-comic-face .ui-chip-outline { background: transparent; color: var(--chip); border-color: var(--chip); }
+
+/* Composer: a paper bar with an ink rim; the send is an icon box in the accent. */
+.k-comic-face .ui-composer { border-radius: 0; background: var(--panel); border: var(--line) solid var(--ink); box-shadow: var(--drop); }
+.k-comic-face .ui-composer input { color: var(--fg); border: 0; background: transparent; }
+.k-comic-face .ui-composer input::placeholder { color: var(--muted); }
+.k-comic-face .ui-send { border: 0; box-shadow: none; color: var(--muted); }
+.k-comic-face .ui-send svg { width: 24px; height: 24px; background: none; border-radius: 0; }
+.k-comic-face .ui-send-on { background: var(--gold); color: var(--ink); border: var(--line) solid var(--ink); --icon-fill: var(--pop); }
+
+/* Headers: a band with an ink rule. */
+.k-comic-face .ui-header-rule { border-bottom: var(--line) solid var(--ink); background: var(--panel); }
+.k-comic-face .ui-header-rule .ui-header-title { font-size: 20px; }
+.k-comic-face .ui-icon { color: var(--fg); background: var(--panel); }
+.k-comic-face .ui-icon svg { fill: none; stroke: currentColor; stroke-width: 2.4; }
+/* The feed's header on its scene (Scene.tsx): 160 tall, the title at the top in the
+   phase's ink, the step on a pop plate under it. */
+.ui-header-scene { position: relative; min-height: var(--comic-scene-h, 160px); align-items: flex-start; padding-top: var(--s-4); overflow: hidden; border-bottom: var(--line, 3px) solid var(--ink); }
+.ui-header-scene > :not(.ui-scene) { position: relative; }
+.ui-header-scene .ui-scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ui-header-scene .ui-header-title { font-size: 26px; line-height: 1.1; }
+.ui-header-scene .ui-header-title > [aria-live] { display: block; width: fit-content; margin-top: var(--s-2); padding: 2px var(--s-2); font-family: "Golos Text", sans-serif; font-size: 14px; text-transform: none; color: var(--ink); background: var(--pop); border: 2px solid var(--ink); }
+.ui-header-scene .ui-header-title > [aria-live]:empty { display: none; }
+.ui-header-scene .ui-header-title > [aria-hidden] { display: none; }
+.ui-header-scene select { background: var(--panel); color: var(--fg); }
+
+/* Inbox rows: paper strips with an ink rim; mine to answer carries the pop dot. */
+.k-comic-face .ui-inbox-row { border: var(--line) solid var(--ink); border-radius: 0; background: var(--panel); box-shadow: var(--drop); margin-bottom: var(--s-1); }
+.k-comic-face .ui-inbox-row-on { background: var(--panel-2); }
+.k-comic-face .ui-inbox-name { font-family: "Russo One", "Golos Text", sans-serif; font-weight: 400; text-transform: uppercase; }
+.k-comic-face .ui-dot { width: 12px; height: 12px; border-radius: 0; background: var(--pop-2); border: 2px solid var(--ink); transform: rotate(45deg); }
+
+/* The like's medallion (Card.tsx LikeBurst): a gold coin with ♥ and the count, no star.
+   On a new like it pops: scale 0 → 1.2 → 1 in 220 ms, then a shake; under
+   prefers-reduced-motion it is there without moving. */
+.ui-burst { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-width: 44px; height: 44px; padding: 0 var(--s-2);
+  border-radius: var(--r-pill); border: var(--line, 2px) solid var(--ink); background: var(--panel-2); color: var(--ink); vertical-align: middle; }
+.ui-burst-on { background: var(--gold, var(--accent)); box-shadow: var(--drop, none); }
+.ui-burst-heart { font-size: 16px; line-height: 1; }
+.ui-burst-n { font-family: "Russo One", "Golos Text", sans-serif; font-size: 15px; }
+.ui-burst:not(.ui-burst-on) .ui-burst-heart, .ui-burst:not(.ui-burst-on) .ui-burst-n { color: var(--fg); }
+.ui-burst-pop { animation: ui-burst-boom 220ms cubic-bezier(.2, .9, .3, 1.3) both, ui-burst-shake 240ms 220ms linear; }
+@keyframes ui-burst-boom { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+@keyframes ui-burst-shake { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-3px, 1px) rotate(-4deg); } 40% { transform: translate(3px, -1px) rotate(3deg); } 60% { transform: translate(-2px, 1px) rotate(-2deg); } 80% { transform: translate(2px, 0) rotate(1deg); } }
+@media (prefers-reduced-motion: reduce) { .ui-burst-pop { animation: none; } }
+.card-likes { display: flex; align-items: center; gap: var(--s-2); }
+
+/* Info (Info.tsx): the balloon under its button, with a tail pointing up at it. */
+.ui-info { position: relative; display: inline-block; }
+.ui-balloon {
+  position: absolute; z-index: 20; top: calc(100% + 16px); left: 0; width: min(300px, calc(100vw - 32px));
+  padding: var(--s-3) var(--s-4); background: var(--panel); color: var(--fg); border: var(--line, 3px) solid var(--ink); box-shadow: var(--drop, 4px 4px 0 var(--shadow));
+  display: flex; flex-direction: column; gap: var(--s-2);
+}
+.ui-balloon:focus { outline: none; }
+.ui-balloon p { margin: 0; }
+.ui-balloon::before, .ui-balloon::after { content: ""; position: absolute; left: 14px; width: 0; height: 0; border-style: solid; }
+.ui-balloon::before { top: -18px; border-width: 0 10px 18px 10px; border-color: transparent transparent var(--ink) transparent; }
+.ui-balloon::after { top: -12px; left: 17px; border-width: 0 7px 13px 7px; border-color: transparent transparent var(--panel) transparent; }
+/* Screens drawn before the comic (fixed after the first shots, 2026-10-01): the tab bar
+   and a header's word action keep no rim, rows keep their inset, the back box its gap. */
+.k-comic-face .tabbar .tab, .k-comic-face .ui-header-action :is(button, a) { border: 0; box-shadow: none; background: transparent; }
+.k-comic-face .tabbar { border-top: var(--line) solid var(--ink); }
+.k-comic-face .row { padding: 0 var(--s-3); }
+.k-comic-face .ui-header .ui-icon { margin-right: var(--s-2); }

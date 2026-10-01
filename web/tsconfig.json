@@ -32,6 +32,7 @@
     "../depth/core/*.ts"
   ],
   "exclude": [
-    "../depth/core/*.test.ts"
+    "../depth/core/*.test.ts",
+    "src/**/*.test.ts"
   ]
 }

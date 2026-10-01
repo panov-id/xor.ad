@@ -37,6 +37,7 @@ import { Unlock } from "./screens/Unlock.tsx";
 import { Arrival } from "./screens/Arrival.tsx";
 import { Departure } from "./screens/Departure.tsx";
 import { Cabinet } from "./adv/Cabinet.tsx";
+import { KitPreview } from "./ui/KitPreview.tsx";
 import { Table } from "./screens/Table.tsx";
 import { NewTable } from "./screens/NewTable.tsx";
 import { Tables } from "../../depth/core/tables.ts";
@@ -85,9 +86,12 @@ type Screen =
 // The venue's cabinet (A1) is its own page: at adv.<storefront> in a real
 // deployment, under /adv on the stand. Decided once per load, so the face's
 // hooks below are never called conditionally.
+// The comic kit's page (ui/KitPreview.tsx): the stand's build only, at /kit.
+const KIT = import.meta.env.VITE_STAND === "1" && location.pathname === "/kit";
 const CABINET = location.hostname.startsWith("adv.") || /^\/adv(\/|$)/.test(location.pathname);
 
 export function App() {
+  if (KIT) return <KitPreview />;
   return CABINET ? <Cabinet /> : <Face />;
 }
 

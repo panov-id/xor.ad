@@ -10,6 +10,7 @@ import { useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { blockByPhrase, hidePhrase, likePhrase, modes, type LikeOutcome } from "../api/actions.ts";
 import { Button } from "../ui/Button.tsx";
+import { LikeBurst } from "../ui/Card.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import type { FeedCard } from "./Feed.tsx";
 import { say } from "../locales/say.ts";
@@ -85,8 +86,9 @@ export function Card(
         {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
         <p className="big" data-testid="text">{card.text}</p>
         {card.offer?.conditions && <p className="muted" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
-        <p className="muted">
-          ♥ {card.like_count + (like && like.state !== "refused" ? 1 : 0)}
+        <p className="muted card-likes">
+          <LikeBurst count={card.like_count + (like && like.state !== "refused" ? 1 : 0)} on={like !== null && like.state !== "refused"}
+            data-testid="like-burst" />
           {card.soon ? say("web.card.soon") : ""}
         </p>
       </article>

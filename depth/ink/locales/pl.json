@@ -139,6 +139,7 @@
   "away.back": "wróć",
   "away.sure": "chciałeś przerwy — na pewno wracamy?",
   "chat.peerAway": "odszedł",
+  "chat.ageChanged": "the other side changed their age: {age}",
   "chat.missed": "you missed a message — ask them to send it again",
   "write.paused": "Pięć odmów w godzinę — pauza do {time}. Decyzja automatyczna.\nDo tego czasu nic nie idzie do sprawdzenia:\nfrazy, wypowiedzi przy stole, zmiana imienia, polubienie oferty, dopóki imię nie jest przyjęte, słowo do wisielca.\nKolejna odmowa w tej godzinie — znów 15 minut.\nStrumień, polubienia fraz i rozmowy działają.\nPodstawa — regulamin, §8 i §15. Pauza skończy się sama; jeśli się nie zgadzasz — koordynator ds. usług cyfrowych lub sąd.",
   "write.hourly": "Cztery frazy w tej godzinie już padły. Następną można o {time}.",

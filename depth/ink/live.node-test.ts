@@ -384,6 +384,14 @@ async function main() {
     const [queued] = await sql`SELECT count(*)::int AS n FROM pending_deliveries WHERE chat = ${rekeyChat}`;
     assert.equal(Number(queued?.n), 0, "the line shown on the screen is still in the node's queue — the terminal did not confirm receipt");
     out("ok   a line shown in the terminal was confirmed, and the node's queue let it go");
+
+    // 7b2 · the other side changes their age (§8.2 :1449; W14-AG): the node
+    // writes one system line into the open room, the screen draws it and the
+    // header follows.
+    assert.equal((await peer.editProfile({ age: 31 })).status, 200, "the other side could not change their age");
+    await until(app, /собеседник изменил возраст: 31/, 20);
+    assert.match(app.lastFrame() ?? "", /Марк, 31/, "the header did not follow the changed age");
+    out("ok   the other side's changed age came as a system line, and the header followed");
     out("ok   new keys: the other side asked, the screen agreed, and a line under the new keys opened");
 
     // 7c · "you missed a message" (§8.8, W13-DM): the screen leaves the room,

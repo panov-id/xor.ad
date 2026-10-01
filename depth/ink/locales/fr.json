@@ -139,6 +139,7 @@
   "away.back": "revenir",
   "away.sure": "vous vouliez une pause — on revient vraiment ?",
   "chat.peerAway": "absent",
+  "chat.ageChanged": "the other side changed their age: {age}",
   "chat.missed": "you missed a message — ask them to send it again",
   "write.paused": "Cinq refus en une heure — pause jusqu'à {time}. La décision est automatique.\nJusque-là rien ne part en vérification :\nphrases, répliques à table, changement de prénom, like d'une offre tant que le prénom n'est pas accepté, mot du pendu.\nUn autre refus dans l'heure — encore 15 minutes.\nLe fil, les likes des phrases et les conversations fonctionnent.\nFondement : les conditions, §8 et §15. La pause finit d'elle-même ; en cas de désaccord — le coordinateur pour les services numériques ou un tribunal.",
   "write.hourly": "Quatre phrases déjà dites cette heure. La suivante pourra partir à {time}.",

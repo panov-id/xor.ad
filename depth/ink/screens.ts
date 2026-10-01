@@ -72,11 +72,6 @@ export function PinSet(
 ): ReactElement {
   const [pin, setPin] = useState("");
   const [again, setAgain] = useState("");
-  // A PIN the node refused leaves the fields (W12-PS): kept, the next enter
-  // would send it again and the dots would stand for a PIN already known bad.
-  useEffect(() => {
-    if (error) { setPin(""); setAgain(""); }
-  }, [error]);
   const full = pin.length === 6 && again.length === 6;
   const differ = full && pin !== again;
   return h(

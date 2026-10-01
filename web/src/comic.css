@@ -156,8 +156,13 @@
 .k-comic-face .lines { gap: 22px; }
 .k-comic-face .chat .starters { gap: var(--s-2); }
 .k-comic-face .chat .starters h2 { font-size: 13px; color: var(--muted); }
-.k-comic-face .talk-tab { border: 0; box-shadow: none; background: none; color: var(--muted); font-family: "Russo One", "Golos Text", sans-serif; font-weight: 400; }
-.k-comic-face .talk-tab-on { color: var(--fg); border-bottom: 5px solid var(--gold-mid); }
+/* Inbox tabs (review panel 01.10.2026, item 4): words, no rim — the generic button rim is
+   0,2,1, so these name the element too; the unread dot stands inline after the word, inside
+   the tab's own box, never over the next tab. */
+.k-comic-face button.talk-tab { display: inline-flex; align-items: center; gap: 6px; padding: 0 var(--s-1); border: 0; border-bottom: 5px solid transparent; box-shadow: none; background: none; color: var(--muted); font-family: "Russo One", "Golos Text", sans-serif; font-weight: 400; font-size: 13px; letter-spacing: .02em; }
+.k-comic-face button.talk-tab.talk-tab-on { color: var(--fg); border-bottom-color: var(--gold-mid); }
+.k-comic-face .talk-tab .talk-tab-dot { position: static; flex: none; width: 10px; height: 10px; }
+.k-comic-face .talk-tabs { gap: var(--s-3); }
 .k-comic-face .talk-tabs { border-bottom: 2px solid var(--ink); }
 .k-comic-face .talk-pick { border: 0; border-bottom: 1.5px solid var(--ink); background: var(--bg); color: var(--fg); box-shadow: none; }
 .k-comic-face .talk-pick-on { background: var(--gold); color: var(--ink); font-family: "Russo One", "Golos Text", sans-serif; }

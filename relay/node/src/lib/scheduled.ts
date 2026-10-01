@@ -28,6 +28,7 @@ import { watchNoticeAge } from "./dsa_watchdog.ts";
 import { reportTombstones } from "./tombstone_watch.ts";
 import { DSA_NOTICE_NOTIFY, retryArrivalLetters, retryDecisionLetters, sendNightPathSummaries } from "./notice_notify.ts";
 import { sweepExpiredMatches } from "./match_sweeper.ts";
+import { sweepOfferLikes } from "./offer_settle_sweeper.ts";
 import { sweepExpiredPending } from "./pending_sweeper.ts";
 import { nextChatTerm, sweepChats } from "./chat_sweeper.ts";
 import { wakeReturned } from "./away_waker.ts";
@@ -103,6 +104,9 @@ export const SWEEP_FEED_EXPIRED = "sweep_feed_expired";
 // (§8.5). Every minute, like the phrases they were made of: a snapshot that
 // outlives the phrase by an hour is text nobody may read for an hour.
 export const SWEEP_MATCHES = "sweep_matches";
+// Likes on offers that waited on a name and were never settled (open.tsv
+// offer.match.settle.retry): every minute, like the matches they should be.
+export const SWEEP_OFFER_LIKES = "sweep_offer_likes";
 // Queued chat messages past chat.pending.ttl (§8.8). Every minute: the term is
 // counted in minutes and the rows are ciphertext held for someone else.
 export const SWEEP_PENDING = "sweep_pending";
@@ -348,6 +352,11 @@ export function registerScheduledJobs(): void {
     return new Date(Date.now() + A_MINUTE_MS);
   });
 
+  handle(SWEEP_OFFER_LIKES, async () => {
+    await sweepOfferLikes();
+    return new Date(Date.now() + A_MINUTE_MS);
+  });
+
   handle(SWEEP_FEED_QUEUE, async () => {
     // Every minute, because the deadline it enforces is ten: a pass an hour
     // would make "ten minutes" mean "up to seventy".
@@ -494,6 +503,7 @@ export async function armScheduledJobs(): Promise<void> {
   await enqueueOnce(SWEEP_FEED_QUEUE, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_FEED_EXPIRED, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_MATCHES, {}, new Date(Date.now() + A_MINUTE_MS));
+  await enqueueOnce(SWEEP_OFFER_LIKES, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_PENDING, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(SWEEP_CHATS, {}, new Date(Date.now() + A_MINUTE_MS));
   await enqueueOnce(TABLE_AUTOPASS, {}, new Date(Date.now() + 30_000));

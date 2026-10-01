@@ -373,6 +373,17 @@ async function main() {
     assert.equal((await peer.sayInChat(rekeyChat, "после новых ключей", back.body.match_id!)).status, 202, "the other side's line after the reissue was refused");
     await until(app, /Марк: после новых ключей/, 20);
     assert.doesNotMatch(app.lastFrame() ?? "", /сообщение не открылось/, "a line after the reissue did not open on the screen");
+    // Shown, so confirmed (§8.8; W14-RC): the node's queue lets the line go.
+    // Until now depth never confirmed, and the queue kept every line until
+    // its end (chat_RU.md :2339).
+    for (let i = 0; i < 50; i++) {
+      const [left] = await sql`SELECT count(*)::int AS n FROM pending_deliveries WHERE chat = ${rekeyChat}`;
+      if (Number(left?.n) === 0) break;
+      await settle(100);
+    }
+    const [queued] = await sql`SELECT count(*)::int AS n FROM pending_deliveries WHERE chat = ${rekeyChat}`;
+    assert.equal(Number(queued?.n), 0, "the line shown on the screen is still in the node's queue — the terminal did not confirm receipt");
+    out("ok   a line shown in the terminal was confirmed, and the node's queue let it go");
     out("ok   new keys: the other side asked, the screen agreed, and a line under the new keys opened");
 
     // 7c · "you missed a message" (§8.8, W13-DM): the screen leaves the room,

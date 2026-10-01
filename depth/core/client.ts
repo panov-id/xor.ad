@@ -122,6 +122,9 @@ export interface InboxItem {
   opened_since?: boolean;
   pending_messages?: number;
   ending_soon?: boolean;
+  // On a chat row: the last activity in the conversation, unix seconds — for
+  // the device's "you missed a message" (§8.8; relay routes/inbox.ts; W13-DM).
+  last_activity_at?: number;
   // On a chat row (N1): the starters, as the node numbers them.
   starters?: ChatStarter[];
   [more: string]: unknown;

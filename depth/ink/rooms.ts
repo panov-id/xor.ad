@@ -296,6 +296,26 @@ export function Inbox(
 const SPANS = [10, 30, 60, 260] as const;
 type Span = (typeof SPANS)[number];
 
+// What this process saw of each conversation (W13-DM; chat spec §8.2, §8.8;
+// the web's chat/away.ts keeps the same): the newest moment a line was read
+// or sent here, or the row's last activity when the room was opened. depth
+// keeps no history on disk, so "last seen" is this process's life; a room
+// never opened here claims nothing. Checked like any number from the node.
+const activitySeen = new Map<string, number>();
+const momentOf = (n: unknown): number | null => (typeof n === "number" && Number.isFinite(n) && n > 0 ? Math.floor(n) : null);
+export function sawChatActivity(chatId: string, atSeconds: unknown): void {
+  const at = momentOf(atSeconds);
+  if (at !== null) activitySeen.set(chatId, Math.max(activitySeen.get(chatId) ?? 0, at));
+}
+// True when the node saw movement after everything this process saw of the
+// conversation — only for a conversation it did open before.
+export function chatMissedSince(chatId: string, lastActivityAt: unknown): boolean {
+  const activity = momentOf(lastActivityAt);
+  const known = activitySeen.get(chatId);
+  return activity !== null && known !== undefined && activity > known;
+}
+export const forgetChatActivity = (): void => activitySeen.clear();
+
 export function Chat(
   { say, client, chatId, matchId, name, age, limit, span: startSpan, endsAt: startEnds, onBack, onFeed, onError, onClosed }: {
     say: Say;
@@ -332,8 +352,14 @@ export function Chat(
     client.inbox()
       .then((rows) => {
         if (!live) return;
-        const given = startersOf(rows.find((r) => r.kind === "chat" && r.id === chatId));
+        const row = rows.find((r) => r.kind === "chat" && r.id === chatId);
+        const given = startersOf(row);
         setStarters((was) => startersOf({ starters: [...given, ...was.filter((w) => !given.some((g) => g.position === w.position))] }));
+        // "You missed a message" (§8.8, W13-DM): the node moved after what
+        // this process last saw here — said once, until a line arrives. The
+        // opening itself is then what was seen.
+        if (row && chatMissedSince(chatId, row.last_activity_at)) setMissed(true);
+        if (row) sawChatActivity(chatId, row.last_activity_at);
       })
       .catch((e: Error) => onError(e.message));
     return () => { live = false; };
@@ -345,6 +371,7 @@ export function Chat(
   const [changed, setChanged] = useState(false);
   const [blocking, setBlocking] = useState(false);
   const [peerAway, setPeerAway] = useState(false);
+  const [missed, setMissed] = useState(false);
   // The key reissue of §8.13 (T16): one side asks for new keys, the other is
   // asked and agrees; until then new lines do not open. `peerAsks` is the
   // question on this side, `waiting` is one's own request not yet answered,
@@ -551,6 +578,8 @@ export function Chat(
             .then((line) => ({ text: line, broken: false }))
             .catch((e: Error) => ({ text: e.message, broken: true }));
           setLines((all) => [...all, { mine: false, ...text }]);
+          sawChatActivity(chatId, Date.now() / 1000);
+          setMissed(false);
         }
         if (!live) return;
         const closedWith = await closed;
@@ -660,6 +689,7 @@ export function Chat(
     matched ? h(Text, { dimColor: true }, `✓ ${say("chat.matched")}`) : null,
     blocking ? h(Text, { color: "red" }, `${say("block.confirm")} ${say("block.what")}`) : null,
     peerAway ? h(Text, { color: "yellow" }, say("chat.peerAway")) : null,
+    missed ? h(Text, { color: "yellow" }, say("chat.missed")) : null,
     gameOffered && !gameOpen ? h(Text, { color: "yellow" }, say("game.offerArrived")) : null,
     peerAsks ? h(Text, { color: "yellow" }, say("chat.rekeyPeerAsks")) : null,
     waiting && !peerAsks ? h(Text, { dimColor: true }, say("chat.rekeyWaiting")) : null,
@@ -731,6 +761,7 @@ export function Chat(
         client.sayInChat(chatId, text, matchId)
           .then(() => {
             setLines((all) => [...all, { mine: true, text }]);
+            sawChatActivity(chatId, Date.now() / 1000);
             // My own message is what resets my silence (§5).
             setEndsAt(Math.floor(Date.now() / 1000) + span * 60);
           })

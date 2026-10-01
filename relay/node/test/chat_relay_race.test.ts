@@ -127,3 +127,104 @@ Deno.test("a conversation that ends while its socket is open closes it 4003", {
     relay.roomsForTest().delete(chatId);
   }
 });
+
+// W13-HF (open.tsv relay.hand.frame.lost): a line handed over while the
+// socket is closing. hand() reads the queue and frames each row; closeRoom or
+// the client's own close can land between the two, and the frame goes into a
+// socket nobody reads. What must hold: the row is not deleted by the hand-over
+// (only POST /chats/:id/received deletes it), so the next socket of the
+// session is handed the same line again — the clients dedupe by id. The race
+// is raced here: the client closes its socket and the NOTIFY that hands the
+// line over is sent in the same tick, twenty times; each time the row must be
+// there after, and a fresh socket must receive it.
+async function liveChatWithTicket(): Promise<{ chatId: string; sessionId: string; ticket: () => Promise<string> }> {
+  const identityId = crypto.randomUUID();
+  const sessionId = crypto.randomUUID();
+  const chatId = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO identities (id, name, age, identity_public_key, signup_completed_at)
+       VALUES ($1, 'race-suite', 30, 'not-a-real-key', now())`,
+    [identityId],
+  );
+  await database.queryOrThrow(
+    `INSERT INTO sessions (id, identity, sign_public_key, wrap_public_key)
+       VALUES ($1, $2, 'not-a-real-key', 'not-a-real-key')`,
+    [sessionId, identityId],
+  );
+  await database.queryOrThrow(`INSERT INTO chats (id, pair_key) VALUES ($1, $2)`, [chatId, `race-${chatId}`]);
+  await database.queryOrThrow(
+    `INSERT INTO chat_participants (chat_id, identity, idle_ttl_minutes, last_own_message_at) VALUES ($1, $2, 60, now())`,
+    [chatId, identityId],
+  );
+  const ticket = async () => {
+    const token = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO socket_tickets (token_hash, session, chat, expires_at) VALUES ($1, $2, $3, now() + interval '30 seconds')`,
+      [await sha256hex(new TextEncoder().encode(token)), sessionId, chatId],
+    );
+    return token;
+  };
+  return { chatId, sessionId, ticket };
+}
+
+// A socket that collects the ids of the message frames it is handed.
+function listener(port: number, token: string): Promise<{ socket: WebSocket; ids: string[] }> {
+  return new Promise((resolve, reject) => {
+    const socket = new WebSocket(`ws://127.0.0.1:${port}/chat`, ["xor.p1", `ticket.${token}`]);
+    const ids: string[] = [];
+    socket.onmessage = (event) => {
+      const frame = JSON.parse(String(event.data));
+      if (frame.type === "message") ids.push(frame.data.id);
+    };
+    socket.onopen = () => resolve({ socket, ids });
+    socket.onerror = () => reject(new Error("the socket did not open"));
+  });
+}
+
+const waitFor = async (what: () => boolean, ms = 2000) => {
+  const until = Date.now() + ms;
+  while (Date.now() < until && !what()) await new Promise((r) => setTimeout(r, 10));
+  return what();
+};
+
+Deno.test("a line handed over while the socket closes stays queued and comes with the next socket", {
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  const { chatId, sessionId, ticket } = await liveChatWithTicket();
+  const server = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen() {} }, relay.relayUpgrade);
+  let raced = 0;
+  try {
+    for (let round = 0; round < 20; round++) {
+      const first = await listener(server.addr.port, await ticket());
+      assertEquals(await waitFor(() => relay.roomsForTest().has(chatId)), true, "the room never opened — the case proves nothing");
+      const localId = crypto.randomUUID();
+      await database.queryOrThrow(
+        `INSERT INTO pending_deliveries (chat, recipient_session, local_id, ciphertext) VALUES ($1, $2, $3, $4)`,
+        [chatId, sessionId, localId, new Uint8Array(32)],
+      );
+      // The race: the close and the hand-over in one tick.
+      first.socket.close();
+      await database.queryOrThrow(`SELECT pg_notify('chat_message', $1)`, [`${chatId}:${localId}`]);
+      await waitFor(() => !relay.roomsForTest().has(chatId));
+      await settle();
+      if (!first.ids.includes(localId)) raced++;
+      // Whatever the socket saw: the row is there, the hand-over deleted nothing.
+      const [left] = await database.queryOrThrow<{ n: number }>(
+        `SELECT count(*)::int AS n FROM pending_deliveries WHERE chat = $1 AND local_id = $2`, [chatId, localId]);
+      assertEquals(left.n, 1, `round ${round}: the hand-over deleted the queued line`);
+      // The next socket is handed it on opening.
+      const next = await listener(server.addr.port, await ticket());
+      assertEquals(await waitFor(() => next.ids.includes(localId)), true, `round ${round}: the next socket was not handed the line again`);
+      next.socket.close();
+      await waitFor(() => !relay.roomsForTest().has(chatId));
+      await database.queryOrThrow(`DELETE FROM pending_deliveries WHERE chat = $1`, [chatId]);
+    }
+    // Reported, not asserted: how many rounds the frame did go into the
+    // closing socket. Zero would mean the race was not raced on this machine.
+    console.log(`  hand-over into a closing socket: ${raced} of 20 rounds lost the frame on the first socket`);
+  } finally {
+    await server.shutdown();
+    relay.roomsForTest().delete(chatId);
+  }
+});

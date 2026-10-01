@@ -231,14 +231,15 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
     // like"). A like goes with its phrase (ON DELETE CASCADE), so a phrase gone
     // before the consent has no moment left and comes last; identity breaks ties.
     await run(
-      `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by)
+      `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by, message_id)
        SELECT $1, row_number() OVER (
                 ORDER BY (SELECT l.created_at FROM likes l, match_participants o
                            WHERE o.match_id = p.match_id AND o.identity <> p.identity
                              AND l.liker_identity = o.identity AND l.feed_message_id = p.message_id) NULLS LAST,
                          p.identity),
               coalesce(p.text_snapshot, ''), p.mode,
-              (SELECT o.identity FROM match_participants o WHERE o.match_id = p.match_id AND o.identity <> p.identity)
+              (SELECT o.identity FROM match_participants o WHERE o.match_id = p.match_id AND o.identity <> p.identity),
+              p.message_id
          FROM match_participants p WHERE p.match_id = $2 AND p.message_id IS NOT NULL`,
       [chatId, matchId],
     );

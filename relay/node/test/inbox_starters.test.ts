@@ -201,7 +201,7 @@ test("after the consent both see the same starters from the first minute, in the
 
 // The platform's administrator upholds an Article 16 notice about a phrase,
 // through the decision route, as dsa_decision_feed.test.ts does.
-async function takenDownByNotice(phraseId: string) {
+async function takenDownByNotice(phraseId: string, recipient?: string) {
   const [notice] = await database.queryOrThrow<{ id: string }>(
     `INSERT INTO dsa_notices (brand, target_kind, target_id, reason_text, bona_fide, status, snapshot_state, acknowledged_at, notifier_email)
      VALUES ('alpha', 'feed_message', $1, 'names a private address', true, 'received', 'received', now(), NULL)
@@ -223,6 +223,7 @@ async function takenDownByNotice(phraseId: string) {
       body: JSON.stringify({
         decision: "upheld", facts: "The phrase names a private address.", restriction: "removed",
         ground_kind: "legal", ground_text: "Article 16 notice; unlawful under national law.",
+        ...(recipient ? { recipient_identity: recipient } : {}),
       }),
     }),
     params: found.params,
@@ -268,6 +269,7 @@ test("a phrase taken down under Article 16 before the consent puts out the match
   await consent(low, matchId);
   await takenDownByNotice(highPhrase);
   const answer = await consent(high, matchId);
+  assertEquals(answer.status, 404, `the consent was not refused: ${JSON.stringify(answer.body)}`);
   assert(!(answer.body as { chat_id?: string })?.chat_id, `a conversation opened on a match of a phrase taken down: ${JSON.stringify(answer.body)}`);
   for (const who of [low, high]) {
     const rows = (await inbox(who)).items.filter((i) => i.id === matchId || i.kind === "chat");
@@ -285,4 +287,92 @@ test("a phrase gone before the consent has no like left, and its starter comes l
   assert(opened.chat_id, `no conversation opened: ${JSON.stringify(opened)}`);
   const list = startersOf(await inbox(low), opened.chat_id);
   assertEquals(list.map((s) => s.text), ["кто на набережную?", "гуляю у залива"], "a starter without its like is not last");
+});
+
+// ── A decision that comes after the phrase is gone (the verifier of N1c) ──────
+
+async function openedPair() {
+  const pair = await pairMatched();
+  await consent(pair.low, pair.matchId);
+  const opened = (await consent(pair.high, pair.matchId)).body as { chat_id?: string };
+  assert(opened.chat_id, `no conversation opened: ${JSON.stringify(opened)}`);
+  return { ...pair, chatId: opened.chat_id };
+}
+
+const textsFor = async (who: Who, chatId: string) =>
+  startersOf(await inbox(who), chatId).map((s) => (s.removed ? "<removed>" : s.text));
+
+test("its author took the phrase down, then the Article 16 decision came: the starter is emptied all the same (N1c, V6)", async () => {
+  const { low, high, lowPhrase, chatId } = await openedPair();
+  const gone = await signed(low, "DELETE", `/feed/${lowPhrase}`);
+  assertEquals(gone.status, 204, JSON.stringify(gone.body));
+  await takenDownByNotice(lowPhrase, low.identity_id);
+  for (const who of [low, high]) {
+    assertEquals(await textsFor(who, chatId), ["гуляю у залива", "<removed>"], "a phrase its author took down first is still handed out");
+  }
+});
+
+test("the phrase expired and was swept, then the Article 16 decision came: the starter is emptied all the same (N1c, V7)", async () => {
+  const { low, high, lowPhrase, chatId } = await openedPair();
+  const { sweepExpiredPhrases } = await import("../src/lib/feed_verdict.ts");
+  await database.queryOrThrow(`UPDATE feed_messages SET expires_at = now() - interval '1 minute' WHERE id = $1`, [lowPhrase]);
+  await sweepExpiredPhrases();
+  const left = await database.queryOrThrow<{ n: string }>(`SELECT count(*)::text AS n FROM feed_messages WHERE id = $1`, [lowPhrase]);
+  assertEquals(left[0].n, "0", "the sweeper left the expired phrase");
+  await takenDownByNotice(lowPhrase, low.identity_id);
+  for (const who of [low, high]) {
+    assertEquals(await textsFor(who, chatId), ["гуляю у залива", "<removed>"], "an expired phrase is still handed out");
+  }
+});
+
+test("only the starter of the phrase taken down is emptied, not the other side's later ones (N1c)", async () => {
+  const { low, high, lowPhrase, chatId } = await openedPair();
+  // A later starter liked by the same side, as an extra like will write it (§8.7, N2).
+  const [other] = await database.queryOrThrow<{ liked_by: string }>(
+    `SELECT liked_by FROM chat_starters WHERE chat_id = $1 AND message_id = $2`, [chatId, lowPhrase]);
+  await database.queryOrThrow(
+    `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by, message_id) VALUES ($1, 3, 'и ещё одна', 'alone', $2, $3)`,
+    [chatId, other.liked_by, crypto.randomUUID()],
+  );
+  await takenDownByNotice(lowPhrase);
+  assertEquals(await textsFor(low, chatId), ["гуляю у залива", "<removed>", "и ещё одна"], "a later starter of the same side was emptied");
+  void high;
+});
+
+test("a consent that waited on the pair's counters past the decision does not open a conversation (N1c, V8)", async () => {
+  const { low, high, highPhrase, matchId } = await pairMatched();
+  await consent(low, matchId);
+  // Another transaction holds the pair's counters, as a like or a step away
+  // would; the consent starts, takes its now(), and waits behind it.
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => (release = resolve));
+  let locked!: () => void;
+  const isLocked = new Promise<void>((resolve) => (locked = resolve));
+  const holder = database.transaction(async (run) => {
+    await run(`SELECT 1 FROM identity_stats WHERE identity IN ($1, $2) ORDER BY identity FOR UPDATE`, [low.identity_id, high.identity_id]);
+    locked();
+    await held;
+  });
+  await isLocked;
+  const waiting = consent(high, matchId);
+  // Longer than any margin a decision could give by time: 1.3 s after the
+  // consent's now(), inside its lock_timeout of 2 s.
+  await new Promise((resolve) => setTimeout(resolve, 1300));
+  await takenDownByNotice(highPhrase);
+  release();
+  await holder;
+  const answer = await waiting;
+  assertEquals(answer.status, 404, `a consent that waited opened a conversation on a phrase taken down: ${JSON.stringify(answer.body)}`);
+});
+
+test("a conversation holds one starter per phrase: the same phrase again is refused by the database (N1c, db/084)", async () => {
+  const { chatId, lowPhrase } = await openedPair();
+  const [row] = await database.queryOrThrow<{ liked_by: string }>(
+    `SELECT liked_by FROM chat_starters WHERE chat_id = $1 AND message_id = $2`, [chatId, lowPhrase]);
+  let refused = "";
+  await database.queryOrThrow(
+    `INSERT INTO chat_starters (chat_id, position, text_snapshot, mode, liked_by, message_id) VALUES ($1, 9, 'again', 'alone', $2, $3)`,
+    [chatId, row.liked_by, lowPhrase],
+  ).catch((e: Error) => (refused = String(e)));
+  assert(/chat_starters_one_per_phrase/.test(refused), `a second starter of the same phrase was written: ${refused || "no error"}`);
 });

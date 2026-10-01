@@ -341,14 +341,28 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
       if (!recipient) return { ok: false as const, reason: "no_recipient" as const };
       if (phrase && (restriction === "removed" || restriction === "hidden")) {
         await tx(`DELETE FROM feed_messages WHERE id = $1`, [notice.target_id]);
-        // What was taken down under Article 16 is not handed on (N1, the
-        // verifier's probe): the copies of the phrase are the ways it would
-        // still leave the node.
-        // The matches it made that are not yet a conversation go out as
-        // expiry puts them out (chat spec :1807; lib/take_down.ts, a second
-        // back for a consent that started under an earlier now()).
+      }
+      // What was taken down under Article 16 is not handed on (N1, N1c): the
+      // copies of the phrase are the ways it would still leave the node, and
+      // they are found by the phrase's id whether or not the phrase is still
+      // in the feed — a decision often comes after its author took it down or
+      // it expired and was swept (the verifier's V6, V7).
+      // A tenant reaches only its own storefront's phrases, and a phrase gone
+      // from the feed no longer says whose storefront it was: so only the
+      // platform (brand NULL) empties the copies of a phrase already gone; a
+      // tenant, those of its own phrase found above.
+      const reachesCopies = phrase !== undefined || (access.user.brand ?? null) === null;
+      if (aboutPhrase && notice.target_id && reachesCopies && (restriction === "removed" || restriction === "hidden")) {
+        // The matches it made that are not yet a conversation are put out for
+        // good: -infinity, not "a second ago", because a consent that waited
+        // on the pair's counters compares with the now() of its own start,
+        // which may be older than any margin (V8). The consent takes the match
+        // row FOR UPDATE with expires_at > now(), so it either waits for this
+        // and finds nothing, or holds the row first and has opened the
+        // conversation by the time the starters are emptied below. Hence the
+        // order: matches first, then starters.
         await tx(
-          `UPDATE matches SET expires_at = least(expires_at, now() - interval '1 second')
+          `UPDATE matches SET expires_at = '-infinity'
             WHERE chat_id IS NULL
               AND id IN (SELECT match_id FROM match_participants WHERE message_id = $1)`,
           [notice.target_id],
@@ -356,11 +370,10 @@ route("POST", "/admin/dsa-notices/:id/decide", async ({ req, params }) => {
         // In a conversation already open its starter stays — the header's
         // numbers must not move — with the text gone: an empty snapshot is
         // "removed", since no phrase is published empty (routes/inbox.ts).
-        // The starter of this phrase is the one liked by the other side.
+        // By the phrase's id (db/084), so the other starters of that
+        // conversation, an extra like's among them, are left alone.
         await tx(
-          `UPDATE chat_starters s SET text_snapshot = ''
-             FROM matches m JOIN match_participants p ON p.match_id = m.id
-            WHERE m.chat_id = s.chat_id AND p.message_id = $1 AND s.liked_by <> p.identity`,
+          `UPDATE chat_starters SET text_snapshot = '' WHERE message_id = $1`,
           [notice.target_id],
         );
       }

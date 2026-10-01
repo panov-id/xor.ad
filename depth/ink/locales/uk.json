@@ -63,6 +63,8 @@
   "chat.broken": "повідомлення не відкрилося: {message}",
   "chat.codeChanged": "код змінився з минулої звірки — звірте заново",
   "feed.hide": "сховати",
+  "feed.takedown": "take the phrase down",
+  "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "сховане",
   "hidden.title": "сховані фрази",
   "hidden.empty": "нічого не сховано",

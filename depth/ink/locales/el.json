@@ -63,6 +63,8 @@
   "chat.broken": "ένα μήνυμα δεν άνοιξε: {message}",
   "chat.codeChanged": "ο κωδικός άλλαξε από την τελευταία σύγκριση — συγκρίνετέ τον ξανά",
   "feed.hide": "απόκρυψη",
+  "feed.takedown": "take the phrase down",
+  "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "κρυμμένα",
   "hidden.title": "κρυμμένες φράσεις",
   "hidden.empty": "τίποτα κρυμμένο",

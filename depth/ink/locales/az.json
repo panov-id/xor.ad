@@ -63,6 +63,8 @@
   "chat.broken": "mesaj açılmadı: {message}",
   "chat.codeChanged": "kod son tutuşdurmadan bəri dəyişib — yenidən tutuşdurun",
   "feed.hide": "gizlət",
+  "feed.takedown": "take the phrase down",
+  "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "gizlədilmiş",
   "hidden.title": "gizlədilmiş sözlər",
   "hidden.empty": "heç nə gizlədilməyib",

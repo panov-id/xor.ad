@@ -590,6 +590,61 @@ test("a table card in the feed shows its game and free seats, sits down on open,
   app.unmount();
 });
 
+// W11-B · my own phrase comes down from the feed's row: DELETE by the id POST
+// /feed answered, then the holder of `mine` forgets it. Without the id the
+// action is not in the row at all; a 404 is said, not swallowed.
+test("my own phrase is taken down from the feed's row by its id, and the row does nothing without one", async () => {
+  const taken: string[] = [];
+  let forgot = 0;
+  const errors: string[] = [];
+  const client = {
+    feed: () => Promise.resolve({ items: [card("p1", "первая")] }),
+    takeDown: (id: string) => { taken.push(id); return Promise.resolve({ status: 204, body: null }); },
+  };
+  const feedWith = (mine: { id?: string; text: string; state: string }) =>
+    render(h(Feed, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      place: { lat: 55.75, lon: 37.62, radius: 1000 },
+      mine,
+      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {},
+      onTakenDown: () => forgot++,
+      onError: (m: string) => errors.push(m),
+    }));
+  // The row: open · like · hide · block · write · take down — five steps right.
+  const toTakedown = [RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, ENTER];
+
+  const withId = feedWith({ id: "m1", text: "иду к реке", state: "published" });
+  await settle(); await settle();
+  assert.match(withId.lastFrame()!, /снять фразу/, "the row does not offer to take the phrase down");
+  await type(withId, ...toTakedown);
+  await settle(200);
+  assert.deepEqual(taken, ["m1"], "the phrase was not taken down by its id");
+  assert.equal(forgot, 1, "the holder of the phrase was not told it came down");
+  assert.deepEqual(errors, [], "a 204 was reported as an error");
+  withId.unmount();
+
+  const withoutId = feedWith({ text: "иду к реке", state: "pending" });
+  await settle(); await settle();
+  assert.doesNotMatch(withoutId.lastFrame()!, /снять фразу/, "the row offers to take down a phrase whose id it does not know");
+  await type(withoutId, ...toTakedown);
+  await settle(200);
+  assert.deepEqual(taken, ["m1"], "the row took a phrase down without knowing its id");
+  assert.equal(forgot, 1);
+  withoutId.unmount();
+
+  // The node no longer has it as mine: said in the feed's words, not swallowed.
+  client.takeDown = (id: string) => { taken.push(id); return Promise.resolve({ status: 404, body: { error: { code: "not_found" } } }); };
+  const gone = feedWith({ id: "m2", text: "ушла", state: "published" });
+  await settle(); await settle();
+  await type(gone, ...toTakedown);
+  await settle(200);
+  assert.equal(forgot, 1, "a 404 was taken for a phrase that came down");
+  assert.match(errors.join("\n"), /фразу снять не удалось: 404/, "the refusal was not said");
+  gone.unmount();
+});
+
 test("an offer's like is not offered to be taken back", async () => {
   let unliked = 0;
   const client = {
@@ -884,7 +939,7 @@ test("a phrase the node refuses is said to be refused, and stays in the field", 
     { status: 429, body: { error: { code: "rate_limited", until: now + 900 } } },
     { status: 202, body: { id: "p9", state: "pending" } },
   ];
-  const done: string[] = [];
+  const done: Array<[string, string | undefined]> = [];
   const client = {
     say: () => Promise.resolve(answers.shift()!),
     profile: () => Promise.resolve({ name: "Аня", name_state: "accepted", age: 34, phrases: [{ id: "a", expires_at: now + 3600 }, { id: "b", expires_at: now + 1200 }] }),
@@ -895,7 +950,7 @@ test("a phrase the node refuses is said to be refused, and stays in the field", 
     client: client as any,
     place: { lat: 55.75, lon: 37.62, radius: 1000 },
     limit: 128,
-    onDone: (t: string) => done.push(t), onBack: () => {}, onError: () => {},
+    onDone: (t: string, id?: string) => done.push([t, id]), onBack: () => {}, onError: () => {},
   }));
   await settle();
   await type(app, ..."гуляю у реки".split(""), DOWN, ENTER);
@@ -916,7 +971,8 @@ test("a phrase the node refuses is said to be refused, and stays in the field", 
   assert.match(app.lastFrame()!, new RegExp(`Пять отказов за час — пауза до ${hhmm(now + 900)}`), "the pause was not said");
   await type(app, ENTER);
   await settle(150);
-  assert.deepEqual(done, ["гуляю у реки"], "an accepted phrase did not count as sent");
+  // The id the node answered rides along: the feed takes the phrase down by it (W11-B).
+  assert.deepEqual(done, [["гуляю у реки", "p9"]], "an accepted phrase did not count as sent with its id");
   app.unmount();
 });
 

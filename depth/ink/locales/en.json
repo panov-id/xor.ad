@@ -63,6 +63,8 @@
   "chat.broken": "a message did not open: {message}",
   "chat.codeChanged": "the code has changed since you compared it — compare again",
   "feed.hide": "hide",
+  "feed.takedown": "take the phrase down",
+  "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "hidden",
   "hidden.title": "hidden phrases",
   "hidden.empty": "nothing is hidden",

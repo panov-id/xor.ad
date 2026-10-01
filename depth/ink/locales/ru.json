@@ -63,6 +63,8 @@
   "chat.broken": "сообщение не открылось: {message}",
   "chat.codeChanged": "код изменился с прошлой сверки — сверьте заново",
   "feed.hide": "скрыть",
+  "feed.takedown": "снять фразу",
+  "feed.takedownRefused": "фразу снять не удалось: {status}",
   "feed.hidden": "скрытое",
   "hidden.title": "скрытые фразы",
   "hidden.empty": "ничего не скрыто",

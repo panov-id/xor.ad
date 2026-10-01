@@ -669,6 +669,14 @@ export class Client {
     return this.#call("DELETE", `/hidden/${encodeURIComponent(handle)}`);
   }
 
+  // DELETE /feed/:id — my own phrase comes down (§8.3): the live slot frees at
+  // once, the hour's ceiling does not. 204 when it was mine and alive; anybody
+  // else's id, or one already gone, is 404 exactly as a phrase that never
+  // existed — the node does not say which (W11-B).
+  takeDown(phraseId: string): Promise<Answer> {
+    return this.#call("DELETE", `/feed/${encodeURIComponent(phraseId)}`);
+  }
+
   // Every id a path carries came from the node, and the node is the adversary
   // (§8.13): encoded, so "../hidden/x" cannot make me sign a request to another
   // route (security lens, 23.09.2026).

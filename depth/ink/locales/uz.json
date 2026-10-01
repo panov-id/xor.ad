@@ -63,6 +63,8 @@
   "chat.broken": "xabar ochilmadi: {message}",
   "chat.codeChanged": "kod oxirgi solishtirishdan beri o'zgardi — qaytadan solishtiring",
   "feed.hide": "yashirish",
+  "feed.takedown": "take the phrase down",
+  "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "yashirilgan",
   "hidden.title": "yashirilgan so'zlar",
   "hidden.empty": "hech narsa yashirilmagan",

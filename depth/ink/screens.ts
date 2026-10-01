@@ -187,11 +187,13 @@ type Phrase = {
 
 // 3 · the feed. Up and down walk the phrases, left and right the actions.
 export function Feed(
-  { say, client, place, mine, onWrite, onInbox, onPoint, onMe, onTable, onOpenTable, onComplain, onError }: {
+  { say, client, place, mine, onWrite, onInbox, onPoint, onMe, onTable, onOpenTable, onComplain, onTakenDown, onError }: {
     say: Say;
     client: Client;
     place: Place;
-    mine?: { text: string; state: string };
+    // `id` is what POST /feed answered; without it the phrase cannot be taken
+    // down from here (W11-B).
+    mine?: { id?: string; text: string; state: string };
     onWrite: () => void;
     onInbox: () => void;
     onPoint: () => void;
@@ -204,6 +206,8 @@ export function Feed(
     onOpenTable?: (tableId: string) => void;
     // An offer card (kind offer, O1d): the discount was not given.
     onComplain?: (offerId: string) => void;
+    // My own phrase came down (W11-B): the holder of `mine` forgets it.
+    onTakenDown?: () => void;
     onError: (message: string) => void;
   },
 ): ReactElement {
@@ -306,6 +310,9 @@ export function Feed(
         { key: "block", label: say("block.item"), disabled: !chosen || isTable },
         ...(onComplain ? [{ key: "complain", label: say("feed.complain"), disabled: !isOffer }] : []),
         { key: "write", label: say("feed.write") },
+        // Taking one's own phrase down (§8.3, W11-B): in the row only while
+        // there is one and its id is known — not greyed, absent.
+        ...(mine?.id ? [{ key: "takedown", label: say("feed.takedown") }] : []),
         ...(onTable ? [{ key: "table", label: say("feed.table") }] : []),
         { key: "inbox", label: say("feed.inbox") },
         { key: "point", label: say("feed.point") },
@@ -314,6 +321,17 @@ export function Feed(
       ],
       onPick: (key) => {
         if (key === "write") return onWrite();
+        if (key === "takedown") {
+          if (!mine?.id) return;
+          // 204 is the only "came down"; 404 means the node no longer has it
+          // as mine — expired or already gone — and is said, not swallowed.
+          return void client.takeDown(mine.id)
+            .then((answer) => {
+              if (answer.status !== 204) throw new Error(say("feed.takedownRefused", { status: plain(answer.status, 6) }));
+              onTakenDown?.();
+            })
+            .catch((e: Error) => onError(e.message));
+        }
         if (key === "complain") return isOffer && chosen && onComplain?.(chosen.id);
         if (key === "table") return onTable?.();
         if (key === "inbox") return onInbox();

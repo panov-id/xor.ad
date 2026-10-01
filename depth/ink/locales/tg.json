@@ -63,6 +63,8 @@
   "chat.broken": "паём кушода нашуд: {message}",
   "chat.codeChanged": "рамз аз муқоисаи охирин иваз шуд — дубора муқоиса кунед",
   "feed.hide": "пинҳон кардан",
+  "feed.takedown": "take the phrase down",
+  "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "пинҳоншуда",
   "hidden.title": "ибораҳои пинҳоншуда",
   "hidden.empty": "чизе пинҳон нашудааст",

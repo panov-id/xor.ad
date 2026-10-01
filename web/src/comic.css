@@ -25,7 +25,7 @@
 .k-comic-face :is(button, a.button) { border: var(--line) solid var(--ink); border-radius: 0; background: var(--secondary); color: var(--ink); font-weight: 600; }
 .k-comic-face :is(button, a.button):not(:disabled):not(.ui-text):not(.tab):not(.place-setting):not(.ui-inbox-row):not(.talk-tab):not(.talk-pick) { box-shadow: var(--drop); }
 .k-comic-face :is(button, a.button):not(:disabled):active { transform: translate(2px, 2px); box-shadow: none; }
-.k-comic-face :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid var(--gold-1); outline-offset: 3px; }
+.k-comic-face :is(button, a, input, select, textarea, summary):focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 .k-comic-face :is(input, select, textarea) { border: var(--line) solid var(--ink); border-radius: 0; background: var(--panel); color: var(--fg); }
 .k-comic-face.k-comic-night :is(input, select, textarea), .k-comic-face.k-comic-neighbro-night :is(input, select, textarea) { background: var(--bg); border-color: var(--gold-mid); }
 .k-comic-face label { color: var(--muted); font-size: 13px; }

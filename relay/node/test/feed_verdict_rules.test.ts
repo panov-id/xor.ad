@@ -57,6 +57,22 @@ Deno.test("the passes the measurement closed: a bracketed dot, a Cyrillic top-le
   }
 });
 
+// W13-RG (open.tsv feed.rules.gaps, "discord: anyone" passed): a messenger
+// outside the list is a contact too — bounded as the Latin names are, so a
+// word that carries the letters is not the messenger.
+Deno.test("a messenger named outside the old list is a contact: discord, signal, skype, imo, threema, дискорд, сигнал", () => {
+  for (const text of [
+    "discord: anyone?", "Signal me tonight", "skype anna_k", "imo: +anna", "threema id: ABCDEFGH",
+    "пиши в дискорд", "в дискорде найдёшь", "сигнал: anna", "есть в сигнале",
+  ]) {
+    assertEquals(readText(text).includes("contact"), true, text);
+  }
+  // Bounded: the letters inside another word are not a messenger.
+  for (const text of ["skypeglass — это бренд", "discordance in the choir", "imogen придёт", "сигнализация орёт всю ночь", "дискордант"]) {
+    assertEquals(readText(text), [], text);
+  }
+});
+
 Deno.test("the boundaries the measurement named, kept: a bare dot as a word, spaces around a dot, digits in words", () => {
   // Each of these passed the rules on 2026-09-27 and stays a phrase for a
   // person to read: catching it would catch ordinary speech with it.

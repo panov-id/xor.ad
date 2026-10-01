@@ -105,7 +105,11 @@ const HANDLE = /(?:^|\s)@[\p{L}\p{N}_]{3,32}/u;
 // "тг" in Cyrillic is the messenger as people write it ("пиши в тг"); it passed
 // the measurement of 2026-09-27. Bounded like the Latin names, so "тгк" or a
 // word carrying the two letters is not flagged.
-const MESSENGER = /(?:^|[^\p{L}])(?:telegram|tg|whatsapp|viber|wechat|snapchat|тг)(?=$|[^\p{L}])|телег|вотсап|ватсап|вайбер|снапчат/u;
+// Since 2026-10-01 (W13-RG, open.tsv feed.rules.gaps — "discord: anyone"
+// passed): discord, signal, skype, imo, threema, and дискорд/сигнал with
+// their Cyrillic endings, all bounded the same way — "signal" and "сигнал"
+// are words too, so only the whole word, not "сигнализация".
+const MESSENGER = /(?:^|[^\p{L}])(?:telegram|tg|whatsapp|viber|wechat|snapchat|discord|signal|skype|imo|threema|тг|дискорд[а-я]{0,2}|сигнал[а-я]{0,2})(?=$|[^\p{L}])|телег|вотсап|ватсап|вайбер|снапчат/u;
 const PHONE = /(?:\+|\b)\d[\d\s().-]{5,24}\d/u;
 const digitsIn = (s: string): number => (s.match(/\d/g) ?? []).length;
 

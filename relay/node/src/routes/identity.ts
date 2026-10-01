@@ -841,6 +841,11 @@ async function vaultShare(req: Request): Promise<Response> {
         WHERE session = $1`,
       [caller.sessionId],
     );
+    // The old PIN proved is the person: the first-PIN grant a same-device
+    // raise left (for the one who forgot it) is put out, not left to its hour
+    // (W13-PG, open.tsv pin.grant.after-keep — whoever sat down within the
+    // hour could have set a PIN by it, knowing nothing).
+    await run(`UPDATE identities SET first_pin_grant_at = NULL WHERE id = $1 AND first_pin_grant_at IS NOT NULL`, [caller.identityId]);
     inc("relay_vault_share_total", { result: "given" });
     return json({ share: bytesToBase64url(share) }, 200, sunsetHeader());
   }).then(freezes.count).catch((error) => {
@@ -1048,6 +1053,8 @@ async function changePin(req: Request): Promise<Response> {
         WHERE session = $1`,
       [caller.sessionId, nextAuthHash, sealed],
     );
+    // The old PIN proved here too: the grant goes out as on /vault/share (W13-PG).
+    await run(`UPDATE identities SET first_pin_grant_at = NULL WHERE id = $1 AND first_pin_grant_at IS NOT NULL`, [caller.identityId]);
     inc("relay_vault_pin_total", { result: "changed" });
     return new Response(null, { status: 200, headers: sunsetHeader() });
   }).then(freezes.count).catch((error) => {

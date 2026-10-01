@@ -34,7 +34,6 @@ import { settleOfferLikes } from "./offer_match.ts";
 // Exists at zero from the start: an alert reads it, and a series born at 1
 // hides its first event from rate() (B42, 2026-09-26; alerts.yml).
 for (const verdict of ["published", "expired_unread"]) inc("relay_feed_verdict_total", { verdict }, 0);
-for (const result of ["published", "queued"]) inc("relay_feed_rules_total", { result }, 0);
 
 // ---- the first tier: rules (§8.3) -------------------------------------------
 //
@@ -53,6 +52,20 @@ for (const result of ["published", "queued"]) inc("relay_feed_rules_total", { re
 // text is 128 graphemes anyway (routes/feed.ts), and a name is 24.
 
 export type RuleReason = "link" | "contact" | "repeat" | "offer" | "name";
+// Every reason, once — the metric's series are registered from this list.
+export const RULE_REASONS: readonly RuleReason[] = Object.keys(
+  { link: true, contact: true, repeat: true, offer: true, name: true } satisfies Record<RuleReason, true>,
+) as RuleReason[];
+
+// The rules' counter has two shapes and no third (W12-FM, open.tsv
+// feed.rules.metric): a publication by the rules, and a phrase sent to the
+// queue by one reason each — the series feed.ts increments. A bare
+// {result="queued"} was registered here and never incremented: a series at
+// zero for good, while the ones with a reason were born at 1 (B42 open for
+// them). RULE_REASONS is checked against RuleReason by the compiler, so a
+// reason added to the type without a zero here does not build.
+inc("relay_feed_rules_total", { result: "published" }, 0);
+for (const reason of RULE_REASONS) inc("relay_feed_rules_total", { result: "queued", reason }, 0);
 
 // How a rule reads the text: NFKC so that fullwidth and mathematical letters
 // become the letters they look like, format characters gone so that a

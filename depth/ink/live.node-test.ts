@@ -375,6 +375,33 @@ async function main() {
     assert.doesNotMatch(app.lastFrame() ?? "", /сообщение не открылось/, "a line after the reissue did not open on the screen");
     out("ok   new keys: the other side asked, the screen agreed, and a line under the new keys opened");
 
+    // 7c · "you missed a message" (§8.8, W13-DM): the screen leaves the room,
+    // Марк writes while nobody is listening, and the queued copy is lost (as
+    // §8.8 says it is when depth is not there to take it — here taken from
+    // the node's queue by hand); back in the room the node's last activity is
+    // after the last line this process saw, and the screen says so. The next
+    // line from Марк takes the words off.
+    // Walk the row by what the screen shows, not by a count: the cursor's
+    // place after the reissue is the menu's business, not this test's.
+    for (let i = 0; i < 10 && !/\[ назад \]/.test(app.lastFrame() ?? ""); i++) await type(app, LEFT);
+    for (let i = 0; i < 10 && !/\[ назад \]/.test(app.lastFrame() ?? ""); i++) await type(app, RIGHT);
+    assert.match(app.lastFrame() ?? "", /\[ назад \]/, "the row's \"back\" was not reached");
+    await type(app, ENTER); // "назад"
+    await until(app, /входящие/, 20);
+    assert.equal((await peer.sayInChat(rekeyChat, "пока тебя не было", back.body.match_id!)).status, 202, "the line while away was refused");
+    const dropped = await sql`DELETE FROM pending_deliveries WHERE chat = ${rekeyChat} RETURNING local_id`;
+    assert.ok(dropped.length >= 1, "the line while away was not in the node's queue — nothing to lose");
+    await type(app, ENTER);
+    await until(app, /вы пропустили сообщение — попросите прислать снова/, 30);
+    assert.doesNotMatch(app.lastFrame() ?? "", /Марк: пока тебя не было/, "a lost line came back from nowhere");
+    assert.equal((await peer.sayInChat(rekeyChat, "снова здесь", back.body.match_id!)).status, 202);
+    await until(app, /Марк: снова здесь/, 20);
+    assert.doesNotMatch(app.lastFrame() ?? "", /вы пропустили сообщение/, "the words stayed after a new line arrived");
+    out("ok   a line missed while the room was closed is said on return, and the next line takes the words off");
+    // The room opened afresh stands on the draft field; the steps below
+    // expect the row of actions, as they found it before this block.
+    await type(app, DOWN);
+
     // 7a · a game in the conversation against the node (GC2, V10): the other
     // side proposes dots 2x2, the proposal frame reaches the screen on the
     // chat's socket, the screen opens "игра" (last in the row) and accepts; the

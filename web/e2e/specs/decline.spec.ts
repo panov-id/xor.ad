@@ -59,7 +59,7 @@ test("not now is this side's alone and can be taken back; a device with no wrap 
   // B says "not now": the offer stays in A's inbox, nothing tells her.
   const matchId = await openMatch(boris, "Аня");
   await boris.getByTestId("not-now").click();
-  await expect(boris.getByTestId("not-now")).toHaveText("вернуть");
+  await expect(boris.getByTestId("not-now")).toHaveAccessibleName("вернуть");
   await expect(boris.getByTestId("talk")).toBeDisabled();
   await anya.getByTestId("nav-inbox").click();
   await expect(anya.locator(`[data-testid="match"][data-id="${matchId}"]`)).toBeVisible({ timeout: 15000 });

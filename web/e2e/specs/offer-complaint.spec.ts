@@ -91,7 +91,7 @@ test("a venue's offer in the feed reports its link, signed, and the node takes i
   await expect(page.locator('[data-screen="card"]')).toHaveAttribute("data-id", offerId);
 
   await expect(page.getByTestId("report"), "the offer's card offers no link report (WS3: it moved here from the exit screen)")
-    .toHaveText("Ссылка ведёт не туда");
+    .toHaveAccessibleName("Ссылка ведёт не туда");
   await page.getByTestId("report").click();
   await expect(page.getByTestId("reported")).toHaveText("принято", { timeout: 15000 });
   expect(sent, "the report went to the node signed and was taken").toEqual([202]);

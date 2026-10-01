@@ -33,9 +33,12 @@ test("the feed, the conversations and 'me' start with their band at y 0 and thei
   expect(scene, "the kit names the scene's height (--comic-scene-h, schemes.css)").toBeGreaterThan(56);
   await measure(page, "feed", ":scope > header", ":scope > header h1", scene);
   await page.getByTestId("nav-inbox").click();
-  await measure(page, "inbox", ":scope > header", ":scope > header h1");
+  // The other bands are the comic's plate header (2026-10-01): as tall as --comic-header-h says.
+  const band = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--comic-header-h")));
+  expect(band, "the kit names the header's height (--comic-header-h, schemes.css)").toBeGreaterThan(0);
+  await measure(page, "inbox", ":scope > header", ":scope > header h1", band);
   await page.getByTestId("tab-me").click();
-  await measure(page, "me", ":scope > header", ":scope > header h1");
+  await measure(page, "me", ":scope > header", ":scope > header h1", band);
 });
 
 test("the cabinet's strip starts at y 0 and its address at x 16", async ({ page }) => {

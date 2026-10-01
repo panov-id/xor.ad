@@ -82,7 +82,10 @@ test("one's own span is set from the screen, moves only one's own end, lights th
 
   // The default: an hour, one's own, in view; no counter yet.
   await expect(screenA).toHaveAttribute("data-span", "60");
-  await expect(anya.getByTestId("fades")).toHaveText("гаснет после 1ч ВАШЕГО молчания");
+  // The words live in the ⓘ balloon now (comic, 2026-10-01): open, read, close.
+  await anya.getByTestId("fades-info").getByRole("button").click();
+  await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 1ч ВАШЕГО молчания");
+  await anya.keyboard.press("Escape");
   await expect(anya.getByTestId("fades")).toHaveAttribute("data-counting", "no");
   await expect(anya.getByTestId("span-60")).toHaveAttribute("aria-pressed", "true");
   // New keys are offered to a healthy conversation, as in the terminal.
@@ -94,7 +97,9 @@ test("one's own span is set from the screen, moves only one's own end, lights th
   const endBefore = Number(await screenA.getAttribute("data-ends-at"));
   await anya.getByTestId("span-10").click();
   await expect(screenA).toHaveAttribute("data-span", "10", { timeout: 15000 });
-  await expect(anya.getByTestId("fades")).toHaveText("гаснет после 10 мин ВАШЕГО молчания");
+  await anya.getByTestId("fades-info").getByRole("button").click();
+  await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 10 мин ВАШЕГО молчания");
+  await anya.keyboard.press("Escape");
   await expect(anya.getByTestId("span-10")).toHaveAttribute("aria-pressed", "true");
   expect(patches).toEqual([200]);
   expect(Number(await screenA.getAttribute("data-ends-at"))).toBe(endBefore - 50 * 60);

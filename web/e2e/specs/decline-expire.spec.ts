@@ -107,7 +107,7 @@ test("the second's not now turns the first's waiting conversation into «пре�
 
   await openMatch(boris, "Аня");
   await boris.getByTestId("not-now").click();
-  await expect(boris.getByTestId("not-now")).toHaveText("вернуть");
+  await expect(boris.getByTestId("not-now")).toHaveAccessibleName("вернуть");
 
   // §8.5 (owner 18.09.2026): the waiting side learns it, as a tombstone, and
   // the queue goes with it — nothing of it was ever on the node.

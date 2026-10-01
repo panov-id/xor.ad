@@ -7,6 +7,8 @@ import { BRAND } from "./config.ts";
 import "../../panel/design/kit/tokens.css";
 import "../../panel/design/kit/schemes.css";
 import "./styles.css";
+// The comic face over everything (2026-10-01): under .k-comic-face, so it wins.
+import "./comic.css";
 
 // Both schemes: the page follows the system, dark unless it asks for light.
 // Over them the comic (owner 2026-10-01): the brand's day or night scheme

@@ -13,28 +13,19 @@ const PHASES: Phase[] = ["morning", "day", "sunset", "night"];
 function sosed(k: number): ReactNode[] {
   const out: ReactNode[] = [];
   const bcol = [v("sc-bldg-morning"), v("sc-bldg-day"), v("sc-ink"), v("sc-bldg-night")][k];
-  if (k === 3) out.push(<circle key="m" cx={200} cy={46} r={20} fill={v("sc-paper")} stroke={v("sc-ink")} strokeWidth={3} />,
-    <circle key="m2" cx={209} cy={40} r={16} fill={v("sky-s-night-0")} />);
+  if (k === 3) out.push(<circle key="m" cx={290} cy={86} r={16} fill={v("sc-paper")} stroke={v("sc-ink")} strokeWidth={3} />,
+    <circle key="m2" cx={297} cy={81} r={13} fill={v("sky-s-night-0")} />);
   if (k === 0) out.push(<circle key="s" cx={60} cy={150} r={34} fill={v("sc-sun-morning")} />);
-  if (k === 2) out.push(<circle key="s" cx={300} cy={140} r={40} fill={v("sc-yellow")} stroke={v("sc-ink")} strokeWidth={3} />);
+  if (k === 2) out.push(<circle key="s" cx={300} cy={140} r={40} fill={v("sc-gold")} stroke={v("sc-ink")} strokeWidth={3} />);
   for (const [bx, bw, bh] of [[0, 70, 80], [64, 90, 105], [150, 60, 70], [206, 100, 95], [300, 80, 75]]) {
     out.push(<rect key={`b${bx}`} x={bx} y={H - bh} width={bw} height={bh} fill={bcol} stroke={v("sc-ink")} strokeWidth={k === 1 ? 3 : 0} />);
     for (let wy = H - bh + 10; wy < H - 8; wy += 14) {
       for (let wx = bx + 8; wx < bx + bw - 8; wx += 13) {
-        const lit = (wx * 7 + wy * 3) % (k === 3 ? 3 : 5) === 0;
-        const col = lit && k >= 2 ? v("sc-yellow") : k === 1 ? v("sc-win-day") : k === 0 ? v("sc-win-morning") : null;
-        if (col && (k !== 0 || lit)) out.push(<rect key={`w${wx}-${wy}`} x={wx} y={wy} width={6} height={7} fill={col} />);
+        if ((wx * 7 + wy * 3) % (k === 3 ? 5 : 9) !== 0) continue;
+        const col = k >= 2 ? v("sc-gold") : k === 1 ? v("sc-win-day") : v("sc-win-morning");
+        out.push(<rect key={`w${wx}-${wy}`} x={wx} y={wy} width={6} height={7} fill={col} />);
       }
     }
-  }
-  if (k === 0) {
-    for (const fy of [150, 172]) out.push(<rect key={`f${fy}`} x={0} y={fy} width={W} height={14} fill={v("sc-white")} opacity={0.55} />);
-    for (const [px, py] of [[150, 120], [170, 112], [196, 124]]) out.push(<path key={`g${px}`} d={`M${px} ${py} q6 -7 12 0 q6 -7 12 0`} fill="none" stroke={v("sc-ink")} strokeWidth={2.5} strokeLinecap="round" />);
-  }
-  if (k === 1) {
-    out.push(<path key="l" d="M154 140 Q180 152 206 140" fill="none" stroke={v("sc-ink")} strokeWidth={2} />);
-    [v("sc-pink"), v("sc-yellow"), v("sc-teal"), v("sc-orange")].forEach((c, i) =>
-      out.push(<rect key={`c${i}`} x={158 + i * 12} y={143 + (i === 1 || i === 2 ? 2 : 0)} width={9} height={14} fill={c} stroke={v("sc-ink")} strokeWidth={1.5} />));
   }
   return out;
 }
@@ -44,17 +35,17 @@ function neighbro(k: number): ReactNode[] {
   if (k === 0) out.push(<circle key="s" cx={280} cy={150} r={34} fill={v("sc-peach")} stroke={v("sc-ink")} strokeWidth={3} />,
     <rect key="sea" x={0} y={150} width={W} height={50} fill={v("sc-sea-morning")} />);
   if (k === 1) out.push(<circle key="s" cx={230} cy={105} r={22} fill={v("sc-white")} stroke={v("sc-ink")} strokeWidth={3} />,
-    <rect key="sea" x={0} y={140} width={W} height={34} fill={v("sc-teal")} />,
+    <rect key="sea" x={0} y={140} width={W} height={34} fill={v("sc-sea")} />,
     <rect key="sand" x={0} y={174} width={W} height={26} fill={v("sc-sun-morning")} />);
   if (k === 2) {
-    out.push(<circle key="s" cx={250} cy={150} r={56} fill={v("sc-yellow")} />);
-    for (let j = 0; j < 4; j++) out.push(<rect key={`r${j}`} x={190} y={132 + j * 12} width={120} height={5} fill={v("sc-pink")} />);
+    out.push(<circle key="s" cx={250} cy={150} r={56} fill={v("sc-gold")} />);
+    for (let j = 0; j < 4; j++) out.push(<rect key={`r${j}`} x={190} y={132 + j * 12} width={120} height={5} fill={v("sc-stripe")} />);
     out.push(<rect key="sea" x={0} y={176} width={W} height={24} fill={v("sc-dusk")} />);
   }
-  if (k === 3) out.push(<rect key="neon" x={0} y={172} width={W} height={4} fill={v("sc-neon")} />,
-    <rect key="sea" x={0} y={176} width={W} height={24} fill={v("sc-deep")} />);
-  const pc = k < 3 ? v("sc-ink") : v("sc-deep");
-  const strokes: [number, string][] = k === 3 ? [[10, v("sc-neon")], [7, pc]] : [[7, pc]];
+  if (k === 3) out.push(<rect key="line" x={0} y={172} width={W} height={4} fill={v("sc-gold")} />,
+    <rect key="sea" x={0} y={176} width={W} height={24} fill={v("sc-night-sea")} />);
+  const pc = k < 3 ? v("sc-ink") : v("sc-night-sea");
+  const strokes: [number, string][] = k === 3 ? [[10, v("sc-gold")], [7, pc]] : [[7, pc]];
   for (const [x0, ph] of [[40, 110], [330, 95]]) {
     for (const [sw, col] of strokes) {
       out.push(<path key={`t${x0}-${sw}`} d={`M${x0} ${H} Q${x0 + 8} ${H - ph / 2} ${x0 + 4} ${H - ph}`} stroke={col} strokeWidth={sw} fill="none" />);

@@ -49,6 +49,7 @@ import { watchIdle } from "./idle.ts";
 import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
 import "./screens/feed.css";
+import { Icon, type IconName } from "./ui/Icon.tsx";
 
 type Sealed = "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
 // `keys` is null while the page is locked (W13-WL): the chat keys are thrown
@@ -228,19 +229,18 @@ function Face() {
   }
   const me = () => setScreen({ at: "me" });
 
-  // The tab bar at the foot (sheet 03, kit `tabbar`): three tabs of 125, the
-  // kit's line icons, the active one in meta-strong over a 32x3 accent bar.
-  const tab = (at: "feed" | "inbox" | "me", icon: ReactNode, label: string, testid: string, go: () => void) => (
-    <button type="button" className="tab" aria-current={screen.at === at ? "page" : undefined} onClick={go} data-testid={testid}>
-      <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">{icon}</svg>
-      <span>{label}</span>
+  // The tab bar at the foot (comic 2026-10-01): three tabs of 125, icons only,
+  // the name in aria-label; the open one stands in a gold medallion.
+  const tab = (at: "feed" | "inbox" | "me", icon: IconName, label: string, testid: string, go: () => void) => (
+    <button type="button" className="tab ui-icon-only" aria-label={label} aria-current={screen.at === at ? "page" : undefined} onClick={go} data-testid={testid}>
+      <Icon name={icon} />
     </button>
   );
   const nav = seated && (screen.at === "feed" || screen.at === "inbox" || screen.at === "me") && (
     <nav className="tabbar" data-testid="nav">
-      {tab("feed", <path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" />, say("web.nav.feed"), "nav-feed", () => setScreen({ at: "feed" }))}
-      {tab("inbox", <path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" />, say("web.nav.inbox"), "nav-inbox", () => leaveFeed({ at: "inbox" }))}
-      {tab("me", <><circle cx="22" cy="17" r="4.5" /><path d="M13 31 C13 25 31 25 31 31" /></>, say("me.title"), "tab-me", () => leaveFeed({ at: "me" }))}
+      {tab("feed", "feed", say("web.nav.feed"), "nav-feed", () => setScreen({ at: "feed" }))}
+      {tab("inbox", "say", say("web.nav.inbox"), "nav-inbox", () => leaveFeed({ at: "inbox" }))}
+      {tab("me", "me", say("me.title"), "tab-me", () => leaveFeed({ at: "me" }))}
     </nav>
   );
 

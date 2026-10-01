@@ -5,8 +5,11 @@ import { Icon } from "./Icon.tsx";
 // icon-only button opens the same words in a comic balloon. The balloon is a
 // non-modal dialog: focus moves into it, Esc and a press outside close it,
 // and focus comes back to the button. `label` is the button's name — an
-// existing key where one fits, else say("web.info").
-export function Info({ label, children, ...rest }: { label: string; children: ReactNode; [data: `data-${string}`]: string | undefined }) {
+// existing key where one fits, else say("web.info"). `warn` is the red
+// one of the mocks (an irreversible consequence).
+// The balloon keeps the words in the DOM only while open; the words are the
+// screen's own keys, moved, not new ones.
+export function Info({ label, children, warn = false, ...rest }: { label: string; children: ReactNode; warn?: boolean; [data: `data-${string}`]: string | undefined }) {
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const balloon = useRef<HTMLDivElement>(null);
@@ -33,12 +36,12 @@ export function Info({ label, children, ...rest }: { label: string; children: Re
   }, [open]);
   return (
     <span className="ui-info" {...rest}>
-      <button ref={button} type="button" className="ui-button ui-secondary ui-icon-only" aria-label={label} aria-expanded={open}
+      <button ref={button} type="button" className={warn ? "ui-button ui-info-warn ui-icon-only" : "ui-button ui-info-plain ui-icon-only"} aria-label={label} aria-expanded={open}
         aria-controls={open ? id : undefined} onClick={() => (open ? close(true) : setOpen(true))}>
         <Icon name="info" />
       </button>
       {open ? (
-        <div ref={balloon} id={id} role="dialog" aria-label={label} tabIndex={-1} className="ui-balloon">
+        <div ref={balloon} id={id} role="dialog" aria-label={label} tabIndex={-1} className={warn ? "ui-balloon ui-balloon-warn" : "ui-balloon"}>
           {children}
         </div>
       ) : null}

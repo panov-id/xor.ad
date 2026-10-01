@@ -105,24 +105,30 @@ full(".k-rasta-light", "rasta·light", {"bg": "#f3ecd2", "panel": "#fffaea", "pa
      "ok": "#1f6b35", "err": "#a3211a", "scrim": "#000000", "shadow": "#1f6b35", "on-fg-muted": "#b8ad84"},
      {"cat-amber": "#8a6400", "cat-teal": "#1f6b35", "cat-violet": "#a3211a"})
 
-# 4 · comic (owner 2026-10-01, web/design/comic-2026-10-01.svg; restyled the same day: no stars, no halftone, gold,
-# a calm night without neon). Four frames: sosed day and night, neighbro day and night. Besides the kit's names
-# each carries --ink (outlines), --paper, --pop (the header plate), --rim (a card's edge), the feed header's scenes
-# --sky-*/--sc-* (web/src/ui/Scene.tsx), and the comic's geometry — every style number lives here, so a change of
-# the mock is one edit of this block: --comic-line (outline), --comic-cut (the cut corner), --comic-drop-x/-y (the
-# hard shadow), --comic-tilt (a card's lean), --comic-scene-h (the feed header), --gold-1/--gold-2 (the gold
-# gradient gold-1 → gold-2 → gold-1 of the primary button and the like's medallion).
-COMIC_SCENES = {"sky-s-morning-0": "#f7dccf", "sky-s-morning-1": "#c9d6e3", "sky-s-day-0": "#8fd3ff", "sky-s-day-1": "#d8f1ff",
-    "sky-s-sunset-0": "#a33e1f", "sky-s-sunset-1": "#d68a1f", "sky-s-night-0": "#0e1324", "sky-s-night-1": "#18203a",
-    "sky-n-morning-0": "#ffc4d6", "sky-n-morning-1": "#ffe3b8", "sky-n-day-0": "#5fd4f0", "sky-n-day-1": "#c8f4ff",
-    "sky-n-sunset-0": "#3a1466", "sky-n-sunset-1": "#c25a6a", "sky-n-night-0": "#0e1324", "sky-n-night-1": "#18203a",
-    "sky-title-dark": "#141018", "sky-title-light": "#fff4e0",
-    "sc-ink": "#141018", "sc-paper": "#fff4e0", "sc-white": "#ffffff", "sc-yellow": "#e9cf8a", "sc-pink": "#c25a6a",
-    "sc-teal": "#12b5b0", "sc-orange": "#ff6b1a", "sc-neon": "#b8893b", "sc-deep": "#070a14", "sc-dusk": "#2b1850",
-    "sc-bldg-morning": "#6c7a96", "sc-bldg-day": "#e9c9a0", "sc-bldg-night": "#070a14", "sc-win-morning": "#8a96ad",
-    "sc-win-day": "#9fc6e8", "sc-sun-morning": "#ffd9a0", "sc-sea-morning": "#9fd7e0", "sc-peach": "#ffe3b8"}
+# 4 · comic, the luxury cut (owner 2026-10-01; numbers from the mock's generator comic.py, web/design/
+# comic-2026-10-01.svg and the 35 screen mocks): no stars, no halftone, gold foil, a calm night without neon.
+# Four frames: sosed day and night, neighbro day and night. ONE BLOCK: every style number of the comic is here.
+# Besides the kit's names each frame carries --ink (outlines and the hard shadow), --paper, --pop (the gold plate,
+# mid gold), --sel/--sel-ink (a chosen chip or tab), --off (a button not yet live), --secondary (a secondary
+# button's face), --warn (a warning info button and words), --rim (a panel's edge), --tab-bg (the tab bar);
+# the feed header's scenes --sky-*/--sc-* (web/src/ui/Scene.tsx); and the geometry: --comic-line (outline),
+# --comic-cut (cut corner), --comic-drop-x/-y (hard shadow), --comic-tilt (lean), --comic-scene-h (feed header),
+# --comic-gutter (screen side), --comic-gap (between blocks), --comic-inset (the inner gold line's inset),
+# --gold-1/--gold-2 (the foil gold-1 → gold-2 → gold-1 of the primary button, the plate and the medallion).
+INK, PAPER, SKY, TERRA, GOLD_MID, GOLD_0, GOLD_1, SEA = "#141018", "#fffaf0", "#f6efe2", "#bd4b2a", "#d9b766", "#b8893b", "#e9cf8a", "#0f6f86"
+NBG, NPN, NFG, NMU = "#0e1324", "#18203a", "#f3ead8", "#b9b2a2"
+COMIC_SCENES = {"sky-s-morning-0": "#f3e2d4", "sky-s-morning-1": "#e9eef3", "sky-s-day-0": "#cfe3ee", "sky-s-day-1": "#f6efe2",
+    "sky-s-sunset-0": "#a33e1f", "sky-s-sunset-1": "#d9a066", "sky-s-night-0": NBG, "sky-s-night-1": NPN,
+    "sky-n-morning-0": "#f3dcd4", "sky-n-morning-1": "#f3ead8", "sky-n-day-0": "#bfe3ea", "sky-n-day-1": "#f3efe6",
+    "sky-n-sunset-0": "#2a1e46", "sky-n-sunset-1": "#c46a4a", "sky-n-night-0": NBG, "sky-n-night-1": NPN,
+    "sky-title-dark": INK, "sky-title-light": PAPER,
+    "sc-ink": INK, "sc-paper": PAPER, "sc-white": "#ffffff", "sc-yellow": GOLD_MID, "sc-gold": GOLD_MID, "sc-stripe": "#c46a4a",
+    "sc-sea": SEA, "sc-night-sea": NBG, "sc-dusk": NPN,
+    "sc-bldg-morning": "#8a93a6", "sc-bldg-day": "#e6d6bc", "sc-bldg-night": INK, "sc-win-morning": "#a3abbb",
+    "sc-win-day": "#b8cfe0", "sc-sun-morning": "#eadcc0", "sc-sea-morning": "#cfe3e6", "sc-peach": SKY}
 COMIC_GEOMETRY = {"comic-line": "2.5px", "comic-cut": "16px", "comic-drop-x": "4px", "comic-drop-y": "4px", "comic-tilt": "0deg",
-    "comic-scene-h": "160px", "gold-1": "#b8893b", "gold-2": "#e9cf8a"}
+    "comic-scene-h": "200px", "comic-header-h": "76px", "comic-gutter": "16px", "comic-gap": "20px", "comic-inset": "4px",
+    "gold-1": GOLD_0, "gold-2": GOLD_1, "gold-mid": GOLD_MID}
 for b in ("s", "n"):
     for ph in ("morning", "day", "sunset", "night"):
         t = COMIC_SCENES["sky-title-dark" if ph in ("morning", "day") else "sky-title-light"]
@@ -134,32 +140,27 @@ def comic(sel, scheme, t):
     t["muted-2"] = t["muted"]
     css.append(block(sel, t))
     check(scheme, [("fg на panel", t["fg"], t["panel"], 4.5), ("fg на bg", t["fg"], t["bg"], 4.5),
-                   ("muted на panel", t["muted"], t["panel"], 4.5), ("muted на panel-2", t["muted"], t["panel-2"], 4.5),
+                   ("muted на panel", t["muted"], t["panel"], 4.5), ("muted на bg", t["muted"], t["bg"], 4.5),
+                   ("warn на bg", t["warn"], t["bg"], 4.5), ("warn на panel", t["warn"], t["panel"], 4.5),
                    ("accent-ink на accent", t["accent-ink"], t["accent"], 4.5), ("accent-text на panel", t["accent-text"], t["panel"], 4.5),
-                   ("ink на pop (плашка)", t["ink"], t["pop"], 4.5),
-                   ("ink на gold-1 (кнопка, медальон)", "#141018", COMIC_GEOMETRY["gold-1"], 4.5),
-                   ("border-control на panel", t["border-control"], t["panel"], 3.0), ("bg на fg (таблетка)", t["bg"], t["fg"], 4.5)]
+                   ("ink на pop (плашка)", INK, t["pop"], 4.5), ("ink на gold-1", INK, GOLD_0, 4.5), ("sel-ink на sel", t["sel-ink"], t["sel"], 4.5),
+                   ("ink на secondary", INK, t["secondary"], 4.5), ("border-control на panel", t["border-control"], t["panel"], 3.0),
+                   ("bg на fg (таблетка)", t["bg"], t["fg"], 4.5)]
           + [(f"{k} на panel", t[k], t["panel"], 4.5) for k in ("cat-amber", "cat-teal", "cat-violet", "err")])
-comic(".k-comic", "comic·sosed·day", {"bg": "#ffe3b8", "panel": "#fff4e0", "panel-2": "#efdcc0", "border": "#141018",
-      "border-control": "#141018", "fg": "#141018", "muted": "#5a4a5e", "accent": "#ff6b1a", "accent-ink": "#141018",
-      "ok": "#2f6b3a", "err": "#a3311f", "scrim": "#000000", "shadow": "#141018", "on-fg-muted": "#c9b8a0",
-      "cat-amber": "#7a4a00", "cat-teal": "#0d6b68", "cat-violet": "#6b2fa8",
-      "ink": "#141018", "paper": "#fff4e0", "pop": "#e9cf8a", "pop-2": "#ff6b1a", "pop-3": "#12b5b0", "rim": "#141018"})
-comic(".k-comic-night", "comic·sosed·night", {"bg": "#0e1324", "panel": "#18203a", "panel-2": "#222c4c", "border": "#070a14",
-      "border-control": "#b8893b", "fg": "#f3ecdc", "muted": "#a9b3cc", "accent": "#e9cf8a", "accent-ink": "#141018",
-      "ok": "#9ecb7a", "err": "#ff8a80", "scrim": "#000000", "shadow": "#070a14", "on-fg-muted": "#5a6480",
-      "cat-amber": "#e9cf8a", "cat-teal": "#7fc8c0", "cat-violet": "#c6b4e8",
-      "ink": "#070a14", "paper": "#18203a", "pop": "#e9cf8a", "pop-2": "#b8893b", "pop-3": "#7fc8c0", "rim": "#b8893b"})
-comic(".k-comic-neighbro", "comic·neighbro·day", {"bg": "#e9e6dd", "panel": "#f4f1e8", "panel-2": "#ded9cc", "border": "#141018",
-      "border-control": "#141018", "fg": "#181510", "muted": "#5f5a4e", "accent": "#4fb3c9", "accent-ink": "#141018",
-      "ok": "#2f6b3a", "err": "#a3311f", "scrim": "#000000", "shadow": "#141018", "on-fg-muted": "#b0a894",
-      "cat-amber": "#735b25", "cat-teal": "#0f6f86", "cat-violet": "#793fbe",
-      "ink": "#141018", "paper": "#f4f1e8", "pop": "#e9cf8a", "pop-2": "#4fb3c9", "pop-3": "#c25a6a", "rim": "#141018"})
-comic(".k-comic-neighbro-night", "comic·neighbro·night", {"bg": "#0e1324", "panel": "#18203a", "panel-2": "#222c4c", "border": "#070a14",
-      "border-control": "#b8893b", "fg": "#f3ecdc", "muted": "#a9b3cc", "accent": "#4fb3c9", "accent-ink": "#141018",
-      "ok": "#9ecb7a", "err": "#ff8a80", "scrim": "#000000", "shadow": "#070a14", "on-fg-muted": "#5a6480",
-      "cat-amber": "#e9cf8a", "cat-teal": "#4fb3c9", "cat-violet": "#c6b4e8",
-      "ink": "#070a14", "paper": "#18203a", "pop": "#e9cf8a", "pop-2": "#4fb3c9", "pop-3": "#b8893b", "rim": "#b8893b"})
+DAY = {"border": INK, "border-control": INK, "accent-ink": PAPER, "ok": "#2f6b3a", "err": "#a3311f", "warn": "#a3311f", "scrim": INK,
+       "shadow": INK, "ink": INK, "paper": PAPER, "pop": GOLD_MID, "rim": INK, "tab-bg": INK, "tab-ink": PAPER}
+NIGHT = {"bg": NBG, "panel": NPN, "panel-2": "#2a3456", "border": "#070a14", "border-control": GOLD_MID, "fg": NFG, "muted": NMU,
+         "accent": GOLD_MID, "accent-ink": INK, "ok": "#9ecb7a", "err": "#ff9a8a", "warn": "#ff9a8a", "scrim": INK, "shadow": INK,
+         "on-fg-muted": "#5a6480", "ink": INK, "paper": NPN, "pop": GOLD_MID, "rim": GOLD_0, "sel": GOLD_MID, "sel-ink": INK,
+         "secondary": "#e9dfc9", "off": "#2a3456", "tab-bg": "#070a14", "tab-ink": NFG}
+comic(".k-comic", "comic·sosed·day", {**DAY, "bg": SKY, "panel": PAPER, "panel-2": "#ece3d2", "fg": INK, "muted": "#5a4e44",
+      "accent": TERRA, "on-fg-muted": "#c9b8a0", "sel": TERRA, "sel-ink": PAPER, "secondary": PAPER, "off": "#ece3d2",
+      "cat-amber": "#7a4a00", "cat-teal": "#0d6b68", "cat-violet": "#6b2fa8"})
+comic(".k-comic-night", "comic·sosed·night", {**NIGHT, "cat-amber": GOLD_MID, "cat-teal": "#7fc8c0", "cat-violet": "#c6b4e8"})
+comic(".k-comic-neighbro", "comic·neighbro·day", {**DAY, "bg": "#f3f1ea", "panel": "#fffdf7", "panel-2": "#e6e3da", "fg": INK,
+      "muted": "#56625f", "accent": SEA, "on-fg-muted": "#b0a894", "sel": SEA, "sel-ink": PAPER, "secondary": "#fffdf7", "off": "#e6e3da",
+      "cat-amber": "#735b25", "cat-teal": SEA, "cat-violet": "#793fbe"})
+comic(".k-comic-neighbro-night", "comic·neighbro·night", {**NIGHT, "accent": "#4fb3c9", "cat-amber": GOLD_MID, "cat-teal": "#4fb3c9", "cat-violet": "#c6b4e8"})
 # Russo One (OFL), the comic's headings: Cyrillic and Latin subsets, fetched by scripts/fetch-fonts.sh into panel/design/fonts
 FONTS = [
     '@font-face { font-family: "Russo One"; font-weight: 400; font-display: swap; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; src: url(/fonts/Z9XUDmZRWg6M1LvRYsHOy8mJrrg.woff2) format("woff2"); }',

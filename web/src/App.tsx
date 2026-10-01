@@ -96,7 +96,8 @@ function Face() {
   const [radius, setRadius] = useState<Radius>(1000);
   // One's own phrase just sent, with the node's verdict; shown on the feed
   // until the person leaves it (W2, after the verifier).
-  const [sent, setSent] = useState<{ state: Exclude<Sent, { state: "refused" }>["state"]; text: string } | null>(null);
+  // `id` is what POST /feed answered — the feed takes the phrase down by it (W11-C).
+  const [sent, setSent] = useState<{ state: Exclude<Sent, { state: "refused" }>["state"]; text: string; id?: string } | null>(null);
   const [gone, setGone] = useState<{ why: "hidden" | "blocked"; id: string } | null>(null);
   // The statements, read once per seated client on the first entry into the
   // feed; null until read, so the read happens once (depth/ink app.ts).
@@ -240,6 +241,7 @@ function Face() {
             onWrite={() => leaveFeed({ at: "composer" })}
             onLikes={() => leaveFeed({ at: "likes" })}
             sent={sent}
+            onTakenDown={() => setSent(null)}
             gone={gone}
           />
           {nav}
@@ -252,7 +254,7 @@ function Face() {
           at={at}
           radius={radius}
           onSent={(result, text) => {
-            setSent({ state: result.state, text });
+            setSent({ state: result.state, text, id: result.id });
             toFeed();
           }}
           onBack={toFeed}

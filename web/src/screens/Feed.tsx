@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { ANNOUNCE_MS, announce, isStep, nearby, type Step } from "../a11y/nearby.ts";
-import { modes, type Sent } from "../api/actions.ts";
+import { modes, takeDownPhrase, type Sent } from "../api/actions.ts";
 import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
 import { HeaderFeed } from "../ui/Header.tsx";
@@ -43,7 +43,7 @@ export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 const label = (r: Radius) => (r >= 1000 ? say("web.feed.km", { n: r / 1000 }) : say("web.feed.m", { n: r }));
 
 export function Feed(
-  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, sent, gone, onTable, onNewTable, notice }: {
+  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, sent, onTakenDown, gone, onTable, onNewTable, notice }: {
     client: Client;
     // A table card sits down at the table; "new table" makes one (W10).
     onTable?: (id: string) => void;
@@ -58,7 +58,11 @@ export function Feed(
     onWrite: () => void;
     onLikes: () => void;
     // One's own phrase just sent, with the node's verdict (Composer.tsx).
-    sent?: { state: Exclude<Sent, { state: "refused" }>["state"]; text: string } | null;
+    // `id` is what POST /feed answered; without it the phrase cannot be taken
+    // down from here (W11-C, as the terminal's W11-B).
+    sent?: { state: Exclude<Sent, { state: "refused" }>["state"]; text: string; id?: string } | null;
+    // My own phrase came down: the holder of `sent` forgets it.
+    onTakenDown?: () => void;
     // A card that left this feed on the card screen: hidden, or its author blocked.
     gone?: { why: "hidden" | "blocked"; id: string } | null;
   },
@@ -67,6 +71,19 @@ export function Feed(
   const [next, setNext] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [error, setError] = useState<string | null>(null);
+  // Taking one's own phrase down (§8.3): a press on the sent line's handle,
+  // DELETE /feed/:id; a refusal is said under the line with the node's number.
+  const [takingDown, setTakingDown] = useState(false);
+  const [takedownRefused, setTakedownRefused] = useState<number | null>(null);
+  async function takeDown() {
+    if (!sent?.id) return;
+    setTakingDown(true);
+    setTakedownRefused(null);
+    const done = await takeDownPhrase(client, sent.id);
+    setTakingDown(false);
+    if (!done.ok) return setTakedownRefused(done.status);
+    onTakenDown?.();
+  }
 
   async function load(after?: string) {
     setState("loading");
@@ -138,7 +155,14 @@ export function Feed(
         <p className="warn" data-testid="sent" data-state={sent.state}>
           {sent.state === "published" ? say("web.feed.sent_out") : say("web.feed.sent_held")}
           «{sent.text}»
+          {/* In view only while the id is known — not greyed, absent (W11-C). */}
+          {sent.id && (
+            <Button type="button" kind="text" disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown">{say("feed.takedown")}</Button>
+          )}
         </p>
+      )}
+      {sent && takedownRefused !== null && (
+        <p className="error" data-testid="takedown-refused">{say("feed.takedownRefused", { status: takedownRefused })}</p>
       )}
       {gone && (
         <p className="muted" data-testid="gone" data-why={gone.why}>

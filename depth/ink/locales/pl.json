@@ -336,5 +336,6 @@
   "chat.rekeyPeerAsks": "The other side asks for new keys for this conversation. New lines will not open until you agree.",
   "chat.rekeyWaiting": "Asked for new keys — waiting for the other side to agree.",
   "chat.rekeyDone": "The conversation's keys are renewed (epoch {epoch}).",
-  "chat.rekeyRefused": "the node did not take the new keys: {status}"
+  "chat.rekeyRefused": "the node did not take the new keys: {status}",
+  "feed.refused": "Your phrase did not pass moderation and was taken down."
 }

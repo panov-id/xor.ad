@@ -244,6 +244,18 @@ export function Feed(
       .then((answer) => setItems(answer.items as Phrase[]))
       .catch((e: Error) => onError(e.message));
   }, [place.lat, place.lon, place.radius]);
+  // What the moderator refused of one's own (W12-MRc, the owner's decision of
+  // 2026-10-01): GET /inbox counts the moments of the last hour, at most six
+  // (relay lib/inbox_events.ts phrases_refused) — no id, no text, so the line
+  // names no phrase. Read once on entering the feed; a new phrase of one's own
+  // puts it out. Not an error when the inbox is out of reach: the feed stands.
+  const [refused, setRefused] = useState(0);
+  useEffect(() => {
+    Promise.resolve()
+      .then(() => client.inboxSince())
+      .then(({ events }) => setRefused(events?.phrases_refused ?? 0))
+      .catch(() => setRefused(0));
+  }, []);
   const chosen = items?.[at];
   const isTable = chosen?.kind === "table";
   const isOffer = chosen?.kind === "offer";
@@ -320,6 +332,7 @@ export function Feed(
       : items.length === 0
       ? h(Text, { dimColor: true }, say("feed.empty"))
       : h(Box, { flexDirection: "column", gap: 1 }, ...items.map(line)),
+    refused > 0 && !mine ? h(Text, { color: "red" }, say("feed.refused")) : null,
     h(
       Text,
       { dimColor: true },

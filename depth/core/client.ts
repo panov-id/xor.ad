@@ -43,6 +43,12 @@ export type InboxEvents = {
   new_chats: number;
   pending_messages: number;
   ending_soon: number;
+  // Since 2026-10-01 (relay lib/inbox_events.ts): starters that came as extra
+  // likes, and one's own phrases the moderator refused after `since` — moments
+  // only, an hour and at most six (W12-MRn); the faces say "the phrase did
+  // not pass moderation" on the feed (W12-MRc, the owner's decision).
+  extra_likes?: number;
+  phrases_refused?: number;
 };
 
 // Protocol §6: 409 comes in two shapes. A stale edition of the documents is

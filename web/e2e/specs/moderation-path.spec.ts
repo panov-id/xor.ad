@@ -16,7 +16,7 @@
 
 import { type BrowserContext, expect, type Page, test } from "../fixtures/address.ts";
 import { devices } from "@playwright/test";
-import { PIN, register, runLabel, unlock } from "./helpers.ts";
+import { PIN, register, runLabel, unlock, writePhrase } from "./helpers.ts";
 
 const PANEL_URL = process.env.PANEL_URL ?? "";
 const SECRET = process.env.PANEL_SESSION_SECRET ?? "";
@@ -120,9 +120,20 @@ test("a flagged phrase waits with the model's hint, the moderator decides in the
     await feedAgain(a);
     await expect(a.getByTestId("card").filter({ hasText: toPublish }), "the published phrase is not in its author's feed").toHaveCount(1, { timeout: 15000 });
     await expect(a.getByTestId("card").filter({ hasText: toRefuse })).toHaveCount(0);
+    // The author of the published phrase is told nothing of a refusal.
+    await expect(a.getByTestId("refused")).toHaveCount(0);
     await feedAgain(c);
     await expect(c.getByTestId("card").filter({ hasText: toPublish })).toHaveCount(1, { timeout: 15000 });
     await expect(c.getByTestId("card").filter({ hasText: toRefuse }), "the refused phrase is in the feed").toHaveCount(0);
+    // The refused phrase's author sees that it did not pass (W12-MRc, the
+    // owner's decision of 2026-10-01): GET /inbox counts the moment, the feed
+    // says so without naming the phrase; the next phrase of her own puts the
+    // line out.
+    await expect(c.getByTestId("refused"), "the author was not told the phrase did not pass moderation").toBeVisible({ timeout: 15000 });
+    await expect(c.getByTestId("refused")).toHaveText("Ваша фраза не прошла модерацию и снята.");
+    await writePhrase(c, `передумала, просто гуляю ${stamp}`);
+    await expect(c.getByTestId("sent")).toBeVisible();
+    await expect(c.getByTestId("refused")).toHaveCount(0);
   } finally {
     for (const ctx of contexts) await ctx.close();
   }

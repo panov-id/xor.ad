@@ -80,3 +80,11 @@
 .chat .starter-mark { color: var(--muted); font-size: 13px; font-weight: 600; }
 .chat .starters q, .chat .line.extra-like q { quotes: "«" "»"; font-size: 16px; }
 .chat .line.extra-like { align-self: center; text-align: center; background: var(--panel-2); }
+
+/* The conversation's handles (W11-A): the span pills, the row of text actions
+   and the two confirms share the sets' look; the fades line sits under the status. */
+.chat .chat-actions { display: flex; flex-direction: column; gap: var(--s-2); }
+.chat .chat-actions > p { margin: 0; font-size: 14px; }
+.chat .fades { margin: 0; font-size: 14px; }
+.chat .fades[data-counting="yes"] { color: var(--err); font-weight: 600; }
+.chat .chat-actions .ui-text { min-height: var(--control-h); }

@@ -569,7 +569,7 @@ export function Chat(
           }
           if (frame.type !== "message") continue;
           setPeerAway(false);
-          const { id, ciphertext } = frame.data as { id: string; ciphertext: string };
+          const { id, ciphertext, created_at } = frame.data as { id: string; ciphertext: string; created_at?: number };
           if (shown.has(id)) continue;
           shown.add(id);
           // A frame that does not open is the node's doing, not the peer's: it
@@ -579,7 +579,10 @@ export function Chat(
             .then((line) => ({ text: line, broken: false }))
             .catch((e: Error) => ({ text: e.message, broken: true }));
           setLines((all) => [...all, { mine: false, ...text }]);
-          sawChatActivity(chatId, Date.now() / 1000);
+          // Seen at the node's moment, not this clock's (W13-DM2): the inbox's
+          // last_activity_at is the node's whole second, and a device clock
+          // ahead of the node would never see a later moment on it.
+          sawChatActivity(chatId, created_at ?? Date.now() / 1000);
           setMissed(false);
         }
         if (!live) return;

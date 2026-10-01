@@ -388,6 +388,11 @@ async function main() {
     assert.match(app.lastFrame() ?? "", /\[ назад \]/, "the row's \"back\" was not reached");
     await type(app, ENTER); // "назад"
     await until(app, /входящие/, 20);
+    // The node's last activity is whole seconds (routes/inbox.ts), and so is
+    // what the screen saw: a line in the same second as the last one seen is
+    // not "later". The run was green only when the second happened to turn
+    // (W13-DM2: red 2 of 2 on one machine, 1 of 2 on another) — so wait it out.
+    await settle(1100);
     assert.equal((await peer.sayInChat(rekeyChat, "пока тебя не было", back.body.match_id!)).status, 202, "the line while away was refused");
     const dropped = await sql`DELETE FROM pending_deliveries WHERE chat = ${rekeyChat} RETURNING local_id`;
     assert.ok(dropped.length >= 1, "the line while away was not in the node's queue — nothing to lose");

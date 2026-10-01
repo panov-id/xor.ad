@@ -5,12 +5,21 @@
 
 # breaks_undo_left <pending dir>: the copy of a file a killed run left broken
 # is put back, on every start, --breaks or not.
+# The copy is put back only while the file still carries the break's marker
+# ("BROKEN by"): a copy left behind by a run killed under an older tree would
+# otherwise overwrite code merged since (01.10.2026: a copy of matches.ts from
+# before wave 10 undid its starters ordering on the next start; e2e 15 of 17).
 breaks_undo_left() {
   [ -f "$1/file" ] || return 0
   local left
   left="$(cat "$1/file")"
-  cp "$1/orig" "$left" && rm -rf "$1"
-  echo "  ! прошлый прогон оборван посреди поломки: $left восстановлен из копии" >&2
+  if [ -f "$left" ] && grep -q 'BROKEN by' "$left"; then
+    cp "$1/orig" "$left" && rm -rf "$1"
+    echo "  ! прошлый прогон оборван посреди поломки: $left восстановлен из копии" >&2
+  else
+    rm -rf "$1"
+    echo "  ! копия поломки от прошлого прогона устарела ($left без маркера) — выброшена, файл не тронут" >&2
+  fi
 }
 
 # breaks_judge <name> <exit code> <log> <regex of a failed test>: a break is

@@ -25,7 +25,16 @@ const out = (line: string) => (process as unknown as { _rawDebug: (s: string) =>
 const settle = (ms = 120) => new Promise((done) => setTimeout(done, ms));
 const DOWN = "\u001B[B", RIGHT = "\u001B[C", LEFT = "\u001B[D", ENTER = "\r";
 const LAT = "41.9", LON = "12.5";
-const FEED_ROW = ["open", "like", "hide", "block", "complain", "write", "table", "inbox", "point", "me", "exit"];
+// The feed's actions by their labels (screens.ts Feed; "open" reads "сесть" on a
+// table card): the row is not fixed —
+// "снять фразу" stands in it only while one's own phrase is up (W11-B), "стол"
+// only at a table, "пожаловаться" only with a complaint handler — so an action
+// is found by walking right from the row's start until it is the chosen one,
+// not counted by an index that a conditional item shifts (W12-FR, 01.10.2026).
+const FEED_LABELS: Record<string, string> = {
+  open: "открыть|сесть", like: "лайк", hide: "скрыть", block: "заблокировать", complain: "пожаловаться", write: "написать",
+  takedown: "снять фразу", table: "стол", inbox: "входящие", point: "сменить точку", me: "я", exit: "выход",
+};
 
 type Screen = { stdin: { write: (s: string) => void }; lastFrame: () => string | undefined; frames?: string[] };
 
@@ -34,6 +43,21 @@ async function type(app: Screen, ...keys: string[]) {
     app.stdin.write(key);
     await settle();
   }
+}
+
+async function pickInFeed(app: Screen, action: string) {
+  const label = FEED_LABELS[action];
+  if (!label) throw new Error(`no such action in the feed's row: ${action}`);
+  const chosen = new RegExp(`\\[ ${label} \\]`);
+  // The row remembers where it was left, so walk to its start first: the
+  // helper used to count from zero and landed on "выход", which quit the
+  // program mid-run (measured 23.09.2026).
+  for (let i = 0; i < 14; i++) await type(app, LEFT);
+  for (let i = 0; i < 14 && !chosen.test(app.lastFrame() ?? ""); i++) await type(app, RIGHT);
+  if (!chosen.test(app.lastFrame() ?? "")) {
+    throw new Error(`the feed's row never offered "${label}":\n${JSON.stringify(app.lastFrame() ?? "").slice(0, 600)}`);
+  }
+  await type(app, ENTER);
 }
 
 async function pick(app: Screen, row: string[], action: string) {
@@ -115,7 +139,7 @@ async function main() {
     // 2 · a dots table from the feed's "table", as table.node-test.ts sets one:
     // down to seats (two for dots), down to the name, down into the row, enter.
     const name = `точки ${run}`;
-    await pick(app, FEED_ROW, "table");
+    await pickInFeed(app, "table");
     await until(app, /поставить стол/);
     await type(app, DOWN, DOWN, RIGHT, DOWN);
     await typeUntil(app, name, new RegExp(run));

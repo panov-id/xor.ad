@@ -38,16 +38,29 @@ const DOWN = "\u001B[B", UP = "\u001B[A", RIGHT = "\u001B[C", LEFT = "\u001B[D",
 // The feed's row of actions, in the order the screen draws it. Counting
 // presses by hand broke the moment two actions were inserted, so the test
 // names what it wants instead.
-const FEED_ROW = ["open", "like", "hide", "block", "complain", "write", "table", "inbox", "point", "me", "exit"];
+// The feed's actions by their labels (screens.ts Feed; "open" reads "сесть" on a
+// table card): the row is not fixed —
+// "снять фразу" stands in it only while one's own phrase is up (W11-B), "стол"
+// only at a table, "пожаловаться" only with a complaint handler — so an action
+// is found by walking right from the row's start until it is the chosen one,
+// not counted by an index that a conditional item shifts (W12-FR, 01.10.2026).
+const FEED_LABELS: Record<string, string> = {
+  open: "открыть|сесть", like: "лайк", hide: "скрыть", block: "заблокировать", complain: "пожаловаться", write: "написать",
+  takedown: "снять фразу", table: "стол", inbox: "входящие", point: "сменить точку", me: "я", exit: "выход",
+};
 
-async function pickInFeed(app: { stdin: { write: (s: string) => void } }, action: string) {
-  const steps = FEED_ROW.indexOf(action);
-  if (steps < 0) throw new Error(`no such action in the feed's row: ${action}`);
+async function pickInFeed(app: { stdin: { write: (s: string) => void }; lastFrame: () => string | undefined }, action: string) {
+  const label = FEED_LABELS[action];
+  if (!label) throw new Error(`no such action in the feed's row: ${action}`);
+  const chosen = new RegExp(`\\[ ${label} \\]`);
   // The row remembers where it was left, so walk to its start first: the
   // helper used to count from zero and landed on "выход", which quit the
   // program mid-run (measured 23.09.2026).
-  for (let i = 0; i < FEED_ROW.length; i++) await type(app, LEFT);
-  for (let i = 0; i < steps; i++) await type(app, RIGHT);
+  for (let i = 0; i < 14; i++) await type(app, LEFT);
+  for (let i = 0; i < 14 && !chosen.test(app.lastFrame() ?? ""); i++) await type(app, RIGHT);
+  if (!chosen.test(app.lastFrame() ?? "")) {
+    throw new Error(`the feed's row never offered "${label}":\n${JSON.stringify(app.lastFrame() ?? "").slice(0, 600)}`);
+  }
   await type(app, ENTER);
 }
 

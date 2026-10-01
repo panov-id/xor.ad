@@ -24,6 +24,15 @@
 //                    by time since the node keeps no seen position) — either
 //                    side's like, since both see the row. The header's own
 //                    starters are written with the chat and are not counted.
+//   phrases_refused  one's own phrases the moderator refused after `since`
+//                    (W12-MRn, owner's decision 2026-10-01): the refusal
+//                    deletes the row (feed_verdict.ts refusePhrase) and keeps
+//                    only a moment in identity_stats.rejected_at_recent, so
+//                    that is what is counted — moments, no text, no id. The
+//                    array holds an hour and at most six moments (KEEP_REFUSED):
+//                    a refusal older than an hour at the next visit gives no
+//                    signal; a tombstone instead of the DELETE is a decision
+//                    of its own (open.tsv).
 //
 // Where the socket is open the same events arrive as frames (§8.1); this is
 // the cold path only.
@@ -38,6 +47,7 @@ export type InboxEvents = {
   pending_messages: number;
   ending_soon: number;
   extra_likes: number;
+  phrases_refused: number;
 };
 
 // The share of one's own span that counts as "soon": the last fifth.
@@ -70,6 +80,7 @@ export const ENDING_SOON = `NOT (${TERM_PASSED}) AND COALESCE(p.last_own_message
 export async function inboxEvents(me: string, sessionId: string, since: number | null): Promise<InboxEvents | null> {
   const [row] = (await query<{
     new_matches: number; waiting_for_you: number; new_chats: number; pending_messages: number; ending_soon: number; extra_likes: number;
+    phrases_refused: number;
   }>(
     `WITH offers AS (
        SELECT m.created_at, theirs.accepted_at AS theirs_at, mine.accepted_at AS mine_at
@@ -89,7 +100,9 @@ export async function inboxEvents(me: string, sessionId: string, since: number |
             (SELECT count(*) FROM pending_deliveries d JOIN talks t ON t.id = d.chat WHERE d.recipient_session = $2)::int AS pending_messages,
             (SELECT count(*) FROM talks WHERE soon)::int AS ending_soon,
             (SELECT count(*) FROM chat_starters s JOIN talks t ON t.id = s.chat_id
-              WHERE s.created_at > t.created_at AND s.created_at > to_timestamp($3))::int AS extra_likes`,
+              WHERE s.created_at > t.created_at AND s.created_at > to_timestamp($3))::int AS extra_likes,
+            (SELECT count(*) FROM identity_stats st, unnest(st.rejected_at_recent) AS moment
+              WHERE st.identity = $1 AND moment > to_timestamp($3))::int AS phrases_refused`,
     [me, sessionId, since ?? 0],
   )) ?? [null];
   return row;

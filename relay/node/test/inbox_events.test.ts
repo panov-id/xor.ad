@@ -175,7 +175,7 @@ async function halfFor(who: Who, matchId: string) {
 }
 const consent = async (who: Who, matchId: string) => signed(who, "POST", `/matches/${matchId}/consent`, await halfFor(who, matchId));
 
-type Events = { new_matches: number; waiting_for_you: number; new_chats: number; pending_messages: number; ending_soon: number; extra_likes: number };
+type Events = { new_matches: number; waiting_for_you: number; new_chats: number; pending_messages: number; ending_soon: number; extra_likes: number; phrases_refused: number };
 type Page = { items: Array<Record<string, unknown>>; events: Events; since?: number };
 async function inbox(who: Who, since?: number): Promise<Page> {
   const answer = await signed(who, "GET", since === undefined ? "/inbox" : `/inbox?since=${since}`);
@@ -365,5 +365,45 @@ test("since that is not a moment is refused, and a stranger's inbox has no event
   }
   const empty = await inbox(me, 0);
   assertEquals(empty.items.length, 0);
-  assertEquals(empty.events, { new_matches: 0, waiting_for_you: 0, new_chats: 0, pending_messages: 0, ending_soon: 0, extra_likes: 0 });
+  assertEquals(empty.events, { new_matches: 0, waiting_for_you: 0, new_chats: 0, pending_messages: 0, ending_soon: 0, extra_likes: 0, phrases_refused: 0 });
+});
+
+// W12-MRn · a phrase the moderator refused is told to its author as a count:
+// the row is gone (feed_verdict.ts refusePhrase), the moment stays in
+// identity_stats.rejected_at_recent, and the inbox counts the moments after
+// ?since. Mine only; a visit after the refusal resets the badge.
+test("a refused phrase is counted for its author since the last visit, not for anybody else, and not twice", async () => {
+  const { refusePhrase } = await import("../src/lib/feed_verdict.ts");
+  const me = await author();
+  const other = await author();
+  const before = nowSeconds() - 1;
+  const waiting = async (who: Who, text: string) => {
+    const id = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius)
+       VALUES ($1, 'xor', $2, $3, 'alone', 'und', 60.17, 24.94, 1000)`,
+      [id, who.identity_id, text],
+    );
+    return id;
+  };
+  assertEquals((await inbox(me, before)).events.phrases_refused, 0, "a refusal was counted before any happened");
+
+  const mine = await waiting(me, "пишите в телегу");
+  assertEquals((await refusePhrase(mine)).applied, true, "the phrase was not refused");
+  assertEquals((await inbox(me, before)).events.phrases_refused, 1, "the author was not told of the refusal");
+  assertEquals((await inbox(other, before)).events.phrases_refused, 0, "a stranger was told of my refusal");
+
+  // A visit after the refusal: the moment is before `since`, nothing new.
+  await new Promise((r) => setTimeout(r, 1100));
+  const visited = nowSeconds();
+  assertEquals((await inbox(me, visited)).events.phrases_refused, 0, "a refusal already seen was counted again");
+  // And without ?since everything live counts, the refusal included.
+  assertEquals((await inbox(me)).events.phrases_refused, 1, "a first visit does not see the refusal");
+
+  // Two refusals, two moments; the row itself is gone either way.
+  const again = await waiting(me, "+7 921 123 45 67");
+  assertEquals((await refusePhrase(again)).applied, true);
+  assertEquals((await inbox(me, before)).events.phrases_refused, 2, "the second refusal was not counted");
+  const [row] = await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM feed_messages WHERE id = ANY($1)`, [[mine, again]]);
+  assertEquals(row.n, 0, "a refused phrase is still a row");
 });

@@ -10,6 +10,25 @@ import type { TableView } from "../core/tables.ts";
 
 const out = (line: string) => (process as unknown as { _rawDebug: (s: string) => void })._rawDebug(line);
 const settle = () => new Promise((done) => setTimeout(done, 50));
+// A fixed pause between keys is a bet on the machine: under starvation (0.3
+// of a core, three copies at once — W14-FT, open.tsv depth.screens.table.
+// rematch.flaky, depth.screens.say.flaky) the row was not drawn yet when the
+// next key came, and the case went red 3 of 12. These wait for the screen,
+// up to a ceiling, and fail with what the screen showed.
+async function waitFor(what: () => boolean, ms = 5000, note = "the screen did not get there"): Promise<void> {
+  const until = Date.now() + ms;
+  while (Date.now() < until) {
+    if (what()) return;
+    await new Promise((done) => setTimeout(done, 20));
+  }
+  if (!what()) throw new Error(note);
+}
+const shows = (app: { lastFrame: () => string | undefined }, re: RegExp) => () => re.test(app.lastFrame() ?? "");
+// One key, then the screen's answer to it — the regexp — before the next.
+async function pressUntil(app: { stdin: { write: (s: string) => void }; lastFrame: () => string | undefined }, key: string, re: RegExp): Promise<void> {
+  app.stdin.write(key);
+  await waitFor(shows(app, re), 5000, `after ${JSON.stringify(key)} the screen never showed ${re}: ${JSON.stringify(app.lastFrame() ?? "")}`);
+}
 const say = strings("ru");
 const NOW = 1_000_000_000;
 
@@ -135,9 +154,19 @@ const cases: Array<[string, () => Promise<void>]> = [
         propose: () => { calls.push("propose"); return Promise.resolve({ status: 201, body: {} }); },
       };
       const app = render(h(TableRoom, { say, tables: tables as never, open: () => Promise.resolve(room as never), tableId: "t", onLeave: () => {}, onError: () => {} }));
+      // The row is up once "пас" is drawn; then right twice onto the rematch —
+      // each key waited for by the bracket moving — and enter.
+      // The bracket means the row hears the arrows; one tick more for Ink to
+      // attach its input after that frame (the first key fell through otherwise).
+      await waitFor(shows(app, /\[ пас \]/), 5000, `the table's row never came up: ${JSON.stringify(app.lastFrame() ?? "")}`);
       await settle();
-      // The row: пас, сказать, партия… — right twice onto the rematch.
-      for (const k of ["\u001B[C", "\u001B[C", "\r"]) { app.stdin.write(k); await settle(); }
+      await pressUntil(app, "\u001B[C", /\[ сказать \]/);
+      await pressUntil(app, "\u001B[C", /\[ (?!сказать )/); // onto the rematch, whatever its label
+      app.stdin.write("\r");
+      // Another's: the answer goes out; one's own: nothing goes out, and
+      // nothing is waited for past the ceiling but the absence.
+      if (by === 2) await waitFor(() => calls.length > 0, 5000, "another's rematch was not answered within the ceiling");
+      else await new Promise((done) => setTimeout(done, 200));
       app.unmount();
     }
     assert.deepEqual(calls, ["answer p1 accept"], "another's rematch was not accepted, or one's own was answered");
@@ -231,11 +260,19 @@ const cases: Array<[string, () => Promise<void>]> = [
       say, tables: tables as never, open: () => Promise.resolve(room as never), tableId: "t", onLeave: () => {},
       onError: (m: string) => { throw new Error(m); },
     }));
+    // The row is up once "пас" is drawn; right once onto "сказать", enter
+    // opens the line, the text, down onto the row, enter sends it.
+    await waitFor(shows(app, /\[ пас \]/), 5000, `the table's row never came up: ${JSON.stringify(app.lastFrame() ?? "")}`);
     await settle();
-    // The row: пас (greyed), сказать — right once, enter.
-    for (const k of ["\u001B[C", "\r", "добрый вечер", "\u001B[B", "\r"]) { app.stdin.write(k); await settle(); }
+    await pressUntil(app, "\u001B[C", /\[ сказать \]/);
+    await pressUntil(app, "\r", /отправить/); // the line's form: its field and "отправить"
+    app.stdin.write("добрый вечер");
+    await waitFor(shows(app, /добрый вечер/), 5000, "the line typed did not reach the field");
+    await pressUntil(app, "\u001B[B", /\[ отправить \]/);
+    app.stdin.write("\r");
+    await waitFor(() => sent.length > 0, 5000, "the line was not sent within the ceiling");
     assert.deepEqual(sent, [{ kind: "line", text: "добрый вечер" }], "the line was not sent");
-    assert.match(app.lastFrame()!, /ещё партию/, "the table did not come back after the line was sent");
+    await waitFor(shows(app, /ещё партию/), 5000, "the table did not come back after the line was sent");
     app.unmount();
   }],
   ["a neighbour's escape codes in the table's name, a seat's name or a line do not reach the terminal", async () => {

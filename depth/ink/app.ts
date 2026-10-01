@@ -140,10 +140,13 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
   // clean. "Что-то пошло не так: no ephemeral pair…" from a conversation's
   // first opening stayed under the inbox and the feed until something else
   // went wrong (W12-RO, found on W11-MV).
-  useEffect(() => setError(undefined), [where.screen]);
   // B19 · a use of the paper code refused because the identity stepped away:
   // the screen that said so offers the way back itself (depth.away.return).
   const [away, setAway] = useState(false);
+  // …except "Вы отошли": it is not an error of one screen but a state of the
+  // identity, and the code's screen is reached with it still said (live test
+  // "away again before the trade is confirmed", red on a509d529).
+  useEffect(() => { if (!away) setError(undefined); }, [where.screen]);
   const refused = (o: Outcome) => {
     setError(outcomeLine(say, o));
     setAway(!o.ok && o.reason === "stepped_away");

@@ -34,8 +34,11 @@ test("the place's zone wins over the device's", () => {
 // A place with no usable longitude, or a zone Intl refuses, falls back to the
 // device's clock (the runner's UTC+14) instead of throwing (review panel 01.10.2026).
 test("no zone, a NaN longitude or a zone Intl refuses: the device's hour, no throw", () => {
-  const noon = new Date(Date.UTC(2026, 9, 1, 12, 0)); // 02:00 next day on the runner (UTC+14): night
-  const device = (() => { const h = noon.getHours(); return h >= 5 && h < 11 ? "morning" : h >= 11 && h < 17 ? "day" : h >= 17 && h < 21 ? "sunset" : "night"; })();
+  // 00:00 UTC is 14:00 on the runner (UTC+14): day. A lost fallback reads hour NaN, which is night —
+  // so the moment is chosen where the device's phase is NOT night, or the test could not tell (verifier 01.10.2026).
+  const noon = new Date(Date.UTC(2026, 9, 1, 0, 0));
+  assert.equal(noon.getHours(), 14, "the runner must sit on UTC+14 (scripts/run-web-unit-tests.sh)");
+  const device = "day";
   assert.equal(zoneOfLongitude(Number.NaN), undefined, "a NaN longitude gives no zone");
   assert.equal(zoneOfLongitude(Infinity), undefined, "an infinite longitude gives no zone");
   assert.doesNotThrow(() => phaseAt(noon, zoneOfLongitude(Number.NaN)), "a NaN longitude must not throw");

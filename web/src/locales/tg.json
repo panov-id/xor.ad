@@ -309,5 +309,6 @@
   "web.vault.pinLocked": "десять неверных ПИНов: вход закрыт до бумажного кода",
   "web.vault.pinWrong": "неверный ПИН",
   "web.chat.span_label": "your span",
-  "web.chat.blocked": "You blocked this person. The conversation is closed for both, the keys are wiped."
+  "web.chat.blocked": "You blocked this person. The conversation is closed for both, the keys are wiped.",
+  "web.feed.refused": "Your phrase did not pass moderation and was taken down."
 }

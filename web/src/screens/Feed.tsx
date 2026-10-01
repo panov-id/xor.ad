@@ -83,6 +83,21 @@ export function Feed(
 
   useEffect(() => { void load(); }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // What the moderator refused of one's own (W12-MRc, the owner's decision of
+  // 2026-10-01): GET /inbox?since counts the moments after the inbox's last
+  // look — an hour and at most six (relay lib/inbox_events.ts) — no id, no
+  // text, so the line names no phrase. Read once on entering the feed; one's
+  // own next phrase puts it out. The inbox out of reach is not the feed's error.
+  const [refused, setRefused] = useState(0);
+  useEffect(() => {
+    let live = true;
+    const since = Number(sessionStorage.getItem("xor-inbox-last-look") ?? "") || undefined;
+    client.inboxSince(since)
+      .then(({ events }) => { if (live) setRefused(events?.phrases_refused ?? 0); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // The header's live step (design.nearby.live; web/src/a11y/nearby.ts): read
   // with every radius, shown at once, but handed to the polite live region
   // only when it changed and not more often than ANNOUNCE_MS — a suppressed
@@ -134,6 +149,9 @@ export function Feed(
         <Button type="button" onClick={onLikes} data-testid="likes">{say("liked.title")}</Button>
         {onNewTable && <Button type="button" onClick={onNewTable} data-testid="new-table">{say("web.feed.newTable")}</Button>}
       </nav>
+      {refused > 0 && !sent && (
+        <p className="error" data-testid="refused" data-count={refused}>{say("web.feed.refused")}</p>
+      )}
       {sent && (
         <p className="warn" data-testid="sent" data-state={sent.state}>
           {sent.state === "published" ? say("web.feed.sent_out") : say("web.feed.sent_held")}

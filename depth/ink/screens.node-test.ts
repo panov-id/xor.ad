@@ -636,6 +636,49 @@ test("a table card in the feed shows its game and free seats, sits down on open,
   app.unmount();
 });
 
+// W12-MRc · the moderator refused a phrase of mine: GET /inbox counts the
+// moments (events.phrases_refused), the feed says so in red; nothing when the
+// count is zero, nothing while a phrase of my own stands (it puts the line
+// out), and an inbox out of reach is not the feed's error.
+test("a refused phrase of mine is said on the feed, and a new phrase of mine puts the line out", async () => {
+  const errors: string[] = [];
+  const feedWith = (refused: number | Error, mine?: { text: string; state: string }) =>
+    render(h(Feed, {
+      say,
+      client: {
+        feed: () => Promise.resolve({ items: [card("p1", "первая")] }),
+        inboxSince: () => refused instanceof Error ? Promise.reject(refused) : Promise.resolve({ items: [], events: { phrases_refused: refused }, truncated: false }),
+      // deno-lint-ignore no-explicit-any
+      } as any,
+      place: { lat: 55.75, lon: 37.62, radius: 1000 },
+      mine,
+      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {},
+      onError: (m: string) => errors.push(m),
+    }));
+  const said = feedWith(1);
+  await settle();
+  await settle();
+  assert.match(said.lastFrame()!, /не прошла модерацию/, "a refused phrase of mine is not said on the feed");
+  said.unmount();
+  const none = feedWith(0);
+  await settle();
+  await settle();
+  assert.doesNotMatch(none.lastFrame()!, /не прошла модерацию/, "the line stands with nothing refused");
+  none.unmount();
+  const writing = feedWith(1, { text: "новая", state: "pending" });
+  await settle();
+  await settle();
+  assert.doesNotMatch(writing.lastFrame()!, /не прошла модерацию/, "a phrase of my own did not put the line out");
+  assert.match(writing.lastFrame()!, /новая/);
+  writing.unmount();
+  const unreachable = feedWith(new Error("inbox refused: 503"));
+  await settle();
+  await settle();
+  assert.doesNotMatch(unreachable.lastFrame()!, /не прошла модерацию/);
+  assert.deepEqual(errors, [], "the inbox out of reach became the feed's error");
+  unreachable.unmount();
+});
+
 // W11-B · my own phrase comes down from the feed's row: DELETE by the id POST
 // /feed answered, then the holder of `mine` forgets it. Without the id the
 // action is not in the row at all; a 404 is said, not swallowed.

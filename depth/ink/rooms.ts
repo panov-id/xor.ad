@@ -477,8 +477,19 @@ export function Chat(
     let room: { next: (timeoutMs?: number) => Promise<{ type: string; data: unknown }>; close: () => void } | null = null;
     let live = true;
     (async () => {
-      const conversation = await client.openConversation(chatId, matchId);
-      setCode(conversation.safetyCode);
+      // A device the identity moved to or was raised on holds no pair for this
+      // conversation (§8.2: the old conversations keep quiet until the keys are
+      // reissued). The room is opened all the same: the other side's agreement
+      // comes through it as a `rekey` frame, and only then is the conversation
+      // opened — a device that gave up on the first refusal had to leave the
+      // screen and come back to hear anything (W12-RO, found on W11-MV).
+      let conversationOpen = false;
+      const openConversation = async () => {
+        const conversation = await client.openConversation(chatId, matchId);
+        setCode(conversation.safetyCode);
+        conversationOpen = true;
+      };
+      await openConversation().catch((e: Error) => onError(e.message));
       // A room is opened again after a close that is not the end (protocol
       // §4.4, core/reconnect.ts): the node's restart closes it with 1001. The
       // node hands what waits on every opening, and depth does not confirm
@@ -511,6 +522,7 @@ export function Chat(
           if (frame.type === "rekey") {
             const epoch = (frame.data as { epoch?: unknown } | null)?.epoch;
             await readRekey(typeof epoch === "number" ? epoch : undefined).catch((e: Error) => onError(e.message));
+            if (!conversationOpen) await openConversation().catch((e: Error) => onError(e.message));
             continue;
           }
           const extra = extraLikeOf(frame);

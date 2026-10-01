@@ -2311,3 +2311,62 @@ test("an offer card in the feed leads to the complaint by its id, a phrase does 
   assert.deepEqual(complained, ["o1"], "the offer card did not lead to its complaint");
   app.unmount();
 });
+
+// ── W12-RO · an error belongs to its screen; a conversation with no pair still hears the room ──
+test("an error said on one screen is gone on the next", async () => {
+  const client = {
+    identityId: "", held: null, longSpki: "", registered: false,
+    seat: () => {}, firstPin: () => Promise.resolve({ status: 204, body: null }),
+    request: () => Promise.reject(new Error("no ephemeral pair for this chat")),
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(App, { say, client: client as any, start: "moveIn" }));
+  await settle();
+  await type(app, ..."k7q-m3f-2x9".split(""), DOWN, ENTER);
+  await waitFor(shows(app, /Что-то пошло не так: no ephemeral pair/));
+  // "back" from the move's screen: the registration screen, with no error under it.
+  await type(app, RIGHT, ENTER);
+  await waitFor(shows(app, /Operator\./));
+  assert.doesNotMatch(app.lastFrame()!, /Что-то пошло не так/, "the error of the screen left is still drawn under the next one");
+  app.unmount();
+});
+
+test("a conversation with no pair yet opens its room, and the rekey frame opens the conversation", async () => {
+  let opens = 0;
+  let rooms = 0;
+  const said: string[] = [];
+  const frames = [{ type: "rekey", data: { epoch: 1 } }];
+  const client = {
+    openConversation: () => {
+      opens++;
+      return opens === 1
+        ? Promise.reject(new Error("no ephemeral pair for this chat: consent was not given from this client"))
+        : Promise.resolve({ safetyCode: "0000 0000 0000 0000 0000" });
+    },
+    openRoom: () => {
+      rooms++;
+      return Promise.resolve({
+        next: () => frames.length ? new Promise((r) => setTimeout(() => r(frames.shift()!), 150)) : new Promise(() => {}),
+        close: () => {},
+        closed: new Promise(() => {}),
+      });
+    },
+    rekeyRequested: () => Promise.resolve(false),
+    forget: () => {},
+  };
+  const app = render(h(Chat, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    chatId: "c-moved", name: "Аня", age: 34, limit: 256, span: 60, endsAt: Math.floor(Date.now() / 1000) + 3000,
+    onBack: () => {}, onError: (e: string) => said.push(e),
+  }));
+  await settle();
+  await settle();
+  assert.equal(said.length, 1, "the missing pair was not said once");
+  assert.equal(rooms, 1, "the room was not opened for a conversation with no pair");
+  await waitFor(shows(app, /Ключи беседы обновлены \(эпоха 1\)/), 3);
+  await waitFor(() => opens === 2, 3);
+  assert.equal(said.length, 1, "the second opening, after the rekey frame, failed or was said again");
+  app.unmount();
+});

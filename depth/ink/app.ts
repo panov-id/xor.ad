@@ -136,6 +136,11 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
   // with the escapes in it. So they are drawn as anything else from outside
   // is: through plain (review panel 2026-09-26, F3).
   const fail = (message: string) => setError(say("common.error", { message: plain(message, 300) }));
+  // An error belongs to the screen it was said on: the next screen starts
+  // clean. "Что-то пошло не так: no ephemeral pair…" from a conversation's
+  // first opening stayed under the inbox and the feed until something else
+  // went wrong (W12-RO, found on W11-MV).
+  useEffect(() => setError(undefined), [where.screen]);
   // B19 · a use of the paper code refused because the identity stepped away:
   // the screen that said so offers the way back itself (depth.away.return).
   const [away, setAway] = useState(false);

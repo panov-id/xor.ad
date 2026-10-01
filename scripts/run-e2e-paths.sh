@@ -47,6 +47,11 @@ PATHS=(
   "restore-pin|run-web-two-people.sh restore-pin|relay/node/src/routes/identity.ts|SET auth_hash = \$2, share_enc = \$3,|          SET share_enc = \$3, -- BROKEN by run-e2e-paths: the PIN change keeps the old PIN"
   "transfer|run-web-two-people.sh transfer|relay/node/src/routes/transfer.ts|[sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, unlockPub as string | null, label],|      [sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, null, label], // BROKEN by run-e2e-paths: the arriving session gets no unlock key"
   "unlock-chat|run-web-two-people.sh unlock-chat|relay/node/src/routes/chats.ts|await storeWrap(run, chatId, caller.sessionId, epoch, bytes);|    // BROKEN by run-e2e-paths: the node keeps no wrap of the keys"
+  "mixed-move|run-web-depth-mixed.sh mixed-move|relay/node/src/routes/chats.ts|await run(\`SELECT pg_notify('chat_rekey', \$1)\`, [\`\${chatId}:\${epoch}\`]);|// BROKEN by run-e2e-paths: no room hears of the request for new keys"
+  "mixed-restore|run-web-depth-mixed.sh mixed-restore|relay/node/src/routes/identity.ts|const wrapped = bytesToBase64url(identity.recovery_wrapped_key);|const wrapped = bytesToBase64url(new Uint8Array(0)); // BROKEN by run-e2e-paths: the restore hands out no key"
+  "mixed-chat-game|run-web-depth-mixed.sh mixed-chat-game|relay/node/src/routes/chat_games.ts|if (!step.again) s.turn = (s.turn + 1) % s.order.length;|// BROKEN by run-e2e-paths: the turn never passes to the other side"
+  "mixed-starters|run-web-depth-mixed.sh mixed-starters|relay/node/src/routes/likes.ts|await run(\`SELECT pg_notify('chat_extra_like', \$1)\`, [\`\${chatId}|\${liker}|\${JSON.stringify(added)}\`]);|// BROKEN by run-e2e-paths: no room hears of the extra like"
+  "mixed-chat-end|run-web-depth-mixed.sh mixed-chat-end|relay/node/src/routes/blocks.ts|await run(\`SELECT pg_notify('chat_closed', \$1)\`, [id]);|// BROKEN by run-e2e-paths: a block tells no room to close"
 )
 
 mode="${1:-}"
@@ -65,7 +70,7 @@ trap 'restore; rm -rf "$logs"' EXIT
 trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
 . "$here/lib/breaks.sh"
 breaks_undo_left "$pending"
-failed=0; total=0; spoiled=0; unproven=0
+failed=0; total=0; spoiled=0; unproven=0; reds=""
 
 for row in "${PATHS[@]}"; do
   IFS='|' read -r spec command file match instead <<<"$row"
@@ -78,7 +83,7 @@ for row in "${PATHS[@]}"; do
     if [ "$code" = 0 ]; then
       printf '  ✓ %-14s %s\n' "$spec" "$(grep -E '[0-9]+ passed' "$logs/$spec.log" | tail -1 | sed 's/^ *//')"
     else
-      failed=$((failed + 1))
+      failed=$((failed + 1)); reds="$reds $spec"
       printf '  ✗ %-14s (код %s)\n' "$spec" "$code"
       grep -E '✘|Error:|failed' "$logs/$spec.log" | head -6 | sed 's/^/      | /'
     fi
@@ -118,12 +123,12 @@ EOF
   # Caught only on a Playwright test that failed (W10-G1): a node that did not
   # start under a break is red too, and proves nothing.
   breaks_judge "$spec" "$code" "$logs/$spec.log" '[0-9]+ failed'
-  case $? in 0) ;; 2) failed=$((failed + 1)); unproven=$((unproven + 1)) ;; *) failed=$((failed + 1)) ;; esac
+  case $? in 0) ;; 2) failed=$((failed + 1)); unproven=$((unproven + 1)); reds="$reds $spec" ;; *) failed=$((failed + 1)); reds="$reds $spec" ;; esac
 done
 
 rm -rf "$logs"
 label=$([ "$mode" = "--breaks" ] && echo "поломок поймано" || echo "путей зелёных")
-echo "$label $((total - failed)) из $total"
+echo "$label $((total - failed)) из $total${reds:+ — красные:$reds}"
 [ "$spoiled" = 0 ] || echo "брак прогона: $spoiled — путь красный и без поломки, его поломка не проверена"
 [ "$unproven" = 0 ] || echo "BREAK BROKEN: $unproven — красный не от теста, поломка не проверена"
 [ "$total" != 0 ] || { echo "ни одного пути: E2E_PATHS_ONLY=${E2E_PATHS_ONLY:-} нет в PATHS"; exit 1; }

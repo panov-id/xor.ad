@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812">
+<defs><style>@font-face{font-family:"Russo One";src:url(/fonts/comic-russo-one.ttf)}@font-face{font-family:"Golos Text";font-weight:500;src:url(/fonts/comic-golos-500.ttf)}
+.h{font-family:"Russo One";letter-spacing:.04em}.b,.m{font-family:"Golos Text";font-weight:500}.mono{font-family:"DejaVu Sans Mono",monospace;font-weight:700}</style>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8893b"/><stop offset=".5" stop-color="#e9cf8a"/><stop offset="1" stop-color="#b8893b"/></linearGradient><pattern id="sh" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#141018"/><circle cx="3" cy="3" r="1.9" fill="#141018"/></pattern></defs>
+<rect width="375" height="812" fill="#0e1324"/>
+<g transform="translate(4.4 0) scale(0.9767)">
+<circle cx="108" cy="133" r="36.8" fill="#141018"/><circle cx="105" cy="130" r="36.8" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<circle cx="105" cy="130" r="33.3" fill="none" stroke="#7a5a22" stroke-width="1"/><circle cx="105" cy="130" r="30.8" fill="none" stroke="#fff2cc" stroke-width="1"/>
+<g transform="translate(85.56 110.56) scale(1.62)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#fffaf0"><path class="f" fill="#fffaf0" d="M3 11 L12 3 L21 11 V21 H3Z"/><path d="M10 21 V15 H14 V21"/></g>
+<circle cx="274" cy="134" r="42" fill="#141018"/><circle cx="270" cy="130" r="42" fill="#bd4b2a" stroke="#141018" stroke-width="2.5"/>
+<g transform="translate(250.56 110.56) scale(1.62)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#fffaf0"><path class="f" fill="#fffaf0" d="M3 8 H21 V11 H3Z"/><path d="M6 11 V19 M18 11 V19 M5 15 H19"/></g>
+<circle cx="109" cy="254" r="42" fill="#141018"/><circle cx="105" cy="250" r="42" fill="#bd4b2a" stroke="#141018" stroke-width="2.5"/>
+<g transform="translate(85.56 230.56) scale(1.62)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#fffaf0"><path class="f" fill="#fffaf0" d="M5 9 H17 L16 20 H6Z"/><path d="M17 11 H20 L17 16 M9 9 V6 H13 V9 M10 4 H12"/></g>
+<circle cx="273" cy="253" r="36.8" fill="#141018"/><circle cx="270" cy="250" r="36.8" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<circle cx="270" cy="250" r="33.3" fill="none" stroke="#7a5a22" stroke-width="1"/><circle cx="270" cy="250" r="30.8" fill="#bd4b2a" stroke="#fff2cc" stroke-width="1"/>
+<g transform="translate(250.56 230.56) scale(1.62)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#fffaf0"><rect class="f" fill="#fffaf0" x="8" y="2" width="8" height="20" rx="1.5"/><path d="M8 12 H16"/><circle cx="12" cy="7" r="1" fill="#141018"/><circle cx="10" cy="15" r="1" fill="#141018"/><circle cx="14" cy="19" r="1" fill="#141018"/></g>
+<circle cx="109" cy="374" r="42" fill="#141018"/><circle cx="105" cy="370" r="42" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<g transform="translate(85.56 350.56) scale(1.62)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#fffaf0"><path class="f" fill="#fffaf0" d="M7 21 H17 L16 17 C17 13 17 8 13 4 L11 3 L10 6 L6 9 L7 12 L10 11 L8 17Z"/></g>
+<circle cx="274" cy="374" r="42" fill="#141018"/><circle cx="270" cy="370" r="42" fill="#bd4b2a" stroke="#141018" stroke-width="2.5"/>
+<g transform="translate(250.56 350.56) scale(1.62)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#fffaf0"><circle class="f" fill="#fffaf0" cx="6" cy="16" r="4"/><circle class="f" fill="#fffaf0" cx="18" cy="16" r="4"/><path d="M6 16 L10 9 H16 L18 16 M10 9 L13 16 H6 M15 6 H18"/></g>
+<circle cx="108" cy="493" r="36.8" fill="#141018"/><circle cx="105" cy="490" r="36.8" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<circle cx="105" cy="490" r="33.3" fill="none" stroke="#7a5a22" stroke-width="1"/><circle cx="105" cy="490" r="30.8" fill="#bd4b2a" stroke="#fff2cc" stroke-width="1"/>
+<g transform="translate(85.56 470.56) scale(1.62)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#fffaf0"><path class="f" fill="#fffaf0" d="M4 20 V8 L7 4 L10 8 H14 L17 4 L20 8 V20Z"/><path d="M9 13 H10 M14 13 H15 M10 16 Q12 18 14 16"/></g>
+<circle cx="274" cy="494" r="42" fill="#141018"/><circle cx="270" cy="490" r="42" fill="#bd4b2a" stroke="#141018" stroke-width="2.5"/>
+<g transform="translate(250.56 470.56) scale(1.62)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#fffaf0"><path class="f" fill="#fffaf0" d="M12 3 C6 3 4 9 6 13 C8 16 16 16 18 13 C20 9 18 3 12 3Z"/><path d="M12 9 V21"/></g>
+<rect x="300" y="14" width="56" height="40" fill="#141018" transform="translate(4 4)"/><rect x="300" y="14" width="56" height="40" fill="#fffaf0" stroke="#141018" stroke-width="2.5"/>
+<text x="328" y="41" class="h" font-size="15.3" fill="#141018" text-anchor="middle" >RU</text>
+<text x="187" y="602" class="b" font-size="17" fill="#f3ead8" text-anchor="middle" >Что говорят соседи рядом.</text>
+<text x="187" y="628" class="b" font-size="17" fill="#f3ead8" text-anchor="middle" >Сказанное исчезает.</text>
+<rect x="20" y="656" width="343" height="52" fill="#141018"/>
+<rect x="16" y="652" width="343" height="52" fill="url(#gold)" stroke="#141018" stroke-width="2.5" />
+<g opacity="1">
+<g transform="translate(173.1 663.6) scale(1.2)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><path class="f" fill="url(#gold)" d="M8 5 L19 12 L8 19Z"/></g>
+</g>
+<rect x="20" y="722" width="165" height="48" fill="#141018"/>
+<rect x="16" y="718" width="165" height="48" fill="#e9dfc9" stroke="#141018" stroke-width="2.5" />
+<g opacity="1">
+<g transform="translate(84.1 727.6) scale(1.2)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><circle class="f" fill="url(#gold)" cx="8" cy="12" r="4"/><path d="M12 12 H21 M18 12 V15 M21 12 V14"/></g>
+</g>
+<rect x="197" y="722" width="165" height="48" fill="#141018"/>
+<rect x="193" y="718" width="165" height="48" fill="#e9dfc9" stroke="#141018" stroke-width="2.5" />
+<g opacity="1">
+<g transform="translate(261.1 727.6) scale(1.2)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><rect class="f" fill="url(#gold)" x="12" y="3" width="9" height="18" rx="2"/><path d="M2 12 H14 M10 8 L14 12 L10 16"/></g>
+</g>
+</g>
+</svg>

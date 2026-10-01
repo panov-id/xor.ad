@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812">
+<defs><style>@font-face{font-family:"Russo One";src:url(/fonts/comic-russo-one.ttf)}@font-face{font-family:"Golos Text";font-weight:500;src:url(/fonts/comic-golos-500.ttf)}
+.h{font-family:"Russo One";letter-spacing:.04em}.b,.m{font-family:"Golos Text";font-weight:500}.mono{font-family:"DejaVu Sans Mono",monospace;font-weight:700}</style>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8893b"/><stop offset=".5" stop-color="#e9cf8a"/><stop offset="1" stop-color="#b8893b"/></linearGradient><pattern id="sh" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#141018"/><circle cx="3" cy="3" r="1.9" fill="#141018"/></pattern></defs>
+<rect width="375" height="812" fill="#f6efe2"/>
+<g transform="translate(4.4 0) scale(0.9767)">
+<rect width="375" height="44" fill="#fffaf0"/><rect y="44" width="375" height="3" fill="#141018"/>
+<text x="14" y="27" class="mono" font-size="11" fill="#5a4e44" text-anchor="start" >web-adv:4173/offers</text>
+<g transform="translate(275.48 12.479999999999999) scale(0.96)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><path class="f" fill="url(#gold)" d="M3 9 L5 4 H19 L21 9Z"/><path class="f" fill="url(#gold)" d="M5 9 V20 H19 V9"/><path d="M10 20 V14 H14 V20"/></g>
+<circle cx="342" cy="27" r="17.6" fill="#141018"/><circle cx="339" cy="24" r="17.6" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<circle cx="339" cy="24" r="14.1" fill="none" stroke="#7a5a22" stroke-width="1"/><circle cx="339" cy="24" r="11.6" fill="none" stroke="#fff2cc" stroke-width="1"/>
+<g transform="translate(327.48 12.479999999999999) scale(0.96)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#ffffff"><path class="f" fill="#ffffff" d="M3 12 V4 H11 L21 14 L13 22Z"/><circle cx="7.5" cy="8" r="1.5"/></g>
+<text x="16" y="104" class="h" font-size="25.2" fill="#141018" text-anchor="start" >Мои офферы</text>
+<rect x="303" y="76" width="60" height="44" fill="#141018"/>
+<rect x="299" y="72" width="60" height="44" fill="url(#gold)" stroke="#141018" stroke-width="2.5" />
+<g opacity="1">
+<g transform="translate(314.6 79.6) scale(1.2)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><path d="M12 5 V19 M5 12 H19"/></g>
+</g>
+<polygon points="20,134 345,134 363,152 363,370 20,370" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,130 341,130 359,148 359,366 16,366" fill="#fffaf0" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,134 343,134 355,146 355,362 20,362" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<text x="32" y="160" class="b" font-size="15" fill="#141018" text-anchor="start" >в ленте</text>
+<circle cx="83" cy="197" r="32.0" fill="#141018"/><circle cx="80" cy="194" r="32.0" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<circle cx="80" cy="194" r="28.5" fill="none" stroke="#7a5a22" stroke-width="1"/><circle cx="80" cy="194" r="26.0" fill="none" stroke="#fff2cc" stroke-width="1"/>
+<text x="80" y="201" class="h" font-size="15.3" fill="#141018" text-anchor="middle" >−20 %</text>
+<text x="124" y="202" class="b" font-size="15" fill="#141018" text-anchor="start" >Второй круассан за полцены</text>
+<text x="32" y="252" class="m" font-size="14" fill="#5a4e44" text-anchor="start" >скидка до 8 октября, 17:08</text>
+<text x="32" y="278" class="m" font-size="14" fill="#5a4e44" text-anchor="start" >переходов по ссылке 0</text>
+<text x="32" y="306" class="m" font-size="14" fill="#5a4e44" text-anchor="start" >Ссылка:</text>
+<text x="32" y="328" class="m" font-size="14" fill="#5a4e44" text-anchor="start" >sosed.place/o/d815457d7ede06a4</text>
+</g>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812">
+<defs><style>@font-face{font-family:"Russo One";src:url(/fonts/comic-russo-one.ttf)}@font-face{font-family:"Golos Text";font-weight:500;src:url(/fonts/comic-golos-500.ttf)}
+.h{font-family:"Russo One";letter-spacing:.04em}.b,.m{font-family:"Golos Text";font-weight:500}.mono{font-family:"DejaVu Sans Mono",monospace;font-weight:700}</style>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8893b"/><stop offset=".5" stop-color="#e9cf8a"/><stop offset="1" stop-color="#b8893b"/></linearGradient><pattern id="sh" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#141018"/><circle cx="3" cy="3" r="1.9" fill="#141018"/></pattern></defs>
+<rect width="375" height="812" fill="#f6efe2"/>
+<g transform="translate(4.4 0) scale(0.9767)">
+<polygon points="12,16 363,12 367,60 8,64" fill="url(#gold)" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="24" y="46" class="h" font-size="19.8" fill="#141018" text-anchor="start" >Смена ПИНа</text>
+<text x="16" y="94" class="m" font-size="13" fill="#5a4e44" text-anchor="start" >текущий</text>
+<rect x="16" y="102" width="343" height="44" fill="#fffaf0" stroke="#141018" stroke-width="2.5"/>
+<text x="16" y="174" class="m" font-size="13" fill="#5a4e44" text-anchor="start" >новый</text>
+<rect x="16" y="182" width="343" height="44" fill="#fffaf0" stroke="#141018" stroke-width="2.5"/>
+<text x="16" y="254" class="m" font-size="13" fill="#5a4e44" text-anchor="start" >новый ещё раз</text>
+<rect x="16" y="262" width="343" height="44" fill="#fffaf0" stroke="#141018" stroke-width="2.5"/>
+<rect x="16" y="324" width="343" height="52" fill="#ece3d2" stroke="#5a4e44" stroke-width="2.5" stroke-dasharray="6 4"/>
+<g opacity="0.45">
+<g transform="translate(173.1 335.6) scale(1.2)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#ffffff"><path d="M4 12 L10 18 L20 6"/></g>
+</g>
+<rect x="20" y="394" width="343" height="52" fill="#141018"/>
+<rect x="16" y="390" width="343" height="52" fill="#fffaf0" stroke="#141018" stroke-width="2.5" />
+<g opacity="1">
+<g transform="translate(173.1 401.6) scale(1.2)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><path d="M15 5 L8 12 L15 19"/></g>
+</g>
+</g>
+</svg>

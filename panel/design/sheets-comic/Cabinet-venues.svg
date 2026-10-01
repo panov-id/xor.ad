@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812">
+<defs><style>@font-face{font-family:"Russo One";src:url(/fonts/comic-russo-one.ttf)}@font-face{font-family:"Golos Text";font-weight:500;src:url(/fonts/comic-golos-500.ttf)}
+.h{font-family:"Russo One";letter-spacing:.04em}.b,.m{font-family:"Golos Text";font-weight:500}.mono{font-family:"DejaVu Sans Mono",monospace;font-weight:700}</style>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8893b"/><stop offset=".5" stop-color="#e9cf8a"/><stop offset="1" stop-color="#b8893b"/></linearGradient><pattern id="sh" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#141018"/><circle cx="3" cy="3" r="1.9" fill="#141018"/></pattern></defs>
+<rect width="375" height="812" fill="#f6efe2"/>
+<g transform="translate(4.4 0) scale(0.9767)">
+<rect width="375" height="44" fill="#fffaf0"/><rect y="44" width="375" height="3" fill="#141018"/>
+<text x="14" y="27" class="mono" font-size="11" fill="#5a4e44" text-anchor="start" >web-adv:4173/venues</text>
+<circle cx="290" cy="27" r="17.6" fill="#141018"/><circle cx="287" cy="24" r="17.6" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<circle cx="287" cy="24" r="14.1" fill="none" stroke="#7a5a22" stroke-width="1"/><circle cx="287" cy="24" r="11.6" fill="none" stroke="#fff2cc" stroke-width="1"/>
+<g transform="translate(275.48 12.479999999999999) scale(0.96)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#ffffff"><path class="f" fill="#ffffff" d="M3 9 L5 4 H19 L21 9Z"/><path class="f" fill="#ffffff" d="M5 9 V20 H19 V9"/><path d="M10 20 V14 H14 V20"/></g>
+<g transform="translate(327.48 12.479999999999999) scale(0.96)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><path class="f" fill="url(#gold)" d="M3 12 V4 H11 L21 14 L13 22Z"/><circle cx="7.5" cy="8" r="1.5"/></g>
+<text x="16" y="104" class="h" font-size="25.2" fill="#141018" text-anchor="start" >Верификация</text>
+<polygon points="20,124 345,124 363,142 363,374 20,374" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,120 341,120 359,138 359,370 16,370" fill="#fffaf0" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,124 343,124 355,136 355,366 20,366" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<text x="32" y="148" class="h" font-size="14.4" fill="#141018" text-anchor="start" >Пекарня «Колос» mupseceg</text>
+<text x="32" y="174" class="m" font-size="14" fill="#5a4e44" text-anchor="start" >Макариу 12, Лимасол</text>
+<text x="32" y="202" class="b" font-size="16" fill="#a3311f" text-anchor="start" >не подтверждена</text>
+<text x="32" y="228" class="m" font-size="14" fill="#5a4e44" text-anchor="start" >точка: 34.6786, 33.0413 · 1000 м</text>
+<rect x="36" y="252" width="146" height="48" fill="#141018"/>
+<rect x="32" y="248" width="146" height="48" fill="#fffaf0" stroke="#141018" stroke-width="2.5" />
+<g opacity="1">
+<g transform="translate(90.6 257.6) scale(1.2)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><path class="f" fill="url(#gold)" d="M12 22 C7 15 5 12 5 9 A7 7 0 0 1 19 9 C19 12 17 15 12 22Z"/><circle cx="12" cy="9" r="2.5"/></g>
+</g>
+<rect x="194" y="252" width="146" height="48" fill="#141018"/>
+<rect x="190" y="248" width="146" height="48" fill="#fffaf0" stroke="#141018" stroke-width="2.5" />
+<g opacity="1">
+<g transform="translate(248.6 257.6) scale(1.2)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><rect class="f" fill="url(#gold)" x="3" y="6" width="18" height="13" rx="1"/><path d="M3 7 L12 13 L21 7"/></g>
+</g>
+<rect x="20" y="390" width="40" height="40" fill="#141018"/><rect x="16" y="386" width="40" height="40" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<g transform="translate(23.76 393.76) scale(1.02)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#ffffff"><circle class="f" fill="#ffffff" cx="12" cy="12" r="9"/><path d="M12 11 V17"/><circle cx="12" cy="7.5" r="1.3" fill="#141018"/></g>
+<text x="16" y="450" class="m" font-size="13" fill="#5a4e44" text-anchor="start" >название</text>
+<rect x="16" y="458" width="343" height="40" fill="#fffaf0" stroke="#141018" stroke-width="2.5"/>
+<text x="16" y="526" class="m" font-size="13" fill="#5a4e44" text-anchor="start" >адрес</text>
+<rect x="16" y="534" width="343" height="40" fill="#fffaf0" stroke="#141018" stroke-width="2.5"/>
+<text x="16" y="596" class="h" font-size="12.6" fill="#141018" text-anchor="start" >точка на карте</text>
+<text x="16" y="618" class="m" font-size="13" fill="#5a4e44" text-anchor="start" >широта</text>
+<rect x="16" y="626" width="343" height="40" fill="#fffaf0" stroke="#141018" stroke-width="2.5"/>
+<text x="16" y="694" class="m" font-size="13" fill="#5a4e44" text-anchor="start" >долгота</text>
+<rect x="16" y="702" width="343" height="40" fill="#fffaf0" stroke="#141018" stroke-width="2.5"/>
+</g>
+</svg>

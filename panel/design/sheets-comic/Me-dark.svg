@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812">
+<defs><style>@font-face{font-family:"Russo One";src:url(/fonts/comic-russo-one.ttf)}@font-face{font-family:"Golos Text";font-weight:500;src:url(/fonts/comic-golos-500.ttf)}
+.h{font-family:"Russo One";letter-spacing:.04em}.b,.m{font-family:"Golos Text";font-weight:500}.mono{font-family:"DejaVu Sans Mono",monospace;font-weight:700}</style>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8893b"/><stop offset=".5" stop-color="#e9cf8a"/><stop offset="1" stop-color="#b8893b"/></linearGradient><pattern id="sh" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#141018"/><circle cx="3" cy="3" r="1.9" fill="#141018"/></pattern></defs>
+<rect width="375" height="812" fill="#0e1324"/>
+<g transform="translate(4.4 0) scale(0.9767)">
+<polygon points="12,16 311,12 315,60 8,64" fill="url(#gold)" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="24" y="46" class="h" font-size="19.8" fill="#141018" text-anchor="start" >я</text>
+<rect x="325" y="20" width="44" height="44" fill="#141018"/>
+<rect x="321" y="16" width="44" height="44" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<g transform="translate(330.04 25.04) scale(1.08)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#ffffff"><path d="M15 5 L8 12 L15 19"/></g>
+<polygon points="20,86 363,86 363,86 363,142 20,142" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,82 359,82 359,82 359,138 16,138" fill="#18203a" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,86 355,86 355,86 355,134 20,134" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<g transform="translate(31.76 97.76) scale(1.02)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><circle class="f" fill="url(#gold)" cx="12" cy="8" r="4"/><path class="f" fill="url(#gold)" d="M4 21 C4 15 20 15 20 21Z"/></g>
+<text x="72" y="116" class="b" font-size="15" fill="#f3ead8" text-anchor="start" >имя Аня</text>
+<path d="M336 102 L344 110 L336 118" fill="none" stroke="#f3ead8" stroke-width="2.5"/>
+<polygon points="20,158 363,158 363,158 363,214 20,214" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,154 359,154 359,154 359,210 16,210" fill="#18203a" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,158 355,158 355,158 355,206 20,206" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<g transform="translate(31.76 169.76) scale(1.02)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><circle class="f" fill="url(#gold)" cx="12" cy="8" r="4"/><path class="f" fill="url(#gold)" d="M4 21 C4 15 20 15 20 21Z"/></g>
+<text x="72" y="188" class="b" font-size="15" fill="#f3ead8" text-anchor="start" >возраст 28</text>
+<path d="M336 174 L344 182 L336 190" fill="none" stroke="#f3ead8" stroke-width="2.5"/>
+<polygon points="20,230 363,230 363,230 363,286 20,286" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,226 359,226 359,226 359,282 16,282" fill="#18203a" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,230 355,230 355,230 355,278 20,278" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<g transform="translate(31.76 241.76) scale(1.02)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><path class="f" fill="url(#gold)" d="M2 12 C5 6 19 6 22 12 C19 18 5 18 2 12Z"/><circle cx="12" cy="12" r="3"/><path d="M4 20 L20 4"/></g>
+<text x="72" y="260" class="b" font-size="15" fill="#f3ead8" text-anchor="start" >скрытое · 0</text>
+<path d="M336 246 L344 254 L336 262" fill="none" stroke="#f3ead8" stroke-width="2.5"/>
+<polygon points="20,302 363,302 363,302 363,358 20,358" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,298 359,298 359,298 359,354 16,354" fill="#18203a" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,302 355,302 355,302 355,350 20,350" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<g transform="translate(31.76 313.76) scale(1.02)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><circle class="f" fill="url(#gold)" cx="12" cy="13" r="8"/><path d="M12 9 V13 L15 15 M9 2 H15"/></g>
+<text x="72" y="332" class="b" font-size="15" fill="#f3ead8" text-anchor="start" >отойти</text>
+<path d="M336 318 L344 326 L336 334" fill="none" stroke="#f3ead8" stroke-width="2.5"/>
+<polygon points="20,374 363,374 363,374 363,430 20,430" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,370 359,370 359,370 359,426 16,426" fill="#18203a" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,374 355,374 355,374 355,422 20,422" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<g transform="translate(31.76 385.76) scale(1.02)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><circle class="f" fill="url(#gold)" cx="8" cy="12" r="4"/><path d="M12 12 H21 M18 12 V15 M21 12 V14"/></g>
+<text x="72" y="404" class="b" font-size="15" fill="#f3ead8" text-anchor="start" >сменить ПИН</text>
+<path d="M336 390 L344 398 L336 406" fill="none" stroke="#f3ead8" stroke-width="2.5"/>
+<polygon points="20,446 363,446 363,446 363,502 20,502" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,442 359,442 359,442 359,498 16,498" fill="#18203a" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,446 355,446 355,446 355,494 20,494" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<g transform="translate(31.76 457.76) scale(1.02)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><rect class="f" fill="url(#gold)" x="12" y="3" width="9" height="18" rx="2"/><path d="M2 12 H14 M10 8 L14 12 L10 16"/></g>
+<text x="72" y="476" class="b" font-size="15" fill="#f3ead8" text-anchor="start" >перенести на другое устройство</text>
+<path d="M336 462 L344 470 L336 478" fill="none" stroke="#f3ead8" stroke-width="2.5"/>
+<polygon points="20,518 363,518 363,518 363,574 20,574" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,514 359,514 359,514 359,570 16,570" fill="#18203a" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,518 355,518 355,518 355,566 20,566" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<g transform="translate(31.76 529.76) scale(1.02)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><rect class="f" fill="url(#gold)" x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10 V14 M10 10 V14 M13 10 V14 M16 10 V14"/></g>
+<text x="72" y="548" class="b" font-size="15" fill="#f3ead8" text-anchor="start" >новый бумажный код</text>
+<path d="M336 534 L344 542 L336 550" fill="none" stroke="#f3ead8" stroke-width="2.5"/>
+<polygon points="20,590 363,590 363,590 363,646 20,646" fill="#141018" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="16,586 359,586 359,586 359,642 16,642" fill="#18203a" stroke="#141018" stroke-width="2.5" stroke-linejoin="round"/>
+<polygon points="20,590 355,590 355,590 355,638 20,638" fill="none" stroke="url(#gold)" stroke-width="1"/>
+<g transform="translate(31.76 601.76) scale(1.02)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="--f:#d9b766"><path class="f" fill="url(#gold)" d="M5 7 H19 L18 21 H6Z"/><path d="M3 7 H21 M9 7 V4 H15 V7 M10 11 V17 M14 11 V17"/></g>
+<text x="72" y="620" class="b" font-size="15" fill="#f3ead8" text-anchor="start" >начать заново</text>
+<path d="M336 606 L344 614 L336 622" fill="none" stroke="#f3ead8" stroke-width="2.5"/>
+</g>
+<rect x="0" y="740" width="375" height="72" fill="#070a14"/>
+<g transform="translate(48.8 760.8) scale(1.1)" fill="none" stroke="#fffaf0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6 H20 M4 12 H20 M4 18 H20"/></g>
+<g transform="translate(173.8 760.8) scale(1.1)" fill="none" stroke="#fffaf0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="x" d="M4 5 H20 V16 H10 L5 20 V16 H4Z"/></g>
+<circle cx="315" cy="777" r="24.0" fill="#141018"/><circle cx="312" cy="774" r="24.0" fill="url(#gold)" stroke="#141018" stroke-width="2.5"/>
+<circle cx="312" cy="774" r="20.5" fill="none" stroke="#7a5a22" stroke-width="1"/><circle cx="312" cy="774" r="18.0" fill="none" stroke="#fff2cc" stroke-width="1"/>
+<g transform="translate(298.8 760.8) scale(1.1)" fill="none" stroke="#141018" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle class="x" cx="12" cy="8" r="4"/><path class="x" d="M4 21 C4 15 20 15 20 21Z"/></g>
+</svg>

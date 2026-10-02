@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import type { Client, Radius } from "../../../../depth/core/client.ts";
 import { ANNOUNCE_MS, announce, isStep, type Step } from "../../a11y/nearby.ts";
 import { takeDownPhrase } from "../../api/actions.ts";
-import { usePhase } from "../../ui/usePhase.ts";
 import type { FeedCard } from "../Feed.tsx";
 
 export function useFeed(
@@ -19,7 +18,6 @@ export function useFeed(
     onTakenDown?: () => void;
   },
 ) {
-  const phase = usePhase(at.lon);
   const [items, setItems] = useState<FeedCard[]>([]);
   const [next, setNext] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
@@ -98,7 +96,7 @@ export function useFeed(
     return () => { if (retry.current) clearTimeout(retry.current); };
   }, [step]);
 
-  return { phase, items, next, state, error, takingDown, takedownRefused, takeDown, load, refused, said };
+  return { items, next, state, error, takingDown, takedownRefused, takeDown, load, refused, said };
 }
 
 export type FeedLogic = ReturnType<typeof useFeed>;

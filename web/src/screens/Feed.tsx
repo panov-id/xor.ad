@@ -73,14 +73,13 @@ export function Feed(
     gone?: { why: "hidden" | "blocked"; id: string } | null;
   },
 ) {
-  const { phase, items, next, state, error, takingDown, takedownRefused, takeDown, load, refused, said } =
+  const { items, next, state, error, takingDown, takedownRefused, takeDown, load, refused, said } =
     useFeed({ client, at, radius, sent, onTakenDown });
   return (
     <main className={["screen feed", brandClass].filter(Boolean).join(" ")} data-screen="feed" data-sealed={sealed}>
       {/* What the reader hears: the announced step, not every flicker of it. */}
       <HeaderFeed
         place={say("web.feed.title")}
-        phase={brandClass ? undefined : phase}
         step={said ? nearby(said) : ""}
         stepProps={{ role: "status", "data-testid": "nearby", "data-step": said ?? undefined }}
         action={

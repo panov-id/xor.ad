@@ -1,8 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import { BRAND } from "../config.ts";
 import { Icon } from "./Icon.tsx";
-import type { Phase } from "./phase.ts";
-import { Scene, titleInk } from "./Scene.tsx";
 
 // What a screen hangs on the live step: a role, a testid, the step's own value
 // for the specs (the feed's data-step, WD8).
@@ -15,12 +12,10 @@ type StepProps = HTMLAttributes<HTMLSpanElement> & { [data: `data-${string}`]: s
 // is known, so the first word is announced too. The dot stands only with a
 // step. HeaderScreen: back, title, an optional word action in accent-text, a
 // hairline under.
-// Comic (2026-10-01): with a `phase` the feed's header stands on the scene of
-// that time of day at the feed's place (phase.ts), the title on a plate.
-export function HeaderFeed({ place, step, action, stepProps, phase }: { place: string; step: string; action?: ReactNode; stepProps?: StepProps; phase?: Phase }) {
+// The time of day is the theme's night pair (theme.ts), not a sky drawn here.
+export function HeaderFeed({ place, step, action, stepProps }: { place: string; step: string; action?: ReactNode; stepProps?: StepProps }) {
   return (
-    <header className={phase ? "ui-header ui-header-scene" : "ui-header"} data-phase={phase} style={phase ? { color: titleInk(phase) } : undefined}>
-      {phase ? <Scene brand={BRAND} phase={phase} /> : null}
+    <header className="ui-header">
       <h1 className="ui-header-title">
         {place}{step ? <span aria-hidden="true"> · </span> : null}<span aria-live="polite" {...stepProps}>{step}</span>
       </h1>

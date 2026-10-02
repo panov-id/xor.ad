@@ -1,9 +1,16 @@
-/* Colours and faces come only from the kit: panel/design/kit/tokens.css and
-   schemes.css, imported in main.tsx; the page wears k-dark or k-light plus
-   k-acc-terra on <html>. Nothing here names a colour of its own
-   (scripts/check-web-tokens.sh). */
-:root { color-scheme: dark; }
-:root.k-light { color-scheme: light; }
+/* Colours come only from the brand's theme (themes.gen.css, per
+   [data-brand][data-theme] on <html>); the kit (panel/design/kit/tokens.css)
+   gives the geometry. The shared screens still say the kit's colour words —
+   --panel, --muted, --border, --err, --accent-ink… — so they are named here as
+   theme tokens: one source for --bg/--fg/… (step 8, 02.10.2026). Nothing here
+   names a colour of its own (scripts/check-web-tokens.sh). */
+[data-brand] {
+  --panel: var(--surface); --panel-2: var(--surface-2);
+  --muted: var(--fg-muted); --muted-2: var(--fg-muted); --on-fg-muted: var(--fg-muted);
+  --border: var(--surface-2); --border-control: var(--fg-muted);
+  --err: var(--danger); --accent-ink: var(--accent-fg); --ok: var(--fg); --scrim: var(--shadow);
+  --cat-amber: var(--accent-text); --cat-teal: var(--accent-text); --cat-violet: var(--accent-text);
+}
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.4 "Golos Text", system-ui, sans-serif; }
 .screen { max-width: 375px; min-height: 100vh; margin: 0 auto; padding: var(--s-6) var(--s-4); display: flex; flex-direction: column; gap: var(--s-4); }
@@ -98,4 +105,45 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .ui-inbox-time { font-family: "JetBrains Mono", ui-monospace, monospace; color: var(--muted); }
 .ui-inbox-wait { font-size: 14px; color: var(--accent-text); }
 .ui-dot { position: absolute; top: 18px; right: var(--s-3); width: 8px; height: 8px; border-radius: var(--r-round); background: var(--accent); }
-/* The comic (2026-10-01) lives in comic.css, loaded after this file (main.tsx). */
+/* Icon-only buttons and their glyphs: no words, the name is the aria-label;
+   the thin 1.5 stroke of the mockups (web/design/gen/dir-*), flat. */
+.ui-icon-only { width: var(--control-h); min-width: var(--control-h); padding: 0; display: inline-grid; place-items: center; }
+.ui-icon-only.ui-wide { width: 100%; min-height: 52px; }
+.ui-icon-only.ui-mid { width: 64px; min-height: 48px; }
+.ui-icon-only.ui-wide-half { width: calc(50% - 6px); min-height: 48px; }
+.ui-icon-only.ui-send-wide { width: 128px; min-height: 52px; }
+.ui-glyph { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.ui-glyph .f { fill: var(--icon-fill, transparent); }
+.ui-glyph .dot { fill: currentColor; stroke: none; }
+.ui-icon svg, .tabbar .tab svg { stroke-width: 1.5; }
+.ui-icon-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.ui-icon-row > .ui-icon-only:not(.ui-mid):not(.ui-wide) { width: 64px; min-height: 48px; }
+.ui-primary { box-shadow: none; }
+.ui-header-rule .ui-header-title:empty { visibility: hidden; }
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible, [role="button"]:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.tabbed .screen { padding-bottom: 96px; }
+
+/* The like's count with its heart (Card.tsx LikeBurst): pops once when it turns on. */
+.ui-burst { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-width: 52px; height: 52px; padding: 0 var(--s-2);
+  border-radius: var(--r-round); border: 1.5px solid var(--line); background: var(--surface-2); color: var(--fg); vertical-align: middle; }
+.ui-burst-on { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.ui-burst-heart { font-size: 17px; line-height: 1; }
+.ui-burst-n { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ui-burst-pop { animation: ui-burst-boom 220ms cubic-bezier(.2, .9, .3, 1.3) both; }
+@keyframes ui-burst-boom { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .ui-burst-pop { animation: none; } }
+.card-likes { display: flex; align-items: center; gap: var(--s-2); }
+
+/* Info: the button and its balloon (ui/Info.tsx). */
+.ui-info { position: relative; display: inline-block; }
+.ui-info-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.ui-balloon {
+  position: absolute; z-index: 20; top: calc(100% + 12px); left: 0; width: min(343px, calc(100vw - 32px));
+  padding: var(--s-4); background: var(--surface); color: var(--fg); border: 1.5px solid var(--line); border-radius: 18px;
+  display: flex; flex-direction: column; gap: var(--s-2); font-size: 15px; line-height: 1.4;
+}
+.ui-balloon-warn { color: var(--danger); }
+.ui-info:nth-child(n+2) .ui-balloon { left: -56px; }
+.ui-balloon:focus { outline: none; }
+.ui-balloon p { margin: 0; }
+.ui-header .ui-info .ui-balloon { left: auto; right: 0; }

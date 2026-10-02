@@ -105,66 +105,8 @@ full(".k-rasta-light", "rasta·light", {"bg": "#f3ecd2", "panel": "#fffaea", "pa
      "ok": "#1f6b35", "err": "#a3211a", "scrim": "#000000", "shadow": "#1f6b35", "on-fg-muted": "#b8ad84"},
      {"cat-amber": "#8a6400", "cat-teal": "#1f6b35", "cat-violet": "#a3211a"})
 
-# 4 · comic, the luxury cut (owner 2026-10-01; numbers from the mock's generator comic.py, web/design/
-# comic-2026-10-01.svg and the 35 screen mocks): no stars, no halftone, gold foil, a calm night without neon.
-# Four frames: sosed day and night, neighbro day and night. ONE BLOCK: every style number of the comic is here.
-# Besides the kit's names each frame carries --ink (outlines and the hard shadow), --paper, --pop (the gold plate,
-# mid gold), --sel/--sel-ink (a chosen chip or tab), --off (a button not yet live), --secondary (a secondary
-# button's face), --warn (a warning info button and words), --rim (a panel's edge), --tab-bg (the tab bar);
-# the feed header's scenes --sky-*/--sc-* (web/src/ui/Scene.tsx); and the geometry: --comic-line (outline),
-# --comic-cut (cut corner), --comic-drop-x/-y (hard shadow), --comic-tilt (lean), --comic-scene-h (feed header),
-# --comic-gutter (screen side), --comic-gap (between blocks), --comic-inset (the inner gold line's inset),
-# --gold-1/--gold-2 (the foil gold-1 → gold-2 → gold-1 of the primary button, the plate and the medallion).
-INK, PAPER, SKY, TERRA, GOLD_MID, GOLD_0, GOLD_1, SEA = "#141018", "#fffaf0", "#f6efe2", "#bd4b2a", "#d9b766", "#b8893b", "#e9cf8a", "#0f6f86"
-NBG, NPN, NFG, NMU = "#0e1324", "#18203a", "#f3ead8", "#b9b2a2"
-COMIC_SCENES = {"sky-s-morning-0": "#f3e2d4", "sky-s-morning-1": "#e9eef3", "sky-s-day-0": "#cfe3ee", "sky-s-day-1": "#f6efe2",
-    "sky-s-sunset-0": "#a33e1f", "sky-s-sunset-1": "#d9a066", "sky-s-night-0": NBG, "sky-s-night-1": NPN,
-    "sky-n-morning-0": "#f3dcd4", "sky-n-morning-1": "#f3ead8", "sky-n-day-0": "#bfe3ea", "sky-n-day-1": "#f3efe6",
-    "sky-n-sunset-0": "#2a1e46", "sky-n-sunset-1": "#c46a4a", "sky-n-night-0": NBG, "sky-n-night-1": NPN,
-    "sky-title-dark": INK, "sky-title-light": PAPER,
-    "sc-ink": INK, "sc-paper": PAPER, "sc-white": "#ffffff", "sc-yellow": GOLD_MID, "sc-gold": GOLD_MID, "sc-stripe": "#c46a4a",
-    "sc-sea": SEA, "sc-night-sea": NBG, "sc-dusk": NPN,
-    "sc-bldg-morning": "#8a93a6", "sc-bldg-day": "#e6d6bc", "sc-bldg-night": INK, "sc-win-morning": "#a3abbb",
-    "sc-win-day": "#b8cfe0", "sc-sun-morning": "#eadcc0", "sc-sea-morning": "#cfe3e6", "sc-peach": SKY}
-COMIC_GEOMETRY = {"comic-line": "2.5px", "comic-cut": "16px", "comic-drop-x": "4px", "comic-drop-y": "4px", "comic-tilt": "0deg",
-    "comic-scene-h": "200px", "comic-header-h": "76px", "comic-gutter": "16px", "comic-gap": "20px", "comic-inset": "4px",
-    "gold-1": GOLD_0, "gold-2": GOLD_1, "gold-mid": GOLD_MID}
-for b in ("s", "n"):
-    for ph in ("morning", "day", "sunset", "night"):
-        t = COMIC_SCENES["sky-title-dark" if ph in ("morning", "day") else "sky-title-light"]
-        check(f"comic-scene·{b}·{ph}", [("заголовок на небе", t, COMIC_SCENES[f"sky-{b}-{ph}-0"], 4.5)])
-css.append(block(".k-comic, .k-comic-night, .k-comic-neighbro, .k-comic-neighbro-night", {**COMIC_SCENES, **COMIC_GEOMETRY}))
-def comic(sel, scheme, t):
-    t = dict(t)
-    t["accent-text"] = reach(reach(t["accent"], t["panel"], 4.5), t["bg"], 4.5)
-    t["muted-2"] = t["muted"]
-    css.append(block(sel, t))
-    check(scheme, [("fg на panel", t["fg"], t["panel"], 4.5), ("fg на bg", t["fg"], t["bg"], 4.5),
-                   ("muted на panel", t["muted"], t["panel"], 4.5), ("muted на bg", t["muted"], t["bg"], 4.5),
-                   ("warn на bg", t["warn"], t["bg"], 4.5), ("warn на panel", t["warn"], t["panel"], 4.5),
-                   ("accent-ink на accent", t["accent-ink"], t["accent"], 4.5), ("accent-text на panel", t["accent-text"], t["panel"], 4.5),
-                   ("ink на pop (плашка)", INK, t["pop"], 4.5), ("ink на gold-1", INK, GOLD_0, 4.5), ("sel-ink на sel", t["sel-ink"], t["sel"], 4.5),
-                   ("ink на secondary", INK, t["secondary"], 4.5), ("border-control на panel", t["border-control"], t["panel"], 3.0),
-                   ("bg на fg (таблетка)", t["bg"], t["fg"], 4.5),
-                   # the focus ring (WCAG 1.4.11): 3:1 on the ground and on a panel — review panel 01.10.2026, item 1
-                   ("focus на bg (кольцо фокуса)", t["focus"], t["bg"], 3.0), ("focus на panel (кольцо фокуса)", t["focus"], t["panel"], 3.0),
-                   # on the ink tab bar the ink ring vanished (1:1, verifier 01.10.2026): its own token
-                   ("focus-on-tab на tab-bg (кольцо на таб-баре)", t["focus-on-tab"], t["tab-bg"], 3.0)]
-          + [(f"{k} на panel", t[k], t["panel"], 4.5) for k in ("cat-amber", "cat-teal", "cat-violet", "err")])
-DAY = {"border": INK, "border-control": INK, "accent-ink": PAPER, "ok": "#2f6b3a", "err": "#a3311f", "warn": "#a3311f", "scrim": INK,
-       "shadow": INK, "ink": INK, "paper": PAPER, "pop": GOLD_MID, "rim": INK, "tab-bg": INK, "tab-ink": PAPER, "focus": INK, "focus-on-tab": GOLD_MID}
-NIGHT = {"bg": NBG, "panel": NPN, "panel-2": "#2a3456", "border": "#070a14", "border-control": GOLD_MID, "fg": NFG, "muted": NMU,
-         "accent": GOLD_MID, "accent-ink": INK, "ok": "#9ecb7a", "err": "#ff9a8a", "warn": "#ff9a8a", "scrim": INK, "shadow": INK,
-         "on-fg-muted": "#5a6480", "ink": INK, "paper": NPN, "pop": GOLD_MID, "rim": GOLD_0, "sel": GOLD_MID, "sel-ink": INK,
-         "secondary": "#e9dfc9", "off": "#2a3456", "tab-bg": "#070a14", "tab-ink": NFG, "focus": GOLD_MID, "focus-on-tab": GOLD_MID}
-comic(".k-comic", "comic·sosed·day", {**DAY, "bg": SKY, "panel": PAPER, "panel-2": "#ece3d2", "fg": INK, "muted": "#5a4e44",
-      "accent": TERRA, "on-fg-muted": "#c9b8a0", "sel": TERRA, "sel-ink": PAPER, "secondary": PAPER, "off": "#ece3d2",
-      "cat-amber": "#7a4a00", "cat-teal": "#0d6b68", "cat-violet": "#6b2fa8"})
-comic(".k-comic-night", "comic·sosed·night", {**NIGHT, "cat-amber": GOLD_MID, "cat-teal": "#7fc8c0", "cat-violet": "#c6b4e8"})
-comic(".k-comic-neighbro", "comic·neighbro·day", {**DAY, "bg": "#f3f1ea", "panel": "#fffdf7", "panel-2": "#e6e3da", "fg": INK,
-      "muted": "#56625f", "accent": SEA, "on-fg-muted": "#b0a894", "sel": SEA, "sel-ink": PAPER, "secondary": "#fffdf7", "off": "#e6e3da",
-      "cat-amber": "#735b25", "cat-teal": SEA, "cat-violet": "#793fbe"})
-comic(".k-comic-neighbro-night", "comic·neighbro·night", {**NIGHT, "accent": "#4fb3c9", "cat-amber": GOLD_MID, "cat-teal": "#4fb3c9", "cat-violet": "#c6b4e8"})
+# 4 · the gold comic (k-comic*, 2026-10-01) was retired on 02.10.2026: the web's colours are the brand
+# themes (web/themes/<brand>/*.json → web/src/themes.gen.css), the panel never wore it.
 # Russo One (OFL), the comic's headings: Cyrillic and Latin subsets, fetched by scripts/fetch-fonts.sh into panel/design/fonts
 FONTS = [
     '@font-face { font-family: "Russo One"; font-weight: 400; font-display: swap; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; src: url(/fonts/Z9XUDmZRWg6M1LvRYsHOy8mJrrg.woff2) format("woff2"); }',
@@ -173,7 +115,7 @@ FONTS = [
 css.extend(FONTS)
 
 text = ("    /* kit schemes — built by scripts/design-palettes.py; edit the script, not this file.\n"
-        "       A frame wears one of: k-dark/k-light + k-acc-NAME; k-neighbro or k-neighbro-light; k-neighbro-sea or k-neighbro-sea-light; k-rasta or k-rasta-light; k-comic, k-comic-night, k-comic-neighbro or k-comic-neighbro-night. */\n"
+        "       A frame wears one of: k-dark/k-light + k-acc-NAME; k-neighbro or k-neighbro-light; k-neighbro-sea or k-neighbro-sea-light; k-rasta or k-rasta-light. */\n"
         + "\n".join("    " + c for c in css) + "\n")
 bad = [r for r in rows if r[4] < r[5] - 1e-9]
 if "--check" in sys.argv:

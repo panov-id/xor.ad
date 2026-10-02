@@ -132,6 +132,8 @@ run check-metrics-exist        bash "$here/check-metrics-exist.sh"
 # (i18n на day58, 27.09.2026). Контейнера не требуют.
 run check-web-tokens           bash "$here/check-web-tokens.sh"
 run check-web-i18n             bash "$here/check-web-i18n.sh"
+run check-web-themes           python3 "$here/design/themes-css.py" --check
+run test-web-themes            bash "$here/test_themes-css.sh"
 
 # Ворота, которым нужен контейнер. Докера нет — это пропуск с названной
 # причиной, а не провал: провал заставил бы обходить его руками, и обходили бы.

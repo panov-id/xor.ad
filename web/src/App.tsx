@@ -28,7 +28,7 @@ import { Likes } from "./screens/Likes.tsx";
 import { Match } from "./screens/Match.tsx";
 import { Offer } from "./screens/Offer.tsx";
 import { useAutoTheme } from "./ui/useTheme.ts";
-import { Away, ChangePin, EditProfile, Me, type MeRow, StartAgain, StepAway } from "./screens/Me.tsx";
+import { Away, ChangePin, EditProfile, Me, type MeRow, StartAgain, StepAway, ThemePicker } from "./screens/Me.tsx";
 import { Register } from "./screens/Register.tsx";
 import { Reissue } from "./screens/Reissue.tsx";
 import { Restore } from "./screens/Restore.tsx";
@@ -82,7 +82,8 @@ type Screen =
   | { at: "arrival" }
   | { at: "reset" }
   | { at: "step-away" }
-  | { at: "away"; until: number };
+  | { at: "away"; until: number }
+  | { at: "theme" };
 
 // The venue's cabinet (A1) is its own page: at adv.<storefront> in a real
 // deployment, under /adv on the stand. Decided once per load, so the face's
@@ -369,6 +370,7 @@ function Face() {
               if (row === "hidden") return setScreen({ at: "hidden" });
               if (row === "blocked") return setScreen({ at: "blocked" });
               if (row === "reissue") return setScreen({ at: "reissue" });
+              if (row === "theme") return setScreen({ at: "theme" });
               setScreen({ at: "reset" });
             }}
           />
@@ -377,6 +379,8 @@ function Face() {
       );
     case "edit":
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
+    case "theme":
+      return <ThemePicker onBack={me} />;
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
     case "new-table":

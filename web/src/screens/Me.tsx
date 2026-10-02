@@ -13,9 +13,12 @@ import { Button } from "../ui/Button.tsx";
 import { Icon, type IconName } from "../ui/Icon.tsx";
 import { Info } from "../ui/Info.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
+import { BRAND } from "../config.ts";
+import { AUTO, applyTheme, type Choice, readChoice, saveChoice } from "../theme.ts";
+import { THEMES } from "../themes.gen.ts";
 import "./place.css";
 
-export type MeRow = "statements" | "name" | "age" | "hidden" | "blocked" | "away" | "pin" | "move" | "reissue" | "reset";
+export type MeRow = "statements" | "name" | "age" | "hidden" | "blocked" | "away" | "pin" | "move" | "reissue" | "reset" | "theme";
 
 export function Me({ client, restrictions, onOpen, onBack, refresh }: {
   client: Client;
@@ -47,6 +50,7 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
     { key: "age", label: `${say("me.age")}  ${profile ? profile.age : "…"}`, testid: "me-age", icon: "me" },
     { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}`, testid: "me-hidden", icon: "hide" },
     ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }), testid: "me-blocked", icon: "block" as const }] : []),
+    { key: "theme", label: say("web.theme.item"), testid: "me-theme", icon: "eye" },
     { key: "away", label: say("away.item"), testid: "me-away", icon: "timer" },
     { key: "pin", label: say("pin.item"), testid: "me-pin", icon: "key" },
     { key: "move", label: say("move.item"), testid: "me-move", icon: "arrive" },
@@ -80,6 +84,40 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
           </li>
         ))}
       </ul>
+    </main>
+  );
+}
+
+// The brand's themes (theme.ts, themes.gen.ts): one radio per selectable
+// theme plus "auto". A swatch is drawn by the theme's own tokens — the swatch
+// element carries data-brand/data-theme, so themes.gen.css resolves --bg and
+// --accent to that theme there. The names are data (English), not words of
+// the dictionaries. Kept on this device (localStorage theme:<brand>).
+export function ThemePicker({ onBack }: { onBack: () => void }) {
+  const [choice, setChoice] = useState<Choice>(() => readChoice(BRAND));
+  const pick = (next: Choice) => {
+    saveChoice(BRAND, next);
+    setChoice(next);
+    applyTheme(BRAND);
+  };
+  const options: Array<{ id: Choice; label: string; swatch: string }> = [
+    { id: AUTO, label: say("web.theme.auto"), swatch: "light" },
+    ...(THEMES[BRAND] ?? []).map((t) => ({ id: t.id, label: t.name, swatch: t.id })),
+  ];
+  return (
+    <main className="screen theme" data-screen="theme">
+      <HeaderScreen title={say("web.theme.title")} action={<Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="theme-back" />} />
+      <div role="radiogroup" aria-label={say("web.theme.title")} className="theme-options">
+        {options.map((o) => (
+          <label key={o.id} className="theme-option" data-testid={`theme-${o.id}`}>
+            <input type="radio" name="theme" value={o.id} checked={choice === o.id} onChange={() => pick(o.id)} />
+            <span className="theme-swatch" data-brand={BRAND} data-theme={o.swatch} aria-hidden="true">
+              <span className="theme-dot" />
+            </span>
+            <span>{o.label}</span>
+          </label>
+        ))}
+      </div>
     </main>
   );
 }

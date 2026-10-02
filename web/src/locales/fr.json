@@ -312,5 +312,8 @@
   "web.chat.blocked": "You blocked this person. The conversation is closed for both, the keys are wiped.",
   "web.chat.missed": "you missed a message — ask them to send it again",
   "web.feed.refused": "Your phrase did not pass moderation and was taken down.",
-  "web.info": "explication"
+  "web.info": "explication",
+  "web.theme.item": "thème",
+  "web.theme.title": "Thème",
+  "web.theme.auto": "auto — jour et nuit du lieu"
 }

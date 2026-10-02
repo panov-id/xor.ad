@@ -26,14 +26,14 @@ import "./talk.css";
 import { Icon } from "../ui/Icon.tsx";
 import { Info } from "../ui/Info.tsx";
 
-export function Chat({ client, keys, row: given, onBack }: { client: Client; keys: ChatKeys; row: InboxChatRow; onBack: () => void }) {
+export function Chat({ client, keys, row: given, onBack, brandClass }: { client: Client; keys: ChatKeys; row: InboxChatRow; onBack: () => void; brandClass?: string }) {
   const {
     row, lines, text, setText, status, peerAway, missed, keysState, keysError, over, error, span, endsAt, quiet,
     changeSpan, endChat, block, blocked, safety, setSafety, busy, kept, gameOpen, setGameOpen, gameBump,
     send, rekey, askedByPeer, waitingForPeer, starters,
   } = useChat({ client, keys, row: given });
   return (
-    <main className="screen chat" data-screen="chat" data-id={given.id} data-keys={keysState} data-over={over ? "yes" : "no"} data-epoch={row.key_epoch} data-rekey-requested={askedByPeer ? "yes" : "no"} data-span={span} data-ends-at={endsAt} data-counting={quiet.counting ? "yes" : "no"} data-blocked={blocked ? "yes" : "no"} data-peer-away={peerAway ? "yes" : "no"} data-missed={missed ? "yes" : "no"}>
+    <main className={["screen chat", brandClass].filter(Boolean).join(" ")} data-screen="chat" data-id={given.id} data-keys={keysState} data-over={over ? "yes" : "no"} data-epoch={row.key_epoch} data-rekey-requested={askedByPeer ? "yes" : "no"} data-span={span} data-ends-at={endsAt} data-counting={quiet.counting ? "yes" : "no"} data-blocked={blocked ? "yes" : "no"} data-peer-away={peerAway ? "yes" : "no"} data-missed={missed ? "yes" : "no"}>
       <header className="ui-header ui-header-rule">
         <button type="button" className="ui-icon ui-icon-only" onClick={onBack} data-testid="back" aria-label={say("common.back")}>
           <Icon name="back" />

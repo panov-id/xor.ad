@@ -12,13 +12,16 @@ import { Button } from "../ui/Button.tsx";
 import "./talk.css";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
+import type { ReactNode } from "react";
 
-export function Arrival({ onDone, onBack }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void }) {
+// brandClass and hero: the brand view's look (brands/<brand>), drawn over the same state.
+export function Arrival({ onDone, onBack, brandClass, hero }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void; brandClass?: string; hero?: ReactNode }) {
   const { code, setCode, pin, setPin, again, setAgain, busy, error, into, state, clean, claim, keep } = useArrival({ onDone });
   const ending = ENDINGS[state];
   return (
-    <main className="screen arrival" data-screen="arrival" data-state={into ? state : "start"}>
+    <main className={["screen arrival", brandClass].filter(Boolean).join(" ")} data-screen="arrival" data-state={into ? state : "start"}>
       <HeaderScreen title={say(state === "approved" ? "move.arrivedTitle" : "move.inTitle")} />
+      {!into && hero}
       {!into
         ? (
           <>

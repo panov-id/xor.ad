@@ -19,9 +19,39 @@ import { Icon } from "../../ui/Icon.tsx";
 import { useSwipe } from "../../ui/useSwipe.ts";
 import "./blocks.css";
 
-export { Composer as ComposeView } from "../../screens/Composer.tsx";
-export { Chat as ChatView } from "../../screens/Chat.tsx";
-export { Arrival as ArrivalView } from "../../screens/Arrival.tsx";
+import { Composer } from "../../screens/Composer.tsx";
+import { Chat } from "../../screens/Chat.tsx";
+import { Arrival } from "../../screens/Arrival.tsx";
+import { Me } from "../../screens/Me.tsx";
+
+// Arrival.svg: the bento of five tiles over the form — the accent tile with
+// the pin, the others in tile-2..4 and surface-2 with their thin icons.
+export function ArrivalView(props: ComponentProps<typeof Arrival>) {
+  const hero = (
+    <div className="block-bento" aria-hidden="true" data-testid="arrival-hero">
+      <span className="bento bento-a"><Icon name="pin" size={48} /></span>
+      <span className="bento bento-b"><Icon name="say" size={40} /></span>
+      <span className="bento bento-c"><Icon name="timer" size={40} /></span>
+      <span className="bento bento-d"><Icon name="like" size={40} /></span>
+      <span className="bento bento-e"><Icon name="hide" size={40} /></span>
+    </div>
+  );
+  return <Arrival {...props} brandClass="b-blocks" hero={hero} />;
+}
+
+// Compose.svg: the field as a surface tile with the focus line, the mode as
+// three tiles (the chosen one in tile-1), the zone as pills (tile-3), the
+// publish pill in the accent. Chat.svg and Profile.svg likewise: the state is
+// the shared screen's, the look is blocks.css.
+export function ComposeView(props: ComponentProps<typeof Composer>) {
+  return <Composer {...props} brandClass="b-blocks" />;
+}
+export function ChatView(props: ComponentProps<typeof Chat>) {
+  return <Chat {...props} brandClass="b-blocks" />;
+}
+export function MeView(props: ComponentProps<typeof Me>) {
+  return <Me {...props} brandClass="b-blocks" />;
+}
 
 const modeLabel = (mode: string) => modes().find((m) => m.value === mode)?.label ?? mode;
 const langOf = (card: FeedCard) => (card.lang && card.lang !== "und" ? card.lang : undefined);

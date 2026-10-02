@@ -21,12 +21,12 @@ import { say } from "./api/me.ts";
 import { ChatKeys } from "./chat/keys.ts";
 import type { FeedCard } from "./screens/Feed.tsx";
 // The brand's views (brands/index.ts): built for one brand, the other is not bundled.
-import { ArrivalView, CardView, ChatView, ComposeView, FeedView, MatchView } from "./brands/index.ts";
+import { ArrivalView, CardView, ChatView, ComposeView, FeedView, MatchView, MeView } from "./brands/index.ts";
 import { Inbox, type InboxChatRow, type MatchRow } from "./screens/Inbox.tsx";
 import { Likes } from "./screens/Likes.tsx";
 import { Offer } from "./screens/Offer.tsx";
 import { useAutoTheme } from "./ui/useTheme.ts";
-import { Away, ChangePin, EditProfile, Me, type MeRow, StartAgain, StepAway, ThemePicker } from "./screens/Me.tsx";
+import { Away, ChangePin, EditProfile, type MeRow, StartAgain, StepAway, ThemePicker } from "./screens/Me.tsx";
 import { Register } from "./screens/Register.tsx";
 import { Reissue } from "./screens/Reissue.tsx";
 import { Restore } from "./screens/Restore.tsx";
@@ -353,7 +353,7 @@ function Face() {
     case "me":
       return (
         <div className="tabbed">
-          <Me
+          <MeView
             client={seated!.client}
             restrictions={statements?.length ?? 0}
             refresh={edits}

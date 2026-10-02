@@ -62,3 +62,52 @@
 
 /* The shared screens under this brand. */
 .b-stickers .ui-primary { background: var(--accent); border-color: var(--line); color: var(--accent-fg); box-shadow: 1.5px 3px 0 var(--shadow); }
+
+/* Arrival.svg ("move here"): the arrive sticker r56 in tile-4, tilted −6°,
+   with the white rim; the code in tag cells 28×56 on the surface. */
+.b-stickers .sticker-arrive { display: grid; place-items: center; padding: 24px 0 16px; }
+.b-stickers .round-sticker {
+  display: grid; place-items: center; width: 112px; height: 112px; border-radius: 50%;
+  background: var(--tile-4); color: var(--tile-4-ink); border: 7px solid var(--surface);
+  box-shadow: 1.5px 3px 0 5px var(--shadow); transform: rotate(-6deg);
+}
+.b-stickers.arrival input {
+  min-height: 56px; border-radius: 10px; border: 0; background: var(--surface);
+  font-size: 22px; font-weight: 600; letter-spacing: 0.6em; padding-left: 14px; text-transform: uppercase;
+}
+.b-stickers .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: none; border-radius: 28px; min-height: 56px; }
+.b-stickers .ui-secondary { border-radius: 28px; min-height: 56px; background: var(--surface); }
+
+/* Compose.svg: the field a sticker card 343×190, mode tags 109×48 (the
+   chosen in tile-2, leaning −2°), zone tags 80×48 (the chosen in tile-3). */
+.b-stickers .composer-field { min-height: 190px; padding: 20px; border-radius: 18px; border: 7px solid var(--surface); background: var(--surface); box-shadow: 1.5px 3px 0 5px var(--shadow); font-size: 22px; font-weight: 600; }
+.b-stickers .composer-segments { gap: 8px; border: 0; border-radius: 0; overflow: visible; }
+.b-stickers .composer-segments button { min-height: 48px; border-radius: 10px; border: 0; background: var(--surface); font-size: 16px; }
+.b-stickers .composer-segments button + button { border-left: 0; }
+.b-stickers .composer-segments button.on { background: var(--tile-2); color: var(--tile-2-ink); transform: rotate(-2deg); font-weight: 600; }
+.b-stickers .composer-scheme { display: none; }
+.b-stickers .composer-steps { gap: 8px; }
+.b-stickers .composer-steps button { min-height: 48px; border-radius: 10px; border: 0; background: var(--surface); font-size: 16px; color: var(--fg); }
+.b-stickers .composer-steps button.on { background: var(--tile-3); color: var(--tile-3-ink); }
+.b-stickers .composer-bar { border-top: 0; }
+
+/* Chat.svg: the term tag 343×56 on the surface, theirs on the surface, mine
+   in tile-4, radius 20, 18 px words; the message pill and the round send. */
+.b-stickers.chat .fades { display: flex; align-items: center; min-height: 56px; padding: 0 16px; border-radius: 10px; background: var(--surface); color: var(--fg); font-weight: 600; font-size: 16px; }
+.b-stickers .line { border-radius: 20px; padding: 14px 20px; font-size: 18px; background: var(--surface); box-shadow: 1px 2px 0 3px var(--shadow); }
+.b-stickers .line.mine { background: var(--tile-4); color: var(--tile-4-ink); }
+.b-stickers .line.mine .muted { color: inherit; }
+.b-stickers .composer input { min-height: 56px; border-radius: 28px; border: 1.5px solid var(--line); background: var(--surface); padding: 0 24px; }
+.b-stickers .composer .ui-button { width: 56px; min-width: 56px; height: 56px; border-radius: 28px; padding: 0; }
+
+/* Profile.svg: rows as tags 343×56 on the surface, 12 apart, each icon a
+   small round sticker walking tile-1..4, the chevron in the muted ink. */
+.b-stickers .place-rows { gap: 12px; }
+.b-stickers .place-rows > li { border-bottom: 0; }
+.b-stickers .place-setting { justify-content: flex-start; gap: 14px; min-height: 56px; padding: 0 16px 0 12px; border-radius: 10px; background: var(--surface); }
+.b-stickers .place-setting::after { margin-left: auto; color: var(--fg-muted); }
+.b-stickers .place-setting > .ui-glyph, .b-stickers .place-setting > svg { box-sizing: content-box; padding: 5px; border-radius: 50%; background: var(--tile-1); color: var(--tile-1-ink); }
+.b-stickers .place-rows > li:nth-child(4n+2) .place-setting > svg { background: var(--tile-2); color: var(--tile-2-ink); }
+.b-stickers .place-rows > li:nth-child(4n+3) .place-setting > svg { background: var(--tile-3); color: var(--tile-3-ink); }
+.b-stickers .place-rows > li:nth-child(4n) .place-setting > svg { background: var(--tile-4); color: var(--tile-4-ink); }
+.b-stickers .place-setting.warn, .b-stickers li[data-row="reset"] .place-setting { color: var(--danger); }

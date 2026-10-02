@@ -20,7 +20,8 @@ import "./place.css";
 
 export type MeRow = "statements" | "name" | "age" | "hidden" | "blocked" | "away" | "pin" | "move" | "reissue" | "reset" | "theme";
 
-export function Me({ client, restrictions, onOpen, onBack, refresh }: {
+export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }: {
+  brandClass?: string;
   client: Client;
   restrictions: number;
   onOpen: (row: MeRow, current?: string) => void;
@@ -43,12 +44,12 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
     { key: "reset", label: say("reset.item"), testid: "me-reset", icon: "reset" },
   ];
   return (
-    <main className="screen me" data-screen="me" data-name-state={profile?.pending ? "pending" : "accepted"}>
+    <main className={["screen me", brandClass].filter(Boolean).join(" ")} data-screen="me" data-name-state={profile?.pending ? "pending" : "accepted"}>
       <HeaderScreen title={say("me.title")} action={<Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="me-back" />} />
       {error && <p className="error" data-testid="error">{error}</p>}
       <ul className="place-rows">
         {rows.map((row) => (
-          <li key={row.key}>
+          <li key={row.key} data-row={row.key}>
             <button
               type="button"
               className={row.red ? "place-setting warn" : "place-setting"}

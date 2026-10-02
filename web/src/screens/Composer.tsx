@@ -17,7 +17,8 @@ import { Info } from "../ui/Info.tsx";
 const STEPS: Radius[] = [100, 300, 1000, 3000, 10000];
 
 export function Composer(
-  { client, at, radius, onSent, onBack }: {
+  { client, at, radius, onSent, onBack, brandClass }: {
+    brandClass?: string;
     client: Client;
     at: { lat: number; lon: number };
     radius: Radius;
@@ -34,7 +35,7 @@ export function Composer(
   // What the sheet shows and the page has no data for — the place's name, the
   // quota "free 2 of 4" — is left out rather than made up (WS4).
   return (
-    <main className="screen composer-screen" data-screen="composer">
+    <main className={["screen composer-screen", brandClass].filter(Boolean).join(" ")} data-screen="composer">
       <HeaderScreen title={say("write.title")} onBack={onBack} backLabel={say("common.back")} />
       <div className="composer-label">
         <label htmlFor="composer-text">{say("web.composer.phrase")}</label>

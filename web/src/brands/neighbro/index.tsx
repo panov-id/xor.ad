@@ -20,9 +20,35 @@ import { HeaderScreen } from "../../ui/Header.tsx";
 import { Icon } from "../../ui/Icon.tsx";
 import "./stickers.css";
 
-export { Composer as ComposeView } from "../../screens/Composer.tsx";
-export { Chat as ChatView } from "../../screens/Chat.tsx";
-export { Arrival as ArrivalView } from "../../screens/Arrival.tsx";
+import { Composer } from "../../screens/Composer.tsx";
+import { Chat } from "../../screens/Chat.tsx";
+import { Arrival } from "../../screens/Arrival.tsx";
+import { Me } from "../../screens/Me.tsx";
+
+// Arrival.svg ("move here"): the arrive sticker, tilted, over the code; the
+// code's letters stand in tag cells (stickers.css).
+export function ArrivalView(props: ComponentProps<typeof Arrival>) {
+  const hero = (
+    <div className="sticker-arrive" aria-hidden="true" data-testid="arrival-hero">
+      <span className="round-sticker"><Icon name="arrive" size={56} /></span>
+    </div>
+  );
+  return <Arrival {...props} brandClass="b-stickers" hero={hero} />;
+}
+
+// Compose.svg: the field as a sticker card, mode and zone as tags (the chosen
+// mode in tile-2, the zone in tile-3), the send pill at the foot. Chat.svg:
+// own bubbles in tile-4, theirs on the surface. Profile.svg: rows as tags,
+// each icon a small round sticker. State is the shared screens'.
+export function ComposeView(props: ComponentProps<typeof Composer>) {
+  return <Composer {...props} brandClass="b-stickers" />;
+}
+export function ChatView(props: ComponentProps<typeof Chat>) {
+  return <Chat {...props} brandClass="b-stickers" />;
+}
+export function MeView(props: ComponentProps<typeof Me>) {
+  return <Me {...props} brandClass="b-stickers" />;
+}
 
 const modeLabel = (mode: string) => modes().find((m) => m.value === mode)?.label ?? mode;
 const langOf = (card: FeedCard) => (card.lang && card.lang !== "und" ? card.lang : undefined);

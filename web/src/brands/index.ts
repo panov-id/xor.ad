@@ -6,9 +6,9 @@
 import type * as Sosed from "./sosed/index.tsx";
 import type * as Neighbro from "./neighbro/index.tsx";
 
-export { ArrivalView, CardView, ChatView, ComposeView, FeedView, MatchView } from "@brand";
+export { ArrivalView, CardView, ChatView, ComposeView, FeedView, MatchView, MeView } from "@brand";
 
-type Views = Pick<typeof Sosed, "ArrivalView" | "CardView" | "ChatView" | "ComposeView" | "FeedView" | "MatchView">;
+type Views = Pick<typeof Sosed, "ArrivalView" | "CardView" | "ChatView" | "ComposeView" | "FeedView" | "MatchView" | "MeView">;
 // Red in tsc when neighbro's views stop taking what sosed's take.
 export type NeighbroFits = typeof Neighbro extends Views ? true : never;
 export const NEIGHBRO_FITS: NeighbroFits = true;

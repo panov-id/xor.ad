@@ -70,3 +70,59 @@
 
 /* The shared screens under this brand: flat buttons, no hard shadow. */
 .b-blocks .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: none; border-radius: 32px; }
+
+/* Arrival.svg: the bento — the accent tile 200×236 with the pin, tiles
+   135×112 in tile-2 and tile-3 beside it, then 135×150 (tile-4) and
+   200×150 (surface-2) under them; radius 32, gaps 8–12. */
+.b-blocks .block-bento { display: grid; grid-template-columns: 200fr 135fr; grid-template-rows: 112px 112px 150px; gap: 12px 8px; }
+.b-blocks .bento { display: grid; place-items: center; border-radius: 32px; }
+.b-blocks .bento-a { grid-row: 1 / 3; background: var(--accent); color: var(--accent-fg); place-items: start; padding: 20px; }
+.b-blocks .bento-b { background: var(--tile-2); color: var(--tile-2-ink); }
+.b-blocks .bento-c { background: var(--tile-3); color: var(--tile-3-ink); }
+.b-blocks .bento-d { background: var(--tile-4); color: var(--tile-4-ink); }
+.b-blocks .bento-e { background: var(--surface-2); color: var(--fg); }
+.b-blocks.arrival input { min-height: 56px; border-radius: 28px; border: 1.5px solid var(--line); background: var(--surface); font-size: 20px; letter-spacing: 0.08em; }
+
+/* Compose.svg: the field 343×200 on the surface with a 2 px focus line,
+   mode tiles 111×72 (the chosen one tile-1), time/zone pills 52 high with
+   the chosen in tile-3, publish 343×64 in the accent. */
+.b-blocks .composer-field { min-height: 200px; padding: 20px; border-radius: 24px; border: 2px solid var(--focus); background: var(--surface); font-size: 20px; font-weight: 500; }
+.b-blocks .composer-segments { gap: 5px; border: 0; border-radius: 0; overflow: visible; }
+.b-blocks .composer-segments button { min-height: 72px; border-radius: 20px; border: 1.5px solid var(--line); background: var(--surface); font-weight: 500; }
+.b-blocks .composer-segments button + button { border-left: 1.5px solid var(--line); }
+.b-blocks .composer-segments button.on { background: var(--tile-1); color: var(--tile-1-ink); border-color: var(--tile-1); }
+.b-blocks .composer-scheme { border-radius: 24px; background: var(--surface); }
+.b-blocks .composer-steps button { min-height: 52px; border-radius: 26px; border: 1.5px solid var(--line); background: var(--surface); }
+.b-blocks .composer-steps button.on { background: var(--tile-3); color: var(--tile-3-ink); border-color: var(--tile-3); }
+.b-blocks .composer-bar { border-top: 0; }
+.b-blocks .composer-bar .ui-primary { min-height: 64px; border-radius: 32px; }
+
+/* Chat.svg: the timer pill in surface-2, theirs on the surface with a 1.5
+   line, mine in tile-3, radius 22; the message pill 56 and send 64 round. */
+.b-blocks.chat .fades { display: inline-flex; align-self: flex-start; align-items: center; min-height: 48px; padding: 0 16px; border-radius: 24px; background: var(--surface-2); color: var(--fg); font-weight: 600; }
+.b-blocks .line { border-radius: 22px; padding: 14px 18px; font-size: 16px; }
+.b-blocks .line.theirs { background: var(--surface); border: 1.5px solid var(--line); }
+.b-blocks .line.mine { background: var(--tile-3); color: var(--tile-3-ink); }
+.b-blocks .line.mine .muted { color: inherit; }
+.b-blocks .composer input { min-height: 56px; border-radius: 28px; border: 1.5px solid var(--line); background: var(--surface); padding: 0 22px; }
+.b-blocks .composer .ui-button { width: 64px; min-width: 64px; height: 64px; border-radius: 32px; padding: 0; }
+
+/* Profile.svg: the rows as a bento — the name wide in tile-1, then pairs of
+   165 in tile-4, tile-3, surface-2, tile-2; the rest wide on the surface. */
+.b-blocks .place-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 13px; }
+.b-blocks .place-rows > li { min-height: 0; border-bottom: 0; }
+.b-blocks .place-rows > li[data-row="name"], .b-blocks .place-rows > li[data-row="statements"],
+.b-blocks .place-rows > li[data-row="move"], .b-blocks .place-rows > li[data-row="reissue"], .b-blocks .place-rows > li[data-row="reset"] { grid-column: 1 / -1; }
+.b-blocks .place-setting {
+  flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 12px;
+  min-height: 104px; padding: 18px; border-radius: 24px; background: var(--surface); border: 1.5px solid var(--line); font-size: 18px; font-weight: 600;
+}
+.b-blocks .place-setting::after { content: none; }
+.b-blocks li[data-row="name"] .place-setting { background: var(--tile-1); color: var(--tile-1-ink); border-color: var(--tile-1); }
+.b-blocks li[data-row="hidden"] .place-setting { background: var(--tile-4); color: var(--tile-4-ink); border-color: var(--tile-4); min-height: 120px; }
+.b-blocks li[data-row="away"] .place-setting { background: var(--tile-3); color: var(--tile-3-ink); border-color: var(--tile-3); min-height: 120px; }
+.b-blocks li[data-row="pin"] .place-setting { background: var(--surface-2); color: var(--fg); border-color: var(--surface-2); min-height: 120px; }
+.b-blocks li[data-row="age"] .place-setting { background: var(--tile-2); color: var(--tile-2-ink); border-color: var(--tile-2); min-height: 120px; }
+.b-blocks li[data-row="move"] .place-setting, .b-blocks li[data-row="reissue"] .place-setting, .b-blocks li[data-row="reset"] .place-setting { flex-direction: row; justify-content: flex-start; align-items: center; min-height: 88px; }
+.b-blocks li[data-row="reset"] .place-setting { color: var(--danger); }
+.b-blocks .place-setting:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }

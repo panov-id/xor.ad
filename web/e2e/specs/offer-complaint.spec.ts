@@ -8,6 +8,9 @@ import postgres from "postgres";
 import { expect, test } from "../fixtures/address.ts";
 import { register, runLabel, tenPhrases } from "./helpers.ts";
 
+// The stand's storefront (docker-compose.web.yml passes VITE_BRAND as BRAND).
+const BRAND = process.env.BRAND ?? "sosed";
+
 const DATABASE = process.env.DATABASE_URL ?? "postgres://relay:test@postgres:5432/relay_test";
 
 test("a venue's offer in the feed takes a complaint with an address, and the node accepts it", async ({ browser, page }) => {
@@ -18,7 +21,7 @@ test("a venue's offer in the feed takes a complaint with an address, and the nod
   let offerId: string;
   try {
     const [adv] = await sql<{ id: string }[]>`
-      INSERT INTO advertisers (id, email, contact, brand) VALUES (gen_random_uuid(), ${`ugol-${Date.now()}@example.test`}, 'Ника', 'sosed')
+      INSERT INTO advertisers (id, email, contact, brand) VALUES (gen_random_uuid(), ${`ugol-${Date.now()}@example.test`}, 'Ника', ${BRAND})
       RETURNING id`;
     // At the page's own spot (App.tsx: 41.9, 12.5), verified, with its circle.
     const [venue] = await sql<{ id: string }[]>`
@@ -27,7 +30,7 @@ test("a venue's offer in the feed takes a complaint with an address, and the nod
       RETURNING id`;
     const [offer] = await sql<{ id: string }[]>`
       INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, redirect_code, discount_until, status, expires_at)
-      VALUES (gen_random_uuid(), 'sosed', ${venue.id}, ${text}, '−10 %', ${runLabel()}, now() + interval '7 days', 'active',
+      VALUES (gen_random_uuid(), ${BRAND}, ${venue.id}, ${text}, '−10 %', ${runLabel()}, now() + interval '7 days', 'active',
               now() + interval '260 minutes')
       RETURNING id`;
     offerId = offer.id;
@@ -65,7 +68,7 @@ test("a venue's offer in the feed reports its link, signed, and the node takes i
   let offerId: string;
   try {
     const [adv] = await sql<{ id: string }[]>`
-      INSERT INTO advertisers (id, email, contact, brand) VALUES (gen_random_uuid(), ${`kolos-${Date.now()}@example.test`}, 'Ника', 'sosed')
+      INSERT INTO advertisers (id, email, contact, brand) VALUES (gen_random_uuid(), ${`kolos-${Date.now()}@example.test`}, 'Ника', ${BRAND})
       RETURNING id`;
     const [venue] = await sql<{ id: string }[]>`
       INSERT INTO venues (id, advertiser_id, name, address, verification_status, verified_at, lat, lon, area_radius)
@@ -73,7 +76,7 @@ test("a venue's offer in the feed reports its link, signed, and the node takes i
       RETURNING id`;
     const [offer] = await sql<{ id: string }[]>`
       INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, redirect_code, external_url, discount_until, status, expires_at)
-      VALUES (gen_random_uuid(), 'sosed', ${venue.id}, ${text}, '−20 %', ${code}, 'https://kolos.cy/menu', now() + interval '7 days', 'active',
+      VALUES (gen_random_uuid(), ${BRAND}, ${venue.id}, ${text}, '−20 %', ${code}, 'https://kolos.cy/menu', now() + interval '7 days', 'active',
               now() + interval '260 minutes')
       RETURNING id`;
     offerId = offer.id;

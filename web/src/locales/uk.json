@@ -315,5 +315,9 @@
   "web.info": "пояснення",
   "web.theme.item": "тема",
   "web.theme.title": "Тема",
-  "web.theme.auto": "авто — день і ніч місця"
+  "web.theme.auto": "авто — день і ніч місця",
+  "web.card.details": "подробности",
+  "web.card.heart": "сердце: перетащите на фразу или нажмите, потом на фразу",
+  "web.card.heart_wait": "лайк уйдёт через {n} с — можно снять",
+  "web.card.phrase": "фраза"
 }

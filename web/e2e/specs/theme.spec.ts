@@ -9,7 +9,9 @@ import { PIN, register, unlock } from "./helpers.ts";
 test("theme: pick, persist across a reload, back to auto", async ({ page }) => {
   await register(page);
   const html = page.locator("html");
-  await expect(html).toHaveAttribute("data-brand", "sosed");
+  // The build's brand (VITE_BRAND): both have a "violet" theme.
+  const brand = (await html.getAttribute("data-brand"))!;
+  expect(["sosed", "neighbro"]).toContain(brand);
   await expect(html).toHaveAttribute("data-theme-choice", "auto");
 
   await page.getByTestId("tab-me").click();
@@ -24,7 +26,7 @@ test("theme: pick, persist across a reload, back to auto", async ({ page }) => {
 
   await page.getByTestId("theme-violet").getByRole("radio").check();
   await expect(html).toHaveAttribute("data-theme", "violet");
-  expect(await page.evaluate(() => localStorage.getItem("theme:sosed"))).toBe("violet");
+  expect(await page.evaluate((b) => localStorage.getItem(`theme:${b}`), brand)).toBe("violet");
   const meta = await page.locator('meta[name="theme-color"]').getAttribute("content");
   const bg = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--bg").trim());
   expect(meta).toBe(bg);
@@ -38,5 +40,5 @@ test("theme: pick, persist across a reload, back to auto", async ({ page }) => {
   await page.getByTestId("me-theme").click();
   await page.getByTestId("theme-auto").getByRole("radio").check();
   await expect(html).toHaveAttribute("data-theme-choice", "auto");
-  expect(await page.evaluate(() => localStorage.getItem("theme:sosed"))).toBeNull();
+  expect(await page.evaluate((b) => localStorage.getItem(`theme:${b}`), brand)).toBeNull();
 });

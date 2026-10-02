@@ -4,6 +4,7 @@
 #
 #   scripts/run-web-tests.sh            # up, test, down
 #   scripts/run-web-tests.sh --keep     # leave the stand up (page at :4173)
+#   VITE_BRAND=neighbro scripts/run-web-tests.sh   # the other storefront's build
 #
 # The project name carries this run's PID, so two runs in two worktrees do not
 # share containers or a database.
@@ -25,7 +26,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "== build and run: postgres, migrations, seed, node, web, e2e"
+echo "== brand ${VITE_BRAND:-sosed}: build and run: postgres, migrations, seed, node, web, e2e"
 "${compose[@]}" up --build --abort-on-container-exit --exit-code-from e2e e2e
 status=$?
 if [ "$status" -ne 0 ]; then

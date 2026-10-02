@@ -315,5 +315,9 @@
   "web.info": "բացատրություն",
   "web.theme.item": "թեմա",
   "web.theme.title": "Թեմա",
-  "web.theme.auto": "ավտո — վայրի օրն ու գիշերը"
+  "web.theme.auto": "ավտո — վայրի օրն ու գիշերը",
+  "web.card.details": "подробности",
+  "web.card.heart": "сердце: перетащите на фразу или нажмите, потом на фразу",
+  "web.card.heart_wait": "лайк уйдёт через {n} с — можно снять",
+  "web.card.phrase": "фраза"
 }

@@ -10,7 +10,7 @@
 // would be caught by the number.
 
 import { type BrowserContext, expect, type Page, test } from "../fixtures/address.ts";
-import { runLabel } from "./helpers.ts";
+import { likeControl, pressLike, runLabel } from "./helpers.ts";
 
 const noise = (page: Page, who: string) => {
   page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log(`[${who} ${m.type()}] ${m.text()}`); });
@@ -118,8 +118,8 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     let card = b.getByTestId("card").filter({ hasText: phrase });
     await expect(card).toHaveCount(1, { timeout: 15000 });
     await card.click();
-    await b.getByTestId("like").click();
-    await expect(b.getByTestId("refused")).toContainText("a like needs a live phrase of your own");
+    await pressLike(b);
+    await expect(b.getByTestId("refused")).toContainText("a like needs a live phrase of your own", { timeout: 15000 });
     expect(likePosts).toEqual([409]);
     await b.getByTestId("back").click();
     await b.getByTestId("write").click();
@@ -137,10 +137,10 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     await expect(b.locator('[data-screen="card"]')).toHaveAttribute("data-id", phraseId);
     await expect(b.getByTestId("text")).toHaveText(phrase);
 
-    await b.getByTestId("like").click();
+    await pressLike(b);
     await expect(b.getByTestId("liked")).toBeVisible({ timeout: 15000 });
     expect(likePosts).toEqual([200]);
-    await expect(b.getByTestId("like")).toBeDisabled();
+    await expect(await likeControl(b)).toBeDisabled();
 
     // "Liked" lists it, and the like is taken back — the phrase made no match.
     await b.getByTestId("back").click();

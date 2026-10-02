@@ -19,13 +19,11 @@ import type { Client, Radius, Statement } from "../../depth/core/client.ts";
 import type { Sent } from "./api/actions.ts";
 import { say } from "./api/me.ts";
 import { ChatKeys } from "./chat/keys.ts";
-import { Card } from "./screens/Card.tsx";
-import { Chat } from "./screens/Chat.tsx";
-import { Composer } from "./screens/Composer.tsx";
-import { Feed, type FeedCard } from "./screens/Feed.tsx";
+import type { FeedCard } from "./screens/Feed.tsx";
+// The brand's views (brands/index.ts): built for one brand, the other is not bundled.
+import { ArrivalView, CardView, ChatView, ComposeView, FeedView, MatchView } from "./brands/index.ts";
 import { Inbox, type InboxChatRow, type MatchRow } from "./screens/Inbox.tsx";
 import { Likes } from "./screens/Likes.tsx";
-import { Match } from "./screens/Match.tsx";
 import { Offer } from "./screens/Offer.tsx";
 import { useAutoTheme } from "./ui/useTheme.ts";
 import { Away, ChangePin, EditProfile, Me, type MeRow, StartAgain, StepAway, ThemePicker } from "./screens/Me.tsx";
@@ -35,7 +33,6 @@ import { Restore } from "./screens/Restore.tsx";
 import { Splash } from "./screens/Splash.tsx";
 import { Statements } from "./screens/Statements.tsx";
 import { Unlock } from "./screens/Unlock.tsx";
-import { Arrival } from "./screens/Arrival.tsx";
 import { Departure } from "./screens/Departure.tsx";
 import { Cabinet } from "./adv/Cabinet.tsx";
 import { Table } from "./screens/Table.tsx";
@@ -262,7 +259,7 @@ function Face() {
       return <Splash onStart={() => setScreen({ at: "register" })} onRestore={() => setScreen({ at: "restore" })} onArrive={() => setScreen({ at: "arrival" })} />;
     case "arrival":
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
-      return <Arrival onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={() => setScreen({ at: "splash" })} />;
+      return <ArrivalView onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={() => setScreen({ at: "splash" })} />;
     case "restore":
       // Raised by the paper code: seated as after the PIN — the vault is the
       // record, and the tab keeps none.
@@ -278,7 +275,7 @@ function Face() {
     case "feed":
       return (
         <div className="tabbed">
-          <Feed
+          <FeedView
             client={seated!.client}
             sealed={seated!.sealed}
             at={at}
@@ -299,7 +296,7 @@ function Face() {
       );
     case "composer":
       return (
-        <Composer
+        <ComposeView
           client={seated!.client}
           at={at}
           radius={radius}
@@ -312,7 +309,7 @@ function Face() {
       );
     case "card":
       return (
-        <Card
+        <CardView
           client={seated!.client}
           card={screen.card}
           onBack={toFeed}
@@ -339,7 +336,7 @@ function Face() {
       );
     case "match":
       return (
-        <Match
+        <MatchView
           client={seated!.client}
           keys={seated!.keys!}
           row={screen.row}
@@ -350,7 +347,7 @@ function Face() {
         />
       );
     case "chat":
-      return <Chat client={seated!.client} keys={seated!.keys!} row={screen.row} onBack={() => setScreen({ at: "inbox" })} />;
+      return <ChatView client={seated!.client} keys={seated!.keys!} row={screen.row} onBack={() => setScreen({ at: "inbox" })} />;
     case "statements":
       return <Statements items={statements ?? []} onDone={screen.from === "me" ? me : toFeed} />;
     case "me":

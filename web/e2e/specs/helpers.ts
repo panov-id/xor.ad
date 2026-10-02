@@ -86,6 +86,23 @@ export async function writePhrase(page: Page, text: string): Promise<void> {
   await expect(page.getByTestId("sent")).toHaveAttribute("data-state", "published", { timeout: 15000 });
 }
 
+// The like on an open card, as the brand gives it (02.10.2026): sosed's
+// button; neighbro's heart tapped and then the card — the like then goes
+// after the 5 s undo window, so whoever waits for "liked" waits 15 s.
+export async function pressLike(page: Page): Promise<void> {
+  if ((await page.locator("html").getAttribute("data-brand")) === "neighbro") {
+    await page.getByTestId("heart").click();
+    await page.getByTestId("heart-target").click();
+  } else {
+    await page.getByTestId("like").click();
+  }
+}
+
+// The control that gives the like on an open card, by brand.
+export async function likeControl(page: Page) {
+  return page.getByTestId((await page.locator("html").getAttribute("data-brand")) === "neighbro" ? "heart" : "like");
+}
+
 // A like from the card, as a person gives one (W16): the feed read again, the
 // phrase's card opened, "нравится" pressed. Returns what the card said —
 // "liked", or "matched" when the other side liked first.
@@ -95,7 +112,7 @@ export async function likeByCard(page: Page, text: string): Promise<"liked" | "m
   const card = page.getByTestId("card").filter({ hasText: text });
   await expect(card).toHaveCount(1, { timeout: 30000 });
   await card.click();
-  await page.getByTestId("like").click();
+  await pressLike(page);
   await expect(page.locator('[data-testid="liked"], [data-testid="matched"]').first()).toBeVisible({ timeout: 15000 });
   const state = (await page.getByTestId("matched").isVisible()) ? "matched" : "liked";
   await page.getByTestId("back").click();

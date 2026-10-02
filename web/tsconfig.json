@@ -23,6 +23,9 @@
     "paths": {
       "hash-wasm": [
         "./node_modules/hash-wasm"
+      ],
+      "@brand": [
+        "./src/brands/sosed/index.tsx"
       ]
     },
     "resolveJsonModule": true

@@ -1,0 +1,72 @@
+/* sosed "blocks" (web/design/gen/dir-blocks/out/light): flat colour tiles,
+   no outlines, no shadows, radius 24; the big card 32. Colours only from the
+   theme's tokens (themes.gen.css): --tile-N with --tile-N-ink, --accent with
+   --accent-fg, --surface, --line. Icons are the thin 1.5 stroke. */
+
+.b-blocks .ui-glyph, .b-blocks .ui-icon svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.b-blocks .ui-glyph .f { fill: none; }
+
+/* Feed.svg: one wide tile 343×136, then two columns of 165 with a 13 gap. */
+.b-blocks .tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 13px; }
+.b-blocks .tile {
+  display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+  min-height: 84px; padding: 16px; border-radius: 24px; cursor: pointer;
+  font-size: 16px; font-weight: 500; line-height: 1.35;
+}
+.b-blocks .tile p { margin: 0; overflow-wrap: anywhere; }
+.b-blocks .tile-wide { grid-column: 1 / -1; min-height: 136px; font-size: 20px; font-weight: 600; }
+.b-blocks .tile-c1 { background: var(--tile-1); color: var(--tile-1-ink); }
+.b-blocks .tile-c2 { background: var(--tile-2); color: var(--tile-2-ink); }
+.b-blocks .tile-c3 { background: var(--tile-3); color: var(--tile-3-ink); }
+.b-blocks .tile-c4 { background: var(--tile-4); color: var(--tile-4-ink); }
+.b-blocks .tile .offer { color: inherit; font-weight: 700; }
+.b-blocks .tile-foot { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; }
+.b-blocks .tile-likes { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+.b-blocks .tile:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* Card.svg: the next tile 327×480 behind at y+12 (offset 8), the card 343×480 in the accent. */
+.b-blocks .block-stack { position: relative; padding-bottom: 12px; }
+.b-blocks .block-behind { position: absolute; inset: 12px 8px 0; border-radius: 32px; background: var(--tile-4); }
+.b-blocks .block-card {
+  position: relative; display: flex; flex-direction: column; gap: 12px;
+  min-height: 420px; padding: 32px 24px 24px; border-radius: 32px;
+  background: var(--accent); color: var(--accent-fg);
+  touch-action: none; user-select: none; cursor: grab;
+  transition: transform 160ms ease-out;
+}
+.b-blocks .block-card:active { cursor: grabbing; transition: none; }
+.b-blocks .block-card .big { font-size: 36px; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; margin: 0; overflow-wrap: anywhere; }
+.b-blocks .block-card .offer { color: inherit; font-weight: 700; }
+.b-blocks .block-grip { position: absolute; top: 12px; left: 50%; width: 48px; height: 5px; margin-left: -24px; border-radius: 3px; background: var(--accent-fg); opacity: 0.55; }
+.b-blocks .block-mode { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
+.b-blocks .block-soon { font-weight: 500; }
+.b-blocks .block-peek { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 16px; border-radius: 24px; background: var(--surface); }
+.b-blocks .block-peek p { margin: 0; display: inline-flex; align-items: center; gap: 6px; }
+
+/* Under the card: hide 64 · details 56 · like 64, surface with a 1.5 line. */
+.b-blocks .block-actions { display: flex; justify-content: space-around; align-items: center; padding: 8px 32px; }
+.b-blocks .block-btn {
+  width: 64px; height: 64px; min-height: 64px; padding: 0; border-radius: 18px;
+  background: var(--surface); border: 1.5px solid var(--line); color: var(--fg-muted); box-shadow: none;
+}
+.b-blocks .block-peek-btn { width: 56px; height: 56px; min-height: 56px; border-radius: 28px; color: var(--fg); }
+.b-blocks .block-peek-btn .ui-glyph { transform: rotate(90deg); }
+.b-blocks .block-peek-btn.up .ui-glyph { transform: rotate(90deg); }
+.b-blocks .block-like { color: var(--accent-text); }
+.b-blocks .block-like:disabled { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); opacity: 1; }
+
+/* Match.svg: two tiles 190×250 at -8° and 7°, the accent medallion r56 in a surface ring r60. */
+.b-blocks .block-hero { position: relative; height: 290px; }
+.b-blocks .hero-tile { position: absolute; top: 20px; width: 190px; height: 250px; border-radius: 32px; }
+.b-blocks .hero-tile-a { left: 24px; background: var(--tile-1); transform: rotate(-8deg); }
+.b-blocks .hero-tile-b { right: 24px; top: 40px; background: var(--tile-4); transform: rotate(7deg); }
+.b-blocks .hero-medal {
+  position: absolute; left: 50%; top: 82px; width: 112px; height: 112px; margin-left: -60px;
+  display: grid; place-items: center; border-radius: 50%;
+  background: var(--accent); color: var(--accent-fg); border: 4px solid var(--surface);
+}
+.b-blocks .block-quote { display: flex; flex-direction: column; gap: 6px; padding: 20px; border-radius: 24px; background: var(--surface); color: var(--fg); }
+.b-blocks .block-quote p { margin: 0; font-size: 20px; font-weight: 500; }
+
+/* The shared screens under this brand: flat buttons, no hard shadow. */
+.b-blocks .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: none; border-radius: 32px; }

@@ -315,5 +315,9 @@
   "web.info": "განმარტება",
   "web.theme.item": "თემა",
   "web.theme.title": "თემა",
-  "web.theme.auto": "ავტო — ადგილის დღე და ღამე"
+  "web.theme.auto": "ავტო — ადგილის დღე და ღამე",
+  "web.card.details": "подробности",
+  "web.card.heart": "сердце: перетащите на фразу или нажмите, потом на фразу",
+  "web.card.heart_wait": "лайк уйдёт через {n} с — можно снять",
+  "web.card.phrase": "фраза"
 }

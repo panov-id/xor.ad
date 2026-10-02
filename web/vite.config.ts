@@ -99,6 +99,7 @@ const csp = {
 // themes.gen.css draws the brand's light theme from the first paint, before
 // the page's module (theme.ts) sets data-theme. An attribute, not a script:
 // nothing for the CSP to refuse. Dev and build alike.
+const brandName = process.env.VITE_BRAND === "neighbro" ? "neighbro" : "sosed";
 const brand = {
   name: "xor-brand",
   transformIndexHtml: (html: string) => html.replace("<html ", `<html data-brand="${process.env.VITE_BRAND ?? "sosed"}" `),
@@ -125,6 +126,8 @@ export default defineConfig({
     alias: [
       { find: "hash-wasm", replacement: fileURLToPath(new URL("./node_modules/hash-wasm", import.meta.url)) },
       { find: /^\/fonts\//, replacement: fonts },
+      // The brand's views (src/brands/index.ts): one tree in the bundle.
+      { find: /^@brand$/, replacement: fileURLToPath(new URL(`./src/brands/${brandName}/index.tsx`, import.meta.url)) },
     ],
   },
 });

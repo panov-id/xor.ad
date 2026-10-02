@@ -315,5 +315,9 @@
   "web.info": "explanation",
   "web.theme.item": "theme",
   "web.theme.title": "Theme",
-  "web.theme.auto": "auto — day and night of the place"
+  "web.theme.auto": "auto — day and night of the place",
+  "web.card.details": "details",
+  "web.card.heart": "heart: drag onto the phrase, or tap it, then the phrase",
+  "web.card.heart_wait": "the like goes in {n} s — you can take it off",
+  "web.card.phrase": "phrase"
 }

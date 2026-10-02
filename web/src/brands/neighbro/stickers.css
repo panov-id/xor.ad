@@ -1,0 +1,64 @@
+/* neighbro "stickers" (web/design/gen/dir-stickers/out/light): cards with a
+   7 px surface rim and a hard --shadow offset, radius 18, a small lean; one
+   heart sticker on its pad. Colours only from the theme's tokens
+   (themes.gen.css). Icons are the thin 1.5 stroke. */
+
+.b-stickers .ui-glyph, .b-stickers .ui-icon svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.b-stickers .ui-glyph .f { fill: none; }
+
+.b-stickers .stickers { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
+.b-stickers .sticker, .b-stickers .sticker-card, .b-stickers .sticker-quote {
+  position: relative; display: flex; flex-direction: column; gap: 8px; padding: 18px 20px;
+  border-radius: 18px; border: 7px solid var(--surface); box-shadow: 1.5px 3px 0 5px var(--shadow);
+}
+.b-stickers .sticker { cursor: pointer; font-size: 20px; font-weight: 600; }
+.b-stickers .sticker p, .b-stickers .sticker-card p, .b-stickers .sticker-quote p { margin: 0; overflow-wrap: anywhere; }
+.b-stickers .lean-l { transform: rotate(-1deg); }
+.b-stickers .lean-r { transform: rotate(1deg); }
+.b-stickers .sticker-c1 { background: var(--tile-1); color: var(--tile-1-ink); }
+.b-stickers .sticker-c2 { background: var(--tile-2); color: var(--tile-2-ink); }
+.b-stickers .sticker-c3 { background: var(--tile-3); color: var(--tile-3-ink); }
+.b-stickers .sticker-c4 { background: var(--tile-4); color: var(--tile-4-ink); }
+.b-stickers .sticker .offer { color: inherit; font-weight: 700; }
+.b-stickers .sticker-foot { display: flex; justify-content: space-between; font-size: 14px; font-weight: 400; }
+.b-stickers .sticker-likes, .b-stickers .sticker-count { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+.b-stickers .sticker:focus-visible, .b-stickers .sticker-card:focus-visible { outline: 3px solid var(--focus); outline-offset: 6px; }
+
+/* Card.svg: the phrase 343×272 in tile-1, the pad 351×76 under it. */
+.b-stickers .sticker-card { min-height: 272px; background: var(--tile-1); color: var(--tile-1-ink); }
+.b-stickers .sticker-card .big { font-size: 36px; font-weight: 600; line-height: 1.25; }
+.b-stickers .sticker-card.target { outline: 3px dashed var(--focus); outline-offset: 6px; cursor: copy; }
+.b-stickers .sticker-meta { font-size: 16px; }
+.b-stickers .sticker-count { margin-top: auto; }
+.b-stickers .stuck-heart {
+  position: absolute; right: 18px; bottom: 14px; display: grid; place-items: center;
+  width: 56px; height: 56px; border-radius: 50%; background: var(--surface); color: var(--accent-text);
+  border: 4px solid var(--surface); transform: rotate(-8deg); box-shadow: 1px 2px 0 2px var(--shadow);
+}
+.b-stickers .heart-pad {
+  display: flex; align-items: center; justify-content: center; gap: 24px; min-height: 76px; padding: 8px 16px;
+  border-radius: 14px; background: var(--surface); border: 1.5px dashed var(--surface-2);
+}
+.b-stickers .heart-sticker {
+  width: 64px; height: 64px; min-height: 64px; padding: 0; display: grid; place-items: center;
+  border-radius: 50%; background: var(--surface); color: var(--accent-text);
+  border: 1.5px solid var(--surface-2); box-shadow: 1px 2px 0 2px var(--shadow);
+  touch-action: none; cursor: grab;
+}
+.b-stickers .heart-sticker.armed { outline: 3px solid var(--focus); outline-offset: 3px; transform: rotate(-8deg); }
+.b-stickers .heart-sticker.used { opacity: 0.35; box-shadow: none; }
+.b-stickers .heart-ghost { position: fixed; z-index: 30; pointer-events: none; transform: translate(-50%, -50%) rotate(-8deg); color: var(--accent-text); }
+.b-stickers .heart-wait { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* Match.svg: two hearts leaning towards each other. */
+.b-stickers .sticker-hero { position: relative; height: 140px; display: flex; justify-content: center; align-items: center; }
+.b-stickers .hero-heart {
+  display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%;
+  background: var(--surface); border: 7px solid var(--surface); box-shadow: 1.5px 3px 0 5px var(--shadow);
+}
+.b-stickers .hero-heart-a { color: var(--tile-2); transform: rotate(-10deg) translateX(12px); }
+.b-stickers .hero-heart-b { color: var(--accent-text); transform: rotate(10deg) translateX(-12px); }
+.b-stickers .sticker-quote { background: var(--surface); color: var(--fg); }
+
+/* The shared screens under this brand. */
+.b-stickers .ui-primary { background: var(--accent); border-color: var(--line); color: var(--accent-fg); box-shadow: 1.5px 3px 0 var(--shadow); }

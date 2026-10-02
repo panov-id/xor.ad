@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan, awayCounts, graphemes, NAME_MAX, pinRefusal, profileRefusal, resetCounts, say } from "../api/me.ts";
-import { blockList, hiddenList } from "../api/lists.ts";
+import { useMe } from "./logic/useMe.ts";
 import { changePinAndReseal, forget } from "../vault.ts";
 import { Button } from "../ui/Button.tsx";
 import { Icon, type IconName } from "../ui/Icon.tsx";
@@ -28,22 +28,7 @@ export function Me({ client, restrictions, onOpen, onBack, refresh }: {
   // Bumped by a parent after an edit, so the profile is read again.
   refresh: number;
 }) {
-  const [profile, setProfile] = useState<{ name: string; pending?: string; age: number } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    client.profile()
-      .then((p) => setProfile({ name: p.name, pending: p.name_pending, age: p.age }))
-      .catch((e: Error) => setError(e.message));
-  }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
-  // The two lists' sizes, as the terminal's "me" shows them (depth/ink
-  // rooms.ts): "скрытое · n", and "Заблокировано: n" only while there is
-  // something to lift (Q-48).
-  const [hidden, setHidden] = useState<number | null>(null);
-  const [blocked, setBlocked] = useState(0);
-  useEffect(() => {
-    hiddenList(client).then((r) => setHidden(r.length)).catch(() => setHidden(null));
-    blockList(client).then((r) => setBlocked(r.length)).catch(() => setBlocked(0));
-  }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { profile, error, hidden, blocked } = useMe({ client, refresh });
   const rows: Array<{ key: MeRow; label: string; red?: boolean; testid: string; icon?: IconName }> = [
     ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true, testid: "me-statements", icon: "report" as const }] : []),
     { key: "name", label: `${say("me.name")}  ${profile ? profile.name + (profile.pending ? ` → ${profile.pending} · ${say("feed.checking")}` : "") : "…"}`, testid: "me-name", icon: "name" },

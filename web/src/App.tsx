@@ -27,6 +27,7 @@ import { Inbox, type InboxChatRow, type MatchRow } from "./screens/Inbox.tsx";
 import { Likes } from "./screens/Likes.tsx";
 import { Match } from "./screens/Match.tsx";
 import { Offer } from "./screens/Offer.tsx";
+import { useAutoTheme } from "./ui/useTheme.ts";
 import { Away, ChangePin, EditProfile, Me, type MeRow, StartAgain, StepAway } from "./screens/Me.tsx";
 import { Register } from "./screens/Register.tsx";
 import { Reissue } from "./screens/Reissue.tsx";
@@ -104,6 +105,8 @@ function Face() {
   // The area is placed anywhere, by the person (§8.3); until the place picker
   // of the sheet is drawn it is one fixed point.
   const [at] = useState({ lat: 41.9, lon: 12.5 });
+  // "auto" theme turns with the phase at this place (theme.ts).
+  useAutoTheme(at.lon);
   const [radius, setRadius] = useState<Radius>(1000);
   // One's own phrase just sent, with the node's verdict; shown on the feed
   // until the person leaves it (W2, after the verifier).

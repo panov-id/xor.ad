@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812" style="--focus:#e0714f"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}[role=button]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style></defs>
+<rect width="375" height="812" fill="#0d0b0a"/>
+<g role="button" tabindex="0" aria-label="back"><rect x="16" y="20" width="48" height="48" rx="24.0" fill="none"/>
+<g transform="translate(28.0 32.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+</g>
+<g role="img" aria-label="place phase: night">
+<rect x="311" y="22" width="48" height="44" rx="22" fill="#262019"/>
+<g transform="translate(323 32) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14.5 A7.5 7.5 0 1 1 9.5 5 A6 6 0 0 0 19 14.5Z"/></g>
+</g>
+<text id="t34" x="80" y="54" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >1 of 6</text>
+<g role="region" aria-label="phrase details">
+<rect x="16" y="92" width="343" height="236" rx="28" fill="#262019"/>
+<rect x="16" y="92" width="343" height="236" rx="28" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="img" aria-label="distance: ~400 m">
+<rect x="32" y="108" width="147" height="92" rx="20" fill="#1fa99a"/>
+<g transform="translate(46 122) scale(1.0)" fill="none" stroke="#0d0b0a" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+<text id="t35" x="46" y="180" font-family="Golos Text" font-weight="600" font-size="20" fill="#0d0b0a" text-anchor="start" >~400 m</text>
+</g>
+<g role="img" aria-label="mode: solo">
+<rect x="196" y="108" width="147" height="92" rx="20" fill="#8550c5"/>
+<g transform="translate(210 122) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M6.5 20 C7 15.5 17 15.5 17.5 20"/></g>
+<text id="t36" x="210" y="180" font-family="Golos Text" font-weight="600" font-size="20" fill="#fff6f0" text-anchor="start" >solo</text>
+</g>
+<g role="img" aria-label="time">
+<rect x="32" y="212" width="147" height="92" rx="20" fill="#336eb2"/>
+<g transform="translate(46 226) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/></g>
+<g role="img" aria-label="phrase life">
+<rect x="46" y="268" width="119" height="4" rx="2" fill="#fff6f0" opacity="0.25"/><rect x="46" y="268" width="26" height="4" rx="2" fill="#fff6f0"/>
+</g>
+</g>
+<g role="img" aria-label="likes: 3">
+<rect x="196" y="212" width="147" height="92" rx="20" fill="#d68a1f"/>
+<g transform="translate(210 226) scale(1.0)" fill="none" stroke="#0d0b0a" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
+<text id="t37" x="210" y="284" font-family="Golos Text" font-weight="600" font-size="20" fill="#0d0b0a" text-anchor="start" >3</text>
+</g>
+</g>
+<g role="button" tabindex="0" aria-label="collapse details (card up)"><rect x="163" y="300" width="48" height="48" rx="24.0" fill="#f0e7dc"/>
+<g transform="translate(175.0 312.0) scale(1.0)" fill="none" stroke="#0d0b0a" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19 V6 M6.5 11.5 L12 6 L17.5 11.5"/></g>
+</g>
+<g role="group" aria-label="phrase: walking to the river, join?. Swipe right like, left hide, down details" transform="rotate(0 187 558)">
+<rect x="16" y="358" width="343" height="300" rx="32" fill="#bd4b2a"/>
+<rect x="163" y="370" width="48" height="5" rx="2.5" fill="#fff6f0" opacity="0.55"/>
+<text id="t38" x="40" y="450" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >walking to</text>
+<text id="t39" x="40" y="498" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >the river,</text>
+<text id="t40" x="40" y="546" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >join?</text>
+<g transform="translate(40 568) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M6.5 20 C7 15.5 17 15.5 17.5 20"/></g>
+<text id="t41" x="72" y="586" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >solo</text>
+<g role="img" aria-label="phrase life: fading soon">
+<rect x="40" y="606" width="295" height="4" rx="2" fill="#fff6f0" opacity="0.25"/><rect x="40" y="606" width="65" height="4" rx="2" fill="#fff6f0"/>
+<text id="t42" x="40" y="634" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >fading soon</text>
+</g>
+</g>
+<g role="button" tabindex="0" aria-label="hide phrase from feed"><rect x="48" y="668" width="56" height="56" rx="28.0" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g transform="translate(64.0 684.0) scale(1.0)" fill="none" stroke="#9a8d7c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="like"><rect x="271" y="668" width="56" height="56" rx="28.0" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g transform="translate(287.0 684.0) scale(1.0)" fill="none" stroke="#e0714f" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
+</g>
+<rect x="16" y="732" width="343" height="64" rx="32" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="feed"><rect x="32" y="740" width="80" height="48" rx="24" fill="#f0e7dc"/>
+<g transform="translate(60 752) scale(1.0)" fill="none" stroke="#0d0b0a" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="chats"><rect x="160" y="740" width="48" height="48" rx="24.0" fill="none"/>
+<g transform="translate(172.0 752.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="me"><rect x="272" y="740" width="48" height="48" rx="24.0" fill="none"/>
+<g transform="translate(284.0 752.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
+</g>
+</svg>

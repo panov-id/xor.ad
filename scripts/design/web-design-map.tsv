@@ -1,59 +1,41 @@
-# shot (testing/screenshots/<set>/<shot>.png)	sheet (panel/design/<sheet>.svg)	phone (0-based; a comic sheet is one phone)	what the phone shows
-# Since 02.10.2026 the reference is the comic sheets, panel/design/sheets-comic (scripts/design/comic-sheets.py):
-# each light shot against <Screen>.svg, each dark one against <Screen>-dark.svg. The old sheets stay for the panel.
-Splash-light	sheets-comic/Splash	0	Splash, day scheme
-Splash-dark	sheets-comic/Splash-dark	0	Splash, night scheme
-Composer-light	sheets-comic/Composer	0	Composer, day scheme
-Composer-dark	sheets-comic/Composer-dark	0	Composer, night scheme
-Register-1-light	sheets-comic/Register-1	0	Register-1, day scheme
-Register-1-dark	sheets-comic/Register-1-dark	0	Register-1, night scheme
-Register-2-light	sheets-comic/Register-2	0	Register-2, day scheme
-Register-2-dark	sheets-comic/Register-2-dark	0	Register-2, night scheme
-Register-light	sheets-comic/Register	0	Register, day scheme
-Register-dark	sheets-comic/Register-dark	0	Register, night scheme
-Feed-light	sheets-comic/Feed	0	Feed, day scheme
-Feed-dark	sheets-comic/Feed-dark	0	Feed, night scheme
-Match-light	sheets-comic/Match	0	Match, day scheme
-Match-dark	sheets-comic/Match-dark	0	Match, night scheme
-Match-waiting-light	sheets-comic/Match-waiting	0	Match-waiting, day scheme
-Match-waiting-dark	sheets-comic/Match-waiting-dark	0	Match-waiting, night scheme
-Inbox-light	sheets-comic/Inbox	0	Inbox, day scheme
-Inbox-dark	sheets-comic/Inbox-dark	0	Inbox, night scheme
-Me-light	sheets-comic/Me	0	Me, day scheme
-Me-dark	sheets-comic/Me-dark	0	Me, night scheme
-Blocked-light	sheets-comic/Blocked	0	Blocked, day scheme
-Blocked-dark	sheets-comic/Blocked-dark	0	Blocked, night scheme
-Chat-light	sheets-comic/Chat	0	Chat, day scheme
-Chat-dark	sheets-comic/Chat-dark	0	Chat, night scheme
-Me-away-light	sheets-comic/Me-away	0	Me-away, day scheme
-Me-away-dark	sheets-comic/Me-away-dark	0	Me-away, night scheme
-Card-light	sheets-comic/Card	0	Card, day scheme
-Card-dark	sheets-comic/Card-dark	0	Card, night scheme
-Likes-light	sheets-comic/Likes	0	Likes, day scheme
-Likes-dark	sheets-comic/Likes-dark	0	Likes, night scheme
-Cabinet-sign-in-light	sheets-comic/Cabinet-sign-in	0	Cabinet-sign-in, day scheme
-Cabinet-sign-in-dark	sheets-comic/Cabinet-sign-in-dark	0	Cabinet-sign-in, night scheme
-Cabinet-offers-light	sheets-comic/Cabinet-offers	0	Cabinet-offers, day scheme
-Cabinet-offers-dark	sheets-comic/Cabinet-offers-dark	0	Cabinet-offers, night scheme
-Offer-light	sheets-comic/Offer	0	Offer, day scheme
-Offer-dark	sheets-comic/Offer-dark	0	Offer, night scheme
-Unlock-light	sheets-comic/Unlock	0	Unlock, day scheme
-Unlock-dark	sheets-comic/Unlock-dark	0	Unlock, night scheme
-Departure-light	sheets-comic/Departure	0	Departure, day scheme
-Departure-dark	sheets-comic/Departure-dark	0	Departure, night scheme
-Arrival-light	sheets-comic/Arrival	0	Arrival, day scheme
-Arrival-dark	sheets-comic/Arrival-dark	0	Arrival, night scheme
-Statements-light	sheets-comic/Statements	0	Statements, day scheme
-Statements-dark	sheets-comic/Statements-dark	0	Statements, night scheme
-Me-edit-name-light	sheets-comic/Me-edit-name	0	Me-edit-name, day scheme
-Me-edit-name-dark	sheets-comic/Me-edit-name-dark	0	Me-edit-name, night scheme
-NewTable-light	sheets-comic/NewTable	0	NewTable, day scheme
-NewTable-dark	sheets-comic/NewTable-dark	0	NewTable, night scheme
-Table-light	sheets-comic/Table	0	Table, day scheme
-Table-dark	sheets-comic/Table-dark	0	Table, night scheme
-TableBoards-light	sheets-comic/TableBoards	0	TableBoards, day scheme
-TableBoards-dark	sheets-comic/TableBoards-dark	0	TableBoards, night scheme
-Cabinet-venues-light	sheets-comic/Cabinet-venues	0	Cabinet-venues, day scheme
-Cabinet-venues-dark	sheets-comic/Cabinet-venues-dark	0	Cabinet-venues, night scheme
-Cabinet-new-offer-light	sheets-comic/Cabinet-new-offer	0	Cabinet-new-offer, day scheme
-Cabinet-new-offer-dark	sheets-comic/Cabinet-new-offer-dark	0	Cabinet-new-offer, night scheme
+# shot (testing/screenshots/<set>/<brand>-<shot>-<theme>.png)	sheet (panel/design/<sheet>.svg)	phone (0-based; a brand sheet is one phone)	what the phone shows
+# Since 02.10.2026 the reference is the brands' sheets, panel/design/sheets-sosed and sheets-neighbro, generated
+# from the theme JSON (web/themes/<brand>/<id>.json) by scripts/design/brand-sheets.sh. Each brand is shot in its
+# light theme and its night pair (dark), forced through localStorage theme:<brand> (scripts/design/shoot-web.mjs),
+# and each shot is set against the same screen of the same theme. The sheets' Card-dark is dark/Card (same drawing).
+sosed-Arrival-light	sheets-sosed/light/Arrival	0	sosed Arrival, theme light
+sosed-Feed-light	sheets-sosed/light/Feed	0	sosed Feed, theme light
+sosed-Card-light	sheets-sosed/light/Card	0	sosed Card, theme light
+sosed-Card-liked-light	sheets-sosed/light/Card-liked	0	sosed Card-liked, theme light
+sosed-Card-more-light	sheets-sosed/light/Card-more	0	sosed Card-more, theme light
+sosed-Composer-light	sheets-sosed/light/Compose	0	sosed Composer, theme light
+sosed-Match-light	sheets-sosed/light/Match	0	sosed Match, theme light
+sosed-Chat-light	sheets-sosed/light/Chat	0	sosed Chat, theme light
+sosed-Me-light	sheets-sosed/light/Profile	0	sosed Me, theme light
+sosed-Arrival-dark	sheets-sosed/dark/Arrival	0	sosed Arrival, theme dark
+sosed-Feed-dark	sheets-sosed/dark/Feed	0	sosed Feed, theme dark
+sosed-Card-dark	sheets-sosed/dark/Card	0	sosed Card, theme dark
+sosed-Card-liked-dark	sheets-sosed/dark/Card-liked	0	sosed Card-liked, theme dark
+sosed-Card-more-dark	sheets-sosed/dark/Card-more	0	sosed Card-more, theme dark
+sosed-Composer-dark	sheets-sosed/dark/Compose	0	sosed Composer, theme dark
+sosed-Match-dark	sheets-sosed/dark/Match	0	sosed Match, theme dark
+sosed-Chat-dark	sheets-sosed/dark/Chat	0	sosed Chat, theme dark
+sosed-Me-dark	sheets-sosed/dark/Profile	0	sosed Me, theme dark
+neighbro-Arrival-light	sheets-neighbro/light/Arrival	0	neighbro Arrival, theme light
+neighbro-Feed-light	sheets-neighbro/light/Feed	0	neighbro Feed, theme light
+neighbro-Card-light	sheets-neighbro/light/Card	0	neighbro Card, theme light
+neighbro-Card-liked-light	sheets-neighbro/light/Card-liked	0	neighbro Card-liked, theme light
+neighbro-Card-more-light	sheets-neighbro/light/Card-more	0	neighbro Card-more, theme light
+neighbro-Composer-light	sheets-neighbro/light/Compose	0	neighbro Composer, theme light
+neighbro-Match-light	sheets-neighbro/light/Match	0	neighbro Match, theme light
+neighbro-Chat-light	sheets-neighbro/light/Chat	0	neighbro Chat, theme light
+neighbro-Me-light	sheets-neighbro/light/Profile	0	neighbro Me, theme light
+neighbro-Arrival-dark	sheets-neighbro/dark/Arrival	0	neighbro Arrival, theme dark
+neighbro-Feed-dark	sheets-neighbro/dark/Feed	0	neighbro Feed, theme dark
+neighbro-Card-dark	sheets-neighbro/dark/Card	0	neighbro Card, theme dark
+neighbro-Card-liked-dark	sheets-neighbro/dark/Card-liked	0	neighbro Card-liked, theme dark
+neighbro-Card-more-dark	sheets-neighbro/dark/Card-more	0	neighbro Card-more, theme dark
+neighbro-Composer-dark	sheets-neighbro/dark/Compose	0	neighbro Composer, theme dark
+neighbro-Match-dark	sheets-neighbro/dark/Match	0	neighbro Match, theme dark
+neighbro-Chat-dark	sheets-neighbro/dark/Chat	0	neighbro Chat, theme dark
+neighbro-Me-dark	sheets-neighbro/dark/Profile	0	neighbro Me, theme dark

@@ -2,7 +2,8 @@
 # The probe of scripts/check-web-design.sh: the gate must go red when every
 # screen's padding moves by 8 (the break drawn by the page, WEB_BREAK=pad8 in
 # shoot-web.mjs), and name the shots that grew; and stay green on the shots
-# its baseline was taken from. Two shoots on stands of their own, ~16 min.
+# its baseline was taken from. Since 02.10.2026 each shoot is both brands
+# against panel/design/sheets-sosed and sheets-neighbro: four stands, ~30 min.
 set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fail=0
@@ -18,14 +19,14 @@ if [ "$code" = 0 ]; then echo "✓ clean: green — $(printf '%s' "$out" | tail 
 echo "== write-baseline only lowers"
 tmp="$(mktemp)"
 trap 'rm -f "$tmp"' EXIT
-awk -F'\t' 'BEGIN { OFS = "\t" } /^Feed-dark\t/ { $2 = "0.00"; $3 = "0" } /^Splash-dark\t/ { $2 = "99.00"; $3 = "999" } { print }' \
+awk -F'\t' 'BEGIN { OFS = "\t" } /^sosed-Feed-dark\t/ { $2 = "0.00"; $3 = "0" } /^sosed-Arrival-dark\t/ { $2 = "99.00"; $3 = "999" } { print }' \
   "$root/scripts/design/web-design-baseline.tsv" > "$tmp"
 WEB_DESIGN_BASELINE="$tmp" SHOTS_OUT=testing/screenshots/web-probe-clean "$root/scripts/check-web-design.sh" --write-baseline >/dev/null
-feed="$(grep -P '^Feed-dark\t' "$tmp")"; splash="$(grep -P '^Splash-dark\t' "$tmp" | cut -f2)"
-if [ "$feed" = "$(printf 'Feed-dark\t0.00\t0')" ] && awk -v s="$splash" 'BEGIN { exit !(s < 99) }'; then
-  echo "✓ write-baseline: a lower line kept (Feed-dark 0.00 0), a higher one lowered (Splash-dark 99.00 → $splash)"
+feed="$(grep -P '^sosed-Feed-dark\t' "$tmp")"; splash="$(grep -P '^sosed-Arrival-dark\t' "$tmp" | cut -f2)"
+if [ "$feed" = "$(printf 'sosed-Feed-dark\t0.00\t0')" ] && awk -v s="$splash" 'BEGIN { exit !(s < 99) }'; then
+  echo "✓ write-baseline: a lower line kept (sosed-Feed-dark 0.00 0), a higher one lowered (sosed-Arrival-dark 99.00 → $splash)"
 else
-  echo "✗ write-baseline raised or kept the bar: Feed-dark «$feed», Splash-dark $splash (was 99.00)"; fail=1
+  echo "✗ write-baseline raised or kept the bar: sosed-Feed-dark «$feed», sosed-Arrival-dark $splash (was 99.00)"; fail=1
 fi
 
 echo "== broken shoot: padding +8"

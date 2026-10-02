@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812" style="--focus:#e0714f"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}[role=button]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style></defs>
+<rect width="375" height="812" fill="#0d0b0a"/>
+<g role="button" tabindex="0" aria-label="back"><rect x="16" y="20" width="48" height="48" rx="24.0" fill="none"/>
+<g transform="translate(28.0 32.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+</g>
+<text id="t59" x="72" y="54" font-family="Golos Text" font-weight="600" font-size="28" fill="#f0e7dc" text-anchor="start" letter-spacing="-0.01em" >Boris</text>
+<g role="img" aria-label="place phase: night">
+<rect x="311" y="22" width="48" height="44" rx="22" fill="#262019"/>
+<g transform="translate(323 32) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14.5 A7.5 7.5 0 1 1 9.5 5 A6 6 0 0 0 19 14.5Z"/></g>
+</g>
+<g role="status" aria-label="chat fades after an hour of your silence">
+<rect x="16" y="84" width="280" height="48" rx="24" fill="#302720"/>
+<g transform="translate(30 96) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/></g>
+<text id="t60" x="64" y="114" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="start" >52 min</text>
+</g>
+<g role="button" tabindex="0" aria-label="info: chat fades after an hour of your silence"><rect x="311" y="84" width="48" height="48" rx="24.0" fill="none"/>
+<g transform="translate(323.0 96.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+</g>
+<g role="group" aria-label="phrase you matched on">
+<rect x="16" y="148" width="343" height="64" rx="20" fill="#d68a1f"/>
+<g transform="translate(30 168) scale(0.85)" fill="none" stroke="#0d0b0a" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
+<text id="t61" x="64" y="186" font-family="Golos Text" font-weight="500" font-size="16" fill="#0d0b0a" text-anchor="start" >coffee at the corner bakery</text>
+</g>
+<rect x="16" y="240" width="186" height="72" rx="22" fill="#262019"/>
+<rect x="16" y="240" width="186" height="72" rx="22" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<text id="t62" x="34" y="272" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start" >hi, at the bakery</text>
+<text id="t63" x="34" y="296" font-family="Golos Text" font-weight="500" font-size="14" fill="#9a8d7c" text-anchor="start" font-variant-numeric="tabular-nums">17:02</text>
+<rect x="242" y="328" width="117" height="72" rx="22" fill="#8550c5"/>
+<text id="t64" x="260" y="360" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start" >on my way</text>
+<text id="t65" x="260" y="384" font-family="Golos Text" font-weight="500" font-size="14" fill="#fff6f0" text-anchor="start" font-variant-numeric="tabular-nums">17:04</text>
+<rect x="16" y="416" width="203" height="72" rx="22" fill="#262019"/>
+<rect x="16" y="416" width="203" height="72" rx="22" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<text id="t66" x="34" y="448" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start" >getting two coffees</text>
+<text id="t67" x="34" y="472" font-family="Golos Text" font-weight="500" font-size="14" fill="#9a8d7c" text-anchor="start" font-variant-numeric="tabular-nums">17:05</text>
+<rect x="208" y="504" width="151" height="72" rx="22" fill="#8550c5"/>
+<text id="t68" x="226" y="536" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start" >great, thanks</text>
+<text id="t69" x="226" y="560" font-family="Golos Text" font-weight="500" font-size="14" fill="#fff6f0" text-anchor="start" font-variant-numeric="tabular-nums">17:07</text>
+<g role="textbox" aria-label="message">
+<rect x="16" y="724" width="271" height="56" rx="28" fill="#262019"/>
+<rect x="16" y="724" width="271" height="56" rx="28" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<text id="t70" x="38" y="758" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >message</text>
+</g>
+<g role="button" tabindex="0" aria-label="send"><rect x="295" y="720" width="64" height="64" rx="18" fill="#bd4b2a"/>
+<g transform="translate(315.0 740.0) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 L20 4.5 L15 20 L11.5 13Z M11.5 13 L20 4.5"/></g>
+</g>
+</svg>

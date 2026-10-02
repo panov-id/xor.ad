@@ -1,17 +1,22 @@
 # Веб против листов · WD0 · 27.09.2026
 
-> **С 02.10.2026 эталон — комикс-листы `panel/design/sheets-comic/`** (решение владельца). Веб одет в
-> комикс-лакшери, и ворота `scripts/check-web-design.sh` сравнивают кадры с ними, а не с
-> `panel/design/sheets/`; старые листы остаются для панели, ниже — история WD0 по ним.
+> **С 02.10.2026 эталон — листы брендов `panel/design/sheets-sosed/` и `panel/design/sheets-neighbro/`**
+> (решение владельца: у sosed «блоки», у neighbro «стикеры»). Комикс-листы `sheets-comic/` и их
+> генератор удалены. Старые листы `panel/design/sheets/` остаются для панели, ниже — история WD0 по ним.
 >
-> - Листы строит `scripts/design/comic-sheets.py` (бывший генератор макета), `--check` краснеет на
->   любом листе, который генератор написал бы иначе. 79 листов: 46 утверждённых макетов один в один
->   и ночной лист для каждого экрана.
-> - Карта `scripts/design/web-design-map.tsv`: 28 экранов, у каждого светлый кадр против `<Экран>.svg`
->   и тёмный против `<Экран>-dark.svg` — 56 строк.
-> - `shoot-web.sh` рендерит комикс-листы рядом с кадрами (`render-comic-sheets.sh`, @2x).
-> - База `scripts/design/web-design-baseline.tsv` записана заново: старая мерила расстояние до
->   старых листов, а `--write-baseline` только опускает, поэтому её сначала убрали.
+> - Листы генерируются из JSON тем: `web/themes/<бренд>/<id>.json` →
+>   `scripts/design/sosed-sheets.py` и `neighbro-sheets.py` → `panel/design/sheets-<бренд>/<id>/`.
+>   Для каждого бренда две темы: светлая (`light`) и её ночная пара (`dark`), по 10 экранов.
+>   Всё делает `scripts/design/brand-sheets.sh`; `--check` краснеет, когда закоммиченные листы
+>   не совпадают с тем, что даёт JSON; геометрию проверяет `lint_svg.py` (если есть inkscape).
+>   Шрифты — `scripts/design/fonts/` (Golos, Russo One).
+> - Карта `scripts/design/web-design-map.tsv`: 9 экранов (Arrival, Feed, Card, Card-liked, Card-more,
+>   Composer↔Compose, Match, Chat, Me↔Profile) × 2 темы × 2 бренда — 36 строк; десятый лист,
+>   Card-dark, — тот же рисунок, что `dark/Card`.
+> - `shoot-web.sh` снимает каждый бренд на своём стенде (`VITE_BRAND`), тему задаёт через
+>   `localStorage theme:<бренд>` и `data-theme`, а не через `prefers-color-scheme`; листы рендерит
+>   `brand-sheets.sh --render` (@2x).
+> - База `scripts/design/web-design-baseline.tsv` записана заново против листов брендов.
 
 Эталон для волны 4: каждый экран `web/src/screens` снят в кадре 375×812 (@2x) в светлой
 и тёмной схеме и поставлен рядом с листом `panel/design/sheets/screen-*.svg`.

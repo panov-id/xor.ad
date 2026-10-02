@@ -1,18 +1,23 @@
 # Web vs sheets · WD0 · 27.09.2026
 
-> **Since 2026-10-02 the reference is the comic sheets, `panel/design/sheets-comic/`** (the owner's
-> decision). The web wears comic luxury, and the gate `scripts/check-web-design.sh` measures the shots
-> against them instead of `panel/design/sheets/`; the old sheets stay for the panel, and what follows is
-> the WD0 history against them.
+> **Since 2026-10-02 the reference is the brands' sheets, `panel/design/sheets-sosed/` and
+> `panel/design/sheets-neighbro/`** (the owner's decision: sosed wears "blocks", neighbro "stickers").
+> The comic sheets `sheets-comic/` and their generator are gone. The old sheets in `panel/design/sheets/`
+> stay for the panel, and what follows is the WD0 history against them.
 >
-> - `scripts/design/comic-sheets.py` (the former mock generator) builds the sheets; its `--check` goes
->   red on any sheet it would write differently. 79 sheets: the 46 approved mocks as they were and a
->   night sheet for every screen.
-> - The map `scripts/design/web-design-map.tsv`: 28 screens, each light shot against `<Screen>.svg` and
->   each dark one against `<Screen>-dark.svg` — 56 rows.
-> - `shoot-web.sh` renders the comic sheets beside the shots (`render-comic-sheets.sh`, @2x).
-> - The baseline `scripts/design/web-design-baseline.tsv` was written afresh: the old one measured the
->   distance to the old sheets, and `--write-baseline` only lowers, so it was removed first.
+> - The sheets are generated from the theme JSON: `web/themes/<brand>/<id>.json` →
+>   `scripts/design/sosed-sheets.py` and `neighbro-sheets.py` → `panel/design/sheets-<brand>/<id>/`.
+>   Two themes per brand: the light one (`light`) and its night pair (`dark`), 10 screens each.
+>   `scripts/design/brand-sheets.sh` does all of it; its `--check` goes red when the committed sheets
+>   are not what the JSON gives; `lint_svg.py` checks the geometry (when inkscape is there).
+>   Fonts live in `scripts/design/fonts/` (Golos, Russo One).
+> - The map `scripts/design/web-design-map.tsv`: 9 screens (Arrival, Feed, Card, Card-liked, Card-more,
+>   Composer↔Compose, Match, Chat, Me↔Profile) × 2 themes × 2 brands — 36 rows; the tenth sheet,
+>   Card-dark, is the same drawing as `dark/Card`.
+> - `shoot-web.sh` shoots each brand on its own stand (`VITE_BRAND`) and forces the theme through
+>   `localStorage theme:<brand>` and `data-theme`, not `prefers-color-scheme`; the sheets are rendered
+>   by `brand-sheets.sh --render` (@2x).
+> - The baseline `scripts/design/web-design-baseline.tsv` was recorded afresh against the brands' sheets.
 
 The baseline for wave 4. Every screen in `web/src/screens` is shot at 375×812 (@2x), in the
 light and the dark scheme, and set next to its sheet in `panel/design/sheets/screen-*.svg`.

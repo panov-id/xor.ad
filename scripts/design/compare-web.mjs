@@ -22,9 +22,9 @@ const page = await browser.newPage();
 const png = (path) => `data:image/png;base64,${readFileSync(path).toString("base64")}`;
 let broken = 0;
 for (const [shot, sheet, index] of rows) {
-  // A comic sheet (panel/design/sheets-comic, since 02.10.2026) is one 375x812 phone at its origin,
-  // rendered by shoot-web.sh into sheets-comic/; the old sheets hold many phones on one canvas.
-  const comic = sheet.startsWith("sheets-comic/");
+  // A brand sheet (panel/design/sheets-<brand>/<theme>/, since 02.10.2026) is one 375x812 phone at its
+  // origin, rendered by shoot-web.sh into sheets-<brand>/<theme>/; the old sheets hold many phones on one canvas.
+  const comic = /^sheets-(sosed|neighbro)\//.test(sheet);
   const phones = comic ? [[0, 0]] : [...readFileSync(`/design/${sheet}.svg`, "utf-8").matchAll(PHONE)].map((m) => [Number(m[1] ?? m[3]), Number(m[2] ?? m[4])]);
   const at = phones[Number(index)];
   const shotFile = `/shots/${shot}.png`;

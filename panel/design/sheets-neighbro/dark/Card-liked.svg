@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812" style="--focus:#1fb39a">
+<defs><style>@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}.h{font-family:"Russo One"}.b{font-family:"Golos Text";font-weight:400}.s{font-family:"Golos Text";font-weight:600}[role=button]:focus-visible,[role=tab]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#202326"/></pattern><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111314"/><stop offset="1" stop-color="#0b0b0c"/></linearGradient></defs>
+<rect width="375" height="812" fill="#0b0b0c"/><rect width="375" height="220" fill="url(#sky)"/><rect width="375" height="812" fill="url(#dots)"/>
+<g role="button" aria-label="back" tabindex="0">
+<circle cx="40" cy="40" r="22" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<circle cx="40" cy="40" r="22" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(29.0 29.0) scale(0.917)" fill="none" stroke="#e7e8eb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M15 5 L8 12 L15 19"/></g>
+</g>
+<text id="t30" x="76" y="49" class="h" font-size="22" fill="#e7e8eb" text-anchor="start" >phrase</text>
+<g role="img" aria-label="place phase: night">
+<g transform="rotate(0 336 40)">
+<circle cx="336" cy="40" r="16" fill="#8550c5" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(327.6 31.6) scale(0.700)" fill="none" stroke="#f3ecfd" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M19 15 A8 8 0 1 1 10 4 A6.5 6.5 0 0 0 19 15Z"/></g>
+</g>
+</g>
+<g opacity=".55" role="img" aria-label="next phrase">
+<g transform="rotate(0 187.5 441.0)">
+<rect x="16" y="382.0" width="343" height="118.0" rx="18" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="16" y="382.0" width="343" height="118.0" rx="18" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t31" x="36" y="420.0" class="s" font-size="22" fill="#e7e8eb" text-anchor="start" >chess partner wanted</text>
+<text id="t32" x="36" y="448.0" class="b" font-size="16" fill="#838a95" text-anchor="start" >solo · 1 km</text>
+<g transform="rotate(0 187.5 573.0)">
+<rect x="16" y="514.0" width="343" height="118.0" rx="18" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="16" y="514.0" width="343" height="118.0" rx="18" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t33" x="36" y="552.0" class="s" font-size="22" fill="#e7e8eb" text-anchor="start" >where to fix a bike</text>
+<text id="t34" x="36" y="580.0" class="b" font-size="16" fill="#838a95" text-anchor="start" >solo · 300 m</text>
+</g>
+<g transform="rotate(0 187.5 232.0)">
+<rect x="16" y="96" width="343" height="272" rx="18" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="16" y="96" width="343" height="272" rx="18" fill="#1fb39a" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t35" x="36" y="156" class="s" font-size="36" fill="#04201c" text-anchor="start" >river walk,</text>
+<text id="t36" x="36" y="202" class="s" font-size="36" fill="#04201c" text-anchor="start" >bringing tea</text>
+<text id="t37" x="36" y="252" class="b" font-size="16" fill="#04201c" text-anchor="start" >solo · 300 m</text>
+<g transform="rotate(-8 54 332)">
+<circle cx="54" cy="332" r="17" fill="#ffffff" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(45.1 323.1) scale(0.744)" fill="none" stroke="#04201c" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M12 20 C5.5 15.5 3 12 3 8.6 A4.6 4.6 0 0 1 12 6.8 A4.6 4.6 0 0 1 21 8.6 C21 12 18.5 15.5 12 20Z"/></g>
+</g>
+<text id="t38" x="81" y="338" class="s" font-size="16" fill="#04201c" text-anchor="start" font-variant-numeric="tabular-nums">4</text>
+<g role="button" aria-label="hint" tabindex="0">
+<circle cx="327" cy="332" r="16" fill="#111314" stroke="#585e67" stroke-width="1.5"/>
+<g transform="translate(316.0 321.0) scale(0.917)" fill="none" stroke="#e7e8eb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><circle vector-effect="non-scaling-stroke" cx="12" cy="12" r="9"/><path vector-effect="non-scaling-stroke" d="M12 11 V17"/><circle vector-effect="non-scaling-stroke" cx="12" cy="7.6" r=".6"/></g>
+</g>
+<g transform="rotate(12 290 278)">
+<circle cx="290" cy="278" r="34" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<circle cx="290" cy="278" r="34" fill="#ffffff" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(272.1 260.1) scale(1.488)" fill="none" stroke="#04201c" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M12 20 C5.5 15.5 3 12 3 8.6 A4.6 4.6 0 0 1 12 6.8 A4.6 4.6 0 0 1 21 8.6 C21 12 18.5 15.5 12 20Z"/></g>
+</g>
+<g transform="rotate(0 187.5 686.0)">
+<rect x="12" y="648" width="351" height="76" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="12" y="648" width="351" height="76" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<path d="M24 656 H351" stroke="#202326" stroke-width="1.5" stroke-dasharray="4 4"/>
+<circle cx="197" cy="682" r="24" fill="#202326" stroke="#202326" stroke-width="1.5"/>
+<circle cx="192" cy="685" r="24" fill="#202326" stroke="#202326" stroke-width="1.5"/>
+<g role="button" aria-label="like" tabindex="0">
+<g transform="rotate(0 187 688)">
+<circle cx="187" cy="688" r="22" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<circle cx="187" cy="688" r="22" fill="#1fb39a" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(175.4 676.5) scale(0.963)" fill="none" stroke="#04201c" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M12 20 C5.5 15.5 3 12 3 8.6 A4.6 4.6 0 0 1 12 6.8 A4.6 4.6 0 0 1 21 8.6 C21 12 18.5 15.5 12 20Z"/></g>
+</g>
+</g>
+<g role="button" aria-label="hide" tabindex="0">
+<circle cx="44" cy="768" r="26" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<circle cx="44" cy="768" r="26" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(32.0 756.0) scale(1.000)" fill="none" stroke="#e7e8eb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M2 12 C5 6 19 6 22 12 C19 18 5 18 2 12Z"/><circle vector-effect="non-scaling-stroke" cx="12" cy="12" r="3"/><path vector-effect="non-scaling-stroke" d="M4 20 L20 4"/></g>
+</g>
+<g role="button" aria-label="block" tabindex="0">
+<circle cx="108" cy="768" r="26" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<circle cx="108" cy="768" r="26" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(96.0 756.0) scale(1.000)" fill="none" stroke="#e7e8eb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><circle vector-effect="non-scaling-stroke" cx="12" cy="12" r="9"/><path vector-effect="non-scaling-stroke" d="M5.6 5.6 L18.4 18.4"/></g>
+</g>
+<g role="button" aria-label="remove sticker" tabindex="0">
+<rect x="156" y="740" width="203" height="56" rx="28" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="156" y="740" width="203" height="56" rx="28" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(224.0 756.0) scale(1.000)" fill="none" stroke="#e7e8eb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M9 7 L4 12 L9 17"/><path vector-effect="non-scaling-stroke" d="M4 12 H14 A6 6 0 0 1 14 24"/></g>
+<text id="t39" x="258" y="774" class="s" font-size="16" fill="#e7e8eb" text-anchor="start" font-variant-numeric="tabular-nums">5 s</text>
+</g>
+</svg>

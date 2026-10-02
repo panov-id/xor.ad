@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812" style="--focus:#e0714f"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}[role=button]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style></defs>
+<rect width="375" height="812" fill="#0d0b0a"/>
+<rect x="16" y="24" width="200" height="236" rx="32" fill="#bd4b2a"/>
+<rect x="224" y="24" width="135" height="112" rx="32" fill="#1fa99a"/>
+<rect x="224" y="148" width="135" height="112" rx="32" fill="#8550c5"/>
+<rect x="16" y="272" width="135" height="150" rx="32" fill="#336eb2"/>
+<rect x="159" y="272" width="200" height="150" rx="32" fill="#302720"/>
+<g transform="translate(36 44) scale(2.0)" fill="none" stroke="#fff6f0" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+<text id="t1" x="36" y="228" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >sosed</text>
+<g transform="translate(267 56) scale(2.0)" fill="none" stroke="#0d0b0a" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<g transform="translate(267 180) scale(2.0)" fill="none" stroke="#fff6f0" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 L15 14"/></g>
+<g transform="translate(59 322) scale(2.0)" fill="none" stroke="#fff6f0" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
+<g transform="translate(235 322) scale(2.0)" fill="none" stroke="#fff6f0" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+<text id="t2" x="16" y="486" font-family="Golos Text" font-weight="600" font-size="28" fill="#f0e7dc" text-anchor="start" letter-spacing="-0.01em" >What neighbours</text>
+<text id="t3" x="16" y="522" font-family="Golos Text" font-weight="600" font-size="28" fill="#f0e7dc" text-anchor="start" letter-spacing="-0.01em" >say nearby</text>
+<text id="t4" x="16" y="560" font-family="Golos Text" font-weight="400" font-size="20" fill="#9a8d7c" text-anchor="start" >What's said fades.</text>
+<g role="button" tabindex="0" aria-label="language: English"><rect x="311" y="450" width="48" height="48" rx="24.0" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g transform="translate(323.0 462.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12 H20.5 M12 3.5 C9 7 9 17 12 20.5 C15 17 15 7 12 3.5"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="start"><rect x="16" y="652" width="343" height="64" rx="32" fill="#bd4b2a"/>
+<g transform="translate(175 672) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="restore with paper code"><rect x="16" y="724" width="343" height="56" rx="28" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<g transform="translate(175 740) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/></g>
+</g>
+</svg>

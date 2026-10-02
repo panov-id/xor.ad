@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812" style="--focus:#e0714f"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}[role=button]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style></defs>
+<rect width="375" height="812" fill="#0d0b0a"/>
+<text id="t5" x="16" y="54" font-family="Golos Text" font-weight="600" font-size="28" fill="#f0e7dc" text-anchor="start" letter-spacing="-0.01em" >Nearby</text>
+<g role="img" aria-label="place phase: night">
+<rect x="311" y="22" width="48" height="44" rx="22" fill="#262019"/>
+<g transform="translate(323 32) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14.5 A7.5 7.5 0 1 1 9.5 5 A6 6 0 0 0 19 14.5Z"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="zone: 1 km">
+<rect x="16" y="88" width="140" height="48" rx="24" fill="#262019"/>
+<rect x="16" y="88" width="140" height="48" rx="24" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<g transform="translate(30 100) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+<text id="t6" x="62" y="118" font-family="Golos Text" font-weight="600" font-size="16" fill="#f0e7dc" text-anchor="start" >1 km</text>
+</g>
+<g role="button" tabindex="0" aria-label="info: phrases fade on their own; no names before a match"><rect x="311" y="88" width="48" height="48" rx="24.0" fill="none"/>
+<g transform="translate(323.0 100.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="phrase: walking to the river, join?; fading soon; likes 3">
+<rect x="16" y="152" width="343" height="136" rx="24" fill="#d68a1f"/>
+<text id="t7" x="32" y="186" font-family="Golos Text" font-weight="600" font-size="20" fill="#0d0b0a" text-anchor="start" >walking to the river, join?</text>
+<g transform="translate(30 250) scale(0.85)" fill="none" stroke="#0d0b0a" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M6.5 20 C7 15.5 17 15.5 17.5 20"/></g>
+<g transform="translate(295 255) scale(0.75)" fill="none" stroke="#0d0b0a" stroke-width="2.00" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
+<text id="t8" x="319" y="272" font-family="Golos Text" font-weight="600" font-size="16" fill="#0d0b0a" text-anchor="start" font-variant-numeric="tabular-nums">3</text>
+</g>
+<g role="button" tabindex="0" aria-label="phrase: coffee at the corner bakery; likes 1">
+<rect x="16" y="300" width="165" height="180" rx="24" fill="#1fa99a"/>
+<text id="t9" x="32" y="334" font-family="Golos Text" font-weight="500" font-size="16" fill="#0d0b0a" text-anchor="start" >coffee at the</text>
+<text id="t10" x="32" y="356" font-family="Golos Text" font-weight="500" font-size="16" fill="#0d0b0a" text-anchor="start" >corner bakery</text>
+<g transform="translate(30 442) scale(0.85)" fill="none" stroke="#0d0b0a" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
+<g transform="translate(117 447) scale(0.75)" fill="none" stroke="#0d0b0a" stroke-width="2.00" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
+<text id="t11" x="141" y="464" font-family="Golos Text" font-weight="600" font-size="16" fill="#0d0b0a" text-anchor="start" font-variant-numeric="tabular-nums">1</text>
+</g>
+<g role="button" tabindex="0" aria-label="phrase: looking for a chess partner; likes 0">
+<rect x="194" y="300" width="165" height="84" rx="24" fill="#8550c5"/>
+<text id="t12" x="210" y="334" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >looking for a</text>
+<text id="t13" x="210" y="356" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >chess partner</text>
+</g>
+<g role="button" tabindex="0" aria-label="phrase: lost a ginger cat by the park; likes 5">
+<rect x="194" y="396" width="165" height="84" rx="24" fill="#336eb2"/>
+<text id="t14" x="210" y="430" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >lost a ginger</text>
+<text id="t15" x="210" y="452" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >cat by the park</text>
+</g>
+<g role="button" tabindex="0" aria-label="phrase: yard: music tonight; fading soon; likes 2">
+<rect x="16" y="492" width="343" height="104" rx="24" fill="#302720"/>
+<text id="t16" x="32" y="526" font-family="Golos Text" font-weight="600" font-size="20" fill="#fff6f0" text-anchor="start" >yard: music tonight</text>
+<g transform="translate(30 558) scale(0.85)" fill="none" stroke="#fff6f0" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L8.5 8 L16 15.5Z"/><path d="M13 4 V6 M18 6 L16.5 7.5 M20 11 H18 M11 9 L13 7"/></g>
+<g transform="translate(295 563) scale(0.75)" fill="none" stroke="#fff6f0" stroke-width="2.00" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
+<text id="t17" x="319" y="580" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="start" font-variant-numeric="tabular-nums">2</text>
+</g>
+<g role="button" tabindex="0" aria-label="phrase: anyone know a good handyman; likes 0">
+<rect x="16" y="608" width="255" height="108" rx="24" fill="#d68a1f"/>
+<text id="t18" x="32" y="642" font-family="Golos Text" font-weight="600" font-size="20" fill="#0d0b0a" text-anchor="start" >anyone know a good</text>
+<text id="t19" x="32" y="669" font-family="Golos Text" font-weight="600" font-size="20" fill="#0d0b0a" text-anchor="start" >handyman</text>
+<g transform="translate(30 678) scale(0.85)" fill="none" stroke="#0d0b0a" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M6.5 20 C7 15.5 17 15.5 17.5 20"/></g>
+<g transform="translate(207 683) scale(0.75)" fill="none" stroke="#0d0b0a" stroke-width="2.00" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
+<text id="t20" x="231" y="700" font-family="Golos Text" font-weight="600" font-size="16" fill="#0d0b0a" text-anchor="start" font-variant-numeric="tabular-nums">0</text>
+</g>
+<g role="button" tabindex="0" aria-label="write a phrase"><rect x="287" y="624" width="72" height="72" rx="36" fill="#bd4b2a"/>
+<g transform="translate(311 648) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5 V19 M5 12 H19"/></g>
+</g>
+<rect x="16" y="732" width="343" height="64" rx="32" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="feed"><rect x="32" y="740" width="80" height="48" rx="24" fill="#f0e7dc"/>
+<g transform="translate(60 752) scale(1.0)" fill="none" stroke="#0d0b0a" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="chats"><rect x="160" y="740" width="48" height="48" rx="24.0" fill="none"/>
+<g transform="translate(172.0 752.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="me"><rect x="272" y="740" width="48" height="48" rx="24.0" fill="none"/>
+<g transform="translate(284.0 752.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
+</g>
+</svg>

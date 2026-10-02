@@ -1,0 +1,33 @@
+{
+ "brand": "neighbro",
+ "id": "dark",
+ "name": "Dark",
+ "scheme": "dark",
+ "source": "neighbro.place landing/index.html lines 85-129 (teal)",
+ "tokens": {
+  "bg": "#0b0b0c",
+  "surface": "#111314",
+  "surface-2": "#202326",
+  "fg": "#e7e8eb",
+  "fg-muted": "#838a95",
+  "line": "#585e67",
+  "accent": "#1fb39a",
+  "accent-fg": "#04201c",
+  "accent-text": "#1fb39a",
+  "danger": "#ff8a80",
+  "focus": "#1fb39a",
+  "shadow": "#585e67",
+  "tile-1": "#1fb39a",
+  "tile-2": "#cc2f27",
+  "tile-3": "#336eb2",
+  "tile-4": "#8550c5",
+  "tile-5": "#7fd19a"
+ },
+ "night": "dark",
+ "tile-ink": {
+  "#1fb39a": "#04201c",
+  "#cc2f27": "#fdeceb",
+  "#336eb2": "#eaf2ff",
+  "#8550c5": "#f3ecfd"
+ }
+}

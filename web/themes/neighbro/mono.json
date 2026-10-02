@@ -1,0 +1,32 @@
+{
+ "brand": "neighbro",
+ "id": "mono",
+ "name": "Mono",
+ "scheme": "light",
+ "source": "equal-luminance greys of neighbro light",
+ "tokens": {
+  "bg": "#e6e6e6",
+  "surface": "#f1f1f1",
+  "surface-2": "#d9d9d9",
+  "fg": "#161616",
+  "fg-muted": "#5a5a5a",
+  "line": "#1b1b1b",
+  "accent": "#9f9f9f",
+  "accent-fg": "#1c1c1c",
+  "accent-text": "#5e5e5e",
+  "danger": "#595959",
+  "focus": "#5e5e5e",
+  "shadow": "#1b1b1b",
+  "tile-1": "#9f9f9f",
+  "tile-2": "#6c6c6c",
+  "tile-3": "#6c6c6c",
+  "tile-4": "#6b6b6b",
+  "tile-5": "#898989"
+ },
+ "night": "mono-dark",
+ "tile-ink": {
+  "#9f9f9f": "#1c1c1c",
+  "#6c6c6c": "#f1f1f1",
+  "#6b6b6b": "#efefef"
+ }
+}

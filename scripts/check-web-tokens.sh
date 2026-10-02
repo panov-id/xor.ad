@@ -10,7 +10,10 @@
 #   - color-mix() with a named colour among its arguments.
 # Allowed: var(--…), transparent, currentColor, and the CSS-wide keywords;
 # color-mix() of var(--…) and transparent is how a tint of a token is written.
-# Comments do not count. WEB_SRC points the gate elsewhere (its probe,
+# Generated files (*.gen.css, *.gen.ts) are skipped: they are where the
+# colours come from — scripts/design/themes-css.py writes them from
+# web/themes/<brand>/*.json and validates those (schema, WCAG); its --check
+# keeps them in step with the JSON. Comments do not count. WEB_SRC points the gate elsewhere (its probe,
 # scripts/test_check-web-tokens.sh).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -54,7 +57,8 @@ def named_in(value: str) -> list[str]:
     return [w for w in WORD.findall(value) if w.lower() in NAMED]
 
 hits = []
-files = sorted(p for p in src.rglob("*") if p.suffix in {".css", ".ts", ".tsx"} and p.is_file())
+files = sorted(p for p in src.rglob("*") if p.suffix in {".css", ".ts", ".tsx"} and p.is_file()
+               and not p.name.endswith((".gen.css", ".gen.ts")))
 for path in files:
     css = path.suffix == ".css"
     text = strip_comments(path.read_text(encoding="utf-8"), css)

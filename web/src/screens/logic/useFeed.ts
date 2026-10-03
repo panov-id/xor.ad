@@ -36,20 +36,32 @@ export function useFeed(
     onTakenDown?.();
   }
 
+  // A page asked before the radius changed (or before leaving the feed) is
+  // stale: its answer would mix the old circle's cards into the new one (D2,
+  // panel 2026-10-03). Every radius starts a new generation; only an answer of
+  // the current one is drawn.
+  const generation = useRef(0);
   async function load(after?: string) {
+    const mine = generation.current;
     setState("loading");
     try {
       const page = await client.feed({ ...at, radius, after });
+      if (mine !== generation.current) return;
       setItems((was) => (after ? [...was, ...(page.items as FeedCard[])] : (page.items as FeedCard[])));
       setNext(page.next ?? null);
       setState("ready");
     } catch (e) {
+      if (mine !== generation.current) return;
       setError((e as Error).message);
       setState("failed");
     }
   }
 
-  useEffect(() => { void load(); }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    generation.current += 1;
+    void load();
+    return () => { generation.current += 1; };
+  }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // What the moderator refused of one's own (W12-MRc, the owner's decision of
   // 2026-10-01): GET /inbox?since counts the moments after the inbox's last

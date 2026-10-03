@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Brand themes as data -> CSS and a TS list (contract: web/design/gen/themes.md).
+"""Brand themes as data -> CSS and a TS list (contract: docs/design/themes_EN.md).
 
 Reads web/themes/<brand>/<id>.json (one flat token map per theme; the JSON
 files are the truth), validates each, checks its contrast, and writes:
@@ -20,7 +20,7 @@ Red (exit 1): a missing or malformed token, a file whose brand/id disagrees
 with its path, a "night" naming no theme of the brand, text under 4.5:1
 (fg and fg-muted on bg and surface, accent-fg on accent), focus under 3:1
 on bg and surface, or line under 3:1 on bg — a control's border is UI, and
-themes.md asks UI for 3:1 (WCAG 1.4.11; sosed's dark themes carried 1.49:1
+docs/design/themes_EN.md asks UI for 3:1 (WCAG 1.4.11; sosed's dark themes carried 1.49:1
 until 03.10.2026). WARN only, listed: accent as a fill under 3:1 on bg.
 """
 import argparse

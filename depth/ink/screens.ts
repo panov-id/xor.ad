@@ -9,7 +9,7 @@ import { obviousPin } from "../core/pin.ts";
 import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { Box, Text } from "ink";
-import type { Client, Radius } from "../core/client.ts";
+import type { Answer, Client, Radius } from "../core/client.ts";
 import { readPaperCode, readPaperText } from "../core/paper.ts";
 import type { Say } from "./strings.ts";
 import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
@@ -169,7 +169,15 @@ export function PaperCode(
 // 2 · the location. It is the feed's filter and the phrase's origin, it is
 // asked at every start, and it is never written to disk (the owner, 2026-09-22).
 export function Location(
-  { say, place, onDone }: { say: Say; place?: Place; onDone: (place: Place) => void },
+  { say, place, onDone, density }: {
+    say: Say;
+    place?: Place;
+    onDone: (place: Place) => void;
+    // GET /feed/density for the point as typed (W14-FD; chat spec §8.3 — a
+    // step, never a number): the web's header has it, the terminal had not.
+    // Absent, nothing is asked and nothing is drawn.
+    density?: (at: { lat: number; lon: number; radius: Radius }) => Promise<Answer<{ step: string }>>;
+  },
 ): ReactElement {
   const [lat, setLat] = useState(place ? String(place.lat) : "");
   const [lon, setLon] = useState(place ? String(place.lon) : "");
@@ -177,6 +185,20 @@ export function Location(
   const numbers = { lat: Number(lat), lon: Number(lon) };
   const ok = lat !== "" && lon !== "" && Math.abs(numbers.lat) <= 90 && Math.abs(numbers.lon) <= 180 &&
     !Number.isNaN(numbers.lat) && !Number.isNaN(numbers.lon);
+  // The step under the radius: asked for every valid point and radius, kept
+  // across a refusal (429 is the handle's own limit, a hundred an hour — the
+  // last step stands, as in the web). Only a step the node names is drawn.
+  const [step, setStep] = useState<string | null>(null);
+  useEffect(() => {
+    if (!density || !ok) return;
+    let live = true;
+    density({ lat: numbers.lat, lon: numbers.lon, radius })
+      .then((answer) => {
+        if (live && answer.status === 200 && DENSITY_STEPS.includes(answer.body.step)) setStep(answer.body.step);
+      })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [ok, numbers.lat, numbers.lon, radius]);
   const clean = (value: string) => value.replace(/[^\d.\-]/g, "");
   return h(
     Box,
@@ -199,8 +221,13 @@ export function Location(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
+    step ? h(Text, { dimColor: true }, say(`loc.density.${step}`)) : null,
   );
 }
+
+// The five steps GET /feed/density answers with (relay routes/feed.ts
+// DENSITY_STEPS; chat spec §8.3): a word each, never a number.
+const DENSITY_STEPS = ["none", "few", "about_ten", "tens", "hundreds"];
 
 type Phrase = {
   id: string; text: string; name?: string; age?: number; distance_m?: number; minutes_ago?: number; liked?: boolean;

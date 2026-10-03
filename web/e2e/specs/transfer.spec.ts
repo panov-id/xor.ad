@@ -16,6 +16,8 @@ test("an identity moves from one browser to another and opens there after a relo
   await old.getByTestId("tab-me").click();
   await old.getByTestId("me-move").click();
   await expect(old.locator('[data-screen="departure"]')).toBeVisible();
+  // What the move costs is on the screen before the PIN, not behind ⓘ.
+  await expect(old.getByTestId("move-price"), "move-price is visible").toBeVisible();
   await old.getByTestId("move-pin").fill(PIN);
   await old.getByTestId("move-go").click();
   const code = (await old.getByTestId("move-code").textContent({ timeout: 30000 }))!.trim();

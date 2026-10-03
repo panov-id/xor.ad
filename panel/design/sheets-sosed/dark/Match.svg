@@ -20,7 +20,7 @@
 <g role="button" tabindex="0" aria-label="start chat"><rect x="16" y="640" width="343" height="64" rx="32" fill="#bd4b2a"/>
 <g transform="translate(175 660) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
 </g>
-<g role="button" tabindex="0" aria-label="not now"><rect x="16" y="716" width="343" height="56" rx="28" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="not now"><rect x="16" y="716" width="343" height="56" rx="28" fill="none" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(175 732) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
 </g>
 </svg>

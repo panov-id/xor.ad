@@ -85,6 +85,9 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   const logic = useCard({ client, card, onGone });
   const { busy, liked, doLike, hide } = logic;
   const deferred = useDeferredLike(doLike);
+  // Hiding or blocking inside the heart's window takes the heart off first:
+  // leaving the card would otherwise send the like it was meant to cancel.
+  const actions = { ...logic, hide: () => { deferred.undo(); return hide(); }, block: () => { deferred.undo(); return logic.block(); } };
   const [armed, setArmed] = useState(false);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const press = useRef<{ x: number; y: number; id: number; moved: boolean } | null>(null);
@@ -156,7 +159,7 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
           <Button type="button" icon="close" aria-label={say("liked.undo")} onClick={deferred.undo} data-testid="heart-undo" />
         </p>
       )}
-      <CardNotes logic={logic} />
+      <CardNotes logic={actions} />
       <div className="heart-pad">
         <button
           type="button"
@@ -170,10 +173,10 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
           <Icon name="like" size={36} />
         </button>
         {drag && <span className="heart-ghost" aria-hidden="true" style={{ left: drag.x, top: drag.y }}><Icon name="like" size={40} /></span>}
-        <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={() => void hide()} data-testid="hide" />
+        <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={() => void actions.hide()} data-testid="hide" />
       </div>
       <div className="actions ui-icon-row card-actions">
-        <CardExtras card={card} logic={logic} />
+        <CardExtras card={card} logic={actions} />
       </div>
     </main>
   );

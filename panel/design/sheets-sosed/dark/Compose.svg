@@ -19,29 +19,29 @@
 <g transform="translate(59 358) scale(1.0)" fill="none" stroke="#0d0b0a" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M6.5 20 C7 15.5 17 15.5 17.5 20"/></g>
 <text id="t47" x="71" y="406" font-family="Golos Text" font-weight="500" font-size="14" fill="#0d0b0a" text-anchor="middle" >solo</text>
 </g>
-<g role="button" tabindex="0" aria-label="group"><rect x="132" y="346" width="111" height="72" rx="20" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="group"><rect x="132" y="346" width="111" height="72" rx="20" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(175 358) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
 <text id="t48" x="187" y="406" font-family="Golos Text" font-weight="500" font-size="14" fill="#fff6f0" text-anchor="middle" >group</text>
 </g>
-<g role="button" tabindex="0" aria-label="party"><rect x="248" y="346" width="111" height="72" rx="20" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="party"><rect x="248" y="346" width="111" height="72" rx="20" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(291 358) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L8.5 8 L16 15.5Z"/><path d="M13 4 V6 M18 6 L16.5 7.5 M20 11 H18 M11 9 L13 7"/></g>
 <text id="t49" x="303" y="406" font-family="Golos Text" font-weight="500" font-size="14" fill="#fff6f0" text-anchor="middle" >party</text>
 </g>
 <text id="t50" x="16" y="454" font-family="Golos Text" font-weight="500" font-size="14" fill="#9a8d7c" text-anchor="start" >time</text>
-<g role="button" tabindex="0" aria-label="time 30 min"><rect x="16" y="466" width="82" height="52" rx="26" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="time 30 min"><rect x="16" y="466" width="82" height="52" rx="26" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <text id="t51" x="57" y="498" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="middle" >30 min</text>
 </g>
 <g role="button" tabindex="0" aria-label="time 1 h (selected)"><rect x="103" y="466" width="82" height="52" rx="26" fill="#8550c5"/>
 <text id="t52" x="144" y="498" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="middle" >1 h</text>
 </g>
-<g role="button" tabindex="0" aria-label="time 3 h"><rect x="190" y="466" width="82" height="52" rx="26" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="time 3 h"><rect x="190" y="466" width="82" height="52" rx="26" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <text id="t53" x="231" y="498" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="middle" >3 h</text>
 </g>
-<g role="button" tabindex="0" aria-label="time 8 h"><rect x="277" y="466" width="82" height="52" rx="26" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="time 8 h"><rect x="277" y="466" width="82" height="52" rx="26" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <text id="t54" x="318" y="498" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="middle" >8 h</text>
 </g>
 <text id="t55" x="16" y="554" font-family="Golos Text" font-weight="500" font-size="14" fill="#9a8d7c" text-anchor="start" >zone</text>
-<g role="button" tabindex="0" aria-label="zone: 1 km around"><rect x="16" y="566" width="343" height="56" rx="28" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="zone: 1 km around"><rect x="16" y="566" width="343" height="56" rx="28" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(32 582) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
 <text id="t56" x="68" y="600" font-family="Golos Text" font-weight="600" font-size="16" fill="#f0e7dc" text-anchor="start" >1 km</text>
 </g>

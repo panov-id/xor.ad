@@ -22,14 +22,14 @@
 <text id="t61" x="64" y="186" font-family="Golos Text" font-weight="500" font-size="16" fill="#0d0b0a" text-anchor="start" >coffee at the corner bakery</text>
 </g>
 <rect x="16" y="240" width="186" height="72" rx="22" fill="#262019"/>
-<rect x="16" y="240" width="186" height="72" rx="22" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<rect x="16" y="240" width="186" height="72" rx="22" fill="none" stroke="#745c40" stroke-width="1.5"/>
 <text id="t62" x="34" y="272" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start" >hi, at the bakery</text>
 <text id="t63" x="34" y="296" font-family="Golos Text" font-weight="500" font-size="14" fill="#9a8d7c" text-anchor="start" font-variant-numeric="tabular-nums">17:02</text>
 <rect x="242" y="328" width="117" height="72" rx="22" fill="#8550c5"/>
 <text id="t64" x="260" y="360" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start" >on my way</text>
 <text id="t65" x="260" y="384" font-family="Golos Text" font-weight="500" font-size="14" fill="#fff6f0" text-anchor="start" font-variant-numeric="tabular-nums">17:04</text>
 <rect x="16" y="416" width="203" height="72" rx="22" fill="#262019"/>
-<rect x="16" y="416" width="203" height="72" rx="22" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<rect x="16" y="416" width="203" height="72" rx="22" fill="none" stroke="#745c40" stroke-width="1.5"/>
 <text id="t66" x="34" y="448" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start" >getting two coffees</text>
 <text id="t67" x="34" y="472" font-family="Golos Text" font-weight="500" font-size="14" fill="#9a8d7c" text-anchor="start" font-variant-numeric="tabular-nums">17:05</text>
 <rect x="208" y="504" width="151" height="72" rx="22" fill="#8550c5"/>
@@ -37,7 +37,7 @@
 <text id="t69" x="226" y="560" font-family="Golos Text" font-weight="500" font-size="14" fill="#fff6f0" text-anchor="start" font-variant-numeric="tabular-nums">17:07</text>
 <g role="textbox" aria-label="message">
 <rect x="16" y="724" width="271" height="56" rx="28" fill="#262019"/>
-<rect x="16" y="724" width="271" height="56" rx="28" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<rect x="16" y="724" width="271" height="56" rx="28" fill="none" stroke="#745c40" stroke-width="1.5"/>
 <text id="t70" x="38" y="758" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >message</text>
 </g>
 <g role="button" tabindex="0" aria-label="send"><rect x="295" y="720" width="64" height="64" rx="18" fill="#bd4b2a"/>

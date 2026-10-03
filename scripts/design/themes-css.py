@@ -18,10 +18,10 @@ files are the truth), validates each, checks its contrast, and writes:
 
 Red (exit 1): a missing or malformed token, a file whose brand/id disagrees
 with its path, a "night" naming no theme of the brand, text under 4.5:1
-(fg and fg-muted on bg and surface, accent-fg on accent) or focus under 3:1
-on bg and surface. WARN only, listed: line under 3:1 on bg and accent (as a
-fill) under 3:1 on bg — shortfalls the source palettes already carry and the
-owner approved (themes.md); they are reported, not hidden.
+(fg and fg-muted on bg and surface, accent-fg on accent), focus under 3:1
+on bg and surface, or line under 3:1 on bg — a control's border is UI, and
+themes.md asks UI for 3:1 (WCAG 1.4.11; sosed's dark themes carried 1.49:1
+until 03.10.2026). WARN only, listed: accent as a fill under 3:1 on bg.
 """
 import argparse
 import json
@@ -91,12 +91,13 @@ def load(themes: pathlib.Path):
             if night is not None and night not in themes_:
                 errors.append(f"{where}: night {night!r} is no theme of {brand}")
             for fg, bgs, need in (("fg", ("bg", "surface"), 4.5), ("fg-muted", ("bg", "surface"), 4.5),
-                                  ("accent-fg", ("accent",), 4.5), ("focus", ("bg", "surface"), 3.0)):
+                                  ("accent-fg", ("accent",), 4.5), ("focus", ("bg", "surface"), 3.0),
+                                  ("line", ("bg",), 3.0)):
                 for bg in bgs:
                     r = ratio(t[fg], t[bg])
                     if r < need:
                         errors.append(f"{where}: {fg} on {bg} {r:.2f}:1 < {need}:1")
-            for fg, bg in (("line", "bg"), ("accent", "bg")):
+            for fg, bg in (("accent", "bg"),):
                 r = ratio(t[fg], t[bg])
                 if r < 3.0:
                     warns.append(f"{where}: {fg} on {bg} {r:.2f}:1 < 3:1 (known in the source palette)")

@@ -89,8 +89,9 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
           <>
             <div className="ui-info-row">
               <Info label={say("move.title")} data-testid="move-info"><p>{say("move.intro")}</p></Info>
-              <Info label={say("move.title")} warn data-testid="move-price-info"><p>{say("move.price")}</p></Info>
             </div>
+            {/* What cannot be undone is said on the screen, not behind ⓘ: the button below is an icon. */}
+            <p className="warn" data-testid="move-price">{say("move.price")}</p>
             <label>
               {say("pin.current")}
               <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="move-pin" />

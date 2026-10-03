@@ -75,7 +75,11 @@ elif _pool_rc != "0":
 else:
     pool_why = None
 missing = []
-LIVE_SHOTS = ["sosed-desktop", "neighbro-desktop", "sosed-mobile-dark", "neighbro-mobile-light", "panel-login"]
+PANEL_SCREENS = [("waitlist", "лист ожидания"), ("dsa-notices", "уведомления DSA"), ("feed-queue", "очередь ленты"),
+                 ("support", "поддержка"), ("panel-users", "пользователи панели"), ("brands", "бренды"),
+                 ("api-keys", "ключи API"), ("secret-keys", "секретные ключи"), ("logs-client-errors", "журнал: ошибки клиента"),
+                 ("logs-audit", "журнал: аудит"), ("logs-server", "журнал: сервер"), ("logs-pageviews", "журнал: просмотры")]
+LIVE_SHOTS = ["sosed-desktop", "neighbro-desktop", "sosed-mobile-dark", "neighbro-mobile-light", "panel-login"] + [f"panel-{n}" for n, _ in PANEL_SCREENS]
 live_missing = [n for n in LIVE_SHOTS if not (W / "shots" / f"{n}.png").is_file()]
 opened = [r for r in csv.reader(open(D / "open.tsv"), delimiter="\t")]
 unpushed = tsv("unpushed.tsv")
@@ -544,6 +548,10 @@ doc = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>От
 {img(SH/'sosed-mobile-dark.png', 'sosed.place — телефон, тёмная', 'локально', 'phone')}
 {img(SH/'neighbro-mobile-light.png', 'neighbro.place — телефон', 'локально', 'phone')}
 {img(SH/'panel-login.png', 'панель — вход', 'локально', 'wide2')}
+</div>
+<h3 class="ch">Панель — под входом админа, все экраны меню</h3>
+<div class="shots two">
+{''.join(img(SH/f'panel-{n}.png', f'панель — {c}', 'локально') for n, c in PANEL_SCREENS)}
 </div>
 
 <h3 class="ch">Веб-лицо <code>web/</code> — последние кадры его сквозных тестов</h3>

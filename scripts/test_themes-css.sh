@@ -42,6 +42,13 @@ d = json.load(open(sys.argv[1])); d["tokens"]["fg-muted"] = d["tokens"]["bg"]; j
 PY
 expect 1 "fg-muted on bg" "text under 4.5:1: red and named"
 cp "$work/light.bak" "$f"
+
+python3 - "$f" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1])); d["tokens"]["line"] = d["tokens"]["bg"]; json.dump(d, open(sys.argv[1], "w"))
+PY
+expect 1 "line on bg" "a control border under 3:1: red and named"
+cp "$work/light.bak" "$f"
 expect 0 "GREEN" "restored theme: green"
 
 [ "$failures" -eq 0 ] && echo "test_themes-css: GREEN" || { echo "test_themes-css: RED — $failures"; exit 1; }

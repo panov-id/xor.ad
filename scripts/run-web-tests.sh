@@ -10,6 +10,8 @@
 # share containers or a database.
 set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# The brand goes into the stand's SQL and the page's build: one of the two, or no run.
+case "${VITE_BRAND:-sosed}" in sosed|neighbro) ;; *) echo "VITE_BRAND must be sosed or neighbro, not '${VITE_BRAND}'" >&2; exit 2 ;; esac
 project="web-e2e-$$"
 compose=(docker compose -f "$root/docker-compose.web.yml" -p "$project")
 export HOST_UID="$(id -u)" HOST_GID="$(id -g)"
@@ -24,7 +26,10 @@ cleanup() {
   if [ "$keep" -eq 1 ]; then echo "stand kept: ${compose[*]} down -v --rmi local"; return; fi
   "${compose[@]}" down -v --rmi local --remove-orphans >/dev/null 2>&1 || true
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+# A signal ends the run: cleanup alone would let the script go on and bring
+# containers back up with nobody left to take them down.
+trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
 
 echo "== brand ${VITE_BRAND:-sosed}: build and run: postgres, migrations, seed, node, web, e2e"
 "${compose[@]}" up --build --abort-on-container-exit --exit-code-from e2e e2e

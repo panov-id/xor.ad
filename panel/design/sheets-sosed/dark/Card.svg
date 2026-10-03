@@ -22,16 +22,16 @@
 <text id="t26" x="40" y="564" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >fading soon</text>
 </g>
 </g>
-<g role="button" tabindex="0" aria-label="hide (swipe left)"><rect x="48" y="612" width="64" height="64" rx="18" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="hide (swipe left)"><rect x="48" y="612" width="64" height="64" rx="18" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(68.0 632.0) scale(1.0)" fill="none" stroke="#9a8d7c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
 </g>
-<g role="button" tabindex="0" aria-label="details (pull down)"><rect x="155" y="616" width="56" height="56" rx="28.0" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="details (pull down)"><rect x="155" y="616" width="56" height="56" rx="28.0" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(171.0 632.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5 V18 M6.5 12.5 L12 18 L17.5 12.5"/></g>
 </g>
-<g role="button" tabindex="0" aria-label="like (swipe right)"><rect x="263" y="612" width="64" height="64" rx="18" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="like (swipe right)"><rect x="263" y="612" width="64" height="64" rx="18" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(283.0 632.0) scale(1.0)" fill="none" stroke="#e0714f" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
 </g>
-<rect x="16" y="732" width="343" height="64" rx="32" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<rect x="16" y="732" width="343" height="64" rx="32" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <g role="button" tabindex="0" aria-label="feed"><rect x="32" y="740" width="80" height="48" rx="24" fill="#f0e7dc"/>
 <g transform="translate(60 752) scale(1.0)" fill="none" stroke="#0d0b0a" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
 </g>

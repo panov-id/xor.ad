@@ -205,3 +205,7 @@ web.2026-09-26.coldunlock	2026-09-26	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.
 web.2026-09-27.reload-through-pin	2026-09-27	xor.ad/docs/roadmap_RU.md	xor.ad/docs/roadmap_EN.md	любая перезагрузка — только через ПИН, записи вкладки нет	any reload goes only through the PIN, there is no tab record
 chat.2026-10-01.rekey-both	2026-10-01	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.md	Встречный запрос новых ключей засчитывается как согласие	A counter request for new keys counts as consent
 identity.2026-10-01.pin-grant-keep	2026-10-01	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.md	Прежний ПИН, введённый верно, гасит грант первого ПИНа	The old PIN, entered correctly, extinguishes the first-PIN grant
+web.2026-10-01.link-report-feed-card	2026-10-01	xor.ad/docs/roadmap_RU.md	xor.ad/docs/roadmap_EN.md	жалоба на ссылку оффера — только с карточки в ленте	the complaint about an offer's link is made only from the card in the feed
+design.2026-10-02.brand-looks	2026-10-02	xor.ad/docs/design-system-app_RU.md	xor.ad/docs/design-system-app_EN.md	По решению владельца от 02.10.2026 у каждого бренда свой вид	By the owner's decision of 2026-10-02 each brand has its own look
+design.2026-10-02.themes-as-data	2026-10-02	xor.ad/docs/design-system-app_RU.md	xor.ad/docs/design-system-app_EN.md	Темы — данные	Themes are data
+design.2026-10-02.heart-undo-5s	2026-10-02	xor.ad/docs/design-system-app_RU.md	xor.ad/docs/design-system-app_EN.md	5 с его можно снять	for 5 s it can be taken off

@@ -7,7 +7,7 @@
 </g>
 <g role="button" tabindex="0" aria-label="zone: 1 km">
 <rect x="16" y="88" width="140" height="48" rx="24" fill="#262019"/>
-<rect x="16" y="88" width="140" height="48" rx="24" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<rect x="16" y="88" width="140" height="48" rx="24" fill="none" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(30 100) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
 <text id="t6" x="62" y="118" font-family="Golos Text" font-weight="600" font-size="16" fill="#f0e7dc" text-anchor="start" >1 km</text>
 </g>
@@ -57,7 +57,7 @@
 <g role="button" tabindex="0" aria-label="write a phrase"><rect x="287" y="624" width="72" height="72" rx="36" fill="#bd4b2a"/>
 <g transform="translate(311 648) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5 V19 M5 12 H19"/></g>
 </g>
-<rect x="16" y="732" width="343" height="64" rx="32" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<rect x="16" y="732" width="343" height="64" rx="32" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <g role="button" tabindex="0" aria-label="feed"><rect x="32" y="740" width="80" height="48" rx="24" fill="#f0e7dc"/>
 <g transform="translate(60 752) scale(1.0)" fill="none" stroke="#0d0b0a" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
 </g>

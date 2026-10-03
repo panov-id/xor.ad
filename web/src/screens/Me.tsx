@@ -265,10 +265,9 @@ export function StartAgain({ client, onClosed, onBack }: { client: Client; onClo
   return (
     <main className="screen reset" data-screen="reset">
       <HeaderScreen title={say("reset.title")} />
-      <div className="ui-info-row">
-        <Info label={say("reset.title")} warn data-testid="reset-warning-info"><p>{say("reset.warning")}</p></Info>
-        <Info label={say("reset.title")} warn data-testid="reset-code-info"><p>{say("reset.code")}</p></Info>
-      </div>
+      {/* What cannot be undone is said on the screen, not behind ⓘ: the button below is an icon. */}
+      <p className="warn" data-testid="reset-warning">{say("reset.warning")}</p>
+      <p className="warn" data-testid="reset-code">{say("reset.code")}</p>
       <p data-testid="reset-price">{counts ? say("reset.price", { phrases: String(counts.phrases), chats: String(counts.chats) }) : "…"}</p>
       <label>
         {say("reset.pin")}

@@ -43,14 +43,20 @@ async function carry(page: Page, to: { x: number; y: number }): Promise<void> {
 test("neighbro heart: drag, tap-tap and Enter place it; the like goes after 5 s; undo inside 5 s sends nothing", async ({ browser }) => {
   test.setTimeout(240_000);
   const label = runLabel();
-  const lines = ["сердце перетащить", "сердце снять", "сердце клавишей"].map((l) => `${l} ${label}`);
+  const lines = ["сердце перетащить", "сердце снять", "сердце клавишей", "сердце и скрыть", "сердце и блок"].map((l) => `${l} ${label}`);
   const contexts: BrowserContext[] = [];
   try {
     const a = await (await browser.newContext()).newPage();
     contexts.push(a.context());
     await register(a, { name: "Аня", age: "28" });
     if ((await a.locator("html").getAttribute("data-brand")) !== "neighbro") test.skip(true, "the heart pad is neighbro's; this build is another brand");
-    for (const line of lines) await writePhrase(a, line);
+    for (const line of lines.slice(0, 3)) await writePhrase(a, line);
+    // Four live phrases is a person's ceiling (feed_limits.ts): the hide and
+    // block cases get their own author, who is also the one blocked.
+    const c = await (await browser.newContext()).newPage();
+    contexts.push(c.context());
+    await register(c, { name: "Вера", age: "35" });
+    for (const line of lines.slice(3)) await writePhrase(c, line);
 
     const b = await (await browser.newContext()).newPage();
     contexts.push(b.context());
@@ -106,6 +112,25 @@ test("neighbro heart: drag, tap-tap and Enter place it; the like goes after 5 s;
     await expect(screen, "Enter placed the heart").toHaveAttribute("data-heart", "pending");
     await expect(b.getByTestId("liked")).toBeVisible({ timeout: 15000 });
     expect(seen.map((l) => l.id)).toEqual([keyId]);
+    await b.getByTestId("back").click();
+
+    // 5–6. Hiding or blocking inside the window takes the heart off: leaving
+    // the card must not send the like the person was walking away from.
+    for (const [line, why] of [[lines[3], "hidden"], [lines[4], "blocked"]] as const) {
+      seen.length = 0;
+      await open(b, line);
+      await b.getByTestId("heart").click();
+      await b.getByTestId("heart-target").click();
+      await expect(screen).toHaveAttribute("data-heart", "pending");
+      if (why === "hidden") await b.getByTestId("hide").click();
+      else {
+        await b.getByTestId("block").click();
+        await b.getByTestId("block-confirm-yes").click();
+      }
+      await expect(b.getByTestId("gone")).toHaveAttribute("data-why", why);
+      await b.waitForTimeout(6000);
+      expect(seen, `${why} inside the window: no POST /feed/:id/like`).toEqual([]);
+    }
   } finally {
     for (const c of contexts) await c.close();
   }

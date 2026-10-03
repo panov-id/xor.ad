@@ -14,13 +14,13 @@
 <text id="t2" x="16" y="486" font-family="Golos Text" font-weight="600" font-size="28" fill="#f0e7dc" text-anchor="start" letter-spacing="-0.01em" >What neighbours</text>
 <text id="t3" x="16" y="522" font-family="Golos Text" font-weight="600" font-size="28" fill="#f0e7dc" text-anchor="start" letter-spacing="-0.01em" >say nearby</text>
 <text id="t4" x="16" y="560" font-family="Golos Text" font-weight="400" font-size="20" fill="#9a8d7c" text-anchor="start" >What's said fades.</text>
-<g role="button" tabindex="0" aria-label="language: English"><rect x="311" y="450" width="48" height="48" rx="24.0" fill="#262019" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="language: English"><rect x="311" y="450" width="48" height="48" rx="24.0" fill="#262019" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(323.0 462.0) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12 H20.5 M12 3.5 C9 7 9 17 12 20.5 C15 17 15 7 12 3.5"/></g>
 </g>
 <g role="button" tabindex="0" aria-label="start"><rect x="16" y="652" width="343" height="64" rx="32" fill="#bd4b2a"/>
 <g transform="translate(175 672) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
 </g>
-<g role="button" tabindex="0" aria-label="restore with paper code"><rect x="16" y="724" width="343" height="56" rx="28" fill="none" stroke="#3a2e20" stroke-width="1.5"/>
+<g role="button" tabindex="0" aria-label="restore with paper code"><rect x="16" y="724" width="343" height="56" rx="28" fill="none" stroke="#745c40" stroke-width="1.5"/>
 <g transform="translate(175 740) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/></g>
 </g>
 </svg>

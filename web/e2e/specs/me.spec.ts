@@ -98,6 +98,8 @@ test("me: the name to the queue, the PIN changed and the vault re-sealed, away a
   await page.getByTestId("me-reset").click();
   await expect(page.locator('[data-screen="reset"]')).toBeVisible();
   await expect(page.getByTestId("reset-price")).toContainText("исчезнет фраз: 0", { timeout: 15000 });
+  // What cannot be undone is on the screen before the PIN, not behind ⓘ.
+  for (const id of ["reset-warning", "reset-code"]) await expect(page.getByTestId(id), `${id} is visible`).toBeVisible();
   await page.getByTestId("reset-pin").fill("246810");
   await page.getByTestId("reset-go").click();
   await expect(page.locator('[data-screen="splash"]')).toBeVisible({ timeout: 30000 });

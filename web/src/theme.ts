@@ -1,4 +1,4 @@
-// The brand's theme on <html> (contract web/design/gen/themes.md): data-brand
+// The brand's theme on <html> (contract docs/design/themes_EN.md): data-brand
 // from the build (config.ts BRAND, passed in), data-theme from the person's
 // choice kept on this device under `theme:<brand>`. themes.gen.css draws each
 // [data-brand][data-theme] pair; themes.gen.ts lists them.

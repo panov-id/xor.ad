@@ -2514,3 +2514,21 @@ test("the point's screen shows the density step under the radius, keeps it acros
   assert.doesNotMatch(bare.lastFrame()!, /рядом|никого/, "a step was drawn with no hook to ask");
   bare.unmount();
 });
+
+// W14-FD · a point that stops being a point takes its step away: the word
+// under the radius belongs to the point typed, not to the last valid one.
+test("the density step goes when the point becomes invalid", async () => {
+  const density = () => Promise.resolve({ status: 200, body: { step: "tens" } });
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Location, { say, onDone: () => {}, density: density as any }));
+  await settle();
+  await type(app, "9", DOWN, "30");
+  await settle(150);
+  assert.match(app.lastFrame()!, /рядом десятки/, "the step did not come for a valid point");
+  // Latitude 9 becomes 95: no longer a point.
+  await type(app, UP, "5");
+  await settle(150);
+  assert.match(app.lastFrame()!, /95/, "the latitude did not take the digit");
+  assert.doesNotMatch(app.lastFrame()!, /рядом десятки/, "the step of the old point stayed under an invalid one");
+  app.unmount();
+});

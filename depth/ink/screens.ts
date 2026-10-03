@@ -190,7 +190,9 @@ export function Location(
   // last step stands, as in the web). Only a step the node names is drawn.
   const [step, setStep] = useState<string | null>(null);
   useEffect(() => {
-    if (!density || !ok) return;
+    if (!density) return;
+    // No point, no step: the word belongs to the point typed.
+    if (!ok) { setStep(null); return; }
     let live = true;
     density({ lat: numbers.lat, lon: numbers.lon, radius })
       .then((answer) => {

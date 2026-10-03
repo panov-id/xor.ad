@@ -32,6 +32,8 @@ interface Line {
   id: string; text: string; mine: boolean; at: number; state?: "sent" | "queued" | "failed";
   // An extra like (§8.7): a card in the middle, not a bubble.
   extra?: { position: number; direction: "they_liked_yours" | "you_liked_theirs" };
+  // A line the node wrote, not the other side (§8.2: the changed age; W14-AG).
+  system?: boolean;
 }
 
 // A starter of the conversation (chat spec: "Liked, in order"; relay
@@ -53,6 +55,8 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
   // tab did not see (§8.8): the row's last activity after the newest moment
   // this tab saw — said once on opening, taken off by what then arrives.
   const [peerAway, setPeerAway] = useState(false);
+  // The other side's age as the header shows it: the row's, then the node's age_changed (W14-AG).
+  const [peerAge, setPeerAge] = useState<number>(row.age);
   const [missed, setMissed] = useState(() => missedSince(given.id, given.last_activity_at));
   const [keysState, setKeysState] = useState<"opening" | "open" | "failed">("opening");
   const [keysError, setKeysError] = useState<string | null>(null);
@@ -194,6 +198,17 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         }
         case "sys": {
           if (isPeerAway(event.data)) { setPeerAway(true); break; }
+          // The other side changed their age (§8.2 :1449; W14-AG): one system
+          // line, the header follows. Only a number the node sent is a number.
+          const sys = event.data as { kind?: unknown; age?: unknown } | null;
+          if (sys?.kind === "age_changed") {
+            if (typeof sys.age === "number" && Number.isFinite(sys.age)) {
+              const age = sys.age;
+              setPeerAge(age);
+              setLines((was) => [...was, { id: `age-${Date.now()}-${age}`, text: say("chat.ageChanged", { age: String(age) }), mine: false, at: Date.now() / 1000, system: true }]);
+            }
+            break;
+          }
           const type = (event.data as { type?: unknown } | null)?.type;
           if (type === "board" || type === "proposal") {
             setGameBump((n) => n + 1);
@@ -272,7 +287,7 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
         <button type="button" className="ui-icon" onClick={onBack} data-testid="back" aria-label={say("common.back")}>
           <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><path d="M26 14 L18 22 L26 30" /></svg>
         </button>
-        <h1 className="ui-header-title">{row.name}, {row.age}{peerAway && <span className="muted peer-away" data-testid="peer-away"> · {say("chat.peerAway")}</span>}</h1>
+        <h1 className="ui-header-title">{row.name}, {peerAge}{peerAway && <span className="muted peer-away" data-testid="peer-away"> · {say("chat.peerAway")}</span>}</h1>
       </header>
       {!over && missed && (
         <p className="warn" data-testid="missed">{say("web.chat.missed")}</p>
@@ -349,6 +364,8 @@ export function Chat({ client, keys, row: given, onBack }: { client: Client; key
             <span className="starter-mark">{l.extra.position}. {say(l.extra.direction === "they_liked_yours" ? "web.chat.extra_they" : "web.chat.extra_you")}</span>
             <q>{l.text}</q>
           </li>
+        ) : l.system ? (
+          <li key={l.id} className="line system muted" data-testid="system">{l.text}</li>
         ) : (
           <li key={l.id} className={`line ${l.mine ? "mine" : "theirs"}`} data-testid={l.mine ? "mine" : "theirs"} data-state={l.state ?? ""}>
             {l.text}

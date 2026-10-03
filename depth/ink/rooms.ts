@@ -341,6 +341,8 @@ export function Chat(
 ): ReactElement {
   const [lines, setLines] = useState<Array<{
     mine: boolean; text: string; broken?: boolean;
+    // A line the node wrote, not the other side (§8.2: the changed age).
+    system?: boolean;
     // An extra like (§8.7): a card in the middle with the header's number.
     extra?: { position: number; direction: "they_liked_yours" | "you_liked_theirs" };
   }>>([]);
@@ -373,6 +375,9 @@ export function Chat(
   const [blocking, setBlocking] = useState(false);
   const [peerAway, setPeerAway] = useState(false);
   const [missed, setMissed] = useState(false);
+  // The other side's age as the header shows it: from the row, then from
+  // the node's age_changed (W14-AG).
+  const [peerAge, setPeerAge] = useState(age);
   // The key reissue of §8.13 (T16): one side asks for new keys, the other is
   // asked and agrees; until then new lines do not open. `peerAsks` is the
   // question on this side, `waiting` is one's own request not yet answered,
@@ -548,6 +553,17 @@ export function Chat(
             setPeerAway(true);
             continue;
           }
+          // The other side changed their age (§8.2 :1449; W14-AG): the node
+          // writes one system line to every open room, the client draws it
+          // and the header follows. Only a number the node sent is a number.
+          const sys = frame.type === "sys" ? frame.data as { kind?: string; age?: unknown } | null : null;
+          if (sys?.kind === "age_changed") {
+            if (typeof sys.age === "number" && Number.isFinite(sys.age)) {
+              setPeerAge(sys.age);
+              setLines((all) => [...all, { mine: false, system: true, text: say("chat.ageChanged", { age: plain(sys.age, 3) }) }]);
+            }
+            continue;
+          }
           if (frame.type === "rekey") {
             const epoch = (frame.data as { epoch?: unknown } | null)?.epoch;
             await readRekey(typeof epoch === "number" ? epoch : undefined).catch((e: Error) => onError(e.message));
@@ -619,7 +635,7 @@ export function Chat(
     return h(
       Box,
       { flexDirection: "column", gap: 1 },
-      h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(age, 3) }) }),
+      h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(peerAge, 3) }) }),
       h(Text, { color: "red" }, say(over === "expired" ? "chat.expired" : "chat.ended")),
       h(Menu, {
         actions: [{ key: "feed", label: say("chat.toFeed") }],
@@ -631,7 +647,7 @@ export function Chat(
   return h(
     Box,
     { flexDirection: "column", gap: 1 },
-    h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(age, 3) }) }),
+    h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(peerAge, 3) }) }),
     h(
       Text,
       counting ? { color: "red" } : { dimColor: true },
@@ -665,9 +681,11 @@ export function Chat(
           )
           : h(
           Text,
-          { key: i, dimColor: l.broken === true },
+          { key: i, dimColor: l.broken === true || l.system === true },
           l.broken === true
             ? `· ${say("chat.broken", { message: plain(l.text, 120) })}`
+            : l.system === true
+            ? `· ${l.text}`
             : l.mine
             ? `${say("chat.send")}: ${plain(l.text)}`
             : `${plain(name, 48)}: ${plain(l.text)}`,

@@ -231,6 +231,9 @@ export function Location(
 // DENSITY_STEPS; chat spec §8.3): a word each, never a number.
 const DENSITY_STEPS = ["none", "few", "about_ten", "tens", "hundreds"];
 
+// The moment the feed last read the inbox's count, in this process only.
+let feedLook: number | undefined;
+
 type Phrase = {
   id: string; text: string; name?: string; age?: number; distance_m?: number; minutes_ago?: number; liked?: boolean;
   like_count?: number; soon?: boolean; offer?: unknown;
@@ -278,11 +281,15 @@ export function Feed(
   // (relay lib/inbox_events.ts phrases_refused) — no id, no text, so the line
   // names no phrase. Read once on entering the feed; a new phrase of one's own
   // puts it out. Not an error when the inbox is out of reach: the feed stands.
+  // One page, not the rows (W14-IE): `since` is the feed's last look in this
+  // run — depth keeps no history on disk — so what was said is not said again.
   const [refused, setRefused] = useState(0);
   useEffect(() => {
+    const since = feedLook;
+    feedLook = Math.floor(Date.now() / 1000);
     Promise.resolve()
-      .then(() => client.inboxSince())
-      .then(({ events }) => setRefused(events?.phrases_refused ?? 0))
+      .then(() => client.inboxEvents(since))
+      .then((events) => setRefused(events?.phrases_refused ?? 0))
       .catch(() => setRefused(0));
   }, []);
   const chosen = items?.[at];

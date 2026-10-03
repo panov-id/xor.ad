@@ -294,7 +294,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
       case "location":
         // Straight to the feed: `feed` reads `place` of this render, which the
         // point just set is not in yet.
-        return h(Location, { say, place, onDone: (next) => { setPlace(next); setWhere({ screen: "feed" }); } });
+        return h(Location, { say, place, onDone: (next) => { setPlace(next); setWhere({ screen: "feed" }); }, density: (at) => client.density(at) });
       case "complaint":
         return h(Complaint, { say, client, offerId: where.offerId, onBack: () => setWhere({ screen: "feed" }) });
       case "feed":

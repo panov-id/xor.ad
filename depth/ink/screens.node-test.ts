@@ -2477,3 +2477,58 @@ test("the refusal names the attempts left, and from three down what the tenth mi
   }
   assert.equal(pinMismatch(say, undefined), "ПИН не подходит. Осталось попыток: ?");
 });
+
+// W14-FD · the density step under the radius on the point's screen (chat spec
+// §8.3: a step, never a number; the web's header has it). Asked for every
+// valid point and radius; a refusal keeps the last step; without the hook
+// nothing is drawn.
+test("the point's screen shows the density step under the radius, keeps it across a refusal, and draws nothing without the hook", async () => {
+  const asked: Array<{ lat: number; lon: number; radius: number }> = [];
+  let answer: { status: number; body: { step?: string } } = { status: 200, body: { step: "tens" } };
+  const density = (at: { lat: number; lon: number; radius: number }) => { asked.push(at); return Promise.resolve(answer); };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Location, { say, onDone: () => {}, density: density as any }));
+  await settle();
+  assert.doesNotMatch(app.lastFrame()!, /рядом|никого/, "a step was drawn before any point was typed");
+  await type(app, "59.93", DOWN, "30.33");
+  await settle(150);
+  assert.match(app.lastFrame()!, /рядом десятки/, "the step did not come under the radius");
+  assert.deepEqual(asked.at(-1), { lat: 59.93, lon: 30.33, radius: 1000 }, "the node was not asked for the point as typed");
+  // The radius turns, the node answers another step.
+  answer = { status: 200, body: { step: "none" } };
+  await type(app, DOWN, RIGHT);
+  await settle(150);
+  assert.match(app.lastFrame()!, /здесь пока никого/, "the step did not follow the radius");
+  // The handle's own limit: 429 keeps the last step, nothing else is said.
+  answer = { status: 429, body: {} };
+  await type(app, RIGHT);
+  await settle(150);
+  assert.match(app.lastFrame()!, /здесь пока никого/, "a refusal took the step away");
+  assert.doesNotMatch(app.lastFrame()!, /429|пошло не так/, "a refusal of the handle was said as an error");
+  app.unmount();
+
+  const bare = render(h(Location, { say, onDone: () => {} }));
+  await settle();
+  await type(bare, "59.93", DOWN, "30.33");
+  await settle(150);
+  assert.doesNotMatch(bare.lastFrame()!, /рядом|никого/, "a step was drawn with no hook to ask");
+  bare.unmount();
+});
+
+// W14-FD · a point that stops being a point takes its step away: the word
+// under the radius belongs to the point typed, not to the last valid one.
+test("the density step goes when the point becomes invalid", async () => {
+  const density = () => Promise.resolve({ status: 200, body: { step: "tens" } });
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Location, { say, onDone: () => {}, density: density as any }));
+  await settle();
+  await type(app, "9", DOWN, "30");
+  await settle(150);
+  assert.match(app.lastFrame()!, /рядом десятки/, "the step did not come for a valid point");
+  // Latitude 9 becomes 95: no longer a point.
+  await type(app, UP, "5");
+  await settle(150);
+  assert.match(app.lastFrame()!, /95/, "the latitude did not take the digit");
+  assert.doesNotMatch(app.lastFrame()!, /рядом десятки/, "the step of the old point stayed under an invalid one");
+  app.unmount();
+});

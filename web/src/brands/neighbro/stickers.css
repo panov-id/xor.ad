@@ -22,7 +22,7 @@
 .b-stickers .sticker .offer { color: inherit; font-weight: 700; }
 .b-stickers .sticker-foot { display: flex; justify-content: space-between; font-size: 14px; font-weight: 400; }
 .b-stickers .sticker-likes, .b-stickers .sticker-count { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
-.b-stickers .sticker:focus-visible, .b-stickers .sticker-card:focus-visible { outline: 3px solid var(--focus); outline-offset: 6px; }
+.b-stickers .sticker:has(> .card-open:focus-visible), .b-stickers .sticker-card:focus-visible { outline: 3px solid var(--focus); outline-offset: 6px; }
 
 /* Card.svg: the phrase 343×272 in tile-1, the pad 351×76 under it. */
 .b-stickers .sticker-card { min-height: 272px; background: var(--tile-1); color: var(--tile-1-ink); }

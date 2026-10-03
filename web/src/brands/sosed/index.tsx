@@ -9,6 +9,7 @@ import { useState, type ComponentProps } from "react";
 import { modes } from "../../api/actions.ts";
 import { say } from "../../locales/say.ts";
 import { Feed, type FeedCard } from "../../screens/Feed.tsx";
+import { CardOpen, openerIds } from "../../ui/Card.tsx";
 import { Card, CardExtras, CardNotes } from "../../screens/Card.tsx";
 import { Life, Match, MatchBody } from "../../screens/Match.tsx";
 import { useCard } from "../../screens/logic/useCard.ts";
@@ -64,14 +65,11 @@ function Tile({ card, index, open }: { card: FeedCard; index: number; open: () =
       className={`tile tile-c${(index % 4) + 1}${wide ? " tile-wide" : ""}`}
       data-testid="card"
       data-id={card.id}
-      role="button"
-      tabIndex={0}
-      onClick={open}
-      onKeyDown={(k) => (k.key === "Enter" || k.key === " ") && (k.preventDefault(), open())}
     >
+      <CardOpen id={card.id} onOpen={open} />
       {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
-      <p lang={langOf(card)}>{card.text}</p>
-      <span className="tile-foot">
+      <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
+      <span className="tile-foot" id={openerIds(card.id).foot}>
         <span>{modeLabel(card.mode)}{langOf(card) ? ` · ${card.lang}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
         <span className="tile-likes"><Icon name="like" size={18} />{card.like_count}</span>
       </span>

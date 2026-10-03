@@ -75,6 +75,24 @@ for lang in langs:
     for k in other:
         if k not in ru_web:
             bad.append(f"{lang}: лишний ключ {k}")
+# P9 (panel 03.10.2026): a key translated in one language and left as the
+# Russian copy in another is a half-done translation — five aria labels sat in
+# Russian in fifteen dictionaries while English had them. Most of the web
+# dictionary is still the Russian copy everywhere (not translated yet, not this
+# rule's business); the rule fires only once a key has been translated at all.
+# A word that is truly the same in a Cyrillic language is named here.
+SAME_AS_RU = {("be", "web.game.set"), ("be", "web.game.you"), ("be", "web.game.your_turn"),
+              ("ky", "web.theme.item"), ("ky", "web.theme.title"),
+              ("uk", "web.theme.item"), ("uk", "web.theme.title"),
+              ("be", "web.card.phrase"), ("uk", "web.card.phrase")}
+dicts = {lang: json.loads((locales / f"{lang}.json").read_text())
+         for lang in langs if lang != "ru" and (locales / f"{lang}.json").exists()}
+for k, v in ru_web.items():
+    if not any(d.get(k) != v for d in dicts.values()):
+        continue
+    for lang, d in sorted(dicts.items()):
+        if d.get(k) == v and (lang, k) not in SAME_AS_RU:
+            bad.append(f"{lang}: {k} осталась русской («{v[:40]}»), хотя в других языках переведена")
 for k in sorted(used):
     if k not in ru_web and k not in ru_depth:
         bad.append(f"say(\"{k}\"): такого ключа нет ни у веба, ни у терминала")

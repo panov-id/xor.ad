@@ -316,9 +316,9 @@
   "web.theme.item": "temă",
   "web.theme.title": "Temă",
   "web.theme.auto": "auto — ziua și noaptea locului",
-  "web.card.details": "подробности",
-  "web.card.heart": "сердце: перетащите на фразу или нажмите, потом на фразу",
-  "web.card.heart_wait": "лайк уйдёт через {n} с — можно снять",
-  "web.card.likes": "лайков:",
-  "web.card.phrase": "фраза"
+  "web.card.details": "detalii",
+  "web.card.heart": "inimă: trage-o pe frază sau atinge-o, apoi fraza",
+  "web.card.heart_wait": "aprecierea pleacă în {n} s — o poți retrage",
+  "web.card.likes": "aprecieri:",
+  "web.card.phrase": "frază"
 }

@@ -316,9 +316,9 @@
   "web.theme.item": "თემა",
   "web.theme.title": "თემა",
   "web.theme.auto": "ავტო — ადგილის დღე და ღამე",
-  "web.card.details": "подробности",
-  "web.card.heart": "сердце: перетащите на фразу или нажмите, потом на фразу",
-  "web.card.heart_wait": "лайк уйдёт через {n} с — можно снять",
-  "web.card.likes": "лайков:",
-  "web.card.phrase": "фраза"
+  "web.card.details": "დეტალები",
+  "web.card.heart": "გული: გადაიტანეთ ფრაზაზე ან შეეხეთ, შემდეგ ფრაზას",
+  "web.card.heart_wait": "მოწონება წავა {n} წმ-ში — შეგიძლიათ მოხსნა",
+  "web.card.likes": "მოწონებები:",
+  "web.card.phrase": "ფრაზა"
 }

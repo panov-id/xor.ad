@@ -316,9 +316,9 @@
   "web.theme.item": "thème",
   "web.theme.title": "Thème",
   "web.theme.auto": "auto — jour et nuit du lieu",
-  "web.card.details": "подробности",
-  "web.card.heart": "сердце: перетащите на фразу или нажмите, потом на фразу",
-  "web.card.heart_wait": "лайк уйдёт через {n} с — можно снять",
-  "web.card.likes": "лайков:",
-  "web.card.phrase": "фраза"
+  "web.card.details": "détails",
+  "web.card.heart": "cœur : faites-le glisser sur la phrase, ou touchez-le puis la phrase",
+  "web.card.heart_wait": "le like part dans {n} s — vous pouvez le retirer",
+  "web.card.likes": "likes :",
+  "web.card.phrase": "phrase"
 }

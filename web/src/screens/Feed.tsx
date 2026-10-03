@@ -11,7 +11,7 @@ import type { Client, Radius } from "../../../depth/core/client.ts";
 import { nearby } from "../a11y/nearby.ts";
 import { modes, type Sent } from "../api/actions.ts";
 import { Button } from "../ui/Button.tsx";
-import { Card } from "../ui/Card.tsx";
+import { Card, CardOpen, openerIds } from "../ui/Card.tsx";
 import { HeaderFeed } from "../ui/Header.tsx";
 import { useFeed } from "./logic/useFeed.ts";
 import { say } from "../locales/say.ts";
@@ -131,22 +131,23 @@ export function Feed(
       <ul className={listClass ?? "cards"} data-testid="cards">
         {items.filter((card) => card.id !== gone?.id).map((card, index) => card.kind === "table"
           ? (
-            <Card as="li" key={card.id} kind="nested" className="table-card" data-testid="table-card" data-id={card.id} onClick={() => onTable?.(card.id)} role="button" tabIndex={0}
-              onKeyDown={(k) => (k.key === "Enter" || k.key === " ") && onTable?.(card.id)}>
-              <p>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {card.game} {card.set}</p>
-              <span className="muted">{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · ♥ {card.like_count ?? 0}</span>
+            <Card as="li" key={card.id} kind="nested" className="table-card" data-testid="table-card" data-id={card.id}>
+              <CardOpen id={card.id} onOpen={() => onTable?.(card.id)} />
+              <p id={openerIds(card.id).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {card.game} {card.set}</p>
+              <span className="muted" id={openerIds(card.id).foot}>{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · ♥ {card.like_count ?? 0}</span>
             </Card>
           )
           : renderPhrase
           ? <Fragment key={card.id}>{renderPhrase(card, index, () => onOpen(card))}</Fragment>
           : (
-          <Card as="li" key={card.id} data-testid="card" data-id={card.id} onClick={() => onOpen(card)} role="button" tabIndex={0}>
+          <Card as="li" key={card.id} data-testid="card" data-id={card.id}>
+            <CardOpen id={card.id} onOpen={() => onOpen(card)} />
             {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
             {/* The node files every phrase as "und" (relay routes/feed.ts): an
                 undetermined language is no word for a person and no lang for a
                 reader; a known one is both. */}
-            <p lang={card.lang && card.lang !== "und" ? card.lang : undefined}>{card.text}</p>
-            <span className="muted">{modes().find((m) => m.value === card.mode)?.label ?? card.mode}{card.lang && card.lang !== "und" ? ` · ${card.lang}` : ""} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
+            <p id={openerIds(card.id).text} lang={card.lang && card.lang !== "und" ? card.lang : undefined}>{card.text}</p>
+            <span className="muted" id={openerIds(card.id).foot}>{modes().find((m) => m.value === card.mode)?.label ?? card.mode}{card.lang && card.lang !== "und" ? ` · ${card.lang}` : ""} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
           </Card>
           ))}
       </ul>

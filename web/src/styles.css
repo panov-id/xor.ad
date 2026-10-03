@@ -45,8 +45,13 @@ footer { margin-top: auto; }
 textarea { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--border-control); border-radius: var(--r-1); padding: 10px var(--s-3); resize: vertical; }
 textarea:focus { outline: none; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--s-2); }
-.card[role="button"] { cursor: pointer; }
-.card[role="button"]:hover { border-color: var(--accent); }
+/* P8 (panel 03.10.2026): a card in a feed stays a list item; what is pressed
+   is a real button laid over it (ui/Card.tsx CardOpen), named by the phrase. */
+li:has(> .card-open) { position: relative; }
+.card-open { position: absolute; inset: 0; z-index: 1; margin: 0; padding: 0; min-height: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
+.card-open:focus-visible { outline: none; }
+li:has(> .card-open:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+.card:has(> .card-open):hover, .ui-card:has(> .card-open):hover { border-color: var(--accent); }
 .phrase { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-6) 0; }
 .big { font-size: 26px; line-height: 1.25; margin: 0; }
 .confirm { display: flex; flex-direction: column; gap: var(--s-3); border: 1px solid var(--err); border-radius: var(--r-2); padding: var(--s-4); }

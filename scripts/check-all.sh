@@ -144,6 +144,11 @@ run check-web-tokens           bash "$here/check-web-tokens.sh"
 run check-web-i18n             bash "$here/check-web-i18n.sh"
 run check-web-themes           python3 "$here/design/themes-css.py" --check
 run test-web-themes            bash "$here/test_themes-css.sh"
+# O10 (panel 03.10.2026): a full disk first, by name — otherwise a stand build
+# dies of it and reads as a red test. df only, milliseconds.
+run check-disk                 bash "$here/check-disk.sh"
+run test-check-disk            bash "$here/test_check-disk.sh"
+run test-moderation-bench      bash "$here/test_moderation-bench.sh"
 
 # Ворота, которым нужен контейнер. Докера нет — это пропуск с названной
 # причиной, а не провал: провал заставил бы обходить его руками, и обходили бы.

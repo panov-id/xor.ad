@@ -316,9 +316,9 @@
   "web.theme.item": "мавзӯъ",
   "web.theme.title": "Мавзӯъ",
   "web.theme.auto": "худкор — рӯз ва шаби макон",
-  "web.card.details": "подробности",
-  "web.card.heart": "сердце: перетащите на фразу или нажмите, потом на фразу",
-  "web.card.heart_wait": "лайк уйдёт через {n} с — можно снять",
-  "web.card.likes": "лайков:",
-  "web.card.phrase": "фраза"
+  "web.card.details": "тафсилот",
+  "web.card.heart": "дил: ба ибора кашед ё пахш кунед, баъд ибораро",
+  "web.card.heart_wait": "лайк пас аз {n} с меравад — метавонед бекор кунед",
+  "web.card.likes": "лайкҳо:",
+  "web.card.phrase": "ибора"
 }

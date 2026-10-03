@@ -30,3 +30,18 @@ export function LikeBurst({ count, on, ...rest }: { count: number; on: boolean }
     </span>
   );
 }
+
+// P8 (panel 03.10.2026): a feed card used to be <li role="button">, which
+// turns the list item into a button and the list into a list of nothing. The
+// item stays an item; this transparent button covers it, takes the press and
+// the keys natively, and is named by the phrase and described by the line
+// under it (ids from openerIds).
+export function openerIds(id: string): { text: string; foot: string } {
+  const base = `card-${id.replace(/[^A-Za-z0-9_-]/g, "_")}`;
+  return { text: `${base}-text`, foot: `${base}-foot` };
+}
+
+export function CardOpen({ id, onOpen }: { id: string; onOpen: () => void }) {
+  const ids = openerIds(id);
+  return <button type="button" className="card-open" data-testid="card-open" aria-labelledby={ids.text} aria-describedby={ids.foot} onClick={onOpen} />;
+}

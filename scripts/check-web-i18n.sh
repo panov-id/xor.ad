@@ -75,24 +75,105 @@ for lang in langs:
     for k in other:
         if k not in ru_web:
             bad.append(f"{lang}: лишний ключ {k}")
-# P9 (panel 03.10.2026): a key translated in one language and left as the
-# Russian copy in another is a half-done translation — five aria labels sat in
-# Russian in fifteen dictionaries while English had them. Most of the web
-# dictionary is still the Russian copy everywhere (not translated yet, not this
-# rule's business); the rule fires only once a key has been translated at all.
-# A word that is truly the same in a Cyrillic language is named here.
-SAME_AS_RU = {("be", "web.game.set"), ("be", "web.game.you"), ("be", "web.game.your_turn"),
-              ("ky", "web.theme.item"), ("ky", "web.theme.title"),
-              ("uk", "web.theme.item"), ("uk", "web.theme.title"),
-              ("be", "web.card.phrase"), ("uk", "web.card.phrase")}
+# P9 (panel 03.10.2026), tightened the same day: every web.* key that reads
+# exactly as the Russian in a non-Russian dictionary is red — an untranslated
+# copy, whether or not any other language has translated it yet. A word that is
+# truly the same in a Cyrillic language (a cognate, a unit, a loanword) is named
+# below, per language and per key; anything not named here must differ from ru.
+SAME_AS_RU = {
+    "be": {
+        "web.composer.zone",  # зона
+        "web.composer.scheme",  # схема, не карта
+        "web.composer.phrase",  # фраза
+        "web.feed.km",  # {n} км
+        "web.feed.m",  # {n} м
+        "web.game.set",  # Набор
+        "web.game.you",  # вы
+        "web.game.your_turn",  # Ваш ход
+        "web.newTable.set",  # набор
+        "web.table.boneyard",  # базар: {count}
+        "web.table.card",  # карта {card}
+        "web.table.con_won",  # кон мой
+        "web.table.right",  # {bone} справа
+        "web.card.phrase",  # фраза
+    },
+    "kk": {
+        "web.cabinet.field.promo",  # промокод
+        "web.cabinet.radius",  # радиус, м
+        "web.chat.line",  # реплика
+        "web.composer.mode",  # режим
+        "web.feed.m",  # {n} м
+        "web.table.boneyard",  # базар: {count}
+        "web.table.card",  # карта {card}
+        "web.table.piece",  # фишка x:y
+        "web.table.stock",  # колода: {count}
+        "web.transfer.browser",  # браузер
+    },
+    "ky": {
+        "web.cabinet.email",  # почта
+        "web.cabinet.field.promo",  # промокод
+        "web.cabinet.field.text",  # текст
+        "web.cabinet.radius",  # радиус, м
+        "web.composer.mode",  # режим
+        "web.feed.m",  # {n} м
+        "web.table.boneyard",  # базар: {count}
+        "web.table.card",  # карта {card}
+        "web.table.piece",  # фишка x:y
+        "web.table.stock",  # колода: {count}
+        "web.transfer.browser",  # браузер
+        "web.theme.item",  # тема
+        "web.theme.title",  # Тема
+    },
+    "tg": {
+        "web.cabinet.email",  # почта
+        "web.cabinet.field.promo",  # промокод
+        "web.cabinet.radius",  # радиус, м
+        "web.card.back",  # ← лента
+        "web.feed.km",  # {n} км
+        "web.feed.m",  # {n} м
+        "web.feed.title",  # Лента
+        "web.likes.back",  # ← лента
+        "web.nav.feed",  # лента
+        "web.transfer.browser",  # браузер
+    },
+    "uk": {
+        "web.cabinet.field.promo",  # промокод
+        "web.cabinet.field.text",  # текст
+        "web.cabinet.placeAt",  # точка: {lat}, {lon} · {radius}
+        "web.chat.not_delivered",  # · не доставлено
+        "web.composer.mode",  # режим
+        "web.composer.zone",  # зона
+        "web.composer.phrase",  # фраза
+        "web.feed.km",  # {n} км
+        "web.feed.m",  # {n} м
+        "web.offer.go",  # перейти на {domain}
+        "web.register.done",  # готово
+        "web.reissue.done",  # готово
+        "web.table.boneyard",  # базар: {count}
+        "web.table.card",  # карта {card}
+        "web.table.my_word",  # ваше слово: {word}
+        "web.table.power",  # сила 1–7
+        "web.table.stock",  # колода: {count}
+        "web.transfer.browser",  # браузер
+        "web.theme.item",  # тема
+        "web.theme.title",  # Тема
+        "web.card.phrase",  # фраза
+    },
+}
 dicts = {lang: json.loads((locales / f"{lang}.json").read_text())
          for lang in langs if lang != "ru" and (locales / f"{lang}.json").exists()}
+for lang, keys in SAME_AS_RU.items():
+    for k in sorted(keys):
+        if k not in ru_web:
+            bad.append(f"{lang}: исключение SAME_AS_RU на ключ {k}, которого нет в ru")
+        elif lang in dicts and dicts[lang].get(k) != ru_web[k]:
+            bad.append(f"{lang}: {k} уже не совпадает с ru — убрать из SAME_AS_RU")
 for k, v in ru_web.items():
-    if not any(d.get(k) != v for d in dicts.values()):
+    if not k.startswith("web."):
         continue
     for lang, d in sorted(dicts.items()):
-        if d.get(k) == v and (lang, k) not in SAME_AS_RU:
-            bad.append(f"{lang}: {k} осталась русской («{v[:40]}»), хотя в других языках переведена")
+        if d.get(k) == v and k not in SAME_AS_RU.get(lang, ()):
+            bad.append(f"{lang}: {k} осталась русской («{v[:40]}») и не названа в SAME_AS_RU")
 for k in sorted(used):
     if k not in ru_web and k not in ru_depth:
         bad.append(f"say(\"{k}\"): такого ключа нет ни у веба, ни у терминала")

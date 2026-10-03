@@ -46,9 +46,11 @@ export function watch(page: Page, feedAnswers: number[]): void {
   page.on("requestfailed", (r) => console.log(`[request failed] ${r.method()} ${r.url()} ${r.failure()?.errorText}`));
 }
 
-export async function register(page: Page, who = { name: "Аня", age: "28" }): Promise<string[]> {
+// The splash tagline is checked in the browser's language: Russian unless a
+// spec sets another locale and names its tagline.
+export async function register(page: Page, who = { name: "Аня", age: "28" }, tagline = "Что говорят соседи рядом."): Promise<string[]> {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Что говорят соседи рядом." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: tagline })).toBeVisible();
   await page.getByTestId("start").click();
   await expect(page.locator('[data-screen="register-1"]')).toBeVisible();
   await page.getByTestId("name").fill(who.name);

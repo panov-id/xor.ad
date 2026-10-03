@@ -17,18 +17,12 @@ import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
+import { obviousPin } from "../pinWords.ts";
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 const count = (s: string) => [...graphemes.segment(s)].length;
 const NAME_MAX = 24;
 const AGE_MIN = 13;
-
-function easyPin(pin: string): boolean {
-  if (/^(\d)\1{5}$/.test(pin)) return true;
-  if ("0123456789".includes(pin) || "9876543210".includes(pin)) return true;
-  const year = Number(pin.slice(1, 5));
-  return year >= 1930 && year <= 2020;
-}
 
 export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "failed") => void }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -125,7 +119,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
             {say("web.register.pin_again")}
             <input type="password" value={pinAgain} onChange={(e) => setPinAgain(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" data-testid="pin-again" />
           </label>
-          {pin.length === 6 && easyPin(pin) && <p className="warn">{say("web.register.easy_pin")}</p>}
+          {pin.length === 6 && obviousPin(pin) && <p className="warn">{say("web.register.easy_pin")}</p>}
           {error && <p className="error" data-testid="error">{error}</p>}
           <Button type="button" kind="primary" icon="open" className="ui-wide ui-foot" aria-label={busy ? say("web.register.waiting") : say("reg.next")} aria-busy={busy} disabled={!pinOk || busy} onClick={register} data-testid="register" />
         </>

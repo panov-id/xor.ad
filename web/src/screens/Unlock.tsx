@@ -10,13 +10,15 @@ import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
+import { pinMismatch } from "../pinWords.ts";
 
 // The node's refusal as one line, in the terminal's words (depth/ink/locales/
 // ru.json pin.*, verbatim). 401 is a session the tenth miss froze — the guard
 // answers before the PIN is checked — and reads as the lock; 429 is "too
 // soon", the PIN was not checked, so no attempts are named (verifier of W1c).
 function pinLine(e: PinRefused): string {
-  if (e.code === "pin_mismatch") return say("pin.mismatch", { n: e.attemptsLeft ?? "?" });
+  // With the second sentence of §8.2 on the last three attempts (W14-WP; pinWords.ts).
+  if (e.code === "pin_mismatch") return pinMismatch(e.attemptsLeft);
   if (e.code === "pin_locked" || e.code === "unauthorized" || e.code === "status_401") return say("pin.locked");
   if (e.code === "rate_limited") return say("pin.wait", { n: e.retryAfter ?? "?" });
   return e.message;

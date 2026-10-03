@@ -1,0 +1,33 @@
+{
+ "brand": "neighbro",
+ "id": "light",
+ "name": "Light",
+ "scheme": "light",
+ "source": "neighbro.place landing/index.html lines 85-129 (teal)",
+ "tokens": {
+  "bg": "#e5e6e9",
+  "surface": "#f1f1f3",
+  "surface-2": "#d7d9dd",
+  "fg": "#141618",
+  "fg-muted": "#545b63",
+  "line": "#1a1b1e",
+  "accent": "#1fb39a",
+  "accent-fg": "#04201c",
+  "accent-text": "#126a5c",
+  "danger": "#a3311f",
+  "focus": "#126a5c",
+  "shadow": "#1a1b1e",
+  "tile-1": "#1fb39a",
+  "tile-2": "#cc2f27",
+  "tile-3": "#336eb2",
+  "tile-4": "#8550c5",
+  "tile-5": "#3f9a5c"
+ },
+ "night": "dark",
+ "tile-ink": {
+  "#1fb39a": "#04201c",
+  "#cc2f27": "#fdeceb",
+  "#336eb2": "#eaf2ff",
+  "#8550c5": "#f3ecfd"
+ }
+}

@@ -32,3 +32,4 @@ date	kind	why	example
 2026-09-28	document.stamp	заголовки срезов сравнения веба с листами (WD6b, WD6c), дата работы, а не выбора	xor.ad/docs/design/web-vs-sheets_EN.md:111
 2026-09-29	state.report	срез роадмапа и замеры в нём (curl, count-tests, прогоны), и дата постройки экрана в отчёте спеки чата	xor.ad/docs/roadmap_RU.md:1
 2026-07-07	document.stamp	дата черновика дизайн-системы и обновления прогресса чеклиста ревью, а не выбор	xor.ad/docs/design-system_EN.md:19
+2026-10-03	state.report	срез роадмапа 03.10.2026 и замеры веба и миграций в нём, дата заведения открытых пунктов панели	xor.ad/docs/roadmap_RU.md:1

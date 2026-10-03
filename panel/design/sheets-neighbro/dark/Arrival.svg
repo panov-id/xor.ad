@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812" style="--focus:#1fb39a">
+<defs><style>@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}.h{font-family:"Russo One"}.b{font-family:"Golos Text";font-weight:400}.s{font-family:"Golos Text";font-weight:600}[role=button]:focus-visible,[role=tab]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#202326"/></pattern><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111314"/><stop offset="1" stop-color="#0b0b0c"/></linearGradient></defs>
+<rect width="375" height="812" fill="#0b0b0c"/><rect width="375" height="220" fill="url(#sky)"/><rect width="375" height="812" fill="url(#dots)"/>
+<text id="t1" x="16" y="49" class="h" font-size="22" fill="#e7e8eb" text-anchor="start" >Move here</text>
+<g role="img" aria-label="place phase: night">
+<g transform="rotate(0 336 40)">
+<circle cx="336" cy="40" r="16" fill="#8550c5" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(327.6 31.6) scale(0.700)" fill="none" stroke="#f3ecfd" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M19 15 A8 8 0 1 1 10 4 A6.5 6.5 0 0 0 19 15Z"/></g>
+</g>
+</g>
+<g transform="rotate(-6 187 190)">
+<circle cx="187" cy="190" r="56" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<circle cx="187" cy="190" r="56" fill="#8550c5" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(157.6 160.6) scale(2.450)" fill="none" stroke="#f3ecfd" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><rect vector-effect="non-scaling-stroke" x="12" y="3" width="9" height="18" rx="2"/><path vector-effect="non-scaling-stroke" d="M2 12 H14 M10 8 L14 12 L10 16"/></g>
+</g>
+<g role="button" aria-label="hint" tabindex="0">
+<circle cx="76" cy="290" r="16" fill="#111314" stroke="#585e67" stroke-width="1.5"/>
+<g transform="translate(65.0 279.0) scale(0.917)" fill="none" stroke="#e7e8eb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><circle vector-effect="non-scaling-stroke" cx="12" cy="12" r="9"/><path vector-effect="non-scaling-stroke" d="M12 11 V17"/><circle vector-effect="non-scaling-stroke" cx="12" cy="7.6" r=".6"/></g>
+</g>
+<text id="t2" x="16" y="296" class="b" font-size="16" fill="#838a95" text-anchor="start" >code</text>
+<g transform="rotate(0 32.0 340.0)">
+<rect x="18" y="312" width="28" height="56" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="18" y="312" width="28" height="56" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t3" x="32" y="348" class="s" font-size="22" fill="#e7e8eb" text-anchor="middle" >X</text>
+<g transform="rotate(0 70.0 340.0)">
+<rect x="56" y="312" width="28" height="56" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="56" y="312" width="28" height="56" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t4" x="70" y="348" class="s" font-size="22" fill="#e7e8eb" text-anchor="middle" >6</text>
+<g transform="rotate(0 108.0 340.0)">
+<rect x="94" y="312" width="28" height="56" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="94" y="312" width="28" height="56" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t5" x="108" y="348" class="s" font-size="22" fill="#e7e8eb" text-anchor="middle" >X</text>
+<g transform="rotate(0 146.0 340.0)">
+<rect x="132" y="312" width="28" height="56" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="132" y="312" width="28" height="56" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t6" x="146" y="348" class="s" font-size="22" fill="#e7e8eb" text-anchor="middle" >T</text>
+<g transform="rotate(0 184.0 340.0)">
+<rect x="170" y="312" width="28" height="56" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="170" y="312" width="28" height="56" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t7" x="184" y="348" class="s" font-size="22" fill="#e7e8eb" text-anchor="middle" >8</text>
+<g transform="rotate(0 222.0 340.0)">
+<rect x="208" y="312" width="28" height="56" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="208" y="312" width="28" height="56" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t8" x="222" y="348" class="s" font-size="22" fill="#e7e8eb" text-anchor="middle" >8</text>
+<g transform="rotate(0 260.0 340.0)">
+<rect x="246" y="312" width="28" height="56" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="246" y="312" width="28" height="56" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t9" x="260" y="348" class="s" font-size="22" fill="#e7e8eb" text-anchor="middle" >N</text>
+<g transform="rotate(0 298.0 340.0)">
+<rect x="284" y="312" width="28" height="56" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="284" y="312" width="28" height="56" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<text id="t10" x="298" y="348" class="s" font-size="22" fill="#e7e8eb" text-anchor="middle" >Q</text>
+<g transform="rotate(0 336.0 340.0)">
+<rect x="322" y="312" width="28" height="56" rx="14" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="322" y="312" width="28" height="56" rx="14" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+</g>
+<rect x="335" y="324" width="2" height="32" fill="#1fb39a"/>
+<g role="button" aria-label="done" tabindex="0">
+<rect x="16" y="400" width="343" height="56" rx="28.0" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="16" y="400" width="343" height="56" rx="28.0" fill="#1fb39a" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(174.5 415.0) scale(1.083)" fill="none" stroke="#04201c" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M4 12 L10 18 L20 6"/></g>
+</g>
+<g role="button" aria-label="back" tabindex="0">
+<rect x="16" y="468" width="343" height="56" rx="28.0" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
+<rect x="16" y="468" width="343" height="56" rx="28.0" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
+<g transform="translate(174.5 483.0) scale(1.083)" fill="none" stroke="#e7e8eb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M15 5 L8 12 L15 19"/></g>
+</g>
+</svg>

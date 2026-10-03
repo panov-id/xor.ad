@@ -29,9 +29,7 @@ export function Hidden({ client, onBack }: { client: Client; onBack: () => void 
             {rows.map((row) => (
               <li key={row.id} data-testid="hidden-row">
                 <span className="place-row-text">{row.text}</span>
-                <Button kind="text" type="button" onClick={() => void unhide(client, row.id).then(load).catch((e: Error) => setError(e.message))} data-testid="hidden-restore">
-                  {say("hidden.restore")}
-                </Button>
+                <Button type="button" icon="eye" aria-label={say("hidden.restore")} onClick={() => void unhide(client, row.id).then(load).catch((e: Error) => setError(e.message))} data-testid="hidden-restore" />
               </li>
             ))}
           </ul>

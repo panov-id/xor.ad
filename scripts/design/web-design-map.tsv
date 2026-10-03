@@ -1,30 +1,41 @@
-# shot (testing/screenshots/web/<shot>.png)	sheet (panel/design/<sheet>.svg)	phone (0-based, in the sheet's order)	what the phone shows
-Splash-dark	screen-01-04-05	1	01 · заставка, prefers-reduced-motion: все иконки стоят (съёмка — reducedMotion)
-Composer-dark	screen-01-04-05	2	04 · «фраза», пусто
-Register-1-dark	screen-02	1	02 · шаг 1, заполнено
-Register-2-dark	screen-02	2	02 · шаг 2, ПИН
-Register-dark	screen-02	3	02 · шаг 2, код показан
-Feed-dark	screen-03	0	03 · лента
-Feed-light	screen-brands	9	03 · вторая тема, светлая
-Match-dark	screen-06-07-10	0	06 · A · мэтч
-Match-waiting-dark	screen-06-07-10	1	06 · B · нажали первым
-Inbox-dark	screen-06-07-10	6	07 · G · вкладка «Беседы»
-Me-dark	screen-06-07-10	11	10 · L · «я», настройки
-Blocked-dark	screen-06-07-10	15	10 · P · «Заблокировано»
-Chat-dark	screen-08	0	08 · A · беседа живая
-Me-away-dark	screen-20-21-22-24	0	20 · до выбора срока
-Card-dark	screen-23	0	23 · чужая фраза
-Likes-dark	screen-25	1	25 · пусто
-Cabinet-sign-in-dark	screen-17-venue	0	17 · вход заведения
-Cabinet-offers-dark	screen-17-venue	4	17 · кабинет, офферы
-Offer-dark	screen-17-venue	7	17 · экран перехода
-Unlock-dark	screen-12-13	2	12 · 3 · «12, замок» (подпись в группе телефона)
-Departure-dark	screen-12-13	8	13 А · 9 · «цена числами» — первый шаг переноса
-Arrival-dark	screen-12-13	13	13 Б · 14 · «с заставки: два поля»
-Statements-dark	screen-06-07-10	20	10 · U · «Я» — фраза скрыта, решал человек
-Me-edit-name-dark	screen-06-07-10	18	10 · S · правка поля «я» до сохранения (на листе — возраст)
-NewTable-dark	screen-01-04-05	6	04 · «стол»: игра из трёх, имя
-Table-dark	screen-19	12	19 · A0 · момент посадки
-TableBoards-dark	screen-19	1	19 · B · играющий, ваш ход
-Cabinet-venues-dark	screen-17-venue	1	17 · точка не подтверждена: конверт с кодом
-Cabinet-new-offer-dark	screen-17-venue	2	17 · форма оффера
+# shot (testing/screenshots/<set>/<brand>-<shot>-<theme>.png)	sheet (panel/design/<sheet>.svg)	phone (0-based; a brand sheet is one phone)	what the phone shows
+# Since 02.10.2026 the reference is the brands' sheets, panel/design/sheets-sosed and sheets-neighbro, generated
+# from the theme JSON (web/themes/<brand>/<id>.json) by scripts/design/brand-sheets.sh. Each brand is shot in its
+# light theme and its night pair (dark), forced through localStorage theme:<brand> (scripts/design/shoot-web.mjs),
+# and each shot is set against the same screen of the same theme. The sheets' Card-dark is dark/Card (same drawing).
+sosed-Arrival-light	sheets-sosed/light/Arrival	0	sosed Arrival, theme light
+sosed-Feed-light	sheets-sosed/light/Feed	0	sosed Feed, theme light
+sosed-Card-light	sheets-sosed/light/Card	0	sosed Card, theme light
+sosed-Card-liked-light	sheets-sosed/light/Card-liked	0	sosed Card-liked, theme light
+sosed-Card-more-light	sheets-sosed/light/Card-more	0	sosed Card-more, theme light
+sosed-Composer-light	sheets-sosed/light/Compose	0	sosed Composer, theme light
+sosed-Match-light	sheets-sosed/light/Match	0	sosed Match, theme light
+sosed-Chat-light	sheets-sosed/light/Chat	0	sosed Chat, theme light
+sosed-Me-light	sheets-sosed/light/Profile	0	sosed Me, theme light
+sosed-Arrival-dark	sheets-sosed/dark/Arrival	0	sosed Arrival, theme dark
+sosed-Feed-dark	sheets-sosed/dark/Feed	0	sosed Feed, theme dark
+sosed-Card-dark	sheets-sosed/dark/Card	0	sosed Card, theme dark
+sosed-Card-liked-dark	sheets-sosed/dark/Card-liked	0	sosed Card-liked, theme dark
+sosed-Card-more-dark	sheets-sosed/dark/Card-more	0	sosed Card-more, theme dark
+sosed-Composer-dark	sheets-sosed/dark/Compose	0	sosed Composer, theme dark
+sosed-Match-dark	sheets-sosed/dark/Match	0	sosed Match, theme dark
+sosed-Chat-dark	sheets-sosed/dark/Chat	0	sosed Chat, theme dark
+sosed-Me-dark	sheets-sosed/dark/Profile	0	sosed Me, theme dark
+neighbro-Arrival-light	sheets-neighbro/light/Arrival	0	neighbro Arrival, theme light
+neighbro-Feed-light	sheets-neighbro/light/Feed	0	neighbro Feed, theme light
+neighbro-Card-light	sheets-neighbro/light/Card	0	neighbro Card, theme light
+neighbro-Card-liked-light	sheets-neighbro/light/Card-liked	0	neighbro Card-liked, theme light
+neighbro-Card-more-light	sheets-neighbro/light/Card-more	0	neighbro Card-more, theme light
+neighbro-Composer-light	sheets-neighbro/light/Compose	0	neighbro Composer, theme light
+neighbro-Match-light	sheets-neighbro/light/Match	0	neighbro Match, theme light
+neighbro-Chat-light	sheets-neighbro/light/Chat	0	neighbro Chat, theme light
+neighbro-Me-light	sheets-neighbro/light/Profile	0	neighbro Me, theme light
+neighbro-Arrival-dark	sheets-neighbro/dark/Arrival	0	neighbro Arrival, theme dark
+neighbro-Feed-dark	sheets-neighbro/dark/Feed	0	neighbro Feed, theme dark
+neighbro-Card-dark	sheets-neighbro/dark/Card	0	neighbro Card, theme dark
+neighbro-Card-liked-dark	sheets-neighbro/dark/Card-liked	0	neighbro Card-liked, theme dark
+neighbro-Card-more-dark	sheets-neighbro/dark/Card-more	0	neighbro Card-more, theme dark
+neighbro-Composer-dark	sheets-neighbro/dark/Compose	0	neighbro Composer, theme dark
+neighbro-Match-dark	sheets-neighbro/dark/Match	0	neighbro Match, theme dark
+neighbro-Chat-dark	sheets-neighbro/dark/Chat	0	neighbro Chat, theme dark
+neighbro-Me-dark	sheets-neighbro/dark/Profile	0	neighbro Me, theme dark

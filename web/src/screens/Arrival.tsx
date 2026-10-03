@@ -4,86 +4,42 @@
 // the identity on this device as a raise by the paper code does. Words
 // verbatim from depth/ink/locales/ru.json.
 
-import { useRef, useState } from "react";
+import { useArrival } from "./logic/useArrival.ts";
 import type { Client } from "../../../depth/core/client.ts";
-import { readPaperText } from "../../../depth/core/paper.ts";
-import type { MoveState } from "../../../depth/core/transfer_move.ts";
 import { say } from "../api/me.ts";
-import { browserLabel, ENDINGS, MOVE_POLL_MS, useEvery } from "../api/transfer.ts";
-import { type Arriving, claimArrival, keepArrived } from "../vault.ts";
+import { ENDINGS } from "../api/transfer.ts";
 import { Button } from "../ui/Button.tsx";
 import "./talk.css";
+import { HeaderScreen } from "../ui/Header.tsx";
+import { Info } from "../ui/Info.tsx";
+import type { ReactNode } from "react";
 
-export function Arrival({ onDone, onBack }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void }) {
-  const [code, setCode] = useState("");
-  const [pin, setPin] = useState("");
-  const [again, setAgain] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [into, setInto] = useState<Arriving | null>(null);
-  const [state, setState] = useState<MoveState>("claimed");
-  const arrived = useRef(false);
-  const clean = readPaperText(code);
-
-  useEvery(MOVE_POLL_MS, () => into?.arrival.state().then((next) => {
-    if (next === "approved") arrived.current = true;
-    setState(next);
-  }).catch((e: Error) => setError(e.message)), !!into && state === "claimed");
-
-  async function claim() {
-    setBusy(true);
-    setError(null);
-    try {
-      const claimed = await claimArrival(clean, browserLabel());
-      if ("arrival" in claimed) return setInto(claimed);
-      if (claimed.status === 404) return setError(say("move.codeBad"));
-      if (claimed.status === 409) return setError(say("move.twice"));
-      // The claim's own limit (§8.2, claim.miss.*), not the PIN's words (W12-C2).
-      if (claimed.status === 429) return setError(say("restore.wait", { n: String(claimed.retryAfter ?? "?") }));
-      setError(`the claim was refused: ${claimed.status}`);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function keep() {
-    if (!into) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const { client, longKey } = await keepArrived(into, pin);
-      onDone(client, longKey);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
+// brandClass and hero: the brand view's look (brands/<brand>), drawn over the same state.
+export function Arrival({ onDone, onBack, brandClass, hero }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void; brandClass?: string; hero?: ReactNode }) {
+  const { code, setCode, pin, setPin, again, setAgain, busy, error, into, state, clean, claim, keep } = useArrival({ onDone });
   const ending = ENDINGS[state];
   return (
-    <main className="screen arrival" data-screen="arrival" data-state={into ? state : "start"}>
-      <header className="ui-header ui-header-rule"><h1 className="ui-header-title">{say(state === "approved" ? "move.arrivedTitle" : "move.inTitle")}</h1></header>
+    <main className={["screen arrival", brandClass].filter(Boolean).join(" ")} data-screen="arrival" data-state={into ? state : "start"}>
+      <HeaderScreen title={say(state === "approved" ? "move.arrivedTitle" : "move.inTitle")} />
+      {!into && hero}
       {!into
         ? (
           <>
-            <p className="muted">{say("move.inIntro")}</p>
+            <div className="ui-info-row"><Info label={say("move.inTitle")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info></div>
             <label>
               {say("move.code")}
               <input value={code} onChange={(e) => setCode(e.target.value.slice(0, 13))} data-testid="arrive-code" autoComplete="off" />
             </label>
             {busy && <p className="muted">{say("move.deriving")}</p>}
-            <Button kind="primary" type="button" disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go">{say("reg.next")}</Button>
-            <Button kind="secondary" type="button" onClick={onBack} data-testid="arrive-back">{say("common.back")}</Button>
+            <Button kind="primary" type="button" icon="open" className="ui-wide" aria-label={say("reg.next")} disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go" />
+            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />
           </>
         )
         : ending
         ? (
           <>
             <p data-testid="move-ending">{say(ending)}</p>
-            <Button kind="secondary" type="button" onClick={onBack} data-testid="arrive-back">{say("common.back")}</Button>
+            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />
           </>
         )
         : state === "approved"
@@ -99,7 +55,7 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client, longKey: 
               <input type="password" inputMode="numeric" value={again} onChange={(e) => setAgain(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="arrive-pin-again" />
             </label>
             {pin.length === 6 && again.length === 6 && pin !== again && <p className="error">{say("reg.pinMismatch")}</p>}
-            <Button kind="primary" type="button" disabled={!/^\d{6}$/.test(pin) || pin !== again || busy} onClick={() => void keep()} data-testid="arrive-keep">{say("reg.next")}</Button>
+            <Button kind="primary" type="button" icon="check" className="ui-wide" aria-label={say("reg.next")} disabled={!/^\d{6}$/.test(pin) || pin !== again || busy} onClick={() => void keep()} data-testid="arrive-keep" />
           </>
         )
         : (

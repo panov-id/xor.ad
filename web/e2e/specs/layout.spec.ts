@@ -12,7 +12,7 @@ const ADV = process.env.ADV_URL ?? "https://web-adv:4173";
 
 // The band is the screen's first child (the kit's header, or the cabinet's
 // strip); its text is the first text inside it.
-async function measure(page: Page, screen: string, band: string, text: string) {
+async function measure(page: Page, screen: string, band: string, text: string, height = 56) {
   const main = page.locator(`main[data-screen="${screen}"]`);
   await expect(main).toBeVisible({ timeout: 15000 });
   const box = await main.locator(band).first().boundingBox();
@@ -20,7 +20,7 @@ async function measure(page: Page, screen: string, band: string, text: string) {
   expect(box, `${screen}: no band ${band} to measure`).not.toBeNull();
   expect(Math.round(box!.y), `${screen}: the header band starts at y=${Math.round(box!.y)}, the sheet draws it at 0`).toBe(0);
   expect(Math.round(box!.width), `${screen}: the band is ${Math.round(box!.width)} wide, the sheet's is the phone's 375`).toBe(375);
-  expect(Math.round(box!.height), `${screen}: the band is ${Math.round(box!.height)} tall, the sheet's and the kit's is 56`).toBe(56);
+  expect(Math.round(box!.height), `${screen}: the band is ${Math.round(box!.height)} tall, the sheet's and the kit's is ${height}`).toBe(height);
   expect(Math.round(left), `${screen}: the band's text starts at x=${Math.round(left)}, the sheet's at 16`).toBe(16);
 }
 
@@ -28,6 +28,8 @@ test("the feed, the conversations and 'me' start with their band at y 0 and thei
   test.setTimeout(90_000);
   await page.setViewportSize({ width: 375, height: 812 });
   await register(page, { name: "Ева", age: "29" });
+  // The gold comic's sky (200) and plate (76) are gone (02.10.2026): every
+  // band is the kit's header again, 56 tall, the feed's too.
   await measure(page, "feed", ":scope > header", ":scope > header h1");
   await page.getByTestId("nav-inbox").click();
   await measure(page, "inbox", ":scope > header", ":scope > header h1");

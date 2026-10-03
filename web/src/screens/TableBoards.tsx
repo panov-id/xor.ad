@@ -45,7 +45,7 @@ export function DeckBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
           ))}
         </ul>
       )}
-      {onMove && <Button kind="secondary" type="button" disabled={deck.stock.count === 0} onClick={() => onMove({ draw: true })} data-testid="draw">{say("web.table.draw_deck")}</Button>}
+      {onMove && <Button kind="secondary" type="button" icon="new" aria-label={say("web.table.draw_deck")} disabled={deck.stock.count === 0} onClick={() => onMove({ draw: true })} data-testid="draw" />}
     </section>
   );
 }
@@ -71,7 +71,7 @@ export function WordBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
           setValue("");
         }}>
           <input value={value} maxLength={setting ? 24 : 1} onChange={(e) => setValue(e.target.value)} aria-label={setting ? say("web.table.set_word") : say("web.table.letter")} data-testid="word-input" />
-          <Button kind="primary" type="submit" data-testid="word-go">{setting ? say("web.table.set") : say("web.table.guess")}</Button>
+          <Button kind="primary" type="submit" icon="check" aria-label={setting ? say("web.table.set") : say("web.table.guess")} data-testid="word-go" />
         </form>
       )}
     </section>
@@ -100,7 +100,7 @@ export function FreeBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
           ))}
         </ul>
       )}
-      {onMove && <Button kind="secondary" type="button" disabled={f.boneyard.count === 0} onClick={() => onMove({ draw: true })} data-testid="draw">{say("web.table.draw_boneyard")}</Button>}
+      {onMove && <Button kind="secondary" type="button" icon="new" aria-label={say("web.table.draw_boneyard")} disabled={f.boneyard.count === 0} onClick={() => onMove({ draw: true })} data-testid="draw" />}
     </section>
   );
 }
@@ -141,12 +141,12 @@ export function CellsBoard({ view, onMove }: { view: TableView; onMove?: Move })
         <form onSubmit={(e) => { e.preventDefault(); onMove({ from: a.trim(), to: b.trim() }); setA(""); setB(""); }}>
           <input value={a} onChange={(e) => setA(e.target.value)} aria-label={say("web.table.from")} maxLength={2} />
           <input value={b} onChange={(e) => setB(e.target.value)} aria-label={say("web.table.to")} maxLength={2} />
-          <Button kind="primary" type="submit">{say("table.move")}</Button>
+          <Button kind="primary" type="submit" icon="open" aria-label={say("table.move")} />
         </form>
       )}
       {onMove && dice && (dice.rolled
-        ? <Button kind="secondary" type="button" onClick={() => onMove({ move: true })}>{say("web.table.moved")}</Button>
-        : <Button kind="secondary" type="button" onClick={() => onMove({ roll: true })}>{say("web.table.roll")}</Button>)}
+        ? <Button kind="secondary" type="button" icon="check" aria-label={say("web.table.moved")} onClick={() => onMove({ move: true })} />
+        : <Button kind="secondary" type="button" icon="random" aria-label={say("web.table.roll")} onClick={() => onMove({ roll: true })} />)}
       {onMove && physics && (
         <form onSubmit={(e) => {
           e.preventDefault();
@@ -156,13 +156,13 @@ export function CellsBoard({ view, onMove }: { view: TableView; onMove?: Move })
           <input value={a} onChange={(e) => setA(e.target.value)} aria-label={say("web.table.piece")} />
           <input value={b} onChange={(e) => setB(e.target.value)} aria-label={say("web.table.direction")} />
           <input value={power} onChange={(e) => setPower(e.target.value.replace(/\D/g, "").slice(0, 1))} aria-label={say("web.table.power")} />
-          <Button kind="primary" type="submit">{say("web.table.flick")}</Button>
+          <Button kind="primary" type="submit" icon="watch" aria-label={say("web.table.flick")} />
         </form>
       )}
       {onMove && (grid || dice) && (
         claim !== null && claim !== view.seat
-          ? <Button kind="secondary" type="button" onClick={() => onMove({ con: "agree" })}>{say("web.table.con_agree")}</Button>
-          : <Button kind="secondary" type="button" disabled={claim === view.seat} onClick={() => onMove({ con: "won" })}>{say("web.table.con_won")}</Button>
+          ? <Button kind="secondary" type="button" icon="check" aria-label={say("web.table.con_agree")} onClick={() => onMove({ con: "agree" })} />
+          : <Button kind="secondary" type="button" icon="report" aria-label={say("web.table.con_won")} disabled={claim === view.seat} onClick={() => onMove({ con: "won" })} />
       )}
     </section>
   );

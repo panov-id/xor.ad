@@ -105,6 +105,15 @@ full(".k-rasta-light", "rasta·light", {"bg": "#f3ecd2", "panel": "#fffaea", "pa
      "ok": "#1f6b35", "err": "#a3211a", "scrim": "#000000", "shadow": "#1f6b35", "on-fg-muted": "#b8ad84"},
      {"cat-amber": "#8a6400", "cat-teal": "#1f6b35", "cat-violet": "#a3211a"})
 
+# 4 · the gold comic (k-comic*, 2026-10-01) was retired on 02.10.2026: the web's colours are the brand
+# themes (web/themes/<brand>/*.json → web/src/themes.gen.css), the panel never wore it.
+# Russo One (OFL), the comic's headings: Cyrillic and Latin subsets, fetched by scripts/fetch-fonts.sh into panel/design/fonts
+FONTS = [
+    '@font-face { font-family: "Russo One"; font-weight: 400; font-display: swap; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; src: url(/fonts/Z9XUDmZRWg6M1LvRYsHOy8mJrrg.woff2) format("woff2"); }',
+    '@font-face { font-family: "Russo One"; font-weight: 400; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; src: url(/fonts/Z9XUDmZRWg6M1LvRYsHOwcmJrrg.woff2) format("woff2"); }',
+    '@font-face { font-family: "Russo One"; font-weight: 400; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; src: url(/fonts/Z9XUDmZRWg6M1LvRYsHOz8mJ.woff2) format("woff2"); }']
+css.extend(FONTS)
+
 text = ("    /* kit schemes — built by scripts/design-palettes.py; edit the script, not this file.\n"
         "       A frame wears one of: k-dark/k-light + k-acc-NAME; k-neighbro or k-neighbro-light; k-neighbro-sea or k-neighbro-sea-light; k-rasta or k-rasta-light. */\n"
         + "\n".join("    " + c for c in css) + "\n")

@@ -1,5 +1,23 @@
 # Веб против листов · WD0 · 27.09.2026
 
+> **С 02.10.2026 эталон — листы брендов `panel/design/sheets-sosed/` и `panel/design/sheets-neighbro/`**
+> (решение владельца: у sosed «блоки», у neighbro «стикеры»). Комикс-листы `sheets-comic/` и их
+> генератор удалены. Старые листы `panel/design/sheets/` остаются для панели, ниже — история WD0 по ним.
+>
+> - Листы генерируются из JSON тем: `web/themes/<бренд>/<id>.json` →
+>   `scripts/design/sosed-sheets.py` и `neighbro-sheets.py` → `panel/design/sheets-<бренд>/<id>/`.
+>   Для каждого бренда две темы: светлая (`light`) и её ночная пара (`dark`), по 10 экранов.
+>   Всё делает `scripts/design/brand-sheets.sh`; `--check` краснеет, когда закоммиченные листы
+>   не совпадают с тем, что даёт JSON; геометрию проверяет `lint_svg.py` (если есть inkscape).
+>   Шрифты — `scripts/design/fonts/` (Golos, Russo One).
+> - Карта `scripts/design/web-design-map.tsv`: 9 экранов (Arrival, Feed, Card, Card-liked, Card-more,
+>   Composer↔Compose, Match, Chat, Me↔Profile) × 2 темы × 2 бренда — 36 строк; десятый лист,
+>   Card-dark, — тот же рисунок, что `dark/Card`.
+> - `shoot-web.sh` снимает каждый бренд на своём стенде (`VITE_BRAND`), тему задаёт через
+>   `localStorage theme:<бренд>` и `data-theme`, а не через `prefers-color-scheme`; листы рендерит
+>   `brand-sheets.sh --render` (@2x).
+> - База `scripts/design/web-design-baseline.tsv` записана заново против листов брендов.
+
 Эталон для волны 4: каждый экран `web/src/screens` снят в кадре 375×812 (@2x) в светлой
 и тёмной схеме и поставлен рядом с листом `panel/design/sheets/screen-*.svg`.
 
@@ -141,4 +159,4 @@ Feed (17→0), Match (15→0) и Inbox (5→0).
   по языкам браузера (`web/src/locales/say.ts:18`, `:26`).
 - Иконки заставки мигают, поэтому съёмка идёт с `reducedMotion: "reduce"` и сравнивает
   Splash со вторым телефоном листа 01, где иконки стоят. Без этого две съёмки подряд
-  давали 4,97% и 12,06% отличий.
+  давали 4.97% и 12.06% отличий.

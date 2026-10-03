@@ -14,6 +14,7 @@ const TYPES = {
   ".svg": "image/svg+xml",
   ".html": "text/html; charset=utf-8",
   ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
 };
 
 // `/fonts/…` is resolved against the design's own faces first — Golos Text and

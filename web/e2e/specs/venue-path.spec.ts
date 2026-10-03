@@ -10,6 +10,9 @@ import postgres from "postgres";
 import { expect, test } from "../fixtures/address.ts";
 import { register, runLabel, tenPhrases } from "./helpers.ts";
 
+// The stand's storefront (docker-compose.web.yml passes VITE_BRAND as BRAND).
+const BRAND = process.env.BRAND ?? "sosed";
+
 const ADV = process.env.ADV_URL ?? "https://web-adv:4173";
 const MAILPIT = process.env.MAILPIT_URL ?? "http://mailpit:8025";
 const DATABASE = process.env.DATABASE_URL ?? "postgres://relay:test@postgres:5432/relay_test";
@@ -20,7 +23,7 @@ async function linkFromLetter(to: string): Promise<string> {
     const id = found.messages?.[0]?.ID;
     if (id) {
       const letter = await (await fetch(`${MAILPIT}/api/v1/message/${id}`)).json() as { Text?: string; HTML?: string };
-      const link = /https:\/\/adv\.sosed\.place\/enter#([0-9a-f]{64})/.exec(`${letter.Text ?? ""} ${letter.HTML ?? ""}`);
+      const link = new RegExp(`https://adv\\.${BRAND}\\.place/enter#([0-9a-f]{64})`).exec(`${letter.Text ?? ""} ${letter.HTML ?? ""}`);
       if (link) return link[1];
     }
     await new Promise((r) => setTimeout(r, 500));
@@ -82,7 +85,7 @@ test("a venue's path: cabinet, envelope, offer, the neighbour's feed, its link, 
   await adv.getByTestId("offer-publish").click();
   await expect(adv.getByTestId("offer-published")).toBeVisible({ timeout: 15000 });
   const published = await adv.getByTestId("offer-published-link").textContent() ?? "";
-  const redirect = /sosed\.place\/o\/(\S+)/.exec(published)?.[1];
+  const redirect = new RegExp(`${BRAND}\\.place/o/(\\S+)`).exec(published)?.[1];
   expect(redirect, `the cabinet shows the offer's link, got "${published}"`).toBeTruthy();
 
   // Ten phrases around, so the offer has a slot in the feed (helpers.ts).

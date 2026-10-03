@@ -11,6 +11,9 @@ import postgres from "postgres";
 import { expect, test } from "../fixtures/address.ts";
 import { runLabel } from "./helpers.ts";
 
+// The stand's storefront (docker-compose.web.yml passes VITE_BRAND as BRAND).
+const BRAND = process.env.BRAND ?? "sosed";
+
 // The cabinet's own https service (docker-compose.web.yml web-adv).
 const ADV = process.env.ADV_URL ?? "https://web-adv:4173";
 const MAILPIT = process.env.MAILPIT_URL ?? "http://mailpit:8025";
@@ -22,7 +25,7 @@ async function linkFromLetter(to: string): Promise<string> {
     const id = found.messages?.[0]?.ID;
     if (id) {
       const letter = await (await fetch(`${MAILPIT}/api/v1/message/${id}`)).json() as { Text?: string; HTML?: string };
-      const link = /https:\/\/adv\.sosed\.place\/enter#([0-9a-f]{64})/.exec(`${letter.Text ?? ""} ${letter.HTML ?? ""}`);
+      const link = new RegExp(`https://adv\\.${BRAND}\\.place/enter#([0-9a-f]{64})`).exec(`${letter.Text ?? ""} ${letter.HTML ?? ""}`);
       if (link) return link[1];
     }
     await new Promise((r) => setTimeout(r, 500));
@@ -100,7 +103,7 @@ test("the cabinet: a link by mail, a venue proved by its envelope, an offer publ
   await expect(page.getByTestId("offer-preview-card")).toContainText("−20 %");
   await page.getByTestId("offer-publish").click();
   await expect(page.getByTestId("offer-published")).toBeVisible({ timeout: 15000 });
-  await expect(page.getByTestId("offer-published-link")).toContainText(/Ссылка: sosed\.place\/o\/\S+/);
+  await expect(page.getByTestId("offer-published-link")).toContainText(new RegExp(`Ссылка: ${BRAND}\\.place/o/\\S+`));
 
   // The same text again: refused as a twin of a live one.
   await page.getByTestId("offer-to-list").click();

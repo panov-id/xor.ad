@@ -5,6 +5,9 @@
 #   scripts/run-web-tests.sh                 # up, test, down; exit code = the tests'
 #   docker compose -f docker-compose.web.yml up web   # the page alone, at :4173
 #
+# The brand is VITE_BRAND (sosed by default): the page's build, the stand's
+# storefront key and offers, the cabinet's Origin.
+#
 # Nothing here is the local stand of relay/local: a suite that registers
 # identities must never land on a database somebody is looking at.
 name: web-e2e
@@ -39,7 +42,7 @@ services:
       - -v
       - ON_ERROR_STOP=1
       - -c
-      - "INSERT INTO api_keys (id, brand, origins) VALUES ('ak_pub_webtest0000000001', 'sosed', '{}') ON CONFLICT DO NOTHING"
+      - "INSERT INTO api_keys (id, brand, origins) VALUES ('ak_pub_webtest0000000001', '${VITE_BRAND:-sosed}', '{}') ON CONFLICT DO NOTHING"
       # One neighbourhood venue with two offers (db/050), for the exit screen of
       # an offer's link (W5b): a live link that sends to ourcafe.cy, and one
       # switched off. Codes of at least ten characters (routes/offer_links.ts CODE).
@@ -48,9 +51,9 @@ services:
       - -c
       - "INSERT INTO venues (id, advertiser_id, name, address, verification_status, verified_at) VALUES ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-00000000ad01', 'Наше кафе', 'Колонаки, 1', 'verified', now()) ON CONFLICT DO NOTHING"
       - -c
-      - "INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, conditions, external_url, redirect_code, discount_until, status, expires_at) VALUES ('00000000-0000-4000-8000-0000000000f1', 'sosed', '00000000-0000-4000-8000-0000000000e1', 'кофе соседям', '-10 %', 'до полудня', 'https://ourcafe.cy/menu', 'webtestlive0001', now() + interval '1 day', 'active', now() + interval '4 hours 20 minutes') ON CONFLICT DO NOTHING"
+      - "INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, conditions, external_url, redirect_code, discount_until, status, expires_at) VALUES ('00000000-0000-4000-8000-0000000000f1', '${VITE_BRAND:-sosed}', '00000000-0000-4000-8000-0000000000e1', 'кофе соседям', '-10 %', 'до полудня', 'https://ourcafe.cy/menu', 'webtestlive0001', now() + interval '1 day', 'active', now() + interval '4 hours 20 minutes') ON CONFLICT DO NOTHING"
       - -c
-      - "INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, external_url, redirect_code, redirect_disabled_at, discount_until, status, expires_at) VALUES ('00000000-0000-4000-8000-0000000000f2', 'sosed', '00000000-0000-4000-8000-0000000000e1', 'вчерашний хлеб', '-50 %', 'https://ourcafe.cy/bread', 'webtestspent001', now(), now() + interval '1 day', 'active', now() + interval '4 hours 20 minutes') ON CONFLICT DO NOTHING"
+      - "INSERT INTO offers (id, brand, venue_id, offer_text, discount_value, external_url, redirect_code, redirect_disabled_at, discount_until, status, expires_at) VALUES ('00000000-0000-4000-8000-0000000000f2', '${VITE_BRAND:-sosed}', '00000000-0000-4000-8000-0000000000e1', 'вчерашний хлеб', '-50 %', 'https://ourcafe.cy/bread', 'webtestspent001', now(), now() + interval '1 day', 'active', now() + interval '4 hours 20 minutes') ON CONFLICT DO NOTHING"
     restart: "no"
 
   # The stand's mailbox (A1): SMTP in on 1025, the letters out over HTTP on
@@ -134,7 +137,7 @@ services:
     build:
       context: .
       dockerfile: web/Dockerfile
-      args: { VITE_API_KEY: ak_pub_webtest0000000001, VITE_BRAND: sosed, VITE_STAND: "1" }
+      args: { VITE_API_KEY: ak_pub_webtest0000000001, VITE_BRAND: "${VITE_BRAND:-sosed}", VITE_STAND: "1" }
     depends_on: { node: { condition: service_healthy } }
     environment: { WEB_NODE_URL: "http://node:8080" }
     # No host port by default: two or three worktrees run this stand at once
@@ -158,9 +161,9 @@ services:
     build:
       context: .
       dockerfile: web/Dockerfile
-      args: { VITE_API_KEY: ak_pub_webtest0000000001, VITE_BRAND: sosed, VITE_STAND: "1" }
+      args: { VITE_API_KEY: ak_pub_webtest0000000001, VITE_BRAND: "${VITE_BRAND:-sosed}", VITE_STAND: "1" }
     depends_on: { node: { condition: service_healthy } }
-    environment: { WEB_NODE_URL: "http://node:8080", WEB_TLS: "1", WEB_ADV_ORIGIN: "https://adv.sosed.place" }
+    environment: { WEB_NODE_URL: "http://node:8080", WEB_TLS: "1", WEB_ADV_ORIGIN: "https://adv.${VITE_BRAND:-sosed}.place" }
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- --no-check-certificate https://127.0.0.1:4173/ >/dev/null 2>&1 || exit 1"]
       interval: 2s
@@ -204,6 +207,8 @@ services:
     network_mode: "service:web"
     environment:
       WEB_URL: "http://localhost:4173"
+      # The storefront the page was built for: the specs' seeds and links follow it.
+      BRAND: "${VITE_BRAND:-sosed}"
       # The cabinet's spec (A1): the letter from Mailpit, the envelope's code from the database.
       ADV_URL: "https://web-adv:4173"
       MAILPIT_URL: "http://mailpit:8025"

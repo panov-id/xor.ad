@@ -19,7 +19,10 @@ find "$root/web/e2e/results" -mindepth 1 -maxdepth 1 \( -name 'run-*' -o -name '
   -mmin +1440 -exec rm -rf {} + 2>/dev/null || true
 rm -rf "$root/web/e2e/results/$spec"
 cleanup() { "${compose[@]}" down -v --rmi local --remove-orphans >/dev/null 2>&1 || true; }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+# A signal ends the run: cleanup alone would let the script go on and bring
+# containers back up with nobody left to take them down.
+trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
 echo "== build and start: postgres, migrations, seed, node, web (and the panel if the spec needs it)"
 # A spec that walks into the moderator's panel (it reads PANEL_URL) gets the
 # panel too; the others do not pay for its build.

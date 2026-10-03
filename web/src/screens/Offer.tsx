@@ -16,6 +16,7 @@ import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import "./place.css";
+import { Icon } from "../ui/Icon.tsx";
 
 type Exit = { domain: string; disabled: boolean };
 type State = { at: "loading" } | { at: "ok"; exit: Exit } | { at: "missing" } | { at: "failed" };
@@ -68,11 +69,11 @@ export function Offer({ code, onHome }: { code: string; onHome: () => void }) {
         </section>
         <footer className="offer-actions">
           {!state.exit.disabled && (
-            <a className="ui-button ui-primary offer-go" href={`/o/${encodeURIComponent(code)}/go`} rel="noopener noreferrer nofollow" data-testid="go">
-              {say("web.offer.continue")}
+            <a className="ui-button ui-primary ui-icon-only ui-wide offer-go" href={`/o/${encodeURIComponent(code)}/go`} rel="noopener noreferrer nofollow" aria-label={say("web.offer.continue")} data-testid="go">
+              <Icon name="open" />
             </a>
           )}
-          <Button kind="secondary" type="button" onClick={onHome} data-testid="home">{say("web.offer.cancel")}</Button>
+          <Button kind="secondary" type="button" icon="close" className="ui-wide" aria-label={say("web.offer.cancel")} onClick={onHome} data-testid="home" />
         </footer>
       </main>
     );
@@ -95,7 +96,7 @@ export function Offer({ code, onHome }: { code: string; onHome: () => void }) {
         </section>
       )}
       <footer className="place-footer">
-        <Button kind="secondary" type="button" onClick={onHome} data-testid="home">{say("web.offer.home")}</Button>
+        <Button kind="secondary" type="button" icon="feed" className="ui-wide" aria-label={say("web.offer.home")} onClick={onHome} data-testid="home" />
       </footer>
     </main>
   );

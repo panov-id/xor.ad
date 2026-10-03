@@ -1,0 +1,31 @@
+{
+ "brand": "sosed",
+ "id": "dark-violet",
+ "name": "Violet dark",
+ "scheme": "dark",
+ "source": "scripts/design-palettes.py SOSED_DARK + schemes.css .k-dark.k-acc-violet; tiles amber/turquoise/terra/azure",
+ "tokens": {
+  "bg": "#0d0b0a",
+  "surface": "#262019",
+  "surface-2": "#302720",
+  "fg": "#f0e7dc",
+  "fg-muted": "#9a8d7c",
+  "line": "#745c40",
+  "accent": "#8550c5",
+  "accent-fg": "#fff6f0",
+  "accent-text": "#9e74d1",
+  "danger": "#ef7a6a",
+  "focus": "#9e74d1",
+  "shadow": "#3a2e20",
+  "tile-1": "#d68a1f",
+  "tile-2": "#1fa99a",
+  "tile-3": "#bd4b2a",
+  "tile-4": "#336eb2"
+ },
+ "night": "dark-violet",
+ "section": false,
+ "tile-ink": [
+  "#fff6f0",
+  "#1a1509"
+ ]
+}

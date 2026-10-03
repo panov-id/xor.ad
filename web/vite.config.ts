@@ -95,6 +95,16 @@ const csp = {
     html.replace("<head>", `<head>\n    <meta http-equiv="Content-Security-Policy" content="${CSP_PAGE}" />`),
 };
 
+// The brand on <html> from the build (config.ts reads the same VITE_BRAND), so
+// themes.gen.css draws the brand's light theme from the first paint, before
+// the page's module (theme.ts) sets data-theme. An attribute, not a script:
+// nothing for the CSP to refuse. Dev and build alike.
+const brandName = process.env.VITE_BRAND === "neighbro" ? "neighbro" : "sosed";
+const brand = {
+  name: "xor-brand",
+  transformIndexHtml: (html: string) => html.replace("<html ", `<html data-brand="${process.env.VITE_BRAND ?? "sosed"}" `),
+};
+
 // A font is never inlined (VF1): a small subset (JetBrains Mono's Cyrillic
 // extension, 1640 bytes) went under the 4 KiB limit into a data: URL, which
 // font-src 'self' refuses — the policy stays as it is, the font stays a file.
@@ -102,7 +112,7 @@ const assetsInlineLimit = (file: string) => (/\.woff2?$/.test(file) ? false : un
 
 export default defineConfig({
   build: { assetsInlineLimit },
-  plugins: [react(), csp],
+  plugins: [react(), csp, brand],
   server: { proxy, fs: { allow: [".", core, locales, kit, fonts] }, allowedHosts: ["host.docker.internal", "web"] },
   preview: {
     proxy,
@@ -116,6 +126,8 @@ export default defineConfig({
     alias: [
       { find: "hash-wasm", replacement: fileURLToPath(new URL("./node_modules/hash-wasm", import.meta.url)) },
       { find: /^\/fonts\//, replacement: fonts },
+      // The brand's views (src/brands/index.ts): one tree in the bundle.
+      { find: /^@brand$/, replacement: fileURLToPath(new URL(`./src/brands/${brandName}/index.tsx`, import.meta.url)) },
     ],
   },
 });

@@ -8,6 +8,12 @@ repositories.
 Read with `panel/src/App.css`, which is where these rules live in this project,
 and `panel/ui-kit.html`, which shows them running.
 
+> **Note, 2026-10-01.** The web face (`web/`) no longer wears this document's neobrutalism: since
+> 2026-10-01 it wears comic luxury — a paper-and-ink palette, gold foil, a night without neon, no stars
+> and no halftone, icons instead of words, explanations behind ⓘ, the feed header by the time of day at
+> the filter place, the sosed and neighbro brands, the place's zone derived from its longitude. Details:
+> `docs/design-system-app_EN.md`, section "The web's comic face". What follows still describes the panel.
+
 ## 1. Where this was read from
 
 | Source | What was taken |

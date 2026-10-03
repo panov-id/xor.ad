@@ -6,13 +6,14 @@
 // over the list with the node's verdict — out, or read by a person first.
 // The filters are not here yet.
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, type ReactNode } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
-import { ANNOUNCE_MS, announce, isStep, nearby, type Step } from "../a11y/nearby.ts";
-import { modes, takeDownPhrase, type Sent } from "../api/actions.ts";
+import { nearby } from "../a11y/nearby.ts";
+import { modes, type Sent } from "../api/actions.ts";
 import { Button } from "../ui/Button.tsx";
-import { Card } from "../ui/Card.tsx";
+import { Card, CardOpen, openerIds } from "../ui/Card.tsx";
 import { HeaderFeed } from "../ui/Header.tsx";
+import { useFeed } from "./logic/useFeed.ts";
 import { say } from "../locales/say.ts";
 
 export interface FeedCard {
@@ -43,8 +44,13 @@ export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 const label = (r: Radius) => (r >= 1000 ? say("web.feed.km", { n: r / 1000 }) : say("web.feed.m", { n: r }));
 
 export function Feed(
-  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, sent, onTakenDown, gone, onTable, onNewTable, notice }: {
+  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, sent, onTakenDown, gone, onTable, onNewTable, notice, renderPhrase, listClass, brandClass }: {
     client: Client;
+    // A brand's FeedView draws the phrase cards its own way (web/src/brands):
+    // the element must keep data-testid="card", data-id and open on a press.
+    renderPhrase?: (card: FeedCard, index: number, open: () => void) => ReactNode;
+    listClass?: string;
+    brandClass?: string;
     // A table card sits down at the table; "new table" makes one (W10).
     onTable?: (id: string) => void;
     onNewTable?: () => void;
@@ -67,86 +73,10 @@ export function Feed(
     gone?: { why: "hidden" | "blocked"; id: string } | null;
   },
 ) {
-  const [items, setItems] = useState<FeedCard[]>([]);
-  const [next, setNext] = useState<string | null>(null);
-  const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
-  const [error, setError] = useState<string | null>(null);
-  // Taking one's own phrase down (§8.3): a press on the sent line's handle,
-  // DELETE /feed/:id; a refusal is said under the line with the node's number.
-  const [takingDown, setTakingDown] = useState(false);
-  const [takedownRefused, setTakedownRefused] = useState<number | null>(null);
-  async function takeDown() {
-    if (!sent?.id) return;
-    setTakingDown(true);
-    setTakedownRefused(null);
-    const done = await takeDownPhrase(client, sent.id);
-    setTakingDown(false);
-    if (!done.ok) return setTakedownRefused(done.status);
-    onTakenDown?.();
-  }
-
-  async function load(after?: string) {
-    setState("loading");
-    try {
-      const page = await client.feed({ ...at, radius, after });
-      setItems((was) => (after ? [...was, ...(page.items as FeedCard[])] : (page.items as FeedCard[])));
-      setNext(page.next ?? null);
-      setState("ready");
-    } catch (e) {
-      setError((e as Error).message);
-      setState("failed");
-    }
-  }
-
-  useEffect(() => { void load(); }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // What the moderator refused of one's own (W12-MRc, the owner's decision of
-  // 2026-10-01): GET /inbox?since counts the moments after the inbox's last
-  // look — an hour and at most six (relay lib/inbox_events.ts) — no id, no
-  // text, so the line names no phrase. Read once on entering the feed; one's
-  // own next phrase puts it out. The inbox out of reach is not the feed's error.
-  const [refused, setRefused] = useState(0);
-  useEffect(() => {
-    let live = true;
-    const since = Number(sessionStorage.getItem("xor-inbox-last-look") ?? "") || undefined;
-    client.inboxSince(since)
-      .then(({ events }) => { if (live) setRefused(events?.phrases_refused ?? 0); })
-      .catch(() => {});
-    return () => { live = false; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // The header's live step (design.nearby.live; web/src/a11y/nearby.ts): read
-  // with every radius, shown at once, but handed to the polite live region
-  // only when it changed and not more often than ANNOUNCE_MS — a suppressed
-  // change is said when the window opens, not lost.
-  const [step, setStep] = useState<Step | null>(null);
-  const [said, setSaid] = useState<Step | null>(null);
-  const announced = useRef<{ said: Step | null; at: number }>({ said: null, at: 0 });
-  const retry = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    let live = true;
-    client.density({ ...at, radius })
-      .then((answer) => { if (live && answer.status === 200 && isStep(answer.body.step)) setStep(answer.body.step); })
-      .catch(() => {});
-    return () => { live = false; };
-  }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (step === null) return;
-    const tell = () => {
-      const { say, state } = announce(announced.current, step, Date.now());
-      announced.current = state;
-      if (say) setSaid(say);
-      else if (state.said !== step) {
-        if (retry.current) clearTimeout(retry.current);
-        retry.current = setTimeout(tell, Math.max(0, state.at + ANNOUNCE_MS - Date.now()));
-      }
-    };
-    tell();
-    return () => { if (retry.current) clearTimeout(retry.current); };
-  }, [step]);
-
+  const { items, next, state, error, takingDown, takedownRefused, takeDown, load, refused, said } =
+    useFeed({ client, at, radius, sent, onTakenDown });
   return (
-    <main className="screen feed" data-screen="feed" data-sealed={sealed}>
+    <main className={["screen feed", brandClass].filter(Boolean).join(" ")} data-screen="feed" data-sealed={sealed}>
       {/* What the reader hears: the announced step, not every flicker of it. */}
       <HeaderFeed
         place={say("web.feed.title")}
@@ -161,10 +91,10 @@ export function Feed(
           </label>
         }
       />
-      <nav className="actions">
-        <Button type="button" kind="pill" onClick={onWrite} data-testid="write">{say("feed.write")}</Button>
-        <Button type="button" onClick={onLikes} data-testid="likes">{say("liked.title")}</Button>
-        {onNewTable && <Button type="button" onClick={onNewTable} data-testid="new-table">{say("web.feed.newTable")}</Button>}
+      <nav className="actions ui-icon-row">
+        <Button type="button" kind="primary" icon="write" aria-label={say("feed.write")} onClick={onWrite} data-testid="write" />
+        <Button type="button" icon="likes" aria-label={say("liked.title")} onClick={onLikes} data-testid="likes" />
+        {onNewTable && <Button type="button" icon="table" aria-label={say("web.feed.newTable")} onClick={onNewTable} data-testid="new-table" />}
       </nav>
       {refused > 0 && !sent && (
         <p className="error" data-testid="refused" data-count={refused}>{say("web.feed.refused")}</p>
@@ -175,7 +105,7 @@ export function Feed(
           «{sent.text}»
           {/* In view only while the id is known — not greyed, absent (W11-C). */}
           {sent.id && (
-            <Button type="button" kind="text" disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown">{say("feed.takedown")}</Button>
+            <Button type="button" icon="close" aria-label={say("feed.takedown")} disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown" />
           )}
         </p>
       )}
@@ -194,35 +124,36 @@ export function Feed(
           <h2>{say("web.feed.empty")}</h2>
           <p className="muted">{say("web.feed.empty_hint")}</p>
           {radius < 10000 && (
-            <Button type="button" onClick={() => onRadius(RADII[RADII.indexOf(radius) + 1])}>
-              {say("web.feed.wider", { radius: label(RADII[RADII.indexOf(radius) + 1]) })}
-            </Button>
+            <Button type="button" icon="pin" aria-label={say("web.feed.wider", { radius: label(RADII[RADII.indexOf(radius) + 1]) })} onClick={() => onRadius(RADII[RADII.indexOf(radius) + 1])} />
           )}
         </section>
       )}
-      <ul className="cards" data-testid="cards">
-        {items.filter((card) => card.id !== gone?.id).map((card) => card.kind === "table"
+      <ul className={listClass ?? "cards"} data-testid="cards">
+        {items.filter((card) => card.id !== gone?.id).map((card, index) => card.kind === "table"
           ? (
-            <Card as="li" key={card.id} kind="nested" className="table-card" data-testid="table-card" data-id={card.id} onClick={() => onTable?.(card.id)} role="button" tabIndex={0}
-              onKeyDown={(k) => (k.key === "Enter" || k.key === " ") && onTable?.(card.id)}>
-              <p>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {card.game} {card.set}</p>
-              <span className="muted">{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · ♥ {card.like_count ?? 0}</span>
+            <Card as="li" key={card.id} kind="nested" className="table-card" data-testid="table-card" data-id={card.id}>
+              <CardOpen id={card.id} onOpen={() => onTable?.(card.id)} />
+              <p id={openerIds(card.id).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {card.game} {card.set}</p>
+              <span className="muted" id={openerIds(card.id).foot}>{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · ♥ {card.like_count ?? 0}</span>
             </Card>
           )
+          : renderPhrase
+          ? <Fragment key={card.id}>{renderPhrase(card, index, () => onOpen(card))}</Fragment>
           : (
-          <Card as="li" key={card.id} data-testid="card" data-id={card.id} onClick={() => onOpen(card)} role="button" tabIndex={0}>
+          <Card as="li" key={card.id} data-testid="card" data-id={card.id}>
+            <CardOpen id={card.id} onOpen={() => onOpen(card)} />
             {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
             {/* The node files every phrase as "und" (relay routes/feed.ts): an
                 undetermined language is no word for a person and no lang for a
                 reader; a known one is both. */}
-            <p lang={card.lang && card.lang !== "und" ? card.lang : undefined}>{card.text}</p>
-            <span className="muted">{modes().find((m) => m.value === card.mode)?.label ?? card.mode}{card.lang && card.lang !== "und" ? ` · ${card.lang}` : ""} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
+            <p id={openerIds(card.id).text} lang={card.lang && card.lang !== "und" ? card.lang : undefined}>{card.text}</p>
+            <span className="muted" id={openerIds(card.id).foot}>{modes().find((m) => m.value === card.mode)?.label ?? card.mode}{card.lang && card.lang !== "und" ? ` · ${card.lang}` : ""} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
           </Card>
           ))}
       </ul>
       {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
       {next && state === "ready" && (
-        <Button type="button" onClick={() => load(next)} data-testid="more">{say("liked.more")}</Button>
+        <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />
       )}
       <footer className="muted">
         {say("web.feed.keys", { state: sealed === "unlocked" ? say("web.feed.keys_unlocked") : sealed === "unlocked-new-wrap" ? say("web.feed.keys_new_wrap") : sealed === "ok" ? say("web.feed.keys_ok") : say("web.feed.keys_bad") })}

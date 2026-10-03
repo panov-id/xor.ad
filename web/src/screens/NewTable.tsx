@@ -10,6 +10,7 @@ import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import "./place.css";
+import { Info } from "../ui/Info.tsx";
 
 // The sets each class knows (relay/node/src/lib/tables_*.ts) and the most
 // seats it takes (routes/tables.ts).
@@ -85,10 +86,10 @@ export function NewTable({ client, at, radius, onMade, onBack }: {
         {say("web.newTable.name")}
         <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} data-testid="new-table-name" />
       </label>
-      <p className="place-meta">{say("table.open")}</p>
+      <div className="ui-info-row"><Info label={say("web.newTable.title")} data-testid="new-table-info"><p>{say("table.open")}</p></Info></div>
       {error && <p className="error" data-testid="error">{error}</p>}
-      <Button kind="primary" type="button" disabled={busy} onClick={() => void make()} data-testid="new-table-go">{say("web.newTable.go")}</Button>
-      <Button kind="secondary" type="button" onClick={onBack} data-testid="new-table-back">{say("common.back")}</Button>
+      <Button kind="primary" type="button" icon="table" className="ui-wide" aria-label={say("web.newTable.go")} disabled={busy} onClick={() => void make()} data-testid="new-table-go" />
+      <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="new-table-back" />
     </main>
   );
 }

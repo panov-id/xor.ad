@@ -13,6 +13,7 @@ import "../chat/chat.css";
 import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
 import "./talk.css";
+import { HeaderScreen } from "../ui/Header.tsx";
 
 export interface MatchRow {
   kind: "match";
@@ -104,10 +105,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
   const shown = tab ?? (chats.length > 0 ? "chats" : "offers");
   return (
     <main className="screen inbox" data-screen="inbox">
-      <header className="ui-header ui-header-rule">
-        <h1 className="ui-header-title">{say("web.inbox.title")}</h1>
-        <Button kind="secondary" type="button" onClick={() => load()} data-testid="refresh">{say("web.inbox.refresh")}</Button>
-      </header>
+      <HeaderScreen title={say("web.inbox.title")} action={<Button kind="primary" type="button" icon="refresh" aria-label={say("web.inbox.refresh")} onClick={() => load()} data-testid="refresh" />} />
       {state === "failed" && <p className="error" data-testid="error">{error}</p>}
       {state === "ready" && rows.length === 0 && (
         <section className="empty" data-testid="quiet">
@@ -138,7 +136,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
             </div>
             <p>{m.phrase.text}</p>
             <span className="muted">{m.waiting_for_you ? say("web.inbox.waits_you") : say("web.inbox.offer")}</span>
-            <Button kind="secondary" type="button" onClick={() => onOpenMatch(m)} data-testid="open-match">{say("inbox.enter")}</Button>
+            <Button kind="secondary" type="button" icon="open" className="ui-mid" aria-label={say("inbox.enter")} onClick={() => onOpenMatch(m)} data-testid="open-match" />
           </Card>
         ))}
         {shown === "offers" && declined.filter((d) => !matches.some((m) => m.id === d.id)).map((d) => (
@@ -148,7 +146,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
               <span className="mark">{say("inbox.declined")}</span>
             </div>
             <p>{d.phrase.text}</p>
-            <Button kind="secondary" type="button" disabled={undoing === d.id} onClick={() => void undo(d)} data-testid="undo-decline">{say("inbox.undo")}</Button>
+            <Button kind="secondary" type="button" icon="back" className="ui-mid" aria-label={say("inbox.undo")} disabled={undoing === d.id} onClick={() => void undo(d)} data-testid="undo-decline" />
           </Card>
         ))}
       </ul>

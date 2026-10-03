@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812" style="--focus:#983c22"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}[role=button]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style></defs>
+<rect width="375" height="812" fill="#ece4d8"/>
+<g role="img" aria-label="match: mutual like">
+<rect x="40" y="120" width="190" height="250" rx="32" fill="#1fa99a" transform="rotate(-8 135 245)"/>
+<rect x="145" y="140" width="190" height="250" rx="32" fill="#8550c5" transform="rotate(7 240 265)"/>
+<circle cx="187" cy="268" r="74" fill="#000000" opacity="0.05"/>
+<circle cx="187" cy="269" r="70" fill="#000000" opacity="0.07"/>
+<circle cx="187" cy="270" r="66" fill="#000000" opacity="0.1"/>
+<circle cx="187" cy="262" r="60" fill="#fdfaf4"/><circle cx="187" cy="262" r="56" fill="#bd4b2a"/>
+<g transform="translate(159 234) scale(2.33)" fill="none" stroke="#fff6f0" stroke-width="1.29" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/></g>
+</g>
+<text id="t57" x="187" y="452" font-family="Golos Text" font-weight="600" font-size="40" fill="#1c140d" text-anchor="middle" letter-spacing="-0.01em" >Match</text>
+<g role="group" aria-label="their phrase">
+<rect x="16" y="520" width="343" height="80" rx="24" fill="#fdfaf4"/>
+<text id="t58" x="36" y="566" font-family="Golos Text" font-weight="500" font-size="20" fill="#1c140d" text-anchor="start" >coffee at the corner bakery</text>
+</g>
+<g role="button" tabindex="0" aria-label="info: names appear in chat if you both agree"><rect x="311" y="416" width="48" height="48" rx="24.0" fill="none"/>
+<g transform="translate(323.0 428.0) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="start chat"><rect x="16" y="640" width="343" height="64" rx="32" fill="#bd4b2a"/>
+<g transform="translate(175 660) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+</g>
+<g role="button" tabindex="0" aria-label="not now"><rect x="16" y="716" width="343" height="56" rx="28" fill="none" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(175 732) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
+</g>
+</svg>

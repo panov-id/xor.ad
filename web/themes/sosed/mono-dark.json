@@ -1,0 +1,30 @@
+{
+ "brand": "sosed",
+ "id": "mono-dark",
+ "name": "Mono dark",
+ "scheme": "dark",
+ "source": "greys of equal luminance from: scripts/design-palettes.py SOSED_DARK + schemes.css .k-dark.k-acc-terra; tiles amber/turquoise/violet/azure",
+ "tokens": {
+  "bg": "#0b0b0b",
+  "surface": "#212121",
+  "surface-2": "#292929",
+  "fg": "#e8e8e8",
+  "fg-muted": "#8f8f8f",
+  "line": "#5f5f5f",
+  "accent": "#6f6f6f",
+  "accent-fg": "#f8f8f8",
+  "accent-text": "#919191",
+  "danger": "#9c9c9c",
+  "focus": "#919191",
+  "shadow": "#303030",
+  "tile-1": "#9b9b9b",
+  "tile-2": "#979797",
+  "tile-3": "#6b6b6b",
+  "tile-4": "#6c6c6c"
+ },
+ "night": "mono-dark",
+ "tile-ink": [
+  "#f8f8f8",
+  "#151515"
+ ]
+}

@@ -6,6 +6,8 @@
 #     word typed into a screen instead of a key (comments do not count);
 #   - a web dictionary misses a key of the Russian one, has one it lacks, or
 #     loses a {placeholder} — the languages are the terminal's seventeen;
+#   - a web.* value of a non-Russian dictionary reads as the Russian one, or of
+#     a non-English one as the English one, and is not named as truly the same;
 #   - a key named in say("…") is in neither the terminal's Russian dictionary
 #     nor the web's — a screen would show the key itself.
 set -euo pipefail
@@ -174,6 +176,79 @@ for k, v in ru_web.items():
     for lang, d in sorted(dicts.items()):
         if d.get(k) == v and k not in SAME_AS_RU.get(lang, ()):
             bad.append(f"{lang}: {k} осталась русской («{v[:40]}») и не названа в SAME_AS_RU")
+# W15-I18N: the same for English. A non-English dictionary whose web.* value
+# reads exactly as en.json's is an untranslated copy (the verifier put the
+# English addVenue into de and the gate said nothing). What is truly the same
+# in a Latin-script language — a unit, an international word — is named here.
+SAME_AS_EN = {
+    "az": {
+        "web.cabinet.radius",  # radius, m
+        "web.feed.km",  # {n} km
+        "web.feed.m",  # {n} m
+    },
+    "de": {
+        "web.cabinet.link",  # Link: {link}
+        "web.feed.km",  # {n} km
+        "web.feed.m",  # {n} m
+        "web.feed.title",  # Feed
+    },
+    "el": {
+        "web.cabinet.email",  # email
+        "web.card.likes",  # likes: — kept as the loanword; worth a translator's look
+    },
+    "es": {
+        "web.card.block_no",  # no
+        "web.card.likes",  # likes: — kept as the loanword; worth a translator's look
+        "web.feed.km",  # {n} km
+        "web.feed.m",  # {n} m
+    },
+    "fr": {
+        "web.card.phrase",  # phrase
+        "web.composer.mode",  # mode
+        "web.composer.phrase",  # phrase
+        "web.composer.zone",  # zone
+        "web.feed.km",  # {n} km
+        "web.feed.m",  # {n} m
+        "web.inbox.chats",  # Conversations
+        "web.table.direction",  # direction dx dy
+    },
+    "pl": {
+        "web.cabinet.field.url",  # link
+        "web.cabinet.link",  # Link: {link}
+        "web.feed.km",  # {n} km
+        "web.feed.m",  # {n} m
+    },
+    "ro": {
+        "web.cabinet.field.text",  # text
+        "web.cabinet.field.url",  # link
+        "web.cabinet.link",  # Link: {link}
+        "web.feed.km",  # {n} km
+        "web.feed.m",  # {n} m
+        "web.game.set",  # Set
+        "web.newTable.set",  # set
+        "web.transfer.browser",  # browser
+    },
+    "uz": {
+        "web.cabinet.radius",  # radius, m
+        "web.feed.km",  # {n} km
+        "web.feed.m",  # {n} m
+    },
+}
+en_web = dicts.get("en", {})
+for lang, keys in SAME_AS_EN.items():
+    for k in sorted(keys):
+        if k not in en_web:
+            bad.append(f"{lang}: исключение SAME_AS_EN на ключ {k}, которого нет в en")
+        elif lang in dicts and dicts[lang].get(k) != en_web[k]:
+            bad.append(f"{lang}: {k} уже не совпадает с en — убрать из SAME_AS_EN")
+for k, v in en_web.items():
+    if not k.startswith("web."):
+        continue
+    for lang, d in sorted(dicts.items()):
+        if lang == "en":
+            continue
+        if d.get(k) == v and k not in SAME_AS_EN.get(lang, ()):
+            bad.append(f"{lang}: {k} осталась английской («{v[:40]}») и не названа в SAME_AS_EN")
 for k in sorted(used):
     if k not in ru_web and k not in ru_depth:
         bad.append(f"say(\"{k}\"): такого ключа нет ни у веба, ни у терминала")

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Icon } from "./Icon.tsx";
 
 // The kit's floating composer (components.svg composer-float): a 52-high fg
 // pill with the shadow +3,+3, on-fg-muted placeholder, and the accent send
@@ -18,7 +19,7 @@ export function Composer({ placeholder, label, sendLabel, onSend, maxLength }: P
     <form className="ui-composer" onSubmit={submit}>
       <input aria-label={label} placeholder={placeholder} value={text} maxLength={maxLength} onChange={(event) => setText(event.target.value)} />
       <button type="submit" className={text.trim() ? "ui-send ui-send-on" : "ui-send"} aria-label={sendLabel}>
-        <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><path d="M22 30 L22 14 M15 21 L22 14 L29 21" /></svg>
+        <Icon name="send" />
       </button>
     </form>
   );

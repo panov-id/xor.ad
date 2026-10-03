@@ -7,6 +7,10 @@ import { chromium } from "@playwright/test";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const URL_ = process.env.WEB_URL ?? "http://localhost:4173";
+// The stand's brand (VITE_BRAND, scripts/design/shoot-web.sh): every shot is <brand>-<screen>-<theme>.png.
+const BRAND = process.env.BRAND === "neighbro" ? "neighbro" : "sosed";
+// The brand's two themes the gate measures: its light one and its night pair (web/themes/<brand>/light.json).
+const THEMES_ = ["light", process.env.NIGHT || "dark"];
 const OUT = "/out";
 const PIN = "123456";
 const T = 30000;
@@ -37,6 +41,10 @@ async function person(base = URL_) {
     // The stand's node counts registrations per address (web/e2e/fixtures/address.ts).
     extraHTTPHeaders: { "x-origin-token": "web-test-origin-token", "x-client-ip": `203.0.113.${ip++}` },
   });
+  // The theme is forced, not left to the place's phase or prefers-color-scheme:
+  // the light theme chosen by hand (theme.ts, localStorage theme:<brand>) from
+  // the first paint; shoot() switches it for the night shot and back.
+  await context.addInitScript((brand) => { try { localStorage.setItem(`theme:${brand}`, "light"); } catch { /* none */ } }, BRAND);
   // The gate's control break (scripts/test_check-web-design.sh): every screen's
   // left padding 8 wider, drawn by the page itself, not faked in the image.
   if (process.env.WEB_BREAK === "pad8") {
@@ -57,13 +65,17 @@ async function shoot(page, name) {
   // No focus ring in a shot: a field typed into last keeps its ring, which no
   // sheet draws (Cabinet-sign-in and every screen with a field, WD6e).
   await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
-  for (const scheme of ["light", "dark"]) {
-    await page.emulateMedia({ colorScheme: scheme });
+  const force = (id) => page.evaluate(([brand, theme]) => {
+    localStorage.setItem(`theme:${brand}`, theme);
+    document.documentElement.dataset.theme = theme;
+  }, [BRAND, id]);
+  for (const theme of THEMES_) {
+    await force(theme);
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(250);
-    await page.screenshot({ path: `${OUT}/${name}-${scheme}.png` });
+    await page.screenshot({ path: `${OUT}/${BRAND}-${name}-${theme}.png` });
   }
-  await page.emulateMedia({ colorScheme: "light" });
+  await force("light");
 }
 
 // One screen: get there, shoot, write the line; a failure is a line too.
@@ -78,6 +90,14 @@ async function step(name, page, reach) {
     rows.push([name, "not opened", why]);
     console.log(`  --  ${name}: ${why}`);
   }
+}
+
+// The like on an open card, as the brand gives it (web/e2e/specs/helpers.ts
+// pressLike): sosed's button; neighbro's heart tapped, then the card — the like
+// goes after the 5 s undo window.
+async function like(page) {
+  if (BRAND === "neighbro") { await id(page, "heart").click(); await id(page, "heart-target").click(); }
+  else await id(page, "like").click();
 }
 
 async function home(page) {
@@ -159,7 +179,11 @@ await step("Composer", anya, async () => {
 await id(anya, "send").click().catch(() => {});
 await anya.locator('[data-testid="sent"][data-state="published"]').waitFor({ timeout: 15000 }).catch(() => {});
 await step("Card", anya, async () => { await openCard(anya, bText); });
-await step("Card-liked", anya, async () => { await id(anya, "like").click(); await seen(id(anya, "liked")); });
+// Card-more: sosed's details pulled down (the peek), neighbro's heart picked
+// up over the card; put back after the shot.
+await step("Card-more", anya, async () => { await id(anya, BRAND === "neighbro" ? "heart" : "peek").click(); await anya.waitForTimeout(300); });
+await id(anya, BRAND === "neighbro" ? "heart" : "peek").click().catch(() => {});
+await step("Card-liked", anya, async () => { await like(anya); await seen(id(anya, "liked")); });
 await step("Likes", boris, async () => {
   await home(boris);
   await id(boris, "likes").click();
@@ -168,7 +192,7 @@ await step("Likes", boris, async () => {
 await step("Card-matched", boris, async () => {
   await home(boris);
   await openCard(boris, aText);
-  await id(boris, "like").click();
+  await like(boris);
   await seen(id(boris, "matched"));
 });
 await step("Inbox", anya, async () => {
@@ -306,7 +330,7 @@ await step("Cabinet-venues", venue, async () => {
     const mid = found.messages?.[0]?.ID;
     if (mid) {
       const letter = await (await fetch(`${MAILPIT}/api/v1/message/${mid}`)).json();
-      token = /https:\/\/adv\.sosed\.place\/enter#([0-9a-f]{64})/.exec(`${letter.Text ?? ""} ${letter.HTML ?? ""}`)?.[1] ?? "";
+      token = /https:\/\/adv\.(?:sosed|neighbro)\.place\/enter#([0-9a-f]{64})/.exec(`${letter.Text ?? ""} ${letter.HTML ?? ""}`)?.[1] ?? "";
     }
     if (!token) await venue.waitForTimeout(500);
   }

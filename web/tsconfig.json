@@ -23,6 +23,9 @@
     "paths": {
       "hash-wasm": [
         "./node_modules/hash-wasm"
+      ],
+      "@brand": [
+        "./src/brands/sosed/index.tsx"
       ]
     },
     "resolveJsonModule": true
@@ -32,6 +35,7 @@
     "../depth/core/*.ts"
   ],
   "exclude": [
-    "../depth/core/*.test.ts"
+    "../depth/core/*.test.ts",
+    "src/**/*.test.ts"
   ]
 }

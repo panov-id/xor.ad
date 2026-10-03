@@ -1,0 +1,30 @@
+{
+ "brand": "sosed",
+ "id": "azure",
+ "name": "Azure",
+ "scheme": "light",
+ "source": "scripts/design-palettes.py SOSED_LIGHT + schemes.css .k-light.k-acc-azure; tiles amber/turquoise/violet/terra",
+ "tokens": {
+  "bg": "#ece4d8",
+  "surface": "#fdfaf4",
+  "surface-2": "#e6dbc9",
+  "fg": "#1c140d",
+  "fg-muted": "#6b5f4c",
+  "line": "#857562",
+  "accent": "#336eb2",
+  "accent-fg": "#fff6f0",
+  "accent-text": "#3068a8",
+  "danger": "#a3311f",
+  "focus": "#3068a8",
+  "shadow": "#221a12",
+  "tile-1": "#d68a1f",
+  "tile-2": "#1fa99a",
+  "tile-3": "#8550c5",
+  "tile-4": "#bd4b2a"
+ },
+ "night": "dark-azure",
+ "tile-ink": [
+  "#fff6f0",
+  "#1a1509"
+ ]
+}

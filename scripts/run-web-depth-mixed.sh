@@ -40,7 +40,10 @@ cleanup() {
   docker rm -f "$depth_name" >/dev/null 2>&1 || true
   "${compose[@]}" down -v --rmi local --remove-orphans >/dev/null 2>&1 || true
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+# A signal ends the run: cleanup alone would let the script go on and bring
+# containers back up with nobody left to take them down.
+trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
 echo "== build and start: postgres, migrations, seed, node, web"
 "${compose[@]}" build e2e web web-adv node >/dev/null || exit 1
 # The panel too, before the terminal starts its clock: e2e depends on it, and

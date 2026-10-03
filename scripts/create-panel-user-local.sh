@@ -39,7 +39,17 @@ curl -fsS -m 5 "$api/health" >/dev/null || {
 }
 
 echo "== a session to create the first user with"
-token="$(docker run --rm -e SESSION_SECRET="$secret" \
+# Since SEC-1 the node reads the role from the user's record on every request,
+# not from the token — a token for someone not on record is refused (401). So the
+# bootstrap operator is put on record first, in the stand's own storage, written
+# as the node writes it (tools/seed_admin.ts, without its empty-only rule: this
+# is a stand, and bootstrap@local.test is its fixture, not a person).
+boot="bootstrap@local.test"
+boot_key="$(printf '%s' "$boot" | sha256sum | cut -c1-64)"
+docker exec -i edge-node-local-node-1 sh -c \
+  'mkdir -p /data/panel/local/users && cat > "/data/panel/local/users/$1.json"' _ "$boot_key" \
+  <<<"{\"email\":\"$boot\",\"role\":\"admin\",\"brand\":null,\"created_at\":\"$(date -u +%FT%TZ)\"}"
+token="$(docker run --rm -e SESSION_SECRET="$secret" -e NODE_ENV_NAME=local \
   -v "$root/relay/node":/node -w /node "$deno_image" \
   deno run --allow-env tools/mint_panel_token.ts admin bootstrap@local.test 600 2>/dev/null | tail -1)"
 

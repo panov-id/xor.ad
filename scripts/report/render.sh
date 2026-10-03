@@ -9,6 +9,9 @@
 # $REPORT_SCREENSHOTS points build.py at the gitignored design screenshots when
 # this tree has none (a fresh worktree); $REPORT_BRANCH picks the branch measured.
 set -euo pipefail
+# The runner image is built on demand, as scripts/design/brand-sheets.sh does:
+# a disk clean-up takes it with the rest.
+docker image inspect panel-tests-runner >/dev/null 2>&1 || docker build -q -t panel-tests-runner "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/panel/tests" >/dev/null
 H="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 R="$(cd "$H/../.." && pwd)"
 export REPORT_WORK="${REPORT_WORK:-${XDG_CACHE_HOME:-$HOME/.cache}/xor.ad-report}"

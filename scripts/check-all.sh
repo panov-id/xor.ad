@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 # Ворота слоя фактов одной командой.
 #
-#   scripts/check-all.sh              ворота продукта: контракт, миграции, наборы с базой, пределы
+#   scripts/check-all.sh              быстрый уровень перед коммитом: статические ворота
+#                                     продукта, без стендов и e2e (контейнеры не поднимаются)
+#   scripts/check-all.sh --stands     и наборы в контейнерах: depth, e2e путей обоих брендов,
+#                                     тревоги, апгрейд миграций
 #   scripts/check-all.sh --full       и всё остальное: реестры, парность, дизайн, тексты, онтология
+#                                     (подразумевает --stands)
 #   scripts/check-all.sh --with-tests и пробы самих ворот (подразумевает --full)
+#   scripts/check-all.sh --dev        полный прогон перед слиянием в dev (= --with-tests)
+#
+# С 03.10.2026 (слово владельца: «check-all большой и долгий, замедляет работу —
+# разбить; полный гонять перед коммитом в dev») по умолчанию стенды не поднимаются.
 #
 # С 26.09.2026 (волна 0 разгрузки, решение владельца) по умолчанию гоняются только
 # ворота, за которыми стоит код продукта или база: остальные 30 с лишним краснели
@@ -35,11 +43,13 @@ set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/.." && pwd)"
 compose="$root/relay/local/docker-compose.yml"
-with_tests=0; full=0
+with_tests=0; full=0; stands=0
 for arg in "$@"; do
   case "$arg" in
-    --with-tests) with_tests=1; full=1 ;;
-    --full) full=1 ;;
+    --with-tests|--dev) with_tests=1; full=1; stands=1 ;;
+    --full) full=1; stands=1 ;;
+    --stands) stands=1 ;;
+    *) echo "неизвестный флаг: $arg" >&2; exit 2 ;;
   esac
 done
 # Команда docker подменяема: без этого ветку «докера нет» нечем проверить —
@@ -132,10 +142,18 @@ run check-metrics-exist        bash "$here/check-metrics-exist.sh"
 # (i18n на day58, 27.09.2026). Контейнера не требуют.
 run check-web-tokens           bash "$here/check-web-tokens.sh"
 run check-web-i18n             bash "$here/check-web-i18n.sh"
+run check-web-themes           python3 "$here/design/themes-css.py" --check
+run test-web-themes            bash "$here/test_themes-css.sh"
+# O10 (panel 03.10.2026): a full disk first, by name — otherwise a stand build
+# dies of it and reads as a red test. df only, milliseconds.
+run check-disk                 bash "$here/check-disk.sh"
+run test-check-disk            bash "$here/test_check-disk.sh"
+run test-moderation-bench      bash "$here/test_moderation-bench.sh"
 
 # Ворота, которым нужен контейнер. Докера нет — это пропуск с названной
 # причиной, а не провал: провал заставил бы обходить его руками, и обходили бы.
 run_in_docker() {  # run_in_docker <имя> <путь>
+  [ "$stands" = 1 ] || return 0
   if command -v "$docker_cmd" >/dev/null 2>&1; then
     run "$1" bash "$2"
   else
@@ -153,6 +171,16 @@ run_in_docker test-depth               "$here/run-depth-tests.sh"
 run_in_docker test-depth-ui            "$here/run-depth-ui-tests.sh"
 run_in_docker test-depth-live-ui       "$here/run-depth-live-ui.sh"
 run_in_docker test-e2e-paths          "$here/run-e2e-paths.sh"
+# The same paths on the other storefront's build: a brand's own screens (the
+# heart, the swipe) skip on the wrong build, so one brand alone left the other
+# untested and green (panel 02.10.2026).
+if [ "$stands" != 1 ]; then
+  :
+elif command -v "$docker_cmd" >/dev/null 2>&1; then
+  run test-e2e-paths-neighbro env VITE_BRAND=neighbro bash "$here/run-e2e-paths.sh"
+else
+  skipped=$((skipped + 1)); printf '  · %-26s docker недоступен — не проверено\n' test-e2e-paths-neighbro
+fi
 opt_in_docker check-depth-i18n         "$here/check-depth-i18n.sh"
 
 if [ "$with_tests" = 1 ]; then
@@ -253,6 +281,7 @@ if [ -n "$outside" ]; then
     printf '  · %-26s %s\n' "$name" "$(reason_for "$name")"
   done
 fi
+[ "$stands" = 1 ] || echo "быстрый уровень: стенды и e2e не гонялись (--stands, полный — --dev)"
 printf 'пройдено %s, провалено %s, пропущено %s\n' "$passed" "$failed" "$skipped"
 [ "$failed" -gt 0 ] && exit 1
 [ "$skipped" -gt 0 ] && printf 'внимание: пропущенное не проверено и не может считаться зелёным\n'

@@ -27,9 +27,7 @@ export function Blocked({ client, onBack }: { client: Client; onBack: () => void
             {rows.map((row) => (
               <li key={row.id} data-testid="blocked-row">
                 <span className="place-row-text">{say("blocked.since", { date: day(row.since) })}</span>
-                <Button kind="text" type="button" onClick={() => void unblock(client, row.id).then(load).catch((e: Error) => setError(e.message))} data-testid="blocked-lift">
-                  {say("blocked.lift")}
-                </Button>
+                <Button type="button" icon="unblock" aria-label={say("blocked.lift")} onClick={() => void unblock(client, row.id).then(load).catch((e: Error) => setError(e.message))} data-testid="blocked-lift" />
               </li>
             ))}
           </ul>

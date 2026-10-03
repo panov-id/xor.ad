@@ -15,6 +15,7 @@ import {
   signUp, type Venue, venues, verify, when,
 } from "./api.ts";
 import { say } from "../locales/say.ts";
+import { Info } from "../ui/Info.tsx";
 
 type View = "loading" | "sign-in" | "sent" | "expired" | "venues" | "offers" | "new-offer";
 const PATHS: Record<View, string> = { loading: "", "sign-in": "", sent: "", expired: "", venues: "/venues", offers: "/offers", "new-offer": "/offers/new" };
@@ -59,8 +60,8 @@ export function Cabinet() {
         <span className="cabinet-where">{location.host}{PATHS[view]}</span>
         {(view === "venues" || view === "offers" || view === "new-offer") && (
           <nav className="cabinet-nav" aria-label={say("web.cabinet.title")}>
-            <Button kind="text" type="button" aria-current={view === "venues" ? "page" : undefined} onClick={() => setView("venues")} data-testid="adv-tab-venues">{say("web.cabinet.tabVenues")}</Button>
-            <Button kind="text" type="button" aria-current={view !== "venues" ? "page" : undefined} onClick={() => setView("offers")} data-testid="adv-tab-offers">{say("web.cabinet.myOffers")}</Button>
+            <Button type="button" icon="venue" aria-label={say("web.cabinet.tabVenues")} aria-current={view === "venues" ? "page" : undefined} onClick={() => setView("venues")} data-testid="adv-tab-venues" />
+            <Button type="button" icon="offers" aria-label={say("web.cabinet.myOffers")} aria-current={view !== "venues" ? "page" : undefined} onClick={() => setView("offers")} data-testid="adv-tab-offers" />
           </nav>
         )}
       </div>
@@ -70,15 +71,16 @@ export function Cabinet() {
         <>
           <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.title")}</h1></header>
           <p data-testid="adv-sent">{say("web.cabinet.sent")}</p>
-          <p className="muted">{say("web.cabinet.linkOnce")}</p>
+          <div className="ui-info-row"><Info label={say("web.cabinet.title")} data-testid="adv-sent-info"><p>{say("web.cabinet.linkOnce")}</p></Info></div>
         </>
       )}
       {view === "expired" && (
         <>
           <header className="ui-header"><h1 className="ui-header-title" data-testid="adv-expired">{say("web.cabinet.expired")}</h1></header>
-          <p className="muted">{say("web.cabinet.linkOnceSpent")}</p>
-          <p className="muted">{say("web.cabinet.limit")}</p>
-          <Button kind="secondary" type="button" onClick={() => setView("sign-in")} data-testid="adv-again">{say("web.cabinet.askAgain")}</Button>
+          <div className="ui-info-row">
+            <Info label={say("web.cabinet.title")} data-testid="adv-expired-info"><p>{say("web.cabinet.linkOnceSpent")}</p><p>{say("web.cabinet.limit")}</p></Info>
+          </div>
+          <Button kind="primary" type="button" icon="link" className="ui-wide" aria-label={say("web.cabinet.askAgain")} onClick={() => setView("sign-in")} data-testid="adv-again" />
         </>
       )}
       {view === "venues" && <Venues onError={setError} />}
@@ -109,7 +111,7 @@ function SignIn({ onSent, onError }: { onSent: () => void; onError: (e: string |
   return (
     <>
       <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.title")}</h1></header>
-      <p className="muted">{say("web.cabinet.linkOnly")}</p>
+      <div className="ui-info-row"><Info label={say("web.cabinet.title")} data-testid="adv-sign-in-info"><p>{say("web.cabinet.linkOnly")}</p></Info></div>
       <label>
         {say("web.cabinet.email")}
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="adv-email" autoComplete="email" />
@@ -118,7 +120,7 @@ function SignIn({ onSent, onError }: { onSent: () => void; onError: (e: string |
         {say("web.cabinet.contact")}
         <input value={contact} onChange={(e) => setContact(e.target.value)} data-testid="adv-contact" />
       </label>
-      <Button kind="primary" type="button" disabled={!email.includes("@") || busy} onClick={() => void go()} data-testid="adv-send">{say("web.cabinet.getLink")}</Button>
+      <Button kind="primary" type="button" icon="link" className="ui-wide" aria-label={say("web.cabinet.getLink")} disabled={!email.includes("@") || busy} onClick={() => void go()} data-testid="adv-send" />
     </>
   );
 }
@@ -177,7 +179,7 @@ function Venues({ onError }: { onError: (e: string | null) => void }) {
     <>
       <header className="ui-header"><h1 className="ui-header-title">{say("web.cabinet.verification")}</h1></header>
       {rows === null ? <p className="muted">…</p> : rows.map((v) => <VenueRow key={v.id} venue={v} onChanged={load} onError={onError} />)}
-      <p className="muted">{say("web.cabinet.unverifiedNote")}</p>
+      <div className="ui-info-row"><Info label={say("web.cabinet.title")} data-testid="adv-venues-info"><p>{say("web.cabinet.unverifiedNote")}</p></Info></div>
       <section className="add-venue">
         <label>
           {say("web.cabinet.name")}
@@ -188,7 +190,7 @@ function Venues({ onError }: { onError: (e: string | null) => void }) {
           <input value={address} onChange={(e) => setAddress(e.target.value)} data-testid="venue-address" />
         </label>
         <PlaceFields value={place} onChange={setPlace} prefix="venue" />
-        <Button kind="primary" type="button" disabled={!name.trim() || !address.trim()} onClick={() => void add()} data-testid="venue-add">{say("web.cabinet.addVenue")}</Button>
+        <Button kind="primary" type="button" icon="new" className="ui-wide" aria-label={say("web.cabinet.addVenue")} disabled={!name.trim() || !address.trim()} onClick={() => void add()} data-testid="venue-add" />
       </section>
       <NotUs />
     </>
@@ -213,12 +215,12 @@ function NotUs() {
   return (
     <section className="place-not-us" data-testid="adv-not-us">
       <h2>{say("web.cabinet.notUsTitle")}</h2>
-      <p className="muted">{say("web.cabinet.notUsNote")}</p>
+      <div className="ui-info-row"><Info label={say("web.cabinet.title")} data-testid="adv-not-us-info"><p>{say("web.cabinet.notUsNote")}</p></Info></div>
       <label className="place-field">
         {say("web.cabinet.envelopeCode")}
         <input value={code} onChange={(e) => setCode(e.target.value)} data-testid="adv-not-us-code" autoComplete="off" />
       </label>
-      <Button kind="secondary" type="button" disabled={busy || code.replace(/[\s-]/g, "").length !== 12} onClick={() => void send()} data-testid="adv-not-us-send">{say("web.cabinet.notUs")}</Button>
+      <Button kind="danger" type="button" icon="report" className="ui-wide" aria-label={say("web.cabinet.notUs")} disabled={busy || code.replace(/[\s-]/g, "").length !== 12} onClick={() => void send()} data-testid="adv-not-us-send" />
     </section>
   );
 }
@@ -272,12 +274,12 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
       {moving
         ? (
           <>
-            {venue.verification_status === "verified" && <p className="warn">{say("web.cabinet.moveWarn")}</p>}
+            {venue.verification_status === "verified" && <div className="ui-info-row"><Info label={say("web.cabinet.movePoint")} warn data-testid="venue-move-info"><p>{say("web.cabinet.moveWarn")}</p></Info></div>}
             <PlaceFields value={place} onChange={setPlace} prefix="venue-move" />
-            <Button kind="secondary" type="button" onClick={() => void move()} data-testid="venue-move-save">{say("web.cabinet.savePoint")}</Button>
+            <Button kind="primary" type="button" icon="check" aria-label={say("web.cabinet.savePoint")} onClick={() => void move()} data-testid="venue-move-save" />
           </>
         )
-        : <Button kind="secondary" type="button" onClick={() => setMoving(true)} data-testid="venue-move">{venue.place ? say("web.cabinet.movePoint") : say("web.cabinet.setPoint")}</Button>}
+        : <Button kind="secondary" type="button" icon="pin" className="ui-wide-half" aria-label={venue.place ? say("web.cabinet.movePoint") : say("web.cabinet.setPoint")} onClick={() => setMoving(true)} data-testid="venue-move" />}
       {venue.verification_status === "unverified" && (venue.envelope_expires_at
         ? (
           <>
@@ -286,10 +288,10 @@ function VenueRow({ venue, onChanged, onError }: { venue: Venue; onChanged: () =
               {say("web.cabinet.envelopeCode")}
               <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} data-testid="venue-code" autoComplete="off" />
             </label>
-            <Button kind="primary" type="button" disabled={code.replace(/[\s-]/g, "").length !== 12} onClick={() => void check()} data-testid="venue-verify">{say("web.cabinet.confirm")}</Button>
+            <Button kind="primary" type="button" icon="check" aria-label={say("web.cabinet.confirm")} disabled={code.replace(/[\s-]/g, "").length !== 12} onClick={() => void check()} data-testid="venue-verify" />
           </>
         )
-        : <Button kind="secondary" type="button" onClick={() => void order()} data-testid="venue-envelope">{say("web.cabinet.orderEnvelope")}</Button>)}
+        : <Button kind="secondary" type="button" icon="mail" className="ui-wide-half" aria-label={say("web.cabinet.orderEnvelope")} onClick={() => void order()} data-testid="venue-envelope" />)}
       {wrong && <p className="error" data-testid="venue-wrong">{wrong}</p>}
     </article>
   );
@@ -304,7 +306,7 @@ function Offers({ onNew, onError }: { onNew: () => void; onError: (e: string | n
     <>
       <header className="ui-header">
         <h1 className="ui-header-title">{say("web.cabinet.myOffersTitle")}</h1>
-        <Button kind="text" type="button" onClick={onNew} data-testid="offer-new">{say("web.cabinet.newOffer")}</Button>
+        <Button kind="primary" type="button" icon="new" aria-label={say("web.cabinet.newOffer")} onClick={onNew} data-testid="offer-new" />
       </header>
       {rows?.map((o) => (
         <article key={o.id} className="ui-card place-offer" data-testid="adv-offer" data-status={o.status}>
@@ -372,7 +374,7 @@ function ComplaintRow({ complaint, onAnswered, onError }: { complaint: Complaint
               {say("web.cabinet.answerLabel")}
               <input value={text} maxLength={1000} onChange={(e) => setText(e.target.value)} data-testid="adv-complaint-text" />
             </label>
-            <Button kind="primary" type="button" disabled={busy || !text.trim()} onClick={() => void send()} data-testid="adv-complaint-send">{say("web.cabinet.answer")}</Button>
+            <Button kind="primary" type="button" icon="send" aria-label={say("web.cabinet.answer")} disabled={busy || !text.trim()} onClick={() => void send()} data-testid="adv-complaint-send" />
           </div>
         )}
     </article>
@@ -442,10 +444,10 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
           {conditions.trim() && <p className="muted">{say("web.cabinet.field.terms")}: {conditions.trim()}</p>}
           <p className="muted">{say("web.cabinet.discountUntil", { until: when(new Date(until).toISOString()) })}</p>
         </article>
-        <p className="muted">{say("web.cabinet.publishNote")}</p>
+        <div className="ui-info-row"><Info label={say("web.cabinet.title")} data-testid="offer-publish-info"><p>{say("web.cabinet.publishNote")}</p></Info></div>
         {refused && <p className="error" data-testid="offer-refused">{say("web.cabinet.refused", { reason: refused })}</p>}
-        <Button kind="primary" type="button" disabled={busy} onClick={() => void go()} data-testid="offer-publish">{say("web.cabinet.publish")}</Button>
-        <Button kind="secondary" type="button" onClick={() => setPreviewing(false)} data-testid="offer-to-form">{say("web.cabinet.toForm")}</Button>
+        <Button kind="primary" type="button" icon="send" className="ui-wide" aria-label={say("web.cabinet.publish")} disabled={busy} onClick={() => void go()} data-testid="offer-publish" />
+        <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("web.cabinet.toForm")} onClick={() => setPreviewing(false)} data-testid="offer-to-form" />
       </section>
     );
   }
@@ -456,8 +458,8 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
         <p>{say("web.cabinet.publishedNote")}</p>
         {done.external_url && <p data-testid="offer-published-link">{say("web.cabinet.link", { link: done.link.replace(/^https:\/\//, "") })}</p>}
         <p className="muted">{say("web.cabinet.cardLives", { until: when(done.discount_until) })}</p>
-        <p className="muted">{say("web.cabinet.noEdit")}</p>
-        <Button kind="secondary" type="button" onClick={onDone} data-testid="offer-to-list">{say("web.cabinet.myOffers")}</Button>
+        <div className="ui-info-row"><Info label={say("web.cabinet.title")} data-testid="offer-published-info"><p>{say("web.cabinet.noEdit")}</p></Info></div>
+        <Button kind="secondary" type="button" icon="offers" className="ui-wide" aria-label={say("web.cabinet.myOffers")} onClick={onDone} data-testid="offer-to-list" />
       </section>
     );
   }
@@ -500,7 +502,7 @@ function NewOffer({ onDone, onError }: { onDone: () => void; onError: (e: string
             <input value={url} onChange={(e) => setUrl(e.target.value)} data-testid="offer-url" />
             <span className="muted">{say("web.cabinet.noShorteners")}</span>
           </label>
-          <Button kind="secondary" type="button" disabled={!venue || !text.trim() || !discount.trim()} onClick={() => { setRefused(null); setPreviewing(true); }} data-testid="offer-preview">{say("web.cabinet.preview")}</Button>
+          <Button kind="secondary" type="button" icon="eye" className="ui-wide" aria-label={say("web.cabinet.preview")} disabled={!venue || !text.trim() || !discount.trim()} onClick={() => { setRefused(null); setPreviewing(true); }} data-testid="offer-preview" />
         </>
       )}
     </>

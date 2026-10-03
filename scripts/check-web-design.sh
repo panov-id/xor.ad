@@ -26,7 +26,7 @@ mode="${1:-}"
 if [ "$mode" = "--shoot" ]; then
   SHOTS_OUT="${SHOTS_OUT:-testing/screenshots/web}" "$here/shoot-web.sh" >/dev/null || { echo "✗ съёмка не прошла: scripts/design/shoot-web.sh"; exit 1; }
 fi
-[ -f "$shots/shots.tsv" ] && [ -d "$shots/sheets" ] || { echo "✗ кадров нет в $shots — сначала scripts/design/shoot-web.sh"; exit 3; }
+[ -f "$shots/shots.tsv" ] && [ -d "$shots/sheets-sosed" ] || { echo "✗ кадров нет в $shots — сначала scripts/design/shoot-web.sh"; exit 3; }
 
 measured="$(docker run --rm -u "$(id -u):$(id -g)" \
   -v "$here/compare-web.mjs":/tests/compare.mjs:ro -v "$here/web-design-map.tsv":/map:ro \

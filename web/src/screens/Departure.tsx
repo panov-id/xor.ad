@@ -10,6 +10,8 @@ import { pinRefusal, say } from "../api/me.ts";
 import { ENDINGS, MOVE_POLL_MS, useEvery } from "../api/transfer.ts";
 import { Button } from "../ui/Button.tsx";
 import "./talk.css";
+import { HeaderScreen } from "../ui/Header.tsx";
+import { Info } from "../ui/Info.tsx";
 
 export function Departure({ client, onBack, onGone }: { client: Client; onBack: () => void; onGone: () => void }) {
   const [pin, setPin] = useState("");
@@ -67,32 +69,35 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
   const ending = ENDINGS[state];
   return (
     <main className="screen departure" data-screen="departure" data-state={out ? state : "start"}>
-      <header className="ui-header ui-header-rule"><h1 className="ui-header-title">{say(state === "approved" ? "move.doneTitle" : "move.title")}</h1></header>
+      <HeaderScreen title={say(state === "approved" ? "move.doneTitle" : "move.title")} />
       {state === "approved"
         ? (
           <>
             <p data-testid="move-done">{say("move.done")}</p>
-            <Button kind="primary" type="button" onClick={onGone} data-testid="move-exit">{say("common.back")}</Button>
+            <Button kind="primary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onGone} data-testid="move-exit" />
           </>
         )
         : ending
         ? (
           <>
             <p data-testid="move-ending">{say(ending)}</p>
-            <Button kind="secondary" type="button" onClick={onBack} data-testid="move-back">{say("common.back")}</Button>
+            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="move-back" />
           </>
         )
         : !out
         ? (
           <>
-            <p className="muted">{say("move.intro")}</p>
-            <p className="warn">{say("move.price")}</p>
+            <div className="ui-info-row">
+              <Info label={say("move.title")} data-testid="move-info"><p>{say("move.intro")}</p></Info>
+            </div>
+            {/* What cannot be undone is said on the screen, not behind ⓘ: the button below is an icon. */}
+            <p className="warn" data-testid="move-price">{say("move.price")}</p>
             <label>
               {say("pin.current")}
               <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="move-pin" />
             </label>
-            <Button kind="primary" type="button" disabled={pin.length !== 6 || busy} onClick={() => void open()} data-testid="move-go">{say("move.go")}</Button>
-            <Button kind="secondary" type="button" onClick={onBack} data-testid="move-back">{say("common.back")}</Button>
+            <Button kind="primary" type="button" icon="code" className="ui-wide" aria-label={say("move.go")} disabled={pin.length !== 6 || busy} onClick={() => void open()} data-testid="move-go" />
+            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="move-back" />
           </>
         )
         : state === "claimed" && out.claimant
@@ -106,8 +111,8 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
             </dl>
             <p className="muted">{say("move.checkAsk")}</p>
             <p className="muted">{say("move.leaves")}</p>
-            <Button kind="primary" type="button" disabled={busy} onClick={() => void decide(true)} data-testid="move-yes">{say("move.yes")}</Button>
-            <Button kind="secondary" type="button" disabled={busy} onClick={() => void decide(false)} data-testid="move-no">{say("move.no")}</Button>
+            <Button kind="primary" type="button" icon="check" className="ui-wide" aria-label={say("move.yes")} disabled={busy} onClick={() => void decide(true)} data-testid="move-yes" />
+            <Button kind="secondary" type="button" icon="close" className="ui-wide" aria-label={say("move.no")} disabled={busy} onClick={() => void decide(false)} data-testid="move-no" />
           </>
         )
         : (
@@ -116,7 +121,7 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
             <p className="muted">{say("move.codeWhere")}</p>
             <p className="muted">{say("move.codeLife", { n: left })}</p>
             <p className="muted">{say("move.nobody")}</p>
-            <Button kind="secondary" type="button" disabled={busy} onClick={() => void decide(false)} data-testid="move-stop">{say("move.stop")}</Button>
+            <Button kind="secondary" type="button" icon="close" className="ui-wide" aria-label={say("move.stop")} disabled={busy} onClick={() => void decide(false)} data-testid="move-stop" />
           </>
         )}
       {error && <p className="error" data-testid="error">{error}</p>}

@@ -506,6 +506,27 @@ Ten places where one control is described differently; the direction is named, t
 
 `--r-round` as an avatar (there are no avatars), `--r-pill` (no screen asks for a pill), `--ok` as a separate outcome (only ✓ and an error are needed), "press on hover" (interactions are by touch and keyboard). The tokens stay, but the mockup is not obliged to use them. The motion tokens `--dur-*`, `--ease-*`, `--shift-*` are the "Motion" section; they are introduced here.
 
+## The web: brands and themes (since 2026-10-02)
+
+The web's comic face (gold, sky scenes, the `k-comic*` schemes) was removed by commit e7b4424e;
+the theme is the web's one colour source. By the owner's decision of 2026-10-02 each brand has its own look:
+
+- **sosed — "blocks".** Tile cards with a swipe (`web/src/brands/sosed/`, `blocks.css`,
+  the gesture in `web/src/ui/useSwipe.ts`).
+- **neighbro — "stickers".** Sticker cards with a single heart (`web/src/brands/neighbro/`,
+  `stickers.css`). Since 2026-10-02 the heart does not go to the node at once: for 5 s it can be taken off, and then
+  the node never hears of it (`web/src/screens/logic/useDeferredLike.ts`, `UNDO_MS = 5000`).
+- **Themes are data (2026-10-02).** `web/themes/{sosed,neighbro}/*.json` (light/dark/mono and coloured pairs;
+  14 files for sosed and 10 for neighbro today) → `scripts/design/themes-css.py` →
+  `web/src/themes.gen.css` and `themes.gen.ts`. The theme is picked on the "me" screen; "auto"
+  takes the light theme by day and its night pair at night of the place, and the choice is kept on
+  the device (`web/src/theme.ts`, key `theme:<brand>` in localStorage).
+- **Type.** Text Golos Text, codes and labels JetBrains Mono (`web/src/styles.css`).
+- **Icons and ⓘ.** An action button is a 44×44 icon with an `aria-label` (`web/src/ui/Icon.tsx`);
+  an explanation sits behind an ⓘ button (`web/src/ui/Info.tsx`).
+- **Checks.** Colours only from tokens — `scripts/check-web-tokens.sh`; agreement with the brands'
+  sheets — `scripts/check-web-design.sh`, its order and map in `docs/design/web-vs-sheets_EN.md`.
+
 ## Nothing open
 
 The application design system has no open items: below is the recorded decision

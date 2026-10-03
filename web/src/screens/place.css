@@ -106,3 +106,12 @@
 .screen.offer-exit .place-exit { flex: 1; background: none; border: 0; padding: 0; }
 .screen.offer-exit .place-exit .place-link-button { margin-top: auto; width: 100%; }
 .screen.cabinet [data-testid="adv-sent"] { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-1); background: var(--panel-2); font-size: 14px; }
+
+/* The theme picker (Me → theme): a radio per theme, a 48px row, the swatch
+   drawn by that theme's own tokens (its element carries data-theme). */
+.theme-options { display: flex; flex-direction: column; }
+.theme-option { display: flex; align-items: center; gap: var(--s-3); min-height: 48px; padding: 0 var(--s-2); border-bottom: 1px solid var(--border); cursor: pointer; }
+.theme-option input { width: 24px; height: 24px; margin: 0; accent-color: var(--accent); }
+.theme-option:has(input:focus-visible) { outline: 3px solid var(--focus, var(--accent)); outline-offset: -3px; }
+.theme-swatch { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--r-round); background: var(--bg); border: 1px solid var(--fg-muted); }
+.theme-dot { width: 14px; height: 14px; border-radius: var(--r-round); background: var(--accent); }

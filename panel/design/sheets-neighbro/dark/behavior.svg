@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1372" height="1138" viewBox="0 0 1372 1138"><defs><style>@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}.h{font-family:"Russo One"}.b{font-family:"Golos Text";font-weight:400}.s{font-family:"Golos Text";font-weight:600}[role=button]:focus-visible,[role=tab]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style></defs><rect width="1372" height="1138" fill="#0b0b0c"/>
+<text id="t94" x="16" y="48" class="h" font-size="28" fill="#e7e8eb" text-anchor="start" >stickers · element behaviour</text>
+<text id="t95" x="24" y="92" class="s" font-size="16" fill="#838a95" text-anchor="start" >element</text>
+<text id="t96" x="234" y="92" class="s" font-size="16" fill="#838a95" text-anchor="start" >tap</text>
+<text id="t97" x="534" y="92" class="s" font-size="16" fill="#838a95" text-anchor="start" >long-press / swipe / drag</text>
+<text id="t98" x="784" y="92" class="s" font-size="16" fill="#838a95" text-anchor="start" >result</text>
+<text id="t99" x="1074" y="92" class="s" font-size="16" fill="#838a95" text-anchor="start" >a11y label</text>
+<rect x="16" y="106" width="1340" height="52" rx="10" fill="#111314"/>
+<text id="t100" x="24" y="138" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >heart pad (button)</text>
+<text id="t101" x="234" y="138" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >open the pad</text>
+<text id="t102" x="534" y="138" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t103" x="784" y="138" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >heart pad above the buttons</text>
+<text id="t104" x="1074" y="138" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >heart pad</text>
+<rect x="16" y="162" width="1340" height="52" rx="10" fill="#0b0b0c"/>
+<text id="t105" x="24" y="194" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >heart sticker</text>
+<text id="t106" x="234" y="184" class="b" font-size="14" fill="#e7e8eb" text-anchor="start" >select (focus ring) → tap phrase</text>
+<text id="t107" x="234" y="204" class="b" font-size="14" fill="#e7e8eb" text-anchor="start" >sticks</text>
+<text id="t108" x="534" y="194" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >drag onto phrase</text>
+<text id="t109" x="784" y="184" class="b" font-size="14" fill="#e7e8eb" text-anchor="start" >like sent, heart on phrase,</text>
+<text id="t110" x="784" y="204" class="b" font-size="14" fill="#e7e8eb" text-anchor="start" >undo 5 s</text>
+<text id="t111" x="1074" y="194" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >like</text>
+<rect x="16" y="218" width="1340" height="52" rx="10" fill="#111314"/>
+<text id="t112" x="24" y="250" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >heart: keyboard</text>
+<text id="t113" x="234" y="240" class="b" font-size="14" fill="#e7e8eb" text-anchor="start" >Enter/Space picks, Enter on</text>
+<text id="t114" x="234" y="260" class="b" font-size="14" fill="#e7e8eb" text-anchor="start" >phrase</text>
+<text id="t115" x="534" y="250" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t116" x="784" y="250" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >same as drag (WCAG 2.5.7)</text>
+<text id="t117" x="1074" y="250" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >as above</text>
+<rect x="16" y="274" width="1340" height="52" rx="10" fill="#0b0b0c"/>
+<text id="t118" x="24" y="306" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >heart over phrase</text>
+<text id="t119" x="234" y="306" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t120" x="534" y="306" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >drop outside phrase</text>
+<text id="t121" x="784" y="306" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >back to the pad, nothing sent</text>
+<text id="t122" x="1074" y="306" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<rect x="16" y="330" width="1340" height="52" rx="10" fill="#111314"/>
+<text id="t123" x="24" y="362" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >remove heart</text>
+<text id="t124" x="234" y="362" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >unlike within 5 s</text>
+<text id="t125" x="534" y="362" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t126" x="784" y="362" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >heart returns to the pad</text>
+<text id="t127" x="1074" y="362" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >remove heart</text>
+<rect x="16" y="386" width="1340" height="52" rx="10" fill="#0b0b0c"/>
+<text id="t128" x="24" y="418" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >phrase in feed</text>
+<text id="t129" x="234" y="418" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >open card</text>
+<text id="t130" x="534" y="418" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >long-press → heart pad</text>
+<text id="t131" x="784" y="418" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >Card screen</text>
+<text id="t132" x="1074" y="418" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >phrase text</text>
+<rect x="16" y="442" width="1340" height="52" rx="10" fill="#111314"/>
+<text id="t133" x="24" y="474" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >hide</text>
+<text id="t134" x="234" y="474" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >hide phrase</text>
+<text id="t135" x="534" y="474" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t136" x="784" y="474" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >phrase leaves feed</text>
+<text id="t137" x="1074" y="474" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >hide</text>
+<rect x="16" y="498" width="1340" height="52" rx="10" fill="#0b0b0c"/>
+<text id="t138" x="24" y="530" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >block</text>
+<text id="t139" x="234" y="530" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >confirm: yes / cancel</text>
+<text id="t140" x="534" y="530" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t141" x="784" y="530" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >author hidden for good</text>
+<text id="t142" x="1074" y="530" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >block</text>
+<rect x="16" y="554" width="1340" height="52" rx="10" fill="#111314"/>
+<text id="t143" x="24" y="586" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >(i) button</text>
+<text id="t144" x="234" y="586" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >open hint</text>
+<text id="t145" x="534" y="586" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t146" x="784" y="586" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >balloon on top, close button</text>
+<text id="t147" x="1074" y="586" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >hint</text>
+<rect x="16" y="610" width="1340" height="52" rx="10" fill="#0b0b0c"/>
+<text id="t148" x="24" y="642" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >write</text>
+<text id="t149" x="234" y="642" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >new phrase</text>
+<text id="t150" x="534" y="642" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t151" x="784" y="642" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >Compose screen</text>
+<text id="t152" x="1074" y="642" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >write</text>
+<rect x="16" y="666" width="1340" height="52" rx="10" fill="#111314"/>
+<text id="t153" x="24" y="698" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >mode / zone</text>
+<text id="t154" x="234" y="698" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >select</text>
+<text id="t155" x="534" y="698" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t156" x="784" y="698" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >selected tag sticker</text>
+<text id="t157" x="1074" y="698" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >solo / group / … / 1 km</text>
+<rect x="16" y="722" width="1340" height="52" rx="10" fill="#0b0b0c"/>
+<text id="t158" x="24" y="754" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >send</text>
+<text id="t159" x="234" y="754" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >publish</text>
+<text id="t160" x="534" y="754" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t161" x="784" y="754" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >phrase in feed</text>
+<text id="t162" x="1074" y="754" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >send</text>
+<rect x="16" y="778" width="1340" height="52" rx="10" fill="#111314"/>
+<text id="t163" x="24" y="810" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >talk</text>
+<text id="t164" x="234" y="810" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >offer a talk</text>
+<text id="t165" x="534" y="810" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t166" x="784" y="810" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >waiting for the other</text>
+<text id="t167" x="1074" y="810" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >talk</text>
+<rect x="16" y="834" width="1340" height="52" rx="10" fill="#0b0b0c"/>
+<text id="t168" x="24" y="866" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >not now</text>
+<text id="t169" x="234" y="866" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >close match</text>
+<text id="t170" x="534" y="866" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t171" x="784" y="866" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >match kept in talks</text>
+<text id="t172" x="1074" y="866" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >not now</text>
+<rect x="16" y="890" width="1340" height="52" rx="10" fill="#111314"/>
+<text id="t173" x="24" y="922" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >talk term</text>
+<text id="t174" x="234" y="922" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >pick term</text>
+<text id="t175" x="534" y="922" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t176" x="784" y="912" class="b" font-size="14" fill="#e7e8eb" text-anchor="start" >10 min / 30 min / 1 h / while</text>
+<text id="t177" x="784" y="932" class="b" font-size="14" fill="#e7e8eb" text-anchor="start" >talking</text>
+<text id="t178" x="1074" y="922" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >talk term</text>
+<rect x="16" y="946" width="1340" height="52" rx="10" fill="#0b0b0c"/>
+<text id="t179" x="24" y="978" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >safety</text>
+<text id="t180" x="234" y="978" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >keys, report, block</text>
+<text id="t181" x="534" y="978" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t182" x="784" y="978" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >action sheet</text>
+<text id="t183" x="1074" y="978" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >safety</text>
+<rect x="16" y="1002" width="1340" height="52" rx="10" fill="#111314"/>
+<text id="t184" x="24" y="1034" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >tabs</text>
+<text id="t185" x="234" y="1034" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >feed / talks / me</text>
+<text id="t186" x="534" y="1034" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t187" x="784" y="1034" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >switch section</text>
+<text id="t188" x="1074" y="1034" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >feed / talks / me</text>
+<rect x="16" y="1058" width="1340" height="52" rx="10" fill="#0b0b0c"/>
+<text id="t189" x="24" y="1090" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >back</text>
+<text id="t190" x="234" y="1090" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >previous screen</text>
+<text id="t191" x="534" y="1090" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >swipe from left edge</text>
+<text id="t192" x="784" y="1090" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >—</text>
+<text id="t193" x="1074" y="1090" class="b" font-size="16" fill="#e7e8eb" text-anchor="start" >back</text>
+</svg>

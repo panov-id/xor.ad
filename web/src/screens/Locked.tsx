@@ -48,9 +48,7 @@ export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () 
           <input type="password" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" data-testid="lock-pin" autoFocus />
         </label>
         {refused && <p className="error" data-testid="error">{refused}</p>}
-        <Button type="submit" kind="primary" disabled={pin.length !== 6 || busy} data-testid="lock-go">
-          {busy ? say("web.unlock.asking") : say("inbox.enter")}
-        </Button>
+        <Button type="submit" kind="primary" icon="key" className="ui-wide" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={pin.length !== 6 || busy} data-testid="lock-go" />
       </form>
     </main>
   );

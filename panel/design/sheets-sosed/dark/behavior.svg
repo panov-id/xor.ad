@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1020" viewBox="0 0 1200 1020"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}[role=button]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style></defs><rect width="1200" height="1020" fill="#0d0b0a"/>
+<text id="t85" x="24" y="56" font-family="Golos Text" font-weight="600" font-size="28" fill="#f0e7dc" text-anchor="start" letter-spacing="-0.01em" >blocks · buttons and gestures</text>
+<rect x="16" y="80" width="1168" height="44" rx="12" fill="#d68a1f"/>
+<text id="t86" x="24" y="108" font-family="Golos Text" font-weight="600" font-size="16" fill="#0d0b0a" text-anchor="start" >Element</text>
+<text id="t87" x="234" y="108" font-family="Golos Text" font-weight="600" font-size="16" fill="#0d0b0a" text-anchor="start" >Tap</text>
+<text id="t88" x="404" y="108" font-family="Golos Text" font-weight="600" font-size="16" fill="#0d0b0a" text-anchor="start" >Long / swipe</text>
+<text id="t89" x="604" y="108" font-family="Golos Text" font-weight="600" font-size="16" fill="#0d0b0a" text-anchor="start" >Result</text>
+<text id="t90" x="884" y="108" font-family="Golos Text" font-weight="600" font-size="16" fill="#0d0b0a" text-anchor="start" >a11y label</text>
+<text id="t91" x="24" y="152" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Phrase tile (feed)</text>
+<text id="t92" x="234" y="152" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >open card</text>
+<text id="t93" x="404" y="152" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t94" x="604" y="152" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >card, 1 of N</text>
+<text id="t95" x="884" y="152" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >phrase: text; fading; likes</text>
+<rect x="16" y="168" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t96" x="24" y="196" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Card</text>
+<text id="t97" x="234" y="196" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t98" x="404" y="196" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >swipe right</text>
+<text id="t99" x="604" y="196" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >like; tile leaves, heart beneath</text>
+<text id="t100" x="884" y="196" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >like (swipe right)</text>
+<text id="t101" x="24" y="240" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Card</text>
+<text id="t102" x="234" y="240" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t103" x="404" y="240" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >swipe left</text>
+<text id="t104" x="604" y="240" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >hide; next</text>
+<text id="t105" x="884" y="240" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >hide (swipe left)</text>
+<rect x="16" y="256" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t106" x="24" y="284" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Card</text>
+<text id="t107" x="234" y="284" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t108" x="404" y="284" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >pull down (peek)</text>
+<text id="t109" x="604" y="284" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >details: icon + value</text>
+<text id="t110" x="884" y="284" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >details (pull down)</text>
+<text id="t111" x="24" y="328" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Card, release</text>
+<text id="t112" x="234" y="328" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t113" x="404" y="328" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >release above 80 px</text>
+<text id="t114" x="604" y="328" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >snaps back, details closed</text>
+<text id="t115" x="884" y="328" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >—</text>
+<rect x="16" y="344" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t116" x="24" y="372" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Heart under card</text>
+<text id="t117" x="234" y="372" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >like</text>
+<text id="t118" x="404" y="372" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >long: undo like</text>
+<text id="t119" x="604" y="372" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >like / undo</text>
+<text id="t120" x="884" y="372" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >like; liked, undo</text>
+<text id="t121" x="24" y="416" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >eye under card</text>
+<text id="t122" x="234" y="416" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >hide</text>
+<text id="t123" x="404" y="416" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >long: show hidden</text>
+<text id="t124" x="604" y="416" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >phrase moves to hidden</text>
+<text id="t125" x="884" y="416" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >hide</text>
+<rect x="16" y="432" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t126" x="24" y="460" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >↓ under card</text>
+<text id="t127" x="234" y="460" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >peek</text>
+<text id="t128" x="404" y="460" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t129" x="604" y="460" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >same as pull</text>
+<text id="t130" x="884" y="460" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >details</text>
+<text id="t131" x="24" y="504" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >↑ in peek</text>
+<text id="t132" x="234" y="504" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >collapse details</text>
+<text id="t133" x="404" y="504" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >swipe up</text>
+<text id="t134" x="604" y="504" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >card back; phrase stays</text>
+<text id="t135" x="884" y="504" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >collapse details</text>
+<rect x="16" y="520" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t136" x="24" y="548" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >+ (feed)</text>
+<text id="t137" x="234" y="548" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >new phrase</text>
+<text id="t138" x="404" y="548" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t139" x="604" y="548" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >phrase screen</text>
+<text id="t140" x="884" y="548" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >write a phrase</text>
+<text id="t141" x="24" y="592" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Zone 1 km</text>
+<text id="t142" x="234" y="592" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >pick radius</text>
+<text id="t143" x="404" y="592" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t144" x="604" y="592" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >radius sheet</text>
+<text id="t145" x="884" y="592" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >zone: 1 km</text>
+<rect x="16" y="608" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t146" x="24" y="636" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >(i)</text>
+<text id="t147" x="234" y="636" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >info balloon</text>
+<text id="t148" x="404" y="636" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t149" x="604" y="636" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >text instead of a paragraph</text>
+<text id="t150" x="884" y="636" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >info: …</text>
+<text id="t151" x="24" y="680" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Mode / time</text>
+<text id="t152" x="234" y="680" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >pick</text>
+<text id="t153" x="404" y="680" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t154" x="604" y="680" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >tile filled</text>
+<text id="t155" x="884" y="680" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >… (selected)</text>
+<rect x="16" y="696" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t156" x="24" y="724" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Publish (phrase)</text>
+<text id="t157" x="234" y="724" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >publish</text>
+<text id="t158" x="404" y="724" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t159" x="604" y="724" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >feed, phrase on top</text>
+<text id="t160" x="884" y="724" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >publish</text>
+<text id="t161" x="24" y="768" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Match: chat</text>
+<text id="t162" x="234" y="768" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >open chat</text>
+<text id="t163" x="404" y="768" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t164" x="604" y="768" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >chat</text>
+<text id="t165" x="884" y="768" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >start chat</text>
+<rect x="16" y="784" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t166" x="24" y="812" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Match: ×</text>
+<text id="t167" x="234" y="812" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >not now</text>
+<text id="t168" x="404" y="812" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t169" x="604" y="812" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >feed</text>
+<text id="t170" x="884" y="812" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >not now</text>
+<text id="t171" x="24" y="856" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Chat: send</text>
+<text id="t172" x="234" y="856" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >message</text>
+<text id="t173" x="404" y="856" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t174" x="604" y="856" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >bubble on right</text>
+<text id="t175" x="884" y="856" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >send</text>
+<rect x="16" y="872" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t176" x="24" y="900" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Profile tiles</text>
+<text id="t177" x="234" y="900" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >open section</text>
+<text id="t178" x="404" y="900" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t179" x="604" y="900" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >section screen</text>
+<text id="t180" x="884" y="900" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >value: section</text>
+<text id="t181" x="24" y="944" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Tab bar</text>
+<text id="t182" x="234" y="944" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >section</text>
+<text id="t183" x="404" y="944" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t184" x="604" y="944" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >feed / chats / me</text>
+<text id="t185" x="884" y="944" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >feed; chats; me</text>
+<rect x="16" y="960" width="1168" height="44" rx="10" fill="#262019"/>
+<text id="t186" x="24" y="988" font-family="Golos Text" font-weight="500" font-size="16" fill="#f0e7dc" text-anchor="start" >Place phase</text>
+<text id="t187" x="234" y="988" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t188" x="404" y="988" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >—</text>
+<text id="t189" x="604" y="988" font-family="Golos Text" font-weight="400" font-size="16" fill="#f0e7dc" text-anchor="start" >theme day / sunset / night</text>
+<text id="t190" x="884" y="988" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" >place phase: …</text>
+</svg>

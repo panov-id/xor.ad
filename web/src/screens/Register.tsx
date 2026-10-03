@@ -16,6 +16,7 @@ import { openSealed, registerAndKeep, type Record_ } from "../vault.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
+import { Info } from "../ui/Info.tsx";
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 const count = (s: string) => [...graphemes.segment(s)].length;
@@ -95,7 +96,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
     <main className="screen register" data-screen={`register-${step}`}>
       {step === 1 && (
         <>
-          <HeaderScreen title={say("web.register.who")} action="1 / 2" />
+          <HeaderScreen title={say("web.register.who")} action={<span className="ui-step">1/2</span>} />
           <label>
             {say("reg.name")}
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={64} data-testid="name" autoComplete="off" />
@@ -110,14 +111,12 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="consent" />
             <span>{say("web.register.consent")}</span>
           </label>
-          <Button type="button" kind="primary" disabled={!stepOneOk} onClick={() => setStep(2)} data-testid="next">
-            {say("reg.next")}
-          </Button>
+          <Button type="button" kind="primary" icon="open" className="ui-wide ui-foot" aria-label={say("reg.next")} disabled={!stepOneOk} onClick={() => setStep(2)} data-testid="next" />
         </>
       )}
       {step === 2 && (
         <>
-          <HeaderScreen title={say("reg.pin")} action="2 / 2" />
+          <HeaderScreen title={say("reg.pin")} action={<span className="ui-step">2/2</span>} />
           <label>
             {say("reg.pin")}
             <input type="password" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" data-testid="pin" />
@@ -128,18 +127,14 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
           </label>
           {pin.length === 6 && easyPin(pin) && <p className="warn">{say("web.register.easy_pin")}</p>}
           {error && <p className="error" data-testid="error">{error}</p>}
-          <Button type="button" kind="primary" disabled={!pinOk || busy} onClick={register} data-testid="register">
-            {busy ? say("web.register.waiting") : say("reg.next")}
-          </Button>
+          <Button type="button" kind="primary" icon="open" className="ui-wide ui-foot" aria-label={busy ? say("web.register.waiting") : say("reg.next")} aria-busy={busy} disabled={!pinOk || busy} onClick={register} data-testid="register" />
         </>
       )}
       {step === 3 && (
         <>
           <HeaderScreen title={say("web.register.paper_title")} />
           <p className="code" data-testid="paper-code">{groups.join(" ")}</p>
-          <p className="muted">
-            {say("web.register.paper_text")}
-          </p>
+          <div className="ui-info-row"><Info label={say("web.register.paper_title")} data-testid="paper-info"><p>{say("web.register.paper_text")}</p></Info></div>
           <p>{say("web.register.confirm")}</p>
           <label>
             {say("web.register.second")}
@@ -150,9 +145,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
             <input value={fourth} onChange={(e) => setFourth(e.target.value)} data-testid="group-4" autoComplete="off" />
           </label>
           {error && <p className="error" data-testid="error">{error}</p>}
-          <Button type="button" kind="primary" disabled={busy || !second || !fourth} onClick={confirm} data-testid="confirm">
-            {say("web.register.done")}
-          </Button>
+          <Button type="button" kind="primary" icon="check" className="ui-wide ui-foot" aria-label={say("web.register.done")} disabled={busy || !second || !fourth} onClick={confirm} data-testid="confirm" />
         </>
       )}
     </main>

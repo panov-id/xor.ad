@@ -14,27 +14,25 @@
 // retired hole of SEC-2 and went with W1d, once the vault kept the wrap pair
 // (verifier of W1d, 2026-09-27).
 
-import { type ReactNode, useEffect, useState } from "react";
+import { lazy, type ReactNode, Suspense, useEffect, useState } from "react";
 import type { Client, Radius, Statement } from "../../depth/core/client.ts";
 import type { Sent } from "./api/actions.ts";
 import { say } from "./api/me.ts";
 import { ChatKeys } from "./chat/keys.ts";
-import { Card } from "./screens/Card.tsx";
-import { Chat } from "./screens/Chat.tsx";
-import { Composer } from "./screens/Composer.tsx";
-import { Feed, type FeedCard } from "./screens/Feed.tsx";
+import type { FeedCard } from "./screens/Feed.tsx";
+// The brand's views (brands/index.ts): built for one brand, the other is not bundled.
+import { ArrivalView, CardView, ChatView, ComposeView, FeedView, MatchView, MeView } from "./brands/index.ts";
 import { Inbox, type InboxChatRow, type MatchRow } from "./screens/Inbox.tsx";
 import { Likes } from "./screens/Likes.tsx";
-import { Match } from "./screens/Match.tsx";
 import { Offer } from "./screens/Offer.tsx";
-import { Away, ChangePin, EditProfile, Me, type MeRow, StartAgain, StepAway } from "./screens/Me.tsx";
+import { useAutoTheme } from "./ui/useTheme.ts";
+import { Away, ChangePin, EditProfile, type MeRow, StartAgain, StepAway, ThemePicker } from "./screens/Me.tsx";
 import { Register } from "./screens/Register.tsx";
 import { Reissue } from "./screens/Reissue.tsx";
 import { Restore } from "./screens/Restore.tsx";
 import { Splash } from "./screens/Splash.tsx";
 import { Statements } from "./screens/Statements.tsx";
 import { Unlock } from "./screens/Unlock.tsx";
-import { Arrival } from "./screens/Arrival.tsx";
 import { Departure } from "./screens/Departure.tsx";
 import { Cabinet } from "./adv/Cabinet.tsx";
 import { Table } from "./screens/Table.tsx";
@@ -48,6 +46,7 @@ import { watchIdle } from "./idle.ts";
 import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
 import "./screens/feed.css";
+import { Icon, type IconName } from "./ui/Icon.tsx";
 
 type Sealed = "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
 // `keys` is null while the page is locked (W13-WL): the chat keys are thrown
@@ -80,14 +79,21 @@ type Screen =
   | { at: "arrival" }
   | { at: "reset" }
   | { at: "step-away" }
-  | { at: "away"; until: number };
+  | { at: "away"; until: number }
+  | { at: "theme" };
 
 // The venue's cabinet (A1) is its own page: at adv.<storefront> in a real
 // deployment, under /adv on the stand. Decided once per load, so the face's
 // hooks below are never called conditionally.
+// The comic kit's page (ui/KitPreview.tsx): the stand's build only, at /kit.
+// Loaded by a dynamic import() under the build-time flag, so a real build
+// (VITE_STAND unset) drops the page from its bundle (review panel 01.10.2026, item 3).
+const KitPreview = import.meta.env.VITE_STAND === "1" ? lazy(() => import("./ui/KitPreview.tsx").then((m) => ({ default: m.KitPreview }))) : null;
+const KIT = KitPreview !== null && location.pathname === "/kit";
 const CABINET = location.hostname.startsWith("adv.") || /^\/adv(\/|$)/.test(location.pathname);
 
 export function App() {
+  if (KIT && KitPreview) return <Suspense fallback={null}><KitPreview /></Suspense>;
   return CABINET ? <Cabinet /> : <Face />;
 }
 
@@ -97,6 +103,8 @@ function Face() {
   // The area is placed anywhere, by the person (§8.3); until the place picker
   // of the sheet is drawn it is one fixed point.
   const [at] = useState({ lat: 41.9, lon: 12.5 });
+  // "auto" theme turns with the phase at this place (theme.ts).
+  useAutoTheme(at.lon);
   const [radius, setRadius] = useState<Radius>(1000);
   // One's own phrase just sent, with the node's verdict; shown on the feed
   // until the person leaves it (W2, after the verifier).
@@ -224,19 +232,18 @@ function Face() {
   }
   const me = () => setScreen({ at: "me" });
 
-  // The tab bar at the foot (sheet 03, kit `tabbar`): three tabs of 125, the
-  // kit's line icons, the active one in meta-strong over a 32x3 accent bar.
-  const tab = (at: "feed" | "inbox" | "me", icon: ReactNode, label: string, testid: string, go: () => void) => (
-    <button type="button" className="tab" aria-current={screen.at === at ? "page" : undefined} onClick={go} data-testid={testid}>
-      <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">{icon}</svg>
-      <span>{label}</span>
+  // The tab bar at the foot (comic 2026-10-01): three tabs of 125, icons only,
+  // the name in aria-label; the open one stands in a gold medallion.
+  const tab = (at: "feed" | "inbox" | "me", icon: IconName, label: string, testid: string, go: () => void) => (
+    <button type="button" className="tab ui-icon-only" aria-label={label} aria-current={screen.at === at ? "page" : undefined} onClick={go} data-testid={testid}>
+      <Icon name={icon} />
     </button>
   );
   const nav = seated && (screen.at === "feed" || screen.at === "inbox" || screen.at === "me") && (
     <nav className="tabbar" data-testid="nav">
-      {tab("feed", <path d="M13 15 L31 15 M13 22 L31 22 M13 29 L31 29" />, say("web.nav.feed"), "nav-feed", () => setScreen({ at: "feed" }))}
-      {tab("inbox", <path d="M12 14 H32 V27 H20 L15 31 V27 H12 Z" />, say("web.nav.inbox"), "nav-inbox", () => leaveFeed({ at: "inbox" }))}
-      {tab("me", <><circle cx="22" cy="17" r="4.5" /><path d="M13 31 C13 25 31 25 31 31" /></>, say("me.title"), "tab-me", () => leaveFeed({ at: "me" }))}
+      {tab("feed", "feed", say("web.nav.feed"), "nav-feed", () => setScreen({ at: "feed" }))}
+      {tab("inbox", "say", say("web.nav.inbox"), "nav-inbox", () => leaveFeed({ at: "inbox" }))}
+      {tab("me", "me", say("me.title"), "tab-me", () => leaveFeed({ at: "me" }))}
     </nav>
   );
 
@@ -252,7 +259,7 @@ function Face() {
       return <Splash onStart={() => setScreen({ at: "register" })} onRestore={() => setScreen({ at: "restore" })} onArrive={() => setScreen({ at: "arrival" })} />;
     case "arrival":
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
-      return <Arrival onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={() => setScreen({ at: "splash" })} />;
+      return <ArrivalView onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={() => setScreen({ at: "splash" })} />;
     case "restore":
       // Raised by the paper code: seated as after the PIN — the vault is the
       // record, and the tab keeps none.
@@ -268,7 +275,7 @@ function Face() {
     case "feed":
       return (
         <div className="tabbed">
-          <Feed
+          <FeedView
             client={seated!.client}
             sealed={seated!.sealed}
             at={at}
@@ -289,7 +296,7 @@ function Face() {
       );
     case "composer":
       return (
-        <Composer
+        <ComposeView
           client={seated!.client}
           at={at}
           radius={radius}
@@ -302,7 +309,7 @@ function Face() {
       );
     case "card":
       return (
-        <Card
+        <CardView
           client={seated!.client}
           card={screen.card}
           onBack={toFeed}
@@ -329,7 +336,7 @@ function Face() {
       );
     case "match":
       return (
-        <Match
+        <MatchView
           client={seated!.client}
           keys={seated!.keys!}
           row={screen.row}
@@ -340,13 +347,13 @@ function Face() {
         />
       );
     case "chat":
-      return <Chat client={seated!.client} keys={seated!.keys!} row={screen.row} onBack={() => setScreen({ at: "inbox" })} />;
+      return <ChatView client={seated!.client} keys={seated!.keys!} row={screen.row} onBack={() => setScreen({ at: "inbox" })} />;
     case "statements":
       return <Statements items={statements ?? []} onDone={screen.from === "me" ? me : toFeed} />;
     case "me":
       return (
         <div className="tabbed">
-          <Me
+          <MeView
             client={seated!.client}
             restrictions={statements?.length ?? 0}
             refresh={edits}
@@ -360,6 +367,7 @@ function Face() {
               if (row === "hidden") return setScreen({ at: "hidden" });
               if (row === "blocked") return setScreen({ at: "blocked" });
               if (row === "reissue") return setScreen({ at: "reissue" });
+              if (row === "theme") return setScreen({ at: "theme" });
               setScreen({ at: "reset" });
             }}
           />
@@ -368,6 +376,8 @@ function Face() {
       );
     case "edit":
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
+    case "theme":
+      return <ThemePicker onBack={me} />;
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
     case "new-table":

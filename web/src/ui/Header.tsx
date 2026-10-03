@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
+import { Icon } from "./Icon.tsx";
 
 // What a screen hangs on the live step: a role, a testid, the step's own value
 // for the specs (the feed's data-step, WD8).
@@ -11,6 +12,7 @@ type StepProps = HTMLAttributes<HTMLSpanElement> & { [data: `data-${string}`]: s
 // is known, so the first word is announced too. The dot stands only with a
 // step. HeaderScreen: back, title, an optional word action in accent-text, a
 // hairline under.
+// The time of day is the theme's night pair (theme.ts), not a sky drawn here.
 export function HeaderFeed({ place, step, action, stepProps }: { place: string; step: string; action?: ReactNode; stepProps?: StepProps }) {
   return (
     <header className="ui-header">
@@ -30,8 +32,8 @@ export function HeaderScreen({ title, onBack, backLabel, action }: { title: stri
   return (
     <header className="ui-header ui-header-rule">
       {onBack ? (
-        <button type="button" className="ui-icon" aria-label={backLabel} onClick={onBack} data-testid="back">
-          <svg viewBox="0 0 44 44" width="44" height="44" aria-hidden="true"><path d="M26 14 L18 22 L26 30" /></svg>
+        <button type="button" className="ui-icon ui-icon-only" aria-label={backLabel} onClick={onBack} data-testid="back">
+          <Icon name="back" />
         </button>
       ) : null}
       <h1 className="ui-header-title">{title}</h1>

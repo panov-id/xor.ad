@@ -1,0 +1,34 @@
+{
+ "brand": "neighbro",
+ "id": "dark-violet",
+ "name": "Violet dark",
+ "scheme": "dark",
+ "source": "neighbro.place landing/index.html lines 85-129 :root[data-theme=violet]",
+ "tokens": {
+  "bg": "#0b0b0c",
+  "surface": "#111314",
+  "surface-2": "#202326",
+  "fg": "#e7e8eb",
+  "fg-muted": "#838a95",
+  "line": "#585e67",
+  "accent": "#8550c5",
+  "accent-fg": "#f3ecfd",
+  "accent-text": "#a077d2",
+  "danger": "#ff8a80",
+  "focus": "#a077d2",
+  "shadow": "#585e67",
+  "tile-1": "#1fb39a",
+  "tile-2": "#cc2f27",
+  "tile-3": "#336eb2",
+  "tile-4": "#8550c5",
+  "tile-5": "#7fd19a"
+ },
+ "night": "dark-violet",
+ "tile-ink": {
+  "#1fb39a": "#04201c",
+  "#cc2f27": "#fdeceb",
+  "#336eb2": "#eaf2ff",
+  "#8550c5": "#f3ecfd"
+ },
+ "section": false
+}

@@ -13,6 +13,7 @@ import { Button } from "../ui/Button.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import "./place.css";
 import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
+import { Info } from "../ui/Info.tsx";
 
 export function Table({ client, tableId, onLeave }: { client: Client; tableId: string; onLeave: () => void }) {
   const [tables] = useState(() => new Tables(client));
@@ -69,11 +70,11 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
 
   return (
     <main className="screen table" data-testid="table" data-id={tableId}>
-      <HeaderScreen title={`${say("table.title")}${view.name ? ` · «${view.name}»` : ""} · ${view.class}`} />
+      <HeaderScreen title={`${say("table.title")}${view.name ? ` · «${view.name}»` : ""} · ${view.class}`}
+        action={<Info label={say("table.title")} data-testid="table-info"><p role="note">{say("table.open")}</p></Info>} />
       <header className="place-table-head">
         <p>{say("table.playing")} {view.playing} · {say("table.watching")} {view.watching} · ♥ {view.like_count ?? 0}</p>
         <p>{say("table.seated")}: {view.seats.map((s) => (s.seat === view.seat ? say("table.you") : s.name)).join(" · ")}</p>
-        <p role="note" className="place-meta">{say("table.open")}</p>
       </header>
       {!board || board.over
         ? <p data-testid="over">{say("table.over")}</p>
@@ -105,14 +106,12 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
       </ul>
       <form className="place-say" onSubmit={(e) => { e.preventDefault(); const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setLine("")); }}>
         <input value={line} maxLength={128} onChange={(e) => setLine(e.target.value)} aria-label={say("table.say")} data-testid="line-input" />
-        <Button kind="primary" type="submit" data-testid="line-send">{say("table.say")}</Button>
+        <Button kind="primary" type="submit" icon="say" className="ui-mid" aria-label={say("table.say")} data-testid="line-send" />
         {/* A watcher asks to play with a line of their own (W15): the words are
             theirs, the kind is an application (§6.1). */}
         {!view.is_playing && (
-          <Button kind="secondary" type="button" disabled={!line.trim()} data-testid="apply"
-            onClick={() => { const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "application", text })).then(() => setLine("")); }}>
-            {say("table.application")}
-          </Button>
+          <Button kind="secondary" type="button" icon="queue" className="ui-mid" aria-label={say("table.application")} disabled={!line.trim()} data-testid="apply"
+            onClick={() => { const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "application", text })).then(() => setLine("")); }} />
         )}
       </form>
       {/* A game begins by a proposal (W15): a player alone starts it at once and
@@ -126,21 +125,21 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
           return (
             <p className="place-actions" data-testid="pending">
               {say("web.table.proposed", { name: nameOf(pending.by ?? 0) })}{" "}
-              <Button kind="primary" type="button" data-testid="accept-game" onClick={() => act(() => tables.answer(tableId, pending.id, "accept"))}>{say("web.table.accept")}</Button>
-              <Button kind="secondary" type="button" data-testid="decline-game" onClick={() => act(() => tables.answer(tableId, pending.id, "decline"))}>{say("web.table.decline")}</Button>
+              <Button kind="primary" type="button" icon="check" aria-label={say("web.table.accept")} data-testid="accept-game" onClick={() => act(() => tables.answer(tableId, pending.id, "accept"))} />
+              <Button kind="secondary" type="button" icon="close" aria-label={say("web.table.decline")} data-testid="decline-game" onClick={() => act(() => tables.answer(tableId, pending.id, "decline"))} />
             </p>
           );
         }
         if (!board || board.over || board.turn === null) {
-          return <Button kind="primary" type="button" data-testid="start-game" onClick={() => act(() => tables.propose(tableId, "rematch"))}>{say("web.table.start")}</Button>;
+          return <Button kind="primary" type="button" icon="watch" className="ui-wide" aria-label={say("web.table.start")} data-testid="start-game" onClick={() => act(() => tables.propose(tableId, "rematch"))} />;
         }
         return null;
       })()}
-      <nav className="place-actions">
-        {turn.mine && board && <Button kind="secondary" onClick={() => act(() => tables.pass(tableId, board.seq))}>{say("table.pass")}</Button>}
-        {view.is_playing && board && !board.over && <Button kind="danger" onClick={() => act(() => tables.resign(tableId))}>{say("table.resign")}</Button>}
-        <Button kind="secondary" onClick={() => act(() => tables.like(tableId))}>{say("table.like")}</Button>
-        <Button kind="secondary" onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })}>{say("table.stand")}</Button>
+      <nav className="place-actions ui-icon-row">
+        {turn.mine && board && <Button kind="secondary" icon="pass" aria-label={say("table.pass")} onClick={() => act(() => tables.pass(tableId, board.seq))} />}
+        {view.is_playing && board && !board.over && <Button kind="secondary" icon="giveup" aria-label={say("table.resign")} onClick={() => act(() => tables.resign(tableId))} />}
+        <Button kind="secondary" icon="like" aria-label={say("table.like")} onClick={() => act(() => tables.like(tableId))} />
+        <Button kind="secondary" icon="leave" aria-label={say("table.stand")} onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })} />
       </nav>
     </main>
   );

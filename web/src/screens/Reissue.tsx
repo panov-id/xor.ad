@@ -11,6 +11,9 @@ import { newPaperCode, paperGroups, readPaperText } from "../../../depth/core/pa
 import { isCurrentCode, reissue } from "../../../depth/core/recovery.ts";
 import { say } from "../api/me.ts";
 import { rememberWrappedLongKey } from "../vault.ts";
+import { Button } from "../ui/Button.tsx";
+import { HeaderScreen } from "../ui/Header.tsx";
+import { Info } from "../ui/Info.tsx";
 
 export function Reissue({ client, onDone, onBack }: { client: Client; onDone: () => void; onBack: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
@@ -61,28 +64,24 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
 
   return (
     <main className="screen reissue" data-screen={`reissue-${step}`}>
-      <header><h1>{say("reissue.title")}</h1></header>
+      <HeaderScreen title={say("reissue.title")} />
       {step === 1
         ? (
           <>
-            <p className="muted">{say("reissue.intro")}</p>
+            <div className="ui-info-row"><Info label={say("reissue.title")} data-testid="reissue-info"><p>{say("reissue.intro")}</p></Info></div>
             <label>
               {say("restore.code")}
               <input value={current} onChange={(e) => setCurrent(e.target.value)} data-testid="reissue-current" autoComplete="off" />
             </label>
             {error && <p className="error" data-testid="error">{error}</p>}
-            <button type="button" className="primary" disabled={busy || readPaperText(current).length !== 16} onClick={() => void check()} data-testid="reissue-next">
-              {busy ? "…" : say("me.save")}
-            </button>
-            <button type="button" onClick={onBack} data-testid="reissue-back">{say("common.back")}</button>
+            <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("me.save")} aria-busy={busy} disabled={busy || readPaperText(current).length !== 16} onClick={() => void check()} data-testid="reissue-next" />
+            <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="reissue-back" />
           </>
         )
         : (
           <>
             <p className="code" data-testid="reissue-code">{groups.join(" ")}</p>
-            <p className="muted">
-              {say("web.reissue.writeDown")}
-            </p>
+            <div className="ui-info-row"><Info label={say("reissue.title")} data-testid="reissue-write-info"><p>{say("web.reissue.writeDown")}</p></Info></div>
             <p>{say("web.reissue.enterGroups")}</p>
             <label>
               {say("web.reissue.second")}
@@ -93,9 +92,7 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
               <input value={fourth} onChange={(e) => setFourth(e.target.value)} data-testid="reissue-group-4" autoComplete="off" />
             </label>
             {error && <p className="error" data-testid="error">{error}</p>}
-            <button type="button" className="primary" disabled={busy || !second || !fourth} onClick={() => void confirm()} data-testid="reissue-confirm">
-              {say("web.reissue.done")}
-            </button>
+            <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("web.reissue.done")} disabled={busy || !second || !fourth} onClick={() => void confirm()} data-testid="reissue-confirm" />
           </>
         )}
     </main>

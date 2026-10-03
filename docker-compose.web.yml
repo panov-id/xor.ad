@@ -129,6 +129,12 @@ services:
       timeout: 3s
       retries: 60
     mem_limit: 512m
+    # As on the boxes (relay/wizard/wizard.py: restart: unless-stopped): a node
+    # that meets an error nobody handled ends itself (lib/log.ts) and is
+    # restarted. Without it one crash — postgres.js writing null to a killed
+    # connection's socket (W15-NC) — took the node away for the rest of the
+    # run and turned the suite's tail red (W15-NCs).
+    restart: unless-stopped
 
   web:
     build:

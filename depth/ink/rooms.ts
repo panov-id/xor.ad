@@ -520,8 +520,9 @@ export function Chat(
       await openConversation().catch((e: Error) => onError(e.message));
       // A room is opened again after a close that is not the end (protocol
       // §4.4, core/reconnect.ts): the node's restart closes it with 1001. The
-      // node hands what waits on every opening, and depth does not confirm
-      // receipt, so lines already on the screen come again — shown once.
+      // node hands what waits on every opening; a line is confirmed once shown
+      // (W14-RC, §8.8: the node then drops it from its queue), and one whose
+      // confirmation did not reach the node comes again — shown once.
       const shown = new Set<string>();
       let attempt = 0;
       while (live) {
@@ -584,6 +585,10 @@ export function Chat(
           // ahead of the node would never see a later moment on it.
           sawChatActivity(chatId, created_at ?? Date.now() / 1000);
           setMissed(false);
+          // Shown, so received (§8.8; W14-RC): the node deletes the queued
+          // copy. A confirmation that fails is not an error on the screen —
+          // the line comes again on the next opening and `shown` keeps it once.
+          if (typeof client.received === "function") client.received(chatId, [id]).catch(() => {});
         }
         if (!live) return;
         const closedWith = await closed;

@@ -6,7 +6,7 @@
 // it off in that window sends nothing (screens/logic/useDeferredLike.ts).
 // The state and the node's calls are the shared hooks; this file only draws.
 
-import { useRef, useState, type ComponentProps, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useId, useRef, useState, type ComponentProps, type PointerEvent as ReactPointerEvent } from "react";
 import { modes } from "../../api/actions.ts";
 import { say } from "../../locales/say.ts";
 import { Feed, type FeedCard } from "../../screens/Feed.tsx";
@@ -93,6 +93,15 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   const press = useRef<{ x: number; y: number; id: number; moved: boolean } | null>(null);
   const target = useRef<HTMLElement | null>(null);
   const placed = deferred.pending || liked;
+  // The article's name is the phrase, its description what else it carries
+  // (offer, mode, conditions, the count): aria-label would hide them (P2).
+  const ids = useId();
+  const described = [card.offer && `${ids}-offer`, `${ids}-meta`, card.offer?.conditions && `${ids}-cond`, `${ids}-count`].filter(Boolean).join(" ");
+  // The countdown is said once, when the heart lands, not every tick (P3).
+  const [said, setSaid] = useState("");
+  useEffect(() => { setSaid(deferred.pending ? say("web.card.heart_wait", { n: deferred.left }) : ""); }, [deferred.pending]);
+  // A picked heart sends focus to its target, which sits before it (P4).
+  useEffect(() => { if (armed) target.current?.focus(); }, [armed]);
 
   function place() {
     if (placed || busy) return;
@@ -140,22 +149,24 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
         className={`sticker-card${armed ? " target" : ""}`}
         data-testid="heart-target"
         role="button"
-        tabIndex={0}
-        aria-label={`${say("web.card.phrase")}: ${card.text}`}
+        tabIndex={armed ? 0 : -1}
+        aria-labelledby={`${ids}-text`}
+        aria-describedby={described}
         aria-disabled={!armed}
         onClick={() => { if (armed) place(); }}
         onKeyDown={(k) => { if (armed && (k.key === "Enter" || k.key === " ")) { k.preventDefault(); place(); } }}
       >
-        {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
-        <p className="big" data-testid="text" lang={langOf(card)}>{card.text}</p>
-        <span className="sticker-meta">{modeLabel(card.mode)}{card.soon ? say("web.card.soon") : ""}</span>
-        {card.offer?.conditions && <span className="sticker-meta" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</span>}
-        <span className="sticker-count" data-testid="like-burst"><Icon name="like" size={18} />{card.like_count + (liked ? 1 : 0)}</span>
+        {card.offer && <span className="offer" id={`${ids}-offer`} data-testid="offer">−{card.offer.discount_value}</span>}
+        <p className="big" id={`${ids}-text`} data-testid="text" lang={langOf(card)}>{card.text}</p>
+        <span className="sticker-meta" id={`${ids}-meta`}>{modeLabel(card.mode)}{card.soon ? say("web.card.soon") : ""}</span>
+        {card.offer?.conditions && <span className="sticker-meta" id={`${ids}-cond`} data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</span>}
+        <span className="sticker-count" id={`${ids}-count`} data-testid="like-burst"><Icon name="like" size={18} /><span className="visually-hidden">{say("web.card.likes")} </span>{card.like_count + (liked ? 1 : 0)}</span>
         {placed && <span className="stuck-heart" data-testid="stuck-heart" aria-hidden="true"><Icon name="like" size={40} /></span>}
       </article>
+      <span className="visually-hidden" role="status" data-testid="heart-said">{said}</span>
       {deferred.pending && (
-        <p className="warn heart-wait" role="status" data-testid="heart-wait">
-          {say("web.card.heart_wait", { n: deferred.left })}
+        <p className="warn heart-wait" data-testid="heart-wait">
+          <span aria-hidden="true">{say("web.card.heart_wait", { n: deferred.left })}</span>
           <Button type="button" icon="close" aria-label={say("liked.undo")} onClick={deferred.undo} data-testid="heart-undo" />
         </p>
       )}

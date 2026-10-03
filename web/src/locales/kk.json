@@ -319,5 +319,6 @@
   "web.card.details": "подробности",
   "web.card.heart": "сердце: перетащите на фразу или нажмите, потом на фразу",
   "web.card.heart_wait": "лайк уйдёт через {n} с — можно снять",
+  "web.card.likes": "лайков:",
   "web.card.phrase": "фраза"
 }

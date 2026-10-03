@@ -28,6 +28,8 @@
 .b-stickers .sticker-card { min-height: 272px; background: var(--tile-1); color: var(--tile-1-ink); }
 .b-stickers .sticker-card .big { font-size: 36px; font-weight: 600; line-height: 1.25; }
 .b-stickers .sticker-card.target { outline: 3px dashed var(--focus); outline-offset: 6px; cursor: copy; }
+/* Focus outranks the dashed target (2.4.7). */
+.b-stickers .sticker-card.target:focus-visible { outline: 3px solid var(--focus); }
 .b-stickers .sticker-meta { font-size: 16px; }
 .b-stickers .sticker-count { margin-top: auto; }
 .b-stickers .stuck-heart {

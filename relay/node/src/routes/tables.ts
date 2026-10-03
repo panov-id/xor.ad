@@ -19,29 +19,11 @@ import { type Caller, callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll } from "../lib/rate_limit.ts";
 import { log } from "../lib/log.ts";
-import { startState, stepGame } from "../lib/tables_engine.ts";
+import { stepGame } from "../lib/tables_engine.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
 import { foldLines, hasInvisible } from "../lib/names.ts";
 import {
-  applyOverdue,
-  boardFor,
-  scoreOf,
-  tableEvent,
-  bandBetween,
-  blockedEither,
-  CLASSES,
-  emptyState,
-  type GameState,
-  leaveTable,
-  lockGame,
-  MOVE_WINDOW_MS,
-  RADII,
-  resign,
-  SEAT_LIMITS,
-  STICKER_LIMITS,
-  TABLE_CREATE_LIMITS,
-  TICKET_LIMITS,
-  TICKET_SECONDS,
+  applyOverdue, bandBetween, blockedEither, boardFor, CLASSES, CONFIRM_WINDOW_MS, emptyState, leaveTable, lockGame, MOVE_WINDOW_MS, RADII, resign, scoreOf, SEAT_LIMITS, startRound, STICKER_LIMITS, TABLE_CREATE_LIMITS, tableEvent, TICKET_LIMITS, TICKET_SECONDS, touch, type GameState,
 } from "../lib/tables.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
@@ -96,8 +78,6 @@ async function atTable(
   }).catch(unavailable);
 }
 
-const touch = (run: Query, tableId: string) =>
-  run(`UPDATE tables SET last_move_at = now() WHERE id = $1`, [tableId]);
 
 
 async function create(req: Request): Promise<Response> {
@@ -226,7 +206,7 @@ async function look(req: Request, tableId: string): Promise<Response> {
       seat: seat.seat_no,
       is_playing: seat.playing,
       seats,
-      board: boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last, seat.seat_no),
+      board: boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last, seat.seat_no, counts.playing),
       lines,
     }, 200, sunsetHeader());
   });
@@ -427,46 +407,6 @@ async function move(req: Request, tableId: string): Promise<Response> {
 // A new round: applicants take the free places in the order they applied
 // (§6.1, "silence admits by the number of places"), the running game ends,
 // and a fresh one starts with the players in seat order.
-async function startRound(run: Query, tableId: string): Promise<void> {
-  const [table] = await run<{ game: string; set: string; seats: number }>(
-    `SELECT game, set, seats FROM tables WHERE id = $1`,
-    [tableId],
-  );
-  const running = await lockGame(run, tableId);
-  const since = running
-    ? (await run<{ started_at: Date }>(`SELECT started_at FROM table_games WHERE id = $1`, [running.id]))[0].started_at
-    : new Date(0);
-  if (running) await run(`UPDATE table_games SET ended_at = now(), turn_due = NULL WHERE id = $1`, [running.id]);
-  await run(
-    `UPDATE table_seats s SET playing_from = now() WHERE s.id IN (
-       SELECT s2.id FROM table_seats s2
-         JOIN LATERAL (SELECT min(l.created_at) AS at FROM table_lines l
-                        WHERE l.table_id = s2.table_id AND l.author_identity = s2.identity
-                          AND l.kind = 'application' AND l.created_at >= $3) a ON a.at IS NOT NULL
-        WHERE s2.table_id = $1 AND s2.left_at IS NULL AND s2.playing_from IS NULL
-          -- Refused in words by a player this round: waits for the next (§6.1).
-          AND NOT EXISTS (SELECT 1 FROM table_lines r WHERE r.table_id = $1 AND r.kind = 'refusal'
-                             AND r.refuses_seat = s2.seat_no AND r.created_at >= $3)
-        ORDER BY a.at
-        LIMIT greatest(0, $2 - (SELECT count(*) FROM table_seats
-                                 WHERE table_id = $1 AND left_at IS NULL AND playing_from IS NOT NULL)))`,
-    [tableId, table.seats, since],
-  );
-  const players = await run<{ seat_no: number }>(
-    `SELECT seat_no FROM table_seats WHERE table_id = $1 AND left_at IS NULL AND playing_from IS NOT NULL
-      ORDER BY seat_no LIMIT $2`,
-    [tableId, table.seats],
-  );
-  const state = startState(table.game, table.set, players.map((p) => p.seat_no));
-  const playable = state.order.length >= 2;
-  await run(
-    `INSERT INTO table_games (table_id, class, state, turn_due, ended_at) VALUES ($1, $2, $3::text::jsonb, $4, $5)`,
-    [tableId, table.game, JSON.stringify(state), playable ? new Date(Date.now() + MOVE_WINDOW_MS) : null, playable ? null : new Date()],
-  );
-  await touch(run, tableId);
-  await tableEvent(run, tableId, "board");
-  await tableEvent(run, tableId, "seat");
-}
 
 async function propose(req: Request, tableId: string): Promise<Response> {
   const body = await readJson<{ kind?: unknown }>(req.clone());
@@ -487,7 +427,10 @@ async function propose(req: Request, tableId: string): Promise<Response> {
       await startRound(run, tableId);
       return json({ id }, 200, sunsetHeader());
     }
-    const pending = { id, kind: "rematch", by: seat.seat_no, answers: { [seat.seat_no]: "accept" } };
+    const pending = {
+      id, kind: "rematch", by: seat.seat_no, answers: { [seat.seat_no]: "accept" },
+      until: Math.floor((Date.now() + CONFIRM_WINDOW_MS) / 1000),
+    };
     if (game) await run(`UPDATE table_games SET pending = $2::text::jsonb WHERE id = $1`, [game.id, JSON.stringify(pending)]);
     else {
       const [t] = await run<{ game: string }>(`SELECT game FROM tables WHERE id = $1`, [tableId]);

@@ -18,12 +18,15 @@ import type { Dice } from "./tables_dice.ts";
 import { type Free, freeFor } from "./tables_free.ts";
 import type { Physics } from "./tables_physics.ts";
 import { log } from "./log.ts";
+import { startState } from "./tables_engine.ts";
 
 const HOUR = 60 * 60 * 1000;
 
 // docs/facts/limits.tsv, by name.
 export const MOVE_WINDOW_MS = 5 * 60 * 1000; // table.move.window
 export const PASS_LIMIT = 3; // table.pass.limit
+// Thirty seconds to say "I am here" to a new game (§6.1, 2026-09-09).
+export const CONFIRM_WINDOW_MS = 30 * 1000; // table.confirm.window
 export const IDLE_MINUTES = 60; // table.idle.span
 export const TABLE_CREATE_LIMITS: Limit[] = [{ name: "tables-create", max: 4, windowMs: HOUR }]; // tables.create.hour
 export const SEAT_LIMITS: Limit[] = [{ name: "seat-attempts", max: 30, windowMs: HOUR }]; // seat.attempts.hour
@@ -71,7 +74,7 @@ interface GameRow {
   id: string;
   state: GameState;
   seq: number;
-  pending: { id: string; kind: string; by: number; until?: number } | null;
+  pending: { id: string; kind: string; by: number; until?: number; answers?: Record<string, string> } | null;
   turn_due: Date | null;
 }
 
@@ -130,6 +133,50 @@ async function dropFromOrder(run: Query, game: GameRow, seat: number, now: Date)
   );
 }
 
+// A round begins: those who applied take the free places, the running game
+// ends, the new one starts with everyone playing (moved from routes/tables.ts
+// for W14-TC: the expiry of a confirmation starts the round from here).
+export async function startRound(run: Query, tableId: string): Promise<void> {
+  const [table] = await run<{ game: string; set: string; seats: number }>(
+    `SELECT game, set, seats FROM tables WHERE id = $1`,
+    [tableId],
+  );
+  const running = await lockGame(run, tableId);
+  const since = running
+    ? (await run<{ started_at: Date }>(`SELECT started_at FROM table_games WHERE id = $1`, [running.id]))[0].started_at
+    : new Date(0);
+  if (running) await run(`UPDATE table_games SET ended_at = now(), turn_due = NULL WHERE id = $1`, [running.id]);
+  await run(
+    `UPDATE table_seats s SET playing_from = now() WHERE s.id IN (
+       SELECT s2.id FROM table_seats s2
+         JOIN LATERAL (SELECT min(l.created_at) AS at FROM table_lines l
+                        WHERE l.table_id = s2.table_id AND l.author_identity = s2.identity
+                          AND l.kind = 'application' AND l.created_at >= $3) a ON a.at IS NOT NULL
+        WHERE s2.table_id = $1 AND s2.left_at IS NULL AND s2.playing_from IS NULL
+          -- Refused in words by a player this round: waits for the next (§6.1).
+          AND NOT EXISTS (SELECT 1 FROM table_lines r WHERE r.table_id = $1 AND r.kind = 'refusal'
+                             AND r.refuses_seat = s2.seat_no AND r.created_at >= $3)
+        ORDER BY a.at
+        LIMIT greatest(0, $2 - (SELECT count(*) FROM table_seats
+                                 WHERE table_id = $1 AND left_at IS NULL AND playing_from IS NOT NULL)))`,
+    [tableId, table.seats, since],
+  );
+  const players = await run<{ seat_no: number }>(
+    `SELECT seat_no FROM table_seats WHERE table_id = $1 AND left_at IS NULL AND playing_from IS NOT NULL
+      ORDER BY seat_no LIMIT $2`,
+    [tableId, table.seats],
+  );
+  const state = startState(table.game, table.set, players.map((p) => p.seat_no));
+  const playable = state.order.length >= 2;
+  await run(
+    `INSERT INTO table_games (table_id, class, state, turn_due, ended_at) VALUES ($1, $2, $3::text::jsonb, $4, $5)`,
+    [tableId, table.game, JSON.stringify(state), playable ? new Date(Date.now() + MOVE_WINDOW_MS) : null, playable ? null : new Date()],
+  );
+  await touch(run, tableId);
+  await tableEvent(run, tableId, "board");
+  await tableEvent(run, tableId, "seat");
+}
+
 // Overdue turns become passes, in order, each with its own seq (OPS-12, OPS-3,
 // OPS-4); three in a row seat the player as a spectator. An expired proposal
 // goes too. Called by every request to the table and by the autopass job.
@@ -137,8 +184,29 @@ export async function applyOverdue(run: Query, tableId: string): Promise<void> {
   const game = await lockGame(run, tableId);
   if (!game) return;
   if (game.pending?.until && game.pending.until * 1000 <= Date.now()) {
+    // The window ran out (§6.1, W14-TC): whoever did not say "I am here" is a
+    // spectator now — playing_from empty, a way back by an application as for
+    // everyone — and the round starts with those who did, when they are two.
+    const confirmed = new Set(Object.keys(game.pending.answers ?? {}).map(Number));
+    const players = await run<{ seat_no: number }>(
+      `SELECT seat_no FROM table_seats WHERE table_id = $1 AND left_at IS NULL AND playing_from IS NOT NULL`,
+      [tableId],
+    );
+    const silent = players.map((p) => p.seat_no).filter((seat) => !confirmed.has(seat));
+    if (silent.length > 0) {
+      await run(
+        `UPDATE table_seats SET playing_from = NULL WHERE table_id = $1 AND seat_no = ANY($2::int[]) AND left_at IS NULL`,
+        [tableId, silent],
+      );
+      await tableEvent(run, tableId, "seat");
+    }
     await run(`UPDATE table_games SET pending = NULL WHERE id = $1`, [game.id]);
     game.pending = null;
+    if (players.length - silent.length >= 2) {
+      await startRound(run, tableId);
+      return;
+    }
+    await tableEvent(run, tableId, "board");
   }
   let due = game.turn_due;
   while (due && due.getTime() <= Date.now() && game.state.turn !== null) {
@@ -215,7 +283,10 @@ export async function leaveTable(run: Query, identity: string): Promise<string |
 // each in its own transaction so one bad table does not hold the rest.
 export async function autopass(): Promise<number> {
   const due = await queryOrThrow<{ table_id: string }>(
-    `SELECT table_id FROM table_games WHERE ended_at IS NULL AND turn_due <= now() LIMIT 500`,
+    `SELECT table_id FROM table_games
+      WHERE ended_at IS NULL
+        AND (turn_due <= now() OR (pending->>'until')::bigint <= extract(epoch FROM now())::bigint)
+      LIMIT 500`,
   );
   for (const { table_id } of due) {
     await transaction((run) => applyOverdue(run, table_id)).catch((error) =>
@@ -297,9 +368,17 @@ export function boardFor(
   score: Record<string, number> = {},
   over = false,
   viewer: number | null = null,
+  playing = 0,
 ) {
   if (!game) return null;
   const s = game.state;
+  // The proposal as the screen shows it (§6.1): `until`, and "confirmed N of
+  // M" — except with two at the table, where the count would say whether the
+  // one other person is at the screen (decided 2026-09-10, W14-TC).
+  const raw = game.pending as { answers?: Record<string, string> } | null;
+  const pending = raw && playing > 2
+    ? { ...raw, confirmed: Object.values(raw.answers ?? {}).filter((a) => a === "accept").length, of: playing }
+    : raw;
   // The contract's Board (docs/api/openapi.yaml): whose turn by seat, the
   // turn's term as expires_at; score by seat from table_scores. What is
   // hidden is cut here and nowhere else (§6.1): a hand but one's own, the
@@ -319,7 +398,7 @@ export function boardFor(
     score,
     over,
     expires_at: game.turn_due ? Math.floor(new Date(game.turn_due).getTime() / 1000) : null,
-    pending: game.pending ?? null,
+    pending: pending ?? null,
   };
 }
 
@@ -332,7 +411,11 @@ export async function boardNow(run: Query, tableId: string, viewer: number | nul
       WHERE table_id = $1 ORDER BY started_at DESC LIMIT 1`,
     [tableId],
   );
-  return boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last, viewer);
+  const [{ playing }] = await run<{ playing: number }>(
+    `SELECT count(*)::int AS playing FROM table_seats WHERE table_id = $1 AND left_at IS NULL AND playing_from IS NOT NULL`,
+    [tableId],
+  );
+  return boardFor(running ?? last ?? null, await scoreOf(run, tableId), !running && !!last, viewer, playing);
 }
 
 // Frames for a table's rooms (chat/relay.ts): `NOTIFY table_event` with
@@ -340,5 +423,9 @@ export async function boardNow(run: Query, tableId: string, viewer: number | nul
 // the state itself, so the notice stays far under Postgres's 8000 bytes
 // whatever the board holds. Sent inside the writing transaction: it arrives
 // on commit and not at all on a rollback.
+// The table was moved at: its hour of silence counts from here (pruneTables).
+export const touch = (run: Query, tableId: string) =>
+  run(`UPDATE tables SET last_move_at = now() WHERE id = $1`, [tableId]);
+
 export const tableEvent = (run: Query, tableId: string, kind: "board" | "seat" | "line", id = "") =>
   run(`SELECT pg_notify('table_event', $1)`, [`${tableId}|${kind}${id ? `|${id}` : ""}`]);

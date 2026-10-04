@@ -116,7 +116,7 @@
   "web.chat.over": "rozmowa się skończyła",
   "web.chat.over_text": "Klucze wymazane u obojga. Nie ma już czym tego przeczytać — nikt.",
   "web.chat.over_title": "Rozmowa się skończyła",
-  "web.chat.peer_moved": "Druga strona zmieniła urządzenie i prosi o nowe klucze. Wcześniejsze wiadomości nie wrócą.",
+  "web.chat.peer_asks": "Rozmówca prosi o nowe klucze tej rozmowy. Dopóki się nie zgodzisz, nowe wiersze się nie otworzą.",
   "web.chat.reconnecting": "połączenie przerwane ({code}), ponownie za {seconds} s",
   "web.chat.rekey_agree": "wydaj nowe klucze",
   "web.chat.rekey_agreed": "nowe klucze wydane (epoka {epoch})",

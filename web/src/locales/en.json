@@ -116,7 +116,7 @@
   "web.chat.over": "the conversation is over",
   "web.chat.over_text": "The keys are wiped on both sides. Nothing can read this any more — for anyone.",
   "web.chat.over_title": "The conversation is over",
-  "web.chat.peer_moved": "The other side changed device and asks for new keys. Earlier messages won’t come back.",
+  "web.chat.peer_asks": "The other side asks for new keys for this conversation. New lines will not open until you agree.",
   "web.chat.reconnecting": "connection lost ({code}), retrying in {seconds} s",
   "web.chat.rekey_agree": "issue new keys",
   "web.chat.rekey_agreed": "new keys issued (epoch {epoch})",

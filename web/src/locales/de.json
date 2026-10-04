@@ -116,7 +116,7 @@
   "web.chat.over": "das Gespräch ist vorbei",
   "web.chat.over_text": "Die Schlüssel sind bei beiden gelöscht. Lesen kann das niemand mehr.",
   "web.chat.over_title": "Das Gespräch ist vorbei",
-  "web.chat.peer_moved": "Die andere Seite hat das Gerät gewechselt und bittet um neue Schlüssel. Frühere Nachrichten kommen nicht zurück.",
+  "web.chat.peer_asks": "Der Gesprächspartner bittet um neue Schlüssel für dieses Gespräch. Bis du zustimmst, lassen sich neue Zeilen nicht öffnen.",
   "web.chat.reconnecting": "Verbindung unterbrochen ({code}), neuer Versuch in {seconds} s",
   "web.chat.rekey_agree": "neue Schlüssel ausstellen",
   "web.chat.rekey_agreed": "neue Schlüssel ausgestellt (Epoche {epoch})",

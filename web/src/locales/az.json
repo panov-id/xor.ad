@@ -116,7 +116,7 @@
   "web.chat.over": "söhbət bitdi",
   "web.chat.over_text": "Açarlar hər iki tərəfdə silindi. Bunu artıq heç kim oxuya bilməz.",
   "web.chat.over_title": "Söhbət bitdi",
-  "web.chat.peer_moved": "Həmsöhbət cihazını dəyişdi və yeni açarlar istəyir. Əvvəlki mesajlar qayıtmayacaq.",
+  "web.chat.peer_asks": "Digər tərəf bu söhbət üçün yeni açarlar istəyir. Razılaşmayana qədər yeni sətirlər açılmayacaq.",
   "web.chat.reconnecting": "əlaqə kəsildi ({code}), {seconds} san. sonra yenidən",
   "web.chat.rekey_agree": "yeni açarlar burax",
   "web.chat.rekey_agreed": "yeni açarlar buraxıldı (dövr {epoch})",

@@ -116,7 +116,7 @@
   "web.chat.over": "conversația s-a încheiat",
   "web.chat.over_text": "Cheile sunt șterse la amândoi. Nu mai are cine să citească asta — nimeni.",
   "web.chat.over_title": "Conversația s-a încheiat",
-  "web.chat.peer_moved": "Cealaltă parte și-a schimbat dispozitivul și cere chei noi. Mesajele de dinainte nu se vor întoarce.",
+  "web.chat.peer_asks": "Interlocutorul cere chei noi pentru această conversație. Până când accepți, replicile noi nu se vor deschide.",
   "web.chat.reconnecting": "conexiunea s-a întrerupt ({code}), din nou peste {seconds} s",
   "web.chat.rekey_agree": "emite chei noi",
   "web.chat.rekey_agreed": "chei noi emise (epoca {epoch})",

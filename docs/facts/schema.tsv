@@ -76,7 +76,7 @@ tables	docs/chat_RU.md:320	relay/node/db/064_tables.sql	product
 table_likes	docs/chat_RU.md:1988	relay/node/db/066_table_likes.sql	product
 vault_shares	docs/chat_RU.md:1276	relay/node/db/022_identity_and_sessions.sql	product
 venues	docs/offers/SPEC_RU.md:247	relay/node/db/050_offers.sql	product
-support_requests	docs/chat_RU.md:2900	relay/node/db/039_support_requests.sql	product
+support_requests	docs/chat_RU.md:2902	relay/node/db/039_support_requests.sql	product
 identity_appearance	docs/chat_RU.md:806	relay/node/db/022_identity_and_sessions.sql	product
 nonces	docs/chat_RU.md:1042	relay/node/db/022_identity_and_sessions.sql	product
 night_path_hours	-	relay/node/db/044_night_path_hours.sql	control

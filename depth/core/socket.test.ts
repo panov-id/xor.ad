@@ -294,8 +294,14 @@ Deno.test({
       const later = await a.sayInChat(chatId, "после перевыпуска");
       trace.push(`sent:${later.body.local_id.slice(0, 8)}`);
       // The reissue itself arrives as frames too (type "rekey"); the message is after them.
+      // Delivery is at least once: the room's opening hand-over and the NOTIFY
+      // of the first line can both hand that line (relay.ts hand), so it may
+      // come again here — skipped by id, as the screen does (ink/rooms.ts
+      // shown). Read under the new keys it failed to open (W16-FL1, 1 of 30).
+      const isRepeat = (f: { type: string; data: unknown }) =>
+        f.type === "message" && (f.data as { id?: string } | null)?.id === before.id;
       let next = await frame(room);
-      while (next.type === "rekey") next = await frame(room);
+      while (next.type === "rekey" || isRepeat(next)) next = await frame(room);
       assertEquals(next.type, "message");
       const after = next.data as { id: string; ciphertext: string };
       assertEquals(await b.read(chatId, after.ciphertext, after.id), "после перевыпуска");

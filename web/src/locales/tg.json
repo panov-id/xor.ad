@@ -326,5 +326,6 @@
   "web.filter.hint": "аз рӯи сол, дар доираи гурӯҳи шумо",
   "web.filter.from": "аз",
   "web.filter.to": "то",
-  "web.filter.noLimit": "бе маҳдудият"
+  "web.filter.noLimit": "бе маҳдудият",
+  "web.chat.send_again": "аз нав фиристодан"
 }

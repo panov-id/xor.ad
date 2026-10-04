@@ -326,5 +326,6 @@
   "web.filter.hint": "il-il, öz zolağınızın daxilində",
   "web.filter.from": "-dan",
   "web.filter.to": "-a qədər",
-  "web.filter.noLimit": "məhdudiyyətsiz"
+  "web.filter.noLimit": "məhdudiyyətsiz",
+  "web.chat.send_again": "yenidən göndər"
 }

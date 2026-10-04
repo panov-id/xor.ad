@@ -326,5 +326,6 @@
   "web.filter.hint": "წლების მიხედვით, თქვენი ზოლის შიგნით",
   "web.filter.from": "დან",
   "web.filter.to": "მდე",
-  "web.filter.noLimit": "შეზღუდვის გარეშე"
+  "web.filter.noLimit": "შეზღუდვის გარეშე",
+  "web.chat.send_again": "ხელახლა გაგზავნა"
 }

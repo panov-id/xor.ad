@@ -326,5 +326,6 @@
   "web.filter.hint": "yil bo'yicha, o'z oralig'ingiz ichida",
   "web.filter.from": "dan",
   "web.filter.to": "gacha",
-  "web.filter.noLimit": "cheklovsiz"
+  "web.filter.noLimit": "cheklovsiz",
+  "web.chat.send_again": "qayta yuborish"
 }

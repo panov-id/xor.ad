@@ -326,5 +326,6 @@
   "web.filter.hint": "па годзе, унутры вашай паласы",
   "web.filter.from": "ад",
   "web.filter.to": "да",
-  "web.filter.noLimit": "без абмежаванняў"
+  "web.filter.noLimit": "без абмежаванняў",
+  "web.chat.send_again": "адправіць зноў"
 }

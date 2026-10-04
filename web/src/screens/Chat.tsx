@@ -30,7 +30,7 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
   const {
     row, lines, text, setText, status, peerAway, peerAge, missed, keysState, keysError, over, error, span, endsAt, quiet,
     changeSpan, endChat, block, blocked, safety, setSafety, busy, kept, gameOpen, setGameOpen, gameBump,
-    send, rekey, askedByPeer, waitingForPeer, starters,
+    send, resend, rekey, askedByPeer, waitingForPeer, starters,
   } = useChat({ client, keys, row: given });
   return (
     <main className={["screen chat", brandClass].filter(Boolean).join(" ")} data-screen="chat" data-id={given.id} data-keys={keysState} data-over={over ? "yes" : "no"} data-epoch={row.key_epoch} data-rekey-requested={askedByPeer ? "yes" : "no"} data-span={span} data-ends-at={endsAt} data-counting={quiet.counting ? "yes" : "no"} data-blocked={blocked ? "yes" : "no"} data-peer-away={peerAway ? "yes" : "no"} data-missed={missed ? "yes" : "no"}>
@@ -120,7 +120,11 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
         ) : (
           <li key={l.id} className={`line ${l.mine ? "mine" : "theirs"}`} data-testid={l.mine ? "mine" : "theirs"} data-state={l.state ?? ""}>
             {l.text}
-            <span className="muted">{new Date(l.at * 1000).toTimeString().slice(0, 5)}{l.state === "failed" ? say("web.chat.not_delivered") : ""}</span>
+            <span className="muted">{new Date(l.at * 1000).toTimeString().slice(0, 5)}</span>
+            {/* Not stored by the node: it goes again by itself, and now on a press (W14-RS). */}
+            {l.state === "failed" && (
+              <button type="button" className="send-again" onClick={() => void resend(l.id)} data-testid="send-again">{say("web.chat.send_again")}</button>
+            )}
           </li>
         ))}
       </ul>

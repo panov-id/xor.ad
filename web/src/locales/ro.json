@@ -326,5 +326,6 @@
   "web.filter.hint": "an cu an, în intervalul dumneavoastră",
   "web.filter.from": "de la",
   "web.filter.to": "până la",
-  "web.filter.noLimit": "fără limită"
+  "web.filter.noLimit": "fără limită",
+  "web.chat.send_again": "trimite din nou"
 }

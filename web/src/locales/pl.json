@@ -326,5 +326,6 @@
   "web.filter.hint": "co rok, w obrębie twojego przedziału",
   "web.filter.from": "od",
   "web.filter.to": "do",
-  "web.filter.noLimit": "bez limitu"
+  "web.filter.noLimit": "bez limitu",
+  "web.chat.send_again": "wyślij ponownie"
 }

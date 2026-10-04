@@ -326,5 +326,6 @@
   "web.filter.hint": "jahrweise, innerhalb Ihres Bereichs",
   "web.filter.from": "von",
   "web.filter.to": "bis",
-  "web.filter.noLimit": "ohne Grenze"
+  "web.filter.noLimit": "ohne Grenze",
+  "web.chat.send_again": "erneut senden"
 }

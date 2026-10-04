@@ -326,5 +326,6 @@
   "web.filter.hint": "année par année, dans votre tranche",
   "web.filter.from": "de",
   "web.filter.to": "à",
-  "web.filter.noLimit": "sans limite"
+  "web.filter.noLimit": "sans limite",
+  "web.chat.send_again": "renvoyer"
 }

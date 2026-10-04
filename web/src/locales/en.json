@@ -326,5 +326,6 @@
   "web.filter.hint": "by the year, inside your band",
   "web.filter.from": "from",
   "web.filter.to": "to",
-  "web.filter.noLimit": "no limit"
+  "web.filter.noLimit": "no limit",
+  "web.chat.send_again": "send again"
 }

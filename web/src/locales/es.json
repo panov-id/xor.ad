@@ -326,5 +326,6 @@
   "web.filter.hint": "año a año, dentro de su franja",
   "web.filter.from": "desde",
   "web.filter.to": "hasta",
-  "web.filter.noLimit": "sin límite"
+  "web.filter.noLimit": "sin límite",
+  "web.chat.send_again": "enviar de nuevo"
 }

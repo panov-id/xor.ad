@@ -326,5 +326,6 @@
   "web.filter.hint": "жыл боюнча, өз тилкеңиздин ичинде",
   "web.filter.from": "баштап",
   "web.filter.to": "чейин",
-  "web.filter.noLimit": "чексиз"
+  "web.filter.noLimit": "чексиз",
+  "web.chat.send_again": "кайра жөнөтүү"
 }

@@ -28,9 +28,9 @@
 <g transform="translate(471,120)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c1"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c1)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · dozens nearby"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="72" data-l1="Anyone going to the promenade" data-l2="tonight? I will bring a thermos." data-chip="company" data-chipw="76" data-likes="3" data-f="207" data-tag="soon" data-tagc="var(--accent-text)"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="244" data-l1="Anyone got a type-c charger" data-l2="for an hour?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="alone"/>
-  <use href="kit/components.svg#card-table" x="16" y="416" data-name="table by the bakery" data-game="dominoes" data-who="2 playing, 1 watching" data-chip="table" data-chipw="52" data-likes="2" data-cta="sit down" data-ctaw="112"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="188" data-l1="Anyone going to" data-l2="the promenade tonight?" data-l3="I will bring a thermos." data-chip="company" data-chipw="76" data-likes="3" data-f="207" data-tag="soon" data-tagc="var(--accent-text)"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="272" data-l1="Anyone got a type-c charger" data-l2="for an hour?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="alone"/>
+  <use href="kit/components.svg#card-table" x="16" y="444" data-name="table by the bakery" data-game="dominoes" data-who="2 playing, 1 watching" data-chip="table" data-chipw="52" data-likes="2" data-cta="sit down" data-ctaw="112"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
 </g></g>
@@ -244,9 +244,9 @@
 <g transform="translate(471,7816)" class="k-neighbro-sea-light b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c17"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c17)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Alexandroupoli · dozens…"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="188" data-l1="Geht heute Abend jemand an die" data-l2="Strandpromenade? Ich bringe" data-l3="eine Thermoskanne mit." data-chip="Gesellschaft" data-chipw="104" data-likes="3" data-f="207"/>
-  <use href="kit/components.svg#card-offer" x="16" y="284" data-chip="Angebot" data-chipw="76" data-venue="Bäckerei „Kolos“" data-discount="−20 %" data-text="Zweites Croissant zum halben Preis." data-t1="Bedingungen: ab zwei Stück" data-t2="Rabatt bis 30. September, 18:00" data-cta="Speichern" data-ctaw="128"/>
-  <use href="kit/components.svg#card-hint" x="16" y="512" data-h="136" data-l1="Sie sind älter geworden —" data-l2="der Filter wurde enger." data-cta="verstanden"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="216" data-l1="Geht heute Abend jemand" data-l2="an die Strandpromenade?" data-l3="Ich bringe eine" data-l4="Thermoskanne mit." data-chip="Gesellschaft" data-chipw="104" data-likes="3" data-f="207"/>
+  <use href="kit/components.svg#card-offer" x="16" y="312" data-chip="Angebot" data-chipw="76" data-venue="Bäckerei „Kolos“" data-discount="−20 %" data-text="Zweites Croissant zum halben Preis." data-t1="Bedingungen: ab zwei Stück" data-t2="Rabatt bis 30. September, 18:00" data-cta="Speichern" data-ctaw="128"/>
+  <use href="kit/components.svg#card-hint" x="16" y="540" data-h="136" data-l1="Sie sind älter geworden —" data-l2="der Filter wurde enger." data-cta="verstanden"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="den Nachbarn sagen…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Gespräche" data-l3="Ich"/>
 </g></g>
@@ -268,9 +268,9 @@
 <g transform="translate(471,8778)" class="k-neighbro-sea b-neighbro"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c19"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c19)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Kolonaki · dozens nearby"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="72" data-l1="Anyone going to the promenade" data-l2="tonight? I will bring a thermos." data-chip="company" data-chipw="76" data-likes="3" data-f="207" data-tag="soon" data-tagc="var(--accent-text)"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="244" data-l1="Anyone got a type-c charger" data-l2="for an hour?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="alone"/>
-  <use href="kit/components.svg#card-table" x="16" y="416" data-name="table by the bakery" data-game="dominoes" data-who="2 playing, 1 watching" data-chip="table" data-chipw="52" data-likes="2" data-cta="sit down" data-ctaw="112"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="188" data-l1="Anyone going to" data-l2="the promenade tonight?" data-l3="I will bring a thermos." data-chip="company" data-chipw="76" data-likes="3" data-f="207" data-tag="soon" data-tagc="var(--accent-text)"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="272" data-l1="Anyone got a type-c charger" data-l2="for an hour?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="alone"/>
+  <use href="kit/components.svg#card-table" x="16" y="444" data-name="table by the bakery" data-game="dominoes" data-who="2 playing, 1 watching" data-chip="table" data-chipw="52" data-likes="2" data-cta="sit down" data-ctaw="112"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="say to your neighbours…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Feed" data-l2="Chats" data-l3="Me"/>
 </g></g>

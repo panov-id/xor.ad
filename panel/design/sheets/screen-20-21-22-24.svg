@@ -496,20 +496,20 @@
 <text x="32" y="194" class="k-meta" style="fill:var(--accent-text)">лайкнуто · вернуть</text>
 <use href="kit/components.svg#like" x="232" y="166" data-count="7" data-c="var(--accent)" data-f="var(--accent)"/>
 <use href="kit/components.svg#icon-button" x="299" y="166" data-icon="icon-more" data-name="ещё"/>
-<use href="kit/components.svg#card-hint" x="16" y="228" data-h="172" data-l1="Лайк не сажает за стол: стол ляжет" data-l2="в «Мои лайки», сесть можно оттуда." data-l3="Сидящие видят число, не имена."/>
-<rect x="16" y="412" width="343" height="162" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="446" class="k-title">Кто-нибудь идёт на</text>
-<text x="32" y="472" class="k-title">набережную вечером?</text>
-<text x="32" y="498" class="k-title">Возьму термос.</text>
-<use href="kit/components.svg#lifespan" x="32" y="510" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#chip" x="32" y="537" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#like" x="232" y="526" data-count="3" data-c="var(--muted)" data-f="none"/>
-<use href="kit/components.svg#icon-button" x="299" y="526" data-icon="icon-more" data-name="ещё"/>
-<rect x="16" y="586" width="343" height="110" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="620" class="k-title">Ищу, с кем поиграть в го.</text>
-<text x="32" y="676" class="k-meta">один</text>
-<use href="kit/components.svg#like" x="232" y="648" data-count="1" data-c="var(--muted)" data-f="none"/>
-<use href="kit/components.svg#icon-button" x="299" y="648" data-icon="icon-more" data-name="ещё"/>
+<use href="kit/components.svg#card-hint" x="16" y="222" data-h="172" data-l1="Лайк не сажает за стол: стол ляжет" data-l2="в «Мои лайки», сесть можно оттуда." data-l3="Сидящие видят число, не имена."/>
+<rect x="16" y="400" width="343" height="162" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="434" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="460" class="k-title">набережную вечером?</text>
+<text x="32" y="486" class="k-title">Возьму термос.</text>
+<use href="kit/components.svg#lifespan" x="32" y="498" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#chip" x="32" y="525" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#like" x="232" y="514" data-count="3" data-c="var(--muted)" data-f="none"/>
+<use href="kit/components.svg#icon-button" x="299" y="514" data-icon="icon-more" data-name="ещё"/>
+<rect x="16" y="568" width="343" height="110" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="602" class="k-title">Ищу, с кем поиграть в го.</text>
+<text x="32" y="658" class="k-meta">один</text>
+<use href="kit/components.svg#like" x="232" y="630" data-count="1" data-c="var(--muted)" data-f="none"/>
+<use href="kit/components.svg#icon-button" x="299" y="630" data-icon="icon-more" data-name="ещё"/>
 <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
 </g>
 </g>

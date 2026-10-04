@@ -60,10 +60,6 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
     setError(null);
     try {
       const { client, record, share } = await registerAndKeep({ name: name.trim(), age: ageNumber }, { pin, paperCode: code });
-      // The boxes ticked on step one go to the node now: an accept is signed,
-      // and only now is there someone to sign it. A failure here is not the
-      // registration's: screen 15 asks again at start-up.
-      if (revisions) await acceptAndKeep(client, revisions).catch(() => null);
       setMade({ client, record, share });
       setStep(3);
     } catch (e) {
@@ -83,6 +79,11 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
     setError(null);
     try {
       await made.client.confirmPaperCode();
+      // The consent of step one goes to the node now: an accept is signed, and
+      // the node takes a signed call only once the paper code is confirmed —
+      // sent right after registration it answered 401 (W13-LC e2e). A failure
+      // here is not the registration's: screen 15 is the way back.
+      if (revisions) await acceptAndKeep(made.client, revisions).catch(() => null);
       // The seal is a seal: the same PIN and the share the node just gave open
       // it. Shown on the feed as a line the e2e run reads.
       let sealed: "ok" | "failed" = "failed";

@@ -803,6 +803,17 @@ export class Client {
     return { items, events: events!, truncated: more };
   }
 
+  // GET /inbox?since= for `events` alone: one page. `events` is counted over
+  // everything live, not over the page (relay lib/inbox_events.ts), so the
+  // feed's counter does not need the rows — it walked up to ten pages for a
+  // number the first one already carried (open.tsv feed.refused.inbox.cost).
+  async inboxEvents(since?: number): Promise<InboxEvents> {
+    const path = since === undefined ? "/inbox" : `/inbox?since=${Math.floor(since)}`;
+    const answer = await this.#call<{ events: InboxEvents }>("GET", path);
+    if (answer.status !== 200) throw new Error(`inbox refused: ${answer.status}`);
+    return answer.body.events;
+  }
+
   // DELETE /chats/:id — closed by hand, for both at once (screen 8).
   closeChat(chatId: string): Promise<Answer<{ state: string }>> {
     return this.#call("DELETE", `/chats/${encodeURIComponent(chatId)}`);

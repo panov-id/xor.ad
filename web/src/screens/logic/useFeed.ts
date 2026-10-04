@@ -72,8 +72,9 @@ export function useFeed(
   useEffect(() => {
     let live = true;
     const since = Number(sessionStorage.getItem("xor-inbox-last-look") ?? "") || undefined;
-    client.inboxSince(since)
-      .then(({ events }) => { if (live) setRefused(events?.phrases_refused ?? 0); })
+    // One page for the count, not the rows (W14-IE; client.ts inboxEvents).
+    client.inboxEvents(since)
+      .then((events) => { if (live) setRefused(events?.phrases_refused ?? 0); })
       .catch(() => {});
     return () => { live = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

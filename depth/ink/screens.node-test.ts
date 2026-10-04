@@ -642,12 +642,18 @@ test("a table card in the feed shows its game and free seats, sits down on open,
 // out), and an inbox out of reach is not the feed's error.
 test("a refused phrase of mine is said on the feed, and a new phrase of mine puts the line out", async () => {
   const errors: string[] = [];
+  const asked: Array<number | undefined> = [];
   const feedWith = (refused: number | Error, mine?: { text: string; state: string }) =>
     render(h(Feed, {
       say,
       client: {
         feed: () => Promise.resolve({ items: [card("p1", "первая")] }),
-        inboxSince: () => refused instanceof Error ? Promise.reject(refused) : Promise.resolve({ items: [], events: { phrases_refused: refused }, truncated: false }),
+        // One page for the count (W14-IE): the rows are not walked for it.
+        inboxEvents: (since?: number) => {
+          asked.push(since);
+          return refused instanceof Error ? Promise.reject(refused) : Promise.resolve({ phrases_refused: refused });
+        },
+        inboxSince: () => Promise.reject(new Error("the feed walked the inbox's pages for a count")),
       // deno-lint-ignore no-explicit-any
       } as any,
       place: { lat: 55.75, lon: 37.62, radius: 1000 },
@@ -677,6 +683,13 @@ test("a refused phrase of mine is said on the feed, and a new phrase of mine put
   assert.doesNotMatch(unreachable.lastFrame()!, /не прошла модерацию/);
   assert.deepEqual(errors, [], "the inbox out of reach became the feed's error");
   unreachable.unmount();
+  // The moment of the feed's last look goes as `since` (W14-IE): every entry
+  // after the first carries one, and it is a moment, in unix seconds.
+  assert.ok(asked.length >= 4, `the feed asked the inbox ${asked.length} times`);
+  for (const since of asked.slice(1)) {
+    assert.ok(typeof since === "number" && since > 1_700_000_000 && since <= Date.now() / 1000,
+      `the feed's last look did not go as since: ${since}`);
+  }
 });
 
 // W11-B · my own phrase comes down from the feed's row: DELETE by the id POST

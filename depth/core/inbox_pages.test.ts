@@ -63,6 +63,23 @@ Deno.test({
       assertEquals(lost.length, 0, `${lost.length} of ${MATCHES} matches did not come: the inbox stopped at a page`);
       assertEquals(items.length, new Set(items.map((r) => r.id)).size, "a row came twice across pages");
       assert(events && typeof events === "object", "events did not come");
+
+      // The count alone is one request (W14-IE): the inbox is two pages here,
+      // and the events of the first are those of the whole walk.
+      const real = globalThis.fetch;
+      let asked = 0;
+      globalThis.fetch = (input, init) => {
+        if (new URL(input instanceof Request ? input.url : String(input)).pathname === "/inbox") asked++;
+        return real(input, init);
+      };
+      let alone;
+      try {
+        alone = await me.inboxEvents(0);
+      } finally {
+        globalThis.fetch = real;
+      }
+      assertEquals(asked, 1, `the count of an inbox of ${MATCHES} rows took ${asked} requests`);
+      assertEquals(alone, events, "the first page's events differ from the whole walk's");
     } finally {
       await sql.end();
     }

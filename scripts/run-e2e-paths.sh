@@ -24,43 +24,47 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(cd "$here/.." && pwd)"
 
 # name | command | file | the line to break | what stands there instead
+# Fields are split by US (0x1f), not '|': three paths' code holds '|' itself
+# (chat-game's ||, transfer's string | null, mixed-starters' template), and
+# IFS='|' cut them into the wrong fields — the node then did not build (W15-BK).
+US=$'\x1f'
 PATHS=(
-  "two-people|run-web-two-people.sh two-people|relay/node/src/routes/matches.ts|(c) => act(c.req, c.params.id, \"consent\")|route(\"POST\", \"/matches/:id/consent\", (c) => act(c.req, c.params.id, \"decline\")); // BROKEN by run-e2e-paths"
-  "decline-expire|run-web-two-people.sh decline-expire|relay/node/src/lib/chat_sweeper.ts|p.idle_ttl_minutes * interval '1 minute' <= now()|  + p.idle_ttl_minutes * interval '1 minute' <= now() - interval '1 day' /* BROKEN by run-e2e-paths: no conversation's term comes */\`;"
-  "two-devices|run-web-two-people.sh two-devices|relay/node/src/routes/transfer.ts|recovery_wrapped_key: bytesToBase64url(me.recovery_wrapped_key)|      // BROKEN by run-e2e-paths: the move's ack drops recovery_wrapped_key"
-  "venue-path|run-web-two-people.sh venue-path|relay/node/src/routes/offer_complaints.ts|route(\"POST\", \"/offers/:id/complaints\", (c) => complain(c.req, c.params.id));|// BROKEN by run-e2e-paths: no complaint on a venue's offer reaches the node"
-  "offer-complaint|run-web-two-people.sh offer-complaint|relay/node/src/routes/offer_links.ts|route(\"POST\", \"/o/:code/report\", (c) => report(c.req, c.params.code));|// BROKEN by run-e2e-paths: no report of an offer's link reaches the node"
-  "mixed-rekey|run-web-depth-mixed.sh mixed-rekey|relay/node/src/routes/chats.ts|SET key_epoch = \$3, ephemeral_public_key = \$4, ephemeral_signature = \$5|          SET key_epoch = key_epoch + 0 * \$3::int, ephemeral_public_key = \$4, ephemeral_signature = \$5 -- BROKEN by run-e2e-paths: the reissue keeps the epoch"
-  "mixed-depth|run-web-depth-mixed.sh|relay/node/src/routes/matches.ts|(c) => act(c.req, c.params.id, \"consent\")|route(\"POST\", \"/matches/:id/consent\", (c) => act(c.req, c.params.id, \"decline\")); // BROKEN by run-e2e-paths"
-  "moderation-path|run-web-two-people.sh moderation-path|relay/node/src/routes/feed_queue.ts|decide(req, params.id, \"publish\"));|route(\"POST\", \"/admin/feed-queue/:id/publish\", ({ req, params }) => decide(req, params.id, \"refuse\")); // BROKEN by run-e2e-paths"
-  "chat-end|run-web-two-people.sh chat|relay/node/src/routes/chats.ts|route(\"DELETE\", \"/chats/:id\", (c) => close(c.req, c.params.id));|// BROKEN by run-e2e-paths: no conversation is ended by hand"
-  "decline-undo|run-web-two-people.sh decline|relay/node/src/routes/matches.ts|(c) => act(c.req, c.params.id, \"undo\")|// BROKEN by run-e2e-paths: a declined match is not taken back"
-  "rekey|run-web-two-people.sh rekey|relay/node/src/routes/chats.ts|SET key_epoch = \$3, ephemeral_public_key = \$4, ephemeral_signature = \$5|          SET key_epoch = key_epoch + 0 * \$3::int, ephemeral_public_key = \$4, ephemeral_signature = \$5 -- BROKEN by run-e2e-paths: the reissue keeps the epoch"
-  "reissue|run-web-two-people.sh reissue|relay/node/src/routes/identity.ts|UPDATE identities SET recovery_auth_hash = \$2, recovery_wrapped_key = \$3 WHERE id = \$1|      \`UPDATE identities SET recovery_auth_hash = coalesce(recovery_auth_hash, \$2), recovery_wrapped_key = \$3 WHERE id = \$1\`, // BROKEN by run-e2e-paths: the old code stays alive"
-  "table|run-web-two-people.sh table|relay/node/src/routes/tables.ts|\`UPDATE table_games SET state = \$2::text::jsonb, seq = seq + 1, last_move_hash = \$3, turn_due = \$4,|      \`UPDATE table_games SET state = CASE WHEN \$2::text IS NULL THEN state ELSE state END, seq = seq + 1, last_move_hash = \$3, turn_due = \$4, -- BROKEN by run-e2e-paths: the move is not written"
-  "table-game|run-web-two-people.sh table|relay/node/src/routes/tables.ts|if (!again) s.turn = (turn + 1) % s.order.length;|    // BROKEN by run-e2e-paths: the turn never passes to the other seat"
-  "chat-game|run-web-two-people.sh chat-game|relay/node/src/routes/chat_games.ts|if (s.turn === null || s.order[s.turn] !== seat) return refuse(\"not_your_turn\", \"not your turn\", 409);|    if (s.turn === null || s.order[s.turn] !== seat || seat === 2) return refuse(\"not_your_turn\", \"not your turn\", 409); // BROKEN by run-e2e-paths: the judge drops the second side's move"
-  "lists|run-web-two-people.sh lists|relay/node/src/routes/hidden.ts|route(\"DELETE\", \"/hidden/:id\", (c) => unhide(c.req, c.params.id));|// BROKEN by run-e2e-paths: a hidden phrase never comes back"
-  "consent-wait|run-web-two-people.sh consent-wait|relay/node/src/routes/inbox.ts|(mine.accepted_at IS NOT NULL) AS consented,|            false AS consented, -- BROKEN by run-e2e-paths: after a reload the inbox forgets my consent"
-  "register-feed|run-web-two-people.sh register-feed|relay/node/src/lib/pin_attempts.ts|if (!sameHash(presented, row.auth_hash)) {|  if (false) { // BROKEN by run-e2e-paths: any PIN opens the vault"
-  "restore|run-web-two-people.sh restore|relay/node/src/routes/identity.ts|await freezeSession(run, session.id, \"transfer\", freezes);|      // BROKEN by run-e2e-paths: the raise leaves the lost device live"
-  "restore-pin|run-web-two-people.sh restore-pin|relay/node/src/routes/identity.ts|SET auth_hash = \$2, share_enc = \$3,|          SET share_enc = \$3, -- BROKEN by run-e2e-paths: the PIN change keeps the old PIN"
-  "transfer|run-web-two-people.sh transfer|relay/node/src/routes/transfer.ts|[sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, unlockPub as string | null, label],|      [sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, null, label], // BROKEN by run-e2e-paths: the arriving session gets no unlock key"
-  "unlock-chat|run-web-two-people.sh unlock-chat|relay/node/src/routes/chats.ts|await storeWrap(run, chatId, caller.sessionId, epoch, bytes);|    // BROKEN by run-e2e-paths: the node keeps no wrap of the keys"
-  "mixed-move|run-web-depth-mixed.sh mixed-move|relay/node/src/routes/chats.ts|await run(\`SELECT pg_notify('chat_rekey', \$1)\`, [\`\${chatId}:\${epoch}\`]);|// BROKEN by run-e2e-paths: no room hears of the request for new keys"
-  "mixed-restore|run-web-depth-mixed.sh mixed-restore|relay/node/src/routes/identity.ts|const wrapped = bytesToBase64url(identity.recovery_wrapped_key);|const wrapped = bytesToBase64url(new Uint8Array(0)); // BROKEN by run-e2e-paths: the restore hands out no key"
-  "mixed-chat-game|run-web-depth-mixed.sh mixed-chat-game|relay/node/src/routes/chat_games.ts|if (!step.again) s.turn = (s.turn + 1) % s.order.length;|// BROKEN by run-e2e-paths: the turn never passes to the other side"
-  "mixed-starters|run-web-depth-mixed.sh mixed-starters|relay/node/src/routes/likes.ts|await run(\`SELECT pg_notify('chat_extra_like', \$1)\`, [\`\${chatId}|\${liker}|\${JSON.stringify(added)}\`]);|// BROKEN by run-e2e-paths: no room hears of the extra like"
-  "mixed-chat-end|run-web-depth-mixed.sh mixed-chat-end|relay/node/src/routes/blocks.ts|await run(\`SELECT pg_notify('chat_closed', \$1)\`, [id]);|// BROKEN by run-e2e-paths: a block tells no room to close"
+  "two-people${US}run-web-two-people.sh two-people${US}relay/node/src/routes/matches.ts${US}(c) => act(c.req, c.params.id, \"consent\")${US}route(\"POST\", \"/matches/:id/consent\", (c) => act(c.req, c.params.id, \"decline\")); // BROKEN by run-e2e-paths"
+  "decline-expire${US}run-web-two-people.sh decline-expire${US}relay/node/src/lib/chat_sweeper.ts${US}p.idle_ttl_minutes * interval '1 minute' <= now()${US}  + p.idle_ttl_minutes * interval '1 minute' <= now() - interval '1 day' /* BROKEN by run-e2e-paths: no conversation's term comes */\`;"
+  "two-devices${US}run-web-two-people.sh two-devices${US}relay/node/src/routes/transfer.ts${US}recovery_wrapped_key: bytesToBase64url(me.recovery_wrapped_key)${US}      // BROKEN by run-e2e-paths: the move's ack drops recovery_wrapped_key"
+  "venue-path${US}run-web-two-people.sh venue-path${US}relay/node/src/routes/offer_complaints.ts${US}route(\"POST\", \"/offers/:id/complaints\", (c) => complain(c.req, c.params.id));${US}// BROKEN by run-e2e-paths: no complaint on a venue's offer reaches the node"
+  "offer-complaint${US}run-web-two-people.sh offer-complaint${US}relay/node/src/routes/offer_links.ts${US}route(\"POST\", \"/o/:code/report\", (c) => report(c.req, c.params.code));${US}// BROKEN by run-e2e-paths: no report of an offer's link reaches the node"
+  "mixed-rekey${US}run-web-depth-mixed.sh mixed-rekey${US}relay/node/src/routes/chats.ts${US}SET key_epoch = \$3, ephemeral_public_key = \$4, ephemeral_signature = \$5${US}          SET key_epoch = key_epoch + 0 * \$3::int, ephemeral_public_key = \$4, ephemeral_signature = \$5 -- BROKEN by run-e2e-paths: the reissue keeps the epoch"
+  "mixed-depth${US}run-web-depth-mixed.sh${US}relay/node/src/routes/matches.ts${US}(c) => act(c.req, c.params.id, \"consent\")${US}route(\"POST\", \"/matches/:id/consent\", (c) => act(c.req, c.params.id, \"decline\")); // BROKEN by run-e2e-paths"
+  "moderation-path${US}run-web-two-people.sh moderation-path${US}relay/node/src/routes/feed_queue.ts${US}decide(req, params.id, \"publish\"));${US}route(\"POST\", \"/admin/feed-queue/:id/publish\", ({ req, params }) => decide(req, params.id, \"refuse\")); // BROKEN by run-e2e-paths"
+  "chat-end${US}run-web-two-people.sh chat${US}relay/node/src/routes/chats.ts${US}route(\"DELETE\", \"/chats/:id\", (c) => close(c.req, c.params.id));${US}// BROKEN by run-e2e-paths: no conversation is ended by hand"
+  "decline-undo${US}run-web-two-people.sh decline${US}relay/node/src/routes/matches.ts${US}(c) => act(c.req, c.params.id, \"undo\")${US}// BROKEN by run-e2e-paths: a declined match is not taken back"
+  "rekey${US}run-web-two-people.sh rekey${US}relay/node/src/routes/chats.ts${US}SET key_epoch = \$3, ephemeral_public_key = \$4, ephemeral_signature = \$5${US}          SET key_epoch = key_epoch + 0 * \$3::int, ephemeral_public_key = \$4, ephemeral_signature = \$5 -- BROKEN by run-e2e-paths: the reissue keeps the epoch"
+  "reissue${US}run-web-two-people.sh reissue${US}relay/node/src/routes/identity.ts${US}UPDATE identities SET recovery_auth_hash = \$2, recovery_wrapped_key = \$3 WHERE id = \$1${US}      \`UPDATE identities SET recovery_auth_hash = coalesce(recovery_auth_hash, \$2), recovery_wrapped_key = \$3 WHERE id = \$1\`, // BROKEN by run-e2e-paths: the old code stays alive"
+  "table${US}run-web-two-people.sh table${US}relay/node/src/routes/tables.ts${US}\`UPDATE table_games SET state = \$2::text::jsonb, seq = seq + 1, last_move_hash = \$3, turn_due = \$4,${US}      \`UPDATE table_games SET state = CASE WHEN \$2::text IS NULL THEN state ELSE state END, seq = seq + 1, last_move_hash = \$3, turn_due = \$4, -- BROKEN by run-e2e-paths: the move is not written"
+  "table-game${US}run-web-two-people.sh table${US}relay/node/src/routes/tables.ts${US}if (!again) s.turn = (turn + 1) % s.order.length;${US}    // BROKEN by run-e2e-paths: the turn never passes to the other seat"
+  "chat-game${US}run-web-two-people.sh chat-game${US}relay/node/src/routes/chat_games.ts${US}if (s.turn === null || s.order[s.turn] !== seat) return refuse(\"not_your_turn\", \"not your turn\", 409);${US}    if (s.turn === null || s.order[s.turn] !== seat || seat === 2) return refuse(\"not_your_turn\", \"not your turn\", 409); // BROKEN by run-e2e-paths: the judge drops the second side's move"
+  "lists${US}run-web-two-people.sh lists${US}relay/node/src/routes/hidden.ts${US}route(\"DELETE\", \"/hidden/:id\", (c) => unhide(c.req, c.params.id));${US}// BROKEN by run-e2e-paths: a hidden phrase never comes back"
+  "consent-wait${US}run-web-two-people.sh consent-wait${US}relay/node/src/routes/inbox.ts${US}(mine.accepted_at IS NOT NULL) AS consented,${US}            false AS consented, -- BROKEN by run-e2e-paths: after a reload the inbox forgets my consent"
+  "register-feed${US}run-web-two-people.sh register-feed${US}relay/node/src/lib/pin_attempts.ts${US}if (!sameHash(presented, row.auth_hash)) {${US}  if (false) { // BROKEN by run-e2e-paths: any PIN opens the vault"
+  "restore${US}run-web-two-people.sh restore${US}relay/node/src/routes/identity.ts${US}await freezeSession(run, session.id, \"transfer\", freezes);${US}      // BROKEN by run-e2e-paths: the raise leaves the lost device live"
+  "restore-pin${US}run-web-two-people.sh restore-pin${US}relay/node/src/routes/identity.ts${US}SET auth_hash = \$2, share_enc = \$3,${US}          SET share_enc = \$3, -- BROKEN by run-e2e-paths: the PIN change keeps the old PIN"
+  "transfer${US}run-web-two-people.sh transfer${US}relay/node/src/routes/transfer.ts${US}[sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, unlockPub as string | null, label],${US}      [sessionId, invite.identity, body.sign_pub as string, body.wrap_pub as string, null, label], // BROKEN by run-e2e-paths: the arriving session gets no unlock key"
+  "unlock-chat${US}run-web-two-people.sh unlock-chat${US}relay/node/src/routes/chats.ts${US}await storeWrap(run, chatId, caller.sessionId, epoch, bytes);${US}    // BROKEN by run-e2e-paths: the node keeps no wrap of the keys"
+  "mixed-move${US}run-web-depth-mixed.sh mixed-move${US}relay/node/src/routes/chats.ts${US}await run(\`SELECT pg_notify('chat_rekey', \$1)\`, [\`\${chatId}:\${epoch}\`]);${US}// BROKEN by run-e2e-paths: no room hears of the request for new keys"
+  "mixed-restore${US}run-web-depth-mixed.sh mixed-restore${US}relay/node/src/routes/identity.ts${US}const wrapped = bytesToBase64url(identity.recovery_wrapped_key);${US}const wrapped = bytesToBase64url(new Uint8Array(0)); // BROKEN by run-e2e-paths: the restore hands out no key"
+  "mixed-chat-game${US}run-web-depth-mixed.sh mixed-chat-game${US}relay/node/src/routes/chat_games.ts${US}if (!step.again) s.turn = (s.turn + 1) % s.order.length;${US}// BROKEN by run-e2e-paths: the turn never passes to the other side"
+  "mixed-starters${US}run-web-depth-mixed.sh mixed-starters${US}relay/node/src/routes/likes.ts${US}await run(\`SELECT pg_notify('chat_extra_like', \$1)\`, [\`\${chatId}|\${liker}|\${JSON.stringify(added)}\`]);${US}// BROKEN by run-e2e-paths: no room hears of the extra like"
+  "mixed-chat-end${US}run-web-depth-mixed.sh mixed-chat-end${US}relay/node/src/routes/blocks.ts${US}await run(\`SELECT pg_notify('chat_closed', \$1)\`, [id]);${US}// BROKEN by run-e2e-paths: a block tells no room to close"
   # W13-E2: "me" twice, by meaning — the PIN change and "start again" are two
   # halves of me.spec, each with the break that takes its own half away; the
   # paper code's reissue by its second half (the new code opens the key, not
   # only the old one dies — that is the "reissue" row above); the close
   # frame's code as the browser reads it.
-  "pin-change|run-web-two-people.sh me|relay/node/src/routes/identity.ts|route(\"POST\", \"/vault/pin\", (c) => changePin(c.req));|// BROKEN by run-e2e-paths: no PIN change reaches the node"
-  "start-over|run-web-two-people.sh me|relay/node/src/routes/identity.ts|route(\"POST\", \"/identities/close\", (c) => closeIdentity(c.req));|// BROKEN by run-e2e-paths: no identity is closed"
-  "reissue-paper|run-web-two-people.sh reissue|relay/node/src/routes/identity.ts|UPDATE identities SET recovery_auth_hash = \$2, recovery_wrapped_key = \$3 WHERE id = \$1|      \`UPDATE identities SET recovery_auth_hash = \$2, recovery_wrapped_key = recovery_wrapped_key WHERE id = \$1\`, // BROKEN by run-e2e-paths: the new code opens the old key, which it cannot"
-  "close-code|run-web-two-people.sh close-code|relay/node/src/chat/relay.ts|socket.send(JSON.stringify({ type: \"closed\", seq, data: { code, reason } }));|    socket.send(JSON.stringify({ type: \"closed\", seq, data: { code: 1000, reason } })); // BROKEN by run-e2e-paths: the closed frame names the wrong code"
+  "pin-change${US}run-web-two-people.sh me${US}relay/node/src/routes/identity.ts${US}route(\"POST\", \"/vault/pin\", (c) => changePin(c.req));${US}// BROKEN by run-e2e-paths: no PIN change reaches the node"
+  "start-over${US}run-web-two-people.sh me${US}relay/node/src/routes/identity.ts${US}route(\"POST\", \"/identities/close\", (c) => closeIdentity(c.req));${US}// BROKEN by run-e2e-paths: no identity is closed"
+  "reissue-paper${US}run-web-two-people.sh reissue${US}relay/node/src/routes/identity.ts${US}UPDATE identities SET recovery_auth_hash = \$2, recovery_wrapped_key = \$3 WHERE id = \$1${US}      \`UPDATE identities SET recovery_auth_hash = \$2, recovery_wrapped_key = recovery_wrapped_key WHERE id = \$1\`, // BROKEN by run-e2e-paths: the new code opens the old key, which it cannot"
+  "close-code${US}run-web-two-people.sh close-code${US}relay/node/src/chat/relay.ts${US}socket.send(JSON.stringify({ type: \"closed\", seq, data: { code, reason } }));${US}    socket.send(JSON.stringify({ type: \"closed\", seq, data: { code: 1000, reason } })); // BROKEN by run-e2e-paths: the closed frame names the wrong code"
 )
 
 mode="${1:-}"
@@ -82,7 +86,7 @@ breaks_undo_left "$pending"
 failed=0; total=0; spoiled=0; unproven=0; reds=""
 
 for row in "${PATHS[@]}"; do
-  IFS='|' read -r spec command file match instead <<<"$row"
+  IFS="$US" read -r spec command file match instead <<<"$row"
   read -r script args <<<"$command"
   [ -n "${E2E_PATHS_ONLY:-}" ] && [ "$spec" != "$E2E_PATHS_ONLY" ] && continue
   total=$((total + 1))

@@ -372,7 +372,9 @@ test("since that is not a moment is refused, and a stranger's inbox has no event
 // the row is gone (feed_verdict.ts refusePhrase), the moment stays in
 // identity_stats.rejected_at_recent, and the inbox counts the moments after
 // ?since. Mine only; a visit after the refusal resets the badge.
-test("a refused phrase is counted for its author since the last visit, not for anybody else, and not twice", async () => {
+test("a refused phrase stands for its author until their next phrase, however long and whatever since says", async () => {
+  // Owner's decision (W16-RJ): the refusal is seen until the author's next
+  // phrase, not for an hour after the last visit.
   const { refusePhrase } = await import("../src/lib/feed_verdict.ts");
   const me = await author();
   const other = await author();
@@ -386,6 +388,10 @@ test("a refused phrase is counted for its author since the last visit, not for a
     );
     return id;
   };
+  // Moves every moment and phrase of mine two hours back: the refusal is old.
+  const twoHoursBack = () => database.queryOrThrow(
+    `UPDATE identity_stats SET rejected_at_recent = ARRAY(SELECT t - interval '2 hours' FROM unnest(rejected_at_recent) t)
+      WHERE identity = $1`, [me.identity_id]);
   assertEquals((await inbox(me, before)).events.phrases_refused, 0, "a refusal was counted before any happened");
 
   const mine = await waiting(me, "пишите в телегу");
@@ -393,17 +399,23 @@ test("a refused phrase is counted for its author since the last visit, not for a
   assertEquals((await inbox(me, before)).events.phrases_refused, 1, "the author was not told of the refusal");
   assertEquals((await inbox(other, before)).events.phrases_refused, 0, "a stranger was told of my refusal");
 
-  // A visit after the refusal: the moment is before `since`, nothing new.
-  await new Promise((r) => setTimeout(r, 1100));
-  const visited = nowSeconds();
-  assertEquals((await inbox(me, visited)).events.phrases_refused, 0, "a refusal already seen was counted again");
-  // And without ?since everything live counts, the refusal included.
-  assertEquals((await inbox(me)).events.phrases_refused, 1, "a first visit does not see the refusal");
+  // Two hours later, and a visit after it: still standing.
+  await twoHoursBack();
+  assertEquals((await inbox(me, nowSeconds())).events.phrases_refused, 1, "a refusal two hours old was no longer seen");
+  assertEquals((await inbox(me)).events.phrases_refused, 1, "without ?since the standing refusal was not seen");
 
-  // Two refusals, two moments; the row itself is gone either way.
-  const again = await waiting(me, "+7 921 123 45 67");
-  assertEquals((await refusePhrase(again)).applied, true);
-  assertEquals((await inbox(me, before)).events.phrases_refused, 2, "the second refusal was not counted");
-  const [row] = await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM feed_messages WHERE id = ANY($1)`, [[mine, again]]);
+  // The next phrase puts it out, waiting or not.
+  const next = await waiting(me, "кто на пробежку");
+  assertEquals((await inbox(me, before)).events.phrases_refused, 0, "the next phrase did not put the refusal out");
+
+  // That phrase refused too: one refusal stands, the latest; the row is gone either way.
+  assertEquals((await refusePhrase(next)).applied, true);
+  assertEquals((await inbox(me, before)).events.phrases_refused, 1, "two refusals in a row did not stand as one");
+  const [row] = await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM feed_messages WHERE id = ANY($1)`, [[mine, next]]);
   assertEquals(row.n, 0, "a refused phrase is still a row");
+
+  // A publication after it puts it out even once its phrase is gone (ran out, taken down).
+  await database.queryOrThrow(
+    `UPDATE identity_stats SET published_at_recent = published_at_recent || now() WHERE identity = $1`, [me.identity_id]);
+  assertEquals((await inbox(me, before)).events.phrases_refused, 0, "a later publication did not put the refusal out");
 });

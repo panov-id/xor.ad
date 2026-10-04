@@ -24,15 +24,19 @@
 //                    by time since the node keeps no seen position) — either
 //                    side's like, since both see the row. The header's own
 //                    starters are written with the chat and are not counted.
-//   phrases_refused  one's own phrases the moderator refused after `since`
-//                    (W12-MRn, owner's decision 2026-10-01): the refusal
+//   phrases_refused  1 while one's last phrase stands refused, else 0 — until
+//                    the author's next phrase, however long and whatever
+//                    `since` says (owner's decision, W16-RJ; it was "after
+//                    `since`, an hour" from W12-MRn, 2026-10-01). The refusal
 //                    deletes the row (feed_verdict.ts refusePhrase) and keeps
-//                    only a moment in identity_stats.rejected_at_recent, so
-//                    that is what is counted — moments, no text, no id. The
-//                    array holds an hour and at most six moments (KEEP_REFUSED):
-//                    a refusal older than an hour at the next visit gives no
-//                    signal; a tombstone instead of the DELETE is a decision
-//                    of its own (open.tsv).
+//                    only a moment in identity_stats.rejected_at_recent; the
+//                    latest moment stands until something of one's own comes
+//                    after it: a phrase row (created_at) or a publication
+//                    (published_at_recent, which outlives a phrase that ran
+//                    out). One phrase waits at a time (feed_limits.ts), so a
+//                    later refusal means a later phrase, and only the latest
+//                    moment can stand. A phrase withdrawn before its verdict
+//                    leaves no trace, and the refusal before it stands again.
 //
 // Where the socket is open the same events arrive as frames (§8.1); this is
 // the cold path only.
@@ -101,8 +105,13 @@ export async function inboxEvents(me: string, sessionId: string, since: number |
             (SELECT count(*) FROM talks WHERE soon)::int AS ending_soon,
             (SELECT count(*) FROM chat_starters s JOIN talks t ON t.id = s.chat_id
               WHERE s.created_at > t.created_at AND s.created_at > to_timestamp($3))::int AS extra_likes,
-            (SELECT count(*) FROM identity_stats st, unnest(st.rejected_at_recent) AS moment
-              WHERE st.identity = $1 AND moment > to_timestamp($3))::int AS phrases_refused`,
+            coalesce((SELECT CASE
+                WHEN last IS NULL THEN 0
+                WHEN EXISTS (SELECT 1 FROM feed_messages f WHERE f.author_identity = $1 AND f.created_at > last) THEN 0
+                WHEN EXISTS (SELECT 1 FROM unnest(published_at_recent) AS p WHERE p > last) THEN 0
+                ELSE 1 END
+               FROM (SELECT st.published_at_recent, (SELECT max(m) FROM unnest(st.rejected_at_recent) AS m) AS last
+                       FROM identity_stats st WHERE st.identity = $1) s), 0)::int AS phrases_refused`,
     [me, sessionId, since ?? 0],
   )) ?? [null];
   return row;

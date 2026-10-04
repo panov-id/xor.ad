@@ -3700,8 +3700,11 @@ Deno.test({
     const { sweepChats } = await import("../src/lib/chat_sweeper.ts");
     // A batch smaller than the work: one call still finishes it.
     const swept = await sweepChats({ batch: 2 });
-    assertEquals(swept.ended, 6, "not every side was ended");
-    assertEquals(swept.deleted, 3, "not every conversation was deleted");
+    // The sweeper takes every expired chat of the database, and other tests
+    // leave theirs (shuffled: 4 for 3, 13 of 30 — W16-FL2): the counts are a
+    // floor, and what is ours is read by id below.
+    assert(swept.ended >= 6, `not every side was ended: ${swept.ended}`);
+    assert(swept.deleted >= 3, `not every conversation was deleted: ${swept.deleted}`);
     const [left] = await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM chats WHERE id = ANY($1::uuid[])`, [chats]);
     assertEquals(left.n, 0);
     reset();

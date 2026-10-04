@@ -7,7 +7,7 @@ sosed-Card-more-light	53.73	0
 sosed-Composer-light	17.81	1
 sosed-Match-light	42.26	0
 sosed-Chat-light	19.60	1
-sosed-Me-light	40.81	0	raised 04.10.2026 (W16-MD): W14-AF: плитка фильтр возраста на Me, e6cf1e42; листы Profile без фильтра/темы/скрытого — дорисовать отдельно
+sosed-Me-light	16.31	0	lowered 04.10.2026 (W16-SH): Profile sheets drawn in Me.tsx order — filter, hidden, theme (W14-AF raise 40.81/40.96, 12.57/12.64 undone)
 sosed-Arrival-dark	29.91	0
 sosed-Feed-dark	36.30	0
 sosed-Card-dark	20.11	0
@@ -16,7 +16,7 @@ sosed-Card-more-dark	54.48	0
 sosed-Composer-dark	17.70	1
 sosed-Match-dark	42.12	0
 sosed-Chat-dark	20.00	1
-sosed-Me-dark	40.96	0	raised 04.10.2026 (W16-MD): W14-AF: плитка фильтр возраста на Me, e6cf1e42; листы Profile без фильтра/темы/скрытого — дорисовать отдельно
+sosed-Me-dark	15.96	0	lowered 04.10.2026 (W16-SH): Profile sheets drawn in Me.tsx order — filter, hidden, theme (W14-AF raise 40.81/40.96, 12.57/12.64 undone)
 neighbro-Arrival-light	7.65	1.5
 neighbro-Feed-light	19.49	0.5
 neighbro-Card-light	19.48	0
@@ -25,7 +25,7 @@ neighbro-Card-more-light	18.52	5.5
 neighbro-Composer-light	17.49	0
 neighbro-Match-light	25.36	0
 neighbro-Chat-light	15.87	3.5
-neighbro-Me-light	12.57	15.5	raised 04.10.2026 (W16-MD): W14-AF: плитка фильтр возраста на Me, e6cf1e42; листы Profile без фильтра/темы/скрытого — дорисовать отдельно
+neighbro-Me-light	12.38	15.5	lowered 04.10.2026 (W16-SH): Profile sheets drawn in Me.tsx order — filter, hidden, theme (W14-AF raise 40.81/40.96, 12.57/12.64 undone)
 neighbro-Arrival-dark	7.59	13
 neighbro-Feed-dark	19.05	0
 neighbro-Card-dark	19.46	0
@@ -34,4 +34,4 @@ neighbro-Card-more-dark	17.99	5.5
 neighbro-Composer-dark	17.62	0
 neighbro-Match-dark	25.69	0
 neighbro-Chat-dark	16.14	13
-neighbro-Me-dark	12.64	15.5	raised 04.10.2026 (W16-MD): W14-AF: плитка фильтр возраста на Me, e6cf1e42; листы Profile без фильтра/темы/скрытого — дорисовать отдельно
+neighbro-Me-dark	12.42	15.5	lowered 04.10.2026 (W16-SH): Profile sheets drawn in Me.tsx order — filter, hidden, theme (W14-AF raise 40.81/40.96, 12.57/12.64 undone)

@@ -16,9 +16,9 @@
 <g transform="translate(48,120)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c0"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c0)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · рядом десятки"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="72" data-l1="Кто-нибудь идёт на набережную" data-l2="вечером? Возьму термос." data-chip="компания" data-chipw="88" data-likes="3" data-f="207" data-tag="скоро" data-tagc="var(--accent-text)"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="244" data-l1="Есть у кого зарядка type-c" data-l2="на час?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="один"/>
-  <use href="kit/components.svg#card-table" x="16" y="416" data-name="стол у пекарни" data-game="домино" data-who="играют 2, смотрят 1" data-chip="стол" data-chipw="56" data-likes="2" data-cta="сесть" data-ctaw="104"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="188" data-l1="Кто-нибудь идёт на" data-l2="набережную вечером?" data-l3="Возьму термос." data-chip="компания" data-chipw="88" data-likes="3" data-f="207" data-tag="скоро" data-tagc="var(--accent-text)"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="272" data-l1="Есть у кого зарядка type-c" data-l2="на час?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="один"/>
+  <use href="kit/components.svg#card-table" x="16" y="444" data-name="стол у пекарни" data-game="домино" data-who="играют 2, смотрят 1" data-chip="стол" data-chipw="56" data-likes="2" data-cta="сесть" data-ctaw="104"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
 </g></g>
@@ -232,9 +232,9 @@
 <g transform="translate(48,7816)" class="k-dark b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c16"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c16)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Александруполис · рядом…"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="188" data-l1="Кто-нибудь идёт на набережную" data-l2="вечером? Возьму термос" data-l3="и плед в придачу." data-chip="компания" data-chipw="88" data-likes="3" data-f="207"/>
-  <use href="kit/components.svg#card-offer" x="16" y="284" data-chip="оффер" data-chipw="64" data-venue="Пекарня «Колос»" data-discount="−20 %" data-text="Второй круассан за полцены." data-t1="условия: при заказе двух и более" data-t2="скидка до 30 сентября, 18:00" data-cta="сохранить" data-ctaw="140"/>
-  <use href="kit/components.svg#card-hint" x="16" y="512" data-h="136" data-l1="Вам стало больше лет —" data-l2="фильтр сузился сам." data-cta="понятно"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="216" data-l1="Кто-нибудь идёт на" data-l2="набережную вечером?" data-l3="Возьму термос и плед" data-l4="в придачу." data-chip="компания" data-chipw="88" data-likes="3" data-f="207"/>
+  <use href="kit/components.svg#card-offer" x="16" y="312" data-chip="оффер" data-chipw="64" data-venue="Пекарня «Колос»" data-discount="−20 %" data-text="Второй круассан за полцены." data-t1="условия: при заказе двух и более" data-t2="скидка до 30 сентября, 18:00" data-cta="сохранить" data-ctaw="140"/>
+  <use href="kit/components.svg#card-hint" x="16" y="540" data-h="136" data-l1="Вам стало больше лет —" data-l2="фильтр сузился сам." data-cta="понятно"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
 </g></g>
@@ -256,9 +256,9 @@
 <g transform="translate(48,8778)" class="k-light b-sosed"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c18"><rect x="0" y="0" width="375" height="812" rx="24"/></clipPath><g clip-path="url(#c18)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · рядом десятки"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="72" data-l1="Кто-нибудь идёт на набережную" data-l2="вечером? Возьму термос." data-chip="компания" data-chipw="88" data-likes="3" data-f="207" data-tag="скоро" data-tagc="var(--accent-text)"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="244" data-l1="Есть у кого зарядка type-c" data-l2="на час?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="один"/>
-  <use href="kit/components.svg#card-table" x="16" y="416" data-name="стол у пекарни" data-game="домино" data-who="играют 2, смотрят 1" data-chip="стол" data-chipw="56" data-likes="2" data-cta="сесть" data-ctaw="104"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="72" data-h="188" data-l1="Кто-нибудь идёт на" data-l2="набережную вечером?" data-l3="Возьму термос." data-chip="компания" data-chipw="88" data-likes="3" data-f="207" data-tag="скоро" data-tagc="var(--accent-text)"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="272" data-l1="Есть у кого зарядка type-c" data-l2="на час?" data-chip="" data-c="var(--muted)" data-likes="0" data-f="96" data-word="один"/>
+  <use href="kit/components.svg#card-table" x="16" y="444" data-name="стол у пекарни" data-game="домино" data-who="играют 2, смотрят 1" data-chip="стол" data-chipw="56" data-likes="2" data-cta="сесть" data-ctaw="104"/>
   <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1" data-l1="Лента" data-l2="Беседы" data-l3="Я"/>
 </g></g>

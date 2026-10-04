@@ -248,27 +248,28 @@
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-close" transform="translate(0,0)"><path d="M16 16 L28 28 M28 16 L16 28" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round" /></g>
 </g>
-<rect x="16" y="112" width="343" height="134" rx="13" style="fill:var(--panel)" />
-<text x="32" y="146" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="172" class="k-title">вечером? Возьму термос.</text>
-<g data-kit="lifespan" transform="translate(32,182)">
+<rect x="16" y="112" width="343" height="162" rx="13" style="fill:var(--panel)" />
+<text x="32" y="146" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="172" class="k-title">набережную вечером?</text>
+<text x="32" y="198" class="k-title">Возьму термос.</text>
+<g data-kit="lifespan" transform="translate(32,210)">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
-<g data-kit="chip" transform="translate(32,209)">
+<g data-kit="chip" transform="translate(32,237)">
   <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
 </g>
-<g data-kit="like" transform="translate(232,198)">
+<g data-kit="like" transform="translate(232,226)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">3</text></g>
 </g>
-<g data-kit="icon-button" transform="translate(299,198)">
+<g data-kit="icon-button" transform="translate(299,226)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
-<g data-kit="card-table" transform="translate(16,258)">
+<g data-kit="card-table" transform="translate(16,286)">
   <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
   <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
   <g data-kit="chip" transform="translate(38,16)">
@@ -292,35 +293,35 @@
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
   </g>
-<rect x="16" y="438" width="343" height="110" rx="13" style="fill:var(--panel)" />
-<text x="32" y="472" class="k-title">Ищу, с кем поиграть в го.</text>
-<text x="32" y="528" class="k-meta">один</text>
-<g data-kit="like" transform="translate(232,500)">
+<rect x="16" y="466" width="343" height="110" rx="13" style="fill:var(--panel)" />
+<text x="32" y="500" class="k-title">Ищу, с кем поиграть в го.</text>
+<text x="32" y="556" class="k-meta">один</text>
+<g data-kit="like" transform="translate(232,528)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">1</text></g>
 </g>
-<g data-kit="icon-button" transform="translate(299,500)">
+<g data-kit="icon-button" transform="translate(299,528)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
-<rect x="16" y="560" width="343" height="134" rx="13" style="fill:var(--panel)" />
-<text x="32" y="594" class="k-title">Кто отдаст котёнка? Есть всё для</text>
-<text x="32" y="620" class="k-title">него.</text>
-<g data-kit="lifespan" transform="translate(32,630)">
+<rect x="16" y="588" width="343" height="134" rx="13" style="fill:var(--panel)" />
+<text x="32" y="622" class="k-title">Кто отдаст котёнка? Есть всё</text>
+<text x="32" y="648" class="k-title">для него.</text>
+<g data-kit="lifespan" transform="translate(32,658)">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
-<g data-kit="chip" transform="translate(32,657)">
+<g data-kit="chip" transform="translate(32,685)">
   <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
 </g>
-<g data-kit="like" transform="translate(232,646)">
+<g data-kit="like" transform="translate(232,674)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">8</text></g>
 </g>
-<g data-kit="icon-button" transform="translate(299,646)">
+<g data-kit="icon-button" transform="translate(299,674)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
@@ -560,29 +561,30 @@
   <g><text x="38" y="70" text-anchor="middle" class="k-meta">кармин</text></g>
 </g>
 <text x="16" y="470" class="k-meta-strong" style="fill:var(--muted)">Так это выглядит</text>
-<rect x="16" y="482" width="343" height="190" rx="13" style="fill:var(--panel)" />
-<text x="32" y="516" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="542" class="k-title">вечером? Возьму термос.</text>
-<g data-kit="lifespan" transform="translate(32,552)">
+<rect x="16" y="482" width="343" height="218" rx="13" style="fill:var(--panel)" />
+<text x="32" y="516" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="542" class="k-title">набережную вечером?</text>
+<text x="32" y="568" class="k-title">Возьму термос.</text>
+<g data-kit="lifespan" transform="translate(32,580)">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
-<g data-kit="chip" transform="translate(32,565)">
+<g data-kit="chip" transform="translate(32,593)">
   <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
 </g>
-<text x="343" y="582" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">отошёл</text>
-<g data-kit="button-primary" transform="translate(32,606)">
+<text x="343" y="610" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">отошёл</text>
+<g data-kit="button-primary" transform="translate(32,634)">
   <rect class="k-ctl-shadow" x="3" y="3" width="140" height="44" rx="13" style="fill:var(--shadow)" />
   <rect class="k-ctl" width="140" height="44" rx="13" style="fill:var(--accent)" />
   <text x="70" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Написать</text>
 </g>
-<g data-kit="like" transform="translate(184,606)">
+<g data-kit="like" transform="translate(184,634)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">3</text></g>
 </g>
-<text x="16" y="700" class="k-meta">Применено. Сохраним, как только ответим.</text>
+<text x="16" y="728" class="k-meta">Применено. Сохраним, как только ответим.</text>
 </g>
 </g>
 <text x="1317" y="1966" class="capb">22 · тёмная, обычный, терракота; образцы</text>
@@ -647,27 +649,28 @@
   <g><text x="38" y="70" text-anchor="middle" class="k-meta">кармин</text></g>
 </g>
 <text x="16" y="470" class="k-meta-strong" style="fill:var(--muted)">Так это выглядит</text>
-<rect x="16" y="482" width="343" height="190" rx="13" style="fill:var(--panel);stroke:var(--fg);stroke-width:2" />
-<text x="32" y="516" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="542" class="k-title">вечером? Возьму термос.</text>
-<g data-kit="lifespan" transform="translate(32,552)">
+<rect x="16" y="482" width="343" height="218" rx="13" style="fill:var(--panel);stroke:var(--fg);stroke-width:2" />
+<text x="32" y="516" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="542" class="k-title">набережную вечером?</text>
+<text x="32" y="568" class="k-title">Возьму термос.</text>
+<g data-kit="lifespan" transform="translate(32,580)">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
-<g data-kit="chip" transform="translate(32,565)">
+<g data-kit="chip" transform="translate(32,593)">
   <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
 </g>
-<text x="343" y="582" text-anchor="end" class="k-meta-strong" style="fill:#336eb2">отошёл</text>
-<rect x="35" y="609" width="140" height="44" rx="13" style="fill:var(--shadow)" />
-<rect x="32" y="606" width="140" height="44" rx="13" style="fill:#336eb2" />
-<text x="102" y="633.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Написать</text>
-<g data-kit="like" transform="translate(184,606)">
+<text x="343" y="610" text-anchor="end" class="k-meta-strong" style="fill:#336eb2">отошёл</text>
+<rect x="35" y="637" width="140" height="44" rx="13" style="fill:var(--shadow)" />
+<rect x="32" y="634" width="140" height="44" rx="13" style="fill:#336eb2" />
+<text x="102" y="661.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Написать</text>
+<g data-kit="like" transform="translate(184,634)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:#336eb2;stroke:#336eb2;stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">3</text></g>
 </g>
-<text x="16" y="700" class="k-meta">Применено. Сохраним, когда появится связь.</text>
+<text x="16" y="728" class="k-meta">Применено. Сохраним, когда появится связь.</text>
 </g>
 </g>
 <text x="48" y="2966" class="capb">22 · светлая, повышенный, лазурь — тот же экран</text>
@@ -685,31 +688,32 @@
   <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
 </g>
 </g>
-<rect x="16" y="72" width="343" height="134" rx="13" style="fill:var(--panel)" />
-<text x="32" y="106" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="132" class="k-title">вечером? Возьму термос.</text>
-<text x="32" y="186" class="k-meta" style="fill:var(--accent-text)">лайкнуто · вернуть</text>
-<g data-kit="like" transform="translate(232,158)">
+<rect x="16" y="72" width="343" height="162" rx="13" style="fill:var(--panel)" />
+<text x="32" y="106" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="132" class="k-title">набережную вечером?</text>
+<text x="32" y="158" class="k-title">Возьму термос.</text>
+<text x="32" y="214" class="k-meta" style="fill:var(--accent-text)">лайкнуто · вернуть</text>
+<g data-kit="like" transform="translate(232,186)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">4</text></g>
 </g>
-<g data-kit="icon-button" transform="translate(299,158)">
+<g data-kit="icon-button" transform="translate(299,186)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
-<rect x="16" y="214" width="343" height="220" rx="13" style="fill:var(--panel-2)" />
-<rect x="16" y="214" width="4" height="220" rx="2" style="fill:var(--accent)" />
-<text x="36" y="246" class="k-body">Автор видит, сколько лайков, но не</text>
-<text x="36" y="270" class="k-body">чьи. Поговорить предложат, если он</text>
-<text x="36" y="294" class="k-body">лайкнет в ответ. Фраза уйдёт в «Мои</text>
-<text x="36" y="318" class="k-body">лайки» — там лайк можно снять, пока</text>
-<text x="36" y="342" class="k-body">предложения нет.</text>
-<g data-kit="button-secondary" transform="translate(36,370)">
+<rect x="16" y="242" width="343" height="220" rx="13" style="fill:var(--panel-2)" />
+<rect x="16" y="242" width="4" height="220" rx="2" style="fill:var(--accent)" />
+<text x="36" y="274" class="k-body">Автор видит, сколько лайков, но не</text>
+<text x="36" y="298" class="k-body">чьи. Поговорить предложат, если он</text>
+<text x="36" y="322" class="k-body">лайкнет в ответ. Фраза уйдёт в «Мои</text>
+<text x="36" y="346" class="k-body">лайки» — там лайк можно снять, пока</text>
+<text x="36" y="370" class="k-body">предложения нет.</text>
+<g data-kit="button-secondary" transform="translate(36,398)">
   <rect class="k-ctl" x="0.5" y="0.5" width="139" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
   <text x="70" y="27.5" text-anchor="middle" class="k-strong">понятно</text>
 </g>
-<g data-kit="card-table" transform="translate(16,446)">
+<g data-kit="card-table" transform="translate(16,474)">
   <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
   <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
   <g data-kit="chip" transform="translate(38,16)">
@@ -733,8 +737,8 @@
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
   </g>
-<rect x="16" y="626" width="343" height="70" rx="13" style="fill:var(--panel)" />
-<text x="32" y="660" class="k-title">Ищу, с кем поиграть в го.</text>
+<rect x="16" y="654" width="343" height="70" rx="13" style="fill:var(--panel)" />
+<text x="32" y="688" class="k-title">Ищу, с кем поиграть в го.</text>
 <g data-kit="composer-float" transform="translate(24,684)">
   <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
   <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
@@ -866,23 +870,24 @@
   <text x="70" y="27.5" text-anchor="middle" class="k-strong">понятно</text>
 </g>
 </g>
-<rect x="16" y="554" width="343" height="134" rx="13" style="fill:var(--panel)" />
-<text x="32" y="588" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="614" class="k-title">вечером? Возьму термос.</text>
-<g data-kit="lifespan" transform="translate(32,624)">
+<rect x="16" y="554" width="343" height="162" rx="13" style="fill:var(--panel)" />
+<text x="32" y="588" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="614" class="k-title">набережную вечером?</text>
+<text x="32" y="640" class="k-title">Возьму термос.</text>
+<g data-kit="lifespan" transform="translate(32,652)">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
-<g data-kit="chip" transform="translate(32,651)">
+<g data-kit="chip" transform="translate(32,679)">
   <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
 </g>
-<g data-kit="like" transform="translate(232,640)">
+<g data-kit="like" transform="translate(232,668)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">3</text></g>
 </g>
-<g data-kit="icon-button" transform="translate(299,640)">
+<g data-kit="icon-button" transform="translate(299,668)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
@@ -960,35 +965,36 @@
   <g data-kit="icon-filter" transform="translate(0,0)"><path d="M12 12 L32 12 L24 21 L24 30 L20 32 L20 21 Z" style="fill:none;stroke:var(--fg);stroke-width:2;stroke-linejoin:round" /></g>
 </g>
 </g>
-<rect x="16" y="72" width="343" height="134" rx="13" style="fill:var(--panel)" />
-<text x="32" y="106" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="132" class="k-title">вечером? Возьму термос.</text>
-<g data-kit="lifespan" transform="translate(32,142)">
+<rect x="16" y="72" width="343" height="162" rx="13" style="fill:var(--panel)" />
+<text x="32" y="106" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="132" class="k-title">набережную вечером?</text>
+<text x="32" y="158" class="k-title">Возьму термос.</text>
+<g data-kit="lifespan" transform="translate(32,170)">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
-<g data-kit="chip" transform="translate(32,169)">
+<g data-kit="chip" transform="translate(32,197)">
   <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
 </g>
-<g data-kit="like" transform="translate(232,158)">
+<g data-kit="like" transform="translate(232,186)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">3</text></g>
 </g>
-<g data-kit="icon-button" transform="translate(299,158)">
+<g data-kit="icon-button" transform="translate(299,186)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
-<rect x="16" y="214" width="343" height="110" rx="13" style="fill:var(--panel)" />
-<rect x="32" y="238" width="240" height="16" rx="8" style="fill:var(--panel-2)" />
-<rect x="32" y="264" width="180" height="16" rx="8" style="fill:var(--panel-2)" />
-<rect x="16" y="332" width="343" height="110" rx="13" style="fill:var(--panel)" />
-<rect x="32" y="356" width="240" height="16" rx="8" style="fill:var(--panel-2)" />
-<rect x="32" y="382" width="180" height="16" rx="8" style="fill:var(--panel-2)" />
-<rect x="16" y="450" width="343" height="110" rx="13" style="fill:var(--panel)" />
-<rect x="32" y="474" width="240" height="16" rx="8" style="fill:var(--panel-2)" />
-<rect x="32" y="500" width="180" height="16" rx="8" style="fill:var(--panel-2)" />
+<rect x="16" y="242" width="343" height="110" rx="13" style="fill:var(--panel)" />
+<rect x="32" y="266" width="240" height="16" rx="8" style="fill:var(--panel-2)" />
+<rect x="32" y="292" width="180" height="16" rx="8" style="fill:var(--panel-2)" />
+<rect x="16" y="360" width="343" height="110" rx="13" style="fill:var(--panel)" />
+<rect x="32" y="384" width="240" height="16" rx="8" style="fill:var(--panel-2)" />
+<rect x="32" y="410" width="180" height="16" rx="8" style="fill:var(--panel-2)" />
+<rect x="16" y="478" width="343" height="110" rx="13" style="fill:var(--panel)" />
+<rect x="32" y="502" width="240" height="16" rx="8" style="fill:var(--panel-2)" />
+<rect x="32" y="528" width="180" height="16" rx="8" style="fill:var(--panel-2)" />
 <g data-kit="composer-float" transform="translate(24,684)">
   <rect x="3" y="3" width="327" height="52" rx="26" style="fill:var(--shadow)" />
   <rect width="327" height="52" rx="26" style="fill:var(--fg)" />
@@ -1135,7 +1141,7 @@
   <text x="343" y="58" text-anchor="end" class="k-mono" style="fill:var(--muted)" /></g>
   </g>
 <g data-kit="bubble-theirs" transform="translate(16,226)">
-  <g><rect class="k-bub" width="132" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">возьму термос</text></g>
+  <g><rect class="k-bub" width="140" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">возьму термос</text></g>
   </g>
 <rect x="16" y="292" width="343" height="220" rx="13" style="fill:var(--panel-2)" />
 <rect x="16" y="292" width="4" height="220" rx="2" style="fill:var(--accent)" />
@@ -1196,8 +1202,8 @@
 </g>
 </g>
 <rect x="16" y="276" width="343" height="134" rx="13" style="fill:var(--panel)" />
-<text x="32" y="310" class="k-title">Кто отдаст котёнка? Есть всё для</text>
-<text x="32" y="336" class="k-title">него.</text>
+<text x="32" y="310" class="k-title">Кто отдаст котёнка? Есть всё</text>
+<text x="32" y="336" class="k-title">для него.</text>
 <g data-kit="lifespan" transform="translate(32,346)">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
@@ -1356,35 +1362,36 @@
   <text x="70" y="27.5" text-anchor="middle" class="k-strong">понятно</text>
 </g>
 </g>
-<rect x="16" y="412" width="343" height="134" rx="13" style="fill:var(--panel)" />
-<text x="32" y="446" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="472" class="k-title">вечером? Возьму термос.</text>
-<g data-kit="lifespan" transform="translate(32,482)">
+<rect x="16" y="412" width="343" height="162" rx="13" style="fill:var(--panel)" />
+<text x="32" y="446" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="472" class="k-title">набережную вечером?</text>
+<text x="32" y="498" class="k-title">Возьму термос.</text>
+<g data-kit="lifespan" transform="translate(32,510)">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
-<g data-kit="chip" transform="translate(32,509)">
+<g data-kit="chip" transform="translate(32,537)">
   <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
 </g>
-<g data-kit="like" transform="translate(232,498)">
+<g data-kit="like" transform="translate(232,526)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">3</text></g>
 </g>
-<g data-kit="icon-button" transform="translate(299,498)">
+<g data-kit="icon-button" transform="translate(299,526)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
-<rect x="16" y="558" width="343" height="110" rx="13" style="fill:var(--panel)" />
-<text x="32" y="592" class="k-title">Ищу, с кем поиграть в го.</text>
-<text x="32" y="648" class="k-meta">один</text>
-<g data-kit="like" transform="translate(232,620)">
+<rect x="16" y="586" width="343" height="110" rx="13" style="fill:var(--panel)" />
+<text x="32" y="620" class="k-title">Ищу, с кем поиграть в го.</text>
+<text x="32" y="676" class="k-meta">один</text>
+<g data-kit="like" transform="translate(232,648)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">1</text></g>
 </g>
-<g data-kit="icon-button" transform="translate(299,620)">
+<g data-kit="icon-button" transform="translate(299,648)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>

@@ -111,7 +111,7 @@
 <use href="kit/components.svg#icon-button" x="226.6" y="466" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 </g>
 <g>
-<use href="kit/components.svg#bubble-theirs" x="16" y="534" data-w="198.3" data-name="Миша" data-text="кто-нибудь ещё сядет?"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="534" data-w="206" data-name="Миша" data-text="кто-нибудь ещё сядет?"/>
 <use href="kit/components.svg#icon-button" x="218.3" y="530" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 </g>
 <use href="kit/components.svg#button-primary" x="16" y="680" data-w="343" data-label="заявка на следующий круг"/>

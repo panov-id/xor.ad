@@ -184,8 +184,8 @@
 <text x="16" y="464" class="k-meta">ответ придёт сюда, в это приложение; оставьте</text>
 <text x="16" y="482" class="k-meta">почту, если можете потерять доступ к личности</text>
 <text x="16" y="508" class="k-meta">читаем всё, отвечаем не сразу — нас мало</text>
-<text x="16" y="534" class="k-meta">жалоба на незаконное уходит в реестр уведомлений</text><text x="16" y="552" class="k-meta">и получает его сроки; «сообщить» — быстрее</text>
-<g data-kit="button-primary" transform="translate(16,578)">
+<text x="16" y="534" class="k-meta">жалоба на незаконное уходит в реестр</text><text x="16" y="552" class="k-meta">уведомлений и получает его сроки;</text><text x="16" y="570" class="k-meta">«сообщить» — быстрее</text>
+<g data-kit="button-primary" transform="translate(16,590)">
   <rect class="k-ctl-shadow" x="3" y="3" width="343" height="44" rx="13" style="fill:var(--shadow)" />
   <rect class="k-ctl" width="343" height="44" rx="13" style="fill:var(--accent)" />
   <text x="171.5" y="27.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">отправить</text>

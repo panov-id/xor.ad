@@ -238,7 +238,7 @@
 </g>
 <g>
 <g data-kit="bubble-theirs" transform="translate(16,534)">
-  <g><rect class="k-bub" width="198.3" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">кто-нибудь ещё сядет?</text></g>
+  <g><rect class="k-bub" width="206" height="40" rx="13" style="fill:var(--panel)" /><text x="14" y="25.5" class="k-body">кто-нибудь ещё сядет?</text></g>
   <g><text x="14" y="-6" class="k-meta">Миша</text></g>
 </g>
 <g data-kit="icon-button" transform="translate(218.3,530)">

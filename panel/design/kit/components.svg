@@ -269,7 +269,7 @@
 
 <!-- ═══ 6 · cards: panel fill, rx 13, no rim; a button inside keeps 16 to the bottom and the sides (owner 2026-09-19) ═══ -->
 <!-- a phrase in the feed: 20/600, lifespan under it, chip, like and «…» on the right; time left only on your own phrase (screen 23, 2026-09-15) — someone else's card leaves data-time empty -->
-<symbol id="card-phrase" data-p-w="343" data-p-l1="Кто-нибудь идёт на набережную" data-p-l2="вечером? Возьму термос." data-p-l3="" data-p-chip="компания" data-p-chipw="88" data-p-c="var(--cat-amber)" data-p-f="207" data-p-time="" data-p-likes="3" data-p-h="160" data-p-more="1" data-p-word="" data-p-tag="" data-p-tagc="var(--muted)">
+<symbol id="card-phrase" data-p-w="343" data-p-l1="Кто-нибудь идёт на набережную" data-p-l2="вечером? Возьму термос." data-p-l3="" data-p-l4="" data-p-chip="компания" data-p-chipw="88" data-p-c="var(--cat-amber)" data-p-f="207" data-p-time="" data-p-likes="3" data-p-h="160" data-p-more="1" data-p-word="" data-p-tag="" data-p-tagc="var(--muted)">
   <rect class="k-card" width="{w}" height="{h}" rx="13" style="fill:var(--panel)"/>
   <!-- storefront signatures (night brief 2026-09-20), hidden without a brand class: sosed's door tag, a square in the
        bottom-right corner; neighbro's line of light along the top edge, as long as the life left -->
@@ -278,6 +278,7 @@
   <text x="16" y="36" class="k-title">{l1}</text>
   <g data-if="l2"><text x="16" y="64" class="k-title">{l2}</text></g>
   <g data-if="l3"><text x="16" y="92" class="k-title">{l3}</text></g>
+  <g data-if="l4"><text x="16" y="120" class="k-title">{l4}</text></g>
   <use class="k-life" href="components.svg#lifespan" x="16" y="{h-80}" data-w="{w-32}" data-f="{f}" data-c="{c}"/>
   <g data-if="time"><g data-if="chip"><use href="components.svg#chip" x="16" y="{h-62}" data-w="{chipw}" data-label="{chip}" data-c="{c}"/></g>
   <use href="components.svg#countdown" x="16" y="{h-18}" data-text="{time}"/>

@@ -66,8 +66,8 @@
 <text x="16" y="464" class="k-meta">ответ придёт сюда, в это приложение; оставьте</text>
 <text x="16" y="482" class="k-meta">почту, если можете потерять доступ к личности</text>
 <text x="16" y="508" class="k-meta">читаем всё, отвечаем не сразу — нас мало</text>
-<text x="16" y="534" class="k-meta">жалоба на незаконное уходит в реестр уведомлений</text><text x="16" y="552" class="k-meta">и получает его сроки; «сообщить» — быстрее</text>
-<use href="kit/components.svg#button-primary" x="16" y="578" data-w="343" data-label="отправить"/>
+<text x="16" y="534" class="k-meta">жалоба на незаконное уходит в реестр</text><text x="16" y="552" class="k-meta">уведомлений и получает его сроки;</text><text x="16" y="570" class="k-meta">«сообщить» — быстрее</text>
+<use href="kit/components.svg#button-primary" x="16" y="590" data-w="343" data-label="отправить"/>
 
 </g></g>
 <text x="463" y="988" class="cap">14B · Новое обращение</text>

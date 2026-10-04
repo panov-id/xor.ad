@@ -193,7 +193,7 @@
   <text x="171.5" y="0" text-anchor="middle" class="k-meta">вы предложили поговорить · Аня ещё не ответила</text>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,284)">
-  <g><rect x="167" width="176" height="62" rx="13" style="fill:var(--panel-2)" /><text x="181" y="26" class="k-body">домино у меня есть,</text><text x="181" y="48" class="k-body">могу к девяти</text>
+  <g><rect x="159" width="184" height="62" rx="13" style="fill:var(--panel-2)" /><text x="173" y="26" class="k-body">домино у меня есть,</text><text x="173" y="48" class="k-body">могу к девяти</text>
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--muted)" /></g>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,354)">
@@ -1009,8 +1009,8 @@
   <text x="0" y="30" class="k-body" style="fill:var(--fg)">Հայերեն</text>
   <rect x="0" y="47" width="343" height="1" style="fill:var(--border)" />
 </g>
-<text x="16" y="330" class="k-meta">Надписи приложения. Чьи сообщения показывать —</text>
-<text x="16" y="350" class="k-meta">решают «Языки ленты»</text>
+<text x="16" y="330" class="k-meta">Надписи приложения. Чьи сообщения</text>
+<text x="16" y="350" class="k-meta">показывать — решают «Языки ленты»</text>
 </g></g>
 
 <g transform="translate(463,3958)" class="k-dark">
@@ -1060,7 +1060,7 @@
   <text x="171.5" y="0" text-anchor="middle" class="k-meta">Аня согласилась · беседа открыта</text>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,292)">
-  <g><rect x="167" width="176" height="62" rx="13" style="fill:var(--panel-2)" /><text x="181" y="26" class="k-body">домино у меня есть,</text><text x="181" y="48" class="k-body">могу к девяти</text>
+  <g><rect x="159" width="184" height="62" rx="13" style="fill:var(--panel-2)" /><text x="173" y="26" class="k-body">домино у меня есть,</text><text x="173" y="48" class="k-body">могу к девяти</text>
   <text x="343" y="80" text-anchor="end" class="k-mono" style="fill:var(--muted)">✓</text></g>
 </g>
 <g data-kit="bubble-mine" transform="translate(16,381)">

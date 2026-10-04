@@ -47,7 +47,7 @@
 <use href="kit/components.svg#quote-like" x="32" y="112" data-w="311" data-text="«кто на набережную к девяти?»" data-by="ваша фраза"/>
 <use href="kit/components.svg#quote-like" x="32" y="178" data-w="311" data-text="«ищу четвёртого в домино»" data-by="Аня · остаток 1 ч 10 мин"/>
 <use href="kit/components.svg#system-line" x="16" y="268" data-text="вы предложили поговорить · Аня ещё не ответила"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="284" data-w="176" data-text="домино у меня есть," data-text2="могу к девяти" data-mark=""/>
+<use href="kit/components.svg#bubble-mine" x="16" y="284" data-w="184" data-text="домино у меня есть," data-text2="могу к девяти" data-mark=""/>
 <use href="kit/components.svg#bubble-mine" x="16" y="354" data-w="146" data-text="возьму термос" data-mark=""/>
 <text x="359" y="412" text-anchor="end" class="k-mono">в очереди · уйдут, когда Аня согласится</text>
 <use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="330" data-c="var(--accent)"/>
@@ -317,8 +317,8 @@
 <use href="kit/components.svg#row-plain" x="16" y="156" data-label="English"/>
 <use href="kit/components.svg#row-plain" x="16" y="204" data-label="Deutsch"/>
 <use href="kit/components.svg#row-plain" x="16" y="252" data-label="Հայերեն"/>
-<text x="16" y="330" class="k-meta">Надписи приложения. Чьи сообщения показывать —</text>
-<text x="16" y="350" class="k-meta">решают «Языки ленты»</text>
+<text x="16" y="330" class="k-meta">Надписи приложения. Чьи сообщения</text>
+<text x="16" y="350" class="k-meta">показывать — решают «Языки ленты»</text>
 </g></g>
 <!-- R -->
 <g transform="translate(463,3958)" class="k-dark">
@@ -328,7 +328,7 @@
 <use href="kit/components.svg#quote-like" x="32" y="120" data-w="311" data-text="«кто на набережную к девяти?»" data-by="ваша фраза"/>
 <use href="kit/components.svg#quote-like" x="32" y="186" data-w="311" data-text="«ищу четвёртого в домино»" data-by="Аня · остаток 1 ч 10 мин"/>
 <use href="kit/components.svg#system-line" x="16" y="276" data-text="Аня согласилась · беседа открыта"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="292" data-w="176" data-text="домино у меня есть," data-text2="могу к девяти" data-mark="✓"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="292" data-w="184" data-text="домино у меня есть," data-text2="могу к девяти" data-mark="✓"/>
 <use href="kit/components.svg#bubble-mine" x="16" y="381" data-w="146" data-text="возьму термос"/>
 <rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
 <use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="343" data-c="var(--accent)"/>

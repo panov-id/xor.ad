@@ -63,11 +63,12 @@ export function useFeed(
     return () => { generation.current += 1; };
   }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // What the moderator refused of one's own (W12-MRc, the owner's decision of
-  // 2026-10-01): GET /inbox?since counts the moments after the inbox's last
-  // look — an hour and at most six (relay lib/inbox_events.ts) — no id, no
-  // text, so the line names no phrase. Read once on entering the feed; one's
-  // own next phrase puts it out. The inbox out of reach is not the feed's error.
+  // What the moderator refused of one's own (W12-MRc; the owner's decision,
+  // W16-RJ): GET /inbox gives phrases_refused = 1 while one's latest refusal
+  // has no phrase or publication of one's own after it, whatever ?since says
+  // (relay lib/inbox_events.ts) — no id, no text, so the line names no phrase.
+  // It stands until one's own next phrase, on every entry into the feed. The
+  // inbox out of reach is not the feed's error.
   const [refused, setRefused] = useState(0);
   useEffect(() => {
     let live = true;

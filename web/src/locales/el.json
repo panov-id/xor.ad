@@ -320,5 +320,11 @@
   "web.card.heart": "καρδιά: σύρτε τη στη φράση ή πατήστε τη και μετά τη φράση",
   "web.card.heart_wait": "το like φεύγει σε {n} δ — μπορείτε να το αναιρέσετε",
   "web.card.likes": "likes:",
-  "web.card.phrase": "φράση"
+  "web.card.phrase": "φράση",
+  "web.filter.item": "φίλτρο ηλικίας",
+  "web.filter.title": "Φίλτρο ηλικίας",
+  "web.filter.hint": "ανά έτος, μέσα στη ζώνη σας",
+  "web.filter.from": "από",
+  "web.filter.to": "έως",
+  "web.filter.noLimit": "χωρίς όριο"
 }

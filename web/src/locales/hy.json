@@ -320,5 +320,11 @@
   "web.card.heart": "սիրտ՝ քաշեք արտահայտության վրա կամ սեղմեք, հետո՝ արտահայտությանը",
   "web.card.heart_wait": "հավանումը կուղարկվի {n} վ հետո — կարելի է հանել",
   "web.card.likes": "հավանումներ՝",
-  "web.card.phrase": "արտահայտություն"
+  "web.card.phrase": "արտահայտություն",
+  "web.filter.item": "տարիքի զտիչ",
+  "web.filter.title": "Տարիքի զտիչ",
+  "web.filter.hint": "ըստ տարվա, ձեր շերտի ներսում",
+  "web.filter.from": "սկսած",
+  "web.filter.to": "մինչև",
+  "web.filter.noLimit": "առանց սահմանափակման"
 }

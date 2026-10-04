@@ -320,5 +320,11 @@
   "web.card.heart": "cœur : faites-le glisser sur la phrase, ou touchez-le puis la phrase",
   "web.card.heart_wait": "le like part dans {n} s — vous pouvez le retirer",
   "web.card.likes": "likes :",
-  "web.card.phrase": "phrase"
+  "web.card.phrase": "phrase",
+  "web.filter.item": "filtre d'âge",
+  "web.filter.title": "Filtre d'âge",
+  "web.filter.hint": "année par année, dans votre tranche",
+  "web.filter.from": "de",
+  "web.filter.to": "à",
+  "web.filter.noLimit": "sans limite"
 }

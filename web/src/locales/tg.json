@@ -320,5 +320,11 @@
   "web.card.heart": "дил: ба ибора кашед ё пахш кунед, баъд ибораро",
   "web.card.heart_wait": "лайк пас аз {n} с меравад — метавонед бекор кунед",
   "web.card.likes": "лайкҳо:",
-  "web.card.phrase": "ибора"
+  "web.card.phrase": "ибора",
+  "web.filter.item": "филтри синну сол",
+  "web.filter.title": "Филтри синну сол",
+  "web.filter.hint": "аз рӯи сол, дар доираи гурӯҳи шумо",
+  "web.filter.from": "аз",
+  "web.filter.to": "то",
+  "web.filter.noLimit": "бе маҳдудият"
 }

@@ -320,5 +320,11 @@
   "web.card.heart": "Herz: auf die Phrase ziehen oder antippen, dann die Phrase",
   "web.card.heart_wait": "das Like geht in {n} s raus — du kannst es noch zurücknehmen",
   "web.card.likes": "Likes:",
-  "web.card.phrase": "Phrase"
+  "web.card.phrase": "Phrase",
+  "web.filter.item": "Altersfilter",
+  "web.filter.title": "Altersfilter",
+  "web.filter.hint": "jahrweise, innerhalb Ihres Bereichs",
+  "web.filter.from": "von",
+  "web.filter.to": "bis",
+  "web.filter.noLimit": "ohne Grenze"
 }

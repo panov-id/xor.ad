@@ -320,5 +320,11 @@
   "web.card.heart": "yurak: iboraga sudrang yoki bosing, keyin iboraga",
   "web.card.heart_wait": "layk {n} soniyadan keyin ketadi — olib tashlash mumkin",
   "web.card.likes": "layklar:",
-  "web.card.phrase": "ibora"
+  "web.card.phrase": "ibora",
+  "web.filter.item": "yosh filtri",
+  "web.filter.title": "Yosh filtri",
+  "web.filter.hint": "yil bo'yicha, o'z oralig'ingiz ichida",
+  "web.filter.from": "dan",
+  "web.filter.to": "gacha",
+  "web.filter.noLimit": "cheklovsiz"
 }

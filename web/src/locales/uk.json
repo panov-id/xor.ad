@@ -320,5 +320,11 @@
   "web.card.heart": "серце: перетягніть на фразу або натисніть, потім на фразу",
   "web.card.heart_wait": "лайк піде через {n} с — можна зняти",
   "web.card.likes": "лайків:",
-  "web.card.phrase": "фраза"
+  "web.card.phrase": "фраза",
+  "web.filter.item": "фільтр віку",
+  "web.filter.title": "Фільтр віку",
+  "web.filter.hint": "по роках, у межах вашої смуги",
+  "web.filter.from": "від",
+  "web.filter.to": "до",
+  "web.filter.noLimit": "без обмежень"
 }

@@ -320,5 +320,11 @@
   "web.card.heart": "жүрөк: сөз айкашына сүйрөңүз же басыңыз, анан сөз айкашына",
   "web.card.heart_wait": "лайк {n} с кийин кетет — алып салса болот",
   "web.card.likes": "лайктар:",
-  "web.card.phrase": "сөз айкашы"
+  "web.card.phrase": "сөз айкашы",
+  "web.filter.item": "жаш чыпкасы",
+  "web.filter.title": "Жаш чыпкасы",
+  "web.filter.hint": "жыл боюнча, өз тилкеңиздин ичинде",
+  "web.filter.from": "баштап",
+  "web.filter.to": "чейин",
+  "web.filter.noLimit": "чексиз"
 }

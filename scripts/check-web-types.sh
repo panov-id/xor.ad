@@ -43,7 +43,7 @@ fi
 if [ "$errors" -gt 0 ]; then
   grep 'error TS' "$log" | head -10 | sed 's/^/  ✗ web\//'
   [ "$errors" -gt 10 ] && echo "  … и ещё $((errors - 10))"
-  echo "tsc веба: $errors ошибок"
+  echo "tsc веба, ошибок: $errors"
   exit 1
 fi
-echo "tsc веба: 0 ошибок"
+echo "tsc веба, ошибок: 0"

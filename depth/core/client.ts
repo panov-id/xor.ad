@@ -392,6 +392,19 @@ export class Client {
     return answer.body;
   }
 
+  // GET /legal/manifest — the face's current revision of each document
+  // (relay routes/legal.ts): unsigned, the storefront key names the face; 503
+  // when the node holds none for it. The texts live on the storefront (W13-LC).
+  legalManifest(): Promise<Answer<{ documents?: Array<{ document: string; revision_date: string; revision_sha256: string; reaccept: string }> }>> {
+    return this.#call("GET", "/legal/manifest", undefined, false);
+  }
+
+  // POST /legal/accept — one document's revision, signed; 200 recorded (a
+  // repeat too), 400 when it is not the revision the node serves now.
+  legalAccept(document: string, revisionSha256: string): Promise<Answer<unknown>> {
+    return this.#call("POST", "/legal/accept", { document, revision_sha256: revisionSha256 });
+  }
+
   async profile(): Promise<Profile> {
     const answer = await this.#call<Profile>("GET", "/identities/me");
     if (answer.status !== 200) throw new Error(`profile refused: ${answer.status}`);

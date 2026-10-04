@@ -327,5 +327,21 @@
   "web.filter.from": "dan",
   "web.filter.to": "gacha",
   "web.filter.noLimit": "cheklovsiz",
-  "web.chat.send_again": "qayta yuborish"
+  "web.chat.send_again": "qayta yuborish",
+  "web.legal.item": "hujjatlar",
+  "web.legal.title": "Hujjatlar",
+  "web.legal.terms": "foydalanish shartlari",
+  "web.legal.privacy": "maxfiylik siyosati",
+  "web.legal.guidelines": "hamjamiyat qoidalari",
+  "web.legal.accept_terms": "foydalanish shartlarini qabul qilaman",
+  "web.legal.accept_privacy": "maxfiylik siyosatini qabul qilaman",
+  "web.legal.accept_guidelines": "hamjamiyat qoidalarini qabul qilaman",
+  "web.legal.read": "o'qish",
+  "web.legal.edition": "{date} tahriri",
+  "web.legal.changed": "o'zgardi",
+  "web.legal.why": "yangi tahrirlar qabul qilinmaguncha ibora e'lon qilish va suhbatlarda yozish mumkin emas; lenta o'qiladi",
+  "web.legal.accept": "qabul qilish",
+  "web.legal.accepted": "hammasi qabul qilindi",
+  "web.legal.stale": "tahrir hozirgina o'zgardi — uni o'qing va qayta qabul qiling",
+  "web.legal.refused": "avval hujjatlarning yangi tahrirlarini qabul qiling: «men» → «hujjatlar»"
 }

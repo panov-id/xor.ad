@@ -32,6 +32,7 @@ import { Reissue } from "./screens/Reissue.tsx";
 import { Restore } from "./screens/Restore.tsx";
 import { Splash } from "./screens/Splash.tsx";
 import { Statements } from "./screens/Statements.tsx";
+import { Legal, stillToAccept } from "./screens/Legal.tsx";
 import { Unlock } from "./screens/Unlock.tsx";
 import { Departure } from "./screens/Departure.tsx";
 import { Cabinet } from "./adv/Cabinet.tsx";
@@ -80,7 +81,8 @@ type Screen =
   | { at: "reset" }
   | { at: "step-away" }
   | { at: "away"; until: number }
-  | { at: "theme" };
+  | { at: "theme" }
+  | { at: "legal" };
 
 // The venue's cabinet (A1) is its own page: at adv.<storefront> in a real
 // deployment, under /adv on the stand. Decided once per load, so the face's
@@ -210,6 +212,18 @@ function Face() {
       })
       .catch(() => setStatements([]));
   }, [screen.at, seated, statements]);
+
+  // The legal revisions at start-up (W13-LC; chat spec §8.2 :851-858): once
+  // per seated client, on the first entry into the feed, the face's manifest
+  // against what this device accepted; anything new opens screen 15. The feed
+  // is still read behind it; the node's gate keeps publishing and chats shut.
+  const [legalChecked, setLegalChecked] = useState<Client | null>(null);
+  useEffect(() => {
+    if (screen.at !== "feed" || !seated || legalChecked === seated.client) return;
+    const client = seated.client;
+    setLegalChecked(client);
+    void stillToAccept(client).then((left) => { if (left.length > 0) setScreen({ at: "legal" }); });
+  }, [screen.at, seated, legalChecked]);
 
   // Leaving the feed drops what it said about the last phrase and the last card.
   const leaveFeed = (to: Screen) => {
@@ -376,6 +390,8 @@ function Face() {
       );
     case "edit":
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
+    case "legal":
+      return <Legal client={seated!.client} onDone={toFeed} />;
     case "theme":
       return <ThemePicker onBack={me} />;
     case "change-pin":

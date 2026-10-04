@@ -327,5 +327,21 @@
   "web.filter.from": "de la",
   "web.filter.to": "până la",
   "web.filter.noLimit": "fără limită",
-  "web.chat.send_again": "trimite din nou"
+  "web.chat.send_again": "trimite din nou",
+  "web.legal.item": "documente",
+  "web.legal.title": "Documente",
+  "web.legal.terms": "condiții de utilizare",
+  "web.legal.privacy": "politica de confidențialitate",
+  "web.legal.guidelines": "regulile comunității",
+  "web.legal.accept_terms": "accept condițiile de utilizare",
+  "web.legal.accept_privacy": "accept politica de confidențialitate",
+  "web.legal.accept_guidelines": "accept regulile comunității",
+  "web.legal.read": "citește",
+  "web.legal.edition": "versiunea din {date}",
+  "web.legal.changed": "s-a schimbat",
+  "web.legal.why": "până nu acceptați noile versiuni, nu puteți publica fraze și nici scrie în conversații; fluxul se poate citi",
+  "web.legal.accept": "acceptă",
+  "web.legal.accepted": "totul este acceptat",
+  "web.legal.stale": "versiunea tocmai s-a schimbat — citiți-o și acceptați-o din nou",
+  "web.legal.refused": "acceptați mai întâi noile versiuni ale documentelor: „eu” → „documente”"
 }

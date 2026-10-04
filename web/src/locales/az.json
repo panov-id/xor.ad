@@ -327,5 +327,21 @@
   "web.filter.from": "-dan",
   "web.filter.to": "-a qədər",
   "web.filter.noLimit": "məhdudiyyətsiz",
-  "web.chat.send_again": "yenidən göndər"
+  "web.chat.send_again": "yenidən göndər",
+  "web.legal.item": "sənədlər",
+  "web.legal.title": "Sənədlər",
+  "web.legal.terms": "istifadə şərtləri",
+  "web.legal.privacy": "məxfilik siyasəti",
+  "web.legal.guidelines": "icma qaydaları",
+  "web.legal.accept_terms": "istifadə şərtlərini qəbul edirəm",
+  "web.legal.accept_privacy": "məxfilik siyasətini qəbul edirəm",
+  "web.legal.accept_guidelines": "icma qaydalarını qəbul edirəm",
+  "web.legal.read": "oxu",
+  "web.legal.edition": "{date} tarixli redaksiya",
+  "web.legal.changed": "dəyişib",
+  "web.legal.why": "yeni redaksiyalar qəbul edilənə qədər ifadə dərc etmək və söhbətlərdə yazmaq olmaz; lent oxunur",
+  "web.legal.accept": "qəbul et",
+  "web.legal.accepted": "hər şey qəbul edilib",
+  "web.legal.stale": "redaksiya indicə dəyişdi — onu oxuyun və yenidən qəbul edin",
+  "web.legal.refused": "əvvəlcə sənədlərin yeni redaksiyalarını qəbul edin: «mən» → «sənədlər»"
 }

@@ -10,6 +10,7 @@
 
 import { say } from "../locales/say.ts";
 import type { Answer, Client, Liked, Radius } from "../../../depth/core/client.ts";
+import { fromRefusal } from "../../../depth/core/legal.ts";
 
 export type Mode = "alone" | "company" | "party";
 // Made when asked (W14), so the labels are in the page's language of the moment.
@@ -52,6 +53,9 @@ export async function refusalWording(client: Client, answer: Answer): Promise<st
     return say("write.live", { time: ends.length ? hhmm(Math.min(...ends)) : "?" });
   }
   if (answer.status === 409 && error?.code === "stepped_away") return say("away.line");
+  // The node's legal gate (W13-LN, behind LEGAL_REQUIRED): new revisions to
+  // accept first, and where — screen 15 from "me" (W13-LC).
+  if (fromRefusal(answer).length > 0) return say("web.legal.refused");
   // What has no wording of its own says what the node said, until it gets one.
   return error?.message ? say("web.phrase.refused_why", { why: error.message }) : say("web.phrase.refused_status", { status: answer.status });
 }

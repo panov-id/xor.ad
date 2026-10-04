@@ -327,5 +327,21 @@
   "web.filter.from": "бастап",
   "web.filter.to": "дейін",
   "web.filter.noLimit": "шектеусіз",
-  "web.chat.send_again": "қайта жіберу"
+  "web.chat.send_again": "қайта жіберу",
+  "web.legal.item": "құжаттар",
+  "web.legal.title": "Құжаттар",
+  "web.legal.terms": "пайдалану шарттары",
+  "web.legal.privacy": "құпиялылық саясаты",
+  "web.legal.guidelines": "қауымдастық ережелері",
+  "web.legal.accept_terms": "пайдалану шарттарын қабылдаймын",
+  "web.legal.accept_privacy": "құпиялылық саясатын қабылдаймын",
+  "web.legal.accept_guidelines": "қауымдастық ережелерін қабылдаймын",
+  "web.legal.read": "оқу",
+  "web.legal.edition": "{date} редакциясы",
+  "web.legal.changed": "өзгерді",
+  "web.legal.why": "жаңа редакциялар қабылданғанша фраза жариялауға және әңгімелерде жазуға болмайды; таспа оқылады",
+  "web.legal.accept": "қабылдау",
+  "web.legal.accepted": "бәрі қабылданды",
+  "web.legal.stale": "редакция жаңа ғана өзгерді — оны оқып, қайта қабылдаңыз",
+  "web.legal.refused": "алдымен құжаттардың жаңа редакцияларын қабылдаңыз: «мен» → «құжаттар»"
 }

@@ -327,5 +327,21 @@
   "web.filter.from": "desde",
   "web.filter.to": "hasta",
   "web.filter.noLimit": "sin límite",
-  "web.chat.send_again": "enviar de nuevo"
+  "web.chat.send_again": "enviar de nuevo",
+  "web.legal.item": "documentos",
+  "web.legal.title": "Documentos",
+  "web.legal.terms": "condiciones de uso",
+  "web.legal.privacy": "política de privacidad",
+  "web.legal.guidelines": "normas de la comunidad",
+  "web.legal.accept_terms": "acepto las condiciones de uso",
+  "web.legal.accept_privacy": "acepto la política de privacidad",
+  "web.legal.accept_guidelines": "acepto las normas de la comunidad",
+  "web.legal.read": "leer",
+  "web.legal.edition": "versión del {date}",
+  "web.legal.changed": "ha cambiado",
+  "web.legal.why": "hasta aceptar las nuevas versiones no puede publicar frases ni escribir en conversaciones; el feed se puede leer",
+  "web.legal.accept": "aceptar",
+  "web.legal.accepted": "todo aceptado",
+  "web.legal.stale": "la versión acaba de cambiar: léala y acéptela de nuevo",
+  "web.legal.refused": "primero acepte las nuevas versiones de los documentos: «yo» → «documentos»"
 }

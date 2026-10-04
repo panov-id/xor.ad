@@ -327,5 +327,21 @@
   "web.filter.from": "від",
   "web.filter.to": "до",
   "web.filter.noLimit": "без обмежень",
-  "web.chat.send_again": "надіслати знову"
+  "web.chat.send_again": "надіслати знову",
+  "web.legal.item": "документи",
+  "web.legal.title": "Документи",
+  "web.legal.terms": "угода користувача",
+  "web.legal.privacy": "політика конфіденційності",
+  "web.legal.guidelines": "правила спільноти",
+  "web.legal.accept_terms": "приймаю угоду користувача",
+  "web.legal.accept_privacy": "приймаю політику конфіденційності",
+  "web.legal.accept_guidelines": "приймаю правила спільноти",
+  "web.legal.read": "читати",
+  "web.legal.edition": "редакція від {date}",
+  "web.legal.changed": "змінилося",
+  "web.legal.why": "доки нові редакції не прийняті, публікувати фрази й писати в розмовах не можна; стрічка читається",
+  "web.legal.accept": "прийняти",
+  "web.legal.accepted": "усе прийнято",
+  "web.legal.stale": "редакція щойно змінилася — прочитайте її та прийміть знову",
+  "web.legal.refused": "спершу прийміть нові редакції документів: «я» → «документи»"
 }

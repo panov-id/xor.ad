@@ -327,5 +327,21 @@
   "web.filter.from": "από",
   "web.filter.to": "έως",
   "web.filter.noLimit": "χωρίς όριο",
-  "web.chat.send_again": "αποστολή ξανά"
+  "web.chat.send_again": "αποστολή ξανά",
+  "web.legal.item": "έγγραφα",
+  "web.legal.title": "Έγγραφα",
+  "web.legal.terms": "όροι χρήσης",
+  "web.legal.privacy": "πολιτική απορρήτου",
+  "web.legal.guidelines": "κανόνες κοινότητας",
+  "web.legal.accept_terms": "αποδέχομαι τους όρους χρήσης",
+  "web.legal.accept_privacy": "αποδέχομαι την πολιτική απορρήτου",
+  "web.legal.accept_guidelines": "αποδέχομαι τους κανόνες κοινότητας",
+  "web.legal.read": "ανάγνωση",
+  "web.legal.edition": "έκδοση της {date}",
+  "web.legal.changed": "άλλαξε",
+  "web.legal.why": "μέχρι να γίνουν αποδεκτές οι νέες εκδόσεις, δεν μπορείτε να δημοσιεύετε φράσεις ούτε να γράφετε σε συνομιλίες· η ροή διαβάζεται",
+  "web.legal.accept": "αποδοχή",
+  "web.legal.accepted": "όλα έγιναν αποδεκτά",
+  "web.legal.stale": "η έκδοση μόλις άλλαξε — διαβάστε την και αποδεχτείτε ξανά",
+  "web.legal.refused": "αποδεχτείτε πρώτα τις νέες εκδόσεις των εγγράφων: «εγώ» → «έγγραφα»"
 }

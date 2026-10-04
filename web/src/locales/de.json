@@ -327,5 +327,21 @@
   "web.filter.from": "von",
   "web.filter.to": "bis",
   "web.filter.noLimit": "ohne Grenze",
-  "web.chat.send_again": "erneut senden"
+  "web.chat.send_again": "erneut senden",
+  "web.legal.item": "Dokumente",
+  "web.legal.title": "Dokumente",
+  "web.legal.terms": "Nutzungsbedingungen",
+  "web.legal.privacy": "Datenschutzerklärung",
+  "web.legal.guidelines": "Gemeinschaftsregeln",
+  "web.legal.accept_terms": "ich akzeptiere die Nutzungsbedingungen",
+  "web.legal.accept_privacy": "ich akzeptiere die Datenschutzerklärung",
+  "web.legal.accept_guidelines": "ich akzeptiere die Gemeinschaftsregeln",
+  "web.legal.read": "lesen",
+  "web.legal.edition": "Fassung vom {date}",
+  "web.legal.changed": "geändert",
+  "web.legal.why": "solange die neuen Fassungen nicht akzeptiert sind, können Sie keine Phrasen veröffentlichen und nicht in Gesprächen schreiben; der Feed bleibt lesbar",
+  "web.legal.accept": "akzeptieren",
+  "web.legal.accepted": "alles akzeptiert",
+  "web.legal.stale": "die Fassung hat sich gerade geändert — lesen Sie sie und akzeptieren Sie erneut",
+  "web.legal.refused": "akzeptieren Sie zuerst die neuen Fassungen der Dokumente: „ich“ → „Dokumente“"
 }

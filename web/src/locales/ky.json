@@ -327,5 +327,21 @@
   "web.filter.from": "баштап",
   "web.filter.to": "чейин",
   "web.filter.noLimit": "чексиз",
-  "web.chat.send_again": "кайра жөнөтүү"
+  "web.chat.send_again": "кайра жөнөтүү",
+  "web.legal.item": "документтер",
+  "web.legal.title": "Документтер",
+  "web.legal.terms": "колдонуу шарттары",
+  "web.legal.privacy": "купуялык саясаты",
+  "web.legal.guidelines": "коомдун эрежелери",
+  "web.legal.accept_terms": "колдонуу шарттарын кабыл алам",
+  "web.legal.accept_privacy": "купуялык саясатын кабыл алам",
+  "web.legal.accept_guidelines": "коомдун эрежелерин кабыл алам",
+  "web.legal.read": "окуу",
+  "web.legal.edition": "{date} редакциясы",
+  "web.legal.changed": "өзгөрдү",
+  "web.legal.why": "жаңы редакциялар кабыл алынмайынча фраза жарыялоого жана маектерде жазууга болбойт; лента окулат",
+  "web.legal.accept": "кабыл алуу",
+  "web.legal.accepted": "баары кабыл алынды",
+  "web.legal.stale": "редакция жаңы эле өзгөрдү — аны окуп, кайра кабыл алыңыз",
+  "web.legal.refused": "адегенде документтердин жаңы редакцияларын кабыл алыңыз: «мен» → «документтер»"
 }

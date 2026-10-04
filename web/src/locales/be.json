@@ -327,5 +327,21 @@
   "web.filter.from": "ад",
   "web.filter.to": "да",
   "web.filter.noLimit": "без абмежаванняў",
-  "web.chat.send_again": "адправіць зноў"
+  "web.chat.send_again": "адправіць зноў",
+  "web.legal.item": "дакументы",
+  "web.legal.title": "Дакументы",
+  "web.legal.terms": "карыстальніцкае пагадненне",
+  "web.legal.privacy": "палітыка канфідэнцыйнасці",
+  "web.legal.guidelines": "правілы супольнасці",
+  "web.legal.accept_terms": "прымаю карыстальніцкае пагадненне",
+  "web.legal.accept_privacy": "прымаю палітыку канфідэнцыйнасці",
+  "web.legal.accept_guidelines": "прымаю правілы супольнасці",
+  "web.legal.read": "чытаць",
+  "web.legal.edition": "рэдакцыя ад {date}",
+  "web.legal.changed": "змянілася",
+  "web.legal.why": "пакуль новыя рэдакцыі не прынятыя, публікаваць фразы і пісаць у размовах нельга; стужка чытаецца",
+  "web.legal.accept": "прыняць",
+  "web.legal.accepted": "усё прынята",
+  "web.legal.stale": "рэдакцыя толькі што змянілася — прачытайце яе і прыміце зноў",
+  "web.legal.refused": "спачатку прыміце новыя рэдакцыі дакументаў: «я» → «дакументы»"
 }

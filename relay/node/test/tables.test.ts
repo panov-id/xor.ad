@@ -40,6 +40,22 @@ await import("../src/routes/feed.ts");
 // count as that test's leak (as session_freeze.test.ts does).
 await (await import("../src/chat/relay.ts")).listenForRooms();
 
+// Under --shuffle a sanitised case after any room or race case failed on
+// "op_read started before the test": the pool's extra connections and the one
+// it keeps aside for LISTEN read from their sockets across cases (W16-SF3:
+// 0 runs of 10 green, 14–16 leaks a run). closePool() after each such case, as
+// W16-SF1 did, would drop the rooms' LISTEN, armed once above, and the next
+// room case would hear nothing; so the ops and resources sanitisers are off
+// for every case here, not only for those that said so.
+type Def = Deno.TestDefinition;
+function test(name: string, fn: Def["fn"]): void;
+function test(def: Def): void;
+function test(def: Omit<Def, "fn">, fn: Def["fn"]): void;
+function test(a: string | Def | Omit<Def, "fn">, fn?: Def["fn"]): void {
+  const def = typeof a === "string" ? { name: a, fn: fn! } : fn ? { ...a, fn } : (a as Def);
+  Deno.test({ sanitizeOps: false, sanitizeResources: false, ...def });
+}
+
 const KEY_ID = "ak_pub_tablestest0000001";
 await database.queryOrThrow(
   `INSERT INTO brands (key, name, domain, sender, upper)
@@ -147,7 +163,7 @@ async function game(): Promise<{ a: Person; b: Person; id: string }> {
 // FX3 (X4, 27.09.2026): a table's name and its lines reach every seat's
 // screen — the terminal's too — so what nobody can see is refused at the door,
 // as in a person's name (lib/names.ts): ESC, C0/C1 controls, direction overrides.
-Deno.test("a table's name and its lines refuse what nobody can see", async () => {
+test("a table's name and its lines refuse what nobody can see", async () => {
   const a = await person();
   const named = (name: string) =>
     signed(a, "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce(), name });
@@ -162,7 +178,7 @@ Deno.test("a table's name and its lines refuse what nobody can see", async () =>
   assertEquals((await say("привет")).status, 202);
 });
 
-Deno.test("a table is seen only from a live seat, and a repeat of its nonce gets the same table", async () => {
+test("a table is seen only from a live seat, and a repeat of its nonce gets the same table", async () => {
   const a = await person();
   const stranger = await person();
   const n = nonce();
@@ -181,7 +197,7 @@ Deno.test("a table is seen only from a live seat, and a repeat of its nonce gets
   assertEquals(theirs.body, none.body);
 });
 
-Deno.test("sitting: one table at a time, and a band and a block get the same refusal", async () => {
+test("sitting: one table at a time, and a band and a block get the same refusal", async () => {
   const a = await person();
   const b = await person();
   const first = (await setUp(a)).body.id as string;
@@ -205,7 +221,7 @@ Deno.test("sitting: one table at a time, and a band and a block get the same ref
   assertEquals(code(band), "unavailable");
 });
 
-Deno.test("a move needs the board's version: a repeat answers the same board, a stale one is refused", async () => {
+test("a move needs the board's version: a repeat answers the same board, a stale one is refused", async () => {
   const { a, b, id } = await game();
   const start = await board(a, id);
   assertEquals([start.state.order, start.turn], [[1, 2], 1]);
@@ -222,7 +238,7 @@ Deno.test("a move needs the board's version: a repeat answers the same board, a 
   assert(lines.some((l) => l.kind === "move"), JSON.stringify(lines));
 });
 
-Deno.test("an overdue turn is a pass; three in a row make a spectator and end a game of two", async () => {
+test("an overdue turn is a pass; three in a row make a spectator and end a game of two", async () => {
   const { a, b, id } = await game();
   const overdue = () =>
     database.queryOrThrow(`UPDATE table_games SET turn_due = now() - interval '1 second' WHERE table_id = $1 AND ended_at IS NULL`, [id]);
@@ -247,7 +263,7 @@ Deno.test("an overdue turn is a pass; three in a row make a spectator and end a 
   assertEquals(running.n, 0, "one player left: the game is over");
 });
 
-Deno.test("the last one out closes the table, and the sweeper takes it with its lines", async () => {
+test("the last one out closes the table, and the sweeper takes it with its lines", async () => {
   const { a, b, id } = await game();
   assertEquals((await signed(a, "POST", `/tables/${id}/lines`, { kind: "sticker", sticker: "wave" })).status, 200);
   assertEquals((await signed(a, "DELETE", `/tables/${id}/seat`)).status, 204);
@@ -263,7 +279,7 @@ Deno.test("the last one out closes the table, and the sweeper takes it with its 
   assertEquals(Number(left.n), 0);
 });
 
-Deno.test("a table silent for an hour is swept though people still sit at it", async () => {
+test("a table silent for an hour is swept though people still sit at it", async () => {
   const { id } = await game();
   await database.queryOrThrow(`UPDATE tables SET last_move_at = now() - interval '61 minutes' WHERE id = $1`, [id]);
   await tables.pruneTables();
@@ -271,7 +287,7 @@ Deno.test("a table silent for an hour is swept though people still sit at it", a
   assertEquals(left.n, 0);
 });
 
-Deno.test("blocking a seat stands the blocker up, the game goes on, and the blocker cannot sit back", async () => {
+test("blocking a seat stands the blocker up, the game goes on, and the blocker cannot sit back", async () => {
   const { a, id } = await game();
   const c = await person();
   assertEquals((await signed(c, "POST", `/tables/${id}/seat`)).body, { seat: 3 });
@@ -288,7 +304,7 @@ Deno.test("blocking a seat stands the blocker up, the game goes on, and the bloc
   assertEquals(n.n, 0);
 });
 
-Deno.test("a line is hidden only for the one who hid it, and goes with the table", async () => {
+test("a line is hidden only for the one who hid it, and goes with the table", async () => {
   const { a, b, id } = await game();
   const said = await signed(b, "POST", `/tables/${id}/lines`, { kind: "line", text: "привет" });
   assertEquals(said.status, 202);
@@ -306,7 +322,7 @@ Deno.test("a line is hidden only for the one who hid it, and goes with the table
   assertEquals((await signed(a, "GET", "/hidden")).body, []);
 });
 
-Deno.test("a table is liked without sitting, once per person, and only by one who could sit there", async () => {
+test("a table is liked without sitting, once per person, and only by one who could sit there", async () => {
   const { id } = await game();
   const c = await person();
   const count = async () =>
@@ -320,7 +336,7 @@ Deno.test("a table is liked without sitting, once per person, and only by one wh
   assertEquals((await signed(teen, "POST", `/tables/${id}/like`)).status, 404, "outside the band: no such table");
 });
 
-Deno.test("resigning makes a spectator and ends a game of two; stepping away frees the seat", async () => {
+test("resigning makes a spectator and ends a game of two; stepping away frees the seat", async () => {
   const { a, b, id } = await game();
   assertEquals((await signed(b, "POST", `/tables/${id}/resign`)).status, 204);
   assertEquals((await signed(b, "GET", `/tables/${id}`)).body.is_playing, false);
@@ -334,7 +350,7 @@ Deno.test("resigning makes a spectator and ends a game of two; stepping away fre
   assertEquals(seat.n, 0, "the one who stepped away no longer sits");
 });
 
-Deno.test("lines and the name pass the feed's first tier: clean is public at once, a link waits", async () => {
+test("lines and the name pass the feed's first tier: clean is public at once, a link waits", async () => {
   const a = await person();
   const clean = await signed(a, "POST", "/tables", {
     class: "grid", set: "chess", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: "шахматы у пруда", nonce: nonce(),
@@ -354,7 +370,7 @@ Deno.test("lines and the name pass the feed's first tier: clean is public at onc
   assert(!shown.includes(link.body.id), "the line with a link waits");
 });
 
-Deno.test("dots: the engine refuses a taken edge, scores closed boxes, and the finished game comes back over", async () => {
+test("dots: the engine refuses a taken edge, scores closed boxes, and the finished game comes back over", async () => {
   const a = await person();
   const b = await person();
   const made = await signed(a, "POST", "/tables", { class: "dots", set: "2x2", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce() });
@@ -410,7 +426,7 @@ async function panelAs(role: string, brand: string | null = null) {
   };
 }
 
-Deno.test({
+test({
   name: "what the rules flagged at a table waits in the panel's queue, is decided once, and the watchdog counts it",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -468,7 +484,7 @@ Deno.test({
   },
 });
 
-Deno.test("a refused applicant sits out the round; the one not refused plays", async () => {
+test("a refused applicant sits out the round; the one not refused plays", async () => {
   const a = await person();
   const b = await person();
   const c = await person();
@@ -492,7 +508,7 @@ Deno.test("a refused applicant sits out the round; the one not refused plays", a
 // G1e: the table's socket (protocol §4.4, §4.6). Rooms are put in by hand, as
 // session_freeze.test.ts does: a room needs a socket, the frames it would be
 // sent do not.
-Deno.test({
+test({
   name: "a table's room gets the board, the line and the seat as frames, and 4005 when its seat is lost",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -555,7 +571,7 @@ Deno.test({
 // V7 · a room whose identity holds no seat at the table gets no line and no
 // seat frame — the board already closed such a room 4005 (X1); the line and
 // the seat went out to it unchecked, before any board.
-Deno.test({
+test({
   name: "V7: a room with no seat at the table gets no line or seat frame, and is closed 4005",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -615,7 +631,7 @@ async function gameOf(klass: string, set: string): Promise<{ a: Person; b: Perso
 type Seen = { seq: number; turn: number; over: boolean; score: Record<string, number>; state: Record<string, any> };
 const seen = async (who: Person, id: string) => (await signed(who, "GET", `/tables/${id}`)).body.board as Seen;
 
-Deno.test({ name: "deck: the node deals, each sees their own hand and the others' backs, a card must be in the hand, an empty hand wins", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "deck: the node deals, each sees their own hand and the others' backs, a card must be in the hand, an empty hand wins", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { a, b, id } = await gameOf("deck", "durak36");
   const mine = await seen(a, id);
   const theirs = await seen(b, id);
@@ -637,7 +653,7 @@ Deno.test({ name: "deck: the node deals, each sees their own hand and the others
   assertEquals([won.body.board.over, won.body.board.score["1"]], [true, 1], "an empty hand wins the deal");
 });
 
-Deno.test({ name: "word: the setter's word is hidden from the others and from the moves, letters are not repeated, a guessed word scores", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "word: the setter's word is hidden from the others and from the moves, letters are not repeated, a guessed word scores", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { a, b, id } = await gameOf("word", "hangman");
   let s = await seen(a, id);
   assertEquals(s.state.word.setter, 1);
@@ -663,7 +679,7 @@ Deno.test({ name: "word: the setter's word is hidden from the others and from th
 });
 
 // G1h: a table in the feed (§6.1) — the only way a neighbour learns of it.
-Deno.test({ name: "a table shows in a neighbour's feed as a card, updates as people sit, and leaves when its places are taken", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a table shows in a neighbour's feed as a card, updates as people sit, and leaves when its places are taken", sanitizeOps: false, sanitizeResources: false }, async () => {
   const a = await person();
   // A place of its own: the other tests' tables stand at 52.52, 13.4, and the
   // feed picks at most a quarter of the page among them at random.
@@ -705,13 +721,13 @@ const setState = (id: string, path: string, value: unknown) =>
     [id, path, JSON.stringify(value)],
   );
 
-Deno.test({ name: "a class seats no more than the spec's table says: the word two", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a class seats no more than the spec's table says: the word two", sanitizeOps: false, sanitizeResources: false }, async () => {
   const a = await person();
   const three = await signed(a, "POST", "/tables", { class: "word", set: "hangman", seats: 3, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce() });
   assertEquals([three.status, three.body.error?.message], [400, "a word table seats at most 2"]);
 });
 
-Deno.test({ name: "grid: one's own piece blocks the cell, and a con ends only when the other side agrees", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "grid: one's own piece blocks the cell, and a con ends only when the other side agrees", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { a, b, id } = await gameOf("grid", "checkers");
   assertEquals(reasonOf(await moveAs(a, id, { from: "c3", to: "b2" })), "the cell is taken by your own piece");
   assertEquals(reasonOf(await moveAs(a, id, { from: "d6", to: "e5" })), "no piece of yours on that cell");
@@ -724,7 +740,7 @@ Deno.test({ name: "grid: one's own piece blocks the cell, and a con ends only wh
   assertEquals(agreed.body.board.state.grid.cells["c3"]?.seat, 1, "a new con starts from the start");
 });
 
-Deno.test({ name: "dice: the node rolls once a turn, the move comes after the roll, and a claim not agreed to is dropped", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "dice: the node rolls once a turn, the move comes after the roll, and a claim not agreed to is dropped", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { a, b, id } = await gameOf("dice", "backgammon");
   assertEquals(reasonOf(await moveAs(a, id, { move: "13/7" })), "roll first");
   const rolled = await moveAs(a, id, { roll: true });
@@ -738,7 +754,7 @@ Deno.test({ name: "dice: the node rolls once a turn, the move comes after the ro
   assertEquals((await seen(a, id)).state.dice.claim, null, "a move instead of agreeing drops the claim");
 });
 
-Deno.test({ name: "dominoes: hands are cut per seat, a bone must match its end, the empty hand scores the others' pips", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "dominoes: hands are cut per seat, a bone must match its end, the empty hand scores the others' pips", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { a, b, id } = await gameOf("free", "double-six");
   const mine = await seen(a, id);
   assertEquals([mine.state.free.hands["1"].length, mine.state.free.hands["2"], mine.state.free.boneyard], [7, { count: 7 }, { count: 14 }]);
@@ -754,7 +770,7 @@ Deno.test({ name: "dominoes: hands are cut per seat, a bone must match its end, 
   assertEquals(won.body.board.state.free.line, ["3:4", "4:5"], "the bone turns to match");
 });
 
-Deno.test({ name: "physics: a flick slides until it hits, pushes a piece off the board for a point, and the last side standing ends it", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "physics: a flick slides until it hits, pushes a piece off the board for a point, and the last side standing ends it", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { a, id } = await gameOf("physics", "chapayev");
   await setState(id, "{physics,cells}", { "3:5": 1, "3:7": 2, "0:0": 1 });
   assertEquals(reasonOf(await moveAs(a, id, { flick: { piece: "3:7", dir: [0, 1], power: 2 } })), "no piece of yours there");
@@ -768,7 +784,7 @@ Deno.test({ name: "physics: a flick slides until it hits, pushes a piece off the
 // spent by a WebSocket in Sec-WebSocket-Protocol on a served GET /chat, frames
 // read off the wire, and the close the seat's loss makes (session_freeze.test.ts
 // serves relayUpgrade the same way).
-Deno.test({
+test({
   name: "a live socket to a table: a ticket opens it, a move and a line arrive as frames, standing up closes it 4005",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -829,7 +845,7 @@ Deno.test({
 
 // X1 (xor-ad-c4's cross check, 27.09.2026), the two probes as they sent them
 // and a third for a block from a chat. Red on 198716c, green after FX1.
-Deno.test({
+test({
   name: "X1: a ticket spent after its seat is gone opens no room",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -857,7 +873,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "X1: a block from the feed stands the blocker up from a shared table",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -878,7 +894,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "X1: a block from a chat stands the blocker up from a shared table",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -904,7 +920,7 @@ Deno.test({
 // a name to 256, a line to 2048). A family emoji is one grapheme and 25 bytes:
 // 24 of them are a name the node let through and the CHECK refused with a 503
 // (verifier of GC2, 27.09.2026). Now the node says 400 before the insert.
-Deno.test({ name: "a name or a line of family emoji too long in bytes is a 400, not a 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a name or a line of family emoji too long in bytes is a 400, not a 503", sanitizeOps: false, sanitizeResources: false }, async () => {
   const family = "\u{1F468}‍\u{1F469}‍\u{1F467}‍\u{1F466}";
   const a = await person();
   const named = await signed(a, "POST", "/tables", {

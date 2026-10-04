@@ -323,7 +323,7 @@
   "web.card.phrase": "frase",
   "web.filter.item": "filtro de edad",
   "web.filter.title": "Filtro de edad",
-  "web.filter.hint": "año a año, dentro de su franja",
+  "web.filter.hint": "año a año, dentro de tu franja",
   "web.filter.from": "desde",
   "web.filter.to": "hasta",
   "web.filter.noLimit": "sin límite",
@@ -339,9 +339,9 @@
   "web.legal.read": "leer",
   "web.legal.edition": "versión del {date}",
   "web.legal.changed": "ha cambiado",
-  "web.legal.why": "hasta aceptar las nuevas versiones no puede publicar frases ni escribir en conversaciones; el feed se puede leer",
+  "web.legal.why": "hasta aceptar las nuevas versiones no puedes publicar frases ni escribir en conversaciones; el flujo se puede leer",
   "web.legal.accept": "aceptar",
   "web.legal.accepted": "todo aceptado",
-  "web.legal.stale": "la versión acaba de cambiar: léala y acéptela de nuevo",
-  "web.legal.refused": "primero acepte las nuevas versiones de los documentos: «yo» → «documentos»"
+  "web.legal.stale": "la versión acaba de cambiar: léela y acéptala de nuevo",
+  "web.legal.refused": "primero acepta las nuevas versiones de los documentos: «yo» → «documentos»"
 }

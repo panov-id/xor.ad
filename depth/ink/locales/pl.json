@@ -328,7 +328,7 @@
   "game.none": "jeszcze nie ma gry — wybierz, którą zaproponować",
   "game.waiting": "czekamy na odpowiedź",
   "game.offered": "proponują ci: {game}",
-  "game.theirTurn": "ruch: {name}",
+  "game.theirTurn": "ruch rozmówcy: {name}",
   "game.accept": "przyjmij",
   "game.decline": "odrzuć",
   "game.offerArrived": "proponują ci grę — otwórz «gra»",

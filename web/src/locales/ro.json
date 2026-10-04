@@ -114,7 +114,7 @@
   "web.chat.not_sent": "netrimis: {status} {body}",
   "web.chat.opening_keys": "deschidem cheile…",
   "web.chat.over": "conversația s-a încheiat",
-  "web.chat.over_text": "Cheile sunt șterse la amândoi. Nu mai are cine să citească asta — nimeni.",
+  "web.chat.over_text": "Cheile sunt șterse la amândoi. Nu mai e cu ce citi asta — nimeni nu mai poate.",
   "web.chat.over_title": "Conversația s-a încheiat",
   "web.chat.peer_asks": "Interlocutorul cere chei noi pentru această conversație. Până când accepți, replicile noi nu se vor deschide.",
   "web.chat.reconnecting": "conexiunea s-a întrerupt ({code}), din nou peste {seconds} s",
@@ -323,7 +323,7 @@
   "web.card.phrase": "frază",
   "web.filter.item": "filtru de vârstă",
   "web.filter.title": "Filtru de vârstă",
-  "web.filter.hint": "an cu an, în intervalul dumneavoastră",
+  "web.filter.hint": "an cu an, în intervalul tău",
   "web.filter.from": "de la",
   "web.filter.to": "până la",
   "web.filter.noLimit": "fără limită",
@@ -339,9 +339,9 @@
   "web.legal.read": "citește",
   "web.legal.edition": "versiunea din {date}",
   "web.legal.changed": "s-a schimbat",
-  "web.legal.why": "până nu acceptați noile versiuni, nu puteți publica fraze și nici scrie în conversații; fluxul se poate citi",
+  "web.legal.why": "până nu accepți noile versiuni, nu poți publica fraze și nici scrie în conversații; fluxul se poate citi",
   "web.legal.accept": "acceptă",
   "web.legal.accepted": "totul este acceptat",
-  "web.legal.stale": "versiunea tocmai s-a schimbat — citiți-o și acceptați-o din nou",
-  "web.legal.refused": "acceptați mai întâi noile versiuni ale documentelor: „eu” → „documente”"
+  "web.legal.stale": "versiunea tocmai s-a schimbat — citește-o și accept-o din nou",
+  "web.legal.refused": "acceptă mai întâi noile versiuni ale documentelor: „eu” → „documente”"
 }

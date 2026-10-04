@@ -331,7 +331,7 @@
   "game.theirTurn": "հերթը՝ {name}",
   "game.accept": "ընդունել",
   "game.decline": "մերժել",
-  "game.offerArrived": "խաղ են առաջարկում — բացեք «խաղ»",
+  "game.offerArrived": "քեզ խաղ են առաջարկում — բացիր «խաղ»",
   "table.seatedElsewhere": "դու արդեն «{name}» սեղանի մոտ ես",
   "table.backThere": "վերադառնալ դրան",
   "table.standThere": "վեր կենալ այնտեղ և նստել այստեղ",

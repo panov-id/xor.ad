@@ -326,5 +326,6 @@
   "web.filter.hint": "по году, внутри вашей полосы",
   "web.filter.from": "от",
   "web.filter.to": "до",
-  "web.filter.noLimit": "без ограничения"
+  "web.filter.noLimit": "без ограничения",
+  "web.chat.send_again": "отправить снова"
 }

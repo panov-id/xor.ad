@@ -162,10 +162,11 @@ export class ChatKeys {
     }
   }
 
-  // Seal a line and hand it to the node (POST /chats/:id/messages).
-  async say(row: ChatRow, text: string): Promise<{ localId: string; answer: Answer<{ local_id?: string; accepted?: boolean; error?: string }> }> {
+  // Seal a line and hand it to the node (POST /chats/:id/messages). A resend
+  // passes the line's own localId, so the node keeps one row (W14-RS).
+  async say(row: ChatRow, text: string, given?: string): Promise<{ localId: string; answer: Answer<{ local_id?: string; accepted?: boolean; error?: string }> }> {
     const conversation = await this.open(row);
-    const localId = crypto.randomUUID();
+    const localId = given ?? crypto.randomUUID();
     const answer = await this.client.sendMessage(row.id, localId, await conversation.seal(text, localId));
     return { localId, answer };
   }

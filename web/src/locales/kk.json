@@ -326,5 +326,6 @@
   "web.filter.hint": "жыл бойынша, өз жолағыңыздың ішінде",
   "web.filter.from": "бастап",
   "web.filter.to": "дейін",
-  "web.filter.noLimit": "шектеусіз"
+  "web.filter.noLimit": "шектеусіз",
+  "web.chat.send_again": "қайта жіберу"
 }

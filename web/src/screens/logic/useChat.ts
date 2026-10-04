@@ -12,6 +12,7 @@ import { isPeerAway, missedSince, sawActivity } from "../../chat/away.ts";
 import { blockByChat, endChat as closeForBoth, setSpan } from "../../api/chatActions.ts";
 import type { InboxChatRow } from "../Inbox.tsx";
 import { say } from "../../locales/say.ts";
+import { resendPause } from "../../../../depth/core/resend.ts";
 
 export interface Line {
   id: string; text: string; mine: boolean; at: number; state?: "sent" | "queued" | "failed";
@@ -221,6 +222,46 @@ export function useChat({ client, keys, row: given }: { client: Client; keys: Ch
     return () => { alive = false; stop.current?.stop(); };
   }, [given.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // My own delivered message is what resets my silence (§8.6), and the
+  // newest moment this tab saw (§8.8).
+  function delivered() {
+    setEndsAt(resetEnd(span, Math.floor(Date.now() / 1000)));
+    sawActivity(given.id, Math.floor(Date.now() / 1000));
+    setMissed(false);
+  }
+
+  // A line the node answered `error` (202 not_stored, chats.ts) goes again
+  // with the same local_id on resendPause's schedule — at once, 5, 15, 45,
+  // 135 s, then every ~10 min (chat spec :2388; W14-RS) — and «отправить
+  // снова» sends it now, the count kept. Timers end with the screen.
+  const resends = useRef(new Map<string, { text: string; tries: number; timer?: ReturnType<typeof setTimeout> }>());
+  useEffect(() => () => { for (const r of resends.current.values()) clearTimeout(r.timer); }, []);
+  function schedule(localId: string) {
+    const r = resends.current.get(localId);
+    if (!r) return;
+    clearTimeout(r.timer);
+    r.timer = setTimeout(() => void resend(localId), resendPause(r.tries));
+  }
+  async function resend(localId: string) {
+    const r = resends.current.get(localId);
+    if (!r) return;
+    clearTimeout(r.timer);
+    try {
+      const { answer } = await keys.say(rowRef.current, r.text, localId);
+      if (answer.status === 404) { resends.current.delete(localId); setOver(true); setStatus({ key: "web.chat.over" }); return; }
+      if (answer.status === 202 && answer.body.accepted) {
+        resends.current.delete(localId);
+        setLines((was) => was.map((l) => (l.id === localId ? { ...l, state: "sent" } : l)));
+        delivered();
+        return;
+      }
+    } catch {
+      // Not stored again, or not reached: the schedule goes on.
+    }
+    r.tries += 1;
+    schedule(localId);
+  }
+
   async function send() {
     const line = text.trim();
     if (!line) return;
@@ -230,12 +271,10 @@ export function useChat({ client, keys, row: given }: { client: Client; keys: Ch
       if (answer.status === 404) { setOver(true); setStatus({ key: "web.chat.over" }); return; }
       if (answer.status !== 202) throw new Error(say("web.chat.not_sent", { status: answer.status, body: JSON.stringify(answer.body) }));
       setLines((was) => [...was, { id: localId, text: line, mine: true, at: Date.now() / 1000, state: answer.body.accepted ? "sent" : "failed" }]);
-      // My own delivered message is what resets my silence (§8.6), and the
-      // newest moment this tab saw (§8.8).
-      if (answer.body.accepted) {
-        setEndsAt(resetEnd(span, Math.floor(Date.now() / 1000)));
-        sawActivity(given.id, Math.floor(Date.now() / 1000));
-        setMissed(false);
+      if (answer.body.accepted) delivered();
+      else {
+        resends.current.set(localId, { text: line, tries: 0 });
+        schedule(localId);
       }
       setText("");
     } catch (e) {
@@ -269,7 +308,7 @@ export function useChat({ client, keys, row: given }: { client: Client; keys: Ch
   return {
     row, lines, text, setText, status, peerAway, peerAge, missed, keysState, keysError, over, error, span, endsAt, quiet,
     changeSpan, endChat, block, blocked, safety, setSafety, busy, kept, gameOpen, setGameOpen, gameBump,
-    send, rekey, askedByPeer, waitingForPeer, starters,
+    send, resend, rekey, askedByPeer, waitingForPeer, starters,
   };
 }
 

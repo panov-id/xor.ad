@@ -326,5 +326,6 @@
   "web.filter.hint": "ανά έτος, μέσα στη ζώνη σας",
   "web.filter.from": "από",
   "web.filter.to": "έως",
-  "web.filter.noLimit": "χωρίς όριο"
+  "web.filter.noLimit": "χωρίς όριο",
+  "web.chat.send_again": "αποστολή ξανά"
 }

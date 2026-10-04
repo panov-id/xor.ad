@@ -326,5 +326,6 @@
   "web.filter.hint": "ըստ տարվա, ձեր շերտի ներսում",
   "web.filter.from": "սկսած",
   "web.filter.to": "մինչև",
-  "web.filter.noLimit": "առանց սահմանափակման"
+  "web.filter.noLimit": "առանց սահմանափակման",
+  "web.chat.send_again": "կրկին ուղարկել"
 }

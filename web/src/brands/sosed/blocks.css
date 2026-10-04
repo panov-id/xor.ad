@@ -110,10 +110,12 @@
 .b-blocks .composer .ui-button { width: 64px; min-width: 64px; height: 64px; border-radius: 32px; padding: 0; }
 
 /* Profile.svg: the rows as a bento — the name wide in tile-1, then pairs of
-   165 in tile-4, tile-3, surface-2, tile-2; the rest wide on the surface. */
+   165 in tile-4, tile-3, surface-2, tile-2; the rest wide on the surface.
+   "legal" (W13-LC) is wide too: as a seventh half tile it left "PIN" alone
+   in its row with a hole beside it (W16-MD, 04.10.2026). */
 .b-blocks .place-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 13px; }
 .b-blocks .place-rows > li { min-height: 0; border-bottom: 0; }
-.b-blocks .place-rows > li[data-row="name"], .b-blocks .place-rows > li[data-row="statements"],
+.b-blocks .place-rows > li[data-row="name"], .b-blocks .place-rows > li[data-row="statements"], .b-blocks .place-rows > li[data-row="legal"],
 .b-blocks .place-rows > li[data-row="move"], .b-blocks .place-rows > li[data-row="reissue"], .b-blocks .place-rows > li[data-row="reset"] { grid-column: 1 / -1; }
 .b-blocks .place-setting {
   flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 12px;
@@ -125,6 +127,6 @@
 .b-blocks li[data-row="away"] .place-setting { background: var(--tile-3); color: var(--tile-3-ink); border-color: var(--tile-3); min-height: 120px; }
 .b-blocks li[data-row="pin"] .place-setting { background: var(--surface-2); color: var(--fg); border-color: var(--surface-2); min-height: 120px; }
 .b-blocks li[data-row="age"] .place-setting { background: var(--tile-2); color: var(--tile-2-ink); border-color: var(--tile-2); min-height: 120px; }
-.b-blocks li[data-row="move"] .place-setting, .b-blocks li[data-row="reissue"] .place-setting, .b-blocks li[data-row="reset"] .place-setting { flex-direction: row; justify-content: flex-start; align-items: center; min-height: 88px; }
+.b-blocks li[data-row="legal"] .place-setting, .b-blocks li[data-row="move"] .place-setting, .b-blocks li[data-row="reissue"] .place-setting, .b-blocks li[data-row="reset"] .place-setting { flex-direction: row; justify-content: flex-start; align-items: center; min-height: 88px; }
 .b-blocks li[data-row="reset"] .place-setting { color: var(--danger); }
 .b-blocks .place-setting:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }

@@ -106,6 +106,9 @@ Deno.test({ name: "two passes at once never both take the same notice", ...pool 
 
 Deno.test({ name: "a letter that did not leave gives its stamp back", ...pool }, async () => {
   // MAIL_TRANSPORT is "none" here, so no letter leaves: exactly the failure.
+  // This hour's count is the case's own: the ceiling case spends it, and under
+  // --shuffle it may come first and leave no letter to try (W16-SF1).
+  await queryOrThrow(`DELETE FROM dsa_aging_hours`); await clearOfHourEdge();
   const id = await notice(30);
   const result = await watchNoticeAge();
   assertEquals(result.unsent > 0, true, "a letter that never left was counted as sent");

@@ -267,4 +267,6 @@ for (const [verdict, answer] of [
   });
 }
 
-Deno.test({ name: "E2: the stand-in model stops", sanitizeOps: false, sanitizeResources: false, fn: () => model.shutdown() });
+// The stand-in model stops with the process, not in a test of its own: under
+// --shuffle that test ran before the hints and left them no model (W16-SF1).
+globalThis.addEventListener("unload", () => void model.shutdown());

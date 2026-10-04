@@ -276,13 +276,14 @@ export function Feed(
       .then((answer) => setItems(answer.items as Phrase[]))
       .catch((e: Error) => onError(e.message));
   }, [place.lat, place.lon, place.radius]);
-  // What the moderator refused of one's own (W12-MRc, the owner's decision of
-  // 2026-10-01): GET /inbox counts the moments of the last hour, at most six
-  // (relay lib/inbox_events.ts phrases_refused) — no id, no text, so the line
-  // names no phrase. Read once on entering the feed; a new phrase of one's own
-  // puts it out. Not an error when the inbox is out of reach: the feed stands.
-  // One page, not the rows (W14-IE): `since` is the feed's last look in this
-  // run — depth keeps no history on disk — so what was said is not said again.
+  // What the moderator refused of one's own (W12-MRc; the owner's decision,
+  // W16-RJ): GET /inbox gives phrases_refused = 1 while one's latest refusal
+  // has no phrase or publication of one's own after it (relay
+  // lib/inbox_events.ts) — no id, no text, so the line names no phrase. It
+  // stands until one's own next phrase, on every entry into the feed: the node
+  // no longer reads `since` for it, which stays the feed's last look in this
+  // run for the other counts. Not an error when the inbox is out of reach: the
+  // feed stands. One page, not the rows (W14-IE).
   const [refused, setRefused] = useState(0);
   useEffect(() => {
     const since = feedLook;

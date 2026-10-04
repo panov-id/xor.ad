@@ -12,6 +12,7 @@ import type { Client } from "../../../depth/core/client.ts";
 import { HeldKey } from "../../../depth/core/transfer.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
+import { pinMismatch } from "../pinWords.ts";
 
 export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () => void }) {
   const [pin, setPin] = useState("");
@@ -29,7 +30,8 @@ export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () 
       const r = await client.unlock(typed, { hold: HeldKey.hold });
       if (r.ok) return onUnlocked();
       const error = (r.answer.body as { error?: { code?: string; attempts_left?: number } } | null)?.error;
-      if (error?.code === "pin_mismatch") return setRefused(say("pin.mismatch", { n: error.attempts_left ?? "?" }));
+      // The same words as at start-up, with §8.2's second sentence on the last three (W14-WP; pinWords.ts).
+      if (error?.code === "pin_mismatch") return setRefused(pinMismatch(error.attempts_left));
       if (error?.code === "pin_locked" || r.answer.status === 401) return setRefused(say("pin.locked"));
       if (error?.code === "rate_limited") return setRefused(say("pin.wait", { n: r.answer.retryAfter ?? "?" }));
       setRefused(`${r.answer.status}`);

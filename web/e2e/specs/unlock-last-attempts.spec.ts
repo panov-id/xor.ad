@@ -78,3 +78,33 @@ test("the last three PIN attempts say what the tenth miss does, and the right PI
   await context.close();
 });
 
+// The lock after idle time asks the same PIN (Locked.tsx, client.unlock), so
+// its refusal says the same: on the last three, what the tenth miss does.
+test("the idle lock's last three PIN attempts say what the tenth miss does too", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const context = await browser.newContext({ viewport: { width: 393, height: 851 } });
+  // The stand's parameter, as idle-lock.spec: three seconds idle.
+  await context.addInitScript(() => sessionStorage.setItem("xor-idle-ms", "3000"));
+  const page = await context.newPage();
+  page.on("pageerror", (e) => console.log(`[page error] ${e.message}`));
+  await register(page);
+  const identity = await page.evaluate(() => (globalThis as unknown as { xor: { client: { identityId: string } } }).xor.client.identityId);
+  await expect(page.locator('[data-screen="locked"]'), "the page did not lock after the idle time").toBeVisible({ timeout: 20000 });
+
+  // Four left, as six misses would leave it, with no wait.
+  const sql = postgres(DATABASE, { max: 1 });
+  try {
+    const moved = await sql`
+      UPDATE vault_shares v SET attempts_left = 4, next_attempt_at = NULL
+        FROM sessions s WHERE s.id = v.session AND s.identity = ${identity}::uuid RETURNING v.session`;
+    expect(moved.length, "the device's vault row was not found").toBe(1);
+  } finally {
+    await sql.end();
+  }
+  await page.getByTestId("lock-pin").fill("654321");
+  await page.getByTestId("lock-go").click();
+  await expect(page.getByTestId("error"), "the lock's last attempts do not say what the tenth miss does")
+    .toHaveText("ПИН не подходит. Осталось попыток: 3 После этого вход на этом устройстве закроется до бумажного кода.", { timeout: 30000 });
+  await context.close();
+});
+

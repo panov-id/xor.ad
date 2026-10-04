@@ -49,19 +49,31 @@ await import("../src/routes/support.ts");
 await import("../src/routes/support_admin.ts");
 await import("../src/routes/away.ts");
 
-// Under --shuffle this file went red on "op_read started before the test":
-// the node's one postgres pool keeps a socket read open from test to test, and
-// the first sanitised test after any other met it (W16-SF2: 1 run of 11 green,
-// 48–63 leaks a run). The ops and resources sanitisers cannot hold over a pool
-// shared by the whole file, so they are off for every test here, not only for
-// the ones that said so; every test still prepares its own rows.
+// Under --shuffle this file went red on "op_read started before the test"
+// (W16-SF2): a test that runs with the sanitisers off — a race, a second
+// connection — grows the node's one postgres pool, and an idle connection's
+// open read failed the next sanitised test. Those tests now put the pool back
+// as the setup left it, one connection, and the sanitisers stay on for every
+// test that did not ask them off (W16-SF4, as the identity suites in W16-SF1).
 type Def = Deno.TestDefinition;
 function test(name: string, fn: Def["fn"]): void;
 function test(def: Def): void;
 function test(def: Omit<Def, "fn">, fn: Def["fn"]): void;
 function test(a: string | Def | Omit<Def, "fn">, fn?: Def["fn"]): void {
   const def = typeof a === "string" ? { name: a, fn: fn! } : fn ? { ...a, fn } : (a as Def);
-  Deno.test({ sanitizeOps: false, sanitizeResources: false, ...def });
+  if (def.sanitizeOps !== false && def.sanitizeResources !== false) return Deno.test(def);
+  const run = def.fn;
+  Deno.test({
+    ...def,
+    fn: async (t) => {
+      try {
+        await run(t);
+      } finally {
+        await database.closePool();
+        await database.queryOrThrow("SELECT 1");
+      }
+    },
+  });
 }
 
 const KEY_ID = "ak_pub_feedpublishtest001";

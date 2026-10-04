@@ -9,8 +9,11 @@
 //
 // The PIN that is easy to guess warns and does not stop (§8.2, 2026-08-26).
 
-import { useState } from "react";
-import type { Client } from "../../../depth/core/client.ts";
+import { useEffect, useState } from "react";
+import { Client } from "../../../depth/core/client.ts";
+import { type LegalRevision, readManifest } from "../../../depth/core/legal.ts";
+import { API_KEY, NODE_BASE } from "../config.ts";
+import { acceptAndKeep, LegalLinks } from "./Legal.tsx";
 import { newPaperCode, paperGroups, readPaperText } from "../../../depth/core/paper.ts";
 import { openSealed, registerAndKeep, type Record_ } from "../vault.ts";
 import { say } from "../locales/say.ts";
@@ -37,9 +40,18 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [made, setMade] = useState<{ client: Client; record: Record_; share: Uint8Array } | null>(null);
+  // The face's legal revisions (W13-LC): the one consent names all three
+  // documents, and under it each text's link; ticked, every revision of the
+  // manifest is accepted once the identity exists. None on this node (503)
+  // or not reachable — the consent alone, as before.
+  const [revisions, setRevisions] = useState<LegalRevision[] | null>(null);
+  useEffect(() => {
+    readManifest(new Client(NODE_BASE, API_KEY)).then((m) => setRevisions(m && m.length ? m : null), () => setRevisions(null));
+  }, []);
+  const agreed = consent;
 
   const ageNumber = Number(age);
-  const stepOneOk = name.trim().length > 0 && count(name) <= NAME_MAX && Number.isInteger(ageNumber) && ageNumber >= AGE_MIN && consent;
+  const stepOneOk = name.trim().length > 0 && count(name) <= NAME_MAX && Number.isInteger(ageNumber) && ageNumber >= AGE_MIN && agreed;
   const pinOk = /^\d{6}$/.test(pin) && pin === pinAgain;
   const groups = paperGroups(code);
 
@@ -48,6 +60,10 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
     setError(null);
     try {
       const { client, record, share } = await registerAndKeep({ name: name.trim(), age: ageNumber }, { pin, paperCode: code });
+      // The boxes ticked on step one go to the node now: an accept is signed,
+      // and only now is there someone to sign it. A failure here is not the
+      // registration's: screen 15 asks again at start-up.
+      if (revisions) await acceptAndKeep(client, revisions).catch(() => null);
       setMade({ client, record, share });
       setStep(3);
     } catch (e) {
@@ -105,6 +121,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="consent" />
             <span>{say("web.register.consent")}</span>
           </label>
+          {revisions && <LegalLinks revisions={revisions} />}
           <Button type="button" kind="primary" icon="open" className="ui-wide ui-foot" aria-label={say("reg.next")} disabled={!stepOneOk} onClick={() => setStep(2)} data-testid="next" />
         </>
       )}

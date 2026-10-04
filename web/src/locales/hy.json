@@ -327,5 +327,21 @@
   "web.filter.from": "սկսած",
   "web.filter.to": "մինչև",
   "web.filter.noLimit": "առանց սահմանափակման",
-  "web.chat.send_again": "կրկին ուղարկել"
+  "web.chat.send_again": "կրկին ուղարկել",
+  "web.legal.item": "փաստաթղթեր",
+  "web.legal.title": "Փաստաթղթեր",
+  "web.legal.terms": "օգտագործման պայմաններ",
+  "web.legal.privacy": "գաղտնիության քաղաքականություն",
+  "web.legal.guidelines": "համայնքի կանոններ",
+  "web.legal.accept_terms": "ընդունում եմ օգտագործման պայմանները",
+  "web.legal.accept_privacy": "ընդունում եմ գաղտնիության քաղաքականությունը",
+  "web.legal.accept_guidelines": "ընդունում եմ համայնքի կանոնները",
+  "web.legal.read": "կարդալ",
+  "web.legal.edition": "{date}-ի խմբագրություն",
+  "web.legal.changed": "փոխվել է",
+  "web.legal.why": "քանի դեռ նոր խմբագրությունները չեն ընդունվել, չեք կարող հրապարակել արտահայտություններ և գրել զրույցներում. լրահոսը կարդացվում է",
+  "web.legal.accept": "ընդունել",
+  "web.legal.accepted": "ամեն ինչ ընդունված է",
+  "web.legal.stale": "խմբագրությունը հենց նոր փոխվեց — կարդացեք և նորից ընդունեք",
+  "web.legal.refused": "նախ ընդունեք փաստաթղթերի նոր խմբագրությունները՝ «ես» → «փաստաթղթեր»"
 }

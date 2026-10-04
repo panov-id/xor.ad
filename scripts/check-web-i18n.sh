@@ -211,6 +211,8 @@ SAME_AS_EN = {
         "web.feed.km",  # {n} km
         "web.feed.m",  # {n} m
         "web.inbox.chats",  # Conversations
+        "web.legal.item",  # documents
+        "web.legal.title",  # Documents
         "web.table.direction",  # direction dx dy
     },
     "pl": {

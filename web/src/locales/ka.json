@@ -327,5 +327,21 @@
   "web.filter.from": "დან",
   "web.filter.to": "მდე",
   "web.filter.noLimit": "შეზღუდვის გარეშე",
-  "web.chat.send_again": "ხელახლა გაგზავნა"
+  "web.chat.send_again": "ხელახლა გაგზავნა",
+  "web.legal.item": "დოკუმენტები",
+  "web.legal.title": "დოკუმენტები",
+  "web.legal.terms": "გამოყენების პირობები",
+  "web.legal.privacy": "კონფიდენციალურობის პოლიტიკა",
+  "web.legal.guidelines": "საზოგადოების წესები",
+  "web.legal.accept_terms": "ვიღებ გამოყენების პირობებს",
+  "web.legal.accept_privacy": "ვიღებ კონფიდენციალურობის პოლიტიკას",
+  "web.legal.accept_guidelines": "ვიღებ საზოგადოების წესებს",
+  "web.legal.read": "წაკითხვა",
+  "web.legal.edition": "{date}-ის რედაქცია",
+  "web.legal.changed": "შეიცვალა",
+  "web.legal.why": "სანამ ახალ რედაქციებს არ მიიღებთ, ფრაზების გამოქვეყნება და საუბრებში წერა შეუძლებელია; ლენტი იკითხება",
+  "web.legal.accept": "მიღება",
+  "web.legal.accepted": "ყველაფერი მიღებულია",
+  "web.legal.stale": "რედაქცია ახლახან შეიცვალა — წაიკითხეთ და ხელახლა მიიღეთ",
+  "web.legal.refused": "ჯერ მიიღეთ დოკუმენტების ახალი რედაქციები: «მე» → «დოკუმენტები»"
 }

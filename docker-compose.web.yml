@@ -126,6 +126,8 @@ services:
       # The stand trusts X-Client-IP under this token, as production trusts Bunny (client_ip.ts):
       # every spec comes from an address of its own (web/e2e/fixtures/address.ts; W5c).
       ORIGIN_TOKEN: web-test-origin-token
+      # The legal gate (W13-LN), off unless the run asks: LEGAL_REQUIRED=1 scripts/run-web-tests.sh (W13-LC).
+      LEGAL_REQUIRED: "${LEGAL_REQUIRED:-0}"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null 2>&1 || exit 1"]
       interval: 2s
@@ -219,6 +221,7 @@ services:
       ADV_URL: "https://web-adv:4173"
       MAILPIT_URL: "http://mailpit:8025"
       DATABASE_URL: "postgres://relay:test@postgres:5432/relay_test"
+      LEGAL_REQUIRED: "${LEGAL_REQUIRED:-0}"
       # The moderation path (moderation-path.spec.ts): the panel, and the
       # node's session secret and environment to sign its moderator in with.
       PANEL_URL: "http://panel:5173"

@@ -327,5 +327,21 @@
   "web.filter.from": "от",
   "web.filter.to": "до",
   "web.filter.noLimit": "без ограничения",
-  "web.chat.send_again": "отправить снова"
+  "web.chat.send_again": "отправить снова",
+  "web.legal.item": "документы",
+  "web.legal.title": "Документы",
+  "web.legal.terms": "пользовательское соглашение",
+  "web.legal.privacy": "политика конфиденциальности",
+  "web.legal.guidelines": "правила сообщества",
+  "web.legal.accept_terms": "принимаю пользовательское соглашение",
+  "web.legal.accept_privacy": "принимаю политику конфиденциальности",
+  "web.legal.accept_guidelines": "принимаю правила сообщества",
+  "web.legal.read": "читать",
+  "web.legal.edition": "редакция от {date}",
+  "web.legal.changed": "изменилось",
+  "web.legal.why": "пока новые редакции не приняты, публиковать фразы и писать в беседах нельзя; лента читается",
+  "web.legal.accept": "принять",
+  "web.legal.accepted": "всё принято",
+  "web.legal.stale": "редакция только что сменилась — прочитайте её и примите снова",
+  "web.legal.refused": "сначала примите новые редакции документов: «я» → «документы»"
 }

@@ -327,5 +327,21 @@
   "web.filter.from": "from",
   "web.filter.to": "to",
   "web.filter.noLimit": "no limit",
-  "web.chat.send_again": "send again"
+  "web.chat.send_again": "send again",
+  "web.legal.item": "documents",
+  "web.legal.title": "Documents",
+  "web.legal.terms": "terms of use",
+  "web.legal.privacy": "privacy policy",
+  "web.legal.guidelines": "community guidelines",
+  "web.legal.accept_terms": "I accept the terms of use",
+  "web.legal.accept_privacy": "I accept the privacy policy",
+  "web.legal.accept_guidelines": "I accept the community guidelines",
+  "web.legal.read": "read",
+  "web.legal.edition": "revision of {date}",
+  "web.legal.changed": "changed",
+  "web.legal.why": "until the new revisions are accepted, you cannot post phrases or write in conversations; the feed can still be read",
+  "web.legal.accept": "accept",
+  "web.legal.accepted": "everything is accepted",
+  "web.legal.stale": "the revision has just changed — read it and accept it again",
+  "web.legal.refused": "first accept the new revisions of the documents: “me” → “documents”"
 }

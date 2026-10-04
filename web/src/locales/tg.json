@@ -327,5 +327,21 @@
   "web.filter.from": "аз",
   "web.filter.to": "то",
   "web.filter.noLimit": "бе маҳдудият",
-  "web.chat.send_again": "аз нав фиристодан"
+  "web.chat.send_again": "аз нав фиристодан",
+  "web.legal.item": "ҳуҷҷатҳо",
+  "web.legal.title": "Ҳуҷҷатҳо",
+  "web.legal.terms": "шартҳои истифода",
+  "web.legal.privacy": "сиёсати махфият",
+  "web.legal.guidelines": "қоидаҳои ҷомеа",
+  "web.legal.accept_terms": "шартҳои истифодаро қабул мекунам",
+  "web.legal.accept_privacy": "сиёсати махфиятро қабул мекунам",
+  "web.legal.accept_guidelines": "қоидаҳои ҷомеаро қабул мекунам",
+  "web.legal.read": "хондан",
+  "web.legal.edition": "таҳрири {date}",
+  "web.legal.changed": "тағйир ёфт",
+  "web.legal.why": "то таҳрирҳои нав қабул нашаванд, нашри ибораҳо ва навиштан дар суҳбатҳо мумкин нест; навор хонда мешавад",
+  "web.legal.accept": "қабул кардан",
+  "web.legal.accepted": "ҳама қабул шуд",
+  "web.legal.stale": "таҳрир ҳозир тағйир ёфт — онро хонед ва аз нав қабул кунед",
+  "web.legal.refused": "аввал таҳрирҳои нави ҳуҷҷатҳоро қабул кунед: «ман» → «ҳуҷҷатҳо»"
 }

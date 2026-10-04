@@ -1,0 +1,62 @@
+# check-depth-i18n.sh: a value equal to English where Russian differs is red,
+# unless the language says it the English way by right. One pair per line:
+# language<TAB>key<TAB>reason. W16-IG, 04.10.2026.
+az	feed.distance	metre symbol m
+az	loc.radius	radius in the language
+az	lock.prompt	PIN is the word itself
+az	reg.pin	PIN is the word itself
+az	reset.pin	PIN is the word itself
+de	feed.distance	metre symbol m
+de	lock.prompt	PIN is the word itself
+de	reg.pin	PIN is the word itself
+de	reset.pin	PIN is the word itself
+el	lock.prompt	PIN is the word itself
+el	reg.pin	PIN is the word itself
+el	reset.pin	PIN is the word itself
+es	chat.spanShort10	abbreviation min
+es	chat.spanShort30	abbreviation min
+es	feed.distance	metre symbol m
+es	feed.minutes	abbreviation min
+es	lock.prompt	PIN is the word itself
+es	reg.pin	PIN is the word itself
+es	reset.pin	PIN is the word itself
+fr	away.short	French minutes
+fr	chat.codeItem	French code
+fr	chat.spanLong10	French minutes
+fr	chat.spanLong30	French minutes
+fr	chat.spanShort10	abbreviation min
+fr	chat.spanShort30	abbreviation min
+fr	feed.distance	metre symbol m
+fr	feed.minutes	abbreviation min
+fr	loc.lat	French latitude
+fr	loc.lon	French longitude
+fr	lock.prompt	PIN is the word itself
+fr	move.code	French code
+fr	reg.pin	PIN is the word itself
+fr	reset.pin	PIN is the word itself
+fr	restore.code	French code
+hy	lock.prompt	PIN is the word itself
+hy	reg.pin	PIN is the word itself
+hy	reset.pin	PIN is the word itself
+ka	lock.prompt	PIN is the word itself
+ka	reg.pin	PIN is the word itself
+ka	reset.pin	PIN is the word itself
+pl	chat.spanShort10	abbreviation min
+pl	chat.spanShort30	abbreviation min
+pl	feed.distance	metre symbol m
+pl	feed.minutes	abbreviation min
+pl	lock.prompt	PIN is the word itself
+pl	reg.pin	PIN is the word itself
+pl	reset.pin	PIN is the word itself
+ro	chat.spanShort10	abbreviation min
+ro	chat.spanShort30	abbreviation min
+ro	feed.distance	metre symbol m
+ro	feed.minutes	abbreviation min
+ro	lock.prompt	PIN is the word itself
+ro	reg.pin	PIN is the word itself
+ro	reset.pin	PIN is the word itself
+uz	feed.distance	metre symbol m
+uz	loc.radius	radius in the language
+uz	lock.prompt	PIN is the word itself
+uz	reg.pin	PIN is the word itself
+uz	reset.pin	PIN is the word itself

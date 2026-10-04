@@ -107,7 +107,7 @@
   "web.chat.keys_not_kept": "Węzeł nie zachował kluczy tej rozmowy ({reason}): po przeładowaniu strony rozmowy nie da się otworzyć — wtedy poproś o nowe klucze.",
   "web.chat.keys_not_open": "klucze jeszcze nie otwarte",
   "web.chat.keys_ready": "klucze na miejscu",
-  "web.chat.line": "kwestia",
+  "web.chat.line": "wiersz",
   "web.chat.moved": "tożsamość przeniesiona na inne urządzenie",
   "web.chat.not_delivered": " · nie dostarczono",
   "web.chat.not_opened": "(nie otworzyło się: {message})",

@@ -19,15 +19,15 @@
   <!-- a liked phrase: three lines at 20/600 and a word line; card-phrase holds two lines and a chip -->
   <rect x="24" y="124" width="327" height="134" rx="13" style="fill:var(--panel)"/>
   <text x="40" y="156" class="k-title">Кто-нибудь идёт на</text>
-  <text x="40" y="182" class="k-title">набережную вечером? Возьму</text>
-  <text x="40" y="208" class="k-title">термос.</text>
+  <text x="40" y="182" class="k-title">набережную вечером?</text>
+  <text x="40" y="208" class="k-title">Возьму термос.</text>
   <use href="kit/components.svg#lifespan" x="40" y="216" data-w="295" data-f="197" data-c="var(--muted)"/>
   <text x="40" y="238" class="k-mono">один · скоро исчезнет</text>
   <use href="kit/components.svg#like" x="263" y="210" data-count="3" data-c="var(--accent)" data-f="var(--accent)"/>
   <rect x="24" y="270" width="327" height="186" rx="13" style="fill:var(--panel)"/>
   <text x="40" y="302" class="k-title">Кто-нибудь идёт на</text>
-  <text x="40" y="328" class="k-title">набережную вечером? Возьму</text>
-  <text x="40" y="354" class="k-title">термос.</text>
+  <text x="40" y="328" class="k-title">набережную вечером?</text>
+  <text x="40" y="354" class="k-title">Возьму термос.</text>
   <use href="kit/components.svg#lifespan" x="40" y="362" data-w="295" data-f="197" data-c="var(--muted)"/>
   <text x="40" y="384" class="k-mono">один · предложение поговорить</text>
   <use href="kit/components.svg#button-pill" x="40" y="396" data-w="200" data-label="к предложению"/>
@@ -42,14 +42,15 @@
   <use href="kit/components.svg#like" x="263" y="566" data-count="5" data-c="var(--accent)" data-f="var(--accent)"/>
   <text x="40" y="630" class="k-meta" style="font-size:13px">сядете сюда — встанете из-за нынешнего стола</text>
   <!-- a private offer with «предложение поговорить»: card-offer has a venue and «сохранить» -->
-  <rect x="24" y="656" width="327" height="176" rx="13" style="fill:var(--panel)"/>
+  <rect x="24" y="656" width="327" height="200" rx="13" style="fill:var(--panel)"/>
   <use href="kit/components.svg#chip-outline" x="40" y="669" data-w="136" data-label="оффер частника"/>
-  <text x="40" y="714" class="k-body">Отдаю два табурета, забирать сегодня.</text>
-  <text x="40" y="738" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
-  <text x="40" y="762" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
-  <use href="kit/components.svg#button-pill" x="40" y="780" data-w="200" data-label="к предложению"/>
-  <use href="kit/components.svg#like" x="263" y="780" data-count="" />
-  <use href="kit/components.svg#button-secondary" x="24" y="844" data-w="327" data-label="показать ещё"/>
+  <text x="40" y="714" class="k-body">Отдаю два табурета,</text>
+  <text x="40" y="738" class="k-body">забирать сегодня.</text>
+  <text x="40" y="762" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
+  <text x="40" y="786" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
+  <use href="kit/components.svg#button-pill" x="40" y="804" data-w="200" data-label="к предложению"/>
+  <use href="kit/components.svg#like" x="263" y="804" data-count="" />
+  <use href="kit/components.svg#button-secondary" x="24" y="868" data-w="327" data-label="показать ещё"/>
 </g></g>
 <text x="48" y="914" class="cap">1 · список</text>
 <text x="48" y="934" class="capm">«снято · вернуть», фраза, предложение, стол, оффер,</text>
@@ -85,15 +86,15 @@
   <!-- a liked phrase: three lines at 20/600 and a word line; card-phrase holds two lines and a chip -->
   <rect x="24" y="282" width="327" height="134" rx="13" style="fill:var(--panel)"/>
   <text x="40" y="314" class="k-title">Кто-нибудь идёт на</text>
-  <text x="40" y="340" class="k-title">набережную вечером? Возьму</text>
-  <text x="40" y="366" class="k-title">термос.</text>
+  <text x="40" y="340" class="k-title">набережную вечером?</text>
+  <text x="40" y="366" class="k-title">Возьму термос.</text>
   <use href="kit/components.svg#lifespan" x="40" y="374" data-w="295" data-f="197" data-c="var(--muted)"/>
   <text x="40" y="396" class="k-mono">один · скоро исчезнет</text>
   <use href="kit/components.svg#like" x="263" y="368" data-count="3" data-c="var(--accent)" data-f="var(--accent)"/>
   <rect x="24" y="428" width="327" height="186" rx="13" style="fill:var(--panel)"/>
   <text x="40" y="460" class="k-title">Кто-нибудь идёт на</text>
-  <text x="40" y="486" class="k-title">набережную вечером? Возьму</text>
-  <text x="40" y="512" class="k-title">термос.</text>
+  <text x="40" y="486" class="k-title">набережную вечером?</text>
+  <text x="40" y="512" class="k-title">Возьму термос.</text>
   <use href="kit/components.svg#lifespan" x="40" y="520" data-w="295" data-f="197" data-c="var(--muted)"/>
   <text x="40" y="542" class="k-mono">один · предложение поговорить</text>
   <use href="kit/components.svg#button-pill" x="40" y="554" data-w="200" data-label="к предложению"/>
@@ -108,13 +109,14 @@
   <use href="kit/components.svg#like" x="263" y="724" data-count="5" data-c="var(--accent)" data-f="var(--accent)"/>
   <text x="40" y="788" class="k-meta" style="font-size:13px">сядете сюда — встанете из-за нынешнего стола</text>
   <!-- a private offer with «предложение поговорить»: card-offer has a venue and «сохранить» -->
-  <rect x="24" y="814" width="327" height="176" rx="13" style="fill:var(--panel)"/>
+  <rect x="24" y="814" width="327" height="200" rx="13" style="fill:var(--panel)"/>
   <use href="kit/components.svg#chip-outline" x="40" y="827" data-w="136" data-label="оффер частника"/>
-  <text x="40" y="872" class="k-body">Отдаю два табурета, забирать сегодня.</text>
-  <text x="40" y="896" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
-  <text x="40" y="920" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
-  <use href="kit/components.svg#button-pill" x="40" y="938" data-w="200" data-label="к предложению"/>
-  <use href="kit/components.svg#like" x="263" y="938" data-count="" />
+  <text x="40" y="872" class="k-body">Отдаю два табурета,</text>
+  <text x="40" y="896" class="k-body">забирать сегодня.</text>
+  <text x="40" y="920" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
+  <text x="40" y="944" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
+  <use href="kit/components.svg#button-pill" x="40" y="962" data-w="200" data-label="к предложению"/>
+  <use href="kit/components.svg#like" x="263" y="962" data-count="" />
 </g></g>
 <text x="1317" y="914" class="cap">4 · нет сети</text>
 <text x="1317" y="934" class="capm">полоса состояния в шапке (Н5); список — что успел</text>
@@ -128,8 +130,8 @@
   <!-- a liked phrase: three lines at 20/600 and a word line; card-phrase holds two lines and a chip -->
   <rect x="24" y="124" width="327" height="134" rx="13" style="fill:var(--panel)"/>
   <text x="40" y="156" class="k-title">Кто-нибудь идёт на</text>
-  <text x="40" y="182" class="k-title">набережную вечером? Возьму</text>
-  <text x="40" y="208" class="k-title">термос.</text>
+  <text x="40" y="182" class="k-title">набережную вечером?</text>
+  <text x="40" y="208" class="k-title">Возьму термос.</text>
   <use href="kit/components.svg#lifespan" x="40" y="216" data-w="295" data-f="197" data-c="var(--muted)"/>
   <text x="40" y="238" class="k-mono">один · скоро исчезнет</text>
   <use href="kit/components.svg#like" x="263" y="210" data-count="2" />
@@ -144,14 +146,15 @@
   <use href="kit/components.svg#like" x="263" y="368" data-count="5" data-c="var(--accent)" data-f="var(--accent)"/>
   <text x="40" y="432" class="k-meta" style="font-size:13px">сядете сюда — встанете из-за нынешнего стола</text>
   <!-- a private offer with «предложение поговорить»: card-offer has a venue and «сохранить» -->
-  <rect x="24" y="458" width="327" height="184" rx="13" style="fill:var(--panel)"/>
+  <rect x="24" y="458" width="327" height="208" rx="13" style="fill:var(--panel)"/>
   <use href="kit/components.svg#chip-outline" x="40" y="471" data-w="136" data-label="оффер частника"/>
-  <text x="40" y="516" class="k-body">Отдаю два табурета, забирать сегодня.</text>
-  <text x="40" y="540" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
-  <text x="40" y="564" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
-  <use href="kit/components.svg#button-pill" x="40" y="582" data-w="200" data-label="к предложению"/>
-  <use href="kit/components.svg#like" x="263" y="582" data-count="" data-c="var(--accent)" data-f="var(--accent)"/>
-  <use href="kit/components.svg#button-secondary" x="24" y="654" data-w="327" data-label="показать ещё"/>
+  <text x="40" y="516" class="k-body">Отдаю два табурета,</text>
+  <text x="40" y="540" class="k-body">забирать сегодня.</text>
+  <text x="40" y="564" class="k-body" style="fill:var(--muted)">−10 % · до 20 сентября, 12:00</text>
+  <text x="40" y="588" class="k-meta-strong" style="fill:var(--accent-text)">предложение поговорить</text>
+  <use href="kit/components.svg#button-pill" x="40" y="606" data-w="200" data-label="к предложению"/>
+  <use href="kit/components.svg#like" x="263" y="606" data-count="" data-c="var(--accent)" data-f="var(--accent)"/>
+  <use href="kit/components.svg#button-secondary" x="24" y="678" data-w="327" data-label="показать ещё"/>
 </g></g>
 <text x="48" y="1854" class="cap">5 · после снятия лайка</text>
 <text x="48" y="1874" class="capm">карточка гаснет по Н2 (55 %), сердце снова контуром,</text>

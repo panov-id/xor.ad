@@ -16,15 +16,15 @@
 <g transform="translate(48,120)" class="k-dark"><rect x="-1" y="-1" width="377" height="814" rx="24" style="fill:var(--bg)"/><clipPath id="c48"><rect x="0" y="0" width="375" height="812" rx="23"/></clipPath><g clip-path="url(#c48)">
   <rect width="375" height="812" style="fill:var(--bg)"/>
   <use href="kit/components.svg#bar-at-table" x="0" y="56" data-text="вы за столом"/>
-  <use href="kit/components.svg#card-phrase" x="16" y="108"/>
-  <use href="kit/components.svg#card-phrase-own" x="16" y="280" data-l1="Ищу, с кем поиграть в го."/>
-  <use href="kit/components.svg#card-offer" x="16" y="376" data-venue="Пекарня «Колос»" data-discount="−20 %" data-text="Второй круассан за полцены." data-t1="условия: при заказе от двух" data-t2="скидка до 30 сентября, 18:00"/>
-  <use href="kit/components.svg#card-table" x="16" y="600" data-name="Пятничный" data-who="играют 2, смотрят 3" data-likes="5"/>
+  <use href="kit/components.svg#card-phrase" x="16" y="102" data-h="188" data-l1="Кто-нибудь идёт на" data-l2="набережную вечером?" data-l3="Возьму термос."/>
+  <use href="kit/components.svg#card-phrase-own" x="16" y="296" data-l1="Ищу, с кем поиграть в го."/>
+  <use href="kit/components.svg#card-offer" x="16" y="386" data-venue="Пекарня «Колос»" data-discount="−20 %" data-text="Второй круассан за полцены." data-t1="условия: при заказе от двух" data-t2="скидка до 30 сентября, 18:00"/>
+  <use href="kit/components.svg#card-table" x="16" y="604" data-name="Пятничный" data-who="играют 2, смотрят 3" data-likes="5"/>
   <!-- «дальше, чем вы просили»: a phrase card with a distance line above it; no symbol carries that line -->
-  <rect x="16" y="780" width="343" height="160" rx="13" style="fill:var(--panel)"/>
-  <text x="32" y="808" class="k-meta">дальше, чем вы просили</text>
-  <text x="32" y="836" class="k-body">Играем в настолки в парке.</text>
-  <use href="kit/components.svg#chip" x="32" y="856" data-w="56" data-label="туса" data-c="var(--cat-violet)"/>
+  <rect x="16" y="784" width="343" height="160" rx="13" style="fill:var(--panel)"/>
+  <text x="32" y="812" class="k-meta">дальше, чем вы просили</text>
+  <text x="32" y="840" class="k-body">Играем в настолки в парке.</text>
+  <use href="kit/components.svg#chip" x="32" y="860" data-w="56" data-label="туса" data-c="var(--cat-violet)"/>
   <use href="kit/components.svg#header-feed" x="0" y="0"/>
   <use href="kit/components.svg#composer-float" x="24" y="684"/>
   <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
@@ -42,7 +42,7 @@
   <text x="359" y="80" text-anchor="end" class="k-meta">чьи сообщения показывать</text>
   <use href="kit/components.svg#select-pill" x="16" y="88" data-w="80" data-label="ru ×"/>
   <use href="kit/components.svg#select-pill" x="104" y="88" data-w="80" data-label="en ×"/>
-  <use href="kit/components.svg#button-secondary" x="192" y="88" data-w="84" data-label="+ язык"/>
+  <use href="kit/components.svg#button-secondary" x="192" y="88" data-w="76" data-label="+ язык"/>
   <text x="16" y="154" class="k-strong">возраст</text>
   <text x="359" y="154" text-anchor="end" class="k-meta">своя полоса</text>
   <!-- the age band has no numbers: the slider's own labels stay empty, the edge words are drawn here -->

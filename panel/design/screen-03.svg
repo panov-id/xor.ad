@@ -116,36 +116,37 @@
   <text x="16" y="27" class="k-meta" style="fill:var(--fg)">вы за столом</text>
   <text x="359" y="27" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">вернуться</text>
 </g>
-  <g data-kit="card-phrase" transform="translate(16,108)">
-  <rect class="k-card" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <g data-kit="card-phrase" transform="translate(16,102)">
+  <rect class="k-card" width="343" height="188" rx="13" style="fill:var(--panel)" />
   
   <rect class="k-sig k-sig-edge" x="16" y="0" width="207" height="3" style="fill:var(--accent)" />
-  <text x="16" y="36" class="k-title">Кто-нибудь идёт на набережную</text>
-  <g><text x="16" y="64" class="k-title">вечером? Возьму термос.</text></g>
-  <g data-kit="lifespan" transform="translate(16,80)" class="k-life">
+  <text x="16" y="36" class="k-title">Кто-нибудь идёт на</text>
+  <g><text x="16" y="64" class="k-title">набережную вечером?</text></g>
+  <g><text x="16" y="92" class="k-title">Возьму термос.</text></g>
+  <g data-kit="lifespan" transform="translate(16,108)" class="k-life">
   <rect width="311" height="3" rx="1.5" style="fill:var(--border-control)" />
   <rect width="207" height="3" rx="1.5" style="fill:var(--cat-amber)" />
 </g>
-  <g><g><g data-kit="chip" transform="translate(16,110)">
+  <g><g><g data-kit="chip" transform="translate(16,138)">
   <rect class="k-chipr" width="88" height="24" rx="12" style="fill:var(--cat-amber);fill-opacity:0.10" />
   <text x="44" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-amber)">компания</text>
 </g></g>
-  <g data-kit="like" transform="translate(233,100)">
+  <g data-kit="like" transform="translate(233,128)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-heart" transform="translate(0,0)"><path d="M22 32 C6 22 11 11 22 20 C33 11 38 22 22 32 Z" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round" /></g>
   <g><text x="44" y="28" class="k-meta">3</text></g>
 </g>
-  <g><g data-kit="icon-button" transform="translate(291,100)">
+  <g><g data-kit="icon-button" transform="translate(291,128)">
   <rect width="44" height="44" rx="8" data-hit="44" style="fill:none" />
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g></g></g>
 </g>
-  <g data-kit="card-phrase-own" transform="translate(16,280)">
+  <g data-kit="card-phrase-own" transform="translate(16,296)">
   <rect class="k-card" x="0.5" y="0.5" width="342" height="83" rx="13" stroke-dasharray="5 4" style="fill:var(--panel);stroke:var(--muted);stroke-width:1" />
   <text x="16" y="36" class="k-title" style="fill:var(--muted)">Ищу, с кем поиграть в го.</text>
   <text x="16" y="64" class="k-meta">ваша · проверяется, пока видна только вам</text>
   </g>
-  <g data-kit="card-offer" transform="translate(16,376)">
+  <g data-kit="card-offer" transform="translate(16,386)">
   <rect class="k-card" width="343" height="212" rx="13" style="fill:var(--panel)" />
   <g data-kit="chip-outline" transform="translate(16,16)">
   <rect class="k-chipr" x="0.5" y="0.5" width="63" height="23" rx="11.5" style="fill:none;stroke:var(--accent-text);stroke-width:1" />
@@ -165,7 +166,7 @@
   <g data-kit="icon-more" transform="translate(0,0)"><circle cx="15" cy="22" r="2" style="fill:var(--fg)" /><circle cx="22" cy="22" r="2" style="fill:var(--fg)" /><circle cx="29" cy="22" r="2" style="fill:var(--fg)" /></g>
 </g>
 </g>
-  <g data-kit="card-table" transform="translate(16,600)">
+  <g data-kit="card-table" transform="translate(16,604)">
   <rect class="k-card" width="343" height="168" rx="13" style="fill:var(--panel)" />
   <g data-kit="icon-grid" transform="translate(16,20)"><rect x="1" y="1" width="14" height="14" rx="3" style="fill:none;stroke:var(--cat-teal);stroke-width:2" /><circle cx="5.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="5.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="5.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /><circle cx="10.5" cy="10.5" r="1.5" style="fill:var(--cat-teal)" /></g>
   <g data-kit="chip" transform="translate(38,16)">
@@ -190,10 +191,10 @@
 </g>
   </g>
   
-  <rect x="16" y="780" width="343" height="160" rx="13" style="fill:var(--panel)" />
-  <text x="32" y="808" class="k-meta">дальше, чем вы просили</text>
-  <text x="32" y="836" class="k-body">Играем в настолки в парке.</text>
-  <g data-kit="chip" transform="translate(32,856)">
+  <rect x="16" y="784" width="343" height="160" rx="13" style="fill:var(--panel)" />
+  <text x="32" y="812" class="k-meta">дальше, чем вы просили</text>
+  <text x="32" y="840" class="k-body">Играем в настолки в парке.</text>
+  <g data-kit="chip" transform="translate(32,860)">
   <rect class="k-chipr" width="56" height="24" rx="12" style="fill:var(--cat-violet);fill-opacity:0.10" />
   <text x="28" y="17" text-anchor="middle" class="k-meta-strong" style="fill:var(--cat-violet)">туса</text>
 </g>
@@ -253,8 +254,8 @@
   <g data-kit="icon-chevron-down" transform="translate(42,0)"><path d="M17 19 L22 24 L27 19" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round" /></g>
 </g>
   <g data-kit="button-secondary" transform="translate(192,88)">
-  <rect class="k-ctl" x="0.5" y="0.5" width="83" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
-  <text x="42" y="27.5" text-anchor="middle" class="k-strong">+ язык</text>
+  <rect class="k-ctl" x="0.5" y="0.5" width="75" height="43" rx="13" style="fill:none;stroke:var(--border-control);stroke-width:1" />
+  <text x="38" y="27.5" text-anchor="middle" class="k-strong">+ язык</text>
 </g>
   <text x="16" y="154" class="k-strong">возраст</text>
   <text x="359" y="154" text-anchor="end" class="k-meta">своя полоса</text>

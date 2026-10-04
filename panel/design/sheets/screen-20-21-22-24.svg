@@ -75,26 +75,27 @@
 <rect x="0" y="56" width="375" height="44" rx="0" style="fill:var(--panel-2)"/>
 <text x="16" y="84" class="k-meta-strong">вы здесь час, отойти?</text>
 <use href="kit/components.svg#icon-button" x="315" y="56" data-icon="icon-close" data-c="var(--muted)"/>
-<rect x="16" y="112" width="343" height="134" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="146" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="172" class="k-title">вечером? Возьму термос.</text>
-<use href="kit/components.svg#lifespan" x="32" y="182" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#chip" x="32" y="209" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#like" x="232" y="198" data-count="3" data-c="var(--muted)" data-f="none"/>
-<use href="kit/components.svg#icon-button" x="299" y="198" data-icon="icon-more" data-name="ещё"/>
-<use href="kit/components.svg#card-table" x="16" y="258" data-name="Пятничный" data-game="виселица" data-who="играют 2, смотрят 4" data-likes="5"/>
-<rect x="16" y="438" width="343" height="110" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="472" class="k-title">Ищу, с кем поиграть в го.</text>
-<text x="32" y="528" class="k-meta">один</text>
-<use href="kit/components.svg#like" x="232" y="500" data-count="1" data-c="var(--muted)" data-f="none"/>
-<use href="kit/components.svg#icon-button" x="299" y="500" data-icon="icon-more" data-name="ещё"/>
-<rect x="16" y="560" width="343" height="134" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="594" class="k-title">Кто отдаст котёнка? Есть всё для</text>
-<text x="32" y="620" class="k-title">него.</text>
-<use href="kit/components.svg#lifespan" x="32" y="630" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#chip" x="32" y="657" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#like" x="232" y="646" data-count="8" data-c="var(--muted)" data-f="none"/>
-<use href="kit/components.svg#icon-button" x="299" y="646" data-icon="icon-more" data-name="ещё"/>
+<rect x="16" y="112" width="343" height="162" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="146" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="172" class="k-title">набережную вечером?</text>
+<text x="32" y="198" class="k-title">Возьму термос.</text>
+<use href="kit/components.svg#lifespan" x="32" y="210" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#chip" x="32" y="237" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#like" x="232" y="226" data-count="3" data-c="var(--muted)" data-f="none"/>
+<use href="kit/components.svg#icon-button" x="299" y="226" data-icon="icon-more" data-name="ещё"/>
+<use href="kit/components.svg#card-table" x="16" y="286" data-name="Пятничный" data-game="виселица" data-who="играют 2, смотрят 4" data-likes="5"/>
+<rect x="16" y="466" width="343" height="110" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="500" class="k-title">Ищу, с кем поиграть в го.</text>
+<text x="32" y="556" class="k-meta">один</text>
+<use href="kit/components.svg#like" x="232" y="528" data-count="1" data-c="var(--muted)" data-f="none"/>
+<use href="kit/components.svg#icon-button" x="299" y="528" data-icon="icon-more" data-name="ещё"/>
+<rect x="16" y="588" width="343" height="134" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="622" class="k-title">Кто отдаст котёнка? Есть всё</text>
+<text x="32" y="648" class="k-title">для него.</text>
+<use href="kit/components.svg#lifespan" x="32" y="658" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#chip" x="32" y="685" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#like" x="232" y="674" data-count="8" data-c="var(--muted)" data-f="none"/>
+<use href="kit/components.svg#icon-button" x="299" y="674" data-icon="icon-more" data-name="ещё"/>
 <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
  <use href="kit/components.svg#tabbar" x="0" y="748" data-dot="1"/>
 </g>
@@ -173,15 +174,16 @@
 <use href="kit/components.svg#swatch" x="149" y="368" data-c="#8550c5" data-label="фиолет" data-sel=""/>
 <use href="kit/components.svg#swatch" x="263" y="368" data-c="#cc2f27" data-label="кармин" data-sel=""/>
 <text x="16" y="470" class="k-meta-strong" style="fill:var(--muted)">Так это выглядит</text>
-<rect x="16" y="482" width="343" height="190" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="516" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="542" class="k-title">вечером? Возьму термос.</text>
-<use href="kit/components.svg#lifespan" x="32" y="552" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#chip" x="32" y="565" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
-<text x="343" y="582" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">отошёл</text>
-<use href="kit/components.svg#button-primary" x="32" y="606" data-w="140" data-label="Написать"/>
-<use href="kit/components.svg#like" x="184" y="606" data-count="3" data-c="var(--accent)" data-f="var(--accent)"/>
-<text x="16" y="700" class="k-meta">Применено. Сохраним, как только ответим.</text>
+<rect x="16" y="482" width="343" height="218" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="516" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="542" class="k-title">набережную вечером?</text>
+<text x="32" y="568" class="k-title">Возьму термос.</text>
+<use href="kit/components.svg#lifespan" x="32" y="580" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#chip" x="32" y="593" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
+<text x="343" y="610" text-anchor="end" class="k-meta-strong" style="fill:var(--accent-text)">отошёл</text>
+<use href="kit/components.svg#button-primary" x="32" y="634" data-w="140" data-label="Написать"/>
+<use href="kit/components.svg#like" x="184" y="634" data-count="3" data-c="var(--accent)" data-f="var(--accent)"/>
+<text x="16" y="728" class="k-meta">Применено. Сохраним, как только ответим.</text>
 </g>
 </g>
 <text x="1317" y="1966" class="capb">22 · тёмная, обычный, терракота; образцы</text>
@@ -204,17 +206,18 @@
 <use href="kit/components.svg#swatch" x="149" y="368" data-c="#8550c5" data-label="фиолет" data-sel=""/>
 <use href="kit/components.svg#swatch" x="263" y="368" data-c="#cc2f27" data-label="кармин" data-sel=""/>
 <text x="16" y="470" class="k-meta-strong" style="fill:var(--muted)">Так это выглядит</text>
-<rect x="16" y="482" width="343" height="190" rx="13" style="fill:var(--panel);stroke:var(--fg);stroke-width:2"/>
-<text x="32" y="516" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="542" class="k-title">вечером? Возьму термос.</text>
-<use href="kit/components.svg#lifespan" x="32" y="552" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#chip" x="32" y="565" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
-<text x="343" y="582" text-anchor="end" class="k-meta-strong" style="fill:#336eb2">отошёл</text>
-<rect x="35" y="609" width="140" height="44" rx="13" style="fill:var(--shadow)"/>
-<rect x="32" y="606" width="140" height="44" rx="13" style="fill:#336eb2"/>
-<text x="102" y="633.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Написать</text>
-<use href="kit/components.svg#like" x="184" y="606" data-count="3" data-c="#336eb2" data-f="#336eb2"/>
-<text x="16" y="700" class="k-meta">Применено. Сохраним, когда появится связь.</text>
+<rect x="16" y="482" width="343" height="218" rx="13" style="fill:var(--panel);stroke:var(--fg);stroke-width:2"/>
+<text x="32" y="516" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="542" class="k-title">набережную вечером?</text>
+<text x="32" y="568" class="k-title">Возьму термос.</text>
+<use href="kit/components.svg#lifespan" x="32" y="580" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#chip" x="32" y="593" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
+<text x="343" y="610" text-anchor="end" class="k-meta-strong" style="fill:#336eb2">отошёл</text>
+<rect x="35" y="637" width="140" height="44" rx="13" style="fill:var(--shadow)"/>
+<rect x="32" y="634" width="140" height="44" rx="13" style="fill:#336eb2"/>
+<text x="102" y="661.5" text-anchor="middle" class="k-strong" style="fill:var(--accent-ink)">Написать</text>
+<use href="kit/components.svg#like" x="184" y="634" data-count="3" data-c="#336eb2" data-f="#336eb2"/>
+<text x="16" y="728" class="k-meta">Применено. Сохраним, когда появится связь.</text>
 </g>
 </g>
 <text x="48" y="2966" class="capb">22 · светлая, повышенный, лазурь — тот же экран</text>
@@ -225,23 +228,24 @@
 <g clip-path="url(#c9)">
 <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
 <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · рядом десятки"/>
-<rect x="16" y="72" width="343" height="134" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="106" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="132" class="k-title">вечером? Возьму термос.</text>
-<text x="32" y="186" class="k-meta" style="fill:var(--accent-text)">лайкнуто · вернуть</text>
-<use href="kit/components.svg#like" x="232" y="158" data-count="4" data-c="var(--accent)" data-f="var(--accent)"/>
-<use href="kit/components.svg#icon-button" x="299" y="158" data-icon="icon-more" data-name="ещё"/>
-<rect x="16" y="214" width="343" height="220" rx="13" style="fill:var(--panel-2)"/>
-<rect x="16" y="214" width="4" height="220" rx="2" style="fill:var(--accent)"/>
-<text x="36" y="246" class="k-body">Автор видит, сколько лайков, но не</text>
-<text x="36" y="270" class="k-body">чьи. Поговорить предложат, если он</text>
-<text x="36" y="294" class="k-body">лайкнет в ответ. Фраза уйдёт в «Мои</text>
-<text x="36" y="318" class="k-body">лайки» — там лайк можно снять, пока</text>
-<text x="36" y="342" class="k-body">предложения нет.</text>
-<use href="kit/components.svg#button-secondary" x="36" y="370" data-w="140" data-label="понятно"/>
-<use href="kit/components.svg#card-table" x="16" y="446" data-name="Пятничный" data-game="виселица" data-who="играют 2, смотрят 4" data-likes="5"/>
-<rect x="16" y="626" width="343" height="70" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="660" class="k-title">Ищу, с кем поиграть в го.</text>
+<rect x="16" y="72" width="343" height="162" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="106" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="132" class="k-title">набережную вечером?</text>
+<text x="32" y="158" class="k-title">Возьму термос.</text>
+<text x="32" y="214" class="k-meta" style="fill:var(--accent-text)">лайкнуто · вернуть</text>
+<use href="kit/components.svg#like" x="232" y="186" data-count="4" data-c="var(--accent)" data-f="var(--accent)"/>
+<use href="kit/components.svg#icon-button" x="299" y="186" data-icon="icon-more" data-name="ещё"/>
+<rect x="16" y="242" width="343" height="220" rx="13" style="fill:var(--panel-2)"/>
+<rect x="16" y="242" width="4" height="220" rx="2" style="fill:var(--accent)"/>
+<text x="36" y="274" class="k-body">Автор видит, сколько лайков, но не</text>
+<text x="36" y="298" class="k-body">чьи. Поговорить предложат, если он</text>
+<text x="36" y="322" class="k-body">лайкнет в ответ. Фраза уйдёт в «Мои</text>
+<text x="36" y="346" class="k-body">лайки» — там лайк можно снять, пока</text>
+<text x="36" y="370" class="k-body">предложения нет.</text>
+<use href="kit/components.svg#button-secondary" x="36" y="398" data-w="140" data-label="понятно"/>
+<use href="kit/components.svg#card-table" x="16" y="474" data-name="Пятничный" data-game="виселица" data-who="играют 2, смотрят 4" data-likes="5"/>
+<rect x="16" y="654" width="343" height="70" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="688" class="k-title">Ищу, с кем поиграть в го.</text>
 <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
 </g>
 </g>
@@ -296,13 +300,14 @@
 <use href="kit/components.svg#icon-button" x="299" y="134" data-icon="icon-more" data-name="ещё"/>
 <use href="kit/components.svg#card-table" x="16" y="194" data-name="Пятничный" data-game="виселица" data-who="играют 2, смотрят 4" data-likes="5"/>
 <use href="kit/components.svg#card-hint" x="16" y="370" data-h="172" data-l1="Сесть можно за один стол. Севший" data-l2="смотрит и говорит; играть —" data-l3="заявкой на следующую партию."/>
-<rect x="16" y="554" width="343" height="134" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="588" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="614" class="k-title">вечером? Возьму термос.</text>
-<use href="kit/components.svg#lifespan" x="32" y="624" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#chip" x="32" y="651" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#like" x="232" y="640" data-count="3" data-c="var(--muted)" data-f="none"/>
-<use href="kit/components.svg#icon-button" x="299" y="640" data-icon="icon-more" data-name="ещё"/>
+<rect x="16" y="554" width="343" height="162" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="588" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="614" class="k-title">набережную вечером?</text>
+<text x="32" y="640" class="k-title">Возьму термос.</text>
+<use href="kit/components.svg#lifespan" x="32" y="652" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#chip" x="32" y="679" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#like" x="232" y="668" data-count="3" data-c="var(--muted)" data-f="none"/>
+<use href="kit/components.svg#icon-button" x="299" y="668" data-icon="icon-more" data-name="ещё"/>
 <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
 </g>
 </g>
@@ -332,22 +337,23 @@
 <g clip-path="url(#cback1)">
 <rect x="0" y="0" width="375" height="812" style="fill:var(--bg)"/>
 <use href="kit/components.svg#header-feed" x="0" y="0" data-title="Колонаки · рядом десятки"/>
-<rect x="16" y="72" width="343" height="134" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="106" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="132" class="k-title">вечером? Возьму термос.</text>
-<use href="kit/components.svg#lifespan" x="32" y="142" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#chip" x="32" y="169" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#like" x="232" y="158" data-count="3" data-c="var(--muted)" data-f="none"/>
-<use href="kit/components.svg#icon-button" x="299" y="158" data-icon="icon-more" data-name="ещё"/>
-<rect x="16" y="214" width="343" height="110" rx="13" style="fill:var(--panel)"/>
-<rect x="32" y="238" width="240" height="16" rx="8" style="fill:var(--panel-2)"/>
-<rect x="32" y="264" width="180" height="16" rx="8" style="fill:var(--panel-2)"/>
-<rect x="16" y="332" width="343" height="110" rx="13" style="fill:var(--panel)"/>
-<rect x="32" y="356" width="240" height="16" rx="8" style="fill:var(--panel-2)"/>
-<rect x="32" y="382" width="180" height="16" rx="8" style="fill:var(--panel-2)"/>
-<rect x="16" y="450" width="343" height="110" rx="13" style="fill:var(--panel)"/>
-<rect x="32" y="474" width="240" height="16" rx="8" style="fill:var(--panel-2)"/>
-<rect x="32" y="500" width="180" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="16" y="72" width="343" height="162" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="106" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="132" class="k-title">набережную вечером?</text>
+<text x="32" y="158" class="k-title">Возьму термос.</text>
+<use href="kit/components.svg#lifespan" x="32" y="170" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#chip" x="32" y="197" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#like" x="232" y="186" data-count="3" data-c="var(--muted)" data-f="none"/>
+<use href="kit/components.svg#icon-button" x="299" y="186" data-icon="icon-more" data-name="ещё"/>
+<rect x="16" y="242" width="343" height="110" rx="13" style="fill:var(--panel)"/>
+<rect x="32" y="266" width="240" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="32" y="292" width="180" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="16" y="360" width="343" height="110" rx="13" style="fill:var(--panel)"/>
+<rect x="32" y="384" width="240" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="32" y="410" width="180" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="16" y="478" width="343" height="110" rx="13" style="fill:var(--panel)"/>
+<rect x="32" y="502" width="240" height="16" rx="8" style="fill:var(--panel-2)"/>
+<rect x="32" y="528" width="180" height="16" rx="8" style="fill:var(--panel-2)"/>
 <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
 </g>
 </g>
@@ -402,7 +408,7 @@
 <text x="359" y="81" text-anchor="end" class="k-meta" style="fill:var(--fg)">закончить</text>
 <use href="kit/components.svg#bubble-theirs" x="16" y="126" data-w="199" data-text="привет, это про пирс?"/>
 <use href="kit/components.svg#bubble-mine" x="16" y="176" data-w="124" data-text="да, в девять" data-mark=""/>
-<use href="kit/components.svg#bubble-theirs" x="16" y="226" data-w="132" data-text="возьму термос"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="226" data-w="140" data-text="возьму термос"/>
 <rect x="16" y="292" width="343" height="220" rx="13" style="fill:var(--panel-2)"/>
 <rect x="16" y="292" width="4" height="220" rx="2" style="fill:var(--accent)"/>
 <text x="36" y="324" class="k-body">У каждого свой срок молчания.</text>
@@ -427,8 +433,8 @@
 <use href="kit/components.svg#row-undo" x="0" y="56" data-w="375" data-text="скрыто"/>
 <use href="kit/components.svg#card-hint" x="16" y="112" data-h="148" data-l1="Скрыть — не заблокировать: автор не" data-l2="узнает, вернуть можно в «Я»."/>
 <rect x="16" y="276" width="343" height="134" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="310" class="k-title">Кто отдаст котёнка? Есть всё для</text>
-<text x="32" y="336" class="k-title">него.</text>
+<text x="32" y="310" class="k-title">Кто отдаст котёнка? Есть всё</text>
+<text x="32" y="336" class="k-title">для него.</text>
 <use href="kit/components.svg#lifespan" x="32" y="346" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
 <use href="kit/components.svg#chip" x="32" y="373" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
 <use href="kit/components.svg#like" x="232" y="362" data-count="8" data-c="var(--muted)" data-f="none"/>
@@ -490,19 +496,20 @@
 <text x="32" y="194" class="k-meta" style="fill:var(--accent-text)">лайкнуто · вернуть</text>
 <use href="kit/components.svg#like" x="232" y="166" data-count="7" data-c="var(--accent)" data-f="var(--accent)"/>
 <use href="kit/components.svg#icon-button" x="299" y="166" data-icon="icon-more" data-name="ещё"/>
-<use href="kit/components.svg#card-hint" x="16" y="228" data-h="172" data-l1="Лайк не сажает за стол: стол ляжет" data-l2="в «Мои лайки», сесть можно оттуда." data-l3="Сидящие видят число, не имена."/>
-<rect x="16" y="412" width="343" height="134" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="446" class="k-title">Кто-нибудь идёт на набережную</text>
-<text x="32" y="472" class="k-title">вечером? Возьму термос.</text>
-<use href="kit/components.svg#lifespan" x="32" y="482" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#chip" x="32" y="509" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
-<use href="kit/components.svg#like" x="232" y="498" data-count="3" data-c="var(--muted)" data-f="none"/>
-<use href="kit/components.svg#icon-button" x="299" y="498" data-icon="icon-more" data-name="ещё"/>
-<rect x="16" y="558" width="343" height="110" rx="13" style="fill:var(--panel)"/>
-<text x="32" y="592" class="k-title">Ищу, с кем поиграть в го.</text>
-<text x="32" y="648" class="k-meta">один</text>
-<use href="kit/components.svg#like" x="232" y="620" data-count="1" data-c="var(--muted)" data-f="none"/>
-<use href="kit/components.svg#icon-button" x="299" y="620" data-icon="icon-more" data-name="ещё"/>
+<use href="kit/components.svg#card-hint" x="16" y="222" data-h="172" data-l1="Лайк не сажает за стол: стол ляжет" data-l2="в «Мои лайки», сесть можно оттуда." data-l3="Сидящие видят число, не имена."/>
+<rect x="16" y="400" width="343" height="162" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="434" class="k-title">Кто-нибудь идёт на</text>
+<text x="32" y="460" class="k-title">набережную вечером?</text>
+<text x="32" y="486" class="k-title">Возьму термос.</text>
+<use href="kit/components.svg#lifespan" x="32" y="498" data-w="311" data-f="207" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#chip" x="32" y="525" data-w="88" data-label="компания" data-c="var(--cat-amber)"/>
+<use href="kit/components.svg#like" x="232" y="514" data-count="3" data-c="var(--muted)" data-f="none"/>
+<use href="kit/components.svg#icon-button" x="299" y="514" data-icon="icon-more" data-name="ещё"/>
+<rect x="16" y="568" width="343" height="110" rx="13" style="fill:var(--panel)"/>
+<text x="32" y="602" class="k-title">Ищу, с кем поиграть в го.</text>
+<text x="32" y="658" class="k-meta">один</text>
+<use href="kit/components.svg#like" x="232" y="630" data-count="1" data-c="var(--muted)" data-f="none"/>
+<use href="kit/components.svg#icon-button" x="299" y="630" data-icon="icon-more" data-name="ещё"/>
 <use href="kit/components.svg#composer-float" x="24" y="684" data-placeholder="сказать соседям…"/>
 </g>
 </g>

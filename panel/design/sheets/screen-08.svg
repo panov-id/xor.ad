@@ -16,8 +16,8 @@
 <rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
 <clipPath id="c48150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c48150)">
 <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин" data-score="1:0"/>
-<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="184" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="184" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
 <use href="kit/components.svg#quote-like" x="16" y="257" data-w="343" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="323" data-w="184" data-text="и это тоже моё было"/>
 <use href="kit/components.svg#icon-button" x="204" y="321" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
@@ -39,8 +39,8 @@
 <clipPath id="c463150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c463150)">
 <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 13 мин" data-timec="var(--err)"/>
 <g class="k-fade">
-<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="184" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="184" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
 <use href="kit/components.svg#quote-like" x="16" y="257" data-w="343" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="323" data-w="184" data-text="и это тоже моё было"/>
 <use href="kit/components.svg#icon-button" x="204" y="321" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
@@ -58,8 +58,8 @@
 <rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
 <clipPath id="c878150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c878150)">
 <use href="kit/components.svg#header-chat" x="0" y="0" style="opacity:.55" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин"/>
-<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="184" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="184" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="257" data-w="184" data-text="и это тоже моё было"/>
 <use href="kit/components.svg#card-tombstone" x="16" y="584" data-line="Здесь больше ничего нет."/>
 <rect x="0" y="740" width="375" height="1" style="fill:var(--border)"/>
@@ -75,8 +75,8 @@
 <clipPath id="c1293150"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c1293150)">
 <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин"/>
 <use href="kit/components.svg#bar-connection" x="0" y="104"/>
-<use href="kit/components.svg#bubble-theirs" x="16" y="152" data-w="176" data-text="так на набережную?"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="200" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="152" data-w="184" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="200" data-w="184" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="289" data-w="184" data-text="и это тоже моё было"/>
 <use href="kit/components.svg#icon-button" x="204" y="287" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
 <use href="kit/components.svg#bubble-mine" x="16" y="337" data-w="98" data-text="иду" data-mark=""/>
@@ -183,8 +183,8 @@
 <use href="kit/components.svg#countdown" x="175" y="83" data-text="остаток 52 мин"/>
 <text x="384" y="83" text-anchor="end" class="k-meta-strong">закончить</text>
 <rect x="0" y="103" width="400" height="1" style="fill:var(--border)"/>
-<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
-<use href="kit/components.svg#bubble-mine" x="41" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="184" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="41" y="168" data-w="184" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
 <use href="kit/components.svg#quote-like" x="32" y="257" data-w="336" data-text="«набережная, к девяти, компания»" data-by="лайкнули"/>
 <use href="kit/components.svg#bubble-theirs" x="16" y="323" data-w="184" data-text="и это тоже моё было"/>
 <use href="kit/components.svg#icon-button" x="204" y="321" data-icon="icon-more" data-c="var(--muted)" data-name="ещё"/>
@@ -213,7 +213,7 @@
 <use href="kit/components.svg#quote-like" x="32" y="112" data-w="311" data-text="«кто на набережную к девяти?»" data-by="ваша фраза"/>
 <use href="kit/components.svg#quote-like" x="32" y="178" data-w="311" data-text="«ищу четвёртого в домино»" data-by="Аня · остаток 1 ч 10 мин"/>
 <use href="kit/components.svg#system-line" x="16" y="268" data-text="вы предложили поговорить"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="284" data-w="176" data-text="домино у меня есть," data-text2="могу к девяти" data-mark=""/>
+<use href="kit/components.svg#bubble-mine" x="16" y="284" data-w="184" data-text="домино у меня есть," data-text2="могу к девяти" data-mark=""/>
 <use href="kit/components.svg#bubble-mine" x="16" y="354" data-w="146" data-text="возьму термос" data-mark=""/>
 </g>
 <use href="kit/components.svg#card-tombstone" x="24" y="470" data-w="327" data-title="Предложение ушло" data-line="Написанное никуда не отправилось."/>
@@ -232,7 +232,7 @@
 <use href="kit/components.svg#quote-like" x="32" y="120" data-w="311" data-text="«кто на набережную к девяти?»" data-by="ваша фраза"/>
 <use href="kit/components.svg#quote-like" x="32" y="186" data-w="311" data-text="«ищу четвёртого в домино»" data-by="Аня · остаток 1 ч 10 мин"/>
 <use href="kit/components.svg#system-line" x="16" y="276" data-text="Аня согласилась · беседа открыта"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="292" data-w="176" data-text="домино у меня есть," data-text2="могу к девяти" data-mark=""/>
+<use href="kit/components.svg#bubble-mine" x="16" y="292" data-w="184" data-text="домино у меня есть," data-text2="могу к девяти" data-mark=""/>
 <use href="kit/components.svg#bubble-mine" x="16" y="362" data-w="146" data-text="возьму термос"/>
 <use href="kit/components.svg#lifespan" x="16" y="742" data-w="343" data-f="343" data-c="var(--accent)"/>
 <use href="kit/components.svg#message-input" x="16" y="754" data-counter="0/256"/>
@@ -247,8 +247,8 @@
 <rect x="0" y="0" width="375" height="812" rx="13" style="fill:var(--bg);stroke:var(--border);stroke-width:2"/>
 <clipPath id="c482916"><rect width="375" height="812" rx="13"/></clipPath><g clip-path="url(#c482916)">
 <use href="kit/components.svg#header-chat" x="0" y="0" data-name="Аня, 24" data-namew="72.6" data-time="остаток 52 мин"/>
-<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="176" data-text="так на набережную?"/>
-<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="176" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
+<use href="kit/components.svg#bubble-theirs" x="16" y="120" data-w="184" data-text="так на набережную?"/>
+<use href="kit/components.svg#bubble-mine" x="16" y="168" data-w="184" data-text="в девять подходит." data-text2="скамейка у пирса" data-mark="✓"/>
 <use href="kit/components.svg#sheet-text" x="0" y="532" data-h="280" data-title="Точно? История исчезнет у обоих" data-l1="Беседа закроется у обоих сразу." data-l2="Собеседник видит то же," data-l3="что и при истечении срока." data-yes="закончить" data-no="Отмена"/>
 </g></g>
 <text x="48" y="3754" class="cap">J · «закончить» — подтверждение</text>

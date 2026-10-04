@@ -44,3 +44,34 @@ breaks_judge() {
   grep -E -m5 -- 'Error|✘|FAIL|[0-9]+ failed|=> |expected' <<<"$plain" | sed 's/^ */      | /'
   return 0
 }
+
+# breaks_workdir <root> <name>: a folder for a --breaks run's logs and copies,
+# on disk under the repository (testing/results, ignored by git), not in /tmp:
+# /tmp is a tmpfs shared by the whole machine and filled up three times
+# (26.09, 27.09, 04.10.2026 — "cp: No space left on device" in the middle of a
+# table-game break). BREAKS_WORK_ROOT points it elsewhere (the probe). Prints
+# the path; returns 1 when the folder cannot be made.
+breaks_workdir() {
+  local dir="${BREAKS_WORK_ROOT:-$1/testing/results}/$2-$$"
+  if mkdir -p "$dir" 2>/dev/null && [ -w "$dir" ]; then printf '%s' "$dir"; return 0; fi
+  echo "  ✗ каталог для копий поломок не создан: $dir — ни одна поломка не ставится" >&2
+  return 1
+}
+
+# breaks_save <target> <pending dir> [extra copy]: the copies a break is undone
+# from, written and read back BEFORE the break is put in. Any failed write (a
+# full disk, a folder that cannot be made) removes what was half-written and
+# returns 1: the caller must not break the file then — a break with no whole
+# copy behind it is a broken tree.
+breaks_save() {
+  local target="$1" pending="$2" extra="${3:-}"
+  if mkdir -p "$pending" 2>/dev/null && cp "$target" "$pending/orig" 2>/dev/null &&
+     cmp -s "$target" "$pending/orig" && printf '%s' "$target" >"$pending/file" 2>/dev/null &&
+     { [ -z "$extra" ] || { cp "$target" "$extra" 2>/dev/null && cmp -s "$target" "$extra"; }; }; then
+    return 0
+  fi
+  rm -rf "$pending" 2>/dev/null
+  [ -z "$extra" ] || rm -f "$extra" 2>/dev/null
+  echo "  ✗ копия ${target##*/} не сохранена (${pending}${extra:+, $extra}) — поломка не ставится, файл не тронут" >&2
+  return 1
+}

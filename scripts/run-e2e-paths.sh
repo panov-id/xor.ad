@@ -68,7 +68,9 @@ PATHS=(
 )
 
 mode="${1:-}"
-logs="$(mktemp -d)"
+. "$here/lib/breaks.sh"
+# On disk, not in /tmp (W16-TP): a full tmpfs cut a break's copy short.
+logs="$(breaks_workdir "$root" e2e-paths)" || exit 2
 # The break in flight: its file and the copy it came from. Restored on any
 # exit, a kill in the middle included (T10: after TaskStop matches.ts stayed
 # broken). A copy also lies in the tree, so a run killed with -9, which no
@@ -81,7 +83,6 @@ restore() {
 }
 trap 'restore; rm -rf "$logs"' EXIT
 trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
-. "$here/lib/breaks.sh"
 breaks_undo_left "$pending"
 failed=0; total=0; spoiled=0; unproven=0; reds=""
 
@@ -117,8 +118,9 @@ for row in "${PATHS[@]}"; do
     printf '  ✗ %-14s брак прогона: красный и без поломки — %s\n' "$spec" "$(grep -m1 -E 'Error:' "$logs/$spec.clean.log" | sed 's/^ *//')"
     continue
   fi
-  cp "$target" "$logs/$spec.orig"
-  mkdir -p "$pending"; cp "$target" "$pending/orig"; printf '%s' "$target" >"$pending/file"
+  # Both copies whole before the break, or no break at all: a cp that failed
+  # here used to go unnoticed, and the run broke a file it could not undo.
+  breaks_save "$target" "$pending" "$logs/$spec.orig" || exit 2
   broken="$target"
   MATCH="$match" INSTEAD="$instead" python3 - "$target" <<'EOF'
 import os, sys

@@ -117,6 +117,7 @@ SAME_AS_RU = {
         "web.cabinet.field.text",  # текст
         "web.cabinet.radius",  # радиус, м
         "web.composer.mode",  # режим
+        "web.feed.km",  # {n} км — was «чак.», which is not kilometres (W16-TR)
         "web.feed.m",  # {n} м
         "web.table.boneyard",  # базар: {count}
         "web.table.card",  # карта {card}

@@ -22,7 +22,8 @@ if [ "${1:-}" = "--breaks" ]; then
   set +e
   broken=""
   restore() { [ -n "$broken" ] && cp "$pending/orig" "$broken" && rm -rf "$pending"; broken=""; }
-  trap restore EXIT
+  logs="$(breaks_workdir "$root" depth-live-ui)" || exit 2  # on disk, not /tmp (W16-TP)
+  trap 'restore; rm -rf "$logs"' EXIT
   trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
   failed=0; total=0
   for row in "${BREAKS[@]}"; do
@@ -31,7 +32,7 @@ if [ "${1:-}" = "--breaks" ]; then
     if [ "$(grep -cF -- "$match" "$target")" != 1 ]; then
       failed=$((failed + 1)); echo "  ✗ поломка не встала: «$match» в $file"; continue
     fi
-    mkdir -p "$pending"; cp "$target" "$pending/orig"; printf '%s' "$target" >"$pending/file"; broken="$target"
+    breaks_save "$target" "$pending" || exit 2; broken="$target"
     MATCH="$match" INSTEAD="$instead" python3 - "$target" <<'EOF'
 import os, sys
 p = sys.argv[1]
@@ -39,7 +40,7 @@ lines = open(p).read().split("\n")
 lines = [os.environ["INSTEAD"] if os.environ["MATCH"] in l else l for l in lines]
 open(p, "w").write("\n".join(lines))
 EOF
-    log="$(mktemp)"
+    log="$logs/$total.log"
     DEPTH_LIVE_UI_UNDER_BREAK=1 bash "$0" >"$log" 2>&1; code=$?
     restore
     # Caught only on a FAIL line of live.node-test.ts (W10-G1).

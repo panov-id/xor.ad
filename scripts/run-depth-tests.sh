@@ -34,7 +34,7 @@ if [ "${1:-}" = "--breaks" ]; then
     [ -n "$broken" ] || return 0
     cp "$pending/orig" "$broken" && rm -rf "$pending" && broken=""
   }
-  logs="$(mktemp -d)"
+  logs="$(breaks_workdir "$root" depth-tests)" || exit 2  # on disk, not /tmp (W16-TP)
   trap 'restore; rm -rf "$logs"' EXIT
   trap 'exit 130' INT; trap 'exit 143' TERM; trap 'exit 129' HUP
   if ! bash "$0" >"$logs/clean.log" 2>&1; then
@@ -48,7 +48,7 @@ if [ "${1:-}" = "--breaks" ]; then
     if [ "$hits" != 1 ]; then
       printf '  ✗ %-22s поломка не встала: «%s» найдено %s раз, нужно 1\n' "$guard" "$match" "$hits"; continue
     fi
-    mkdir -p "$pending"; cp "$target" "$pending/orig"; printf '%s' "$target" >"$pending/file"; broken="$target"
+    breaks_save "$target" "$pending" || exit 2; broken="$target"
     MATCH="$match" INSTEAD="$instead" python3 - "$target" <<'EOF'
 import os, sys
 p = sys.argv[1]; s = open(p).read()

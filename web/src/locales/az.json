@@ -320,5 +320,11 @@
   "web.card.heart": "ürək: ifadənin üstünə sürükləyin və ya toxunun, sonra ifadəyə",
   "web.card.heart_wait": "bəyənmə {n} san. sonra gedəcək — geri götürmək olar",
   "web.card.likes": "bəyənmə:",
-  "web.card.phrase": "ifadə"
+  "web.card.phrase": "ifadə",
+  "web.filter.item": "yaş filtri",
+  "web.filter.title": "Yaş filtri",
+  "web.filter.hint": "il-il, öz zolağınızın daxilində",
+  "web.filter.from": "-dan",
+  "web.filter.to": "-a qədər",
+  "web.filter.noLimit": "məhdudiyyətsiz"
 }

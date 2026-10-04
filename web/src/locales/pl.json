@@ -320,5 +320,11 @@
   "web.card.heart": "serce: przeciągnij na frazę albo stuknij, a potem frazę",
   "web.card.heart_wait": "polubienie pójdzie za {n} s — można je cofnąć",
   "web.card.likes": "polubień:",
-  "web.card.phrase": "fraza"
+  "web.card.phrase": "fraza",
+  "web.filter.item": "filtr wieku",
+  "web.filter.title": "Filtr wieku",
+  "web.filter.hint": "co rok, w obrębie twojego przedziału",
+  "web.filter.from": "od",
+  "web.filter.to": "do",
+  "web.filter.noLimit": "bez limitu"
 }

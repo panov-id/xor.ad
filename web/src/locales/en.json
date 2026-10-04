@@ -320,5 +320,11 @@
   "web.card.heart": "heart: drag onto the phrase, or tap it, then the phrase",
   "web.card.heart_wait": "the like goes in {n} s — you can take it off",
   "web.card.likes": "likes:",
-  "web.card.phrase": "phrase"
+  "web.card.phrase": "phrase",
+  "web.filter.item": "age filter",
+  "web.filter.title": "Age filter",
+  "web.filter.hint": "by the year, inside your band",
+  "web.filter.from": "from",
+  "web.filter.to": "to",
+  "web.filter.noLimit": "no limit"
 }

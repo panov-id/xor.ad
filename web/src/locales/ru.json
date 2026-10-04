@@ -320,5 +320,11 @@
   "web.card.heart": "сердце: перетащите на фразу или нажмите, потом на фразу",
   "web.card.heart_wait": "лайк уйдёт через {n} с — можно снять",
   "web.card.likes": "лайков:",
-  "web.card.phrase": "фраза"
+  "web.card.phrase": "фраза",
+  "web.filter.item": "фильтр возраста",
+  "web.filter.title": "Фильтр возраста",
+  "web.filter.hint": "по году, внутри вашей полосы",
+  "web.filter.from": "от",
+  "web.filter.to": "до",
+  "web.filter.noLimit": "без ограничения"
 }

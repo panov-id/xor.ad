@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan, awayCounts, graphemes, NAME_MAX, pinRefusal, profileRefusal, resetCounts, say } from "../api/me.ts";
 import { useMe } from "./logic/useMe.ts";
+import { AgeFilter } from "./AgeFilter.tsx";
 import { changePinAndReseal, forget } from "../vault.ts";
 import { Button } from "../ui/Button.tsx";
 import { Icon, type IconName } from "../ui/Icon.tsx";
@@ -18,7 +19,8 @@ import { AUTO, applyTheme, type Choice, readChoice, saveChoice } from "../theme.
 import { THEMES } from "../themes.gen.ts";
 import "./place.css";
 
-export type MeRow = "statements" | "name" | "age" | "hidden" | "blocked" | "away" | "pin" | "move" | "reissue" | "reset" | "theme";
+// "filter" opens here, not through the parent (W14-AF): the age filter is Me's own screen.
+export type MeRow = "statements" | "name" | "age" | "filter" | "hidden" | "blocked" | "away" | "pin" | "move" | "reissue" | "reset" | "theme";
 
 export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }: {
   brandClass?: string;
@@ -30,10 +32,13 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
   refresh: number;
 }) {
   const { profile, error, hidden, blocked } = useMe({ client, refresh });
+  const [filtering, setFiltering] = useState(false);
+  if (filtering) return <AgeFilter client={client} onDone={() => setFiltering(false)} onBack={() => setFiltering(false)} />;
   const rows: Array<{ key: MeRow; label: string; red?: boolean; testid: string; icon?: IconName }> = [
     ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true, testid: "me-statements", icon: "report" as const }] : []),
     { key: "name", label: `${say("me.name")}  ${profile ? profile.name + (profile.pending ? ` → ${profile.pending} · ${say("feed.checking")}` : "") : "…"}`, testid: "me-name", icon: "name" },
     { key: "age", label: `${say("me.age")}  ${profile ? profile.age : "…"}`, testid: "me-age", icon: "me" },
+    { key: "filter", label: say("web.filter.item"), testid: "me-filter", icon: "me" },
     { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}`, testid: "me-hidden", icon: "hide" },
     ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }), testid: "me-blocked", icon: "block" as const }] : []),
     { key: "theme", label: say("web.theme.item"), testid: "me-theme", icon: "eye" },
@@ -61,6 +66,7 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
               onClick={() => {
                 if (row.key === "name") return profile && onOpen("name", profile.pending ?? profile.name);
                 if (row.key === "age") return profile && onOpen("age", String(profile.age));
+                if (row.key === "filter") return setFiltering(true);
                 onOpen(row.key);
               }}
             >

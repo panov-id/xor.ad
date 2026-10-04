@@ -148,6 +148,7 @@ SAME_AS_RU = {
         "web.composer.phrase",  # фраза
         "web.feed.km",  # {n} км
         "web.feed.m",  # {n} м
+        "web.filter.to",  # до
         "web.offer.go",  # перейти на {domain}
         "web.register.done",  # готово
         "web.reissue.done",  # готово

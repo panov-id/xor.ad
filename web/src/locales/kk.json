@@ -320,5 +320,11 @@
   "web.card.heart": "жүрек: сөз тіркесіне сүйреңіз немесе басыңыз, содан кейін сөз тіркесіне",
   "web.card.heart_wait": "лайк {n} с кейін кетеді — алып тастауға болады",
   "web.card.likes": "лайктар:",
-  "web.card.phrase": "сөз тіркесі"
+  "web.card.phrase": "сөз тіркесі",
+  "web.filter.item": "жас сүзгісі",
+  "web.filter.title": "Жас сүзгісі",
+  "web.filter.hint": "жыл бойынша, өз жолағыңыздың ішінде",
+  "web.filter.from": "бастап",
+  "web.filter.to": "дейін",
+  "web.filter.noLimit": "шектеусіз"
 }

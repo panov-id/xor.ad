@@ -320,5 +320,11 @@
   "web.card.heart": "corazón: arrástralo a la frase o tócalo y luego la frase",
   "web.card.heart_wait": "el like se envía en {n} s — puedes quitarlo",
   "web.card.likes": "likes:",
-  "web.card.phrase": "frase"
+  "web.card.phrase": "frase",
+  "web.filter.item": "filtro de edad",
+  "web.filter.title": "Filtro de edad",
+  "web.filter.hint": "año a año, dentro de su franja",
+  "web.filter.from": "desde",
+  "web.filter.to": "hasta",
+  "web.filter.noLimit": "sin límite"
 }

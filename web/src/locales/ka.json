@@ -320,5 +320,11 @@
   "web.card.heart": "გული: გადაიტანეთ ფრაზაზე ან შეეხეთ, შემდეგ ფრაზას",
   "web.card.heart_wait": "მოწონება წავა {n} წმ-ში — შეგიძლიათ მოხსნა",
   "web.card.likes": "მოწონებები:",
-  "web.card.phrase": "ფრაზა"
+  "web.card.phrase": "ფრაზა",
+  "web.filter.item": "ასაკის ფილტრი",
+  "web.filter.title": "ასაკის ფილტრი",
+  "web.filter.hint": "წლების მიხედვით, თქვენი ზოლის შიგნით",
+  "web.filter.from": "დან",
+  "web.filter.to": "მდე",
+  "web.filter.noLimit": "შეზღუდვის გარეშე"
 }

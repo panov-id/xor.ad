@@ -61,13 +61,13 @@ sql 'create table probe_orphan (id int)'
 expect 'живёт в базе и не заведена в реестре' 'лишняя таблица в базе'
 sql 'drop table probe_orphan'
 
-# Any product table still on paper will do: `blocks`, used here first, was
-# migrated by db/030 on 2026-09-21, the sed matched nothing, the gate stayed
-# green on an untouched registry and this case failed (found 2026-09-24).
-paper=$(grep -P '\t-\tproduct' "$registry" | head -1 | cut -f1)
-[ -n "$paper" ] || { echo "в реестре не осталось продуктовой таблицы без миграции — случай нечем поставить"; exit 2; }
-sed -i "s|^${paper}\t\(.*\)\t-\tproduct|${paper}\t\1\trelay/node/db/001_control_state.sql\tproduct|" "$registry"
-grep -qP "^${paper}\t.*\trelay/node/db/001_control_state.sql\tproduct" "$registry" || { echo "подмена строки $paper не легла"; exit 2; }
+# The case plants its own row: a product table the registry says a migration
+# made, and the base has never seen. It used to borrow a live row still on
+# paper — `blocks` first, migrated by db/030 on 2026-09-21 (the sed then matched
+# nothing, found 2026-09-24), then any — and with every product table migrated
+# there was none left to borrow, so the probe stopped with code 2 (W15-FS).
+printf 'probe_paper\t-\trelay/node/db/001_control_state.sql\tproduct\n' >> "$registry"
+grep -qP '^probe_paper\t-\trelay/node/db/001_control_state.sql\tproduct$' "$registry" || { echo "подсадка probe_paper не легла"; exit 2; }
 expect 'база её не знает' 'реестр пообещал базе продуктовую таблицу'
 cp "$backup" "$registry"
 
@@ -95,13 +95,21 @@ awk -F'\t' -v t="$table" -v f="docs/такого-файла-нет.md:1" \
 expect 'а его там нет' 'файла с объявлением не существует'
 cp "$backup" "$registry"
 
+# The two cases below need a product table still on paper — the gate asks for
+# the dated record only then. With every product table migrated there is none
+# (W15-FS), so one is planted: a row with no migration, in the registry's copy.
 open_items="$root/docs/facts/open.tsv"
 backup_open=$(mktemp); cp "$open_items" "$backup_open"
+restore_open() { cp "$backup_open" "$open_items"; rm -f "$backup_open"; restore; }
+trap restore_open EXIT
+{ cat "$backup"; printf 'probe_paper\t-\t-\tproduct\n'; } > "$registry"
 grep -v '^product.tables.unmigrated' "$backup_open" > "$open_items"
 expect 'записи product.tables.unmigrated в open.tsv нет' 'непроведённые таблицы без датированной записи'
-sed -E 's/\t[0-9]+ таблиц продукта/\t7 таблиц продукта/' "$backup_open" > "$open_items"
+# One table on paper; the record says seven.
+{ grep -v '^product.tables.unmigrated' "$backup_open"; printf 'product.tables.unmigrated\t2026-08-31\t-\tproduct\t7 таблиц продукта на бумаге (проба)\n'; } > "$open_items"
 expect 'записано другое число таблиц продукта' 'число в записи разошлось с явью'
-cp "$backup_open" "$open_items"; rm -f "$backup_open"
+cp "$backup_open" "$open_items"
+cp "$backup" "$registry"
 
 number=$((number + 1))
 output=$(FACTS_COMPOSE=/nonexistent/compose.yml bash "$gate" 2>&1); code=$?

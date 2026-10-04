@@ -116,7 +116,7 @@
   "web.chat.over": "suhbat tugadi",
   "web.chat.over_text": "Kalitlar ikkala tomonda o‘chirildi. Buni endi hech kim o‘qiy olmaydi.",
   "web.chat.over_title": "Suhbat tugadi",
-  "web.chat.peer_moved": "Suhbatdosh qurilmasini almashtirdi va yangi kalitlar so‘rayapti. Oldingi xabarlar qaytmaydi.",
+  "web.chat.peer_asks": "Narigi tomon bu suhbat uchun yangi kalitlar so'ramoqda. Sen rozi bo'lmaguningcha yangi qatorlar ochilmaydi.",
   "web.chat.reconnecting": "aloqa uzildi ({code}), {seconds} s dan keyin qayta",
   "web.chat.rekey_agree": "yangi kalitlar chiqarish",
   "web.chat.rekey_agreed": "yangi kalitlar chiqarildi (davr {epoch})",

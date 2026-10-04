@@ -116,7 +116,7 @@
   "web.chat.over": "la conversation est finie",
   "web.chat.over_text": "Les clés sont effacées des deux côtés. Plus rien ne peut lire ceci — pour personne.",
   "web.chat.over_title": "La conversation est finie",
-  "web.chat.peer_moved": "L’autre a changé d’appareil et demande de nouvelles clés. Les messages précédents ne reviendront pas.",
+  "web.chat.peer_asks": "Ton interlocuteur demande de nouvelles clés pour cette conversation. Tant que tu n'acceptes pas, les nouvelles lignes ne s'ouvriront pas.",
   "web.chat.reconnecting": "connexion perdue ({code}), nouvel essai dans {seconds} s",
   "web.chat.rekey_agree": "émettre de nouvelles clés",
   "web.chat.rekey_agreed": "nouvelles clés émises (époque {epoch})",

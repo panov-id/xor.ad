@@ -71,6 +71,12 @@ test("the terminal asks for new keys, the browser agrees, and a line goes under 
     const before = Number(await chat.getAttribute("data-epoch"));
     await waitFor("depth-asked-rekey", 60);
     await expect(page.getByTestId("rekey-asked"), "the page never heard the terminal ask").toBeVisible({ timeout: 30000 });
+    // A request from a healthy conversation is said as the terminal says it:
+    // the node carries no reason (chats.ts rekey body, inbox rekey_requested),
+    // so the page must not claim the other side changed its device (W16-D1).
+    await expect(page.getByTestId("rekey-asked"), "the page says something other than the terminal's request")
+      .toContainText("Собеседник просит новые ключи беседы");
+    await expect(page.getByTestId("rekey-asked"), "the page claims a device change the node never said").not.toContainText("сменил устройство");
     await page.getByTestId("rekey-agree").click();
     await expect(chat, "the page's keys did not move to the next epoch").toHaveAttribute("data-epoch", String(before + 1), { timeout: 30000 });
     await expect(chat).toHaveAttribute("data-keys", "open", { timeout: 30000 });

@@ -94,7 +94,7 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
       )}
       {!over && askedByPeer && (
         <Card as="section" data-testid="rekey-asked">
-          <p>{say("web.chat.peer_moved")}</p>
+          <p>{say("web.chat.peer_asks")}</p>
           <Button kind="primary" type="button" icon="key" className="ui-wide" aria-label={say("web.chat.rekey_agree")} disabled={busy} onClick={() => rekey("agree")} data-testid="rekey-agree" />
         </Card>
       )}

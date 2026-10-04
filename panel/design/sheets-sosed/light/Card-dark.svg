@@ -7,19 +7,19 @@
 <rect x="311" y="22" width="48" height="44" rx="22" fill="#262019"/>
 <g transform="translate(323 32) scale(1.0)" fill="none" stroke="#f0e7dc" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14.5 A7.5 7.5 0 1 1 9.5 5 A6 6 0 0 0 19 14.5Z"/></g>
 </g>
-<text id="t79" x="80" y="54" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" font-variant-numeric="tabular-nums">1 of 6</text>
+<text id="t80" x="80" y="54" font-family="Golos Text" font-weight="400" font-size="16" fill="#9a8d7c" text-anchor="start" font-variant-numeric="tabular-nums">1 of 6</text>
 <rect x="24" y="96" width="327" height="480" rx="32" fill="#8550c5"/>
 <g role="group" aria-label="phrase: walking to the river, join?. Swipe right like, left hide, down details" transform="rotate(0 187 308)">
 <rect x="16" y="108" width="343" height="480" rx="32" fill="#bd4b2a"/>
 <rect x="163" y="120" width="48" height="5" rx="2.5" fill="#fff6f0" opacity="0.55"/>
-<text id="t80" x="40" y="200" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >walking to</text>
-<text id="t81" x="40" y="248" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >the river,</text>
-<text id="t82" x="40" y="296" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >join?</text>
+<text id="t81" x="40" y="200" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >walking to</text>
+<text id="t82" x="40" y="248" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >the river,</text>
+<text id="t83" x="40" y="296" font-family="Golos Text" font-weight="600" font-size="40" fill="#fff6f0" text-anchor="start" letter-spacing="-0.01em" >join?</text>
 <g transform="translate(40 498) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M6.5 20 C7 15.5 17 15.5 17.5 20"/></g>
-<text id="t83" x="72" y="516" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >solo</text>
+<text id="t84" x="72" y="516" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >solo</text>
 <g role="img" aria-label="phrase life: fading soon">
 <rect x="40" y="536" width="295" height="4" rx="2" fill="#fff6f0" opacity="0.25"/><rect x="40" y="536" width="65" height="4" rx="2" fill="#fff6f0"/>
-<text id="t84" x="40" y="564" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >fading soon</text>
+<text id="t85" x="40" y="564" font-family="Golos Text" font-weight="500" font-size="16" fill="#fff6f0" text-anchor="start" >fading soon</text>
 </g>
 </g>
 <g role="button" tabindex="0" aria-label="hide (swipe left)"><rect x="48" y="612" width="64" height="64" rx="18" fill="#262019" stroke="#745c40" stroke-width="1.5"/>

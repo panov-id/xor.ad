@@ -78,6 +78,7 @@ ICONS={
 "close":'<path d="M6 6 L18 18 M18 6 L6 18"/>',
 "pen":'<path d="M4 20 L5 15 L16 4 L20 8 L9 19Z"/><path d="M14 6 L18 10"/>',
 "send":'<path d="M4 12 L20 4 L14 20 L11 13Z"/><path d="M11 13 L20 4"/>',
+"eye":'<path d="M2 12 C5 6 19 6 22 12 C19 18 5 18 2 12Z"/><circle cx="12" cy="12" r="3"/>',
 "hide":'<path d="M2 12 C5 6 19 6 22 12 C19 18 5 18 2 12Z"/><circle cx="12" cy="12" r="3"/><path d="M4 20 L20 4"/>',
 "block":'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6 L18.4 18.4"/>',
 "feed":'<path d="M4 6 H20 M4 12 H20 M4 18 H20"/>',
@@ -354,7 +355,10 @@ def s_Profile():
     TH_KEY[0]="night" if TH["scheme"]=="dark" else "day"; y=topbar("me")
     sticker(70,y+50,44,TH["stick"][4],"me",tilt=-6); T(130,y+44,"Anya, 28",22,cls="h"); T(130,y+70,"shown after a match only",16,TH["mu"])
     y+=126
-    for i,(ic,lab) in enumerate((("timer","step away"),("key","change PIN"),("arrive","move identity"),("code","new recovery code"),("reset","start over"))):
+    # The rows in web/src/screens/Me.tsx's order after name and age (W16-SH). Five,
+    # as before: the hero above them is the sheet's own, so two more rows sit lower
+    # than the screen's and measured worse (14.09% against 12.57%, 04.10.2026).
+    for i,(ic,lab) in enumerate((("me","age filter"),("hide","hidden · 0"),("eye","theme"),("timer","step away"),("key","change PIN"))):
         target(16,y,343,56,lab); tag(16,y,343,56,TH["panel"])
         sticker(46,y+28,16,TH["stick"][i%5],ic,shadow=False); T(76,y+34,lab,16,TH["warn"] if ic=="reset" else TH["fg"])
         icon(337,y+28,"back",18,TH["mu"]) if False else a(f'<path d="M334 {y+21} L341 {y+28} L334 {y+35}" fill="none" stroke="{TH["mu"]}" stroke-width="1.5" stroke-linecap="round"/>')

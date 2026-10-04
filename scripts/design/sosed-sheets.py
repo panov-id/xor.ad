@@ -59,6 +59,7 @@ def T(x,y,s,size=16,fill=None,w=400,anchor="start",extra=""):
 # ---------- thin line icons, 24-grid, stroke 1.5
 ICONS={
 "heart":'<path d="M12 20 C5.5 15.6 3 12.2 3 8.8 A4.4 4.4 0 0 1 12 7 A4.4 4.4 0 0 1 21 8.8 C21 12.2 18.5 15.6 12 20Z"/>',
+"eye":'<path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/>',
 "eyeoff":'<path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/>',
 "back":'<path d="M14.5 5.5 L8 12 L14.5 18.5"/>',
 "fwd":'<path d="M9.5 5.5 L16 12 L9.5 18.5"/>',
@@ -320,17 +321,20 @@ def s_Chat():
     finish("Chat")
 
 def s_Profile():
-    begin("main"); top("Me","main"); t=TH["tiles"]
-    items=[("me","Anya, 28","name, age",t[0],(G,92,343,104)),("eyeoff","0","hidden",t[3],(G,208,165,120)),
-           ("pause","pause","step away",t[2],(194,208,165,120)),("key","PIN","change",t[4],(G,340,165,120)),
-           ("device","move","device",t[1],(194,340,165,120)),("code","code","new paper",TH["panel"],(G,472,343,88)),
-           ("reset","restart","close identity",TH["panel"],(G,572,343,88))]
+    # The rows in web/src/screens/Me.tsx's order (W16-SH): the name wide, then the
+    # settings in pairs, then the service rows wide; what does not fit above the
+    # tab bar (paper code, documents, start again) lies below the fold, as on the screen.
+    begin("main"); top("Me","main"); t=TH["tiles"]; P=TH["panel"]
+    items=[("me","Anya","name",t[0],(G,92,343,104)),
+           ("me","28","age",t[1],(G,208,165,120)),("me","age filter","who you see",P,(194,208,165,120)),
+           ("eyeoff","0","hidden",t[3],(G,340,165,120)),("eye","theme","colours",P,(194,340,165,120)),
+           ("timer","step away","pause",t[2],(G,472,165,120)),("key","PIN","change",t[4],(194,472,165,120)),
+           ("device","move","to another device",P,(G,604,343,88))]
     for n,v,l,c,(x,y,w,h) in items:
-        button(x,y,w,h,f"{v}: {l}",c,24,None if c!=TH["panel"] else TH["line"]); fg=on(c,TH)
-        warn=n=="reset"
-        ic(x+18,y+18 if h>100 else y+h/2-12,n,TH["warn"] if warn else fg)
+        button(x,y,w,h,f"{v}: {l}",c,24,None if c!=P else TH["line"]); fg=on(c,TH)
+        ic(x+18,y+18 if h>100 else y+h/2-12,n,fg)
         tx=x+18 if h>100 else x+60
-        T(tx,y+h-22 if h>100 else y+h/2+7,v,20,TH["warn"] if warn else fg,600)  # caption word lives in aria-label only
+        T(tx,y+h-22 if h>100 else y+h/2+7,v,20,fg,600)  # caption word lives in aria-label only
         end()
     tabbar(2); finish("Profile")
 

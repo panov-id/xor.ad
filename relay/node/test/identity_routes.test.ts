@@ -2088,7 +2088,23 @@ Deno.test("a business profile goes a year after its last offer, and a systematic
 // A close waiting on its share while the sweep closed the identity for a year
 // without a session answered 503 "the node cannot write" and logged an error
 // (eighth quorum, 2026-09-25). It answers as any request from a session no longer live.
-Deno.test({ name: "a close that finds the identity closed under it answers 401, not 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+// The races below run without sanitizers and grow the module's pool to more
+// connections than the one the setup above leaves; an idle one keeps a read
+// open, and the next sanitized test fails on it ("Leaks detected", op_read).
+// In file order they ran last; under --shuffle anywhere (W16-SF1). Each puts
+// the pool back as it found it: one connection.
+function racing(name: string, fn: () => Promise<void>): void {
+  Deno.test({ name, sanitizeOps: false, sanitizeResources: false }, async () => {
+    try {
+      await fn();
+    } finally {
+      await database.closePool();
+      await database.queryOrThrow("SELECT 1");
+    }
+  });
+}
+
+racing("a close that finds the identity closed under it answers 401, not 503", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
@@ -2123,7 +2139,7 @@ Deno.test({ name: "a close that finds the identity closed under it answers 401, 
 // no live session: close first — the claim finds no code and answers 404;
 // claim first — the close waits for the row and freezes the new session with
 // the rest. Nothing here checks the order a comment promises; this does.
-Deno.test({ name: "a claim racing a close never leaves a closed identity with a live session", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a claim racing a close never leaves a closed identity with a live session", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const misses = await import("../src/lib/recovery_misses.ts");
   const { reset } = await import("../src/lib/rate_limit.ts");
@@ -2268,7 +2284,7 @@ Deno.test({ name: "a claim racing a close never leaves a closed identity with a 
 // session's share; the first PIN started from the identity's row, so each held
 // what the other wanted — or, when nothing collided, it spent the grant a claim
 // had just left for the new device, from the session that claim had frozen.
-Deno.test({ name: "vault/init waits on the share like a claim and a close, and never spends another device's grant", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("vault/init waits on the share like a claim and a close, and never spends another device's grant", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const misses = await import("../src/lib/recovery_misses.ts");
   const { reset } = await import("../src/lib/rate_limit.ts");
@@ -2361,7 +2377,7 @@ Deno.test({ name: "vault/init waits on the share like a claim and a close, and n
 // lenses). Both read that session as the live one; locking shares alone
 // locked nothing, and the second met the first's new session on the
 // one-live-session index — a 503 to a person holding the code.
-Deno.test({ name: "two paper-code claims over a shareless live session both seat, the later one live", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("two paper-code claims over a shareless live session both seat, the later one live", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const misses = await import("../src/lib/recovery_misses.ts");
   const { reset } = await import("../src/lib/rate_limit.ts");
@@ -2412,7 +2428,7 @@ const closeReplays = async () => {
 // close was, and counted. Only a repeat that passed the signature check
 // before the close froze the session reaches the stored nonce, so the two are
 // sent together behind a held share and the first is let through.
-Deno.test({ name: "a close repeated with its nonce while the first goes through answers 200 and is counted as a replay", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a close repeated with its nonce while the first goes through answers 200 and is counted as a replay", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
@@ -2447,7 +2463,7 @@ Deno.test({ name: "a close repeated with its nonce while the first goes through 
 
 // A device seated by the paper code has no share until its first PIN: there
 // is no PIN to prove, and the close says so rather than closing.
-Deno.test({ name: "a close from a session with no share answers 404 and closes nothing", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a close from a session with no share answers 404 and closes nothing", async () => {
   const misses = await import("../src/lib/recovery_misses.ts");
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset(); misses.reset();
@@ -2472,7 +2488,7 @@ Deno.test({ name: "a close from a session with no share answers 404 and closes n
 
 // A share burned under a live session: the PIN still matches its hash, but
 // there is nothing left it opens, and the close is refused like no share.
-Deno.test({ name: "a close from a session whose share is burned answers 404 and closes nothing", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a close from a session whose share is burned answers 404 and closes nothing", async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   try {
@@ -2509,7 +2525,7 @@ Deno.test("the recovery claim's storage_failed series is published at zero befor
 // played here on cue by a second connection. Postgres breaks the cycle by
 // rolling one side back; when that is the close, it is tried again, not
 // answered 503.
-Deno.test({ name: "a close that loses a deadlock to the sweep is tried again, not answered 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a close that loses a deadlock to the sweep is tried again, not answered 503", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
@@ -2568,7 +2584,7 @@ const burnedShares = async () => {
   return line ? Number(line.split(" ").at(-1)) : 0;
 };
 
-Deno.test({ name: "a close rolled back after its freeze does not count the freeze", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a close rolled back after its freeze does not count the freeze", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
@@ -2598,7 +2614,7 @@ Deno.test({ name: "a close rolled back after its freeze does not count the freez
   }
 });
 
-Deno.test({ name: "a close tried again after a deadlock counts its freeze once", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a close tried again after a deadlock counts its freeze once", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
@@ -2631,7 +2647,7 @@ Deno.test({ name: "a close tried again after a deadlock counts its freeze once",
 
 // The chats a close ends, counted after COMMIT too (B68). The same held
 // appearance table rolls the close back after it has ended the chat.
-Deno.test({ name: "a close rolled back after ending its chat does not count the chat ended", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a close rolled back after ending its chat does not count the chat ended", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const { render } = await import("../src/lib/metrics.ts");
   const { reset } = await import("../src/lib/rate_limit.ts");
@@ -2667,7 +2683,7 @@ Deno.test({ name: "a close rolled back after ending its chat does not count the 
 // A claim from a new device freezes the old session and burns its share, and
 // counts each once, under reason="transfer" (the observer's gap on B64: no case
 // held the transfer count).
-Deno.test({ name: "a claim from a new device counts its freeze and its burn once", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a claim from a new device counts its freeze and its burn once", async () => {
   const { render } = await import("../src/lib/metrics.ts");
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
@@ -2689,7 +2705,7 @@ Deno.test({ name: "a claim from a new device counts its freeze and its burn once
 });
 
 // And the tenth miss through the route itself: frozen and counted once.
-Deno.test({ name: "the tenth miss through the route counts its freeze once", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("the tenth miss through the route counts its freeze once", async () => {
   const { render } = await import("../src/lib/metrics.ts");
   const pinLimit = () => Number(render().match(/relay_sessions_frozen_total\{reason="pin_limit"\} (\d+)/)?.[1] ?? 0);
   const { answer, pair } = await registerWithPin();
@@ -2708,7 +2724,7 @@ Deno.test({ name: "the tenth miss through the route counts its freeze once", san
 // the tenth PIN mistake locked while this waited on it must stop it, by the
 // guard's rule that a locked share is a freeze (B75); otherwise a grant left
 // from a paper-code raise would lift the lock without the code (B87).
-Deno.test({ name: "a first PIN behind a tenth miss that locked the share is refused, and the lock stays (B87)", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a first PIN behind a tenth miss that locked the share is refused, and the lock stays (B87)", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const { answer, pair } = await registerWithPin();
   const created = answer.body as { identity_id: string; session_id: string };

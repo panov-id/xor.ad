@@ -461,6 +461,33 @@ Deno.test("a second window closes the first, rather than racing it", async () =>
   assertEquals((((await call("GET", `/sessions/${second}`)).body) as { state: string }).state, "waiting");
 });
 
+// A race against a clock whose clock is stopped when the race is over: a
+// timer left running fires in whichever test comes next (W16-SF1, --shuffle).
+async function orWaited(work: Promise<string>, ms: number): Promise<string> {
+  let timer: number | undefined;
+  try {
+    return await Promise.race([work, new Promise<string>((r) => { timer = setTimeout(() => r("waited"), ms); })]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// The races in this file run without sanitizers and grow the module's pool
+// to more connections than the one the setup leaves; an idle one keeps a read
+// open, and the next sanitized test fails on it ("Leaks detected", op_read).
+// In file order they ran last; under --shuffle anywhere (W16-SF1). Each puts
+// the pool back as it found it: one connection.
+function racing(name: string, fn: () => Promise<void>): void {
+  Deno.test({ name, sanitizeOps: false, sanitizeResources: false }, async () => {
+    try {
+      await fn();
+    } finally {
+      await database.closePool();
+      await database.queryOrThrow("SELECT 1");
+    }
+  });
+}
+
 addEventListener("unload", () => {
   database.closePool();
 });
@@ -745,7 +772,7 @@ Deno.test("an ack signed by any session but the new one is refused and erases no
   assert((await call("GET", `/sessions/${lookupId}`)).body.reply_envelope, "the reply is gone after refused acks");
 });
 
-Deno.test({ name: "two acks racing both answer 200 and leave no reply", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("two acks racing both answer 200 and leave no reply", async () => {
   const { lookupId, ack } = await approvedMove();
   const got: { status: number; body: unknown }[] = [];
   const before = await deadlocks();
@@ -757,7 +784,7 @@ Deno.test({ name: "two acks racing both answer 200 and leave no reply", sanitize
   assertEquals(await heldReply(lookupId), null, "the reply survived two acks");
 });
 
-Deno.test({ name: "an approval and a new invitation from the same session queue on the share instead of deadlocking", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("an approval and a new invitation from the same session queue on the share instead of deadlocking", async () => {
   const old = await device_with_identity();
   const { lookupId, invited } = await claimed(old);
   const got: Record<string, { status: number; body: unknown }> = {};
@@ -777,7 +804,7 @@ Deno.test({ name: "an approval and a new invitation from the same session queue 
     `the frozen session's window answered ${got.invite?.status} ${JSON.stringify(got.invite?.body)}`);
 });
 
-Deno.test({ name: "a paper-code claim behind an approval seats the owner, not a 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a paper-code claim behind an approval seats the owner, not a 503", async () => {
   const misses = await import("../src/lib/recovery_misses.ts");
   misses.reset();
   const old = await device_with_identity();
@@ -810,7 +837,7 @@ Deno.test({ name: "a paper-code claim behind an approval seats the owner, not a 
 // asked after it, a wrong PIN spent an attempt on the burned row and answered
 // 409 where a right one answered 401 — whether a PIN was right, told to a
 // device that no longer holds the identity.
-Deno.test({ name: "a session frozen while its invitation waited is refused before its PIN is looked at", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a session frozen while its invitation waited is refused before its PIN is looked at", async () => {
   const old = await device_with_identity();
   const { lookupId, invited } = await claimed(old);
   const got: Record<string, { status: number; body: unknown }> = {};
@@ -838,7 +865,7 @@ Deno.test({ name: "a session frozen while its invitation waited is refused befor
 // the pass done while the share is still held, the route refused on a closed
 // identity, and after the next pass nothing live.
 for (const which of ["vault/init", "invite"] as const) {
-  Deno.test({ name: `the catch-up pass passes over a ${which} holding the share, and the next pass leaves nothing live`, sanitizeOps: false, sanitizeResources: false }, async () => {
+  racing(`the catch-up pass passes over a ${which} holding the share, and the next pass leaves nothing live`, async () => {
     const postgres = (await import("npm:postgres@3.4.4")).default;
     const sweep = await import("../src/lib/identity_sweeper.ts");
     for (let round = 0; round < 3; round++) {
@@ -867,10 +894,10 @@ for (const which of ["vault/init", "invite"] as const) {
           // that skips; one that waits would wait on this very transaction.
           await database.queryOrThrow(`UPDATE identities SET closed_at = now(), recovery_auth_hash = NULL,
             recovery_wrapped_key = NULL, first_pin_grant_at = NULL WHERE id = $1`, [me.identity_id]);
-          const outcome = await Promise.race([
+          const outcome = await orWaited(
             sweep.sweepIdentities().then(() => "done", (e) => { sweepError = String(e); return "failed"; }),
-            new Promise((r) => setTimeout(() => r("waited"), 5000)),
-          ]);
+            5000,
+          );
           sweptWhileHeld = outcome === "done";
         });
       } finally {
@@ -896,7 +923,7 @@ for (const which of ["vault/init", "invite"] as const) {
 // wrong PIN, racing a same-device claim by the same code (verifier,
 // 2026-09-25). Nothing was live, so the new-device claim locked nothing and
 // met the raised session on the one-live-session index: 503, three in three.
-Deno.test({ name: "a new-device claim behind a same-device claim on a PIN-locked identity seats, not a 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a new-device claim behind a same-device claim on a PIN-locked identity seats, not a 503", async () => {
   const misses = await import("../src/lib/recovery_misses.ts");
   try {
     for (let round = 0; round < 3; round++) {
@@ -933,7 +960,7 @@ Deno.test({ name: "a new-device claim behind a same-device claim on a PIN-locked
 // share and raises its session, which waits on the one-live index for the
 // close — while the close, holding its own share, burned the sibling's last.
 for (const from of ["a new device", "the frozen sibling"] as const) {
-Deno.test({ name: `a close and a claim from ${from} over a PIN-locked sibling queue on the shares instead of deadlocking`, sanitizeOps: false, sanitizeResources: false }, async () => {
+racing(`a close and a claim from ${from} over a PIN-locked sibling queue on the shares instead of deadlocking`, async () => {
   const misses = await import("../src/lib/recovery_misses.ts");
   const wrap = () => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(91)));
   let rounds = 0;
@@ -990,7 +1017,7 @@ Deno.test({ name: `a close and a claim from ${from} over a PIN-locked sibling qu
 // The sanitizers off as on the race cases above it: their second connections
 // leave socket reads that finish in whichever test runs next, and the full run
 // blamed this one for two op_read it never started.
-Deno.test({ name: "fifty wrong transfer codes across the node pause code entry for everyone, and it opens again after", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("fifty wrong transfer codes across the node pause code entry for everyone, and it opens again after", async () => {
   const misses = await import("../src/lib/recovery_misses.ts");
   misses.reset();
   try {
@@ -1031,7 +1058,7 @@ Deno.test({ name: "fifty wrong transfer codes across the node pause code entry f
 // brake's fifty, so one address with no signature typed wrong codes until code
 // entry paused for the whole node. Now the address is refused first, and an
 // honest move from elsewhere goes through.
-Deno.test({ name: "one address alone cannot pause code entry for the node", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("one address alone cannot pause code entry for the node", async () => {
   const misses = await import("../src/lib/recovery_misses.ts");
   misses.reset();
   try {
@@ -1070,7 +1097,7 @@ Deno.test({ name: "one address alone cannot pause code entry for the node", sani
 // its freeze gone back to the minute's job — is a freeze by the guard's rule
 // (B75): the approval must not freeze the owner's device and seat the invited
 // one past a locked PIN (B87; the race, B94).
-Deno.test({ name: "an approval behind a tenth miss that locked the share moves nothing (B94)", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("an approval behind a tenth miss that locked the share moves nothing (B94)", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const old = await device_with_identity();
   const { lookupId, invited } = await claimed(old);

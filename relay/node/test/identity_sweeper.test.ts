@@ -236,6 +236,12 @@ Deno.test("a sweep bigger than one batch still takes everything", async () => {
 });
 
 Deno.test("a quiet pass says nothing and changes nothing", async () => {
+  // Quiet first: other cases leave candidates behind (a held one is skipped
+  // on purpose), and under --shuffle they may come before this (W16-SF1).
+  for (let i = 0; i < 10; i++) {
+    const before = await sweeper.sweepIdentities();
+    if (before.closed === 0 && before.unfinished === 0) break;
+  }
   const live = await identity();
   const result = await sweeper.sweepIdentities();
   assertEquals(result.closed, 0);
@@ -322,6 +328,33 @@ async function sweepWaitsOrEnds(swept: Promise<unknown> | undefined, ms = 5000):
     await new Promise((resolve) => setTimeout(resolve, 20));
   }
   return settled;
+}
+
+// A race against a clock whose clock is stopped when the race is over: a
+// timer left running fires in whichever test comes next (W16-SF1, --shuffle).
+async function orWaited(work: Promise<string>, ms: number): Promise<string> {
+  let timer: number | undefined;
+  try {
+    return await Promise.race([work, new Promise<string>((r) => { timer = setTimeout(() => r("waited"), ms); })]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// The races in this file run without sanitizers and grow the module's pool
+// to more connections than the one the setup leaves; an idle one keeps a read
+// open, and the next sanitized test fails on it ("Leaks detected", op_read).
+// In file order they ran last; under --shuffle anywhere (W16-SF1). Each puts
+// the pool back as it found it: one connection.
+function racing(name: string, fn: () => Promise<void>): void {
+  Deno.test({ name, sanitizeOps: false, sanitizeResources: false }, async () => {
+    try {
+      await fn();
+    } finally {
+      await database.closePool();
+      await database.queryOrThrow("SELECT 1");
+    }
+  });
 }
 
 addEventListener("unload", () => {
@@ -443,7 +476,7 @@ Deno.test("every frozen session is announced, however many there are", async () 
 // the sweep decides, and the sweep decided by its own snapshot and closed the
 // identity in the middle of that request — irreversibly. Here the bump is held
 // open on a connection of its own until the sweep is waiting, then committed.
-Deno.test({ name: "a person back after a year is not closed by a sweep that met their request", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a person back after a year is not closed by a sweep that met their request", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const back = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
   const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
@@ -469,7 +502,7 @@ Deno.test({ name: "a person back after a year is not closed by a sweep that met 
 // took the identity's row first and waited on the sessions, the claim's
 // INSERT wanted a key-share on that row, and Postgres broke the deadlock nine
 // times in nine, the sweep its victim each time.
-Deno.test({ name: "the sweep yields to a claim from a new device instead of deadlocking, and leaves the person seated", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("the sweep yields to a claim from a new device instead of deadlocking, and leaves the person seated", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const deadlocks = async () => (await database.queryOrThrow<{ n: number }>(
     `SELECT deadlocks::int AS n FROM pg_stat_database WHERE datname = current_database()`))[0].n;
@@ -514,7 +547,7 @@ Deno.test({ name: "the sweep yields to a claim from a new device instead of dead
 // but this guards the sweep's own rule — it yields to anyone holding a share
 // (the got >= want filter) — against any writer that takes one share and wants
 // another later.
-Deno.test({ name: "the sweep yields to a close that holds one of two shares instead of deadlocking", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("the sweep yields to a close that holds one of two shares instead of deadlocking", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const deadlocks = async () => (await database.queryOrThrow<{ n: number }>(
     `SELECT deadlocks::int AS n FROM pg_stat_database WHERE datname = current_database()`))[0].n;
@@ -568,7 +601,7 @@ Deno.test({ name: "the sweep yields to a close that holds one of two shares inst
 // writes a nonce for the session, which takes a key-share on the session's
 // row. A sweep holding the session FOR UPDATE and waiting on the identity was
 // the other half of a cycle; NO KEY UPDATE does not conflict with a key-share.
-Deno.test({ name: "the sweep and a reissue's nonce on the same session do not deadlock", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("the sweep and a reissue's nonce on the same session do not deadlock", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const deadlocks = async () => (await database.queryOrThrow<{ n: number }>(
     `SELECT deadlocks::int AS n FROM pg_stat_database WHERE datname = current_database()`))[0].n;
@@ -612,7 +645,7 @@ Deno.test({ name: "the sweep and a reissue's nonce on the same session do not de
 // also skips held session rows (later the same day) it no longer stalls on B at
 // all — B is left for the next pass — so this now guards the stronger outcome,
 // and the savepoint's release of X's shares is no longer what keeps it green.
-Deno.test({ name: "a stalled batch keeps no share of an identity it left out, so a close of it is not a 503", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a stalled batch keeps no share of an identity it left out, so a close of it is not a 503", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
   // A second session is a frozen one: an identity has one live session at a time.
@@ -683,7 +716,7 @@ Deno.test({ name: "a stalled batch keeps no share of an identity it left out, so
 // reached. BATCH is a constant of the module and not lowered for the test, so
 // the case builds a full batch of held identities that sort first, and one
 // more that sorts last (2026-09-25).
-Deno.test({ name: "a full batch of identities the sweep leaves alone does not hide the ones after it", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a full batch of identities the sweep leaves alone does not hide the ones after it", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const held: string[] = [];
   for (let i = 0; i < sweeper.BATCH; i++) {
@@ -736,7 +769,7 @@ Deno.test({ name: "a full batch of identities the sweep leaves alone does not hi
 // and a close of any of those hit its lock_timeout. The row is now skipped
 // like a share: the identity whose session is held waits for the next pass,
 // and the rest of the batch closes at once.
-Deno.test({ name: "a batch skips an identity whose session somebody holds instead of waiting on it", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a batch skips an identity whose session somebody holds instead of waiting on it", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
   const b = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
@@ -753,10 +786,10 @@ Deno.test({ name: "a batch skips an identity whose session somebody holds instea
     });
     await isHeld;
     // The whole sweep, while B's session is still held.
-    const outcome = await Promise.race([
+    const outcome = await orWaited(
       sweeper.sweepIdentities().then(() => "done"),
-      new Promise((r) => setTimeout(() => r("waited"), 3000)),
-    ]);
+      3000,
+    );
     assertEquals(outcome, "done", "the sweep waited on a session row somebody held");
     assert((await identityRow(x.identityId)).closed_at !== null, "the identity nobody held was not closed");
     assertEquals((await identityRow(b.identityId)).closed_at, null, "the identity whose session was held was closed under it");
@@ -780,7 +813,7 @@ Deno.test({ name: "a batch skips an identity whose session somebody holds instea
 // between picking and locking — it holds vault_shares, which the pick does not
 // read and the next statement does — and lets the bump commit in that gap
 // (verifier, 2026-09-25: without the second question the person was closed).
-Deno.test({ name: "a person back between the pick and the locks is asked again and not closed", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a person back between the pick and the locks is asked again and not closed", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const back = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
   const holder = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
@@ -841,7 +874,7 @@ const skipped = async (reason: string) =>
 // watches, and this is not one (2026-09-25, verifier: without SKIP LOCKED on
 // the identity, without own.has() in `whole`, or with every skip counted as a
 // share, the suite stayed green).
-Deno.test({ name: "a batch skips an identity whose own row somebody holds, and counts it as row_held", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a batch skips an identity whose own row somebody holds, and counts it as row_held", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
   const b = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
@@ -861,10 +894,10 @@ Deno.test({ name: "a batch skips an identity whose own row somebody holds, and c
     });
     await isHeld;
     swept = sweeper.sweepIdentities();
-    const outcome = await Promise.race([
+    const outcome = await orWaited(
       swept.then(() => "done"),
-      new Promise((r) => setTimeout(() => r("waited"), 3000)),
-    ]);
+      3000,
+    );
     assertEquals(outcome, "done", "the sweep waited on an identity row somebody held");
     assert((await identityRow(x.identityId)).closed_at !== null, "the identity nobody held was not closed");
     assertEquals((await identityRow(b.identityId)).closed_at, null,
@@ -891,7 +924,7 @@ Deno.test({ name: "a batch skips an identity whose own row somebody holds, and c
 // every lock of the batch is taken. X has two shares, one held elsewhere, so X
 // is left out; B closes. With the batch stalled, the holder of X's share lets
 // go, and taking both of X's shares NOWAIT must succeed.
-Deno.test({ name: "a batch stalled after its locks holds no share of an identity it left out", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a batch stalled after its locks holds no share of an identity it left out", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
   const xOther = crypto.randomUUID();
@@ -977,7 +1010,7 @@ Deno.test({ name: "a batch stalled after its locks holds no share of an identity
 // but a skip, so the reissue test above stays green either way; what shows the
 // lock mode is that an identity whose session only a nonce is being written
 // against is still closed by the pass that meets it.
-Deno.test({ name: "a nonce being written against a candidate's session does not keep the sweep off it", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a nonce being written against a candidate's session does not keep the sweep off it", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const made = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
   const rowBefore = await skipped("row_held");
@@ -997,10 +1030,10 @@ Deno.test({ name: "a nonce being written against a candidate's session does not 
     });
     await isWritten;
     swept = sweeper.sweepIdentities();
-    const outcome = await Promise.race([
+    const outcome = await orWaited(
       swept.then(() => "done"),
-      new Promise((r) => setTimeout(() => r("waited"), 3000)),
-    ]);
+      3000,
+    );
     assertEquals(outcome, "done", "the sweep waited on a session a nonce was being written against");
     assertEquals((await skipped("row_held")) - rowBefore, 0,
       "the sweep counted a session under a nonce's key-share as held");
@@ -1027,7 +1060,7 @@ Deno.test({ name: "a nonce being written against a candidate's session does not 
 // held are what the ceiling drops, and they are retry_cap — counted as
 // share_held, churn nobody holds read as a lock that never lets go
 // (observability.lockorder.alerts, 2026-09-26).
-Deno.test({ name: "the fifth attempt is the last, and what it drops is counted as retry_cap", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("the fifth attempt is the last, and what it drops is counted as retry_cap", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   // Whatever an earlier case left open would be a candidate here too.
   await sweeper.sweepIdentities();
@@ -1046,8 +1079,16 @@ Deno.test({ name: "the fifth attempt is the last, and what it drops is counted a
     const opened = new Promise<void>((r) => { open = r; });
     return { open: () => open(), opened };
   };
-  const within = <T,>(p: Promise<T>, what: string) =>
-    Promise.race([p, new Promise<never>((_, reject) => setTimeout(() => reject(new Error(what)), 5000))]);
+  // Each ceiling's clock stops when its wait is over (W16-SF1: one left running
+  // fired in the next test under --shuffle).
+  const within = async <T,>(p: Promise<T>, what: string): Promise<T> => {
+    let timer: number | undefined;
+    try {
+      return await Promise.race([p, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(what)), 5000); })]);
+    } finally {
+      clearTimeout(timer);
+    }
+  };
   const release = Array.from({ length: 6 }, gate), taken = Array.from({ length: 6 }, gate);
   const rowWanted = Array.from({ length: 5 }, gate), rowTaken = Array.from({ length: 5 }, gate);
   const rowsDone = gate();
@@ -1114,50 +1155,45 @@ Deno.test({ name: "the fifth attempt is the last, and what it drops is counted a
 // under READ COMMITTED the DELETE re-checks only its own WHERE. Played here
 // with the confirm on a connection of its own, holding the row across the
 // pass, and let go only once the pass has either finished or is seen waiting.
-Deno.test({
-  name: "a signup finished while the pass runs survives it",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    const postgres = (await import("npm:postgres@3.4.4")).default;
-    const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
-    const late = await identity({ finished: false, createdDaysAgo: 1 });
-    let release!: () => void;
-    const held = new Promise<void>((done) => (release = done));
-    let locked!: () => void;
-    const lockTaken = new Promise<void>((done) => (locked = done));
-    try {
-      const confirm = sql.begin(async (tx) => {
-        await tx.unsafe(
-          `UPDATE identities SET signup_completed_at = now() WHERE id = $1 AND signup_completed_at IS NULL`,
-          [late.identityId]);
-        locked();
-        await held;
-      });
-      await lockTaken;
-      let settled = false;
-      const pass = sweeper.sweepIdentities().finally(() => (settled = true));
-      // Until the pass is done or stands behind the confirm's lock: the
-      // outcome is decided by which, and waiting a fixed time would guess.
-      for (let i = 0; i < 200 && !settled; i++) {
-        const waiting = await database.queryOrThrow<{ n: number }>(
-          `SELECT count(*)::int AS n FROM pg_stat_activity
-            WHERE wait_event_type = 'Lock' AND query LIKE '%signup_completed_at IS NULL%' AND pid <> pg_backend_pid()`);
-        if (waiting[0].n > 0) break;
-        await new Promise((r) => setTimeout(r, 25));
-      }
-      release();
-      await confirm;
-      await pass;
-      const [row] = await database.queryOrThrow<{ done: boolean }>(
-        `SELECT signup_completed_at IS NOT NULL AS done FROM identities WHERE id = $1`, [late.identityId]);
-      assert(row, "a signup finished while the pass ran was deleted by it");
-      assertEquals(row.done, true);
-    } finally {
-      release?.();
-      await sql.end();
+racing("a signup finished while the pass runs survives it", async () => {
+  const postgres = (await import("npm:postgres@3.4.4")).default;
+  const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
+  const late = await identity({ finished: false, createdDaysAgo: 1 });
+  let release!: () => void;
+  const held = new Promise<void>((done) => (release = done));
+  let locked!: () => void;
+  const lockTaken = new Promise<void>((done) => (locked = done));
+  try {
+    const confirm = sql.begin(async (tx) => {
+      await tx.unsafe(
+        `UPDATE identities SET signup_completed_at = now() WHERE id = $1 AND signup_completed_at IS NULL`,
+        [late.identityId]);
+      locked();
+      await held;
+    });
+    await lockTaken;
+    let settled = false;
+    const pass = sweeper.sweepIdentities().finally(() => (settled = true));
+    // Until the pass is done or stands behind the confirm's lock: the
+    // outcome is decided by which, and waiting a fixed time would guess.
+    for (let i = 0; i < 200 && !settled; i++) {
+      const waiting = await database.queryOrThrow<{ n: number }>(
+        `SELECT count(*)::int AS n FROM pg_stat_activity
+          WHERE wait_event_type = 'Lock' AND query LIKE '%signup_completed_at IS NULL%' AND pid <> pg_backend_pid()`);
+      if (waiting[0].n > 0) break;
+      await new Promise((r) => setTimeout(r, 25));
     }
-  },
+    release();
+    await confirm;
+    await pass;
+    const [row] = await database.queryOrThrow<{ done: boolean }>(
+      `SELECT signup_completed_at IS NOT NULL AS done FROM identities WHERE id = $1`, [late.identityId]);
+    assert(row, "a signup finished while the pass ran was deleted by it");
+    assertEquals(row.done, true);
+  } finally {
+    release?.();
+    await sql.end();
+  }
 });
 
 // The sweep's counters, counted once a batch commits and never before (B68,
@@ -1177,7 +1213,7 @@ async function refuseOnCue(trigger: string): Promise<() => Promise<void>> {
   };
 }
 
-Deno.test({ name: "a batch rolled back after its locks counts none of the identities it skipped", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a batch rolled back after its locks counts none of the identities it skipped", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const x = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
   const b = await identity({ seenDaysAgo: sweeper.INACTIVE_DAYS + 5 });
@@ -1217,7 +1253,7 @@ Deno.test({ name: "a batch rolled back after its locks counts none of the identi
   assert((await identityRow(x.identityId)).closed_at !== null, "X was not closed once nothing refused it");
 });
 
-Deno.test({ name: "a batch of consequences refused at COMMIT counts no freeze and no burned share", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("a batch of consequences refused at COMMIT counts no freeze and no burned share", async () => {
   const metrics = await import("../src/lib/metrics.ts");
   const c = await identity({});
   // Closed already, with its session live and its share whole: the second
@@ -1253,7 +1289,7 @@ Deno.test({ name: "a batch of consequences refused at COMMIT counts no freeze an
 // rest of the batch goes on. It took the shares FOR UPDATE and waited: the
 // whole batch, every other closed identity in it, stood behind one holder for
 // as long as the holder held.
-Deno.test({ name: "the consequences pass skips a closed identity whose share somebody holds, and does the rest (B84)", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("the consequences pass skips a closed identity whose share somebody holds, and does the rest (B84)", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   // Two closures left half-done: a live session and a whole share each.
   const [a, b] = [await identity({}), await identity({})];
@@ -1313,7 +1349,7 @@ Deno.test({ name: "the consequences pass skips a closed identity whose share som
 // one in the same pass, and leave the held ones to the next. One held identity
 // would not do — a cursor at zero picks it again beside the free one and still
 // ends on a short batch.
-Deno.test({ name: "the catch-up pass steps past a whole held batch to the identity after it (B101)", sanitizeOps: false, sanitizeResources: false }, async () => {
+racing("the catch-up pass steps past a whole held batch to the identity after it (B101)", async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const n = sweeper.BATCH + 1;
   const ids = Array.from({ length: n }, () => crypto.randomUUID()).sort();

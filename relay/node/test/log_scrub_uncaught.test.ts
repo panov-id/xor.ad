@@ -27,12 +27,15 @@ const { installUncaughtScrub } = await import("../src/lib/log.ts");
 const { scrubAddresses } = await import("../src/lib/scrub.ts");
 const exits: number[] = [];
 installUncaughtScrub((code) => exits.push(code));
+// What the config said while loading, kept apart: a test that clears `lines`
+// may run first (--shuffle; W16-SF1).
+const atLoad = [...lines];
 const pooled = { sanitizeOps: false, sanitizeResources: false };
 const restore = () => Object.assign(console, original);
 
 Deno.test({ name: "the config's complaint about bad JSON names the error, not the text it choked on", ...pooled, fn: () => {
-  const said = lines.filter((line) => line.includes("[config] bad"));
-  assertEquals(said.length, 2, `the config said: ${JSON.stringify(lines)}`);
+  const said = atLoad.filter((line) => line.includes("[config] bad"));
+  assertEquals(said.length, 2, `the config said: ${JSON.stringify(atLoad)}`);
   for (const line of said) {
     assert(!line.includes("SECRETKEY") && !line.includes("boss@"), `the config printed its secret: ${line}`);
   }

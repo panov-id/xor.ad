@@ -289,17 +289,32 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    const rows = await database.queryOrThrow<{ count: string }>(
-      `SELECT count(*)::text AS count FROM brands WHERE key = 'alpha'`,
+    // The control-state migration test below writes the environment's brands
+    // into the table; under --shuffle it may come first (W16-SF1). This test
+    // makes its own "no row" and puts back what it took.
+    const [kept] = await database.queryOrThrow<{ row: unknown }>(
+      `DELETE FROM brands WHERE key = 'alpha' RETURNING to_jsonb(brands) AS row`,
     );
-    assertEquals(rows[0].count, "0", "this test is only meaningful with no row for the brand");
+    try {
+      const rows = await database.queryOrThrow<{ count: string }>(
+        `SELECT count(*)::text AS count FROM brands WHERE key = 'alpha'`,
+      );
+      assertEquals(rows[0].count, "0", "this test is only meaningful with no row for the brand");
 
-    const { status, body } = await callAs(PLATFORM, "POST", "/admin/api-keys", {
-      brand: "alpha",
-      origins: ["https://alpha.test"],
-    });
-    assertEquals(status, 201, `issuing for a seeded brand must work: ${JSON.stringify(body)}`);
-    assertEquals(body.brand, "alpha");
+      const { status, body } = await callAs(PLATFORM, "POST", "/admin/api-keys", {
+        brand: "alpha",
+        origins: ["https://alpha.test"],
+      });
+      assertEquals(status, 201, `issuing for a seeded brand must work: ${JSON.stringify(body)}`);
+      assertEquals(body.brand, "alpha");
+    } finally {
+      if (kept) {
+        await database.queryOrThrow(
+          `INSERT INTO brands SELECT * FROM jsonb_populate_record(NULL::brands, $1::text::jsonb)`,
+          [JSON.stringify(kept.row)],
+        );
+      }
+    }
   },
 });
 

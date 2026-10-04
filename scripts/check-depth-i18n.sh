@@ -20,20 +20,31 @@ if [ "$count" -ne "$expected" ]; then
   echo "  ✗ языков объявлено $count, а ожидается $expected — правьте strings.ts или это число" >&2
   exit 1
 fi
+# A value equal to English where Russian differs is an untranslated copy, not a
+# translation: 1260 of them passed this gate green until W16-DL (04.10.2026).
+# Where a language says it the English way by right (PIN, "{minutes} min"),
+# the pair is listed with its reason in check-depth-i18n.allow.
+allow="$root/scripts/check-depth-i18n.allow"
+copies="$(mktemp)"; trap 'rm -f "$copies"' EXIT
 problems=0
 for lang in $langs; do
   file="$dir/$lang.json"
   if [ ! -f "$file" ]; then echo "  ✗ нет файла: depth/ink/locales/$lang.json"; problems=$((problems+1)); continue; fi
-  out=$(python3 - "$dir/en.json" "$file" "$lang" 2>&1 <<'PY'
+  out=$(python3 - "$dir/en.json" "$file" "$lang" "$dir/ru.json" "$allow" "$copies" 2>&1 <<'PY'
 import json,re,sys
 en=json.load(open(sys.argv[1])); other=json.load(open(sys.argv[2])); lang=sys.argv[3]
-bad=[]
+ru=json.load(open(sys.argv[4]))
+allowed={tuple(l.split("\t")[:2]) for l in open(sys.argv[5]) if l.strip() and not l.startswith("#")}
+bad=[]; copies=0
 for k,v in en.items():
     if k not in other or not str(other[k]).strip(): bad.append(f"нет ключа {k}"); continue
     want=set(re.findall(r"\{(\w+)\}",v)); got=set(re.findall(r"\{(\w+)\}",str(other[k])))
     if want!=got: bad.append(f"{k}: подстановки {sorted(want)} против {sorted(got)}")
+    if lang!="en" and other[k]==v and ru.get(k)!=v and (lang,k) not in allowed:
+        bad.append(f"{k} = en"); copies+=1
 for k in other:
     if k not in en: bad.append(f"лишний ключ {k}")
+open(sys.argv[6],"a").write(f"{copies}\n")
 shown = bad[:5]
 if len(bad) > len(shown): shown.append(f"и ещё {len(bad) - 5}")
 print("\n".join(f"  ✗ {lang}: {b}" for b in shown))
@@ -41,5 +52,7 @@ sys.exit(1 if bad else 0)
 PY
 ) || { echo "$out"; problems=$((problems+1)); }
 done
+total_copies=$(awk '{s+=$1} END {print s+0}' "$copies")
+if [ "$total_copies" -ne 0 ]; then echo "значений, оставшихся копией en: $total_copies" >&2; fi
 if [ "$problems" -ne 0 ]; then echo "неполных языков: $problems" >&2; exit 1; fi
 echo "языков полных: $count"

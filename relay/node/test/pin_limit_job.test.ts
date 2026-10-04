@@ -236,6 +236,10 @@ Deno.test({ name: "a take-down the job puts off is counted deferred, and the nex
 // on B74): a freeze counted when the paper code lifted the lock and nothing
 // froze, and a freeze put off counted under the take-down's name, both passed.
 async function lockedButLive() {
+  // The job takes every locked share, not only this case's: a pass first
+  // clears what other cases left locked, or its count here takes theirs in
+  // (W16-SF3: "counted frozen" 1 for 0 in 5 shuffled runs of 10).
+  await takeDownLeftByPinLimit();
   const me = await frozenByTheTenthMiss();
   await database.queryOrThrow(`UPDATE sessions SET frozen_at = NULL, frozen_reason = NULL WHERE id = $1`, [me.session_id]);
   return me;

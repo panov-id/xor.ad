@@ -49,6 +49,21 @@ await import("../src/routes/support.ts");
 await import("../src/routes/support_admin.ts");
 await import("../src/routes/away.ts");
 
+// Under --shuffle this file went red on "op_read started before the test":
+// the node's one postgres pool keeps a socket read open from test to test, and
+// the first sanitised test after any other met it (W16-SF2: 1 run of 11 green,
+// 48–63 leaks a run). The ops and resources sanitisers cannot hold over a pool
+// shared by the whole file, so they are off for every test here, not only for
+// the ones that said so; every test still prepares its own rows.
+type Def = Deno.TestDefinition;
+function test(name: string, fn: Def["fn"]): void;
+function test(def: Def): void;
+function test(def: Omit<Def, "fn">, fn: Def["fn"]): void;
+function test(a: string | Def | Omit<Def, "fn">, fn?: Def["fn"]): void {
+  const def = typeof a === "string" ? { name: a, fn: fn! } : fn ? { ...a, fn } : (a as Def);
+  Deno.test({ sanitizeOps: false, sanitizeResources: false, ...def });
+}
+
 const KEY_ID = "ak_pub_feedpublishtest001";
 await database.queryOrThrow(
   `INSERT INTO brands (key, name, domain, sender, upper)
@@ -169,7 +184,7 @@ async function publishWaiting(identityId: string) {
 }
 
 // FX3: a phrase is on every screen around; what nobody can see is refused.
-Deno.test("a phrase refuses what nobody can see", async () => {
+test("a phrase refuses what nobody can see", async () => {
   const me = await author();
   const send = (text: string) => signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text }));
   assertEquals((await send("гуляю\u001b[2J у реки")).status, 400, "a phrase with ESC was taken");
@@ -178,7 +193,7 @@ Deno.test("a phrase refuses what nobody can see", async () => {
 
 // V11: a line break sent as CRLF or a lone CR is a line break, not a CR the
 // rule above refuses — and it is stored as LF, not only let through.
-Deno.test("a phrase's CRLF and lone CR are stored as LF, not refused", async () => {
+test("a phrase's CRLF and lone CR are stored as LF, not refused", async () => {
   for (const [label, sent] of [["CRLF", "гуляю у реки\r\nкто рядом"], ["CR", "гуляю у реки\rкто рядом"]]) {
     const me = await author();
     const answer = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: sent }));
@@ -190,7 +205,7 @@ Deno.test("a phrase's CRLF and lone CR are stored as LF, not refused", async () 
   }
 });
 
-Deno.test("a phrase is accepted for checking, not published", async () => {
+test("a phrase is accepted for checking, not published", async () => {
   const me = await author();
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
   assertEquals(sent.status, 202, JSON.stringify(sent.body));
@@ -209,7 +224,7 @@ Deno.test("a phrase is accepted for checking, not published", async () => {
   assertEquals(row.mode, "alone");
 });
 
-Deno.test("while one phrase is being checked the next is not taken", async () => {
+test("while one phrase is being checked the next is not taken", async () => {
   // §8.3: one at a time, and held by a partial unique index rather than by a
   // count — a count races a SELECT that looked empty a moment ago.
   const me = await author();
@@ -224,7 +239,7 @@ Deno.test("while one phrase is being checked the next is not taken", async () =>
   assertEquals(third.status, 202, "the slot did not free after a verdict");
 });
 
-Deno.test("four an hour counts moments, and says when the next slot is", async () => {
+test("four an hour counts moments, and says when the next slot is", async () => {
   const me = await author();
   for (let i = 0; i < limits.PUBLISH_PER_HOUR; i++) {
     const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `фраза ${i}` }));
@@ -250,7 +265,7 @@ Deno.test("four an hour counts moments, and says when the next slot is", async (
   assert(fifth.headers.get("retry-after"), "no retry-after on the hourly refusal");
 });
 
-Deno.test("four live phrases is its own limit, and a take-down frees it at once", async () => {
+test("four live phrases is its own limit, and a take-down frees it at once", async () => {
   const me = await author();
   for (let i = 0; i < limits.LIVE_MAX; i++) {
     assertEquals(
@@ -282,7 +297,7 @@ Deno.test("four live phrases is its own limit, and a take-down frees it at once"
   assertEquals(after.status, 202, "a take-down did not free a slot");
 });
 
-Deno.test("a phrase whose time ran out frees its slot for the fifth", async () => {
+test("a phrase whose time ran out frees its slot for the fifth", async () => {
   // LIVE_PHRASE is "visible and not expired", and the refusal counts it that
   // way: an expired phrase still sitting in the table until the sweep is not
   // live, so it cannot hold a slot (B8, 2026-09-26 — without this only the
@@ -309,7 +324,7 @@ Deno.test("a phrase whose time ran out frees its slot for the fifth", async () =
   assertEquals(fifth.status, 202, `an expired phrase still held a slot: ${JSON.stringify(fifth.body)}`);
 });
 
-Deno.test("five refusals in an hour buy fifteen minutes of silence", async () => {
+test("five refusals in an hour buy fifteen minutes of silence", async () => {
   const me = await author();
   // The refusals are written the way a verdict writes them; the verdict
   // transaction itself is a separate piece of step 2.
@@ -345,7 +360,7 @@ Deno.test("five refusals in an hour buy fifteen minutes of silence", async () =>
   assertEquals(later.status, 202, "the pause outlived its fifteen minutes");
 });
 
-Deno.test("a phrase is measured in graphemes, and the refusal names the ceiling", async () => {
+test("a phrase is measured in graphemes, and the refusal names the ceiling", async () => {
   const me = await author();
   const long = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "я".repeat(129) }));
   assertEquals(long.status, 400);
@@ -364,7 +379,7 @@ Deno.test("a phrase is measured in graphemes, and the refusal names the ceiling"
   );
 });
 
-Deno.test("a radius between the steps is refused, and so is a mode nobody named", async () => {
+test("a radius between the steps is refused, and so is a mode nobody named", async () => {
   const me = await author();
   const odd = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ area_radius: 500 }));
   assertEquals(odd.status, 400, "a radius between the steps was accepted");
@@ -380,7 +395,7 @@ Deno.test("a radius between the steps is refused, and so is a mode nobody named"
 // hole — a send arriving between them sees an empty queue and an unwritten
 // moment, and passes "four an hour" (§8.3, review panel 2026-09-14).
 
-Deno.test("a passed phrase becomes visible and gets its term in one write", async () => {
+test("a passed phrase becomes visible and gets its term in one write", async () => {
   const me = await author();
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
   const { id } = sent.body as { id: string };
@@ -411,7 +426,7 @@ Deno.test("a passed phrase becomes visible and gets its term in one write", asyn
   assert(stats.first_published_at, "the first publication left no date");
 });
 
-Deno.test("a refused phrase stops existing, and leaves a moment behind", async () => {
+test("a refused phrase stops existing, and leaves a moment behind", async () => {
   const me = await author();
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
   const { id } = sent.body as { id: string };
@@ -431,7 +446,7 @@ Deno.test("a refused phrase stops existing, and leaves a moment behind", async (
   assertEquals(again.status, 202, "a refusal did not free the waiting slot");
 });
 
-Deno.test("a verdict that arrives twice decides once", async () => {
+test("a verdict that arrives twice decides once", async () => {
   const me = await author();
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
   const { id } = sent.body as { id: string };
@@ -447,7 +462,7 @@ Deno.test("a verdict that arrives twice decides once", async () => {
   assertEquals(stats.published_at_recent.length, 1, "a repeated verdict wrote a second moment");
 });
 
-Deno.test("the moments are cut to the last few, and the hour drops out of them", async () => {
+test("the moments are cut to the last few, and the hour drops out of them", async () => {
   const me = await author();
   // Nine refusals in a row leave six — the number §8.3 states, checked against
   // the expression rather than against a memory of it.
@@ -477,7 +492,7 @@ Deno.test("the moments are cut to the last few, and the hour drops out of them",
   );
 });
 
-Deno.test("a phrase nobody read is dropped, and its author is not charged for it", async () => {
+test("a phrase nobody read is dropped, and its author is not charged for it", async () => {
   // §8.3: a row whose checking wait expired is deleted and does not count as
   // queued. No moment either way — neither a publication nor a refusal
   // happened, and the author's pause must not grow because the node was slow.
@@ -510,7 +525,7 @@ Deno.test("a phrase nobody read is dropped, and its author is not charged for it
   assertEquals(again.status, 202, "the sweep did not free the waiting slot");
 });
 
-Deno.test("a phrase still inside its wait is left alone", async () => {
+test("a phrase still inside its wait is left alone", async () => {
   const me = await author();
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
   const { id } = sent.body as { id: string };
@@ -540,7 +555,7 @@ const feedUrl = (over: Record<string, string | number> = {}) => {
   return `/feed?${params.toString()}`;
 };
 
-Deno.test("a phrase in the circle comes back, rounded, and the exact centre does not", async () => {
+test("a phrase in the circle comes back, rounded, and the exact centre does not", async () => {
   const mine = await author();
   const theirs = await author();
   // Their centre is a few hundred metres from the viewer's, with the same
@@ -570,7 +585,7 @@ Deno.test("a phrase in the circle comes back, rounded, and the exact centre does
   assertEquals(card!.author_age, undefined);
 });
 
-Deno.test("circles that do not reach each other are not delivered", async () => {
+test("circles that do not reach each other are not delivered", async () => {
   const mine = await author();
   const theirs = await author();
   // Forty kilometres away, both with a kilometre of radius: nothing touches.
@@ -585,7 +600,7 @@ Deno.test("circles that do not reach each other are not delivered", async () => 
   assertEquals(items.find((i) => i.id === far), undefined, "a phrase out of reach was delivered");
 });
 
-Deno.test("the band cuts the feed, and it is never widened to fill it", async () => {
+test("the band cuts the feed, and it is never widened to fill it", async () => {
   const teenager = await author(15);
   const adult = await author(35);
   const adults = await livePhrase({ pair: adult.pair.privateKey, session_id: adult.session_id }, {
@@ -604,7 +619,7 @@ Deno.test("the band cuts the feed, and it is never widened to fill it", async ()
   assertEquals(items.length, 0, "the empty feed was filled from outside the band");
 });
 
-Deno.test("an empty screen grows the radius, says so, and does not change the setting", async () => {
+test("an empty screen grows the radius, says so, and does not change the setting", async () => {
   const mine = await author();
   const theirs = await author();
   // A corner of the world the other cases of this suite do not use: the point
@@ -629,7 +644,7 @@ Deno.test("an empty screen grows the radius, says so, and does not change the se
   assert((body.radius_used ?? 0) > 1000, "the answer did not say which radius it used");
 });
 
-Deno.test("a phrase still waiting for a verdict is delivered to nobody", async () => {
+test("a phrase still waiting for a verdict is delivered to nobody", async () => {
   const mine = await author();
   const theirs = await author();
   const sent = await signedCall(theirs.pair.privateKey, theirs.session_id, "POST", "/feed", phrase({ text: "ещё не читана" }));
@@ -640,7 +655,7 @@ Deno.test("a phrase still waiting for a verdict is delivered to nobody", async (
   assertEquals(items.find((i) => i.id === id), undefined, "an unread phrase reached the feed");
 });
 
-Deno.test("an expired phrase is gone from the feed even before it is swept", async () => {
+test("an expired phrase is gone from the feed even before it is swept", async () => {
   const mine = await author();
   const theirs = await author();
   const id = await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, { text: "истекла" });
@@ -651,7 +666,7 @@ Deno.test("an expired phrase is gone from the feed even before it is swept", asy
   assertEquals(items.find((i) => i.id === id), undefined, "an expired phrase was still delivered");
 });
 
-Deno.test("the cursor is a pair, and it does not drop a phrase published in the same instant", async () => {
+test("the cursor is a pair, and it does not drop a phrase published in the same instant", async () => {
   const mine = await author();
   const theirs = await author();
   const ids: string[] = [];
@@ -680,7 +695,7 @@ Deno.test("the cursor is a pair, and it does not drop a phrase published in the 
 
 // --- taking down, expiring, and the density handle ---------------------------
 
-Deno.test("taking a phrase down frees the slot but not the hour", async () => {
+test("taking a phrase down frees the slot but not the hour", async () => {
   // §8.3 keeps these two apart deliberately: the live limit is a property of
   // the table, the hourly one is moments in identity_stats — otherwise a
   // take-down, or a step away, would reset the hour and the ceiling would mean
@@ -721,7 +736,7 @@ Deno.test("taking a phrase down frees the slot but not the hour", async () => {
   assertEquals((next.body as { error: { code: string } }).error.code, "rate_limited");
 });
 
-Deno.test("somebody else's phrase answers like one that never existed", async () => {
+test("somebody else's phrase answers like one that never existed", async () => {
   const mine = await author();
   const theirs = await author();
   const id = await livePhrase({ pair: theirs.pair.privateKey, session_id: theirs.session_id }, { text: "не твоя" });
@@ -743,7 +758,7 @@ Deno.test("somebody else's phrase answers like one that never existed", async ()
   );
 });
 
-Deno.test("a phrase past its term is swept, and a live one is left alone", async () => {
+test("a phrase past its term is swept, and a live one is left alone", async () => {
   const me = await author();
   const live = await livePhrase({ pair: me.pair.privateKey, session_id: me.session_id }, { text: "ещё живая" });
   const old = await livePhrase({ pair: me.pair.privateKey, session_id: me.session_id }, { text: "отжила" });
@@ -769,7 +784,7 @@ Deno.test("a phrase past its term is swept, and a live one is left alone", async
 // held a lock per row until the last one went, as the other sweepers learned
 // (lib/identity_sweeper.ts, BATCH): this one goes in batches too, and a pass
 // ends at its ceiling, leaving the rest for the next minute (loop plan A11).
-Deno.test("expired phrases go in batches, and a pass stops at its ceiling", async () => {
+test("expired phrases go in batches, and a pass stops at its ceiling", async () => {
   await verdict.sweepExpiredPhrases();
   const me = await author();
   const ids: string[] = [];
@@ -793,7 +808,7 @@ Deno.test("expired phrases go in batches, and a pass stops at its ceiling", asyn
 // batch may hold. The sweep skips the held one rather than waiting on it, and
 // takes it the next time; what nobody holds goes now. A second connection
 // plays the take-down's hold.
-Deno.test({
+test({
   name: "the expiry sweep skips a phrase a take-down holds instead of waiting, and takes it the next time",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -845,7 +860,7 @@ Deno.test({
   },
 });
 
-Deno.test("density answers a step, and never the number", async () => {
+test("density answers a step, and never the number", async () => {
   const mine = await author();
   const theirs = await author();
   // A corner of the world to itself, so the count is this case's own.
@@ -880,7 +895,7 @@ Deno.test("density answers a step, and never the number", async () => {
 // People, not phrases (open.tsv feed.density.people; the verifier of
 // 2026-09-25): each person holds up to four live phrases, so three people wrote
 // "about ten" while the storefront's header said "few people near you".
-Deno.test("density counts people with a live phrase, not phrases: three authors with four each are few", async () => {
+test("density counts people with a live phrase, not phrases: three authors with four each are few", async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   const { quantise } = await import("../src/lib/feed_geo.ts");
   reset();
@@ -907,7 +922,7 @@ Deno.test("density counts people with a live phrase, not phrases: three authors 
     "twelve phrases from three people read as a step for twelve, not for three");
 });
 
-Deno.test("density counts what the feed would deliver, not what is in the circle", async () => {
+test("density counts what the feed would deliver, not what is in the circle", async () => {
   // A handle that promised company and then showed an empty screen because the
   // band cut it would be worse than no handle at all.
   const teenager = await author(15);
@@ -961,7 +976,7 @@ async function writeStatement(identityId: string, over: Record<string, unknown> 
   return id;
 }
 
-Deno.test("an author with no mailbox can read why their phrase went", async () => {
+test("an author with no mailbox can read why their phrase went", async () => {
   const me = await author();
   const stranger = await author();
   const mine = await writeStatement(me.identity_id);
@@ -986,7 +1001,7 @@ Deno.test("an author with no mailbox can read why their phrase went", async () =
   assertEquals(items.find((i) => i.id === theirs), undefined, "another person's statement was shown");
 });
 
-Deno.test("a temporary restriction says when it ends", async () => {
+test("a temporary restriction says when it ends", async () => {
   const me = await author();
   await writeStatement(me.identity_id, {
     restriction: "hidden",
@@ -998,7 +1013,7 @@ Deno.test("a temporary restriction says when it ends", async () => {
   assert((item.until as number) * 1000 > Date.now(), "the end of the restriction is in the past");
 });
 
-Deno.test("the first reading is what counts as delivery", async () => {
+test("the first reading is what counts as delivery", async () => {
   // A statement written and never shown discharges nothing (db/005). The column
   // is written here, by the reading, and never moved afterwards — it means "the
   // first time the author could have read it".
@@ -1037,7 +1052,7 @@ addEventListener("unload", () => {
   database.closePool();
 });
 
-Deno.test("a statement that was not shown is not recorded as delivered", async () => {
+test("a statement that was not shown is not recorded as delivered", async () => {
   // The route answers with a hundred and has no cursor, so anything past the
   // hundredth cannot be reached by any call at all. Until 2026-09-21 the
   // delivery UPDATE was bounded by the recipient rather than by the rows that
@@ -1070,7 +1085,7 @@ Deno.test("a statement that was not shown is not recorded as delivered", async (
   );
 });
 
-Deno.test("the visible boundary sits on the published centre, not the exact one", async () => {
+test("the visible boundary sits on the published centre, not the exact one", async () => {
   // The trilateration the review panel found on 2026-09-21. The answer rounds
   // a phrase's centre to a grid; the query did not, so "is this phrase in my
   // circle" drew its boundary around the exact centre — and the caller owns
@@ -1133,7 +1148,7 @@ Deno.test("the visible boundary sits on the published centre, not the exact one"
   assertEquals(card!.lat, published.lat, "the card printed a centre the query did not match on");
 });
 
-Deno.test("reading the feed is counted per identity, so a fan-out costs something", async () => {
+test("reading the feed is counted per identity, so a fan-out costs something", async () => {
   // The owner's decision of 2026-09-21 on the panel's open item P1: the age
   // band stays a precise promise, its price is written into §4.2, and the
   // fan-out that turns the band into an exact age is made expensive. Counted
@@ -1164,7 +1179,7 @@ Deno.test("reading the feed is counted per identity, so a fan-out costs somethin
   reset();
 });
 
-Deno.test("a page boundary inside one millisecond does not swallow a phrase", async () => {
+test("a page boundary inside one millisecond does not swallow a phrase", async () => {
   // The cursor is a pair, (visible_at, id), precisely so that a boundary
   // landing between two phrases published at the same instant keeps both. Its
   // first half was built from Date.getTime() — milliseconds — while the column
@@ -1241,7 +1256,7 @@ Deno.test("a page boundary inside one millisecond does not swallow a phrase", as
   reset();
 });
 
-Deno.test("an identity with no counters row can still publish", async () => {
+test("an identity with no counters row can still publish", async () => {
   // The counters row is written by registration and by nothing else, so an
   // identity older than db/025 has none — and a missing row was answered with
   // "four live phrases already", for ever, from an identity that had never
@@ -1277,7 +1292,7 @@ Deno.test("an identity with no counters row can still publish", async () => {
   reset();
 });
 
-Deno.test("choosing a language does not empty the feed while no phrase has one", async () => {
+test("choosing a language does not empty the feed while no phrase has one", async () => {
   // Every phrase is stored with lang 'und' — the insert says the column is
   // "rewritten at the verdict" and the verdict rewrites nothing, because the
   // detector of §8.14 does not exist yet. The filter compared the viewer's
@@ -1328,7 +1343,7 @@ Deno.test("choosing a language does not empty the feed while no phrase has one",
   reset();
 });
 
-Deno.test("a widening asks through the box index, not through the whole table", async () => {
+test("a widening asks through the box index, not through the whole table", async () => {
   // Measured on a million phrases (scripts/measure-feed-geo.sh, 2026-09-21): a
   // widening happens only after an empty answer, and in the empty case the
   // BETWEEN form walks feed_cursor over every row in the table — 468 ms per
@@ -1353,7 +1368,7 @@ Deno.test("a widening asks through the box index, not through the whole table", 
   );
 });
 
-Deno.test("a capped density count still reaches the top step", async () => {
+test("a capped density count still reaches the top step", async () => {
   // The count now stops at the first number that decides the answer — a
   // hundred and a million both read "hundreds" — because measured on a million
   // phrases the full count cost twice the capped one, on a handle a slider
@@ -1395,7 +1410,7 @@ Deno.test("a capped density count still reaches the top step", async () => {
   reset();
 });
 
-Deno.test("the old node can still publish while db/027 is applied", async () => {
+test("the old node can still publish while db/027 is applied", async () => {
   // The wizard migrates in the new image while the old node is still serving,
   // then swaps containers. The old node's INSERT does not name lat_published or
   // lon_published; when 027 made them NOT NULL, every phrase the old node took
@@ -1415,7 +1430,7 @@ Deno.test("the old node can still publish while db/027 is applied", async () => 
   await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = $1`, [id]);
 });
 
-Deno.test("the backfill in db/027 rounds exactly as quantise does", async () => {
+test("the backfill in db/027 rounds exactly as quantise does", async () => {
   // The migration carries a second implementation of the grid, and the first
   // version of it disagreed with the TypeScript: PostgreSQL's round() on a
   // double rounds halves to even, Math.round rounds them up, and an integer
@@ -1488,7 +1503,7 @@ Deno.test("the backfill in db/027 rounds exactly as quantise does", async () => 
   assertEquals(differ, [], `the SQL backfill and quantise disagree on ${differ.length} of ${cases.length}`);
 });
 
-Deno.test("the density handle is limited per identity, a hundred an hour", async () => {
+test("the density handle is limited per identity, a hundred an hour", async () => {
   // The owner's decision of 2026-09-21: feed.density.burst is a hundred an
   // hour per identity, a sliding window — not "a hundred in a row", which six
   // places in the documents said while the node counted an hour. The handle is
@@ -1521,7 +1536,7 @@ Deno.test("the density handle is limited per identity, a hundred an hour", async
   reset();
 });
 
-Deno.test("the hundred-and-first statement of reasons reaches its author", async () => {
+test("the hundred-and-first statement of reasons reaches its author", async () => {
   // Article 17(1): every restriction is explained to the person it happened to.
   // The route used to stop at a hundred with no cursor, so the hundred-and-first
   // could never be read by any call (open-work P3). All of them are written by
@@ -1563,7 +1578,7 @@ Deno.test("the hundred-and-first statement of reasons reaches its author", async
   assertEquals(undelivered.count, "0", "a statement that was read is not marked delivered");
 });
 
-Deno.test("a cursor that is not one from this route is refused", async () => {
+test("a cursor that is not one from this route is refused", async () => {
   const me = await author();
   const bad = await signedCall(me.pair.privateKey, me.session_id, "GET", "/statements?after=yesterday");
   assertEquals(bad.status, 400);
@@ -1574,7 +1589,7 @@ Deno.test("a cursor that is not one from this route is refused", async () => {
 // pair inside is the last row's instant to the microsecond — for the feed,
 // another person's publication and so their end — and only a cursor the pool
 // issued for that list opens (the owner's decision of 2026-09-24).
-Deno.test("a page cursor says nothing, and only one issued for that list opens", async () => {
+test("a page cursor says nothing, and only one issued for that list opens", async () => {
   const { sealCursor } = await import("../src/lib/cursor.ts");
   const me = await author();
   const id = crypto.randomUUID();
@@ -1636,7 +1651,7 @@ async function likeCount(id: string): Promise<number> {
 // never overlap where it matters. So one side is played on its own connection,
 // step by step, the way the route does it: the pair lock, the like, and a
 // commit only after the other side's request has started (loop plan A12).
-Deno.test({
+test({
   name: "a like crossing another under the pair lock still makes the match",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -1688,7 +1703,7 @@ Deno.test({
   },
 });
 
-Deno.test("a like counts once, and a double tap adds nothing", async () => {
+test("a like counts once, and a double tap adds nothing", async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -1713,7 +1728,7 @@ Deno.test("a like counts once, and a double tap adds nothing", async () => {
   reset();
 });
 
-Deno.test("liking back makes a match with both phrases in it", async () => {
+test("liking back makes a match with both phrases in it", async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -1739,7 +1754,7 @@ Deno.test("liking back makes a match with both phrases in it", async () => {
   reset();
 });
 
-Deno.test("a like with no live phrase of one's own is refused, not swallowed", async () => {
+test("a like with no live phrase of one's own is refused, not swallowed", async () => {
   // §8.4: such a like could never become a match, so taking it quietly would
   // be a like that goes nowhere without the person ever knowing.
   const { reset } = await import("../src/lib/rate_limit.ts");
@@ -1754,7 +1769,7 @@ Deno.test("a like with no live phrase of one's own is refused, not swallowed", a
   reset();
 });
 
-Deno.test("a like whose own phrase ran out is refused as one with no phrase at all", async () => {
+test("a like whose own phrase ran out is refused as one with no phrase at all", async () => {
   // §8.4 and chat_RU.md:1955: "a live phrase of one's own" is LIVE_PHRASE —
   // visible and not expired. An expired phrase the sweep has not taken yet
   // must not open the like (B8, 2026-09-26).
@@ -1772,7 +1787,7 @@ Deno.test("a like whose own phrase ran out is refused as one with no phrase at a
   reset();
 });
 
-Deno.test("a like the rules forbid answers exactly like one that counted", async () => {
+test("a like the rules forbid answers exactly like one that counted", async () => {
   // Different answers would be an oracle: blocked, out of band and one's own
   // phrase would each be told apart from a like that went in (§8.4, §8.9).
   const { reset } = await import("../src/lib/rate_limit.ts");
@@ -1799,7 +1814,7 @@ Deno.test("a like the rules forbid answers exactly like one that counted", async
 const unlike = (who: { pair: CryptoKeyPair; session_id: string }, phraseId: string) =>
   signedCall(who.pair.privateKey, who.session_id, "DELETE", `/feed/${phraseId}/like`);
 
-Deno.test("a like taken back gives back its counts", async () => {
+test("a like taken back gives back its counts", async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -1820,7 +1835,7 @@ Deno.test("a like taken back gives back its counts", async () => {
   reset();
 });
 
-Deno.test("a like that made a match cannot be taken back: spent", async () => {
+test("a like that made a match cannot be taken back: spent", async () => {
   // §8.4: the like is withdrawn only while no match came of it; once the pair
   // has a match the answer is spent and nothing moves.
   const { reset } = await import("../src/lib/rate_limit.ts");
@@ -1838,7 +1853,7 @@ Deno.test("a like that made a match cannot be taken back: spent", async () => {
   reset();
 });
 
-Deno.test("a block hides each one's phrases from the other, in the feed and in its density", async () => {
+test("a block hides each one's phrases from the other, in the feed and in its density", async () => {
   // §8.9: "phrases are shown to neither of them". Until 030 there was no
   // blocks table to read; the likes review panel (2026-09-21, security lens)
   // found the feed still showing them — and a like_count that did not move
@@ -1891,7 +1906,7 @@ Deno.test("a block hides each one's phrases from the other, in the feed and in i
   reset();
 });
 
-Deno.test("an expired match nobody swept does not hold a like for ever", async () => {
+test("an expired match nobody swept does not hold a like for ever", async () => {
   // Likes review panel, 2026-09-21 (data and security lenses): spent counted
   // any match row of the pair, and nothing sweeps matches yet.
   const { reset } = await import("../src/lib/rate_limit.ts");
@@ -1914,7 +1929,7 @@ Deno.test("an expired match nobody swept does not hold a like for ever", async (
   reset();
 });
 
-Deno.test("a like on an offer cannot be taken back", async () => {
+test("a like on an offer cannot be taken back", async () => {
   // §8.4 and screens 5 and 25: a like on an offer makes its match at once and
   // is not taken back. The one-sided match is not built yet, so without this
   // the like went back as if it were a phrase's.
@@ -1932,7 +1947,7 @@ Deno.test("a like on an offer cannot be taken back", async () => {
   reset();
 });
 
-Deno.test("spent holds the phrase a match came from, not every phrase of that person", async () => {
+test("spent holds the phrase a match came from, not every phrase of that person", async () => {
   // Owner's decision, 2026-09-21: per phrase, as screen 25 says, not per pair.
   // The match takes B's phrase that A liked last (§8.5), so A's like on the
   // other one of B's phrases stays A's to take back.
@@ -1958,7 +1973,7 @@ Deno.test("spent holds the phrase a match came from, not every phrase of that pe
   reset();
 });
 
-Deno.test({
+test({
   name: "the three hundred and first like or take-back in an hour is refused",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -1980,7 +1995,7 @@ Deno.test({
   },
 });
 
-Deno.test("an expired match is swept with its snapshots, a live one is not", async () => {
+test("an expired match is swept with its snapshots, a live one is not", async () => {
   // Likes review panel, 2026-09-21: nothing swept matches, and each expired row
   // kept two snapshots of other people's phrases with no term at all.
   const { sweepExpiredMatches } = await import("../src/lib/match_sweeper.ts");
@@ -2012,7 +2027,7 @@ Deno.test("an expired match is swept with its snapshots, a live one is not", asy
   assertEquals(left.filter((r) => r.match_id === alive).length, 2, "a live match lost its participants");
 });
 
-Deno.test({
+test({
   name: "a like that waits on a held author row gives up in seconds, not in fifteen",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2080,7 +2095,7 @@ const consent = async (who: { pair: CryptoKeyPair; session_id: string }, matchId
 // device: a chat opened with it would open with a key nobody can derive. So
 // the freeze takes back the half and the consent with it, the match waits
 // again, and the new device consents with a half of its own (loop plan A13).
-Deno.test({
+test({
   name: "a frozen session's half does not open the chat, and its consent is taken back",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2118,7 +2133,7 @@ async function heldFreeze(sessionId: string, reason: "transfer" | "pin_limit", d
   return got.answer;
 }
 
-Deno.test({
+test({
   name: "a consent racing a freeze of its own session writes no half",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2132,7 +2147,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "the other side's consent during a freeze opens no chat on the half it takes back",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2147,7 +2162,7 @@ Deno.test({
 
 // A PIN-limit freeze is lifted on the same device by the paper code, private
 // halves and all: its consents stand.
-Deno.test({
+test({
   name: "a PIN-limit freeze leaves the halves and the consent standing",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2163,7 +2178,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "consent waits for the other side, and both make it agreed",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2187,7 +2202,7 @@ Deno.test({
   assertEquals(linked.chat_id, agreed.chat_id, "the match does not point at its chat");
 }});
 
-Deno.test({
+test({
   name: "a match that is not yours, or is over, answers not found",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2201,7 +2216,7 @@ Deno.test({
   assertEquals((await consent(a, gone)).status, 404, "an expired match took a consent");
 }});
 
-Deno.test({
+test({
   name: "not now is written at once, can be undone, and consent clears it",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2236,7 +2251,7 @@ async function queued(chat: string, sessionId: string): Promise<string[]> {
   return rows.map((r) => r.local_id);
 }
 
-Deno.test({
+test({
   name: "a message waits in the other one's queue, once, and the answer does not say who is there",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2259,7 +2274,7 @@ Deno.test({
 // stepped away is handed nothing while they are away — the lines wait in the
 // queue and come when they are back (the owner's decision of 2026-09-24; the
 // room itself stays open, 409 answers requests through it).
-Deno.test({
+test({
   name: "a room of someone away is handed nothing, and gets what waited once they are back",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2284,7 +2299,7 @@ Deno.test({
 // `chat_message` of "<chat>::<session>" (src/chat/relay.ts). A time away that
 // runs out by itself sends it from the minute's job, once; an early return
 // sends it from DELETE /away, and the job then says nothing (db/047).
-Deno.test({
+test({
   name: "a time away that runs out wakes the held rooms once, and a return by hand is not woken twice",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2343,7 +2358,7 @@ Deno.test({
 // every line that waited, once and in order; and a time away that ran out by
 // itself, with no wake yet, is ended by the next line — which then brings the
 // earlier ones too, not only itself.
-Deno.test({
+test({
   name: "a held room is sent nothing while away, and all that waited on the first hand-over after",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2416,7 +2431,7 @@ Deno.test({
 // announces the end; the DELETE, rechecking the row after the lock, must not
 // announce it again. Here the job is a third connection doing what it does,
 // holding the row from before the DELETE started until after the end.
-Deno.test({
+test({
   name: "a return begun before the end and served after the job woke the rooms does not wake them again",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2472,7 +2487,7 @@ Deno.test({
 // The waker's two filters (lib/away_waker.ts), unguarded until 2026-09-24 (the
 // verifier found them green when removed): a frozen session holds no room to
 // wake, and a conversation over for the person is not woken.
-Deno.test({
+test({
   name: "a time away that runs out wakes no frozen session and no conversation that ended",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2510,7 +2525,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "receipt deletes one's own rows and nobody else's",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2527,7 +2542,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a stranger cannot write into a chat, and an oversized ciphertext is refused",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2543,7 +2558,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "the queue keeps two hundred and pushes out the oldest in silence",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2569,7 +2584,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a queued message older than its term is swept, a fresh one is not",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2587,7 +2602,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a block closes the chat to both: no message, no ticket",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2606,7 +2621,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a pair with a live chat gets no second match, and agreeing never fails on it",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2634,7 +2649,7 @@ const goneOf = async (chat: string) =>
   (await database.queryOrThrow<{ n: number }>(
     `SELECT count(*)::int AS n FROM chat_participants WHERE chat_id = $1 AND gone_at IS NOT NULL`, [chat]))[0].n;
 
-Deno.test({
+test({
   name: "closing a conversation by hand ends it for both and empties its queue",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2651,7 +2666,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "one's own term ends the conversation for oneself, and the sweep removes what is over for both",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2670,7 +2685,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "alive answers one's own live conversations and nothing else",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2690,7 +2705,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "one's own span is one of four, and it moves one's own end only",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2715,7 +2730,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "the inbox shows one's offers to talk and one's conversations, and says who is waiting",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2759,7 +2774,7 @@ const nonce = () => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(
 const blockedBy = async (who: string) =>
   (await database.queryOrThrow<{ n: number }>(`SELECT count(*)::int AS n FROM blocks WHERE blocker_identity = $1`, [who]))[0].n;
 
-Deno.test({
+test({
   name: "blocking by a conversation ends it for both, hides the match, and answers 204 to anything",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2782,7 +2797,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a replayed block does not come back after it was lifted",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2812,7 +2827,7 @@ Deno.test({
 
 // Protocol §2: a repeat is looked up before the stepped-away refusal, so a lost
 // answer can be asked for from a time away; a new block cannot be made there.
-Deno.test({
+test({
   name: "a repeated block is answered from a time away, and a new one is refused",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2838,7 +2853,7 @@ Deno.test({
 // POST /identities/close — "start over" (chat spec §8.2, screen 12): one
 // transaction closes the identity and takes down all it has live, and the
 // PIN is proved on the same counter as the vault's.
-Deno.test({
+test({
   name: "closing an identity takes down what it has live, and a wrong PIN closes nothing",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2899,7 +2914,7 @@ Deno.test({
 // not land once a close or a time away has committed (verifier, 2026-09-24).
 // Deterministic: another connection holds the counters row both lock, the
 // request waits on it, the identity is closed and the lock let go.
-Deno.test({
+test({
   name: "a like or a phrase waiting on a close lands nothing once the close commits",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2948,7 +2963,7 @@ Deno.test({
 // row. A close that took the identity's row first and the counters second met
 // it the other way round — deadlock, one of the two 503. Another connection
 // plays the step-away here, in its order, while the close waits.
-Deno.test({
+test({
   name: "a close and a step-away of one identity take their locks in one order",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -2990,7 +3005,7 @@ const replays = async (route: string) => {
 // before the nonce was looked at: every repeat of one block spent a slot, and
 // once the hour's twenty were gone the repeat of a block already made got 429
 // instead of its 204 — the family of the step away's guard (loop, 2026-09-24).
-Deno.test({
+test({
   name: "repeating a block spends no slot of the hour's limit, and is answered after the limit is gone",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3017,7 +3032,7 @@ Deno.test({
 });
 
 // ── Hiding a phrase for oneself (§8.9, screens 5 and 10) ───────────────────────
-Deno.test({
+test({
   name: "a hidden phrase leaves one's own feed only, and comes back by its id",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3061,7 +3076,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a span set after one's term does not bring the conversation back",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3077,7 +3092,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "hiding does not let a blocked person read the blocker's phrase",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3104,7 +3119,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a block outlives the conversation it ended: no match comes back, no consent over it",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3129,7 +3144,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a conversation that ended takes its match with it",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3146,7 +3161,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a conversation over for the other side reads as ended, and their term is not told",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3199,7 +3214,7 @@ async function panelAs(role: string, brand: string | null = null): Promise<(meth
   };
 }
 
-Deno.test({
+test({
   name: "a moderator sees a waiting phrase, publishes it once, and a viewer cannot",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3231,7 +3246,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a refused phrase leaves the queue and is never seen",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3253,7 +3268,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a tenant's moderator neither sees nor decides another brand's phrase",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3279,7 +3294,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "publishing a phrase accepts the name that goes out with it",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3308,7 +3323,7 @@ Deno.test({
 // frame (protocol §4.4 frames, §8.2): the node has no socket of a session's
 // own, so the frame goes to every room the session holds; with none open, the
 // profile's name_state says the same (loop plan A10, 2026-09-24).
-Deno.test({
+test({
   name: "a name's verdict is announced to its author's live sessions, accepted or refused",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3354,7 +3369,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "publish accepts only the name the moderator saw, and never a rejected one unread",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3406,7 +3421,7 @@ const profileOf = async (id: string) =>
     `SELECT name, name_pending, name_state, age, filter_age_min, filter_age_max, languages
        FROM identities WHERE id = $1`, [id]))[0];
 
-Deno.test({
+test({
   name: "a new name waits for the queue, and comes out with the next phrase",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3438,7 +3453,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "the accepted name is frozen while a phrase lives or a chat is open",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3462,7 +3477,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "age moves up across 20/21 and never down; the filter stays in the band; ten edits a day",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3493,7 +3508,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a birthday clamps the old filter; invisible characters are not a name; the rename and the verdict do not deadlock",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3538,7 +3553,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "the moderator refuses a name: the phrase waits unswept, no match forms, a new name brings it back",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3595,7 +3610,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a signed send carries the storefront's key, and the phrase lands under its brand",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3621,7 +3636,7 @@ Deno.test({
 });
 
 // ── Step 6: the ephemeral halves ride on consent, the inbox hands them over ──
-Deno.test({
+test({
   name: "consent needs a half bound to its match; the inbox hands each side the other's",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3681,7 +3696,7 @@ Deno.test({
 });
 
 // ── Step-5 tails with a database (panel 2026-09-21) ────────────────────────────
-Deno.test({
+test({
   name: "the pending sweeper has its index, and the chat sweeper ends conversations in batches, all of them",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3724,7 +3739,7 @@ async function rekeyHalf(who: { pair: CryptoKeyPair }, chatId: string, epoch: nu
   return { epoch, ephemeral_public_key: key, ephemeral_signature: auth.bytesToBase64url(signature) };
 }
 
-Deno.test({
+test({
   name: "a side that lost its keys asks for new ones; the other agrees; both hold the next epoch",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3771,7 +3786,7 @@ Deno.test({
 });
 
 // ── Reissue tails (panel 2026-09-22, rekey) ────────────────────────────────────
-Deno.test({
+test({
   name: "agreeing to new keys clears what waited under the old ones",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3793,7 +3808,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a pair whose conversation ended for both gets a new one, not the dead one",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3825,7 +3840,7 @@ Deno.test({
 });
 
 // ── Small tails of the 21–22.09 panels, with a database ────────────────────────
-Deno.test({
+test({
   name: "the queue's x-total-count counts the whole queue, not the page of 200",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3839,14 +3854,24 @@ Deno.test({
        INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius)
        SELECT gen_random_uuid(), $1, id, 'в очереди', 'alone', 'und', 60.17, 24.94, 1000 FROM who`,
       [brand]);
-    const moderator = await panelAs("moderator", brand);
-    const queue = await moderator("GET", "/admin/feed-queue");
-    assertEquals((queue.body as unknown[]).length, 200);
-    assertEquals(queue.headers.get("x-total-count"), "201", "the count was the page, not the queue");
+    // Its 201 rows go when it is done: the platform moderator of the other
+    // queue tests sees every brand, and under --shuffle these filled that
+    // page of 200 before their own phrase (W16-SF2).
+    try {
+      const moderator = await panelAs("moderator", brand);
+      const queue = await moderator("GET", "/admin/feed-queue");
+      assertEquals((queue.body as unknown[]).length, 200);
+      assertEquals(queue.headers.get("x-total-count"), "201", "the count was the page, not the queue");
+    } finally {
+      await database.queryOrThrow(
+        `WITH gone AS (DELETE FROM feed_messages WHERE brand = $1 RETURNING author_identity)
+         DELETE FROM identities WHERE id IN (SELECT author_identity FROM gone)`,
+        [brand]);
+    }
   },
 });
 
-Deno.test({
+test({
   name: "a waiting phrase whose author is gone still shows in the queue, marked",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3863,7 +3888,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "registration refuses a name with characters nobody can see",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3886,7 +3911,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "PATCH /identities/me: the pause stops a new name; [] clears languages; null clears a bound",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3913,7 +3938,7 @@ Deno.test({
 });
 
 // ── The inbox cursor (step-7 panel #5; protocol §6: ?after, {items, next}) ─────
-Deno.test({
+test({
   name: "the inbox pages past a hundred with a cursor, and a foreign cursor is refused",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3949,7 +3974,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "the inbox cursor crosses from offers to conversations without losing a row",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -3992,7 +4017,7 @@ const nonce16 = () => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Arra
 const support = (who: { pair: CryptoKeyPair; session_id: string }, method: string, path: string, body?: unknown) =>
   signedCall(who.pair.privateKey, who.session_id, method, path, body, { "x-api-key": KEY_ID });
 
-Deno.test({
+test({
   name: "a request gets a random number at once, lists as one's own, and a repeat of its nonce is the same request",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4021,7 +4046,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "the fourth request in a day is 429 with the storefront's support address",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4037,7 +4062,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "an answer's dot goes out only for its owner; a stranger's or a made-up number is 204 and changes nothing",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4058,7 +4083,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a frozen session may write one request a day and sees no list",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4081,7 +4106,7 @@ Deno.test({
 // session, and the guard wrote last_seen_at for every session it let in — so a
 // lost phone writing to support once a day, even with requests the route then
 // refused, kept the identity past its year for ever.
-Deno.test({
+test({
   name: "a frozen session writing to support does not move its last_seen_at, a live one does",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4111,7 +4136,7 @@ const lockPin = (sessionId: string, extra = "") => database.queryOrThrow(
   `UPDATE vault_shares SET locked_at = now(), attempts_left = 0 WHERE session = $1`, [sessionId])
   .then(() => extra ? database.queryOrThrow(extra, [sessionId]) : []);
 
-Deno.test({
+test({
   name: "a session with its PIN locked and not yet frozen writes to support as a frozen one",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4132,7 +4157,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a session with its PIN locked and not yet frozen does not move its last_seen_at",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4149,7 +4174,7 @@ Deno.test({
 // The guard read the session before the transaction; a tenth PIN mistake that
 // commits while the request waits on the counters (its take-down takes them)
 // must still make it a frozen one's request — marked, and once a day (B87).
-Deno.test({
+test({
   name: "a support request behind a tenth miss that locked the share is taken as a frozen one's (B87)",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4187,7 +4212,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "closing an identity cuts its support requests loose, as screen 14 promises",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4203,7 +4228,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "support: the fourth answers with Retry-After; only a PIN-frozen session with no live sibling may write",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4232,7 +4257,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a support request is kept a year from created_at, and not a day longer",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4251,7 +4276,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a person who stepped away can still write to support (owner's decision of 2026-09-22)",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4267,7 +4292,7 @@ Deno.test({
 });
 
 // ── The team's daily digest of support requests (chat spec §13) ────────────────
-Deno.test({
+test({
   name: "the support digest counts per storefront — new, waiting, from a frozen session — and carries no request text",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4300,7 +4325,7 @@ Deno.test({
 // than prune_dsa_records, which has its own urgent letter, go as a line in the
 // same daily digest — to every face, even one with no requests that day
 // (loop, 2026-09-24; open.tsv watchdogs.jobs.unbuilt).
-Deno.test({
+test({
   name: "the daily digest names jobs that gave up, and goes out for them alone",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4326,7 +4351,7 @@ Deno.test({
   },
 });
 
-Deno.test("the support digest does not send the team to a panel page that does not exist", async () => {
+test("the support digest does not send the team to a panel page that does not exist", async () => {
   const { supportDigestBlocks } = await import("../src/lib/mailer.ts");
   const letter = JSON.stringify(supportDigestBlocks({ new: 1, waiting: 1, frozen: 0 }));
   const { match } = await import("../src/lib/router.ts");
@@ -4336,7 +4361,7 @@ Deno.test("the support digest does not send the team to a panel page that does n
 });
 
 // ── Support, the team's side (protocol §4.10a) ────────────────────────────────
-Deno.test({
+test({
   name: "the team reads its own brand's requests without the author, answers once or again, and a viewer cannot",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4378,7 +4403,7 @@ const likesOf = async (who: { pair: CryptoKeyPair; session_id: string }, after?:
   return r.body as { items: Array<{ id: string; state: string; text: string; liked_at: number }>; next: string | null };
 };
 
-Deno.test({ name: "a liked phrase leaves my feed, not anybody else's, and waits in my likes", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a liked phrase leaves my feed, not anybody else's, and waits in my likes", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4397,7 +4422,7 @@ Deno.test({ name: "a liked phrase leaves my feed, not anybody else's, and waits 
   reset();
 });
 
-Deno.test({ name: "a like that became a match is listed as matched, on both sides", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a like that became a match is listed as matched, on both sides", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4411,7 +4436,7 @@ Deno.test({ name: "a like that became a match is listed as matched, on both side
   reset();
 });
 
-Deno.test({ name: "a like taken back returns the phrase to the feed, and a block takes it out of the list", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a like taken back returns the phrase to the feed, and a block takes it out of the list", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4433,7 +4458,7 @@ Deno.test({ name: "a like taken back returns the phrase to the feed, and a block
   reset();
 });
 
-Deno.test({ name: "the likes list pages by the time of the like, and refuses a cursor it did not give", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "the likes list pages by the time of the like, and refuses a cursor it did not give", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4469,7 +4494,7 @@ Deno.test({ name: "the likes list pages by the time of the like, and refuses a c
 // The feed's own lesson (routes/feed.ts): a cursor that loses the microseconds
 // drops rows at a page boundary. Thirty-two likes inside one millisecond, apart
 // by microseconds, must all come back once across two pages (data lens, 23.09.2026).
-Deno.test({ name: "likes inside one millisecond page without losing one", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "likes inside one millisecond page without losing one", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4495,7 +4520,7 @@ Deno.test({ name: "likes inside one millisecond page without losing one", saniti
 // Density reads what the feed would deliver (routes/feed.ts): what the viewer
 // liked or hid is gone from their feed, so it is gone from their density too —
 // and only from theirs (review panel 23.09.2026).
-Deno.test({ name: "density leaves out what the viewer liked or hid, and only for them", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "density leaves out what the viewer liked or hid, and only for them", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const here = { lat: -33.87, lon: 151.21 };
@@ -4538,7 +4563,7 @@ Deno.test({ name: "density leaves out what the viewer liked or hid, and only for
 // ── Stepping away (chat §8.2, protocol §4.9) ─────────────────────────────────────
 const awayNonce = () => auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16)));
 
-Deno.test({
+test({
   name: "stepping away takes one's phrases and given likes, marks one's conversations, and closes the product",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4594,7 +4619,7 @@ Deno.test({
 // anyone away before the nonce was ever looked at, so the repeat — of the one
 // request that makes one away — got 409 stepped_away instead (loop quorum,
 // 2026-09-24).
-Deno.test({
+test({
   name: "a repeated step away, same nonce, answers what the first answered and does nothing again",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4620,7 +4645,7 @@ Deno.test({
 // (quorum 2026-09-25, two of three who voted: write it down, do not refuse it;
 // panel of the day57 loop, task 5). The body is signed, so it is the same
 // device asking; it gets what the first asked for, and nothing it asks for now.
-Deno.test({
+test({
   name: "a repeat with the same nonce and another body gets the first answer and changes nothing",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4641,7 +4666,7 @@ Deno.test({
 
 // Another route's nonce on /away while away (verifier, 2026-09-25): protocol
 // §2 promises 409 invalid_body for it on every route; /away said stepped_away.
-Deno.test({
+test({
   name: "another route's nonce on /away while away is refused as another route's",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4659,7 +4684,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "stepping away puts out a match that has not become a conversation, for the other side too",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4672,7 +4697,7 @@ Deno.test({
   },
 });
 
-Deno.test({
+test({
   name: "a step away needs a span it knows and a nonce",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4686,7 +4711,7 @@ Deno.test({
 
 // The profile lists one's own live phrases (protocol §4.11): the step away's
 // price is counted from it, so it has to hold exactly what a step away takes.
-Deno.test({
+test({
   name: "the profile lists one's own live phrases, waiting ones included, and nobody else's",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -4727,7 +4752,7 @@ Deno.test({
 // them. Both must now finish, one after the other.
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-Deno.test({ name: "the verdict waits on the author's counters before the phrase, and does not deadlock", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "the verdict waits on the author's counters before the phrase, and does not deadlock", sanitizeOps: false, sanitizeResources: false }, async () => {
   const me = await author();
   const waiting = crypto.randomUUID();
   await database.queryOrThrow(
@@ -4755,7 +4780,7 @@ Deno.test({ name: "the verdict waits on the author's counters before the phrase,
   assertEquals((decided as PromiseFulfilledResult<{ applied: boolean }>).value.applied, true);
 });
 
-Deno.test({ name: "consent waits on the pair's counters before the match, and does not deadlock", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "consent waits on the pair's counters before the match, and does not deadlock", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { a, b, id } = await freshMatch();
   // The other side first: the consent that opens the chat is the one that
   // writes counters, so that is the one to race.
@@ -4785,7 +4810,7 @@ Deno.test({ name: "consent waits on the pair's counters before the match, and do
 // pair's counters — its freeze gone back to the minute's job — is a freeze by
 // the guard's rule (B75): the consent must not publish a half for that
 // session (B87; the race, B94).
-Deno.test({ name: "a consent behind a tenth miss that locked the share publishes no half (B94)", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a consent behind a tenth miss that locked the share publishes no half (B94)", sanitizeOps: false, sanitizeResources: false }, async () => {
   const postgres = (await import("npm:postgres@3.4.4")).default;
   const { a, id } = await freshMatch();
   const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
@@ -4823,7 +4848,7 @@ Deno.test({ name: "a consent behind a tenth miss that locked the share publishes
 // "About to go" (§8.11, depth-client §4.4.1; owner 23.09.2026: a flag, not a
 // time): the last 65 minutes of someone else's phrase come as soon: true, in
 // the feed and in the likes, and the remaining time itself never does.
-Deno.test({ name: "a phrase in its last 65 minutes is marked soon, and its end is never sent", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a phrase in its last 65 minutes is marked soon, and its end is never sent", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const here = { lat: 35.68, lon: 139.69 };
@@ -4871,7 +4896,7 @@ Deno.test({ name: "a phrase in its last 65 minutes is marked soon, and its end i
 const runOut = (id: string) =>
   database.queryOrThrow(`UPDATE feed_messages SET expires_at = now() - interval '1 minute' WHERE id = $1`, [id]);
 
-Deno.test({ name: "ran out · a like on somebody else's phrase that ran out does not count", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "ran out · a like on somebody else's phrase that ran out does not count", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4884,7 +4909,7 @@ Deno.test({ name: "ran out · a like on somebody else's phrase that ran out does
   reset();
 });
 
-Deno.test({ name: "ran out · no match is made of a phrase that ran out", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "ran out · no match is made of a phrase that ran out", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4900,7 +4925,7 @@ Deno.test({ name: "ran out · no match is made of a phrase that ran out", saniti
   reset();
 });
 
-Deno.test({ name: "ran out · a liked phrase that ran out leaves my likes", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "ran out · a liked phrase that ran out leaves my likes", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4913,7 +4938,7 @@ Deno.test({ name: "ran out · a liked phrase that ran out leaves my likes", sani
   reset();
 });
 
-Deno.test({ name: "ran out · the feed does not deliver a phrase that ran out", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "ran out · the feed does not deliver a phrase that ran out", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4925,7 +4950,7 @@ Deno.test({ name: "ran out · the feed does not deliver a phrase that ran out", 
   reset();
 });
 
-Deno.test({ name: "ran out · density does not count a phrase that ran out", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "ran out · density does not count a phrase that ran out", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const viewer = await author();
@@ -4949,7 +4974,7 @@ Deno.test({ name: "ran out · density does not count a phrase that ran out", san
   reset();
 });
 
-Deno.test({ name: "ran out · an own phrase that ran out does not freeze the name", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "ran out · an own phrase that ran out does not freeze the name", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const who = await author();
@@ -4961,7 +4986,7 @@ Deno.test({ name: "ran out · an own phrase that ran out does not freeze the nam
   reset();
 });
 
-Deno.test({ name: "ran out · a phrase that ran out cannot be hidden, and so confirmed", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "ran out · a phrase that ran out cannot be hidden, and so confirmed", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4994,7 +5019,7 @@ async function settledOrWaiting(p: Promise<unknown>, ms = 3000): Promise<void> {
 // take-back that deleted the like and then wrote the row met it the other way
 // round, and was the one rolled back: 503 (H2). And an expired phrase's like
 // is the sweep's, counters and all, as it is for a take-down (H8).
-Deno.test({
+test({
   name: "taking back a like on an expired phrase meets the sweep without a deadlock and leaves the counters to it",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -5035,7 +5060,7 @@ Deno.test({
 // H3, the step away's side of it: the sweep holds one's own phrase (expired in
 // the take-down's window) and goes for the phrase one liked, which the
 // take-down holds. Postgres rolls one back; the step away is tried again.
-Deno.test({
+test({
   name: "a step away that loses a deadlock to the sweep is tried again, not answered 503",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -5080,7 +5105,7 @@ Deno.test({
 // locked. The freeze deferred by a real lock timeout: a second connection
 // holds the session's row as a consent does, FOR SHARE, past the close
 // route's two seconds.
-Deno.test({
+test({
   name: "a session whose PIN is locked is handed no line and queued none, and the sender cannot tell (B85)",
   sanitizeResources: false,
   sanitizeOps: false,
@@ -5187,7 +5212,7 @@ const heldCounters = `SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDAT
 const refusedAsNotLive = (answer: { status: number; body: unknown }, what: string) =>
   assertEquals(answer.status, 401, `${what} behind a locked share answered ${answer.status}: ${JSON.stringify(answer.body)}`);
 
-Deno.test({ name: "a profile edit behind a tenth miss that locked the share changes nothing (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a profile edit behind a tenth miss that locked the share changes nothing (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const me = await author();
@@ -5198,7 +5223,7 @@ Deno.test({ name: "a profile edit behind a tenth miss that locked the share chan
   assertEquals(row.age, 30, "the profile edit was written for a session whose PIN was locked");
 });
 
-Deno.test({ name: "a phrase sent behind a tenth miss that locked the share is not written (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a phrase sent behind a tenth miss that locked the share is not written (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const me = await author();
@@ -5210,7 +5235,7 @@ Deno.test({ name: "a phrase sent behind a tenth miss that locked the share is no
   assertEquals(n, 0, "the phrase was written for a session whose PIN was locked");
 });
 
-Deno.test({ name: "a like behind a tenth miss that locked the share is not written (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a like behind a tenth miss that locked the share is not written (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const me = await author();
@@ -5224,7 +5249,7 @@ Deno.test({ name: "a like behind a tenth miss that locked the share is not writt
   assertEquals(n, 0, "the like was written for a session whose PIN was locked");
 });
 
-Deno.test({ name: "a time away behind a tenth miss that locked the share is not taken (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a time away behind a tenth miss that locked the share is not taken (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const me = await author();
@@ -5240,7 +5265,7 @@ Deno.test({ name: "a time away behind a tenth miss that locked the share is not 
   assertEquals(row.kept, 0, "the time away's nonce stayed, though it was refused");
 });
 
-Deno.test({ name: "a block behind a tenth miss that locked the share is not written (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a block behind a tenth miss that locked the share is not written (B108)", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { a, b, id } = await freshMatch();
   const theirs = await seedPhrase(b.identity_id, "ещё одна их фраза");
   // The block waits on the match row the tenth miss's take-down puts out.

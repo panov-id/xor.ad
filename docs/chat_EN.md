@@ -2697,6 +2697,8 @@ the old K       cannot be recovered by anything
 
 **The person is asked rather than told**, for the same reason a transfer requires "that's me": a companion changing device is an event worth knowing about, particularly if the identity was taken.
 
+**A request also comes without a device change — owner's decision 2026-10-01 and quorum 2026-10-04.** New keys can be asked for from a healthy conversation too (the terminal's action row, the web's button). The node carries no reason and could not check one: the body of `POST /chats/:id/rekey`, the frame and the inbox flag are the same in both cases. So the other side sees one neutral line with no reason: "The other side asks for new conversation keys. Until you agree, new lines will not open." (`chat.rekeyPeerAsks` in the terminal, `web.chat.peer_asks` in the web). The promise "earlier messages will not come back" is dropped from it: the device keeps no history even without a reissue (the database holds only the undelivered).
+
 **The safety code does not change** — it is derived from the long-term keys, and those are the same. Two people who compared it aloud can compare it again and see the same number.
 
 **Forward secrecy is not weakened but strengthened:** the new `K` is out of reach of the previous device, and nothing written from here on can be read by it.

@@ -152,7 +152,7 @@
   "write.hold": "Verificăm ce ați trimis înainte — cea nouă pleacă după verdict.",
   "write.live": "Patru fraze sunt deja active. Următorul loc se eliberează la {time}.",
   "me.nameHint": "se schimbă doar de la zero",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "numele n-a fost acceptat; fraza așteaptă un nume nou",
   "me.ageHint": "interlocutorii vor vedea schimbarea",
   "me.band21": "Treceți în banda 21+?",
   "me.save": "salvează",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Cheile conversației au fost reînnoite (epoca {epoch}).",
   "chat.rekeyRefused": "nodul nu a primit cheile noi: {status}",
   "feed.refused": "Fraza ta nu a trecut de moderare și a fost retrasă.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "numele mesei n-a fost acceptat — masa trăiește fără nume"
 }

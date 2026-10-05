@@ -343,5 +343,5 @@
   "web.legal.accepted": "ամեն ինչ ընդունված է",
   "web.legal.stale": "խմբագրությունը հենց նոր փոխվեց — կարդացեք և նորից ընդունեք",
   "web.legal.refused": "նախ ընդունեք փաստաթղթերի նոր խմբագրությունները՝ «ես» → «փաստաթղթեր»",
-  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
+  "web.me.name_rejected": "անունը չընդունվեց, արտահայտությունը սպասում է նոր անվան"
 }

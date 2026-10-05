@@ -152,7 +152,7 @@
   "write.hold": "Мурункусун текшерип жатабыз — жаңысы өкүмдөн кийин кетет.",
   "write.live": "Төрт фраза тирүү. Эң жакыны {time} бошойт.",
   "me.nameHint": "таза барактан өзгөрөт",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "аты кабыл алынган жок, сөз айкашы жаңы атты күтөт",
   "me.ageHint": "маектештер өзгөрүүнү көрөт",
   "me.band21": "21+ тилкесине өтөбүзбү?",
   "me.save": "сактоо",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Маектин ачкычтары жаңыртылды ({epoch}-доор).",
   "chat.rekeyRefused": "түйүн жаңы ачкычтарды кабыл албады: {status}",
   "feed.refused": "Сиздин фразаңыз модерациядан өткөн жок жана алынып салынды.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "столдун аты кабыл алынган жок — стол атсыз иштей берет"
 }

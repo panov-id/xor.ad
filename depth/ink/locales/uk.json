@@ -152,7 +152,7 @@
   "write.hold": "Перевіряємо попереднє — нове піде після вердикту.",
   "write.live": "Чотири фрази вже живуть. Найближча звільниться о {time}.",
   "me.nameHint": "змінюється з чистого аркуша",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "ім'я не прийнято, фраза чекає нового імені",
   "me.ageHint": "співрозмовники побачать зміну",
   "me.band21": "Перейти до смуги 21+?",
   "me.save": "зберегти",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Ключі розмови оновлено (епоха {epoch}).",
   "chat.rekeyRefused": "вузол не прийняв нові ключі: {status}",
   "feed.refused": "Ваша фраза не пройшла модерацію, і її знято.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "назву столу не прийнято — стіл живе без назви"
 }

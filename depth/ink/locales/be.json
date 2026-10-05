@@ -152,7 +152,7 @@
   "write.hold": "Правяраем мінулае — новае пойдзе пасля вердыкту.",
   "write.live": "Чатыры фразы ўжо жывуць. Бліжэйшая вызваліцца ў {time}.",
   "me.nameHint": "мяняецца з чыстага аркуша",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "імя не прынята, фраза чакае новага імя",
   "me.ageHint": "суразмоўцы ўбачаць змену",
   "me.band21": "Перайсці ў паласу 21+?",
   "me.save": "захаваць",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Ключы размовы абноўлены (эпоха {epoch}).",
   "chat.rekeyRefused": "вузел не прыняў новыя ключы: {status}",
   "feed.refused": "Ваша фраза не прайшла мадэрацыю і знята.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "імя стала не прынята — стол жыве без імя"
 }

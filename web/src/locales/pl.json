@@ -343,5 +343,5 @@
   "web.legal.accepted": "wszystko zaakceptowane",
   "web.legal.stale": "wersja właśnie się zmieniła — przeczytaj ją i zaakceptuj ponownie",
   "web.legal.refused": "najpierw zaakceptuj nowe wersje dokumentów: „ja” → „dokumenty”",
-  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
+  "web.me.name_rejected": "imienia nie przyjęto, fraza czeka na nowe"
 }

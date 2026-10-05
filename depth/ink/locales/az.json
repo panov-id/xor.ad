@@ -152,7 +152,7 @@
   "write.hold": "Əvvəlkini yoxlayırıq — yenisi qərardan sonra gedəcək.",
   "write.live": "Dörd ifadə artıq yaşayır. Ən yaxını {time} boşalacaq.",
   "me.nameHint": "təmiz vərəqdən dəyişir",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "ad qəbul edilmədi; ifadə yeni adı gözləyir",
   "me.ageHint": "həmsöhbətlər dəyişikliyi görəcək",
   "me.band21": "21+ zolağına keçilsin?",
   "me.save": "saxla",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Söhbətin açarları yeniləndi (epoxa {epoch}).",
   "chat.rekeyRefused": "qovşaq yeni açarları qəbul etmədi: {status}",
   "feed.refused": "İfadəniz moderasiyadan keçmədi və götürüldü.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "masanın adı qəbul edilmədi — masa adsız yaşayır"
 }

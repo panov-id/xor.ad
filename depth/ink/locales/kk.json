@@ -152,7 +152,7 @@
   "write.hold": "Алдыңғысын тексеріп жатырмыз — жаңасы шешімнен кейін кетеді.",
   "write.live": "Төрт сөз тіркесі әлі тірі. Ең жақыны {time} босайды.",
   "me.nameHint": "таза беттен өзгереді",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "аты қабылданбады, сөз тіркесі жаңа атты күтеді",
   "me.ageHint": "сұхбаттастар өзгерісті көреді",
   "me.band21": "21+ жолағына өту керек пе?",
   "me.save": "сақтау",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Әңгіменің кілттері жаңартылды ({epoch}-дәуір).",
   "chat.rekeyRefused": "түйін жаңа кілттерді қабылдамады: {status}",
   "feed.refused": "Сіздің сөз тіркесіңіз модерациядан өтпей, алынып тасталды.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "үстелдің аты қабылданбады — үстел атсыз жұмыс істей береді"
 }

@@ -152,7 +152,7 @@
   "write.hold": "Oldingisini tekshiryapmiz — yangisi hukmdan keyin ketadi.",
   "write.live": "To'rtta ibora allaqachon tirik. Eng yaqini {time} da bo'shaydi.",
   "me.nameHint": "toza varaqdan o'zgaradi",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "ism qabul qilinmadi, ibora yangi ismni kutmoqda",
   "me.ageHint": "suhbatdoshlar o'zgarishni ko'radi",
   "me.band21": "21+ tasmasiga o'tilsinmi?",
   "me.save": "saqlash",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Suhbat kalitlari yangilandi (davr {epoch}).",
   "chat.rekeyRefused": "tugun yangi kalitlarni qabul qilmadi: {status}",
   "feed.refused": "So'zingiz moderatsiyadan o'tmadi va olib tashlandi.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "stol nomi qabul qilinmadi — stol nomsiz ishlayveradi"
 }

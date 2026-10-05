@@ -343,5 +343,5 @@
   "web.legal.accepted": "бәрі қабылданды",
   "web.legal.stale": "редакция жаңа ғана өзгерді — оны оқып, қайта қабылдаңыз",
   "web.legal.refused": "алдымен құжаттардың жаңа редакцияларын қабылдаңыз: «мен» → «құжаттар»",
-  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
+  "web.me.name_rejected": "аты қабылданбады, сөз тіркесі жаңа атты күтеді"
 }

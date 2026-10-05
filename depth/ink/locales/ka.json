@@ -152,7 +152,7 @@
   "write.hold": "წინას ვამოწმებთ — ახალი ვერდიქტის შემდეგ წავა.",
   "write.live": "ოთხი ფრაზა უკვე ცოცხალია. უახლოესი გათავისუფლდება {time}-ზე.",
   "me.nameHint": "იცვლება სუფთა ფურცლიდან",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "სახელი არ მიიღეს, ფრაზა ახალ სახელს ელოდება",
   "me.ageHint": "თანამოსაუბრეები ცვლილებას დაინახავენ",
   "me.band21": "გადავიდეთ 21+ ზოლში?",
   "me.save": "შენახვა",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "საუბრის გასაღებები განახლდა (ეპოქა {epoch}).",
   "chat.rekeyRefused": "კვანძმა ახალი გასაღებები არ მიიღო: {status}",
   "feed.refused": "შენმა ფრაზამ მოდერაცია ვერ გაიარა და მოიხსნა.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "მაგიდის სახელი არ მიიღეს — მაგიდა უსახელოდ აგრძელებს"
 }

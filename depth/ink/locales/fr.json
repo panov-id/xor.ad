@@ -152,7 +152,7 @@
   "write.hold": "Nous vérifions l'envoi précédent — le nouveau partira après le verdict.",
   "write.live": "Quatre phrases sont déjà en ligne. La prochaine place se libère à {time}.",
   "me.nameHint": "change sur une page blanche",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "le prénom n’a pas été accepté ; la phrase attend un nouveau prénom",
   "me.ageHint": "vos interlocuteurs verront le changement",
   "me.band21": "Passer dans la tranche 21+ ?",
   "me.save": "enregistrer",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Les clés de la conversation sont renouvelées (époque {epoch}).",
   "chat.rekeyRefused": "le nœud n'a pas accepté les nouvelles clés : {status}",
   "feed.refused": "Ta phrase n'a pas passé la modération et a été retirée.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "le nom de la table n’a pas été accepté — la table vit sans nom"
 }

@@ -343,5 +343,5 @@
   "web.legal.accepted": "totul este acceptat",
   "web.legal.stale": "versiunea tocmai s-a schimbat — citește-o și accept-o din nou",
   "web.legal.refused": "acceptă mai întâi noile versiuni ale documentelor: „eu” → „documente”",
-  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
+  "web.me.name_rejected": "numele n-a fost acceptat; fraza așteaptă un nume nou"
 }

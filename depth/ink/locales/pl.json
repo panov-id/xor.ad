@@ -152,7 +152,7 @@
   "write.hold": "Sprawdzamy poprzednią — nowa pójdzie po werdykcie.",
   "write.live": "Cztery frazy już żyją. Najbliższa zwolni się o {time}.",
   "me.nameHint": "zmienia się od czystej karty",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "imienia nie przyjęto, fraza czeka na nowe",
   "me.ageHint": "rozmówcy zobaczą zmianę",
   "me.band21": "Przejść do pasma 21+?",
   "me.save": "zapisz",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Klucze rozmowy zostały odnowione (epoka {epoch}).",
   "chat.rekeyRefused": "węzeł nie przyjął nowych kluczy: {status}",
   "feed.refused": "Twoja fraza nie przeszła moderacji i została zdjęta.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "nazwy stołu nie przyjęto — stół działa bez nazwy"
 }

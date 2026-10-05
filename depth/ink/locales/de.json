@@ -152,7 +152,7 @@
   "write.hold": "Die vorige wird geprüft — die neue geht nach dem Urteil.",
   "write.live": "Vier Phrasen sind schon live. Der nächste Platz wird um {time} frei.",
   "me.nameHint": "ändert sich nur bei leerem Blatt",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "der Name wurde nicht angenommen; die Phrase wartet auf einen neuen",
   "me.ageHint": "Ihre Gesprächspartner sehen die Änderung",
   "me.band21": "In das Band 21+ wechseln?",
   "me.save": "speichern",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Die Schlüssel des Gesprächs wurden erneuert (Epoche {epoch}).",
   "chat.rekeyRefused": "der Knoten hat die neuen Schlüssel nicht angenommen: {status}",
   "feed.refused": "Deine Phrase hat die Moderation nicht bestanden und wurde entfernt.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "der Name des Tischs wurde nicht angenommen — der Tisch lebt ohne Namen weiter"
 }

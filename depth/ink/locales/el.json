@@ -152,7 +152,7 @@
   "write.hold": "Ελέγχουμε την προηγούμενη — η νέα θα φύγει μετά την ετυμηγορία.",
   "write.live": "Τέσσερις φράσεις είναι ήδη ζωντανές. Η πλησιέστερη θέση ελευθερώνεται στις {time}.",
   "me.nameHint": "αλλάζει από καθαρό φύλλο",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "το όνομα δεν έγινε δεκτό· η φράση περιμένει νέο όνομα",
   "me.ageHint": "οι συνομιλητές σας θα δουν την αλλαγή",
   "me.band21": "Μετάβαση στη ζώνη 21+;",
   "me.save": "αποθήκευση",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Τα κλειδιά της συνομιλίας ανανεώθηκαν (εποχή {epoch}).",
   "chat.rekeyRefused": "ο κόμβος δεν δέχτηκε τα νέα κλειδιά: {status}",
   "feed.refused": "Η φράση σου δεν πέρασε τον έλεγχο και αφαιρέθηκε.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "το όνομα του τραπεζιού δεν έγινε δεκτό — το τραπέζι συνεχίζει χωρίς όνομα"
 }

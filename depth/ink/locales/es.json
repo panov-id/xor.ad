@@ -152,7 +152,7 @@
   "write.hold": "Revisamos lo anterior — lo nuevo saldrá tras el veredicto.",
   "write.live": "Ya hay cuatro frases en vivo. El próximo hueco se libera a las {time}.",
   "me.nameHint": "cambia desde cero",
-  "me.nameRejected": "the name was not accepted; the phrase waits for a new one",
+  "me.nameRejected": "el nombre no fue aceptado; la frase espera uno nuevo",
   "me.ageHint": "tus interlocutores verán el cambio",
   "me.band21": "¿Pasar a la franja 21+?",
   "me.save": "guardar",
@@ -345,5 +345,5 @@
   "chat.rekeyDone": "Las claves de la conversación se han renovado (época {epoch}).",
   "chat.rekeyRefused": "el nodo no aceptó las claves nuevas: {status}",
   "feed.refused": "Tu frase no pasó la moderación y fue retirada.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "el nombre de la mesa no fue aceptado — la mesa sigue sin nombre"
 }

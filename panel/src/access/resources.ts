@@ -30,6 +30,9 @@ export const PERMISSION_BY_RESOURCE_ACTION: Record<string, Permission> = {
   // refused every role, admin included. The screen existed and nobody could open
   // it. The test below now walks App.tsx so the next omission fails in CI.
   "dsa_notices.list": "dsa_notices.read",
+  // The platform's number: the same permission as the node's route, and a
+  // tenant is kept out by PLATFORM_ONLY in providers/access.ts.
+  "dsa_recipients.list": "dsa_notices.read",
   "feed_queue.list": "feed_queue.read",
   // The verdict buttons: reading the queue is not deciding it (2026-09-22).
   "feed_queue.decide": "feed_queue.decide",

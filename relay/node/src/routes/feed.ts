@@ -56,7 +56,17 @@ interface FeedBody {
   area_radius?: unknown;
   discount_value?: unknown;
   conditions?: unknown;
+  lang?: unknown;
 }
+
+// The languages a face speaks (depth/ink/strings.ts LANGUAGES, web/src/locales):
+// a phrase is stored in the language of the author's interface (owner,
+// 05.10.2026, W17-LG). Anything else — absent, misspelt, a language no face
+// has — is "und", which every language filter lets through.
+export const PHRASE_LANGS: readonly string[] = [
+  "ru", "en", "uk", "be", "kk", "ka", "pl", "fr", "de",
+  "es", "el", "hy", "az", "uz", "ky", "tg", "ro",
+];
 
 const seconds = (at: Date): number => Math.max(1, Math.ceil((at.getTime() - Date.now()) / 1000));
 
@@ -152,12 +162,11 @@ async function publish(req: Request): Promise<Response> {
       }
     }
 
-    // `lang` is the node's answer, not the client's: the feed's language filter
-    // reads it (2026-09-16, DATA-22), and a client that named its own language
-    // would be naming the filter it lands in. Until the detector of §8.14 is
-    // wired, the phrase is stored with the face's language and the column is
-    // rewritten at the verdict — which is the only moment the text is read
-    // anyway.
+    // `lang` is the language of the author's interface, sent by the face
+    // (owner, 05.10.2026, W17-LG), and taken only from the faces' seventeen:
+    // the feed's language filter reads it (DATA-22). Until then every phrase
+    // was "und" — the verdict never rewrote it, whatever this comment said.
+    const lang = typeof body.lang === "string" && PHRASE_LANGS.includes(body.lang) ? body.lang : "und";
     await run(
       // The published centre is computed here, by the same function that will
       // print it, and stored beside the exact one: the delivery compares
@@ -173,7 +182,7 @@ async function publish(req: Request): Promise<Response> {
         caller.identityId,
         text,
         body.mode,
-        "und",
+        lang,
         body.lat,
         body.lon,
         body.area_radius,

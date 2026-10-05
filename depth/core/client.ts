@@ -422,9 +422,12 @@ export class Client {
   // POST /feed — 200 {state: "published"} to a clean phrase, 202 "checking" to one the queue reads (§8.3; P1, 26.09.2026).
   // With a discount the phrase is a neighbour's offer (offers spec; feed.ts takes
   // discount_value and conditions) — the web face's composer sends one (W2).
-  say(phrase: { text: string; mode: string; lat: number; lon: number; radius: Radius; discount_value?: string; conditions?: string }): Promise<Answer> {
+  // `lang` is the language of the face the person reads (W17-LG): the node
+  // keeps it if it is one of the faces' seventeen, "und" otherwise.
+  say(phrase: { text: string; mode: string; lat: number; lon: number; radius: Radius; discount_value?: string; conditions?: string; lang?: string }): Promise<Answer> {
     return this.#call("POST", "/feed", {
       text: phrase.text, mode: phrase.mode, lat: phrase.lat, lon: phrase.lon, area_radius: phrase.radius,
+      ...(phrase.lang ? { lang: phrase.lang } : {}),
       ...(phrase.discount_value ? { discount_value: phrase.discount_value, ...(phrase.conditions ? { conditions: phrase.conditions } : {}) } : {}),
     });
   }

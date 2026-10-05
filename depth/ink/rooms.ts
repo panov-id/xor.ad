@@ -11,7 +11,7 @@ import { Box, Text } from "ink";
 import type { Client, InboxEvents, Liked as LikedCard, Statement } from "../core/client.ts";
 import { CursorRefused, extraLikeOf, startersOf } from "../core/client.ts";
 import type { ChatStarter } from "../core/client.ts";
-import type { Say } from "./strings.ts";
+import { languageOf, type Say } from "./strings.ts";
 import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
 import { afterClose, reconnectDelay } from "../core/reconnect.ts";
 import { pinMismatch, type Place } from "./screens.ts";
@@ -75,7 +75,7 @@ export function Write(
         if (key === "back") return onBack();
         setBusy(true);
         setRefused(null);
-        client.say({ text: text.trim(), mode: "alone", lat: place.lat, lon: place.lon, radius: place.radius })
+        client.say({ text: text.trim(), mode: "alone", lat: place.lat, lon: place.lon, radius: place.radius, lang: languageOf(process.env) })
           .then(async (answer) => {
             // Until 23.09.2026 any answer counted as sent, and a refusal showed
             // as "being checked" — the terminal telling a lie on the node's behalf.

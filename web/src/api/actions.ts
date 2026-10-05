@@ -8,7 +8,7 @@
 // locales of depth/ink are the owner's texts, and the web face joins them when
 // its strings are lifted out (W2, 2026-09-26).
 
-import { say } from "../locales/say.ts";
+import { LANG, say } from "../locales/say.ts";
 import type { Answer, Client, Liked, Radius } from "../../../depth/core/client.ts";
 import { fromRefusal } from "../../../depth/core/legal.ts";
 
@@ -64,7 +64,8 @@ export async function sayPhrase(
   client: Client,
   phrase: { text: string; mode: Mode; lat: number; lon: number; radius: Radius; discount_value?: string; conditions?: string },
 ): Promise<Sent> {
-  const answer = await client.say(phrase);
+  // The language the page speaks is the phrase's (W17-LG): the node keeps it or says und.
+  const answer = await client.say({ ...phrase, lang: LANG });
   const body = answer.body as { id?: string; state?: string } | null;
   if (answer.status === 200 && body?.id) return { state: "published", id: body.id };
   if (answer.status === 202 && body?.id) return { state: "checking", id: body.id };

@@ -217,6 +217,25 @@ test("a phrase's CRLF and lone CR are stored as LF, not refused", async () => {
   }
 });
 
+// W17-LG (owner, 05.10.2026): a phrase is stored in the language of its
+// author's interface, one of the faces' seventeen; anything else is und.
+test("a phrase keeps its author's interface language, and anything else is und", async () => {
+  const cases: Array<[string, unknown, string]> = [
+    ["ru", "ru", "ru"], ["pl", "pl", "pl"], ["tg", "tg", "tg"],
+    ["absent", undefined, "und"], ["not a face's", "xx", "und"], ["a tag, not a code", "ru-RU", "und"],
+    ["upper case", "RU", "und"], ["not a string", 7, "und"], ["und itself", "und", "und"],
+  ];
+  for (const [label, lang, stored] of cases) {
+    const me = await author();
+    const answer = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase(lang === undefined ? {} : { lang }));
+    assert(answer.status === 200 || answer.status === 202, `${label}: the phrase was refused: ${answer.status} ${JSON.stringify(answer.body)}`);
+    const [row] = await database.queryOrThrow<{ lang: string }>(
+      `SELECT lang FROM feed_messages WHERE author_identity = $1`, [me.identity_id],
+    );
+    assertEquals(row?.lang, stored, `${label}: lang ${JSON.stringify(lang)} was stored as ${row?.lang}`);
+  }
+});
+
 test("a phrase is accepted for checking, not published", async () => {
   const me = await author();
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());

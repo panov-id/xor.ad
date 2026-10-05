@@ -224,7 +224,7 @@ components:
         area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
         like_count: {type: integer}
         soon: {type: boolean, description: "Present and true in the last 65 minutes of a phrase (limits likes.soon.threshold): the word 'disappearing soon' instead of a number — someone else's end never leaves the node as a time (§8.11; 2026-09-23, GET /feed and GET /likes).", x-description-ru: "Есть и равно true в последние 65 минут фразы (limits likes.soon.threshold): слово «скоро исчезнет» вместо числа — чужой срок наружу временем не уходит (§8.11; 23.09.2026, GET /feed и GET /likes)."}
-        lang: {type: string, description: "The node's answer, never the client's: the feed's language filter reads it. Every phrase is stored as `und` until the detector of chat §8.14 exists, and `und` passes every filter (2026-09-21).", x-description-ru: "Ответ узла, а не клиента: по нему работает языковой фильтр ленты. До детектора §8.14 всякая фраза лежит как `und`, и `und` проходит любой фильтр (21.09.2026)."}
+        lang: {type: string, description: "The feed's language filter reads it, and `und` passes every filter (2026-09-21). Since 2026-10-05 (W17-LG) it is the language of the author's interface, sent as PhraseCreate.lang and kept only if it is one of the faces' seventeen; otherwise, and for every phrase before that, `und`.", x-description-ru: "По нему работает языковой фильтр ленты, и `und` проходит любой фильтр (21.09.2026). С 05.10.2026 (W17-LG) это язык интерфейса автора — он приходит в PhraseCreate.lang и сохраняется, только если это один из семнадцати языков лиц; иначе, как и у всех фраз до того, — `und`."}
         farther_than_asked: {type: boolean, description: "Present and true only when the radius was grown because the circle asked for was empty (protocol §4.2).", x-description-ru: "Есть и равно true только когда радиус вырос, потому что запрошенный круг был пуст (протокол §4.2)."}
     LikeResult:
       type: object
@@ -603,6 +603,7 @@ components:
         lat: {type: number}
         lon: {type: number}
         area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
+        lang: {type: string, description: "The language of the author's interface (W17-LG, 05.10.2026): one of the faces' seventeen — ru en uk be kk ka pl fr de es el hy az uz ky tg ro — is stored as the phrase's language; absent or anything else is stored as und.", x-description-ru: "Язык интерфейса автора (W17-LG, 05.10.2026): один из семнадцати языков лиц — ru en uk be kk ka pl fr de es el hy az uz ky tg ro — сохраняется языком фразы; если поля нет или в нём другое — сохраняется und."}
         discount_value: {type: string, maxLength: 32, description: "Private offer only: «−10 %», «1+1».", x-description-ru: "Только у оффера частника: «−10 %», «1+1»."}
         conditions: {type: string, maxLength: 128, description: "Private offer only; empty means no limits and no refusal (offers/SPEC_EN.md §3.1).", x-description-ru: "Только у оффера частника; пусто — без ограничений и отказать нельзя (offers/SPEC_RU.md §3.1)."}
         discount_until: {type: integer, format: unix-seconds, description: "Private offer only; not further than 90 days.", x-description-ru: "Только у оффера частника; не дальше 90 дней."}

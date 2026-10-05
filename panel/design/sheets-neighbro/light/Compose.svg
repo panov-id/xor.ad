@@ -6,7 +6,7 @@
 <circle cx="40" cy="40" r="22" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 <g transform="translate(29.0 29.0) scale(0.917)" fill="none" stroke="#141618" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M15 5 L8 12 L15 19"/></g>
 </g>
-<text id="t50" x="76" y="49" class="h" font-size="22" fill="#141618" text-anchor="start" >new phrase</text>
+<text id="t49" x="76" y="49" class="h" font-size="22" fill="#141618" text-anchor="start" >new phrase</text>
 <g role="img" aria-label="place phase: day">
 <g transform="rotate(0 336 40)">
 <circle cx="336" cy="40" r="16" fill="#cc2f27" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
@@ -17,33 +17,33 @@
 <rect x="16" y="92" width="343" height="190" rx="18" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>
 <rect x="16" y="92" width="343" height="190" rx="18" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 </g>
-<text id="t51" x="32" y="136" class="s" font-size="22" fill="#141618" text-anchor="start" >walking by the river,</text>
-<text id="t52" x="32" y="166" class="s" font-size="22" fill="#141618" text-anchor="start" >anyone near</text>
+<text id="t50" x="32" y="136" class="s" font-size="22" fill="#141618" text-anchor="start" >walking by the river,</text>
+<text id="t51" x="32" y="166" class="s" font-size="22" fill="#141618" text-anchor="start" >anyone near</text>
 <rect x="160" y="144" width="2" height="28" fill="#1fb39a"/>
-<text id="t53" x="343" y="264" class="b" font-size="16" fill="#545b63" text-anchor="end" font-variant-numeric="tabular-nums">91</text>
-<text id="t54" x="16" y="306" class="b" font-size="16" fill="#545b63" text-anchor="start" >mode</text>
+<text id="t52" x="343" y="264" class="b" font-size="16" fill="#545b63" text-anchor="end" font-variant-numeric="tabular-nums">91</text>
+<text id="t53" x="16" y="306" class="b" font-size="16" fill="#545b63" text-anchor="start" >mode</text>
 <g role="button" aria-label="solo" tabindex="0">
 <g transform="rotate(-2 70.5 342.0)">
 <rect x="16" y="318" width="109" height="48" rx="14" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>
 <rect x="16" y="318" width="109" height="48" rx="14" fill="#cc2f27" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 </g>
-<text id="t55" x="70" y="349" class="s" font-size="16" fill="#fdeceb" text-anchor="middle" >solo</text>
+<text id="t54" x="70" y="349" class="s" font-size="16" fill="#fdeceb" text-anchor="middle" >solo</text>
 </g>
 <g role="button" aria-label="group" tabindex="0">
 <g transform="rotate(0 187.5 342.0)">
 <rect x="133" y="318" width="109" height="48" rx="14" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>
 <rect x="133" y="318" width="109" height="48" rx="14" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 </g>
-<text id="t56" x="187" y="349" class="b" font-size="16" fill="#141618" text-anchor="middle" >group</text>
+<text id="t55" x="187" y="349" class="b" font-size="16" fill="#141618" text-anchor="middle" >group</text>
 </g>
 <g role="button" aria-label="party" tabindex="0">
 <g transform="rotate(0 304.5 342.0)">
 <rect x="250" y="318" width="109" height="48" rx="14" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>
 <rect x="250" y="318" width="109" height="48" rx="14" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 </g>
-<text id="t57" x="304" y="349" class="b" font-size="16" fill="#141618" text-anchor="middle" >party</text>
+<text id="t56" x="304" y="349" class="b" font-size="16" fill="#141618" text-anchor="middle" >party</text>
 </g>
-<text id="t58" x="16" y="398" class="b" font-size="16" fill="#545b63" text-anchor="start" >zone</text>
+<text id="t57" x="16" y="398" class="b" font-size="16" fill="#545b63" text-anchor="start" >zone</text>
 <g role="button" aria-label="hint" tabindex="0">
 <circle cx="80" cy="392" r="16" fill="#f1f1f3" stroke="#1a1b1e" stroke-width="1.5"/>
 <g transform="translate(69.0 381.0) scale(0.917)" fill="none" stroke="#141618" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><circle vector-effect="non-scaling-stroke" cx="12" cy="12" r="9"/><path vector-effect="non-scaling-stroke" d="M12 11 V17"/><circle vector-effect="non-scaling-stroke" cx="12" cy="7.6" r=".6"/></g>
@@ -53,28 +53,28 @@
 <rect x="16.0" y="416" width="79.75" height="48" rx="14" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>
 <rect x="16.0" y="416" width="79.75" height="48" rx="14" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 </g>
-<text id="t59" x="55.9" y="447" class="b" font-size="16" fill="#141618" text-anchor="middle" >100 m</text>
+<text id="t58" x="55.9" y="447" class="b" font-size="16" fill="#141618" text-anchor="middle" >100 m</text>
 </g>
 <g role="button" aria-label="300 m" tabindex="0">
 <g transform="rotate(0 143.625 440.0)">
 <rect x="103.75" y="416" width="79.75" height="48" rx="14" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>
 <rect x="103.75" y="416" width="79.75" height="48" rx="14" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 </g>
-<text id="t60" x="143.65" y="447" class="b" font-size="16" fill="#141618" text-anchor="middle" >300 m</text>
+<text id="t59" x="143.65" y="447" class="b" font-size="16" fill="#141618" text-anchor="middle" >300 m</text>
 </g>
 <g role="button" aria-label="1 km" tabindex="0">
 <g transform="rotate(0 231.375 440.0)">
 <rect x="191.5" y="416" width="79.75" height="48" rx="14" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>
 <rect x="191.5" y="416" width="79.75" height="48" rx="14" fill="#336eb2" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 </g>
-<text id="t61" x="231.4" y="447" class="s" font-size="16" fill="#eaf2ff" text-anchor="middle" >1 km</text>
+<text id="t60" x="231.4" y="447" class="s" font-size="16" fill="#eaf2ff" text-anchor="middle" >1 km</text>
 </g>
 <g role="button" aria-label="3 km" tabindex="0">
 <g transform="rotate(0 319.125 440.0)">
 <rect x="279.25" y="416" width="79.75" height="48" rx="14" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>
 <rect x="279.25" y="416" width="79.75" height="48" rx="14" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 </g>
-<text id="t62" x="319.15" y="447" class="b" font-size="16" fill="#141618" text-anchor="middle" >3 km</text>
+<text id="t61" x="319.15" y="447" class="b" font-size="16" fill="#141618" text-anchor="middle" >3 km</text>
 </g>
 <g role="button" aria-label="send" tabindex="0">
 <rect x="16" y="740" width="343" height="56" rx="28.0" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>

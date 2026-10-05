@@ -20,7 +20,7 @@ sosed-Me-dark	15.96	0	lowered 04.10.2026 (W16-SH): Profile sheets drawn in Me.ts
 neighbro-Arrival-light	7.65	1.5
 neighbro-Feed-light	19.49	0.5
 neighbro-Card-light	19.48	0
-neighbro-Card-liked-light	17.67	0
+neighbro-Card-liked-light	17.25	0	lowered 05.10.2026 (W17-NL): the liked card has no undo pill, on the sheet as on the screen
 neighbro-Card-more-light	18.52	5.5
 neighbro-Composer-light	17.49	0
 neighbro-Match-light	25.36	0
@@ -29,7 +29,7 @@ neighbro-Me-light	12.38	15.5	lowered 04.10.2026 (W16-SH): Profile sheets drawn i
 neighbro-Arrival-dark	7.59	13
 neighbro-Feed-dark	19.05	0
 neighbro-Card-dark	19.46	0
-neighbro-Card-liked-dark	17.56	0
+neighbro-Card-liked-dark	17.14	0	lowered 05.10.2026 (W17-NL): the liked card has no undo pill, on the sheet as on the screen
 neighbro-Card-more-dark	17.99	5.5
 neighbro-Composer-dark	17.62	0
 neighbro-Match-dark	25.69	0

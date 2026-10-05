@@ -72,10 +72,4 @@
 <circle cx="108" cy="768" r="26" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 <g transform="translate(96.0 756.0) scale(1.000)" fill="none" stroke="#e7e8eb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><circle vector-effect="non-scaling-stroke" cx="12" cy="12" r="9"/><path vector-effect="non-scaling-stroke" d="M5.6 5.6 L18.4 18.4"/></g>
 </g>
-<g role="button" aria-label="remove sticker" tabindex="0">
-<rect x="156" y="740" width="203" height="56" rx="28" transform="translate(1.5 3)" fill="#585e67" stroke="#585e67" stroke-width="10" stroke-linejoin="round"/>
-<rect x="156" y="740" width="203" height="56" rx="28" fill="#111314" stroke="#202326" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
-<g transform="translate(224.0 756.0) scale(1.000)" fill="none" stroke="#e7e8eb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M9 7 L4 12 L9 17"/><path vector-effect="non-scaling-stroke" d="M4 12 H14 A6 6 0 0 1 14 24"/></g>
-<text id="t39" x="258" y="774" class="s" font-size="16" fill="#e7e8eb" text-anchor="start" font-variant-numeric="tabular-nums">5 s</text>
-</g>
 </svg>

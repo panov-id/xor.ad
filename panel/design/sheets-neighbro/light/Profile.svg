@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="375" height="812" viewBox="0 0 375 812" style="--focus:#126a5c">
 <defs><style>@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}.h{font-family:"Russo One"}.b{font-family:"Golos Text";font-weight:400}.s{font-family:"Golos Text";font-weight:600}[role=button]:focus-visible,[role=tab]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1f1f3"/><stop offset="1" stop-color="#e5e6e9"/></linearGradient></defs>
 <rect width="375" height="812" fill="#e5e6e9"/><rect width="375" height="220" fill="url(#sky)"/><rect width="375" height="812" fill="url(#dots)"/>
-<text id="t77" x="16" y="49" class="h" font-size="22" fill="#141618" text-anchor="start" >me</text>
+<text id="t76" x="16" y="49" class="h" font-size="22" fill="#141618" text-anchor="start" >me</text>
 <g role="img" aria-label="place phase: day">
 <g transform="rotate(0 336 40)">
 <circle cx="336" cy="40" r="16" fill="#cc2f27" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
@@ -13,8 +13,8 @@
 <circle cx="70" cy="142" r="44" fill="#3f9a5c" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 <g transform="translate(46.9 118.9) scale(1.925)" fill="none" stroke="#141618" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><circle vector-effect="non-scaling-stroke" cx="12" cy="8" r="4"/><path vector-effect="non-scaling-stroke" d="M4 21 C4 15 20 15 20 21"/></g>
 </g>
-<text id="t78" x="130" y="136" class="h" font-size="22" fill="#141618" text-anchor="start" >Anya, 28</text>
-<text id="t79" x="130" y="162" class="b" font-size="16" fill="#545b63" text-anchor="start" >shown after a match only</text>
+<text id="t77" x="130" y="136" class="h" font-size="22" fill="#141618" text-anchor="start" >Anya, 28</text>
+<text id="t78" x="130" y="162" class="b" font-size="16" fill="#545b63" text-anchor="start" >shown after a match only</text>
 <g role="button" aria-label="age filter" tabindex="0">
 <g transform="rotate(0 187.5 246.0)">
 <rect x="16" y="218" width="343" height="56" rx="14" transform="translate(1.5 3)" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round"/>
@@ -24,7 +24,7 @@
 <circle cx="46" cy="246" r="16" fill="#1fb39a" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 <g transform="translate(37.6 237.6) scale(0.700)" fill="none" stroke="#04201c" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><circle vector-effect="non-scaling-stroke" cx="12" cy="8" r="4"/><path vector-effect="non-scaling-stroke" d="M4 21 C4 15 20 15 20 21"/></g>
 </g>
-<text id="t80" x="76" y="252" class="b" font-size="16" fill="#141618" text-anchor="start" >age filter</text>
+<text id="t79" x="76" y="252" class="b" font-size="16" fill="#141618" text-anchor="start" >age filter</text>
 <path d="M334 239 L341 246 L334 253" fill="none" stroke="#545b63" stroke-width="1.5" stroke-linecap="round"/>
 </g>
 <g role="button" aria-label="hidden · 0" tabindex="0">
@@ -36,7 +36,7 @@
 <circle cx="46" cy="314" r="16" fill="#cc2f27" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 <g transform="translate(37.6 305.6) scale(0.700)" fill="none" stroke="#fdeceb" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M2 12 C5 6 19 6 22 12 C19 18 5 18 2 12Z"/><circle vector-effect="non-scaling-stroke" cx="12" cy="12" r="3"/><path vector-effect="non-scaling-stroke" d="M4 20 L20 4"/></g>
 </g>
-<text id="t81" x="76" y="320" class="b" font-size="16" fill="#141618" text-anchor="start" >hidden · 0</text>
+<text id="t80" x="76" y="320" class="b" font-size="16" fill="#141618" text-anchor="start" >hidden · 0</text>
 <path d="M334 307 L341 314 L334 321" fill="none" stroke="#545b63" stroke-width="1.5" stroke-linecap="round"/>
 </g>
 <g role="button" aria-label="theme" tabindex="0">
@@ -48,7 +48,7 @@
 <circle cx="46" cy="382" r="16" fill="#336eb2" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 <g transform="translate(37.6 373.6) scale(0.700)" fill="none" stroke="#eaf2ff" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M2 12 C5 6 19 6 22 12 C19 18 5 18 2 12Z"/><circle vector-effect="non-scaling-stroke" cx="12" cy="12" r="3"/></g>
 </g>
-<text id="t82" x="76" y="388" class="b" font-size="16" fill="#141618" text-anchor="start" >theme</text>
+<text id="t81" x="76" y="388" class="b" font-size="16" fill="#141618" text-anchor="start" >theme</text>
 <path d="M334 375 L341 382 L334 389" fill="none" stroke="#545b63" stroke-width="1.5" stroke-linecap="round"/>
 </g>
 <g role="button" aria-label="step away" tabindex="0">
@@ -60,7 +60,7 @@
 <circle cx="46" cy="450" r="16" fill="#8550c5" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 <g transform="translate(37.6 441.6) scale(0.700)" fill="none" stroke="#f3ecfd" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><circle vector-effect="non-scaling-stroke" cx="12" cy="13" r="8"/><path vector-effect="non-scaling-stroke" d="M12 9 V13 L15 15 M9 2 H15"/></g>
 </g>
-<text id="t83" x="76" y="456" class="b" font-size="16" fill="#141618" text-anchor="start" >step away</text>
+<text id="t82" x="76" y="456" class="b" font-size="16" fill="#141618" text-anchor="start" >step away</text>
 <path d="M334 443 L341 450 L334 457" fill="none" stroke="#545b63" stroke-width="1.5" stroke-linecap="round"/>
 </g>
 <g role="button" aria-label="change PIN" tabindex="0">
@@ -72,7 +72,7 @@
 <circle cx="46" cy="518" r="16" fill="#3f9a5c" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" paint-order="stroke"/>
 <g transform="translate(37.6 509.6) scale(0.700)" fill="none" stroke="#141618" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"><circle vector-effect="non-scaling-stroke" cx="8" cy="12" r="4"/><path vector-effect="non-scaling-stroke" d="M12 12 H21 M18 12 V15 M21 12 V14"/></g>
 </g>
-<text id="t84" x="76" y="524" class="b" font-size="16" fill="#141618" text-anchor="start" >change PIN</text>
+<text id="t83" x="76" y="524" class="b" font-size="16" fill="#141618" text-anchor="start" >change PIN</text>
 <path d="M334 511 L341 518 L334 525" fill="none" stroke="#545b63" stroke-width="1.5" stroke-linecap="round"/>
 </g>
 <rect x="0" y="732" width="375" height="80" fill="#f1f1f3"/><path d="M0 732 H375" stroke="#d7d9dd" stroke-width="2"/>

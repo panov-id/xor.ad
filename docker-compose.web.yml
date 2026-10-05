@@ -65,7 +65,7 @@ services:
   # The first-tier model of §8.14 stands in here as a stub with Ollama's shape
   # (POST /api/chat → { message: { content } }). Since W17-MM the node asks it
   # about every phrase before publishing, so the stub says "reject" only to a
-  # phrase carrying a link or a contact and "publish" to the rest — otherwise no
+  # phrase carrying a link, a messenger or a contact and "publish" to the rest — otherwise no
   # phrase would ever reach a feed. A real model's judgement is relay/moderator's
   # measurement, not this.
   moderator:
@@ -73,7 +73,7 @@ services:
     command:
       - eval
       - >-
-        Deno.serve({ port: 11434, hostname: "0.0.0.0" }, async (r) => { const b = await r.json(); const t = String(b.messages?.at(-1)?.content ?? ""); const bad = /https?:|www[.]|t[.]me|@[a-z0-9_]{3,}|[0-9][0-9 ()-]{8,}/i.test(t); return Response.json({ message: { content: JSON.stringify(bad ? { verdict: "reject", reason: "stub: a link" } : { verdict: "publish", reason: "stub: clean" }) } }); })
+        Deno.serve({ port: 11434, hostname: "0.0.0.0" }, async (r) => { const b = await r.json(); const t = String(b.messages?.at(-1)?.content ?? ""); const bad = /https?:|www[.]|t[.]me|[.](рф|ru|com|net|org|io|me|su)([^a-zа-я]|$$)|@[a-z0-9_]{3,}|(^|[^a-zа-я])(тг|телег|telegram|whatsapp|ватсап|viber|вайбер|snapchat)|[0-9][0-9 ()-]{8,}/i.test(t); return Response.json({ message: { content: JSON.stringify(bad ? { verdict: "reject", reason: "stub: a link" } : { verdict: "publish", reason: "stub: clean" }) } }); })
     mem_limit: 128m
 
   # One moderator of the panel, written where the node reads its operators

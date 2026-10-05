@@ -2,8 +2,8 @@
 # The web face for the report, in two runs on throwaway stands:
 #   1. its end-to-end suite (docker-compose.web.yml) — the tally goes to
 #      data/webshots.txt and the exit code to data/webshots.rc;
-#   2. scripts/design/shoot-web.sh — every screen the web opens, named, one
-#      dark frame each, next to the mockup sheets; then scripts/check-web-design.sh
+#   2. scripts/design/shoot-web.sh — every screen the web opens, named, a
+#      light and a dark frame each, for both brands, next to the mockup sheets; then scripts/check-web-design.sh
 #      against its baseline — its last line goes to data/webdesign.txt.
 # The pictures of the report's web section are the shoot's (data/webshots.list):
 # a screen is named by the state it was shot in, not by a test that happened to
@@ -35,7 +35,9 @@ tail -1 "$W/data/webdesign.log" > "$W/data/webdesign.txt"
 if [ -f "$shots/shots.tsv" ]; then
   cp "$shots/shots.tsv" "$W/data/shootweb.tsv"
   awk -F'\t' '$2 == "ok" { print $1 }' "$shots/shots.tsv" | while read -r name; do
-    [ -f "$shots/$name-dark.png" ] && cp "$shots/$name-dark.png" "$W/webshots/" && echo "$W/webshots/$name-dark.png"
+    for theme in light dark; do
+      [ -f "$shots/$name-$theme.png" ] && cp "$shots/$name-$theme.png" "$W/webshots/" && echo "$W/webshots/$name-$theme.png"
+    done
   done > "$W/data/webshots.list"
 else
   : > "$W/data/webshots.list"

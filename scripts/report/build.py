@@ -333,9 +333,13 @@ if _map.is_file():
 
 
 def web_caption(p):
-    state = p.stem.removesuffix("-dark")
-    sheet = WEB_SHEETS.get(p.stem)
-    return WEB_STATES.get(state, state) + (f" · лист {sheet}" if sheet else " · пары на листах нет")
+    stem = p.stem
+    theme = "тёмная" if stem.endswith("-dark") else "светлая"
+    base = stem.removesuffix("-dark").removesuffix("-light")
+    brand, _, state = base.partition("-") if base.split("-", 1)[0] in ("sosed", "neighbro") else ("", "", base)
+    sheet = WEB_SHEETS.get(stem) or WEB_SHEETS.get(base + "-dark")
+    head = (f"{brand} · " if brand else "") + WEB_STATES.get(state, state) + f" · {theme}"
+    return head + (f" · лист {sheet}" if sheet else "")
 
 
 def web_html():

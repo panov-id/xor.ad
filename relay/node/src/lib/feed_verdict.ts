@@ -65,6 +65,7 @@ export const RULE_REASONS: readonly RuleReason[] = Object.keys(
 // them). RULE_REASONS is checked against RuleReason by the compiler, so a
 // reason added to the type without a zero here does not build.
 inc("relay_feed_rules_total", { result: "published" }, 0);
+inc("relay_feed_rules_total", { result: "to_model" }, 0);
 for (const reason of RULE_REASONS) inc("relay_feed_rules_total", { result: "queued", reason }, 0);
 
 // How a rule reads the text: NFKC so that fullwidth and mathematical letters

@@ -1,15 +1,20 @@
 // The first-tier moderator model (§8.14; wave 6, E2): a local model the node
-// asks about a phrase the rules of §8.3 sent to the queue, and whose answer is
-// kept beside the phrase as a hint for the person who decides. The model never
-// decides: the phrase stays in the human queue whatever it says.
+// asks about a phrase, and whose answer is kept beside it as a hint for the
+// person who decides. A phrase the rules of §8.3 sent to the queue stays there
+// whatever the model says. A phrase the rules let through is shown to the model
+// before it goes out (owner's decision, W17-MM; routes/feed.ts publish): only
+// "publish" puts it out, anything else — "reject", "unsure", no answer —
+// leaves it for a person. The model can hold a phrase back; it never refuses.
 //
 // Behind a flag: MODERATOR_URL (an Ollama endpoint, relay/moderator) turns it
 // on; unset, the node asks nobody and writes nothing. The model runs in
 // Docker on a network with no way out (relay/moderator/docker-compose.yml):
 // a phrase and a session never leave the machine.
 //
-// Asked after the 202, outside the phrase's transaction: a slow or dead model
-// costs the author nothing, and a hint that failed is simply absent.
+// Asked outside the phrase's transaction, after its commit: for a queued
+// phrase after the 202, so a slow or dead model costs the author nothing; for a
+// clean one before the answer, so the author waits at most MODERATOR_TIMEOUT_MS
+// and a dead model means a person looks, not that the phrase goes out.
 
 import { query } from "./db.ts";
 import { inc } from "./metrics.ts";
@@ -22,6 +27,8 @@ export interface Hint { verdict: HintVerdict; reason: string; model: string; ms:
 export const MODERATOR_MODEL_DEFAULT = "qwen2.5:3b-instruct";
 
 for (const verdict of ["publish", "reject", "unsure", "failed", "dropped"]) inc("relay_moderator_hints_total", { verdict }, 0);
+// W17-MM: what the model said of a phrase the rules let through (feed.ts publish).
+for (const result of ["publish", "reject", "unsure", "unavailable"]) inc("relay_feed_model_total", { result }, 0);
 
 export function moderatorConfig(): { url: string; model: string; timeoutMs: number } | null {
   const url = (Deno.env.get("MODERATOR_URL") ?? "").trim().replace(/\/+$/, "");

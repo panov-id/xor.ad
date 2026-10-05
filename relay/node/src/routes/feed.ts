@@ -29,7 +29,7 @@ import { legalGate } from "../lib/legal.ts";
 import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
-import { hintQueuedPhrase } from "../lib/moderator.ts";
+import { hintQueuedPhrase, moderatorConfig } from "../lib/moderator.ts";
 import { publishLocked, reasonsFor, settleAfterVerdict, verdictMode, type Verdict } from "../lib/feed_verdict.ts";
 import { band, boundingBox, metresBetween, quantise } from "../lib/feed_geo.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
@@ -112,6 +112,10 @@ async function publish(req: Request): Promise<Response> {
   // The verdict the request itself gave, kept for after the commit: a name
   // that just passed settles the likes it left on offers (lib/offer_match.ts).
   let verdict: Verdict | null = null;
+  // Clean by the rules, with the model on: the model is asked before the
+  // phrase goes out (owner's decision, W17-MM) — after this commit, not inside
+  // it, since the question may take up to its timeout.
+  let toModel = false;
   const answer = await transaction<Response>(async (run) => {
     // The row is locked before anything is read, because the moments are
     // written at the verdict and two parallel sends otherwise both pass the
@@ -186,7 +190,10 @@ async function publish(req: Request): Promise<Response> {
         text,
         offer: discount !== null || conditions !== null,
       });
-      if (reasons.length === 0) {
+      if (reasons.length === 0 && moderatorConfig()) {
+        toModel = true;
+        inc("relay_feed_rules_total", { result: "to_model" });
+      } else if (reasons.length === 0) {
         const done = await publishLocked(run, id, {}, "rules");
         verdict = done;
         if (done.applied && done.visibleAt && done.expiresAt) {
@@ -207,7 +214,8 @@ async function publish(req: Request): Promise<Response> {
       }
       for (const reason of new Set(reasons)) inc("relay_feed_rules_total", { result: "queued", reason });
     }
-    inc("relay_feed_total", { result: "queued" });
+    // A phrase on its way to the model is counted once the model has spoken.
+    if (!toModel) inc("relay_feed_total", { result: "queued" });
     // 202, and `visible_at` is deliberately absent rather than null-valued: the
     // client shows "checking…", and a field that is there and empty invites a
     // client to treat it as "published at no time".
@@ -224,6 +232,30 @@ async function publish(req: Request): Promise<Response> {
     return refuse("unavailable", "the node cannot write right now", 503);
   });
   if (verdict && answer.status === 200) await settleAfterVerdict(verdict);
+  // W17-MM (owner's decision): every phrase the rules let through is shown to
+  // the model before it goes out. "publish" puts it out now; "reject",
+  // "unsure", no answer, a timeout or a full set of questions in flight leave
+  // it in the human queue with whatever hint there is — when the model cannot
+  // say, a person does, never the rules alone. The flag off, nothing changes.
+  if (toModel && answer.status === 202) {
+    const hint = await hintQueuedPhrase(id, text);
+    inc("relay_feed_model_total", { result: hint?.verdict ?? "unavailable" });
+    if (hint?.verdict === "publish") {
+      const done = await transaction<Verdict>((run) => publishLocked(run, id, {}, "rules"));
+      await settleAfterVerdict(done);
+      if (done.applied && done.visibleAt && done.expiresAt) {
+        inc("relay_feed_total", { result: "published" });
+        return json({
+          id,
+          state: "published",
+          visible_at: Math.floor(done.visibleAt.getTime() / 1000),
+          expires_at: Math.floor(done.expiresAt.getTime() / 1000),
+        }, 200, sunsetHeader());
+      }
+    }
+    inc("relay_feed_total", { result: "queued" });
+    return answer;
+  }
   // A phrase the rules queued gets the local model's hint (E2), after the
   // commit and without waiting: the person still decides.
   if (answer.status === 202 && verdictMode() === "rules") void hintQueuedPhrase(id, text);

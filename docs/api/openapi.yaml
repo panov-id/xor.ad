@@ -2041,16 +2041,16 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PhraseCreate"}}}}
-      description: "Answers at once, and says which of two things happened (2026-09-26, chat spec §8.3, first tier). 200: the rules found nothing in the phrase — no link, no contact, no offer, not a repeat of one's own live phrase, no doubtful waiting name — and it was published in the same transaction, with its term. 202: the rules flagged it and it waits for a person; visible_at stays empty until the queue's verdict. A node with FEED_VERDICT=queue answers 202 to everything."
-      x-description-ru: "Отвечает сразу и говорит, что из двух случилось (26.09.2026, спека чата §8.3, первая ступень). 200: правила ничего не нашли — ни ссылки, ни контакта, ни оффера, ни повтора своей живой фразы, ни спорного ждущего имени — и фраза опубликована в той же транзакции, со сроком. 202: правила пометили, фраза ждёт человека; visible_at пуст до вердикта очереди. Узел с FEED_VERDICT=queue отвечает 202 на всё."
+      description: "Answers at once, and says which of two things happened (2026-09-26, chat spec §8.3, first tier). 200: the rules found nothing in the phrase — no link, no contact, no offer, not a repeat of one's own live phrase, no doubtful waiting name — and it was published in the same transaction, with its term. 202: the rules flagged it and it waits for a person; visible_at stays empty until the queue's verdict. A node with FEED_VERDICT=queue answers 202 to everything. With the moderator model on (MODERATOR_URL; owner's decision, W17-MM, 2026-10-05), a phrase the rules let through is shown to the model before the answer: its \"publish\" gives 200, anything else — reject, unsure, no answer within MODERATOR_TIMEOUT_MS — gives 202 and the phrase waits for a person with the model's hint. The model off, nothing changes."
+      x-description-ru: "Отвечает сразу и говорит, что из двух случилось (26.09.2026, спека чата §8.3, первая ступень). 200: правила ничего не нашли — ни ссылки, ни контакта, ни оффера, ни повтора своей живой фразы, ни спорного ждущего имени — и фраза опубликована в той же транзакции, со сроком. 202: правила пометили, фраза ждёт человека; visible_at пуст до вердикта очереди. Узел с FEED_VERDICT=queue отвечает 202 на всё. С включённой моделью-модератором (MODERATOR_URL; решение владельца, W17-MM, 05.10.2026) фразу, которую пропустили правила, до ответа видит модель: её «publish» даёт 200, всё остальное — reject, unsure, нет ответа за MODERATOR_TIMEOUT_MS — даёт 202, и фраза ждёт человека с подсказкой модели. Без модели всё как прежде."
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "503": {$ref: "#/components/responses/Unavailable"}
         "200":
-          description: "Published: `{id, state: \"published\", visible_at, expires_at}` — the rules of §8.3 read the phrase and found nothing to hold, and it is in the feed from this moment. Seconds since the epoch, the term is feed.phrase.span."
-          x-description-ru: "Опубликовано: `{id, state: \"published\", visible_at, expires_at}` — правила §8.3 прочли фразу и держать нечего, она в ленте с этого момента. Секунды с эпохи, срок — feed.phrase.span."
+          description: "Published: `{id, state: \"published\", visible_at, expires_at}` — the rules of §8.3 read the phrase and found nothing to hold, and it is in the feed from this moment. Seconds since the epoch, the term is feed.phrase.span. With the moderator model on, the model said \"publish\" too (W17-MM)."
+          x-description-ru: "Опубликовано: `{id, state: \"published\", visible_at, expires_at}` — правила §8.3 прочли фразу и держать нечего, она в ленте с этого момента. Секунды с эпохи, срок — feed.phrase.span. С включённой моделью-модератором её «publish» тоже был (W17-MM)."
           headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
           content:
             application/json:
@@ -2063,8 +2063,8 @@ paths:
                   visible_at: {type: integer, format: unix-seconds}
                   expires_at: {type: integer, format: unix-seconds}
         "202":
-          description: "Accepted into the queue: `{id, state: \"checking\"}` — the rules flagged something (a link, a contact, an offer, a repeat, a waiting name they doubt) and a person reads it. There is no visible_at, and its absence is deliberate — the phrase exists and is being read, and nobody has decided yet whether anyone will see it."
-          x-description-ru: "Принято в очередь: `{id, state: \"checking\"}` — правила что-то пометили (ссылку, контакт, оффер, повтор, сомнительное ждущее имя), и читает человек. Поля visible_at нет, и это намеренно — фраза существует и читается, а увидит ли её кто-нибудь, ещё не решено."
+          description: "Accepted into the queue: `{id, state: \"checking\"}` — the rules flagged something (a link, a contact, an offer, a repeat, a waiting name they doubt) and a person reads it. There is no visible_at, and its absence is deliberate — the phrase exists and is being read, and nobody has decided yet whether anyone will see it. With the moderator model on, also a phrase the rules let through and the model did not (W17-MM): reject, unsure, or no answer."
+          x-description-ru: "Принято в очередь: `{id, state: \"checking\"}` — правила что-то пометили (ссылку, контакт, оффер, повтор, сомнительное ждущее имя), и читает человек. Поля visible_at нет, и это намеренно — фраза существует и читается, а увидит ли её кто-нибудь, ещё не решено. С включённой моделью — и фраза, которую правила пропустили, а модель нет (W17-MM): reject, unsure или нет ответа."
           headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
           content:
             application/json:

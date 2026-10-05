@@ -81,7 +81,15 @@ Deno.test("frames from the table's socket lay onto the view: board whole, seat c
   const once = applyFrame(start, { type: "line", seq: 0, data: line });
   const twice = applyFrame(once, { type: "line", seq: 0, data: line });
   assertEquals(twice.lines.filter((l) => l.id === "l9").length, 1, "the same line frame was added twice");
-  assertEquals(applyFrame(start, { type: "name_verdict", seq: 0, data: { accepted: true } }), start);
+  // The name's verdict (W13-TN): refused marks the view, accepted clears the
+  // mark and asks for the view again, another table's leaves it alone.
+  const refused = applyFrame(start, { type: "name_verdict", seq: 0, data: { accepted: false, table: start.id } });
+  assertEquals(refused.name_refused, true, "a refused name did not mark the view");
+  const accepted = { type: "name_verdict", seq: 0, data: { accepted: true, table: start.id } } as const;
+  assertEquals(applyFrame(refused, accepted).name_refused, false, "an accepted name did not clear the mark");
+  assertEquals(frameNeedsView(accepted), true, "an accepted name did not ask for the view again");
+  assertEquals(applyFrame(start, { type: "name_verdict", seq: 0, data: { accepted: false, table: "another" } }), start,
+    "another table's verdict changed this view");
 });
 
 Deno.test("a refusal holds for its round: an application after it is open again, as the node takes it", () => {

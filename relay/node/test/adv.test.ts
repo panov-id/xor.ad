@@ -304,3 +304,87 @@ Deno.test({ name: "an envelope burns after five wrong codes, and 'not us' suspen
   assertEquals((await call("POST", "/adv/venues/not-us", { origin: null, body: { code } })).status, 204, "spent, and still the same answer");
   await lettersSettled();
 } });
+
+// W17-EN (owner's decision 2026-10-05): the platform prints venue envelopes —
+// GET /admin/envelopes lists the ones in play with the venue's address and,
+// until it is marked sent, its code; POST …/sent marks it once. Platform staff
+// only: a tenant's moderator holds the permission and is refused by the route.
+await import("../src/routes/envelopes_admin.ts");
+const { sign } = await import("../src/lib/jwt.ts");
+const { usersDir } = await import("../src/lib/auth.ts");
+const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
+const { sha256hex } = await import("../src/lib/hash.ts");
+const { config } = await import("../src/config.ts");
+
+async function panelAs(role: string, brand: string | null): Promise<Record<string, string>> {
+  const email = `${role}-${brand ?? "platform"}@envelopes.test`;
+  await scopedForBrand(null).put(`${usersDir()}/${await sha256hex(email)}.json`, {
+    email, role, brand, created_at: "2026-10-05T00:00:00.000Z",
+  });
+  const token = await sign(
+    { sub: email, role, brand, env: config.envName, exp: Math.floor(Date.now() / 1000) + 3600 },
+    "adv-secret",
+  );
+  return { authorization: `Bearer ${token}` };
+}
+
+Deno.test({ name: "W17-EN: the platform lists envelopes with address and code, marks one sent, and the code leaves the list", ...pooled, async fn() {
+  const advertiser = crypto.randomUUID();
+  await database.queryOrThrow(
+    `INSERT INTO advertisers (id, email, email_confirmed_at, contact) VALUES ($1, $2, now(), 'Вера')`,
+    [advertiser, `env-${advertiser}@envelopes.test`],
+  );
+  const venue = async (name: string, address: string) => {
+    const id = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO venues (id, advertiser_id, name, address, verification_status) VALUES ($1, $2, $3, $4, 'unverified')`,
+      [id, advertiser, name, address],
+    );
+    return id;
+  };
+  const envelope = async (venueId: string, code: string, burned = false) => {
+    const id = crypto.randomUUID();
+    await database.queryOrThrow(
+      `INSERT INTO venue_envelopes (id, venue_id, code, code_hash, expires_at, burned_at)
+       VALUES ($1, $2, $3, $4, now() + interval '30 days', CASE WHEN $5 THEN now() END)`,
+      [id, venueId, code, await sha256hex(code + id), burned],
+    );
+    return id;
+  };
+  const cafe = await venue("Кофейня «Угол»", "ул. Руставели 12, Тбилиси");
+  const bakery = await venue("Пекарня на Садовой", "Садовая ул. 3, Санкт-Петербург");
+  const first = await envelope(cafe, "K7QD-4MXA-9PTE");
+  await envelope(bakery, "OLD0-OLD0-OLD0", true);
+  const second = await envelope(bakery, "R2WN-8HCF-3LZB");
+
+  const platform = await panelAs("moderator", null);
+  const listed = await call("GET", "/admin/envelopes", { headers: platform, origin: null });
+  assertEquals(listed.status, 200, JSON.stringify(listed.body));
+  const byId = (body: { envelopes: { id: string }[] }, id: string) => body.envelopes.find((e) => e.id === id) as Record<string, unknown> | undefined;
+  assertEquals(byId(listed.body, first)?.code, "K7QD-4MXA-9PTE", "the platform does not see the code to print");
+  assertEquals(byId(listed.body, first)?.address, "ул. Руставели 12, Тбилиси");
+  assertEquals(byId(listed.body, first)?.venue, "Кофейня «Угол»");
+  assertEquals(byId(listed.body, second)?.reordered, true, "a second order after a burnt one is not said");
+  assert(!listed.body.envelopes.some((e: { code: string }) => e.code === "OLD0-OLD0-OLD0"), "a burnt envelope is listed");
+
+  // A tenant's moderator holds the permission, and the route refuses them.
+  const tenant = await panelAs("moderator", "alpha");
+  assertEquals((await call("GET", "/admin/envelopes", { headers: tenant, origin: null })).status, 403, "a tenant reads the envelopes' codes");
+  assertEquals((await call("POST", `/admin/envelopes/${first}/sent`, { headers: tenant, origin: null })).status, 403, "a tenant marks an envelope sent");
+  // A role without it at all.
+  assertEquals((await call("GET", "/admin/envelopes", { headers: await panelAs("viewer", null), origin: null })).status, 403);
+
+  // Sent: once, and the code is no longer handed out.
+  const sent = await call("POST", `/admin/envelopes/${first}/sent`, { headers: platform, origin: null });
+  assertEquals(sent.status, 200, JSON.stringify(sent.body));
+  const again = await call("POST", `/admin/envelopes/${first}/sent`, { headers: platform, origin: null });
+  assertEquals([again.status, again.body.sent_at], [200, sent.body.sent_at], "a second mark moved the moment");
+  const after = (await call("GET", "/admin/envelopes", { headers: platform, origin: null })).body;
+  assertEquals(byId(after, first)?.code, null, "the code is still shown after the envelope was sent");
+  assertEquals(byId(after, first)?.sent_at, sent.body.sent_at);
+  assertEquals(byId(after, first)?.attempts_left, 5);
+  // Still in the database for a lost letter (db/068): only the panel lost it.
+  const [{ code }] = await database.queryOrThrow<{ code: string }>(`SELECT code FROM venue_envelopes WHERE id = $1`, [first]);
+  assertEquals(code, "K7QD-4MXA-9PTE");
+  assertEquals((await call("POST", `/admin/envelopes/${crypto.randomUUID()}/sent`, { headers: platform, origin: null })).status, 404);
+} });

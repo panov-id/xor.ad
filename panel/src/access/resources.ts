@@ -33,6 +33,8 @@ export const PERMISSION_BY_RESOURCE_ACTION: Record<string, Permission> = {
   // The platform's number: the same permission as the node's route, and a
   // tenant is kept out by PLATFORM_ONLY in providers/access.ts.
   "dsa_recipients.list": "dsa_notices.read",
+  // Venue envelopes, printed by the platform (W17-EN); PLATFORM_ONLY too.
+  "envelopes.list": "envelopes.read",
   "feed_queue.list": "feed_queue.read",
   // The verdict buttons: reading the queue is not deciding it (2026-09-22).
   "feed_queue.decide": "feed_queue.decide",

@@ -1430,3 +1430,44 @@ input.quota-input {
 .recipients-bar-cell { width: auto; }
 .recipients-bar { display: block; height: 22px; background: var(--accent); }
 .recipients-months .recipients-micro { padding: 0 24px; }
+
+/* Venue envelopes (W17-EN), after panel/design/venue-envelopes-mockup.svg. */
+.envelopes-card { padding: 0 0 20px; margin-top: var(--space-5); overflow-x: auto; }
+.envelopes-table { width: 100%; border-collapse: collapse; }
+.envelopes-table th {
+  text-align: left; font-size: 13px; font-weight: 400; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-muted);
+  padding: 18px 16px 12px; border-bottom: 1px solid var(--line);
+}
+.envelopes-table td { padding: 18px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.envelopes-table tr.muted td { color: var(--ink-muted); }
+.envelopes-table td:first-child, .envelopes-table td:nth-child(4), .envelopes-table td:nth-child(5) { white-space: nowrap; }
+.envelopes-table .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+.envelopes-actions { white-space: nowrap; text-align: right; }
+.envelopes-actions button + button { margin-left: 12px; }
+.envelopes-foot { padding: 0 16px; }
+
+/* The DL envelope (110 × 220 mm), shown only when printing one: the return
+   address top left, the code in the left half, the venue's name and address in
+   the window, lower right, as a DL window envelope places it. */
+.envelope-print-area { display: none; }
+.envelope-dl {
+  position: relative; box-sizing: border-box; width: 220mm; height: 110mm;
+  padding: 10mm 12mm; background: #fff; color: #14140f;
+  font-family: "Inter", system-ui, sans-serif;
+}
+.envelope-from { margin: 0; font-size: 9pt; color: #5b5b55; }
+.envelope-code { position: absolute; left: 12mm; top: 34mm; width: 95mm; }
+.envelope-code-label { margin: 0; font-size: 11pt; }
+.envelope-code-value { margin: 2mm 0 4mm; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 20pt; letter-spacing: 0.04em; }
+.envelope-note { margin: 0 0 1.5mm; font-size: 8.5pt; color: #5b5b55; }
+.envelope-printed { margin: 5mm 0 0; font-size: 7.5pt; color: #5b5b55; }
+.envelope-to { position: absolute; left: 120mm; top: 50mm; width: 90mm; font-size: 12pt; line-height: 1.4; }
+.envelope-to p { margin: 0; }
+
+@media print {
+  @page { size: 220mm 110mm; margin: 0; }
+  body * { visibility: hidden; }
+  .envelope-print-area, .envelope-print-area * { visibility: visible; }
+  .envelope-print-area { display: block; position: fixed; inset: 0; }
+}

@@ -7,8 +7,9 @@ import { requiredPermission } from "../access";
 import { loadIdentity } from "./auth";
 
 // Pages whose figure is the platform's: a tenant reader is not shown the menu
-// item at all (owner, W17-DR), and the node refuses it with 403 besides.
-const PLATFORM_ONLY = new Set(["dsa_recipients"]);
+// item at all (owner, W17-DR; the envelopes, W17-EN), and the node refuses it
+// with 403 besides.
+const PLATFORM_ONLY = new Set(["dsa_recipients", "envelopes"]);
 
 export const accessControlProvider: AccessControlProvider = {
   can: async ({ resource, action }) => {

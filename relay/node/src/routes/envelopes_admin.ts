@@ -35,7 +35,7 @@ interface EnvelopeRow {
 // that waits longest is printed first. A sent one stays on the list without
 // its code, so the page can say when it went and how many tries are left.
 route("GET", "/admin/envelopes", async ({ req }) => {
-  const access = await requirePermission(req, "envelopes.print");
+  const access = await requirePermission(req, "envelopes.read");
   if (isDenied(access)) return access.response;
   if (access.user.brand) return json(PLATFORM_ONLY, 403);
   const rows = await query<EnvelopeRow>(
@@ -69,7 +69,7 @@ route("GET", "/admin/envelopes", async ({ req }) => {
 // Marked sent: once, by the platform. A second mark answers what the first
 // wrote; an envelope used, burnt or unknown is 404.
 route("POST", "/admin/envelopes/:id/sent", async ({ req, params }) => {
-  const access = await requirePermission(req, "envelopes.print");
+  const access = await requirePermission(req, "envelopes.send");
   if (isDenied(access)) return access.response;
   if (access.user.brand) return json(PLATFORM_ONLY, 403);
   const id = params.id;

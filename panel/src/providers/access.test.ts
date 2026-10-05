@@ -27,6 +27,13 @@ describe("platform-only pages", () => {
     expect(await can("dsa_notices")).toBe(true);
   });
 
+  it("keep the envelopes from a tenant's moderator too (W17-EN)", async () => {
+    who = { ...moderator("sosed"), permissions: ["envelopes.read", "envelopes.send"] };
+    expect(await can("envelopes")).toBe(false);
+    who = { ...moderator(null), permissions: ["envelopes.read", "envelopes.send"] };
+    expect(await can("envelopes")).toBe(true);
+  });
+
   it("keep it from a reader without the permission", async () => {
     who = { ...moderator(null), permissions: [] };
     expect(await can("dsa_recipients")).toBe(false);

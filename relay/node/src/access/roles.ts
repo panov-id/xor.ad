@@ -33,7 +33,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly (Permission | typeof ALL_PE
     "support.answer",
     // Venue envelopes (W17-EN): platform staff print and post them. A tenant's
     // moderator holds this too and is refused by the route: the platform only.
-    "envelopes.print",
+    "envelopes.read",
+    "envelopes.send",
   ],
   viewer: ["waitlist.read"],
   // A tenant's own administrator: full reach inside their brand, and no reach

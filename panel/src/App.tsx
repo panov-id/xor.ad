@@ -20,6 +20,7 @@ import { AuthCallback } from "./pages/auth-callback";
 import { WaitlistList } from "./pages/waitlist/list";
 import { DsaNoticesList } from "./pages/dsa-notices/list";
 import { DsaRecipientsList } from "./pages/dsa-recipients/list";
+import { EnvelopesList } from "./pages/envelopes/list";
 import { FeedQueueList } from "./pages/feed-queue/list";
 import { SupportList } from "./pages/support/list";
 import { PanelUsersList } from "./pages/panel-users/list";
@@ -53,6 +54,11 @@ function App() {
                 name: "dsa_recipients",
                 list: "/dsa-recipients",
                 meta: { label: "Recipients, DSA 24(3)" },
+              },
+              {
+                name: "envelopes",
+                list: "/envelopes",
+                meta: { label: "Envelopes to post" },
               },
               {
                 name: "feed_queue",
@@ -149,6 +155,14 @@ function App() {
                   element={
                     <Gated resource="dsa_recipients">
                       <DsaRecipientsList />
+                    </Gated>
+                  }
+                />
+                <Route
+                  path="/envelopes"
+                  element={
+                    <Gated resource="envelopes">
+                      <EnvelopesList />
                     </Gated>
                   }
                 />

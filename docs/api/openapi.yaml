@@ -1667,11 +1667,11 @@ paths:
       x-internal: true
       x-source: relay/node/src/routes/envelopes_admin.ts
       security: [{panelSession: []}]
-      description: "Since 2026-10-05 (W17-EN, owner's decision): the envelopes in play — not used, not burnt, not expired — oldest first, at most 200: {envelopes: [{id, venue, address, code, ordered_at, expires_at, sent_at, attempts_left, reordered}]}. The platform prints the address and the code straight on a DL envelope, in English. code is null once the envelope is marked sent — it stays in the database until used or burnt, but the panel no longer gets it. Platform staff only (envelopes.print): a tenant's reader gets 403 even holding the permission."
-      x-description-ru: "С 05.10.2026 (W17-EN, решение владельца): конверты в игре — не использованы, не сожжены, не истекли — старые первыми, не больше 200: {envelopes: [{id, venue, address, code, ordered_at, expires_at, sent_at, attempts_left, reordered}]}. Платформа печатает адрес и код прямо на конверте DL, по-английски. code — null, как только конверт отмечен отправленным: в базе он остаётся до использования или сожжения, но панель его больше не получает. Только персонал платформы (envelopes.print): читатель арендатора получает 403 и с этим правом."
+      description: "Since 2026-10-05 (W17-EN, owner's decision): the envelopes in play — not used, not burnt, not expired — oldest first, at most 200: {envelopes: [{id, venue, address, code, ordered_at, expires_at, sent_at, attempts_left, reordered}]}. The platform prints the address and the code straight on a DL envelope, in English. code is null once the envelope is marked sent — it stays in the database until used or burnt, but the panel no longer gets it. Platform staff only (envelopes.read): a tenant's reader gets 403 even holding the permission."
+      x-description-ru: "С 05.10.2026 (W17-EN, решение владельца): конверты в игре — не использованы, не сожжены, не истекли — старые первыми, не больше 200: {envelopes: [{id, venue, address, code, ordered_at, expires_at, sent_at, attempts_left, reordered}]}. Платформа печатает адрес и код прямо на конверте DL, по-английски. code — null, как только конверт отмечен отправленным: в базе он остаётся до использования или сожжения, но панель его больше не получает. Только персонал платформы (envelopes.read): читатель арендатора получает 403 и с этим правом."
       responses:
         "200": {description: "{envelopes: [...]}", x-description-ru: "{envelopes: [...]}"}
-        "403": {description: "Without envelopes.print, or a tenant's reader.", x-description-ru: "Без envelopes.print или читатель арендатора."}
+        "403": {description: "Without envelopes.read (envelopes.send to mark), or a tenant's reader.", x-description-ru: "Без envelopes.read (для отметки — envelopes.send) или читатель арендатора."}
         "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/envelopes/{id}/sent:
     post:
@@ -1688,7 +1688,7 @@ paths:
       x-description-ru: "Один раз: повторная отметка отвечает первым моментом. Пишется в журнал аудита (кто и когда, но не код). Только персонал платформы."
       responses:
         "200": {description: "{id, sent_at}.", x-description-ru: "{id, sent_at}."}
-        "403": {description: "Without envelopes.print, or a tenant's reader.", x-description-ru: "Без envelopes.print или читатель арендатора."}
+        "403": {description: "Without envelopes.send, or a tenant's reader.", x-description-ru: "Без envelopes.send или читатель арендатора."}
         "404": {description: "No such envelope, or used, or burnt.", x-description-ru: "Нет такого конверта, или он использован, или сожжён."}
         "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/dsa-notices:

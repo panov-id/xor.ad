@@ -1366,3 +1366,67 @@ input.quota-input {
   padding: 2px 6px;
 }
 
+
+/* DSA recipients (W17-DR), after panel/design/dsa-recipients-mockup.svg: two
+   cards straight on the page — the average with its method under it, and the
+   six months with their bars. The page itself is not a card: a card inside a
+   card is the nesting this system removed. */
+.dsa-recipients h1 { margin: 0; }
+.recipients-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 470px) minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  margin-top: var(--space-5);
+}
+@media (max-width: 900px) { .recipients-grid { grid-template-columns: 1fr; } }
+.recipients-card {
+  background: var(--surface);
+  border: var(--border-w) solid var(--line-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 28px 28px 20px;
+}
+.recipients-label {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin: 0;
+}
+.recipients-big {
+  font-family: "Unbounded", "Inter", sans-serif;
+  font-size: 40px;
+  font-weight: 600;
+  margin: 18px 0 14px;
+}
+.recipients-incomplete {
+  display: inline-block;
+  border: 1px solid var(--warn-line);
+  color: var(--warn-ink);
+  border-radius: 4px;
+  padding: 3px 28px;
+  margin: 0;
+}
+.recipients-micro { font-size: 12px; color: var(--ink-muted); margin: 8px 0 0; }
+.recipients-copy { display: block; margin-top: 16px; }
+.recipients-how { margin-top: 40px; }
+.recipients-months { padding: 0 0 20px; }
+.recipients-months table { width: 100%; border-collapse: collapse; }
+.recipients-months th {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  padding: 18px 24px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.recipients-months td { padding: 12px 24px; font-size: 17px; white-space: nowrap; }
+.recipients-months td.muted { color: var(--ink-muted); }
+/* The month and the number take what they need and never wrap; the bar takes the rest. */
+.recipients-months th:not(:last-child), .recipients-months td:not(:last-child) { width: 1%; }
+.recipients-bar-cell { width: auto; }
+.recipients-bar { display: block; height: 22px; background: var(--accent); }
+.recipients-months .recipients-micro { padding: 0 24px; }

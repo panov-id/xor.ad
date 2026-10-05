@@ -1,9 +1,11 @@
 // neighbro "stickers" with one heart (owner's decision 02.10.2026): the heart
 // is dragged onto the card, or tapped and then the card tapped, or picked and
-// placed with Enter. It sits there 5 s before the like goes; taken off in
-// that window, nothing goes. What is read back is the network: every
-// POST /feed/:id/like the page made, with its time. A heart dropped outside
-// the card goes back to the pad and sends nothing.
+// placed with Enter. The like goes the moment the heart lands, as sosed's does
+// (owner's decision 04.10.2026: the 5 s window is gone); taking it back is the
+// likes list's. What is read back is the network — every POST /feed/:id/like
+// the page made, with its time — and the other side: the like is on the node
+// at once, so her heart on his phrase makes the match straight away.
+// A heart dropped outside the card goes back to the pad and sends nothing.
 // sosed has no heart pad (blocks): the spec stands aside on that build.
 
 import { type BrowserContext, expect, type Page, test } from "../fixtures/address.ts";
@@ -24,7 +26,7 @@ async function open(page: Page, text: string): Promise<string> {
   await page.getByTestId("nav-inbox").click();
   await page.getByTestId("nav-feed").click();
   const card = page.getByTestId("card").filter({ hasText: text });
-  await expect(card, `the phrase «${text}» is in B's feed`).toHaveCount(1, { timeout: 30000 });
+  await expect(card, `the phrase «${text}» is in the feed`).toHaveCount(1, { timeout: 30000 });
   const id = (await card.getAttribute("data-id"))!;
   await card.click();
   await expect(page.locator('[data-screen="card"]')).toHaveAttribute("data-id", id);
@@ -40,68 +42,61 @@ async function carry(page: Page, to: { x: number; y: number }): Promise<void> {
   await page.mouse.up();
 }
 
-test("neighbro heart: drag, tap-tap and Enter place it; the like goes after 5 s; undo inside 5 s sends nothing", async ({ browser }) => {
+test("neighbro heart: drag, tap-tap and Enter place it; the like goes at once and the other side sees it at once", async ({ browser }) => {
   test.setTimeout(240_000);
   const label = runLabel();
-  const lines = ["сердце перетащить", "сердце снять", "сердце клавишей", "сердце и скрыть", "сердце и блок"].map((l) => `${l} ${label}`);
+  const lines = ["сердце перетащить", "сердце нажатием", "сердце клавишей"].map((l) => `${l} ${label}`);
+  const his = `и я тут ${label}`;
   const contexts: BrowserContext[] = [];
   try {
     const a = await (await browser.newContext()).newPage();
     contexts.push(a.context());
     await register(a, { name: "Аня", age: "28" });
     if ((await a.locator("html").getAttribute("data-brand")) !== "neighbro") test.skip(true, "the heart pad is neighbro's; this build is another brand");
-    for (const line of lines.slice(0, 3)) await writePhrase(a, line);
-    // Four live phrases is a person's ceiling (feed_limits.ts): the hide and
-    // block cases get their own author, who is also the one blocked.
-    const c = await (await browser.newContext()).newPage();
-    contexts.push(c.context());
-    await register(c, { name: "Вера", age: "35" });
-    for (const line of lines.slice(3)) await writePhrase(c, line);
+    for (const line of lines) await writePhrase(a, line);
 
     const b = await (await browser.newContext()).newPage();
     contexts.push(b.context());
     const seen = likes(b);
     await register(b, { name: "Борис", age: "31" });
     // A like is a phrase meeting a phrase (§8.4): B needs a live one.
-    await writePhrase(b, `и я тут ${label}`);
+    await writePhrase(b, his);
     const screen = b.locator('[data-screen="card"]');
 
     // 1. Dropped outside the card: back to the pad, nothing placed or sent.
     const dragId = await open(b, lines[0]);
     await carry(b, { x: 30, y: 30 });
     await expect(screen, "a heart dropped on the header is back on the pad").toHaveAttribute("data-heart", "pad");
-    await expect(b.getByTestId("heart-wait")).toHaveCount(0);
+    expect(seen, "a heart dropped outside sent nothing").toEqual([]);
 
-    // 2. Dragged onto the card: placed, held 5 s, then sent once.
+    // 2. Dragged onto the card: sent at once, once.
     const box = (await b.getByTestId("heart-target").boundingBox())!;
-    await carry(b, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
     const placedAt = Date.now();
-    await expect(screen, "the dragged heart sits on the card").toHaveAttribute("data-heart", "pending");
-    await expect(b.getByTestId("heart-wait")).toBeVisible();
-    await b.waitForTimeout(3000);
-    expect(seen, "three seconds in, the like has not gone").toEqual([]);
-    await expect(b.getByTestId("liked"), "the like went after the window").toBeVisible({ timeout: 15000 });
+    await carry(b, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
+    await expect(b.getByTestId("liked"), "the like went the moment the heart landed").toBeVisible({ timeout: 3000 });
     expect(seen.map((l) => l.id), "one POST /feed/:id/like, for this card").toEqual([dragId]);
-    expect(seen[0].at - placedAt, "not before 5 s").toBeGreaterThanOrEqual(4900);
+    expect(seen[0].at - placedAt, "sent at once, not after a window").toBeLessThan(2000);
     await expect(screen).toHaveAttribute("data-heart", "sent");
+    await expect(b.getByTestId("heart-undo"), "no undo on the card: taking back is the likes list's").toHaveCount(0);
+
+    // The other side sees it at once: her heart on his phrase makes the match.
+    await open(a, his);
+    await a.getByTestId("heart").click();
+    await a.getByTestId("heart-target").click();
+    await expect(a.getByTestId("matched"), "his like was already on the node when hers came").toBeVisible({ timeout: 5000 });
     await b.getByTestId("back").click();
 
-    // 3. Tap the heart, tap the card; take it off inside 5 s: nothing goes.
+    // 3. Tap the heart, tap the card: sent at once.
     seen.length = 0;
-    await open(b, lines[1]);
+    const tapId = await open(b, lines[1]);
     await b.getByTestId("heart").click();
     await expect(b.getByTestId("heart")).toHaveAttribute("aria-pressed", "true");
     await b.getByTestId("heart-target").click();
-    await expect(screen, "tap-tap placed the heart").toHaveAttribute("data-heart", "pending");
-    await b.waitForTimeout(2000);
-    await b.getByTestId("heart-undo").click();
-    await expect(screen, "undo took the heart back to the pad").toHaveAttribute("data-heart", "pad");
-    await b.waitForTimeout(6000);
-    expect(seen, "undone inside the window: no POST /feed/:id/like at all").toEqual([]);
-    await expect(b.getByTestId("liked")).toHaveCount(0);
+    await expect(b.getByTestId("liked"), "tap-tap sent the like at once").toBeVisible({ timeout: 3000 });
+    expect(seen.map((l) => l.id)).toEqual([tapId]);
     await b.getByTestId("back").click();
 
-    // 4. The keyboard: Enter picks the heart, Enter on the card places it.
+    // 4. The keyboard: Enter picks the heart, Enter on the card sends the like.
     seen.length = 0;
     const keyId = await open(b, lines[2]);
     await b.getByTestId("heart").focus();
@@ -109,28 +104,8 @@ test("neighbro heart: drag, tap-tap and Enter place it; the like goes after 5 s;
     await expect(b.getByTestId("heart")).toHaveAttribute("aria-pressed", "true");
     await b.getByTestId("heart-target").focus();
     await b.keyboard.press("Enter");
-    await expect(screen, "Enter placed the heart").toHaveAttribute("data-heart", "pending");
-    await expect(b.getByTestId("liked")).toBeVisible({ timeout: 15000 });
+    await expect(b.getByTestId("liked"), "Enter sent the like at once").toBeVisible({ timeout: 3000 });
     expect(seen.map((l) => l.id)).toEqual([keyId]);
-    await b.getByTestId("back").click();
-
-    // 5–6. Hiding or blocking inside the window takes the heart off: leaving
-    // the card must not send the like the person was walking away from.
-    for (const [line, why] of [[lines[3], "hidden"], [lines[4], "blocked"]] as const) {
-      seen.length = 0;
-      await open(b, line);
-      await b.getByTestId("heart").click();
-      await b.getByTestId("heart-target").click();
-      await expect(screen).toHaveAttribute("data-heart", "pending");
-      if (why === "hidden") await b.getByTestId("hide").click();
-      else {
-        await b.getByTestId("block").click();
-        await b.getByTestId("block-confirm-yes").click();
-      }
-      await expect(b.getByTestId("gone")).toHaveAttribute("data-why", why);
-      await b.waitForTimeout(6000);
-      expect(seen, `${why} inside the window: no POST /feed/:id/like`).toEqual([]);
-    }
   } finally {
     for (const c of contexts) await c.close();
   }

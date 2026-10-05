@@ -289,9 +289,9 @@ def cardscreen(theme_key,state):
         tray(ty)
         y2=H-16-56
         roundbtn(44,y2+28,"hide","hide"); roundbtn(108,y2+28,"block","block")
-        if state=="liked":
-            target(156,y2,203,56,"remove sticker"); die(f'<rect x="156" y="{y2}" width="203" height="56" rx="28" fill="{TH["panel"]}"/>'); icon(236,y2+28,"undo",24); T(258,y2+34,"5 s",16,cls="s",extra='font-variant-numeric="tabular-nums"'); a('</g>')
-        else: bigbtn(156,y2,203,"grab","heart pad")
+        # A liked card has no undo pill: the like went at once and is taken back
+        # from the likes list (owner, 04.10.2026); the heart is used, so no pad either.
+        if state!="liked": bigbtn(156,y2,203,"grab","heart pad")
 def s_Card(): cardscreen("day","plain")
 def s_Cardliked(): cardscreen("day","liked")
 def s_Cardmore(): cardscreen("day","more")
@@ -372,10 +372,10 @@ for nm,th,fn in SCREENS:
 
 # ---------------- behavior.svg ----------------
 ROWS=[("heart pad (button)","open the pad","—","heart pad above the buttons","heart pad"),
- ("heart sticker","select (focus ring) → tap phrase sticks","drag onto phrase","like sent, heart on phrase, undo 5 s","like"),
+ ("heart sticker","select (focus ring) → tap phrase sticks","drag onto phrase","like sent at once, heart on phrase","like"),
  ("heart: keyboard","Enter/Space picks, Enter on phrase","—","same as drag (WCAG 2.5.7)","as above"),
  ("heart over phrase","—","drop outside phrase","back to the pad, nothing sent","—"),
- ("remove heart","unlike within 5 s","—","heart returns to the pad","remove heart"),
+ ("take a like back","in the likes list, as on sosed","—","heart returns to the pad","take back"),
  ("phrase in feed","open card","long-press → heart pad","Card screen","phrase text"),
  ("hide","hide phrase","—","phrase leaves feed","hide"),
  ("block","confirm: yes / cancel","—","author hidden for good","block"),

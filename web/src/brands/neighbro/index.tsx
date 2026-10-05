@@ -2,8 +2,9 @@
 // web/design/gen/dir-stickers), with ONE sticker: the heart. The node knows
 // like and unlike only, so the pad holds nothing else. The heart is dragged
 // onto the card, or tapped and then the card tapped (Enter and Space do the
-// same, WCAG 2.5.7); it sits there UNDO_MS before the like is sent, and taking
-// it off in that window sends nothing (screens/logic/useDeferredLike.ts).
+// same, WCAG 2.5.7). The like goes the moment the heart lands, as sosed's does
+// (owner's decision 04.10.2026: no 5 s window); taking it back is the likes
+// list's, as on sosed.
 // The state and the node's calls are the shared hooks; this file only draws.
 
 import { useEffect, useId, useRef, useState, type ComponentProps, type PointerEvent as ReactPointerEvent } from "react";
@@ -14,7 +15,6 @@ import { CardOpen, openerIds } from "../../ui/Card.tsx";
 import { Card, CardExtras, CardNotes } from "../../screens/Card.tsx";
 import { Life, Match, MatchBody } from "../../screens/Match.tsx";
 import { useCard } from "../../screens/logic/useCard.ts";
-import { useDeferredLike } from "../../screens/logic/useDeferredLike.ts";
 import { useMatch } from "../../screens/logic/useMatch.ts";
 import { Button } from "../../ui/Button.tsx";
 import { HeaderScreen } from "../../ui/Header.tsx";
@@ -81,30 +81,26 @@ export function FeedView(props: ComponentProps<typeof Feed>) {
 // Card.svg: the phrase as a big sticker, the heart pad under it.
 export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof Card>) {
   const logic = useCard({ client, card, onGone });
-  const { busy, liked, doLike, hide } = logic;
-  const deferred = useDeferredLike(doLike);
-  // Hiding or blocking inside the heart's window takes the heart off first:
-  // leaving the card would otherwise send the like it was meant to cancel.
-  const actions = { ...logic, hide: () => { deferred.undo(); return hide(); }, block: () => { deferred.undo(); return logic.block(); } };
+  const { busy, liked, doLike } = logic;
+  const actions = logic;
   const [armed, setArmed] = useState(false);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const press = useRef<{ x: number; y: number; id: number; moved: boolean } | null>(null);
   const target = useRef<HTMLElement | null>(null);
-  const placed = deferred.pending || liked;
+  const placed = liked;
   // The article's name is the phrase, its description what else it carries
   // (offer, mode, conditions, the count): aria-label would hide them (P2).
   const ids = useId();
   const described = [card.offer && `${ids}-offer`, `${ids}-meta`, card.offer?.conditions && `${ids}-cond`, `${ids}-count`].filter(Boolean).join(" ");
-  // The countdown is said once, when the heart lands, not every tick (P3).
-  const [said, setSaid] = useState("");
-  useEffect(() => { setSaid(deferred.pending ? say("web.card.heart_wait", { n: deferred.left }) : ""); }, [deferred.pending]);
+  // Said once, when the like has gone (P3).
+  const said = liked ? say("web.card.liked") : "";
   // A picked heart sends focus to its target, which sits before it (P4).
   useEffect(() => { if (armed) target.current?.focus(); }, [armed]);
 
   function place() {
     if (placed || busy) return;
     setArmed(false);
-    deferred.place();
+    void doLike();
   }
 
   const heart = {
@@ -140,7 +136,7 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   };
 
   return (
-    <main className="screen card-screen b-stickers" data-screen="card" data-id={card.id} data-heart={deferred.pending ? "pending" : liked ? "sent" : armed ? "armed" : "pad"}>
+    <main className="screen card-screen b-stickers" data-screen="card" data-id={card.id} data-heart={liked ? "sent" : armed ? "armed" : "pad"}>
       <HeaderScreen title={modeLabel(card.mode)} onBack={onBack} backLabel={say("web.card.back")} />
       <article
         ref={target}
@@ -162,12 +158,6 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
         {placed && <span className="stuck-heart" data-testid="stuck-heart" aria-hidden="true"><Icon name="like" size={40} /></span>}
       </article>
       <span className="visually-hidden" role="status" data-testid="heart-said">{said}</span>
-      {deferred.pending && (
-        <p className="warn heart-wait" data-testid="heart-wait">
-          <span aria-hidden="true">{say("web.card.heart_wait", { n: deferred.left })}</span>
-          <Button type="button" icon="close" aria-label={say("liked.undo")} onClick={deferred.undo} data-testid="heart-undo" />
-        </p>
-      )}
       <CardNotes logic={actions} />
       <div className="heart-pad">
         <button

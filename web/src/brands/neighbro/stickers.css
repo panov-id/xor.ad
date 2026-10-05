@@ -50,7 +50,6 @@
 .b-stickers .heart-sticker.armed { outline: 3px solid var(--focus); outline-offset: 3px; transform: rotate(-8deg); }
 .b-stickers .heart-sticker.used { opacity: 0.35; box-shadow: none; }
 .b-stickers .heart-ghost { position: fixed; z-index: 30; pointer-events: none; transform: translate(-50%, -50%) rotate(-8deg); color: var(--accent-text); }
-.b-stickers .heart-wait { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
 /* Match.svg: two hearts leaning towards each other. */
 .b-stickers .sticker-hero { position: relative; height: 140px; display: flex; justify-content: center; align-items: center; }

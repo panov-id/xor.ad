@@ -318,7 +318,6 @@
   "web.theme.auto": "auto — día y noche del lugar",
   "web.card.details": "detalles",
   "web.card.heart": "corazón: arrástralo a la frase o tócalo y luego la frase",
-  "web.card.heart_wait": "el like se envía en {n} s — puedes quitarlo",
   "web.card.likes": "likes:",
   "web.card.phrase": "frase",
   "web.filter.item": "filtro de edad",

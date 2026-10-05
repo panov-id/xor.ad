@@ -151,12 +151,12 @@ Deno.test({
       assert(await queued(link.body.id), "the model's reject took the phrase out of the person's queue");
       assertEquals(asked, ["заходите на https://example.com/party"], "the model was not asked the phrase itself");
 
-      // A clean phrase is published by the rules and never reaches the model.
+      // A clean phrase is no longer the rules' alone (W17-MM): with the model
+      // on, it is asked too, and its "reject" holds the phrase for a person.
       const clean = await (await author())("гуляю у реки, если кто рядом");
-      assertEquals(clean.status, 200);
-      await new Promise((r) => setTimeout(r, 200));
-      assertEquals(asked.length, 1, "a clean phrase was sent to the model");
-      assertEquals(await hintOf(clean.body.id, 0.2), undefined);
+      assertEquals(clean.status, 202, "a clean phrase went out past the model's reject");
+      assertEquals(asked.length, 2, "a clean phrase was not shown to the model");
+      assertEquals((await hintOf(clean.body.id))?.verdict, "reject");
 
       // An answer that is no verdict is kept as unsure.
       reply = "I think it is fine";
@@ -166,6 +166,55 @@ Deno.test({
     } finally {
       Deno.env.delete("MODERATOR_URL");
     }
+  },
+});
+
+// W17-MM (owner's decision): every phrase the rules let through is shown to
+// the model before it goes out. Crude words carry no link and no contact, so
+// the rules alone published them; the model holds them for a person.
+Deno.test({
+  name: "W17-MM: a crude phrase clean by the rules waits for a person, a fine one goes out, a dead model holds it back",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const crude = "все соседи с третьего этажа тупые уроды";
+    const inFeed = async (id: string) =>
+      (await database.queryOrThrow<{ visible_at: Date | null }>(`SELECT visible_at FROM feed_messages WHERE id = $1`, [id]))[0]?.visible_at ?? null;
+    Deno.env.set("MODERATOR_URL", MODEL_URL);
+    try {
+      asked.length = 0;
+      reply = '{"verdict":"reject","reason":"abuse"}';
+      const held = await (await author())(crude);
+      assertEquals(held.status, 202, `a crude phrase went out: ${JSON.stringify(held.body)}`);
+      assertEquals(held.body.state, "checking");
+      assertEquals(await inFeed(held.body.id), null, "a crude phrase is in the feed");
+      assertEquals(asked, [crude], "the model was not asked before the phrase went out");
+      assertEquals((await hintOf(held.body.id))?.verdict, "reject", "the person's queue got no hint");
+
+      reply = '{"verdict":"publish","reason":"fine"}';
+      const fine = await (await author())("кто на каток вечером?");
+      assertEquals(fine.status, 200, `a fine phrase did not go out: ${JSON.stringify(fine.body)}`);
+      assertEquals(fine.body.state, "published");
+      assert(await inFeed(fine.body.id), "a phrase the model let through is not in the feed");
+
+      reply = "no verdict here";
+      const unsure = await (await author())("продам велосипед недорого");
+      assertEquals(unsure.status, 202, "an unsure answer let the phrase out");
+    } finally {
+      Deno.env.delete("MODERATOR_URL");
+    }
+    // A dead model: a person looks, the phrase does not go out by the rules alone.
+    Deno.env.set("MODERATOR_URL", "http://127.0.0.1:9");
+    try {
+      const dead = await (await author())("иду гулять в парк");
+      assertEquals(dead.status, 202, "with the model dead a clean phrase went out unseen");
+      assertEquals(await inFeed(dead.body.id), null);
+    } finally {
+      Deno.env.delete("MODERATOR_URL");
+    }
+    // The flag off: as before, the rules publish a clean phrase.
+    const off = await (await author())(crude);
+    assertEquals(off.status, 200, "with no model the rules no longer published a clean phrase");
   },
 });
 

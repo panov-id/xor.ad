@@ -63,16 +63,17 @@ services:
     mem_limit: 128m
 
   # The first-tier model of §8.14 stands in here as a stub with Ollama's shape
-  # (POST /api/chat → { message: { content } }): it says "reject" to every
-  # phrase it is asked about. The node asks only about phrases the rules sent to
-  # the queue (lib/moderator.ts), so what the stub says is the hint the panel
-  # shows — a real model's judgement is relay/moderator's measurement, not this.
+  # (POST /api/chat → { message: { content } }). Since W17-MM the node asks it
+  # about every phrase before publishing, so the stub says "reject" only to a
+  # phrase carrying a link or a contact and "publish" to the rest — otherwise no
+  # phrase would ever reach a feed. A real model's judgement is relay/moderator's
+  # measurement, not this.
   moderator:
     image: denoland/deno:alpine-2.1.4
     command:
       - eval
       - >-
-        Deno.serve({ port: 11434, hostname: "0.0.0.0" }, () => Response.json({ message: { content: JSON.stringify({ verdict: "reject", reason: "stub: a link" }) } }))
+        Deno.serve({ port: 11434, hostname: "0.0.0.0" }, async (r) => { const b = await r.json(); const t = String(b.messages?.at(-1)?.content ?? ""); const bad = /https?:|www[.]|t[.]me|@[a-z0-9_]{3,}|[0-9][0-9 ()-]{8,}/i.test(t); return Response.json({ message: { content: JSON.stringify(bad ? { verdict: "reject", reason: "stub: a link" } : { verdict: "publish", reason: "stub: clean" }) } }); })
     mem_limit: 128m
 
   # One moderator of the panel, written where the node reads its operators

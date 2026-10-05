@@ -179,6 +179,8 @@
 #     частоты ANNOUNCE_MS = 4000 (W5, 70eb64a; web/src/a11y/nearby.ts announce); e2e «the header's live
 #     step reaches a polite region once per change, and the screens pass axe» (web/e2e/specs/a11y.spec.ts).
 #
+# 05.10.2026 (W17-NL, решение владельца): web.like.deferred.pagehide закрыт — окна отмены у neighbro больше нет,
+#   сердце отправляет лайк сразу (web/src/brands/neighbro/index.tsx, heart.spec.ts; 0122d16f).
 # 04.10.2026 (W16-RJ, решение владельца): inbox.refused.hour-window закрыт — phrases_refused = 1, пока после
 #   последнего отказа нет своей фразы или публикации; ?since для него не читается (relay/node/src/lib/inbox_events.ts,
 #   тест «a refusal two hours old…» в inbox_events.test.ts; a1d35599, 24faba1c).
@@ -212,7 +214,6 @@ business.profile.retention	2026-09-24	с запуском	legal	Удаление
 web.gate.neighbro.brand	2026-10-03	сейчас	product	scripts/check-all.sh не гоняет e2e сборки neighbro, а спеки бренда при чужом data-brand уходят в test.skip молча — ворота бренда neighbro не держат ничего; нужен прогон обоих брендов и skip как красный	design	scripts/check-all.sh		код
 web.warnings.under-info	2026-10-03	-	product	Предупреждения о цене сброса и переезда спрятаны под ⓘ (web/src/screens/Me.tsx:268-271, Departure.tsx:90-93), а необратимое должно быть на виду до нажатия	design	web/src/screens/Me.tsx		код
 web.sosed.dark.control-contrast	2026-10-03	-	product	Тёмные темы sosed: рамка контрола --line к --bg 1.49:1, --surface к --bg 1.22:1 при требовании ≥3:1 (WCAG 1.4.11); поднять line в web/themes/sosed/dark*.json	design	web/themes/sosed/dark.json		ничего
-web.like.deferred.pagehide	2026-10-03	-	product	Отложенное сердце neighbro (UNDO_MS 5 с) теряется при закрытии вкладки до срока: досылать ли на pagehide/sendBeacon — решение владельца	design	web/src/screens/logic/useDeferredLike.ts		ничего
 web.stands.sigkill	2026-10-03	-	comfort	Стенды scripts/run-web-*.sh убираются trap на EXIT/INT/TERM; прогон, убитый SIGKILL, оставляет контейнеры и сети	design	scripts/run-web-tests.sh		ничего
 # ── отложено до пользователей ──
 offer.match.settle.retry	2026-09-26	с запуском	product	Мэтч от оффера под ждущим именем: settleAfterVerdict идёт после коммита вердикта без повтора — падение процесса между коммитом и settle (или ошибка в catch feed_verdict.ts) оставляет лайк мёртвым до истечения оффера; задачи в jobs нет (verifier P5)	chat	relay/node/src/lib/offer_match.ts		ничего

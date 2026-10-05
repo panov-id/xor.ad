@@ -55,6 +55,8 @@ export const PERMISSIONS = [
   // Support requests, the team's side (protocol §4.10a, 2026-09-22).
   "support.read",
   "support.answer",
+  // Venue envelopes, printed and marked sent by platform staff (W17-EN).
+  "envelopes.print",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

@@ -11,23 +11,23 @@
 // when DATABASE_URL is unset, which is also what a local stand without Postgres
 // gets.
 
-// postgres.js rather than @db/postgres, decided by the owner on 2026-09-21
-// (open-work G14). The old driver could not receive a NOTIFY at all: a
-// connection that was sent one threw "Unexpected simple query message: A" on
-// its next query — measured against a live Postgres on 2026-09-20. The chat's
-// whole transport is LISTEN/NOTIFY (chat spec §8.1, §8.6) and so is the second
-// half of §8.2's promise that a frozen session stops receiving, so the driver
-// decided more than it looked like it was deciding.
+// node-postgres, since W15-NC (2026-10-09). postgres.js 3.4.4 was chosen on
+// 2026-09-21 over the first driver, which could not receive a NOTIFY at all,
+// and it then took the whole process down when a connection broke under load:
+// 20 writers with backends killed every 50–250 ms crashed it in 12 runs of 12
+// (3.4.4 and 3.4.7, Deno 2.1.4 and 2.5.6) — a null socket written to after
+// close, an unhandled "terminating connection", "May not write null values to
+// stream". No guard around it held. The same storm against pg 8.13.1 left the
+// process alive in 6 of 6, the pool answering and LISTEN hearing afterwards
+// (docs/reviews/PANEL_2026-10-09_pg-driver-plan.md).
 //
-// Both candidates were measured under Deno before the choice: postgres.js took
-// a notification in 74ms, node-postgres in 40ms with the connection verified
-// alive afterwards. postgres.js won on shape rather than speed — `sql.listen()`
-// is a first-class call, and its transaction API maps onto the one this file
-// already offers.
+// What pg does not do for us and this file does instead: keep a LISTEN
+// connection alive (it is an ordinary client to pg), check that a COMMIT
+// committed, refuse `undefined` as a parameter, and tell "the database is not
+// there" apart from "the database said no" (DbUnavailable below).
 //
-// It is the node's first npm dependency and, apart from it, its only external
-// one at all. That was the price named when the choice was made.
-import postgres from "npm:postgres@3.4.4";
+// It is still the node's only external dependency.
+import pg from "npm:pg@8.13.1";
 import { config } from "../config.ts";
 import { log } from "./log.ts";
 
@@ -56,55 +56,137 @@ function statementTimeoutMs(): number {
   return Number.isFinite(named) && named > 0 ? named : 15_000;
 }
 
-// deno-lint-ignore no-explicit-any
-type Sql = any;
+// Values come back as postgres.js returned them, so nothing outside this file
+// notices the change of driver. Two types differ: pg reads a `date` as local
+// midnight (a day early east of UTC — measured at TZ=Asia/Nicosia) and an
+// `interval` as an object. postgres.js read the first as UTC midnight and left
+// the second a string.
+const DATE = 1082;
+const INTERVAL = 1186;
+const types = {
+  getTypeParser(oid: number, format?: string) {
+    if (oid === DATE) return (value: string) => new Date(value);
+    if (oid === INTERVAL) return (value: string) => value;
+    // deno-lint-ignore no-explicit-any
+    return pg.types.getTypeParser(oid, format as any);
+  },
+};
 
-let pool: Sql | null = null;
+function clientConfig(): pg.ClientConfig {
+  const timeout = statementTimeoutMs();
+  return {
+    connectionString: config.databaseUrl,
+    // Both, because they catch different halves: the first bounds a statement
+    // the server is running, the second bounds a transaction that is running
+    // nothing at all — the shape a dropped connection leaves behind, holding
+    // its locks.
+    options: `-c statement_timeout=${timeout} -c idle_in_transaction_session_timeout=${timeout}`,
+    // A peer that vanished without a FIN — a box gone, a firewall dropping —
+    // is otherwise silent for hours, and the LISTEN connection would never
+    // learn that it stopped hearing.
+    keepAlive: true,
+    types,
+  };
+}
+
+let pool: pg.Pool | null = null;
 
 export function enabled(): boolean {
   return Boolean(config.databaseUrl);
 }
 
-function ensurePool(): Sql {
+function ensurePool(): pg.Pool {
   if (!pool) {
-    pool = postgres(config.databaseUrl, {
+    pool = new pg.Pool({
+      ...clientConfig(),
       max: POOL_SIZE,
-      connection: {
-        // Both, because they catch different halves: the first bounds a
-        // statement the server is running, the second bounds a transaction
-        // that is running nothing at all — the shape a dropped connection
-        // leaves behind, holding its locks.
-        statement_timeout: statementTimeoutMs(),
-        idle_in_transaction_session_timeout: statementTimeoutMs(),
-      },
-      // Notices are the server talking, not an error, and postgres.js would
-      // print them to stderr by default — straight past lib/log.ts and its
-      // shape. Routed here so a "table does not exist, skipping" from a
-      // migration looks like every other line the node writes.
-      onnotice: (notice: { message?: string }) =>
-        log("info", "postgres notice", { message: String(notice.message ?? notice) }),
+      // pg waits for a connection, and for a free slot, forever by default:
+      // four connects hanging on a dropped SYN and every route is silent, the
+      // thing statementTimeoutMs() exists to prevent. Waiting no longer than a
+      // statement may run is the same promise for the step before it.
+      connectionTimeoutMillis: statementTimeoutMs(),
+      // Idle connections are kept, as postgres.js kept them (idle_timeout 0):
+      // four at most, and one that dies idle is dropped through "error" below.
+      // pg's default of ten seconds also arms a timer per idle client, which
+      // the test sanitizers of every database suite would count as a leak.
+      idleTimeoutMillis: 0,
     });
+    // An idle connection that dies emits here, and an EventEmitter error with
+    // no listener ends the process — pg's documented contract. The pool drops
+    // that client by itself; this only has to be heard. `client` is not
+    // logged: its connection parameters carry the password.
+    pool.on("error", (error: Error) => log("warn", "database connection dropped", { error: String(error) }));
+    // Notices are the server talking, not an error. Routed to lib/log.ts so a
+    // "table does not exist, skipping" from a migration looks like every other
+    // line the node writes.
+    pool.on("connect", (client: pg.PoolClient) => client.on("notice", onNotice));
   }
   return pool;
 }
 
-// The one place that turns a text-and-parameters query into a postgres.js call.
-// `unsafe` names the fact that the text is not a tagged template — the
-// parameters are still sent separately and are never interpolated, which is the
-// thing that matters. Every caller in this node builds SQL as a constant string
-// and passes values as `$1…$n`.
+function onNotice(notice: { message?: string }): void {
+  log("info", "postgres notice", { message: String(notice.message ?? notice) });
+}
+
+// The database could not be reached (refused, reset, timed out) — as opposed
+// to a query the database itself refused. Callers answer 503, not 500.
+// Contract for W15-NC: db.ts throws it, routes/profile.ts classifies by it.
+export class DbUnavailable extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = "DbUnavailable";
+  }
+}
+
+// What a failure from the driver means. Anything with an SQLSTATE came from
+// the server and stays as it is — a caller may act on 55P03 or 23505 — except
+// the classes that say the session itself is gone: 08 (connection exception)
+// and 57P01–57P03 (the backend was terminated or the server is going down).
+// Everything without one is the socket or pg's own bookkeeping —
+// ECONNREFUSED, ECONNRESET, "Connection terminated unexpectedly", "timeout
+// exceeded when trying to connect", "Client has encountered a connection error
+// and is not queryable" (the last two have no code at all, measured 2026-10-09).
+function unavailable(error: unknown): unknown {
+  if (error instanceof DbUnavailable) return error;
+  if (error instanceof pg.DatabaseError) {
+    const code: string = (error as { code?: string }).code ?? "";
+    if (!code.startsWith("08") && !/^57P0[123]$/.test(code)) return error;
+  }
+  return new DbUnavailable(`database unavailable: ${String(error)}`, { cause: error });
+}
+
+// The one place that turns a text-and-parameters query into a driver call. The
+// parameters are sent separately and are never interpolated; every caller in
+// this node builds SQL as a constant string and passes values as `$1…$n`.
 //
-// What the driver does to those values on the way out is worth knowing before
-// it costs an afternoon. Measured 2026-09-21: a string parameter that looks
-// like a timestamp is turned into a JavaScript `Date`, and a `Date` holds
-// milliseconds — so "2026-09-21T09:00:00.500900Z" reaches Postgres as
-// …500000, with no error and no warning. The feed's cursor was written that
-// way first and was undone by this, while reading correctly in the source
-// (routes/feed.ts says the same at the cursor). Anything that needs
-// microseconds crosses this boundary as digits and is turned back into an
-// instant in SQL.
-function run<T>(sql: Sql, text: string, args: unknown[]): Promise<T[]> {
-  return sql.unsafe(text, args) as Promise<T[]>;
+// `undefined` is refused here because pg would send it as NULL: a field the
+// caller forgot would become a quiet NULL write where postgres.js refused it.
+//
+// No parameters means no parameter list at all. pg then uses the simple
+// protocol, which is what lets tools/migrate_db.ts send a migration file of
+// many statements as one — and the answer to many statements is many results,
+// of which the last is the one a caller means.
+//
+// Strings reach Postgres as written. postgres.js turned a string that looked
+// like a timestamp into a `Date` and so cut microseconds to milliseconds
+// (measured 2026-09-21); routes/feed.ts still carries its cursor as digits,
+// which is right under either driver.
+async function exec<T>(
+  on: pg.Pool | pg.PoolClient,
+  text: string,
+  args: unknown[],
+): Promise<T[]> {
+  if (args.includes(undefined)) {
+    throw new TypeError(`undefined passed as parameter $${args.indexOf(undefined) + 1}: ${text.slice(0, 80)}`);
+  }
+  let result;
+  try {
+    result = await on.query(text, args.length ? args : undefined);
+  } catch (error) {
+    throw unavailable(error);
+  }
+  const last = Array.isArray(result) ? result[result.length - 1] : result;
+  return (last?.rows ?? []) as T[];
 }
 
 // Every query goes through here so a failure has one shape and one place to be
@@ -116,7 +198,7 @@ export async function query<T>(
 ): Promise<T[] | null> {
   if (!enabled()) return null;
   try {
-    return await run<T>(ensurePool(), text, args);
+    return await exec<T>(ensurePool(), text, args);
   } catch (error) {
     log("error", "database query failed", { error: String(error), sql: text.slice(0, 120) });
     return null;
@@ -127,7 +209,7 @@ export async function query<T>(
 // worker — where swallowing the error would hide a broken deploy.
 export async function queryOrThrow<T>(text: string, args: unknown[] = []): Promise<T[]> {
   if (!enabled()) throw new Error("DATABASE_URL is not set");
-  return await run<T>(ensurePool(), text, args);
+  return await exec<T>(ensurePool(), text, args);
 }
 
 // One connection, one transaction, for the few places where two writes have to
@@ -149,15 +231,27 @@ export type Query = <R>(text: string, args?: unknown[]) => Promise<R[]>;
 // goes through it, and `next` sends it on.
 export type Around = <R>(text: string, args: unknown[], next: Query) => Promise<R[]>;
 
-// The postgres.js scope behind each query function a transaction hands out,
-// so savepoint() below can open a savepoint on it, and the test's Around, so a
-// savepoint's statements go through it too.
-const scopes = new WeakMap<Query, { scope: Sql; around?: Around }>();
+// One transaction's connection and what it has seen: the first statement that
+// failed, which is the error the caller gets if COMMIT turns out to have rolled
+// back, and a counter for savepoint names.
+type Tx = { client: pg.PoolClient; failed?: unknown; savepoints: number };
 
-function queryOn(scope: Sql, around?: Around): Query {
-  const plain: Query = <R>(text: string, args: unknown[] = []) => scope.unsafe(text, args) as Promise<R[]>;
+// The transaction behind each query function handed out, so savepoint() below
+// can open a savepoint on it, and the test's Around, so a savepoint's
+// statements go through it too.
+const scopes = new WeakMap<Query, { tx: Tx; around?: Around }>();
+
+function queryOn(tx: Tx, around?: Around): Query {
+  const plain: Query = async <R>(text: string, args: unknown[] = []) => {
+    try {
+      return await exec<R>(tx.client, text, args);
+    } catch (error) {
+      tx.failed ??= error;
+      throw error;
+    }
+  };
   const query: Query = around ? <R>(text: string, args: unknown[] = []) => around<R>(text, args, plain) : plain;
-  scopes.set(query, { scope, around });
+  scopes.set(query, { tx, around });
   return query;
 }
 
@@ -167,17 +261,72 @@ function queryOn(scope: Sql, around?: Around): Query {
 export function intercepted(run: Query, around: Around): Query {
   const known = scopes.get(run);
   if (!known) throw new Error("intercepted() takes the query function of a transaction() or of a savepoint()");
-  return queryOn(known.scope, around);
+  return queryOn(known.tx, around);
 }
 
+async function connect(): Promise<pg.PoolClient> {
+  try {
+    return await ensurePool().connect();
+  } catch (error) {
+    throw unavailable(error);
+  }
+}
+
+// The callback's return value commits, a throw rolls back and is re-thrown —
+// the first error, never the rollback's.
+//
+// Two things pg leaves to the caller. A statement that failed inside the
+// callback and was caught there, without a savepoint, has aborted the
+// transaction, and the server answers the COMMIT that follows with the tag
+// ROLLBACK and no error: the callback "succeeded" and nothing was written
+// (measured 2026-10-09). So the tag is checked, and that statement's error is
+// thrown — the same outcome postgres.js gave by rejecting the whole begin
+// (B69). And a connection whose ROLLBACK or COMMIT failed is in a state nobody
+// knows; it is destroyed rather than handed back, where the next caller's
+// statements could run inside what is left of this transaction.
 export async function transaction<T>(run: (query: Query) => Promise<T>): Promise<T> {
   if (!enabled()) throw new Error("DATABASE_URL is not set");
-  // `sql.begin` owns BEGIN, COMMIT and ROLLBACK: the callback's return value
-  // commits, a throw rolls back and is re-thrown. The hand-written version this
-  // replaced logged a failed rollback separately, which postgres.js does for
-  // itself — what it must not lose is that the *first* error is the one the
-  // caller sees, and it does not.
-  return await ensurePool().begin(async (tx: Sql) => await run(queryOn(tx))) as T;
+  const client = await connect();
+  // A connection that breaks between statements emits rather than rejects,
+  // and nobody else is listening while it is checked out.
+  const heard = (error: Error) => log("warn", "database connection dropped", { error: String(error) });
+  client.on("error", heard);
+  const tx: Tx = { client, savepoints: 0 };
+  let broken = false;
+  try {
+    try {
+      await exec(client, "BEGIN", []);
+    } catch (error) {
+      broken = true;
+      throw error;
+    }
+    let result: T;
+    try {
+      result = await run(queryOn(tx));
+    } catch (error) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollback) {
+        broken = true;
+        log("warn", "rollback failed", { error: String(rollback) });
+      }
+      throw error;
+    }
+    let commit: pg.QueryResult;
+    try {
+      commit = await client.query("COMMIT");
+    } catch (error) {
+      broken = true;
+      throw unavailable(error);
+    }
+    if (commit.command !== "COMMIT") {
+      throw tx.failed ?? new Error(`transaction rolled back at COMMIT (${commit.command})`);
+    }
+    return result;
+  } finally {
+    client.off("error", heard);
+    client.release(broken);
+  }
 }
 
 // Whether `run` is a query function a transaction() or a savepoint() handed
@@ -191,29 +340,178 @@ export function inTransaction(run: Query): boolean {
 
 // A step that may go back alone, inside a transaction: its statements run on a
 // savepoint, a throw from it rolls back to the savepoint and is re-thrown, and
-// the transaction goes on if the caller catches it.
-//
-// Through postgres.js's own savepoint, never a hand-written SAVEPOINT: once
-// any statement inside sql.begin has failed, postgres.js rejects the whole
-// begin — a failure caught and rolled back to a raw SAVEPOINT included — and
-// nothing commits. Measured in a throwaway postgres:16 (B69, 2026-09-26): a
-// caught 55P03 and ROLLBACK TO SAVEPOINT, "begin rejected, rows committed = []";
-// the same through tx.savepoint, "begin resolved, [1,2]". The tenth PIN miss
-// was rolled back whole that way while its savepoint said it could not be.
+// the transaction goes on if the caller catches it — the caught failure is
+// forgotten, so COMMIT commits. A failure inside the step that the step itself
+// caught is not undone by anything and still rolls the transaction back.
 export async function savepoint<T>(run: Query, step: (run: Query) => Promise<T>): Promise<T> {
   const known = scopes.get(run);
   if (!known) throw new Error("savepoint() takes the query function of a transaction() or of a savepoint()");
-  return await known.scope.savepoint(async (inner: Sql) => await step(queryOn(inner, known.around))) as T;
+  const { tx } = known;
+  const name = `step_${++tx.savepoints}`;
+  const failedBefore = tx.failed;
+  await exec(tx.client, `SAVEPOINT ${name}`, []);
+  let result: T;
+  try {
+    result = await step(queryOn(tx, known.around));
+  } catch (error) {
+    try {
+      await exec(tx.client, `ROLLBACK TO SAVEPOINT ${name}`, []);
+      tx.failed = failedBefore;
+    } catch (rollback) {
+      tx.failed ??= rollback;
+    }
+    throw error;
+  }
+  await exec(tx.client, `RELEASE SAVEPOINT ${name}`, []);
+  return result;
 }
 
-// LISTEN on the pool's own connection (postgres.js keeps one aside for it).
-// The chat room waits on it for rows written by any node (chat/relay.ts).
+// LISTEN, on a connection of its own that this file keeps alive — to pg it is
+// an ordinary client. The chat room waits on it for rows written by any node
+// (chat/relay.ts).
+//
+// listen() never rejects. chat/relay.ts keeps the promise (`??=`) per channel,
+// so one refusal while the database was down would have made the node deaf
+// until a restart. The channel is registered at once; the connection, and the
+// LISTEN on every registered channel, are this file's business, retried with a
+// growing delay for as long as it takes.
+//
+// A notification sent while the connection is down is not kept for anyone, so
+// a gap is reported: listenWasLost() when an established connection drops, and
+// again when it comes back after failed attempts — a room opened during the
+// outage was waiting on a connection that did not exist.
+const channels = new Map<string, Set<(payload: string) => void>>();
+let listener: pg.Client | null = null;
+let connecting: Promise<void> | null = null;
+let retryTimer: number | undefined;
+let failedAttempts = 0;
+let lostSince = 0;
+// Bumped by closePool(): a connection or a timer of an older generation does
+// nothing when it lands.
+let generation = 0;
+
+const RETRY_FIRST_MS = 100;
+const RETRY_CEILING_MS = 30_000;
+
+function ident(channel: string): string {
+  return `"${channel.replaceAll('"', '""')}"`;
+}
+
+function startListening(): Promise<void> {
+  if (listener) return Promise.resolve();
+  connecting ??= connectListener(generation).finally(() => (connecting = null));
+  return connecting;
+}
+
+async function connectListener(born: number): Promise<void> {
+  const client = new pg.Client(clientConfig());
+  let gone = false;
+  const drop = (error?: unknown) => {
+    if (gone) return; // one client, one replacement, however many events it emits
+    gone = true;
+    client.end().catch(() => {});
+    if (listener === client) {
+      listener = null;
+      lostSince = Date.now();
+      log("warn", "database LISTEN connection lost", { error: String(error ?? "ended") });
+      listenWasLost();
+    }
+    retryLater(born);
+  };
+  client.on("error", drop);
+  client.on("end", () => drop());
+  client.on("notice", onNotice);
+  client.on("notification", (message: { channel: string; payload?: string }) => {
+    for (const callback of channels.get(message.channel) ?? []) {
+      try {
+        callback(message.payload ?? "");
+      } catch (error) {
+        log("error", "LISTEN callback failed", { channel: message.channel, error: String(error) });
+      }
+    }
+  });
+  try {
+    await client.connect();
+    for (const channel of channels.keys()) await client.query(`LISTEN ${ident(channel)}`);
+  } catch (error) {
+    if (failedAttempts === 0 && !lostSince) {
+      log("warn", "database LISTEN connection failed", { error: String(error) });
+    }
+    failedAttempts++;
+    drop(error);
+    return;
+  }
+  if (born !== generation || gone) {
+    if (!gone) {
+      gone = true;
+      await client.end().catch(() => {});
+    }
+    return;
+  }
+  listener = client;
+  if (failedAttempts > 0 || lostSince) {
+    log("info", "database LISTEN connection restored", {
+      attempts: failedAttempts,
+      downMs: lostSince ? Date.now() - lostSince : undefined,
+    });
+  }
+  if (failedAttempts > 0) listenWasLost();
+  failedAttempts = 0;
+  lostSince = 0;
+}
+
+function retryLater(born: number): void {
+  if (born !== generation || retryTimer !== undefined) return;
+  const ceiling = Math.min(RETRY_CEILING_MS, RETRY_FIRST_MS * 2 ** Math.min(failedAttempts, 16));
+  // Jitter, so a pool of nodes that lost the same database does not come back
+  // to it in step.
+  const delay = ceiling / 2 + Math.random() * ceiling / 2;
+  retryTimer = setTimeout(() => {
+    retryTimer = undefined;
+    if (born === generation) startListening();
+  }, delay);
+}
+
 export async function listen(channel: string, onPayload: (payload: string) => void): Promise<void> {
   if (!enabled()) return;
-  await ensurePool().listen(channel, onPayload);
+  let callbacks = channels.get(channel);
+  if (!callbacks) channels.set(channel, callbacks = new Set());
+  callbacks.add(onPayload);
+  await startListening();
+  // Connected before this channel was registered: LISTEN on it now. Twice on
+  // the same channel is harmless, and a failure here is a dropped connection,
+  // which LISTENs every channel again when it comes back.
+  await listener?.query(`LISTEN ${ident(channel)}`).catch(() => {});
 }
 
+// Called once each time the LISTEN connection drops: notifications sent while
+// it was down are lost, so chat/relay.ts closes its rooms with 1012 and the
+// clients reconnect and reread. Returns the unsubscribe. Contract for W15-NC;
+// the pg rewrite of listen() calls these.
+const listenLost = new Set<() => void>();
+export function onListenLost(callback: () => void): () => void {
+  listenLost.add(callback);
+  return () => listenLost.delete(callback);
+}
+export function listenWasLost(): void {
+  for (const callback of listenLost) callback();
+}
+
+// Stops everything this file started — the retry timer, the LISTEN connection,
+// the pool — so a tool that calls it exits on its own instead of being held
+// open by a socket or a timer.
 export async function closePool(): Promise<void> {
-  await pool?.end();
+  generation++;
+  clearTimeout(retryTimer);
+  retryTimer = undefined;
+  channels.clear();
+  failedAttempts = 0;
+  lostSince = 0;
+  const closing = listener;
+  listener = null;
+  await connecting?.catch(() => {});
+  await closing?.end().catch(() => {});
+  const ending = pool;
   pool = null;
+  await ending?.end();
 }

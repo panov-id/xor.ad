@@ -5,8 +5,10 @@
 //
 // withoutAddresses used to cut mailboxes only, and addresses reached the stored
 // error lines from text nobody here writes: a RAISE naming 198.51.100.7,
-// postgres.js's "write CONNECTION_CLOSED 10.0.17.2:5432" with the database's
-// own address and port, a caller's address in dispatch's "handler threw"
+// a driver's connection error ("write CONNECTION_CLOSED 10.0.17.2:5432" from
+// postgres.js, "connect ECONNREFUSED 10.0.17.2:5432" from pg) with the
+// database's own address and port — a hostname ("getaddrinfo ENOTFOUND
+// db.internal") is not an address and stays, a caller's address in dispatch's "handler threw"
 // (the coordinator's verifier on B98).
 //
 // Linear, and capped. The first version was a set of regular expressions, and

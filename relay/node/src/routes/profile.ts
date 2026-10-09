@@ -23,7 +23,7 @@
 import { route } from "../lib/router.ts";
 import { cleanName } from "../lib/names.ts";
 import { json } from "../lib/http.ts";
-import { transaction } from "../lib/db.ts";
+import { DbUnavailable, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { stillHere } from "../lib/take_down.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
@@ -34,7 +34,6 @@ import { checkAll, PROFILE_PATCH_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { withoutAddresses } from "../lib/mailer.ts";
-import postgres from "npm:postgres@3.4.4";
 
 // limits.tsv name.length: 24 graphemes, and never more than 400 bytes.
 const NAME_GRAPHEMES = 24;
@@ -234,8 +233,8 @@ async function patchProfile(req: Request): Promise<Response> {
     // could not take the edit; let out, it was a 500 with nothing logged
     // (review panel 5, D9, B90). Nothing is counted: the edit did not happen.
     //
-    // Only the database's errors: a SQLSTATE or postgres.js's own connection
-    // code, a string either way. A fault of this code has none and goes on to
+    // Only the database's errors: a SQLSTATE, or db.ts's DbUnavailable for a
+    // connection that failed. A fault of this code is neither and goes on to
     // dispatch, which answers 500 and logs it with the request's id (B98).
     // The line here is the route's and scrubbed as dispatch scrubs; the
     // request id is dispatch's alone, and its "request" line for this route
@@ -252,8 +251,9 @@ async function patchProfile(req: Request): Promise<Response> {
   return answer ?? refuse("unavailable", "the node cannot answer right now", 503);
 }
 
-// An error the database or its driver raised: a SQLSTATE, or postgres.js's own
-// connection code — a string either way. A fault of this code carries none.
+// An error the database or its connection raised: a SQLSTATE the database sent,
+// or db.ts's DbUnavailable for a database it could not reach. A fault of this
+// code is neither.
 //
 // Narrowed to the database being unavailable, not wrong (verifier on B98,
 // B105): any string code let a typo in SQL (42703), a bad cast (22P02),
@@ -263,20 +263,19 @@ async function patchProfile(req: Request): Promise<Response> {
 //   08 connection exception, 53 insufficient resources (disk, memory,
 //   connections), 57 operator intervention (57014 statement timeout, 57P01
 //   shutdown), 40 transaction rollback (40001 serialization, 40P01 deadlock),
-//   55 object not in prerequisite state (55P03 lock timeout) — on a
-//   PostgresError only;
-//   and postgres.js's connection codes, raised as a plain Error: the
-//   CONNECTION_* family, CONNECT_TIMEOUT, and the socket's ECONNREFUSED
-//   (measured in postgres:16 / postgres.js 3.4.4, B105).
+//   55 object not in prerequisite state (55P03 lock timeout) — on an Error
+//   whose code is a SQLSTATE (five digits or capitals);
+//   and DbUnavailable, which db.ts raises for every way the connection fails
+//   (refused, reset, timed out). The driver's own codes stay inside db.ts:
+//   the pg driver raises a dropped connection with no code at all (pg-driver
+//   panel 2026-10-09, item 5), and a test of codes here would answer it 500.
 const UNAVAILABLE_CLASSES = new Set(["08", "53", "57", "40", "55"]);
-const CONNECTION_CODES = new Set([
-  "CONNECTION_CLOSED", "CONNECTION_ENDED", "CONNECTION_DESTROYED", "CONNECT_TIMEOUT", "ECONNREFUSED",
-]);
+const SQLSTATE = /^[0-9A-Z]{5}$/;
 export function fromTheDatabase(error: unknown): boolean {
-  const code = (error as { code?: unknown } | null)?.code;
-  if (typeof code !== "string") return false;
-  if (error instanceof postgres.PostgresError) return UNAVAILABLE_CLASSES.has(code.slice(0, 2));
-  return CONNECTION_CODES.has(code);
+  if (error instanceof DbUnavailable) return true;
+  if (!(error instanceof Error)) return false;
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" && SQLSTATE.test(code) && UNAVAILABLE_CLASSES.has(code.slice(0, 2));
 }
 
 route("PATCH", "/identities/me", (c) => patchProfile(c.req));

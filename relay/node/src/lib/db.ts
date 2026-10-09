@@ -213,6 +213,29 @@ export async function listen(channel: string, onPayload: (payload: string) => vo
   await ensurePool().listen(channel, onPayload);
 }
 
+// The database could not be reached (refused, reset, timed out) — as opposed
+// to a query the database itself refused. Callers answer 503, not 500.
+// Contract for W15-NC: db.ts throws it, routes/profile.ts classifies by it.
+export class DbUnavailable extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+    this.name = "DbUnavailable";
+  }
+}
+
+// Called once each time the LISTEN connection drops: notifications sent while
+// it was down are lost, so chat/relay.ts closes its rooms with 1012 and the
+// clients reconnect and reread. Returns the unsubscribe. Contract for W15-NC;
+// the pg rewrite of listen() calls these.
+const listenLost = new Set<() => void>();
+export function onListenLost(callback: () => void): () => void {
+  listenLost.add(callback);
+  return () => listenLost.delete(callback);
+}
+export function listenWasLost(): void {
+  for (const callback of listenLost) callback();
+}
+
 export async function closePool(): Promise<void> {
   await pool?.end();
   pool = null;

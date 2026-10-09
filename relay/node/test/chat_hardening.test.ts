@@ -41,3 +41,19 @@ Deno.test("stopping the node closes every room with 1001, so the client knows to
   assert(closed.every(([, reason]) => reason.length > 0), "1001 without a reason");
   assertEquals(roomsForTest().size, 0, "the registry kept rooms after closing them");
 });
+
+// pg-driver panel 2026-10-09, item 1: NOTIFY sent while the LISTEN connection
+// was down is lost, so a frozen session's room would stay open. The owner's
+// decision: every room closes 1012 and the client comes back through the check.
+Deno.test("a lost LISTEN connection closes every room with 1012, so the client reconnects and rereads", async () => {
+  const { roomsForTest } = await import("../src/chat/relay.ts");
+  const { listenWasLost } = await import("../src/lib/db.ts");
+  const closed: Array<[number, string]> = [];
+  const fake = (): WebSocket => ({ close: (code: number, reason: string) => closed.push([code, reason]) } as unknown as WebSocket);
+  roomsForTest().set("c1", new Set([{ socket: fake(), session: "s1", chat: "c1", seq: 0 }]));
+  roomsForTest().set("c2", new Set([{ socket: fake(), session: "s2", chat: "c2", seq: 0 }]));
+  listenWasLost();
+  assertEquals(closed.map(([code]) => code), [1012, 1012], "an open room outlived the lost LISTEN connection, or closed with the wrong code");
+  assert(closed.every(([, reason]) => reason.length > 0), "1012 without a reason");
+  assertEquals(roomsForTest().size, 0, "the registry kept rooms after the LISTEN connection was lost");
+});

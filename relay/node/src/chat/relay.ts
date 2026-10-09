@@ -16,7 +16,7 @@
 // Close codes (protocol §4.4): 4001 bad ticket; 4002 session frozen; 4003 the
 // conversation is over; 4004 no xor.p1; 1011 the node failed; 1000 replaced.
 
-import { listen, queryOrThrow } from "../lib/db.ts";
+import { listen, onListenLost, queryOrThrow } from "../lib/db.ts";
 import { config } from "../config.ts";
 import { sha256hex } from "../lib/identity_auth.ts";
 import { inc } from "../lib/metrics.ts";
@@ -414,17 +414,28 @@ export async function listenForRooms(): Promise<void> {
 // Every room, closed with 1001 "going away": the node is stopping, and a
 // client that sees 1001 reconnects to whatever answers next rather than
 // waiting on a socket that will never speak (step-5 panel, 2026-09-21).
-export function closeAllRooms(): number {
+export function closeAllRooms(code = 1001, reason = "the node is going away"): number {
   let closed = 0;
   for (const set of rooms.values()) {
     for (const room of set) {
-      closeRoom(room, 1001, "the node is going away");
+      closeRoom(room, code, reason);
       closed++;
     }
   }
   rooms.clear();
   return closed;
 }
+
+// A dropped LISTEN connection loses every NOTIFY sent while it was down —
+// session_frozen, chat_closed, chat_rekey among them — and a room left open
+// would go on receiving what §8.2 says a frozen session must not (pg-driver
+// panel 2026-10-09, item 1; the owner's decision the same day). So every room
+// closes 1012 "restart": the client reconnects, passes the signature check
+// again and rereads what it missed.
+onListenLost(() => {
+  const closed = closeAllRooms(1012, "the node lost its database feed, reconnect");
+  log("warn", "listen connection lost, rooms closed", { closed });
+});
 
 // The registry, for a test that has no server to open a room through.
 export function roomsForTest(): Map<string, Set<Room>> {

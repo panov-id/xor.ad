@@ -27,13 +27,19 @@ postgres_image="postgres:16-alpine"
 network="pg-resil-net-$$"
 db="pg-resil-db-$$"
 node="pg-resil-node-$$"
+# Two directories. `code` holds gate.ts: written while only this user can
+# write there, then mounted read-only. `work` is where the node and this script
+# leave each other files, so the container's user must be able to write it —
+# and nothing in it is run (security lens H6, 2026-10-09: gate.ts used to be
+# written into the world-writable one).
+code="$(mktemp -d)"
 work="$(mktemp -d)"
 chmod 777 "$work"
 
 cleanup() {
   docker rm -fv "$node" "$db" >/dev/null 2>&1 || true
   docker network rm "$network" >/dev/null 2>&1 || true
-  rm -rf "$work"
+  rm -rf "$work" "$code"
 }
 trap cleanup EXIT INT TERM
 
@@ -50,7 +56,7 @@ wait_for() {
 }
 say() { touch "$work/$1"; }
 
-cat >"$work/gate.ts" <<'TS'
+cat >"$code/gate.ts" <<'TS'
 import postgres from "npm:postgres@3.4.4";
 import * as db from "/node/src/lib/db.ts";
 
@@ -170,14 +176,16 @@ console.log(`uncaught=${uncaught}`);
 await db.closePool().catch(() => {});
 Deno.exit(failures === 0 && uncaught === 0 ? 0 : 1);
 TS
+chmod 755 "$code"
+chmod 644 "$code/gate.ts"
 
 echo "== network $network, node starts with no database"
 docker network create "$network" >/dev/null
 docker run -d --name "$node" --network "$network" \
   -e DATABASE_URL="postgres://relay:test@postgres:5432/relay_test" \
   -e RELAY_DB_TIMEOUT_MS=5000 \
-  -v "$root/relay/node":/node:ro -v "$work":/work -w /node "$image" \
-  run --config /node/deno.json --allow-net --allow-env --allow-read --allow-write=/work /work/gate.ts >/dev/null
+  -v "$root/relay/node":/node:ro -v "$code":/code:ro -v "$work":/work -w /node "$image" \
+  run --config /node/deno.json --allow-net --allow-env --allow-read --allow-write=/work /code/gate.ts >/dev/null
 
 wait_for need-db
 sleep 5 # the node lives without its database for a while before it appears

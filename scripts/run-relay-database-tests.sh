@@ -88,8 +88,10 @@ for suite in $suites; do
     test/database.test.ts) extra=(--allow-run) ;;
     test/identity_sweeper.test.ts) mount=(-v "$root":/repo:ro -w /repo/relay/node) ;;
   esac
+  # Off UTC on purpose: date and date[] read wrong only when the process zone
+  # is not UTC, and the image's own zone is UTC (W15-NC, 2026-10-09).
   docker run --rm --network "$network" \
-    -e DATABASE_URL="$database_url" \
+    -e DATABASE_URL="$database_url" -e TZ=Europe/Berlin \
     "${mount[@]}" "$image" \
     deno test --allow-env --allow-net --allow-read --allow-write "${extra[@]}" "$suite" "$@"
 done

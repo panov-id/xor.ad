@@ -416,10 +416,12 @@ async function deliver(req: Request, url: URL): Promise<Response> {
   // query turns them back into an instant with integer arithmetic. Two things
   // it must not be, both measured here on 2026-09-21: not a JavaScript `Date`,
   // which has no microseconds at all; and **not a string that looks like a
-  // timestamp**, because postgres.js converts such a parameter into a `Date`
-  // on the way out — a cursor of "…500900Z" arrived at the database as
-  // "…500000" and the first version of this fix was undone by its own driver,
-  // silently, while looking correct in the source.
+  // timestamp**, because postgres.js (the driver until W15-NC, 2026-10-09)
+  // converted such a parameter into a `Date` on the way out — a cursor of
+  // "…500900Z" arrived at the database as "…500000" and the first version of
+  // this fix was undone by its own driver, silently, while looking correct in
+  // the source. pg passes the string through, but digits stay: they hold
+  // whatever the driver.
   //
   // It travels sealed (lib/cursor.ts, §8.11): in the clear it was the last
   // phrase's publication to the microsecond — with a fixed span, its author's

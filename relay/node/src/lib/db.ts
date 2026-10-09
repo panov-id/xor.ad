@@ -80,15 +80,29 @@ const types = {
   },
 };
 
+// An `?options=` in DATABASE_URL is kept, and ours go after it: Postgres takes
+// the last `-c` for a setting. Left in the URL, pg would let it replace ours
+// outright — a DSN with `-c statement_timeout=0` ran the node with no timeout
+// at all (W15-NC, NC-D).
+function splitOptions(dsn: string): { connectionString: string; options: string } {
+  if (!/[?&]options=/.test(dsn)) return { connectionString: dsn, options: "" };
+  const url = new URL(dsn);
+  const options = url.searchParams.get("options") ?? "";
+  url.searchParams.delete("options");
+  return { connectionString: url.toString(), options };
+}
+
+// pg reads PGPASSFILE (or ~/.pgpass) when the DSN carries no password: whoever sets the node's env owns DATABASE_URL anyway.
 function clientConfig(): pg.ClientConfig {
   const timeout = statementTimeoutMs();
+  const { connectionString, options } = splitOptions(config.databaseUrl);
   return {
-    connectionString: config.databaseUrl,
+    connectionString,
     // Both, because they catch different halves: the first bounds a statement
     // the server is running, the second bounds a transaction that is running
     // nothing at all — the shape a dropped connection leaves behind, holding
     // its locks.
-    options: `-c statement_timeout=${timeout} -c idle_in_transaction_session_timeout=${timeout}`,
+    options: `${options} -c statement_timeout=${timeout} -c idle_in_transaction_session_timeout=${timeout}`.trim(),
     // A peer that vanished without a FIN — a box gone, a firewall dropping —
     // is otherwise silent for hours, and the LISTEN connection would never
     // learn that it stopped hearing.

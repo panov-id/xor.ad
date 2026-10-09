@@ -47,6 +47,8 @@
   "inbox.match": "мувофиқат — розигии туро интизор аст",
   "inbox.open": "чат кушода аст",
   "inbox.until": "то {time}",
+  "inbox.soon": "ба зудӣ нопадид мешавад",
+  "inbox.mine_left": "ибораи ту: боз {n} дақ",
   "inbox.consent": "розӣ ҳастам",
   "inbox.enter": "кушодан",
   "inbox.empty": "ҳоло холӣ",

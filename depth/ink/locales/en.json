@@ -47,6 +47,8 @@
   "inbox.match": "a match — waiting for your consent",
   "inbox.open": "chat open",
   "inbox.until": "until {time}",
+  "inbox.soon": "disappears soon",
+  "inbox.mine_left": "your phrase: {n} min left",
   "inbox.consent": "agree",
   "inbox.enter": "open",
   "inbox.empty": "nothing here yet",

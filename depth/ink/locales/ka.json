@@ -47,6 +47,8 @@
   "inbox.match": "დამთხვევა — შენს თანხმობას ელოდება",
   "inbox.open": "ჩატი ღიაა",
   "inbox.until": "{time}-მდე",
+  "inbox.soon": "მალე გაქრება",
+  "inbox.mine_left": "შენი ფრაზა: კიდევ {n} წთ",
   "inbox.consent": "ვეთანხმები",
   "inbox.enter": "გახსნა",
   "inbox.empty": "ჯერ ცარიელია",

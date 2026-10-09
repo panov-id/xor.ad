@@ -47,6 +47,8 @@
   "inbox.match": "сәйкестік — сенің келісіміңді күтіп тұр",
   "inbox.open": "чат ашық",
   "inbox.until": "{time} дейін",
+  "inbox.soon": "жақында жоғалады",
+  "inbox.mine_left": "сенің фразаң: тағы {n} мин",
   "inbox.consent": "келісемін",
   "inbox.enter": "ашу",
   "inbox.empty": "әзірге бос",

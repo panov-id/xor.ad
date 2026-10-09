@@ -47,6 +47,8 @@
   "inbox.match": "дал келүү — сенин макулдугуңду күтүүдө",
   "inbox.open": "маек ачык",
   "inbox.until": "{time} чейин",
+  "inbox.soon": "жакында жоголот",
+  "inbox.mine_left": "сенин фразаң: дагы {n} мүн",
   "inbox.consent": "макулмун",
   "inbox.enter": "ачуу",
   "inbox.empty": "азырынча бош",

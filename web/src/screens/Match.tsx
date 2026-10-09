@@ -19,17 +19,15 @@ import { modes } from "../api/actions.ts";
 import "./talk.css";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
+import { lifeOf } from "../../../depth/core/life.ts";
 
-// A phrase lives 4 h 20 min in the feed (limits feed.phrase.span; relay
-// lib/feed_verdict.ts PHRASE_SPAN): the bar is the share of that left.
-const PHRASE_LIFE_SECONDS = (4 * 60 + 20) * 60;
-
-// What is left of a phrase, as a bar only: the end is never printed (screen
-// 24; «чужой срок не числом», 19.09.2026). No end — the phrase has left the
-// feed — no bar.
+// What is left of a phrase, as a bar (depth/core/life.ts): the other's end is
+// never printed (screen 24; «чужой срок не числом», 19.09.2026). No end — the
+// phrase has left the feed — no bar.
 export function Life({ end, tone }: { end?: number; tone: "mine" | "theirs" }) {
-  if (end === undefined) return null;
-  const left = Math.max(0, Math.min(1, (end - Date.now() / 1000) / PHRASE_LIFE_SECONDS));
+  const life = lifeOf(end);
+  if (life === null) return null;
+  const { left } = life;
   return (
     <span className={`match-life match-life-${tone}`} aria-hidden="true" data-testid={`life-${tone}`} data-left={left.toFixed(2)}>
       <span style={{ width: `${(left * 100).toFixed(1)}%` }} />

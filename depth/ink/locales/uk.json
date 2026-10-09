@@ -47,6 +47,8 @@
   "inbox.match": "метч — чекає на твою згоду",
   "inbox.open": "чат відкритий",
   "inbox.until": "до {time}",
+  "inbox.soon": "скоро зникне",
+  "inbox.mine_left": "твоя фраза: ще {n} хв",
   "inbox.consent": "погодитися",
   "inbox.enter": "відкрити",
   "inbox.empty": "поки порожньо",

@@ -47,6 +47,8 @@
   "inbox.match": "moslik — roziligingni kutmoqda",
   "inbox.open": "suhbat ochiq",
   "inbox.until": "{time} gacha",
+  "inbox.soon": "tez orada yo‘qoladi",
+  "inbox.mine_left": "sening iborang: yana {n} daq",
   "inbox.consent": "roziman",
   "inbox.enter": "ochish",
   "inbox.empty": "hozircha bo'sh",

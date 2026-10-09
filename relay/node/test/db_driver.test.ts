@@ -140,6 +140,20 @@ test("date and interval read as postgres.js read them", async () => {
   assertEquals(row.i, "01:30:00");
 });
 
+// Can go red only away from UTC — and scripts/run-relay-database-tests.sh runs
+// at UTC, where pg's local midnight is UTC midnight. Its break was seen at
+// TZ=Europe/Berlin (W15-NC, 2026-10-09); the date case above, likewise.
+test("a date[] reads each day at UTC midnight, NULL as null", async () => {
+  const [row] = await db.queryOrThrow<{ v: (Date | null)[] }>(
+    "SELECT ARRAY['2026-10-09'::date, NULL, '2026-01-01'::date] AS v",
+  );
+  assertEquals(row.v.map((d) => d?.toISOString() ?? null), [
+    "2026-10-09T00:00:00.000Z",
+    null,
+    "2026-01-01T00:00:00.000Z",
+  ]);
+});
+
 test("a microsecond timestamp in a string parameter reaches Postgres whole", async () => {
   const [row] = await db.queryOrThrow<{ us: string }>(
     "SELECT to_char($1::timestamptz AT TIME ZONE 'UTC', 'US') AS us",

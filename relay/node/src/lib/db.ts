@@ -57,15 +57,23 @@ function statementTimeoutMs(): number {
 }
 
 // Values come back as postgres.js returned them, so nothing outside this file
-// notices the change of driver. Two types differ: pg reads a `date` as local
-// midnight (a day early east of UTC — measured at TZ=Asia/Nicosia) and an
+// notices the change of driver. Two types differ: pg reads a `date` (and each
+// element of a `date[]`) as local midnight (a day early east of UTC — measured at TZ=Asia/Nicosia) and an
 // `interval` as an object. postgres.js read the first as UTC midnight and left
 // the second a string.
 const DATE = 1082;
+const DATE_ARRAY = 1182;
+const TEXT_ARRAY = 1009;
 const INTERVAL = 1186;
 const types = {
   getTypeParser(oid: number, format?: string) {
     if (oid === DATE) return (value: string) => new Date(value);
+    if (oid === DATE_ARRAY) {
+      // The elements as text, by pg's own array parser, then the same rule.
+      const elements = pg.types.getTypeParser(TEXT_ARRAY, "text");
+      return (value: string) =>
+        (elements(value) as (string | null)[]).map((day) => day === null ? null : new Date(day));
+    }
     if (oid === INTERVAL) return (value: string) => value;
     // deno-lint-ignore no-explicit-any
     return pg.types.getTypeParser(oid, format as any);
@@ -482,6 +490,17 @@ export async function listen(channel: string, onPayload: (payload: string) => vo
   // the same channel is harmless, and a failure here is a dropped connection,
   // which LISTENs every channel again when it comes back.
   await listener?.query(`LISTEN ${ident(channel)}`).catch(() => {});
+}
+
+// For /health: whether this node is hearing the database right now. `off` — no
+// database configured; `idle` — nothing has asked to listen yet (a node that
+// served no chat room); `up` — connected and listening; `down` — something
+// listens and the connection is not there, so notifications are being lost.
+export type ListenState = "off" | "idle" | "up" | "down";
+export function listenState(): ListenState {
+  if (!enabled()) return "off";
+  if (listener) return "up";
+  return channels.size === 0 ? "idle" : "down";
 }
 
 // Called once each time the LISTEN connection drops: notifications sent while

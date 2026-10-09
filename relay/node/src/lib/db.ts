@@ -443,8 +443,39 @@ let generation = 0;
 const RETRY_FIRST_MS = 100;
 const RETRY_CEILING_MS = 30_000;
 
+// A database that goes silent without a FIN — a box gone, a firewall dropping
+// — is never noticed by the LISTEN connection on its own: TCP keepalive does
+// not take effect under Deno (clientConfig()), and a LISTEN connection sends
+// nothing, so it stays "up" while every room on the node is deaf (security
+// lens H4, measured by NC-H 2026-10-09). So the node asks: SELECT 1 on the
+// LISTEN connection every PING_EVERY, and no answer within PING_TIMEOUT drops
+// it like any other loss — listenWasLost() closes the rooms 1012, and the
+// usual backoff reconnects.
+//
+// The period is the statement timeout (15 s, or RELAY_DB_TIMEOUT_MS): the
+// same promise already made for a query — the node gives a silent database no
+// longer than a statement may run — and a query every 15 s on one connection
+// per node is nothing to the database. The answer gets 5 s at most: a SELECT 1
+// on a live connection comes back in milliseconds, and 5 s leaves room for a
+// database busy enough to queue it without calling that a loss. A room is deaf
+// for 20 s at most.
+const PING_TIMEOUT_CEILING_MS = 5_000;
+function pingEveryMs(): number {
+  return statementTimeoutMs();
+}
+function pingTimeoutMs(): number {
+  return Math.min(PING_TIMEOUT_CEILING_MS, statementTimeoutMs());
+}
+
 function ident(channel: string): string {
   return `"${channel.replaceAll('"', '""')}"`;
+}
+
+class ListenSilent extends Error {
+  constructor(ms: number) {
+    super(`the LISTEN connection did not answer SELECT 1 within ${ms} ms`);
+    this.name = "ListenSilent";
+  }
 }
 
 function startListening(): Promise<void> {
@@ -461,10 +492,17 @@ function startListening(): Promise<void> {
 async function connectListener(born: number): Promise<void> {
   const client = new pg.Client(clientConfig());
   let gone = false;
+  let pingTimer: number | undefined;
   const drop = (error?: unknown) => {
     if (gone) return; // one client, one replacement, however many events it emits
     gone = true;
+    clearTimeout(pingTimer);
     client.end().catch(() => {});
+    // end() sends Terminate and waits for the server to close: a silent server
+    // never does, and the socket would stay open for good. Cut it.
+    if (error instanceof ListenSilent) {
+      (client as unknown as { connection?: { stream?: { destroy(): void } } }).connection?.stream?.destroy();
+    }
     if (listener === client) {
       listener = null;
       lostSince = Date.now();
@@ -504,6 +542,27 @@ async function connectListener(born: number): Promise<void> {
     return;
   }
   listener = client;
+  // One ping at a time: the next is scheduled when the last has answered, so a
+  // slow answer never stacks queries on the connection.
+  const ping = () => {
+    pingTimer = setTimeout(async () => {
+      let timer: number | undefined;
+      const silent = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new ListenSilent(pingTimeoutMs())), pingTimeoutMs());
+      });
+      try {
+        await Promise.race([client.query("SELECT 1"), silent]);
+      } catch (error) {
+        drop(error);
+        return;
+      } finally {
+        clearTimeout(timer);
+      }
+      if (!gone) ping();
+    }, pingEveryMs());
+    Deno.unrefTimer(pingTimer);
+  };
+  ping();
   if (failedAttempts > 0 || lostSince) {
     log("info", "database LISTEN connection restored", {
       attempts: failedAttempts,

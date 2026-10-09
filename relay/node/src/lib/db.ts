@@ -84,12 +84,23 @@ const types = {
 // the last `-c` for a setting. Left in the URL, pg would let it replace ours
 // outright — a DSN with `-c statement_timeout=0` ran the node with no timeout
 // at all (W15-NC, NC-D).
+//
+// The same for the two timeouts given as keys of their own
+// (`?statement_timeout=0`): pg sends those as settings of the connection, and
+// they beat any `-c` (measured; security lens H3, 2026-10-09). They are turned
+// into `-c` and put before ours, like the rest of `?options=`.
+const OUR_SETTINGS = ["statement_timeout", "idle_in_transaction_session_timeout"];
 function splitOptions(dsn: string): { connectionString: string; options: string } {
-  if (!/[?&]options=/.test(dsn)) return { connectionString: dsn, options: "" };
+  const keys = ["options", ...OUR_SETTINGS];
+  if (!keys.some((key) => new RegExp(`[?&]${key}=`).test(dsn))) return { connectionString: dsn, options: "" };
   const url = new URL(dsn);
-  const options = url.searchParams.get("options") ?? "";
-  url.searchParams.delete("options");
-  return { connectionString: url.toString(), options };
+  const options = [url.searchParams.get("options") ?? ""];
+  for (const key of OUR_SETTINGS) {
+    const value = url.searchParams.get(key);
+    if (value !== null) options.push(`-c ${key}=${value}`);
+  }
+  for (const key of keys) url.searchParams.delete(key);
+  return { connectionString: url.toString(), options: options.join(" ").trim() };
 }
 
 // pg reads PGPASSFILE (or ~/.pgpass) when the DSN carries no password: whoever sets the node's env owns DATABASE_URL anyway.
@@ -103,10 +114,21 @@ function clientConfig(): pg.ClientConfig {
     // nothing at all — the shape a dropped connection leaves behind, holding
     // its locks.
     options: `${options} -c statement_timeout=${timeout} -c idle_in_transaction_session_timeout=${timeout}`.trim(),
-    // A peer that vanished without a FIN — a box gone, a firewall dropping —
-    // is otherwise silent for hours, and the LISTEN connection would never
-    // learn that it stopped hearing.
+    // Meant for a peer that vanished without a FIN — a box gone, a firewall
+    // dropping — which the LISTEN connection would otherwise never notice.
+    // It does NOT take effect under Deno (2.1.4 and 2.5.6, measured
+    // 2026-10-09 in /proc/net/tcp): pg's socket gets no keepalive timer, with
+    // or without keepAliveInitialDelayMillis, even set after connect, while a
+    // Deno.connect socket with setKeepAlive(true) does. Kept for the day
+    // Deno's node:net honours it; until then nothing here detects a silent
+    // peer (security lens H4, open).
     keepAlive: true,
+    // pg waits for a connection forever by default: the LISTEN connect to a
+    // server that never answered held a room's opening for good (security
+    // lens H2, 2026-10-09). For the pool the same number also bounds the wait
+    // for a free slot. No longer than a statement may run: the same promise
+    // for the step before it.
+    connectionTimeoutMillis: statementTimeoutMs(),
     types,
   };
 }
@@ -122,11 +144,9 @@ function ensurePool(): pg.Pool {
     pool = new pg.Pool({
       ...clientConfig(),
       max: POOL_SIZE,
-      // pg waits for a connection, and for a free slot, forever by default:
-      // four connects hanging on a dropped SYN and every route is silent, the
-      // thing statementTimeoutMs() exists to prevent. Waiting no longer than a
-      // statement may run is the same promise for the step before it.
-      connectionTimeoutMillis: statementTimeoutMs(),
+      // connectionTimeoutMillis comes from clientConfig(): four connects
+      // hanging on a dropped SYN would leave every route silent, the thing
+      // statementTimeoutMs() exists to prevent.
       // Idle connections are kept, as postgres.js kept them (idle_timeout 0):
       // four at most, and one that dies idle is dropped through "error" below.
       // pg's default of ten seconds also arms a timer per idle client, which
@@ -183,6 +203,9 @@ function unavailable(error: unknown): unknown {
 //
 // `undefined` is refused here because pg would send it as NULL: a field the
 // caller forgot would become a quiet NULL write where postgres.js refused it.
+// Inside arrays too, at any depth — `[1, undefined]` reached Postgres as
+// {1,NULL} (security lens H5, 2026-10-09). Objects are not looked into: they
+// cross as JSON text, where JSON.stringify already drops an undefined field.
 //
 // No parameters means no parameter list at all. pg then uses the simple
 // protocol, which is what lets tools/migrate_db.ts send a migration file of
@@ -193,13 +216,18 @@ function unavailable(error: unknown): unknown {
 // like a timestamp into a `Date` and so cut microseconds to milliseconds
 // (measured 2026-09-21); routes/feed.ts still carries its cursor as digits,
 // which is right under either driver.
+function holdsUndefined(value: unknown): boolean {
+  return value === undefined || (Array.isArray(value) && value.some(holdsUndefined));
+}
+
 async function exec<T>(
   on: pg.Pool | pg.PoolClient,
   text: string,
   args: unknown[],
 ): Promise<T[]> {
-  if (args.includes(undefined)) {
-    throw new TypeError(`undefined passed as parameter $${args.indexOf(undefined) + 1}: ${text.slice(0, 80)}`);
+  const hole = args.findIndex(holdsUndefined);
+  if (hole >= 0) {
+    throw new TypeError(`undefined passed in parameter $${hole + 1}: ${text.slice(0, 80)}`);
   }
   let result;
   try {
@@ -421,6 +449,11 @@ function ident(channel: string): string {
 
 function startListening(): Promise<void> {
   if (listener) return Promise.resolve();
+  // A retry is already scheduled: wait for it rather than try now. Otherwise
+  // every room opened while the database is down is an attempt of its own, and
+  // whoever holds tickets sets the pace instead of the backoff (22 attempts in
+  // a second, measured; security lens H1, 2026-10-09).
+  if (retryTimer !== undefined) return Promise.resolve();
   connecting ??= connectListener(generation).finally(() => (connecting = null));
   return connecting;
 }

@@ -3,9 +3,11 @@ FROM denoland/deno:alpine-2.1.4
 
 WORKDIR /app
 
-# Cache deps first for faster rebuilds (no third-party deps yet, but keeps the
-# layer stable and warms the type graph).
-COPY deno.json .
+# The lock travels with the config: without it `deno cache` resolved npm
+# packages at build time, unpinned, and the image held whatever the registry
+# served that day (W15-NC, task 8). --frozen refuses a build whose lock does
+# not already hold every dependency, instead of quietly writing a new one.
+COPY deno.json deno.lock ./
 COPY src ./src
 # Migrations and the tools that apply them travel with the image: a schema change
 # belongs to the version of the code that needs it, and the database is only
@@ -14,7 +16,7 @@ COPY db ./db
 # Each storefront's legal revisions, copied by scripts/sync-legal-revisions.sh (GET /legal/manifest).
 COPY legal ./legal
 COPY tools ./tools
-RUN deno cache src/main.ts
+RUN deno cache --frozen src/main.ts
 
 # Run as the built-in non-root user.
 USER deno

@@ -118,6 +118,71 @@ test("H2: the LISTEN connection gives up on a server that never answers", async 
   }
 });
 
+test("H4: a LISTEN connection whose database falls silent is dropped by the ping, and the rooms are told", async () => {
+  // A relay between the node and the real database that, on cue, stops passing
+  // bytes either way and closes nothing — a box gone without a FIN.
+  const target = new URL(url);
+  const relay = Deno.listen({ hostname: "127.0.0.1", port: 0 });
+  const conns: Deno.Conn[] = [];
+  let frozen = false;
+  const pipe = async (from: Deno.Conn, to: Deno.Conn) => {
+    const buffer = new Uint8Array(16_384);
+    for (;;) {
+      const n = await from.read(buffer).catch(() => null);
+      if (n === null) return;
+      if (frozen) continue; // swallowed: the other side hears nothing, ever
+      await to.write(buffer.subarray(0, n)).catch(() => {});
+    }
+  };
+  (async () => {
+    for await (const inbound of relay) {
+      const outbound = await Deno.connect({ hostname: target.hostname, port: Number(target.port || 5432) });
+      conns.push(inbound, outbound);
+      pipe(inbound, outbound);
+      pipe(outbound, inbound);
+    }
+  })().catch(() => {});
+  const port = (relay.addr as Deno.NetAddr).port;
+  const relayed = new URL(url);
+  relayed.hostname = "127.0.0.1";
+  relayed.port = String(port);
+
+  // Ping every 500 ms, answer within 500 ms: lost within a second of silence.
+  Deno.env.set("RELAY_DB_TIMEOUT_MS", "500");
+  const before = config.databaseUrl;
+  await db.closePool();
+  setDsn(relayed.toString());
+  let lostAt = 0;
+  const unsubscribe = db.onListenLost(() => (lostAt ||= Date.now()));
+  try {
+    await db.listen("w15nc_h4", () => {});
+    assertEquals(db.listenState(), "up", "the LISTEN connection did not come up through the relay");
+    // Two pings answered while the database still speaks: no loss.
+    await new Promise((r) => setTimeout(r, 1_200));
+    assertEquals(lostAt, 0, "the ping dropped a LISTEN connection whose database was answering");
+
+    frozen = true;
+    const silentFrom = Date.now();
+    while (!lostAt && Date.now() - silentFrom < 3_000) await new Promise((r) => setTimeout(r, 50));
+    assert(lostAt > 0, "a LISTEN connection to a silent database was still up after 3 s: the rooms on it are deaf");
+    const took = lostAt - silentFrom;
+    // At most a period and a timeout, plus the loop's step.
+    assert(took <= 1_000 + 200, `the silent database was noticed after ${took} ms, past a 500 ms period and a 500 ms timeout`);
+  } finally {
+    unsubscribe();
+    frozen = false;
+    relay.close();
+    for (const conn of conns) {
+      try {
+        conn.close();
+      } catch { /* already closed */ }
+    }
+    await db.closePool();
+    setDsn(before);
+    Deno.env.delete("RELAY_DB_TIMEOUT_MS");
+  }
+});
+
 test("H3: statement_timeout and idle_in_transaction_session_timeout as DSN keys do not loosen ours", async () => {
   const dsn = new URL(url);
   dsn.searchParams.set("statement_timeout", "0");

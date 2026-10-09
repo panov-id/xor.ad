@@ -256,13 +256,15 @@ Deno.test({ name: "an age filter outside an age's bounds is refused 400, and one
 Deno.test({ name: "a profile edit the database refuses is logged by route with no address in it (B98)", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { fromTheDatabase } = await import("../src/routes/profile.ts");
   // Unavailable, and real: a statement timeout (57014) from the database itself,
-  // and the socket's refusal in the shape postgres.js raises it (measured, B105).
+  // and a connection that failed, as db.ts raises it whatever the driver said
+  // (DbUnavailable, pg-driver panel 2026-10-09, item 5).
   const timedOut = await database.transaction(async (run) => {
     await run(`SET LOCAL statement_timeout = '10ms'`);
     await run(`SELECT pg_sleep(1)`);
   }).then(() => null, (e) => e);
   assert(fromTheDatabase(timedOut), `a statement timeout was not taken for the database's: ${timedOut}`);
-  assert(fromTheDatabase(Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" })),
+  const { DbUnavailable } = await import("../src/lib/db.ts");
+  assert(fromTheDatabase(new DbUnavailable("connect ECONNREFUSED", { cause: new Error("connect ECONNREFUSED") })),
     "a refused connection was not taken for the database's");
   // Wrong, not unavailable (B105): the code's own faults, whatever code they carry.
   const divided = await database.queryOrThrow(`SELECT 1 / 0`).then(() => null, (e) => e);
@@ -270,7 +272,7 @@ Deno.test({ name: "a profile edit the database refuses is logged by route with n
   for (const [what, error] of [
     ["a division by zero (22012)", divided], ["a typo in SQL (42703)", typo],
     ["a Node error (ENOENT)", Object.assign(new Error("no such file"), { code: "ENOENT" })],
-    ["any object with a code", { code: "x" }], ["a TypeError", new TypeError("x is undefined")], ["null", null],
+    ["any object with a code", { code: "x" }], ["a plain object with a SQLSTATE", { code: "57014" }], ["a TypeError", new TypeError("x is undefined")], ["null", null],
   ] as const) {
     assertEquals(fromTheDatabase(error), false, `${what} was taken for the database's being unavailable`);
   }

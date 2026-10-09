@@ -55,6 +55,8 @@
 .match-life > span { display: block; height: 100%; }
 .match-life-mine > span { background: var(--accent); }
 .match-life-theirs > span { background: var(--cat-amber); }
+/* The offer's row in the inbox (WP-2): the same bar, the words under it. */
+.inbox-life { display: flex; flex-direction: column; gap: var(--s-1); }
 /* Sheet 06 B, waiting: the phrases shrink to quotes — 16/400 on panel-2 with a
    3 px accent edge, no name or chip — the queue under them, and the line to
    write at the foot of the screen. */

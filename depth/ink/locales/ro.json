@@ -47,6 +47,8 @@
   "inbox.match": "potrivire — așteaptă acordul tău",
   "inbox.open": "conversație deschisă",
   "inbox.until": "până la {time}",
+  "inbox.soon": "dispare curând",
+  "inbox.mine_left": "fraza ta: mai are {n} min",
   "inbox.consent": "accept",
   "inbox.enter": "deschide",
   "inbox.empty": "deocamdată gol",

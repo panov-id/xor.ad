@@ -14,13 +14,18 @@ import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
 import "./talk.css";
 import { HeaderScreen } from "../ui/Header.tsx";
+import { lifeOf } from "../../../depth/core/life.ts";
+import { Life } from "./Match.tsx";
 
 export interface MatchRow {
   kind: "match";
   id: string;
   name: string;
   age: number;
-  phrase: { text: string; mode: string };
+  // expires_at: what is left of the phrases, told to this match only
+  // (relay routes/inbox.ts, §8.11); absent once a phrase left the feed.
+  phrase: { text: string; mode: string; expires_at?: number };
+  my_phrase?: { text: string; mode: string; expires_at?: number };
   waiting_for_you: boolean;
   state: string;
   // Whether I agreed already and wait for them (relay routes/inbox.ts, P10).
@@ -53,6 +58,22 @@ export function marksOf(r: InboxRow): string {
   const count = r.kind === "chat" && (r.pending_messages ?? 0) > 0 ? ` ${r.pending_messages}` : "";
   const soon = r.kind === "chat" && r.ending_soon;
   return `${fresh ? `●${count}` : ""}${soon ? (fresh ? " ⌛" : "⌛") : ""}`;
+}
+
+// Sheets 23/24 in the offer's row: the other's phrase as a bar, and
+// «скоро исчезнет» in its last fifth — never its minutes (19.09.2026); my own
+// phrase, when the match came from it, may say how long it has.
+function PhraseLife({ row }: { row: MatchRow }) {
+  const theirs = lifeOf(row.phrase.expires_at);
+  const mine = lifeOf(row.my_phrase?.expires_at);
+  if (theirs === null && mine === null) return null;
+  return (
+    <div className="inbox-life" data-testid="offer-life">
+      <Life end={row.phrase.expires_at} tone="theirs" />
+      {theirs?.soon && <span className="muted" data-testid="offer-soon">{say("web.inbox.soon")}</span>}
+      {mine && <span className="muted" data-testid="offer-mine-left">{say("web.inbox.mine_left", { n: mine.minutes })}</span>}
+    </div>
+  );
 }
 
 export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone }: {
@@ -135,6 +156,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
               <span className="mark">{marksOf(m)}</span>
             </div>
             <p>{m.phrase.text}</p>
+            <PhraseLife row={m} />
             <span className="muted">{m.waiting_for_you ? say("web.inbox.waits_you") : say("web.inbox.offer")}</span>
             <Button kind="secondary" type="button" icon="open" className="ui-mid" aria-label={say("inbox.enter")} onClick={() => onOpenMatch(m)} data-testid="open-match" />
           </Card>

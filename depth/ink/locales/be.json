@@ -47,6 +47,8 @@
   "inbox.match": "метч — чакае тваёй згоды",
   "inbox.open": "чат адкрыты",
   "inbox.until": "да {time}",
+  "inbox.soon": "хутка знікне",
+  "inbox.mine_left": "твая фраза: яшчэ {n} хв",
   "inbox.consent": "згадзіцца",
   "inbox.enter": "адкрыць",
   "inbox.empty": "пакуль пуста",

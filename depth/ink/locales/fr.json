@@ -47,6 +47,8 @@
   "inbox.match": "un match — il attend ton accord",
   "inbox.open": "discussion ouverte",
   "inbox.until": "jusqu'à {time}",
+  "inbox.soon": "disparaît bientôt",
+  "inbox.mine_left": "ta phrase : encore {n} min",
   "inbox.consent": "accepter",
   "inbox.enter": "ouvrir",
   "inbox.empty": "rien pour l'instant",

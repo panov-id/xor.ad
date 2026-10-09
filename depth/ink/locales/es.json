@@ -47,6 +47,8 @@
   "inbox.match": "coincidencia: espera tu consentimiento",
   "inbox.open": "chat abierto",
   "inbox.until": "hasta las {time}",
+  "inbox.soon": "desaparece pronto",
+  "inbox.mine_left": "tu frase: quedan {n} min",
   "inbox.consent": "aceptar",
   "inbox.enter": "abrir",
   "inbox.empty": "de momento vacío",

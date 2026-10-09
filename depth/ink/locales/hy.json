@@ -47,6 +47,8 @@
   "inbox.match": "համընկնում՝ սպասում է քո համաձայնությանը",
   "inbox.open": "զրույցը բաց է",
   "inbox.until": "մինչև {time}",
+  "inbox.soon": "շուտով կանհետանա",
+  "inbox.mine_left": "քո արտահայտությունը՝ ևս {n} ր",
   "inbox.consent": "համաձայն եմ",
   "inbox.enter": "բացել",
   "inbox.empty": "առայժմ դատարկ է",

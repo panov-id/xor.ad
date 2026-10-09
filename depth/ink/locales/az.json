@@ -47,6 +47,8 @@
   "inbox.match": "uyğunluq — razılığını gözləyir",
   "inbox.open": "söhbət açıqdır",
   "inbox.until": "{time}-a qədər",
+  "inbox.soon": "tezliklə yox olacaq",
+  "inbox.mine_left": "sənin ifadən: daha {n} dəq",
   "inbox.consent": "razıyam",
   "inbox.enter": "aç",
   "inbox.empty": "hələlik boşdur",

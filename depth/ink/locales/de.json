@@ -47,6 +47,8 @@
   "inbox.match": "ein Match — wartet auf dein Einverständnis",
   "inbox.open": "Chat offen",
   "inbox.until": "bis {time}",
+  "inbox.soon": "verschwindet bald",
+  "inbox.mine_left": "deine Phrase: noch {n} Min.",
   "inbox.consent": "zustimmen",
   "inbox.enter": "öffnen",
   "inbox.empty": "noch leer",

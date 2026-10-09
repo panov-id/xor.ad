@@ -16,6 +16,7 @@ import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
 import { afterClose, reconnectDelay } from "../core/reconnect.ts";
 import { pinMismatch, type Place } from "./screens.ts";
 import { obviousPin } from "../core/pin.ts";
+import { lifeOf } from "../core/life.ts";
 import { ChatGames, isGameFrame } from "../core/chat_games.ts";
 import { ChatGame } from "./chat_game.ts";
 
@@ -113,7 +114,26 @@ type Row = {
   opened_since?: boolean;
   pending_messages?: number;
   ending_soon?: boolean;
+  // What is left of the phrases of a match, told to this match only (relay
+  // routes/inbox.ts, §8.11); absent once a phrase left the feed.
+  phrase?: { expires_at?: number };
+  my_phrase?: { expires_at?: number };
 };
+
+// A match's phrases at a glance (WP-2, sheets 23/24): the other's as five
+// cells and «скоро исчезнет» in its last fifth — never its minutes (decision
+// 19.09.2026); one's own may say how long it has.
+export function lifeLine(r: Row, say: Say, nowSeconds = Date.now() / 1000): string {
+  if (r.kind !== "match") return "";
+  const theirs = lifeOf(r.phrase?.expires_at, nowSeconds);
+  const mine = lifeOf(r.my_phrase?.expires_at, nowSeconds);
+  const cells = theirs ? Math.ceil(theirs.left * 5) : 0;
+  return [
+    theirs ? `${"■".repeat(cells)}${"□".repeat(5 - cells)}` : "",
+    theirs?.soon ? say("inbox.soon") : "",
+    mine ? say("inbox.mine_left", { n: String(mine.minutes) }) : "",
+  ].filter(Boolean).map((part) => ` · ${part}`).join("");
+}
 
 // The moment of the last look at the inbox in this run — depth keeps nothing
 // on disk (§8.12), so the first look of a run sees everything live as new.
@@ -225,6 +245,7 @@ export function Inbox(
               : r.kind === "offer_interest"
               ? `${say("inbox.interest")}${r.offer?.text ? ` · «${plain(r.offer.text, 40)}»` : ""}`
               : say("inbox.match"),
+            r.declined ? "" : lifeLine(r, say),
           )
         ),
       ),

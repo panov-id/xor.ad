@@ -47,6 +47,8 @@
   "inbox.match": "dopasowanie — czeka na twoją zgodę",
   "inbox.open": "czat otwarty",
   "inbox.until": "do {time}",
+  "inbox.soon": "wkrótce zniknie",
+  "inbox.mine_left": "twoja fraza: jeszcze {n} min",
   "inbox.consent": "zgadzam się",
   "inbox.enter": "otwórz",
   "inbox.empty": "na razie pusto",

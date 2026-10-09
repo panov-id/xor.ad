@@ -1,16 +1,33 @@
-// W15-NC step 1: the same queries through postgres.js (the node's driver today)
-// and node-postgres (the one it moves to), compared by machine. Each case names
-// what a caller would see; a difference is reported, not fixed here — the fix is
-// a type parser in the new db.ts, so nothing outside it changes.
+// W15-NC step 1: the same queries through postgres.js (the node's driver until
+// W15-NC) and through lib/db.ts on node-postgres, with its type parsers,
+// compared by machine. Each case names what a caller would see.
 //
-// Needs DATABASE_URL and npm:pg, which the lock does not hold yet:
-//   deno test --no-lock --allow-env --allow-net --allow-read test/pg_types.test.ts
-// Runs under TZ=Europe/Berlin as well, because `date` read into a Date depends on it.
+// The differences that remain are listed below, each accepted for a reason; a
+// new one, or one of them gone, is red — either the driver or db.ts changed
+// what a caller reads, and someone should look before it ships.
+//
+// Run by scripts/run-relay-database-tests.sh, at TZ=Europe/Berlin: `date`
+// read into a Date depends on the zone, and at UTC a wrong parser looks right.
 import postgres from "npm:postgres@3.4.4";
 import pg from "npm:pg@8.13.1";
 import { assertEquals } from "jsr:@std/assert@1";
 
 const url = Deno.env.get("DATABASE_URL");
+Deno.env.set("NODE_ENV_NAME", "test");
+Deno.env.set("MAIL_TRANSPORT", "none");
+Deno.env.set("SESSION_SECRET", "pg-types-secret");
+const db = await import("../src/lib/db.ts");
+
+// Name → why it is accepted.
+const ACCEPTED: Record<string, string> = {
+  "timestamptz in: string with microseconds":
+    "postgres.js turned the string into a Date and cut it to milliseconds; pg sends it whole",
+  "unnest text[] + timestamptz[] in": "the same microseconds, inside an array parameter",
+  "timestamptz[] out": "postgres.js read a NULL element as an Invalid Date; pg reads null",
+  "text[] out": "postgres.js read a NULL element as the string \"NULL\"; pg reads null",
+  "jsonb in: string":
+    "postgres.js encoded a JSON string again into a jsonb string; the node passes $n::text::jsonb, where both agree",
+};
 
 // One shape for both sides: what the value is, and how it prints.
 function shape(v: unknown): unknown {
@@ -85,8 +102,8 @@ Deno.test({
         // deno-lint-ignore no-explicit-any
         const left = await a.unsafe(c.text, (c.args ?? []) as any[]).then((r) => shape([...r]), (e) => ({ error: String(e) }));
         await b.query("SELECT setval('pg_types_seq', 9007199254740990, false)");
-        const right = await b.query(c.text, c.args).then(
-          (r: { rows: unknown[] }) => shape(r.rows),
+        const right = await db.queryOrThrow(c.text, c.args ?? []).then(
+          (r: unknown[]) => shape(r),
           (e: unknown) => ({ error: String(e) }),
         );
         if (JSON.stringify(left) !== JSON.stringify(right)) {
@@ -96,9 +113,11 @@ Deno.test({
     } finally {
       await a.end({ timeout: 1 });
       await b.end();
+      await db.closePool();
     }
     // The report: every difference on its own lines, so the run's output is the list.
     if (differ.length) console.log(`TZ=${Deno.env.get("TZ") ?? "(unset)"} — ${differ.length} of ${CASES.length} differ:\n  ${differ.join("\n  ")}`);
-    assertEquals(differ, [], `${differ.length} of ${CASES.length} cases differ between the drivers`);
+    const names = differ.map((d) => d.split("\n")[0]).sort();
+    assertEquals(names, Object.keys(ACCEPTED).sort(), "the differences between the drivers are not the accepted ones");
   },
 });

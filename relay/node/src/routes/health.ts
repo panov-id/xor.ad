@@ -1,7 +1,7 @@
 import { config } from "../config.ts";
 import { json } from "../lib/http.ts";
 import { storageEnabled } from "../lib/storage.ts";
-import { enabled as databaseEnabled, query } from "../lib/db.ts";
+import { enabled as databaseEnabled, listenState, query } from "../lib/db.ts";
 import { cursorConfigured } from "../lib/cursor.ts";
 
 // Two routes, and the difference between them is the point.
@@ -103,6 +103,11 @@ export async function health(): Promise<Response> {
     // Asked, not assumed. `storage` above says what this node was configured
     // with; `database` says what answered a moment ago.
     database,
+    // The chat's transport, apart from the pool: `database` can be ok while
+    // the LISTEN connection is down and every room is deaf (lib/db.ts
+    // listenState; W15-NC). Reported, not decided on — a node that cannot
+    // listen still serves everything but the chat, so /ready leaves it out.
+    listen: listenState(),
     // Named here, decided in /ready: without it the feed and the likes answer
     // 503 (lib/cursor.ts) while everything else looks well.
     vault_key: cursorConfigured() ? "set" : "missing",

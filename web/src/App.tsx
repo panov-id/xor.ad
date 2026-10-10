@@ -47,7 +47,8 @@ import { watchIdle } from "./idle.ts";
 import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
 import "./screens/feed.css";
-import { Icon, type IconName } from "./ui/Icon.tsx";
+import { Screen as Frame } from "./ui/Screen.tsx";
+import { TabBar } from "./ui/TabBar.tsx";
 
 type Sealed = "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
 // `keys` is null while the page is locked (W13-WL): the chat keys are thrown
@@ -246,19 +247,18 @@ function Face() {
   }
   const me = () => setScreen({ at: "me" });
 
-  // The tab bar at the foot (comic 2026-10-01): three tabs of 125, icons only,
-  // the name in aria-label; the open one stands in a gold medallion.
-  const tab = (at: "feed" | "inbox" | "me", icon: IconName, label: string, testid: string, go: () => void) => (
-    <button type="button" className="tab ui-icon-only" aria-label={label} aria-current={screen.at === at ? "page" : undefined} onClick={go} data-testid={testid}>
-      <Icon name={icon} />
-    </button>
-  );
+  // The tab bar at the foot, the kit's TabBar: a nav with a name, each tab named
+  // by the word under its icon, aria-current on the open one.
   const nav = seated && (screen.at === "feed" || screen.at === "inbox" || screen.at === "me") && (
-    <nav className="tabbar" data-testid="nav">
-      {tab("feed", "feed", say("web.nav.feed"), "nav-feed", () => setScreen({ at: "feed" }))}
-      {tab("inbox", "say", say("web.nav.inbox"), "nav-inbox", () => leaveFeed({ at: "inbox" }))}
-      {tab("me", "me", say("me.title"), "tab-me", () => leaveFeed({ at: "me" }))}
-    </nav>
+    <TabBar
+      label={say("web.ui.navMain")}
+      data-testid="nav"
+      items={[
+        { id: "feed", icon: "feed", label: say("web.nav.feed"), current: screen.at === "feed", onSelect: () => setScreen({ at: "feed" }), testid: "nav-feed" },
+        { id: "inbox", icon: "say", label: say("web.nav.inbox"), current: screen.at === "inbox", onSelect: () => leaveFeed({ at: "inbox" }), testid: "nav-inbox" },
+        { id: "me", icon: "me", label: say("me.title"), current: screen.at === "me", onSelect: () => leaveFeed({ at: "me" }), testid: "tab-me" },
+      ]}
+    />
   );
 
   // One line and nothing else while locked: no name, no counts, no rooms.
@@ -268,7 +268,7 @@ function Face() {
 
   switch (screen.at) {
     case "loading":
-      return <main className="screen"><p className="muted" data-testid="loading">…</p></main>;
+      return <Frame name="loading" title={say("web.splash.tagline")}><p className="ui-hint" data-testid="loading">…</p></Frame>;
     case "splash":
       return <Splash onStart={() => setScreen({ at: "register" })} onRestore={() => setScreen({ at: "restore" })} onArrive={() => setScreen({ at: "arrival" })} />;
     case "arrival":
@@ -288,7 +288,7 @@ function Face() {
       return <Offer code={screen.code} onHome={() => { history.replaceState(null, "", "/"); setScreen({ at: "loading" }); location.reload(); }} />;
     case "feed":
       return (
-        <div className="tabbed">
+        <div className="ui-tabbed">
           <FeedView
             client={seated!.client}
             sealed={seated!.sealed}
@@ -337,7 +337,7 @@ function Face() {
       return <Likes client={seated!.client} onBack={toFeed} />;
     case "inbox":
       return (
-        <div className="tabbed">
+        <div className="ui-tabbed">
           <Inbox
             client={seated!.client}
             onOpenMatch={(row) => setScreen({ at: "match", row })}
@@ -366,7 +366,7 @@ function Face() {
       return <Statements items={statements ?? []} onDone={screen.from === "me" ? me : toFeed} />;
     case "me":
       return (
-        <div className="tabbed">
+        <div className="ui-tabbed">
           <MeView
             client={seated!.client}
             restrictions={statements?.length ?? 0}

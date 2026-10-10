@@ -2,7 +2,8 @@
 // the paper code, and reads the feed — against a live node, in a browser.
 // What is read back is not the screen alone: the node's answer to the feed
 // (200), the record the vault kept, and that its seal opens under the same
-// PIN and share (the page checks that and says so in the footer).
+// PIN and share (the page checks that and keeps it in data-sealed on the feed;
+// a seal that does not match is an error line in words, k6-feed.spec.ts).
 
 import { expect, test } from "../fixtures/address.ts";
 
@@ -65,6 +66,9 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
 
   // The vault kept a sealed record, and the seal opens.
   await expect(page.locator('[data-screen="feed"]')).toHaveAttribute("data-sealed", "ok");
+  // К6a (owner 10.10.2026): the service line «ключи: …» is gone from the feed.
+  await expect(page.locator('[data-screen="feed"]')).not.toContainText("ключи");
+  await expect(page.getByTestId("sealed-failed"), "a healthy seal shows no error line").toHaveCount(0);
   const record = await page.evaluate(() =>
     new Promise<{ identityId: string; sessionId: string; sealedLength: number; salt: number; sealedWrap: number; wrapCheck: number } | null>((resolve) => {
       const req = indexedDB.open("xor-vault", 1);

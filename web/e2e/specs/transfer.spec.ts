@@ -20,7 +20,7 @@ test("an identity moves from one browser to another and opens there after a relo
   await expect(old.getByTestId("move-price"), "move-price is visible").toBeVisible();
   await old.getByTestId("move-pin").fill(PIN);
   await old.getByTestId("move-go").click();
-  const code = (await old.getByTestId("move-code").textContent({ timeout: 30000 }))!.trim();
+  const code = (await old.getByTestId("move-code").locator("code").textContent({ timeout: 30000 }))!.trim();
   expect(code).toMatch(/^\S{3} \S{3} \S{3}$/);
 
   const newContext = await browser.newContext({ viewport: { width: 393, height: 851 } });

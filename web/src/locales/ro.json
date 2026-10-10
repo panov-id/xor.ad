@@ -145,11 +145,6 @@
   "web.feed.empty": "Deocamdată e liniște",
   "web.feed.empty_hint": "Acum nu vorbește nimeni în cercul tău.",
   "web.feed.hidden": "Fraza e ascunsă din fluxul tău.",
-  "web.feed.keys": "chei: {state}",
-  "web.feed.keys_bad": "sigiliul seifului nu se potrivește",
-  "web.feed.keys_new_wrap": "deblocat cu PIN, învelișul NU e același",
-  "web.feed.keys_ok": "sigiliul seifului se potrivește",
-  "web.feed.keys_unlocked": "deblocat cu PIN, învelișul e același",
   "web.feed.km": "{n} km",
   "web.feed.m": "{n} m",
   "web.feed.newTable": "masă nouă",
@@ -192,7 +187,6 @@
   "web.lang.item": "limbă",
   "web.lang.title": "Limbă",
   "web.like.refused_status": "Aprecierea n-a fost acceptată ({status}).",
-  "web.like.refused_why": "Aprecierea n-a fost acceptată: {why}.",
   "web.likes.back": "← flux",
   "web.likes.empty": "Deocamdată nimic",
   "web.likes.empty_hint": "Frazele apreciate se adună aici cât timp trăiesc.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Numele nu a fost acceptat. Alege altul, fără linkuri, contacte sau insulte.",
   "web.ui.system": "sistem",
   "web.phrase.refused_generic": "Fraza nu a fost acceptată. Scoate linkurile, contactele și insultele și încearcă din nou.",
-  "web.ui.you": "tu"
+  "web.ui.you": "tu",
+  "web.feed.seal_bad": "Nu am putut confirma că cheile de pe acest dispozitiv sunt intacte. Închide fila și deschide-o din nou.",
+  "web.like.undo_mark": "aprecierea pleacă în {n} s",
+  "web.like.undo": "anulează",
+  "web.like.cancelled": "apreciere anulată",
+  "web.like.needs_phrase": "Scrie mai întâi propria frază: o apreciere este întâlnirea a două fraze."
 }

@@ -4,14 +4,21 @@
 // it from one's own feed (§8.9), block its author (§8.9). A like that meets a
 // like becomes a match and says so; hiding and blocking take the card away
 // and lead back to the feed. Blocking asks twice and names the consequence,
-// as the terminal does.
+// as the terminal does. Kit elements only (K6a).
 
 import type { Client } from "../../../depth/core/client.ts";
-import { modes } from "../api/actions.ts";
+import { languageIn, modes } from "../api/actions.ts";
 import { type CardLogic, useCard } from "./logic/useCard.ts";
 import { Button } from "../ui/Button.tsx";
 import { LikeBurst } from "../ui/Card.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { Field, FieldGroup } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
+import { Actions } from "../ui/Links.tsx";
+import { Notice } from "../ui/Notices.tsx";
+import { Screen } from "../ui/Screen.tsx";
+import { Confirm } from "../ui/Sheet.tsx";
+import { Textarea } from "../ui/Textarea.tsx";
 import type { FeedCard } from "./Feed.tsx";
 import { say } from "../locales/say.ts";
 
@@ -26,32 +33,30 @@ export function Card(
 ) {
   const logic = useCard({ client, card, onGone });
   const { like, busy, doLike, hide } = logic;
+  const mode = modes().find((m) => m.value === card.mode)?.label ?? card.mode;
+  const language = languageIn(card.lang);
 
   return (
-    <main className="screen card-screen" data-screen="card" data-id={card.id}>
-      {/* Sheet 23: close on the left, the phrase's mode in words on the band. */}
-      <HeaderScreen title={modes().find((m) => m.value === card.mode)?.label ?? card.mode} onBack={onBack} backLabel={say("web.card.back")} />
-      <article className="phrase">
-        {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
-        <p className="big" data-testid="text">{card.text}</p>
-        {card.offer?.conditions && <p className="muted" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
-        <p className="muted card-likes">
+    <Screen
+      name="card"
+      title={mode}
+      data-id={card.id}
+      /* Sheet 23: close on the left, the phrase's mode in words on the band. */
+      header={<HeaderScreen title={mode} onBack={onBack} backLabel={say("web.card.back")} />}
+    >
+      <article className="ui-phrase">
+        {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
+        <p className="ui-big" data-testid="text">{card.text}</p>
+        {card.offer?.conditions && <p className="ui-hint" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
+        {language && <p className="ui-hint" lang={card.lang}>{language}</p>}
+        <p className="ui-card-likes">
           <LikeBurst count={card.like_count + (like && like.state !== "refused" ? 1 : 0)} on={like !== null && like.state !== "refused"}
             data-testid="like-burst" />
-          {card.soon ? say("web.card.soon") : ""}
+          {card.soon ? <span className="ui-hint">{say("web.card.soon")}</span> : null}
         </p>
       </article>
       <CardNotes logic={logic} />
-      <div className="actions ui-icon-row card-actions">
-        <Button
-          type="button"
-          kind="primary"
-          icon="like"
-          aria-label={say("web.card.like")}
-          disabled={busy || (like !== null && like.state !== "refused")}
-          onClick={() => void doLike()}
-          data-testid="like"
-        />
+      <Actions>
         <Button
           type="button"
           icon="hide"
@@ -61,8 +66,17 @@ export function Card(
           data-testid="hide"
         />
         <CardExtras card={card} logic={logic} />
-      </div>
-    </main>
+        <Button
+          type="button"
+          kind="primary"
+          icon="like"
+          aria-label={say("web.card.like")}
+          disabled={busy || (like !== null && like.state !== "refused")}
+          onClick={() => void doLike()}
+          data-testid="like"
+        />
+      </Actions>
+    </Screen>
   );
 }
 
@@ -72,13 +86,13 @@ export function CardNotes({ logic }: { logic: CardLogic }) {
   const { like, error } = logic;
   return (
     <>
-      {like?.state === "liked" && <p className="warn" data-testid="liked">{say("web.card.liked")}</p>}
+      {like?.state === "liked" && <Notice data-testid="liked">{say("web.card.liked")}</Notice>}
       {like?.state === "liked" && like.namePending && (
-        <p className="warn" data-testid="like-name-pending">{say("like.namePending")}</p>
+        <Notice data-testid="like-name-pending">{say("like.namePending")}</Notice>
       )}
-      {like?.state === "matched" && <p className="warn" data-testid="matched">{say("web.card.matched")}</p>}
-      {like?.state === "refused" && <p className="error" data-testid="refused">{like.why}</p>}
-      {error && <p className="error" data-testid="error">{error}</p>}
+      {like?.state === "matched" && <Notice data-testid="matched">{say("web.card.matched")}</Notice>}
+      {like?.state === "refused" && <ErrorLine data-testid="refused">{like.why}</ErrorLine>}
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
     </>
   );
 }
@@ -93,52 +107,38 @@ export function CardExtras({ card, logic }: { card: FeedCard; logic: CardLogic }
   return (
     <>
       {card.kind === "offer" && (complained
-        ? <p data-testid="complained">{say("web.card.complained")}</p>
+        ? <Notice data-testid="complained">{say("web.card.complained")}</Notice>
         : !complaining
         ? <Button type="button" icon="report" aria-label={say("web.card.complain")} disabled={busy} onClick={() => setComplaining(true)} data-testid="complain" />
         : (
-          <section className="confirm" data-testid="complain-form">
-            <label>
-              {say("web.card.complain_email")}
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="complain-email" autoComplete="email" />
-            </label>
-            <label>
-              {say("web.card.complain_text")}
-              <textarea value={text} maxLength={1000} onChange={(e) => setText(e.target.value)} data-testid="complain-text" />
-            </label>
-            <div className="ui-icon-row">
-              <Button kind="primary" type="button" icon="send" aria-label={say("web.card.complain_send")} disabled={busy || !email.includes("@")} onClick={() => void complain()} data-testid="complain-send" />
+          <FieldGroup legend={say("web.card.complain")}>
+            <Field kind="email" label={say("web.card.complain_email")} value={email} onChange={setEmail} data-testid="complain-email" />
+            <Textarea label={say("web.card.complain_text")} value={text} maxLength={1000} onChange={setText} data-testid="complain-text" />
+            <Actions>
               <Button kind="secondary" type="button" icon="close" aria-label={say("web.card.cancel")} onClick={() => setComplaining(false)} />
-            </div>
-          </section>
+              <Button kind="primary" type="button" icon="send" aria-label={say("web.card.complain_send")} disabled={busy || !email.includes("@")} onClick={() => void complain()} data-testid="complain-send" />
+            </Actions>
+          </FieldGroup>
         ))}
       {linkCode && (report === "sent"
-        ? <p className="offer-toast" role="status" data-testid="reported">{say("web.offer.reported")}</p>
+        ? <p className="ui-hint" role="status" data-testid="reported">{say("web.offer.reported")}</p>
         : (
           <Button type="button" icon="link" aria-label={say("web.offer.wrong")} disabled={busy || report === "sending"} onClick={() => void reportLink()} data-testid="report" />
         ))}
-      {report === "failed" && <p className="error" data-testid="report-failed">{say("web.offer.later")}</p>}
-      {!confirmBlock
-        ? (
-          <Button type="button" icon="block" aria-label={say("block.item")} disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block" />
-        )
-        : (
-          <section className="confirm" data-testid="block-confirm">
-            <p className="muted">{say("web.card.block_warning")}</p>
-            <div className="ui-icon-row">
-              <Button
-                type="button"
-                kind="danger"
-                icon="block"
-                aria-label={say("web.card.block_yes")}
-                disabled={busy}
-                onClick={() => void block()}
-                data-testid="block-confirm-yes"
-              />
-              <Button type="button" icon="close" aria-label={say("web.card.block_no")} onClick={() => setConfirmBlock(false)} data-testid="block-confirm-no" />
-            </div>
-          </section>
-        )}
+      {report === "failed" && <ErrorLine data-testid="report-failed">{say("web.offer.later")}</ErrorLine>}
+      <Button type="button" icon="block" aria-label={say("block.item")} disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block" />
+      <Confirm
+        open={confirmBlock}
+        title={say("block.confirm")}
+        consequences={[say("web.card.block_warning")]}
+        confirmLabel={say("web.card.block_yes")}
+        cancelLabel={say("web.card.block_no")}
+        onConfirm={() => void block()}
+        onClose={() => setConfirmBlock(false)}
+        confirmTestId="block-confirm-yes"
+        cancelTestId="block-confirm-no"
+        data-testid="block-confirm"
+      />
     </>
   );
 }

@@ -90,7 +90,7 @@ test("the second device: a move under the PIN, a first PIN, the chat goes on; th
   await old.getByTestId("me-move").click();
   await old.getByTestId("move-pin").fill(PIN);
   await old.getByTestId("move-go").click();
-  const code = (await old.getByTestId("move-code").textContent({ timeout: 30000 }))!.trim();
+  const code = (await old.getByTestId("move-code").locator("code").textContent({ timeout: 30000 }))!.trim();
   const second = await fresh(browser);
   await second.goto("/");
   await second.getByTestId("arrive").click();

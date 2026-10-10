@@ -145,11 +145,6 @@
   "web.feed.empty": "Ин ҷо ҳоло ором аст",
   "web.feed.empty_hint": "Дар доираи шумо ҳоло касе гап намезанад.",
   "web.feed.hidden": "Ибора аз лентаи шумо пинҳон шуд.",
-  "web.feed.keys": "калидҳо: {state}",
-  "web.feed.keys_bad": "мӯҳри анбор мувофиқ намеояд",
-  "web.feed.keys_new_wrap": "бо ПИН кушода шуд, печонак ДИГАР аст",
-  "web.feed.keys_ok": "мӯҳри анбор мувофиқ аст",
-  "web.feed.keys_unlocked": "бо ПИН кушода шуд, печонак ҳамон аст",
   "web.feed.km": "{n} км",
   "web.feed.m": "{n} м",
   "web.feed.newTable": "мизи нав",
@@ -192,7 +187,6 @@
   "web.lang.item": "забон",
   "web.lang.title": "Забон",
   "web.like.refused_status": "Лайк қабул нашуд ({status}).",
-  "web.like.refused_why": "Лайк қабул нашуд: {why}.",
   "web.likes.back": "← лента",
   "web.likes.empty": "Ҳоло ҳеҷ чиз нест",
   "web.likes.empty_hint": "Ибораҳои писандида то зинда ҳастанд, дар ин ҷо ҷамъ мешаванд.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Ном қабул нашуд. Дигареро интихоб кунед — бе истинод, тамос ва ҳақорат.",
   "web.ui.system": "система",
   "web.phrase.refused_generic": "Ибора қабул нашуд. Истинодҳо, тамосҳо ва ҳақоратҳоро тоза кунед ва бори дигар кӯшиш кунед.",
-  "web.ui.you": "шумо"
+  "web.ui.you": "шумо",
+  "web.feed.seal_bad": "Тасдиқ карда нашуд, ки калидҳо дар ин дастгоҳ солиманд. Варақаро пӯшед ва аз нав кушоед.",
+  "web.like.undo_mark": "лайк пас аз {n} сония меравад",
+  "web.like.undo": "бекор кардан",
+  "web.like.cancelled": "лайк бекор шуд",
+  "web.like.needs_phrase": "Аввал ибораи худро нависед: лайк — вохӯрии ду ибора аст."
 }

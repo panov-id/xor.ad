@@ -4,15 +4,22 @@
 // Since W2 a card opens full-screen (Card.tsx), "написать" leads to the
 // composer and "лайкнутое" to the likes; one's own phrase just sent is named
 // over the list with the node's verdict — out, or read by a person first.
-// The filters are not here yet.
+// The filters are not here yet. Kit elements only (K6a): the keys line that
+// used to stand at the foot is gone (owner 10.10.2026) — the seal's state stays
+// in data-sealed, and a seal that does not match is an ErrorLine in words.
 
 import { Fragment, type ReactNode } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { nearby } from "../a11y/nearby.ts";
-import { modes, type Sent } from "../api/actions.ts";
+import { languageIn, modes, type Sent } from "../api/actions.ts";
 import { Button } from "../ui/Button.tsx";
-import { Card, CardOpen, openerIds } from "../ui/Card.tsx";
+import { Card, CardOpen, LikeCount, openerIds } from "../ui/Card.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderFeed } from "../ui/Header.tsx";
+import { Actions } from "../ui/Links.tsx";
+import { EmptyState, Notice } from "../ui/Notices.tsx";
+import { Screen } from "../ui/Screen.tsx";
+import { Select } from "../ui/Select.tsx";
 import { useFeed } from "./logic/useFeed.ts";
 import { say } from "../locales/say.ts";
 
@@ -75,89 +82,90 @@ export function Feed(
 ) {
   const { items, next, state, error, takingDown, takedownRefused, takeDown, load, refused, said } =
     useFeed({ client, at, radius, sent, onTakenDown });
+  const widerTo = radius < 10000 ? RADII[RADII.indexOf(radius) + 1] : null;
   return (
-    <main className={["screen feed", brandClass].filter(Boolean).join(" ")} data-screen="feed" data-sealed={sealed}>
-      {/* What the reader hears: the announced step, not every flicker of it. */}
+    <Screen name="feed" title={say("web.feed.title")} className={brandClass} data-sealed={sealed} header={
+      /* What the reader hears: the announced step, not every flicker of it. */
       <HeaderFeed
         place={say("web.feed.title")}
         step={said ? nearby(said) : ""}
         stepProps={{ role: "status", "data-testid": "nearby", "data-step": said ?? undefined }}
         action={
-          <label className="radius">
-            <span className="visually-hidden">{say("web.feed.radius")}</span>
-            <select value={radius} onChange={(e) => onRadius(Number(e.target.value) as Radius)} data-testid="radius">
-              {RADII.map((r) => <option key={r} value={r}>{label(r)}</option>)}
-            </select>
-          </label>
+          <span data-testid="radius">
+            <Select
+              label={say("web.feed.radius")}
+              options={RADII.map((r) => ({ value: String(r), label: label(r) }))}
+              value={String(radius)}
+              onChange={(value) => onRadius(Number(value) as Radius)}
+            />
+          </span>
         }
       />
-      <nav className="actions ui-icon-row">
-        <Button type="button" kind="primary" icon="write" aria-label={say("feed.write")} onClick={onWrite} data-testid="write" />
+    }>
+      <Actions>
         <Button type="button" icon="likes" aria-label={say("liked.title")} onClick={onLikes} data-testid="likes" />
         {onNewTable && <Button type="button" icon="table" aria-label={say("web.feed.newTable")} onClick={onNewTable} data-testid="new-table" />}
-      </nav>
+        <Button type="button" kind="primary" icon="write" aria-label={say("feed.write")} onClick={onWrite} data-testid="write" />
+      </Actions>
+      {sealed === "failed" && <ErrorLine data-testid="sealed-failed">{say("web.feed.seal_bad")}</ErrorLine>}
       {refused > 0 && !sent && (
-        <p className="error" data-testid="refused" data-count={refused}>{say("web.feed.refused")}</p>
+        <ErrorLine data-testid="refused" data-count={String(refused)}>{say("web.feed.refused")}</ErrorLine>
       )}
       {sent && (
-        <p className="warn" data-testid="sent" data-state={sent.state}>
+        <Notice data-testid="sent" data-state={sent.state}>
           {sent.state === "published" ? say("web.feed.sent_out") : say("web.feed.sent_held")}
           «{sent.text}»
           {/* In view only while the id is known — not greyed, absent (W11-C). */}
           {sent.id && (
             <Button type="button" icon="close" aria-label={say("feed.takedown")} disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown" />
           )}
-        </p>
+        </Notice>
       )}
       {sent && takedownRefused !== null && (
-        <p className="error" data-testid="takedown-refused">{say("feed.takedownRefused", { status: takedownRefused })}</p>
+        <ErrorLine data-testid="takedown-refused">{say("feed.takedownRefused", { status: takedownRefused })}</ErrorLine>
       )}
       {gone && (
-        <p className="muted" data-testid="gone" data-why={gone.why}>
+        <p className="ui-hint" data-testid="gone" data-why={gone.why}>
           {gone.why === "hidden" ? say("web.feed.hidden") : say("web.feed.blocked")}
         </p>
       )}
-      {state === "failed" && <p className="error" data-testid="error">{error}</p>}
-      {notice && <p className="error" data-testid="table-refused">{notice}</p>}
+      {state === "failed" && <ErrorLine data-testid="error">{error}</ErrorLine>}
+      {notice && <ErrorLine data-testid="table-refused">{notice}</ErrorLine>}
       {state === "ready" && items.length === 0 && (
-        <section className="empty" data-testid="quiet">
-          <h2>{say("web.feed.empty")}</h2>
-          <p className="muted">{say("web.feed.empty_hint")}</p>
-          {radius < 10000 && (
-            <Button type="button" icon="pin" aria-label={say("web.feed.wider", { radius: label(RADII[RADII.indexOf(radius) + 1]) })} onClick={() => onRadius(RADII[RADII.indexOf(radius) + 1])} />
-          )}
-        </section>
+        <EmptyState
+          title={say("web.feed.empty")}
+          line={say("web.feed.empty_hint")}
+          action={widerTo ? { label: say("web.feed.wider", { radius: label(widerTo) }), onSelect: () => onRadius(widerTo) } : undefined}
+          data-testid="quiet"
+        />
       )}
-      <ul className={listClass ?? "cards"} data-testid="cards">
+      <ul className={listClass ?? "ui-cards"} data-testid="cards">
         {items.filter((card) => card.id !== gone?.id).map((card, index) => card.kind === "table"
           ? (
-            <Card as="li" key={card.id} kind="nested" className="table-card" data-testid="table-card" data-id={card.id}>
+            <Card as="li" key={card.id} kind="nested" of="table" data-testid="table-card" data-id={card.id}>
               <CardOpen id={card.id} onOpen={() => onTable?.(card.id)} />
               <p id={openerIds(card.id).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {card.game} {card.set}</p>
-              <span className="muted" id={openerIds(card.id).foot}>{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · ♥ {card.like_count ?? 0}</span>
+              <span className="ui-hint" id={openerIds(card.id).foot}>{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · <LikeCount n={card.like_count ?? 0} /></span>
             </Card>
           )
           : renderPhrase
           ? <Fragment key={card.id}>{renderPhrase(card, index, () => onOpen(card))}</Fragment>
           : (
-          <Card as="li" key={card.id} data-testid="card" data-id={card.id}>
+          <Card as="li" key={card.id} of="phrase" data-testid="card" data-id={card.id}>
             <CardOpen id={card.id} onOpen={() => onOpen(card)} />
-            {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
+            {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
             {/* The node files every phrase as "und" (relay routes/feed.ts): an
                 undetermined language is no word for a person and no lang for a
                 reader; a known one is both. */}
             <p id={openerIds(card.id).text} lang={card.lang && card.lang !== "und" ? card.lang : undefined}>{card.text}</p>
-            <span className="muted" id={openerIds(card.id).foot}>{modes().find((m) => m.value === card.mode)?.label ?? card.mode}{card.lang && card.lang !== "und" ? ` · ${card.lang}` : ""} · ♥ {card.like_count}{card.soon ? say("web.feed.soon") : ""}</span>
+            <span className="ui-hint" id={openerIds(card.id).foot}>{modes().find((m) => m.value === card.mode)?.label ?? card.mode}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""} · <LikeCount n={card.like_count} />{card.soon ? say("web.feed.soon") : ""}</span>
           </Card>
           ))}
       </ul>
-      {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
+      {state === "loading" && <p className="ui-hint" data-testid="loading">…</p>}
       {next && state === "ready" && (
         <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />
       )}
-      <footer className="muted">
-        {say("web.feed.keys", { state: sealed === "unlocked" ? say("web.feed.keys_unlocked") : sealed === "unlocked-new-wrap" ? say("web.feed.keys_new_wrap") : sealed === "ok" ? say("web.feed.keys_ok") : say("web.feed.keys_bad") })}
-      </footer>
-    </main>
+    </Screen>
   );
 }

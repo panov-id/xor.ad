@@ -1,7 +1,7 @@
 // The device the identity leaves (T1; chat spec §8.2, screen 13; depth/ink
 // move.ts MoveOut): the price, the PIN, nine characters to type elsewhere,
 // then who asked and the four check characters, and only "it is me" moves
-// anything. Words verbatim from depth/ink/locales/ru.json.
+// anything. Words verbatim from depth/ink/locales/ru.json. Kit elements only (K6a).
 
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
@@ -9,9 +9,15 @@ import { Departure as Leaving, type MoveState } from "../../../depth/core/transf
 import { pinRefusal, say } from "../api/me.ts";
 import { ENDINGS, MOVE_POLL_MS, useEvery } from "../api/transfer.ts";
 import { Button } from "../ui/Button.tsx";
+import { Code } from "../ui/Code.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { PinField } from "../ui/Field.tsx";
 import "./talk.css";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
+import { Notice } from "../ui/Notices.tsx";
+import { Pair, Pairs } from "../ui/Pair.tsx";
+import { Screen } from "../ui/Screen.tsx";
 
 export function Departure({ client, onBack, onGone }: { client: Client; onBack: () => void; onGone: () => void }) {
   const [pin, setPin] = useState("");
@@ -67,9 +73,9 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
   }
 
   const ending = ENDINGS[state];
+  const title = say(state === "approved" ? "move.doneTitle" : "move.title");
   return (
-    <main className="screen departure" data-screen="departure" data-state={out ? state : "start"}>
-      <HeaderScreen title={say(state === "approved" ? "move.doneTitle" : "move.title")} />
+    <Screen name="departure" title={title} data-state={out ? state : "start"} header={<HeaderScreen title={title} />}>
       {state === "approved"
         ? (
           <>
@@ -91,11 +97,8 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
               <Info label={say("move.title")} data-testid="move-info"><p>{say("move.intro")}</p></Info>
             </div>
             {/* What cannot be undone is said on the screen, not behind ⓘ: the button below is an icon. */}
-            <p className="warn" data-testid="move-price">{say("move.price")}</p>
-            <label>
-              {say("pin.current")}
-              <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="move-pin" />
-            </label>
+            <Notice data-testid="move-price">{say("move.price")}</Notice>
+            <PinField label={say("pin.current")} value={pin} onChange={setPin} data-testid="move-pin" />
             <Button kind="primary" type="button" icon="code" className="ui-wide" aria-label={say("move.go")} disabled={pin.length !== 6 || busy} onClick={() => void open()} data-testid="move-go" />
             <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="move-back" />
           </>
@@ -104,27 +107,27 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
         ? (
           <>
             <p>{say("move.asks")}</p>
-            <dl>
-              <dt>{say("move.called")}</dt><dd data-testid="move-label">{out.claimant.label}</dd>
-              <dt>{say("move.when")}</dt><dd>{Date.now() - out.seenAt < 10_000 ? say("move.justNow") : say("move.secondsAgo", { n: Math.round((Date.now() - out.seenAt) / 1000) })}</dd>
-              <dt>{say("move.check")}</dt><dd data-testid="move-check">{out.check}</dd>
-            </dl>
-            <p className="muted">{say("move.checkAsk")}</p>
-            <p className="muted">{say("move.leaves")}</p>
+            <Pairs>
+              <Pair label={say("move.called")}><span data-testid="move-label">{out.claimant.label}</span></Pair>
+              <Pair label={say("move.when")}>{Date.now() - out.seenAt < 10_000 ? say("move.justNow") : say("move.secondsAgo", { n: Math.round((Date.now() - out.seenAt) / 1000) })}</Pair>
+              <Pair label={say("move.check")}><span data-testid="move-check">{out.check}</span></Pair>
+            </Pairs>
+            <p className="ui-hint">{say("move.checkAsk")}</p>
+            <p className="ui-hint">{say("move.leaves")}</p>
             <Button kind="primary" type="button" icon="check" className="ui-wide" aria-label={say("move.yes")} disabled={busy} onClick={() => void decide(true)} data-testid="move-yes" />
             <Button kind="secondary" type="button" icon="close" className="ui-wide" aria-label={say("move.no")} disabled={busy} onClick={() => void decide(false)} data-testid="move-no" />
           </>
         )
         : (
           <>
-            <p className="code" data-testid="move-code">{out.groups.join(" ")}</p>
-            <p className="muted">{say("move.codeWhere")}</p>
-            <p className="muted">{say("move.codeLife", { n: left })}</p>
-            <p className="muted">{say("move.nobody")}</p>
+            <Code value={out.groups.join(" ")} data-testid="move-code" />
+            <p className="ui-hint">{say("move.codeWhere")}</p>
+            <p className="ui-hint">{say("move.codeLife", { n: left })}</p>
+            <p className="ui-hint">{say("move.nobody")}</p>
             <Button kind="secondary" type="button" icon="close" className="ui-wide" aria-label={say("move.stop")} disabled={busy} onClick={() => void decide(false)} data-testid="move-stop" />
           </>
         )}
-      {error && <p className="error" data-testid="error">{error}</p>}
-    </main>
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
+    </Screen>
   );
 }

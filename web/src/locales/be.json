@@ -145,11 +145,6 @@
   "web.feed.empty": "Тут пакуль ціха",
   "web.feed.empty_hint": "У вашым коле зараз ніхто не гаворыць.",
   "web.feed.hidden": "Фраза схаваная з вашай стужкі.",
-  "web.feed.keys": "ключы: {state}",
-  "web.feed.keys_bad": "пячатка сховішча не сыходзіцца",
-  "web.feed.keys_new_wrap": "адамкнута ПІНам, абгортка НЕ тая",
-  "web.feed.keys_ok": "пячатка сховішча сыходзіцца",
-  "web.feed.keys_unlocked": "адамкнута ПІНам, абгортка тая ж",
   "web.feed.km": "{n} км",
   "web.feed.m": "{n} м",
   "web.feed.newTable": "новы стол",
@@ -192,7 +187,6 @@
   "web.lang.item": "мова",
   "web.lang.title": "Мова",
   "web.like.refused_status": "Лайк не прыняты ({status}).",
-  "web.like.refused_why": "Лайк не прыняты: {why}.",
   "web.likes.back": "← стужка",
   "web.likes.empty": "Пакуль нічога",
   "web.likes.empty_hint": "Спадабаныя фразы збяруцца тут, пакуль жывыя.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Імя не прынята. Абярыце іншае — без спасылак, кантактаў і абраз.",
   "web.ui.system": "сістэма",
   "web.phrase.refused_generic": "Фразу не прынята. Прыбярыце спасылкі, кантакты і абразы і паспрабуйце яшчэ раз.",
-  "web.ui.you": "вы"
+  "web.ui.you": "вы",
+  "web.feed.seal_bad": "Не атрымалася пераканацца, што ключы на гэтай прыладзе цэлыя. Закрыйце ўкладку і адкрыйце зноў.",
+  "web.like.undo_mark": "лайк пойдзе праз {n} с",
+  "web.like.undo": "адмяніць",
+  "web.like.cancelled": "лайк адменены",
+  "web.like.needs_phrase": "Спачатку напішыце сваю фразу: лайк — гэта сустрэча дзвюх фраз."
 }

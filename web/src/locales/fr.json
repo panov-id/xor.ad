@@ -145,11 +145,6 @@
   "web.feed.empty": "C’est calme ici pour l’instant",
   "web.feed.empty_hint": "Personne ne parle dans votre cercle en ce moment.",
   "web.feed.hidden": "La phrase est masquée de votre flux.",
-  "web.feed.keys": "clés : {state}",
-  "web.feed.keys_bad": "le sceau du coffre ne correspond pas",
-  "web.feed.keys_new_wrap": "déverrouillé par PIN, l’enveloppe n’est PAS la même",
-  "web.feed.keys_ok": "le sceau du coffre correspond",
-  "web.feed.keys_unlocked": "déverrouillé par PIN, l’enveloppe est la même",
   "web.feed.km": "{n} km",
   "web.feed.m": "{n} m",
   "web.feed.newTable": "nouvelle table",
@@ -192,7 +187,6 @@
   "web.lang.item": "langue",
   "web.lang.title": "Langue",
   "web.like.refused_status": "Like refusé ({status}).",
-  "web.like.refused_why": "Like refusé : {why}.",
   "web.likes.back": "← flux",
   "web.likes.empty": "Rien pour l’instant",
   "web.likes.empty_hint": "Les phrases aimées se rassemblent ici tant qu’elles vivent.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Le nom n’a pas été accepté. Choisissez-en un autre, sans liens, contacts ni insultes.",
   "web.ui.system": "système",
   "web.phrase.refused_generic": "La phrase n’a pas été acceptée. Retirez les liens, contacts et insultes, puis réessayez.",
-  "web.ui.you": "vous"
+  "web.ui.you": "vous",
+  "web.feed.seal_bad": "Impossible de vérifier que les clés de cet appareil sont intactes. Fermez l'onglet et rouvrez-le.",
+  "web.like.undo_mark": "le j'aime part dans {n} s",
+  "web.like.undo": "annuler",
+  "web.like.cancelled": "j'aime annulé",
+  "web.like.needs_phrase": "Écrivez d'abord votre propre phrase : un j'aime, c'est la rencontre de deux phrases."
 }

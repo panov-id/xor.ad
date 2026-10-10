@@ -128,7 +128,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .ui-primary { box-shadow: none; }
 .ui-header-rule .ui-header-title:empty { visibility: hidden; }
 button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible, [role="button"]:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
-.tabbed .screen { padding-bottom: 96px; }
+.ui-tabbed .screen { padding-bottom: 96px; }
 
 /* The like's count with its heart (Card.tsx LikeBurst): pops once when it turns on. */
 .ui-burst { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-width: 52px; height: 52px; padding: 0 var(--s-2);
@@ -312,3 +312,17 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 [data-screen="chat"] .ui-actions { justify-content: flex-start; }
 [data-screen="statements"] .ui-card p, [data-screen="statements"] .ui-card dl { margin: 0; }
 [data-screen="chat"] [data-testid="fades"][data-counting="yes"] { color: var(--err); font-weight: 600; }
+
+/* К6a: the feed, the card, the likes, the match and the departure in the kit's
+   own classes only. The old bare names (.cards, .offer, .phrase, .big) stay for
+   the screens that have not moved yet. Sizes on tokens and rem. */
+.ui-cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-3); }
+.ui-offer { color: var(--accent-text); font-weight: 600; }
+.ui-phrase { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-6) 0; }
+.ui-big { font-size: 1.625rem; line-height: 1.25; margin: 0; }
+.ui-card-likes { display: flex; align-items: center; gap: var(--s-2); margin: 0; }
+.ui-bar { display: block; block-size: var(--s-1); border-radius: var(--r-pill); background: var(--border-control); overflow: hidden; }
+.ui-bar > span { display: block; block-size: 100%; }
+.ui-bar-mine > span { background: var(--accent); }
+.ui-bar-theirs > span { background: var(--cat-amber); }
+[data-screen="card"] .ui-actions, [data-screen="feed"] .ui-actions { justify-content: flex-start; }

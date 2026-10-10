@@ -19,14 +19,14 @@
 .b-stickers .sticker-c2 { background: var(--tile-2); color: var(--tile-2-ink); }
 .b-stickers .sticker-c3 { background: var(--tile-3); color: var(--tile-3-ink); }
 .b-stickers .sticker-c4 { background: var(--tile-4); color: var(--tile-4-ink); }
-.b-stickers .sticker .offer { color: inherit; font-weight: 700; }
+.b-stickers .sticker .ui-offer { color: inherit; font-weight: 700; }
 .b-stickers .sticker-foot { display: flex; justify-content: space-between; font-size: var(--fs-meta); font-weight: 400; }
 .b-stickers .sticker-likes, .b-stickers .sticker-count { display: inline-flex; align-items: center; gap: var(--s-1); font-variant-numeric: tabular-nums; }
 .b-stickers .sticker:has(> .card-open:focus-visible), .b-stickers .sticker-card:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--card-focus-offset); }
 
 /* Card.svg: the phrase 343×272 in tile-1, the pad 351×76 under it. */
 .b-stickers .sticker-card { min-height: 272px; background: var(--tile-1); color: var(--tile-1-ink); }
-.b-stickers .sticker-card .big { font-size: var(--fs-big); font-weight: 600; line-height: 1.25; }
+.b-stickers .sticker-card .ui-big { font-size: var(--fs-big); font-weight: 600; line-height: 1.25; }
 .b-stickers .sticker-card.target { outline: var(--focus-w) dashed var(--focus); outline-offset: var(--card-focus-offset); cursor: copy; }
 /* Focus outranks the dashed target (2.4.7). */
 .b-stickers .sticker-card.target:focus-visible { outline: var(--focus-w) solid var(--focus); }
@@ -76,8 +76,8 @@
   font-size: var(--field-fs); font-weight: 600; letter-spacing: var(--field-ls); padding-left: 14px; text-transform: uppercase;
 }
 /* Feed.svg draws its write button as the same pill (it left with d373afde, 03.10.2026). */
-[data-screen="arrival"] .ui-primary, .b-stickers.feed .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: var(--btn-shadow); border-radius: var(--btn-r); min-height: var(--btn-h); }
-[data-screen="arrival"] .ui-secondary, .b-stickers.feed .ui-secondary { border-radius: var(--btn2-r); min-height: var(--btn-h); background: var(--btn2-bg); }
+[data-screen="arrival"] .ui-primary, .b-stickers[data-screen="feed"] .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: var(--btn-shadow); border-radius: var(--btn-r); min-height: var(--btn-h); }
+[data-screen="arrival"] .ui-secondary, .b-stickers[data-screen="feed"] .ui-secondary { border-radius: var(--btn2-r); min-height: var(--btn-h); background: var(--btn2-bg); }
 
 /* Compose.svg: the field a sticker card 343×190, mode tags 109×48 (the
    chosen in tile-2, leaning −2°), zone tags 80×48 (the chosen in tile-3). */

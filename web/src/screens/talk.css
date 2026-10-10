@@ -4,20 +4,20 @@
    conversation, 18A–F of screen-14-15-18; the move, 13 A/B of screen-12-13. */
 /* a header without «назад» keeps the title at x 16, as header-feed does */
 .ui-header-rule:not(:has(.ui-icon)) { padding-left: var(--s-4); }
-.inbox h2,.match h2, .chat h2 { font-size: 14px; font-weight: 600; color: var(--muted); margin: var(--s-2) 0 0; }
+.inbox h2,[data-screen="match"] h2, .chat h2 { font-size: 14px; font-weight: 600; color: var(--muted); margin: var(--s-2) 0 0; }
 .inbox .ui-header .ui-button { min-height: var(--control-h); padding: 0 var(--s-3); font-size: 14px; }
-.inbox .ui-card, .match .ui-card { gap: var(--s-1); }
-.inbox .ui-card strong, .match .ui-card strong { font-size: 16px; font-weight: 600; }
-.inbox .ui-card p, .match .ui-card p { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.4; }
-.inbox .ui-card .muted, .match .ui-card .muted { font-size: 14px; }
-.inbox .ui-card .ui-button, .match .ui-card .ui-button, .chat .ui-card .ui-button { align-self: flex-start; margin-top: var(--s-2); }
+.inbox .ui-card, [data-screen="match"] .ui-card { gap: var(--s-1); }
+.inbox .ui-card strong, [data-screen="match"] .ui-card strong { font-size: 16px; font-weight: 600; }
+.inbox .ui-card p, [data-screen="match"] .ui-card p { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.4; }
+.inbox .ui-card .muted, [data-screen="match"] .ui-card .muted { font-size: 14px; }
+.inbox .ui-card .ui-button, [data-screen="match"] .ui-card .ui-button, .chat .ui-card .ui-button { align-self: flex-start; margin-top: var(--s-2); }
 .inbox .declined { opacity: 1; background: var(--panel); }
-.match .actions, .chat .confirm, .departure, [data-screen="arrival"] { display: flex; flex-direction: column; gap: var(--s-3); }
-.match .actions .ui-button, .departure > .ui-button, [data-screen="arrival"] > .ui-button, .chat .confirm .ui-button { width: 100%; }
-.departure .code, [data-screen="arrival"] dd[data-testid="arrive-check"] { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; text-align: center; padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); margin: 0; }
-.departure dl, [data-screen="arrival"] dl { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-4); margin: 0; padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); font-size: 14px; }
-.departure dt, [data-screen="arrival"] dt { color: var(--muted); }
-.departure dd, [data-screen="arrival"] dd { margin: 0; text-align: right; }
+[data-screen="match"] .ui-actions, .chat .confirm, [data-screen="departure"], [data-screen="arrival"] { display: flex; flex-direction: column; gap: var(--s-3); }
+[data-screen="match"] .ui-actions .ui-button, [data-screen="departure"] > .ui-button, [data-screen="arrival"] > .ui-button, .chat .confirm .ui-button { width: 100%; }
+[data-screen="arrival"] dd[data-testid="arrive-check"] { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; text-align: center; padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); margin: 0; }
+[data-screen="arrival"] dl { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-4); margin: 0; padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); font-size: 14px; }
+[data-screen="arrival"] dt { color: var(--muted); }
+[data-screen="arrival"] dd { margin: 0; text-align: right; }
 [data-screen="arrival"] dl { grid-template-columns: 1fr; }
 [data-screen="arrival"] dd[data-testid="arrive-check"] { padding: 0; background: none; }
 .chat footer { display: flex; gap: var(--s-2); margin-top: 0; }
@@ -45,32 +45,27 @@
 .talk-set-on { background: var(--fg); border-color: var(--fg); color: var(--bg); font-weight: 600; }
 /* WD7: the match as sheet 24 — the other's card with a chip, the hint on
    panel-2 with a 4 px accent edge (card-hint), the two buttons at the bottom. */
-.match .match-card { gap: var(--s-2); }
-.match .match-card p { font-size: 20px; font-weight: 600; }
-.match .match-hint { border-left: 4px solid var(--accent); }
+[data-screen="match"] [data-part="theirs"] { gap: var(--s-2); }
+[data-screen="match"] [data-part="theirs"] p { font-size: 20px; font-weight: 600; }
+[data-screen="match"] [data-part="hint"] { border-left: 4px solid var(--accent); }
 /* N1: sheet 24's lifespan — 3 px on a border-control track (kit `lifespan`),
    mine in accent, theirs in the category colour of its chip. */
-.match .match-mine p { font-size: 20px; font-weight: 600; margin: 0; }
-.match-life { display: block; height: 3px; border-radius: var(--r-pill); background: var(--border-control); overflow: hidden; }
-.match-life > span { display: block; height: 100%; }
-.match-life-mine > span { background: var(--accent); }
-.match-life-theirs > span { background: var(--cat-amber); }
+[data-screen="match"] [data-part="mine"] p { font-size: 20px; font-weight: 600; margin: 0; }
 /* The offer's row in the inbox (WP-2): the same bar, the words under it. */
 .inbox-life { display: flex; flex-direction: column; gap: var(--s-1); }
 /* Sheet 06 B, waiting: the phrases shrink to quotes — 16/400 on panel-2 with a
    3 px accent edge, no name or chip — the queue under them, and the line to
    write at the foot of the screen. */
-.match[data-waiting="yes"] .match-mine, .match[data-waiting="yes"] .match-card { background: var(--panel-2); border-left: 3px solid var(--accent); padding: var(--s-2) var(--s-3); gap: var(--s-1); }
-.match[data-waiting="yes"] .match-mine p, .match[data-waiting="yes"] .match-card p { font-size: 16px; font-weight: 400; }
-.match[data-waiting="yes"] .match-card > strong, .match[data-waiting="yes"] .match-card .ui-chip { display: none; }
-.match-waiting { flex: 1; display: flex; flex-direction: column; gap: var(--s-2); }
-.match-waiting h2 { order: -1; margin: 0; padding: var(--s-2) var(--s-3); border-radius: var(--r-1); background: var(--panel-2); color: var(--fg); font-size: 14px; font-weight: 400; }
-.match-waiting > .muted { margin: 0; font-size: 13px; text-align: center; }
-.match-waiting .composer { margin-top: auto; }
-.match .match-hint p { font-size: 14px; font-weight: 400; color: var(--fg); }
+[data-screen="match"][data-waiting="yes"] [data-part="mine"], [data-screen="match"][data-waiting="yes"] [data-part="theirs"] { background: var(--panel-2); border-left: 3px solid var(--accent); padding: var(--s-2) var(--s-3); gap: var(--s-1); }
+[data-screen="match"][data-waiting="yes"] [data-part="mine"] p, [data-screen="match"][data-waiting="yes"] [data-part="theirs"] p { font-size: 16px; font-weight: 400; }
+[data-screen="match"][data-waiting="yes"] [data-part="theirs"] > strong, [data-screen="match"][data-waiting="yes"] [data-part="theirs"] .ui-chip { display: none; }
+[data-part="waiting"] { flex: 1; display: flex; flex-direction: column; gap: var(--s-2); }
+[data-part="waiting"] h2 { order: -1; margin: 0; padding: var(--s-2) var(--s-3); border-radius: var(--r-1); background: var(--panel-2); color: var(--fg); font-size: 14px; font-weight: 400; }
+[data-part="waiting"] .ui-field { margin-top: auto; }
+[data-screen="match"] [data-part="hint"] p { font-size: 14px; font-weight: 400; color: var(--fg); }
 /* WD13: sheet 06 (the map's match) starts with the header band — no screen
    top — and puts the two buttons right under the cards, not at the foot. */
-.screen.match { padding-top: 0; }
+.screen[data-screen="match"] { padding-top: 0; }
 /* N4: the starters at the head of a conversation ("Liked, in order", chat
    spec) and an extra like's card in the middle (§8.7) — one look for both,
    since the card is a starter that arrived later: the number, the mark in

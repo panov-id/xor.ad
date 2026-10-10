@@ -145,11 +145,6 @@
   "web.feed.empty": "Por ahora hay calma",
   "web.feed.empty_hint": "Ahora nadie habla en tu círculo.",
   "web.feed.hidden": "La frase está oculta de tu flujo.",
-  "web.feed.keys": "claves: {state}",
-  "web.feed.keys_bad": "el sello del almacén no coincide",
-  "web.feed.keys_new_wrap": "desbloqueado con PIN, el envoltorio NO es el mismo",
-  "web.feed.keys_ok": "el sello del almacén coincide",
-  "web.feed.keys_unlocked": "desbloqueado con PIN, el envoltorio es el mismo",
   "web.feed.km": "{n} km",
   "web.feed.m": "{n} m",
   "web.feed.newTable": "mesa nueva",
@@ -192,7 +187,6 @@
   "web.lang.item": "idioma",
   "web.lang.title": "Idioma",
   "web.like.refused_status": "Like no aceptado ({status}).",
-  "web.like.refused_why": "Like no aceptado: {why}.",
   "web.likes.back": "← flujo",
   "web.likes.empty": "Nada por ahora",
   "web.likes.empty_hint": "Las frases que te gustan se reúnen aquí mientras viven.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "El nombre no fue aceptado. Elige otro, sin enlaces, contactos ni insultos.",
   "web.ui.system": "sistema",
   "web.phrase.refused_generic": "La frase no fue aceptada. Quita enlaces, contactos e insultos y vuelve a intentarlo.",
-  "web.ui.you": "tú"
+  "web.ui.you": "tú",
+  "web.feed.seal_bad": "No se pudo comprobar que las claves de este dispositivo estén intactas. Cierra la pestaña y ábrela de nuevo.",
+  "web.like.undo_mark": "el me gusta saldrá en {n} s",
+  "web.like.undo": "deshacer",
+  "web.like.cancelled": "me gusta deshecho",
+  "web.like.needs_phrase": "Primero escribe tu propia frase: un me gusta es el encuentro de dos frases."
 }

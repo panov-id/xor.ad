@@ -41,11 +41,11 @@ export function Message({ side, who, text, time, failed, onAgain, mark, ...rest 
 }
 
 // Tombstone: what stands where a talk was. One `role=status`, announced once.
-export function Tombstone({ title, text, ...rest }: { title: string; text: string } & Data) {
+export function Tombstone({ title, text, ...rest }: { title: string; text?: string } & Data) {
   return (
     <section {...rest} role="status" className="ui-tombstone">
       <h2 className="ui-tombstone-title">{title}</h2>
-      <p className="ui-tombstone-text">{text}</p>
+      {text ? <p className="ui-tombstone-text">{text}</p> : null}
     </section>
   );
 }

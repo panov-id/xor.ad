@@ -23,9 +23,9 @@ test("a feed page asked before the radius changed is not drawn", async ({ page }
     await route.fulfill({ response: answer, body: JSON.stringify(body) });
   });
 
-  await page.getByTestId("radius").selectOption("100");
+  await page.getByTestId("radius").locator("select").selectOption("100");
   await expect.poll(() => held, { timeout: 10000 }).toBeGreaterThan(0);
-  await page.getByTestId("radius").selectOption("1000");
+  await page.getByTestId("radius").locator("select").selectOption("1000");
   // The held answer comes back in 3 s; wait past it and look.
   await page.waitForTimeout(5000);
   await expect(page.getByTestId("card").first()).toBeVisible();

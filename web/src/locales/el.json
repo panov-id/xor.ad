@@ -145,11 +145,6 @@
   "web.feed.empty": "Ησυχία εδώ προς το παρόν",
   "web.feed.empty_hint": "Στον κύκλο σας κανείς δεν μιλά αυτή τη στιγμή.",
   "web.feed.hidden": "Η φράση κρύφτηκε από τη ροή σας.",
-  "web.feed.keys": "κλειδιά: {state}",
-  "web.feed.keys_bad": "η σφραγίδα του χρηματοκιβωτίου δεν ταιριάζει",
-  "web.feed.keys_new_wrap": "ξεκλειδώθηκε με PIN, το περιτύλιγμα ΔΕΝ είναι το ίδιο",
-  "web.feed.keys_ok": "η σφραγίδα του χρηματοκιβωτίου ταιριάζει",
-  "web.feed.keys_unlocked": "ξεκλειδώθηκε με PIN, το περιτύλιγμα είναι το ίδιο",
   "web.feed.km": "{n} χλμ",
   "web.feed.m": "{n} μ",
   "web.feed.newTable": "νέο τραπέζι",
@@ -192,7 +187,6 @@
   "web.lang.item": "γλώσσα",
   "web.lang.title": "Γλώσσα",
   "web.like.refused_status": "Το like δεν έγινε δεκτό ({status}).",
-  "web.like.refused_why": "Το like δεν έγινε δεκτό: {why}.",
   "web.likes.back": "← ροή",
   "web.likes.empty": "Τίποτα ακόμη",
   "web.likes.empty_hint": "Οι φράσεις με like μαζεύονται εδώ όσο ζουν.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Το όνομα δεν έγινε δεκτό. Επιλέξτε άλλο, χωρίς συνδέσμους, επαφές ή προσβολές.",
   "web.ui.system": "σύστημα",
   "web.phrase.refused_generic": "Η φράση δεν έγινε δεκτή. Αφαιρέστε συνδέσμους, επαφές και προσβολές και δοκιμάστε ξανά.",
-  "web.ui.you": "εσείς"
+  "web.ui.you": "εσείς",
+  "web.feed.seal_bad": "Δεν ήταν δυνατό να επιβεβαιωθεί ότι τα κλειδιά σε αυτή τη συσκευή είναι άθικτα. Κλείστε την καρτέλα και ανοίξτε την ξανά.",
+  "web.like.undo_mark": "το like θα σταλεί σε {n} δ",
+  "web.like.undo": "αναίρεση",
+  "web.like.cancelled": "το like αναιρέθηκε",
+  "web.like.needs_phrase": "Γράψτε πρώτα τη δική σας φράση: ένα like είναι η συνάντηση δύο φράσεων."
 }

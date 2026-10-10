@@ -145,11 +145,6 @@
   "web.feed.empty": "Na razie cicho",
   "web.feed.empty_hint": "W twoim kręgu nikt teraz nie mówi.",
   "web.feed.hidden": "Fraza ukryta w twoim strumieniu.",
-  "web.feed.keys": "klucze: {state}",
-  "web.feed.keys_bad": "pieczęć sejfu się nie zgadza",
-  "web.feed.keys_new_wrap": "odblokowano PIN-em, opakowanie NIE to samo",
-  "web.feed.keys_ok": "pieczęć sejfu się zgadza",
-  "web.feed.keys_unlocked": "odblokowano PIN-em, opakowanie to samo",
   "web.feed.km": "{n} km",
   "web.feed.m": "{n} m",
   "web.feed.newTable": "nowy stół",
@@ -192,7 +187,6 @@
   "web.lang.item": "język",
   "web.lang.title": "Język",
   "web.like.refused_status": "Polubienia nie przyjęto ({status}).",
-  "web.like.refused_why": "Polubienia nie przyjęto: {why}.",
   "web.likes.back": "← strumień",
   "web.likes.empty": "Na razie nic",
   "web.likes.empty_hint": "Polubione frazy zbiorą się tu, dopóki żyją.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Imię nie zostało przyjęte. Wybierz inne, bez linków, kontaktów i obelg.",
   "web.ui.system": "system",
   "web.phrase.refused_generic": "Fraza nie została przyjęta. Usuń linki, kontakty i obelgi i spróbuj jeszcze raz.",
-  "web.ui.you": "ty"
+  "web.ui.you": "ty",
+  "web.feed.seal_bad": "Nie udało się potwierdzić, że klucze na tym urządzeniu są nienaruszone. Zamknij kartę i otwórz ją ponownie.",
+  "web.like.undo_mark": "polubienie wyjdzie za {n} s",
+  "web.like.undo": "cofnij",
+  "web.like.cancelled": "polubienie cofnięte",
+  "web.like.needs_phrase": "Najpierw napisz własną frazę: polubienie to spotkanie dwóch fraz."
 }

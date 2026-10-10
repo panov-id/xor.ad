@@ -136,7 +136,7 @@ await step("table and game", async () => {
     if ((await t(anya, "over").isVisible()) || !(await t(anya, "turn").isVisible())) break;
     const mine = (await turnOf(anya)).startsWith("ваш ход");
     const mover = mine ? anya : boris; const n = await mover.locator("[data-taken]").count();
-    const edge = mover.getByRole("button", { name: /^ребро [hv]:\d+:\d+$/ }).first();
+    const edge = mover.getByRole("button", { name: /^линия: ряд \d+, колонка \d+, по (горизонтали|вертикали)$/ }).first();
     const name = await edge.getAttribute("aria-label");
     await edge.click();
     // Counted, as e2e counts it: a taken edge is an SVG mark, not a "visible" box.

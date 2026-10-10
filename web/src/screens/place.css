@@ -2,9 +2,8 @@
    statements and the cabinet, laid out by sheets 17, 19, 25, 26. Geometry on
    --s-* and --r-*, colour only from the kit (check-web-tokens.sh). */
 
-.screen.table { padding-top: 0; }
 .screen.me, .screen.hidden-list, .screen.blocked-list, .screen.statements,
-.screen.new-table, .screen.offer-exit, .screen.edit, .screen.pin, .screen.reset,
+.screen.offer-exit, .screen.edit, .screen.pin, .screen.reset,
 .screen.step-away, .screen.cabinet { padding-top: 0; }
 
 .place-meta { color: var(--muted); font-size: 14px; margin: 0; }
@@ -46,16 +45,6 @@
 
 /* The table (sheet 19): the head under the header, the lines as system lines,
    the say row at the bottom. */
-.place-table-head { display: flex; flex-direction: column; gap: var(--s-1); }
-.place-table-head p { margin: 0; font-size: 14px; color: var(--muted); }
-.place-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; color: var(--muted); }
-.place-lines .application { color: var(--accent-text); }
-.place-say { display: flex; flex-wrap: wrap; gap: var(--s-2); }
-.place-say input { flex: 1 1 60%; min-width: 0; background: var(--panel); }
-.place-actions { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; }
-.screen.table .hand { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
-.screen.table .hand button { background: var(--panel); border-color: var(--border-control); }
-.screen.table .cells { background: var(--panel); border-radius: var(--r-2); padding: var(--s-3); margin: 0; overflow-x: auto; }
 
 /* The cabinet (sheets 17, 26): venues and offers as kit cards. */
 .place-tabs { display: flex; gap: var(--s-4); border-bottom: 1px solid var(--border); }

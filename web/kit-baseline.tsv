@@ -5,7 +5,7 @@ src/screens/Blocked.tsx	0
 src/screens/Card.tsx	19
 src/screens/Chat.tsx	0
 src/screens/ChatActions.tsx	0
-src/screens/ChatGame.tsx	6
+src/screens/ChatGame.tsx	0
 src/screens/Composer.tsx	0
 src/screens/Departure.tsx	10
 src/screens/Feed.tsx	20
@@ -16,13 +16,13 @@ src/screens/Likes.tsx	9
 src/screens/Locked.tsx	0
 src/screens/Match.tsx	15
 src/screens/Me.tsx	0
-src/screens/NewTable.tsx	10
+src/screens/NewTable.tsx	0
 src/screens/Offer.tsx	16
 src/screens/Register.tsx	0
 src/screens/Reissue.tsx	0
 src/screens/Restore.tsx	0
 src/screens/Splash.tsx	0
 src/screens/Statements.tsx	0
-src/screens/Table.tsx	13
-src/screens/TableBoards.tsx	13
+src/screens/Table.tsx	0
+src/screens/TableBoards.tsx	0
 src/screens/Unlock.tsx	0

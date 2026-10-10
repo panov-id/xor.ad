@@ -5,12 +5,15 @@
 import { useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { type BoardClass, Tables } from "../../../depth/core/tables.ts";
-import { tableRefusal } from "../api/tables.ts";
+import { classWord, tableRefusal } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { Field } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
-import "./place.css";
 import { Info } from "../ui/Info.tsx";
+import { Screen } from "../ui/Screen.tsx";
+import { Select } from "../ui/Select.tsx";
 
 // The sets each class knows (relay/node/src/lib/tables_*.ts) and the most
 // seats it takes (routes/tables.ts).
@@ -57,39 +60,25 @@ export function NewTable({ client, at, radius, onMade, onBack }: {
   }
 
   return (
-    <main className="screen new-table" data-screen="new-table">
-      <HeaderScreen title={say("web.newTable.title")} onBack={onBack} backLabel={say("common.back")} />
-      <label className="place-field">
-        {say("web.newTable.class")}
-        <select value={kind} onChange={(e) => {
-          const next = CLASSES.find((c) => c.value === e.target.value)!;
+    <Screen name="new-table" title={say("web.newTable.title")} header={<HeaderScreen title={say("web.newTable.title")} onBack={onBack} backLabel={say("common.back")} />}>
+      <Select label={say("web.newTable.class")} value={kind} testid="new-table-class"
+        options={CLASSES.map((c) => ({ value: c.value, label: classWord(c.value) }))}
+        onChange={(value) => {
+          const next = CLASSES.find((c) => c.value === value)!;
           setKind(next.value);
           setSet(next.sets[0]);
           setSeats(Math.min(seats, next.most));
-        }} data-testid="new-table-class">
-          {CLASSES.map((c) => <option key={c.value} value={c.value}>{c.value}</option>)}
-        </select>
-      </label>
-      <label className="place-field">
-        {say("web.newTable.set")}
-        <select value={set} onChange={(e) => setSet(e.target.value)} data-testid="new-table-set">
-          {chosen.sets.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-      </label>
-      <label className="place-field">
-        {say("web.newTable.seats")}
-        <select value={seats} onChange={(e) => setSeats(Number(e.target.value))} data-testid="new-table-seats">
-          {Array.from({ length: chosen.most - 1 }, (_, i) => i + 2).map((n) => <option key={n} value={n}>{n}</option>)}
-        </select>
-      </label>
-      <label className="place-field">
-        {say("web.newTable.name")}
-        <input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} data-testid="new-table-name" />
-      </label>
+        }} />
+      <Select label={say("web.newTable.set")} value={set} testid="new-table-set"
+        options={chosen.sets.map((s) => ({ value: s, label: s }))} onChange={setSet} />
+      <Select label={say("web.newTable.seats")} value={String(seats)} testid="new-table-seats"
+        options={Array.from({ length: chosen.most - 1 }, (_, i) => i + 2).map((n) => ({ value: String(n), label: String(n) }))}
+        onChange={(value) => setSeats(Number(value))} />
+      <Field label={say("web.newTable.name")} value={name} maxLength={40} onChange={setName} data-testid="new-table-name" />
       <div className="ui-info-row"><Info label={say("web.newTable.title")} data-testid="new-table-info"><p>{say("table.open")}</p></Info></div>
-      {error && <p className="error" data-testid="error">{error}</p>}
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       <Button kind="primary" type="button" icon="table" className="ui-wide" aria-label={say("web.newTable.go")} disabled={busy} onClick={() => void make()} data-testid="new-table-go" />
       <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="new-table-back" />
-    </main>
+    </Screen>
   );
 }

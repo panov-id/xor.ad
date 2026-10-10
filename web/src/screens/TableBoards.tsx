@@ -1,22 +1,25 @@
-// The boards of the table classes besides dots (W12; chat spec §6, §6.1; the
-// node's rules in relay/node/src/lib/tables_*.ts). Each draws board.state as
-// the node cuts it for this seat — one's own hand, the others' as a number —
-// and turns a press into the move the node reads. The node keeps the rules;
-// here nothing is checked but what a button can offer. Words are plain labels
-// until the web has its own locales (coordinator, 27.09.2026).
+// The boards of the table classes (W12; chat spec §6, §6.1; the node's rules in
+// relay/node/src/lib/tables_*.ts). Each draws board.state as the node cuts it
+// for this seat — one's own hand, the others' as a number — and turns a press
+// into the move the node reads. The node keeps the rules; here nothing is
+// checked but what a button can offer. Kit elements only (К6): DotsGrid and
+// CellsGrid, Hand, MoveInput.
 
 import { useState } from "react";
 import { dotsOf, freeEdges, type TableView } from "../../../depth/core/tables.ts";
 import { say as tableSay } from "../api/me.ts";
 import { say } from "../locales/say.ts";
+import { CellsGrid, DotsGrid } from "../ui/Board.tsx";
 import { Button } from "../ui/Button.tsx";
+import { Hand, HandBone, HandCard } from "../ui/Hand.tsx";
+import { MoveInput } from "../ui/MoveInput.tsx";
 
 type Move = (move: unknown) => void;
-type Hand = string[] | { count: number };
+type HandData = string[] | { count: number };
 
-const count = (h: Hand | undefined) => (Array.isArray(h) ? h.length : h?.count ?? 0);
+const count = (h: HandData | undefined) => (Array.isArray(h) ? h.length : h?.count ?? 0);
 
-function Others({ view, hands }: { view: TableView; hands: Record<string, Hand> }) {
+function Others({ view, hands }: { view: TableView; hands: Record<string, HandData> }) {
   return (
     <p data-testid="others">
       {view.seats.filter((s) => s.seat !== view.seat && hands[String(s.seat)] !== undefined)
@@ -28,7 +31,7 @@ function Others({ view, hands }: { view: TableView; hands: Record<string, Hand> 
 // deck: {hands: {mine: [...], other: {count}}, stock: {count}, played: [...]};
 // a move is {play: card} or {draw: true}.
 export function DeckBoard({ view, onMove }: { view: TableView; onMove?: Move }) {
-  const deck = view.board?.state.deck as { hands: Record<string, Hand>; stock: { count: number }; played: string[] } | undefined;
+  const deck = view.board?.state.deck as { hands: Record<string, HandData>; stock: { count: number }; played: string[] } | undefined;
   if (!deck) return null;
   const mine = deck.hands[String(view.seat)];
   return (
@@ -37,13 +40,11 @@ export function DeckBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
       <p data-testid="stock">{say("web.table.stock", { count: deck.stock.count })}</p>
       <Others view={view} hands={deck.hands} />
       {Array.isArray(mine) && (
-        <ul className="hand" data-testid="hand">
+        <Hand label={say("web.table.hand")} data-testid="hand">
           {mine.map((card) => (
-            <li key={card}>
-              <button type="button" disabled={!onMove} onClick={() => onMove?.({ play: card })} aria-label={say("web.table.card", { card: card })}>{card}</button>
-            </li>
+            <HandCard key={card} text={card} name={say("web.table.card", { card })} onSelect={onMove ? () => onMove({ play: card }) : undefined} />
           ))}
-        </ul>
+        </Hand>
       )}
       {onMove && <Button kind="secondary" type="button" icon="new" aria-label={say("web.table.draw_deck")} disabled={deck.stock.count === 0} onClick={() => onMove({ draw: true })} data-testid="draw" />}
     </section>
@@ -60,19 +61,20 @@ export function WordBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
   return (
     <section data-testid="word">
       <p data-testid="mask">{w.mask === null ? say("web.table.no_word") : w.mask.split("").join(" ")}</p>
-      {w.word && <p className="muted" data-testid="my-word">{say("web.table.my_word", { word: w.word })}</p>}
+      {w.word && <p data-testid="my-word">{say("web.table.my_word", { word: w.word })}</p>}
       <p data-testid="guessed">{say("web.table.guessed", { letters: w.guessed.join(" ") || "—", misses: w.misses })}</p>
       {onMove && (
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const v = value.trim();
-          if (!v) return;
-          onMove(setting ? { word: v } : { letter: v.slice(0, 1) });
-          setValue("");
-        }}>
-          <input value={value} maxLength={setting ? 24 : 1} onChange={(e) => setValue(e.target.value)} aria-label={setting ? say("web.table.set_word") : say("web.table.letter")} data-testid="word-input" />
-          <Button kind="primary" type="submit" icon="check" aria-label={setting ? say("web.table.set") : say("web.table.guess")} data-testid="word-go" />
-        </form>
+        <MoveInput
+          legend={setting ? say("web.table.set_word") : say("web.table.guess")}
+          fields={[{ label: setting ? say("web.table.set_word") : say("web.table.letter"), value, onChange: setValue, maxLength: setting ? 24 : 1, testid: "word-input" }]}
+          submit={{ label: setting ? say("web.table.set") : say("web.table.guess"), icon: "check", testid: "word-go" }}
+          onSubmit={() => {
+            const v = value.trim();
+            if (!v) return;
+            onMove(setting ? { word: v } : { letter: v.slice(0, 1) });
+            setValue("");
+          }}
+        />
       )}
     </section>
   );
@@ -81,7 +83,7 @@ export function WordBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
 // free (dominoes): {hands, boneyard: {count}, line: ["a:b", ...]}; a move is
 // {play: bone, end: left|right} or {draw: true}.
 export function FreeBoard({ view, onMove }: { view: TableView; onMove?: Move }) {
-  const f = view.board?.state.free as { hands: Record<string, Hand>; boneyard: { count: number }; line: string[] } | undefined;
+  const f = view.board?.state.free as { hands: Record<string, HandData>; boneyard: { count: number }; line: string[] } | undefined;
   if (!f) return null;
   const mine = f.hands[String(view.seat)];
   return (
@@ -90,15 +92,14 @@ export function FreeBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
       <p data-testid="boneyard">{say("web.table.boneyard", { count: f.boneyard.count })}</p>
       <Others view={view} hands={f.hands} />
       {Array.isArray(mine) && (
-        <ul className="hand" data-testid="hand">
+        <Hand label={say("web.table.hand")} data-testid="hand">
           {mine.map((bone) => (
-            <li key={bone}>
-              [{bone}]
-              {onMove && <button type="button" onClick={() => onMove({ play: bone, end: "left" })} aria-label={say("web.table.left", { bone: bone })}>←</button>}
-              {onMove && <button type="button" onClick={() => onMove({ play: bone, end: "right" })} aria-label={say("web.table.right", { bone: bone })}>→</button>}
-            </li>
+            <HandBone key={bone} text={bone} ends={[
+              { glyph: "←", name: say("web.table.left", { bone }), onSelect: onMove ? () => onMove({ play: bone, end: "left" }) : undefined },
+              { glyph: "→", name: say("web.table.right", { bone }), onSelect: onMove ? () => onMove({ play: bone, end: "right" }) : undefined },
+            ]} />
           ))}
-        </ul>
+        </Hand>
       )}
       {onMove && <Button kind="secondary" type="button" icon="new" aria-label={say("web.table.draw_boneyard")} disabled={f.boneyard.count === 0} onClick={() => onMove({ draw: true })} data-testid="draw" />}
     </section>
@@ -128,36 +129,44 @@ export function CellsBoard({ view, onMove }: { view: TableView; onMove?: Move })
     }
     return "";
   };
+  const rows = [7, 6, 5, 4, 3, 2, 1, 0].map((y) => [0, 1, 2, 3, 4, 5, 6, 7].map((x) => at(x, y)));
+  // The position in words for a screen reader: what stands on which cell.
+  const described = [7, 6, 5, 4, 3, 2, 1, 0].flatMap((y) => [0, 1, 2, 3, 4, 5, 6, 7]
+    .filter((x) => at(x, y) !== "·")
+    .map((x) => `${grid ? `${"abcdefgh"[x]}${y + 1}` : `${x}:${y}`} ${at(x, y)}`));
   const claim = grid?.claim ?? dice?.claim ?? null;
   return (
     <section data-testid="cells">
-      {(grid || physics) && (
-        <pre className="cells" aria-label={say("web.table.board")}>
-          {[7, 6, 5, 4, 3, 2, 1, 0].map((y) => [0, 1, 2, 3, 4, 5, 6, 7].map((x) => at(x, y)).join(" ")).join("\n")}
-        </pre>
-      )}
+      {(grid || physics) && <CellsGrid label={say("web.table.board")} rows={rows} described={described} />}
       {dice && <p data-testid="rolled">{say("web.table.rolled", { dice: dice.rolled ? dice.rolled.join(say("web.table.and")) : say("web.table.not_rolled") })}</p>}
       {onMove && grid && (
-        <form onSubmit={(e) => { e.preventDefault(); onMove({ from: a.trim(), to: b.trim() }); setA(""); setB(""); }}>
-          <input value={a} onChange={(e) => setA(e.target.value)} aria-label={say("web.table.from")} maxLength={2} />
-          <input value={b} onChange={(e) => setB(e.target.value)} aria-label={say("web.table.to")} maxLength={2} />
-          <Button kind="primary" type="submit" icon="open" aria-label={say("table.move")} />
-        </form>
+        <MoveInput
+          legend={say("table.move")}
+          fields={[
+            { label: say("web.table.from"), value: a, onChange: setA, maxLength: 2 },
+            { label: say("web.table.to"), value: b, onChange: setB, maxLength: 2 },
+          ]}
+          submit={{ label: say("table.move"), icon: "open" }}
+          onSubmit={() => { onMove({ from: a.trim(), to: b.trim() }); setA(""); setB(""); }}
+        />
       )}
       {onMove && dice && (dice.rolled
         ? <Button kind="secondary" type="button" icon="check" aria-label={say("web.table.moved")} onClick={() => onMove({ move: true })} />
         : <Button kind="secondary" type="button" icon="random" aria-label={say("web.table.roll")} onClick={() => onMove({ roll: true })} />)}
       {onMove && physics && (
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const [dx, dy] = b.split(/[\s,]+/).map(Number);
-          onMove({ flick: { piece: a.trim(), dir: [dx || 0, dy || 0], power: Number(power) } });
-        }}>
-          <input value={a} onChange={(e) => setA(e.target.value)} aria-label={say("web.table.piece")} />
-          <input value={b} onChange={(e) => setB(e.target.value)} aria-label={say("web.table.direction")} />
-          <input value={power} onChange={(e) => setPower(e.target.value.replace(/\D/g, "").slice(0, 1))} aria-label={say("web.table.power")} />
-          <Button kind="primary" type="submit" icon="watch" aria-label={say("web.table.flick")} />
-        </form>
+        <MoveInput
+          legend={say("web.table.flick")}
+          fields={[
+            { label: say("web.table.piece"), value: a, onChange: setA },
+            { label: say("web.table.direction"), value: b, onChange: setB },
+            { label: say("web.table.power"), value: power, onChange: (v) => setPower(v.replace(/\D/g, "").slice(0, 1)) },
+          ]}
+          submit={{ label: say("web.table.flick"), icon: "watch" }}
+          onSubmit={() => {
+            const [dx, dy] = b.split(/[\s,]+/).map(Number);
+            onMove({ flick: { piece: a.trim(), dir: [dx || 0, dy || 0], power: Number(power) } });
+          }}
+        />
       )}
       {onMove && (grid || dice) && (
         claim !== null && claim !== view.seat
@@ -168,50 +177,12 @@ export function CellsBoard({ view, onMove }: { view: TableView; onMove?: Move })
   );
 }
 
-const CELL = 48, PAD = 16, HIT = 16;
-
 // Dots, moved here from Table.tsx (GC3) so the chat's game draws the same
-// board by import: the table and the conversation share one drawing.
+// board by import: the table and the conversation share one drawing. The
+// drawing itself is the kit's DotsGrid (ui/Board.tsx); here the table's words:
+// whose a closed box is — «вы» for one's own seat, else the seat's name.
 export function DotsBoard({ view, onEdge }: { view: TableView; onEdge?: (edge: string) => void }) {
   const dots = dotsOf(view.board)!;
-  const free = new Set(freeEdges(dots));
-  const size = dots.n * CELL + PAD * 2;
-  const edges: Array<{ id: string; x1: number; y1: number; x2: number; y2: number }> = [];
-  for (let r = 0; r <= dots.n; r++) {
-    for (let c = 0; c < dots.n; c++) {
-      edges.push({ id: `h:${r}:${c}`, x1: PAD + c * CELL, y1: PAD + r * CELL, x2: PAD + (c + 1) * CELL, y2: PAD + r * CELL });
-    }
-  }
-  for (let r = 0; r < dots.n; r++) {
-    for (let c = 0; c <= dots.n; c++) {
-      edges.push({ id: `v:${r}:${c}`, x1: PAD + c * CELL, y1: PAD + r * CELL, x2: PAD + c * CELL, y2: PAD + (r + 1) * CELL });
-    }
-  }
-  return (
-    <svg width={size} height={size} role="group" aria-label={tableSay("table.board")} data-testid="dots">
-      {Object.entries(dots.boxes).map(([box, seat]) => {
-        const [r, c] = box.split(":").map(Number);
-        return <text key={box} x={PAD + c * CELL + CELL / 2} y={PAD + r * CELL + CELL / 2 + 5} textAnchor="middle">{seat}</text>;
-      })}
-      {edges.map((e) => free.has(e.id)
-        ? (
-          // A free edge is a rectangle along it, HIT px across: a line's box
-          // is zero high or wide, and nothing but a stroke could be pressed
-          // (W11). The faint line inside shows where the edge would go.
-          <g key={e.id}>
-            <line {...e} stroke="currentColor" strokeOpacity={onEdge ? 0.15 : 0.05} strokeWidth={3} pointerEvents="none" />
-            <rect x={Math.min(e.x1, e.x2) - HIT / 2} y={Math.min(e.y1, e.y2) - HIT / 2}
-              width={Math.abs(e.x2 - e.x1) + HIT} height={Math.abs(e.y2 - e.y1) + HIT} fill="transparent"
-              role={onEdge ? "button" : undefined} aria-label={onEdge ? `${tableSay("table.edge")} ${e.id}` : undefined}
-              data-edge={e.id} tabIndex={onEdge ? 0 : undefined} style={{ cursor: onEdge ? "pointer" : "default" }}
-              onClick={onEdge ? () => onEdge(e.id) : undefined}
-              onKeyDown={onEdge ? (k) => (k.key === "Enter" || k.key === " ") && onEdge(e.id) : undefined} />
-          </g>
-        )
-        : <line key={e.id} {...e} stroke="currentColor" strokeWidth={3} data-taken={e.id} />)}
-      {Array.from({ length: (dots.n + 1) ** 2 }, (_, i) => (
-        <circle key={i} cx={PAD + (i % (dots.n + 1)) * CELL} cy={PAD + Math.floor(i / (dots.n + 1)) * CELL} r={3} />
-      ))}
-    </svg>
-  );
+  const who = (seat: number) => (seat === view.seat ? tableSay("table.you") : view.seats.find((p) => p.seat === seat)?.name ?? `#${seat}`);
+  return <DotsGrid label={tableSay("table.board")} n={dots.n} free={new Set(freeEdges(dots))} boxes={dots.boxes} who={who} mine={view.seat} onEdge={onEdge} />;
 }

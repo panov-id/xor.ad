@@ -34,15 +34,6 @@
 .talk-tab .talk-tab-dot { position: absolute; top: 10px; right: -12px; }
 .talk-chats li { list-style: none; }
 .talk-chats .ui-inbox-row { min-height: 72px; }
-/* WD4b: «во что сыграть?» — 18D: rows 48 on panel-2 with a hairline, the chosen
-   one fg; the sets as the kit's select pills. */
-.talk-picks { display: flex; flex-direction: column; border-radius: var(--r-1); overflow: hidden; }
-.talk-pick { min-height: var(--control-h); border: 0; border-radius: 0; border-bottom: 1px solid var(--border); background: var(--panel-2); color: var(--muted); text-align: left; padding: 0 var(--s-3); font-size: 14px; font-weight: 400; }
-.talk-pick:last-child { border-bottom: 0; }
-.talk-pick-on { color: var(--fg); font-weight: 600; }
-.talk-sets { display: flex; flex-wrap: wrap; gap: var(--s-2); }
-.talk-set { min-height: var(--control-h); padding: 0 var(--s-4); border-radius: var(--r-pill); border: 1px solid var(--border-control); background: none; font-size: 14px; }
-.talk-set-on { background: var(--fg); border-color: var(--fg); color: var(--bg); font-weight: 600; }
 /* WD7: the match as sheet 24 — the other's card with a chip, the hint on
    panel-2 with a 4 px accent edge (card-hint), the two buttons at the bottom. */
 .match .match-card { gap: var(--s-2); }

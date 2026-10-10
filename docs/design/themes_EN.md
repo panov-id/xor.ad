@@ -41,3 +41,13 @@ Token names are the CSS custom properties: `--bg`, `--surface`, … (kebab-case,
   of both brands into `panel/design/sheets-<brand>/`, the reference of `scripts/check-web-design.sh`.
 
 Adding a theme = a JSON file (through its brand's generator) and `themes-css.py`; no screen code changes.
+
+## The landings take their colours from the same themes
+The landings are generated from the same themes (2026-10-10, decided by quorum; rejected: a shared kit.css).
+`scripts/design/themes-css.py --landing` writes into each landing's `landing/index.html`, between
+`/* BEGIN kit … */` and `/* END kit */`, the colour variables from `web/themes/<brand>/*.json` and
+the button, field and link rules equal to the `.ui-*` ones of `web/src/styles.css` (tokens: `web/src/tokens.css`).
+A landing writes no hex colour of its own: no green `--ok` (success is shown by word and ✓), no own `--border`.
+The landings' names (`--panel`, `--border`, `--muted`, `--accent-ink`) map to the themes' names through one
+explicit list, `LANDING_VARS`, in the generator. `scripts/check-landing-tokens.sh` compares values, not
+only names; its probe is `scripts/test_check-landing-tokens.sh`.

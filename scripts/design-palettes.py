@@ -6,8 +6,9 @@
 
 Schemes (owner's request of 2026-09-19: «примеры в других цветовых решениях», «раста цвет»):
   * six accents of sosed (screen 22) on the dark and the light ground — class k-acc-<name>;
-  * neighbro.place — its brand hues (landing/index.html of that repo), with the app's own surfaces:
-    the landing's --panel #14120e on #0c0b09 is 1.06:1 and a card would vanish — class k-neighbro[-light];
+  * neighbro.place — its brand hues (the gold landing of before 2026-10-10, kept here as a historical kit scheme; the
+    landing now takes its colours from web/themes/neighbro), with the app's own surfaces:
+    that --panel #14120e on #0c0b09 is 1.06:1 and a card would vanish — class k-neighbro[-light];
   * rasta — red, gold and green on a warm black and on a warm paper — class k-rasta[-light].
 Bars (WCAG 2.x): text 4.5 (--fg, --muted, --accent-text on --panel, --accent-ink on --accent),
 controls 3.0 (--border-control on --panel and on --bg), categories 4.5 on --panel.
@@ -75,7 +76,8 @@ def full(sel, scheme, t, cats):
                    ("bg на fg (таблетка)", t["bg"], t["fg"], 4.5)]
           + [(f"{k} на panel", t[k], t["panel"], 4.5) for k in cats])
 
-# 2 · neighbro.place: the landing's ground, fg and gold (neighbro.place landing/index.html:86-115);
+# 2 · neighbro.place: the former landing's ground, fg and gold (neighbro.place landing/index.html at day59:86-115, before
+# the landing was generated from web/themes on 2026-10-10; a historical scheme, not what the landing shows now);
 # the app surfaces lifted the way sosed's were (panel ≈ 1.2:1 to bg)
 full(".k-neighbro", "neighbro·dark", {"bg": "#0c0b09", "panel": "#24211a", "panel-2": "#2e2a21", "border": "#3a331f",
      "border-control": "#6a5d39", "fg": "#ede8dd", "muted": "#8a8172", "muted-2": "#928979", "accent": "#c6a24e",

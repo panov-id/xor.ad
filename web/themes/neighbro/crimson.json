@@ -3,7 +3,7 @@
  "id": "crimson",
  "name": "Crimson",
  "scheme": "light",
- "source": "neighbro.place landing/index.html lines 85-129 [data-mode=light][data-theme=crimson]",
+ "source": "scripts/design/neighbro-themes.py (the palette of the former neighbro.place landing, until 2026-10-10) [data-mode=light][data-theme=crimson]",
  "tokens": {
   "bg": "#e5e6e9",
   "surface": "#f1f1f3",

@@ -3,7 +3,7 @@
  "id": "dark",
  "name": "Dark",
  "scheme": "dark",
- "source": "neighbro.place landing/index.html lines 85-129 (teal)",
+ "source": "scripts/design/neighbro-themes.py (the palette of the former neighbro.place landing, until 2026-10-10) (teal)",
  "tokens": {
   "bg": "#0b0b0c",
   "surface": "#111314",

@@ -210,3 +210,4 @@ design.2026-10-02.brand-looks	2026-10-02	xor.ad/docs/design-system-app_RU.md	xor
 design.2026-10-02.themes-as-data	2026-10-02	xor.ad/docs/design-system-app_RU.md	xor.ad/docs/design-system-app_EN.md	Темы — данные	Themes are data
 design.2026-10-02.heart-undo-5s	2026-10-02	xor.ad/docs/design-system-app_RU.md	xor.ad/docs/design-system-app_EN.md	5 с его можно снять	for 5 s it can be taken off
 feed.2026-10-05.model-before-publish	2026-10-05	xor.ad/docs/chat_RU.md	xor.ad/docs/chat_EN.md	С включённой моделью-модератором чистое по правилам тоже не выходит, пока его не прочла модель	With the moderator model on, a phrase clean by the rules does not go out until the model has read it either
+design.2026-10-10.landing-kit-generated	2026-10-10	xor.ad/docs/design/themes_RU.md	xor.ad/docs/design/themes_EN.md	решено кворумом; отклонено: общий kit.css	decided by quorum; rejected: a shared kit.css

@@ -74,11 +74,18 @@ export async function sayPhrase(
 
 // A like's outcome as the node names it: liked, matched (with the match), or
 // refused — 429 past three hundred an hour, 409 across the band or a block.
-export type LikeOutcome = { state: "liked" } | { state: "matched"; matchId?: string } | { state: "refused"; why: string };
+// `namePending`: the like stands, but on an offer it makes no match while the
+// liker's own name is not accepted — the node says so (routes/likes.ts) and
+// the card says it to the person, as the terminal does (WP-1).
+export type LikeOutcome =
+  | { state: "liked"; namePending?: true }
+  | { state: "matched"; matchId?: string }
+  | { state: "refused"; why: string };
 
 export async function likePhrase(client: Client, phraseId: string): Promise<LikeOutcome> {
   const answer = await client.like(phraseId);
   if (answer.status === 200 && answer.body?.state === "matched") return { state: "matched", matchId: answer.body.match_id };
+  if (answer.status === 200 && answer.body?.name_pending) return { state: "liked", namePending: true };
   if (answer.status === 200) return { state: "liked" };
   const error = (answer.body as { error?: { code?: string; message?: string } } | null)?.error;
   // The node's two 409s (routes/likes.ts:121 stepped_away, :88 no live phrase

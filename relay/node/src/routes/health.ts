@@ -3,6 +3,7 @@ import { json } from "../lib/http.ts";
 import { storageEnabled } from "../lib/storage.ts";
 import { enabled as databaseEnabled, listenState, query } from "../lib/db.ts";
 import { cursorConfigured } from "../lib/cursor.ts";
+import { moderatorConfig } from "../lib/moderator.ts";
 
 // Two routes, and the difference between them is the point.
 //
@@ -126,16 +127,24 @@ export async function health(): Promise<Response> {
 // dev and local stands. In staging and prod it is a deploy that lost its
 // DATABASE_URL — no feed, no sweeping — and it went out green (final panel
 // 2026-09-15, OPS-3; decided by quorum 2026-09-24, five of five).
+//
+// The moderator model, likewise, in staging and prod only (owner's decision,
+// 09.10.2026, WP-4): it is the only reader of a flagged phrase and of every
+// offer, and with it off the rules refuse them all — a node that cannot
+// publish an offer is not ready for people. Dev and local stands run on the
+// rules alone, which is enough for what they are for.
 export function readiness(
-  state: { database: ProbeResult; databaseEnabled: boolean; vaultKey: boolean; env?: string },
+  state: { database: ProbeResult; databaseEnabled: boolean; vaultKey: boolean; env?: string; moderator?: boolean },
 ): {
   ok: boolean;
   reasons: string[];
 } {
   const reasons: string[] = [];
+  const live = state.env === "staging" || state.env === "prod";
   if (state.database === "down") reasons.push("database_down");
-  if (state.database === "off" && (state.env === "staging" || state.env === "prod")) reasons.push("database_off");
+  if (state.database === "off" && live) reasons.push("database_off");
   if (state.databaseEnabled && !state.vaultKey) reasons.push("vault_key_missing");
+  if (live && state.moderator === false) reasons.push("moderator_missing");
   return { ok: reasons.length === 0, reasons };
 }
 
@@ -146,6 +155,7 @@ export async function ready(): Promise<Response> {
     databaseEnabled: databaseEnabled(),
     vaultKey: cursorConfigured(),
     env: config.envName,
+    moderator: moderatorConfig() !== null,
   });
   return json({
     status: ok ? "ready" : "not_ready",

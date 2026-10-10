@@ -31,7 +31,6 @@ Deno.env.set(
 const { match } = await import("../src/lib/router.ts");
 const database = await import("../src/lib/db.ts");
 const auth = await import("../src/lib/identity_auth.ts");
-const verdict = await import("../src/lib/feed_verdict.ts");
 const metrics = await import("../src/lib/metrics.ts");
 await import("../src/routes/identity.ts");
 await import("../src/routes/feed.ts");
@@ -186,7 +185,11 @@ Deno.test("the hourly ceiling counts what the rules published", async () => {
   assertEquals((fifth.body as { error: { code: string } }).error.code, "rate_limited");
 });
 
-Deno.test("a link, a contact or an offer waits for a person, and a person can still decide it", async () => {
+Deno.test("with no model, a link, a contact or an offer is refused with the rules' reason, and nothing waits", async () => {
+  // WP-4 (owner, 09.10.2026): nobody but the model reads a phrase. With the
+  // model off, what the rules flag is refused with their reason — not left in
+  // a queue nobody reads. An offer is flagged whole (a promo code is not a
+  // shape a rule can tell), so with no model an offer does not go out.
   const flagged: Array<[Record<string, unknown>, string]> = [
     [{ text: "заходи на example.com/party" }, "link"],
     [{ text: "пиши @anyone_here" }, "contact"],
@@ -197,39 +200,34 @@ Deno.test("a link, a contact or an offer waits for a person, and a person can st
     const me = await author();
     const before = counter("relay_feed_rules_total", `reason="${reason}",result="queued"`);
     const sent = await me.say(over);
-    assertEquals(sent.status, 202, `${reason}: ${JSON.stringify(sent.body)}`);
-    const answer = sent.body as { id: string; state: string; visible_at?: unknown };
-    assertEquals(answer.state, "checking");
-    assertEquals("visible_at" in answer, false);
-    assertEquals((await rowOf(answer.id)).visible_at, null, `${reason}: published without a person`);
+    assertEquals(sent.status, 422, `${reason}: ${JSON.stringify(sent.body)}`);
+    const error = (sent.body as { error: { code: string; message: string } }).error;
+    assertEquals(error.code, "moderation_refused");
+    assertEquals(error.message, `the phrase was not published: ${reason}`);
     assertEquals(counter("relay_feed_rules_total", `reason="${reason}",result="queued"`), before + 1, reason);
-    // The queue is the same queue: the person's verdict applies as before.
-    const decided = await verdict.publishPhrase(answer.id);
-    assertEquals(decided.applied, true);
-    assertNotEquals((await rowOf(answer.id)).visible_at, null);
+    const [left] = await database.queryOrThrow(
+      `SELECT 1 FROM feed_messages WHERE author_identity = $1`, [me.identity_id],
+    );
+    assertEquals(left, undefined, `${reason}: a refused phrase stayed`);
   }
 });
 
-Deno.test("the same phrase again, while the first is up, waits for a person", async () => {
+Deno.test("the same phrase again, while the first is up, is refused as a repeat, and the next one does not wait", async () => {
   const me = await author();
   assertEquals((await me.say({ text: "Продам табуретку" })).status, 200);
   const again = await me.say({ text: "продам   табуретку" });
-  assertEquals(again.status, 202, JSON.stringify(again.body));
-  assertEquals((await rowOf((again.body as { id: string }).id)).visible_at, null);
-  // And holds the author's single waiting slot, as any queued phrase does: the
-  // next one is "still being checked" until a person decides (§8.3).
-  const held = await me.say({ text: "продам две табуретки" });
-  assertEquals(held.status, 409, JSON.stringify(held.body));
-  assertEquals((held.body as { error: { code: string } }).error.code, "refused");
-  assertEquals((await verdict.refusePhrase((again.body as { id: string }).id)).applied, true);
+  assertEquals(again.status, 422, JSON.stringify(again.body));
+  assertEquals((again.body as { error: { message: string } }).error.message, "the phrase was not published: repeat");
+  // Nothing holds the author's waiting slot: the next phrase goes on its own.
   assertEquals((await me.say({ text: "продам две табуретки" })).status, 200);
 });
 
-Deno.test("a waiting name goes out with the phrase when it is clean, and holds it when it is not", async () => {
-  // Clean: the name change is queued (§8.2), the phrase carries it out.
+Deno.test("a clean new name passes the rules when it is changed, and a doubtful one is refused while the old name stands", async () => {
+  // Clean: the rules read the name when it changes and it is the name at once
+  // (WP-1, 2026-10-09) — it no longer waits for a phrase to carry it out.
   const me = await author();
   const renamed = await signedCall(me.pair.privateKey, me.session_id, "PATCH", "/identities/me", { name: "Оля" });
-  assertEquals(renamed.status, 202, JSON.stringify(renamed.body));
+  assertEquals(renamed.status, 200, JSON.stringify(renamed.body));
   const sent = await me.say();
   assertEquals(sent.status, 200, JSON.stringify(sent.body));
   const [who] = await database.queryOrThrow<{ name: string; name_state: string; name_pending: string | null }>(
@@ -238,16 +236,18 @@ Deno.test("a waiting name goes out with the phrase when it is clean, and holds i
   );
   assertEquals([who.name, who.name_state, who.name_pending], ["Оля", "accepted", null]);
 
-  // Doubtful: a name that is a handle keeps the phrase — and the name — waiting.
+  // Doubtful: a name that is a handle is refused with the reason (WP-4); the
+  // old name stands, nothing pending, and a phrase goes out under it.
   const other = await author();
-  assertEquals((await signedCall(other.pair.privateKey, other.session_id, "PATCH", "/identities/me", { name: "@anyone" })).status, 202);
-  const held = await other.say();
-  assertEquals(held.status, 202, JSON.stringify(held.body));
-  const [still] = await database.queryOrThrow<{ name: string; name_state: string }>(
-    `SELECT name, name_state FROM identities WHERE id = $1`,
+  const refused = await signedCall(other.pair.privateKey, other.session_id, "PATCH", "/identities/me", { name: "@anyone" });
+  assertEquals(refused.status, 422, JSON.stringify(refused.body));
+  assertEquals((refused.body as { error: { code: string } }).error.code, "name_refused");
+  assertEquals((await other.say()).status, 200);
+  const [still] = await database.queryOrThrow<{ name: string; name_state: string; name_pending: string | null }>(
+    `SELECT name, name_state, name_pending FROM identities WHERE id = $1`,
     [other.identity_id],
   );
-  assertEquals([still.name, still.name_state], ["Аня", "pending"]);
+  assertEquals([still.name, still.name_state, still.name_pending], ["Аня", "accepted", null]);
 });
 
 Deno.test("under FEED_VERDICT=queue every phrase waits, as before", async () => {

@@ -4,14 +4,9 @@
 // "start again", after which the device remembers nothing. Every step is
 // read back from the node's answers, not from the screen alone.
 
-import { expect, test, type Page } from "../fixtures/address.ts";
-import { devices } from "@playwright/test";
+import { expect, test } from "../fixtures/address.ts";
 import { PIN, register, runLabel, unlock, watch } from "./helpers.ts";
 
-const PANEL_URL = process.env.PANEL_URL ?? "";
-const SECRET = process.env.PANEL_SESSION_SECRET ?? "";
-const ENV_NAME = process.env.PANEL_ENV_NAME ?? "test";
-const MODERATOR = "moderator@webtest.invalid";
 
 test("me: the name to the queue, the PIN changed and the vault re-sealed, away and back, start again", async ({ page }) => {
   const feedAnswers: number[] = [];
@@ -29,15 +24,20 @@ test("me: the name to the queue, the PIN changed and the vault re-sealed, away a
   await expect(page.getByTestId("me-name")).toContainText("Аня");
   await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "accepted");
 
-  // The name: PATCH answers 202, the row says "→ Оля · на проверке".
+  // A name the model refuses ("тг" is a messenger; the stand's stub says
+  // reject): PATCH answers 422, the editor says why, and the old name stands —
+  // nothing waits (WP-4). A clean name is accepted at once (the case at the
+  // end of this file).
   await page.getByTestId("me-name").click();
   await expect(page.locator('[data-screen="edit-name"]')).toBeVisible();
-  await page.getByTestId("edit-value").fill("Оля");
+  await page.getByTestId("edit-value").fill("Оля тг");
   await page.getByTestId("edit-save").click();
+  await expect(page.getByTestId("error")).toContainText("Имя не принято: stub: a link", { timeout: 15000 });
+  await page.getByTestId("edit-back").click();
   await expect(page.locator('[data-screen="me"]')).toBeVisible({ timeout: 15000 });
-  await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "pending", { timeout: 15000 });
-  await expect(page.getByTestId("me-name")).toContainText("→ Оля · на проверке");
-  expect(nodeAnswers.filter(([m, p]) => m === "PATCH" && p === "/identities/me").map(([, , s]) => s)).toEqual([202]);
+  await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "accepted");
+  await expect(page.getByTestId("me-name")).toContainText("Аня");
+  expect(nodeAnswers.filter(([m, p]) => m === "PATCH" && p === "/identities/me").map(([, , s]) => s)).toEqual([422]);
 
   // The age within the band: 200, the row shows it.
   await page.getByTestId("me-age").click();
@@ -114,73 +114,59 @@ test("me: the name to the queue, the PIN changed and the vault re-sealed, away a
   await expect(page.locator('[data-screen="splash"]')).toBeVisible({ timeout: 15000 });
 });
 
-// W13-NR · a refused name is said to its author (§8.2, chat_RU.md:866). The
-// name goes to the queue with a phrase; the moderator refuses the name in the
-// panel (as moderation-path.spec walks it); "me" then says the name was not
-// accepted and the phrase waits — and the row still opens the editor.
-async function panelToken(): Promise<string> {
-  const b64 = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64url");
-  const enc = new TextEncoder();
-  const header = b64(enc.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
-  const payload = b64(enc.encode(JSON.stringify({
-    sub: MODERATOR, role: "moderator", brand: null, env: ENV_NAME, exp: Math.floor(Date.now() / 1000) + 3600,
-  })));
-  const key = await crypto.subtle.importKey("raw", enc.encode(SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(`${header}.${payload}`)));
-  return `${header}.${payload}.${b64(sig)}`;
-}
-
-async function writeFlagged(page: Page, text: string): Promise<void> {
+// W13-NR, WP-4 · a refusal is said to its author with its reason. Nobody but
+// the model reads a phrase or a name (owner, 09.10.2026): the stand's stub
+// refuses one carrying a messenger, and the author sees why on the spot — in
+// the composer for a phrase, in the editor for a name — and the old name
+// stands. Nothing goes to a queue, so nothing waits on «me».
+test("a phrase and a name the model refused are said to the author with the reason, and nothing waits", async ({ page }) => {
+  const stamp = runLabel();
   const posts: number[] = [];
   page.on("response", (r) => { if (new URL(r.url()).pathname === "/feed" && r.request().method() === "POST") posts.push(r.status()); });
-  await page.getByTestId("write").click();
-  await expect(page.locator('[data-screen="composer"]')).toBeVisible();
-  await page.getByTestId("text").fill(text);
-  await page.getByTestId("send").click();
-  await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 15000 });
-  expect(posts, "the rules did not send the phrase to the queue").toEqual([202]);
-}
-
-test("a name the moderator refused is said on «me», and the row still opens the editor", async ({ browser }) => {
-  expect(PANEL_URL && SECRET, "the stand's panel and its session secret (docker-compose.web.yml e2e)").toBeTruthy();
-  test.setTimeout(180_000);
-  const stamp = runLabel();
-  const a = await browser.newContext({ viewport: { width: 393, height: 851 } });
-  const page = await a.newPage();
   watch(page, []);
   await register(page);
-  // The name to the queue, then a phrase that waits there with it.
+
+  // The phrase: refused in the composer, with the model's reason.
+  await page.getByTestId("write").click();
+  await expect(page.locator('[data-screen="composer"]')).toBeVisible();
+  await page.getByTestId("text").fill(`пиши в тг, договоримся ${stamp}`);
+  await page.getByTestId("send").click();
+  await expect(page.getByTestId("refused")).toContainText("Фраза не принята: stub: a link", { timeout: 15000 });
+  expect(posts, "the model's refusal did not reach the author as a refusal").toEqual([422]);
+  await expect(page.locator('[data-screen="composer"]')).toBeVisible();
+
+  // The name: refused in the editor, and the row still opens the editor.
+  await page.getByTestId("back").click();
+  await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 15000 });
+  await page.getByTestId("tab-me").click();
+  await page.getByTestId("me-name").click();
+  await page.getByTestId("edit-value").fill("Оля тг");
+  await page.getByTestId("edit-save").click();
+  await expect(page.getByTestId("error")).toContainText("Имя не принято: stub: a link", { timeout: 15000 });
+  await page.getByTestId("edit-back").click();
+  await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "accepted");
+  await expect(page.getByTestId("me-name")).toContainText("Аня");
+  await expect(page.getByTestId("me-name")).not.toContainText("на проверке");
+  await page.getByTestId("me-name").click();
+  await expect(page.locator('[data-screen="edit-name"]')).toBeVisible();
+});
+
+// WP-1 (2026-10-09): a name the rules find nothing in is the name at once —
+// PATCH answers 200 and nothing says "на проверке".
+test("a clean new name is accepted at once on «me»", async ({ page }) => {
+  const answers: Array<[string, number]> = [];
+  page.on("response", (r) => {
+    if (new URL(r.url()).pathname === "/identities/me") answers.push([r.request().method(), r.status()]);
+  });
+  watch(page, []);
+  await register(page);
   await page.getByTestId("tab-me").click();
   await page.getByTestId("me-name").click();
   await page.getByTestId("edit-value").fill("Оля");
   await page.getByTestId("edit-save").click();
-  await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "pending", { timeout: 15000 });
-  await page.getByTestId("me-back").click();
-  await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 15000 });
-  await writeFlagged(page, `пиши в тг, договоримся ${stamp}`);
-
-  // The moderator: the name, not the phrase.
-  // On a desktop and without the storefront's headers, as moderation-path.spec
-  // explains: at a phone's width the panel has no "Feed queue" link, and the
-  // node's CORS refuses the Bunny headers from the panel.
-  const m = await (await browser.newContext({ ...devices["Desktop Chrome"] })).newPage();
-  await m.context().setExtraHTTPHeaders({});
-  const token = await panelToken();
-  await m.addInitScript(([k, v]) => window.localStorage.setItem(k, v), ["panel_jwt", token]);
-  await m.goto(PANEL_URL);
-  await m.getByRole("link", { name: "Feed queue" }).click();
-  await expect(m.getByRole("heading", { name: "Feed queue" })).toBeVisible();
-  const row = m.getByRole("row", { name: new RegExp(`тг, договоримся ${stamp}`) });
-  await expect(row).toBeVisible({ timeout: 15000 });
-  await row.getByRole("button", { name: "Refuse name" }).click();
-  await expect(row.getByText("name rejected")).toBeVisible({ timeout: 15000 });
-
-  // The author: "me" says the name was not accepted, and the row opens the editor.
-  await page.getByTestId("tab-me").click();
-  await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "rejected", { timeout: 15000 });
-  await expect(page.getByTestId("me-name")).toContainText("имя не принято, фраза ждёт нового имени");
+  await expect(page.locator('[data-screen="me"]')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "accepted", { timeout: 15000 });
+  await expect(page.getByTestId("me-name")).toContainText("Оля");
   await expect(page.getByTestId("me-name")).not.toContainText("на проверке");
-  await page.getByTestId("me-name").click();
-  await expect(page.locator('[data-screen="edit-name"]')).toBeVisible();
-  await a.close();
+  expect(answers.filter(([m]) => m === "PATCH").map(([, s]) => s)).toEqual([200]);
 });

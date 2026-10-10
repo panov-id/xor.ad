@@ -28,6 +28,12 @@ export function profileRefusal(answer: Answer<unknown>): string | null {
   if (error?.code === "name_frozen") return say("profile.nameFrozen");
   if (error?.code === "age_step_down") return say("profile.ageDown");
   if (error?.code === "paused") return say("write.paused", { time: hhmm(error.until) });
+  // The model or the rules refused the new name (WP-4): the node's reason,
+  // and the old name stands.
+  if (error?.code === "name_refused") {
+    const why = (answer.body as { error?: { message?: string } } | null)?.error?.message ?? "";
+    return say("web.name.refused_why", { why });
+  }
   if (error?.code === "rate_limited") {
     const hours = Math.min(24, Math.max(1, Math.ceil((answer.retryAfter ?? 24 * 3600) / 3600)));
     return say("profile.patchDay", { n: String(hours) });

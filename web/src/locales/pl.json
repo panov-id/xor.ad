@@ -403,5 +403,9 @@
   "web.like.undo_mark": "polubienie wyjdzie za {n} s",
   "web.like.undo": "cofnij",
   "web.like.cancelled": "polubienie cofnięte",
-  "web.like.needs_phrase": "Najpierw napisz własną frazę: polubienie to spotkanie dwóch fraz."
+  "web.like.needs_phrase": "Najpierw napisz własną frazę: polubienie to spotkanie dwóch fraz.",
+  "web.nav.tables": "stoły",
+  "web.tables.title": "Stoły w pobliżu",
+  "web.tables.empty": "W pobliżu nie ma jeszcze stołów",
+  "web.tables.empty_hint": "Ustaw własny, inni się dosiądą."
 }

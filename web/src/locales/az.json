@@ -403,5 +403,9 @@
   "web.like.undo_mark": "bəyənmə {n} san. sonra gedəcək",
   "web.like.undo": "ləğv et",
   "web.like.cancelled": "bəyənmə ləğv edildi",
-  "web.like.needs_phrase": "Əvvəlcə öz frazanızı yazın: bəyənmə iki frazanın görüşüdür."
+  "web.like.needs_phrase": "Əvvəlcə öz frazanızı yazın: bəyənmə iki frazanın görüşüdür.",
+  "web.nav.tables": "masalar",
+  "web.tables.title": "Yaxınlıqdakı masalar",
+  "web.tables.empty": "Yaxınlıqda hələ masa yoxdur",
+  "web.tables.empty_hint": "Özünüzünkünü qurun — başqaları oturar."
 }

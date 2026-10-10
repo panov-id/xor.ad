@@ -403,5 +403,9 @@
   "web.like.undo_mark": "yoqtirish {n} soniyadan keyin ketadi",
   "web.like.undo": "bekor qilish",
   "web.like.cancelled": "yoqtirish bekor qilindi",
-  "web.like.needs_phrase": "Avval o'z iborangizni yozing: yoqtirish ikki iboraning uchrashuvidir."
+  "web.like.needs_phrase": "Avval o'z iborangizni yozing: yoqtirish ikki iboraning uchrashuvidir.",
+  "web.nav.tables": "stollar",
+  "web.tables.title": "Yaqin atrofdagi stollar",
+  "web.tables.empty": "Yaqin atrofda hozircha stol yo‘q",
+  "web.tables.empty_hint": "O‘zingiznikini qo‘ying — boshqalar o‘tiradi."
 }

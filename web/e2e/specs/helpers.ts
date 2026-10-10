@@ -143,6 +143,23 @@ export async function newTable(page: Page, t: { name: string; kind?: string; set
   await expect(page.getByTestId("table")).toBeVisible({ timeout: 30000 });
 }
 
+// The tables tab (К6б, kit_RU.md §8.4): the bar's «столы», read afresh by a
+// round trip through another tab, as the feed helpers do.
+export async function openTables(page: Page): Promise<void> {
+  await page.getByTestId("nav-inbox").click();
+  await page.getByTestId("nav-tables").click();
+  await expect(page.locator('[data-screen="tables"]')).toBeVisible();
+}
+
+// A neighbour opens the tables tab and sits down by the table's card.
+export async function sitFromTables(page: Page, name: string): Promise<void> {
+  await openTables(page);
+  const card = page.getByTestId("table-card").filter({ hasText: name });
+  await expect(card).toHaveCount(1, { timeout: 30000 });
+  await card.click();
+  await expect(page.getByTestId("table")).toBeVisible({ timeout: 30000 });
+}
+
 // A neighbour reads the feed again and sits down by the table's card.
 export async function sitFromFeed(page: Page, name: string): Promise<void> {
   await page.getByTestId("nav-inbox").click();
@@ -162,7 +179,7 @@ export async function twoAtATable(first: Page, second: Page, t: { name: string; 
     await writePhrase(first, `${text} ${runLabel()}`);
   }
   await newTable(first, t);
-  await sitFromFeed(second, t.name);
+  await sitFromTables(second, t.name);
   await second.getByTestId("line-input").fill("сыграю");
   await second.getByTestId("apply").click();
   await expect(first.getByTestId("table")).toContainText("заявка", { timeout: 15000 });

@@ -121,13 +121,15 @@ await step("chat", async () => {
 });
 await step("table and game", async () => {
   for (const p of [anya, boris]) { await t(p, "back").click(); await t(p, "nav-feed").click(); await p.locator('[data-screen="feed"]').waitFor(); }
+  await t(anya, "nav-tables").click(); await anya.locator('[data-screen="tables"]').waitFor(); await look(anya, "столы");
   await t(anya, "new-table").click(); await anya.locator('[data-screen="new-table"]').waitFor(); await look(anya, "новый стол");
   await t(anya, "new-table-class").selectOption("dots"); await t(anya, "new-table-set").selectOption("2x2");
   await t(anya, "new-table-name").fill(`точки ${tag}`); await t(anya, "new-table-go").click();
   await t(anya, "table").waitFor({ timeout: 30000 }); await look(anya, "свой стол");
   await t(boris, "nav-inbox").click(); await t(boris, "nav-feed").click();
   const card = t(boris, "table-card").filter({ hasText: `точки ${tag}` }); await card.waitFor({ timeout: 30000 });
-  await look(boris, "лента со столом"); await card.click(); await t(boris, "table").waitFor({ timeout: 30000 }); await look(boris, "чужой стол");
+  await look(boris, "лента со столом");
+  await t(boris, "nav-tables").click(); await boris.locator('[data-screen="tables"]').waitFor(); await card.waitFor({ timeout: 30000 }); await look(boris, "столы со столом"); await card.click(); await t(boris, "table").waitFor({ timeout: 30000 }); await look(boris, "чужой стол");
   await t(boris, "line-input").fill("сыграю"); await t(boris, "apply").click();
   await anya.getByTestId("table").filter({ hasText: "заявка" }).waitFor({ timeout: 15000 }); await look(anya, "стол с заявкой");
   await t(anya, "start-game").click(); await anya.waitForTimeout(1500); await look(anya, "партия началась"); await look(boris, "партия началась");

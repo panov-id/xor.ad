@@ -403,5 +403,9 @@
   "web.like.undo_mark": "лайк уйдёт через {n} с",
   "web.like.undo": "отменить",
   "web.like.cancelled": "лайк отменён",
-  "web.like.needs_phrase": "Сначала напишите свою фразу: лайк — это встреча двух фраз."
+  "web.like.needs_phrase": "Сначала напишите свою фразу: лайк — это встреча двух фраз.",
+  "web.nav.tables": "столы",
+  "web.tables.title": "Столы рядом",
+  "web.tables.empty": "Столов рядом пока нет",
+  "web.tables.empty_hint": "Поставьте свой — другие подсядут."
 }

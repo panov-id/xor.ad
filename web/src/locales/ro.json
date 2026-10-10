@@ -403,5 +403,9 @@
   "web.like.undo_mark": "aprecierea pleacă în {n} s",
   "web.like.undo": "anulează",
   "web.like.cancelled": "apreciere anulată",
-  "web.like.needs_phrase": "Scrie mai întâi propria frază: o apreciere este întâlnirea a două fraze."
+  "web.like.needs_phrase": "Scrie mai întâi propria frază: o apreciere este întâlnirea a două fraze.",
+  "web.nav.tables": "mese",
+  "web.tables.title": "Mese în apropiere",
+  "web.tables.empty": "Încă nu sunt mese în apropiere",
+  "web.tables.empty_hint": "Pune una a ta, iar ceilalți se vor așeza."
 }

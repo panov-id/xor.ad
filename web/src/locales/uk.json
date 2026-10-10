@@ -403,5 +403,9 @@
   "web.like.undo_mark": "лайк піде за {n} с",
   "web.like.undo": "скасувати",
   "web.like.cancelled": "лайк скасовано",
-  "web.like.needs_phrase": "Спершу напишіть свою фразу: лайк — це зустріч двох фраз."
+  "web.like.needs_phrase": "Спершу напишіть свою фразу: лайк — це зустріч двох фраз.",
+  "web.nav.tables": "столи",
+  "web.tables.title": "Столи поруч",
+  "web.tables.empty": "Столів поруч поки немає",
+  "web.tables.empty_hint": "Поставте свій — інші підсядуть."
 }

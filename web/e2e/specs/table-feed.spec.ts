@@ -5,7 +5,7 @@
 // table — both screens name her among the seated.
 
 import { expect, test } from "../fixtures/address.ts";
-import { newTable, register, runLabel, sitFromFeed, writePhrase } from "./helpers.ts";
+import { newTable, openTables, register, runLabel, sitFromFeed, writePhrase } from "./helpers.ts";
 
 test("a table set from the feed comes into a neighbour's feed, and its card seats her", async ({ browser }) => {
   test.setTimeout(150_000);
@@ -24,6 +24,9 @@ test("a table set from the feed comes into a neighbour's feed, and its card seat
 
   await anya.getByTestId("nav-inbox").click();
   await anya.getByTestId("nav-feed").click();
+  await expect(anya.getByTestId("table-card").filter({ hasText: name })).toContainText("свободно мест: 1", { timeout: 30000 });
+  // The tables tab (К6б) lists the same table, with the same seat count.
+  await openTables(anya);
   await expect(anya.getByTestId("table-card").filter({ hasText: name })).toContainText("свободно мест: 1", { timeout: 30000 });
   await sitFromFeed(anya, name);
   await expect(anya.getByTestId("table")).toContainText("Женя");

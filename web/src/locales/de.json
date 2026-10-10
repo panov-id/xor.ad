@@ -403,5 +403,9 @@
   "web.like.undo_mark": "Like geht in {n} s raus",
   "web.like.undo": "rückgängig",
   "web.like.cancelled": "Like zurückgenommen",
-  "web.like.needs_phrase": "Schreiben Sie zuerst Ihre eigene Phrase: Ein Like ist das Treffen zweier Phrasen."
+  "web.like.needs_phrase": "Schreiben Sie zuerst Ihre eigene Phrase: Ein Like ist das Treffen zweier Phrasen.",
+  "web.nav.tables": "Tische",
+  "web.tables.title": "Tische in der Nähe",
+  "web.tables.empty": "Noch keine Tische in der Nähe",
+  "web.tables.empty_hint": "Stellen Sie einen auf, andere setzen sich dazu."
 }

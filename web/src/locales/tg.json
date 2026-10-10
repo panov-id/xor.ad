@@ -403,5 +403,9 @@
   "web.like.undo_mark": "лайк пас аз {n} сония меравад",
   "web.like.undo": "бекор кардан",
   "web.like.cancelled": "лайк бекор шуд",
-  "web.like.needs_phrase": "Аввал ибораи худро нависед: лайк — вохӯрии ду ибора аст."
+  "web.like.needs_phrase": "Аввал ибораи худро нависед: лайк — вохӯрии ду ибора аст.",
+  "web.nav.tables": "мизҳо",
+  "web.tables.title": "Мизҳои наздик",
+  "web.tables.empty": "Мизҳои наздик ҳоло нестанд",
+  "web.tables.empty_hint": "Мизи худро гузоред — дигарон менишинанд."
 }

@@ -1,4 +1,4 @@
-// The page cursor of GET /feed and GET /likes, sealed (§8.11; the owner's
+// The page cursor of GET /feed, GET /likes and GET /tables, sealed (§8.11; the owner's
 // decision of 2026-09-24).
 //
 // The cursor was `<microseconds>_<id>` in the clear: the last row's instant to
@@ -22,7 +22,7 @@
 import { config } from "../config.ts";
 import { base64urlToBytes, bytesToBase64url } from "./identity_auth.ts";
 
-export type CursorList = "feed" | "likes";
+export type CursorList = "feed" | "likes" | "tables";
 
 const NONCE_BYTES = 12;
 const KEY_SALT = new TextEncoder().encode("xor.ad/page-cursor/v1");

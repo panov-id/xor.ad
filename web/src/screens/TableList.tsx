@@ -1,7 +1,7 @@
 // "Столы" (kit_RU.md §8.4, К6б): the tables near the person, one tab of the
-// bottom bar. There is no list endpoint: the node gives tables as cards of
-// kind "table" in GET /feed (relay lib/tables_feed.ts, the first page only), so
-// this reads the same feed in the same circle and keeps those cards. A card
+// bottom bar. GET /tables in the feed's circle, thirty at a time and more by
+// cursor (П18; relay lib/tables_feed.ts) — it used to keep the table cards of
+// the feed's first page, so with a long feed some tables never showed. A card
 // sits the person down as on the feed (App.enterTable); "new table" is the same
 // flow as the feed's (NewTable.tsx). Kit elements only.
 
@@ -31,13 +31,16 @@ export function TableList(
   const [items, setItems] = useState<FeedCard[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [error, setError] = useState<string | null>(null);
+  const [next, setNext] = useState<string | null>(null);
   const live = useRef(true);
-  useEffect(() => {
-    live.current = true;
-    client.feed({ ...at, radius })
+  const load = (after?: string) => {
+    setState("loading");
+    client.tables({ ...at, radius, after })
       .then((page) => {
         if (!live.current) return;
-        setItems((page.items as FeedCard[]).filter((card) => card.kind === "table"));
+        const cards = page.items as FeedCard[];
+        setItems((had) => after ? [...had, ...cards] : cards);
+        setNext(page.next);
         setState("ready");
       })
       .catch((e: Error) => {
@@ -45,6 +48,10 @@ export function TableList(
         setError(e.message);
         setState("failed");
       });
+  };
+  useEffect(() => {
+    live.current = true;
+    load();
     return () => { live.current = false; };
   }, [client, radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -75,6 +82,9 @@ export function TableList(
           </Card>
         ))}
       </ul>
+      {next && state === "ready" && (
+        <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />
+      )}
       {state === "loading" && <p className="ui-hint" data-testid="loading">…</p>}
     </Screen>
   );

@@ -291,6 +291,13 @@ if [ -n "$outside" ]; then
 fi
 [ "$stands" = 1 ] || echo "быстрый уровень: стенды и e2e не гонялись (--stands, полный — --dev)"
 printf 'пройдено %s, провалено %s, пропущено %s\n' "$passed" "$failed" "$skipped"
+# One line per run, so a status report reads the last result instead of rerunning stands.
+mode=quick; [ "$stands" = 1 ] && mode=stands; [ "$full" = 1 ] && mode=full; [ "$with_tests" = 1 ] && mode=dev
+journal="${CHECK_ALL_JOURNAL:-$root/../.parallel/xor.ad/log/check-all.tsv}"
+if [ -d "$(dirname "$journal")" ]; then
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date '+%Y-%m-%d %H:%M')" "$(git -C "$root" rev-parse --short HEAD)" \
+    "$mode" "$passed" "$failed" "$skipped" >> "$journal"
+fi
 [ "$failed" -gt 0 ] && exit 1
 [ "$skipped" -gt 0 ] && printf 'внимание: пропущенное не проверено и не может считаться зелёным\n'
 exit 0

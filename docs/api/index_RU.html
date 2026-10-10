@@ -34,7 +34,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style></head><body><main>
 <div class="top"><h1>API узла</h1><a href="index_EN.html">English</a></div>
-<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 153 операций, OpenAPI 3.1.0, 2026-09-17.</p>
+<p class="lead">Контракт узла relay: построенное и описанное. Источник — docs/api/openapi.yaml. 154 операций, OpenAPI 3.1.0, 2026-09-17.</p>
 <nav class="toc"><a href="#tag-node">node</a><a href="#tag-intake">intake</a><a href="#tag-v1">v1</a><a href="#tag-auth">auth</a><a href="#tag-admin">admin</a><a href="#tag-identity">identity</a><a href="#tag-feed">feed</a><a href="#tag-chat">chat</a><a href="#tag-tables">tables</a><a href="#tag-safety">safety</a><a href="#tag-offers">offers</a><a href="#tag-support">support</a><a href="#schemas">Схемы</a></nav>
 <h2 id="tag-node">node</h2>
 <p>Служебные маршруты узла. HEAD отвечает на каждый GET, OPTIONS — 204 на любой путь (dispatch.ts).</p>
@@ -1033,6 +1033,15 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 </section>
 <h2 id="tag-tables">tables</h2>
 <p>Столы — игра компанией (протокол §4.6). Предложено 16.09.2026, не построено.</p>
+<section class="op" id="get-tables">
+<div class="op-head"><span class="method m-get">get</span><code class="path">/tables</code><span class="chip s-built">построено</span></div>
+<p><strong>Столы рядом со зрителем, постранично</strong></p>
+<p>Все открытые столы со свободным местом игрока, чья зона пересекает круг зрителя, по правилам, по которым стол попадает в ленту (спека чата §6.1): кто-то сидит, каждый сидящий и зритель в поясе друг друга, блокировки ни в одну сторону, не свой, не лайкнутый. 30 карточек, новые сначала, дальше по курсору (П18, решение владельца 10.10.2026: экран «Столы» брал столы с первой страницы ленты, не больше четверти её, наугад). Круг — как у ленты: lat, lon, radius; чтения считаются в лимит ленты. Радиус не растёт.</p>
+<h3>Доступ</h3><p>Подпись запроса (протокол §2): ECDSA P-256 над пятью строками — метод, хост (тот, на который пришёл запрос), путь с нормализованным query, sha256 тела, unix-время; вместе с x-identity-session и x-identity-time, окно ±5 минут</p>
+<h3>Параметры</h3><div class="table"><table><tr><th>Имя</th><th>Где</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code></code></td><td></td><td><code>object</code></td><td>нет</td><td></td></tr><tr><td><code>lat</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -90, maximum: 90</span></td><td>да</td><td></td></tr><tr><td><code>lon</code></td><td>query</td><td><code>number</code> <span class="src">minimum: -180, maximum: 180</span></td><td>да</td><td></td></tr><tr><td><code>radius</code></td><td>query</td><td><code>integer</code> <span class="src">minimum: 100, maximum: 25000</span></td><td>да</td><td></td></tr></table></div>
+<h3>Ответы</h3><div class="table"><table><tr><td><code>409</code></td><td></td><td></td></tr><tr><td><code>401</code></td><td></td><td></td></tr><tr><td><code>400</code></td><td></td><td></td></tr><tr><td><code>429</code></td><td></td><td></td></tr><tr><td><code>503</code></td><td></td><td></td></tr><tr><td><code>200</code></td><td>Страница столов и следующий курсор.</td><td><a href="#schema-tablepage"><code>TablePage</code></a></td></tr></table></div>
+<p class="src">Источник: <code>relay/node/src/routes/tables.ts</code></p>
+</section>
 <section class="op" id="post-tables">
 <div class="op-head"><span class="method m-post">post</span><code class="path">/tables</code><span class="chip s-built">построено</span></div>
 <p><strong>Поставить стол</strong></p>
@@ -1525,6 +1534,11 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:
 <p>Страница строк и курсор следующей; пустой next — конец (протокол §6).</p>
 <div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>items</code></td><td>array&lt;<code>object</code>&gt;</td><td>да</td><td></td></tr><tr><td><code>next</code></td><td><code>string</code></td><td>да</td><td>Курсор следующей страницы, null в конце. Непрозрачен: возвращайте его в `after` и не разбирайте. Форма сменилась 21.09.2026 — теперь он несёт микросекунды, потому что курсор с точностью до миллисекунды терял строки, опубликованные в ту же миллисекунду, что и граница страницы.</td></tr></table></div></section>
 <section class="op" id="schema-feedpage"><div class="op-head"><code class="path">FeedPage</code></div>
+<p><code>object</code></p></section>
+<section class="op" id="schema-tablecard"><div class="op-head"><code class="path">TableCard</code></div>
+<p>Стол, за который сосед может сесть, как его дают GET /tables и GET /feed (спека чата §6.1, relay lib/tables_feed.ts). Центр — узел сетки, к которому округлил его радиус; сидящие не названы.</p>
+<div class="table"><table><tr><th>Имя</th><th>Тип</th><th>Обязательно</th><th>Примечание</th></tr><tr><td><code>kind</code></td><td><code>string</code> <span class="src">enum: [&quot;table&quot;]</span></td><td>да</td><td></td></tr><tr><td><code>id</code></td><td><code>string</code> <span class="src">format: &quot;uuid&quot;</span></td><td>да</td><td></td></tr><tr><td><code>game</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>set</code></td><td><code>string</code></td><td>да</td><td></td></tr><tr><td><code>seats</code></td><td><code>integer</code></td><td>да</td><td></td></tr><tr><td><code>free_seats</code></td><td><code>integer</code></td><td>да</td><td></td></tr><tr><td><code>playing</code></td><td><code>integer</code></td><td>да</td><td></td></tr><tr><td><code>watching</code></td><td><code>integer</code></td><td>да</td><td></td></tr><tr><td><code>name</code></td><td><code>string | null</code></td><td>нет</td><td></td></tr><tr><td><code>like_count</code></td><td><code>integer</code></td><td>да</td><td></td></tr><tr><td><code>lat</code></td><td><code>number</code></td><td>да</td><td></td></tr><tr><td><code>lon</code></td><td><code>number</code></td><td>да</td><td></td></tr><tr><td><code>area_radius</code></td><td><code>integer</code></td><td>да</td><td></td></tr></table></div></section>
+<section class="op" id="schema-tablepage"><div class="op-head"><code class="path">TablePage</code></div>
 <p><code>object</code></p></section>
 <section class="op" id="schema-tablecreate"><div class="op-head"><code class="path">TableCreate</code></div>
 <p>Поставить стол (спека чата §6.1, схема tables). Имена полей предложены 16.09.2026.</p>

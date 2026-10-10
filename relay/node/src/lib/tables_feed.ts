@@ -37,20 +37,20 @@ export interface TableCard {
   area_radius: number;
 }
 
-export async function tablesForFeed(
-  viewer: string,
-  at: { lat: number; lon: number },
-  radius: number,
-  most: number,
-): Promise<TableCard[]> {
-  const box = boundingBox(at, radius + 10000);
-  const rows = await query<{
-    id: string; game: string; set: string; seats: number; name: string | null; like_count: number;
-    lat: number; lon: number; area_radius: number; playing: number; watching: number;
-  }>(
-    `SELECT t.id, t.game, t.set, t.seats, t.name, t.like_count, t.lat, t.lon, t.area_radius,
+interface TableRow {
+  id: string; game: string; set: string; seats: number; name: string | null; like_count: number;
+  lat: number; lon: number; area_radius: number; playing: number; watching: number;
+  created_cursor: string;
+}
+
+// Who may see which table (the list above), as one query for the feed and for
+// GET /tables alike, so the two cannot drift apart. $1 is the viewer, $2..$5
+// the box; `extra` adds conditions after these, `tail` the order and the limit.
+function visibleTables(extra: string, tail: string): string {
+  return `SELECT t.id, t.game, t.set, t.seats, t.name, t.like_count, t.lat, t.lon, t.area_radius,
             count(*) FILTER (WHERE s.playing_from IS NOT NULL)::int AS playing,
-            count(*) FILTER (WHERE s.playing_from IS NULL)::int AS watching
+            count(*) FILTER (WHERE s.playing_from IS NULL)::int AS watching,
+            (extract(epoch from t.created_at) * 1000000)::bigint::text AS created_cursor
        FROM tables t
        JOIN table_seats s ON s.table_id = t.id AND s.left_at IS NULL
       WHERE t.closed_at IS NULL
@@ -61,34 +61,100 @@ export async function tablesForFeed(
           SELECT 1 FROM table_seats o JOIN identities other ON other.id = o.identity JOIN identities me ON me.id = $1
            WHERE o.table_id = t.id AND o.left_at IS NULL
              AND (NOT ${bandBetween("me", "other")} OR ${blockedEither("me.id", "other.id")}))
+        ${extra}
       GROUP BY t.id
      HAVING count(*) FILTER (WHERE s.playing_from IS NOT NULL) < t.seats
-      ORDER BY random()
-      LIMIT 200`,
+      ${tail}`;
+}
+
+// The circles cross, from the published centre (§6.1, §8.3): null when not.
+function cardOf(row: TableRow, at: { lat: number; lon: number }, radius: number): TableCard | null {
+  const published = quantise({ lat: row.lat, lon: row.lon }, row.area_radius);
+  if (metresBetween(published, at) > row.area_radius + radius) return null;
+  return {
+    kind: "table",
+    id: row.id,
+    game: row.game,
+    set: row.set,
+    seats: row.seats,
+    free_seats: row.seats - row.playing,
+    playing: row.playing,
+    watching: row.watching,
+    name: row.name,
+    like_count: row.like_count,
+    lat: published.lat,
+    lon: published.lon,
+    area_radius: row.area_radius,
+  };
+}
+
+export async function tablesForFeed(
+  viewer: string,
+  at: { lat: number; lon: number },
+  radius: number,
+  most: number,
+): Promise<TableCard[]> {
+  const box = boundingBox(at, radius + 10000);
+  const rows = await query<TableRow>(
+    visibleTables("", "ORDER BY random() LIMIT 200"),
     [viewer, box.latMin, box.latMax, box.lonMin, box.lonMax],
   );
   const cards: TableCard[] = [];
   for (const row of rows ?? []) {
-    const published = quantise({ lat: row.lat, lon: row.lon }, row.area_radius);
-    if (metresBetween(published, at) > row.area_radius + radius) continue;
-    cards.push({
-      kind: "table",
-      id: row.id,
-      game: row.game,
-      set: row.set,
-      seats: row.seats,
-      free_seats: row.seats - row.playing,
-      playing: row.playing,
-      watching: row.watching,
-      name: row.name,
-      like_count: row.like_count,
-      lat: published.lat,
-      lon: published.lon,
-      area_radius: row.area_radius,
-    });
+    const card = cardOf(row, at, radius);
+    if (!card) continue;
+    cards.push(card);
     if (cards.length >= most) break;
   }
   return cards;
+}
+
+// GET /tables (П18, the owner's decision of 10.10.2026): every table the viewer
+// may see, a page at a time, newest first. Before this the screen "Столы" took
+// the tables of the feed's first page — a quarter of it at most, at random — so
+// with a long feed some tables were never on it.
+//
+// The order is (created_at, id), a pair for the reason the feed's is
+// (routes/feed.ts, DATA-5); the circle is measured here, after the query, so
+// one read may keep fewer rows than it fetched — it reads on until the page is
+// full or the rows end. The page's cursor is its last *shown* table: a row
+// skipped after it is skipped again on the next page, never lost.
+const SCAN = 100;
+
+export async function tablesPage(
+  viewer: string,
+  at: { lat: number; lon: number },
+  radius: number,
+  after: { micros: string; id: string } | null,
+  size: number,
+): Promise<{ cards: TableCard[]; last: { micros: string; id: string } | null; more: boolean } | null> {
+  const box = boundingBox(at, radius + 10000);
+  const cards: TableCard[] = [];
+  const keys: { micros: string; id: string }[] = [];
+  let scan = after;
+  for (;;) {
+    const rows = await query<TableRow>(
+      visibleTables(
+        `AND ($6::bigint IS NULL OR (t.created_at, t.id) <
+               (timestamptz 'epoch' + $6::bigint * interval '1 microsecond', $7::uuid))`,
+        `ORDER BY t.created_at DESC, t.id DESC LIMIT ${SCAN}`,
+      ),
+      [viewer, box.latMin, box.latMax, box.lonMin, box.lonMax, scan?.micros ?? null, scan?.id ?? null],
+    );
+    if (rows === null) return null;
+    for (const row of rows) {
+      const card = cardOf(row, at, radius);
+      if (!card) continue;
+      // One more than the page, to know whether there is a next one.
+      if (cards.length === size) return { cards, last: keys[size - 1], more: true };
+      cards.push(card);
+      keys.push({ micros: row.created_cursor, id: row.id });
+    }
+    if (rows.length < SCAN) break;
+    const end = rows[rows.length - 1];
+    scan = { micros: end.created_cursor, id: end.id };
+  }
+  return { cards, last: keys[keys.length - 1] ?? null, more: false };
 }
 
 // Tables among the cards: one after every third phrase, the rest at the end.

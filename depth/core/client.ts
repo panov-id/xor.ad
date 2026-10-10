@@ -452,6 +452,15 @@ export class Client {
     return answer.body;
   }
 
+  // GET /tables (П18): the tables near, a page at a time, in the feed's circle.
+  async tables(at: { lat: number; lon: number; radius: Radius; after?: string }): Promise<{ items: unknown[]; next: string | null }> {
+    const q = new URLSearchParams({ lat: String(at.lat), lon: String(at.lon), radius: String(at.radius) });
+    if (at.after) q.set("after", at.after);
+    const answer = await this.#call<{ items: unknown[]; next: string | null }>("GET", `/tables?${q}`);
+    if (answer.status !== 200) throw new Error(`tables refused: ${answer.status} ${JSON.stringify(answer.body)}`);
+    return answer.body;
+  }
+
   like(
     phraseId: string,
   ): Promise<Answer<{ state: string; match_id?: string; name_pending?: true }>> {

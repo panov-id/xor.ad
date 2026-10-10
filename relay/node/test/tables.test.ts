@@ -711,6 +711,45 @@ test({ name: "a table shows in a neighbour's feed as a card, updates as people s
   assertEquals(await cardFor(neighbour), undefined, "a table whose places are all taken leaves the feed");
 });
 
+// П18 (the owner's decision of 10.10.2026): GET /tables lists every table a
+// neighbour may see, a page at a time — not the quarter of the feed's first
+// page the screen "Столы" used to take.
+test({ name: "GET /tables pages through every table near the viewer, newest first, and refuses a cursor it did not issue", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const lat = 10 + Math.random() * 10;
+  const lon = 100 + Math.random() * 10;
+  const made: string[] = [];
+  for (let i = 0; i < 31; i++) {
+    const owner = await person();
+    const answer = await signed(owner, "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat, lon, area_radius: 1000, nonce: nonce() });
+    assertEquals(answer.status, 201, JSON.stringify(answer.body));
+    made.push(answer.body.id as string);
+  }
+  const far = await signed(await person(), "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat: lat + 1, lon, area_radius: 1000, nonce: nonce() });
+  assertEquals(far.status, 201);
+
+  const viewer = await person();
+  const at = `lat=${lat + 0.001}&lon=${lon + 0.001}&radius=1000`;
+  const first = await signed(viewer, "GET", `/tables?${at}`);
+  assertEquals(first.status, 200, JSON.stringify(first.body));
+  const one = first.body.items as { kind: string; id: string }[];
+  assertEquals(one.length, 30, "the first page is full");
+  assert(typeof first.body.next === "string", "a full page with more behind it gives a cursor");
+  assertEquals(one.every((card) => card.kind === "table"), true);
+  assertEquals(one[0].id, made[30], "newest first");
+
+  const second = await signed(viewer, "GET", `/tables?${at}&after=${first.body.next}`);
+  assertEquals(second.status, 200, JSON.stringify(second.body));
+  const two = second.body.items as { id: string }[];
+  assertEquals(second.body.next, null, "the last page has no cursor");
+  const listed = [...one, ...two].map((card) => card.id);
+  assertEquals(new Set(listed).size, listed.length, "no table on both pages");
+  assertEquals(listed.toSorted(), made.toSorted(), "every table near, none far, across the pages");
+
+  const forged = await signed(viewer, "GET", `/tables?${at}&after=${"A".repeat(70)}`);
+  assertEquals([forged.status, code(forged)], [400, "invalid_body"], "a cursor the node did not issue");
+  assertEquals((await signed(viewer, "GET", `/tables?lon=${lon}&radius=1000`)).status, 400, "no place, no list");
+});
+
 // G1g: the last four classes, one test each, and the seats of a class.
 const moveAs = async (who: Person, id: string, move: unknown) =>
   signed(who, "POST", `/tables/${id}/moves`, { seq: (await seen(who, id)).seq, move });

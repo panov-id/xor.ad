@@ -296,6 +296,30 @@ components:
         - properties:
             items: {type: array, items: {$ref: "#/components/schemas/FeedItem"}}
             radius_used: {type: integer, description: "Present only when the radius was grown past the one asked for, because the circle asked for was empty (protocol §4.2). The cards it brought carry farther_than_asked.", x-description-ru: "Есть только когда радиус вырос сверх запрошенного, потому что запрошенный круг был пуст (протокол §4.2). Принесённые им карточки несут farther_than_asked."}
+    TableCard:
+      type: object
+      description: "A table a neighbour may sit down at, as GET /tables and GET /feed give it (chat spec §6.1, relay lib/tables_feed.ts). The centre is the grid node its radius rounds to; nobody seated is named."
+      x-description-ru: "Стол, за который сосед может сесть, как его дают GET /tables и GET /feed (спека чата §6.1, relay lib/tables_feed.ts). Центр — узел сетки, к которому округлил его радиус; сидящие не названы."
+      required: [kind, id, game, set, seats, free_seats, playing, watching, like_count, lat, lon, area_radius]
+      properties:
+        kind: {type: string, enum: [table]}
+        id: {type: string, format: uuid}
+        game: {type: string}
+        set: {type: string}
+        seats: {type: integer}
+        free_seats: {type: integer}
+        playing: {type: integer}
+        watching: {type: integer}
+        name: {type: [string, "null"]}
+        like_count: {type: integer}
+        lat: {type: number}
+        lon: {type: number}
+        area_radius: {type: integer}
+    TablePage:
+      allOf:
+        - {$ref: "#/components/schemas/Page"}
+        - properties:
+            items: {type: array, items: {$ref: "#/components/schemas/TableCard"}}
     TableCreate:
       type: object
       description: Set a table (chat spec §6.1, schema tables). Field names proposed 2026-09-16.
@@ -2542,6 +2566,30 @@ paths:
         "429": {$ref: "#/components/responses/RateLimited"}
         "200": {description: "Saved: {span} — the minutes now set for one's own side.", x-description-ru: "Сохранено: {span} — минуты, теперь заданные своей стороне.", content: {application/json: {schema: {type: object, required: [span], properties: {span: {type: integer, enum: [10, 30, 60, 260]}}}}}}
   /tables:
+    get:
+      tags: [tables]
+      summary: "The tables near the viewer, a page at a time"
+      x-summary-ru: "Столы рядом со зрителем, постранично"
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
+      security: [{identitySignature: []}]
+      description: "Every open table with a free place to play whose zone crosses the viewer's circle, by the rules a table enters the feed by (chat spec §6.1): someone sits there, each seated and the viewer within each other's band, no block either way, not one's own, not one liked. 30 cards, newest first, then more by cursor (П18, owner's decision 2026-10-10: the screen «Столы» took the tables of the feed's first page, at most a quarter of it at random). The circle is the feed's: lat, lon, radius; reads count against the feed's limit. The radius is not grown."
+      x-description-ru: "Все открытые столы со свободным местом игрока, чья зона пересекает круг зрителя, по правилам, по которым стол попадает в ленту (спека чата §6.1): кто-то сидит, каждый сидящий и зритель в поясе друг друга, блокировки ни в одну сторону, не свой, не лайкнутый. 30 карточек, новые сначала, дальше по курсору (П18, решение владельца 10.10.2026: экран «Столы» брал столы с первой страницы ленты, не больше четверти её, наугад). Круг — как у ленты: lat, lon, radius; чтения считаются в лимит ленты. Радиус не растёт."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
+        - {$ref: "#/components/parameters/After"}
+        - {name: lat, in: query, required: true, schema: {type: number, minimum: -90, maximum: 90}}
+        - {name: lon, in: query, required: true, schema: {type: number, minimum: -180, maximum: 180}}
+        - {name: radius, in: query, required: true, schema: {type: integer, minimum: 100, maximum: 25000}}
+      responses:
+        "409": {$ref: "#/components/responses/Conflict"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "400": {$ref: "#/components/responses/BadVersionOrBody"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "503": {$ref: "#/components/responses/Unavailable"}
+        "200": {description: A page of tables and the next cursor., x-description-ru: Страница столов и следующий курсор., headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}, content: {application/json: {schema: {$ref: "#/components/schemas/TablePage"}}}}
     post:
       tags: [tables]
       summary: "Set a table"

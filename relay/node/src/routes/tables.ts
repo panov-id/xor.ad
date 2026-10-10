@@ -17,7 +17,9 @@ import { json, readJson } from "../lib/http.ts";
 import { type Query, transaction } from "../lib/db.ts";
 import { type Caller, callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
-import { checkAll } from "../lib/rate_limit.ts";
+import { checkAll, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
+import { cursorConfigured, openCursor, sealCursor } from "../lib/cursor.ts";
+import { tablesPage } from "../lib/tables_feed.ts";
 import { log } from "../lib/log.ts";
 import { stepGame } from "../lib/tables_engine.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
@@ -554,6 +556,51 @@ async function ticket(req: Request, tableId: string): Promise<Response> {
   });
 }
 
+// GET /tables — the tables near the viewer, a page at a time (П18; who sees
+// which, lib/tables_feed.ts). The place and the radius are the feed's and are
+// checked as there; reads count against the feed's own limit, because a list
+// of tables answers the same question about a place the feed does.
+const LIST_PAGE = 30;
+const LIST_RADIUS_CEILING = 25000;
+
+async function list(req: Request): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  const allowed = checkAll(FEED_READ_LIMITS, caller.identityId);
+  if (!allowed.allowed) {
+    return refuse("rate_limited", "too many reads of the feed", 429, {}, {
+      "retry-after": String(allowed.retryAfterSeconds),
+    });
+  }
+  const url = new URL(req.url);
+  const lat = Number(url.searchParams.get("lat"));
+  const lon = Number(url.searchParams.get("lon"));
+  const radius = Number(url.searchParams.get("radius"));
+  if (url.searchParams.get("lat") === null || !Number.isFinite(lat) || lat < -90 || lat > 90) {
+    return refuse("invalid_body", "lat is missing or not a latitude", 400);
+  }
+  if (url.searchParams.get("lon") === null || !Number.isFinite(lon) || lon < -180 || lon > 180) {
+    return refuse("invalid_body", "lon is missing or not a longitude", 400);
+  }
+  if (!Number.isFinite(radius) || radius < 100 || radius > LIST_RADIUS_CEILING) {
+    return refuse("invalid_body", `radius must be between 100 and ${LIST_RADIUS_CEILING} metres`, 400);
+  }
+  if (!cursorConfigured()) return refuse("unavailable", "the node cannot answer right now", 503);
+  const after = url.searchParams.get("after");
+  let from: { micros: string; id: string } | null = null;
+  if (after) {
+    from = await openCursor("tables", after);
+    if (!from) return refuse("invalid_body", "after is not a cursor from this list", 400);
+  }
+  const page = await tablesPage(caller.identityId, { lat, lon }, radius, from, LIST_PAGE);
+  if (!page) return refuse("unavailable", "the node cannot answer right now", 503);
+  return json({
+    items: page.cards,
+    next: page.more && page.last ? await sealCursor("tables", page.last.micros, page.last.id) : null,
+  }, 200, sunsetHeader());
+}
+
+route("GET", "/tables", (c) => list(c.req));
 route("POST", "/tables", (c) => create(c.req));
 route("POST", "/tables/:id/ticket", (c) => ticket(c.req, c.params.id));
 route("POST", "/tables/:id/like", (c) => like(c.req, c.params.id));

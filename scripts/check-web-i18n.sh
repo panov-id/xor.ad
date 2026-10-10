@@ -214,6 +214,7 @@ SAME_AS_EN = {
     },
     "fr": {
         "web.ui.code",  # code
+        "web.nav.tables",  # tables
         "web.card.phrase",  # phrase
         "web.composer.mode",  # mode
         "web.composer.phrase",  # phrase

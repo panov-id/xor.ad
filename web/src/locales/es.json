@@ -403,5 +403,9 @@
   "web.like.undo_mark": "el me gusta saldrá en {n} s",
   "web.like.undo": "deshacer",
   "web.like.cancelled": "me gusta deshecho",
-  "web.like.needs_phrase": "Primero escribe tu propia frase: un me gusta es el encuentro de dos frases."
+  "web.like.needs_phrase": "Primero escribe tu propia frase: un me gusta es el encuentro de dos frases.",
+  "web.nav.tables": "mesas",
+  "web.tables.title": "Mesas cerca",
+  "web.tables.empty": "Aún no hay mesas cerca",
+  "web.tables.empty_hint": "Pon la tuya y otros se sentarán."
 }

@@ -403,5 +403,9 @@
   "web.like.undo_mark": "το like θα σταλεί σε {n} δ",
   "web.like.undo": "αναίρεση",
   "web.like.cancelled": "το like αναιρέθηκε",
-  "web.like.needs_phrase": "Γράψτε πρώτα τη δική σας φράση: ένα like είναι η συνάντηση δύο φράσεων."
+  "web.like.needs_phrase": "Γράψτε πρώτα τη δική σας φράση: ένα like είναι η συνάντηση δύο φράσεων.",
+  "web.nav.tables": "τραπέζια",
+  "web.tables.title": "Τραπέζια κοντά",
+  "web.tables.empty": "Δεν υπάρχουν ακόμη τραπέζια κοντά",
+  "web.tables.empty_hint": "Στήστε το δικό σας και οι άλλοι θα καθίσουν."
 }

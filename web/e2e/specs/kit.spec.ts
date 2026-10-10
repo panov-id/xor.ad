@@ -441,9 +441,11 @@ test("TabBar: a named nav, the word under the icon is the name, aria-current on 
   const nav = page.getByRole("navigation", { name: "основная навигация" });
   await expect(nav).toHaveCount(1);
   const tabs = nav.getByRole("button");
-  await expect(tabs).toHaveCount(3);
+  await expect(tabs, "four tabs: feed, tables, talks, me (kit_RU.md §8.4)").toHaveCount(4);
   await expect(tabs.nth(0)).toHaveAccessibleName("лента");
-  await expect(tabs.nth(1)).toHaveAccessibleName("разговоры");
+  await expect(tabs.nth(1)).toHaveAccessibleName("столы");
+  await expect(tabs.nth(2)).toHaveAccessibleName("разговоры");
+  await expect(tabs.nth(3)).toHaveAccessibleName("я");
   await expect(tabs.nth(0), "the open tab").toHaveAttribute("aria-current", "page");
   await expect(nav.locator("[aria-current]"), "only one tab is current").toHaveCount(1);
   await expect(tabs.nth(1).locator("span"), "the word is drawn under the icon").toBeVisible();

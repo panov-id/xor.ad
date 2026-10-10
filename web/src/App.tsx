@@ -38,6 +38,7 @@ import { Departure } from "./screens/Departure.tsx";
 import { Cabinet } from "./adv/Cabinet.tsx";
 import { Table } from "./screens/Table.tsx";
 import { NewTable } from "./screens/NewTable.tsx";
+import { TableList } from "./screens/TableList.tsx";
 import { Tables } from "../../depth/core/tables.ts";
 import { tableRefusal } from "./api/tables.ts";
 import { Blocked } from "./screens/Blocked.tsx";
@@ -76,7 +77,8 @@ type Screen =
   | { at: "departure" }
   | { at: "hidden" }
   | { at: "table"; tableId: string }
-  | { at: "new-table" }
+  | { at: "tables" }
+  | { at: "new-table"; from: "feed" | "tables" }
   | { at: "blocked" }
   | { at: "arrival" }
   | { at: "reset" }
@@ -236,7 +238,7 @@ function Face() {
   // Matches declined in this page's life, kept to be taken back (W17).
   const [declined, setDeclined] = useState<MatchRow[]>([]);
 
-  // A table from the feed (W10): a seat first — the node says no to a full
+  // A table from the feed or the tables tab (W10, К6б): a seat first — the node says no to a full
   // table or a closed one, and the feed says why; seated, the table screen.
   const [tableNotice, setTableNotice] = useState<string | null>(null);
   async function enterTable(id: string) {
@@ -249,12 +251,13 @@ function Face() {
 
   // The tab bar at the foot, the kit's TabBar: a nav with a name, each tab named
   // by the word under its icon, aria-current on the open one.
-  const nav = seated && (screen.at === "feed" || screen.at === "inbox" || screen.at === "me") && (
+  const nav = seated && (screen.at === "feed" || screen.at === "tables" || screen.at === "inbox" || screen.at === "me") && (
     <TabBar
       label={say("web.ui.navMain")}
       data-testid="nav"
       items={[
         { id: "feed", icon: "feed", label: say("web.nav.feed"), current: screen.at === "feed", onSelect: () => setScreen({ at: "feed" }), testid: "nav-feed" },
+        { id: "tables", icon: "table", label: say("web.nav.tables"), current: screen.at === "tables", onSelect: () => leaveFeed({ at: "tables" }), testid: "nav-tables" },
         { id: "inbox", icon: "say", label: say("web.nav.inbox"), current: screen.at === "inbox", onSelect: () => leaveFeed({ at: "inbox" }), testid: "nav-inbox" },
         { id: "me", icon: "me", label: say("me.title"), current: screen.at === "me", onSelect: () => leaveFeed({ at: "me" }), testid: "tab-me" },
       ]}
@@ -297,13 +300,27 @@ function Face() {
             onRadius={setRadius}
             onOpen={(card) => leaveFeed({ at: "card", card })}
             onTable={(id) => void enterTable(id)}
-            onNewTable={() => leaveFeed({ at: "new-table" })}
+            onNewTable={() => leaveFeed({ at: "new-table", from: "feed" })}
             notice={tableNotice}
             onWrite={() => leaveFeed({ at: "composer" })}
             onLikes={() => leaveFeed({ at: "likes" })}
             sent={sent}
             onTakenDown={() => setSent(null)}
             gone={gone}
+          />
+          {nav}
+        </div>
+      );
+    case "tables":
+      return (
+        <div className="ui-tabbed">
+          <TableList
+            client={seated!.client}
+            at={at}
+            radius={radius}
+            onTable={(id) => void enterTable(id)}
+            onNewTable={() => leaveFeed({ at: "new-table", from: "tables" })}
+            notice={tableNotice}
           />
           {nav}
         </div>
@@ -397,7 +414,7 @@ function Face() {
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
     case "new-table":
-      return <NewTable client={seated!.client} at={at} radius={radius} onMade={(id) => setScreen({ at: "table", tableId: id })} onBack={toFeed} />;
+      return <NewTable client={seated!.client} at={at} radius={radius} onMade={(id) => setScreen({ at: "table", tableId: id })} onBack={() => setScreen({ at: screen.from })} />;
     case "table":
       return <Table client={seated!.client} tableId={screen.tableId} onLeave={() => { history.replaceState(null, "", "/"); setScreen({ at: "feed" }); }} />;
     case "hidden":

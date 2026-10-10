@@ -403,5 +403,9 @@
   "web.like.undo_mark": "le j'aime part dans {n} s",
   "web.like.undo": "annuler",
   "web.like.cancelled": "j'aime annulé",
-  "web.like.needs_phrase": "Écrivez d'abord votre propre phrase : un j'aime, c'est la rencontre de deux phrases."
+  "web.like.needs_phrase": "Écrivez d'abord votre propre phrase : un j'aime, c'est la rencontre de deux phrases.",
+  "web.nav.tables": "tables",
+  "web.tables.title": "Tables à proximité",
+  "web.tables.empty": "Pas encore de tables à proximité",
+  "web.tables.empty_hint": "Installez la vôtre, d’autres s’assiéront."
 }

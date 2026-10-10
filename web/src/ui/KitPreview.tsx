@@ -71,6 +71,7 @@ export function KitPreview() {
   const [tab, setTab] = useState("feed");
   const tabs = [
     { id: "feed", icon: "feed" as const, label: say("web.nav.feed"), testid: "kit-tab-feed" },
+    { id: "tables", icon: "table" as const, label: say("web.nav.tables"), testid: "kit-tab-tables" },
     { id: "inbox", icon: "say" as const, label: say("web.nav.inbox"), testid: "kit-tab-inbox" },
     { id: "me", icon: "me" as const, label: say("me.title"), testid: "kit-tab-me" },
   ].map((t) => ({ ...t, current: tab === t.id, onSelect: () => setTab(t.id) }));

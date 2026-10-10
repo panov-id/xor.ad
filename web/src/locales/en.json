@@ -403,5 +403,9 @@
   "web.like.undo_mark": "the like goes in {n} s",
   "web.like.undo": "undo",
   "web.like.cancelled": "like undone",
-  "web.like.needs_phrase": "Write your own phrase first: a like is two phrases meeting."
+  "web.like.needs_phrase": "Write your own phrase first: a like is two phrases meeting.",
+  "web.nav.tables": "tables",
+  "web.tables.title": "Tables nearby",
+  "web.tables.empty": "No tables nearby yet",
+  "web.tables.empty_hint": "Set one up and others will sit down."
 }

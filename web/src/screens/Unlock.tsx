@@ -8,8 +8,12 @@ import type { Client } from "../../../depth/core/client.ts";
 import { forget, PinRefused, type Record_, unlockAfterReload } from "../vault.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
+import { Actions } from "../ui/Links.tsx";
+import { Screen } from "../ui/Screen.tsx";
 import { pinMismatch } from "../pinWords.ts";
 
 // The node's refusal as one line, in the terminal's words (depth/ink/locales/
@@ -52,17 +56,15 @@ export function Unlock({ record, onDone, onForget, onRestore }: { record: Record
   }
 
   return (
-    <main className="screen unlock" data-screen="unlock">
-      <HeaderScreen title={say("reg.pin")} />
-      <div className="ui-info-row"><Info label={say("reg.pin")} data-testid="unlock-info"><p>{say("web.unlock.remembers")}</p></Info></div>
-      <label>
-        {say("reg.pin")}
-        <input type="password" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" data-testid="unlock-pin" autoFocus />
-      </label>
-      {error && <p className="error" data-testid="error">{error}</p>}
-      <Button type="button" kind="primary" icon="key" className="ui-wide ui-foot" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={pin.length !== 6 || busy} onClick={unlock} data-testid="unlock" />
-      {error && <Button type="button" icon="code" className="ui-wide" aria-label={say("web.unlock.restore")} onClick={onRestore} data-testid="unlock-restore" />}
-      <Button type="button" icon="forget" className="ui-wide" aria-label={say("web.unlock.forget")} onClick={async () => { await forget(); onForget(); }} data-testid="forget" />
-    </main>
+    <Screen name="unlock" title={say("reg.pin")} header={<HeaderScreen title={say("reg.pin")} />}>
+      <div className="ui-info-row"><Info label={say("web.info.pin")} data-testid="unlock-info"><p>{say("web.unlock.remembers")}</p></Info></div>
+      <PinField value={pin} onChange={setPin} data-testid="unlock-pin" />
+      {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
+      <Actions data-part="foot">
+        <Button type="button" icon="forget" className="ui-wide" aria-label={say("web.unlock.forget")} onClick={async () => { await forget(); onForget(); }} data-testid="forget" />
+        {error && <Button type="button" icon="code" className="ui-wide" aria-label={say("web.unlock.restore")} onClick={onRestore} data-testid="unlock-restore" />}
+        <Button type="button" kind="primary" icon="key" className="ui-wide" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={pin.length !== 6 || busy} onClick={unlock} data-testid="unlock" />
+      </Actions>
+    </Screen>
   );
 }

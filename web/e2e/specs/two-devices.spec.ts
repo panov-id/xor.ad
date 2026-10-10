@@ -124,13 +124,13 @@ test("the second device: a move under the PIN, a first PIN, the chat goes on; th
   await second.getByTestId("tab-me").click();
   await second.getByTestId("me-reissue").click();
   await expect(second.locator('[data-screen="reissue-1"]')).toBeVisible();
-  await second.getByTestId("reissue-current").fill(paper.join(" "));
+  await second.getByTestId("reissue-current").locator("input").first().fill(paper.join(" "));
   await second.getByTestId("reissue-next").click();
   await expect(second.locator('[data-screen="reissue-2"]'), "the moved device could not reissue the paper code").toBeVisible({ timeout: 30000 });
   const next = (await second.getByTestId("reissue-code").textContent())!.trim().split(" ");
   expect(next.join("")).not.toBe(paper.join(""));
-  await second.getByTestId("reissue-group-2").fill(next[1]);
-  await second.getByTestId("reissue-group-4").fill(next[3]);
+  await second.getByTestId("reissue-groups").locator("input").first().fill(next[1]);
+  await second.getByTestId("reissue-groups").locator("input").last().fill(next[3]);
   await second.getByTestId("reissue-confirm").click();
   await expect(second.locator('[data-screen="me"]')).toBeVisible({ timeout: 30000 });
 
@@ -138,12 +138,12 @@ test("the second device: a move under the PIN, a first PIN, the chat goes on; th
   const third = await fresh(browser);
   await third.goto("/");
   await third.getByTestId("restore").click();
-  await third.getByTestId("restore-code").fill(paper.join(" "));
+  await third.getByTestId("restore-code").locator("input").first().fill(paper.join(" "));
   await third.getByTestId("restore-pin").fill("975310");
   await third.getByTestId("restore-pin-again").fill("975310");
   await third.getByTestId("restore-go").click();
   await expect(third.getByTestId("error"), "the old paper code still raises the identity after a reissue").toContainText("Код не подошёл", { timeout: 30000 });
-  await third.getByTestId("restore-code").fill(next.join(" "));
+  await third.getByTestId("restore-code").locator("input").first().fill(next.join(" "));
   await third.getByTestId("restore-go").click();
   await expect(third.locator('[data-screen="feed"]')).toBeVisible({ timeout: 45000 });
   await rekeyOnNewDevice(third, anya, 2);

@@ -27,11 +27,11 @@ test("a Russian browser reads Russian", async ({ page }) => {
 test("the splash's corner chooses the language, and the choice outlives a reload", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Что говорят соседи рядом." })).toBeVisible();
-  await page.getByTestId("lang").selectOption("uk");
+  await page.getByTestId("lang").locator("select").selectOption("uk");
   await expect(page.getByRole("heading", { name: "Що кажуть сусіди поруч." })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("heading", { name: "Що кажуть сусіди поруч." })).toBeVisible();
-  await expect(page.getByTestId("lang")).toHaveValue("uk");
+  await expect(page.getByTestId("lang").locator("select")).toHaveValue("uk");
 });
 
 // From "me": every language both dictionaries know is offered, and choosing one

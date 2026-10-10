@@ -19,18 +19,18 @@ test("the paper code is reissued: the old one dies, the new one raises the ident
   // A wrong current code is refused on the device, nothing sent.
   const sent: number[] = [];
   page.on("response", (r) => { if (new URL(r.url()).pathname === "/recovery/reissue") sent.push(r.status()); });
-  await page.getByTestId("reissue-current").fill("0000 0000 0000 0000");
+  await page.getByTestId("reissue-current").locator("input").first().fill("0000 0000 0000 0000");
   await page.getByTestId("reissue-next").click();
   await expect(page.getByTestId("error")).toContainText("Код не подошёл", { timeout: 30000 });
   expect(sent).toEqual([]);
-  await page.getByTestId("reissue-current").fill(old.join("-").toLowerCase());
+  await page.getByTestId("reissue-current").locator("input").first().fill(old.join("-").toLowerCase());
   await page.getByTestId("reissue-next").click();
   await expect(page.locator('[data-screen="reissue-2"]')).toBeVisible({ timeout: 30000 });
   const fresh = (await page.getByTestId("reissue-code").textContent())!.trim().split(" ");
   expect(fresh).toHaveLength(4);
   expect(fresh.join("")).not.toBe(old.join(""));
-  await page.getByTestId("reissue-group-2").fill(fresh[1]);
-  await page.getByTestId("reissue-group-4").fill(fresh[3]);
+  await page.getByTestId("reissue-groups").locator("input").first().fill(fresh[1]);
+  await page.getByTestId("reissue-groups").locator("input").last().fill(fresh[3]);
   await page.getByTestId("reissue-confirm").click();
   await expect(page.locator('[data-screen="me"]')).toBeVisible({ timeout: 30000 });
   expect(sent).toEqual([204]);
@@ -42,12 +42,12 @@ test("the paper code is reissued: the old one dies, the new one raises the ident
   watch(clean, feedB);
   await clean.goto("/");
   await clean.getByTestId("restore").click();
-  await clean.getByTestId("restore-code").fill(old.join(" "));
+  await clean.getByTestId("restore-code").locator("input").first().fill(old.join(" "));
   await clean.getByTestId("restore-pin").fill("135790");
   await clean.getByTestId("restore-pin-again").fill("135790");
   await clean.getByTestId("restore-go").click();
   await expect(clean.getByTestId("error")).toContainText("Код не подошёл", { timeout: 30000 });
-  await clean.getByTestId("restore-code").fill(fresh.join(" "));
+  await clean.getByTestId("restore-code").locator("input").first().fill(fresh.join(" "));
   await clean.getByTestId("restore-go").click();
   await expect(clean.locator('[data-screen="feed"]')).toBeVisible({ timeout: 45000 });
   await expect(clean.getByTestId("loading")).toBeHidden({ timeout: 15000 });

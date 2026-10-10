@@ -24,7 +24,7 @@ test("the last three PIN attempts say what the tenth miss does, and the right PI
   await page.getByTestId("start").click();
   await page.getByTestId("name").fill("Аня");
   await page.getByTestId("age").fill("28");
-  await page.getByTestId("consent").check();
+  await page.getByRole("checkbox").check();
   await page.getByTestId("next").click();
   await page.getByTestId("pin").fill("111111");
   await expect(page.locator('[data-screen="register-2"]')).toContainText("этот ПИН легко угадать");
@@ -42,7 +42,7 @@ test("the last three PIN attempts say what the tenth miss does, and the right PI
   await expect(page.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 15000 });
   await page.getByTestId("unlock-pin").fill("654321");
   await page.getByTestId("unlock").click();
-  await expect(page.getByTestId("error")).toHaveText("ПИН не подходит. Осталось попыток: 9", { timeout: 30000 });
+  await expect(page.getByTestId("error")).toHaveText(/ПИН не подходит\. Осталось попыток: 9$/, { timeout: 30000 });
 
   // Six misses later, as the node would have counted them: four left, no wait.
   const sql = postgres(DATABASE, { max: 1 });
@@ -58,7 +58,7 @@ test("the last three PIN attempts say what the tenth miss does, and the right PI
   await page.getByTestId("unlock-pin").fill("654321");
   await page.getByTestId("unlock").click();
   await expect(page.getByTestId("error"), "the last attempts do not say what the tenth miss does")
-    .toHaveText("ПИН не подходит. Осталось попыток: 3 После этого вход на этом устройстве закроется до бумажного кода.", { timeout: 30000 });
+    .toHaveText(/ПИН не подходит\. Осталось попыток: 3 После этого вход на этом устройстве закроется до бумажного кода\.$/, { timeout: 30000 });
 
   // The seventh miss opens a ten-minute wait (pin.delay.8), and the right PIN
   // inside it is refused as too soon — the node's rule, said on the screen.
@@ -104,7 +104,7 @@ test("the idle lock's last three PIN attempts say what the tenth miss does too",
   await page.getByTestId("lock-pin").fill("654321");
   await page.getByTestId("lock-go").click();
   await expect(page.getByTestId("error"), "the lock's last attempts do not say what the tenth miss does")
-    .toHaveText("ПИН не подходит. Осталось попыток: 3 После этого вход на этом устройстве закроется до бумажного кода.", { timeout: 30000 });
+    .toHaveText(/ПИН не подходит\. Осталось попыток: 3 После этого вход на этом устройстве закроется до бумажного кода\.$/, { timeout: 30000 });
   await context.close();
 });
 

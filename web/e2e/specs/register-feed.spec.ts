@@ -28,7 +28,7 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
   await page.getByTestId("name").fill("Аня");
   await page.getByTestId("age").fill("28");
   await expect(page.getByTestId("next")).toBeDisabled();
-  await page.getByTestId("consent").check();
+  await page.getByRole("checkbox").check();
   await page.getByTestId("next").click();
 
   // Step 2: the PIN twice; an easy one warns and does not stop.
@@ -45,13 +45,13 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
   expect(code).toHaveLength(4);
   for (const group of code) expect(group).toMatch(/^[0-9A-HJKMNP-TV-Z]{4}$/);
   // A wrong group is refused before anything is sent.
-  await page.getByTestId("group-2").fill(code[3]);
-  await page.getByTestId("group-4").fill(code[1]);
+  await page.getByTestId("paper-groups").locator("input").first().fill(code[3]);
+  await page.getByTestId("paper-groups").locator("input").last().fill(code[1]);
   await page.getByTestId("confirm").click();
   await expect(page.getByTestId("error")).toContainText("группы не сходятся");
   // The right ones, typed the way a person types: lower case and a dash.
-  await page.getByTestId("group-2").fill(code[1].toLowerCase());
-  await page.getByTestId("group-4").fill(`${code[3].slice(0, 2)}-${code[3].slice(2)}`);
+  await page.getByTestId("paper-groups").locator("input").first().fill(code[1].toLowerCase());
+  await page.getByTestId("paper-groups").locator("input").last().fill(`${code[3].slice(0, 2)}-${code[3].slice(2)}`);
   await page.getByTestId("confirm").click();
 
   // The feed: the node answered 200, the screen says quiet or shows cards.

@@ -39,7 +39,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 .card p { margin: 0; }
 .offer { color: var(--accent-text); font-weight: 600; }
 .empty { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-8) 0; text-align: center; }
-.splash { justify-content: center; text-align: center; }
+[data-screen="splash"] { text-align: center; }
 footer { margin-top: auto; }
 /* W2: the composer, the card full-screen, "liked". */
 textarea { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--border-control); border-radius: var(--r-1); padding: 10px var(--s-3); resize: vertical; }
@@ -74,7 +74,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
    (panel/design/kit/tokens.css), read off components.svg. */
 .ui-button { display: inline-flex; align-items: center; justify-content: center; min-height: var(--control-h); padding: 0 var(--s-4); border-radius: var(--r-2); font-size: 16px; font-weight: 600; }
 .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: 3px 3px 0 var(--shadow); }
-.ui-primary:disabled { background: var(--panel-2); border-color: var(--panel-2); color: var(--muted); box-shadow: none; opacity: 1; }
+.ui-primary:disabled, .ui-primary[aria-disabled="true"] { background: var(--panel-2); border-color: var(--panel-2); color: var(--muted); box-shadow: none; opacity: 1; }
 .ui-secondary { background: transparent; border-color: var(--border-control); color: var(--fg); }
 .ui-danger { background: transparent; border-color: var(--err); color: var(--err); }
 .ui-pill { background: var(--fg); border-color: var(--fg); color: var(--bg); border-radius: var(--r-pill); font-size: 14px; }

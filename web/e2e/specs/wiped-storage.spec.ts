@@ -49,7 +49,7 @@ test("with the site's data wiped the page leads to the paper code, and the code 
   });
   await page.getByTestId("restore").click();
   await expect(page.locator('[data-screen="restore"]')).toBeVisible();
-  await page.getByTestId("restore-code").fill(code.join(" "));
+  await page.getByTestId("restore-code").locator("input").first().fill(code.join(" "));
   await page.getByTestId("restore-pin").fill("246810");
   await page.getByTestId("restore-pin-again").fill("246810");
   await page.getByTestId("restore-go").click();

@@ -70,12 +70,12 @@ test("an identity moves from one browser to another and opens there after a relo
   fresh.on("response", (r) => { if (new URL(r.url()).pathname === "/recovery/reissue") reissued.push(r.status()); });
   await fresh.getByTestId("tab-me").click();
   await fresh.getByTestId("me-reissue").click();
-  await fresh.getByTestId("reissue-current").fill(paper.join(" "));
+  await fresh.getByTestId("reissue-current").locator("input").first().fill(paper.join(" "));
   await fresh.getByTestId("reissue-next").click();
   await expect(fresh.locator('[data-screen="reissue-2"]')).toBeVisible({ timeout: 30000 });
   const next = (await fresh.getByTestId("reissue-code").textContent())!.trim().split(" ");
-  await fresh.getByTestId("reissue-group-2").fill(next[1]);
-  await fresh.getByTestId("reissue-group-4").fill(next[3]);
+  await fresh.getByTestId("reissue-groups").locator("input").first().fill(next[1]);
+  await fresh.getByTestId("reissue-groups").locator("input").last().fill(next[3]);
   await fresh.getByTestId("reissue-confirm").click();
   await expect(fresh.locator('[data-screen="me"]')).toBeVisible({ timeout: 30000 });
   expect(reissued).toEqual([204]);
@@ -83,7 +83,7 @@ test("an identity moves from one browser to another and opens there after a relo
   const clean = await (await browser.newContext({ viewport: { width: 393, height: 851 } })).newPage();
   await clean.goto("/");
   await clean.getByTestId("restore").click();
-  await clean.getByTestId("restore-code").fill(paper.join(" "));
+  await clean.getByTestId("restore-code").locator("input").first().fill(paper.join(" "));
   await clean.getByTestId("restore-pin").fill("135790");
   await clean.getByTestId("restore-pin-again").fill("135790");
   await clean.getByTestId("restore-go").click();

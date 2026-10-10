@@ -29,7 +29,7 @@ test("a spoiled seal on the disk: the PIN screen says the way in is closed and l
   await page.evaluate(() => sessionStorage.clear());
   await page.reload();
   await unlock(page, PIN);
-  await expect(page.getByTestId("error")).toHaveText("Вход закрыт до бумажного кода.", { timeout: 30000 });
+  await expect(page.getByTestId("error")).toHaveText(/Вход закрыт до бумажного кода\.$/, { timeout: 30000 });
   await page.getByTestId("unlock-restore").click();
   await expect(page.locator('[data-screen="restore"]')).toBeVisible();
 });

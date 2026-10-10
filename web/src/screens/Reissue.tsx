@@ -12,15 +12,21 @@ import { isCurrentCode, reissue } from "../../../depth/core/recovery.ts";
 import { say } from "../api/me.ts";
 import { rememberWrappedLongKey } from "../vault.ts";
 import { Button } from "../ui/Button.tsx";
+import { CodeField } from "../ui/CodeField.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
+import { Actions } from "../ui/Links.tsx";
+import { Screen } from "../ui/Screen.tsx";
 
 export function Reissue({ client, onDone, onBack }: { client: Client; onDone: () => void; onBack: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
-  const [current, setCurrent] = useState("");
+  // The current code as four boxes (CodeField); the new one's second and fourth group, typed back.
+  const [current, setCurrent] = useState<string[]>(["", "", "", ""]);
+  const currentText = current.join(" ");
   const [next] = useState(() => newPaperCode());
-  const [second, setSecond] = useState("");
-  const [fourth, setFourth] = useState("");
+  const [typed, setTyped] = useState<string[]>(["", ""]);
+  const [second, fourth] = typed;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const groups = paperGroups(next);
@@ -29,8 +35,8 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
     setBusy(true);
     setError(null);
     try {
-      if (readPaperText(current).length !== 16) return setError(say("restore.bad"));
-      if (!await isCurrentCode(client, current)) return setError(say("restore.noMatch"));
+      if (readPaperText(currentText).length !== 16) return setError(say("restore.bad"));
+      if (!await isCurrentCode(client, currentText)) return setError(say("restore.noMatch"));
       setStep(2);
     } catch (e) {
       setError((e as Error).message);
@@ -46,7 +52,7 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
     setBusy(true);
     setError(null);
     try {
-      const outcome = await reissue(client, current, next);
+      const outcome = await reissue(client, currentText, next);
       if (!outcome.ok) {
         const o = outcome as { reason?: string; status?: number };
         return setError(o.reason === "no_match" ? say("restore.noMatch") : say("restore.refused", { status: String(o.status ?? o.reason ?? "?") }));
@@ -63,38 +69,29 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
   }
 
   return (
-    <main className="screen reissue" data-screen={`reissue-${step}`}>
-      <HeaderScreen title={say("reissue.title")} />
+    <Screen name={`reissue-${step}`} title={say("reissue.title")} header={<HeaderScreen title={say("reissue.title")} />}>
       {step === 1
         ? (
           <>
-            <div className="ui-info-row"><Info label={say("reissue.title")} data-testid="reissue-info"><p>{say("reissue.intro")}</p></Info></div>
-            <label>
-              {say("restore.code")}
-              <input value={current} onChange={(e) => setCurrent(e.target.value)} data-testid="reissue-current" autoComplete="off" />
-            </label>
-            {error && <p className="error" data-testid="error">{error}</p>}
-            <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("me.save")} aria-busy={busy} disabled={busy || readPaperText(current).length !== 16} onClick={() => void check()} data-testid="reissue-next" />
-            <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="reissue-back" />
+            <div className="ui-info-row"><Info label={say("web.info.reissue")} data-testid="reissue-info"><p>{say("reissue.intro")}</p></Info></div>
+            <div data-testid="reissue-current"><CodeField value={current} onChange={setCurrent} /></div>
+            {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
+            <Actions>
+              <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="reissue-back" />
+              <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("me.save")} aria-busy={busy} disabled={busy || readPaperText(currentText).length !== 16} onClick={() => void check()} data-testid="reissue-next" />
+            </Actions>
           </>
         )
         : (
           <>
-            <p className="code" data-testid="reissue-code">{groups.join(" ")}</p>
-            <div className="ui-info-row"><Info label={say("reissue.title")} data-testid="reissue-write-info"><p>{say("web.reissue.writeDown")}</p></Info></div>
+            <p data-testid="reissue-code">{groups.join(" ")}</p>
+            <div className="ui-info-row"><Info label={say("web.info.code")} data-testid="reissue-write-info"><p>{say("web.reissue.writeDown")}</p></Info></div>
             <p>{say("web.reissue.enterGroups")}</p>
-            <label>
-              {say("web.reissue.second")}
-              <input value={second} onChange={(e) => setSecond(e.target.value)} data-testid="reissue-group-2" autoComplete="off" />
-            </label>
-            <label>
-              {say("web.reissue.fourth")}
-              <input value={fourth} onChange={(e) => setFourth(e.target.value)} data-testid="reissue-group-4" autoComplete="off" />
-            </label>
-            {error && <p className="error" data-testid="error">{error}</p>}
+            <div data-testid="reissue-groups"><CodeField groups={[2, 4]} value={typed} onChange={setTyped} /></div>
+            {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
             <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("web.reissue.done")} disabled={busy || !second || !fourth} onClick={() => void confirm()} data-testid="reissue-confirm" />
           </>
         )}
-    </main>
+    </Screen>
   );
 }

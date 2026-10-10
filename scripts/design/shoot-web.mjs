@@ -117,7 +117,7 @@ async function register(page, name, age, shots) {
   await seen(screen(page, "register-1"));
   await id(page, "name").fill(name);
   await id(page, "age").fill(age);
-  await id(page, "consent").check();
+  await page.getByRole("checkbox").check();
   if (shots) await shoot(page, "Register-1");
   await id(page, "next").click();
   await seen(screen(page, "register-2"));
@@ -129,8 +129,8 @@ async function register(page, name, age, shots) {
   if (await id(page, "error").isVisible()) throw new Error(`registration refused: ${await id(page, "error").textContent()}`);
   if (shots) await step("Register", page, async () => {});
   const code = (await id(page, "paper-code").textContent()).trim().split(" ");
-  await id(page, "group-2").fill(code[1]);
-  await id(page, "group-4").fill(code[3]);
+  await id(page, "paper-groups").locator("input").first().fill(code[1]);
+  await id(page, "paper-groups").locator("input").last().fill(code[3]);
   await id(page, "confirm").click();
   await seen(screen(page, "feed"));
   await id(page, "loading").waitFor({ state: "hidden", timeout: 15000 }).catch(() => {});

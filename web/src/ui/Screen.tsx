@@ -12,8 +12,12 @@ import { say } from "../locales/say.ts";
 export function Screen({ name, title, header, nav, children }:
   { name: string; title: string; header?: ReactNode; nav?: ReactNode; children: ReactNode }) {
   const main = useRef<HTMLElement>(null);
+  // The title goes back when the screen leaves: a screen that is not (yet) on
+  // Screen would otherwise keep wearing the last one's name (К4 text walk).
   useEffect(() => {
+    const before = document.title;
     document.title = `${title} · ${BRAND}`;
+    return () => { document.title = before; };
   }, [title]);
   useEffect(() => {
     const h1 = main.current?.querySelector("h1");

@@ -71,19 +71,19 @@
 .b-blocks .block-quote p { margin: 0; font-size: var(--fs-title); font-weight: 500; }
 
 /* The shared screens under this brand: flat buttons, no hard shadow. */
-.b-blocks .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: var(--btn-shadow); border-radius: var(--btn-r); }
+.b-blocks .ui-primary, [data-screen="arrival"] .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: var(--btn-shadow); border-radius: var(--btn-r); }
 
 /* Arrival.svg: the bento — the accent tile 200×236 with the pin, tiles
    135×112 in tile-2 and tile-3 beside it, then 135×150 (tile-4) and
    200×150 (surface-2) under them; radius 32, gaps 8–12. */
-.b-blocks .block-bento { display: grid; grid-template-columns: 200fr 135fr; grid-template-rows: 112px 112px 150px; gap: var(--s-3) var(--s-2); }
-.b-blocks .bento { display: grid; place-items: center; border-radius: var(--card-big-r); }
-.b-blocks .bento-a { grid-row: 1 / 3; background: var(--accent); color: var(--accent-fg); place-items: start; padding: 20px; }
-.b-blocks .bento-b { background: var(--tile-2); color: var(--tile-2-ink); }
-.b-blocks .bento-c { background: var(--tile-3); color: var(--tile-3-ink); }
-.b-blocks .bento-d { background: var(--tile-4); color: var(--tile-4-ink); }
-.b-blocks .bento-e { background: var(--surface-2); color: var(--fg); }
-.b-blocks.arrival input { min-height: var(--field-h); border-radius: var(--field-r); border: var(--field-border); background: var(--surface); font-size: var(--field-fs); letter-spacing: var(--field-ls); }
+[data-screen="arrival"] .block-bento { display: grid; grid-template-columns: 200fr 135fr; grid-template-rows: 112px 112px 150px; gap: var(--s-3) var(--s-2); }
+[data-screen="arrival"] .bento { display: grid; place-items: center; border-radius: var(--card-big-r); }
+[data-screen="arrival"] .bento-a { grid-row: 1 / 3; background: var(--accent); color: var(--accent-fg); place-items: start; padding: 20px; }
+[data-screen="arrival"] .bento-b { background: var(--tile-2); color: var(--tile-2-ink); }
+[data-screen="arrival"] .bento-c { background: var(--tile-3); color: var(--tile-3-ink); }
+[data-screen="arrival"] .bento-d { background: var(--tile-4); color: var(--tile-4-ink); }
+[data-screen="arrival"] .bento-e { background: var(--surface-2); color: var(--fg); }
+[data-screen="arrival"] input { min-height: var(--field-h); border-radius: var(--field-r); border: var(--field-border); background: var(--surface); font-size: var(--field-fs); letter-spacing: var(--field-ls); }
 
 /* Compose.svg: the field 343×200 on the surface with a 2 px focus line,
    mode tiles 111×72 (the chosen one tile-1), time/zone pills 52 high with

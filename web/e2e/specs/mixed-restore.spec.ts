@@ -87,7 +87,7 @@ test("the paper code raises an identity from the page in the terminal, and back"
     await back.goto("/");
     await back.getByTestId("restore").click();
     await expect(back.locator('[data-screen="restore"]')).toBeVisible();
-    await back.getByTestId("restore-code").fill(fresh.toLowerCase());
+    await back.getByTestId("restore-code").locator("input").first().fill(fresh.toLowerCase());
     await back.getByTestId("restore-pin").fill("975310");
     await back.getByTestId("restore-pin-again").fill("975310");
     await back.getByTestId("restore-go").click();

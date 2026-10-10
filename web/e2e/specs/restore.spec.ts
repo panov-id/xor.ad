@@ -30,13 +30,13 @@ test("the paper code raises the identity on a clean device, sealed under a new P
   await fresh.getByTestId("restore").click();
   await expect(fresh.locator('[data-screen="restore"]')).toBeVisible();
   // A wrong code is refused before anything is seated.
-  await fresh.getByTestId("restore-code").fill("0000 0000 0000 0000");
+  await fresh.getByTestId("restore-code").locator("input").first().fill("0000 0000 0000 0000");
   await fresh.getByTestId("restore-pin").fill("975310");
   await fresh.getByTestId("restore-pin-again").fill("975310");
   await fresh.getByTestId("restore-go").click();
   await expect(fresh.getByTestId("error")).toContainText("Код не подошёл", { timeout: 30000 });
   // The real one, typed the way a person types it.
-  await fresh.getByTestId("restore-code").fill(`${code[0].toLowerCase()}-${code[1]} ${code[2]}-${code[3]}`);
+  await fresh.getByTestId("restore-code").locator("input").first().fill(`${code[0].toLowerCase()}-${code[1]} ${code[2]}-${code[3]}`);
   await fresh.getByTestId("restore-go").click();
   await expect(fresh.locator('[data-screen="feed"]')).toBeVisible({ timeout: 45000 });
   await expect(fresh.getByTestId("loading")).toBeHidden({ timeout: 15000 });

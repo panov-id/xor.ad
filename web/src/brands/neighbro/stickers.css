@@ -65,19 +65,19 @@
 
 /* Arrival.svg ("move here"): the arrive sticker r56 in tile-4, tilted −6°,
    with the white rim; the code in tag cells 28×56 on the surface. */
-.b-stickers .sticker-arrive { display: grid; place-items: center; padding: var(--s-6) 0 var(--s-4); }
-.b-stickers .round-sticker {
+[data-screen="arrival"] .sticker-arrive { display: grid; place-items: center; padding: var(--s-6) 0 var(--s-4); }
+[data-screen="arrival"] .round-sticker {
   display: grid; place-items: center; width: 112px; height: 112px; border-radius: 50%;
   background: var(--tile-4); color: var(--tile-4-ink); border: var(--card-rim);
   box-shadow: var(--card-shadow); transform: rotate(-6deg);
 }
-.b-stickers.arrival input {
+[data-screen="arrival"] input {
   min-height: var(--field-h); border-radius: var(--field-r); border: var(--field-border); background: var(--surface);
   font-size: var(--field-fs); font-weight: 600; letter-spacing: var(--field-ls); padding-left: 14px; text-transform: uppercase;
 }
 /* Feed.svg draws its write button as the same pill (it left with d373afde, 03.10.2026). */
-.b-stickers.arrival .ui-primary, .b-stickers.feed .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: var(--btn-shadow); border-radius: var(--btn-r); min-height: var(--btn-h); }
-.b-stickers.arrival .ui-secondary, .b-stickers.feed .ui-secondary { border-radius: var(--btn2-r); min-height: var(--btn-h); background: var(--btn2-bg); }
+[data-screen="arrival"] .ui-primary, .b-stickers.feed .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: var(--btn-shadow); border-radius: var(--btn-r); min-height: var(--btn-h); }
+[data-screen="arrival"] .ui-secondary, .b-stickers.feed .ui-secondary { border-radius: var(--btn2-r); min-height: var(--btn-h); background: var(--btn2-bg); }
 
 /* Compose.svg: the field a sticker card 343×190, mode tags 109×48 (the
    chosen in tile-2, leaning −2°), zone tags 80×48 (the chosen in tile-3). */

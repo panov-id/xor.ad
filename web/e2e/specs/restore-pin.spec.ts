@@ -17,7 +17,7 @@ test("a device raised by the paper code changes its PIN and opens with the new o
   watch(page, feed);
   await page.goto("/");
   await page.getByTestId("restore").click();
-  await page.getByTestId("restore-code").fill(code.join(" "));
+  await page.getByTestId("restore-code").locator("input").first().fill(code.join(" "));
   await page.getByTestId("restore-pin").fill("975310");
   await page.getByTestId("restore-pin-again").fill("975310");
   await page.getByTestId("restore-go").click();

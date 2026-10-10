@@ -10,29 +10,35 @@ import { say } from "../api/me.ts";
 import { ENDINGS } from "../api/transfer.ts";
 import { Button } from "../ui/Button.tsx";
 import "./talk.css";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { Field, PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
+import { Actions } from "../ui/Links.tsx";
+import { Screen } from "../ui/Screen.tsx";
 import type { ReactNode } from "react";
 
-// brandClass and hero: the brand view's look (brands/<brand>), drawn over the same state.
-export function Arrival({ onDone, onBack, brandClass, hero }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void; brandClass?: string; hero?: ReactNode }) {
+// hero: the brand view's picture (brands/<brand>), drawn over the same state.
+// `brandClass` is still passed by the brand views and no longer used: the
+// brand's rules reach this screen by its data-screen (brands/*/*.css), so the
+// screen carries no class of its own (К4).
+export function Arrival({ onDone, onBack, hero }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void; brandClass?: string; hero?: ReactNode }) {
   const { code, setCode, pin, setPin, again, setAgain, busy, error, into, state, clean, claim, keep } = useArrival({ onDone });
   const ending = ENDINGS[state];
+  const title = say(state === "approved" ? "move.arrivedTitle" : "move.inTitle");
   return (
-    <main className={["screen arrival", brandClass].filter(Boolean).join(" ")} data-screen="arrival" data-state={into ? state : "start"}>
-      <HeaderScreen title={say(state === "approved" ? "move.arrivedTitle" : "move.inTitle")} />
+    <Screen name="arrival" title={title} header={<HeaderScreen title={title} />}>
       {!into && hero}
       {!into
         ? (
           <>
-            <div className="ui-info-row"><Info label={say("move.inTitle")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info></div>
-            <label>
-              {say("move.code")}
-              <input value={code} onChange={(e) => setCode(e.target.value.slice(0, 13))} data-testid="arrive-code" autoComplete="off" />
-            </label>
-            {busy && <p className="muted">{say("move.deriving")}</p>}
-            <Button kind="primary" type="button" icon="open" className="ui-wide" aria-label={say("reg.next")} disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go" />
-            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />
+            <div className="ui-info-row"><Info label={say("web.info.move")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info></div>
+            <Field label={say("move.code")} value={code} onChange={(v) => setCode(v.slice(0, 13))} autoComplete="off" data-testid="arrive-code" />
+            {busy && <p role="status">{say("move.deriving")}</p>}
+            <Actions>
+              <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />
+              <Button kind="primary" type="button" icon="open" className="ui-wide" aria-label={say("reg.next")} disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go" />
+            </Actions>
           </>
         )
         : ending
@@ -45,16 +51,10 @@ export function Arrival({ onDone, onBack, brandClass, hero }: { onDone: (client:
         : state === "approved"
         ? (
           <>
-            <p className="muted">{say("move.arrived")}</p>
-            <label>
-              {say("pin.next")}
-              <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="arrive-pin" />
-            </label>
-            <label>
-              {say("pin.again")}
-              <input type="password" inputMode="numeric" value={again} onChange={(e) => setAgain(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="arrive-pin-again" />
-            </label>
-            {pin.length === 6 && again.length === 6 && pin !== again && <p className="error">{say("reg.pinMismatch")}</p>}
+            <p>{say("move.arrived")}</p>
+            <PinField label={say("web.pin.new")} value={pin} onChange={setPin} data-testid="arrive-pin" />
+            <PinField label={say("web.pin.newAgain")} value={again} onChange={setAgain}
+              error={pin.length === 6 && again.length === 6 && pin !== again ? say("reg.pinMismatch") : undefined} data-testid="arrive-pin-again" />
             <Button kind="primary" type="button" icon="check" className="ui-wide" aria-label={say("reg.next")} disabled={!/^\d{6}$/.test(pin) || pin !== again || busy} onClick={() => void keep()} data-testid="arrive-keep" />
           </>
         )
@@ -63,10 +63,10 @@ export function Arrival({ onDone, onBack, brandClass, hero }: { onDone: (client:
             <dl>
               <dt>{say("move.check")}</dt><dd data-testid="arrive-check">{into.arrival.check}</dd>
             </dl>
-            <p className="muted">{say("move.inWait")}</p>
+            <p>{say("move.inWait")}</p>
           </>
         )}
-      {error && <p className="error" data-testid="error">{error}</p>}
-    </main>
+      {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
+    </Screen>
   );
 }

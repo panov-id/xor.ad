@@ -12,6 +12,9 @@ import type { Client } from "../../../depth/core/client.ts";
 import { HeldKey } from "../../../depth/core/transfer.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { PinField } from "../ui/Field.tsx";
+import { Screen } from "../ui/Screen.tsx";
 import { pinMismatch } from "../pinWords.ts";
 
 export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () => void }) {
@@ -43,15 +46,12 @@ export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () 
   }
 
   return (
-    <main className="screen locked" data-screen="locked">
+    <Screen name="locked" title={say("lock.prompt")}>
       <form onSubmit={(e) => { e.preventDefault(); void open(); }}>
-        <label>
-          {say("lock.prompt")}
-          <input type="password" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" data-testid="lock-pin" autoFocus />
-        </label>
-        {refused && <p className="error" data-testid="error">{refused}</p>}
+        <PinField label={say("lock.prompt")} value={pin} onChange={setPin} autoFocus data-testid="lock-pin" />
+        {refused && <div data-testid="error"><ErrorLine>{refused}</ErrorLine></div>}
         <Button type="submit" kind="primary" icon="key" className="ui-wide" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={pin.length !== 6 || busy} data-testid="lock-go" />
       </form>
-    </main>
+    </Screen>
   );
 }

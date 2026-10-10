@@ -40,7 +40,7 @@ test("left alone, the page locks to one line; the PIN opens it in place and the 
   // A wrong PIN: the node counts it and says what is left.
   await page.getByTestId("lock-pin").fill("000000");
   await page.getByTestId("lock-go").click();
-  await expect(page.getByTestId("error")).toHaveText("ПИН не подходит. Осталось попыток: 9", { timeout: 15000 });
+  await expect(page.getByTestId("error")).toHaveText(/ПИН не подходит\. Осталось попыток: 9$/, { timeout: 15000 });
   expect(shares).toEqual([409]);
 
   // The right one: the feed, the same tab, and the keys sign a phrase.

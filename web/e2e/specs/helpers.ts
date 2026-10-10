@@ -55,7 +55,7 @@ export async function register(page: Page, who = { name: "Аня", age: "28" }, 
   await expect(page.locator('[data-screen="register-1"]')).toBeVisible();
   await page.getByTestId("name").fill(who.name);
   await page.getByTestId("age").fill(who.age);
-  await page.getByTestId("consent").check();
+  await page.getByRole("checkbox").check();
   await page.getByTestId("next").click();
   await expect(page.locator('[data-screen="register-2"]')).toBeVisible();
   await page.getByTestId("pin").fill(PIN);
@@ -64,8 +64,8 @@ export async function register(page: Page, who = { name: "Аня", age: "28" }, 
   await expect(page.locator('[data-screen="register-3"], [data-testid="error"]').first()).toBeVisible({ timeout: 30000 });
   if (await page.getByTestId("error").isVisible()) throw new Error(`registration refused: ${await page.getByTestId("error").textContent()}`);
   const code = (await page.getByTestId("paper-code").textContent())!.trim().split(" ");
-  await page.getByTestId("group-2").fill(code[1]);
-  await page.getByTestId("group-4").fill(code[3]);
+  await page.getByTestId("paper-groups").locator("input").first().fill(code[1]);
+  await page.getByTestId("paper-groups").locator("input").last().fill(code[3]);
   await page.getByTestId("confirm").click();
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
   await expect(page.getByTestId("loading")).toBeHidden({ timeout: 15000 });

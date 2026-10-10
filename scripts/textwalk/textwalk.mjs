@@ -52,7 +52,7 @@ let tag = process.env.WALK_STABLE ? "w1" : Date.now().toString(36).slice(-3);
 await step("splash", async () => { await anya.goto(BASE + "/"); await look(anya, "заставка"); });
 await step("register errors", async () => {
   await t(anya, "start").click(); await look(anya, "кто вы, пусто");
-  await t(anya, "name").fill("Аня"); await t(anya, "age").fill("12"); await t(anya, "consent").check();
+  await t(anya, "name").fill("Аня"); await t(anya, "age").fill("12"); await anya.getByRole("checkbox").check();
   await look(anya, "возраст 12");
   await t(anya, "next").click().catch(() => {}); await look(anya, "после «дальше» с возрастом 12");
   await t(anya, "age").fill("28"); await t(anya, "next").click();
@@ -62,17 +62,17 @@ await step("register errors", async () => {
   await t(anya, "pin-again").fill(PIN); await t(anya, "register").click();
   await anya.locator('[data-screen="register-3"]').waitFor({ timeout: 30000 }); await look(anya, "бумажный код");
   code = (await t(anya, "paper-code").textContent()).trim().split(" ");
-  await t(anya, "group-2").fill("ZZZZ"); await t(anya, "group-4").fill(code[3]);
+  await anya.getByTestId("paper-groups").locator("input").first().fill("ZZZZ"); await anya.getByTestId("paper-groups").locator("input").last().fill(code[3]);
   await t(anya, "confirm").click().catch(() => {}); await look(anya, "неверная вторая группа");
-  await t(anya, "group-2").fill(code[1]); await t(anya, "confirm").click();
+  await anya.getByTestId("paper-groups").locator("input").first().fill(code[1]); await t(anya, "confirm").click();
   await anya.locator('[data-screen="feed"]').waitFor({ timeout: 30000 }); await look(anya, "первая лента");
 });
 await step("boris register", async () => {
   await boris.goto(BASE + "/"); await t(boris, "start").click();
-  await t(boris, "name").fill("Борис"); await t(boris, "age").fill("31"); await t(boris, "consent").check(); await t(boris, "next").click();
+  await t(boris, "name").fill("Борис"); await t(boris, "age").fill("31"); await boris.getByRole("checkbox").check(); await t(boris, "next").click();
   await t(boris, "pin").fill(PIN); await t(boris, "pin-again").fill(PIN); await t(boris, "register").click();
   const c = (await t(boris, "paper-code").textContent()).trim().split(" ");
-  await t(boris, "group-2").fill(c[1]); await t(boris, "group-4").fill(c[3]); await t(boris, "confirm").click();
+  await boris.getByTestId("paper-groups").locator("input").first().fill(c[1]); await boris.getByTestId("paper-groups").locator("input").last().fill(c[3]); await t(boris, "confirm").click();
   await boris.locator('[data-screen="feed"]').waitFor({ timeout: 30000 }); await look(boris, "первая лента");
 });
 const write = async (p, text, label) => {
@@ -162,9 +162,9 @@ await step("me", async () => {
 await step("restore on a new phone", async () => {
   const fresh = await phone("Аня, новый телефон");
   await fresh.goto(BASE + "/"); await t(fresh, "restore").click(); await look(fresh, "восстановление");
-  await t(fresh, "restore-code").fill("0000 0000 0000 0000"); await t(fresh, "restore-pin").fill("975310"); await t(fresh, "restore-pin-again").fill("975310");
+  await t(fresh, "restore-code").locator("input").first().fill("0000 0000 0000 0000"); await t(fresh, "restore-pin").fill("975310"); await t(fresh, "restore-pin-again").fill("975310");
   await t(fresh, "restore-go").click(); await t(fresh, "error").waitFor({ timeout: 30000 }).catch(() => {}); await look(fresh, "неверный код");
-  await t(fresh, "restore-code").fill(code.join(" ")); await t(fresh, "restore-go").click();
+  await t(fresh, "restore-code").locator("input").first().fill(code.join(" ")); await t(fresh, "restore-go").click();
   await fresh.locator('[data-screen="feed"]').waitFor({ timeout: 45000 }); await look(fresh, "после восстановления");
 });
 await step("english", async () => {

@@ -50,10 +50,15 @@ export function chooseLanguage(lang: string): void {
   location.reload();
 }
 
-// A language named in itself — "Українська", "Қазақ тілі" — by the browser
-// (Intl.DisplayNames), so no word of any language is typed here; the code is
-// the fallback where the browser does not know the name.
+// A language named in itself — "Українська", "Қазақша" — from its own
+// dictionary ("web.lang.self" in <lang>.json), so every name is in its own
+// script whatever the browser's ICU data knows: Intl.DisplayNames answered
+// "Belarusian" or "Tajik" in English for the languages a small ICU lacks (П3,
+// text walk 10.10.2026). The browser's name, then the code, only where a
+// dictionary has no name.
 export function languageName(lang: string): string {
+  const own = web[lang]?.["web.lang.self"];
+  if (own) return own;
   try {
     const name = new Intl.DisplayNames([lang], { type: "language" }).of(lang);
     return name && name !== lang ? name.charAt(0).toLocaleUpperCase(lang) + name.slice(1) : lang.toUpperCase();
@@ -75,6 +80,10 @@ export function pickLanguage(
 }
 
 export const LANG = pickLanguage();
+// The page speaks LANG, and says so to the browser and to a screen reader
+// (WCAG 3.1.1): index.html's lang="ru" is only what a page that has not run
+// yet is. A language is changed by a reload (chooseLanguage), so once is enough.
+if (typeof document !== "undefined") document.documentElement.lang = LANG;
 const STRINGS: Record<string, string> = { ...depth.ru, ...web.ru, ...depth[LANG], ...web[LANG] };
 
 export function say(key: string, values?: Record<string, string | number>): string {
@@ -82,4 +91,17 @@ export function say(key: string, values?: Record<string, string | number>): stri
   return values
     ? template.replace(/\{(\w+)\}/g, (whole, name) => (name in values ? String(values[name]) : whole))
     : template;
+}
+
+// A calendar date of the node ("2026-09-16") as a person reads it in the
+// interface's language, never the machine form. UTC on both ends, so the day
+// does not move with the time zone. Anything that is not a plain date comes
+// back as it was.
+export function dateLong(iso: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  try {
+    return new Intl.DateTimeFormat(LANG, { dateStyle: "long", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
+  } catch {
+    return iso;
+  }
 }

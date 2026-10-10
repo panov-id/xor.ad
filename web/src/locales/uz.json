@@ -348,5 +348,16 @@
   "web.legal.accepted": "hammasi qabul qilindi",
   "web.legal.stale": "tahrir hozirgina o‘zgardi — uni o‘qing va qayta qabul qiling",
   "web.legal.refused": "avval hujjatlarning yangi tahrirlarini qabul qiling: «men» → «hujjatlar»",
-  "web.me.name_rejected": "ism qabul qilinmadi, ibora yangi ismni kutmoqda"
+  "web.me.name_rejected": "ism qabul qilinmadi, ibora yangi ismni kutmoqda",
+  "web.ui.error": "xato:",
+  "web.ui.newTab": "(yangi varaq)",
+  "web.ui.show": "koʻrsatish",
+  "web.ui.hide": "yashirish",
+  "web.ui.pinName": "PIN, 6 raqam",
+  "web.ui.codeName": "qogʻoz kod",
+  "web.ui.codeGroup": "{m} tadan {n}-guruh",
+  "web.ui.remaining": "qoldi: {n}",
+  "web.ui.rangeFrom": "{n} dan",
+  "web.ui.rangeTo": "{n} gacha",
+  "web.ui.rangeOrder": "“dan” “gacha”dan katta"
 }

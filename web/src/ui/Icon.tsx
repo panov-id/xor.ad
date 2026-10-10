@@ -47,6 +47,7 @@ const PATHS = {
   venue: <><path className="f" d="M3 9 L5 4 H19 L21 9Z" /><path className="f" d="M5 9 V20 H19 V9" /><path d="M10 20 V14 H14 V20" /></>,
   offers: <><path className="f" d="M3 12 V4 H11 L21 14 L13 22Z" /><circle cx="7.5" cy="8" r="1.5" /></>,
   name: <><circle className="f" cx="12" cy="8" r="4" /><path className="f" d="M4 21 C4 15 20 15 20 21Z" /></>,
+  chevron: <path d="M9 5 L16 12 L9 19" />,
   info: <><circle className="f" cx="12" cy="12" r="9" /><path d="M12 11 V17" /><g className="dot"><circle cx="12" cy="7.5" r="1.2" /></g></>,
 } as const;
 

@@ -348,5 +348,16 @@
   "web.legal.accepted": "усе прийнято",
   "web.legal.stale": "редакція щойно змінилася — прочитайте її та прийміть знову",
   "web.legal.refused": "спершу прийміть нові редакції документів: «я» → «документи»",
-  "web.me.name_rejected": "ім'я не прийнято, фраза чекає нового імені"
+  "web.me.name_rejected": "ім'я не прийнято, фраза чекає нового імені",
+  "web.ui.error": "помилка:",
+  "web.ui.newTab": "(нова вкладка)",
+  "web.ui.show": "показати",
+  "web.ui.hide": "сховати",
+  "web.ui.pinName": "ПІН, 6 цифр",
+  "web.ui.codeName": "паперовий код",
+  "web.ui.codeGroup": "група {n} з {m}",
+  "web.ui.remaining": "залишилось: {n}",
+  "web.ui.rangeFrom": "від {n}",
+  "web.ui.rangeTo": "до {n} включно",
+  "web.ui.rangeOrder": "«від» більше за «до»"
 }

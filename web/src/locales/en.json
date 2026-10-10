@@ -348,5 +348,16 @@
   "web.legal.accepted": "everything is accepted",
   "web.legal.stale": "the revision has just changed — read it and accept it again",
   "web.legal.refused": "first accept the new revisions of the documents: “me” → “documents”",
-  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one"
+  "web.me.name_rejected": "the name was not accepted; the phrase waits for a new one",
+  "web.ui.error": "error:",
+  "web.ui.newTab": "(new tab)",
+  "web.ui.show": "show",
+  "web.ui.hide": "hide",
+  "web.ui.pinName": "PIN, 6 digits",
+  "web.ui.codeName": "paper code",
+  "web.ui.codeGroup": "group {n} of {m}",
+  "web.ui.remaining": "left: {n}",
+  "web.ui.rangeFrom": "from {n}",
+  "web.ui.rangeTo": "to {n}",
+  "web.ui.rangeOrder": "“from” is greater than “to”"
 }

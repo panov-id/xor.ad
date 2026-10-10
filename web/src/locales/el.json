@@ -348,5 +348,16 @@
   "web.legal.accepted": "όλα έγιναν αποδεκτά",
   "web.legal.stale": "η έκδοση μόλις άλλαξε — διαβάστε την και αποδεχτείτε ξανά",
   "web.legal.refused": "αποδεχτείτε πρώτα τις νέες εκδόσεις των εγγράφων: «εγώ» → «έγγραφα»",
-  "web.me.name_rejected": "το όνομα δεν έγινε δεκτό· η φράση περιμένει νέο όνομα"
+  "web.me.name_rejected": "το όνομα δεν έγινε δεκτό· η φράση περιμένει νέο όνομα",
+  "web.ui.error": "σφάλμα:",
+  "web.ui.newTab": "(νέα καρτέλα)",
+  "web.ui.show": "εμφάνιση",
+  "web.ui.hide": "απόκρυψη",
+  "web.ui.pinName": "PIN, 6 ψηφία",
+  "web.ui.codeName": "κωδικός σε χαρτί",
+  "web.ui.codeGroup": "ομάδα {n} από {m}",
+  "web.ui.remaining": "απομένουν: {n}",
+  "web.ui.rangeFrom": "από {n}",
+  "web.ui.rangeTo": "έως {n}",
+  "web.ui.rangeOrder": "το «από» είναι μεγαλύτερο από το «έως»"
 }

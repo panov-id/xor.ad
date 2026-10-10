@@ -58,6 +58,8 @@ li:has(> .card-open:focus-visible) { outline: 3px solid var(--focus); outline-of
 button.danger { border-color: var(--err); color: var(--err); }
 /* W5: the live step in the header, a hidden label for the radius, a link drawn as a button. */
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* A plain link in the theme's words, not the browser's blue (walkthrough 10.10.2026). */
+a { color: var(--accent-text); }
 a.button { display: inline-block; text-decoration: none; text-align: center; color: var(--fg); border: 1px solid var(--border-control); border-radius: var(--r-2); padding: 10px var(--s-4); min-height: var(--control-h); }
 a.button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; } /* kit field-focus: the rim stays, one 2 px accent-text ring 2 px outside */
@@ -152,3 +154,62 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .ui-balloon:focus { outline: none; }
 .ui-balloon p { margin: 0; }
 .ui-header .ui-info .ui-balloon { left: auto; right: 0; }
+
+/* kit К2а */
+/* Inputs, links, actions (docs/design/kit_RU.md §3.1–3.2). Sizes only from the
+   tokens; the only literal widths are the 1 px and 1.5 px rims and the 3 px
+   focus ring of §2. */
+.ui-field { display: flex; flex-direction: column; gap: var(--s-1); min-inline-size: 0; }
+.ui-label { font-size: 0.875rem; color: var(--muted); }
+.ui-input { inline-size: 100%; }
+/* A rim thicker than 1 px is a 1 px border plus a 1 px inset ring: a 1.5 px border rounds down to 1 px on a 1x screen. */
+.ui-input[aria-invalid="true"], .ui-textarea[aria-invalid="true"] { border-color: var(--err); box-shadow: inset 0 0 0 1px var(--err); }
+.ui-input[aria-disabled="true"], .ui-textarea[aria-disabled="true"] { background: var(--panel-2); color: var(--muted); border-style: dashed; }
+.ui-textarea { inline-size: 100%; min-height: calc(var(--control-h) * 2); padding: var(--s-2) var(--s-3); border-radius: var(--r-1); }
+.ui-hint, .ui-reason, .ui-error { margin: 0; font-size: 0.875rem; }
+.ui-hint, .ui-reason { color: var(--muted); }
+.ui-error { color: var(--err); }
+.ui-fieldgroup { margin: 0; padding: var(--s-3); min-inline-size: 0; border: 1px solid var(--border); border-radius: var(--r-1); display: flex; flex-direction: column; gap: var(--s-3); }
+.ui-fieldgroup > legend { padding: 0 var(--s-1); color: var(--muted); font-size: 0.875rem; }
+.ui-pin-row { display: flex; align-items: center; gap: var(--s-2); }
+.ui-pin-row .ui-input { flex: 1; min-inline-size: 0; }
+.ui-pin-row .ui-button { min-inline-size: var(--control-h); }
+.ui-code-row { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.ui-code-input { inline-size: 6rem; text-align: center; font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+.ui-segments, .ui-choice { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.ui-choice { flex-direction: column; }
+.ui-seg { display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2); flex: 1 1 auto; min-height: var(--control-h); }
+.ui-choice .ui-seg { justify-content: flex-start; }
+.ui-seg-on { font-weight: 600; }
+.ui-segments .ui-seg-on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: inset 0 0 0 1px var(--accent-ink); }
+.ui-choice .ui-seg-on { background: var(--panel-2); border-color: var(--accent-text); box-shadow: inset 0 0 0 1px var(--accent-text); }
+.ui-seg-mark { margin-inline-start: auto; }
+.ui-sample { flex: none; display: inline-block; inline-size: var(--s-6); block-size: var(--s-3); border-radius: var(--r-pill); border: 1px solid var(--border-control); }
+.ui-sample-1 { background: var(--tile-1); }
+.ui-sample-2 { background: var(--tile-2); }
+.ui-sample-3 { background: var(--tile-3); }
+.ui-sample-4 { background: var(--tile-4); }
+.ui-segments[aria-disabled="true"] .ui-seg, .ui-choice[aria-disabled="true"] .ui-seg { border-style: dashed; color: var(--muted); }
+.ui-segments[aria-invalid="true"], .ui-choice[aria-invalid="true"] { border: 1px solid var(--err); border-radius: var(--r-2); box-shadow: inset 0 0 0 1px var(--err); }
+.ui-range { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-2); }
+.ui-range .ui-input[aria-invalid="true"] { border-color: var(--err); }
+.ui-range-value { font-size: 0.875rem; color: var(--fg); overflow-wrap: anywhere; }
+.ui-check { flex-direction: row; align-items: center; gap: var(--s-3); min-height: var(--control-h); color: var(--fg); font-size: 1rem; }
+.ui-check-box { position: relative; flex: none; display: block; inline-size: var(--s-6); block-size: var(--s-6); }
+.ui-check input { appearance: none; display: block; margin: 0; padding: 0; min-height: 0; inline-size: 100%; block-size: 100%; border: 1.5px solid var(--border-control); border-radius: var(--r-1); background: transparent; }
+.ui-check input:checked { background: var(--accent); border-color: var(--accent); }
+.ui-check input[aria-invalid="true"] { border-color: var(--err); }
+.ui-check input[aria-disabled="true"] { border-style: dashed; }
+.ui-check-mark { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; display: none; pointer-events: none; stroke: var(--accent-ink); }
+.ui-check input:checked + .ui-check-mark { display: block; }
+.ui-link { color: var(--accent-text); text-decoration: underline; }
+.ui-link-block { display: inline-flex; align-items: center; min-height: var(--control-h); }
+a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
+.ui-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s-2); }
+.ui-disclosure > summary { display: flex; align-items: center; gap: var(--s-2); min-height: var(--control-h); cursor: pointer; list-style: none; }
+.ui-disclosure > summary::-webkit-details-marker { display: none; }
+.ui-chevron { flex: none; }
+.ui-disclosure[open] > summary .ui-chevron { transform: rotate(90deg); }
+.ui-composer.ui-message:focus-within { outline: 3px solid var(--focus); outline-offset: 3px; }
+.ui-message input[aria-disabled="true"] { color: var(--bg); opacity: 0.6; }
+.ui-kit-sent { margin: 0; }

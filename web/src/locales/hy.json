@@ -348,5 +348,16 @@
   "web.legal.accepted": "ամեն ինչ ընդունված է",
   "web.legal.stale": "խմբագրությունը հենց նոր փոխվեց — կարդացեք և նորից ընդունեք",
   "web.legal.refused": "նախ ընդունեք փաստաթղթերի նոր խմբագրությունները՝ «ես» → «փաստաթղթեր»",
-  "web.me.name_rejected": "անունը չընդունվեց, արտահայտությունը սպասում է նոր անվան"
+  "web.me.name_rejected": "անունը չընդունվեց, արտահայտությունը սպասում է նոր անվան",
+  "web.ui.error": "սխալ՝",
+  "web.ui.newTab": "(նոր ներդիր)",
+  "web.ui.show": "ցուցադրել",
+  "web.ui.hide": "թաքցնել",
+  "web.ui.pinName": "PIN, 6 թվանշան",
+  "web.ui.codeName": "թղթե կոդ",
+  "web.ui.codeGroup": "խումբ {n}՝ {m}-ից",
+  "web.ui.remaining": "մնաց՝ {n}",
+  "web.ui.rangeFrom": "{n}-ից",
+  "web.ui.rangeTo": "մինչև {n}",
+  "web.ui.rangeOrder": "«սկսած»-ը մեծ է «մինչև»-ից"
 }

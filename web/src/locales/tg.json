@@ -348,5 +348,16 @@
   "web.legal.accepted": "ҳама қабул шуд",
   "web.legal.stale": "таҳрир ҳозир тағйир ёфт — онро хонед ва аз нав қабул кунед",
   "web.legal.refused": "аввал таҳрирҳои нави ҳуҷҷатҳоро қабул кунед: «ман» → «ҳуҷҷатҳо»",
-  "web.me.name_rejected": "ном қабул нашуд, ибора номи навро интизор аст"
+  "web.me.name_rejected": "ном қабул нашуд, ибора номи навро интизор аст",
+  "web.ui.error": "хато:",
+  "web.ui.newTab": "(варақаи нав)",
+  "web.ui.show": "нишон додан",
+  "web.ui.hide": "пинҳон кардан",
+  "web.ui.pinName": "ПИН, 6 рақам",
+  "web.ui.codeName": "рамзи коғазӣ",
+  "web.ui.codeGroup": "гурӯҳи {n} аз {m}",
+  "web.ui.remaining": "боқӣ мондааст: {n}",
+  "web.ui.rangeFrom": "аз {n}",
+  "web.ui.rangeTo": "то {n}",
+  "web.ui.rangeOrder": "«аз» аз «то» калон аст"
 }

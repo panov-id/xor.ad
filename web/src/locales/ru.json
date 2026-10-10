@@ -348,5 +348,16 @@
   "web.legal.accept": "принять",
   "web.legal.accepted": "всё принято",
   "web.legal.stale": "редакция только что сменилась — прочитайте её и примите снова",
-  "web.legal.refused": "сначала примите новые редакции документов: «я» → «документы»"
+  "web.legal.refused": "сначала примите новые редакции документов: «я» → «документы»",
+  "web.ui.error": "ошибка:",
+  "web.ui.newTab": "(новая вкладка)",
+  "web.ui.show": "показать",
+  "web.ui.hide": "скрыть",
+  "web.ui.pinName": "ПИН, 6 цифр",
+  "web.ui.codeName": "бумажный код",
+  "web.ui.codeGroup": "группа {n} из {m}",
+  "web.ui.remaining": "осталось: {n}",
+  "web.ui.rangeFrom": "от {n}",
+  "web.ui.rangeTo": "до {n}",
+  "web.ui.rangeOrder": "«от» больше «до»"
 }

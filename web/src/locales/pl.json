@@ -348,5 +348,16 @@
   "web.legal.accepted": "wszystko zaakceptowane",
   "web.legal.stale": "wersja właśnie się zmieniła — przeczytaj ją i zaakceptuj ponownie",
   "web.legal.refused": "najpierw zaakceptuj nowe wersje dokumentów: „ja” → „dokumenty”",
-  "web.me.name_rejected": "imienia nie przyjęto, fraza czeka na nowe"
+  "web.me.name_rejected": "imienia nie przyjęto, fraza czeka na nowe",
+  "web.ui.error": "błąd:",
+  "web.ui.newTab": "(nowa karta)",
+  "web.ui.show": "pokaż",
+  "web.ui.hide": "ukryj",
+  "web.ui.pinName": "PIN, 6 cyfr",
+  "web.ui.codeName": "kod na papierze",
+  "web.ui.codeGroup": "grupa {n} z {m}",
+  "web.ui.remaining": "zostało: {n}",
+  "web.ui.rangeFrom": "od {n}",
+  "web.ui.rangeTo": "do {n}",
+  "web.ui.rangeOrder": "„od” jest większe niż „do”"
 }

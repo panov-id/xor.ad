@@ -348,5 +348,16 @@
   "web.legal.accepted": "бәрі қабылданды",
   "web.legal.stale": "редакция жаңа ғана өзгерді — оны оқып, қайта қабылдаңыз",
   "web.legal.refused": "алдымен құжаттардың жаңа редакцияларын қабылдаңыз: «мен» → «құжаттар»",
-  "web.me.name_rejected": "аты қабылданбады, сөз тіркесі жаңа атты күтеді"
+  "web.me.name_rejected": "аты қабылданбады, сөз тіркесі жаңа атты күтеді",
+  "web.ui.error": "қате:",
+  "web.ui.newTab": "(жаңа қойынды)",
+  "web.ui.show": "көрсету",
+  "web.ui.hide": "жасыру",
+  "web.ui.pinName": "ПИН, 6 сан",
+  "web.ui.codeName": "қағаз код",
+  "web.ui.codeGroup": "{m} топтың {n}-сі",
+  "web.ui.remaining": "қалды: {n}",
+  "web.ui.rangeFrom": "{n}-ден",
+  "web.ui.rangeTo": "{n}-ге дейін",
+  "web.ui.rangeOrder": "«бастап» мәні «дейін» мәнінен үлкен"
 }

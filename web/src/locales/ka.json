@@ -348,5 +348,16 @@
   "web.legal.accepted": "ყველაფერი მიღებულია",
   "web.legal.stale": "რედაქცია ახლახან შეიცვალა — წაიკითხეთ და ხელახლა მიიღეთ",
   "web.legal.refused": "ჯერ მიიღეთ დოკუმენტების ახალი რედაქციები: «მე» → «დოკუმენტები»",
-  "web.me.name_rejected": "სახელი არ მიიღეს, ფრაზა ახალ სახელს ელოდება"
+  "web.me.name_rejected": "სახელი არ მიიღეს, ფრაზა ახალ სახელს ელოდება",
+  "web.ui.error": "შეცდომა:",
+  "web.ui.newTab": "(ახალი ჩანართი)",
+  "web.ui.show": "ჩვენება",
+  "web.ui.hide": "დამალვა",
+  "web.ui.pinName": "PIN, 6 ციფრი",
+  "web.ui.codeName": "ქაღალდის კოდი",
+  "web.ui.codeGroup": "ჯგუფი {n} {m}-დან",
+  "web.ui.remaining": "დარჩა: {n}",
+  "web.ui.rangeFrom": "{n}-დან",
+  "web.ui.rangeTo": "{n}-მდე",
+  "web.ui.rangeOrder": "„დან“ მეტია „მდე“-ზე"
 }

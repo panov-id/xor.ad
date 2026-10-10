@@ -348,5 +348,16 @@
   "web.legal.accepted": "todo aceptado",
   "web.legal.stale": "la versión acaba de cambiar: léela y acéptala de nuevo",
   "web.legal.refused": "primero acepta las nuevas versiones de los documentos: «yo» → «documentos»",
-  "web.me.name_rejected": "el nombre no fue aceptado; la frase espera uno nuevo"
+  "web.me.name_rejected": "el nombre no fue aceptado; la frase espera uno nuevo",
+  "web.ui.error": "fallo:",
+  "web.ui.newTab": "(pestaña nueva)",
+  "web.ui.show": "mostrar",
+  "web.ui.hide": "ocultar",
+  "web.ui.pinName": "PIN, 6 dígitos",
+  "web.ui.codeName": "código en papel",
+  "web.ui.codeGroup": "grupo {n} de {m}",
+  "web.ui.remaining": "quedan: {n}",
+  "web.ui.rangeFrom": "desde {n}",
+  "web.ui.rangeTo": "hasta {n}",
+  "web.ui.rangeOrder": "«desde» es mayor que «hasta»"
 }

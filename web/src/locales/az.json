@@ -348,5 +348,16 @@
   "web.legal.accepted": "hər şey qəbul edilib",
   "web.legal.stale": "redaksiya indicə dəyişdi — onu oxuyun və yenidən qəbul edin",
   "web.legal.refused": "əvvəlcə sənədlərin yeni redaksiyalarını qəbul edin: «mən» → «sənədlər»",
-  "web.me.name_rejected": "ad qəbul edilmədi; ifadə yeni adı gözləyir"
+  "web.me.name_rejected": "ad qəbul edilmədi; ifadə yeni adı gözləyir",
+  "web.ui.error": "xəta:",
+  "web.ui.newTab": "(yeni tab)",
+  "web.ui.show": "göstər",
+  "web.ui.hide": "gizlət",
+  "web.ui.pinName": "PİN, 6 rəqəm",
+  "web.ui.codeName": "kağız kod",
+  "web.ui.codeGroup": "{n}-ci qrup, cəmi {m}",
+  "web.ui.remaining": "qalıb: {n}",
+  "web.ui.rangeFrom": "{n}-dən",
+  "web.ui.rangeTo": "{n}-dək",
+  "web.ui.rangeOrder": "“dən” “dək”dən böyükdür"
 }

@@ -348,5 +348,16 @@
   "web.legal.accepted": "баары кабыл алынды",
   "web.legal.stale": "редакция жаңы эле өзгөрдү — аны окуп, кайра кабыл алыңыз",
   "web.legal.refused": "адегенде документтердин жаңы редакцияларын кабыл алыңыз: «мен» → «документтер»",
-  "web.me.name_rejected": "аты кабыл алынган жок, сөз айкашы жаңы атты күтөт"
+  "web.me.name_rejected": "аты кабыл алынган жок, сөз айкашы жаңы атты күтөт",
+  "web.ui.error": "ката:",
+  "web.ui.newTab": "(жаңы өтмөк)",
+  "web.ui.show": "көрсөт",
+  "web.ui.hide": "жашыр",
+  "web.ui.pinName": "ПИН, 6 сан",
+  "web.ui.codeName": "кагаз код",
+  "web.ui.codeGroup": "{m} топтун {n}-си",
+  "web.ui.remaining": "калды: {n}",
+  "web.ui.rangeFrom": "{n}-дан",
+  "web.ui.rangeTo": "{n}-га чейин",
+  "web.ui.rangeOrder": "«баштап» мааниси «чейин» маанисинен чоң"
 }

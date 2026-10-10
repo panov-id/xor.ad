@@ -348,5 +348,16 @@
   "web.legal.accepted": "alles akzeptiert",
   "web.legal.stale": "die Fassung hat sich gerade geändert — lesen Sie sie und akzeptieren Sie erneut",
   "web.legal.refused": "akzeptieren Sie zuerst die neuen Fassungen der Dokumente: „ich“ → „Dokumente“",
-  "web.me.name_rejected": "der Name wurde nicht angenommen; die Phrase wartet auf einen neuen"
+  "web.me.name_rejected": "der Name wurde nicht angenommen; die Phrase wartet auf einen neuen",
+  "web.ui.error": "Fehler:",
+  "web.ui.newTab": "(neuer Tab)",
+  "web.ui.show": "anzeigen",
+  "web.ui.hide": "verbergen",
+  "web.ui.pinName": "PIN, 6 Ziffern",
+  "web.ui.codeName": "Papiercode",
+  "web.ui.codeGroup": "Gruppe {n} von {m}",
+  "web.ui.remaining": "übrig: {n}",
+  "web.ui.rangeFrom": "ab {n}",
+  "web.ui.rangeTo": "bis {n}",
+  "web.ui.rangeOrder": "„ab“ ist größer als „bis“"
 }

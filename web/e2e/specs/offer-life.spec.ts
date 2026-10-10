@@ -35,7 +35,7 @@ test("an offer shows the other's phrase as a bar, «скоро исчезнет�
   await expect(row.getByTestId("life-theirs")).toBeVisible();
   expect(Number(await row.getByTestId("life-theirs").getAttribute("data-left"))).toBeGreaterThan(0.9);
   await expect(row.getByTestId("offer-soon")).toHaveCount(0);
-  await expect(row.getByTestId("offer-mine-left")).toHaveText(/ещё (25\d|260) мин/);
+  await expect(row.getByTestId("offer-mine-left")).toHaveText(/ещё 4 ч (1[1-9]|20) мин/); // 251–260 minutes, said in hours and minutes (П24)
 
   // Борис's phrase in its last fifth: ten minutes left.
   const sql = postgres(DATABASE, { max: 1 });
@@ -49,7 +49,7 @@ test("an offer shows the other's phrase as a bar, «скоро исчезнет�
   expect(Number(await row.getByTestId("life-theirs").getAttribute("data-left"))).toBeLessThan(0.2);
   // Its minutes are never printed: the only number in the row's life is Аня's own.
   await expect(row.getByTestId("offer-life")).not.toContainText(/\b(9|10)\s*мин/);
-  await expect(row.getByTestId("offer-mine-left")).toHaveText(/ещё (25\d|260) мин/);
+  await expect(row.getByTestId("offer-mine-left")).toHaveText(/ещё 4 ч (1[1-9]|20) мин/); // 251–260 minutes, said in hours and minutes (П24)
 
   await a.close();
   await b.close();

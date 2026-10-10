@@ -189,6 +189,8 @@
   "web.inbox.span": "сиз {n} мүн унчукпасаңыз өчөт",
   "web.inbox.title": "Сүйлөшүүлөр",
   "web.inbox.waits_you": "сизди күтөт",
+  "web.lang.item": "тил",
+  "web.lang.title": "Тил",
   "web.like.refused_status": "Лайк кабыл алынган жок ({status}).",
   "web.like.refused_why": "Лайк кабыл алынган жок: {why}.",
   "web.likes.back": "← тасма",

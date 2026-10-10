@@ -189,6 +189,8 @@
   "web.inbox.span": "пас аз {n} дақ хомӯшии шумо хомӯш мешавад",
   "web.inbox.title": "Гуфтугӯҳо",
   "web.inbox.waits_you": "шуморо интизор аст",
+  "web.lang.item": "забон",
+  "web.lang.title": "Забон",
   "web.like.refused_status": "Лайк қабул нашуд ({status}).",
   "web.like.refused_why": "Лайк қабул нашуд: {why}.",
   "web.likes.back": "← лента",

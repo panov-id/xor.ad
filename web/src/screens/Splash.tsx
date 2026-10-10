@@ -3,14 +3,15 @@
 // still under prefers-reduced-motion), one line of what this is, one of what
 // it is not, and the ways in.
 //
-// The code is the language the page speaks, picked from the browser once at
-// load (locales/say.ts): the web has no switch of languages, so the corner
-// names the language and does not choose it (WS1, stop line in
-// docs/design/web-vs-sheets_*).
+// The corner is the language the page speaks, and chooses it (WP-3; until
+// then it only named it, WS1 in docs/design/web-vs-sheets_*): a person whose
+// browser speaks something else finds their own language before the first
+// word they would have to read. Each option is named in itself; choosing one
+// reloads the page in it and is kept on this device (locales/say.ts).
 
 import type { ReactNode } from "react";
 import { say } from "../api/me.ts";
-import { LANG } from "../locales/say.ts";
+import { chooseLanguage, LANG, LANGUAGES, languageName } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 
 // The sheet's icons, drawn in a 56 box: home, bench, teapot, domino, knight,
@@ -29,7 +30,15 @@ const ICONS: ReactNode[] = [
 export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; onRestore: () => void; onArrive: () => void }) {
   return (
     <main className="screen splash" data-screen="splash">
-      <p className="splash-lang" data-testid="lang" lang="en" aria-label={`language: ${LANG}`}>{LANG.toUpperCase()}</p>
+      <select
+        className="splash-lang"
+        data-testid="lang"
+        aria-label={say("web.lang.title")}
+        value={LANG}
+        onChange={(event) => chooseLanguage(event.currentTarget.value)}
+      >
+        {LANGUAGES.map((lang) => <option key={lang} value={lang} lang={lang}>{languageName(lang)}</option>)}
+      </select>
       <div className="splash-icons" aria-hidden="true">
         {ICONS.map((icon, i) => (
           <svg key={i} viewBox="0 0 56 56" width="87" height="87">{icon}</svg>

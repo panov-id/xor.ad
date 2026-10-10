@@ -189,6 +189,8 @@
   "web.inbox.span": "մարում է ձեր {n} րոպե լռությունից հետո",
   "web.inbox.title": "Խոսակցություններ",
   "web.inbox.waits_you": "սպասում է ձեզ",
+  "web.lang.item": "լեզու",
+  "web.lang.title": "Լեզու",
   "web.like.refused_status": "Հավանումը չընդունվեց ({status})։",
   "web.like.refused_why": "Հավանումը չընդունվեց՝ {why}։",
   "web.likes.back": "← հոսք",

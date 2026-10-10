@@ -18,11 +18,12 @@ import { HeaderScreen } from "../ui/Header.tsx";
 import { BRAND } from "../config.ts";
 import { AUTO, applyTheme, type Choice, readChoice, saveChoice } from "../theme.ts";
 import { THEMES } from "../themes.gen.ts";
+import { chooseLanguage, LANG, LANGUAGES, languageName } from "../locales/say.ts";
 import "./place.css";
 
 // "filter" and "legal" open here, not through the parent (W14-AF, W13-LC):
 // the age filter and screen 15 are Me's own screens.
-export type MeRow = "statements" | "name" | "age" | "filter" | "hidden" | "blocked" | "legal" | "away" | "pin" | "move" | "reissue" | "reset" | "theme";
+export type MeRow = "statements" | "name" | "age" | "filter" | "hidden" | "blocked" | "legal" | "away" | "pin" | "move" | "reissue" | "reset" | "theme" | "lang";
 
 export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }: {
   brandClass?: string;
@@ -37,8 +38,10 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
   // Both states before either early return: hooks run in the same order every render.
   const [filtering, setFiltering] = useState(false);
   const [legal, setLegal] = useState(false);
+  const [choosingLang, setChoosingLang] = useState(false);
   if (filtering) return <AgeFilter client={client} onDone={() => setFiltering(false)} onBack={() => setFiltering(false)} />;
   if (legal) return <Legal client={client} onDone={() => setLegal(false)} onBack={() => setLegal(false)} />;
+  if (choosingLang) return <LanguagePicker onBack={() => setChoosingLang(false)} />;
   const rows: Array<{ key: MeRow; label: string; red?: boolean; testid: string; icon?: IconName }> = [
     ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true, testid: "me-statements", icon: "report" as const }] : []),
     // A refused name is said here (§8.2, chat_RU.md:866: it is edited always):
@@ -63,7 +66,10 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
     { key: "move", label: say("move.item"), testid: "me-move", icon: "arrive" },
     { key: "reissue", label: say("reissue.item"), testid: "me-reissue", icon: "code" },
     // Among the wide service rows, not between the settings: in sosed's bento a
-    // row amid the half tiles breaks their pairs (W16-MD).
+    // row amid the half tiles breaks their pairs (W16-MD). The language too
+    // (WP-3: put after "theme" it left "change PIN" alone, the Me sheet's
+    // drift 16% → 25%).
+    { key: "lang", label: `${say("web.lang.item")} · ${languageName(LANG)}`, testid: "me-lang", icon: "say" },
     { key: "legal", label: say("web.legal.item"), testid: "me-legal", icon: "report" },
     { key: "reset", label: say("reset.item"), testid: "me-reset", icon: "reset" },
   ];
@@ -87,6 +93,7 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
                 if (row.key === "age") return profile && onOpen("age", String(profile.age));
                 if (row.key === "filter") return setFiltering(true);
                 if (row.key === "legal") return setLegal(true);
+                if (row.key === "lang") return setChoosingLang(true);
                 onOpen(row.key);
               }}
             >
@@ -127,6 +134,26 @@ export function ThemePicker({ onBack }: { onBack: () => void }) {
               <span className="theme-dot" />
             </span>
             <span>{o.label}</span>
+          </label>
+        ))}
+      </div>
+    </main>
+  );
+}
+
+// The page's language, one radio per language both dictionaries know, each
+// named in itself (locales/say.ts languageName), so a person who cannot read
+// the current one still finds their own. Kept on this device; choosing one
+// reloads the page in it (WP-3).
+export function LanguagePicker({ onBack }: { onBack: () => void }) {
+  return (
+    <main className="screen theme" data-screen="lang">
+      <HeaderScreen title={say("web.lang.title")} action={<Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="lang-back" />} />
+      <div role="radiogroup" aria-label={say("web.lang.title")} className="theme-options">
+        {LANGUAGES.map((lang) => (
+          <label key={lang} className="theme-option" data-testid={`lang-${lang}`}>
+            <input type="radio" name="lang" value={lang} checked={lang === LANG} onChange={() => chooseLanguage(lang)} />
+            <span lang={lang}>{languageName(lang)}</span>
           </label>
         ))}
       </div>

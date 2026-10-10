@@ -189,6 +189,8 @@
   "web.inbox.span": "erlischt nach {n} Min Ihres Schweigens",
   "web.inbox.title": "Unterhaltungen",
   "web.inbox.waits_you": "wartet auf Sie",
+  "web.lang.item": "Sprache",
+  "web.lang.title": "Sprache",
   "web.like.refused_status": "Like nicht angenommen ({status}).",
   "web.like.refused_why": "Like nicht angenommen: {why}.",
   "web.likes.back": "← Feed",

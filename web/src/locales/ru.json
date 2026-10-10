@@ -189,6 +189,8 @@
   "web.inbox.span": "гаснет после {n} мин вашего молчания",
   "web.inbox.title": "Разговоры",
   "web.inbox.waits_you": "ждёт вас",
+  "web.lang.item": "язык",
+  "web.lang.title": "Язык",
   "web.like.refused_status": "Лайк не принят ({status}).",
   "web.like.refused_why": "Лайк не принят: {why}.",
   "web.likes.back": "← лента",

@@ -189,6 +189,8 @@
   "web.inbox.span": "goes out after {n} min of your silence",
   "web.inbox.title": "Talks",
   "web.inbox.waits_you": "waiting for you",
+  "web.lang.item": "language",
+  "web.lang.title": "Language",
   "web.like.refused_status": "Like not accepted ({status}).",
   "web.like.refused_why": "Like not accepted: {why}.",
   "web.likes.back": "← feed",

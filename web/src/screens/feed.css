@@ -81,6 +81,8 @@
   position: absolute; top: 12px; right: 16px; margin: 0;
   min-width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--border-control); border-radius: var(--r-2); font-size: 14px; font-weight: 600; color: var(--fg);
+  /* A select since WP-3: its own background and padding, the page's font. */
+  background: var(--bg); padding: 0 8px; font-family: inherit;
 }
 .splash-icons { flex: 1; display: grid; grid-template-columns: 87px 87px; column-gap: 73px; row-gap: 31px; justify-content: center; align-content: start; margin-bottom: var(--s-4); }
 .splash-icons svg { fill: none; stroke: var(--fg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; animation: splash-come-go 5.6s ease-in-out infinite; }

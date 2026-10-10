@@ -11,13 +11,13 @@ src/screens/Departure.tsx	0
 src/screens/Feed.tsx	0
 src/screens/Hidden.tsx	0
 src/screens/Inbox.tsx	0
-src/screens/Legal.tsx	13
+src/screens/Legal.tsx	0
 src/screens/Likes.tsx	0
 src/screens/Locked.tsx	0
 src/screens/Match.tsx	0
 src/screens/Me.tsx	0
 src/screens/NewTable.tsx	0
-src/screens/Offer.tsx	16
+src/screens/Offer.tsx	0
 src/screens/Register.tsx	0
 src/screens/Reissue.tsx	0
 src/screens/Restore.tsx	0
@@ -26,3 +26,4 @@ src/screens/Statements.tsx	0
 src/screens/Table.tsx	0
 src/screens/TableBoards.tsx	0
 src/screens/Unlock.tsx	0
+src/adv/Cabinet.tsx	0

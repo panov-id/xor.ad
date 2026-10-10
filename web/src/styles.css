@@ -100,6 +100,8 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .ui-send-on svg { background: var(--accent); stroke: var(--accent-ink); }
 .ui-header { display: flex; align-items: center; gap: var(--s-1); min-height: 56px; margin: 0 calc(-1 * var(--s-4)); padding: 0 var(--s-4); }
 .ui-header-rule { border-bottom: 1px solid var(--border); padding-left: var(--s-1); }
+/* A header with no back icon keeps the title on the 16 edge, as the sheets do. */
+.ui-header-rule:not(:has(.ui-icon)) { padding-left: var(--s-4); }
 .ui-header-title { flex: 1; font-size: 20px; font-weight: 600; margin: 0; }
 .ui-header-action { font-size: 14px; font-weight: 600; color: var(--accent-text); }
 .ui-icon { width: var(--control-h); min-height: var(--control-h); padding: 0; border: 0; display: grid; place-items: center; background: transparent; }
@@ -341,3 +343,14 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-hand { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .ui-hand-item { display: flex; align-items: center; gap: var(--s-1); }
 [data-screen="table"], [data-screen="new-table"] { padding-top: 0; }
+/* Nav (the cabinet's strip, К6): the screen's first child, edge to edge, 56 tall;
+   the place in mono at x 16, the sections as words, the current underlined. */
+.ui-nav-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); min-height: 56px; margin: 0 calc(-1 * var(--s-4)); padding: 0 var(--s-4); background: var(--panel); }
+.ui-nav-where { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.ui-nav { display: flex; gap: var(--s-3); }
+.ui-nav .ui-button { color: var(--muted); }
+.ui-nav .ui-button[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: underline; }
+/* Stat: a label and a number; a bad one is red and says «много» (К6). */
+.ui-stat { display: flex; justify-content: space-between; margin: 0; font-size: 0.875rem; }
+.ui-stat-label { color: var(--muted); }
+.ui-stat-bad { color: var(--err); font-weight: 600; }

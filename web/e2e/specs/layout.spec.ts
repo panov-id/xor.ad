@@ -41,5 +41,5 @@ test("the cabinet's strip starts at y 0 and its address at x 16", async ({ page 
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto(`${ADV}/adv`);
-  await measure(page, "adv-sign-in", ":scope > .cabinet-bar", ".cabinet-where");
+  await measure(page, "adv-sign-in", ":scope > .ui-nav-bar", ".ui-nav-where");
 });

@@ -7,14 +7,14 @@ import { type ControlState, useControl } from "./control.tsx";
 // toggles. The second channel is ✓ drawn in the box (it stays in mono). An
 // error is aria-invalid + the word «ошибка:»; unavailable keeps focus and
 // ignores the toggle, the reason beside it.
-export function Checkbox({ children, checked, onChange, error, disabled, reason, busy, hint }:
-  ControlState & { children: ReactNode; checked: boolean; onChange: (checked: boolean) => void }) {
+export function Checkbox({ children, checked, onChange, error, disabled, reason, busy, hint, ...rest }:
+  ControlState & { children: ReactNode; checked: boolean; onChange: (checked: boolean) => void } & { [data: `data-${string}`]: string | undefined }) {
   const c = useControl({ hint, error, disabled, reason, busy });
   return (
     <div className="ui-field">
       <label className="ui-check">
         <span className="ui-check-box">
-          <input {...c.attrs} type="checkbox" checked={checked} onClick={(event) => { if (disabled) event.preventDefault(); }}
+          <input {...rest} {...c.attrs} type="checkbox" checked={checked} onClick={(event) => { if (disabled) event.preventDefault(); }}
             onChange={(event) => { if (!disabled) onChange(event.target.checked); }} />
           <Icon name="check" className="ui-glyph ui-check-mark" />
         </span>

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Ratchet gate for the web kit (K3): screens and App.tsx must not grow new raw
+# Ratchet gate for the web kit (K3): screens, the cabinet (adv/) and App.tsx must not grow new raw
 # <button>/<input>/<select>/<textarea>/<a> elements, nor className tokens that
 # are not a `.ui-*` class defined in styles.css. Per-file counts are compared
 # with web/kit-baseline.tsv (file<TAB>count): above baseline = red, equal or
@@ -22,7 +22,7 @@ css = open(os.path.join(root, "src/styles.css"), encoding="utf-8").read()
 vocab = set(re.findall(r"\.(ui-[A-Za-z0-9_-]+)", css))
 if not vocab:
     print("check-web-kit: no .ui-* classes found in styles.css"); sys.exit(2)
-files = sorted(glob.glob(os.path.join(root, "src/screens/*.tsx"))) + [os.path.join(root, "src/App.tsx")]
+files = sorted(glob.glob(os.path.join(root, "src/screens/*.tsx"))) + sorted(glob.glob(os.path.join(root, "src/adv/*.tsx"))) + [os.path.join(root, "src/App.tsx")]
 tag_re = re.compile(r"<(button|input|select|textarea|a)(?=[\s/>])")
 
 def strip_comments(t):  # keep length and newlines so offsets stay valid

@@ -14,9 +14,11 @@ import { useEffect, useState } from "react";
 import { BRAND } from "../config.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
+import { Code } from "../ui/Code.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
-import "./place.css";
-import { Icon } from "../ui/Icon.tsx";
+import { Actions, LinkButton } from "../ui/Links.tsx";
+import { EmptyState, Notice } from "../ui/Notices.tsx";
+import { Screen } from "../ui/Screen.tsx";
 
 type Exit = { domain: string; disabled: boolean };
 type State = { at: "loading" } | { at: "ok"; exit: Exit } | { at: "missing" } | { at: "failed" };
@@ -51,53 +53,38 @@ export function Offer({ code, onHome }: { code: string; onHome: () => void }) {
   }, [code]);
 
   if (state.at === "ok") {
+    const title = say("web.offer.leaving", { brand: BRAND });
     return (
-      <main className="screen offer-exit" data-screen="offer-exit" data-state={state.at}>
-        <HeaderScreen title="" onBack={onHome} backLabel={say("web.offer.close")} />
-        <section className="offer-leave" data-testid="exit" data-disabled={state.exit.disabled}>
-          <h1 className="offer-display">{say("web.offer.leaving", { brand: BRAND })}</h1>
-          <p className="offer-domain" data-testid="domain">{state.exit.domain}</p>
+      <Screen name="offer-exit" title={title} data-state={state.at} header={<HeaderScreen title={title} onBack={onHome} backLabel={say("web.offer.close")} />}>
+        <section data-testid="exit" data-disabled={state.exit.disabled}>
+          <Code value={state.exit.domain} data-testid="domain" />
           {state.exit.disabled
-            ? <p className="warn" data-testid="disabled">{say("web.offer.disabled")}</p>
+            ? <Notice data-testid="disabled">{say("web.offer.disabled")}</Notice>
             : (
-              <p className="offer-note">
+              <p>
                 {say("web.offer.authorLink")}
                 <br />
                 {say("web.offer.notChecked")}
               </p>
             )}
         </section>
-        <footer className="offer-actions">
+        <Actions>
+          <Button kind="secondary" type="button" icon="close" aria-label={say("web.offer.cancel")} onClick={onHome} data-testid="home" />
           {!state.exit.disabled && (
-            <a className="ui-button ui-primary ui-icon-only ui-wide offer-go" href={`/o/${encodeURIComponent(code)}/go`} rel="noopener noreferrer nofollow" aria-label={say("web.offer.continue")} data-testid="go">
-              <Icon name="open" />
-            </a>
+            <LinkButton kind="primary" href={`/o/${encodeURIComponent(code)}/go`} nofollow data-testid="go">{say("web.offer.continue")}</LinkButton>
           )}
-          <Button kind="secondary" type="button" icon="close" className="ui-wide" aria-label={say("web.offer.cancel")} onClick={onHome} data-testid="home" />
-        </footer>
-      </main>
+        </Actions>
+      </Screen>
     );
   }
 
+  const title = say("web.offer.title");
   return (
-    <main className="screen offer-exit" data-screen="offer-exit" data-state={state.at}>
-      <HeaderScreen title={say("web.offer.title")} />
-      {state.at === "loading" && <p className="muted" data-testid="loading" role="status" aria-live="polite">…</p>}
-      {state.at === "missing" && (
-        <section className="place-empty-block" data-testid="missing">
-          <h2>{say("web.offer.noSuch")}</h2>
-          <p className="muted">{say("web.offer.checkCode")}</p>
-        </section>
-      )}
-      {state.at === "failed" && (
-        <section className="place-empty-block" data-testid="failed">
-          <h2>{say("web.offer.failed")}</h2>
-          <p className="muted">{say("web.offer.later")}</p>
-        </section>
-      )}
-      <footer className="place-footer">
-        <Button kind="secondary" type="button" icon="feed" className="ui-wide" aria-label={say("web.offer.home")} onClick={onHome} data-testid="home" />
-      </footer>
-    </main>
+    <Screen name="offer-exit" title={title} data-state={state.at} header={<HeaderScreen title={title} />}>
+      {state.at === "loading" && <p className="ui-hint" data-testid="loading" role="status" aria-live="polite">…</p>}
+      {state.at === "missing" && <EmptyState title={say("web.offer.noSuch")} line={say("web.offer.checkCode")} data-testid="missing" />}
+      {state.at === "failed" && <EmptyState title={say("web.offer.failed")} line={say("web.offer.later")} data-testid="failed" />}
+      <Button kind="secondary" type="button" icon="feed" className="ui-wide" aria-label={say("web.offer.home")} onClick={onHome} data-testid="home" />
+    </Screen>
   );
 }

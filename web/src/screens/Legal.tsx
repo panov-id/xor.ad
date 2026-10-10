@@ -13,9 +13,15 @@ import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { type Accepted, acceptAll, type LegalDocument, type LegalRevision, readManifest, toAccept } from "../../../depth/core/legal.ts";
 import { BRAND, NAMES } from "../config.ts";
-import { say } from "../locales/say.ts";
+import { dateLong, say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
+import { Checkbox } from "../ui/Checkbox.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
+import { Link } from "../ui/Links.tsx";
+import { List, ListItem } from "../ui/List.tsx";
+import { Notice } from "../ui/Notices.tsx";
+import { Screen } from "../ui/Screen.tsx";
 
 export const LEGAL_ORDER: LegalDocument[] = ["terms", "privacy", "guidelines"];
 
@@ -62,12 +68,12 @@ const ordered = (list: LegalRevision[]) => [...list].sort((a, b) => LEGAL_ORDER.
 // revision date — what the consent accepts.
 export function LegalLinks({ revisions }: { revisions: LegalRevision[] }) {
   return (
-    <p className="muted legal-links" data-testid="legal-links">
+    <p className="ui-hint" data-testid="legal-links">
       {ordered(revisions).map((r, i) => (
         <span key={r.document}>
           {i > 0 ? " · " : ""}
-          <a href={docUrl(r.document)} target="_blank" rel="noopener noreferrer" data-testid={`legal-link-${r.document}`}>{say(`web.legal.${r.document}`)}</a>
-          {" "}({say("web.legal.edition", { date: r.revision_date })})
+          <Link href={docUrl(r.document)} external data-testid={`legal-link-${r.document}`}>{say(`web.legal.${r.document}`)}</Link>
+          {" "}({say("web.legal.edition", { date: dateLong(r.revision_date) })})
         </span>
       ))}
     </p>
@@ -83,13 +89,10 @@ export function LegalBoxes({ revisions, checked, onCheck }: {
   return (
     <>
       {ordered(revisions).map((r) => (
-        <label key={r.document} className="row legal-box">
-          <input type="checkbox" checked={!!checked[r.document]} onChange={(e) => onCheck(r.document, e.target.checked)} data-testid={`legal-${r.document}`} />
-          <span>
-            {say(`web.legal.accept_${r.document}`)}{" "}
-            <a href={docUrl(r.document)} target="_blank" rel="noopener noreferrer" data-testid={`legal-link-${r.document}`}>{say("web.legal.read")}</a>
-          </span>
-        </label>
+        <Checkbox key={r.document} checked={!!checked[r.document]} onChange={(on) => onCheck(r.document, on)} data-testid={`legal-${r.document}`}>
+          {say(`web.legal.accept_${r.document}`)}{" "}
+          <Link href={docUrl(r.document)} external data-testid={`legal-link-${r.document}`}>{say("web.legal.read")}</Link>
+        </Checkbox>
       ))}
     </>
   );
@@ -128,36 +131,38 @@ export function Legal({ client, onDone, onBack }: { client: Client; onDone: () =
       setBusy(false);
     }
   }
+  const title = say("web.legal.title");
   return (
-    <main className="screen legal" data-screen="legal" data-pending={pending.length}>
-      <HeaderScreen
-        title={say("web.legal.title")}
-        action={onBack && <Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="legal-back" />}
-      />
-      {manifest === undefined && <p className="muted">…</p>}
+    <Screen
+      name="legal"
+      title={title}
+      data-pending={pending.length}
+      header={onBack ? <HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} /> : <HeaderScreen title={title} />}
+    >
+      {manifest === undefined && <p className="ui-hint">…</p>}
       {manifest && (
-        <ul className="legal-docs">
+        <List label={title}>
           {ordered(manifest).map((r) => {
             const changed = pending.some((p) => p.document === r.document);
             return (
-              <li key={r.document} data-testid={`legal-doc-${r.document}`} data-changed={changed ? "yes" : "no"}>
-                <a href={docUrl(r.document)} target="_blank" rel="noopener noreferrer">{say(`web.legal.${r.document}`)}</a>
+              <ListItem key={r.document} data-testid={`legal-doc-${r.document}`} data-changed={changed ? "yes" : "no"}>
+                <Link href={docUrl(r.document)} external>{say(`web.legal.${r.document}`)}</Link>
                 {" · "}
-                <span className="muted">{say("web.legal.edition", { date: r.revision_date })}</span>
-                {changed && <span className="warn"> · {say("web.legal.changed")}</span>}
-              </li>
+                <span className="ui-hint">{say("web.legal.edition", { date: dateLong(r.revision_date) })}</span>
+                {changed && <Notice>{say("web.legal.changed")}</Notice>}
+              </ListItem>
             );
           })}
-        </ul>
+        </List>
       )}
       {pending.length > 0 ? (
         <>
-          <p className="muted">{say("web.legal.why")}</p>
+          <p className="ui-hint">{say("web.legal.why")}</p>
           <LegalBoxes revisions={pending} checked={checked} onCheck={(d, on) => setChecked((c) => ({ ...c, [d]: on }))} />
           <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("web.legal.accept")} aria-busy={busy} disabled={!all || busy} onClick={() => void accept()} data-testid="legal-accept" />
         </>
       ) : manifest && <p data-testid="legal-all">{say("web.legal.accepted")}</p>}
-      {error && <p className="error" data-testid="error">{error}</p>}
-    </main>
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
+    </Screen>
   );
 }

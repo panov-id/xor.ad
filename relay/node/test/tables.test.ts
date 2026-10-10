@@ -750,6 +750,39 @@ test({ name: "GET /tables pages through every table near the viewer, newest firs
   assertEquals((await signed(viewer, "GET", `/tables?lon=${lon}&radius=1000`)).status, 400, "no place, no list");
 });
 
+// П18b: the screen «Столы» shows one's own tables too — where one sits and
+// what one liked, wherever they stand — in `mine` on the first page; the list
+// itself still leaves them out.
+test({ name: "GET /tables gives one's own and liked tables in mine on the first page, and refuses a radius that is not whole metres", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const lat = -40 + Math.random() * 5;
+  const lon = 140 + Math.random() * 5;
+  const me = await person();
+  const mineAt = await signed(me, "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat: lat + 3, lon, area_radius: 1000, nonce: nonce() });
+  assertEquals(mineAt.status, 201, JSON.stringify(mineAt.body));
+  const other = await person();
+  const theirs = await signed(other, "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat, lon, area_radius: 1000, nonce: nonce() });
+  const liked = theirs.body.id as string;
+  assertEquals((await signed(me, "POST", `/tables/${liked}/like`)).status, 200);
+
+  const at = `lat=${lat + 0.001}&lon=${lon + 0.001}&radius=1000`;
+  const first = await signed(me, "GET", `/tables?${at}`);
+  assertEquals(first.status, 200, JSON.stringify(first.body));
+  const mine = first.body.mine as { id: string; seated: boolean; liked: boolean }[];
+  assert(Array.isArray(mine), "the first page has mine");
+  const own = mine.find((card) => card.id === mineAt.body.id);
+  assert(own, "the table one sits at, far from the circle, is in mine");
+  assertEquals([own!.seated, own!.liked], [true, false]);
+  const kept = mine.find((card) => card.id === liked);
+  assert(kept, "the liked table is in mine");
+  assertEquals([kept!.seated, kept!.liked], [false, true]);
+  const items = (first.body.items as { id: string }[]).map((card) => card.id);
+  assert(!items.includes(liked) && !items.includes(mineAt.body.id as string), "the list itself still leaves them out");
+  assert(!JSON.stringify(mine).includes(other.identity_id), "no identity in mine");
+
+  const fraction = await signed(me, "GET", `/tables?lat=${lat}&lon=${lon}&radius=1000.5`);
+  assertEquals([fraction.status, code(fraction)], [400, "invalid_body"], "a radius in fractions of a metre");
+});
+
 // G1g: the last four classes, one test each, and the seats of a class.
 const moveAs = async (who: Person, id: string, move: unknown) =>
   signed(who, "POST", `/tables/${id}/moves`, { seq: (await seen(who, id)).seq, move });

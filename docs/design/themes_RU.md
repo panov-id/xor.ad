@@ -41,3 +41,13 @@
   обоих брендов в `panel/design/sheets-<brand>/` — эталон `scripts/check-web-design.sh`.
 
 Новая тема = JSON-файл (через генератор своего бренда) и `themes-css.py`; код экранов не меняется.
+
+## Витрины берут цвета из тех же тем
+Витрины генерируются из тех же тем (10.10.2026, решено кворумом; отклонено: общий kit.css).
+`scripts/design/themes-css.py --landing` пишет в `landing/index.html` каждой витрины между
+`/* BEGIN kit … */` и `/* END kit */` цветовые переменные из `web/themes/<бренд>/*.json` и
+правила кнопок, полей и ссылок, равные `.ui-*` из `web/src/styles.css` (токены — `web/src/tokens.css`).
+Витрина своих hex-цветов не пишет: нет зелёного `--ok` (успех — словом и ✓), нет своего `--border`.
+Имена витрин (`--panel`, `--border`, `--muted`, `--accent-ink`) сводятся к именам тем одним
+явным списком `LANDING_VARS` в генераторе. `scripts/check-landing-tokens.sh` сверяет значения, а не
+только имена; его проба — `scripts/test_check-landing-tokens.sh`.

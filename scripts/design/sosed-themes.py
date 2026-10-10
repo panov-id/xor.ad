@@ -13,9 +13,11 @@ MONO_DARK_LINE="#5f5f5f"
 SOSED_DARK=dict(bg="#0d0b0a",panel="#262019",panel2="#302720",border="#3a2e20",control="#80705a",fg="#f0e7dc",muted="#9a8d7c",err="#ef7a6a")
 SOSED_LIGHT=dict(bg="#ece4d8",panel="#fdfaf4",panel2="#e6dbc9",border="#221a12",control="#857562",fg="#1c140d",muted="#6b5f4c",err="#a3311f")
 ACC={ # name: (accent, ink light-ground, text light, ink dark-ground, text dark)  -- schemes.css lines 3-14
- "terra":("#bd4b2a","#fff6f0","#983c22","#fff6f0","#e0714f"),"amber":("#d68a1f","#1a1509","#8e5c15","#1a1509","#d68a1f"),
- "turquoise":("#1fa99a","#1a1509","#157369","#1a1509","#1fa99a"),"azure":("#336eb2","#fff6f0","#3068a8","#fff6f0","#528bcd"),
- "violet":("#8550c5","#fff6f0","#814ac3","#fff6f0","#9e74d1"),"carmine":("#cc2f27","#fff6f0","#c12d25","#fff6f0","#df5f59")}
+# accent-text of amber, turquoise, azure, violet, carmine moved by lightness to 4.5:1 on bg, surface AND surface-2
+# (10.10.2026, scripts/design/fit-accent-text.py); the kit's own values were 4.09-4.18:1 on surface-2.
+ "terra":("#bd4b2a","#fff6f0","#983c22","#fff6f0","#e0714f"),"amber":("#d68a1f","#1a1509","#875714","#1a1509","#d68a1f"),
+ "turquoise":("#1fa99a","#1a1509","#146d64","#1a1509","#1fa99a"),"azure":("#336eb2","#fff6f0","#2e63a0","#fff6f0","#5c92d0"),
+ "violet":("#8550c5","#fff6f0","#7c42c0","#fff6f0","#a57ed4"),"carmine":("#cc2f27","#fff6f0","#b82b23","#fff6f0","#e16b65")}
 INKS=["#fff6f0","#1a1509"]   # the kit's two accent inks, reused as text on tiles
 TILES=["amber","turquoise","violet","azure"]
 def tiles(acc): return [ACC[("terra" if t==acc else t)][0] for t in TILES]   # never the theme's own accent as a tile

@@ -1,11 +1,13 @@
-# neighbro themes from the neighbro.place landing palette (landing/index.html :root, [data-mode=light], [data-theme]).
-# Exact landing hex; structure mirrors themes/sosed: one light theme per accent with its own dark-<accent> night,
+# neighbro themes. THE PALETTE LIVES HERE, in this file: until 10.10.2026 it was read off the neighbro.place landing
+# (landing/index.html :root, [data-mode=light], [data-theme]); since then the landing is generated FROM these themes
+# (scripts/design/themes-css.py --landing, design.2026-10-10.landing-kit-generated), so the landing no longer holds it.
+# The hex below are the former landing hex (the grounds cooled, see cool()); structure mirrors themes/sosed: one light theme per accent with its own dark-<accent> night,
 # light/dark (teal) as the base pair, mono/mono-dark as equal-luminance greys of light/dark.
 # Moved here from web/design/gen/dir-stickers/make_themes.py (W15-D1); writes web/themes/neighbro/*.json,
 # contract docs/design/themes_EN.md. Run: python3 scripts/design/neighbro-themes.py, then scripts/design/themes-css.py.
 import json, os
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),"..","..","web","themes","neighbro")
-SRC="neighbro.place landing/index.html lines 85-129"
+SRC="scripts/design/neighbro-themes.py (the palette of the former neighbro.place landing, until 2026-10-10)"
 import colorsys
 def _lum(h):
     c=[int(h[i:i+2],16)/255 for i in (1,3,5)]; c=[x/12.92 if x<=0.03928 else ((x+0.055)/1.055)**2.4 for x in c]

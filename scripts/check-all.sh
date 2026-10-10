@@ -117,6 +117,7 @@ opt count-tests           bash "$here/count-tests.sh" --check
 
 # Ворота, которым нужен только текст: держать их снаружи было нечем оправдать.
 opt check-landing-tokens       bash "$here/check-landing-tokens.sh"
+opt test-landing-tokens        bash "$here/test_check-landing-tokens.sh"
 opt check-retired-terms        bash "$here/check-retired-terms.sh"
 opt check-rules-quota-sentence bash "$here/check-rules-quota-sentence.sh"
 opt check-panel-reason-labels  bash "$here/check-panel-reason-labels.sh"

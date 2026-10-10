@@ -10,7 +10,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { expect, test, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, register, writePhrase } from "./helpers.ts";
+import { chatMenu, likeByCard, openMatch, register, writePhrase } from "./helpers.ts";
 
 const sync = process.env.MIXED_SYNC ?? "/app/results/mixed-sync";
 const run = process.env.MIXED_RUN ?? "";
@@ -98,6 +98,7 @@ test("the paper code raises an identity from the page in the terminal, and back"
     // No wrap of the keys for this device: the page offers asking for new ones.
     await expect(back.getByTestId("keys-failed"), "the raised page did not say its keys are missing").toBeVisible({ timeout: 30000 });
     const before = Number(await chat.getAttribute("data-epoch"));
+    await chatMenu(back);
     await back.getByTestId("rekey-ask").click();
     await expect(back.getByTestId("rekey-waiting")).toBeVisible({ timeout: 15000 });
     signal("web-asked-rekey");

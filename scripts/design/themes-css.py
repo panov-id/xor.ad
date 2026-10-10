@@ -213,7 +213,8 @@ LANDINGS = {
 }
 # Rules of web/src/styles.css taken verbatim, by exact selector, in file order.
 KIT_SELECTORS = [
-    ".ui-button", ".ui-primary", ".ui-primary:disabled", ".ui-secondary", ".ui-danger", ".ui-text",
+    # Since К6 the unavailable primary is also said by aria-disabled (kit_RU.md §2), one rule for both.
+    ".ui-button", ".ui-primary", '.ui-primary:disabled, .ui-primary[aria-disabled="true"]', ".ui-secondary", ".ui-danger", ".ui-text",
     ".ui-field", ".ui-label", ".ui-input",
     '.ui-input[aria-invalid="true"], .ui-textarea[aria-invalid="true"]',
     '.ui-input[aria-disabled="true"], .ui-textarea[aria-disabled="true"]',

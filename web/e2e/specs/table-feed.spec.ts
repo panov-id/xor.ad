@@ -25,9 +25,12 @@ test("a table set from the feed comes into a neighbour's feed, and its card seat
   await anya.getByTestId("nav-inbox").click();
   await anya.getByTestId("nav-feed").click();
   await expect(anya.getByTestId("table-card").filter({ hasText: name })).toContainText("свободно мест: 1", { timeout: 30000 });
+  // П30 · the class and the set stand apart by « · », not run together.
+  await expect(anya.getByTestId("table-card").filter({ hasText: name })).toContainText(/ · [а-яё ]+ · (поле \d×\d|[а-яё ]+)/);
   // The tables tab (К6б) lists the same table, with the same seat count.
   await openTables(anya);
   await expect(anya.getByTestId("table-card").filter({ hasText: name })).toContainText("свободно мест: 1", { timeout: 30000 });
+  await expect(anya.getByTestId("table-card").filter({ hasText: name })).toContainText(/ · [а-яё ]+ · (поле \d×\d|[а-яё ]+)/);
   await sitFromFeed(anya, name);
   await expect(anya.getByTestId("table")).toContainText("Женя");
   await expect(zhenya.getByTestId("table")).toContainText("Аня", { timeout: 15000 });

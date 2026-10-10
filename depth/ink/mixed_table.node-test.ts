@@ -128,12 +128,12 @@ async function main() {
     await type(app, DOWN);
     await typeUntil(app, paper[4], new RegExp(`${paper[4]}_`));
     await type(app, DOWN, ENTER);
-    await until(app, /Где ты/);
+    await until(app, /Где вы/);
     await typeUntil(app, LAT, /41\.9/);
     await type(app, DOWN);
     await typeUntil(app, LON, /12\.5/);
     await type(app, DOWN, DOWN, ENTER);
-    await until(app, /signal/);
+    await until(app, /Лента · радиус/);
     out("ok   Борис registered in the terminal and stands at the page's point");
 
     // 2 · a dots table from the feed's "table", as table.node-test.ts sets one:

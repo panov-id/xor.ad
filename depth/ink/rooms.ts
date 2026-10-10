@@ -19,6 +19,7 @@ import { obviousPin } from "../core/pin.ts";
 import { lifeOf } from "../core/life.ts";
 import { ChatGames, isGameFrame } from "../core/chat_games.ts";
 import { ChatGame } from "./chat_game.ts";
+import { duration, refusalWords } from "./words.ts";
 
 // 4 · a phrase. The counter shows the number this client documents (146);
 // the node's own limit is what actually refuses (§8.3), and reading it from
@@ -31,7 +32,7 @@ export function Write(
     place: Place;
     limit: number;
     // `id` is what POST /feed answered: the feed takes the phrase down by it (W11-B).
-    onDone: (text: string, id?: string) => void;
+    onDone: (text: string, id?: string, state?: "live" | "pending") => void;
     onBack: () => void;
     onError: (message: string) => void;
   },
@@ -80,10 +81,11 @@ export function Write(
           .then(async (answer) => {
             // Until 23.09.2026 any answer counted as sent, and a refusal showed
             // as "being checked" — the terminal telling a lie on the node's behalf.
-            if (answer.status === 200 || answer.status === 202) return onDone(text.trim(), (answer.body as { id?: string } | null)?.id);
+            // 200 is published, 202 waits for a person: the feed says which (Т4).
+            if (answer.status === 200 || answer.status === 202) return onDone(text.trim(), (answer.body as { id?: string } | null)?.id, answer.status === 200 ? "live" : "pending");
             const why = await refusal(answer);
             if (why) return setRefused(why);
-            onError(`the phrase was refused: ${answer.status}`);
+            setRefused(refusalWords(say, answer, "phrase"));
           })
           .catch((e: Error) => onError(e.message))
           .finally(() => setBusy(false));
@@ -129,9 +131,9 @@ export function lifeLine(r: Row, say: Say, nowSeconds = Date.now() / 1000): stri
   const mine = lifeOf(r.my_phrase?.expires_at, nowSeconds);
   const cells = theirs ? Math.ceil(theirs.left * 5) : 0;
   return [
-    theirs ? `${"■".repeat(cells)}${"□".repeat(5 - cells)}` : "",
+    theirs ? say("inbox.theirs", { bar: `${"■".repeat(cells)}${"□".repeat(5 - cells)}` }) : "",
     theirs?.soon ? say("inbox.soon") : "",
-    mine ? say("inbox.mine_left", { n: String(mine.minutes) }) : "",
+    mine ? say("inbox.mine_left", { left: duration(say, mine.minutes) }) : "",
   ].filter(Boolean).map((part) => ` · ${part}`).join("");
 }
 
@@ -143,10 +145,10 @@ let lastLook: number | undefined;
 // offer arrived or was answered, a chat opened, replies wait — with their
 // count), "⌛" for one's own term in its last fifth. Symbols, not words: the
 // texts people read are the owner's (17 locales), and these need none.
-export function marksOf(r: Row): string {
-  const fresh = r.arrived_since || r.answered_since || r.opened_since || (r.pending_messages ?? 0) > 0;
-  const count = (r.pending_messages ?? 0) > 0 ? ` ${r.pending_messages}` : "";
-  return `${fresh ? `●${count}` : ""}${r.ending_soon ? (fresh ? " ⌛" : "⌛") : ""}`;
+export function marksOf(r: Row, say: Say): string {
+  const messages = (r.pending_messages ?? 0) > 0 ? say("inbox.messages", { n: r.pending_messages! }) : "";
+  const fresh = r.arrived_since || r.answered_since || r.opened_since ? say("inbox.new") : "";
+  return [fresh, messages, r.ending_soon ? say("inbox.ending") : ""].filter(Boolean).join(" · ");
 }
 
 // 5 · the inbox: matches waiting for consent, and chats already open.
@@ -209,10 +211,10 @@ export function Inbox(
   const badge = events
     ? [
       events.new_matches + events.waiting_for_you + events.new_chats > 0
-        ? `● ${events.new_matches + events.waiting_for_you + events.new_chats}`
+        ? say("inbox.newCount", { n: events.new_matches + events.waiting_for_you + events.new_chats })
         : "",
-      events.pending_messages > 0 ? `✉ ${events.pending_messages}` : "",
-      events.ending_soon > 0 ? `⌛ ${events.ending_soon}` : "",
+      events.pending_messages > 0 ? say("inbox.messages", { n: events.pending_messages }) : "",
+      events.ending_soon > 0 ? say("inbox.endingCount", { n: events.ending_soon }) : "",
     ].filter(Boolean).join("  ")
     : "";
   const time = (seconds?: number) =>
@@ -233,7 +235,7 @@ export function Inbox(
             Item,
             { key: r.id, on: i === at, bold: i === at },
             `${plain(r.name ?? "?", 48)}, ${plain(r.age ?? "?", 3)}   `,
-            r.declined || !marksOf(r) ? "" : `${marksOf(r)}  `,
+            r.declined || !marksOf(r, say) ? "" : `${marksOf(r, say)}  `,
             r.declined
               ? say("inbox.declined")
               : r.kind === "chat"
@@ -672,7 +674,7 @@ export function Chat(
     h(
       Txt,
       counting ? { color: "red" } : { dim: true },
-      say("chat.fades", { span: say(`chat.spanShort${span}`) }) + (counting ? ` · ${clock}` : ""),
+      say("chat.fades", { left: duration(say, span) }) + (counting ? ` · ${clock}` : ""),
     ),
     starters.length > 0
       ? h(
@@ -754,10 +756,10 @@ export function Chat(
         }),
       )
       : null,
-    h(Muted, null, `${say("chat.counter", { used: [...draft].length, limit })} · ${say("chat.noHistory")}`),
+    h(Muted, null, say("chat.counter", { used: [...draft].length, limit })),
     h(Form, {
       active: !showCode && !gameOpen,
-      fields: [{ key: "draft", label: ">", value: draft }],
+      fields: [{ key: "draft", label: say("chat.draft"), value: draft }],
       onChange: (_key, value) => setDraft(value.slice(0, limit)),
       actions: [
         { key: "send", label: say("chat.send"), disabled: draft.trim() === "" },
@@ -1389,7 +1391,9 @@ export function EditProfile(
           const hours = Math.min(24, Math.max(1, Math.ceil((answer.retryAfter ?? 24 * 3600) / 3600)));
           return setRefused(say("profile.patchDay", { n: String(hours) }));
         }
-        onError(`the profile edit was refused: ${answer.status}`);
+        // The model decides a name at once (name_refused, 422): the reason in the
+        // dictionary's words, never the status or the node's English (Т1).
+        setRefused(refusalWords(say, answer, "name"));
       })
       .catch((e: Error) => onError(e.message));
   };

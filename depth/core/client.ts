@@ -411,8 +411,10 @@ export class Client {
     return answer.body;
   }
 
-  // PATCH /identities/me — any subset; a new name answers 202 and waits for
-  // the queue, the rest answers 200 with the profile as it stands (§8.2).
+  // PATCH /identities/me — any subset; a new name is decided at once (the
+  // model, or the rules of §8.3 with none): 200 with the profile as it stands,
+  // or 422 name_refused with the old name standing. 202 (the name waits for the
+  // queue) is only under FEED_VERDICT=queue (§8.2).
   editProfile(patch: {
     name?: string; age?: number; filter_age_min?: number | null; filter_age_max?: number | null; languages?: string[];
   }): Promise<Answer> {

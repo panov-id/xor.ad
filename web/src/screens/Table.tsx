@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { applyFrame, dotsOf, frameNeedsView, openApplications, type TableView, Tables, turnOf } from "../../../depth/core/tables.ts";
 import { say } from "../api/me.ts";
+import { durationSeconds } from "../locales/duration.ts";
 import { connectTable } from "../api/tableRoom.ts";
 import { classWord, tableRefusal } from "../api/tables.ts";
 import { Button } from "../ui/Button.tsx";
@@ -92,7 +93,7 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
       {!board || board.over
         ? <p data-testid="over">{say("table.over")}</p>
         : board.turn === null ? <p data-testid="turn">{say("table.notStarted")}</p>
-        : <p data-testid="turn">{turn.mine ? say("table.yourTurn") : `${say("table.turn")}: ${turn.name ?? "—"}`} · {turn.secondsLeft} {say("table.seconds")}</p>}
+        : <p data-testid="turn">{turn.mine ? say("table.yourTurn") : `${say("table.turn")}: ${turn.name ?? "—"}`} · {durationSeconds(turn.secondsLeft)}</p>}
       {score.length > 0 && (
         // Whose number is which: a pair «имя — число», not the bare numbers (П13).
         <section data-testid="score" aria-label={say("table.score")}>

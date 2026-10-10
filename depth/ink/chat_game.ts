@@ -13,6 +13,7 @@ import type { Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
 import { Actions, Board, ErrorLine, Muted, Stack, Strong, Txt } from "./kit.ts";
 import { ClassBoard } from "./table_boards.ts";
+import { classWord, refusalWords } from "./words.ts";
 import { dotsOf, drawDots, freeEdges, type BoardClass } from "../core/tables.ts";
 import { asTableView, type ChatGames, type ChatGameView, chatTurn } from "../core/chat_games.ts";
 
@@ -64,8 +65,7 @@ export function ChatGame(
 
   // A refusal comes back as a line of text; a move answered 200 is the new view.
   const refused = (a: { status: number; body: unknown }) => {
-    const e = (a.body as { error?: { code?: string; reason?: string } } | null)?.error;
-    setNote(`${say("table.refused")}: ${plain(e?.reason ?? e?.code ?? a.status, 120)}`);
+    setNote(refusalWords(say, a, "table"));
   };
   const move = (m: unknown) => {
     if (!board) return;
@@ -91,7 +91,7 @@ export function ChatGame(
       h(Muted, null, say("game.none")),
       h(Actions, {
         active,
-        actions: [...CLASSES.map((c) => ({ key: c, label: c })), { key: "close", label: say("common.close") }],
+        actions: [...CLASSES.map((c) => ({ key: c, label: classWord(say, c) })), { key: "close", label: say("common.close") }],
         onPick: (key) =>
           key === "close" ? onClose() : act(games.propose(chatId, key as BoardClass, SET_OF[key] ?? key)),
       }),
@@ -102,7 +102,7 @@ export function ChatGame(
   const tv = asTableView(chatId, view, { mine: say("table.you"), theirs: plain(name, 48) });
   const score = board ? [1, 2].map((s) => `${s === view.your_seat ? say("table.you") : plain(name, 48)} ${board.score[String(s)] ?? 0}`).join(" · ") : "";
   const status = !board
-    ? pending?.mine ? say("game.waiting") : say("game.offered", { game: plain(pending?.class ?? "", 12) })
+    ? pending?.mine ? say("game.waiting") : say("game.offered", { game: plain(classWord(say, pending?.class ?? ""), 40) })
     : board.over ? say("table.over")
     : turn === "mine" ? say("table.yourTurn")
     : say("game.theirTurn", { name: plain(name, 48) });
@@ -117,7 +117,7 @@ export function ChatGame(
     Stack,
     null,
     head,
-    h(Txt, { color: turn === "mine" ? "green" : undefined }, `${plain(view.class, 12)} · ${status}`),
+    h(Txt, { color: turn === "mine" ? "green" : undefined }, `${plain(classWord(say, view.class), 40)} · ${status}`),
     score ? h(Txt, null, `${say("table.score")}: ${score}`) : null,
     dots ? h(Board, { rows: drawDots(dots, turn === "mine" ? edge : undefined) }) : null,
     board && !dots ? h(ClassBoard, { say, view: tv, onMove: turn === "mine" ? move : undefined, active: active && onBoard }) : null,

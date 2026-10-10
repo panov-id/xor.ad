@@ -8,12 +8,13 @@ import type { Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
 import { Actions, Board, ErrorLine, Form, Head, Muted, Notice, Stack, Txt } from "./kit.ts";
 import { ClassBoard } from "./table_boards.ts";
+import { classWord, durationSeconds, refusalWords, setWord, type TableAction as Why } from "./words.ts";
 import type { Room } from "../core/client.ts";
 import {
   applyFrame, type BoardClass, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
 } from "../core/tables.ts";
 
-export type TableAction = "move" | "pass" | "say" | "rematch" | "stand" | "resign" | "like";
+export type TableAction = "move" | "pass" | "say" | "apply" | "rematch" | "stand" | "resign" | "like";
 
 export function Table(
   { say, view, onPick, onMove, now }: {
@@ -62,27 +63,39 @@ export function Table(
   // own is waited on, another's is answered.
   const pending = board?.pending as { kind?: string; by?: number } | null | undefined;
   const theirRematch = pending?.kind === "rematch" && pending.by !== view.seat;
-  const actions: Array<{ key: TableAction; label: string; disabled?: boolean }> = [
-    ...(dots ? [{ key: "move" as const, label: `${say("table.move")} ${edge ?? ""}`, disabled: !turn.mine || !edge }] : []),
-    { key: "pass", label: say("table.pass"), disabled: !turn.mine },
-    { key: "say", label: say("table.say") },
-    // A game starts only on a rematch everyone at the table agrees to (the
-    // node builds rematch alone): another's open proposal is accepted here.
-    {
-      key: "rematch",
-      label: theirRematch ? say("table.acceptRematch") : say("table.rematch"),
-      disabled: view.seats.length < 2 || (board?.pending?.kind === "rematch" && !theirRematch),
-    },
-    { key: "resign", label: say("table.resign"), disabled: !view.is_playing || !board || !!board.over },
-    { key: "like", label: say("table.like") },
-    { key: "stand", label: say("table.stand") },
-  ];
+  // A watcher plays nothing: the node answers a proposal, a resignation or a
+  // pass of one who is not playing with «only a player» (409), so the buttons
+  // are not drawn for them — a word says how to get a seat instead (Т2). They
+  // may speak, apply, like and stand up.
+  const watching = !view.is_playing;
+  const actions: Array<{ key: TableAction; label: string; disabled?: boolean }> = watching
+    ? [
+      { key: "say", label: say("table.say") },
+      { key: "apply", label: say("table.apply") },
+      { key: "like", label: say("table.like") },
+      { key: "stand", label: say("table.stand") },
+    ]
+    : [
+      ...(dots ? [{ key: "move" as const, label: `${say("table.move")} ${edge ?? ""}`, disabled: !turn.mine || !edge }] : []),
+      { key: "pass", label: say("table.pass"), disabled: !turn.mine },
+      { key: "say", label: say("table.say") },
+      // A game starts only on a rematch everyone at the table agrees to (the
+      // node builds rematch alone): another's open proposal is accepted here.
+      {
+        key: "rematch",
+        label: theirRematch ? say("table.acceptRematch") : say("table.rematch"),
+        disabled: view.seats.length < 2 || (board?.pending?.kind === "rematch" && !theirRematch),
+      },
+      { key: "resign", label: say("table.resign"), disabled: !board || !!board.over },
+      { key: "like", label: say("table.like") },
+      { key: "stand", label: say("table.stand") },
+    ];
   return h(
     Stack,
     { gap: 1 },
     h(Head, {
-      title: `${say("table.title")}${view.name ? ` · "${plain(view.name, 48)}"` : ""} · ${plain(view.class, 12)}`,
-      lines: [counts, `${say("table.seated")}  ${seated}`, say("table.open")],
+      title: `${say("table.title")}${view.name ? ` · "${plain(view.name, 48)}"` : ""} · ${plain(classWord(say, view.class), 40)}`,
+      lines: [counts, `${say("table.seated")}  ${seated}`, ...(watching ? [say("table.spectator")] : []), say("table.open")],
     }),
     // The name the moderator refused (W13-TN): the table lives on without one.
     view.name_refused ? h(Notice, { say }, say("table.nameRefused")) : null,
@@ -94,8 +107,8 @@ export function Table(
         h(Txt, { color: turn.mine ? "green" : undefined },
           board.over ? say("table.over")
           : board.turn === null ? say("table.notStarted")
-          : turn.mine ? `${say("table.yourTurn")} · ${turn.secondsLeft} ${say("table.seconds")}`
-          : `${say("table.turn")}: ${plain(turn.name ?? "—", 48)} · ${turn.secondsLeft} ${say("table.seconds")}`),
+          : turn.mine ? `${say("table.yourTurn")} · ${durationSeconds(say, turn.secondsLeft)}`
+          : `${say("table.turn")}: ${plain(turn.name ?? "—", 48)} · ${durationSeconds(say, turn.secondsLeft)}`),
         score ? h(Txt, null, `${say("table.score")}: ${score}`) : null,
         dots ? h(Board, { rows: drawDots(dots, turn.mine ? edge : undefined).map((row) => plain(row, 80)) }) : null,
         other ? h(ClassBoard, { say, view, onMove: turn.mine ? onMove : undefined, active: onBoard }) : null,
@@ -138,6 +151,9 @@ export function TableRoom(
   const [view, setView] = useState<TableView | null>(null);
   const [said, setSaid] = useState<string | null>(null);
   const [saying, setSaying] = useState<string | null>(null);
+  // The line goes as an application when a watcher asks for a seat (relay
+  // routes/tables.ts kind application: admitted when a player starts a round).
+  const [applying, setApplying] = useState(false);
   const read = () =>
     tables.view(tableId).then((a) => (a.status === 200 ? setView(a.body) : onError(`${a.status} ${JSON.stringify(a.body)}`)));
   useEffect(() => {
@@ -163,10 +179,9 @@ export function TableRoom(
     };
   }, [tableId]);
   if (!view) return h(Muted, null, "…");
-  const answer = (run: Promise<{ status: number; body: unknown }>) =>
+  const answer = (run: Promise<{ status: number; body: unknown }>, why: Why = "play") =>
     void run.then((a) => {
-      const error = (a.body as { error?: { code?: string; reason?: string } } | null)?.error;
-      setSaid(a.status >= 400 ? `${say("table.refused")}: ${plain(error?.reason ?? error?.code ?? a.status, 200)}` : null);
+      setSaid(a.status >= 400 ? refusalWords(say, a, "table", why) : null);
     }).catch((e: Error) => onError(e.message));
   if (saying !== null) {
     // A line at the table goes through the moderation queue like a phrase
@@ -174,14 +189,17 @@ export function TableRoom(
     return h(
       Stack,
       { gap: 1 },
-      h(Head, { title: say("table.say"), lines: [say("table.open")] }),
+      h(Head, { title: say(applying ? "table.apply" : "table.say"), lines: [say("table.open")] }),
       h(Form, {
-        fields: [{ key: "line", label: say("table.say"), value: saying }],
+        fields: [{ key: "line", label: say(applying ? "table.application" : "table.say"), value: saying }],
         onChange: (_k, v) => setSaying(graphemes(v, 128)),
         actions: [{ key: "send", label: say("table.send"), disabled: !saying.trim() }, { key: "back", label: say("common.back") }],
         onPick: (key) => {
-          if (key === "send" && saying.trim()) answer(tables.say(tableId, { kind: "line", text: saying.trim() }));
+          if (key === "send" && saying.trim()) {
+            answer(tables.say(tableId, { kind: applying ? "application" : "line", text: saying.trim() }), applying ? "apply" : "other");
+          }
           setSaying(null);
+          setApplying(false);
         },
       }),
     );
@@ -201,6 +219,10 @@ export function TableRoom(
         if (action === "resign") return answer(tables.resign(tableId));
         if (action === "like") return answer(tables.like(tableId));
         if (action === "say") return setSaying("");
+        if (action === "apply") {
+          setApplying(true);
+          return setSaying("");
+        }
         if (action === "rematch") {
           const pending = view.board?.pending;
           const theirs = pending?.kind === "rematch" && (pending as { by?: number }).by !== view.seat;
@@ -261,8 +283,8 @@ export function NewTable(
     h(Head, { title: say("table.new"), lines: [say("table.open")] }),
     h(Form, {
       fields: [
-        { key: "class", label: say("table.class"), value: kind, choices: [...CLASSES] },
-        { key: "set", label: say("table.set"), value: set, choices: setsOf(kind) },
+        { key: "class", label: say("table.class"), value: kind, choices: [...CLASSES], shown: (v: string) => classWord(say, v) },
+        { key: "set", label: say("table.set"), value: set, choices: setsOf(kind), shown: (v: string) => setWord(say, v) },
         { key: "seats", label: say("table.seats"), value: seats, choices: seatsOf(kind) },
         { key: "name", label: say("table.name"), value: name },
       ],
@@ -286,8 +308,7 @@ export function NewTable(
           ...(name.trim() ? { name: name.trim() } : {}),
         }).then((a) => {
           if (a.status === 201) return onSet(a.body.id);
-          const e = (a.body as unknown as { error?: { code?: string; message?: string } } | null)?.error;
-          setError(`${say("table.refused")}: ${plain(e?.message ?? e?.code ?? a.status, 200)}`);
+          setError(refusalWords(say, a as { status: number; body: unknown }, "table"));
           setBusy(false);
         }).catch((e: Error) => { setError(e.message); setBusy(false); });
       },
@@ -329,19 +350,18 @@ export function SeatedElsewhere(
       onPick: (key) => {
         if (key === "back") return onBack();
         if (key === "there") return onOpen(there);
-        const code = (a: { status: number; body: unknown }) =>
-          plain((a.body as { error?: { code?: string } } | null)?.error?.code ?? a.status, 80);
+        const code = (a: { status: number; body: unknown }) => refusalWords(say, a, "table");
         void (async () => {
           const stood = await tables.stand(there);
-          if (stood.status >= 400) return onError(`${say("table.refused")}: ${code(stood)}`);
+          if (stood.status >= 400) return onError(code(stood));
           const sat = await tables.sit(here);
           if (sat.status < 400) return onOpen(here);
           const back = await tables.sit(there);
           if (back.status < 400) {
-            onError(`${say("table.refused")}: ${code(sat)} · ${say("table.keptThere")}`);
+            onError(`${code(sat)} · ${say("table.keptThere")}`);
             return onOpen(there);
           }
-          onError(`${say("table.refused")}: ${code(sat)} · ${say("table.lostBoth")}`);
+          onError(`${code(sat)} · ${say("table.lostBoth")}`);
         })().catch((e: Error) => onError(e.message));
       },
     }),

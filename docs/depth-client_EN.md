@@ -1131,6 +1131,16 @@ built: the mark in the answer to opening a conversation (the node sends it only 
 tables, closing the sockets on stepping away, the offer to step away after an hour (the hour
 counter on the client, chat spec §8.2).
 
+### 4.12. How the person is addressed
+
+Every dictionary language addresses a person in one form — the one most of its lines are
+written in (the terminal's and the web's together).
+Address (2026-10-10): decided by quorum on the principle of the majority form of a language's keys; rejected: ty in the headers. The gate
+`scripts/check-address-form.py` counts the keys per language and goes red on a line of the other
+form; its test is `scripts/test_check-address-form.sh`. Neither "ty" nor the polite "you" is a
+line addressed to both people of one conversation at once (the Romanian "comparați" in the code
+hint): it stands in the exception list `scripts/check-address-form.allow`.
+
 ---
 
 ## 4a. Stickers

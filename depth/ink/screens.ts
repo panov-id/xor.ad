@@ -12,6 +12,7 @@ import type { Answer, Client, Radius } from "../core/client.ts";
 import { readPaperCode, readPaperText } from "../core/paper.ts";
 import type { Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
+import { gameWords, radiusWord, refusalWords } from "./words.ts";
 import { Actions, Card, ErrorLine, Form, Head, Muted, Notice, Rule, Stack, Strong, Txt } from "./kit.ts";
 
 export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
@@ -324,7 +325,7 @@ export function Feed(
       onLike: (p) =>
         client.like(p.id)
           .then((answer) => {
-            if (answer.status !== 200) throw new Error(`the like refused: ${answer.status}`);
+            if (answer.status !== 200) throw new Error(refusalWords(say, answer, "like"));
             // A like on an offer while one's own name is in the queue (§8.5,
             // S7): the like counted, the match waits — refusal-wordings §3.
             if (answer.body.name_pending) onError(say("like.namePending"));
@@ -343,7 +344,7 @@ export function Feed(
       ? h(Card, {
         key: p.id,
         on: i === at,
-        title: `${say("table.title")}${p.name ? ` · "${plain(p.name, 24)}"` : ""} · ${plain(p.game ?? "?", 12)} ${plain(p.set ?? "", 12)}`,
+        title: `${say("table.title")}${p.name ? ` · "${plain(p.name, 24)}"` : ""} · ${plain(gameWords(say, p.game ?? "?", p.set), 60)}`,
         meta: `${say("table.free")} ${plain(p.free_seats ?? 0, 6)} · ${say("table.playing")} ${plain(p.playing ?? 0, 6)} · ${say("table.watching")} ${plain(p.watching ?? 0, 6)} · ♥ ${plain(p.like_count ?? 0, 6)}`,
       })
       : p.name === undefined && p.age === undefined && p.distance_m === undefined && p.minutes_ago === undefined
@@ -363,7 +364,9 @@ export function Feed(
     Stack,
     { gap: 1 },
     h(Head, {
-      title: say("feed.header", { lat: place.lat, lon: place.lon, radius: place.radius, from: 18, to: 99 }),
+      // No coordinates on the screen and no id of the product: the circle in
+      // words (Т3). The point stays on the person's side.
+      title: `${say("feed.title")} · ${say("loc.radius")} ${radiusWord(say, place.radius)} · ${say("reg.age")} 18–99`,
     }),
     items === null
       ? h(Muted, null, "…")
@@ -374,7 +377,9 @@ export function Feed(
     h(
       Muted,
       null,
-      mine ? `${say("feed.yours", { text: plain(mine.text, 200) })} · ${mine.state === "pending" ? say("feed.checking") : mine.state}` : say("feed.none"),
+      // The state in words: «live» is what the node published, «pending» what a
+      // person still reads (Т4); any other word of the node is not shown.
+      mine ? `${say("feed.yours", { text: plain(mine.text, 200) })} · ${say(mine.state === "pending" ? "feed.checking" : "feed.live")}` : say("feed.none"),
     ),
     h(Actions, {
       actions: [
@@ -435,7 +440,7 @@ export function Feed(
         // "liked" in the menu is where it can be taken back.
         client.like(chosen.id)
           .then((answer) => {
-            if (answer.status !== 200) throw new Error(`the like refused: ${answer.status}`);
+            if (answer.status !== 200) throw new Error(refusalWords(say, answer, "like"));
             if (answer.body.name_pending) onError(say("like.namePending"));
             setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id));
           })

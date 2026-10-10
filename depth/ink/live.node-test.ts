@@ -138,7 +138,7 @@ async function main() {
     await type(app, DOWN);
     await typeUntil(app, paper[4], new RegExp(`${paper[4]}▋`));
     await type(app, DOWN, ENTER);
-    await until(app, /Где ты/);
+    await until(app, /Где вы/);
     out("ok   registration went through the screens, the PIN and the paper code");
 
     // 2 · the location, then the feed. Each value is waited for on the screen
@@ -149,7 +149,7 @@ async function main() {
     await type(app, DOWN);
     await typeUntil(app, "30.3351", /30\.3351/);
     await type(app, DOWN, DOWN, ENTER);
-    await until(app, /signal/);
+    await until(app, /Лента · радиус/);
     out("ok   the location screen opened the feed");
 
     // The counter must show the node's number, not one this client carries:
@@ -159,7 +159,7 @@ async function main() {
     await until(app, new RegExp(`0/${stated}`), 20);
     out(`ok   the phrase counter shows the node's own limit (${stated})`);
     await type(app, DOWN, RIGHT, ENTER); // the phrase screen: back
-    await until(app, /signal/);
+    await until(app, /Лента · радиус/);
 
     // The other side: the core, and a phrase put where the feed will find it.
     const peer = new Client(node, apiKey);
@@ -176,7 +176,7 @@ async function main() {
 
     // 3 · the feed shows it. The screen reloads when the point is set again.
     await pickInFeed(app, "point");
-    await until(app, /Где ты/);
+    await until(app, /Где вы/);
     await type(app, DOWN, DOWN, DOWN, ENTER);  // straight on: the point is still filled in
     await until(app, /пробежку/, 30);
     out("ok   a live phrase reached the feed screen");
@@ -187,8 +187,8 @@ async function main() {
     await pickInFeed(app, "table");
     await until(app, /поставить стол/);
     await type(app, DOWN, DOWN, DOWN, DOWN, ENTER);
-    await until(app, /стол · dots/, 20);
-    assert.match(app.lastFrame() ?? "", /без сквозного шифрования/, "the live table does not say it is open to the node");
+    await until(app, /стол · точки/, 20);
+    assert.match(app.lastFrame() ?? "", /За столом переписка не зашифрована/, "the live table does not say it is open to the node");
     await rowAppears(sql, `SELECT 1 FROM tables WHERE game = 'dots' AND set = '4x4' AND seats = 2 AND created_at > now() - interval '5 minutes'`, []);
     for (let i = 0; i < 8; i++) await type(app, RIGHT);
     await type(app, ENTER);
@@ -210,7 +210,7 @@ async function main() {
     const peerTable = await new Tables(peer).create({ class: "dots", set: "3x3", seats: 2, lat: 59.9343, lon: 30.3351, area_radius: 1000 });
     assert.equal(peerTable.status, 201, `Марк could not set a table: ${JSON.stringify(peerTable.body)}`);
     await pickInFeed(app, "point");
-    await until(app, /Где ты/);
+    await until(app, /Где вы/);
     await type(app, DOWN, DOWN, DOWN, ENTER);
     await until(app, /свободно 1/, 30);
     // The list wraps and the card's place depends on the page: walk to it by
@@ -218,7 +218,7 @@ async function main() {
     for (let i = 0; i < 6 && !/> стол/.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
     await until(app, /> стол/, 10);
     await pickInFeed(app, "open");
-    await until(app, /стол · dots/, 20);
+    await until(app, /стол · точки/, 20);
     assert.match(app.lastFrame() ?? "", /Марк/, "the table sat down at is not Марк's");
     await rowAppears(sql, `SELECT 1 FROM table_seats WHERE table_id = $1 AND left_at IS NULL GROUP BY table_id HAVING count(*) = 2`, [peerTable.body.id]);
     for (let i = 0; i < 8; i++) await type(app, RIGHT);
@@ -270,7 +270,7 @@ async function main() {
       }
       const refresh = async (what: RegExp) => {
         await pickInFeed(app, "point");
-        await until(app, /Где ты/);
+        await until(app, /Где вы/);
         await type(app, DOWN, DOWN, DOWN, ENTER);
         await until(app, what, 30);
       };
@@ -314,7 +314,7 @@ async function main() {
     // one action leads to the inbox (§4.10).
     await peer.consent(back.body.match_id!);
     await pickInFeed(app, "me");
-    await until(app, /лайкнутое/, 20);
+    await until(app, /мои лайки/, 20);
     await type(app, DOWN, DOWN, ENTER);
     await until(app, /предложение поговорить/, 20);
     out("ok   the liked screen shows the match that came out of the like");
@@ -332,7 +332,7 @@ async function main() {
     // What only the chat draws: "Марк" is on the inbox's row too, and waiting
     // for it let the next keys go to the inbox before the chat was up (B9,
     // 6 of 10 runs under stress, 26.09.2026).
-    await until(app, /истории на диске нет/, 30);
+    await until(app, /реплика:/, 30);
     out("ok   the inbox screen opened the conversation");
 
     // 6 · the safety code, from the chat's menu — the twenty digits derived
@@ -351,7 +351,7 @@ async function main() {
     await type(app, ENTER);
     await until(app, /^(?![\s\S]*\d{4} \d{4} \d{4} \d{4} \d{4})/);
     await type(app, RIGHT, ENTER);
-    await until(app, /гаснет после 4:20/, 20);
+    await until(app, /гаснет после 4 ч 20 мин/, 20);
     const [mine] = await sql`SELECT p.idle_ttl_minutes AS span FROM chat_participants p
                               JOIN identities i ON i.id = p.identity
                              WHERE p.chat_id = ${peerChat.chat_id} AND i.name = 'Аня'`;
@@ -437,7 +437,7 @@ async function main() {
     for (let i = 0; i < 7; i++) await type(app, LEFT);
     for (let i = 0; i < 6; i++) await type(app, RIGHT);
     await type(app, ENTER);
-    await until(app, /вам предлагают: dots/, 20);
+    await until(app, /вам предлагают: точки/, 20);
     await type(app, ENTER);
     await until(app, /ходит собеседник/, 20);
     const opened = await peerGames.view(chatId);
@@ -464,7 +464,7 @@ async function main() {
     // feed, "me" → "step away" (after name, age, liked and hidden), twenty minutes, and
     // back again with the second press the away screen asks for.
     await type(app, ENTER);
-    await until(app, /signal/, 20);
+    await until(app, /Лента · радиус/, 20);
     await pickInFeed(app, "me");
     await until(app, /отойти/, 20);
     await type(app, DOWN, DOWN, DOWN, DOWN, ENTER);
@@ -474,7 +474,7 @@ async function main() {
     const [awayRow] = await sql`SELECT stepped_away_until > now() AS away FROM identities WHERE id = ${me.id}`;
     assert.equal(awayRow?.away, true, "the screen says away and the node does not");
     await type(app, ENTER, ENTER);
-    await until(app, /signal/, 20);
+    await until(app, /Лента · радиус/, 20);
     const [backRow] = await sql`SELECT stepped_away_until <= now() AS back FROM identities WHERE id = ${me.id}`;
     assert.equal(backRow?.back, true, "coming back on the screen did not reach the node");
     out("ok   stepping away and coming back went to the node");
@@ -516,11 +516,10 @@ async function main() {
     await type(app, ENTER);
     await until(app, /меняется на чистом счету/, 20);
     await type(app, ..."\u007F\u007F\u007F\u007F".split(""), ..."t.me/anna".split(""), DOWN, ENTER);
-    // The screen has no words of its own for name_refused yet: rooms.ts
-    // EditField.send() falls to the generic error with the status. Pinned as
-    // the present behaviour; when the screen learns to say why, this line
-    // changes, the node's side below does not.
-    await until(app, /Что-то пошло не так: the profile edit was refused: 422/, 20);
+    // The screen says why in the dictionary's words (Т1, words.ts refusalWords):
+    // no English, no status, nothing of the model's own text.
+    await until(app, /ошибка: Имя не принято\. Выберите другое/, 20);
+    assert.doesNotMatch(app.lastFrame()!, /422|refused|Что-то пошло не так/, "a refused name shows a status or the node's English (Т1)");
     const [kept] = await sql`SELECT name, name_pending, name_state FROM identities WHERE id = ${me.id}`;
     assert.equal(kept?.name, "Анна", "a refused name replaced the old one on the node");
     assert.equal(kept?.name_pending, null, "a refused name was left pending on the node");
@@ -586,7 +585,7 @@ async function main() {
       await type(raised, DOWN);
       await typeUntil(raised, fresh[4], new RegExp(`${fresh[4]}▋`));
       await type(raised, DOWN, ENTER);
-      await until(raised, /Где ты/, 30);
+      await until(raised, /Где вы/, 30);
       const [after] = await sql`SELECT recovery_auth_hash FROM identities WHERE id = ${lost.identityId}`;
       assert.notEqual(after.recovery_auth_hash, before.recovery_auth_hash, "the screens raised the identity and the code on file did not change");
       const [old] = await sql`SELECT frozen_reason FROM sessions WHERE id = ${lost.sessionId}`;
@@ -619,7 +618,7 @@ async function main() {
     await type(app, DOWN);
     await typeUntil(app, "246810", /••••••[\s\S]*••••••/);
     await type(app, DOWN, ENTER);
-    await until(app, /Где ты/, 20);
+    await until(app, /Где вы/, 20);
     const [arrived] = await sql`SELECT s.label, (SELECT count(*)::int FROM sessions f WHERE f.identity = s.identity AND f.frozen_reason = 'transfer') AS frozen
       FROM sessions s WHERE s.identity = ${elsewhere.identityId} AND s.frozen_at IS NULL`;
     assert.match(String(arrived?.label), /^depth, /, "the live session is not the one this terminal claimed");
@@ -633,7 +632,7 @@ async function main() {
     await type(app, DOWN);
     await typeUntil(app, "30.3351", /30\.3351/);
     await type(app, DOWN, DOWN, ENTER);
-    await until(app, /signal/, 20);
+    await until(app, /Лента · радиус/, 20);
     await pickInFeed(app, "me");
     // The profile first: keys pressed before it answers land on a list that
     // is about to be drawn again (measured 26.09.2026).
@@ -716,7 +715,7 @@ async function main() {
       await type(awayApp, DOWN);
       await typeUntil(awayApp, again[4], new RegExp(`${again[4]}▋`));
       await type(awayApp, DOWN, ENTER);
-      await until(awayApp, /Где ты/, 30);
+      await until(awayApp, /Где вы/, 30);
       out("ok   a step away on the code's screen is ended there, and the trade then goes through");
     } finally {
       awayApp.unmount();
@@ -755,7 +754,7 @@ async function main() {
       await type(noPoint, DOWN, RIGHT, RIGHT, ENTER);
       await until(noPoint, /открыть устройство бумажным кодом/, 20);
       await type(noPoint, RIGHT, ENTER); // "me": "назад", to the feed
-      await until(noPoint, /Где ты/, 20);
+      await until(noPoint, /Где вы/, 20);
       out("ok   with no point yet, the way to the feed opens the point, and the terminal stays up");
     } finally {
       noPoint.unmount();

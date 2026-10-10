@@ -224,8 +224,8 @@ async function main() {
     for (let i = 0; i < 8; i++) await type(app, RIGHT);
     await type(app, ENTER);
     await until(app, /пробежку/, 20);
-    for (let i = 0; i < 6 && !/>[^\n]*\n\s*кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
-    await until(app, />[^\n]*\n\s*кто на пробежку/, 10);
+    for (let i = 0; i < 6 && !/> кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
+    await until(app, /> кто на пробежку/, 10);
     out("ok   a neighbour's table came in the feed, and sitting down from the row seated the person at it");
 
     // Hiding from the row, and back from the hidden list: the person's own
@@ -275,8 +275,8 @@ async function main() {
         await until(app, what, 30);
       };
       await refresh(/чай за полцены/);
-      for (let i = 0; i < 20 && !/>[^\n]*\n\s*чай за полцены/.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
-      await until(app, />[^\n]*\n\s*чай за полцены/, 10);
+      for (let i = 0; i < 20 && !/> чай за полцены/.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
+      await until(app, /> чай за полцены/, 10);
       await pickInFeed(app, "complain");
       await until(app, /скидку не дали/, 10);
       out("ok   \"complain\" on an offer's row in the App opened the complaint screen");
@@ -286,8 +286,8 @@ async function main() {
       await sql`DELETE FROM feed_messages WHERE id = ANY(${filler})`;
       await sql`DELETE FROM offers WHERE id = ${offer}`;
       await refresh(/пробежку/);
-      for (let i = 0; i < 6 && !/>[^\n]*\n\s*кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
-      await until(app, />[^\n]*\n\s*кто на пробежку/, 10);
+      for (let i = 0; i < 6 && !/> кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
+      await until(app, /> кто на пробежку/, 10);
     }
 
     // 4 · a like each way makes a match. The screen likes the peer's phrase;
@@ -480,10 +480,13 @@ async function main() {
     out("ok   stepping away and coming back went to the node");
 
     // 10 · the name, edited from "me" against the node: the step away took the
-    // phrases, so the slate is clean and the new name goes to the queue (202).
+    // phrases, so the slate is clean and the new name is decided at once (200;
+    // WP-1/WP-4: the rules or the model decide, nobody queues it).
     // 10a · W13-NR · a name the queue refused is said on "me" (§8.2): the row
-    // carries the words, and enter below edits it as any name. The verdict is
-    // written as refuseName() leaves it; the state goes back before the edit.
+    // carries the words, and enter below edits it as any name. The state
+    // 'rejected' is still reachable under FEED_VERDICT=queue and in old rows,
+    // so it is written by hand as refuseName() leaves it (this stand's rules
+    // mode never writes it); the state goes back before the edit.
     await sql`UPDATE identities SET name_state = 'rejected', name_pending = NULL WHERE id = ${me.id}`;
     await pickInFeed(app, "me");
     await until(app, /имя  Аня · имя не принято, фраза ждёт нового имени/, 20);
@@ -497,10 +500,34 @@ async function main() {
     await type(app, ..."\u007F\u007F\u007F".split(""), ..."Анна".split(""), DOWN, ENTER);
     await until(app, /Анна/, 20);
     // The field shows the name before the node has it: asked, not assumed.
-    await rowAppears(sql, `SELECT 1 FROM identities WHERE id = $1 AND name_pending IS NOT NULL`, [me.id]);
-    const [named] = await sql`SELECT name_pending FROM identities WHERE id = ${me.id}`;
-    assert.equal(named?.name_pending, "Анна", "the new name did not reach the node's queue");
-    out("ok   a name edited from the screen went to the queue");
+    // Since WP-1/WP-4 (owner 09.10.2026) nothing waits for a person: a clean
+    // name is the name at once (routes/profile.ts, nameByVerdict) — stored,
+    // accepted, nothing pending — and the answer is 200.
+    await rowAppears(sql, `SELECT 1 FROM identities WHERE id = $1 AND name = 'Анна' AND name_state = 'accepted' AND name_pending IS NULL`, [me.id]);
+    const [named] = await sql`SELECT name, name_pending, name_state FROM identities WHERE id = ${me.id}`;
+    assert.equal(named?.name, "Анна", "the accepted name was not stored on the node");
+    assert.equal(named?.name_pending, null, "the node queued a name that the rules accept (it did before WP-1)");
+    assert.equal(named?.name_state, "accepted", "the accepted name is not in the state accepted");
+    out("ok   a name edited from the screen was accepted at once: stored, accepted, nothing pending");
+
+    // 10b · a refused name. This stand has no moderator, so the rules of §8.3
+    // decide, and a link in a name is refused: 422 name_refused, the old name
+    // stands, nothing is pending (routes/profile.ts, nameByVerdict).
+    await type(app, ENTER);
+    await until(app, /меняется на чистом счету/, 20);
+    await type(app, ..."\u007F\u007F\u007F\u007F".split(""), ..."t.me/anna".split(""), DOWN, ENTER);
+    // The screen has no words of its own for name_refused yet: rooms.ts
+    // EditField.send() falls to the generic error with the status. Pinned as
+    // the present behaviour; when the screen learns to say why, this line
+    // changes, the node's side below does not.
+    await until(app, /Что-то пошло не так: the profile edit was refused: 422/, 20);
+    const [kept] = await sql`SELECT name, name_pending, name_state FROM identities WHERE id = ${me.id}`;
+    assert.equal(kept?.name, "Анна", "a refused name replaced the old one on the node");
+    assert.equal(kept?.name_pending, null, "a refused name was left pending on the node");
+    assert.equal(kept?.name_state, "accepted", "a refused name changed the state of the name that stands");
+    out("ok   a refused name: 422 on the screen, the old name stands, nothing is pending");
+    await type(app, RIGHT, ENTER);
+    await until(app, /имя  Анна/, 20);
 
     // 11 · the PIN changed from "me" (after name, age, liked, hidden and step
     // away), against the node's own proof: the old PIN opens it, and the

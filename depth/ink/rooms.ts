@@ -710,7 +710,7 @@ export function Chat(
             : l.system === true
             ? `· ${l.text}`
             : l.mine
-            ? `${say("chat.send")}: ${plain(l.text)}`
+            ? `${say("table.you")}: ${plain(l.text)}`
             : `${plain(name, 48)}: ${plain(l.text)}`,
         )
       ),

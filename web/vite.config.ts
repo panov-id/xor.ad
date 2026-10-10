@@ -102,7 +102,10 @@ const csp = {
 const brandName = process.env.VITE_BRAND === "neighbro" ? "neighbro" : "sosed";
 const brand = {
   name: "xor-brand",
-  transformIndexHtml: (html: string) => html.replace("<html ", `<html data-brand="${process.env.VITE_BRAND ?? "sosed"}" `),
+  // The tab's title is the face's name too (config.ts NAMES), not the operator's.
+  transformIndexHtml: (html: string) => html
+    .replace("<html ", `<html data-brand="${process.env.VITE_BRAND ?? "sosed"}" `)
+    .replace("<title>xor.ad</title>", `<title>${brandName}.place</title>`),
 };
 
 // A font is never inlined (VF1): a small subset (JetBrains Mono's Cyrillic

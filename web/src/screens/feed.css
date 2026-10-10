@@ -55,7 +55,7 @@
   position: fixed; left: 0; right: 0; bottom: 76px; z-index: 6;
   width: 327px; height: 52px; margin: 0 auto;
 }
-.tabbed [data-screen="feed"] { padding-bottom: 152px; }
+.tabbed .screen[data-screen="feed"] { padding-bottom: 152px; }
 
 /* Sheet 23: the phrase takes the screen, the actions at the foot. */
 [data-screen="card"] .phrase { flex: 1; justify-content: center; }

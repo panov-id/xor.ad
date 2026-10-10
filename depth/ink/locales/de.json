@@ -347,5 +347,7 @@
   "chat.rekeyDone": "Die Schlüssel des Gesprächs wurden erneuert (Epoche {epoch}).",
   "chat.rekeyRefused": "der Knoten hat die neuen Schlüssel nicht angenommen: {status}",
   "feed.refused": "Deine Phrase hat die Moderation nicht bestanden und wurde entfernt.",
-  "table.nameRefused": "der Name des Tischs wurde nicht angenommen — der Tisch lebt ohne Namen weiter"
+  "table.nameRefused": "der Name des Tischs wurde nicht angenommen — der Tisch lebt ohne Namen weiter",
+  "kit.error": "Fehler:",
+  "kit.notice": "Achtung:"
 }

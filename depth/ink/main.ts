@@ -8,6 +8,7 @@ import { createElement as h } from "react";
 import { render } from "ink";
 import { Client } from "../core/client.ts";
 import { App } from "./app.ts";
+import { isPlain } from "./kit.ts";
 import { languageOf, strings } from "./strings.ts";
 
 const node = process.env.DEPTH_NODE_URL;
@@ -23,4 +24,12 @@ const say = strings(languageOf(process.env));
 const start = process.argv[2] === "restore" ? "restore" as const
   : process.argv[2] === "move" ? "moveIn" as const
   : undefined;
-render(h(App, { say, client: new Client(node, apiKey), fresh: () => new Client(node, apiKey), start }));
+// DEPTH_PLAIN=1 (kit_RU.md §4): a stream of lines for a reader that is not an
+// eye — a screen reader, a pipe, a log. Ink's `debug` writes each new frame
+// after the previous one instead of erasing and redrawing in place; the kit
+// itself drops the frames and the block cursor (kit.ts). The alternate screen
+// buffer is not used in either mode.
+render(
+  h(App, { say, client: new Client(node, apiKey), fresh: () => new Client(node, apiKey), start }),
+  isPlain() ? { debug: true } : undefined,
+);

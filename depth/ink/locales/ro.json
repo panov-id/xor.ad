@@ -347,5 +347,7 @@
   "chat.rekeyDone": "Cheile conversației au fost reînnoite (epoca {epoch}).",
   "chat.rekeyRefused": "nodul nu a primit cheile noi: {status}",
   "feed.refused": "Fraza ta nu a trecut de moderare și a fost retrasă.",
-  "table.nameRefused": "numele mesei n-a fost acceptat — masa trăiește fără nume"
+  "table.nameRefused": "numele mesei n-a fost acceptat — masa trăiește fără nume",
+  "kit.error": "eroare:",
+  "kit.notice": "atenție:"
 }

@@ -9,10 +9,10 @@
 // queue dies with it.
 import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Client } from "../../core/client.ts";
 import type { Say } from "../strings.ts";
-import { Form, Head, Menu, plain } from "../parts.ts";
+import { plain } from "../parts.ts";
+import { Actions, Form, Head, Muted, Notice, Stack, Txt } from "../kit.ts";
 
 export function Waiting(
   { say, client, matchId, name, age, limit, onOpened, onBack, onFeed, onError, pollMs = 5000 }: {
@@ -67,23 +67,23 @@ export function Waiting(
 
   if (gone) {
     return h(
-      Box,
-      { flexDirection: "column", gap: 1 },
+      Stack,
+      { gap: 1 },
       h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(age, 3) }) }),
-      h(Text, { color: "red" }, say("chat.offerGone")),
-      h(Menu, { actions: [{ key: "feed", label: say("chat.toFeed") }], onPick: onFeed, hint: say("common.rowActions") }),
+      h(Notice, { say }, say("chat.offerGone")),
+      h(Actions, { actions: [{ key: "feed", label: say("chat.toFeed") }], onPick: onFeed, hint: say("common.rowActions") }),
     );
   }
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(age, 3) }), lines: [say("chat.waiting")] }),
     queued.length > 0
-      ? h(Box, { flexDirection: "column" }, ...queued.map((line, i) => h(Text, { key: i }, `  ${plain(line, limit)}  · ${say("chat.queued")}`)))
+      ? h(Stack, null, ...queued.map((line, i) => h(Txt, { key: i }, `  ${plain(line, limit)}  · ${say("chat.queued")}`)))
       : null,
     // Under the queue, as the spec places the line about losing it (§8.5 :2133).
-    h(Text, { dimColor: true }, say("chat.waitingHint")),
-    h(Text, { dimColor: true }, `${say("chat.counter", { used: [...draft].length, limit })} · ${say("chat.noHistory")}`),
+    h(Muted, null, say("chat.waitingHint")),
+    h(Muted, null, `${say("chat.counter", { used: [...draft].length, limit })} · ${say("chat.noHistory")}`),
     h(Form, {
       fields: [{ key: "draft", label: ">", value: draft }],
       onChange: (_key, value) => setDraft(value.slice(0, limit)),

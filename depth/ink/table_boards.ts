@@ -6,9 +6,9 @@
 // drawn and nothing is offered.
 import { createElement as h, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
-import { Form, Menu, plain } from "./parts.ts";
+import { plain } from "./parts.ts";
+import { Actions, Board, Form, Muted, Stack, Strong, Txt } from "./kit.ts";
 import type { TableView } from "../core/tables.ts";
 
 type Move = (move: unknown) => void;
@@ -27,13 +27,13 @@ function Deck({ say, view, onMove, active }: { say: Say; view: TableView; onMove
   const mine = deck.hands[String(view.seat)];
   const cards = Array.isArray(mine) ? mine : [];
   return h(
-    Box,
-    { flexDirection: "column" },
-    h(Text, null, say("board.played", { card: plain(deck.played.slice(-1)[0] ?? "—", 8) })),
-    h(Text, { dimColor: true }, `${say("board.stock", { count: plain(deck.stock.count, 6) })} · ${others(view, deck.hands)}`),
-    h(Text, null, cards.map((c) => `[${plain(c, 8)}]`).join(" ")),
+    Stack,
+    null,
+    h(Txt, null, say("board.played", { card: plain(deck.played.slice(-1)[0] ?? "—", 8) })),
+    h(Muted, null, `${say("board.stock", { count: plain(deck.stock.count, 6) })} · ${others(view, deck.hands)}`),
+    h(Txt, null, cards.map((c) => `[${plain(c, 8)}]`).join(" ")),
     onMove
-      ? h(Menu, {
+      ? h(Actions, {
         active,
         actions: [
           ...cards.map((c) => ({ key: `play:${c}`, label: plain(c, 8) })),
@@ -53,11 +53,11 @@ function Word({ say, view, onMove, active }: { say: Say; view: TableView; onMove
   if (!w) return null;
   const setting = w.mask === null && w.setter === view.seat;
   return h(
-    Box,
-    { flexDirection: "column" },
-    h(Text, { bold: true }, w.mask === null ? say("board.no_word") : plain(w.mask, 48).split("").join(" ")),
-    w.word ? h(Text, { dimColor: true }, say("board.my_word", { word: plain(w.word, 24) })) : null,
-    h(Text, { dimColor: true }, say("board.guessed", { letters: plain(w.guessed.join(" "), 80) || "—", misses: plain(w.misses, 3) })),
+    Stack,
+    null,
+    h(Strong, null, w.mask === null ? say("board.no_word") : plain(w.mask, 48).split("").join(" ")),
+    w.word ? h(Muted, null, say("board.my_word", { word: plain(w.word, 24) })) : null,
+    h(Muted, null, say("board.guessed", { letters: plain(w.guessed.join(" "), 80) || "—", misses: plain(w.misses, 3) })),
     onMove
       ? h(Form, {
         active,
@@ -84,13 +84,13 @@ function Free({ say, view, onMove, active }: { say: Say; view: TableView; onMove
   const mine = f.hands[String(view.seat)];
   const bones = Array.isArray(mine) ? mine : [];
   return h(
-    Box,
-    { flexDirection: "column" },
-    h(Text, null, f.line.length ? f.line.map((b) => `[${plain(b, 8)}]`).join("") : say("board.line_empty")),
-    h(Text, { dimColor: true }, `${say("board.boneyard", { count: plain(f.boneyard.count, 6) })} · ${others(view, f.hands)}`),
-    h(Text, null, bones.map((b) => `[${plain(b, 8)}]`).join(" ")),
+    Stack,
+    null,
+    h(Txt, null, f.line.length ? f.line.map((b) => `[${plain(b, 8)}]`).join("") : say("board.line_empty")),
+    h(Muted, null, `${say("board.boneyard", { count: plain(f.boneyard.count, 6) })} · ${others(view, f.hands)}`),
+    h(Txt, null, bones.map((b) => `[${plain(b, 8)}]`).join(" ")),
     onMove
-      ? h(Menu, {
+      ? h(Actions, {
         active,
         actions: [
           ...bones.flatMap((b) => [
@@ -153,13 +153,13 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
     }
   };
   return h(
-    Box,
-    { flexDirection: "column" },
-    ...(grid || physics
-      ? [7, 6, 5, 4, 3, 2, 1, 0].map((y) => h(Text, { key: `r${y}` }, `${grid ? y + 1 : y} ${[0, 1, 2, 3, 4, 5, 6, 7].map((x) => at(x, y)).join(" ")}`))
-      : []),
-    grid || physics ? h(Text, { dimColor: true }, grid ? "  a b c d e f g h" : "  0 1 2 3 4 5 6 7") : null,
-    dice ? h(Text, null, say("board.rolled", { dice: dice.rolled ? plain(dice.rolled.join(say("board.and")), 12) : say("board.not_rolled") })) : null,
+    Stack,
+    null,
+    grid || physics
+      ? h(Board, { rows: [7, 6, 5, 4, 3, 2, 1, 0].map((y) => [String(grid ? y + 1 : y), ...[0, 1, 2, 3, 4, 5, 6, 7].map((x) => at(x, y))]) })
+      : null,
+    grid || physics ? h(Muted, null, grid ? "  a b c d e f g h" : "  0 1 2 3 4 5 6 7") : null,
+    dice ? h(Txt, null, say("board.rolled", { dice: dice.rolled ? plain(dice.rolled.join(say("board.and")), 12) : say("board.not_rolled") })) : null,
     onMove && grid
       ? h(Form, {
         active,
@@ -185,7 +185,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
       })
       : null,
     onMove && dice
-      ? h(Menu, {
+      ? h(Actions, {
         active,
         actions: [dice.rolled ? { key: "moved", label: say("board.moved") } : { key: "roll", label: say("board.roll") }, ...con],
         onPick: pick,
@@ -196,7 +196,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
 
 // The board for a view, or null for dots (drawn by Table) and for a class
 // whose state has not come yet.
-export function Board(props: { say: Say; view: TableView; onMove?: Move; active: boolean }): ReactElement | null {
+export function ClassBoard(props: { say: Say; view: TableView; onMove?: Move; active: boolean }): ReactElement | null {
   const state = props.view.board?.state as Record<string, unknown> | undefined;
   if (!state) return null;
   if (state.deck) return h(Deck, props);

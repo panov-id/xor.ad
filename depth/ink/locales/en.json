@@ -347,5 +347,7 @@
   "chat.rekeyDone": "The conversation's keys are renewed (epoch {epoch}).",
   "chat.rekeyRefused": "the node did not take the new keys: {status}",
   "feed.refused": "Your phrase did not pass moderation and was taken down.",
-  "table.nameRefused": "the table's name was not accepted — the table lives on without one"
+  "table.nameRefused": "the table's name was not accepted — the table lives on without one",
+  "kit.error": "error:",
+  "kit.notice": "note:"
 }

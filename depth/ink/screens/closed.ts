@@ -5,19 +5,18 @@
 // each says why and offers the one way out.
 import { createElement as h } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Say } from "../strings.ts";
-import { Head, Menu } from "../parts.ts";
+import { Actions, Head, Notice, Stack } from "../kit.ts";
 
 export type SessionClose = 4002 | 4004;
 
 export function Closed({ say, code, onExit }: { say: Say; code: SessionClose; onExit: () => void }): ReactElement {
   const moved = code === 4002;
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say(moved ? "closed.movedTitle" : "closed.updateTitle") }),
-    h(Text, { color: moved ? "yellow" : "red" }, say(moved ? "closed.moved" : "closed.update")),
-    h(Menu, { actions: [{ key: "exit", label: say("common.exit") }], onPick: onExit, hint: say("common.rowActions") }),
+    h(Notice, { say }, say(moved ? "closed.moved" : "closed.update")),
+    h(Actions, { actions: [{ key: "exit", label: say("common.exit") }], onPick: onExit, hint: say("common.rowActions") }),
   );
 }

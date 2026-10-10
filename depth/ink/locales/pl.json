@@ -347,5 +347,7 @@
   "chat.rekeyDone": "Klucze rozmowy zostały odnowione (epoka {epoch}).",
   "chat.rekeyRefused": "węzeł nie przyjął nowych kluczy: {status}",
   "feed.refused": "Twoja fraza nie przeszła moderacji i została zdjęta.",
-  "table.nameRefused": "nazwy stołu nie przyjęto — stół działa bez nazwy"
+  "table.nameRefused": "nazwy stołu nie przyjęto — stół działa bez nazwy",
+  "kit.error": "błąd:",
+  "kit.notice": "uwaga:"
 }

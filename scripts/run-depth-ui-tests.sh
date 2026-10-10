@@ -34,6 +34,12 @@ timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
   node --experimental-transform-types ink/table.node-test.ts
 timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \
   node --experimental-transform-types ink/chat_game.node-test.ts
+# The terminal kit (depth/ink/kit.ts) element by element, and the plain face
+# (DEPTH_PLAIN=1): no frame glyphs, no ▋ — the text walkthrough of kit_RU.md §5.
+# KIT_WALK=1 prints the frames it walks.
+# shellcheck disable=SC2086
+timeout 300 docker run --rm -e KIT_WALK -v "$root":/repo $mods -w /repo/depth "$image" \
+  node --experimental-transform-types ink/kit.node-test.ts
 # The conversation's starters and extra likes (N3).
 # shellcheck disable=SC2086
 timeout 300 docker run --rm -v "$root":/repo $mods -w /repo/depth "$image" \

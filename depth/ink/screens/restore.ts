@@ -6,17 +6,16 @@
 // the same ten misses all over again.
 import { createElement as h } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Say } from "../strings.ts";
-import { Head, Menu } from "../parts.ts";
+import { Actions, Head, Notice, Stack, Strong } from "../kit.ts";
 import { PinSet } from "../screens.ts";
 
 export function RaisedHere({ say, onKeep, onNewPin }: { say: Say; onKeep: () => void; onNewPin: () => void }): ReactElement {
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("restore.hereTitle"), lines: [say("restore.hereIntro")] }),
-    h(Menu, {
+    h(Actions, {
       actions: [
         { key: "keep", label: say("restore.keepPin") },
         { key: "new", label: say("restore.forgotPin") },
@@ -34,10 +33,10 @@ export function RaisedHerePin(
   { say, onDone, onBack, busy, error }: { say: Say; onDone: (pin: string) => void; onBack: () => void; busy?: boolean; error?: string },
 ): ReactElement {
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
-    h(Text, { bold: true }, say("restore.forgotPin")),
-    h(Text, { color: "yellow" }, say("restore.newPinPrice")),
+    Stack,
+    { gap: 1 },
+    h(Strong, null, say("restore.forgotPin")),
+    h(Notice, { say }, say("restore.newPinPrice")),
     // The way back to the choice rides PinSet's "come back" action: same key, same place.
     h(PinSet, { say, onDone, onComeBack: onBack, busy, error }),
   );

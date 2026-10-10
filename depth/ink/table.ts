@@ -4,10 +4,10 @@
 // for the moderation queue like a phrase. The board lives in the process only.
 import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
-import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
-import { Board } from "./table_boards.ts";
+import { plain, useKeys } from "./parts.ts";
+import { Actions, Board, ErrorLine, Form, Head, Muted, Notice, Stack, Txt } from "./kit.ts";
+import { ClassBoard } from "./table_boards.ts";
 import type { Room } from "../core/client.ts";
 import {
   applyFrame, type BoardClass, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
@@ -78,40 +78,40 @@ export function Table(
     { key: "stand", label: say("table.stand") },
   ];
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, {
       title: `${say("table.title")}${view.name ? ` · "${plain(view.name, 48)}"` : ""} · ${plain(view.class, 12)}`,
       lines: [counts, `${say("table.seated")}  ${seated}`, say("table.open")],
     }),
     // The name the moderator refused (W13-TN): the table lives on without one.
-    view.name_refused ? h(Text, { color: "red" }, say("table.nameRefused")) : null,
+    view.name_refused ? h(Notice, { say }, say("table.nameRefused")) : null,
     board === null
-      ? h(Text, { dimColor: true }, say("table.over"))
+      ? h(Muted, null, say("table.over"))
       : h(
-        Box,
-        { flexDirection: "column" },
-        h(Text, { color: turn.mine ? "green" : undefined },
+        Stack,
+        null,
+        h(Txt, { color: turn.mine ? "green" : undefined },
           board.over ? say("table.over")
           : board.turn === null ? say("table.notStarted")
           : turn.mine ? `${say("table.yourTurn")} · ${turn.secondsLeft} ${say("table.seconds")}`
           : `${say("table.turn")}: ${plain(turn.name ?? "—", 48)} · ${turn.secondsLeft} ${say("table.seconds")}`),
-        score ? h(Text, null, `${say("table.score")}: ${score}`) : null,
-        ...(dots ? drawDots(dots, turn.mine ? edge : undefined).map((row, i) => h(Text, { key: `d${i}` }, plain(row, 80))) : []),
-        other ? h(Board, { say, view, onMove: turn.mine ? onMove : undefined, active: onBoard }) : null,
+        score ? h(Txt, null, `${say("table.score")}: ${score}`) : null,
+        dots ? h(Board, { rows: drawDots(dots, turn.mine ? edge : undefined).map((row) => plain(row, 80)) }) : null,
+        other ? h(ClassBoard, { say, view, onMove: turn.mine ? onMove : undefined, active: onBoard }) : null,
         ...moves.slice(-5).map((m, i) =>
-          h(Text, { key: `m${i}`, dimColor: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : plain(JSON.stringify(m.move), 80)}`)
+          h(Txt, { key: `m${i}`, dim: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : plain(JSON.stringify(m.move), 80)}`)
         ),
       ),
     h(
-      Box,
-      { flexDirection: "column" },
+      Stack,
+      null,
       ...view.lines.filter((l) => l.kind !== "move").slice(-6).map((l) =>
-        h(Text, { key: l.id }, `${nameOf(l.seat)}  ${l.kind === "sticker" ? `[${plain(l.sticker, 32)}]` : plain(l.text, 200)}`)
+        h(Txt, { key: l.id }, `${nameOf(l.seat)}  ${l.kind === "sticker" ? `[${plain(l.sticker, 32)}]` : plain(l.text, 200)}`)
       ),
-      ...waiting.map((l) => h(Text, { key: `w${l.id}`, color: "yellow" }, `${say("table.application")}: ${nameOf(l.seat)}`)),
+      ...waiting.map((l) => h(Notice, { key: `w${l.id}`, say },`${say("table.application")}: ${nameOf(l.seat)}`)),
     ),
-    h(Menu, {
+    h(Actions, {
       actions,
       active: !onBoard,
       onPick: (key) => key === "move" && edge ? onMove?.({ edge }) : onPick(key as TableAction),
@@ -162,7 +162,7 @@ export function TableRoom(
       room?.close();
     };
   }, [tableId]);
-  if (!view) return h(Text, { dimColor: true }, "…");
+  if (!view) return h(Muted, null, "…");
   const answer = (run: Promise<{ status: number; body: unknown }>) =>
     void run.then((a) => {
       const error = (a.body as { error?: { code?: string; reason?: string } } | null)?.error;
@@ -172,8 +172,8 @@ export function TableRoom(
     // A line at the table goes through the moderation queue like a phrase
     // (§4.9): 202, and it shows once published.
     return h(
-      Box,
-      { flexDirection: "column", gap: 1 },
+      Stack,
+      { gap: 1 },
       h(Head, { title: say("table.say"), lines: [say("table.open")] }),
       h(Form, {
         fields: [{ key: "line", label: say("table.say"), value: saying }],
@@ -187,8 +187,8 @@ export function TableRoom(
     );
   }
   return h(
-    Box,
-    { flexDirection: "column" },
+    Stack,
+    null,
     h(Table, {
       say,
       view,
@@ -208,7 +208,7 @@ export function TableRoom(
         }
       },
     }),
-    said ? h(Text, { color: "red" }, said) : null,
+    said ? h(Notice, { say }, said) : null,
   );
 }
 
@@ -256,8 +256,8 @@ export function NewTable(
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("table.new"), lines: [say("table.open")] }),
     h(Form, {
       fields: [
@@ -292,7 +292,7 @@ export function NewTable(
         }).catch((e: Error) => { setError(e.message); setBusy(false); });
       },
     }),
-    error ? h(Text, { color: "red" }, error) : null,
+    error ? h(ErrorLine, { say }, error) : null,
   );
 }
 
@@ -317,10 +317,10 @@ export function SeatedElsewhere(
       .catch((e: Error) => onError(e.message));
   }, [there]);
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("table.seatedElsewhere", { name: name ?? "…" }) }),
-    h(Menu, {
+    h(Actions, {
       actions: [
         { key: "there", label: say("table.backThere") },
         { key: "move", label: say("table.standThere") },

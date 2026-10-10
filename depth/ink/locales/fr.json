@@ -347,5 +347,7 @@
   "chat.rekeyDone": "Les clés de la conversation sont renouvelées (époque {epoch}).",
   "chat.rekeyRefused": "le nœud n'a pas accepté les nouvelles clés : {status}",
   "feed.refused": "Ta phrase n'a pas passé la modération et a été retirée.",
-  "table.nameRefused": "le nom de la table n’a pas été accepté — la table vit sans nom"
+  "table.nameRefused": "le nom de la table n’a pas été accepté — la table vit sans nom",
+  "kit.error": "erreur :",
+  "kit.notice": "attention :"
 }

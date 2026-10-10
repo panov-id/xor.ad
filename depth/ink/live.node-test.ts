@@ -134,9 +134,9 @@ async function main() {
     assert.ok(paper, "the paper code is not on the screen in four groups");
     // With the cursor after it: the group itself is on the screen already, in
     // the code, and matched with no key landing (verifier, 2026-09-26).
-    await typeUntil(app, paper[2], new RegExp(`${paper[2]}_`));
+    await typeUntil(app, paper[2], new RegExp(`${paper[2]}▋`));
     await type(app, DOWN);
-    await typeUntil(app, paper[4], new RegExp(`${paper[4]}_`));
+    await typeUntil(app, paper[4], new RegExp(`${paper[4]}▋`));
     await type(app, DOWN, ENTER);
     await until(app, /Где ты/);
     out("ok   registration went through the screens, the PIN and the paper code");
@@ -215,8 +215,8 @@ async function main() {
     await until(app, /свободно 1/, 30);
     // The list wraps and the card's place depends on the page: walk to it by
     // the frame, not by a count.
-    for (let i = 0; i < 6 && !/› стол/.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
-    await until(app, /› стол/, 10);
+    for (let i = 0; i < 6 && !/> стол/.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
+    await until(app, /> стол/, 10);
     await pickInFeed(app, "open");
     await until(app, /стол · dots/, 20);
     assert.match(app.lastFrame() ?? "", /Марк/, "the table sat down at is not Марк's");
@@ -224,8 +224,8 @@ async function main() {
     for (let i = 0; i < 8; i++) await type(app, RIGHT);
     await type(app, ENTER);
     await until(app, /пробежку/, 20);
-    for (let i = 0; i < 6 && !/›[^\n]*\n\s*кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
-    await until(app, /›[^\n]*\n\s*кто на пробежку/, 10);
+    for (let i = 0; i < 6 && !/>[^\n]*\n\s*кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
+    await until(app, />[^\n]*\n\s*кто на пробежку/, 10);
     out("ok   a neighbour's table came in the feed, and sitting down from the row seated the person at it");
 
     // Hiding from the row, and back from the hidden list: the person's own
@@ -275,8 +275,8 @@ async function main() {
         await until(app, what, 30);
       };
       await refresh(/чай за полцены/);
-      for (let i = 0; i < 20 && !/›[^\n]*\n\s*чай за полцены/.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
-      await until(app, /›[^\n]*\n\s*чай за полцены/, 10);
+      for (let i = 0; i < 20 && !/>[^\n]*\n\s*чай за полцены/.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
+      await until(app, />[^\n]*\n\s*чай за полцены/, 10);
       await pickInFeed(app, "complain");
       await until(app, /скидку не дали/, 10);
       out("ok   \"complain\" on an offer's row in the App opened the complaint screen");
@@ -286,8 +286,8 @@ async function main() {
       await sql`DELETE FROM feed_messages WHERE id = ANY(${filler})`;
       await sql`DELETE FROM offers WHERE id = ${offer}`;
       await refresh(/пробежку/);
-      for (let i = 0; i < 6 && !/›[^\n]*\n\s*кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
-      await until(app, /›[^\n]*\n\s*кто на пробежку/, 10);
+      for (let i = 0; i < 6 && !/>[^\n]*\n\s*кто на пробежку/.test(app.lastFrame() ?? ""); i++) await type(app, UP);
+      await until(app, />[^\n]*\n\s*кто на пробежку/, 10);
     }
 
     // 4 · a like each way makes a match. The screen likes the peer's phrase;
@@ -555,9 +555,9 @@ async function main() {
       await until(raised, /Запишите этот код/, 30);
       const fresh = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(raised.lastFrame() ?? "");
       assert.ok(fresh, "the new paper code is not on the screen in four groups");
-      await typeUntil(raised, fresh[2], new RegExp(`${fresh[2]}_`));
+      await typeUntil(raised, fresh[2], new RegExp(`${fresh[2]}▋`));
       await type(raised, DOWN);
-      await typeUntil(raised, fresh[4], new RegExp(`${fresh[4]}_`));
+      await typeUntil(raised, fresh[4], new RegExp(`${fresh[4]}▋`));
       await type(raised, DOWN, ENTER);
       await until(raised, /Где ты/, 30);
       const [after] = await sql`SELECT recovery_auth_hash FROM identities WHERE id = ${lost.identityId}`;
@@ -667,9 +667,9 @@ async function main() {
       const fresh = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(awayApp.lastFrame() ?? "");
       assert.ok(fresh, "the new paper code is not on the screen in four groups");
       await awayFor();
-      await typeUntil(awayApp, fresh[2], new RegExp(`${fresh[2]}_`));
+      await typeUntil(awayApp, fresh[2], new RegExp(`${fresh[2]}▋`));
       await type(awayApp, DOWN);
-      await typeUntil(awayApp, fresh[4], new RegExp(`${fresh[4]}_`));
+      await typeUntil(awayApp, fresh[4], new RegExp(`${fresh[4]}▋`));
       await type(awayApp, DOWN, ENTER);
       await until(awayApp, /Новый бумажный код[\s\S]*Вы отошли/, 30);
       await until(awayApp, /вернуться/, 5);
@@ -685,9 +685,9 @@ async function main() {
       await until(awayApp, /Запишите этот код/, 30);
       const again = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(awayApp.lastFrame() ?? "");
       assert.ok(again, "the second new code is not on the screen");
-      await typeUntil(awayApp, again[2], new RegExp(`${again[2]}_`));
+      await typeUntil(awayApp, again[2], new RegExp(`${again[2]}▋`));
       await type(awayApp, DOWN);
-      await typeUntil(awayApp, again[4], new RegExp(`${again[4]}_`));
+      await typeUntil(awayApp, again[4], new RegExp(`${again[4]}▋`));
       await type(awayApp, DOWN, ENTER);
       await until(awayApp, /Где ты/, 30);
       out("ok   a step away on the code's screen is ended there, and the trade then goes through");
@@ -719,9 +719,9 @@ async function main() {
       const shownCode = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(noPoint.lastFrame() ?? "");
       assert.ok(shownCode, "the new paper code is not on the screen in four groups");
       await sql`UPDATE identities SET stepped_away_until = now() + interval '20 minutes' WHERE id = ${drifter.identityId}`;
-      await typeUntil(noPoint, shownCode[2], new RegExp(`${shownCode[2]}_`));
+      await typeUntil(noPoint, shownCode[2], new RegExp(`${shownCode[2]}▋`));
       await type(noPoint, DOWN);
-      await typeUntil(noPoint, shownCode[4], new RegExp(`${shownCode[4]}_`));
+      await typeUntil(noPoint, shownCode[4], new RegExp(`${shownCode[4]}▋`));
       await type(noPoint, DOWN, ENTER);
       await until(noPoint, /Новый бумажный код[\s\S]*Вы отошли/, 30);
       // The code's row: "дальше", "вернуться", "назад" — back to "me".

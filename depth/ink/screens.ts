@@ -13,7 +13,7 @@ import { readPaperCode, readPaperText } from "../core/paper.ts";
 import type { Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
 import { gameWords, radiusWord, refusalWords } from "./words.ts";
-import { Actions, Card, ErrorLine, Form, Head, Muted, Notice, Rule, Stack, Strong, Txt } from "./kit.ts";
+import { Actions, Card, ErrorLine, Form, Head, Muted, Notice, off, Rule, Stack, Strong, Txt } from "./kit.ts";
 
 export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 
@@ -45,7 +45,7 @@ export function Registration(
       ],
       onChange: (key, value) => (key === "name" ? setName(value) : setAge(value.replace(/\D/g, ""))),
       actions: [
-        { key: "go", label: say("reg.next"), disabled: !ready },
+        { key: "go", label: say("reg.next"), ...off(say, [!ready, "why.fill"]) },
         ...(onMoveIn ? [{ key: "moveIn", label: say("move.inItem") }] : []),
         { key: "exit", label: say("common.exit") },
       ],
@@ -109,8 +109,8 @@ export function PinSet(
       ],
       onChange: (key, value) => (key === "pin" ? setPin(digits(value)) : setAgain(digits(value))),
       actions: [
-        { key: "go", label: say("reg.next"), disabled: !full || differ || busy === true },
-        ...(onComeBack ? [{ key: "comeBack", label: say("away.back"), disabled: busy === true }] : []),
+        { key: "go", label: say("reg.next"), ...off(say, [busy === true, "why.busy"], [!full || differ, "why.fill"]) },
+        ...(onComeBack ? [{ key: "comeBack", label: say("away.back"), ...off(say, [busy === true, "why.busy"]) }] : []),
         { key: "exit", label: say("common.exit") },
       ],
       onPick: (key) => (key === "go" ? onDone(pin) : key === "comeBack" ? onComeBack?.() : process.exit(0)),
@@ -156,7 +156,7 @@ export function PaperCode(
     h(Form, {
       fields: ASKED.map((g, i) => ({ key: String(i), label: say("reg.codeGroup", { n: g + 1 }), value: typed[i] })),
       onChange: (key, value) => setTyped((t) => t.map((v, i) => (String(i) === key ? value.slice(0, 9) : v))),
-      actions: [{ key: "go", label: say("reg.codeDone"), disabled: !right || busy === true }, { key: "exit", label: say("common.exit") }],
+      actions: [{ key: "go", label: say("reg.codeDone"), ...off(say, [busy === true, "why.busy"], [!right, "why.fill"]) }, { key: "exit", label: say("common.exit") }],
       onPick: (key) => (key === "go" ? onDone() : process.exit(0)),
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
@@ -220,7 +220,7 @@ export function Location(
         else if (key === "lon") setLon(clean(value));
         else setRadius(Number(value) as Radius);
       },
-      actions: [{ key: "go", label: say("loc.go"), disabled: !ok }, { key: "exit", label: say("common.exit") }],
+      actions: [{ key: "go", label: say("loc.go"), ...off(say, [!ok, "why.fill"]) }, { key: "exit", label: say("common.exit") }],
       onPick: (key) => (key === "go" ? onDone({ ...numbers, radius }) : process.exit(0)),
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
@@ -273,6 +273,10 @@ export function Feed(
   const [at, setAt] = useState(0);
   const [blocking, setBlocking] = useState(false);
   const [card, setCard] = useState(false);
+  // «Мэтч!» after a like that made one (web П21, Card.tsx: like.state === "matched"):
+  // the node answers the like 200 {state: "matched", match_id} when the other side
+  // had already liked this person's phrase (relay routes/likes.ts).
+  const [matched, setMatched] = useState(false);
   useEffect(() => {
     client.feed(place)
       .then((answer) => setItems(answer.items as Phrase[]))
@@ -322,10 +326,12 @@ export function Feed(
         const to = next(here);
         setAt(Math.max(0, (items ?? []).findIndex((p) => p.id === phrases[to]?.id)));
       },
+      matched: matched ? say("feed.matched") : undefined,
       onLike: (p) =>
         client.like(p.id)
           .then((answer) => {
             if (answer.status !== 200) throw new Error(refusalWords(say, answer, "like"));
+            setMatched(answer.body.state === "matched");
             // A like on an offer while one's own name is in the queue (§8.5,
             // S7): the like counted, the match waits — refusal-wordings §3.
             if (answer.body.name_pending) onError(say("like.namePending"));
@@ -334,7 +340,10 @@ export function Feed(
           .catch((e: Error) => onError(e.message)),
       onHide: (p) =>
         client.hide(p.id)
-          .then(() => drop(p.id))
+          .then(() => {
+            setMatched(false);
+            drop(p.id);
+          })
           .catch((e: Error) => onError(e.message)),
       onClose: () => setCard(false),
     });
@@ -382,13 +391,14 @@ export function Feed(
       mine ? `${say("feed.yours", { text: plain(mine.text, 200) })} · ${say(mine.state === "pending" ? "feed.checking" : "feed.live")}` : say("feed.none"),
     ),
     h(Actions, {
+      pointer: false, // the list above holds the "> " (Т16)
       actions: [
-        { key: "open", label: isTable ? say("table.sit") : say("inbox.enter"), disabled: !chosen || (isTable && !onOpenTable) },
+        { key: "open", label: isTable ? say("table.sit") : say("inbox.enter"), ...off(say, [!chosen, "why.pick"], [isTable && !onOpenTable, "why.notNow"]) },
         // A table is not a phrase: no like, hide or block from this row.
-        { key: "like", label: say("feed.like"), disabled: !chosen || isTable },
-        { key: "hide", label: say("feed.hide"), disabled: !chosen || isTable },
-        { key: "block", label: say("block.item"), disabled: !chosen || isTable },
-        ...(onComplain ? [{ key: "complain", label: say("feed.complain"), disabled: !isOffer }] : []),
+        { key: "like", label: say("feed.like"), ...off(say, [!chosen, "why.pick"], [isTable, "why.table"]) },
+        { key: "hide", label: say("feed.hide"), ...off(say, [!chosen, "why.pick"], [isTable, "why.table"]) },
+        { key: "block", label: say("block.item"), ...off(say, [!chosen, "why.pick"], [isTable, "why.table"]) },
+        ...(onComplain ? [{ key: "complain", label: say("feed.complain"), ...off(say, [!isOffer, "why.notOffer"]) }] : []),
         { key: "write", label: say("feed.write") },
         // Taking one's own phrase down (§8.3, W11-B): in the row only while
         // there is one and its id is known — not greyed, absent.
@@ -441,6 +451,7 @@ export function Feed(
         client.like(chosen.id)
           .then((answer) => {
             if (answer.status !== 200) throw new Error(refusalWords(say, answer, "like"));
+            setMatched(answer.body.state === "matched");
             if (answer.body.name_pending) onError(say("like.namePending"));
             setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id));
           })
@@ -448,6 +459,7 @@ export function Feed(
       },
       hint: say("common.rowActions"),
     }),
+    matched ? h(Notice, { say }, say("feed.matched")) : null,
     blocking
       ? h(Notice, { say }, `${say("block.confirm")} ${say("block.what")}`)
       : h(Muted, null, `↑↓ · ${at + 1}/${items?.length ?? 0}`),
@@ -476,9 +488,11 @@ function FeedKeys({ count, onMove }: { count: number; onMove: (fn: (at: number) 
 let explained = false;
 
 export function PhraseCard(
-  { say, items, at, onMove, onLike, onHide, onClose }: {
+  { say, items, at, onMove, onLike, onHide, onClose, matched }: {
     say: Say;
     items: Phrase[];
+    // «Мэтч!» for the like just made, said by the feed that owns the answer.
+    matched?: string;
     at: number;
     onMove: (fn: (i: number) => number) => void;
     onLike: (p: Phrase) => void;
@@ -530,6 +544,7 @@ export function PhraseCard(
       : null,
     h(Rule, { width: 56 }),
     hint ? h(Notice, { say }, say("card.hint")) : null,
+    matched ? h(Notice, { say }, matched) : null,
     note ? h(Muted, null, note) : null,
     h(Muted, null, `${say("card.keys")} · ${at + 1}/${items.length}`),
   );
@@ -569,8 +584,8 @@ export function PaperCodeEntry(
       // 25 characters — and a stray space or two (verifier, 2026-09-26).
       onChange: (_key, value) => setCode(value.slice(0, 40)),
       actions: [
-        { key: "go", label: go, disabled: !whole || busy === true },
-        ...(onComeBack ? [{ key: "comeBack", label: say("away.back"), disabled: busy === true }] : []),
+        { key: "go", label: go, ...off(say, [busy === true, "why.busy"], [!whole, "why.fill"]) },
+        ...(onComeBack ? [{ key: "comeBack", label: say("away.back"), ...off(say, [busy === true, "why.busy"]) }] : []),
         onBack ? { key: "back", label: say("common.back") } : { key: "exit", label: say("common.exit") },
       ],
       onPick: (key) =>

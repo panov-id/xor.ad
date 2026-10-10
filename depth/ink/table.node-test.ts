@@ -6,6 +6,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { NewTable, SeatedElsewhere, Table, type TableAction, TableRoom } from "./table.ts";
 import { strings } from "./strings.ts";
+import { moveWords } from "./words.ts";
 import type { TableView } from "../core/tables.ts";
 
 const out = (line: string) => (process as unknown as { _rawDebug: (s: string) => void })._rawDebug(line);
@@ -89,7 +90,7 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.match(app.lastFrame()!, /·───·═══·/, "the first free edge is not marked on the board");
     app.stdin.write("]");
     await settle();
-    assert.match(app.lastFrame()!, /ход h:1:0/, "] did not step to the next free edge");
+    assert.match(app.lastFrame()!, /ход линия: ряд 2, колонка 1, по горизонтали/, "] did not step to the next free edge, or said it as an id");
     app.stdin.write("\r");
     await settle();
     assert.deepEqual(moved, { edge: "h:1:0" });
@@ -455,6 +456,61 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.match(set.lastFrame()!, /игра:\s+‹ точки ›/, "the class choice shows an id");
     assert.match(set.lastFrame()!, /набор:\s+‹ поле 4×4 ›/, "the set choice shows an id");
     set.unmount();
+  }],
+  ["Т13 · a move is said in the class's own words, by either side — never as JSON", async () => {
+    const dots = { n: 2, edges: ["h:0:0", "v:1:2"], boxes: {} };
+    const v = view({
+      board: {
+        seq: 5, state: { dots, moves: [{ seat: 1, move: { edge: "h:0:0" } }, { seat: 2, move: { edge: "v:1:2" } }, { seat: 1, pass: true }] },
+        turn: 1, score: {}, expires_at: NOW + 45,
+      },
+    });
+    const app = render(h(Table, { say, view: v, onPick: () => {}, now: NOW * 1000 }));
+    await settle();
+    const frame = app.lastFrame()!;
+    assert.match(frame, /Аня\s+линия: ряд 1, колонка 1, по горизонтали/, "the other side's move is not said in words");
+    assert.match(frame, /Женя\s+линия: ряд 2, колонка 3, по вертикали/, "my own move is not said in words");
+    assert.match(frame, /Аня\s+пас/);
+    assert.doesNotMatch(frame, /\{"|"edge"|h:0:0|v:1:2/, "a move shows as JSON or as an id");
+    app.unmount();
+  }],
+  ["Т13 · every class says its moves: card, bone, word, letter, squares, roll, flick, con", async () => {
+    const said = (move: unknown, klass?: string) => moveWords(say, move, klass);
+    assert.equal(said({ edge: "v:0:2" }), "линия: ряд 1, колонка 3, по вертикали");
+    assert.equal(said({ play: "Q♥" }), "карта Q♥");
+    assert.equal(said({ draw: true }, "deck"), "взять из колоды");
+    assert.equal(said({ play: "3:5", end: "left" }), "3:5 слева");
+    assert.equal(said({ play: "3:5", end: "right" }), "3:5 справа");
+    assert.equal(said({ draw: true }, "free"), "взять из базара");
+    assert.equal(said({ word: "set" }), "загадать слово");
+    assert.equal(said({ letter: "к" }), "буква: к");
+    assert.equal(said({ from: "c3", to: "d4" }), "c3 → d4");
+    assert.equal(said({ roll: true }), "бросить кости");
+    assert.equal(said({ move: true }), "ход сделан");
+    assert.equal(said({ con: "won" }), "кон мой");
+    assert.equal(said({ flick: { piece: "2:3", dir: [1, 0], power: 3 } }), "щелчок 2:3");
+    assert.equal(said({ unheard: [1, 2] }), "ход", "a shape the terminal does not know must not show as JSON");
+    assert.equal(said("\u001B[2J"), "ход", "a node's own text must not reach the screen as a move");
+  }],
+  ["Т15 · a disabled action in DEPTH_PLAIN=1 says why, in the dictionary's words; the rich face stays as it was", async () => {
+    const theirs = view({ board: { seq: 3, state: {}, turn: 1, score: {}, expires_at: NOW + 10 } });
+    const before = process.env.DEPTH_PLAIN;
+    try {
+      process.env.DEPTH_PLAIN = "1";
+      const plain = render(h(Table, { say, view: theirs, onPick: () => {}, now: NOW * 1000 }));
+      await settle();
+      assert.match(plain.lastFrame()!.replace(/\s+/g, " "), /пас \(недоступно: сейчас не ваш ход\)/, "a button that does nothing looks like one that works");
+      assert.equal((plain.lastFrame()!.match(/\(недоступно/g) ?? []).length, 1, "an active button was marked unavailable, or the disabled one was not");
+      plain.unmount();
+      delete process.env.DEPTH_PLAIN;
+      const rich = render(h(Table, { say, view: theirs, onPick: () => {}, now: NOW * 1000 }));
+      await settle();
+      assert.doesNotMatch(rich.lastFrame()!, /недоступно/, "the rich face writes the reason too (it dims instead)");
+      rich.unmount();
+    } finally {
+      if (before === undefined) delete process.env.DEPTH_PLAIN;
+      else process.env.DEPTH_PLAIN = before;
+    }
   }],
 ];
 

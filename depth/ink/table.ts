@@ -6,9 +6,9 @@ import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
-import { Actions, Board, ErrorLine, Form, Head, Muted, Notice, Stack, Txt } from "./kit.ts";
+import { Actions, Board, ErrorLine, Form, Head, Muted, Notice, off, Stack, Txt } from "./kit.ts";
 import { ClassBoard } from "./table_boards.ts";
-import { classWord, durationSeconds, refusalWords, setWord, type TableAction as Why } from "./words.ts";
+import { classWord, durationSeconds, edgeWords, moveWords, refusalWords, setWord, type TableAction as Why } from "./words.ts";
 import type { Room } from "../core/client.ts";
 import {
   applyFrame, type BoardClass, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
@@ -68,7 +68,7 @@ export function Table(
   // are not drawn for them — a word says how to get a seat instead (Т2). They
   // may speak, apply, like and stand up.
   const watching = !view.is_playing;
-  const actions: Array<{ key: TableAction; label: string; disabled?: boolean }> = watching
+  const actions: Array<{ key: TableAction; label: string; disabled?: boolean; why?: string }> = watching
     ? [
       { key: "say", label: say("table.say") },
       { key: "apply", label: say("table.apply") },
@@ -76,17 +76,17 @@ export function Table(
       { key: "stand", label: say("table.stand") },
     ]
     : [
-      ...(dots ? [{ key: "move" as const, label: `${say("table.move")} ${edge ?? ""}`, disabled: !turn.mine || !edge }] : []),
-      { key: "pass", label: say("table.pass"), disabled: !turn.mine },
+      ...(dots ? [{ key: "move" as const, label: `${say("table.move")} ${edge ? edgeWords(say, edge) : ""}`.trim(), ...off(say, [!turn.mine, "table.notYourTurn"], [!edge, "why.none"]) }] : []),
+      { key: "pass", label: say("table.pass"), ...off(say, [!turn.mine, "table.notYourTurn"]) },
       { key: "say", label: say("table.say") },
       // A game starts only on a rematch everyone at the table agrees to (the
       // node builds rematch alone): another's open proposal is accepted here.
       {
         key: "rematch",
         label: theirRematch ? say("table.acceptRematch") : say("table.rematch"),
-        disabled: view.seats.length < 2 || (board?.pending?.kind === "rematch" && !theirRematch),
+        ...off(say, [view.seats.length < 2, "why.alone"], [board?.pending?.kind === "rematch" && !theirRematch, "why.waitOther"]),
       },
-      { key: "resign", label: say("table.resign"), disabled: !board || !!board.over },
+      { key: "resign", label: say("table.resign"), ...off(say, [!board || !!board.over, "why.over"]) },
       { key: "like", label: say("table.like") },
       { key: "stand", label: say("table.stand") },
     ];
@@ -113,7 +113,7 @@ export function Table(
         dots ? h(Board, { rows: drawDots(dots, turn.mine ? edge : undefined).map((row) => plain(row, 80)) }) : null,
         other ? h(ClassBoard, { say, view, onMove: turn.mine ? onMove : undefined, active: onBoard }) : null,
         ...moves.slice(-5).map((m, i) =>
-          h(Txt, { key: `m${i}`, dim: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : plain(JSON.stringify(m.move), 80)}`)
+          h(Txt, { key: `m${i}`, dim: true }, `${nameOf(m.seat)}  ${m.pass ? say("table.passed") : plain(moveWords(say, m.move, board.state.free ? "free" : "deck"), 80)}`)
         ),
       ),
     h(
@@ -193,7 +193,7 @@ export function TableRoom(
       h(Form, {
         fields: [{ key: "line", label: say(applying ? "table.application" : "table.say"), value: saying }],
         onChange: (_k, v) => setSaying(graphemes(v, 128)),
-        actions: [{ key: "send", label: say("table.send"), disabled: !saying.trim() }, { key: "back", label: say("common.back") }],
+        actions: [{ key: "send", label: say("table.send"), ...off(say, [!saying.trim(), "why.write"]) }, { key: "back", label: say("common.back") }],
         onPick: (key) => {
           if (key === "send" && saying.trim()) {
             answer(tables.say(tableId, { kind: applying ? "application" : "line", text: saying.trim() }), applying ? "apply" : "other");
@@ -295,7 +295,7 @@ export function NewTable(
         if (key === "name") setName(tableName(value));
       },
       actions: [
-        { key: "set", label: say("table.put"), disabled: busy },
+        { key: "set", label: say("table.put"), ...off(say, [busy, "why.busy"]) },
         { key: "back", label: say("common.back") },
       ],
       onPick: (key) => {

@@ -1,0 +1,160 @@
+// A person's walk of the product on the local stand, written down as text — no
+// screenshots (owner, 10.10.2026). For every step: the screen's id, its visible
+// text, the controls a screen reader would name (and the ones it could not),
+// node answers >= 400, page errors, the time the step took.
+import { chromium } from "playwright";
+
+const BASE = process.argv[2] ?? "http://localhost:4173";
+const PIN = "123456";
+const b = await chromium.launch();
+let last = Date.now();
+
+async function phone(who, locale = "ru-RU") {
+  const ctx = await b.newContext({ viewport: { width: 393, height: 851 }, locale });
+  const p = await ctx.newPage();
+  p.who = who;
+  p.on("pageerror", (e) => console.log(`  ! ${who} pageerror: ${String(e).slice(0, 200)}`));
+  p.on("console", (m) => { if (m.type() === "error") console.log(`  ! ${who} console: ${m.text().slice(0, 200)}`); });
+  p.on("response", (r) => {
+    if (r.status() >= 400) console.log(`  ! ${who} http ${r.request().method()} ${new URL(r.url()).pathname} → ${r.status()}`);
+  });
+  return p;
+}
+
+async function look(p, step) {
+  await p.waitForTimeout(250);
+  const s = await p.evaluate(() => {
+    const vis = (el) => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none"; };
+    const screen = document.querySelector("[data-screen]");
+    const text = (document.querySelector("main, [data-screen]") ?? document.body).innerText.replace(/\n{2,}/g, "\n").trim();
+    const controls = [...document.querySelectorAll("button, a, input, select, textarea, [role=button]")].filter(vis).map((el) => {
+      const byIds = (el.getAttribute("aria-labelledby") ?? "").split(/\s+/).map((id) => document.getElementById(id)?.innerText ?? "").join(" ").trim();
+      const name = (el.getAttribute("aria-label") || byIds || el.innerText || el.getAttribute("placeholder") || el.getAttribute("title") || (el.labels?.[0]?.innerText ?? "") || "").trim().replace(/\s+/g, " ");
+      return `${el.tagName.toLowerCase()}${el.dataset.testid ? "#" + el.dataset.testid : ""}=${name ? JSON.stringify(name.slice(0, 40)) : "БЕЗ ИМЕНИ"}`;
+    });
+    return { id: screen?.getAttribute("data-screen") ?? "?", text, controls, title: document.title, lang: document.documentElement.lang };
+  });
+  const ms = Date.now() - last; last = Date.now();
+  console.log(`\n## ${p.who} · ${step} · [${s.id}] · ${ms} ms · title="${s.title}" lang=${s.lang}`);
+  console.log(s.text.split("\n").map((l) => "  | " + l).join("\n"));
+  console.log("  controls: " + s.controls.join(", "));
+}
+const t = (p, id) => p.getByTestId(id);
+const step = async (name, fn) => { try { await fn(); } catch (e) { console.log(`\n!! STEP FAILED: ${name}: ${String(e).split("\n")[0]}`); } };
+
+const anya = await phone("Аня");
+const boris = await phone("Борис");
+let code = [];
+let tag = Date.now().toString(36).slice(-3);
+
+await step("splash", async () => { await anya.goto(BASE + "/"); await look(anya, "заставка"); });
+await step("register errors", async () => {
+  await t(anya, "start").click(); await look(anya, "кто вы, пусто");
+  await t(anya, "name").fill("Аня"); await t(anya, "age").fill("12"); await t(anya, "consent").check();
+  await look(anya, "возраст 12");
+  await t(anya, "next").click().catch(() => {}); await look(anya, "после «дальше» с возрастом 12");
+  await t(anya, "age").fill("28"); await t(anya, "next").click();
+  await anya.locator('[data-screen="register-2"]').waitFor(); await look(anya, "ПИН, пусто");
+  await t(anya, "pin").fill(PIN); await t(anya, "pin-again").fill("654321"); await look(anya, "ПИН не совпал");
+  await t(anya, "register").click().catch(() => {}); await look(anya, "после «завести» с разными ПИН");
+  await t(anya, "pin-again").fill(PIN); await t(anya, "register").click();
+  await anya.locator('[data-screen="register-3"]').waitFor({ timeout: 30000 }); await look(anya, "бумажный код");
+  code = (await t(anya, "paper-code").textContent()).trim().split(" ");
+  await t(anya, "group-2").fill("ZZZZ"); await t(anya, "group-4").fill(code[3]);
+  await t(anya, "confirm").click().catch(() => {}); await look(anya, "неверная вторая группа");
+  await t(anya, "group-2").fill(code[1]); await t(anya, "confirm").click();
+  await anya.locator('[data-screen="feed"]').waitFor({ timeout: 30000 }); await look(anya, "первая лента");
+});
+await step("boris register", async () => {
+  await boris.goto(BASE + "/"); await t(boris, "start").click();
+  await t(boris, "name").fill("Борис"); await t(boris, "age").fill("31"); await t(boris, "consent").check(); await t(boris, "next").click();
+  await t(boris, "pin").fill(PIN); await t(boris, "pin-again").fill(PIN); await t(boris, "register").click();
+  const c = (await t(boris, "paper-code").textContent()).trim().split(" ");
+  await t(boris, "group-2").fill(c[1]); await t(boris, "group-4").fill(c[3]); await t(boris, "confirm").click();
+  await boris.locator('[data-screen="feed"]').waitFor({ timeout: 30000 }); await look(boris, "первая лента");
+});
+const write = async (p, text, label) => {
+  await t(p, "write").click(); await p.locator('[data-screen="composer"]').waitFor(); await look(p, `композер (${label})`);
+  await t(p, "text").fill(text); await t(p, "send").click();
+  await p.waitForFunction(() => document.querySelector('[data-testid="sent"]')?.getAttribute("data-state") !== "pending", null, { timeout: 20000 }).catch(() => {});
+  await look(p, `после отправки (${label})`);
+  if (await p.locator('[data-screen="composer"]').isVisible()) await t(p, "back").click();
+};
+await step("phrase with a link", () => write(anya, "пишите в тг @anya_river", "фраза с контактом"));
+await step("phrases", async () => { await write(anya, `гуляю у реки, кто со мной ${tag}`, "обычная"); await write(boris, `иду к мосту с собакой ${tag}`, "обычная"); });
+const like = async (p, text) => {
+  await t(p, "nav-inbox").click(); await t(p, "nav-feed").click();
+  const card = t(p, "card").filter({ hasText: text }); await card.first().waitFor({ timeout: 30000 });
+  await look(p, "лента с фразой соседа");
+  await card.first().click(); await look(p, "карточка");
+  if ((await p.locator("html").getAttribute("data-brand")) === "neighbro") { await t(p, "heart").click(); await t(p, "heart-target").click(); }
+  else await t(p, "like").click();
+  await p.locator('[data-testid="liked"], [data-testid="matched"]').first().waitFor({ timeout: 20000 });
+  await look(p, "после лайка"); await t(p, "back").click();
+};
+await step("likes", async () => { await like(anya, `иду к мосту с собакой ${tag}`); await like(boris, `гуляю у реки, кто со мной ${tag}`); });
+await step("consent", async () => {
+  await t(anya, "nav-inbox").click(); await look(anya, "входящие");
+  const row = t(anya, "match").filter({ hasText: "Борис" }); await row.waitFor({ timeout: 30000 });
+  await t(row, "open-match").click(); await look(anya, "мэтч");
+  await t(anya, "talk").click(); await t(anya, "waiting").waitFor({ timeout: 15000 }); await look(anya, "ждём согласия");
+  await t(anya, "to-inbox").click();
+  await t(boris, "nav-inbox").click(); await look(boris, "входящие");
+  const r2 = t(boris, "match").filter({ hasText: "Аня" }); await r2.waitFor({ timeout: 30000 });
+  await t(r2, "open-match").click(); await look(boris, "мэтч");
+  await t(boris, "talk").click(); await boris.locator('[data-testid="chat"]').first().waitFor({ timeout: 15000 });
+  await look(boris, "входящие с беседой");
+});
+await step("chat", async () => {
+  await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
+  await boris.waitForSelector('[data-screen="chat"][data-keys="open"]', { timeout: 20000 });
+  await t(anya, "refresh").click();
+  await anya.locator('[data-testid="chat"] [data-testid="open-chat"]').first().click({ timeout: 15000 });
+  await anya.waitForSelector('[data-screen="chat"][data-keys="open"]', { timeout: 20000 });
+  await look(anya, "чат открыт");
+  await t(anya, "text").fill("привет! пошли вместе?"); await t(anya, "send").click();
+  await boris.locator('[data-testid="theirs"]').last().waitFor({ timeout: 20000 }); await look(boris, "чат, пришла реплика");
+  await t(boris, "text").fill("давай, через полчаса у моста"); await t(boris, "send").click();
+  await anya.locator('[data-testid="theirs"]').last().waitFor({ timeout: 20000 }); await look(anya, "чат, пришёл ответ");
+});
+await step("table and game", async () => {
+  for (const p of [anya, boris]) { await t(p, "back").click(); await t(p, "nav-feed").click(); await p.locator('[data-screen="feed"]').waitFor(); }
+  await t(anya, "new-table").click(); await anya.locator('[data-screen="new-table"]').waitFor(); await look(anya, "новый стол");
+  await t(anya, "new-table-class").selectOption("dots"); await t(anya, "new-table-set").selectOption("2x2");
+  await t(anya, "new-table-name").fill(`точки ${tag}`); await t(anya, "new-table-go").click();
+  await t(anya, "table").waitFor({ timeout: 30000 }); await look(anya, "свой стол");
+  await t(boris, "nav-inbox").click(); await t(boris, "nav-feed").click();
+  const card = t(boris, "table-card").filter({ hasText: `точки ${tag}` }); await card.waitFor({ timeout: 30000 });
+  await look(boris, "лента со столом"); await card.click(); await t(boris, "table").waitFor({ timeout: 30000 }); await look(boris, "чужой стол");
+  await t(boris, "line-input").fill("сыграю"); await t(boris, "apply").click();
+  await anya.getByTestId("table").filter({ hasText: "заявка" }).waitFor({ timeout: 15000 }); await look(anya, "стол с заявкой");
+  await t(anya, "start-game").click(); await anya.waitForTimeout(1500); await look(anya, "партия началась"); await look(boris, "партия началась");
+  for (let m = 0; m < 12; m++) {
+    if (await t(anya, "over").isVisible()) break;
+    const mine = (await t(anya, "turn").textContent())?.startsWith("ваш ход");
+    const mover = mine ? anya : boris; const n = await mover.locator("[data-taken]").count();
+    await mover.getByRole("button", { name: /^ребро [hv]:\d+:\d+$/ }).first().click();
+    await mover.locator("[data-taken]").nth(n).waitFor({ timeout: 15000 });
+  }
+  await t(anya, "over").waitFor({ timeout: 15000 }); await look(anya, "партия окончена"); await look(boris, "партия окончена");
+});
+await step("me", async () => {
+  await t(anya, "tab-me").click(); await anya.locator('[data-screen="me"]').waitFor(); await look(anya, "я");
+  await t(anya, "me-name").click(); await t(anya, "edit-value").fill("Оля тг"); await t(anya, "edit-save").click();
+  await t(anya, "error").waitFor({ timeout: 15000 }).catch(() => {}); await look(anya, "смена имени на «Оля тг»");
+  await t(anya, "edit-back").click();
+});
+await step("restore on a new phone", async () => {
+  const fresh = await phone("Аня, новый телефон");
+  await fresh.goto(BASE + "/"); await t(fresh, "restore").click(); await look(fresh, "восстановление");
+  await t(fresh, "restore-code").fill("0000 0000 0000 0000"); await t(fresh, "restore-pin").fill("975310"); await t(fresh, "restore-pin-again").fill("975310");
+  await t(fresh, "restore-go").click(); await t(fresh, "error").waitFor({ timeout: 30000 }).catch(() => {}); await look(fresh, "неверный код");
+  await t(fresh, "restore-code").fill(code.join(" ")); await t(fresh, "restore-go").click();
+  await fresh.locator('[data-screen="feed"]').waitFor({ timeout: 45000 }); await look(fresh, "после восстановления");
+});
+await step("english", async () => {
+  const en = await phone("Guest EN", "en-US"); await en.goto(BASE + "/"); await look(en, "splash, browser in English");
+  await t(en, "start").click(); await look(en, "who are you");
+});
+console.log("\nWALK END");
+await b.close();

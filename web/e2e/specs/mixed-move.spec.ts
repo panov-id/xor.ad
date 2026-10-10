@@ -78,7 +78,7 @@ test("an identity with an open conversation moves from the page into the termina
     await expect(page.locator('[data-screen="departure"]')).toBeVisible();
     await page.getByTestId("move-pin").fill(PIN);
     await page.getByTestId("move-go").click();
-    const code = (await page.getByTestId("move-code").textContent({ timeout: 30000 }))!.trim();
+    const code = (await page.getByTestId("move-code").locator("code").textContent({ timeout: 30000 }))!.trim();
     expect(code).toMatch(/^\S{3} \S{3} \S{3}$/);
     signal("web-move-code", code);
 

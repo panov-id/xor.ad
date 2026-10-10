@@ -112,13 +112,14 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     await expect(b.getByTestId("card").filter({ hasText: offerText })).toHaveCount(1, { timeout: 15000 });
 
     // §8.4: a like is a phrase meeting a phrase. Without one of B's own the
-    // node answers 409, and the card says so — the node's words, until the
-    // refusal has words of its own (owner.md).
+    // node answers 409, and the card says so in the interface's words (the
+    // dictionary's web.like.needs_phrase), not the node's English line.
     let card = b.getByTestId("card").filter({ hasText: phrase });
     await expect(card).toHaveCount(1, { timeout: 15000 });
     await card.click();
     await pressLike(b);
-    await expect(b.getByTestId("refused")).toContainText("a like needs a live phrase of your own", { timeout: 15000 });
+    await expect(b.getByTestId("refused")).toContainText("Сначала напишите свою фразу", { timeout: 15000 });
+    await expect(b.getByTestId("refused"), "the node's English line is not shown").not.toContainText("live phrase");
     expect(likePosts).toEqual([409]);
     await b.getByTestId("back").click();
     await b.getByTestId("write").click();

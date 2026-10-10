@@ -145,11 +145,6 @@
   "web.feed.empty": "Burada hələ sakitlikdir",
   "web.feed.empty_hint": "Dairənizdə indi heç kim danışmır.",
   "web.feed.hidden": "İfadə lentinizdən gizlədildi.",
-  "web.feed.keys": "açarlar: {state}",
-  "web.feed.keys_bad": "anbarın möhürü uyğun gəlmir",
-  "web.feed.keys_new_wrap": "PIN ilə açıldı, örtük EYNİ DEYİL",
-  "web.feed.keys_ok": "anbarın möhürü uyğun gəlir",
-  "web.feed.keys_unlocked": "PIN ilə açıldı, örtük eynidir",
   "web.feed.km": "{n} km",
   "web.feed.m": "{n} m",
   "web.feed.newTable": "yeni masa",
@@ -192,7 +187,6 @@
   "web.lang.item": "dil",
   "web.lang.title": "Dil",
   "web.like.refused_status": "Bəyənmə qəbul edilmədi ({status}).",
-  "web.like.refused_why": "Bəyənmə qəbul edilmədi: {why}.",
   "web.likes.back": "← lent",
   "web.likes.empty": "Hələ heç nə yoxdur",
   "web.likes.empty_hint": "Bəyənilən ifadələr yaşadıqca burada toplanacaq.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Ad qəbul edilmədi. Başqasını seçin — keçidsiz, əlaqə məlumatsız və təhqirsiz.",
   "web.ui.system": "sistem",
   "web.phrase.refused_generic": "Ifadə qəbul edilmədi. Keçidləri, əlaqə məlumatlarını və təhqirləri silin, sonra yenidən cəhd edin.",
-  "web.ui.you": "siz"
+  "web.ui.you": "siz",
+  "web.feed.seal_bad": "Bu cihazdakı açarların toxunulmaz olduğunu təsdiqləmək alınmadı. Səhifəni bağlayıb yenidən açın.",
+  "web.like.undo_mark": "bəyənmə {n} san. sonra gedəcək",
+  "web.like.undo": "ləğv et",
+  "web.like.cancelled": "bəyənmə ləğv edildi",
+  "web.like.needs_phrase": "Əvvəlcə öz frazanızı yazın: bəyənmə iki frazanın görüşüdür."
 }

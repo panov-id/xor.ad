@@ -145,11 +145,6 @@
   "web.feed.empty": "Quiet here for now",
   "web.feed.empty_hint": "No one in your circle is talking right now.",
   "web.feed.hidden": "The phrase is hidden from your feed.",
-  "web.feed.keys": "keys: {state}",
-  "web.feed.keys_bad": "the vault seal doesn’t match",
-  "web.feed.keys_new_wrap": "unlocked with the PIN, the wrap is NOT the same",
-  "web.feed.keys_ok": "the vault seal matches",
-  "web.feed.keys_unlocked": "unlocked with the PIN, the wrap is the same",
   "web.feed.km": "{n} km",
   "web.feed.m": "{n} m",
   "web.feed.newTable": "new table",
@@ -192,7 +187,6 @@
   "web.lang.item": "language",
   "web.lang.title": "Language",
   "web.like.refused_status": "Like not accepted ({status}).",
-  "web.like.refused_why": "Like not accepted: {why}.",
   "web.likes.back": "← feed",
   "web.likes.empty": "Nothing yet",
   "web.likes.empty_hint": "Liked phrases gather here while they live.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "The name was not accepted. Choose another one, without links, contacts or insults.",
   "web.ui.system": "system",
   "web.phrase.refused_generic": "The phrase was not accepted. Remove links, contacts and insults and try again.",
-  "web.ui.you": "you"
+  "web.ui.you": "you",
+  "web.feed.seal_bad": "Could not confirm that the keys on this device are intact. Close the tab and open it again.",
+  "web.like.undo_mark": "the like goes in {n} s",
+  "web.like.undo": "undo",
+  "web.like.cancelled": "like undone",
+  "web.like.needs_phrase": "Write your own phrase first: a like is two phrases meeting."
 }

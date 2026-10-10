@@ -145,11 +145,6 @@
   "web.feed.empty": "აქ ჯერ სიჩუმეა",
   "web.feed.empty_hint": "თქვენს წრეში ახლა არავინ საუბრობს.",
   "web.feed.hidden": "ფრაზა დაიმალა თქვენი ნაკადიდან.",
-  "web.feed.keys": "გასაღებები: {state}",
-  "web.feed.keys_bad": "საცავის ბეჭედი არ ემთხვევა",
-  "web.feed.keys_new_wrap": "გაიხსნა PIN-ით, გარსი სხვაა",
-  "web.feed.keys_ok": "საცავის ბეჭედი ემთხვევა",
-  "web.feed.keys_unlocked": "გაიხსნა PIN-ით, გარსი იგივეა",
   "web.feed.km": "{n} კმ",
   "web.feed.m": "{n} მ",
   "web.feed.newTable": "ახალი მაგიდა",
@@ -192,7 +187,6 @@
   "web.lang.item": "ენა",
   "web.lang.title": "ენა",
   "web.like.refused_status": "მოწონება არ მიიღეს ({status}).",
-  "web.like.refused_why": "მოწონება არ მიიღეს: {why}.",
   "web.likes.back": "← ნაკადი",
   "web.likes.empty": "ჯერ არაფერი",
   "web.likes.empty_hint": "მოწონებული ფრაზები აქ შეგროვდება, სანამ ცოცხალია.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "სახელი არ მიიღეს. აირჩიეთ სხვა — ბმულების, კონტაქტებისა და შეურაცხყოფის გარეშე.",
   "web.ui.system": "სისტემა",
   "web.phrase.refused_generic": "ფრაზა არ მიიღეს. ამოიღეთ ბმულები, კონტაქტები და შეურაცხყოფა და სცადეთ თავიდან.",
-  "web.ui.you": "თქვენ"
+  "web.ui.you": "თქვენ",
+  "web.feed.seal_bad": "ვერ დადასტურდა, რომ ამ მოწყობილობის გასაღებები უვნებელია. დახურეთ ჩანართი და გახსენით თავიდან.",
+  "web.like.undo_mark": "მოწონება გაიგზავნება {n} წმ-ში",
+  "web.like.undo": "გაუქმება",
+  "web.like.cancelled": "მოწონება გაუქმდა",
+  "web.like.needs_phrase": "ჯერ დაწერეთ საკუთარი ფრაზა: მოწონება ორი ფრაზის შეხვედრაა."
 }

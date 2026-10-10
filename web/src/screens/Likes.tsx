@@ -3,15 +3,18 @@
 // so this is where a like is taken back from — unless a match came of it: the
 // node answers `spent`, and a private author's offer cannot be taken back at
 // all. A phrase that became a match leads to the inbox, which the web face
-// does not have yet: it is named, not linked.
+// does not have yet: it is named, not linked. Kit elements only (K6a).
 
 import { useEffect, useState } from "react";
 import type { Client, Liked } from "../../../depth/core/client.ts";
 import { likedPhrases, unlikePhrase } from "../api/actions.ts";
-import { say } from "../locales/say.ts";
+import { LANG, say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
-import { Card } from "../ui/Card.tsx";
+import { Card, LikeCount } from "../ui/Card.tsx";
+import { EmptyState } from "../ui/Notices.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
+import { Screen } from "../ui/Screen.tsx";
 
 export function Likes({ client, onBack }: { client: Client; onBack: () => void }) {
   const [items, setItems] = useState<Liked[]>([]);
@@ -41,36 +44,33 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
     else setError(say("web.likes.unlike_failed"));
   }
 
-  const when = (seconds: number) => new Date(seconds * 1000).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  const when = (seconds: number) => new Date(seconds * 1000).toLocaleTimeString(LANG, { hour: "2-digit", minute: "2-digit" });
 
+  const title = say("web.likes.title");
   return (
-    <main className="screen likes" data-screen="likes">
-      <HeaderScreen title={say("web.likes.title")} onBack={onBack} backLabel={say("web.likes.back")} />
-      {error && <p className="error" data-testid="error">{error}</p>}
+    <Screen name="likes" title={title} header={<HeaderScreen title={title} onBack={onBack} backLabel={say("web.likes.back")} />}>
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       {state === "ready" && items.length === 0 && (
-        <section className="empty" data-testid="quiet">
-          <h2>{say("web.likes.empty")}</h2>
-          <p className="muted">{say("web.likes.empty_hint")}</p>
-        </section>
+        <EmptyState title={say("web.likes.empty")} line={say("web.likes.empty_hint")} data-testid="quiet" />
       )}
-      <ul className="cards" data-testid="liked">
+      <ul className="ui-cards" data-testid="liked">
         {items.map((item) => (
-          <Card as="li" key={item.id} data-testid="liked-card" data-id={item.id}>
-            {item.offer && <span className="offer">−{item.offer.discount_value}</span>}
+          <Card as="li" key={item.id} of="phrase" data-testid="liked-card" data-id={item.id}>
+            {item.offer && <span className="ui-offer">−{item.offer.discount_value}</span>}
             <p>{item.text}</p>
-            <span className="muted">
-              ♥ {item.like_count} · {when(item.liked_at)}
+            <span className="ui-hint">
+              <LikeCount n={item.like_count} /> · {when(item.liked_at)}
               {item.state === "matched" ? say("web.likes.matched") : ""}
             </span>
             {item.state === "liked" && !item.offer && !spent[item.id] && (
               <Button type="button" icon="close" aria-label={say("web.likes.unlike")} onClick={() => takeBack(item)} data-testid="unlike" />
             )}
-            {spent[item.id] && <span className="muted" data-testid="spent">{say("web.likes.spent")}</span>}
+            {spent[item.id] && <span className="ui-hint" data-testid="spent">{say("web.likes.spent")}</span>}
           </Card>
         ))}
       </ul>
-      {state === "loading" && <p className="muted skeleton" data-testid="loading">…</p>}
+      {state === "loading" && <p className="ui-hint" data-testid="loading">…</p>}
       {next && state === "ready" && <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />}
-    </main>
+    </Screen>
   );
 }

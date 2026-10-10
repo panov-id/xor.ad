@@ -145,11 +145,6 @@
   "web.feed.empty": "Здесь пока тихо",
   "web.feed.empty_hint": "В вашем круге сейчас никто не говорит.",
   "web.feed.hidden": "Фраза скрыта из вашей ленты.",
-  "web.feed.keys": "ключи: {state}",
-  "web.feed.keys_bad": "печать хранилища не сходится",
-  "web.feed.keys_new_wrap": "отперто ПИНом, обёртка НЕ та",
-  "web.feed.keys_ok": "печать хранилища сходится",
-  "web.feed.keys_unlocked": "отперто ПИНом, обёртка та же",
   "web.feed.km": "{n} км",
   "web.feed.m": "{n} м",
   "web.feed.newTable": "новый стол",
@@ -192,7 +187,6 @@
   "web.lang.item": "язык",
   "web.lang.title": "Язык",
   "web.like.refused_status": "Лайк не принят ({status}).",
-  "web.like.refused_why": "Лайк не принят: {why}.",
   "web.likes.back": "← лента",
   "web.likes.empty": "Пока ничего",
   "web.likes.empty_hint": "Лайкнутые фразы соберутся здесь, пока живы.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Имя не принято. Выберите другое — без ссылок, контактов и оскорблений.",
   "web.ui.system": "система",
   "web.phrase.refused_generic": "Фраза не принята. Уберите ссылки, контакты и оскорбления и попробуйте ещё раз.",
-  "web.ui.you": "вы"
+  "web.ui.you": "вы",
+  "web.feed.seal_bad": "Не удалось убедиться, что ключи на этом устройстве целы. Закройте вкладку и откройте заново.",
+  "web.like.undo_mark": "лайк уйдёт через {n} с",
+  "web.like.undo": "отменить",
+  "web.like.cancelled": "лайк отменён",
+  "web.like.needs_phrase": "Сначала напишите свою фразу: лайк — это встреча двух фраз."
 }

@@ -145,11 +145,6 @@
   "web.feed.empty": "Bu yerda hozircha jimjitlik",
   "web.feed.empty_hint": "Doirangizda hozir hech kim gapirmayapti.",
   "web.feed.hidden": "Ibora lentangizdan yashirildi.",
-  "web.feed.keys": "kalitlar: {state}",
-  "web.feed.keys_bad": "ombor muhri mos kelmaydi",
-  "web.feed.keys_new_wrap": "PIN bilan ochildi, o‘ram BOSHQA",
-  "web.feed.keys_ok": "ombor muhri mos keladi",
-  "web.feed.keys_unlocked": "PIN bilan ochildi, o‘ram o‘sha",
   "web.feed.km": "{n} km",
   "web.feed.m": "{n} m",
   "web.feed.newTable": "yangi stol",
@@ -192,7 +187,6 @@
   "web.lang.item": "til",
   "web.lang.title": "Til",
   "web.like.refused_status": "Layk qabul qilinmadi ({status}).",
-  "web.like.refused_why": "Layk qabul qilinmadi: {why}.",
   "web.likes.back": "← lenta",
   "web.likes.empty": "Hozircha hech narsa yo‘q",
   "web.likes.empty_hint": "Layk bosilgan iboralar tirik ekan, shu yerga yig‘iladi.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Ism qabul qilinmadi. Boshqasini tanlang — havolasiz, kontaktsiz va haqoratsiz.",
   "web.ui.system": "tizim",
   "web.phrase.refused_generic": "Ibora qabul qilinmadi. Havolalar, kontaktlar va haqoratlarni olib tashlab, qayta urinib ko‘ring.",
-  "web.ui.you": "siz"
+  "web.ui.you": "siz",
+  "web.feed.seal_bad": "Bu qurilmadagi kalitlar butunligini tasdiqlab bo'lmadi. Yorliqni yopib, qaytadan oching.",
+  "web.like.undo_mark": "yoqtirish {n} soniyadan keyin ketadi",
+  "web.like.undo": "bekor qilish",
+  "web.like.cancelled": "yoqtirish bekor qilindi",
+  "web.like.needs_phrase": "Avval o'z iborangizni yozing: yoqtirish ikki iboraning uchrashuvidir."
 }

@@ -6,7 +6,7 @@
 // the shared hooks (screens/logic); this file only draws.
 
 import { useState, type ComponentProps } from "react";
-import { modes } from "../../api/actions.ts";
+import { languageIn, modes } from "../../api/actions.ts";
 import { say } from "../../locales/say.ts";
 import { Feed, type FeedCard } from "../../screens/Feed.tsx";
 import { CardOpen, openerIds } from "../../ui/Card.tsx";
@@ -16,6 +16,8 @@ import { useCard } from "../../screens/logic/useCard.ts";
 import { useMatch } from "../../screens/logic/useMatch.ts";
 import { Button } from "../../ui/Button.tsx";
 import { HeaderScreen } from "../../ui/Header.tsx";
+import { Actions } from "../../ui/Links.tsx";
+import { Screen } from "../../ui/Screen.tsx";
 import { Icon } from "../../ui/Icon.tsx";
 import { useSwipe } from "../../ui/useSwipe.ts";
 import "./blocks.css";
@@ -56,6 +58,15 @@ export function MeView(props: ComponentProps<typeof Me>) {
 
 const modeLabel = (mode: string) => modes().find((m) => m.value === mode)?.label ?? mode;
 const langOf = (card: FeedCard) => (card.lang && card.lang !== "und" ? card.lang : undefined);
+// The like count for the eye (the heart and the number) and for the ear (its
+// name, «лайков: 3»): a bare number after an icon is read as «три» (П16).
+const likesOf = (n: number) => (
+  <>
+    <Icon name="like" size={18} />
+    <span aria-hidden="true">{n}</span>
+    <span className="visually-hidden">{say("web.like.count", { n })}</span>
+  </>
+);
 
 // Feed.svg: a wide tile, then two columns; the colours walk tile-1..4.
 function Tile({ card, index, open }: { card: FeedCard; index: number; open: () => void }) {
@@ -67,11 +78,11 @@ function Tile({ card, index, open }: { card: FeedCard; index: number; open: () =
       data-id={card.id}
     >
       <CardOpen id={card.id} onOpen={open} />
-      {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
+      {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="tile-foot" id={openerIds(card.id).foot}>
-        <span>{modeLabel(card.mode)}{langOf(card) ? ` · ${card.lang}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
-        <span className="tile-likes"><Icon name="like" size={18} />{card.like_count}</span>
+        <span>{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
+        <span className="tile-likes">{likesOf(card.like_count)}</span>
       </span>
     </li>
   );
@@ -96,8 +107,8 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   });
   const lean = Math.max(-12, Math.min(12, offset.dx / 12));
   return (
-    <main className="screen card-screen b-blocks" data-screen="card" data-id={card.id}>
-      <HeaderScreen title={modeLabel(card.mode)} onBack={onBack} backLabel={say("web.card.back")} />
+    <Screen name="card" title={modeLabel(card.mode)} className="b-blocks" data-id={card.id}
+      header={<HeaderScreen title={modeLabel(card.mode)} onBack={onBack} backLabel={say("web.card.back")} />}>
       <div className="block-stack">
         <div className="block-behind" aria-hidden="true" />
         <article
@@ -109,8 +120,8 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
           {...bind}
         >
           <span className="block-grip" aria-hidden="true" />
-          {card.offer && <span className="offer" data-testid="offer">−{card.offer.discount_value}</span>}
-          <p className="big" data-testid="text" lang={langOf(card)}>{card.text}</p>
+          {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
+          <p className="ui-big" data-testid="text" lang={langOf(card)}>{card.text}</p>
           <span className="block-mode"><Icon name="me" />{modeLabel(card.mode)}</span>
           {card.soon && <span className="block-soon">{say("web.card.soon")}</span>}
         </article>
@@ -118,11 +129,11 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
       {peek && (
         <section className="block-peek" data-testid="details">
           <p><Icon name="like" size={18} /> <span data-testid="like-burst">{card.like_count + (liked ? 1 : 0)}</span></p>
-          {langOf(card) && <p lang={langOf(card)}>{card.lang}</p>}
+          {languageIn(card.lang) && <p lang={langOf(card)}>{languageIn(card.lang)}</p>}
           {card.offer?.conditions && <p data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
         </section>
       )}
-      {!peek && card.offer?.conditions && <p className="muted" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
+      {!peek && card.offer?.conditions && <p className="ui-hint" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
       <CardNotes logic={logic} />
       <div className="block-actions">
         <Button type="button" icon="hide" className="block-btn" aria-label={say("feed.hide")} disabled={busy} onClick={() => void hide()} data-testid="hide" />
@@ -130,10 +141,10 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
           onClick={() => setPeek((p) => !p)} data-testid="peek" />
         <Button type="button" icon="like" className="block-btn block-like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" />
       </div>
-      <div className="actions ui-icon-row card-actions">
+      <Actions>
         <CardExtras card={card} logic={logic} />
-      </div>
-    </main>
+      </Actions>
+    </Screen>
   );
 }
 
@@ -144,21 +155,21 @@ export function MatchView(props: ComponentProps<typeof Match>) {
   const logic = useMatch({ client, keys, row, onAgreed, onDeclined });
   const { theirs, mine, waiting, gone } = logic;
   return (
-    <main className="screen match b-blocks" data-screen="match" data-id={row.id} data-waiting={waiting ? "yes" : "no"} data-gone={gone ? "yes" : "no"}>
-      <HeaderScreen title={`${row.name}, ${row.age}`} onBack={onBack} backLabel={say("common.back")} />
+    <Screen name="match" title={`${row.name}, ${row.age}`} className="b-blocks" data-id={row.id} data-waiting={waiting ? "yes" : "no"} data-gone={gone ? "yes" : "no"}
+      header={<HeaderScreen title={`${row.name}, ${row.age}`} onBack={onBack} backLabel={say("common.back")} />}>
       <div className="block-hero" data-testid="match-hero" aria-hidden="true">
         <span className="hero-tile hero-tile-a" />
         <span className="hero-tile hero-tile-b" />
         <span className="hero-medal"><Icon name="like" size={56} /></span>
       </div>
-      {mine && <section className="block-quote block-mine" data-testid="match-mine"><p>{mine.text}</p><Life end={mine.expires_at} tone="mine" /></section>}
-      <section className="block-quote match-card">
+      {mine && <section className="block-quote block-mine" data-part="mine" data-testid="match-mine"><p>{mine.text}</p><Life end={mine.expires_at} tone="mine" /></section>}
+      <section className="block-quote" data-part="theirs">
         <strong>{row.name}, {row.age}</strong>
-        <span className="muted">{modeLabel(row.phrase.mode)}</span>
+        <span className="ui-hint">{modeLabel(row.phrase.mode)}</span>
         <p>{row.phrase.text}</p>
         <Life end={theirs.expires_at} tone="theirs" />
       </section>
       <MatchBody row={row} keys={keys} logic={logic} onBack={onBack} onWaiting={onWaiting} />
-    </main>
+    </Screen>
   );
 }

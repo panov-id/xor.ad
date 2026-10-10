@@ -72,10 +72,27 @@ const REFUSAL_KEY: Record<string, string> = {
   name_refused: "web.name.refused_generic",
 };
 
-export function refusalText(kind: "phrase" | "name", code: string | undefined, status: number, _modelText?: string): string {
+export function refusalText(kind: "phrase" | "name" | "like", code: string | undefined, status: number, _modelText?: string): string {
+  // A like has no model verdict: the node's 409 «refused» is «no live phrase of
+  // your own» (relay routes/likes.ts), the rest is told by its number.
+  if (kind === "like") return status === 409 ? say("web.like.needs_phrase") : say("web.like.refused_status", { status });
   const key = code ? REFUSAL_KEY[code] : undefined;
   if (key) return say(key);
   return kind === "phrase" ? say("web.phrase.refused_status", { status }) : say("web.refused.status", { status });
+}
+
+// A language of a phrase by its name in the interface's language («русский»,
+// not «ru»; П2, walkthrough 10.10.2026). The node files "und" for a phrase of
+// no known language, and a code the browser cannot name stays unsaid: an
+// internal id is no word for a person.
+export function languageIn(lang: string | undefined): string | undefined {
+  if (!lang || lang === "und") return undefined;
+  try {
+    const name = new Intl.DisplayNames([LANG], { type: "language" }).of(lang);
+    return name && name.toLowerCase() !== lang.toLowerCase() ? name : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function sayPhrase(
@@ -106,15 +123,13 @@ export async function likePhrase(client: Client, phraseId: string): Promise<Like
   if (answer.status === 200 && answer.body?.name_pending) return { state: "liked", namePending: true };
   if (answer.status === 200) return { state: "liked" };
   const error = (answer.body as { error?: { code?: string; message?: string } } | null)?.error;
-  // The node's two 409s (routes/likes.ts:121 stepped_away, :88 no live phrase
-  // of one's own — §8.4, a like is a phrase meeting a phrase). The first has
-  // its wording (refusal-wordings, depth's away.line); the second has none yet
-  // in refusal-wordings or depth's locales — the node's own text until the
-  // owner gives one (owner.md).
+  // The node's two 409s (routes/likes.ts stepped_away, and «refused»: no live
+  // phrase of one's own — §8.4, a like is a phrase meeting a phrase). The first
+  // has its wording (refusal-wordings, depth's away.line), the rest is told by
+  // refusalText in the interface's words; the node's free text is never shown.
   if (answer.status === 409 && error?.code === "stepped_away") return { state: "refused", why: say("away.line") };
-  if (answer.status === 409) return { state: "refused", why: error?.message ?? "a like needs a live phrase of your own" };
   if (answer.status === 429) return { state: "refused", why: say("write.rapid") };
-  return { state: "refused", why: error?.message ? say("web.like.refused_why", { why: error.message }) : say("web.like.refused_status", { status: answer.status }) };
+  return { state: "refused", why: refusalText("like", error?.code, answer.status, error?.message) };
 }
 
 // Taking a like back: unliked, or spent once a match came of it (§8.4).

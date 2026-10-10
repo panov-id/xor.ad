@@ -145,11 +145,6 @@
   "web.feed.empty": "Hier ist es noch still",
   "web.feed.empty_hint": "In Ihrem Kreis spricht gerade niemand.",
   "web.feed.hidden": "Die Phrase ist aus Ihrem Feed ausgeblendet.",
-  "web.feed.keys": "Schlüssel: {state}",
-  "web.feed.keys_bad": "das Siegel des Speichers passt nicht",
-  "web.feed.keys_new_wrap": "mit PIN entsperrt, die Hülle ist NICHT dieselbe",
-  "web.feed.keys_ok": "das Siegel des Speichers passt",
-  "web.feed.keys_unlocked": "mit PIN entsperrt, die Hülle ist dieselbe",
   "web.feed.km": "{n} km",
   "web.feed.m": "{n} m",
   "web.feed.newTable": "neuer Tisch",
@@ -192,7 +187,6 @@
   "web.lang.item": "Sprache",
   "web.lang.title": "Sprache",
   "web.like.refused_status": "Like nicht angenommen ({status}).",
-  "web.like.refused_why": "Like nicht angenommen: {why}.",
   "web.likes.back": "← Feed",
   "web.likes.empty": "Noch nichts",
   "web.likes.empty_hint": "Gelikte Phrasen sammeln sich hier, solange sie leben.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Der Name wurde nicht angenommen. Wähle einen anderen, ohne Links, Kontakte oder Beleidigungen.",
   "web.ui.system": "System",
   "web.phrase.refused_generic": "Die Phrase wurde nicht angenommen. Entferne Links, Kontakte und Beleidigungen und versuche es noch einmal.",
-  "web.ui.you": "du"
+  "web.ui.you": "du",
+  "web.feed.seal_bad": "Es ließ sich nicht bestätigen, dass die Schlüssel auf diesem Gerät unversehrt sind. Schließen Sie den Tab und öffnen Sie ihn neu.",
+  "web.like.undo_mark": "Like geht in {n} s raus",
+  "web.like.undo": "rückgängig",
+  "web.like.cancelled": "Like zurückgenommen",
+  "web.like.needs_phrase": "Schreiben Sie zuerst Ihre eigene Phrase: Ein Like ist das Treffen zweier Phrasen."
 }

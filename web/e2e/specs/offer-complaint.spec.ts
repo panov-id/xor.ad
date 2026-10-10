@@ -52,7 +52,7 @@ test("a venue's offer in the feed takes a complaint with an address, and the nod
   await page.getByTestId("complain-email").fill("sosed@example.test");
   await page.getByTestId("complain-text").fill("Сказали, что акция только по будням.");
   await page.getByTestId("complain-send").click();
-  await expect(page.getByTestId("complained")).toHaveText("Жалоба отправлена. Решение придёт на почту.", { timeout: 15000 });
+  await expect(page.getByTestId("complained")).toContainText("Жалоба отправлена. Решение придёт на почту.", { timeout: 15000 });
   expect(sent).toEqual([202]);
 });
 

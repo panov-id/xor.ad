@@ -86,6 +86,11 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   // this session (PUT /chats/:id/keys → 200), the socket up.
   const kept: number[] = [];
   boris.on("response", (r) => { if (new URL(r.url()).pathname === `/chats/${chatId}/keys` && r.request().method() === "PUT") kept.push(r.status()); });
+  // К6a: the row's name is the person (and «новое»), not the whole paragraph —
+  // the line, the time and the wait are its description.
+  await expect(boris.locator('[data-testid="chat"] [data-testid="open-chat"]'), "the name of the conversation row is the person only")
+    .toHaveAccessibleName(/^Аня, 30( новое)?$/);
+  await expect(boris.locator('[data-testid="chat"] [data-testid="open-chat"]')).toHaveAccessibleDescription(/\S/);
   await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(boris.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });
   await expect(boris.getByTestId("status")).toHaveText("на связи", { timeout: 20000 });

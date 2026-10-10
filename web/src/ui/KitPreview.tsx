@@ -87,7 +87,7 @@ export function KitPreview() {
     ["match", "web.inbox.offer"], ["venue", "web.cabinet.offerLive"], ["preview", "web.composer.scheme"]];
   const nextStatus: Record<StatusState, StatusState> = { on: "connecting", connecting: "offline", offline: "failed", failed: "on" };
   return (
-    <div className="tabbed">
+    <div className="ui-tabbed">
     <Screen name="kit" title={say("web.feed.title")} header={<HeaderFeed place={say("web.feed.title")} step="" />}
       nav={<TabBar label={say("web.ui.navMain")} items={tabs} data-testid="kit-tabbar" />}>
       <div className="actions" data-testid="icons">

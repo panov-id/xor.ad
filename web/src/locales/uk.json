@@ -145,11 +145,6 @@
   "web.feed.empty": "Тут поки тихо",
   "web.feed.empty_hint": "У вашому колі зараз ніхто не говорить.",
   "web.feed.hidden": "Фразу приховано з вашої стрічки.",
-  "web.feed.keys": "ключі: {state}",
-  "web.feed.keys_bad": "печатка сховища не сходиться",
-  "web.feed.keys_new_wrap": "відімкнено ПІНом, обгортка НЕ та",
-  "web.feed.keys_ok": "печатка сховища сходиться",
-  "web.feed.keys_unlocked": "відімкнено ПІНом, обгортка та сама",
   "web.feed.km": "{n} км",
   "web.feed.m": "{n} м",
   "web.feed.newTable": "новий стіл",
@@ -192,7 +187,6 @@
   "web.lang.item": "мова",
   "web.lang.title": "Мова",
   "web.like.refused_status": "Лайк не прийнято ({status}).",
-  "web.like.refused_why": "Лайк не прийнято: {why}.",
   "web.likes.back": "← стрічка",
   "web.likes.empty": "Поки нічого",
   "web.likes.empty_hint": "Вподобані фрази зберуться тут, поки живі.",
@@ -391,5 +385,10 @@
   "web.name.refused_generic": "Ім’я не прийнято. Оберіть інше — без посилань, контактів та образ.",
   "web.ui.system": "система",
   "web.phrase.refused_generic": "Фразу не прийнято. Приберіть посилання, контакти та образи й спробуйте ще раз.",
-  "web.ui.you": "ви"
+  "web.ui.you": "ви",
+  "web.feed.seal_bad": "Не вдалося переконатися, що ключі на цьому пристрої цілі. Закрийте вкладку і відкрийте знову.",
+  "web.like.undo_mark": "лайк піде за {n} с",
+  "web.like.undo": "скасувати",
+  "web.like.cancelled": "лайк скасовано",
+  "web.like.needs_phrase": "Спершу напишіть свою фразу: лайк — це зустріч двох фраз."
 }

@@ -19,7 +19,7 @@
 .b-blocks .tile-c2 { background: var(--tile-2); color: var(--tile-2-ink); }
 .b-blocks .tile-c3 { background: var(--tile-3); color: var(--tile-3-ink); }
 .b-blocks .tile-c4 { background: var(--tile-4); color: var(--tile-4-ink); }
-.b-blocks .tile .offer { color: inherit; font-weight: 700; }
+.b-blocks .tile .ui-offer { color: inherit; font-weight: 700; }
 .b-blocks .tile-foot { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-meta); font-weight: 600; }
 .b-blocks .tile-likes { display: inline-flex; align-items: center; gap: var(--s-1); font-variant-numeric: tabular-nums; }
 .b-blocks .tile:has(> .card-open:focus-visible) { outline: var(--focus-w) solid var(--focus); outline-offset: var(--card-focus-offset); }
@@ -37,8 +37,8 @@
 .b-blocks .block-card:active { cursor: grabbing; transition: none; }
 /* P7 (panel 03.10.2026): the snap-back is motion too; under reduced motion the card jumps. */
 @media (prefers-reduced-motion: reduce) { .b-blocks .block-card { transition: none; } }
-.b-blocks .block-card .big { font-size: var(--fs-big); font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; margin: 0; overflow-wrap: anywhere; }
-.b-blocks .block-card .offer { color: inherit; font-weight: 700; }
+.b-blocks .block-card .ui-big { font-size: var(--fs-big); font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; margin: 0; overflow-wrap: anywhere; }
+.b-blocks .block-card .ui-offer { color: inherit; font-weight: 700; }
 .b-blocks .block-grip { position: absolute; top: var(--s-3); left: 50%; width: 48px; height: 5px; margin-left: -24px; border-radius: 3px; background: var(--accent-fg); opacity: 0.55; }
 .b-blocks .block-mode { margin-top: auto; display: inline-flex; align-items: center; gap: var(--s-2); font-weight: 500; }
 .b-blocks .block-soon { font-weight: 500; }

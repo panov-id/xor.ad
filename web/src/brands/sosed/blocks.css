@@ -127,3 +127,35 @@
 .b-blocks li[data-row="legal"] .ui-setting, .b-blocks li[data-row="move"] .ui-setting, .b-blocks li[data-row="reissue"] .ui-setting, .b-blocks li[data-row="reset"] .ui-setting { flex-direction: row; justify-content: flex-start; align-items: center; min-height: 88px; }
 .b-blocks li[data-row="reset"] .ui-setting { color: var(--danger); }
 .b-blocks[data-screen="me"] .ui-setting:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--card-focus-offset); }
+
+/* Kit §9.2, sheets Feed and Profile: the tab bar is a pill 343×64 on the surface
+   with a 1.5 rim, 16 above the foot; the open tab a dark pill 80×48, its icon
+   in the ground colour. The word stays drawn under the icon, small (kit §3.3,
+   kit.spec «the word is drawn under the icon»). Sizes from the shape tokens
+   (tokens.css, sosed). The bar stands over the page: the kit's page leaves it
+   its room too, so nothing is read through it. */
+:root[data-brand="sosed"] .tabbar {
+  left: var(--s-4); right: var(--s-4); bottom: var(--s-4); max-width: var(--tabbar-w); height: var(--tabbar-h); padding: 0 var(--s-2);
+  align-items: center; gap: var(--s-1);
+  background: var(--surface); border: var(--tabbar-rim); box-shadow: var(--tabbar-ring); border-radius: var(--r-pill);
+}
+:root[data-brand="sosed"] .tabbar .tab { height: var(--tab-h); justify-content: center; border-radius: var(--r-pill); padding: 0; }
+:root[data-brand="sosed"] .tabbar .tab { flex-direction: column; gap: 0; font-size: var(--fs-meta); line-height: 1; color: var(--fg); }
+:root[data-brand="sosed"] .tabbar .tab[aria-current="page"] { color: var(--bg); }
+:root[data-brand="sosed"] .tabbar .tab svg { stroke: var(--fg); stroke-width: 1.5; }
+:root[data-brand="sosed"] .tabbar .tab[aria-current="page"] { background: var(--fg); }
+:root[data-brand="sosed"] .tabbar .tab[aria-current="page"] svg { stroke: var(--bg); }
+:root[data-brand="sosed"] .tabbar .tab[aria-current="page"]::after { content: none; }
+:root[data-brand="sosed"] .tabbar .tab:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--s-1); }
+:root[data-brand="sosed"] .ui-tabbed .screen { padding-bottom: calc(var(--tabbar-h) + var(--s-4) * 2 + var(--s-2)); }
+/* On the kit's page the bar is a specimen, not the page's navigation: it
+   stands in the flow, so no element is ever read through its surface (axe). */
+:root[data-brand="sosed"] .tabbar[data-testid="kit-tabbar"] { position: static; margin: var(--s-4) auto 0; }
+
+/* Sheet Feed: «write» is a round accent button 72 at the right, 16 above the bar. */
+:root[data-brand="sosed"] [data-screen="feed"] [data-testid="write"] {
+  left: auto; right: max(var(--s-4), calc(50% - var(--tabbar-w) / 2));
+  bottom: calc(var(--tabbar-h) + var(--s-4) * 2); width: var(--fab); height: var(--fab); min-height: var(--fab);
+  border-radius: var(--r-round); padding: 0;
+}
+:root[data-brand="sosed"] .ui-tabbed .screen[data-screen="feed"] { padding-bottom: calc(var(--tabbar-h) + var(--fab) + var(--s-4) * 3); }

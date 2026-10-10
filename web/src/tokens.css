@@ -34,6 +34,12 @@
   --btn-shadow: none;
   --btn2-r: var(--r-2);
   --btn2-bg: transparent;
+  --tabbar-rim: 1px solid var(--line);   /* + a 1px inset ring = the sheet's 1.5 rim */
+  --tabbar-ring: inset 0 0 0 1px var(--line);
+  --tabbar-w: 343px;   /* kit §9.2: the tab bar a pill 343×64, the open tab 48 tall */
+  --tabbar-h: 64px;
+  --tab-h: 48px;
+  --fab: 72px;         /* «write» on the feed, a circle */
   --field-r: 28px;
   --field-h: 56px;
   --field-fs: 20px;

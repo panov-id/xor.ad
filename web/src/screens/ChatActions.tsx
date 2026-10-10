@@ -17,7 +17,15 @@ import { Button } from "../ui/Button.tsx";
 import { Segments } from "../ui/Segments.tsx";
 import { ActionSheet, Confirm, type SheetAction } from "../ui/Sheet.tsx";
 
-export function ChatActions({ span, busy, askedByPeer, waitingForPeer, gameOpen, onSpan, onEnd, onBlock, onRekey, onGame, onSafety }: {
+// The «…» that opens it stands in the screen's header (ChatMenuButton), as the
+// neighbro sheet's «safety» does; the sheet and the two asks live here.
+export function ChatMenuButton({ open, onOpen }: { open: boolean; onOpen: () => void }) {
+  return <Button type="button" icon="more" aria-label={say("web.chat.more")} aria-haspopup="dialog" aria-expanded={open} onClick={onOpen} data-testid="chat-more" />;
+}
+
+export function ChatActions({ menu, onMenuClose, span, busy, askedByPeer, waitingForPeer, gameOpen, onSpan, onEnd, onBlock, onRekey, onGame, onSafety }: {
+  menu: boolean;
+  onMenuClose: () => void;
   span: Span;
   busy: boolean;
   askedByPeer: boolean;
@@ -30,7 +38,6 @@ export function ChatActions({ span, busy, askedByPeer, waitingForPeer, gameOpen,
   onGame: () => void;
   onSafety: () => void;
 }) {
-  const [menu, setMenu] = useState(false);
   const [asking, setAsking] = useState<"end" | "block" | null>(null);
   const actions: SheetAction[] = [
     { id: "game", label: say(gameOpen ? "web.game.hide" : "web.game.title"), onSelect: onGame, testid: "game-toggle" },
@@ -42,8 +49,7 @@ export function ChatActions({ span, busy, askedByPeer, waitingForPeer, gameOpen,
   ];
   return (
     <section data-testid="chat-actions">
-      <Button type="button" icon="more" aria-label={say("web.chat.more")} aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)} data-testid="chat-more" />
-      <ActionSheet open={menu} title={say("web.chat.more")} actions={actions} onClose={() => setMenu(false)} data-testid="chat-menu">
+      <ActionSheet open={menu} title={say("web.chat.more")} actions={actions} onClose={onMenuClose} data-testid="chat-menu">
         <Segments
           label={say("web.chat.span_label")}
           value={String(span)}

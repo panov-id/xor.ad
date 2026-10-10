@@ -16,11 +16,13 @@
 import { useChat } from "./logic/useChat.ts";
 import type { Client } from "../../../depth/core/client.ts";
 import type { ChatKeys } from "../chat/keys.ts";
-import { ChatActions } from "./ChatActions.tsx";
+import { useState } from "react";
+import { ChatActions, ChatMenuButton } from "./ChatActions.tsx";
 import { ChatGame } from "./ChatGame.tsx";
 import type { InboxChatRow } from "./Inbox.tsx";
 import "../chat/chat.css";
 import { say } from "../locales/say.ts";
+import { duration } from "../locales/duration.ts";
 import { Actions } from "../ui/Links.tsx";
 import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
@@ -44,7 +46,8 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
     send, resend, rekey, askedByPeer, waitingForPeer, starters,
   } = useChat({ client, keys, row: given });
   const who = `${row.name}, ${peerAge}`;
-  const showSafety = () => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"));
+  const [menu, setMenu] = useState(false);
+  const showSafety =() => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"));
   return (
     <Screen
       name="chat"
@@ -61,7 +64,7 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
       data-blocked={blocked ? "yes" : "no"}
       data-peer-away={peerAway ? "yes" : "no"}
       data-missed={missed ? "yes" : "no"}
-      header={<HeaderScreen title={who} onBack={onBack} backLabel={say("common.back")} />}
+      header={<HeaderScreen title={who} onBack={onBack} backLabel={say("common.back")} action={over ? undefined : <ChatMenuButton open={menu} onOpen={() => setMenu(true)} />} />}
     >
       {peerAway && <StatusInline data-testid="peer-away">{`${row.name} · ${say("chat.peerAway")}`}</StatusInline>}
       {!over && missed && <Notice data-testid="missed">{say("web.chat.missed")}</Notice>}
@@ -83,7 +86,7 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
           and the counter once the silence has reached a quarter of it. */}
       {!over && (
         <div className="ui-icon-row" data-testid="fades" data-counting={quiet.counting ? "yes" : "no"}>
-          <Info label={say("web.chat.span_label")} data-testid="fades-info"><p data-testid="fades-text">{say("chat.fades", { left: say(`chat.spanShort${span}`) })}</p></Info>
+          <Info label={say("web.chat.span_label")} data-testid="fades-info"><p data-testid="fades-text">{say("chat.fades", { left: duration(span) })}</p></Info>
           {quiet.counting && <span data-testid="silence-clock"> · {quiet.clock}</span>}
         </div>
       )}
@@ -93,6 +96,8 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
           conversation too, as the terminal does (owner, 01.10.2026). */}
       {!over && (
         <ChatActions
+          menu={menu}
+          onMenuClose={() => setMenu(false)}
           span={span}
           busy={busy}
           askedByPeer={askedByPeer}

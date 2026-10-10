@@ -1,5 +1,5 @@
 // One's own span in the web conversation (chat spec §8.6, W11-A), against a
-// live node: the screen shows «гаснет после 1ч вашего молчания» from the
+// live node: the screen shows «гаснет после 1 ч вашего молчания» from the
 // start; a press on «10 минут» goes to PATCH /chats/:id and moves one's own
 // end by exactly fifty minutes, the other side's row untouched in the
 // database; the silence counter lights only in the last quarter — set up by
@@ -84,7 +84,7 @@ test("one's own span is set from the screen, moves only one's own end, lights th
   await expect(screenA).toHaveAttribute("data-span", "60");
   // The words live in the ⓘ balloon now (comic, 2026-10-01): open, read, close.
   await anya.getByTestId("fades-info").getByRole("button").click();
-  await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 1ч вашего молчания");
+  await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 1 ч вашего молчания");
   await anya.keyboard.press("Escape");
   await expect(anya.getByTestId("fades")).toHaveAttribute("data-counting", "no");
   await chatMenu(anya);
@@ -100,11 +100,16 @@ test("one's own span is set from the screen, moves only one's own end, lights th
   await chatMenu(anya);
   await anya.getByTestId("span-10").click();
   await expect(screenA).toHaveAttribute("data-span", "10", { timeout: 15000 });
+  // The span is chosen in place, the sheet stays open: close it first.
+  await anya.keyboard.press("Escape");
+  await expect(anya.getByTestId("chat-menu")).toBeHidden();
   await anya.getByTestId("fades-info").getByRole("button").click();
   await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 10 мин вашего молчания");
   await anya.keyboard.press("Escape");
   await chatMenu(anya);
   await expect(anya.getByTestId("span-10")).toHaveAttribute("aria-checked", "true");
+  await anya.keyboard.press("Escape");
+  await expect(anya.getByTestId("chat-menu")).toBeHidden();
   expect(patches).toEqual([200]);
   expect(Number(await screenA.getAttribute("data-ends-at"))).toBe(endBefore - 50 * 60);
   // Still not the last quarter: ten minutes from the chat's birth, nothing said.
@@ -152,6 +157,7 @@ test("one's own span is set from the screen, moves only one's own end, lights th
   // Shut while one's own request waits, as the terminal's row (rooms.ts).
   await chatMenu(anya);
   await expect(anya.getByTestId("rekey-ask")).toBeDisabled();
+  await anya.keyboard.press("Escape");
   await expect(boris.getByTestId("rekey-asked")).toBeVisible({ timeout: 20000 });
   await boris.getByTestId("rekey-agree").click();
   await expect(screenB).toHaveAttribute("data-epoch", "1", { timeout: 20000 });

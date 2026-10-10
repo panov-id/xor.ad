@@ -83,7 +83,8 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .ui-card { background: var(--panel); border: 1px solid transparent; border-radius: var(--r-2); padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-2); margin: 0; }
 .ui-card-nested { background: var(--panel-2); }
 .ui-card-own { border: 1px dashed var(--muted); color: var(--muted); }
-.ui-chip { display: inline-flex; align-items: center; height: 24px; padding: 0 var(--s-3); border-radius: var(--r-pill); font-size: 14px; font-weight: 600; align-self: flex-start; color: var(--chip); background: color-mix(in srgb, var(--chip) 10%, transparent); }
+/* The tint is 6%, not 10%: at 10% the chip's word on its tint over --surface falls to 4.33–4.44 in five dark sosed themes (axe on /kit, 11.10.2026). */
+.ui-chip { display: inline-flex; align-items: center; height: 24px; padding: 0 var(--s-3); border-radius: var(--r-pill); font-size: 14px; font-weight: 600; align-self: flex-start; color: var(--chip); background: color-mix(in srgb, var(--chip) 6%, transparent); }
 .ui-chip-amber { --chip: var(--cat-amber); }
 .ui-chip-teal { --chip: var(--cat-teal); }
 .ui-chip-violet { --chip: var(--cat-violet); }

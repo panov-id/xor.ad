@@ -8,7 +8,7 @@ import type { ReactElement } from "react";
 import type { Say } from "../strings.ts";
 import type { Client } from "../../core/client.ts";
 import { plain } from "../parts.ts";
-import { Actions, ErrorLine, Form, Head, Stack, Txt } from "../kit.ts";
+import { Actions, ErrorLine, Form, Head, off, Stack, Txt } from "../kit.ts";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -41,7 +41,7 @@ export function Complaint(
       ],
       onChange: (key, value) => (key === "email" ? setEmail(value) : setText(value.slice(0, 1000))),
       actions: [
-        { key: "send", label: say("complaint.send"), disabled: !ready },
+        { key: "send", label: say("complaint.send"), ...off(say, [!ready, "why.fill"]) },
         { key: "back", label: say("common.back") },
       ],
       onPick: (key) => {

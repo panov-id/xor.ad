@@ -2704,3 +2704,110 @@ test("the chat's input is a labelled field: one focus mark, no «> >», and no l
   assert.doesNotMatch(frame, /> >|истории на диске/, "a doubled focus mark or a service line is on the chat (Т8)");
   app.unmount();
 });
+
+import { newCount } from "./rooms.ts";
+
+test("Т14 · one match the other side already agreed to is «новое: 1», not 2; two different ones are 2", async () => {
+  const none = { new_matches: 0, waiting_for_you: 0, new_chats: 0 };
+  // The node counts the same offer in new_matches (arrived after since) and in
+  // waiting_for_you (the other side agreed after since, mine still open).
+  assert.equal(newCount({ ...none, new_matches: 1, waiting_for_you: 1 }, [{ kind: "match", id: "m1", arrived_since: true, answered_since: true }]), 1);
+  assert.equal(newCount({ ...none, new_matches: 1, waiting_for_you: 1 }, [
+    { kind: "match", id: "m1", arrived_since: true },
+    { kind: "match", id: "m2", answered_since: true },
+  ]), 2, "an arrived offer and an answered older one are two");
+  assert.equal(newCount({ ...none, new_matches: 1, new_chats: 1 }, []), 2, "a new chat is counted beside the offers");
+  const client = {
+    inboxSince: () => Promise.resolve({
+      items: [{ kind: "match", id: "m1", match_id: "m1", name: "Марк", age: 31, arrived_since: true, answered_since: true, waiting_for_you: true }],
+      events: { new_matches: 1, waiting_for_you: 1, new_chats: 0, pending_messages: 0, ending_soon: 0 },
+    }),
+  };
+  // deno-lint-ignore no-explicit-any
+  const app = render(h(Inbox, { say, client: client as any, onOpen: () => {}, onBack: () => {}, onError: () => {} }));
+  await settle();
+  await settle();
+  assert.match(app.lastFrame()!, /входящие\s+новое: 1(\s|$)/m, "the head counts one match twice");
+  assert.doesNotMatch(app.lastFrame()!, /новое: 2/);
+  app.unmount();
+});
+
+test("Т16 · exactly one «>» on the feed and on «я», in both faces", async () => {
+  const before = process.env.DEPTH_PLAIN;
+  try {
+    for (const plainFace of ["1", undefined]) {
+      if (plainFace) process.env.DEPTH_PLAIN = plainFace;
+      else delete process.env.DEPTH_PLAIN;
+      const feed = render(h(Feed, {
+        say,
+        // deno-lint-ignore no-explicit-any
+        client: { feed: () => Promise.resolve({ items: [{ id: "a", text: "гуляю", like_count: 0 }, { id: "b", text: "кофе", like_count: 0 }] }) } as any,
+        place: { lat: 55.75, lon: 37.62, radius: 1000 },
+        onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+      }));
+      await settle(150);
+      assert.equal((feed.lastFrame()!.match(/>/g) ?? []).length, 1, `the feed shows two marks (plain=${plainFace}):\n${feed.lastFrame()}`);
+      feed.unmount();
+      const client = {
+        profile: () => Promise.resolve({ name: "Аня", name_state: "accepted", age: 34 }),
+        hidden: () => Promise.resolve([]),
+        blocks: () => Promise.resolve([]),
+      };
+      // deno-lint-ignore no-explicit-any
+      const me = render(h(Me, { say, client: client as any, restrictions: 0, onOpen: () => {}, onBack: () => {}, onError: () => {} }));
+      await settle();
+      await settle();
+      assert.equal((me.lastFrame()!.match(/>/g) ?? []).length, 1, `«я» shows two marks (plain=${plainFace}):\n${me.lastFrame()}`);
+      me.unmount();
+    }
+  } finally {
+    if (before === undefined) delete process.env.DEPTH_PLAIN;
+    else process.env.DEPTH_PLAIN = before;
+  }
+});
+
+test("Т17 · a like that made a match says «Мэтч!» in the list and on the card; a plain like does not", async () => {
+  const said = async (state: string, card: boolean) => {
+    const client = {
+      feed: () => Promise.resolve({ items: [{ id: "a", text: "гуляю", like_count: 0 }, { id: "b", text: "кофе", like_count: 0 }] }),
+      like: () => Promise.resolve({ status: 200, body: { state, match_id: "m1" } }),
+    };
+    const app = render(h(Feed, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      place: { lat: 55.75, lon: 37.62, radius: 1000 },
+      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+    }));
+    await settle(150);
+    if (card) {
+      await type(app, ENTER, RIGHT);
+      // The first → of a run only explains itself.
+      if (/вправо — лайк/.test(app.lastFrame()!)) await type(app, ENTER, RIGHT);
+    } else {
+      await type(app, RIGHT, ENTER);
+    }
+    await settle(100);
+    const frame = app.lastFrame()!;
+    app.unmount();
+    return frame;
+  };
+  for (const card of [false, true]) {
+    assert.match(await said("matched", card), /Мэтч! Предложение поговорить ждёт во входящих\./, `no «Мэтч!» after a like that matched (card=${card})`);
+    assert.doesNotMatch(await said("liked", card), /Мэтч/, `«Мэтч!» after a like that did not match (card=${card})`);
+  }
+});
+
+test("Т18 · the write hint does not claim a check when it cannot know the node's mode", async () => {
+  const app = render(h(Write, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: {} as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 }, limit: 146, onDone: () => {}, onBack: () => {}, onError: () => {},
+  }));
+  await settle();
+  const frame = app.lastFrame()!.replace(/\s+/g, " ");
+  assert.doesNotMatch(frame, /проверят до того, как её увидят/, "the hint promises a check the node may not make (rules publish a clean phrase at once)");
+  assert.match(frame, /Выйдет сразу или встанет на проверку — что именно, скажет узел после отправки\./, "the hint does not leave the mode to the node's answer");
+  app.unmount();
+});

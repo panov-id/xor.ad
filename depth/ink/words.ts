@@ -58,6 +58,40 @@ export function gameWords(say: Say, klass: string | undefined, set: string | und
 export const radiusWord = (say: Say, meters: number): string =>
   meters >= 1000 ? say("feed.km", { n: meters / 1000 }) : say("feed.m", { n: meters });
 
+// An edge of the dots board as the web says it (web/src/ui/Board.tsx edgeName):
+// "h:0:1" → «линия: ряд 1, колонка 2, по горизонтали», never the id (Т13).
+export function edgeWords(say: Say, id: string): string {
+  const m = /^([hv]):(\d+):(\d+)$/.exec(id);
+  if (!m) return "";
+  return say(m[1] === "h" ? "board.edge_h" : "board.edge_v", { row: Number(m[2]) + 1, col: Number(m[3]) + 1 });
+}
+
+// A move in the table's lines, in the words of its class (Т13): the node hands
+// over the move as it was made — {edge}, {play}, {draw}, {letter}, {from, to},
+// {flick} — and the terminal printed it as JSON. Each class says it the way the
+// web's board says its own button (web.table.* → board.*); `klass` tells a deck's
+// draw from a boneyard's. A shape this does not know is «ход», never JSON.
+export function moveWords(say: Say, move: unknown, klass?: string): string {
+  const m = (typeof move === "object" && move !== null ? move : {}) as Record<string, unknown>;
+  // deno-lint-ignore no-control-regex
+  const text = (v: unknown, limit = 24) => String(v ?? "").replace(/[\u0000-\u001F\u007F-\u009F]/g, "·").slice(0, limit);
+  if (typeof m.edge === "string") return edgeWords(say, m.edge) || say("table.move");
+  if (typeof m.play === "string" && typeof m.end === "string") {
+    return say(m.end === "left" ? "board.left" : "board.right", { bone: text(m.play, 8) });
+  }
+  if (typeof m.play === "string") return say("board.card", { card: text(m.play, 8) });
+  if (m.draw === true) return say(klass === "free" ? "board.draw_boneyard" : "board.draw_deck");
+  if (typeof m.word === "string") return say("board.set_word");
+  if (typeof m.letter === "string") return `${say("board.letter")}: ${text(m.letter, 4)}`;
+  if (typeof m.from === "string" && typeof m.to === "string") return `${text(m.from, 4)} → ${text(m.to, 4)}`;
+  if (m.con === "won") return say("board.con_won");
+  if (m.con === "agree") return say("board.con_agree");
+  if (m.roll === true) return say("board.roll");
+  if (m.move === true) return say("board.moved");
+  if (typeof m.flick === "object" && m.flick !== null) return `${say("board.flick")} ${text((m.flick as { piece?: unknown }).piece, 8)}`;
+  return say("table.move");
+}
+
 export type RefusalKind = "phrase" | "name" | "like" | "table";
 // What a table call was for: only a player proposes, answers or resigns; only a
 // watcher applies (relay routes/tables.ts answers both with 409 `refused`).

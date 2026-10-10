@@ -100,7 +100,9 @@ export function useKeys(handler: KeyHandler): void {
   }, [gate]);
 }
 
-export type Action = { key: string; label: string; disabled?: boolean };
+// `why` is a disabled action's reason, already said in words (kit.ts `off`):
+// the plain face has no dimming, so it writes the reason after the label (Т15).
+export type Action = { key: string; label: string; disabled?: boolean; why?: string };
 
 // Anything the node hands over — a name, an age, a phrase, a decrypted line —
 // is drawn through this. The node is the adversary here (§8.13): an escape

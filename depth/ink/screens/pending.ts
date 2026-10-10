@@ -12,7 +12,7 @@ import type { ReactElement } from "react";
 import type { Client } from "../../core/client.ts";
 import type { Say } from "../strings.ts";
 import { plain } from "../parts.ts";
-import { Actions, Form, Head, Muted, Notice, Stack, Txt } from "../kit.ts";
+import { Actions, Form, Head, Muted, Notice, off, Stack, Txt } from "../kit.ts";
 
 export function Waiting(
   { say, client, matchId, name, age, limit, onOpened, onBack, onFeed, onError, pollMs = 5000 }: {
@@ -88,7 +88,7 @@ export function Waiting(
       fields: [{ key: "draft", label: ">", value: draft }],
       onChange: (_key, value) => setDraft(value.slice(0, limit)),
       actions: [
-        { key: "send", label: say("chat.send"), disabled: draft.trim() === "" },
+        { key: "send", label: say("chat.send"), ...off(say, [draft.trim() === "", "why.write"]) },
         { key: "back", label: say("common.back") },
       ],
       onPick: (key) => {

@@ -18,7 +18,7 @@ import { Arrival, Departure, type MoveClient, type MoveState } from "../core/tra
 import type { Say } from "./strings.ts";
 import { pinMismatch } from "./screens.ts";
 import { plain } from "./parts.ts";
-import { Actions, ErrorLine, Form, Head, Muted, Notice, Stack, Strong, Txt } from "./kit.ts";
+import { Actions, ErrorLine, Form, Head, Muted, Notice, off, Stack, Strong, Txt } from "./kit.ts";
 
 export const MOVE_POLL_MS = 5000;
 
@@ -135,7 +135,7 @@ export function MoveOut(
         fields: [{ key: "pin", label: say("reset.pin"), value: pin, secret: true }],
         onChange: (_key, value) => setPin(value.replace(/\D/g, "").slice(0, 6)),
         actions: [
-          { key: "go", label: say("move.go"), disabled: pin.length !== 6 || sending },
+          { key: "go", label: say("move.go"), ...off(say, [sending, "why.busy"], [pin.length !== 6, "why.fill"]) },
           { key: "back", label: say("common.back") },
         ],
         onPick: (key) => (key === "go" ? start() : onBack()),
@@ -227,8 +227,8 @@ export function MoveConfirm(
     h(Notice, { say }, say("move.nobody")),
     h(Actions, {
       actions: [
-        { key: "yes", label: say("move.yes"), disabled: pressed },
-        { key: "no", label: say("move.no"), disabled: pressed },
+        { key: "yes", label: say("move.yes"), ...off(say, [pressed, "why.busy"]) },
+        { key: "no", label: say("move.no"), ...off(say, [pressed, "why.busy"]) },
       ],
       onPick: (key) => {
         setPressed(true);
@@ -318,7 +318,7 @@ export function MoveIn(
         fields: [{ key: "code", label: say("move.code"), value: code }],
         onChange: (_key, value) => setCode(value.slice(0, 13)),
         actions: [
-          { key: "go", label: say("reg.next"), disabled: clean.length !== 9 || sending },
+          { key: "go", label: say("reg.next"), ...off(say, [sending, "why.busy"], [clean.length !== 9, "why.fill"]) },
           { key: "back", label: say("common.back") },
         ],
         onPick: (key) => (key === "go" ? claim() : onBack()),

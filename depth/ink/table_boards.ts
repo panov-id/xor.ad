@@ -8,7 +8,7 @@ import { createElement as h, useState } from "react";
 import type { ReactElement } from "react";
 import type { Say } from "./strings.ts";
 import { plain } from "./parts.ts";
-import { Actions, Board, Form, Muted, Stack, Strong, Txt } from "./kit.ts";
+import { Actions, Board, Form, Muted, off, Stack, Strong, Txt } from "./kit.ts";
 import type { TableView } from "../core/tables.ts";
 
 type Move = (move: unknown) => void;
@@ -37,7 +37,7 @@ function Deck({ say, view, onMove, active }: { say: Say; view: TableView; onMove
         active,
         actions: [
           ...cards.map((c) => ({ key: `play:${c}`, label: plain(c, 8) })),
-          { key: "draw", label: say("board.draw_deck"), disabled: deck.stock.count === 0 },
+          { key: "draw", label: say("board.draw_deck"), ...off(say, [deck.stock.count === 0, "why.none"]) },
         ],
         onPick: (key) => onMove(key === "draw" ? { draw: true } : { play: key.slice(5) }),
       })
@@ -64,7 +64,7 @@ function Word({ say, view, onMove, active }: { say: Say; view: TableView; onMove
         tab: false,
         fields: [{ key: "v", label: setting ? say("board.set_word") : say("board.letter"), value }],
         onChange: (_k, v) => setValue(setting ? v.slice(0, 24) : v.slice(0, 1)),
-        actions: [{ key: "go", label: setting ? say("board.set") : say("board.guess"), disabled: !value.trim() }],
+        actions: [{ key: "go", label: setting ? say("board.set") : say("board.guess"), ...off(say, [!value.trim(), "why.fill"]) }],
         onPick: () => {
           const v = value.trim();
           if (!v) return;
@@ -97,7 +97,7 @@ function Free({ say, view, onMove, active }: { say: Say; view: TableView; onMove
             { key: `left:${b}`, label: say("board.left", { bone: plain(b, 8) }) },
             { key: `right:${b}`, label: say("board.right", { bone: plain(b, 8) }) },
           ]),
-          { key: "draw", label: say("board.draw_boneyard"), disabled: f.boneyard.count === 0 },
+          { key: "draw", label: say("board.draw_boneyard"), ...off(say, [f.boneyard.count === 0, "why.none"]) },
         ],
         onPick: (key) => {
           if (key === "draw") return onMove({ draw: true });
@@ -134,7 +134,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
   const con = (grid || dice)
     ? claim !== null && claim !== view.seat
       ? [{ key: "agree", label: say("board.con_agree") }]
-      : [{ key: "won", label: say("board.con_won"), disabled: claim === view.seat }]
+      : [{ key: "won", label: say("board.con_won"), ...off(say, [claim === view.seat, "why.waitOther"]) }]
     : [];
   const pick = (key: string) => {
     if (!onMove) return;
@@ -166,7 +166,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
         tab: false,
         fields: [{ key: "a", label: say("board.from"), value: a }, { key: "b", label: say("board.to"), value: b }],
         onChange: (k, v) => (k === "a" ? setA(v.slice(0, 2)) : setB(v.slice(0, 2))),
-        actions: [{ key: "go", label: say("table.move"), disabled: !a.trim() || !b.trim() }, ...con],
+        actions: [{ key: "go", label: say("table.move"), ...off(say, [!a.trim() || !b.trim(), "why.fill"]) }, ...con],
         onPick: pick,
       })
       : null,
@@ -180,7 +180,7 @@ function Cells({ say, view, onMove, active }: { say: Say; view: TableView; onMov
           { key: "p", label: say("board.power"), value: power },
         ],
         onChange: (k, v) => (k === "a" ? setA(v) : k === "b" ? setB(v) : setPower(v.replace(/\D/g, "").slice(0, 1))),
-        actions: [{ key: "go", label: say("board.flick"), disabled: !a.trim() }],
+        actions: [{ key: "go", label: say("board.flick"), ...off(say, [!a.trim(), "why.fill"]) }],
         onPick: pick,
       })
       : null,

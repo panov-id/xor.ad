@@ -11,9 +11,9 @@ import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
-import { Actions, Board, ErrorLine, Muted, Stack, Strong, Txt } from "./kit.ts";
+import { Actions, Board, ErrorLine, Muted, off, Stack, Strong, Txt } from "./kit.ts";
 import { ClassBoard } from "./table_boards.ts";
-import { classWord, refusalWords } from "./words.ts";
+import { classWord, edgeWords, refusalWords } from "./words.ts";
 import { dotsOf, drawDots, freeEdges, type BoardClass } from "../core/tables.ts";
 import { asTableView, type ChatGames, type ChatGameView, chatTurn } from "../core/chat_games.ts";
 
@@ -108,7 +108,7 @@ export function ChatGame(
     : say("game.theirTurn", { name: plain(name, 48) });
   const actions = [
     ...(theirs ? [{ key: "accept", label: say("game.accept") }, { key: "decline", label: say("game.decline") }] : []),
-    ...(dots && board ? [{ key: "edge", label: `${say("table.move")} ${edge ?? ""}`, disabled: turn !== "mine" || !edge }] : []),
+    ...(dots && board ? [{ key: "edge", label: `${say("table.move")} ${edge ? edgeWords(say, edge) : ""}`.trim(), ...off(say, [turn !== "mine", "table.notYourTurn"], [!edge, "why.none"]) }] : []),
     ...(board && !board.over ? [{ key: "resign", label: say("table.resign") }] : []),
     ...(board && board.over && !pending ? [{ key: "rematch", label: say("table.rematch") }] : []),
     { key: "close", label: say("common.close") },

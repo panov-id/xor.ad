@@ -12,7 +12,7 @@ import { CursorRefused, extraLikeOf, startersOf } from "../core/client.ts";
 import type { ChatStarter } from "../core/client.ts";
 import { languageOf, type Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
-import { Actions, ErrorLine, Form, Head, Item, Line, Muted, Notice, Panel, Row, Stack, Strong, Txt } from "./kit.ts";
+import { Actions, ErrorLine, Form, Head, Item, Line, Muted, Notice, off, Panel, Row, Stack, Strong, Txt } from "./kit.ts";
 import { afterClose, reconnectDelay } from "../core/reconnect.ts";
 import { pinMismatch, type Place } from "./screens.ts";
 import { obviousPin } from "../core/pin.ts";
@@ -70,7 +70,7 @@ export function Write(
       fields: [{ key: "text", label: say("write.title"), value: text }],
       onChange: (_key, value) => setText(value.slice(0, limit)),
       actions: [
-        { key: "send", label: say("write.send"), disabled: text.trim() === "" || busy },
+        { key: "send", label: say("write.send"), ...off(say, [busy, "why.busy"], [text.trim() === "", "why.write"]) },
         { key: "back", label: say("common.back") },
       ],
       onPick: (key) => {
@@ -151,6 +151,23 @@ export function marksOf(r: Row, say: Say): string {
   return [fresh, messages, r.ending_soon ? say("inbox.ending") : ""].filter(Boolean).join(" · ");
 }
 
+// The tab's «new» (Т14). The node counts new_matches (offers that arrived after
+// `since`) and waiting_for_you (offers the other side agreed to after `since`,
+// mine still open) from the same rows (relay lib/inbox_events.ts, the `offers`
+// CTE), so one fresh match that the other side already agreed to is in BOTH
+// numbers and their sum said «2» for one match. The rows tell it without a
+// repeat — each carries arrived_since / answered_since / opened_since — so the
+// count is the rows that have any of the three. A row page is a page: the node's
+// own counts cover everything live, so the larger of the two is never undercut
+// (the offers can overlap, never be fewer than the bigger of their counts).
+export function newCount(
+  events: Pick<InboxEvents, "new_matches" | "waiting_for_you" | "new_chats">,
+  rows: Array<Row & { declined?: boolean }>,
+): number {
+  const fresh = rows.filter((r) => !r.declined && (r.arrived_since || r.answered_since || r.opened_since)).length;
+  return Math.max(fresh, Math.max(events.new_matches, events.waiting_for_you) + events.new_chats);
+}
+
 // 5 · the inbox: matches waiting for consent, and chats already open.
 export function Inbox(
   { say, client, onOpen, onWait, consented, onBack, onError }: {
@@ -210,9 +227,7 @@ export function Inbox(
   // The tab's badge (§8.12): counts over everything live, in the same marks.
   const badge = events
     ? [
-      events.new_matches + events.waiting_for_you + events.new_chats > 0
-        ? say("inbox.newCount", { n: events.new_matches + events.waiting_for_you + events.new_chats })
-        : "",
+      newCount(events, rows ?? []) > 0 ? say("inbox.newCount", { n: newCount(events, rows ?? []) }) : "",
       events.pending_messages > 0 ? say("inbox.messages", { n: events.pending_messages }) : "",
       events.ending_soon > 0 ? say("inbox.endingCount", { n: events.ending_soon }) : "",
     ].filter(Boolean).join("  ")
@@ -252,6 +267,7 @@ export function Inbox(
         ),
       ),
     h(Actions, {
+      pointer: false, // the list above holds the "> " (Т16)
       actions: chosen?.declined
         ? [{ key: "undo", label: say("inbox.undo") }, { key: "back", label: say("common.back") }]
         : [
@@ -260,7 +276,7 @@ export function Inbox(
             label: chosen?.kind === "chat" || (chosen && agreed(chosen))
               ? say("inbox.enter")
               : say("inbox.consent"),
-            disabled: !chosen,
+            ...off(say, [!chosen, "why.pick"]),
           },
           // "Not now" (§4.6): recorded at once and invisible to the other side.
           ...(chosen && chosen.kind !== "chat" && !agreed(chosen)
@@ -762,7 +778,7 @@ export function Chat(
       fields: [{ key: "draft", label: say("chat.draft"), value: draft }],
       onChange: (_key, value) => setDraft(value.slice(0, limit)),
       actions: [
-        { key: "send", label: say("chat.send"), disabled: draft.trim() === "" },
+        { key: "send", label: say("chat.send"), ...off(say, [draft.trim() === "", "why.write"]) },
         { key: "code", label: say("chat.codeItem") },
         { key: "span", label: say("chat.span", { span: say(`chat.spanLong${span}`) }) },
         { key: "end", label: say("chat.end") },
@@ -772,7 +788,7 @@ export function Chat(
         { key: "game", label: say("chat.game") },
         // After the game for the same reason (T16). Asked by the other side it
         // is the agreement; otherwise one's own request, shut while it waits.
-        { key: "rekey", label: say(peerAsks ? "chat.rekeyAgree" : "chat.rekeyAsk"), disabled: waiting && !peerAsks },
+        { key: "rekey", label: say(peerAsks ? "chat.rekeyAgree" : "chat.rekeyAsk"), ...off(say, [waiting && !peerAsks, "why.waitOther"]) },
       ],
       onPick: (key) => {
         if (key === "back") return onBack();
@@ -864,8 +880,9 @@ export function Hidden(
         ),
       ),
     h(Actions, {
+      pointer: false, // the list above holds the "> " (Т16)
       actions: [
-        { key: "back-it", label: say("hidden.restore"), disabled: !chosen },
+        { key: "back-it", label: say("hidden.restore"), ...off(say, [!chosen, "why.pick"]) },
         { key: "back", label: say("common.back") },
       ],
       onPick: (key) => {
@@ -1012,6 +1029,7 @@ export function Liked(
       ? h(Muted, null, say("liked.empty"))
       : h(Stack, { gap: 1 }, ...rows.map(line)),
     h(Actions, {
+      pointer: false, // the list above holds the "> " (Т16)
       actions: [
         chosen?.state === "matched"
           ? { key: "offer", label: say("liked.toOffer") }
@@ -1021,7 +1039,7 @@ export function Liked(
           // to any take-back, and its one-sided match is not built yet, so
           // there is nowhere to lead either — the action stays, greyed
           // (review panel 23.09.2026).
-          : { key: "unlike", label: say("feed.unlike"), disabled: !chosen || chosen.offer !== undefined },
+          : { key: "unlike", label: say("feed.unlike"), ...off(say, [!chosen, "why.pick"], [chosen?.offer !== undefined, "why.notNow"]) },
         ...(next ? [{ key: "more", label: say("liked.more") }] : []),
         { key: "back", label: say("common.back") },
       ],
@@ -1116,8 +1134,9 @@ export function Blocked(
         ),
       ),
     h(Actions, {
+      pointer: false, // the list above holds the "> " (Т16)
       actions: [
-        { key: "lift", label: say("blocked.lift"), disabled: !chosen },
+        { key: "lift", label: say("blocked.lift"), ...off(say, [!chosen, "why.pick"]) },
         { key: "back", label: say("common.back") },
       ],
       onPick: (key) => {
@@ -1203,6 +1222,7 @@ export function Me(
       ),
     ),
     h(Actions, {
+      pointer: false, // the list above holds the "> " (Т16)
       actions: [{ key: "open", label: say("inbox.enter") }, { key: "back", label: say("common.back") }],
       onPick: (key) => {
         if (key === "back") return onBack();
@@ -1296,7 +1316,8 @@ export function StepAway(
     span ? h(Notice, { say }, price()) : h(Muted, null, price()),
     h(Muted, null, say("away.warning")),
     h(Actions, {
-      actions: [{ key: "go", label: say("away.go"), disabled: span === null || going }, { key: "back", label: say("common.back") }],
+      pointer: false, // the list above holds the "> " (Т16)
+      actions: [{ key: "go", label: say("away.go"), ...off(say, [going, "why.busy"], [span === null, "why.pick"]) }, { key: "back", label: say("common.back") }],
       onPick: (key) => {
         if (key === "back") return onBack();
         if (!span || going) return;
@@ -1419,7 +1440,7 @@ export function EditProfile(
         onChange: (_key, next) =>
           setValue(field === "age" ? next.replace(/[^0-9]/g, "").slice(0, 3) : graphemes(next, 24)),
         actions: [
-          { key: "save", label: say("me.save"), disabled: value.trim() === "" || value.trim() === current },
+          { key: "save", label: say("me.save"), ...off(say, [value.trim() === "", "why.write"], [value.trim() === current, "why.same"]) },
           { key: "back", label: say("common.back") },
         ],
         onPick: (key) => {
@@ -1492,7 +1513,7 @@ export function ChangePin(
         { key: "again", label: say("pin.again"), value: values.again, secret: true },
       ],
       onChange: (key, value) => setValues((v) => ({ ...v, [key]: value.replace(/\D/g, "").slice(0, 6) })),
-      actions: [{ key: "go", label: say("pin.go"), disabled: !ready }, { key: "back", label: say("common.back") }],
+      actions: [{ key: "go", label: say("pin.go"), ...off(say, [!ready, "why.fill"]) }, { key: "back", label: say("common.back") }],
       onPick: (key) => (key === "go" ? send() : onBack()),
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
@@ -1549,7 +1570,7 @@ export function StartAgain(
       fields: [{ key: "pin", label: say("reset.pin"), value: pin, secret: true }],
       onChange: (_key, value) => setPin(value.replace(/\D/g, "").slice(0, 6)),
       actions: [
-        { key: "go", label: say("reset.go"), disabled: pin.length !== 6 || counts === null || sending },
+        { key: "go", label: say("reset.go"), ...off(say, [sending, "why.busy"], [counts === null, "why.notNow"], [pin.length !== 6, "why.fill"]) },
         { key: "back", label: say("common.back") },
       ],
       onPick: (key) => (key === "go" ? send() : onBack()),

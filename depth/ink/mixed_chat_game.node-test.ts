@@ -25,6 +25,17 @@ const sync = process.env.MIXED_SYNC!;
 const run = process.env.MIXED_RUN!;
 const out = (line: string) => (process as unknown as { _rawDebug: (s: string) => void })._rawDebug(line);
 
+// The terminal names an edge in words (Т13), as the web does; these turn the
+// words of the "ход …" action back into the node's id, and an id into the words.
+const edgeIdOf = (frame: string): string | undefined => {
+  const m = /ход линия: ряд (\d+), колонка (\d+), по (горизонтали|вертикали)/.exec(frame);
+  return m ? `${m[3] === "горизонтали" ? "h" : "v"}:${Number(m[1]) - 1}:${Number(m[2]) - 1}` : undefined;
+};
+const edgeSaid = (edge: string): string => {
+  const [kind, row, col] = edge.split(":");
+  return `линия: ряд ${Number(row) + 1}, колонка ${Number(col) + 1}, по ${kind === "h" ? "горизонтали" : "вертикали"}`;
+};
+
 const settle = (ms = 120) => new Promise((done) => setTimeout(done, ms));
 const DOWN = "\u001B[B", UP = "\u001B[A", RIGHT = "\u001B[C", LEFT = "\u001B[D", ENTER = "\r";
 // The page's point (web/src/App.tsx): the terminal stands where the browser does.
@@ -194,8 +205,8 @@ async function main() {
     await until(app, /ваш ход/, 30);
 
     // 7 · the proposer moves first: the edge the panel marks, named in its
-    // action ("ход h:0:0"), is what the page must show taken.
-    const edgeOf = () => /ход (h:\d+:\d+|v:\d+:\d+)/.exec(app.lastFrame() ?? "")?.[1];
+    // action ("ход линия: ряд 1, колонка 1, по горизонтали"), is what the page must show taken.
+    const edgeOf = () => edgeIdOf(app.lastFrame() ?? "");
     const first = edgeOf();
     assert.ok(first, "the panel marks no free edge on his move");
     await type(app, ENTER);

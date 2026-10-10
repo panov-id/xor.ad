@@ -117,10 +117,34 @@ export function Head({ title, lines }: { title: string; lines?: string[] }): Rea
 
 // ── Actions: a row of buttons ──
 
+// A disabled action in the plain face: dimming is invisible to a reader that
+// is not an eye, so the label carries the reason in words, "(недоступно: …)".
+function shownLabel(a: Action): string {
+  return isPlain() && a.disabled === true && a.why ? `${a.label} ${a.why}` : a.label;
+}
+
+// The reason an action cannot be pressed now, in the dictionary's words: the
+// first rule that holds names it ([cond, key of the reason]). Spread into an
+// action: `{ key, label, ...off(say, [!ready, "why.fill"]) }`.
+export function off(say: Say, ...rules: Array<[boolean, string]>): { disabled: boolean; why?: string } {
+  const hit = rules.find(([cond]) => cond);
+  return hit ? { disabled: true, why: say("kit.unavailable", { why: say(hit[1]) }) } : { disabled: false };
+}
+
+
 // A row of actions: left and right move, enter picks. The chosen one is the
 // only one in brackets, because colour alone can be invisible over ssh.
 export function Actions(
-  { actions, onPick, hint, active = true }: { actions: Action[]; onPick: (key: string) => void; hint?: string; active?: boolean },
+  { actions, onPick, hint, active = true, pointer = true }: {
+    actions: Action[];
+    onPick: (key: string) => void;
+    hint?: string;
+    active?: boolean;
+    // False under a list that has its own "> " (the feed, the inbox, «я»): two
+    // marks at once left no telling which one enter obeys (Т16). The chosen
+    // action then stands in brackets alone.
+    pointer?: boolean;
+  },
 ): ReactElement {
   const [at, setAt] = useState(0);
   // A disabled action keeps its place in the row and simply does not fire.
@@ -154,8 +178,8 @@ export function Actions(
         // on one screen (a table's board and its row) left no telling which
         // one enter would fire (verifier, 2026-09-27).
         active && a.key === chosen?.key
-          ? h(Txt, { key: a.key, inverse: true, dim: a.disabled === true }, `> [ ${a.label} ]`)
-          : h(Txt, { key: a.key, dim: a.disabled === true }, `  ${a.label}  `)
+          ? h(Txt, { key: a.key, inverse: true, dim: a.disabled === true }, `${pointer ? ">" : " "} [ ${shownLabel(a)} ]`)
+          : h(Txt, { key: a.key, dim: a.disabled === true }, `  ${shownLabel(a)}  `)
       ),
     ),
     hint ? h(Muted, null, hint) : null,

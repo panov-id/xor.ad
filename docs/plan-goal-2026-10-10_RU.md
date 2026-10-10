@@ -24,6 +24,7 @@
 | К4 | Экраны входа: Register, Restore, Arrival, Reissue, Unlock, Splash | К2, К7а | f0 | e2e обоих брендов + textwalk; храповик вниз |
 | К5 | Me, Composer, Inbox, Chat, ChatActions, AgeFilter, Blocked, Hidden | К2, К7а | d8 | то же |
 | К6 | Table, NewTable, TableBoards, ChatGame, Legal, Offer, Card, Feed, Match, adv/* | К4 | f0 | то же; П1, П7 |
+| К6б | Нижняя навигация в четыре пункта: «столы» — список столов рядом (решение владельца 10.10, `kit_RU.md` §8.4) | К6 | f0 | e2e table-feed, table-deck обоих брендов + textwalk |
 | К7б | CSS: дубли и драки (`.actions`, `.row`, `.tabbed .screen`, фокус 2 px), правила экранов, перебивающие кит | К4–К6 | d8 | ворота + textwalk |
 | К8 | Терминал: `depth/ink/kit.ts`, экраны только на нём, `DEPTH_PLAIN=1` | К1 | d8 | run-depth-tests + текстовый проход терминала |
 | К9 | Лендинги: `:root` из тем, CSS кита файлом | К7а, решение §8.3 | f0 | ворота сверяют значения |

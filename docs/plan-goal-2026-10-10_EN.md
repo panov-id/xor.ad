@@ -21,6 +21,7 @@ Brand CSS has 234 px literals and not a single spacing token. Rules fight by loa
 | `К4` | Entry screens: Register, Restore, Arrival, Reissue, Unlock, Splash | `К2`, `К7а` | f0 | e2e of both brands + textwalk; ratchet down |
 | `К5` | Me, Composer, Inbox, Chat, ChatActions, AgeFilter, Blocked, Hidden | `К2`, `К7а` | d8 | same |
 | `К6` | Table, NewTable, TableBoards, ChatGame, Legal, Offer, Card, Feed, Match, adv/* | `К4` | f0 | same; `П1`, `П7` |
+| `К6б` | Bottom navigation with four items: "tables" is a list of tables nearby (owner's decision 10.10, `kit_RU.md` §8.4) | `К6` | f0 | e2e table-feed, table-deck for both brands + textwalk |
 | `К7б` | CSS: duplicates and fights (`.actions`, `.row`, `.tabbed .screen`, focus 2 px), screen rules overriding the kit | `К4`–`К6` | d8 | gates + textwalk |
 | `К8` | Terminal: `depth/ink/kit.ts`, screens only on it, `DEPTH_PLAIN=1` | `К1` | d8 | run-depth-tests + terminal text walkthrough |
 | `К9` | Landing pages: `:root` from the themes, kit CSS as a file | `К7а`, decision §8.3 | f0 | gates compare values |

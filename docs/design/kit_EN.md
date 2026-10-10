@@ -144,7 +144,7 @@ The **Now** column («сейчас») — where the element lives in code, or th
 | Header | exists: `HeaderScreen`, `HeaderFeed` | `h1` | `header` | — | — | «назад» (back) — IconButton 44 | title in words |
 | Step (`К4`) | `ui-step` "1/2", `Register.tsx:110,131` | «шаг 1 из 2» (step 1 of 2) | `aria-label` | — | — | — | number visible |
 | Tabs (`К5`) | `Inbox.tsx:141-151`, `.tab.on` `styles.css:68` | word; a new count goes in the name («разговоры, новых: 3» (conversations, new: 3)) | `tablist`/`tab`/`tabpanel` | arrows | selected | 44 | selected: bold and underline |
-| TabBar (`К2б`) | `App.tsx:251-261` | word under the icon | `nav aria-label`, `aria-current=page` | Tab | — | 44 | label under the icon and medallion |
+| TabBar (`К2б`; four items — feed, tables, conversations, me, §8.4, `К6б`) | `App.tsx:251-261` (three now) | word under the icon | `nav aria-label`, `aria-current=page` | Tab | — | 44 | label under the icon and medallion |
 | Nav (`К6`) | `Cabinet.tsx:59-66` | word | `nav aria-label`, `aria-current` | Tab | — | 44 | underline |
 | Dot (`К2б`) | `ui-dot`, `Inbox.tsx:146,187` | — | `aria-hidden` | — | — | — | the word «новое» (new) in the row or tab name is required |
 | Card (exists) | `ui/Card.tsx:8,11`: now `kind` = `plain`, `nested`, `own`. `К2б` adds entity parameter `of` = `phrase`, `table` (now `kind="nested"`, `Feed.tsx:134`), `offer` (now `<span className="offer">`, `Feed.tsx:145`), `match`, `venue` (`adv/Cabinet.tsx:265-290`), `preview` (`adv/Cabinet.tsx:435`); `own` and `fading` are states | CardOpen: only the phrase text; caption — `aria-describedby` | `article`/`li` + `button` over it | Enter | its own place | whole card | mode in words, language by name, ♥ and a count; `own` — Chip «на проверке» (under review) (`Н6`); `fading` — expiry in words (`Н2`) |
@@ -226,10 +226,14 @@ The same as in the plan (`docs/plan-goal-2026-10-10_RU.md`, wave `К` table):
 - A button is a verb. In English it is capitalized («Continue»); in Russian, lowercase.
 - `<html lang>` equals the interface language and changes with it.
 
-## 8. Owner decides
+## 8. Decided by the owner (10.10.2026)
 
-1. The service line on the feed «ключи: печать хранилища сходится» (keys: storage seal matches) — remove, or keep as a word.
-2. The primary-button shadow of neighbro: `stickers.css:65` sets a shadow, `:80` removes it. Until decided — no shadow.
-3. Landing pages vs. theme: the sosed landing's `--border: #725a3f` and green `--ok` vs. the theme values. Which one is the truth.
-4. The design-system dictionary has a 4-item bottom navigation (`design-system-app_RU.md:420`); the code has 3 (`App.tsx:256-261`).
-5. Undo of neighbro's heart for 5 s — decision of 02.10, recorded in `design-system-app_RU.md:500`, not in the code: `web/src` has neither `useDeferredLike` nor `UNDO_MS`. Build it (step `К6`) or remove the line from the document.
+1. The service line on the feed («ключи: печать хранилища сходится» (keys: the vault seal matches), «отперто ПИНом, обёртка та же») — **remove**.
+   The vault check stays in code; on a mismatch, an ErrorLine in human words. The `data-sealed` attribute stays. Step `К6`.
+2. neighbro primary button shadow — none (`stickers.css:80`); the dead rule `:65` was removed in `К7а`. Not asked; settled by the cascade.
+3. Landings vs the theme — **the web theme is the truth**: the landings' `:root` is generated from `web/themes/*.json`, their own hex
+   values go, there is no green `--ok` (success by word and ✓). Step `К9`.
+4. Bottom navigation — **four items: feed, tables, conversations, me**. The "tables" item is a list of tables nearby; step `К6б`.
+   The kit's TabBar (§3.3) has four items.
+5. neighbro heart undo for 5 s — **build** in `К6`: the heart goes to the node after 5 s, UndoRow `role=status`
+   "like goes in 5 s · undo", the timer stops while focus is in the row (WCAG 2.2.1).

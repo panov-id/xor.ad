@@ -1,5 +1,5 @@
-import { useId, type ReactNode } from "react";
-import { say } from "../locales/say.ts";
+import { useId } from "react";
+import { ErrorLine } from "./ErrorLine.tsx";
 
 // What every input of the kit shares (docs/design/kit_RU.md §2): a hint and a
 // counter hang on aria-describedby; an error is aria-invalid + aria-errormessage
@@ -14,10 +14,6 @@ export type ControlState = {
   reason?: string;
   busy?: boolean;
 };
-
-export function ErrorText({ id, children }: { id: string; children: ReactNode }) {
-  return <p id={id} role="alert" className="ui-error">{say("web.ui.error")} {children}</p>;
-}
 
 export function useControl({ hint, error, disabled, reason, busy }: ControlState, describedBy?: string) {
   const uid = useId();
@@ -37,7 +33,7 @@ export function useControl({ hint, error, disabled, reason, busy }: ControlState
     <>
       {hint ? <p id={ids.hint} className="ui-hint">{hint}</p> : null}
       {disabled && reason ? <p id={ids.reason} className="ui-reason">{reason}</p> : null}
-      {error ? <ErrorText id={ids.error}>{error}</ErrorText> : null}
+      {error ? <ErrorLine id={ids.error}>{error}</ErrorLine> : null}
     </>
   );
   return { ids, attrs, readOnly, notes };

@@ -359,5 +359,15 @@
   "web.ui.remaining": "боқӣ мондааст: {n}",
   "web.ui.rangeFrom": "аз {n}",
   "web.ui.rangeTo": "то {n}",
-  "web.ui.rangeOrder": "«аз» аз «то» калон аст"
+  "web.ui.rangeOrder": "«аз» аз «то» калон аст",
+  "web.ui.notice": "диққат:",
+  "web.ui.new": "нав",
+  "web.ui.skip": "ба мундариҷа гузаштан",
+  "web.ui.statusConnecting": "пайваст мешавем",
+  "web.ui.statusOffline": "шабака нест",
+  "web.ui.statusFailed": "ба мо муяссар нашуд",
+  "web.ui.code": "рамз",
+  "web.ui.copy": "нусха бардоштан",
+  "web.ui.copied": "нусха шуд",
+  "web.ui.navMain": "навигатсияи асосӣ"
 }

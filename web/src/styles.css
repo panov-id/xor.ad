@@ -213,3 +213,49 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-composer.ui-message:focus-within { outline: 3px solid var(--focus); outline-offset: 3px; }
 .ui-message input[aria-disabled="true"] { color: var(--bg); opacity: 0.6; }
 .ui-kit-sent { margin: 0; }
+
+/* Step К2б, the display elements (kit_RU.md §3.1, §3.3). Sizes on tokens and rem. */
+.ui-skip { position: absolute; inset-inline-start: var(--s-2); inset-block-start: var(--s-2); z-index: 30; padding: var(--s-2) var(--s-3); background: var(--bg); color: var(--accent-text); border: 1px solid var(--border-control); border-radius: var(--r-1); transform: translateY(-300%); }
+.ui-skip:focus-visible { transform: none; }
+.ui-content-anchor { position: absolute; inline-size: 0; block-size: 0; overflow: hidden; }
+.tabbar .tab { justify-content: center; min-height: var(--control-h); }
+.ui-notice { margin: 0; color: var(--accent-text); font-size: 0.875rem; }
+.ui-empty { display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-2); padding-block: var(--s-6); }
+.ui-empty-title { margin: 0; font-size: 1.25rem; font-weight: 600; }
+.ui-empty-line { margin: 0; color: var(--muted); }
+.ui-status { min-height: 1.5rem; }
+.ui-status-line { margin: 0; font-size: 0.875rem; }
+.ui-status[data-state="failed"] .ui-status-line { color: var(--err); font-weight: 600; }
+.ui-status[data-state="offline"] .ui-status-line { color: var(--muted); }
+.ui-list, .ui-sheet-actions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.ui-list-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: var(--control-h); border-bottom: 1px solid var(--border); }
+.ui-list-text { overflow-wrap: anywhere; }
+.ui-setting { display: flex; align-items: center; gap: var(--s-3); inline-size: 100%; min-height: var(--control-h); padding: var(--s-2) var(--s-3); border-radius: var(--r-1); border-color: var(--border); text-align: start; }
+.ui-setting-value { margin-inline-start: auto; color: var(--muted); overflow-wrap: anywhere; }
+.ui-setting-label + .ui-setting-chevron { margin-inline-start: auto; }
+.ui-setting-chevron { flex: none; }
+.ui-setting-danger { color: var(--err); border-color: var(--err); }
+.ui-kit-dot { position: relative; min-block-size: var(--s-6); }
+.ui-code { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.ui-code-name { color: var(--muted); font-size: 0.875rem; }
+.ui-code-value { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.08em; overflow-wrap: anywhere; }
+.ui-code-done { font-size: 0.875rem; }
+.ui-illustration { display: block; color: var(--fg); }
+.ui-scrim { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; background: color-mix(in srgb, var(--bg) 70%, transparent); }
+.ui-sheet { inline-size: 100%; max-inline-size: 375px; max-block-size: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-4); background: var(--panel); border: 1px solid var(--border-control); border-radius: var(--r-2) var(--r-2) 0 0; }
+.ui-sheet-title { margin: 0; font-size: 1.25rem; font-weight: 600; }
+.ui-sheet-actions { gap: var(--s-2); }
+.ui-sheet-actions .ui-button { inline-size: 100%; }
+.ui-confirm { border-color: var(--err); }
+.ui-confirm-list { margin: 0; padding-inline-start: var(--s-4); display: flex; flex-direction: column; gap: var(--s-1); }
+.ui-toast-slot { position: fixed; inset-inline: 0; inset-block-end: 5rem; z-index: 15; display: flex; justify-content: center; padding-inline: var(--s-4); pointer-events: none; }
+.ui-toast { pointer-events: auto; display: flex; align-items: center; gap: var(--s-3); max-inline-size: 375px; padding: var(--s-2) var(--s-3); background: var(--panel); border: 1px solid var(--border-control); border-radius: var(--r-2); }
+.ui-toast-text { overflow-wrap: anywhere; }
+/* The entity of a card (Card `of`): the rim is the second channel, the words inside are the first. */
+.ui-card-of-table { background: var(--panel-2); }
+.ui-card-of-offer { border-color: var(--accent); }
+.ui-card-of-match { box-shadow: inset 0 0 0 1px var(--accent-text); }
+.ui-card-of-venue { border-color: var(--border-control); }
+.ui-card-of-preview { border: 1px dashed var(--border-control); }
+.ui-card-fading { border: 1px dotted var(--muted); }
+@media (prefers-reduced-motion: no-preference) { .ui-skip { transition: transform var(--dur-1, 160ms); } }

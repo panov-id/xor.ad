@@ -98,8 +98,10 @@ SAME_AS_RU = {
         "web.table.con_won",  # кон мой
         "web.table.right",  # {bone} справа
         "web.card.phrase",  # фраза
+        "web.ui.code",  # код
     },
     "kk": {
+        "web.ui.code",  # код
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.radius",  # радиус, м
         "web.chat.line",  # реплика
@@ -112,6 +114,7 @@ SAME_AS_RU = {
         "web.transfer.browser",  # браузер
     },
     "ky": {
+        "web.ui.code",  # код
         "web.cabinet.email",  # почта
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.field.text",  # текст
@@ -162,6 +165,7 @@ SAME_AS_RU = {
         "web.theme.item",  # тема
         "web.theme.title",  # Тема
         "web.card.phrase",  # фраза
+        "web.ui.code",  # код
     },
 }
 dicts = {lang: json.loads((locales / f"{lang}.json").read_text())
@@ -205,6 +209,7 @@ SAME_AS_EN = {
         "web.feed.m",  # {n} m
     },
     "fr": {
+        "web.ui.code",  # code
         "web.card.phrase",  # phrase
         "web.composer.mode",  # mode
         "web.composer.phrase",  # phrase

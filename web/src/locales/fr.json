@@ -359,5 +359,15 @@
   "web.ui.remaining": "reste : {n}",
   "web.ui.rangeFrom": "à partir de {n}",
   "web.ui.rangeTo": "jusqu’à {n}",
-  "web.ui.rangeOrder": "« de » dépasse « à »"
+  "web.ui.rangeOrder": "« de » dépasse « à »",
+  "web.ui.notice": "attention :",
+  "web.ui.new": "nouveau",
+  "web.ui.skip": "aller au contenu",
+  "web.ui.statusConnecting": "connexion en cours",
+  "web.ui.statusOffline": "pas de réseau",
+  "web.ui.statusFailed": "nous n’avons pas réussi",
+  "web.ui.code": "code",
+  "web.ui.copy": "copier",
+  "web.ui.copied": "copié",
+  "web.ui.navMain": "navigation principale"
 }

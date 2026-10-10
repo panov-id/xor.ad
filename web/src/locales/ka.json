@@ -359,5 +359,15 @@
   "web.ui.remaining": "დარჩა: {n}",
   "web.ui.rangeFrom": "{n}-დან",
   "web.ui.rangeTo": "{n}-მდე",
-  "web.ui.rangeOrder": "„დან“ მეტია „მდე“-ზე"
+  "web.ui.rangeOrder": "„დან“ მეტია „მდე“-ზე",
+  "web.ui.notice": "ყურადღება:",
+  "web.ui.new": "ახალი",
+  "web.ui.skip": "შინაარსზე გადასვლა",
+  "web.ui.statusConnecting": "ვუკავშირდებით",
+  "web.ui.statusOffline": "ქსელი არ არის",
+  "web.ui.statusFailed": "ჩვენ ვერ შევძელით",
+  "web.ui.code": "კოდი",
+  "web.ui.copy": "კოპირება",
+  "web.ui.copied": "დაკოპირდა",
+  "web.ui.navMain": "მთავარი ნავიგაცია"
 }

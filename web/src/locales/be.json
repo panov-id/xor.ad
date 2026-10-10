@@ -359,5 +359,15 @@
   "web.ui.remaining": "засталося: {n}",
   "web.ui.rangeFrom": "ад {n}",
   "web.ui.rangeTo": "да {n}",
-  "web.ui.rangeOrder": "«ад» большае за «да»"
+  "web.ui.rangeOrder": "«ад» большае за «да»",
+  "web.ui.notice": "увага:",
+  "web.ui.new": "новае",
+  "web.ui.skip": "перайсці да зместу",
+  "web.ui.statusConnecting": "злучаемся",
+  "web.ui.statusOffline": "няма сеткі",
+  "web.ui.statusFailed": "у нас не атрымалася",
+  "web.ui.code": "код",
+  "web.ui.copy": "скапіяваць",
+  "web.ui.copied": "скапіявана",
+  "web.ui.navMain": "асноўная навігацыя"
 }

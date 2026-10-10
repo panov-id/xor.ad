@@ -359,5 +359,15 @@
   "web.ui.remaining": "qoldi: {n}",
   "web.ui.rangeFrom": "{n} dan",
   "web.ui.rangeTo": "{n} gacha",
-  "web.ui.rangeOrder": "“dan” “gacha”dan katta"
+  "web.ui.rangeOrder": "“dan” “gacha”dan katta",
+  "web.ui.notice": "diqqat:",
+  "web.ui.new": "yangi",
+  "web.ui.skip": "mazmunga o‘tish",
+  "web.ui.statusConnecting": "ulanmoqdamiz",
+  "web.ui.statusOffline": "tarmoq yo‘q",
+  "web.ui.statusFailed": "bizda chiqmadi",
+  "web.ui.code": "kod",
+  "web.ui.copy": "nusxa olish",
+  "web.ui.copied": "nusxa olindi",
+  "web.ui.navMain": "asosiy navigatsiya"
 }

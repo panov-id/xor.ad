@@ -414,8 +414,283 @@ test("MessageInput: a labelled textbox and a named send, Enter sends, focus stay
   await expect(section(page, "kit-message-busy").getByRole("textbox", { name: "реплика" })).toHaveAttribute("aria-busy", "true");
 });
 
+// ---- Step К2б: the display elements (kit_RU.md §3.1 ActionSheet/Confirm, §3.3) ----
+
+const FIRST_FOCUSABLE = 'body :is(a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"]))';
+const activeInside = (dialog: Locator) => dialog.evaluate((el) => el.contains(document.activeElement));
+
+test("Screen: main with data-screen, the h1 takes the focus, «к содержимому» is first and lands after the header, the title names screen and brand", async ({ page }) => {
+  await page.goto("/kit");
+  const main = page.locator("main[data-screen='kit']");
+  await expect(main, "one main landmark").toHaveCount(1);
+  const h1 = main.locator("h1");
+  await expect(h1, "the screen's h1 has the focus on arrival").toBeFocused();
+  await expect(h1).toHaveAttribute("tabindex", "-1");
+  await expect(page, "document.title is «экран · бренд»").toHaveTitle(/^Лента · (sosed|neighbro)$/);
+  const skip = page.locator(FIRST_FOCUSABLE).first();
+  await expect(skip, "the first thing Tab can find is the skip link").toHaveText("к содержимому");
+  await skip.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#ui-content"), "the skip link lands after the header").toBeFocused();
+  await page.keyboard.press("Tab");
+  expect(await page.evaluate(() => document.activeElement?.closest("header") === null), "Tab goes on past the header").toBe(true);
+});
+
+test("TabBar: a named nav, the word under the icon is the name, aria-current on the open tab, 44 tall", async ({ page }) => {
+  await page.goto("/kit");
+  const nav = page.getByRole("navigation", { name: "основная навигация" });
+  await expect(nav).toHaveCount(1);
+  const tabs = nav.getByRole("button");
+  await expect(tabs).toHaveCount(3);
+  await expect(tabs.nth(0)).toHaveAccessibleName("лента");
+  await expect(tabs.nth(1)).toHaveAccessibleName("разговоры");
+  await expect(tabs.nth(0), "the open tab").toHaveAttribute("aria-current", "page");
+  await expect(nav.locator("[aria-current]"), "only one tab is current").toHaveCount(1);
+  await expect(tabs.nth(1).locator("span"), "the word is drawn under the icon").toBeVisible();
+  for (const tab of await tabs.all()) await expectTarget(tab, "TabBar tab");
+  await tabs.nth(1).focus();
+  await page.keyboard.press("Enter");
+  await expect(tabs.nth(1), "Enter moves the current mark").toHaveAttribute("aria-current", "page");
+  await expect(tabs.nth(0)).not.toHaveAttribute("aria-current", "page");
+});
+
+test("Dot: hidden from the tree, and the row that wears it says «новое» in its name", async ({ page }) => {
+  await page.goto("/kit");
+  const section_ = section(page, "kit-dot");
+  await expect(section_.locator(".ui-dot")).toHaveCount(2);
+  for (const dot of await section_.locator(".ui-dot").all()) await expect(dot).toHaveAttribute("aria-hidden", "true");
+  await expect(section_.getByRole("button", { name: /собеседник.*новое/ }), "the dotted row is named «новое»").toHaveCount(1);
+  await expect(section_.getByRole("button", { name: /^собеседник(?!.*новое)/ }), "the other row is not").toHaveCount(1);
+});
+
+test("SettingRow: a button named by label and value, Enter follows, danger is a verb in --err, 44 tall", async ({ page }) => {
+  await page.goto("/kit");
+  const rows = section(page, "kit-setting");
+  const plain = rows.getByTestId("kit-setting-plain");
+  await expect(plain).toHaveRole("button");
+  await expect(plain, "the name has both the label and the value").toHaveAccessibleName(/тема.*авто/);
+  await expectTarget(plain, "SettingRow");
+  await plain.focus();
+  await page.keyboard.press("Enter");
+  await expect(section(page, "kit-sheet-picked"), "Enter follows").toHaveText("setting");
+  const danger = rows.getByTestId("kit-setting-danger");
+  await expect(danger, "danger is named by a verb").toHaveAccessibleName("Сдаться");
+  await expect(danger).toHaveClass(/ui-setting-danger/);
+  expect(await danger.evaluate((el) => getComputedStyle(el).borderTopColor), "danger has the --err rim, not the plain one")
+    .not.toBe(await plain.evaluate((el) => getComputedStyle(el).borderTopColor));
+  await expectTarget(danger, "SettingRow danger");
+  await expect(danger.locator("svg"), "the chevron never speaks").toHaveAttribute("aria-hidden", "true");
+});
+
+test("List: a named list, rows of 44, «вернуть» is a word action of 44", async ({ page }) => {
+  await page.goto("/kit");
+  const list = section(page, "kit-list").getByRole("list", { name: "Предлагают поговорить" });
+  await expect(list.getByRole("listitem")).toHaveCount(2);
+  for (const row of await list.getByRole("listitem").all()) await expectTarget(row, "List row");
+  const undo = list.getByRole("button", { name: "вернуть" });
+  await expect(undo).toHaveCount(1);
+  await expectTarget(undo, "List action");
+  await undo.focus();
+  await page.keyboard.press("Enter");
+  await expect(section(page, "kit-list-undone")).toHaveText("1");
+});
+
+test("EmptyState and Notice: an h2 and a line that never take the focus, a note that starts with «внимание:»", async ({ page }) => {
+  await page.goto("/kit");
+  const empty = section(page, "kit-empty");
+  await expect(empty.getByRole("heading", { level: 2, name: "Здесь пока тихо" })).toHaveCount(1);
+  await expect(empty).toContainText("В вашем круге сейчас никто не говорит.");
+  await expectTarget(empty.getByRole("button", { name: "новый стол" }), "EmptyState action");
+  expect(await empty.evaluate((el) => el.contains(document.activeElement)), "EmptyState does not take the focus").toBe(false);
+  const note = section(page, "kit-notice").getByRole("note");
+  await expect(note).toHaveCount(1);
+  await expect(note, "the first word is the channel").toHaveText(/^внимание: /);
+});
+
+test("ErrorLine: «ошибка:» first, role alert; after a failed send the first invalid field has the focus", async ({ page }) => {
+  await page.goto("/kit");
+  const block = section(page, "kit-errorline");
+  const line = block.getByRole("alert").first();
+  await expect(line).toHaveText(/^ошибка: /);
+  const form = block.getByTestId("kit-errorform");
+  await form.getByRole("button", { name: "отправить" }).click();
+  await expect(form.locator('[aria-invalid="true"]'), "the invalid field takes the focus").toBeFocused();
+});
+
+test("Status header: four outcomes in words, a failure is one alert, the rest are status", async ({ page }) => {
+  await page.goto("/kit");
+  const words = { on: "на связи", connecting: "соединяемся", offline: "нет сети", failed: "у нас не получилось" };
+  for (const [state, word] of Object.entries(words)) {
+    const header = section(page, `kit-status-${state}`);
+    await expect(header, `${state}: the word`).toContainText(word);
+    await expect(header.getByRole(state === "failed" ? "alert" : "status"), `${state}: the role`).toHaveCount(1);
+    if (state !== "failed") await expect(header.getByRole("alert"), `${state}: no alert`).toHaveCount(0);
+  }
+  const live = section(page, "kit-status-live");
+  const next = section(page, "kit-status-next");
+  await expect(live.getByRole("status")).toHaveText(/на связи/);
+  await next.click();
+  await expect(live.getByRole("status")).toHaveText(/соединяемся/);
+  await next.click();
+  await expect(live.getByRole("status")).toHaveText(/нет сети/);
+  await next.click();
+  await expect(live.getByRole("alert"), "a failure is announced once, by one alert").toHaveCount(1);
+  await expect(live.getByRole("alert")).toHaveText(/у нас не получилось/);
+  await next.click();
+  await expect(live.getByRole("alert"), "the alert leaves with the failure").toHaveCount(0);
+});
+
+test("Toast: a status that never takes the focus, Esc and «закрыть» close it, it stays while the focus is on it", async ({ page }) => {
+  await page.goto("/kit");
+  const open = section(page, "kit-toast-open");
+  const slot = section(page, "kit-toast-slot");
+  await expect(slot, "the status is in the page before it has a word").toHaveAttribute("role", "status");
+  await expect(slot).toBeEmpty();
+  await open.click();
+  await expect(slot).toContainText("Жалоба отправлена.");
+  await expect(open, "the toast does not steal the focus").toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(slot, "Esc closes").toBeEmpty();
+  await open.click();
+  const close = slot.getByRole("button", { name: "закрыть" });
+  await expectTarget(close, "Toast close");
+  await close.click();
+  await expect(slot, "«закрыть» closes").toBeEmpty();
+
+  const auto = section(page, "kit-toast-auto-slot");
+  await section(page, "kit-toast-auto-open").click();
+  await auto.getByRole("button", { name: "закрыть" }).focus();
+  await page.waitForTimeout(2600);
+  await expect(auto, "it stays while the focus is on it (1.5 s timer, 2.6 s waited)").toContainText("Жалоба отправлена.");
+  await section(page, "kit-toast-auto-open").focus();
+  await expect(auto, "and leaves by itself once the focus is gone").toBeEmpty({ timeout: 4000 });
+});
+
+test("Code: «код» and its value in monospace, «скопировать» is 44, «скопировано» only when the clipboard took it", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => undefined);
+  await page.goto("/kit");
+  const code = section(page, "kit-copy-value");
+  await expect(code).toHaveAccessibleName("код");
+  await expect(code.locator("code")).toHaveText("KUBO-7741");
+  expect(await code.locator("code").evaluate((el) => getComputedStyle(el).fontFamily), "monospace is the channel").toMatch(/mono/i);
+  const copy = code.getByRole("button", { name: "скопировать" });
+  await expectTarget(copy, "Code copy");
+  const secure = await page.evaluate(() => window.isSecureContext);
+  await copy.click();
+  if (secure) {
+    await expect(code.getByRole("status"), "copied is said once the clipboard took it").toHaveText("скопировано");
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("KUBO-7741");
+  } else {
+    await page.waitForTimeout(300);
+    await expect(code.getByRole("status"), "no clipboard on this origin: nothing false is said").toHaveText("");
+    expect(await page.evaluate(() => window.getSelection()?.toString()), "the code is selected for a hand copy").toBe("KUBO-7741");
+  }
+});
+
+test("Illustration: decoration is hidden, a scheme is an img named by its title", async ({ page }) => {
+  await page.goto("/kit");
+  const block = section(page, "kit-illustration");
+  await expect(block.getByTestId("kit-illustration-decor")).toHaveAttribute("aria-hidden", "true");
+  await expect(block.getByTestId("kit-illustration-decor")).not.toHaveAttribute("role", /./);
+  await expect(block.getByRole("img", { name: /схема/ }), "the scheme has a name").toHaveCount(1);
+});
+
+test("Card of: every entity is marked, own and fading are states with their own rim", async ({ page }) => {
+  await page.goto("/kit");
+  const cards = section(page, "kit-card-of").locator("li");
+  await expect(cards).toHaveCount(7);
+  const marks = await cards.evaluateAll((els) => els.map((el) => el.getAttribute("data-of")));
+  expect(marks.slice(0, 6)).toEqual(["phrase", "table", "offer", "match", "venue", "preview"]);
+  const rim = (name: string) => cards.filter({ has: page.locator(`xpath=self::*[@data-of="${name}"]`) }).first().evaluate((el) => getComputedStyle(el).borderTopStyle);
+  expect(await rim("preview"), "preview: dashed").toBe("dashed");
+  const fading = section(page, "kit-card-fading");
+  await expect(fading).toHaveAttribute("data-fading", "true");
+  await expect(fading).toHaveClass(/ui-card-own/);
+  expect(await fading.evaluate((el) => getComputedStyle(el).borderTopStyle), "fading: dotted").toBe("dotted");
+});
+
+test("ActionSheet: dialog named by its h2, focus on the h2, Tab shut inside, the loud one last, Esc closes and gives the focus back", async ({ page }) => {
+  await page.goto("/kit");
+  const open = section(page, "kit-sheet-open");
+  await open.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "подробности" });
+  await expect(dialog).toHaveAttribute("aria-modal", "true");
+  await expect(dialog.getByRole("heading", { level: 2 }), "the focus is on the h2, not on a button").toBeFocused();
+  const names = ["закрыть", "пожаловаться", "да, заблокировать"];
+  const buttons = dialog.getByRole("button");
+  await expect(buttons, "the loud one (danger) is last and in words").toHaveText(names);
+  for (const b of await buttons.all()) await expectTarget(b, "ActionSheet row");
+  for (let i = 0; i < 7; i++) {
+    await page.keyboard.press("Tab");
+    expect(await activeInside(dialog), `Tab ${i + 1} stays inside`).toBe(true);
+  }
+  await dialog.getByRole("heading", { level: 2 }).focus();
+  await page.keyboard.press("Shift+Tab");
+  await expect(buttons.last(), "Shift+Tab from the title wraps to the last").toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog, "Esc closes").toHaveCount(0);
+  await expect(open, "the focus is back on what opened it").toBeFocused();
+  await page.keyboard.press("Enter");
+  await dialog.getByRole("button", { name: "да, заблокировать" }).click();
+  await expect(dialog, "a chosen action closes the sheet").toHaveCount(0);
+  await expect(section(page, "kit-sheet-picked")).toHaveText("block");
+  await expect(open).toBeFocused();
+});
+
+test("Confirm: alertdialog, focus on the h2 and no default button, the consequences are described, Esc and cancel close, confirm acts once", async ({ page }) => {
+  await page.goto("/kit");
+  const open = section(page, "kit-confirm-open");
+  await open.click();
+  const dialog = page.getByRole("alertdialog", { name: "Сдаться" });
+  await expect(dialog).toHaveCount(1);
+  await expect(dialog.getByRole("heading", { level: 2 }), "the focus is on the h2").toBeFocused();
+  expect(await page.evaluate(() => document.activeElement?.tagName), "no button is the default").toBe("H2");
+  await page.keyboard.press("Enter");
+  await expect(section(page, "kit-confirm-count"), "Enter on the title confirms nothing").toHaveText("0");
+  await expect(dialog, "the consequences are its description").toHaveAccessibleDescription(/Беседа закончится у обоих.*свободно мест: 2/);
+  const buttons = dialog.getByRole("button");
+  await expect(buttons, "quiet first, the loud one last").toHaveText(["отмена", "Сдаться"]);
+  for (const b of await buttons.all()) await expectTarget(b, "Confirm button");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+  await expect(buttons.first(), "Tab wraps inside").toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(open, "the focus goes back to the button that opened it").toBeFocused();
+  await open.click();
+  await dialog.getByRole("button", { name: "отмена" }).click();
+  await expect(section(page, "kit-confirm-count")).toHaveText("0");
+  await open.click();
+  await dialog.getByRole("button", { name: "Сдаться" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(section(page, "kit-confirm-count")).toHaveText("1");
+  await expect(open).toBeFocused();
+});
+
 // The page is built for one brand at a time (VITE_BRAND; BRAND here), so the
 // two brands are two runs of scripts/run-web-tests.sh.
+test("axe on /kit with the Confirm open, reduced motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/kit");
+  await section(page, "kit-confirm-open").click();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  const lines = results.violations.map((v) => `${v.impact} ${v.id}: ${v.help} — ${v.nodes.map((n) => n.target.join(" ")).join("; ")}`);
+  expect(lines, `axe on /kit with Confirm open, brand ${process.env.BRAND ?? "?"}`).toEqual([]);
+});
+
+test("axe on /kit with the ActionSheet open, reduced motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/kit");
+  await section(page, "kit-sheet-open").click();
+  await expect(page.getByRole("dialog", { name: "подробности" })).toBeVisible();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  const lines = results.violations.map((v) => `${v.impact} ${v.id}: ${v.help} — ${v.nodes.map((n) => n.target.join(" ")).join("; ")}`);
+  expect(lines, `axe on /kit with ActionSheet open, brand ${process.env.BRAND ?? "?"}`).toEqual([]);
+});
+
 test("axe on /kit, reduced motion: no violation of wcag2a, wcag2aa, wcag21aa, wcag22aa", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/kit");

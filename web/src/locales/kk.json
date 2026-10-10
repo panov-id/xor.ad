@@ -359,5 +359,15 @@
   "web.ui.remaining": "қалды: {n}",
   "web.ui.rangeFrom": "{n}-ден",
   "web.ui.rangeTo": "{n}-ге дейін",
-  "web.ui.rangeOrder": "«бастап» мәні «дейін» мәнінен үлкен"
+  "web.ui.rangeOrder": "«бастап» мәні «дейін» мәнінен үлкен",
+  "web.ui.notice": "назар аударыңыз:",
+  "web.ui.new": "жаңа",
+  "web.ui.skip": "мазмұнға өту",
+  "web.ui.statusConnecting": "қосылудамыз",
+  "web.ui.statusOffline": "желі жоқ",
+  "web.ui.statusFailed": "бізде болмады",
+  "web.ui.code": "код",
+  "web.ui.copy": "көшіру",
+  "web.ui.copied": "көшірілді",
+  "web.ui.navMain": "негізгі навигация"
 }

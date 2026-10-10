@@ -359,5 +359,15 @@
   "web.ui.remaining": "left: {n}",
   "web.ui.rangeFrom": "from {n}",
   "web.ui.rangeTo": "to {n}",
-  "web.ui.rangeOrder": "“from” is greater than “to”"
+  "web.ui.rangeOrder": "“from” is greater than “to”",
+  "web.ui.notice": "attention:",
+  "web.ui.new": "new",
+  "web.ui.skip": "skip to content",
+  "web.ui.statusConnecting": "connecting",
+  "web.ui.statusOffline": "no network",
+  "web.ui.statusFailed": "we couldn’t do it",
+  "web.ui.code": "code",
+  "web.ui.copy": "copy",
+  "web.ui.copied": "copied",
+  "web.ui.navMain": "main navigation"
 }

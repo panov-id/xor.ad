@@ -6,10 +6,19 @@ import { useEffect, useRef, useState, type HTMLAttributes } from "react";
 // hint; "own" is my phrase before the verdict (Н6): dashed rim.
 export type CardKind = "plain" | "nested" | "own";
 
-type Props = HTMLAttributes<HTMLElement> & { kind?: CardKind; as?: "article" | "li" | "section" };
+// `of` is the entity the card shows (kit_RU.md §3.3): a phrase, a table, an
+// offer, a match, a venue, a preview of a venue's offer. It marks the card
+// (data-of, ui-card-of-*) and nothing in the name: the entity is told by the
+// words inside the card (the mode, the chip), the rim is only the second channel.
+// `own` (my phrase before the verdict) and `fading` (its time is nearly up)
+// are states, not entities.
+export type CardOf = "phrase" | "table" | "offer" | "match" | "venue" | "preview";
 
-export function Card({ kind = "plain", as: Tag = "article", className, ...rest }: Props) {
-  return <Tag {...rest} className={["ui-card", kind !== "plain" ? `ui-card-${kind}` : "", className].filter(Boolean).join(" ")} />;
+type Props = HTMLAttributes<HTMLElement> & { kind?: CardKind; of?: CardOf; fading?: boolean; as?: "article" | "li" | "section" };
+
+export function Card({ kind = "plain", of, fading = false, as: Tag = "article", className, ...rest }: Props) {
+  const classes = ["ui-card", kind !== "plain" ? `ui-card-${kind}` : "", of ? `ui-card-of-${of}` : "", fading ? "ui-card-fading" : "", className];
+  return <Tag {...rest} data-of={of} data-fading={fading ? "true" : undefined} className={classes.filter(Boolean).join(" ")} />;
 }
 
 // The like as a gold medallion with ♥ and the count (owner 2026-10-01: no

@@ -359,5 +359,15 @@
   "web.ui.remaining": "калды: {n}",
   "web.ui.rangeFrom": "{n}-дан",
   "web.ui.rangeTo": "{n}-га чейин",
-  "web.ui.rangeOrder": "«баштап» мааниси «чейин» маанисинен чоң"
+  "web.ui.rangeOrder": "«баштап» мааниси «чейин» маанисинен чоң",
+  "web.ui.notice": "көңүл буруңуз:",
+  "web.ui.new": "жаңы",
+  "web.ui.skip": "мазмунга өтүү",
+  "web.ui.statusConnecting": "туташып жатабыз",
+  "web.ui.statusOffline": "тармак жок",
+  "web.ui.statusFailed": "бизде болбой калды",
+  "web.ui.code": "код",
+  "web.ui.copy": "көчүрүү",
+  "web.ui.copied": "көчүрүлдү",
+  "web.ui.navMain": "негизги навигация"
 }

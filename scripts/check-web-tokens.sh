@@ -15,11 +15,21 @@
 # web/themes/<brand>/*.json and validates those (schema, WCAG); its --check
 # keeps them in step with the JSON. Comments do not count. WEB_SRC points the gate elsewhere (its probe,
 # scripts/test_check-web-tokens.sh).
+#
+# Second rule (kit_RU.md §1.2–1.3, step К7а): a px literal in web/src/brands/**
+# or web/src/screens/*.css is red, with file:line — sizes come from the tokens
+# in web/src/tokens.css (--s-*, --r-*, --fs-*, --card-*, --btn-*, --field-*…).
+# Zero is not reachable yet (one-off sizes with no token in §1.3), so it is a
+# ratchet: scripts/check-web-tokens.px-baseline holds the count per file (a file
+# not listed has 0). More than the baseline = red; fewer = red too, until the
+# baseline is lowered, so a gain cannot be spent again. PX_BASELINE points to
+# another baseline (the probe); PX_PRINT=1 prints the current counts in the
+# baseline format and exits.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 src="${WEB_SRC:-web/src}"
 python3 - "$src" <<'PY'
-import pathlib, re, sys
+import os, pathlib, re, sys
 src = pathlib.Path(sys.argv[1])
 NAMED = set("""aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown
 burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod
@@ -75,6 +85,47 @@ for path in files:
         if found:
             hits.append(f"{path}:{number}: {', '.join(dict.fromkeys(found))} — {line.strip()[:120]}")
 
+# --- px literals: brands/** and screens/*.css, outside tokens.css ---
+PX = re.compile(r"(?<![\w.])\d*\.?\d+px\b")
+def px_scope(path):
+    rel = path.relative_to(src)
+    if path.suffix != ".css" or path.name == "tokens.css" or path.name.endswith(".gen.css"):
+        return None
+    if rel.parts[0] == "brands" or (rel.parts[0] == "screens" and len(rel.parts) == 2):
+        return rel.as_posix()
+    return None
+px_hits = {}
+for path in sorted(src.rglob("*.css")):
+    rel = px_scope(path) if path.is_file() else None
+    if rel is None:
+        continue
+    text = strip_comments(path.read_text(encoding="utf-8"), True)
+    found = [(n, m.group(0), line.strip()[:100]) for n, line in enumerate(text.splitlines(), 1) for m in PX.finditer(line)]
+    px_hits[rel] = (path, found)
+
+if os.environ.get("PX_PRINT"):
+    for rel, (_, found) in sorted(px_hits.items()):
+        print(f"{rel} {len(found)}")
+    sys.exit(0)
+
+baseline = {}
+bpath = pathlib.Path(os.environ.get("PX_BASELINE", "scripts/check-web-tokens.px-baseline"))
+if bpath.is_file():
+    for raw in bpath.read_text(encoding="utf-8").splitlines():
+        raw = raw.split("#", 1)[0].strip()
+        if raw:
+            name, count = raw.rsplit(None, 1)
+            baseline[name] = int(count)
+px_red = []
+for rel in sorted(set(px_hits) | set(baseline)):
+    path, found = px_hits.get(rel, (src / rel, []))
+    have, allowed = len(found), baseline.get(rel, 0)
+    if have > allowed:
+        px_red.append(f"{path}: {have} px literals, baseline {allowed} — a size comes from a token (web/src/tokens.css), not a literal:")
+        px_red += [f"  {path}:{n}: {lit} — {txt}" for n, lit, txt in found]
+    elif have < allowed:
+        px_red.append(f"{path}: {have} px literals, baseline {allowed} — lower the baseline ({bpath}) to {have}")
+
 if not files:
     print(f"check-web-tokens: RED — no .css/.ts/.tsx under {src}: nothing was checked")
     sys.exit(1)
@@ -82,5 +133,10 @@ if hits:
     print("check-web-tokens: RED — colours outside the kit tokens:")
     print("\n".join(hits))
     sys.exit(1)
-print(f"check-web-tokens: GREEN — {len(files)} files under {src} name no colour of their own")
+if px_red:
+    print("check-web-tokens: RED — px literals outside tokens.css:")
+    print("\n".join(px_red))
+    sys.exit(1)
+print(f"check-web-tokens: GREEN — {len(files)} files under {src} name no colour of their own; "
+      f"{sum(len(f) for _, f in px_hits.values())} px literals in {len(px_hits)} brand/screen css files, none above the baseline")
 PY

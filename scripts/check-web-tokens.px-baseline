@@ -1,0 +1,11 @@
+# px literals per file, outside web/src/tokens.css (check-web-tokens.sh, kit_RU.md §1.2–1.3).
+# A ratchet: more is red; fewer is red until the number here is lowered. A file not listed has 0.
+# What is left has no token in the kit (one-off sizes, 1.5px hairlines, hero art); a new token
+# needs the owner's table first, not an invented name.
+# Before К7а: brands/neighbro/stickers.css 112, brands/sosed/blocks.css 122,
+# screens/feed.css 51, screens/place.css 45, screens/talk.css 35.
+brands/neighbro/stickers.css 57
+brands/sosed/blocks.css 68
+screens/feed.css 51
+screens/place.css 45
+screens/talk.css 35

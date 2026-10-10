@@ -10,7 +10,11 @@ import { phaseAt } from "./ui/phase.ts";
 // k-* scheme class any more, so no kit colour applies (step 8, 02.10.2026).
 // styles.css names the kit's colour words (--panel, --muted, ...) as theme
 // tokens for the shared screens.
+// The kit file stays for its faces (@font-face: Golos, JetBrains Mono, Oswald…,
+// which the web has no copy of); ./tokens.css comes after it and owns the
+// geometry, type, motion and the brand's shape (kit_RU.md §1.2–1.3).
 import "../../panel/design/kit/tokens.css";
+import "./tokens.css";
 import "./styles.css";
 import "./themes.gen.css";
 

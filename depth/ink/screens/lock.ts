@@ -6,10 +6,10 @@
 // left, entry closed until the paper code, or too soon.
 import { createElement as h, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Client, HeldLongKey } from "../../core/client.ts";
 import type { Say } from "../strings.ts";
 import { useKeys } from "../parts.ts";
+import { caret, ErrorLine, Stack, Txt } from "../kit.ts";
 import { pinMismatch } from "../screens.ts";
 
 export function Lock(
@@ -52,9 +52,9 @@ export function Lock(
     if (input && /^[0-9]+$/.test(input)) setPin((p) => (p + input).slice(0, 6));
   });
   return h(
-    Box,
-    { flexDirection: "column" },
-    h(Text, null, `${say("lock.prompt")} ${"•".repeat(pin.length)}${sending ? "…" : "_"}`),
-    refused ? h(Text, { color: "red" }, refused) : null,
+    Stack,
+    null,
+    h(Txt, null, `${say("lock.prompt")} ${"•".repeat(pin.length)}${sending ? "…" : caret()}`),
+    refused ? h(ErrorLine, { say }, refused) : null,
   );
 }

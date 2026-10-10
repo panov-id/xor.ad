@@ -1100,7 +1100,9 @@ test("a frozen name is refused in the approved words, and a free one is saved", 
   await type(app, BACK, BACK, BACK, ..."Анна".split(""), DOWN, ENTER);
   await settle();
   assert.deepEqual(sent, [{ name: "Анна" }]);
-  assert.match(app.lastFrame()!, /Имя меняется только на чистом счету: пока живёт ваша фраза или открыта беседа, оно заморожено\./);
+  // "ошибка:" in front makes the line longer than the screen is wide, so the
+  // node-test's 100 columns break it at a space; the words are what is asserted.
+  assert.match(app.lastFrame()!.replace(/\s+/g, " "), /Имя меняется только на чистом счету: пока живёт ваша фраза или открыта беседа, оно заморожено\./);
   await type(app, ENTER);
   await settle();
   // The window slides, so "tomorrow" was a promise the node did not keep: the hours
@@ -1413,7 +1415,8 @@ test("the echo of one's own request is not the agreement: the asking side waits 
 // which is the worst case, and wait for the outcome, not for time.
 import { readdirSync, readFileSync } from "node:fs";
 import { useState } from "react";
-import { Form, KEYS_AHEAD, Menu } from "./parts.ts";
+import { KEYS_AHEAD } from "./parts.ts";
+import { Actions, Form } from "./kit.ts";
 
 async function until(what: () => boolean, seconds = 20): Promise<boolean> {
   for (let i = 0; i < seconds * 20 && !what(); i++) await new Promise((done) => setTimeout(done, 50));
@@ -1423,9 +1426,9 @@ const burst = (app: { stdin: { write: (s: string) => void } }, ...keys: string[]
 
 // One row per component that listens to keys: the burst, and what it must end in.
 const CLASS: Array<[string, () => Promise<void>]> = [
-  ["Menu: → ⏎ picks the action the arrow moved to", async () => {
+  ["Actions: → ⏎ picks the action the arrow moved to", async () => {
     const picked: string[] = [];
-    const app = render(h(Menu, {
+    const app = render(h(Actions, {
       actions: [{ key: "a", label: "a" }, { key: "b", label: "b" }, { key: "exit", label: "выход" }],
       onPick: (k: string) => picked.push(k),
     }));
@@ -1482,7 +1485,7 @@ const CLASS: Array<[string, () => Promise<void>]> = [
     };
     // deno-lint-ignore no-explicit-any
     const app = render(h(Blocked, { say, lang: "ru", client: client as any, onBack: () => {}, onError: () => {} }));
-    await until(() => /›/.test(app.lastFrame() ?? ""));
+    await until(() => /^> (?!\[)/m.test(app.lastFrame() ?? ""));
     burst(app, DOWN, ENTER);
     assert.ok(await until(() => lifted.length === 1), "enter was lost");
     assert.deepEqual(lifted, ["b2"], "the block lifted is not the one under the cursor");
@@ -1535,8 +1538,8 @@ test("a key that comes while the screen changes goes to the new screen", async (
   function Two() {
     const [second, setSecond] = useState(false);
     return second
-      ? h(Menu, { actions: [{ key: "x", label: "x" }, { key: "y", label: "y" }], onPick: (k: string) => picked.push(`second:${k}`) })
-      : h(Menu, { actions: [{ key: "go", label: "go" }, { key: "exit", label: "выход" }], onPick: (k: string) => { picked.push(`first:${k}`); setSecond(true); } });
+      ? h(Actions, { actions: [{ key: "x", label: "x" }, { key: "y", label: "y" }], onPick: (k: string) => picked.push(`second:${k}`) })
+      : h(Actions, { actions: [{ key: "go", label: "go" }, { key: "exit", label: "выход" }], onPick: (k: string) => { picked.push(`first:${k}`); setSecond(true); } });
   }
   const app = render(h(Two));
   await settle();
@@ -1549,7 +1552,7 @@ test("a key that comes while the screen changes goes to the new screen", async (
 test(`keys ahead of the screen are cut at ${KEYS_AHEAD}, not queued without end`, async () => {
   const picked: string[] = [];
   const actions = Array.from({ length: 60 }, (_, i) => ({ key: String(i), label: String(i) }));
-  const app = render(h(Menu, { actions, onPick: (k: string) => picked.push(k) }));
+  const app = render(h(Actions, { actions, onPick: (k: string) => picked.push(k) }));
   await settle();
   // One goes at once, KEYS_AHEAD wait; the rest of the burst, enter included, is cut.
   burst(app, ...Array(KEYS_AHEAD + 8).fill(RIGHT), ENTER);
@@ -1694,7 +1697,7 @@ test("\"it does not match\" refuses, and a wrong PIN says how many attempts are 
     onNo: () => { calls.push({ method: "no", path: "" }); return new Promise(() => {}); },
   }));
   await settle();
-  assert.match(confirm.lastFrame()!, /42 с назад/);
+  assert.match(confirm.lastFrame()!, /42\s+с\s+назад/);
   assert.doesNotMatch(confirm.lastFrame()!, /\u001B\[31m/, "the other side's label repainted the screen");
   await type(confirm, RIGHT, ENTER, LEFT, ENTER);
   assert.deepEqual(calls.map((c) => c.method), ["no"], "\"it does not match\" did not refuse, or a second press went through");
@@ -1879,7 +1882,7 @@ test("the lock is one line, a wrong PIN says what is left, the right one opens i
   await settle();
   const frame = app.lastFrame()!;
   assert.equal(frame.trim().split("\n").length, 1, `the locked screen is more than one line:\n${frame}`);
-  assert.match(frame, /^ПИН › _$/m, "the locked screen is not `ПИН ›`");
+  assert.match(frame, /^ПИН › ▋$/m, "the locked screen is not `ПИН ›`");
   assert.doesNotMatch(frame, /Operator|беседа|новое/i, "the locked screen shows what it must hide");
   await type(app, ..."000000".split(""));
   assert.match(app.lastFrame()!, /••••••/, "typed digits are not shown as dots");
@@ -1904,7 +1907,7 @@ test("five idle minutes lock the app to one line, and the PIN brings the screen 
   await type(app, "А");
   await new Promise((r) => setTimeout(r, 120));
   assert.doesNotMatch(app.lastFrame()!, /ПИН ›/, "locked before the idle span was up");
-  await waitFor(shows(app, /^ПИН › _$/m), 3);
+  await waitFor(shows(app, /^ПИН › ▋$/m), 3);
   assert.equal(core.lockCalls, 1, "the core was not locked when the screen was");
   assert.doesNotMatch(app.lastFrame()!, /Operator\./, "the screen behind the lock is still drawn");
   await type(app, ..."123456".split(""), ENTER);
@@ -1964,7 +1967,7 @@ test("opened and left alone, the app locks after the idle span without any key p
   const app = render(h(App, { say, client: core as any, idleMs: 200 }));
   await settle();
   assert.match(app.lastFrame()!, /Operator\./);
-  await waitFor(shows(app, /^ПИН › _$/m), 3);
+  await waitFor(shows(app, /^ПИН › ▋$/m), 3);
   assert.equal(core.lockCalls, 1, "the untouched app did not lock the core");
   app.unmount();
   noErrors();
@@ -1986,7 +1989,7 @@ test("raised by the paper code and not yet given a PIN, the device does not lock
   await settle();
   assert.match(app.lastFrame()!, /Бумажный код/, "the restore screen did not open");
   await new Promise((r) => setTimeout(r, 500));
-  assert.doesNotMatch(app.lastFrame()!, /ПИН › _/, "a device with no PIN yet was locked — and could never be opened");
+  assert.doesNotMatch(app.lastFrame()!, /ПИН › ▋/, "a device with no PIN yet was locked — and could never be opened");
   assert.equal(core.lockCalls, 0, "the core was locked with nothing to open it");
   assert.match(app.lastFrame()!, /Бумажный код/, "the restore screen went away");
   app.unmount();

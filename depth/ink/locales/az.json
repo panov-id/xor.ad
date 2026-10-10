@@ -347,5 +347,7 @@
   "chat.rekeyDone": "Söhbətin açarları yeniləndi (epoxa {epoch}).",
   "chat.rekeyRefused": "qovşaq yeni açarları qəbul etmədi: {status}",
   "feed.refused": "İfadəniz moderasiyadan keçmədi və götürüldü.",
-  "table.nameRefused": "masanın adı qəbul edilmədi — masa adsız yaşayır"
+  "table.nameRefused": "masanın adı qəbul edilmədi — masa adsız yaşayır",
+  "kit.error": "xəta:",
+  "kit.notice": "diqqət:"
 }

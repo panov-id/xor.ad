@@ -7,12 +7,12 @@
 
 import { createElement as h, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Client, InboxEvents, Liked as LikedCard, Statement } from "../core/client.ts";
 import { CursorRefused, extraLikeOf, startersOf } from "../core/client.ts";
 import type { ChatStarter } from "../core/client.ts";
 import { languageOf, type Say } from "./strings.ts";
-import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
+import { plain, useKeys } from "./parts.ts";
+import { Actions, ErrorLine, Form, Head, Item, Line, Muted, Notice, Panel, Row, Stack, Strong, Txt } from "./kit.ts";
 import { afterClose, reconnectDelay } from "../core/reconnect.ts";
 import { pinMismatch, type Place } from "./screens.ts";
 import { obviousPin } from "../core/pin.ts";
@@ -60,11 +60,11 @@ export function Write(
     return null;
   };
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("write.title"), lines: [say("write.hint")] }),
-    h(Text, { dimColor: true }, say("chat.counter", { used: [...text].length, limit })),
-    refused ? h(Text, { color: "red" }, refused) : null,
+    h(Muted, null, say("chat.counter", { used: [...text].length, limit })),
+    refused ? h(ErrorLine, { say }, refused) : null,
     h(Form, {
       fields: [{ key: "text", label: say("write.title"), value: text }],
       onChange: (_key, value) => setText(value.slice(0, limit)),
@@ -218,21 +218,21 @@ export function Inbox(
   const time = (seconds?: number) =>
     seconds ? new Date(seconds * 1000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : "";
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: badge ? `${say("inbox.title")}   ${badge}` : say("inbox.title") }),
     rows === null
-      ? h(Text, { dimColor: true }, "…")
+      ? h(Muted, null, "…")
       : rows.length === 0
-      ? h(Text, { dimColor: true }, say("inbox.empty"))
+      ? h(Muted, null, say("inbox.empty"))
       : h(
-        Box,
-        { flexDirection: "column" },
+        Stack,
+        null,
         ...rows.map((r, i) =>
           h(
-            Text,
-            { key: r.id, bold: i === at },
-            `${i === at ? "›" : " "} ${plain(r.name ?? "?", 48)}, ${plain(r.age ?? "?", 3)}   `,
+            Item,
+            { key: r.id, on: i === at, bold: i === at },
+            `${plain(r.name ?? "?", 48)}, ${plain(r.age ?? "?", 3)}   `,
             r.declined || !marksOf(r) ? "" : `${marksOf(r)}  `,
             r.declined
               ? say("inbox.declined")
@@ -249,7 +249,7 @@ export function Inbox(
           )
         ),
       ),
-    h(Menu, {
+    h(Actions, {
       actions: chosen?.declined
         ? [{ key: "undo", label: say("inbox.undo") }, { key: "back", label: say("common.back") }]
         : [
@@ -654,11 +654,11 @@ export function Chat(
 
   if (over) {
     return h(
-      Box,
-      { flexDirection: "column", gap: 1 },
+      Stack,
+      { gap: 1 },
       h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(peerAge, 3) }) }),
-      h(Text, { color: "red" }, say(over === "expired" ? "chat.expired" : "chat.ended")),
-      h(Menu, {
+      h(Notice, { say }, say(over === "expired" ? "chat.expired" : "chat.ended")),
+      h(Actions, {
         actions: [{ key: "feed", label: say("chat.toFeed") }],
         onPick: () => (onFeed ?? onBack)(),
         hint: say("common.rowActions"),
@@ -666,23 +666,23 @@ export function Chat(
     );
   }
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("chat.title", { name: plain(name, 48), age: plain(peerAge, 3) }) }),
     h(
-      Text,
-      counting ? { color: "red" } : { dimColor: true },
+      Txt,
+      counting ? { color: "red" } : { dim: true },
       say("chat.fades", { span: say(`chat.spanShort${span}`) }) + (counting ? ` · ${clock}` : ""),
     ),
     starters.length > 0
       ? h(
-        Box,
-        { flexDirection: "column" },
-        h(Text, { bold: true }, say("chat.starters")),
+        Stack,
+        null,
+        h(Strong, null, say("chat.starters")),
         ...starters.map((s) =>
           h(
-            Text,
-            { key: `s${s.position}`, dimColor: s.removed },
+            Txt,
+            { key: `s${s.position}`, dim: s.removed },
             `${s.position}. ${say(s.liked_by === "me" ? "chat.youLiked" : "chat.theyLiked")}: ` +
               (s.removed ? say("chat.starterRemoved") : `«${plain(s.text, 160)}»`),
           )
@@ -690,19 +690,21 @@ export function Chat(
       )
       : null,
     h(
-      Box,
-      { flexDirection: "column" },
+      Stack,
+      null,
       ...lines.map((l, i) =>
         l.extra
           ? h(
-            Box,
-            { key: i, flexDirection: "column", alignItems: "center", borderStyle: "single", paddingX: 1 },
-            h(Text, { dimColor: true }, `${l.extra.position}. ${say(l.extra.direction === "they_liked_yours" ? "chat.extraTheirs" : "chat.extraMine")}`),
-            h(Text, null, `«${plain(l.text, 160)}»`),
+            Panel,
+            { key: i },
+            h(Line, {
+              name: `${l.extra.position}. ${say(l.extra.direction === "they_liked_yours" ? "chat.extraTheirs" : "chat.extraMine")}`,
+              text: `«${plain(l.text, 160)}»`,
+            }),
           )
           : h(
-          Text,
-          { key: i, dimColor: l.broken === true || l.system === true },
+          Txt,
+          { key: i, dim: l.broken === true || l.system === true },
           l.broken === true
             ? `· ${say("chat.broken", { message: plain(l.text, 120) })}`
             : l.system === true
@@ -715,13 +717,13 @@ export function Chat(
     ),
     showCode
       ? h(
-        Box,
-        { flexDirection: "column", borderStyle: "single", paddingX: 1 },
-        h(Text, { bold: true }, say("chat.code")),
-        h(Text, null, code ?? "…"),
-        h(Text, { dimColor: true }, say("chat.codeHint")),
-        changed ? h(Text, { color: "red" }, say("chat.codeChanged")) : null,
-        h(Menu, {
+        Panel,
+        null,
+        h(Strong, null, say("chat.code")),
+        h(Txt, null, code ?? "…"),
+        h(Muted, null, say("chat.codeHint")),
+        changed ? h(Notice, { say }, say("chat.codeChanged")) : null,
+        h(Actions, {
           active: showCode,
           actions: [{ key: "ok", label: say("chat.codeMatched") }, { key: "close", label: say("common.close") }],
           onPick: (key) => {
@@ -734,25 +736,25 @@ export function Chat(
         }),
       )
       : null,
-    matched ? h(Text, { dimColor: true }, `✓ ${say("chat.matched")}`) : null,
-    blocking ? h(Text, { color: "red" }, `${say("block.confirm")} ${say("block.what")}`) : null,
-    peerAway ? h(Text, { color: "yellow" }, say("chat.peerAway")) : null,
-    missed ? h(Text, { color: "yellow" }, say("chat.missed")) : null,
-    gameOffered && !gameOpen ? h(Text, { color: "yellow" }, say("game.offerArrived")) : null,
-    peerAsks ? h(Text, { color: "yellow" }, say("chat.rekeyPeerAsks")) : null,
-    waiting && !peerAsks ? h(Text, { dimColor: true }, say("chat.rekeyWaiting")) : null,
-    rekeyed !== null && !peerAsks && !waiting ? h(Text, { dimColor: true }, say("chat.rekeyDone", { epoch: rekeyed })) : null,
+    matched ? h(Muted, null, `✓ ${say("chat.matched")}`) : null,
+    blocking ? h(Notice, { say }, `${say("block.confirm")} ${say("block.what")}`) : null,
+    peerAway ? h(Notice, { say }, say("chat.peerAway")) : null,
+    missed ? h(Notice, { say }, say("chat.missed")) : null,
+    gameOffered && !gameOpen ? h(Notice, { say }, say("game.offerArrived")) : null,
+    peerAsks ? h(Notice, { say }, say("chat.rekeyPeerAsks")) : null,
+    waiting && !peerAsks ? h(Muted, null, say("chat.rekeyWaiting")) : null,
+    rekeyed !== null && !peerAsks && !waiting ? h(Muted, null, say("chat.rekeyDone", { epoch: rekeyed })) : null,
     gameOpen
       ? h(
-        Box,
-        { borderStyle: "single", paddingX: 1 },
+        Panel,
+        null,
         h(ChatGame, {
           say, games, chatId, name, tick: gameTick, active: gameOpen && !showCode,
           onClose: () => setGameOpen(false), onError,
         }),
       )
       : null,
-    h(Text, { dimColor: true }, `${say("chat.counter", { used: [...draft].length, limit })} · ${say("chat.noHistory")}`),
+    h(Muted, null, `${say("chat.counter", { used: [...draft].length, limit })} · ${say("chat.noHistory")}`),
     h(Form, {
       active: !showCode && !gameOpen,
       fields: [{ key: "draft", label: ">", value: draft }],
@@ -845,21 +847,21 @@ export function Hidden(
   });
   const chosen = rows?.[at];
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("hidden.title") }),
     rows === null
-      ? h(Text, { dimColor: true }, "…")
+      ? h(Muted, null, "…")
       : rows.length === 0
-      ? h(Text, { dimColor: true }, say("hidden.empty"))
+      ? h(Muted, null, say("hidden.empty"))
       : h(
-        Box,
-        { flexDirection: "column" },
+        Stack,
+        null,
         ...rows.map((r, i) =>
-          h(Text, { key: r.id, bold: i === at }, `${i === at ? "›" : " "} ${plain(r.text, 200)}`)
+          h(Item, { key: r.id, on: i === at, bold: i === at }, plain(r.text, 200))
         ),
       ),
-    h(Menu, {
+    h(Actions, {
       actions: [
         { key: "back-it", label: say("hidden.restore"), disabled: !chosen },
         { key: "back", label: say("common.back") },
@@ -915,22 +917,22 @@ export function Statements(
   const s = items[at];
   const kind = RESTRICTIONS.includes(s.restriction) ? say(`statements.${s.restriction}`) : plain(s.restriction, 40);
   const row = (label: string, value: string) =>
-    h(Box, { key: label }, h(Box, { width: 16, flexShrink: 0 }, h(Text, { dimColor: true }, label)), h(Text, null, value));
+    h(Row, { key: label }, h(Row, { width: 16, flexShrink: 0 }, h(Muted, null, label)), h(Txt, null, value));
   const what = [
     kind,
     day(s.created_at),
     ...(s.until ? [say("statements.until", { date: day(s.until) })] : []),
   ].join(", ");
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, {
       title: say("statements.count", { n: items.length }),
       lines: items.length > 1 ? [`${at + 1} / ${items.length}`] : undefined,
     }),
     h(
-      Box,
-      { flexDirection: "column", borderStyle: "single", borderColor: "red", paddingX: 1 },
+      Panel,
+      null,
       row(say("statements.what"), what),
       row(say("statements.why"), plain(s.facts, 600)),
       // Two paths, two lines (§6, 04.09.2026): a notice is decided by a person,
@@ -942,7 +944,7 @@ export function Statements(
       ),
       row(say("statements.next"), say("statements.appeal")),
     ),
-    h(Menu, {
+    h(Actions, {
       actions: [{ key: "done", label: say("statements.gotIt") }],
       onPick: () => onDone(),
       hint: say("common.rowActions"),
@@ -985,12 +987,12 @@ export function Liked(
     typeof seconds === "number" && Number.isFinite(seconds) ? new Date(seconds * 1000).toTimeString().slice(0, 5) : "?";
   const line = (r: LikedCard & { undone?: boolean }, i: number) =>
     h(
-      Box,
-      { key: r.id, flexDirection: "column" },
-      h(Text, { bold: i === at, dimColor: r.undone }, `${i === at ? "›" : " "} ${r.state === "matched" ? "(*)" : "+"} ${plain(r.text, 200)}`),
+      Stack,
+      { key: r.id },
+      h(Item, { on: i === at, bold: i === at, dim: r.undone }, `${r.state === "matched" ? "(*)" : "+"} ${plain(r.text, 200)}`),
       h(
-        Text,
-        { dimColor: true },
+        Muted,
+        null,
         r.undone
           ? `    ${say("liked.undone")}`
           : r.state === "matched"
@@ -999,15 +1001,15 @@ export function Liked(
       ),
     );
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("liked.title") }),
     rows === null
-      ? h(Text, { dimColor: true }, "…")
+      ? h(Muted, null, "…")
       : rows.length === 0
-      ? h(Text, { dimColor: true }, say("liked.empty"))
-      : h(Box, { flexDirection: "column", gap: 1 }, ...rows.map(line)),
-    h(Menu, {
+      ? h(Muted, null, say("liked.empty"))
+      : h(Stack, { gap: 1 }, ...rows.map(line)),
+    h(Actions, {
       actions: [
         chosen?.state === "matched"
           ? { key: "offer", label: say("liked.toOffer") }
@@ -1099,19 +1101,19 @@ export function Blocked(
       : "?";
   const chosen = rows?.[at];
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("blocked.count", { n: rows?.length ?? 0 }) }),
     rows === null
-      ? h(Text, { dimColor: true }, "…")
+      ? h(Muted, null, "…")
       : h(
-        Box,
-        { flexDirection: "column" },
+        Stack,
+        null,
         ...rows.map((r, i) =>
-          h(Text, { key: r.id, bold: i === at }, `${i === at ? "›" : " "} ${say("blocked.since", { date: day(r.since) })}`)
+          h(Item, { key: r.id, on: i === at, bold: i === at }, say("blocked.since", { date: day(r.since) }))
         ),
       ),
-    h(Menu, {
+    h(Actions, {
       actions: [
         { key: "lift", label: say("blocked.lift"), disabled: !chosen },
         { key: "back", label: say("common.back") },
@@ -1188,17 +1190,17 @@ export function Me(
   });
   const chosen = rows[Math.min(at, rows.length - 1)];
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("me.title") }),
     h(
-      Box,
-      { flexDirection: "column" },
+      Stack,
+      null,
       ...rows.map((row, i) =>
-        h(Text, { key: row.key, bold: row.key === chosen?.key, color: row.red ? "red" : undefined }, `${row.key === chosen?.key ? "›" : " "} ${row.label}`)
+        h(Item, { key: row.key, on: row.key === chosen?.key, bold: row.key === chosen?.key, color: row.red ? "red" : undefined }, row.label)
       ),
     ),
-    h(Menu, {
+    h(Actions, {
       actions: [{ key: "open", label: say("inbox.enter") }, { key: "back", label: say("common.back") }],
       onPick: (key) => {
         if (key === "back") return onBack();
@@ -1279,19 +1281,19 @@ export function StepAway(
     });
   };
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("away.item") }),
     h(
-      Box,
-      { flexDirection: "column" },
+      Stack,
+      null,
       ...AWAY_ORDER.map((s, i) =>
-        h(Text, { key: s, bold: i === chosen }, `${i === chosen ? "›" : " "} ${say(`away.${s}`)}`)
+        h(Item, { key: s, on: i === chosen, bold: i === chosen }, say(`away.${s}`))
       ),
     ),
-    h(Text, span ? { color: "yellow" } : { dimColor: true }, price()),
-    h(Text, { dimColor: true }, say("away.warning")),
-    h(Menu, {
+    span ? h(Notice, { say }, price()) : h(Muted, null, price()),
+    h(Muted, null, say("away.warning")),
+    h(Actions, {
       actions: [{ key: "go", label: say("away.go"), disabled: span === null || going }, { key: "back", label: say("common.back") }],
       onPick: (key) => {
         if (key === "back") return onBack();
@@ -1330,12 +1332,12 @@ export function Away(
   const at = new Date(until * 1000).toTimeString().slice(0, 5);
   const left = Math.max(1, Math.ceil((until - now) / 60));
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
-    h(Text, null, say("away.line")),
-    h(Text, { dimColor: true }, say("away.until", { time: at, minutes: left })),
-    asking ? h(Text, { color: "yellow" }, say("away.sure")) : null,
-    h(Menu, {
+    Stack,
+    { gap: 1 },
+    h(Txt, null, say("away.line")),
+    h(Muted, null, say("away.until", { time: at, minutes: left })),
+    asking ? h(Notice, { say }, say("away.sure")) : null,
+    h(Actions, {
       actions: [{ key: "back", label: say("away.back") }],
       onPick: () => {
         if (!asking) return setAsking(true);
@@ -1393,13 +1395,13 @@ export function EditProfile(
   };
   const crossesUp = () => field === "age" && Number(current) <= 20 && Number(value) >= 21;
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say(field === "name" ? "me.name" : "me.age"), lines: [say(field === "name" ? "me.nameHint" : "me.ageHint")] }),
-    refused ? h(Text, { color: "red" }, refused) : null,
-    asking ? h(Text, { color: "yellow" }, say("me.band21")) : null,
+    refused ? h(ErrorLine, { say }, refused) : null,
+    asking ? h(Notice, { say }, say("me.band21")) : null,
     asking
-      ? h(Menu, {
+      ? h(Actions, {
         actions: [{ key: "save", label: say("me.save") }, { key: "cancel", label: say("me.cancel") }],
         onPick: (key) => {
           setAsking(false);
@@ -1468,16 +1470,16 @@ export function ChangePin(
   };
   if (changed) {
     return h(
-      Box,
-      { flexDirection: "column", gap: 1 },
+      Stack,
+      { gap: 1 },
       h(Head, { title: say("pin.title") }),
-      h(Text, null, say("pin.changed")),
-      h(Menu, { actions: [{ key: "back", label: say("common.back") }], onPick: onBack, hint: say("common.rowActions") }),
+      h(Txt, null, say("pin.changed")),
+      h(Actions, { actions: [{ key: "back", label: say("common.back") }], onPick: onBack, hint: say("common.rowActions") }),
     );
   }
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("pin.title") }),
     h(Form, {
       fields: [
@@ -1491,10 +1493,10 @@ export function ChangePin(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
-    obvious ? h(Text, { color: "yellow" }, say("pin.obvious")) : null,
-    differ ? h(Text, { color: "red" }, say("reg.pinMismatch")) : null,
-    sending ? h(Text, { dimColor: true }, "…") : null,
-    refused ? h(Text, { color: "red" }, refused) : null,
+    obvious ? h(Notice, { say }, say("pin.obvious")) : null,
+    differ ? h(ErrorLine, { say }, say("reg.pinMismatch")) : null,
+    sending ? h(Muted, null, "…") : null,
+    refused ? h(ErrorLine, { say }, refused) : null,
   );
 }
 
@@ -1534,11 +1536,11 @@ export function StartAgain(
       .finally(() => setSending(false));
   };
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("reset.title"), lines: [say("reset.warning")] }),
-    h(Text, null, counts ? say("reset.price", { phrases: String(counts.phrases), chats: String(counts.chats) }) : "…"),
-    h(Text, { color: "yellow" }, say("reset.code")),
+    h(Txt, null, counts ? say("reset.price", { phrases: String(counts.phrases), chats: String(counts.chats) }) : "…"),
+    h(Notice, { say }, say("reset.code")),
     h(Form, {
       fields: [{ key: "pin", label: say("reset.pin"), value: pin, secret: true }],
       onChange: (_key, value) => setPin(value.replace(/\D/g, "").slice(0, 6)),
@@ -1550,7 +1552,7 @@ export function StartAgain(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
-    sending ? h(Text, { dimColor: true }, "…") : null,
-    refused ? h(Text, { color: "red" }, refused) : null,
+    sending ? h(Muted, null, "…") : null,
+    refused ? h(ErrorLine, { say }, refused) : null,
   );
 }

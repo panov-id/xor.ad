@@ -347,5 +347,7 @@
   "chat.rekeyDone": "Suhbat kalitlari yangilandi (davr {epoch}).",
   "chat.rekeyRefused": "tugun yangi kalitlarni qabul qilmadi: {status}",
   "feed.refused": "So'zingiz moderatsiyadan o'tmadi va olib tashlandi.",
-  "table.nameRefused": "stol nomi qabul qilinmadi — stol nomsiz ishlayveradi"
+  "table.nameRefused": "stol nomi qabul qilinmadi — stol nomsiz ishlayveradi",
+  "kit.error": "xato:",
+  "kit.notice": "diqqat:"
 }

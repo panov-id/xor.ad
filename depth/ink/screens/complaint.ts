@@ -5,10 +5,10 @@
 // person's to see.
 import { createElement as h, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Say } from "../strings.ts";
 import type { Client } from "../../core/client.ts";
-import { Form, Head, Menu, plain } from "../parts.ts";
+import { plain } from "../parts.ts";
+import { Actions, ErrorLine, Form, Head, Stack, Txt } from "../kit.ts";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -22,17 +22,17 @@ export function Complaint(
 
   if (state === "sent") {
     return h(
-      Box,
-      { flexDirection: "column", gap: 1 },
+      Stack,
+      { gap: 1 },
       h(Head, { title: say("complaint.title") }),
-      h(Text, { color: "green" }, say("complaint.sent")),
-      h(Menu, { actions: [{ key: "back", label: say("common.back") }], onPick: onBack }),
+      h(Txt, { color: "green" }, say("complaint.sent")),
+      h(Actions, { actions: [{ key: "back", label: say("common.back") }], onPick: onBack }),
     );
   }
   const ready = EMAIL.test(email.trim()) && state === "edit";
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("complaint.title"), lines: [say("complaint.private")] }),
     h(Form, {
       fields: [
@@ -59,6 +59,6 @@ export function Complaint(
           .catch((e: Error) => { setError(e.message); setState("edit"); });
       },
     }),
-    error ? h(Text, { color: "red" }, error) : null,
+    error ? h(ErrorLine, { say }, error) : null,
   );
 }

@@ -8,11 +8,11 @@
 import { obviousPin } from "../core/pin.ts";
 import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Answer, Client, Radius } from "../core/client.ts";
 import { readPaperCode, readPaperText } from "../core/paper.ts";
 import type { Say } from "./strings.ts";
-import { Form, Head, Menu, plain, useKeys } from "./parts.ts";
+import { plain, useKeys } from "./parts.ts";
+import { Actions, Card, ErrorLine, Form, Head, Muted, Notice, Rule, Stack, Strong, Txt } from "./kit.ts";
 
 export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 
@@ -34,8 +34,8 @@ export function Registration(
   const [age, setAge] = useState("");
   const ready = name.trim().length > 0 && /^\d{2,3}$/.test(age) && Number(age) >= 18;
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("reg.title"), lines: [say("reg.intro")] }),
     h(Form, {
       fields: [
@@ -52,7 +52,7 @@ export function Registration(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
-    error ? h(Text, { color: "red" }, error) : null,
+    error ? h(ErrorLine, { say }, error) : null,
   );
 }
 
@@ -98,8 +98,8 @@ export function PinSet(
   // page says the same words at the same moment (Register.tsx).
   const obvious = pin.length === 6 && obviousPin(pin);
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("reg.pinTitle"), lines: [say("reg.pinIntro")] }),
     h(Form, {
       fields: [
@@ -116,10 +116,10 @@ export function PinSet(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
-    obvious ? h(Text, { color: "yellow" }, say("pin.obvious")) : null,
-    differ ? h(Text, { color: "red" }, say("reg.pinMismatch")) : null,
-    busy ? h(Text, { dimColor: true }, "…") : null,
-    error ? h(Text, { color: "red" }, error) : null,
+    obvious ? h(Notice, { say }, say("pin.obvious")) : null,
+    differ ? h(ErrorLine, { say }, say("reg.pinMismatch")) : null,
+    busy ? h(Muted, null, "…") : null,
+    error ? h(ErrorLine, { say }, error) : null,
   );
 }
 
@@ -147,11 +147,11 @@ export function PaperCode(
   const right = ASKED.every((g, i) => read(typed[i]) === groups[g]);
   const full = typed.every((t) => read(t).length === 4);
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("reg.codeTitle"), lines: [say("reg.codeWhy")] }),
-    h(Text, { bold: true }, `      ${groups.join(" - ")}`),
-    h(Text, null, say("reg.codeRepeat")),
+    h(Strong, null, `      ${groups.join(" - ")}`),
+    h(Txt, null, say("reg.codeRepeat")),
     h(Form, {
       fields: ASKED.map((g, i) => ({ key: String(i), label: say("reg.codeGroup", { n: g + 1 }), value: typed[i] })),
       onChange: (key, value) => setTyped((t) => t.map((v, i) => (String(i) === key ? value.slice(0, 9) : v))),
@@ -160,9 +160,9 @@ export function PaperCode(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
-    full && !right ? h(Text, { color: "red" }, say("reg.codeWrong")) : null,
-    busy ? h(Text, { dimColor: true }, "…") : null,
-    error ? h(Text, { color: "red" }, error) : null,
+    full && !right ? h(ErrorLine, { say }, say("reg.codeWrong")) : null,
+    busy ? h(Muted, null, "…") : null,
+    error ? h(ErrorLine, { say }, error) : null,
   );
 }
 
@@ -203,10 +203,11 @@ export function Location(
   }, [ok, numbers.lat, numbers.lon, radius]);
   const clean = (value: string) => value.replace(/[^\d.\-]/g, "");
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("loc.title"), lines: [say("loc.intro1"), say("loc.intro2")] }),
-    ok ? null : h(Text, { dimColor: true }, say("loc.bad")),
+    // A hint until something is typed, an error once it is wrong.
+    ok ? null : lat === "" && lon === "" ? h(Muted, null, say("loc.bad")) : h(ErrorLine, { say }, say("loc.bad")),
     h(Form, {
       fields: [
         { key: "lat", label: say("loc.lat"), value: lat },
@@ -223,7 +224,7 @@ export function Location(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
-    step ? h(Text, { dimColor: true }, say(`loc.density.${step}`)) : null,
+    step ? h(Muted, null, say(`loc.density.${step}`)) : null,
   );
 }
 
@@ -312,7 +313,7 @@ export function Feed(
     const before = (items ?? []).slice(0, at).filter((p) => p.kind !== "table").length;
     const found = phrases.findIndex((p) => p.id === chosen?.id);
     const here = Math.min(phrases.length - 1, found >= 0 ? found : before);
-    return h(Card, {
+    return h(PhraseCard, {
       say,
       items: phrases,
       at: here,
@@ -339,43 +340,38 @@ export function Feed(
   }
   const line = (p: Phrase, i: number) =>
     p.kind === "table"
-      ? h(
-        Box,
-        { key: p.id, flexDirection: "column" },
-        h(Text, { bold: i === at }, `${i === at ? "›" : " "} ${say("table.title")}${p.name ? ` · "${plain(p.name, 24)}"` : ""} · ${plain(p.game ?? "?", 12)} ${plain(p.set ?? "", 12)}`),
-        h(Text, { dimColor: true }, `  ${say("table.free")} ${plain(p.free_seats ?? 0, 6)} · ${say("table.playing")} ${plain(p.playing ?? 0, 6)} · ${say("table.watching")} ${plain(p.watching ?? 0, 6)} · ♥ ${plain(p.like_count ?? 0, 6)}`),
-      )
-      : h(
-      Box,
-      { key: p.id, flexDirection: "column" },
-      h(
-        Text,
-        { bold: i === at },
-        `${i === at ? "›" : " "} ${plain(p.name ?? "?", 48)}, ${plain(p.age ?? "?", 3)} · `,
-        say("feed.distance", { meters: plain(p.distance_m ?? 0, 6) }),
-        " · ",
-        say("feed.minutes", { minutes: plain(p.minutes_ago ?? 0, 6) }),
-      ),
-      h(Text, null, `  ${plain(p.text, 200)}`),
-    );
+      ? h(Card, {
+        key: p.id,
+        on: i === at,
+        title: `${say("table.title")}${p.name ? ` · "${plain(p.name, 24)}"` : ""} · ${plain(p.game ?? "?", 12)} ${plain(p.set ?? "", 12)}`,
+        meta: `${say("table.free")} ${plain(p.free_seats ?? 0, 6)} · ${say("table.playing")} ${plain(p.playing ?? 0, 6)} · ${say("table.watching")} ${plain(p.watching ?? 0, 6)} · ♥ ${plain(p.like_count ?? 0, 6)}`,
+      })
+      : h(Card, {
+        key: p.id,
+        on: i === at,
+        title: `${plain(p.name ?? "?", 48)}, ${plain(p.age ?? "?", 3)} · ${say("feed.distance", { meters: plain(p.distance_m ?? 0, 6) })} · ${
+          say("feed.minutes", { minutes: plain(p.minutes_ago ?? 0, 6) })
+        }`,
+        body: plain(p.text, 200),
+      });
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, {
       title: say("feed.header", { lat: place.lat, lon: place.lon, radius: place.radius, from: 18, to: 99 }),
     }),
     items === null
-      ? h(Text, { dimColor: true }, "…")
+      ? h(Muted, null, "…")
       : items.length === 0
-      ? h(Text, { dimColor: true }, say("feed.empty"))
-      : h(Box, { flexDirection: "column", gap: 1 }, ...items.map(line)),
-    refused > 0 && !mine ? h(Text, { color: "red" }, say("feed.refused")) : null,
+      ? h(Muted, null, say("feed.empty"))
+      : h(Stack, { gap: 1 }, ...items.map(line)),
+    refused > 0 && !mine ? h(ErrorLine, { say }, say("feed.refused")) : null,
     h(
-      Text,
-      { dimColor: true },
+      Muted,
+      null,
       mine ? `${say("feed.yours", { text: plain(mine.text, 200) })} · ${mine.state === "pending" ? say("feed.checking") : mine.state}` : say("feed.none"),
     ),
-    h(Menu, {
+    h(Actions, {
       actions: [
         { key: "open", label: isTable ? say("table.sit") : say("inbox.enter"), disabled: !chosen || (isTable && !onOpenTable) },
         // A table is not a phrase: no like, hide or block from this row.
@@ -443,8 +439,8 @@ export function Feed(
       hint: say("common.rowActions"),
     }),
     blocking
-      ? h(Text, { color: "red" }, `${say("block.confirm")} ${say("block.what")}`)
-      : h(Text, { dimColor: true }, `↑↓ · ${at + 1}/${items?.length ?? 0}`),
+      ? h(Notice, { say }, `${say("block.confirm")} ${say("block.what")}`)
+      : h(Muted, null, `↑↓ · ${at + 1}/${items?.length ?? 0}`),
     h(FeedKeys, { count: items?.length ?? 0, onMove: setAt }),
   );
 }
@@ -457,7 +453,7 @@ function FeedKeys({ count, onMove }: { count: number; onMove: (fn: (at: number) 
     if (key.upArrow) onMove((at) => (at - 1 + count) % count);
     if (key.downArrow) onMove((at) => (at + 1) % count);
   });
-  return h(Box, null);
+  return h(Stack, null);
 }
 
 // 4.4.1 · one card on the whole screen (storefront screen 23). → likes, ← hides,
@@ -469,7 +465,7 @@ function FeedKeys({ count, onMove }: { count: number; onMove: (fn: (at: number) 
 // number — the node sends a flag, not a time (§8.11; owner, 23.09.2026).
 let explained = false;
 
-export function Card(
+export function PhraseCard(
   { say, items, at, onMove, onLike, onHide, onClose }: {
     say: Say;
     items: Phrase[];
@@ -514,19 +510,18 @@ export function Card(
       onLike(p);
     }
   });
-  const rule = "─".repeat(56);
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
-    h(Text, { dimColor: true }, rule),
-    p ? h(Text, null, `   ${plain(p.text, 400)}`) : h(Text, { dimColor: true }, "…"),
+    Stack,
+    { gap: 1 },
+    h(Rule, { width: 56 }),
+    p ? h(Txt, null, `   ${plain(p.text, 400)}`) : h(Muted, null, "…"),
     p
-      ? h(Text, { dimColor: true }, `   + ${Number(p.like_count) || 0}${p.soon === true ? ` · ${say("card.soon")}` : ""}`)
+      ? h(Muted, null, `   + ${Number(p.like_count) || 0}${p.soon === true ? ` · ${say("card.soon")}` : ""}`)
       : null,
-    h(Text, { dimColor: true }, rule),
-    hint ? h(Text, { color: "yellow" }, say("card.hint")) : null,
-    note ? h(Text, { dimColor: true }, note) : null,
-    h(Text, { dimColor: true }, `${say("card.keys")} · ${at + 1}/${items.length}`),
+    h(Rule, { width: 56 }),
+    hint ? h(Notice, { say }, say("card.hint")) : null,
+    note ? h(Muted, null, note) : null,
+    h(Muted, null, `${say("card.keys")} · ${at + 1}/${items.length}`),
   );
 }
 
@@ -555,8 +550,8 @@ export function PaperCodeEntry(
     whole = true;
   } catch { /* not sixteen characters of the alphabet yet */ }
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title, lines }),
     h(Form, {
       fields: [{ key: "code", label: say("restore.code"), value: code }],
@@ -575,8 +570,8 @@ export function PaperCodeEntry(
       fieldsHint: say("common.rowFields"),
       actionsHint: say("common.rowActions"),
     }),
-    readPaperText(code).length >= 16 && !whole ? h(Text, { color: "red" }, say("restore.bad")) : null,
-    busy ? h(Text, { dimColor: true }, "…") : null,
-    error ? h(Text, { color: "red" }, error) : null,
+    readPaperText(code).length >= 16 && !whole ? h(ErrorLine, { say }, say("restore.bad")) : null,
+    busy ? h(Muted, null, "…") : null,
+    error ? h(ErrorLine, { say }, error) : null,
   );
 }

@@ -12,13 +12,13 @@
 
 import { createElement as h, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Answer } from "../core/client.ts";
 import { readPaperText } from "../core/paper.ts";
 import { Arrival, Departure, type MoveClient, type MoveState } from "../core/transfer_move.ts";
 import type { Say } from "./strings.ts";
 import { pinMismatch } from "./screens.ts";
-import { Form, Head, Menu, plain } from "./parts.ts";
+import { plain } from "./parts.ts";
+import { Actions, ErrorLine, Form, Head, Muted, Notice, Stack, Strong, Txt } from "./kit.ts";
 
 export const MOVE_POLL_MS = 5000;
 
@@ -127,10 +127,10 @@ export function MoveOut(
 
   if (!out) {
     return h(
-      Box,
-      { flexDirection: "column", gap: 1 },
+      Stack,
+      { gap: 1 },
       h(Head, { title: say("move.title"), lines: [say("move.intro")] }),
-      h(Text, { color: "yellow" }, say("move.price")),
+      h(Notice, { say }, say("move.price")),
       h(Form, {
         fields: [{ key: "pin", label: say("reset.pin"), value: pin, secret: true }],
         onChange: (_key, value) => setPin(value.replace(/\D/g, "").slice(0, 6)),
@@ -142,8 +142,8 @@ export function MoveOut(
         fieldsHint: say("common.rowFields"),
         actionsHint: say("common.rowActions"),
       }),
-      sending ? h(Text, { dimColor: true }, "…") : null,
-      refused ? h(Text, { color: "red" }, refused) : null,
+      sending ? h(Muted, null, "…") : null,
+      refused ? h(ErrorLine, { say }, refused) : null,
     );
   }
 
@@ -166,22 +166,22 @@ export function MoveOut(
   const ending = endings[state];
   if (ending) {
     return h(
-      Box,
-      { flexDirection: "column", gap: 1 },
+      Stack,
+      { gap: 1 },
       h(Head, { title: say("move.title") }),
-      h(Text, null, say(ending)),
-      h(Menu, { actions: [{ key: "back", label: say("common.back") }], onPick: onBack, hint: say("common.rowActions") }),
+      h(Txt, null, say(ending)),
+      h(Actions, { actions: [{ key: "back", label: say("common.back") }], onPick: onBack, hint: say("common.rowActions") }),
     );
   }
 
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("move.title"), lines: [say("move.codeWhere")] }),
-    h(Text, { bold: true }, `      ${out.groups.join(" - ")}`),
-    h(Text, { dimColor: true }, say("move.codeLife", { n: left })),
-    h(Text, { color: "yellow" }, say("move.nobody")),
-    h(Menu, {
+    h(Strong, null, `      ${out.groups.join(" - ")}`),
+    h(Muted, null, say("move.codeLife", { n: left })),
+    h(Notice, { say }, say("move.nobody")),
+    h(Actions, {
       actions: [{ key: "back", label: say("move.stop") }],
       // Leaving the screen is not a refusal the node hears: the code simply
       // runs out, and §8.2 counts that as no transfer.
@@ -210,22 +210,22 @@ export function MoveConfirm(
   const [pressed, setPressed] = useState(false);
   const seconds = Math.max(0, Math.round((now() - seenAt) / 1000));
   const row = (name: string, value: string) =>
-    h(Text, null, `  ${name.padEnd(12)} ${value}`);
+    h(Txt, null, `  ${name.padEnd(12)} ${value}`);
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("move.asks") }),
     h(
-      Box,
-      { flexDirection: "column" },
+      Stack,
+      null,
       row(say("move.called"), plain(label, 64) || "—"),
       row(say("move.when"), seconds < 10 ? say("move.justNow") : say("move.secondsAgo", { n: seconds })),
       row(say("move.check"), `${check} — ${say("move.checkAsk")}`),
     ),
-    h(Text, null, say("move.leaves")),
-    h(Text, { color: "yellow" }, say("move.price")),
-    h(Text, { color: "yellow" }, say("move.nobody")),
-    h(Menu, {
+    h(Txt, null, say("move.leaves")),
+    h(Notice, { say }, say("move.price")),
+    h(Notice, { say }, say("move.nobody")),
+    h(Actions, {
       actions: [
         { key: "yes", label: say("move.yes"), disabled: pressed },
         { key: "no", label: say("move.no"), disabled: pressed },
@@ -244,11 +244,11 @@ export function MoveConfirm(
 // sentence (§8.2), and nothing to do here but leave.
 export function MovedAway({ say }: { say: Say }): ReactElement {
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("move.doneTitle") }),
-    h(Text, null, say("move.done")),
-    h(Menu, { actions: [{ key: "exit", label: say("common.exit") }], onPick: () => process.exit(0), hint: say("common.rowActions") }),
+    h(Txt, null, say("move.done")),
+    h(Actions, { actions: [{ key: "exit", label: say("common.exit") }], onPick: () => process.exit(0), hint: say("common.rowActions") }),
   );
 }
 
@@ -311,8 +311,8 @@ export function MoveIn(
 
   if (!into) {
     return h(
-      Box,
-      { flexDirection: "column", gap: 1 },
+      Stack,
+      { gap: 1 },
       h(Head, { title: say("move.inTitle"), lines: [say("move.inIntro")] }),
       h(Form, {
         fields: [{ key: "code", label: say("move.code"), value: code }],
@@ -325,24 +325,24 @@ export function MoveIn(
         fieldsHint: say("common.rowFields"),
         actionsHint: say("common.rowActions"),
       }),
-      sending ? h(Text, { dimColor: true }, say("move.deriving")) : null,
-      refused ? h(Text, { color: "red" }, refused) : null,
+      sending ? h(Muted, null, say("move.deriving")) : null,
+      refused ? h(ErrorLine, { say }, refused) : null,
     );
   }
 
   const ending = endings[state];
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
+    Stack,
+    { gap: 1 },
     h(Head, { title: say("move.inTitle") }),
     ending
-      ? h(Text, null, say(ending))
+      ? h(Txt, null, say(ending))
       : h(
-        Box,
-        { flexDirection: "column", gap: 1 },
-        h(Text, null, `  ${say("move.check").padEnd(12)} ${into.check}`),
-        h(Text, { dimColor: true }, say("move.inWait")),
+        Stack,
+        { gap: 1 },
+        h(Txt, null, `  ${say("move.check").padEnd(12)} ${into.check}`),
+        h(Muted, null, say("move.inWait")),
       ),
-    h(Menu, { actions: [{ key: "back", label: say("common.back") }], onPick: onBack, hint: say("common.rowActions") }),
+    h(Actions, { actions: [{ key: "back", label: say("common.back") }], onPick: onBack, hint: say("common.rowActions") }),
   );
 }

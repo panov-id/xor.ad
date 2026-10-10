@@ -9,10 +9,10 @@
 // from the chat's view made into a table's (core asTableView).
 import { createElement as h, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import type { Say } from "./strings.ts";
-import { Menu, plain, useKeys } from "./parts.ts";
-import { Board } from "./table_boards.ts";
+import { plain, useKeys } from "./parts.ts";
+import { Actions, Board, ErrorLine, Muted, Stack, Strong, Txt } from "./kit.ts";
+import { ClassBoard } from "./table_boards.ts";
 import { dotsOf, drawDots, freeEdges, type BoardClass } from "../core/tables.ts";
 import { asTableView, type ChatGames, type ChatGameView, chatTurn } from "../core/chat_games.ts";
 
@@ -79,23 +79,23 @@ export function ChatGame(
 
   const pending = view?.pending ?? null;
   const theirs = pending && !pending.mine ? pending : null;
-  const head = h(Text, { bold: true }, `${say("game.title")} · ${plain(name, 48)}`);
+  const head = h(Strong, null, `${say("game.title")} · ${plain(name, 48)}`);
 
   // No game yet: propose one — the class picked here, its usual set.
-  if (view === undefined) return h(Box, { flexDirection: "column" }, head, h(Text, { dimColor: true }, "…"));
+  if (view === undefined) return h(Stack, null, head, h(Muted, null, "…"));
   if (view === null || (!board && !pending)) {
     return h(
-      Box,
-      { flexDirection: "column" },
+      Stack,
+      null,
       head,
-      h(Text, { dimColor: true }, say("game.none")),
-      h(Menu, {
+      h(Muted, null, say("game.none")),
+      h(Actions, {
         active,
         actions: [...CLASSES.map((c) => ({ key: c, label: c })), { key: "close", label: say("common.close") }],
         onPick: (key) =>
           key === "close" ? onClose() : act(games.propose(chatId, key as BoardClass, SET_OF[key] ?? key)),
       }),
-      note ? h(Text, { color: "red" }, note) : null,
+      note ? h(ErrorLine, { say }, note) : null,
     );
   }
 
@@ -114,14 +114,14 @@ export function ChatGame(
     { key: "close", label: say("common.close") },
   ];
   return h(
-    Box,
-    { flexDirection: "column" },
+    Stack,
+    null,
     head,
-    h(Text, { color: turn === "mine" ? "green" : undefined }, `${plain(view.class, 12)} · ${status}`),
-    score ? h(Text, null, `${say("table.score")}: ${score}`) : null,
-    ...(dots ? drawDots(dots, turn === "mine" ? edge : undefined).map((row, i) => h(Text, { key: `d${i}` }, row)) : []),
-    board && !dots ? h(Board, { say, view: tv, onMove: turn === "mine" ? move : undefined, active: active && onBoard }) : null,
-    h(Menu, {
+    h(Txt, { color: turn === "mine" ? "green" : undefined }, `${plain(view.class, 12)} · ${status}`),
+    score ? h(Txt, null, `${say("table.score")}: ${score}`) : null,
+    dots ? h(Board, { rows: drawDots(dots, turn === "mine" ? edge : undefined) }) : null,
+    board && !dots ? h(ClassBoard, { say, view: tv, onMove: turn === "mine" ? move : undefined, active: active && onBoard }) : null,
+    h(Actions, {
       active: active && !onBoard,
       actions,
       onPick: (key) => {
@@ -136,6 +136,6 @@ export function ChatGame(
       hint: dots ? `[ ] ${say("table.edge")} · ${say("common.rowActions")}`
         : other ? `tab ${say("table.toBoard")} · ${say("common.rowActions")}` : say("common.rowActions"),
     }),
-    note ? h(Text, { color: "red" }, note) : null,
+    note ? h(ErrorLine, { say }, note) : null,
   );
 }

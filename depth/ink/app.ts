@@ -5,7 +5,6 @@
 
 import { createElement as h, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
-import { Box, Text } from "ink";
 import { Client } from "../core/client.ts";
 import type { Statement } from "../core/client.ts";
 import { newPaperCode, paperGroups } from "../core/paper.ts";
@@ -22,6 +21,7 @@ import {
 } from "./rooms.ts";
 import { MovedAway, MoveIn, MoveOut } from "./move.ts";
 import { plain, useKeys } from "./parts.ts";
+import { ErrorLine, Muted, Stack, Strong } from "./kit.ts";
 import { RaisedHere, RaisedHerePin } from "./screens/restore.ts";
 import { IDLE_MS, IdleTimer } from "../core/lock.ts";
 import { Lock } from "./screens/lock.ts";
@@ -627,10 +627,10 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
     });
   }
   return h(
-    Box,
-    { flexDirection: "column" },
+    Stack,
+    null,
     body,
-    error && !["register", "pin", "paper", "restore", "restorePin", "raisedHerePin", "reissue", "newPaper", "arrivedPin"].includes(where.screen) ? h(Text, { color: "red" }, error) : null,
+    error && !["register", "pin", "paper", "restore", "restorePin", "raisedHerePin", "reissue", "newPaper", "arrivedPin"].includes(where.screen) ? h(ErrorLine, { say }, error) : null,
   );
 }
 
@@ -641,10 +641,10 @@ function ArrivedPin(
   { say, onDone, busy, error }: { say: Say; onDone: (pin: string) => void; busy?: boolean; error?: string },
 ): ReactElement {
   return h(
-    Box,
-    { flexDirection: "column", gap: 1 },
-    h(Text, { bold: true }, say("move.arrivedTitle")),
-    h(Text, { dimColor: true }, say("move.arrived")),
+    Stack,
+    { gap: 1 },
+    h(Strong, null, say("move.arrivedTitle")),
+    h(Muted, null, say("move.arrived")),
     h(PinSet, { say, onDone, busy, error }),
   );
 }

@@ -87,7 +87,7 @@ test("one's own span is set from the screen, moves only one's own end, lights th
   await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 1ч ВАШЕГО молчания");
   await anya.keyboard.press("Escape");
   await expect(anya.getByTestId("fades")).toHaveAttribute("data-counting", "no");
-  await expect(anya.getByTestId("span-60")).toHaveAttribute("aria-pressed", "true");
+  await expect(anya.getByTestId("span-60")).toHaveAttribute("aria-checked", "true");
   // New keys are offered to a healthy conversation, as in the terminal.
   await expect(anya.getByTestId("rekey-ask")).toBeEnabled();
 
@@ -100,7 +100,7 @@ test("one's own span is set from the screen, moves only one's own end, lights th
   await anya.getByTestId("fades-info").getByRole("button").click();
   await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 10 мин ВАШЕГО молчания");
   await anya.keyboard.press("Escape");
-  await expect(anya.getByTestId("span-10")).toHaveAttribute("aria-pressed", "true");
+  await expect(anya.getByTestId("span-10")).toHaveAttribute("aria-checked", "true");
   expect(patches).toEqual([200]);
   expect(Number(await screenA.getAttribute("data-ends-at"))).toBe(endBefore - 50 * 60);
   // Still not the last quarter: ten minutes from the chat's birth, nothing said.

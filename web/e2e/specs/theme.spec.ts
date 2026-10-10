@@ -20,11 +20,12 @@ test("theme: pick, persist across a reload, back to auto", async ({ page }) => {
   const group = page.getByRole("radiogroup");
   await expect(group).toBeVisible();
   expect(await group.getByRole("radio").count()).toBeGreaterThan(2);
-  await expect(page.getByTestId("theme-auto").getByRole("radio")).toBeChecked();
+  // Each theme is a radio of the kit's Choice (role=radio, aria-checked), 44 high (--control-h).
+  await expect(page.getByTestId("theme-auto")).toHaveAttribute("aria-checked", "true");
   const box = await page.getByTestId("theme-violet").boundingBox();
-  expect(box?.height ?? 0, "a theme row is a 48px target").toBeGreaterThanOrEqual(48);
+  expect(box?.height ?? 0, "a theme row is a 44px target").toBeGreaterThanOrEqual(44);
 
-  await page.getByTestId("theme-violet").getByRole("radio").check();
+  await page.getByTestId("theme-violet").click();
   await expect(html).toHaveAttribute("data-theme", "violet");
   expect(await page.evaluate((b) => localStorage.getItem(`theme:${b}`), brand)).toBe("violet");
   const meta = await page.locator('meta[name="theme-color"]').getAttribute("content");
@@ -38,7 +39,7 @@ test("theme: pick, persist across a reload, back to auto", async ({ page }) => {
 
   await page.getByTestId("tab-me").click();
   await page.getByTestId("me-theme").click();
-  await page.getByTestId("theme-auto").getByRole("radio").check();
+  await page.getByTestId("theme-auto").click();
   await expect(html).toHaveAttribute("data-theme-choice", "auto");
   expect(await page.evaluate((b) => localStorage.getItem(`theme:${b}`), brand)).toBeNull();
 });

@@ -58,9 +58,11 @@ test("the model publishes one phrase and refuses another, and the refused author
     await register(c, { name: "Вера", age: "31" });
     const cPosts = await write(c, toRefuse);
     // The refusal is the author's to read in the composer, with the reason.
-    await expect(c.getByTestId("refused"), "the author was not told why the phrase did not pass").toContainText(
-      "Фраза не принята: stub: a link", { timeout: 15000 },
+    // The reason is a phrase of the dictionary (quorum 2026-10-10); the model's own "stub: a link" is not shown.
+    await expect(c.getByTestId("refused"), "the author was not told that the phrase did not pass").toContainText(
+      "Фраза не принята.", { timeout: 15000 },
     );
+    await expect(c.getByTestId("refused"), "the model's own text reached the author").not.toContainText("stub");
     expect(cPosts, "the model's reject did not reach the author as a refusal").toEqual([422]);
     await c.getByTestId("back").click();
 

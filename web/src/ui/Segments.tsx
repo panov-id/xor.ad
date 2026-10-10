@@ -9,7 +9,7 @@ import { ErrorLine } from "./ErrorLine.tsx";
 // Choice adds ✓ and thickens the rim, with an optional sample (a theme's
 // swatch) next to the word. An option may carry its own `lang` (a language
 // named in itself). Unavailable: aria-disabled, focus stays, the choice is kept.
-export type ChoiceOption = { value: string; label: string; lang?: string; sample?: ReactNode };
+export type ChoiceOption = { value: string; label: string; lang?: string; sample?: ReactNode; testid?: string };
 
 type Props = {
   label: string;
@@ -19,9 +19,11 @@ type Props = {
   disabled?: boolean;
   reason?: string;
   error?: string;
+  /** The group's data-testid (its data-value is the chosen value); an option's is its own `testid`. */
+  testid?: string;
 };
 
-function Radios({ kind, label, options, value, onChange, disabled, reason, error }: Props & { kind: "segments" | "choice" }) {
+function Radios({ kind, label, options, value, onChange, disabled, reason, error, testid }: Props & { kind: "segments" | "choice" }) {
   const uid = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const labelId = `${uid}-l`;
@@ -47,11 +49,11 @@ function Radios({ kind, label, options, value, onChange, disabled, reason, error
       <span id={labelId} className="ui-label">{label}</span>
       <div role="radiogroup" aria-labelledby={labelId} aria-describedby={described || undefined} aria-disabled={disabled ? true : undefined}
         aria-invalid={error ? true : undefined} aria-errormessage={error ? errorId : undefined}
-        className={kind === "segments" ? "ui-segments" : "ui-choice"} onKeyDown={keys}>
+        className={kind === "segments" ? "ui-segments" : "ui-choice"} onKeyDown={keys} data-testid={testid} data-value={testid ? value : undefined}>
         {options.map((option, index) => {
           const on = index === chosen;
           return (
-            <button key={option.value} ref={(node) => { refs.current[index] = node; }} type="button" role="radio" aria-checked={on} lang={option.lang}
+            <button key={option.value} ref={(node) => { refs.current[index] = node; }} type="button" role="radio" aria-checked={on} lang={option.lang} data-testid={option.testid}
               tabIndex={index === entry ? 0 : -1} className={on ? "ui-seg ui-seg-on" : "ui-seg"} onClick={() => pick(index)}>
               {option.sample}
               <span>{option.label}</span>

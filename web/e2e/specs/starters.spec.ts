@@ -25,7 +25,10 @@ async function openChat(page: Page) {
 
 async function axe(page: Page, where: string) {
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
-  for (const v of results.violations) console.log(`[axe ${where}] ${v.impact} ${v.id}: ${v.help}`);
+  for (const v of results.violations) {
+    console.log(`[axe ${where}] ${v.impact} ${v.id}: ${v.help}`);
+    for (const n of v.nodes) console.log(`[axe ${where}]   ${n.target.join(" ")} — ${(n.any[0]?.message ?? "").slice(0, 160)}`);
+  }
   const bad = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(bad.map((v) => `${v.impact} ${v.id}`), `axe on ${where}`).toEqual([]);
 }

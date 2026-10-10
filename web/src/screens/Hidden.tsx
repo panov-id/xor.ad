@@ -1,14 +1,16 @@
 // The phrases I hid, newest first, each with "вернуть" (L1; depth/ink
 // rooms.ts Hidden): a returned phrase is back in my feed while it is alive.
-// Words verbatim from depth/ink/locales/ru.json.
+// Words verbatim from depth/ink/locales/ru.json. Kit elements only (K5).
 
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { hiddenList, type HiddenRow, unhide } from "../api/lists.ts";
 import { say } from "../api/me.ts";
-import { Button } from "../ui/Button.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
-import "./place.css";
+import { List, ListItem } from "../ui/List.tsx";
+import { EmptyState } from "../ui/Notices.tsx";
+import { Screen } from "../ui/Screen.tsx";
 
 export function Hidden({ client, onBack }: { client: Client; onBack: () => void }) {
   const [rows, setRows] = useState<HiddenRow[] | null>(null);
@@ -16,24 +18,27 @@ export function Hidden({ client, onBack }: { client: Client; onBack: () => void 
   const load = () => hiddenList(client).then(setRows).catch((e: Error) => setError(e.message));
   useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const title = say("hidden.title");
   return (
-    <main className="screen hidden-list" data-screen="hidden">
-      <HeaderScreen title={say("hidden.title")} onBack={onBack} backLabel={say("common.back")} />
-      {error && <p className="error" data-testid="error">{error}</p>}
+    <Screen name="hidden" title={title} header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} />}>
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       {rows === null
-        ? <p className="muted" data-testid="loading">…</p>
+        ? <p className="ui-hint" data-testid="loading">…</p>
         : rows.length === 0
-        ? <p className="place-empty" data-testid="hidden-empty">{say("hidden.empty")}</p>
+        ? <EmptyState title={say("hidden.empty")} data-testid="hidden-empty" />
         : (
-          <ul className="place-rows">
+          <List label={title}>
             {rows.map((row) => (
-              <li key={row.id} data-testid="hidden-row">
-                <span className="place-row-text">{row.text}</span>
-                <Button type="button" icon="eye" aria-label={say("hidden.restore")} onClick={() => void unhide(client, row.id).then(load).catch((e: Error) => setError(e.message))} data-testid="hidden-restore" />
-              </li>
+              <ListItem
+                key={row.id}
+                data-testid="hidden-row"
+                action={{ label: say("hidden.restore"), testid: "hidden-restore", onSelect: () => void unhide(client, row.id).then(load).catch((e: Error) => setError(e.message)) }}
+              >
+                {row.text}
+              </ListItem>
             ))}
-          </ul>
+          </List>
         )}
-    </main>
+    </Screen>
   );
 }

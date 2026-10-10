@@ -143,7 +143,7 @@ test("a side whose keys do not open asks for new ones, the other agrees on the s
   await expect(anya.locator('[data-testid="theirs"]').last()).toContainText("слышу под новыми ключами", { timeout: 20000 });
   await anya.getByTestId("show-safety").click();
   await boris.getByTestId("show-safety").click();
-  expect(await anya.getByTestId("safety").textContent()).toBe(await boris.getByTestId("safety").textContent());
+  expect(await anya.getByTestId("safety").locator("code").textContent()).toBe(await boris.getByTestId("safety").locator("code").textContent());
 
   // B reloads once more: the new wrap opens at epoch 1 with no PUT.
   const putsB: number[] = [];

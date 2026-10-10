@@ -259,3 +259,56 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-card-of-preview { border: 1px dashed var(--border-control); }
 .ui-card-fading { border: 1px dotted var(--muted); }
 @media (prefers-reduced-motion: no-preference) { .ui-skip { transition: transform var(--dur-1, 160ms); } }
+
+/* К5: the personal and talk screens (Me, Composer, Inbox, Chat and what opens
+   from them) in the kit's own classes only. Sizes on tokens and rem. */
+.ui-setting-icon { flex: none; }
+.ui-setting[aria-disabled="true"] { color: var(--muted); border-style: dashed; }
+.ui-list > .ui-card { margin-block-end: var(--s-3); }
+.ui-list-row > .ui-list-text:has(> .ui-inbox-row, > .ui-setting) { flex: 1; min-inline-size: 0; }
+.ui-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); }
+.ui-life { display: flex; flex-direction: column; gap: var(--s-1); }
+.ui-swatch { display: inline-flex; align-items: center; justify-content: center; flex: none; inline-size: var(--s-8); block-size: var(--s-8); border-radius: var(--r-round); background: var(--bg); border: 1px solid var(--fg-muted); }
+.ui-swatch-dot { inline-size: var(--s-3); block-size: var(--s-3); border-radius: var(--r-round); background: var(--accent); }
+.ui-pairs { margin: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.ui-pair { display: flex; flex-direction: column; }
+.ui-pair-label { color: var(--muted); font-size: 0.875rem; font-weight: 600; }
+.ui-pair-value { margin: 0; overflow-wrap: anywhere; }
+.ui-tabs { display: flex; gap: var(--s-4); border-bottom: 1px solid var(--border); }
+.ui-tab { position: relative; min-height: var(--control-h); padding: 0; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 0.875rem; font-weight: 600; border-bottom: var(--s-1) solid transparent; }
+.ui-tab-on { color: var(--fg); border-bottom-color: var(--accent); }
+.ui-tab .ui-tab-dot { position: absolute; top: var(--s-2); right: calc(-1 * var(--s-3)); }
+.ui-tabpanel[hidden] { display: none; }
+.ui-log { display: flex; flex-direction: column; }
+.ui-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.ui-msg { display: flex; flex-direction: column; gap: 2px; max-inline-size: 85%; padding: var(--s-2) var(--s-3); border-radius: var(--r-2); overflow-wrap: anywhere; }
+.ui-msg-mine { align-self: flex-end; background: var(--accent); color: var(--accent-ink); }
+.ui-msg-theirs { align-self: flex-start; background: var(--panel); }
+.ui-msg-system { align-self: center; color: var(--muted); font-size: 0.875rem; text-align: center; }
+.ui-msg-extra { align-self: center; max-inline-size: 100%; text-align: center; background: var(--panel-2); }
+.ui-msg-extra q, .ui-starters q { quotes: "«" "»"; }
+.ui-msg-time { align-self: flex-end; font-size: 0.8125rem; }
+.ui-msg-mark { color: var(--muted); font-size: 0.8125rem; font-weight: 600; }
+.ui-msg-failed { display: flex; align-items: center; gap: var(--s-2); font-size: 0.875rem; }
+.ui-msg-mine .ui-text { color: inherit; text-decoration: underline; }
+.ui-tombstone { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); }
+.ui-tombstone-title, .ui-starters-title { margin: 0; font-size: 0.875rem; font-weight: 600; color: var(--muted); }
+.ui-tombstone-text { margin: 0; }
+.ui-starters { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3); border-radius: var(--r-2); background: var(--panel); }
+.ui-starters-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.ui-starters-list > li { display: flex; flex-direction: column; gap: 2px; }
+.ui-undo { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.ui-undo-mark { color: var(--muted); }
+.ui-scheme, .ui-scheme-in, .ui-scheme-on { fill: none; stroke: var(--border-control); stroke-width: 1.5; }
+.ui-scheme-in { stroke: var(--muted); }
+.ui-scheme-on { stroke: var(--accent); stroke-width: 3; }
+.ui-scheme-dot { fill: var(--accent); }
+[data-screen="composer"] .ui-illustration { max-inline-size: 100%; block-size: auto; }
+[data-screen="inbox"] .ui-card { gap: var(--s-1); }
+[data-screen="inbox"] .ui-card strong { font-size: 1rem; font-weight: 600; }
+[data-screen="inbox"] .ui-card p { margin: 0; font-size: 1.25rem; font-weight: 600; line-height: 1.4; }
+[data-screen="inbox"] .ui-card .ui-button, [data-screen="chat"] .ui-card .ui-button { align-self: flex-start; margin-top: var(--s-2); }
+[data-screen="inbox"] .ui-header .ui-button { padding: 0 var(--s-3); font-size: 0.875rem; }
+[data-screen="chat"] .ui-actions { justify-content: flex-start; }
+[data-screen="statements"] .ui-card p, [data-screen="statements"] .ui-card dl { margin: 0; }
+[data-screen="chat"] [data-testid="fades"][data-counting="yes"] { color: var(--err); font-weight: 600; }

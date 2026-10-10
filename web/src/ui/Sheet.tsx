@@ -66,8 +66,9 @@ export function ActionSheet({ open, title, actions, onClose, ...rest }:
 // Confirm: an alertdialog. The h2 says what goes; `consequences` lists what
 // disappears and what it costs, in numbers where there are numbers. No button
 // is the default: Enter does nothing until one is focused. The scrim does not close it.
-export function Confirm({ open, title, consequences, confirmLabel, cancelLabel, onConfirm, onClose, ...rest }:
-  { open: boolean; title: string; consequences: ReactNode[]; confirmLabel: string; cancelLabel: string; onConfirm: () => void; onClose: () => void }
+export function Confirm({ open, title, consequences, confirmLabel, cancelLabel, onConfirm, onClose, confirmTestId, cancelTestId, ...rest }:
+  { open: boolean; title: string; consequences: ReactNode[]; confirmLabel: string; cancelLabel: string; onConfirm: () => void; onClose: () => void;
+    confirmTestId?: string; cancelTestId?: string }
   & { [data: `data-${string}`]: string | undefined }) {
   const id = useId();
   const modal = useModal(open, onClose);
@@ -80,8 +81,8 @@ export function Confirm({ open, title, consequences, confirmLabel, cancelLabel, 
           {consequences.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
         <Actions>
-          <Button type="button" kind="secondary" onClick={onClose}>{cancelLabel}</Button>
-          <Button type="button" kind="danger" onClick={() => { onConfirm(); onClose(); }}>{confirmLabel}</Button>
+          <Button type="button" kind="secondary" onClick={onClose} data-testid={cancelTestId}>{cancelLabel}</Button>
+          <Button type="button" kind="danger" onClick={() => { onConfirm(); onClose(); }} data-testid={confirmTestId}>{confirmLabel}</Button>
         </Actions>
       </div>
     </div>

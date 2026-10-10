@@ -245,8 +245,6 @@
   "web.offer.wrong": "Havola noto‘g‘ri joyga olib boradi",
   "web.offer.warn": "U yerda bugun nima borligini tekshirmaymiz: va’daga emas, domenga qarang. O‘tish bir marta hisoblanadi.",
   "web.phrase.refused_status": "Ibora qabul qilinmadi ({status}).",
-  "web.phrase.refused_why": "Ibora qabul qilinmadi: {why}.",
-  "web.name.refused_why": "Ism qabul qilinmadi: {why}.",
   "web.register.age_min": "13 yoshdan",
   "web.register.confirm": "Yozib oldingizmi? Ikkinchi va to‘rtinchi guruhlarni kiriting.",
   "web.register.consent": "foydalanish shartlari, maxfiylik siyosati va hamjamiyat qoidalarini qabul qilaman",
@@ -369,5 +367,11 @@
   "web.ui.code": "kod",
   "web.ui.copy": "nusxa olish",
   "web.ui.copied": "nusxa olindi",
-  "web.ui.navMain": "asosiy navigatsiya"
+  "web.ui.navMain": "asosiy navigatsiya",
+  "web.phrase.refused_generic": "Ibora qabul qilinmadi. Havolalar, kontaktlar va haqoratlarni olib tashlab, qayta urinib ko‘ring.",
+  "web.name.refused_generic": "Ism qabul qilinmadi. Boshqasini tanlang — havolasiz, kontaktsiz va haqoratsiz.",
+  "web.refused.status": "Qabul qilinmadi ({status}).",
+  "web.like.count": "yoqtirishlar: {n}",
+  "web.ui.you": "siz",
+  "web.ui.system": "tizim"
 }

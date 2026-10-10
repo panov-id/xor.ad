@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type HTMLAttributes } from "react";
+import { say } from "../locales/say.ts";
 
 // The kit's card (components.svg §6, comic 2026-10-01): a paper panel with an
 // outline in --rim, the top-right corner cut, the hard shadow; the lean is a
@@ -35,8 +36,23 @@ export function LikeBurst({ count, on, ...rest }: { count: number; on: boolean }
   return (
     <span {...rest} className={["ui-burst", on ? "ui-burst-on" : "", pop ? "ui-burst-pop" : ""].filter(Boolean).join(" ")} onAnimationEnd={() => setPop(false)}>
       <span className="ui-burst-heart" aria-hidden="true">♥</span>
-      <span className="ui-burst-n">{count}</span>
+      <span className="ui-burst-n" aria-hidden="true">{count}</span>
+      <span className="visually-hidden">{say("web.like.count", { n: count })}</span>
     </span>
+  );
+}
+
+// П16 (walkthrough 10.10.2026): a bare «♥ 1» in running text is read as «один»
+// — the symbol is not a word. The count is told for the ear by its name
+// («лайков: 1», one dictionary line for all counts: the colon form needs no
+// plural form in any of the 17 languages); the symbol and the number are for
+// the eye. For the feed's foot lines and the list of likes.
+export function LikeCount({ n }: { n: number }) {
+  return (
+    <>
+      <span aria-hidden="true">♥ {n}</span>
+      <span className="visually-hidden">{say("web.like.count", { n })}</span>
+    </>
   );
 }
 

@@ -111,8 +111,9 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   // The safety code is the same on both screens: no key was planted by the node.
   await anya.getByTestId("show-safety").click();
   await boris.getByTestId("show-safety").click();
-  const codeA = await anya.getByTestId("safety").textContent();
-  const codeB = await boris.getByTestId("safety").textContent();
+  // The code is the kit's Code (a «код» label, the value in <code>, «скопировать»): the digits are the <code>.
+  const codeA = await anya.getByTestId("safety").locator("code").textContent();
+  const codeB = await boris.getByTestId("safety").locator("code").textContent();
   expect(codeA).toMatch(/^\d{4}( \d{4}){4}$/);
   expect(codeA).toBe(codeB);
 

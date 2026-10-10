@@ -245,8 +245,6 @@
   "web.offer.wrong": "Der Link führt woandershin",
   "web.offer.warn": "Wir prüfen nicht, was dort heute steht: achten Sie auf die Domain, nicht auf das Versprechen. Ein Aufruf wird einmal gezählt.",
   "web.phrase.refused_status": "Phrase nicht angenommen ({status}).",
-  "web.phrase.refused_why": "Phrase nicht angenommen: {why}.",
-  "web.name.refused_why": "Name nicht angenommen: {why}.",
   "web.register.age_min": "ab 13 Jahren",
   "web.register.confirm": "Aufgeschrieben? Geben Sie die zweite und vierte Gruppe ein.",
   "web.register.consent": "ich akzeptiere die Nutzungsbedingungen, die Datenschutzerklärung und die Gemeinschaftsregeln",
@@ -369,5 +367,11 @@
   "web.ui.code": "Code",
   "web.ui.copy": "kopieren",
   "web.ui.copied": "kopiert",
-  "web.ui.navMain": "Hauptnavigation"
+  "web.ui.navMain": "Hauptnavigation",
+  "web.phrase.refused_generic": "Die Phrase wurde nicht angenommen. Entferne Links, Kontakte und Beleidigungen und versuche es noch einmal.",
+  "web.name.refused_generic": "Der Name wurde nicht angenommen. Wähle einen anderen, ohne Links, Kontakte oder Beleidigungen.",
+  "web.refused.status": "Nicht angenommen ({status}).",
+  "web.like.count": "Likes: {n}",
+  "web.ui.you": "du",
+  "web.ui.system": "System"
 }

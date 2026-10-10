@@ -9,11 +9,11 @@ export function List({ label, children, ...rest }: { label: string; children: Re
 }
 
 export function ListItem({ children, action, ...rest }:
-  { children: ReactNode; action?: { label: string; onSelect: () => void } } & { [data: `data-${string}`]: string | undefined }) {
+  { children: ReactNode; action?: { label: string; onSelect: () => void; testid?: string } } & { [data: `data-${string}`]: string | undefined }) {
   return (
     <li {...rest} className="ui-list-row">
       <span className="ui-list-text">{children}</span>
-      {action ? <Button type="button" kind="text" onClick={action.onSelect}>{action.label}</Button> : null}
+      {action ? <Button type="button" kind="text" onClick={action.onSelect} data-testid={action.testid}>{action.label}</Button> : null}
     </li>
   );
 }

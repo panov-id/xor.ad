@@ -245,8 +245,6 @@
   "web.offer.wrong": "Посилання веде не туди",
   "web.offer.warn": "Ми не перевіряємо, що там сьогодні: дивіться на домен, а не на обіцянку. Перехід рахується один раз.",
   "web.phrase.refused_status": "Фразу не прийнято ({status}).",
-  "web.phrase.refused_why": "Фразу не прийнято: {why}.",
-  "web.name.refused_why": "Ім'я не прийнято: {why}.",
   "web.register.age_min": "сюди з 13 років",
   "web.register.confirm": "Записали? Введіть другу й четверту групи.",
   "web.register.consent": "приймаю угоду користувача, політику конфіденційності та правила спільноти",
@@ -369,5 +367,11 @@
   "web.ui.code": "код",
   "web.ui.copy": "скопіювати",
   "web.ui.copied": "скопійовано",
-  "web.ui.navMain": "основна навігація"
+  "web.ui.navMain": "основна навігація",
+  "web.phrase.refused_generic": "Фразу не прийнято. Приберіть посилання, контакти та образи й спробуйте ще раз.",
+  "web.name.refused_generic": "Ім’я не прийнято. Оберіть інше — без посилань, контактів та образ.",
+  "web.refused.status": "Не прийнято ({status}).",
+  "web.like.count": "вподобань: {n}",
+  "web.ui.you": "ви",
+  "web.ui.system": "система"
 }

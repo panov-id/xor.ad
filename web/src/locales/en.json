@@ -245,8 +245,6 @@
   "web.offer.wrong": "The link leads to the wrong place",
   "web.offer.warn": "We don’t check what’s there today: look at the domain, not the promise. A visit is counted once.",
   "web.phrase.refused_status": "Phrase not accepted ({status}).",
-  "web.phrase.refused_why": "Phrase not accepted: {why}.",
-  "web.name.refused_why": "Name not accepted: {why}.",
   "web.register.age_min": "13 and over only",
   "web.register.confirm": "Written it down? Enter the second and fourth groups.",
   "web.register.consent": "I accept the terms of use, the privacy policy and the community rules",
@@ -369,5 +367,11 @@
   "web.ui.code": "code",
   "web.ui.copy": "copy",
   "web.ui.copied": "copied",
-  "web.ui.navMain": "main navigation"
+  "web.ui.navMain": "main navigation",
+  "web.phrase.refused_generic": "The phrase was not accepted. Remove links, contacts and insults and try again.",
+  "web.name.refused_generic": "The name was not accepted. Choose another one, without links, contacts or insults.",
+  "web.refused.status": "Not accepted ({status}).",
+  "web.like.count": "likes: {n}",
+  "web.ui.you": "you",
+  "web.ui.system": "system"
 }

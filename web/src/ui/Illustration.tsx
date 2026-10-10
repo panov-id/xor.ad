@@ -4,10 +4,10 @@ import { useId, type ReactNode } from "react";
 // no name — or a scheme that carries meaning: role=img named by its <title>
 // (a key of the dictionary, passed in). `children` are the SVG shapes, drawn in
 // currentColor and the tokens.
-export function Illustration({ title, viewBox, size = 96, children, ...rest }:
-  { title?: string; viewBox: string; size?: number; children: ReactNode } & { [data: `data-${string}`]: string | undefined }) {
+export function Illustration({ title, viewBox, size = 96, height = size, children, ...rest }:
+  { title?: string; viewBox: string; size?: number; height?: number; children: ReactNode } & { [data: `data-${string}`]: string | undefined }) {
   const id = useId();
-  const common = { ...rest, viewBox, width: size, height: size, className: "ui-illustration", focusable: "false" as const };
+  const common = { ...rest, viewBox, width: size, height, className: "ui-illustration", focusable: "false" as const };
   if (!title) return <svg {...common} aria-hidden="true">{children}</svg>;
   return (
     <svg {...common} role="img" aria-labelledby={id}>

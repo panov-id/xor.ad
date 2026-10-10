@@ -245,8 +245,6 @@
   "web.offer.wrong": "El enlace lleva a otro sitio",
   "web.offer.warn": "No revisamos qué hay ahí hoy: mira el dominio, no la promesa. Cada visita se cuenta una vez.",
   "web.phrase.refused_status": "Frase no aceptada ({status}).",
-  "web.phrase.refused_why": "Frase no aceptada: {why}.",
-  "web.name.refused_why": "Nombre no aceptado: {why}.",
   "web.register.age_min": "a partir de 13 años",
   "web.register.confirm": "¿Lo apuntaste? Escribe el segundo y el cuarto grupo.",
   "web.register.consent": "acepto las condiciones de uso, la política de privacidad y las normas de la comunidad",
@@ -369,5 +367,11 @@
   "web.ui.code": "código",
   "web.ui.copy": "copiar",
   "web.ui.copied": "copiado",
-  "web.ui.navMain": "navegación principal"
+  "web.ui.navMain": "navegación principal",
+  "web.phrase.refused_generic": "La frase no fue aceptada. Quita enlaces, contactos e insultos y vuelve a intentarlo.",
+  "web.name.refused_generic": "El nombre no fue aceptado. Elige otro, sin enlaces, contactos ni insultos.",
+  "web.refused.status": "No aceptado ({status}).",
+  "web.like.count": "me gusta: {n}",
+  "web.ui.you": "tú",
+  "web.ui.system": "sistema"
 }

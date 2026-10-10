@@ -245,8 +245,6 @@
   "web.offer.wrong": "ბმული სხვაგან მიდის",
   "web.offer.warn": "არ ვამოწმებთ, რა არის იქ დღეს: უყურეთ დომენს და არა დაპირებას. გადასვლა ერთხელ ითვლება.",
   "web.phrase.refused_status": "ფრაზა არ მიიღეს ({status}).",
-  "web.phrase.refused_why": "ფრაზა არ მიიღეს: {why}.",
-  "web.name.refused_why": "სახელი არ მიიღეს: {why}.",
   "web.register.age_min": "13 წლიდან",
   "web.register.confirm": "ჩაიწერეთ? შეიყვანეთ მეორე და მეოთხე ჯგუფი.",
   "web.register.consent": "ვეთანხმები გამოყენების პირობებს, კონფიდენციალურობის პოლიტიკას და საზოგადოების წესებს",
@@ -369,5 +367,11 @@
   "web.ui.code": "კოდი",
   "web.ui.copy": "კოპირება",
   "web.ui.copied": "დაკოპირდა",
-  "web.ui.navMain": "მთავარი ნავიგაცია"
+  "web.ui.navMain": "მთავარი ნავიგაცია",
+  "web.phrase.refused_generic": "ფრაზა არ მიიღეს. ამოიღეთ ბმულები, კონტაქტები და შეურაცხყოფა და სცადეთ თავიდან.",
+  "web.name.refused_generic": "სახელი არ მიიღეს. აირჩიეთ სხვა — ბმულების, კონტაქტებისა და შეურაცხყოფის გარეშე.",
+  "web.refused.status": "არ მიიღეს ({status}).",
+  "web.like.count": "მოწონებები: {n}",
+  "web.ui.you": "თქვენ",
+  "web.ui.system": "სისტემა"
 }

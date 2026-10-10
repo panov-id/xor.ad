@@ -14,7 +14,8 @@ export function Select({ label, options, value, onChange, hint, error, disabled,
   return (
     <div className="ui-field">
       <label htmlFor={c.ids.input}>{label}</label>
-      <select {...rest} {...c.attrs} className="ui-input" data-testid={testid} value={value} onMouseDown={(event) => { if (disabled) event.preventDefault(); }} onKeyDown={locked}
+      {/* testid first, then the caller's data-* (a data-testid among them wins): an empty testid must not erase it. */}
+      <select data-testid={testid} {...rest} {...c.attrs} className="ui-input" value={value} onMouseDown={(event) => { if (disabled) event.preventDefault(); }} onKeyDown={locked}
         onChange={(event) => { if (!disabled) onChange(event.target.value); }}>
         {options.map((option) => <option key={option.value} value={option.value} lang={option.lang}>{option.label}</option>)}
       </select>

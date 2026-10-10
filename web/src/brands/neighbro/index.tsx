@@ -113,8 +113,9 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   const [cancelled, setCancelled] = useState(false);
   // The clock stands while the focus or the pointer is in the undo row.
   const [focusIn, setFocusIn] = useState(false);
-  const [over, setOver] = useState(false);
-  const held = focusIn || over;
+  // Held by focus only (WCAG 2.2.1): the row appears under the pointer that placed the
+  // heart, so holding on hover kept a resting mouse's like from ever going (e2e, 10.10).
+  const held = focusIn;
   const heartButton = useRef<HTMLButtonElement | null>(null);
   const placed = liked || pending;
   // The article's name is the phrase, its description what else it carries
@@ -145,7 +146,6 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   function undo() {
     setPending(false);
     setFocusIn(false);
-    setOver(false);
     setCancelled(true);
     // The row was where the focus stood: it goes back to the heart.
     setTimeout(() => heartButton.current?.focus(), 0);
@@ -215,8 +215,6 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
         <div
           onFocus={() => setFocusIn(true)}
           onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusIn(false); }}
-          onPointerEnter={() => setOver(true)}
-          onPointerLeave={() => setOver(false)}
           data-testid="heart-undo-row"
         >
           <UndoRow mark={say("web.like.undo_mark", { n: UNDO_S })} action={{ label: say("web.like.undo"), onSelect: undo, testid: "heart-undo" }} />

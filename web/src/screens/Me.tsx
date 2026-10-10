@@ -26,6 +26,7 @@ import { SettingRow } from "../ui/SettingRow.tsx";
 import { BRAND } from "../config.ts";
 import { AUTO, applyTheme, type Choice as ThemeChoice, readChoice, saveChoice } from "../theme.ts";
 import { THEMES } from "../themes.gen.ts";
+import { duration } from "../locales/duration.ts";
 import { chooseLanguage, LANG, LANGUAGES, languageName } from "../locales/say.ts";
 import "./place.css";
 
@@ -205,7 +206,7 @@ export function EditProfile({ client, field, current, onDone, onBack }: {
       <Field
         label={title}
         kind={field === "name" ? "text" : "number"}
-        hint={say(field === "name" ? "me.nameHint" : "me.ageHint")}
+        hint={say(field === "name" ? "web.me.nameHint" : "me.ageHint")}
         value={value}
         onChange={(next) => setValue(field === "age" ? next.replace(/[^0-9]/g, "").slice(0, 3) : graphemes(next, NAME_MAX))}
         data-testid="edit-value"
@@ -395,7 +396,7 @@ export function Away({ client, until, onBack }: { client: Client; until: number;
   return (
     <Screen name="away" title={say("away.item")}>
       <p data-testid="away-line">{say("away.line")}</p>
-      <p className="ui-hint">{say("away.until", { time: at, minutes: left })}</p>
+      <p className="ui-hint">{say("web.away.until", { time: at, left: duration(left) })}</p>
       {asking && <Notice data-testid="away-sure">{say("away.sure")}</Notice>}
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       <Button

@@ -18,9 +18,10 @@ import { Card, CardOpen, LikeCount, openerIds } from "../ui/Card.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderFeed } from "../ui/Header.tsx";
 import { Actions } from "../ui/Links.tsx";
-import { EmptyState, Notice } from "../ui/Notices.tsx";
+import { EmptyState } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { Select } from "../ui/Select.tsx";
+import { StatusInline } from "../ui/Status.tsx";
 import { useFeed } from "./logic/useFeed.ts";
 import { say } from "../locales/say.ts";
 
@@ -113,14 +114,14 @@ export function Feed(
         <ErrorLine data-testid="refused" data-count={String(refused)}>{say("web.feed.refused")}</ErrorLine>
       )}
       {sent && (
-        <Notice data-testid="sent" data-state={sent.state}>
+        <StatusInline data-testid="sent" data-state={sent.state}>
           {sent.state === "published" ? say("web.feed.sent_out") : say("web.feed.sent_held")}
           «{sent.text}»
           {/* In view only while the id is known — not greyed, absent (W11-C). */}
           {sent.id && (
             <Button type="button" icon="close" aria-label={say("feed.takedown")} disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown" />
           )}
-        </Notice>
+        </StatusInline>
       )}
       {sent && takedownRefused !== null && (
         <ErrorLine data-testid="takedown-refused">{say("feed.takedownRefused", { status: takedownRefused })}</ErrorLine>

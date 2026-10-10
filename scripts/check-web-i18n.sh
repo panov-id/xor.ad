@@ -111,6 +111,7 @@ SAME_AS_RU = {
         "web.rank.J",  # валет
         "web.rank.K",  # король
         "web.rank.Q",  # дама
+        "web.duration.min",  # {n} мин — the same abbreviation of a minute
         "web.ui.code",  # код
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.radius",  # радиус, м
@@ -241,6 +242,8 @@ SAME_AS_EN = {
         "web.card.likes",  # likes: — kept as the loanword; worth a translator's look
     },
     "es": {
+        "web.duration.h",  # {n} h
+        "web.duration.min",  # {n} min
         "web.card.block_no",  # no
         "web.card.likes",  # likes: — kept as the loanword; worth a translator's look
         "web.feed.km",  # {n} km
@@ -249,6 +252,8 @@ SAME_AS_EN = {
     "fr": {
         "web.die.6",  # six
         "web.rank.6",  # six
+        "web.duration.h",  # {n} h
+        "web.duration.min",  # {n} min
         "web.ui.code",  # code
         "web.nav.tables",  # tables
         "web.card.phrase",  # phrase
@@ -263,6 +268,7 @@ SAME_AS_EN = {
         "web.table.direction",  # direction dx dy
     },
     "pl": {
+        "web.duration.min",  # {n} min — the abbreviation of a minute is the same
         "web.ui.system",  # system
         "web.cabinet.field.url",  # link
         "web.cabinet.link",  # Link: {link}
@@ -270,6 +276,7 @@ SAME_AS_EN = {
         "web.feed.m",  # {n} m
     },
     "ro": {
+        "web.duration.h",  # {n} h — the abbreviation of an hour is the same
         "web.cabinet.field.text",  # text
         "web.cabinet.field.url",  # link
         "web.cabinet.link",  # Link: {link}

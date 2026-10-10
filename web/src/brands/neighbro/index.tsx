@@ -189,8 +189,8 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   };
 
   return (
-    <Screen name="card" title={modeLabel(card.mode)} className="b-stickers" data-id={card.id} data-heart={liked ? "sent" : pending ? "pending" : armed ? "armed" : "pad"}
-      header={<HeaderScreen title={modeLabel(card.mode)} onBack={onBack} backLabel={say("web.card.back")} />}>
+    <Screen name="card" title={say("web.card.phrase")} className="b-stickers" data-id={card.id} data-heart={liked ? "sent" : pending ? "pending" : armed ? "armed" : "pad"}
+      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} />}>
       <article
         ref={target}
         className={`sticker-card${armed ? " target" : ""}`}

@@ -107,8 +107,8 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   });
   const lean = Math.max(-12, Math.min(12, offset.dx / 12));
   return (
-    <Screen name="card" title={modeLabel(card.mode)} className="b-blocks" data-id={card.id}
-      header={<HeaderScreen title={modeLabel(card.mode)} onBack={onBack} backLabel={say("web.card.back")} />}>
+    <Screen name="card" title={say("web.card.phrase")} className="b-blocks" data-id={card.id}
+      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} />}>
       <div className="block-stack">
         <div className="block-behind" aria-hidden="true" />
         <article

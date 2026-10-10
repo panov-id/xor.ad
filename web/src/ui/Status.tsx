@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { say } from "../locales/say.ts";
 
 // Status header (kit_RU.md §3.3): the connection's outcome as a word —
@@ -16,8 +17,10 @@ const WORD: Record<StatusState, string> = {
 const GLYPH: Record<StatusState, string> = { on: "●", connecting: "◐", offline: "○", failed: "✕" };
 
 // Status `inline` (kit_RU.md §3.3): one word in a `role=status` that stands in
-// the page before it has words, so a change is announced. Nothing else.
-export function StatusInline({ children, ...rest }: { children: string; [data: `data-${string}`]: string | undefined }) {
+// the page before it has words, so a change is announced. Nothing else — except
+// the good news of an action (a phrase out, a like sent, a match): that is not
+// a «внимание:» (Notice), it is a status; its action, if any, stands in it.
+export function StatusInline({ children, ...rest }: { children: ReactNode; [data: `data-${string}`]: string | undefined }) {
   return <p {...rest} role="status" className="ui-status-line">{children}</p>;
 }
 

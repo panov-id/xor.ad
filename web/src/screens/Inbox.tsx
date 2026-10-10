@@ -10,6 +10,7 @@
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import type { ChatRow } from "../chat/keys.ts";
+import { duration } from "../locales/duration.ts";
 import { LANG, say } from "../locales/say.ts";
 import "../chat/chat.css";
 import { Button } from "../ui/Button.tsx";
@@ -83,7 +84,7 @@ function PhraseLife({ row }: { row: MatchRow }) {
     <div className="ui-life" data-testid="offer-life">
       <Life end={row.phrase.expires_at} tone="theirs" />
       {theirs?.soon && <span className="ui-hint" data-testid="offer-soon">{say("web.inbox.soon")}</span>}
-      {mine && <span className="ui-hint" data-testid="offer-mine-left">{say("web.inbox.mine_left", { n: mine.minutes })}</span>}
+      {mine && <span className="ui-hint" data-testid="offer-mine-left">{say("web.inbox.mine_left", { left: duration(mine.minutes) })}</span>}
     </div>
   );
 }
@@ -171,7 +172,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
         <ListItem key={c.id} data-testid="chat" data-id={c.id} data-state={c.state}>
           <ChatRowButton
             name={`${c.name}, ${c.age}`}
-            line={(c.state === "ended" ? say("web.inbox.ended") : say("web.inbox.span", { n: c.my_span })) + (c.ending_soon ? ` · ${say("web.inbox.soon")}` : "")}
+            line={(c.state === "ended" ? say("web.inbox.ended") : say("web.inbox.span", { left: duration(c.my_span) })) + (c.ending_soon ? ` · ${say("web.inbox.soon")}` : "")}
             time={clock(c.last_activity_at)}
             wait={(c.pending_messages ?? 0) > 0 ? say("web.inbox.waits_you") : undefined}
             dot={isFresh(c)}

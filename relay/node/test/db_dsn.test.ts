@@ -10,6 +10,11 @@ import { config } from "../src/config.ts";
 import * as db from "../src/lib/db.ts";
 
 const url = Deno.env.get("DATABASE_URL");
+if (!url) {
+  throw new Error(
+    "DATABASE_URL is not set — run this suite through scripts/run-relay-database-tests.sh",
+  );
+}
 const opts = { ignore: !url, sanitizeOps: false, sanitizeResources: false };
 
 // config is read-only to the type checker, a plain object at run time.

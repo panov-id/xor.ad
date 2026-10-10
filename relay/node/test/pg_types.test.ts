@@ -13,6 +13,11 @@ import pg from "npm:pg@8.13.1";
 import { assertEquals } from "jsr:@std/assert@1";
 
 const url = Deno.env.get("DATABASE_URL");
+if (!url) {
+  throw new Error(
+    "DATABASE_URL is not set — run this suite through scripts/run-relay-database-tests.sh",
+  );
+}
 Deno.env.set("NODE_ENV_NAME", "test");
 Deno.env.set("MAIL_TRANSPORT", "none");
 Deno.env.set("SESSION_SECRET", "pg-types-secret");

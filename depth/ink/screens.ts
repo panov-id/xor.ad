@@ -346,6 +346,11 @@ export function Feed(
         title: `${say("table.title")}${p.name ? ` · "${plain(p.name, 24)}"` : ""} · ${plain(p.game ?? "?", 12)} ${plain(p.set ?? "", 12)}`,
         meta: `${say("table.free")} ${plain(p.free_seats ?? 0, 6)} · ${say("table.playing")} ${plain(p.playing ?? 0, 6)} · ${say("table.watching")} ${plain(p.watching ?? 0, 6)} · ♥ ${plain(p.like_count ?? 0, 6)}`,
       })
+      : p.name === undefined && p.age === undefined && p.distance_m === undefined && p.minutes_ago === undefined
+      // The node's feed carries none of these (routes/feed.ts items: text, mode,
+      // area, like_count — nothing about the author, §8.11): a header of "?, ?
+      // · 0 м · 0 мин" was the terminal inventing four facts it was not told.
+      ? h(Card, { key: p.id, on: i === at, title: plain(p.text, 200) })
       : h(Card, {
         key: p.id,
         on: i === at,

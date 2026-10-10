@@ -636,6 +636,49 @@ test("a table card in the feed shows its game and free seats, sits down on open,
   app.unmount();
 });
 
+// The node's feed item names nobody and measures nothing (routes/feed.ts: text,
+// mode, area, like_count — §8.11), so a card with no author's fields is the
+// phrase alone, not "?, ? · 0 м · 0 мин" (live walk, 10.10.2026).
+test("a feed phrase the node sends with no name, age or distance is drawn as its text, with no invented header", async () => {
+  const client = { feed: () => Promise.resolve({ items: [{ kind: "phrase", id: "p1", text: "кто на пробежку", mode: "alone", like_count: 0 }] }) };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+  }));
+  await settle();
+  await settle();
+  const frame = app.lastFrame()!;
+  assert.match(frame, /кто на пробежку/, "the phrase is not on the feed");
+  assert.doesNotMatch(frame, /\?, \?|0 м · 0 мин/, "the card invents a name, an age and a distance the node never sent");
+  app.unmount();
+});
+
+// One's own line in a conversation is led by "вы", not by the label of the
+// send button (live walk, 10.10.2026: «отправить: Да, по выходным»).
+test("one's own line in a chat is led by «вы», not by the send button's label", async () => {
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: "1111 1111 1111 1111 1111" }),
+    openRoom: () => Promise.resolve({ next: () => new Promise(() => {}), close: () => {} }),
+    read: () => Promise.resolve(""),
+    sayInChat: () => Promise.resolve({ status: 202, body: {} }),
+  };
+  const app = render(h(Chat, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    chatId: "c", name: "Марк", age: 29, limit: 146, onBack: () => {}, onError: () => {},
+  }));
+  await settle(150);
+  await type(app, "привет", DOWN, ENTER);
+  await settle(200);
+  assert.match(app.lastFrame()!, /вы: привет/, "one's own line is not led by «вы»");
+  assert.doesNotMatch(app.lastFrame()!, /отправить: привет/, "one's own line is led by the send button's label");
+  app.unmount();
+});
+
 // W12-MRc · the moderator refused a phrase of mine: GET /inbox counts the
 // moments (events.phrases_refused), the feed says so in red; nothing when the
 // count is zero, nothing while a phrase of my own stands (it puts the line

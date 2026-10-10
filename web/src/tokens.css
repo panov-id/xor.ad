@@ -1,0 +1,66 @@
+/* The web's size, type and motion tokens, and the brand's shape (docs/design/kit_RU.md §1.2–1.3).
+   The only place a px literal for these may stand: scripts/check-web-tokens.sh is red on one in
+   brands/** and screens/*.css. Colours are not here: they are the theme's (themes.gen.css).
+   The faces (@font-face) still come from panel/design/kit/tokens.css, imported before this file;
+   its --s-*, --r-*, --control-h carry the same values and this file wins by coming later. */
+
+:root {
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-6: 24px; --s-8: 32px; --s-12: 48px;
+  --r-1: 8px; --r-2: 13px; --r-pill: 999px; --r-round: 50%;
+  --control-h: 44px;   /* min-height, not height: a long label (de, el) wraps */
+  --focus-w: 3px;
+  --fs-meta: 0.875rem; --fs-body: 1rem; --fs-title: 1.25rem; --fs-card: 1.25rem; --fs-big: 2.25rem;
+  --dur-1: 160ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-1: 0s; }
+}
+
+/* The brand's shape: one token per parameter, the value per brand (§1.3). */
+
+/* sosed «blocks» */
+:root[data-brand="sosed"] {
+  --card-r: 24px;
+  --card-big-r: 32px;
+  --card-pad: 16px;
+  --card-big-pad: 32px 24px 24px;   /* «большая — 32/24/24» of the --card-pad row */
+  --card-rim: none;
+  --card-shadow: none;
+  --card-lean: 0deg;
+  --card-focus-offset: 3px;
+  --btn-r: 32px;
+  --btn-h: var(--control-h);
+  --btn-shadow: none;
+  --btn2-r: var(--r-2);
+  --btn2-bg: transparent;
+  --field-r: 28px;
+  --field-h: 56px;
+  --field-fs: 20px;
+  --field-ls: 0.08em;
+  --field-border: 1.5px solid var(--line);
+  --like-size: 64px;
+}
+
+/* neighbro «stickers» */
+:root[data-brand="neighbro"] {
+  --card-r: 18px;
+  --card-big-r: 18px;
+  --card-pad: 18px 20px;
+  --card-big-pad: 18px 20px;
+  --card-rim: 7px solid var(--surface);   /* §1.3 says --panel; styles.css: --panel is var(--surface) */
+  --card-shadow: 1.5px 3px 0 5px var(--shadow);
+  --card-lean: 1deg;                      /* the magnitude: the even card leans −1×, the odd +1× */
+  --card-focus-offset: 6px;
+  --btn-r: 28px;
+  --btn-h: 56px;
+  --btn-shadow: none;
+  --btn2-r: 28px;
+  --btn2-bg: var(--surface);
+  --field-r: 10px;
+  --field-h: 56px;
+  --field-fs: 22px;
+  --field-ls: 0.6em;
+  --field-border: 1.5px solid var(--border-control);   /* was 0: ~1.1:1 against --bg, under the 3:1 of §1.1 */
+  --like-size: 56px;
+}

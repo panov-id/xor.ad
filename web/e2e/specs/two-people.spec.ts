@@ -84,11 +84,21 @@ test("two people: registration, a phrase each, a mutual like, consent, the chat,
       const mover = aTurn ? anya : boris;
       const taken = await mover.locator("[data-taken]").count();
       console.log(`[move ${move}] ${aTurn ? "Аня" : "Борис"} taken ${taken}`);
-      await mover.getByRole("button", { name: /^ребро [hv]:\d+:\d+$/ }).first().click();
+      await mover.getByRole("button", { name: /^линия: ряд \d+, колонка \d+, по (горизонтали|вертикали)$/ }).first().click();
       await expect(mover.locator("[data-taken]")).toHaveCount(taken + 1, { timeout: 15000 });
     }
     await expect(anya.getByTestId("over")).toBeVisible({ timeout: 15000 });
     await expect(boris.getByTestId("over")).toBeVisible({ timeout: 15000 });
+
+    // After the end each closed box says whose it is, to a screen reader and to
+    // the eye (П13): never a bare number; a taken edge says «занято».
+    const boxes = (page: typeof anya, other: string) => page.getByRole("img", { name: new RegExp(`^клетка: ряд \\d+, колонка \\d+, (вы|${other})$`) });
+    await expect(boxes(anya, "Борис")).toHaveCount(4);
+    await expect(boxes(boris, "Аня")).toHaveCount(4);
+    await expect(anya.locator("[data-taken]").first()).toHaveAttribute("aria-label", /, занято$/);
+    // The same button now proposes another round, not a first game.
+    await expect(anya.getByTestId("start-game")).toHaveAttribute("aria-label", "Ещё партию");
+    await expect(boris.getByTestId("start-game")).toHaveAttribute("aria-label", "Ещё партию");
   } finally {
     // The videos are written when their contexts close.
     await anya.context().close();

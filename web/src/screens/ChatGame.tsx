@@ -8,12 +8,13 @@ import { useCallback, useEffect, useState } from "react";
 import type { Answer, Client } from "../../../depth/core/client.ts";
 import { dotsOf, type BoardClass, turnOf } from "../../../depth/core/tables.ts";
 import { asTableView, ChatGames, type ChatGameView } from "../api/chatGames.ts";
-import { tableRefusal } from "../api/tables.ts";
+import { classWord, tableRefusal } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
 import { CLASSES } from "./NewTable.tsx";
 import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
 import { Button } from "../ui/Button.tsx";
-import "./talk.css";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { Segments } from "../ui/Segments.tsx";
 
 export function ChatGame({ client, chatId, bump }: { client: Client; chatId: string; bump: number }) {
   const games = new ChatGames(client);
@@ -53,29 +54,17 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
     const sets = CLASSES.find((c) => c.value === klass)?.sets ?? [];
     return (
       <section data-testid="chat-game" aria-label={say("web.game.title")}>
-        {/* «во что сыграть?» as 18D draws it: one row per game, the chosen
-            one on panel-2; its sets as chips under the list. */}
-        <div role="radiogroup" aria-label={say("web.game.class")} className="talk-picks" data-testid="game-class">
-          {CLASSES.map((c) => (
-            <button key={c.value} type="button" role="radio" aria-checked={klass === c.value} data-testid={`game-class-${c.value}`}
-              className={klass === c.value ? "talk-pick talk-pick-on" : "talk-pick"}
-              onClick={() => { setKlass(c.value as BoardClass); setSet(c.sets[0] ?? ""); }}>
-              {c.value}
-            </button>
-          ))}
-        </div>
+        {/* «во что сыграть?»: one choice of the kit's Segments for the game, a second
+            for its set where it has more than one. */}
+        <Segments label={say("web.game.class")} testid="game-class" value={klass}
+          options={CLASSES.map((c) => ({ value: c.value, label: classWord(c.value), testid: `game-class-${c.value}` }))}
+          onChange={(value) => { const c = CLASSES.find((x) => x.value === value)!; setKlass(c.value); setSet(c.sets[0] ?? ""); }} />
         {sets.length > 1 && (
-          <div role="radiogroup" aria-label={say("web.game.set")} className="talk-sets" data-testid="game-set">
-            {sets.map((s) => (
-              <button key={s} type="button" role="radio" aria-checked={set === s} data-testid={`game-set-${s}`}
-                className={set === s ? "talk-set talk-set-on" : "talk-set"} onClick={() => setSet(s)}>
-                {s}
-              </button>
-            ))}
-          </div>
+          <Segments label={say("web.game.set")} testid="game-set" value={set}
+            options={sets.map((s) => ({ value: s, label: s, testid: `game-set-${s}` }))} onChange={setSet} />
         )}
         <Button kind="primary" type="button" icon="watch" className="ui-wide" aria-label={say("web.game.propose")} data-testid="game-propose" disabled={busy} onClick={() => act(() => games.propose(chatId, klass, set))} />
-        {error && <p role="alert">{error}</p>}
+        {error && <ErrorLine>{error}</ErrorLine>}
       </section>
     );
   }
@@ -91,7 +80,7 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
       {pending && pending.mine && <p data-testid="game-waiting">{say("web.game.waiting")}</p>}
       {pending && !pending.mine && (
         <p data-testid="game-offer">
-          {pending.kind === "rematch" ? say("web.game.rematch_offered") : say("web.game.offered", { game: `${pending.class} ${pending.set}` })}{" "}
+          {pending.kind === "rematch" ? say("web.game.rematch_offered") : say("web.game.offered", { game: `${classWord(pending.class ?? "")} ${pending.set}` })}{" "}
           <Button kind="primary" type="button" icon="check" aria-label={say("web.game.accept")} data-testid="game-accept" disabled={busy} onClick={() => act(() =>
             pending.kind === "rematch" ? games.answerRematch(chatId, pending.id, "accept") : games.answer(chatId, "accept"))} />{" "}
           <Button kind="secondary" type="button" icon="close" aria-label={say("web.game.decline")} data-testid="game-decline" disabled={busy} onClick={() => act(() =>
@@ -116,12 +105,12 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
             ? !pending && (
               <Button kind="secondary" type="button" icon="refresh" aria-label={say("web.game.rematch")} data-testid="game-rematch" disabled={busy} onClick={() => act(() => games.rematch(chatId))} />
             )
-            : (
+            : board.turn !== null && (
               <Button kind="secondary" type="button" icon="giveup" aria-label={say("web.game.resign")} data-testid="game-resign" disabled={busy} onClick={() => act(() => games.resign(chatId))} />
             )}
         </>
       )}
-      {error && <p role="alert">{error}</p>}
+      {error && <ErrorLine>{error}</ErrorLine>}
     </section>
   );
 }

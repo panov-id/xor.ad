@@ -51,10 +51,14 @@ test("a refused table name is said to the author on the table, which lives on wi
 
   // The author hears it on the open table, and the table goes on.
   await expect(zhenya.getByTestId("table-name-refused"), "the author was not told the name was refused").toBeVisible({ timeout: 20000 });
-  await expect(zhenya.getByTestId("table-name-refused")).toHaveText("имя стола не принято — стол живёт без имени");
+  await expect(zhenya.getByTestId("table-name-refused")).toContainText("имя стола не принято — стол живёт без имени");
   await expect(table).toHaveAttribute("data-id", id);
   await expect(table).not.toContainText(`пиши в тг ${run}`);
   await expect(zhenya.getByTestId("turn")).toBeVisible();
+  // The game has not begun: nothing to give up yet (П7), and the button starts it.
+  await expect(zhenya.getByTestId("turn")).toContainText("партия ещё не началась");
+  await expect(zhenya.getByTestId("resign")).toHaveCount(0);
+  await expect(zhenya.getByTestId("start-game")).toHaveAttribute("aria-label", "начать игру");
 });
 
 test("a dots game begun on the screen, a move on one screen shows on the other, and the link opens it after the PIN", async ({ browser }) => {
@@ -74,8 +78,12 @@ test("a dots game begun on the screen, a move on one screen shows on the other, 
   await expect(other.locator("[data-taken]")).toHaveCount(0);
   // An edge is a button with a box of its own (W11), pressed as a person
   // presses it; its name says which edge.
-  const edge = mover.getByRole("button", { name: /^ребро [hv]:\d+:\d+$/ }).first();
-  await expect(edge).toHaveAttribute("aria-label", /^ребро /);
+  const edge = mover.getByRole("button", { name: /^линия: ряд \d+, колонка \d+, по (горизонтали|вертикали)$/ }).first();
+  await expect(edge).toHaveAttribute("aria-label", /^линия: /);
+  // A game under way can be given up; the header names the class in words (П1).
+  await expect(mover.getByTestId("resign")).toBeVisible();
+  await expect(zhenya.locator("h1")).toContainText("точки");
+  await expect(zhenya.locator("h1")).not.toContainText("dots");
   await edge.click();
   await expect(other.locator("[data-taken]")).toHaveCount(1, { timeout: 15000 });
   await expect(other.getByTestId("turn")).toContainText("ваш ход", { timeout: 15000 });

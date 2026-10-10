@@ -29,8 +29,9 @@ async function waitFor(step: string, seconds = 120): Promise<string> {
 
 async function move(page: Page): Promise<string> {
   await expect(page.getByTestId("turn"), "the page never got its turn").toContainText("ваш ход", { timeout: 30000 });
-  const edge = page.getByRole("button", { name: /^ребро [hv]:\d+:\d+$/ }).first();
-  const label = (await edge.getAttribute("aria-label"))!.replace(/^ребро /, "");
+  const edge = page.getByRole("button", { name: /^линия: ряд \d+, колонка \d+, по (горизонтали|вертикали)$/ }).first();
+  // The edge's id for the terminal's side stays on the element; its name is words.
+  const label = (await edge.getAttribute("data-edge"))!;
   await edge.click();
   return label;
 }

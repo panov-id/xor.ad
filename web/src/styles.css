@@ -326,3 +326,18 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-bar-mine > span { background: var(--accent); }
 .ui-bar-theirs > span { background: var(--cat-amber); }
 [data-screen="card"] .ui-actions, [data-screen="feed"] .ui-actions { justify-content: flex-start; }
+.ui-board { max-inline-size: 100%; block-size: auto; color: var(--fg); }
+.ui-board-dot { fill: currentColor; }
+.ui-board-taken { stroke: currentColor; stroke-width: 3; }
+.ui-board-free { stroke: currentColor; stroke-width: 3; stroke-opacity: 0.05; }
+.ui-board-free-on { stroke-opacity: 0.15; }
+.ui-board-hit { fill: transparent; cursor: default; }
+.ui-board-hit[data-live="yes"] { cursor: pointer; }
+.ui-board-box rect { fill: none; stroke: var(--fg); stroke-width: 2; }
+.ui-board-box[data-own="yes"] rect { fill: var(--accent); stroke: var(--accent); }
+.ui-board-box text { fill: var(--fg); font-weight: 600; }
+.ui-board-box[data-own="yes"] text { fill: var(--accent-ink); }
+.ui-board-cells { background: var(--panel); border-radius: var(--r-2); padding: var(--s-3); margin: 0; overflow-x: auto; }
+.ui-hand { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.ui-hand-item { display: flex; align-items: center; gap: var(--s-1); }
+[data-screen="table"], [data-screen="new-table"] { padding-top: 0; }

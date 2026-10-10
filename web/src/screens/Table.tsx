@@ -126,7 +126,7 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
       </ul>
       <MoveInput
         legend={say("table.say")}
-        fields={[{ label: say("table.say"), value: line, onChange: setLine, maxLength: 128, testid: "line-input" }]}
+        fields={[{ label: say("web.table.line"), value: line, onChange: setLine, maxLength: 128, testid: "line-input" }]}
         submit={{ label: say("table.say"), icon: "say", testid: "line-send" }}
         onSubmit={() => { const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setLine("")); }}
         /* A watcher asks to play with a line of their own (W15): the words are

@@ -71,6 +71,9 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     expect(feedPosts).toEqual([200]);
     await expect(a.getByTestId("sent")).toHaveAttribute("data-state", "published");
     await expect(a.getByTestId("sent")).toContainText(phrase);
+    // Good news is a status, not a «внимание:» note (П21).
+    await expect(a.getByTestId("sent"), "a published phrase is announced as a status").toHaveAttribute("role", "status");
+    await expect(a.getByTestId("sent")).not.toContainText("внимание");
 
     // The verdict line is dropped when the feed is left (the verifier on W2).
     await a.getByTestId("likes").click();
@@ -136,9 +139,14 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     await card.click();
     await expect(b.locator('[data-screen="card"]')).toHaveAttribute("data-id", phraseId);
     await expect(b.getByTestId("text")).toHaveText(phrase);
+    // The screen is named for what it is, not for the phrase's mode (П23).
+    await expect(b.getByRole("heading", { level: 1 })).toHaveText("фраза");
+    await expect(b).toHaveTitle(/^фраза/);
 
     await pressLike(b);
     await expect(b.getByTestId("liked")).toBeVisible({ timeout: 15000 });
+    await expect(b.getByTestId("liked"), "a sent like is a status").toHaveAttribute("role", "status");
+    await expect(b.getByTestId("liked")).not.toContainText("внимание");
     expect(likePosts).toEqual([200]);
     await expect(await likeControl(b)).toBeDisabled();
 

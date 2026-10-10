@@ -96,6 +96,10 @@ test("LinkButton and Link: role link, Enter follows, underline is the second cha
 
   const external = links.getByTestId("kit-link-external");
   await expect(external, "an external Link names the new tab").toHaveAccessibleName(/пользовательское соглашение \(новая вкладка\)/);
+  // The mark is for the screen reader only: clipped to a pixel, never drawn (П20).
+  const mark = external.getByText("(новая вкладка)");
+  const box = await mark.boundingBox();
+  expect(box === null || (box.width <= 1 && box.height <= 1), "the new-tab mark is not visible").toBe(true);
   await expect(external).toHaveAttribute("target", "_blank");
   await expect(external).toHaveAttribute("rel", /noopener/);
   await expectTarget(external, "a block Link");

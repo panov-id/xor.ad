@@ -16,6 +16,7 @@ import { Field, FieldGroup } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Actions } from "../ui/Links.tsx";
 import { Notice } from "../ui/Notices.tsx";
+import { StatusInline } from "../ui/Status.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { Confirm } from "../ui/Sheet.tsx";
 import { Textarea } from "../ui/Textarea.tsx";
@@ -39,14 +40,15 @@ export function Card(
   return (
     <Screen
       name="card"
-      title={mode}
+      title={say("web.card.phrase")}
       data-id={card.id}
       /* Sheet 23: close on the left, the phrase's mode in words on the band. */
-      header={<HeaderScreen title={mode} onBack={onBack} backLabel={say("web.card.back")} />}
+      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} />}
     >
       <article className="ui-phrase">
         {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
         <p className="ui-big" data-testid="text">{card.text}</p>
+        <p className="ui-hint" data-testid="mode">{mode}</p>
         {card.offer?.conditions && <p className="ui-hint" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
         {language && <p className="ui-hint" lang={card.lang}>{language}</p>}
         <p className="ui-card-likes">
@@ -86,11 +88,11 @@ export function CardNotes({ logic }: { logic: CardLogic }) {
   const { like, error } = logic;
   return (
     <>
-      {like?.state === "liked" && <Notice data-testid="liked">{say("web.card.liked")}</Notice>}
+      {like?.state === "liked" && <StatusInline data-testid="liked">{say("web.card.liked")}</StatusInline>}
       {like?.state === "liked" && like.namePending && (
         <Notice data-testid="like-name-pending">{say("like.namePending")}</Notice>
       )}
-      {like?.state === "matched" && <Notice data-testid="matched">{say("web.card.matched")}</Notice>}
+      {like?.state === "matched" && <StatusInline data-testid="matched">{say("web.card.matched")}</StatusInline>}
       {like?.state === "refused" && <ErrorLine data-testid="refused">{like.why}</ErrorLine>}
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
     </>

@@ -131,8 +131,7 @@ export function MatchBody({ row, keys, logic, onBack, onWaiting }: {
             <Button type="button" icon="say" aria-label={say("web.match.to_inbox")} onClick={onWaiting} data-testid="to-inbox" />
           </div>
           <MessageInput
-            label={say("web.match.line")}
-            placeholder={say("web.match.line")}
+            label={say("web.match.line_label")}
             sendLabel={say("web.match.enqueue")}
             value={line}
             onChange={setLine}

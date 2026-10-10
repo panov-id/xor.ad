@@ -26,19 +26,29 @@ async function look(p, step) {
   const s = await p.evaluate(() => {
     const vis = (el) => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none"; };
     const screen = document.querySelector("[data-screen]");
-    const text = (document.querySelector("main, [data-screen]") ?? document.body).innerText.replace(/\n{2,}/g, "\n").trim();
+    // What the eye sees, apart from what only a screen reader reads: the clipped
+    // .visually-hidden boxes are still in innerText (they have a 1px box), so
+    // they are taken out for the text and listed on a line of their own.
+    const root = document.querySelector("main, [data-screen]") ?? document.body;
+    const hiddenEls = [...root.querySelectorAll(".visually-hidden")];
+    const sr = hiddenEls.map((el) => el.textContent.trim()).filter(Boolean);
+    const shown = hiddenEls.map((el) => [el, el.style.display]);
+    for (const el of hiddenEls) el.style.display = "none";
+    const text = root.innerText.replace(/\n{2,}/g, "\n").trim();
+    for (const [el, d] of shown) el.style.display = d;
     const controls = [...document.querySelectorAll("button, a, input, select, textarea, [role=button]")].filter(vis).map((el) => {
       const byIds = (el.getAttribute("aria-labelledby") ?? "").split(/\s+/).map((id) => document.getElementById(id)?.innerText ?? "").join(" ").trim();
       const name = (el.getAttribute("aria-label") || byIds || el.innerText || el.getAttribute("placeholder") || el.getAttribute("title") || (el.labels?.[0]?.innerText ?? "") || "").trim().replace(/\s+/g, " ");
       return `${el.tagName.toLowerCase()}${el.dataset.testid ? "#" + el.dataset.testid : ""}=${name ? JSON.stringify(name.slice(0, 40)) : "БЕЗ ИМЕНИ"}`;
     });
-    return { id: screen?.getAttribute("data-screen") ?? "?", text, controls, title: document.title, lang: document.documentElement.lang };
+    return { id: screen?.getAttribute("data-screen") ?? "?", text, sr, controls, title: document.title, lang: document.documentElement.lang };
   });
   const ms = Date.now() - last; last = Date.now();
   // WALK_STABLE: no timings, so two walks diff line by line.
   const took = process.env.WALK_STABLE ? "" : `${ms} ms · `;
   console.log(`\n## ${p.who} · ${step} · [${s.id}] · ${took}title="${s.title}" lang=${s.lang}`);
   console.log(s.text.split("\n").map((l) => "  | " + l).join("\n"));
+  if (s.sr.length) console.log("  screen reader only: " + s.sr.join(" | "));
   console.log("  controls: " + s.controls.join(", "));
 }
 const t = (p, id) => p.getByTestId(id);

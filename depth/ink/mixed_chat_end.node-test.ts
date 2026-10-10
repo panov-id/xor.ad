@@ -14,6 +14,7 @@ import { createElement as h } from "react";
 import { render } from "ink-testing-library";
 import { Client } from "../core/client.ts";
 import { App } from "./app.ts";
+import { caret } from "./kit.ts";
 import { strings } from "./strings.ts";
 
 const node = process.env.DEPTH_NODE_URL!;
@@ -114,7 +115,7 @@ async function meetAndTalk(app: Screen, r: string): Promise<string> {
   const hers = await waitFor(`web-liked-${r}`);
   await rereadFeed(app);
   await until(app, new RegExp(hers), 60);
-  const cursorOn = new RegExp(`›[^\\n]*\\n\\s*${hers}`);
+  const cursorOn = new RegExp(`(?:^|\\n)> [^\\n]*${hers}`);
   for (let i = 0; i < 12 && !cursorOn.test(app.lastFrame() ?? ""); i++) await type(app, DOWN);
   for (let i = 0; i < 12 && !cursorOn.test(app.lastFrame() ?? ""); i++) await type(app, UP);
   await until(app, cursorOn, 10);
@@ -160,9 +161,9 @@ async function main() {
     await until(app, /Запишите этот код/);
     const paper = /([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4}) - ([0-9A-Z]{4})/.exec(app.lastFrame() ?? "");
     assert.ok(paper, "the paper code is not on the screen in four groups");
-    await typeUntil(app, paper[2], new RegExp(`${paper[2]}_`));
+    await typeUntil(app, paper[2], new RegExp(`${paper[2]}${caret()}`));
     await type(app, DOWN);
-    await typeUntil(app, paper[4], new RegExp(`${paper[4]}_`));
+    await typeUntil(app, paper[4], new RegExp(`${paper[4]}${caret()}`));
     await type(app, DOWN, ENTER);
     await until(app, /Где вы/, 30);
     await typeUntil(app, LAT, /41\.9/);

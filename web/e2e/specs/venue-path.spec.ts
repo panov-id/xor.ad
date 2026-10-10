@@ -101,7 +101,7 @@ test("a venue's path: cabinet, envelope, offer, the neighbour's feed, its link, 
   const exit = await page.context().newPage();
   await exit.goto(`/o/${redirect}`);
   await expect(exit.locator('[data-screen="offer-exit"]')).toHaveAttribute("data-state", "ok", { timeout: 15000 });
-  await expect(exit.getByTestId("domain")).toHaveText("put.example");
+  await expect(exit.getByTestId("domain").locator("code")).toHaveText("put.example");
   await exit.close();
 
   // Back on the card: "скидку не дали", with an address.

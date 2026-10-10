@@ -1,4 +1,5 @@
 src/App.tsx	8
+src/adv/Cabinet.tsx	0
 src/screens/AgeFilter.tsx	0
 src/screens/Arrival.tsx	0
 src/screens/Blocked.tsx	0
@@ -11,13 +12,13 @@ src/screens/Departure.tsx	10
 src/screens/Feed.tsx	20
 src/screens/Hidden.tsx	0
 src/screens/Inbox.tsx	0
-src/screens/Legal.tsx	13
+src/screens/Legal.tsx	0
 src/screens/Likes.tsx	9
 src/screens/Locked.tsx	0
 src/screens/Match.tsx	15
 src/screens/Me.tsx	0
 src/screens/NewTable.tsx	10
-src/screens/Offer.tsx	16
+src/screens/Offer.tsx	0
 src/screens/Register.tsx	0
 src/screens/Reissue.tsx	0
 src/screens/Restore.tsx	0

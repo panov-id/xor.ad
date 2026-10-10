@@ -1,17 +1,15 @@
 /* WD5: the screens of the table, the offer's exit, "me" and its lists, the
-   statements and the cabinet, laid out by sheets 17, 19, 25, 26. Geometry on
+   statements and the cabinet, laid out by sheets 19, 25, 26. Geometry on
    --s-* and --r-*, colour only from the kit (check-web-tokens.sh). */
 
 .screen.table { padding-top: 0; }
 .screen.me, .screen.hidden-list, .screen.blocked-list, .screen.statements,
-.screen.new-table, .screen.offer-exit, .screen.edit, .screen.pin, .screen.reset,
-.screen.step-away, .screen.cabinet { padding-top: 0; }
+.screen.new-table, .screen.edit, .screen.pin, .screen.reset,
+.screen.step-away { padding-top: 0; }
 
 .place-meta { color: var(--muted); font-size: 14px; margin: 0; }
 .place-label { color: var(--muted); font-size: 14px; font-weight: 600; margin-right: var(--s-1); }
 .place-empty { color: var(--muted); text-align: center; padding: var(--s-8) 0; margin: 0; }
-.place-empty-block { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-8) 0; text-align: center; }
-.place-empty-block h2 { font-size: 26px; font-weight: 400; margin: 0; }
 
 /* Rows of a list or a setting (row-setting): no rim, a hairline between,
    the action at the right. */
@@ -29,18 +27,7 @@
 .place-field { display: flex; flex-direction: column; gap: var(--s-1); font-size: 14px; color: var(--muted); }
 .place-field select, .place-field input { background: var(--panel); border-color: var(--border-control); color: var(--fg); font-size: 16px; }
 
-.place-footer { margin-top: auto; display: flex; flex-direction: column; }
 
-/* The offer's exit (sheet 17, WS3): the display title at y 120, the domain in
-   the code block (72 tall, panel-2, mono 26), two lines of body, and the three
-   actions low on the screen — continue, cancel, and the framed report. */
-.offer-leave { display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-6) var(--s-2) 0; }
-.offer-display { font-size: 26px; font-weight: 400; line-height: 1.25; margin: 0; }
-.offer-domain { margin: 0; display: grid; place-items: center; min-height: 72px; border-radius: var(--r-2); background: var(--panel-2); color: var(--fg);
-  font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; letter-spacing: 2px; overflow-wrap: anywhere; text-align: center; padding: 0 var(--s-3); }
-.offer-note { margin: 0; font-size: 16px; line-height: 26px; color: var(--fg); }
-.offer-actions { margin-top: auto; display: flex; flex-direction: column; gap: var(--s-3); padding: 0 var(--s-2) var(--s-6); }
-.offer-go { text-decoration: none; width: 100%; }
 .offer-report { min-height: var(--control-h); border: 1px solid var(--border-control); border-radius: var(--r-1); background: transparent; color: var(--fg); font-size: 16px; font-weight: 600; }
 .offer-toast { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-2); background: var(--fg); color: var(--bg); font-size: 14px; }
 
@@ -56,56 +43,6 @@
 .screen.table .hand { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .screen.table .hand button { background: var(--panel); border-color: var(--border-control); }
 .screen.table .cells { background: var(--panel); border-radius: var(--r-2); padding: var(--s-3); margin: 0; overflow-x: auto; }
-
-/* The cabinet (sheets 17, 26): venues and offers as kit cards. */
-.place-tabs { display: flex; gap: var(--s-4); border-bottom: 1px solid var(--border); }
-.place-venue h2, .place-offer h2 { font-size: 16px; font-weight: 600; margin: 0; }
-.place-venue p, .place-offer p { margin: 0; }
-.place-discount { color: var(--accent-text); font-size: 20px; font-weight: 600; }
-
-/* A header with no back icon keeps the title on the 16 edge, as the sheets do. */
-.ui-header-rule:not(:has(.ui-icon)) { padding-left: var(--s-4); }
-
-/* WD9: the cabinet against sheet 17 — the strip on top (panel, the address in
-   mono 11 on the left, the sections as words on the right), titles at display
-   26/400, full-width actions, the point's fields without the fieldset's frame.
-   The strip is 56 tall, as the sheet's rect and the kit's headers (WD10h);
-   the content stands at x 24 as the sheet draws it, the strip still edge to
-   edge with its address at 16 (WD10i). */
-.screen.cabinet { gap: var(--s-3); padding-left: var(--s-6); padding-right: var(--s-6); }
-.cabinet-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); min-height: 56px; margin: 0 calc(-1 * var(--s-6)); padding: 0 var(--s-4); background: var(--panel); }
-.cabinet-where { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
-.cabinet-nav { display: flex; gap: var(--s-3); }
-.cabinet-nav .ui-button { font-size: 13px; font-weight: 400; color: var(--muted); }
-.cabinet-nav .ui-button[aria-current="page"] { color: var(--fg); font-weight: 600; }
-.screen.cabinet .ui-header { margin-top: var(--s-2); }
-.screen.cabinet .ui-header-title { font-size: 26px; font-weight: 400; }
-.screen.cabinet > .ui-button, .screen.cabinet .add-venue > .ui-button, .screen.cabinet .place-venue .ui-button { width: 100%; }
-.screen.cabinet .add-venue { display: flex; flex-direction: column; gap: var(--s-3); }
-.screen.cabinet fieldset.place { border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-3); }
-.screen.cabinet fieldset.place legend { padding: 0; margin-bottom: var(--s-2); font-size: 14px; font-weight: 600; color: var(--fg); }
-.screen.cabinet input, .screen.cabinet select, .screen.cabinet textarea { background: var(--panel); }
-/* WD11: the states sheet 17 draws — the complaint count on an offer (err), the
-   complaints with the one answer to the moderator, «это не мы» under the
-   venues, and «Так увидит сосед» before publishing. */
-.place-count { display: flex; justify-content: space-between; margin: 0; font-size: 14px; }
-.place-count-bad { color: var(--err); font-weight: 600; }
-.place-complaints, .place-not-us, .place-preview { display: flex; flex-direction: column; gap: var(--s-3); }
-.place-complaints h2, .place-not-us h2 { font-size: 16px; font-weight: 600; margin: var(--s-4) 0 0; }
-.place-not-us { border-top: 1px solid var(--border); padding-top: var(--s-4); margin-top: var(--s-4); }
-.place-complaint p { margin: 0; }
-.place-complaint .warn { color: var(--accent-text); font-size: 14px; }
-.place-answer { display: flex; gap: var(--s-2); align-items: flex-end; }
-.place-answer .place-field { flex: 1; }
-.place-preview .row { display: flex; justify-content: space-between; align-items: center; }
-.screen.cabinet .place-not-us .ui-button, .screen.cabinet .place-preview .ui-button { width: 100%; }
-/* WD13, sheet 17 «Вы покидаете sosed»: no card — the title at display 26, the
-   words on the ground, the way out at the foot with «на главную» under it. */
-.screen.offer-exit .ui-header-title { font-size: 26px; font-weight: 400; }
-.screen.offer-exit .ui-header { border-bottom: 0; }
-.screen.offer-exit .place-exit { flex: 1; background: none; border: 0; padding: 0; }
-.screen.offer-exit .place-exit .place-link-button { margin-top: auto; width: 100%; }
-.screen.cabinet [data-testid="adv-sent"] { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-1); background: var(--panel-2); font-size: 14px; }
 
 /* The theme picker (Me → theme): a radio per theme, a 48px row, the swatch
    drawn by that theme's own tokens (its element carries data-theme). */

@@ -5,8 +5,9 @@ import { say } from "../locales/say.ts";
 type Anchor = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "target" | "rel" | "className"> & { href: string };
 
 // LinkButton: a link that looks like a Button; role link, Enter. Name = its words.
-export function LinkButton({ kind = "secondary", children, ...rest }: Anchor & { kind?: "primary" | "secondary" }) {
-  return <a {...rest} className={`ui-button ui-${kind}`}>{children}</a>;
+// `nofollow` is for a link the page does not vouch for (an offer's exit).
+export function LinkButton({ kind = "secondary", nofollow = false, children, ...rest }: Anchor & { kind?: "primary" | "secondary"; nofollow?: boolean }) {
+  return <a {...rest} rel={nofollow ? "noopener noreferrer nofollow" : undefined} className={`ui-button ui-${kind}`}>{children}</a>;
 }
 
 // Link: the theme's accent-text, always underlined (the second channel). An

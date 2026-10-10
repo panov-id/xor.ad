@@ -15,7 +15,7 @@ test("a live offer link: the exit screen names the domain, and the node's 302 po
   await page.goto("/o/webtestlive0001");
   await expect(page.locator('[data-screen="offer-exit"]')).toHaveAttribute("data-state", "ok", { timeout: 15000 });
   expect(exits).toEqual([200]);
-  await expect(page.getByTestId("domain")).toHaveText("ourcafe.cy");
+  await expect(page.getByTestId("domain").locator("code")).toHaveText("ourcafe.cy");
   await expect(page.getByTestId("exit")).toHaveAttribute("data-disabled", "false");
   await expect(page.getByTestId("go")).toHaveAttribute("href", "/o/webtestlive0001/go");
   // Sheet 17: the domain stands whole in its own block, the button says "Продолжить";

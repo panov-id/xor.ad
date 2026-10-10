@@ -148,5 +148,5 @@ test("the cabinet: a link by mail, a venue proved by its envelope, an offer publ
   await page.reload();
   await expect(page.locator('[data-screen="adv-venues"]')).toBeVisible({ timeout: 15000 });
   await page.goto(`${ADV}/adv/enter#${token}`);
-  await expect(page.getByTestId("adv-expired")).toHaveText("Ссылка истекла", { timeout: 15000 });
+  await expect(page.locator('[data-screen="adv-expired"] h1')).toHaveText("Ссылка истекла", { timeout: 15000 });
 });

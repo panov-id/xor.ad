@@ -245,8 +245,6 @@
   "web.offer.wrong": "Keçid yanlış yerə aparır",
   "web.offer.warn": "Orada bu gün nə olduğunu yoxlamırıq: vədə yox, domenə baxın. Keçid bir dəfə sayılır.",
   "web.phrase.refused_status": "İfadə qəbul edilmədi ({status}).",
-  "web.phrase.refused_why": "İfadə qəbul edilmədi: {why}.",
-  "web.name.refused_why": "Ad qəbul edilmədi: {why}.",
   "web.register.age_min": "13 yaşdan",
   "web.register.confirm": "Yazdınız? İkinci və dördüncü qrupları daxil edin.",
   "web.register.consent": "istifadə şərtlərini, məxfilik siyasətini və icma qaydalarını qəbul edirəm",
@@ -387,5 +385,11 @@
   "web.info.code": "kağız kod haqqında",
   "web.info.pin": "PİN haqqında",
   "web.info.move": "bura köçürmə haqqında",
-  "web.info.reissue": "kodun dəyişdirilməsi haqqında"
+  "web.info.reissue": "kodun dəyişdirilməsi haqqında",
+  "web.refused.status": "Qəbul edilmədi ({status}).",
+  "web.like.count": "bəyənmələr: {n}",
+  "web.name.refused_generic": "Ad qəbul edilmədi. Başqasını seçin — keçidsiz, əlaqə məlumatsız və təhqirsiz.",
+  "web.ui.system": "sistem",
+  "web.phrase.refused_generic": "Ifadə qəbul edilmədi. Keçidləri, əlaqə məlumatlarını və təhqirləri silin, sonra yenidən cəhd edin.",
+  "web.ui.you": "siz"
 }

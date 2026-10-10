@@ -2,7 +2,8 @@
 // EditProfile, ChangePin, StartAgain, StepAway and Away — the same rows, the
 // same words (depth/ink/locales/ru.json through api/me.ts), the same node
 // calls through the same core. Not here: liked, hidden, blocked (W2), the
-// paper code and the move (later steps).
+// paper code and the move (later steps). Built of the kit's elements only
+// (web/src/ui, K5): no raw control and no class of its own.
 
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
@@ -12,11 +13,18 @@ import { AgeFilter } from "./AgeFilter.tsx";
 import { Legal } from "./Legal.tsx";
 import { changePinAndReseal, forget } from "../vault.ts";
 import { Button } from "../ui/Button.tsx";
-import { Icon, type IconName } from "../ui/Icon.tsx";
+import { Field, PinField } from "../ui/Field.tsx";
+import type { IconName } from "../ui/Icon.tsx";
 import { Info } from "../ui/Info.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { List, ListItem } from "../ui/List.tsx";
+import { Notice } from "../ui/Notices.tsx";
+import { Screen } from "../ui/Screen.tsx";
+import { Choice } from "../ui/Segments.tsx";
+import { SettingRow } from "../ui/SettingRow.tsx";
 import { BRAND } from "../config.ts";
-import { AUTO, applyTheme, type Choice, readChoice, saveChoice } from "../theme.ts";
+import { AUTO, applyTheme, type Choice as ThemeChoice, readChoice, saveChoice } from "../theme.ts";
 import { THEMES } from "../themes.gen.ts";
 import { chooseLanguage, LANG, LANGUAGES, languageName } from "../locales/say.ts";
 import "./place.css";
@@ -24,6 +32,8 @@ import "./place.css";
 // "filter" and "legal" open here, not through the parent (W14-AF, W13-LC):
 // the age filter and screen 15 are Me's own screens.
 export type MeRow = "statements" | "name" | "age" | "filter" | "hidden" | "blocked" | "legal" | "away" | "pin" | "move" | "reissue" | "reset" | "theme" | "lang";
+
+const back = (onBack: () => void, testid: string) => <Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid={testid} />;
 
 export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }: {
   brandClass?: string;
@@ -42,21 +52,22 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
   if (filtering) return <AgeFilter client={client} onDone={() => setFiltering(false)} onBack={() => setFiltering(false)} />;
   if (legal) return <Legal client={client} onDone={() => setLegal(false)} onBack={() => setLegal(false)} />;
   if (choosingLang) return <LanguagePicker onBack={() => setChoosingLang(false)} />;
-  const rows: Array<{ key: MeRow; label: string; red?: boolean; testid: string; icon?: IconName }> = [
-    ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), red: true, testid: "me-statements", icon: "report" as const }] : []),
+  // `label` is the row's name, `value` what it holds now; a row with no value
+  // carries its whole words in the label.
+  const rows: Array<{ key: MeRow; label: string; value?: string; danger?: boolean; testid: string; icon?: IconName }> = [
+    ...(restrictions > 0 ? [{ key: "statements" as const, label: say("statements.count", { n: restrictions }), danger: true, testid: "me-statements", icon: "report" as const }] : []),
     // A refused name is said here (§8.2, chat_RU.md:866: it is edited always):
     // the row carries the words and opens the editor, as it does for any name (W13-NR).
     {
       key: "name",
-      label: `${say("me.name")}  ${
-        profile
-          ? profile.name + (profile.pending ? ` → ${profile.pending} · ${say("feed.checking")}` : profile.state === "rejected" ? ` · ${say("web.me.name_rejected")}` : "")
-          : "…"
-      }`,
+      label: say("me.name"),
+      value: profile
+        ? profile.name + (profile.pending ? ` → ${profile.pending} · ${say("feed.checking")}` : profile.state === "rejected" ? ` · ${say("web.me.name_rejected")}` : "")
+        : "…",
       testid: "me-name",
       icon: "name",
     },
-    { key: "age", label: `${say("me.age")}  ${profile ? profile.age : "…"}`, testid: "me-age", icon: "me" },
+    { key: "age", label: say("me.age"), value: profile ? String(profile.age) : "…", testid: "me-age", icon: "me" },
     { key: "filter", label: say("web.filter.item"), testid: "me-filter", icon: "me" },
     { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}`, testid: "me-hidden", icon: "hide" },
     ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }), testid: "me-blocked", icon: "block" as const }] : []),
@@ -69,26 +80,33 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
     // row amid the half tiles breaks their pairs (W16-MD). The language too
     // (WP-3: put after "theme" it left "change PIN" alone, the Me sheet's
     // drift 16% → 25%).
-    { key: "lang", label: `${say("web.lang.item")} · ${languageName(LANG)}`, testid: "me-lang", icon: "say" },
+    { key: "lang", label: say("web.lang.item"), value: languageName(LANG), testid: "me-lang", icon: "say" },
     { key: "legal", label: say("web.legal.item"), testid: "me-legal", icon: "report" },
     { key: "reset", label: say("reset.item"), testid: "me-reset", icon: "reset" },
   ];
   return (
-    <main className={["screen me", brandClass].filter(Boolean).join(" ")} data-screen="me" data-name-state={profile ? (profile.pending ? "pending" : profile.state) : "accepted"}>
-      <HeaderScreen title={say("me.title")} action={<Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="me-back" />} />
-      {error && <p className="error" data-testid="error">{error}</p>}
-      <ul className="place-rows">
+    <Screen
+      name="me"
+      title={say("me.title")}
+      className={brandClass}
+      data-name-state={profile ? (profile.pending ? "pending" : profile.state) : "accepted"}
+      header={<HeaderScreen title={say("me.title")} action={back(onBack, "me-back")} />}
+    >
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
+      <List label={say("me.title")}>
         {rows.map((row) => (
-          <li key={row.key} data-row={row.key}>
-            <button
-              type="button"
-              className={row.red ? "place-setting warn" : "place-setting"}
+          <ListItem key={row.key} data-row={row.key}>
+            <SettingRow
+              label={row.label}
+              value={row.value}
+              danger={row.danger}
+              icon={row.icon}
               data-testid={row.testid}
               // Name and age open with the profile's value: until it has come
               // the row is shown but not pressable, instead of a press that does
               // nothing (it lost shoot-web's Me-edit-name to that race, WD7).
               disabled={(row.key === "name" || row.key === "age") && !profile}
-              onClick={() => {
+              onSelect={() => {
                 if (row.key === "name") return profile && onOpen("name", profile.pending ?? profile.name);
                 if (row.key === "age") return profile && onOpen("age", String(profile.age));
                 if (row.key === "filter") return setFiltering(true);
@@ -96,68 +114,61 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
                 if (row.key === "lang") return setChoosingLang(true);
                 onOpen(row.key);
               }}
-            >
-              {row.icon ? <Icon name={row.icon} /> : null}
-              <span>{row.label}</span>
-            </button>
-          </li>
+            />
+          </ListItem>
         ))}
-      </ul>
-    </main>
+      </List>
+    </Screen>
   );
 }
 
-// The brand's themes (theme.ts, themes.gen.ts): one radio per selectable
+// The brand's themes (theme.ts, themes.gen.ts): one choice per selectable
 // theme plus "auto". A swatch is drawn by the theme's own tokens — the swatch
 // element carries data-brand/data-theme, so themes.gen.css resolves --bg and
 // --accent to that theme there. The names are data (English), not words of
 // the dictionaries. Kept on this device (localStorage theme:<brand>).
 export function ThemePicker({ onBack }: { onBack: () => void }) {
-  const [choice, setChoice] = useState<Choice>(() => readChoice(BRAND));
-  const pick = (next: Choice) => {
+  const [choice, setChoice] = useState<ThemeChoice>(() => readChoice(BRAND));
+  const pick = (next: string) => {
     saveChoice(BRAND, next);
     setChoice(next);
     applyTheme(BRAND);
   };
-  const options: Array<{ id: Choice; label: string; swatch: string }> = [
+  const options: Array<{ id: ThemeChoice; label: string; swatch: string }> = [
     { id: AUTO, label: say("web.theme.auto"), swatch: "light" },
     ...(THEMES[BRAND] ?? []).map((t) => ({ id: t.id, label: t.name, swatch: t.id })),
   ];
   return (
-    <main className="screen theme" data-screen="theme">
-      <HeaderScreen title={say("web.theme.title")} action={<Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="theme-back" />} />
-      <div role="radiogroup" aria-label={say("web.theme.title")} className="theme-options">
-        {options.map((o) => (
-          <label key={o.id} className="theme-option" data-testid={`theme-${o.id}`}>
-            <input type="radio" name="theme" value={o.id} checked={choice === o.id} onChange={() => pick(o.id)} />
-            <span className="theme-swatch" data-brand={BRAND} data-theme={o.swatch} aria-hidden="true">
-              <span className="theme-dot" />
-            </span>
-            <span>{o.label}</span>
-          </label>
-        ))}
-      </div>
-    </main>
+    <Screen name="theme" title={say("web.theme.title")} header={<HeaderScreen title={say("web.theme.title")} action={back(onBack, "theme-back")} />}>
+      <Choice
+        label={say("web.theme.title")}
+        value={choice}
+        onChange={pick}
+        options={options.map((o) => ({
+          value: o.id,
+          label: o.label,
+          testid: `theme-${o.id}`,
+          sample: <span className="ui-swatch" data-brand={BRAND} data-theme={o.swatch} aria-hidden="true"><span className="ui-swatch-dot" /></span>,
+        }))}
+      />
+    </Screen>
   );
 }
 
-// The page's language, one radio per language both dictionaries know, each
+// The page's language, one choice per language both dictionaries know, each
 // named in itself (locales/say.ts languageName), so a person who cannot read
 // the current one still finds their own. Kept on this device; choosing one
 // reloads the page in it (WP-3).
 export function LanguagePicker({ onBack }: { onBack: () => void }) {
   return (
-    <main className="screen theme" data-screen="lang">
-      <HeaderScreen title={say("web.lang.title")} action={<Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="lang-back" />} />
-      <div role="radiogroup" aria-label={say("web.lang.title")} className="theme-options">
-        {LANGUAGES.map((lang) => (
-          <label key={lang} className="theme-option" data-testid={`lang-${lang}`}>
-            <input type="radio" name="lang" value={lang} checked={lang === LANG} onChange={() => chooseLanguage(lang)} />
-            <span lang={lang}>{languageName(lang)}</span>
-          </label>
-        ))}
-      </div>
-    </main>
+    <Screen name="lang" title={say("web.lang.title")} header={<HeaderScreen title={say("web.lang.title")} action={back(onBack, "lang-back")} />}>
+      <Choice
+        label={say("web.lang.title")}
+        value={LANG}
+        onChange={chooseLanguage}
+        options={LANGUAGES.map((lang) => ({ value: lang, label: languageName(lang), lang, testid: `lang-${lang}` }))}
+      />
+    </Screen>
   );
 }
 
@@ -181,32 +192,29 @@ export function EditProfile({ client, field, current, onDone, onBack }: {
     try {
       const answer = await client.editProfile(field === "name" ? { name: value.trim() } : { age: Number(value) });
       if (answer.status === 200 || answer.status === 202) return onDone();
-      setRefused(profileRefusal(answer) ?? `the profile edit was refused: ${answer.status}`);
+      setRefused(profileRefusal(answer) ?? say("web.refused.status", { status: answer.status }));
     } catch (e) {
       setRefused((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
+  const title = say(field === "name" ? "me.name" : "me.age");
   return (
-    <main className="screen edit" data-screen={`edit-${field}`}>
-      <HeaderScreen title={say(field === "name" ? "me.name" : "me.age")} />
-      <p className="muted">{say(field === "name" ? "me.nameHint" : "me.ageHint")}</p>
-      <label>
-        {say(field === "name" ? "me.name" : "me.age")}
-        <input
-          value={value}
-          onChange={(e) => setValue(field === "age" ? e.target.value.replace(/[^0-9]/g, "").slice(0, 3) : graphemes(e.target.value, NAME_MAX))}
-          inputMode={field === "age" ? "numeric" : "text"}
-          data-testid="edit-value"
-          autoComplete="off"
-        />
-      </label>
-      {refused && <p className="error" data-testid="error">{refused}</p>}
+    <Screen name={`edit-${field}`} title={title} header={<HeaderScreen title={title} />}>
+      <Field
+        label={title}
+        kind={field === "name" ? "text" : "number"}
+        hint={say(field === "name" ? "me.nameHint" : "me.ageHint")}
+        value={value}
+        onChange={(next) => setValue(field === "age" ? next.replace(/[^0-9]/g, "").slice(0, 3) : graphemes(next, NAME_MAX))}
+        data-testid="edit-value"
+      />
+      {refused && <ErrorLine data-testid="error">{refused}</ErrorLine>}
       {asking
         ? (
           <>
-            <p className="warn">{say("me.band21")}</p>
+            <Notice>{say("me.band21")}</Notice>
             <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("me.save")} onClick={() => { setAsking(false); void send(); }} data-testid="edit-save" />
             <Button type="button" icon="close" className="ui-wide" aria-label={say("me.cancel")} onClick={() => setAsking(false)} />
           </>
@@ -226,7 +234,7 @@ export function EditProfile({ client, field, current, onDone, onBack }: {
             <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="edit-back" />
           </>
         )}
-    </main>
+    </Screen>
   );
 }
 
@@ -250,22 +258,18 @@ export function ChangePin({ client, onBack }: { client: Client; onBack: () => vo
         setValues({ current: "", next: "", again: "" });
         return setChanged(true);
       }
-      setRefused(pinRefusal(answer) ?? `the PIN change was refused: ${answer.status}`);
+      setRefused(pinRefusal(answer) ?? say("web.refused.status", { status: answer.status }));
     } catch (e) {
       setRefused((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
-  const field = (key: keyof typeof values, label: string, testid: string) => (
-    <label>
-      {label}
-      <input type="password" inputMode="numeric" value={values[key]} onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value.replace(/\D/g, "").slice(0, 6) }))} data-testid={testid} />
-    </label>
+  const pin = (key: keyof typeof values, label: string, testid: string, error?: string) => (
+    <PinField label={label} value={values[key]} error={error} onChange={(next) => setValues((v) => ({ ...v, [key]: next }))} data-testid={testid} />
   );
   return (
-    <main className="screen pin" data-screen="change-pin" data-changed={changed ? "yes" : "no"}>
-      <HeaderScreen title={say("pin.title")} />
+    <Screen name="change-pin" title={say("pin.title")} data-changed={changed ? "yes" : "no"} header={<HeaderScreen title={say("pin.title")} />}>
       {changed
         ? (
           <>
@@ -275,16 +279,15 @@ export function ChangePin({ client, onBack }: { client: Client; onBack: () => vo
         )
         : (
           <>
-            {field("current", say("pin.current"), "pin-current")}
-            {field("next", say("pin.next"), "pin-next")}
-            {field("again", say("pin.again"), "pin-again")}
-            {differ && <p className="error">{say("reg.pinMismatch")}</p>}
-            {refused && <p className="error" data-testid="error">{refused}</p>}
+            {pin("current", say("pin.current"), "pin-current")}
+            {pin("next", say("pin.next"), "pin-next")}
+            {pin("again", say("pin.again"), "pin-again", differ ? say("reg.pinMismatch") : undefined)}
+            {refused && <ErrorLine data-testid="error">{refused}</ErrorLine>}
             <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("pin.go")} aria-busy={busy} disabled={!ready} onClick={() => void send()} data-testid="pin-go" />
             <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="pin-back" />
           </>
         )}
-    </main>
+    </Screen>
   );
 }
 
@@ -308,7 +311,7 @@ export function StartAgain({ client, onClosed, onBack }: { client: Client; onClo
         await forget();
         return onClosed();
       }
-      setRefused(pinRefusal(answer) ?? `the close was refused: ${answer.status}`);
+      setRefused(pinRefusal(answer) ?? say("web.refused.status", { status: answer.status }));
     } catch (e) {
       setRefused((e as Error).message);
     } finally {
@@ -316,20 +319,16 @@ export function StartAgain({ client, onClosed, onBack }: { client: Client; onClo
     }
   }
   return (
-    <main className="screen reset" data-screen="reset">
-      <HeaderScreen title={say("reset.title")} />
+    <Screen name="reset" title={say("reset.title")} header={<HeaderScreen title={say("reset.title")} />}>
       {/* What cannot be undone is said on the screen, not behind ⓘ: the button below is an icon. */}
-      <p className="warn" data-testid="reset-warning">{say("reset.warning")}</p>
-      <p className="warn" data-testid="reset-code">{say("reset.code")}</p>
+      <Notice data-testid="reset-warning">{say("reset.warning")}</Notice>
+      <Notice data-testid="reset-code">{say("reset.code")}</Notice>
       <p data-testid="reset-price">{counts ? say("reset.price", { phrases: String(counts.phrases), chats: String(counts.chats) }) : "…"}</p>
-      <label>
-        {say("reset.pin")}
-        <input type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} data-testid="reset-pin" />
-      </label>
-      {refused && <p className="error" data-testid="error">{refused}</p>}
+      <PinField label={say("reset.pin")} value={pin} onChange={setPin} data-testid="reset-pin" />
+      {refused && <ErrorLine data-testid="error">{refused}</ErrorLine>}
       <Button type="button" kind="danger" icon="reset" className="ui-wide" aria-label={say("reset.go")} disabled={pin.length !== 6 || counts === null || busy} onClick={() => void send()} data-testid="reset-go" />
       <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="reset-back" />
-    </main>
+    </Screen>
   );
 }
 
@@ -349,18 +348,16 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
     return say("away.price", { phrases: counts.phrases, likes: counts.likes, chats: counts.ends.filter((end) => end < back).length, of: counts.ends.length });
   };
   return (
-    <main className="screen step-away" data-screen="step-away">
-      <HeaderScreen title={say("away.item")} />
-      <ul className="place-rows">
-        {AWAY_ORDER.map((s) => (
-          <li key={s}>
-            <button type="button" className={span === s ? "place-setting chosen" : "place-setting"} onClick={() => setSpan(s)} data-testid={`away-${s}`}>{say(`away.${s}`)}</button>
-          </li>
-        ))}
-      </ul>
-      <p className={span ? "warn" : "muted"} data-testid="away-price">{price()}</p>
+    <Screen name="step-away" title={say("away.item")} header={<HeaderScreen title={say("away.item")} />}>
+      <Choice
+        label={say("away.item")}
+        value={span ?? ""}
+        onChange={(next) => setSpan(next as AwaySpan)}
+        options={AWAY_ORDER.map((s) => ({ value: s, label: say(`away.${s}`), testid: `away-${s}` }))}
+      />
+      {span ? <Notice data-testid="away-price">{price()}</Notice> : <p className="ui-hint" data-testid="away-price">{price()}</p>}
       <div className="ui-info-row"><Info label={say("away.item")} data-testid="away-warning-info"><p>{say("away.warning")}</p></Info></div>
-      {error && <p className="error" data-testid="error">{error}</p>}
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       <Button
         type="button"
         kind="primary"
@@ -376,7 +373,7 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
         data-testid="away-go"
       />
       <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="away-back" />
-    </main>
+    </Screen>
   );
 }
 
@@ -396,11 +393,11 @@ export function Away({ client, until, onBack }: { client: Client; until: number;
   const at = new Date(until * 1000).toTimeString().slice(0, 5);
   const left = Math.max(1, Math.ceil((until - now) / 60));
   return (
-    <main className="screen away" data-screen="away">
+    <Screen name="away" title={say("away.item")}>
       <p data-testid="away-line">{say("away.line")}</p>
-      <p className="muted">{say("away.until", { time: at, minutes: left })}</p>
-      {asking && <p className="warn" data-testid="away-sure">{say("away.sure")}</p>}
-      {error && <p className="error" data-testid="error">{error}</p>}
+      <p className="ui-hint">{say("away.until", { time: at, minutes: left })}</p>
+      {asking && <Notice data-testid="away-sure">{say("away.sure")}</Notice>}
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       <Button
         type="button"
         kind="primary"
@@ -413,6 +410,6 @@ export function Away({ client, until, onBack }: { client: Client; until: number;
         }}
         data-testid="away-return"
       />
-    </main>
+    </Screen>
   );
 }

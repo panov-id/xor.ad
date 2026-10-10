@@ -9,8 +9,8 @@ import { say } from "../locales/say.ts";
 // thing Tab finds is «к содержимому», which skips the header. The second
 // channel is document.title: «экран · бренд», so a tab and a history entry
 // have a name.
-export function Screen({ name, title, header, nav, children }:
-  { name: string; title: string; header?: ReactNode; nav?: ReactNode; children: ReactNode }) {
+export function Screen({ name, title, header, nav, children, className, ...rest }:
+  { name: string; title: string; header?: ReactNode; nav?: ReactNode; children: ReactNode; className?: string } & { [data: `data-${string}`]: string | number | undefined }) {
   const main = useRef<HTMLElement>(null);
   // The title goes back when the screen leaves: a screen that is not (yet) on
   // Screen would otherwise keep wearing the last one's name (К4 text walk).
@@ -31,7 +31,7 @@ export function Screen({ name, title, header, nav, children }:
         event.preventDefault();
         document.getElementById("ui-content")?.focus();
       }}>{say("web.ui.skip")}</a>
-      <main ref={main} className="screen" data-screen={name}>
+      <main {...rest} ref={main} className={className ? `screen ${className}` : "screen"} data-screen={name}>
         {header}
         <span id="ui-content" tabIndex={-1} className="ui-content-anchor" />
         {children}

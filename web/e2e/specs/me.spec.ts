@@ -32,7 +32,9 @@ test("me: the name to the queue, the PIN changed and the vault re-sealed, away a
   await expect(page.locator('[data-screen="edit-name"]')).toBeVisible();
   await page.getByTestId("edit-value").fill("Оля тг");
   await page.getByTestId("edit-save").click();
-  await expect(page.getByTestId("error")).toContainText("Имя не принято: stub: a link", { timeout: 15000 });
+  // The reason is a phrase of the dictionary (quorum 2026-10-10), never the model's own English text.
+  await expect(page.getByTestId("error")).toContainText("Имя не принято.", { timeout: 15000 });
+  await expect(page.getByTestId("error")).not.toContainText("stub");
   await page.getByTestId("edit-back").click();
   await expect(page.locator('[data-screen="me"]')).toBeVisible({ timeout: 15000 });
   await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "accepted");
@@ -131,7 +133,8 @@ test("a phrase and a name the model refused are said to the author with the reas
   await expect(page.locator('[data-screen="composer"]')).toBeVisible();
   await page.getByTestId("text").fill(`пиши в тг, договоримся ${stamp}`);
   await page.getByTestId("send").click();
-  await expect(page.getByTestId("refused")).toContainText("Фраза не принята: stub: a link", { timeout: 15000 });
+  await expect(page.getByTestId("refused")).toContainText("Фраза не принята.", { timeout: 15000 });
+  await expect(page.getByTestId("refused")).not.toContainText("stub");
   expect(posts, "the model's refusal did not reach the author as a refusal").toEqual([422]);
   await expect(page.locator('[data-screen="composer"]')).toBeVisible();
 
@@ -142,7 +145,9 @@ test("a phrase and a name the model refused are said to the author with the reas
   await page.getByTestId("me-name").click();
   await page.getByTestId("edit-value").fill("Оля тг");
   await page.getByTestId("edit-save").click();
-  await expect(page.getByTestId("error")).toContainText("Имя не принято: stub: a link", { timeout: 15000 });
+  // The reason is a phrase of the dictionary (quorum 2026-10-10), never the model's own English text.
+  await expect(page.getByTestId("error")).toContainText("Имя не принято.", { timeout: 15000 });
+  await expect(page.getByTestId("error")).not.toContainText("stub");
   await page.getByTestId("edit-back").click();
   await expect(page.locator('[data-screen="me"]')).toHaveAttribute("data-name-state", "accepted");
   await expect(page.getByTestId("me-name")).toContainText("Аня");

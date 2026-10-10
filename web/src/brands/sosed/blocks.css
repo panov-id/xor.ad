@@ -88,45 +88,42 @@
 /* Compose.svg: the field 343×200 on the surface with a 2 px focus line,
    mode tiles 111×72 (the chosen one tile-1), time/zone pills 52 high with
    the chosen in tile-3, publish 343×64 in the accent. */
-.b-blocks .composer-field { min-height: 200px; padding: 20px; border-radius: var(--card-r); border: 2px solid var(--focus); background: var(--surface); font-size: var(--fs-title); font-weight: 500; }
-.b-blocks .composer-segments { gap: 5px; border: 0; border-radius: 0; overflow: visible; }
-.b-blocks .composer-segments button { min-height: 72px; border-radius: 20px; border: 1.5px solid var(--line); background: var(--surface); font-weight: 500; }
-.b-blocks .composer-segments button + button { border-left: 1.5px solid var(--line); }
-.b-blocks .composer-segments button.on { background: var(--tile-1); color: var(--tile-1-ink); border-color: var(--tile-1); }
-.b-blocks .composer-scheme { border-radius: var(--card-r); background: var(--surface); }
-.b-blocks .composer-steps button { min-height: 52px; border-radius: 26px; border: 1.5px solid var(--line); background: var(--surface); }
-.b-blocks .composer-steps button.on { background: var(--tile-3); color: var(--tile-3-ink); border-color: var(--tile-3); }
-.b-blocks .composer-bar { border-top: 0; }
-.b-blocks .composer-bar .ui-primary { min-height: 64px; border-radius: var(--btn-r); }
+.b-blocks[data-screen="composer"] .ui-textarea { min-height: 200px; padding: 20px; border-radius: var(--card-r); border: 2px solid var(--focus); background: var(--surface); font-size: var(--fs-title); font-weight: 500; }
+.b-blocks[data-screen="composer"] [data-testid="mode"] { gap: 5px; border: 0; border-radius: 0; overflow: visible; }
+.b-blocks[data-screen="composer"] [data-testid="mode"] .ui-seg { min-height: 72px; border-radius: 20px; border: 1.5px solid var(--line); background: var(--surface); font-weight: 500; }
+.b-blocks[data-screen="composer"] [data-testid="mode"] .ui-seg + .ui-seg { border-left: 1.5px solid var(--line); }
+.b-blocks[data-screen="composer"] [data-testid="mode"] .ui-seg-on { background: var(--tile-1); color: var(--tile-1-ink); border-color: var(--tile-1); }
+.b-blocks[data-screen="composer"] .ui-illustration { border-radius: var(--card-r); background: var(--surface); }
+.b-blocks[data-screen="composer"] [data-testid="zone"] .ui-seg { min-height: 52px; border-radius: 26px; border: 1.5px solid var(--line); background: var(--surface); }
+.b-blocks[data-screen="composer"] [data-testid="zone"] .ui-seg-on { background: var(--tile-3); color: var(--tile-3-ink); border-color: var(--tile-3); }
+.b-blocks[data-screen="composer"] .ui-primary { min-height: 64px; border-radius: var(--btn-r); }
 
 /* Chat.svg: the timer pill in surface-2, theirs on the surface with a 1.5
    line, mine in tile-3, radius 22; the message pill 56 and send 64 round. */
-.b-blocks.chat .fades { display: inline-flex; align-self: flex-start; align-items: center; min-height: 48px; padding: 0 var(--s-4); border-radius: var(--card-r); background: var(--surface-2); color: var(--fg); font-weight: 600; }
-.b-blocks .line { border-radius: 22px; padding: 14px 18px; font-size: var(--fs-body); }
-.b-blocks .line.theirs { background: var(--surface); border: 1.5px solid var(--line); }
-.b-blocks .line.mine { background: var(--tile-3); color: var(--tile-3-ink); }
-.b-blocks .line.mine .muted { color: inherit; }
-.b-blocks .composer input { min-height: 56px; border-radius: 28px; border: 1.5px solid var(--line); background: var(--surface); padding: 0 22px; }
-.b-blocks .composer .ui-button { width: 64px; min-width: 64px; height: 64px; border-radius: 32px; padding: 0; }
+.b-blocks[data-screen="chat"] [data-testid="fades"] { display: inline-flex; align-self: flex-start; align-items: center; min-height: 48px; padding: 0 var(--s-4); border-radius: var(--card-r); background: var(--surface-2); color: var(--fg); font-weight: 600; }
+.b-blocks[data-screen="chat"] .ui-msg { border-radius: 22px; padding: 14px 18px; font-size: var(--fs-body); }
+.b-blocks[data-screen="chat"] .ui-msg-theirs { background: var(--surface); border: 1.5px solid var(--line); }
+.b-blocks[data-screen="chat"] .ui-msg-mine { background: var(--tile-3); color: var(--tile-3-ink); }
+.b-blocks[data-screen="chat"] .ui-msg-mine .ui-msg-time { color: inherit; }
 
 /* Profile.svg: the rows as a bento — the name wide in tile-1, then pairs of
    165 in tile-4, tile-3, surface-2, tile-2; the rest wide on the surface.
    "legal" (W13-LC) is wide too: as a seventh half tile it left "PIN" alone
    in its row with a hole beside it (W16-MD, 04.10.2026). */
-.b-blocks .place-rows { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3) 13px; }
-.b-blocks .place-rows > li { min-height: 0; border-bottom: 0; }
-.b-blocks .place-rows > li[data-row="name"], .b-blocks .place-rows > li[data-row="statements"], .b-blocks .place-rows > li[data-row="legal"],
-.b-blocks .place-rows > li[data-row="move"], .b-blocks .place-rows > li[data-row="reissue"], .b-blocks .place-rows > li[data-row="reset"] { grid-column: 1 / -1; }
-.b-blocks .place-setting {
+.b-blocks[data-screen="me"] .ui-list { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3) 13px; }
+.b-blocks[data-screen="me"] .ui-list > li { min-height: 0; border-bottom: 0; }
+.b-blocks[data-screen="me"] .ui-list > li[data-row="name"], .b-blocks[data-screen="me"] .ui-list > li[data-row="statements"], .b-blocks[data-screen="me"] .ui-list > li[data-row="legal"],
+.b-blocks[data-screen="me"] .ui-list > li[data-row="move"], .b-blocks[data-screen="me"] .ui-list > li[data-row="reissue"], .b-blocks[data-screen="me"] .ui-list > li[data-row="reset"] { grid-column: 1 / -1; }
+.b-blocks[data-screen="me"] .ui-setting {
   flex-direction: column; align-items: flex-start; justify-content: space-between; gap: var(--s-3);
   min-height: 104px; padding: 18px; border-radius: var(--card-r); background: var(--surface); border: 1.5px solid var(--line); font-size: 18px; font-weight: 600;
 }
-.b-blocks .place-setting::after { content: none; }
-.b-blocks li[data-row="name"] .place-setting { background: var(--tile-1); color: var(--tile-1-ink); border-color: var(--tile-1); }
-.b-blocks li[data-row="hidden"] .place-setting { background: var(--tile-4); color: var(--tile-4-ink); border-color: var(--tile-4); min-height: 120px; }
-.b-blocks li[data-row="away"] .place-setting { background: var(--tile-3); color: var(--tile-3-ink); border-color: var(--tile-3); min-height: 120px; }
-.b-blocks li[data-row="pin"] .place-setting { background: var(--surface-2); color: var(--fg); border-color: var(--surface-2); min-height: 120px; }
-.b-blocks li[data-row="age"] .place-setting { background: var(--tile-2); color: var(--tile-2-ink); border-color: var(--tile-2); min-height: 120px; }
-.b-blocks li[data-row="legal"] .place-setting, .b-blocks li[data-row="move"] .place-setting, .b-blocks li[data-row="reissue"] .place-setting, .b-blocks li[data-row="reset"] .place-setting { flex-direction: row; justify-content: flex-start; align-items: center; min-height: 88px; }
-.b-blocks li[data-row="reset"] .place-setting { color: var(--danger); }
-.b-blocks .place-setting:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--card-focus-offset); }
+.b-blocks[data-screen="me"] .ui-setting-chevron { display: none; }
+.b-blocks li[data-row="name"] .ui-setting { background: var(--tile-1); color: var(--tile-1-ink); border-color: var(--tile-1); }
+.b-blocks li[data-row="hidden"] .ui-setting { background: var(--tile-4); color: var(--tile-4-ink); border-color: var(--tile-4); min-height: 120px; }
+.b-blocks li[data-row="away"] .ui-setting { background: var(--tile-3); color: var(--tile-3-ink); border-color: var(--tile-3); min-height: 120px; }
+.b-blocks li[data-row="pin"] .ui-setting { background: var(--surface-2); color: var(--fg); border-color: var(--surface-2); min-height: 120px; }
+.b-blocks li[data-row="age"] .ui-setting { background: var(--tile-2); color: var(--tile-2-ink); border-color: var(--tile-2); min-height: 120px; }
+.b-blocks li[data-row="legal"] .ui-setting, .b-blocks li[data-row="move"] .ui-setting, .b-blocks li[data-row="reissue"] .ui-setting, .b-blocks li[data-row="reset"] .ui-setting { flex-direction: row; justify-content: flex-start; align-items: center; min-height: 88px; }
+.b-blocks li[data-row="reset"] .ui-setting { color: var(--danger); }
+.b-blocks[data-screen="me"] .ui-setting:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--card-focus-offset); }

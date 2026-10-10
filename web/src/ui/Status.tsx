@@ -15,6 +15,12 @@ const WORD: Record<StatusState, string> = {
 };
 const GLYPH: Record<StatusState, string> = { on: "●", connecting: "◐", offline: "○", failed: "✕" };
 
+// Status `inline` (kit_RU.md §3.3): one word in a `role=status` that stands in
+// the page before it has words, so a change is announced. Nothing else.
+export function StatusInline({ children, ...rest }: { children: string; [data: `data-${string}`]: string | undefined }) {
+  return <p {...rest} role="status" className="ui-status-line">{children}</p>;
+}
+
 export function StatusHeader({ state, ...rest }: { state: StatusState; [data: `data-${string}`]: string | undefined }) {
   const failed = state === "failed";
   const line = (

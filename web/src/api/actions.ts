@@ -56,8 +56,26 @@ export async function refusalWording(client: Client, answer: Answer): Promise<st
   // The node's legal gate (W13-LN, behind LEGAL_REQUIRED): new revisions to
   // accept first, and where — screen 15 from "me" (W13-LC).
   if (fromRefusal(answer).length > 0) return say("web.legal.refused");
-  // What has no wording of its own says what the node said, until it gets one.
-  return error?.message ? say("web.phrase.refused_why", { why: error.message }) : say("web.phrase.refused_status", { status: answer.status });
+  return refusalText("phrase", error?.code, answer.status, error?.message);
+}
+
+// What a person reads of a node's refusal that has no wording of its own
+// (decided by quorum 2/2 on 2026-10-10, docs/chat_RU.md): a code the node gave
+// (error.code, relay routes/feed.ts:358 «moderation_refused» for a phrase,
+// routes/profile.ts:135,138 «name_refused» for a name) maps to a phrase of the
+// dictionary in the interface language. The node's free text (error.message:
+// the model's reason or the rules' English line) is NOT shown — `modelText` is
+// accepted so that showing it, when the language of the reason is the
+// interface's, is a change in this one function.
+const REFUSAL_KEY: Record<string, string> = {
+  moderation_refused: "web.phrase.refused_generic",
+  name_refused: "web.name.refused_generic",
+};
+
+export function refusalText(kind: "phrase" | "name", code: string | undefined, status: number, _modelText?: string): string {
+  const key = code ? REFUSAL_KEY[code] : undefined;
+  if (key) return say(key);
+  return kind === "phrase" ? say("web.phrase.refused_status", { status }) : say("web.refused.status", { status });
 }
 
 export async function sayPhrase(

@@ -5,9 +5,10 @@ import { Icon } from "./Icon.tsx";
 // Space, aria-expanded and the focus on the summary are the browser's own. The
 // name is the summary's text; the second channel is the chevron turned right
 // (closed) or down (open), by CSS, in one frame.
-export function Disclosure({ summary, children, open }: { summary: string; children: ReactNode; open?: boolean }) {
+export function Disclosure({ summary, children, open, ...rest }:
+  { summary: string; children: ReactNode; open?: boolean } & { [data: `data-${string}`]: string | undefined }) {
   return (
-    <details className="ui-disclosure" open={open}>
+    <details {...rest} className="ui-disclosure" open={open}>
       <summary><Icon name="chevron" className="ui-glyph ui-chevron" /><span>{summary}</span></summary>
       {children}
     </details>

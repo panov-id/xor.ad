@@ -245,8 +245,6 @@
   "web.offer.wrong": "Linkul duce în alt loc",
   "web.offer.warn": "Nu verificăm ce e acolo azi: uită-te la domeniu, nu la promisiune. O accesare se numără o dată.",
   "web.phrase.refused_status": "Fraza n-a fost acceptată ({status}).",
-  "web.phrase.refused_why": "Fraza n-a fost acceptată: {why}.",
-  "web.name.refused_why": "Numele n-a fost acceptat: {why}.",
   "web.register.age_min": "de la 13 ani",
   "web.register.confirm": "Ai notat? Introdu grupul al doilea și al patrulea.",
   "web.register.consent": "accept termenii de utilizare, politica de confidențialitate și regulile comunității",
@@ -387,5 +385,11 @@
   "web.info.code": "despre codul de hârtie",
   "web.info.pin": "despre PIN",
   "web.info.move": "despre mutarea aici",
-  "web.info.reissue": "despre schimbarea codului"
+  "web.info.reissue": "despre schimbarea codului",
+  "web.refused.status": "Neacceptat ({status}).",
+  "web.like.count": "aprecieri: {n}",
+  "web.name.refused_generic": "Numele nu a fost acceptat. Alege altul, fără linkuri, contacte sau insulte.",
+  "web.ui.system": "sistem",
+  "web.phrase.refused_generic": "Fraza nu a fost acceptată. Scoate linkurile, contactele și insultele și încearcă din nou.",
+  "web.ui.you": "tu"
 }

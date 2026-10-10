@@ -5,12 +5,12 @@ import { Dot } from "./Dot.tsx";
 // --r-1, text at x 12 — name 16/600, the last line 14 in fg, time in mono;
 // «ждёт вашего ответа» in accent-text on the right and the dot when it is my
 // turn; the chosen row sits on panel-2. The dot is mute (Dot), so a new row
-// says «новое» in its name.
-type Props = { name: string; line: string; time: string; wait?: string; dot?: boolean; selected?: boolean; onOpen: () => void };
+// says «новое» in its name. `time` is left out when the row has none to tell.
+type Props = { name: string; line: string; time?: string; wait?: string; dot?: boolean; selected?: boolean; onOpen: () => void } & { [data: `data-${string}`]: string | undefined };
 
-export function InboxRow({ name, line, time, wait, dot, selected, onOpen }: Props) {
+export function InboxRow({ name, line, time, wait, dot, selected, onOpen, ...rest }: Props) {
   return (
-    <button type="button" className={selected ? "ui-inbox-row ui-inbox-row-on" : "ui-inbox-row"} onClick={onOpen} aria-current={selected ? "true" : undefined}>
+    <button {...rest} type="button" className={selected ? "ui-inbox-row ui-inbox-row-on" : "ui-inbox-row"} onClick={onOpen} aria-current={selected ? "true" : undefined}>
       <span className="ui-inbox-name">{name}{dot ? <span className="visually-hidden"> {say("web.ui.new")}</span> : null}</span>
       <span className="ui-inbox-line">{line}</span>
       <span className="ui-inbox-foot">

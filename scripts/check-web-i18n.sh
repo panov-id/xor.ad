@@ -99,6 +99,7 @@ SAME_AS_RU = {
         "web.table.right",  # {bone} справа
         "web.card.phrase",  # фраза
         "web.ui.code",  # код
+        "web.ui.you",  # вы
     },
     "kk": {
         "web.ui.code",  # код
@@ -114,6 +115,7 @@ SAME_AS_RU = {
         "web.transfer.browser",  # браузер
     },
     "ky": {
+        "web.ui.system",  # система
         "web.ui.code",  # код
         "web.cabinet.email",  # почта
         "web.cabinet.field.promo",  # промокод
@@ -131,6 +133,7 @@ SAME_AS_RU = {
         "web.theme.title",  # Тема
     },
     "tg": {
+        "web.ui.system",  # система
         "web.cabinet.email",  # почта
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.radius",  # радиус, м
@@ -143,6 +146,7 @@ SAME_AS_RU = {
         "web.transfer.browser",  # браузер
     },
     "uk": {
+        "web.ui.system",  # система
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.field.text",  # текст
         "web.cabinet.placeAt",  # точка: {lat}, {lon} · {radius}
@@ -222,6 +226,7 @@ SAME_AS_EN = {
         "web.table.direction",  # direction dx dy
     },
     "pl": {
+        "web.ui.system",  # system
         "web.cabinet.field.url",  # link
         "web.cabinet.link",  # Link: {link}
         "web.feed.km",  # {n} km

@@ -80,7 +80,7 @@ test("the other side's changed age comes as a system line, and the header follow
   expect(patches).toEqual([200]);
 
   // Борис's open conversation: the line, and the header.
-  await expect(boris.getByTestId("system").last()).toHaveText("собеседник изменил возраст: 31", { timeout: 20000 });
+  await expect(boris.getByTestId("system").last()).toContainText("собеседник изменил возраст: 31", { timeout: 20000 });
   await expect(boris.locator('[data-screen="chat"] h1')).toContainText("Аня, 31");
   await a.close();
   await b.close();

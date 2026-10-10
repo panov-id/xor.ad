@@ -21,9 +21,15 @@ type Props = {
   toLabel?: string;
   disabled?: boolean;
   reason?: string;
+  /** The specs' handles on the two sliders. */
+  /** Whether an edge means «без ограничения» (default yes); a filter inside a band has no open low edge, and a minor no open high one. */
+  lowOpen?: boolean;
+  highOpen?: boolean;
+  fromTestId?: string;
+  toTestId?: string;
 };
 
-export function RangePair({ min, max, step = 1, from, to, onChange, format = (n) => String(n), fromLabel = say("web.filter.from"), toLabel = say("web.filter.to"), disabled, reason }: Props) {
+export function RangePair({ min, max, step = 1, from, to, onChange, format = (n) => String(n), fromLabel = say("web.filter.from"), toLabel = say("web.filter.to"), disabled, reason, lowOpen = true, highOpen = true, fromTestId, toTestId }: Props) {
   const uid = useId();
   const ids = { from: `${uid}-a`, to: `${uid}-b`, error: `${uid}-e`, reason: `${uid}-r` };
   const bad = from > to;
@@ -35,15 +41,15 @@ export function RangePair({ min, max, step = 1, from, to, onChange, format = (n)
     <div className="ui-field">
       <div className="ui-range">
         <label htmlFor={ids.from}>{fromLabel}</label>
-        <input {...common} id={ids.from} className="ui-input" value={from} aria-valuetext={spoken(from, min, "web.ui.rangeFrom", format)}
+        <input {...common} id={ids.from} data-testid={fromTestId} className="ui-input" value={from} aria-valuetext={spoken(from, lowOpen ? min : NaN,"web.ui.rangeFrom", format)}
           onChange={(event) => { if (!disabled) onChange({ from: Number(event.target.value), to }); }} />
-        <span className="ui-range-value" aria-hidden="true">{words(from, min)}</span>
+        <span className="ui-range-value" aria-hidden="true">{words(from, lowOpen ? min : NaN)}</span>
       </div>
       <div className="ui-range">
         <label htmlFor={ids.to}>{toLabel}</label>
-        <input {...common} id={ids.to} className="ui-input" value={to} aria-valuetext={spoken(to, max, "web.ui.rangeTo", format)}
+        <input {...common} id={ids.to} data-testid={toTestId} className="ui-input" value={to} aria-valuetext={spoken(to, highOpen ? max : NaN,"web.ui.rangeTo", format)}
           onChange={(event) => { if (!disabled) onChange({ from, to: Number(event.target.value) }); }} />
-        <span className="ui-range-value" aria-hidden="true">{words(to, max)}</span>
+        <span className="ui-range-value" aria-hidden="true">{words(to, highOpen ? max : NaN)}</span>
       </div>
       {disabled && reason ? <p id={ids.reason} className="ui-reason">{reason}</p> : null}
       {bad ? <ErrorLine id={ids.error}>{say("web.ui.rangeOrder")}</ErrorLine> : null}

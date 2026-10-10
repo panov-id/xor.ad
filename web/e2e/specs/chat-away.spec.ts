@@ -131,7 +131,7 @@ test("the other side's step away marks the header until their next line, and a t
     await sql.end();
   }
   await openChat(boris);
-  await expect(boris.getByTestId("missed")).toHaveText("вы пропустили сообщение — попросите прислать снова");
+  await expect(boris.getByTestId("missed")).toContainText("вы пропустили сообщение — попросите прислать снова");
   await expect(screenB).toHaveAttribute("data-missed", "yes");
   // His own line is the newest moment again: the line goes.
   await boris.getByTestId("text").fill("что я пропустил?");

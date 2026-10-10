@@ -5,6 +5,7 @@
 import type { Answer, Client } from "../../../depth/core/client.ts";
 import { CursorRefused } from "../../../depth/core/client.ts";
 import { say } from "../locales/say.ts";
+import { refusalText } from "./actions.ts";
 
 export { say };
 
@@ -28,11 +29,11 @@ export function profileRefusal(answer: Answer<unknown>): string | null {
   if (error?.code === "name_frozen") return say("profile.nameFrozen");
   if (error?.code === "age_step_down") return say("profile.ageDown");
   if (error?.code === "paused") return say("write.paused", { time: hhmm(error.until) });
-  // The model or the rules refused the new name (WP-4): the node's reason,
-  // and the old name stands.
+  // The model or the rules refused the new name (WP-4), and the old name
+  // stands. The reason is a phrase of the dictionary, not the node's text.
   if (error?.code === "name_refused") {
-    const why = (answer.body as { error?: { message?: string } } | null)?.error?.message ?? "";
-    return say("web.name.refused_why", { why });
+    const message = (answer.body as { error?: { message?: string } } | null)?.error?.message;
+    return refusalText("name", error.code, answer.status, message);
   }
   if (error?.code === "rate_limited") {
     const hours = Math.min(24, Math.max(1, Math.ceil((answer.retryAfter ?? 24 * 3600) / 3600)));

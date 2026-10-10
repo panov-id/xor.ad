@@ -1,14 +1,15 @@
 // Whom I blocked, as the node keeps it — opaque handles with the day each was
 // set, each with "снять" (L1; depth/ink rooms.ts Blocked). Words verbatim
-// from depth/ink/locales/ru.json.
+// from depth/ink/locales/ru.json. Kit elements only (K5).
 
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { blockList, type BlockRow, day, unblock } from "../api/lists.ts";
 import { say } from "../api/me.ts";
-import { Button } from "../ui/Button.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
-import "./place.css";
+import { List, ListItem } from "../ui/List.tsx";
+import { Screen } from "../ui/Screen.tsx";
 
 export function Blocked({ client, onBack }: { client: Client; onBack: () => void }) {
   const [rows, setRows] = useState<BlockRow[] | null>(null);
@@ -16,22 +17,25 @@ export function Blocked({ client, onBack }: { client: Client; onBack: () => void
   const load = () => blockList(client).then(setRows).catch((e: Error) => setError(e.message));
   useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const title = say("blocked.count", { n: rows?.length ?? 0 });
   return (
-    <main className="screen blocked-list" data-screen="blocked" data-count={rows?.length ?? ""}>
-      <HeaderScreen title={say("blocked.count", { n: rows?.length ?? 0 })} onBack={onBack} backLabel={say("common.back")} />
-      {error && <p className="error" data-testid="error">{error}</p>}
+    <Screen name="blocked" title={title} data-count={rows?.length ?? ""} header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} />}>
+      {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       {rows === null
-        ? <p className="muted" data-testid="loading">…</p>
+        ? <p className="ui-hint" data-testid="loading">…</p>
         : (
-          <ul className="place-rows">
+          <List label={title}>
             {rows.map((row) => (
-              <li key={row.id} data-testid="blocked-row">
-                <span className="place-row-text">{say("blocked.since", { date: day(row.since) })}</span>
-                <Button type="button" icon="unblock" aria-label={say("blocked.lift")} onClick={() => void unblock(client, row.id).then(load).catch((e: Error) => setError(e.message))} data-testid="blocked-lift" />
-              </li>
+              <ListItem
+                key={row.id}
+                data-testid="blocked-row"
+                action={{ label: say("blocked.lift"), testid: "blocked-lift", onSelect: () => void unblock(client, row.id).then(load).catch((e: Error) => setError(e.message)) }}
+              >
+                {say("blocked.since", { date: day(row.since) })}
+              </ListItem>
             ))}
-          </ul>
+          </List>
         )}
-    </main>
+    </Screen>
   );
 }

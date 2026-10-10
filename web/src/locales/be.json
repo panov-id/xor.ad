@@ -245,8 +245,6 @@
   "web.offer.wrong": "Спасылка вядзе не туды",
   "web.offer.warn": "Мы не правяраем, што там сёння: глядзіце на дамен, а не на абяцанне. Пераход лічыцца адзін раз.",
   "web.phrase.refused_status": "Фраза не прынята ({status}).",
-  "web.phrase.refused_why": "Фраза не прынята: {why}.",
-  "web.name.refused_why": "Імя не прынята: {why}.",
   "web.register.age_min": "сюды з 13 гадоў",
   "web.register.confirm": "Запісалі? Увядзіце другую і чацвёртую групы.",
   "web.register.consent": "прымаю карыстальніцкае пагадненне, палітыку канфідэнцыйнасці і правілы супольнасці",
@@ -387,5 +385,11 @@
   "web.info.code": "пра папяровы код",
   "web.info.pin": "пра ПІН",
   "web.info.move": "пра пераезд сюды",
-  "web.info.reissue": "пра замену кода"
+  "web.info.reissue": "пра замену кода",
+  "web.refused.status": "Не прынята ({status}).",
+  "web.like.count": "упадабанняў: {n}",
+  "web.name.refused_generic": "Імя не прынята. Абярыце іншае — без спасылак, кантактаў і абраз.",
+  "web.ui.system": "сістэма",
+  "web.phrase.refused_generic": "Фразу не прынята. Прыбярыце спасылкі, кантакты і абразы і паспрабуйце яшчэ раз.",
+  "web.ui.you": "вы"
 }

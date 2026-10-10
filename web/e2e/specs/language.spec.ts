@@ -40,7 +40,7 @@ test("me: the language row offers every language and reloads the page in the cho
   await register(page);
   await page.getByTestId("tab-me").click();
   await page.getByTestId("me-lang").click();
-  await expect(page.locator('[data-screen="lang"] input[type="radio"]')).toHaveCount(17);
+  await expect(page.locator('[data-screen="lang"] [role="radio"]')).toHaveCount(17);
   await page.getByTestId("lang-en").click();
   await unlock(page, PIN);
   await expect(page.getByTestId("tab-me")).toHaveAccessibleName("me");

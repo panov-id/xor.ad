@@ -245,8 +245,6 @@
   "web.offer.wrong": "Le lien mène au mauvais endroit",
   "web.offer.warn": "Nous ne vérifions pas ce qu’il y a là aujourd’hui : regardez le domaine, pas la promesse. Une visite est comptée une seule fois.",
   "web.phrase.refused_status": "Phrase refusée ({status}).",
-  "web.phrase.refused_why": "Phrase refusée : {why}.",
-  "web.name.refused_why": "Nom refusé : {why}.",
   "web.register.age_min": "à partir de 13 ans",
   "web.register.confirm": "C’est noté ? Saisissez le deuxième et le quatrième groupe.",
   "web.register.consent": "j’accepte les conditions d’utilisation, la politique de confidentialité et les règles de la communauté",
@@ -387,5 +385,11 @@
   "web.info.code": "sur le code papier",
   "web.info.pin": "sur le PIN",
   "web.info.move": "sur le déplacement ici",
-  "web.info.reissue": "sur le remplacement du code"
+  "web.info.reissue": "sur le remplacement du code",
+  "web.refused.status": "Refusé ({status}).",
+  "web.like.count": "mentions J’aime : {n}",
+  "web.name.refused_generic": "Le nom n’a pas été accepté. Choisissez-en un autre, sans liens, contacts ni insultes.",
+  "web.ui.system": "système",
+  "web.phrase.refused_generic": "La phrase n’a pas été acceptée. Retirez les liens, contacts et insultes, puis réessayez.",
+  "web.ui.you": "vous"
 }

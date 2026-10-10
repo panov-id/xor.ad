@@ -8,8 +8,12 @@
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { profileRefusal, say } from "../api/me.ts";
+import { LANG } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
+import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
+import { RangePair } from "../ui/RangePair.tsx";
+import { Screen } from "../ui/Screen.tsx";
 
 // The band, as the node draws it (relay/node/src/lib/feed_geo.ts band):
 // up to 20 — [max(13, A-2), A+2]; from 21 — [min(21, A-2), no limit].
@@ -21,6 +25,10 @@ export function ageBand(age: number): { low: number; high: number | null } {
 // The adult's right handle needs an end to slide to: its last step is
 // «без ограничения», sent as null.
 const OPEN_END = 99;
+
+// A number of years as words in the page's language («25 лет»): the plural
+// forms are the browser's (Intl), not keys of ours.
+const years = (n: number) => new Intl.NumberFormat(LANG, { style: "unit", unit: "year", unitDisplay: "long" }).format(n);
 
 type Read = { age: number; filter_age_min?: number; filter_age_max?: number };
 
@@ -44,13 +52,13 @@ export function AgeFilter({ client, onDone, onBack }: { client: Client; onDone: 
       .catch((e: Error) => setRefused(e.message));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const title = say("web.filter.title");
   if (age === null) {
     return (
-      <main className="screen age-filter" data-screen="age-filter">
-        <HeaderScreen title={say("web.filter.title")} />
-        {refused ? <p className="error" data-testid="error">{refused}</p> : <p className="muted">…</p>}
+      <Screen name="age-filter" title={title} header={<HeaderScreen title={title} />}>
+        {refused ? <ErrorLine data-testid="error">{refused}</ErrorLine> : <p className="ui-hint">…</p>}
         <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="filter-back" />
-      </main>
+      </Screen>
     );
   }
   const band = ageBand(age);
@@ -63,7 +71,7 @@ export function AgeFilter({ client, onDone, onBack }: { client: Client; onDone: 
     try {
       const answer = await client.editProfile({ filter_age_min: from, filter_age_max: open ? null : to });
       if (answer.status === 200 || answer.status === 202) return onDone();
-      setRefused(profileRefusal(answer) ?? `the filter was refused: ${answer.status}`);
+      setRefused(profileRefusal(answer) ?? say("web.refused.status", { status: answer.status }));
     } catch (e) {
       setRefused((e as Error).message);
     } finally {
@@ -71,31 +79,28 @@ export function AgeFilter({ client, onDone, onBack }: { client: Client; onDone: 
     }
   }
   return (
-    <main className="screen age-filter" data-screen="age-filter" data-from={from} data-to={open ? "open" : to}>
-      <HeaderScreen title={say("web.filter.title")} />
-      <p className="muted">{say("web.filter.hint")}</p>
-      <label>
-        {say("web.filter.from")}
-        <input
-          type="range" min={band.low} max={top} step={1} value={from}
-          aria-valuetext={String(from)}
-          onChange={(e) => { const v = Number(e.target.value); setFrom(v); if (v > to) setTo(v); }}
-          data-testid="filter-from"
-        />
-      </label>
-      <label>
-        {say("web.filter.to")}
-        <input
-          type="range" min={band.low} max={top} step={1} value={to}
-          aria-valuetext={toWords}
-          onChange={(e) => { const v = Number(e.target.value); setTo(v); if (v < from) setFrom(v); }}
-          data-testid="filter-to"
-        />
-      </label>
+    <Screen name="age-filter" title={title} data-from={from} data-to={open ? "open" : to} header={<HeaderScreen title={title} />}>
+      <p className="ui-hint">{say("web.filter.hint")}</p>
+      {/* A handle that goes past the other takes it along (the pair stays from <= to). */}
+      <RangePair
+        min={band.low}
+        max={top}
+        from={from}
+        to={to}
+        lowOpen={false}
+        highOpen={band.high === null}
+        format={years}
+        fromTestId="filter-from"
+        toTestId="filter-to"
+        onChange={(next) => {
+          setFrom(next.to < next.from && next.to !== to ? next.to : next.from);
+          setTo(next.from > next.to && next.from !== from ? next.from : next.to);
+        }}
+      />
       <p data-testid="filter-range">{from} — {toWords}</p>
-      {refused && <p className="error" data-testid="error">{refused}</p>}
+      {refused && <ErrorLine data-testid="error">{refused}</ErrorLine>}
       <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("me.save")} aria-busy={busy} disabled={busy} onClick={() => void save()} data-testid="filter-save" />
       <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="filter-back" />
-    </main>
+    </Screen>
   );
 }

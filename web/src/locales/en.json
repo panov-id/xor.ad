@@ -175,6 +175,8 @@
   "web.game.set": "Set",
   "web.game.their_turn": "Their move",
   "web.game.title": "Game",
+  "web.chat.more": "more",
+  "web.game.hide": "hide the game",
   "web.game.waiting": "Waiting for the other side",
   "web.game.you": "you",
   "web.game.your_turn": "Your move",

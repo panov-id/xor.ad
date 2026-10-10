@@ -54,7 +54,8 @@
   --card-focus-offset: 6px;
   --btn-r: 28px;
   --btn-h: 56px;
-  --btn-shadow: none;
+  --btn-rim: 4px solid var(--surface);    /* the sheets' sticker: a white rim and a hard offset shadow (owner 10.10, §8.2) */
+  --btn-shadow: 1.5px 4px 0 3px var(--shadow);
   --btn2-r: 28px;
   --btn2-bg: var(--surface);
   --field-r: 10px;

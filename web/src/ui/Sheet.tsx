@@ -36,12 +36,14 @@ function useModal(open: boolean, onClose: () => void) {
   return { root, title };
 }
 
-export type SheetAction = { id: string; label: string; onSelect: () => void; danger?: boolean; testid?: string };
+export type SheetAction = { id: string; label: string; onSelect: () => void; danger?: boolean; disabled?: boolean; testid?: string };
 
 // ActionSheet: a titled list of actions of 44 each; the quiet ones first, the
 // loud one (danger) last and in words. «закрыть» is the quietest, first.
-export function ActionSheet({ open, title, actions, onClose, ...rest }:
-  { open: boolean; title: string; actions: SheetAction[]; onClose: () => void } & { [data: `data-${string}`]: string | undefined }) {
+// `children` stand between «закрыть» and the list: a setting chosen in place
+// (the chat's span), which does not close the sheet.
+export function ActionSheet({ open, title, actions, onClose, children, ...rest }:
+  { open: boolean; title: string; actions: SheetAction[]; onClose: () => void; children?: ReactNode } & { [data: `data-${string}`]: string | undefined }) {
   const id = useId();
   const modal = useModal(open, onClose);
   if (!open) return null;
@@ -51,10 +53,11 @@ export function ActionSheet({ open, title, actions, onClose, ...rest }:
       <div {...rest} ref={modal.root} role="dialog" aria-modal="true" aria-labelledby={`${id}-t`} className="ui-sheet">
         <h2 id={`${id}-t`} ref={modal.title} tabIndex={-1} className="ui-sheet-title">{title}</h2>
         <Button type="button" kind="text" onClick={onClose}>{say("common.close")}</Button>
+        {children}
         <ul className="ui-sheet-actions" role="list">
           {ordered.map((a) => (
             <li key={a.id}>
-              <Button type="button" kind={a.danger ? "danger" : "secondary"} data-testid={a.testid} onClick={() => { a.onSelect(); onClose(); }}>{a.label}</Button>
+              <Button type="button" kind={a.danger ? "danger" : "secondary"} disabled={a.disabled} data-testid={a.testid} onClick={() => { a.onSelect(); onClose(); }}>{a.label}</Button>
             </li>
           ))}
         </ul>

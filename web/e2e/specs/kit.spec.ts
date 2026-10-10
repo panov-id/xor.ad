@@ -71,7 +71,7 @@ test("the info balloon opens, takes focus, closes on Esc and on a press outside,
 test("every icon button is named, and the like bursts on a press", async ({ page }) => {
   await page.goto("/kit");
   const icons = page.getByTestId("icons").getByRole("button");
-  await expect(icons).toHaveCount(42);
+  await expect(icons).toHaveCount(43);
   for (const b of await icons.all()) await expect(b).toHaveAttribute("aria-label", /\w/);
   await expect(page.getByTestId("icons").locator('[data-icon="chevron"]')).toHaveCount(1);
   await page.getByRole("button", { name: "♥ нравится" }).click();

@@ -175,6 +175,8 @@
   "web.game.set": "Variante",
   "web.game.their_turn": "Turno de la otra parte",
   "web.game.title": "Juego",
+  "web.chat.more": "más",
+  "web.game.hide": "ocultar el juego",
   "web.game.waiting": "Esperando a la otra parte",
   "web.game.you": "tú",
   "web.game.your_turn": "Su turno",

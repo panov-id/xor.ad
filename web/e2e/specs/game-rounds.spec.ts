@@ -5,6 +5,7 @@
 // conversation on both sides.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
+import { chatMenu } from "./helpers.ts";
 
 const CIRCLE = { lat: 41.96, lon: 12.56, radius: 1000 as const };
 
@@ -75,6 +76,7 @@ async function twoTalking(browser: import("@playwright/test").Browser, names: [s
 }
 
 async function propose(page: Page, klass: string, set: string) {
+  await chatMenu(page);
   await page.getByTestId("game-toggle").click();
   await page.getByTestId(`game-class-${klass}`).click();
   // A game with one set shows no set chips (ChatGame.tsx): its only set is taken.

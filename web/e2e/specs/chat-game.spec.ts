@@ -5,6 +5,7 @@
 // far as an open conversation on both sides.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
+import { chatMenu } from "./helpers.ts";
 
 const CIRCLE = { lat: 41.95, lon: 12.55, radius: 1000 as const };
 
@@ -76,6 +77,7 @@ test("two in a conversation play dots: one offers, the other accepts on the sock
   await openChat(anya);
 
   // A offers dots 2x2 through the game's own controls.
+  await chatMenu(anya);
   await anya.getByTestId("game-toggle").click();
   await anya.getByTestId("game-class-dots").click();
   await anya.getByTestId("game-set-2x2").click();

@@ -7,7 +7,7 @@
 // says so; here the screens do the asking and the agreeing.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase, chatMenu } from "./helpers.ts";
 
 
 async function register(page: Page, name: string) {
@@ -117,6 +117,7 @@ test("a side whose keys do not open asks for new ones, the other agrees on the s
   await expect(boris.getByTestId("keys-failed")).toContainText("do not open on this device");
 
   // B asks; A is asked on the screen and agrees; both stand at epoch 1.
+  await chatMenu(boris);
   await boris.getByTestId("rekey-ask").click();
   await expect(boris.getByTestId("rekey-waiting")).toBeVisible({ timeout: 15000 });
   await expect(anya.getByTestId("rekey-asked")).toBeVisible({ timeout: 20000 });
@@ -141,7 +142,9 @@ test("a side whose keys do not open asks for new ones, the other agrees on the s
   await boris.getByTestId("text").fill("слышу под новыми ключами");
   await boris.getByTestId("send").click();
   await expect(anya.locator('[data-testid="theirs"]').last()).toContainText("слышу под новыми ключами", { timeout: 20000 });
+  await chatMenu(anya);
   await anya.getByTestId("show-safety").click();
+  await chatMenu(boris);
   await boris.getByTestId("show-safety").click();
   expect(await anya.getByTestId("safety").locator("code").textContent()).toBe(await boris.getByTestId("safety").locator("code").textContent());
 

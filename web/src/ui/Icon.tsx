@@ -48,6 +48,7 @@ const PATHS = {
   offers: <><path className="f" d="M3 12 V4 H11 L21 14 L13 22Z" /><circle cx="7.5" cy="8" r="1.5" /></>,
   name: <><circle className="f" cx="12" cy="8" r="4" /><path className="f" d="M4 21 C4 15 20 15 20 21Z" /></>,
   chevron: <path d="M9 5 L16 12 L9 19" />,
+  more: <g className="dot"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></g>,
   info: <><circle className="f" cx="12" cy="12" r="9" /><path d="M12 11 V17" /><g className="dot"><circle cx="12" cy="7.5" r="1.2" /></g></>,
 } as const;
 

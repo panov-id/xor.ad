@@ -7,7 +7,7 @@
 // of §8.9 at once.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase, chatMenu } from "./helpers.ts";
 
 async function register(page: Page, name: string) {
   await page.goto("/");
@@ -77,6 +77,7 @@ test("a block from the conversation asks twice, closes it for both, and takes th
   // Asked twice, and the first answer is "back": nothing is sent.
   const blocks: number[] = [];
   anya.on("response", (r) => { if (new URL(r.url()).pathname === "/blocks" && r.request().method() === "POST") blocks.push(r.status()); });
+  await chatMenu(anya);
   await anya.getByTestId("block").click();
   await expect(anya.getByTestId("block-confirm")).toContainText("точно заблокировать?");
   await expect(anya.getByTestId("block-confirm")).toContainText("беседа закроется у обоих, и снятый блок обратно не ставится");
@@ -86,6 +87,7 @@ test("a block from the conversation asks twice, closes it for both, and takes th
   await expect(anya.locator('[data-screen="chat"]')).toHaveAttribute("data-over", "no");
 
   // And for real: POST /blocks → 204, the tombstone names the block here only.
+  await chatMenu(anya);
   await anya.getByTestId("block").click();
   await anya.getByTestId("block-yes").click();
   await expect(anya.getByTestId("tombstone")).toBeVisible({ timeout: 15000 });

@@ -109,3 +109,9 @@
 .b-stickers[data-screen="me"] .ui-list > li:nth-child(4n+3) .ui-setting > svg { background: var(--tile-3); color: var(--tile-3-ink); }
 .b-stickers[data-screen="me"] .ui-list > li:nth-child(4n) .ui-setting > svg { background: var(--tile-4); color: var(--tile-4-ink); }
 .b-stickers[data-screen="me"] .ui-setting-danger, .b-stickers li[data-row="reset"] .ui-setting { color: var(--danger); }
+
+/* Every button and the code field are stickers too, as on the sheets of 02.10:
+   the white rim and the hard offset shadow (owner 10.10, kit §8.2). */
+:root[data-brand="neighbro"] .ui-button.ui-primary, :root[data-brand="neighbro"] .ui-button.ui-secondary,
+:root[data-brand="neighbro"] [data-screen="arrival"] input { border: var(--btn-rim); box-shadow: var(--btn-shadow); }
+:root[data-brand="neighbro"] .ui-button:disabled { box-shadow: none; }

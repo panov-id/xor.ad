@@ -9,7 +9,7 @@
 // the conversation there too. Run by scripts/run-web-two-people.sh two-devices.
 
 import { expect, test, type Browser, type Page } from "../fixtures/address.ts";
-import { PIN, likeByCard, openMatch, register, runLabel, unlock, writePhrase } from "./helpers.ts";
+import { PIN, likeByCard, openMatch, register, runLabel, unlock, writePhrase, chatMenu } from "./helpers.ts";
 
 const SIZE = { width: 393, height: 851 };
 
@@ -38,6 +38,7 @@ async function rekeyOnNewDevice(page: Page, other: Page, epoch: number): Promise
   await expect(page.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   await page.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(page.locator('[data-screen="chat"]'), "the old conversation opened on a device it was never wrapped for").toHaveAttribute("data-keys", "failed", { timeout: 30000 });
+  await chatMenu(page);
   await page.getByTestId("rekey-ask").click();
   await expect(page.getByTestId("rekey-waiting")).toBeVisible({ timeout: 15000 });
   await expect(other.getByTestId("rekey-asked"), "the other side was not asked about new keys").toBeVisible({ timeout: 30000 });

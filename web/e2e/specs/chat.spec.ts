@@ -7,7 +7,7 @@
 // composer and the card, as a person makes them.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase, chatMenu } from "./helpers.ts";
 
 
 function watch(page: Page, who: string) {
@@ -114,7 +114,9 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   await expect(anya.locator('[data-testid="theirs"]').last()).toContainText("иду, две минуты", { timeout: 20000 });
 
   // The safety code is the same on both screens: no key was planted by the node.
+  await chatMenu(anya);
   await anya.getByTestId("show-safety").click();
+  await chatMenu(boris);
   await boris.getByTestId("show-safety").click();
   // The code is the kit's Code (a «код» label, the value in <code>, «скопировать»): the digits are the <code>.
   const codeA = await anya.getByTestId("safety").locator("code").textContent();
@@ -155,6 +157,7 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   // By the screen (W17): «закончить беседу», asked once, then A's own tombstone.
   const closes: number[] = [];
   anya.on("response", (r) => { if (new URL(r.url()).pathname === `/chats/${chatId}` && r.request().method() === "DELETE") closes.push(r.status()); });
+  await chatMenu(anya);
   await anya.getByTestId("end").click();
   await expect(anya.getByTestId("end-confirm")).toBeVisible();
   await anya.getByTestId("end-yes").click();

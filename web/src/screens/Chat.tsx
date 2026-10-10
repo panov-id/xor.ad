@@ -44,6 +44,7 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
     send, resend, rekey, askedByPeer, waitingForPeer, starters,
   } = useChat({ client, keys, row: given });
   const who = `${row.name}, ${peerAge}`;
+  const showSafety = () => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"));
   return (
     <Screen
       name="chat"
@@ -82,7 +83,7 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
           and the counter once the silence has reached a quarter of it. */}
       {!over && (
         <div className="ui-icon-row" data-testid="fades" data-counting={quiet.counting ? "yes" : "no"}>
-          <Info label={say("web.chat.span_label")} data-testid="fades-info"><p data-testid="fades-text">{say("chat.fades", { span: say(`chat.spanShort${span}`) })}</p></Info>
+          <Info label={say("web.chat.span_label")} data-testid="fades-info"><p data-testid="fades-text">{say("chat.fades", { left: say(`chat.spanShort${span}`) })}</p></Info>
           {quiet.counting && <span data-testid="silence-clock"> · {quiet.clock}</span>}
         </div>
       )}
@@ -96,10 +97,13 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
           busy={busy}
           askedByPeer={askedByPeer}
           waitingForPeer={waitingForPeer}
+          gameOpen={gameOpen}
           onSpan={(next) => void changeSpan(next)}
           onEnd={() => void endChat()}
           onBlock={() => void block()}
           onRekey={(action) => void rekey(action)}
+          onGame={() => setGameOpen((o) => !o)}
+          onSafety={showSafety}
         />
       )}
       {over && <Tombstone title={say("web.chat.over_title")} text={say(blocked ? "web.chat.blocked" : "web.chat.over_text")} data-testid="tombstone" />}
@@ -153,6 +157,7 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
       {!over && (
         <MessageInput
           label={say("web.chat.line")}
+          placeholder={say("web.chat.line")}
           sendLabel={say("chat.send")}
           value={text}
           onChange={setText}
@@ -163,12 +168,12 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
           sendTestId="send"
         />
       )}
-      <Actions>
-        {!over && (
-          <Button kind="secondary" type="button" icon="random" className="ui-wide" aria-label={say("web.game.title")} onClick={() => setGameOpen((o) => !o)} data-testid="game-toggle" aria-pressed={gameOpen} />
-        )}
-        <Button kind="secondary" type="button" icon="consent" className="ui-wide" aria-label={say("chat.code")} onClick={() => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"))} data-testid="show-safety" />
-      </Actions>
+      {/* Ended, there is no «…»: the safety code alone stays reachable, in words. */}
+      {over && (
+        <Actions>
+          <Button kind="secondary" type="button" onClick={showSafety} data-testid="show-safety">{say("chat.code")}</Button>
+        </Actions>
+      )}
     </Screen>
   );
 }

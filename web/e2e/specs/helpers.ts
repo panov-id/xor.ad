@@ -187,3 +187,11 @@ export async function twoAtATable(first: Page, second: Page, t: { name: string; 
   await expect(first.getByTestId("turn")).not.toContainText("партия ещё не началась", { timeout: 15000 });
   await expect(second.getByTestId("turn")).not.toContainText("партия ещё не началась", { timeout: 15000 });
 }
+
+// The chat's handles stand behind «…» in an ActionSheet (owner, 10.10.2026):
+// open it unless it is open already. An action closes it; the span does not.
+export async function chatMenu(page: Page): Promise<void> {
+  if (await page.getByTestId("chat-menu").isVisible()) return;
+  await page.getByTestId("chat-more").click();
+  await expect(page.getByTestId("chat-menu")).toBeVisible();
+}

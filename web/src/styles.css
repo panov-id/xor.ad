@@ -90,14 +90,15 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .ui-chip-accent { --chip: var(--accent-text); }
 .ui-chip-muted { --chip: var(--muted); }
 .ui-chip-outline { background: transparent; border: 1px solid var(--chip); }
-.ui-composer { position: relative; display: flex; align-items: center; height: 52px; border-radius: var(--r-pill); background: var(--fg); box-shadow: 3px 3px 0 var(--shadow); padding: 0 var(--s-1) 0 20px; }
-.ui-composer input { flex: 1; min-height: var(--control-h); border: 0; padding: 0; background: transparent; color: var(--bg); }
-.ui-composer input::placeholder { color: var(--on-fg-muted); }
-.ui-composer input:focus-visible { outline: none; }
-.ui-composer:focus-within { outline: 2px solid var(--accent-text); outline-offset: 2px; }
-.ui-send { width: var(--control-h); min-height: var(--control-h); padding: 0; border: 0; border-radius: var(--r-round); display: grid; place-items: center; background: transparent; }
-.ui-send svg { width: 36px; height: 36px; border-radius: var(--r-round); fill: none; stroke: var(--on-fg-muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.ui-send-on svg { background: var(--accent); stroke: var(--accent-ink); }
+/* The sheets' Chat: a light pill field with a rim, and the send apart from it, a filled accent tile. */
+.ui-composer { display: flex; align-items: center; gap: var(--s-2); }
+.ui-composer input { flex: 1; min-inline-size: 0; min-height: 56px; border: 1px solid var(--line); box-shadow: inset 0 0 0 1px var(--line); border-radius: var(--r-pill); padding: 0 20px; background: var(--panel); color: var(--fg); }
+.ui-composer input::placeholder { color: var(--muted); }
+.ui-composer input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ui-send { flex: none; width: 64px; min-height: 64px; padding: 0; border: 0; border-radius: var(--r-2); display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); }
+.ui-send svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* Н7: an empty field draws the send as an outline, not filled. */
+.ui-send:not(.ui-send-on) { background: transparent; color: var(--accent-text); box-shadow: inset 0 0 0 2px var(--accent); }
 .ui-header { display: flex; align-items: center; gap: var(--s-1); min-height: 56px; margin: 0 calc(-1 * var(--s-4)); padding: 0 var(--s-4); }
 .ui-header-rule { border-bottom: 1px solid var(--border); padding-left: var(--s-1); }
 /* A header with no back icon keeps the title on the 16 edge, as the sheets do. */
@@ -212,8 +213,7 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-disclosure > summary::-webkit-details-marker { display: none; }
 .ui-chevron { flex: none; }
 .ui-disclosure[open] > summary .ui-chevron { transform: rotate(90deg); }
-.ui-composer.ui-message:focus-within { outline: 3px solid var(--focus); outline-offset: 3px; }
-.ui-message input[aria-disabled="true"] { color: var(--bg); opacity: 0.6; }
+.ui-message input[aria-disabled="true"] { background: var(--panel-2); color: var(--muted); border-style: dashed; }
 .ui-kit-sent { margin: 0; }
 
 /* Step К2б, the display elements (kit_RU.md §3.1, §3.3). Sizes on tokens and rem. */

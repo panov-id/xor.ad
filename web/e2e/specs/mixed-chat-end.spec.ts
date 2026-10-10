@@ -12,7 +12,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { expect, test, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, register, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, register, writePhrase, chatMenu } from "./helpers.ts";
 
 const sync = process.env.MIXED_SYNC ?? "/app/results/mixed-sync";
 const run = process.env.MIXED_RUN ?? "";
@@ -102,10 +102,12 @@ test("the terminal ends a conversation and the page sees the tombstone; the page
     const blocks: number[] = [];
     vera.on("response", (r) => { if (new URL(r.url()).pathname === "/blocks" && r.request().method() === "POST") blocks.push(r.status()); });
     // Asked twice (§8.9); backed out of once, nothing sent.
+    await chatMenu(vera);
     await vera.getByTestId("block").click();
     await expect(vera.getByTestId("block-confirm")).toContainText("точно заблокировать?");
     await vera.getByTestId("block-no").click();
     expect(blocks).toEqual([]);
+    await chatMenu(vera);
     await vera.getByTestId("block").click();
     await vera.getByTestId("block-yes").click();
     await expect(vera.getByTestId("tombstone")).toBeVisible({ timeout: 15000 });

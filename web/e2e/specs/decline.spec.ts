@@ -5,7 +5,7 @@
 // still shows the offer, nothing tells them.
 
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase, chatMenu } from "./helpers.ts";
 
 
 async function register(page: Page, name: string) {
@@ -106,6 +106,7 @@ test("not now is this side's alone and can be taken back; a device with no wrap 
   await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(boris.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "failed", { timeout: 20000 });
   await expect(boris.getByTestId("keys-failed")).toContainText("holds no keys for the conversation: ask for a reissue");
+  await chatMenu(boris);
   await expect(boris.getByTestId("rekey-ask")).toBeVisible();
 
   await a.close();

@@ -1,5 +1,5 @@
 // One's own span in the web conversation (chat spec §8.6, W11-A), against a
-// live node: the screen shows «гаснет после 1ч ВАШЕГО молчания» from the
+// live node: the screen shows «гаснет после 1ч вашего молчания» from the
 // start; a press on «10 минут» goes to PATCH /chats/:id and moves one's own
 // end by exactly fifty minutes, the other side's row untouched in the
 // database; the silence counter lights only in the last quarter — set up by
@@ -11,7 +11,7 @@
 
 import postgres from "postgres";
 import { expect, test, type BrowserContext, type Page } from "../fixtures/address.ts";
-import { likeByCard, openMatch, runLabel, writePhrase } from "./helpers.ts";
+import { likeByCard, openMatch, runLabel, writePhrase, chatMenu } from "./helpers.ts";
 
 const DATABASE = process.env.DATABASE_URL ?? "postgres://relay:test@postgres:5432/relay_test";
 
@@ -84,22 +84,26 @@ test("one's own span is set from the screen, moves only one's own end, lights th
   await expect(screenA).toHaveAttribute("data-span", "60");
   // The words live in the ⓘ balloon now (comic, 2026-10-01): open, read, close.
   await anya.getByTestId("fades-info").getByRole("button").click();
-  await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 1ч ВАШЕГО молчания");
+  await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 1ч вашего молчания");
   await anya.keyboard.press("Escape");
   await expect(anya.getByTestId("fades")).toHaveAttribute("data-counting", "no");
+  await chatMenu(anya);
   await expect(anya.getByTestId("span-60")).toHaveAttribute("aria-checked", "true");
   // New keys are offered to a healthy conversation, as in the terminal.
+  await chatMenu(anya);
   await expect(anya.getByTestId("rekey-ask")).toBeEnabled();
 
   // Ten minutes: PATCH /chats/:id → 200, the end fifty minutes closer.
   const patches: number[] = [];
   anya.on("response", (r) => { if (new URL(r.url()).pathname === `/chats/${chatId}` && r.request().method() === "PATCH") patches.push(r.status()); });
   const endBefore = Number(await screenA.getAttribute("data-ends-at"));
+  await chatMenu(anya);
   await anya.getByTestId("span-10").click();
   await expect(screenA).toHaveAttribute("data-span", "10", { timeout: 15000 });
   await anya.getByTestId("fades-info").getByRole("button").click();
-  await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 10 мин ВАШЕГО молчания");
+  await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 10 мин вашего молчания");
   await anya.keyboard.press("Escape");
+  await chatMenu(anya);
   await expect(anya.getByTestId("span-10")).toHaveAttribute("aria-checked", "true");
   expect(patches).toEqual([200]);
   expect(Number(await screenA.getAttribute("data-ends-at"))).toBe(endBefore - 50 * 60);
@@ -142,9 +146,11 @@ test("one's own span is set from the screen, moves only one's own end, lights th
   // The waiting row, not the status line: the status is overwritten by the
   // keys' own report («the other side has not answered the key reissue yet»)
   // as soon as the asking side turns its keys — seen in the full run, W11-A.
+  await chatMenu(anya);
   await anya.getByTestId("rekey-ask").click();
   await expect(anya.getByTestId("rekey-waiting")).toBeVisible({ timeout: 20000 });
   // Shut while one's own request waits, as the terminal's row (rooms.ts).
+  await chatMenu(anya);
   await expect(anya.getByTestId("rekey-ask")).toBeDisabled();
   await expect(boris.getByTestId("rekey-asked")).toBeVisible({ timeout: 20000 });
   await boris.getByTestId("rekey-agree").click();

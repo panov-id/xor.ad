@@ -783,6 +783,41 @@ test({ name: "GET /tables gives one's own and liked tables in mine on the first 
   assertEquals([fraction.status, code(fraction)], [400, "invalid_body"], "a radius in fractions of a metre");
 });
 
+// П18b: a read of GET /tables stops after a few portions even when the circle
+// cut every row away; the page ends short with a cursor, and walking on finds
+// what lies further.
+test({ name: "GET /tables stops reading after its portions and goes on by cursor", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { scanLimits } = await import("../src/lib/tables_feed.ts");
+  const lat = 60 + Math.random() * 5;
+  const lon = -120 + Math.random() * 5;
+  const near = await signed(await person(), "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat, lon, area_radius: 1000, nonce: nonce() });
+  assertEquals(near.status, 201, JSON.stringify(near.body));
+  // Five newer ones in the box but outside the circle: about 5.5 km north.
+  for (let i = 0; i < 5; i++) {
+    const far = await signed(await person(), "POST", "/tables", { class: "grid", set: "checkers", seats: 2, lat: lat + 0.05, lon, area_radius: 1000, nonce: nonce() });
+    assertEquals(far.status, 201);
+  }
+  const viewer = await person();
+  const at = `lat=${lat}&lon=${lon}&radius=1000`;
+  scanLimits(2, 2);
+  try {
+    const first = await signed(viewer, "GET", `/tables?${at}`);
+    assertEquals(first.status, 200, JSON.stringify(first.body));
+    assertEquals([(first.body.items as unknown[]).length, typeof first.body.next], [0, "string"], "the first read stops short, with a cursor");
+    const found: string[] = [];
+    let next = first.body.next as string | null;
+    for (let pages = 0; next && pages < 10; pages++) {
+      const page = await signed(viewer, "GET", `/tables?${at}&after=${next}`);
+      assertEquals(page.status, 200, JSON.stringify(page.body));
+      found.push(...(page.body.items as { id: string }[]).map((card) => card.id));
+      next = page.body.next as string | null;
+    }
+    assertEquals(found, [near.body.id], "walking on finds the table in the circle, once");
+  } finally {
+    scanLimits();
+  }
+});
+
 // G1g: the last four classes, one test each, and the seats of a class.
 const moveAs = async (who: Person, id: string, move: unknown) =>
   signed(who, "POST", `/tables/${id}/moves`, { seq: (await seen(who, id)).seq, move });

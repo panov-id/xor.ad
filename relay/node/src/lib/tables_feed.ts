@@ -124,12 +124,18 @@ export async function tablesForFeed(
 // one read may keep fewer rows than it fetched — it reads on until the page is
 // full or the rows end. The page's cursor is its last *shown* table: a row
 // skipped after it is skipped again on the next page, never lost.
-const SCAN = 100;
+let SCAN = 100;
 // A read stops after this many portions even if the page is not full: a circle
 // that cuts away almost every row of a dense box would otherwise read the box
 // whole (verifier of P18, 10.10.2026). The page then ends short, with a cursor
 // from where the reading stopped, so the next page goes on from there.
-const SCANS = 10;
+let SCANS = 10;
+
+// Only for tests: a cap small enough to reach without a thousand tables.
+export function scanLimits(portion = 100, portions = 10): void {
+  SCAN = portion;
+  SCANS = portions;
+}
 
 export async function tablesPage(
   viewer: string,

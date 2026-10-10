@@ -1,7 +1,9 @@
 // "Столы" (kit_RU.md §8.4, К6б): the tables near the person, one tab of the
 // bottom bar. GET /tables in the feed's circle, thirty at a time and more by
 // cursor (П18; relay lib/tables_feed.ts) — it used to keep the table cards of
-// the feed's first page, so with a long feed some tables never showed. A card
+// the feed's first page, so with a long feed some tables never showed. Above
+// the list, «Мои столы»: where the person sits and what they liked, wherever
+// those stand (П18b; the list leaves them out, as the feed does). A card
 // sits the person down as on the feed (App.enterTable); "new table" is the same
 // flow as the feed's (NewTable.tsx). Kit elements only.
 
@@ -29,6 +31,7 @@ export function TableList(
   },
 ) {
   const [items, setItems] = useState<FeedCard[]>([]);
+  const [mine, setMine] = useState<(FeedCard & { seated?: boolean; liked?: boolean })[]>([]);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [error, setError] = useState<string | null>(null);
   const [next, setNext] = useState<string | null>(null);
@@ -40,6 +43,7 @@ export function TableList(
         if (!live.current) return;
         const cards = page.items as FeedCard[];
         setItems((had) => after ? [...had, ...cards] : cards);
+        if (!after) setMine((page.mine ?? []) as typeof mine);
         setNext(page.next);
         setState("ready");
       })
@@ -65,6 +69,20 @@ export function TableList(
     }>
       {state === "failed" && <ErrorLine data-testid="error">{error}</ErrorLine>}
       {notice && <ErrorLine data-testid="table-refused">{notice}</ErrorLine>}
+      {mine.length > 0 && (
+        <section aria-labelledby="tables-mine" data-testid="tables-mine">
+          <h2 id="tables-mine">{say("web.tables.mine")}</h2>
+          <ul className="ui-cards">
+            {mine.map((card) => (
+              <Card as="li" key={card.id} kind="nested" of="table" data-testid="table-mine" data-id={card.id}>
+                <CardOpen id={`mine-${card.id}`} onOpen={() => onTable(card.id)} />
+                <p id={openerIds(`mine-${card.id}`).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {classWord(card.game ?? "")} · {setWord(card.set ?? "")}</p>
+                <span className="ui-hint" id={openerIds(`mine-${card.id}`).foot}>{[card.seated && say("web.tables.seated"), card.liked && say("web.tables.liked")].filter(Boolean).join(" · ")} · {say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · <LikeCount n={card.like_count ?? 0} /></span>
+              </Card>
+            ))}
+          </ul>
+        </section>
+      )}
       {state === "ready" && items.length === 0 && (
         <EmptyState
           title={say("web.tables.empty")}

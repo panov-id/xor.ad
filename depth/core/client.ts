@@ -453,10 +453,11 @@ export class Client {
   }
 
   // GET /tables (П18): the tables near, a page at a time, in the feed's circle.
-  async tables(at: { lat: number; lon: number; radius: Radius; after?: string }): Promise<{ items: unknown[]; next: string | null }> {
+  // `mine` (П18b): one's own and liked tables, on the first page only.
+  async tables(at: { lat: number; lon: number; radius: Radius; after?: string }): Promise<{ items: unknown[]; next: string | null; mine?: unknown[] }> {
     const q = new URLSearchParams({ lat: String(at.lat), lon: String(at.lon), radius: String(at.radius) });
     if (at.after) q.set("after", at.after);
-    const answer = await this.#call<{ items: unknown[]; next: string | null }>("GET", `/tables?${q}`);
+    const answer = await this.#call<{ items: unknown[]; next: string | null; mine?: unknown[] }>("GET", `/tables?${q}`);
     if (answer.status !== 200) throw new Error(`tables refused: ${answer.status} ${JSON.stringify(answer.body)}`);
     return answer.body;
   }

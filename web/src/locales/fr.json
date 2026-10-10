@@ -187,6 +187,8 @@
   "web.inbox.span": "s’éteint après {n} min de votre silence",
   "web.inbox.title": "Discussions",
   "web.inbox.waits_you": "vous attend",
+  "web.lang.item": "langue",
+  "web.lang.title": "Langue",
   "web.like.refused_status": "Like refusé ({status}).",
   "web.like.refused_why": "Like refusé : {why}.",
   "web.likes.back": "← flux",

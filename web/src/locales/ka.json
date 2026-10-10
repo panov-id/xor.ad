@@ -187,6 +187,8 @@
   "web.inbox.span": "ქრება თქვენი {n} წთ დუმილის შემდეგ",
   "web.inbox.title": "ლაპარაკი",
   "web.inbox.waits_you": "გელოდებათ",
+  "web.lang.item": "ენა",
+  "web.lang.title": "ენა",
   "web.like.refused_status": "მოწონება არ მიიღეს ({status}).",
   "web.like.refused_why": "მოწონება არ მიიღეს: {why}.",
   "web.likes.back": "← ნაკადი",

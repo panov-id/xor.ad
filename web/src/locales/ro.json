@@ -187,6 +187,8 @@
   "web.inbox.span": "se stinge după {n} min de tăcere a ta",
   "web.inbox.title": "Discuții",
   "web.inbox.waits_you": "te așteaptă",
+  "web.lang.item": "limbă",
+  "web.lang.title": "Limbă",
   "web.like.refused_status": "Aprecierea n-a fost acceptată ({status}).",
   "web.like.refused_why": "Aprecierea n-a fost acceptată: {why}.",
   "web.likes.back": "← flux",

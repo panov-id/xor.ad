@@ -187,6 +187,8 @@
   "web.inbox.span": "σβήνει μετά από {n} λεπ. σιωπής σας",
   "web.inbox.title": "Κουβέντες",
   "web.inbox.waits_you": "σας περιμένει",
+  "web.lang.item": "γλώσσα",
+  "web.lang.title": "Γλώσσα",
   "web.like.refused_status": "Το like δεν έγινε δεκτό ({status}).",
   "web.like.refused_why": "Το like δεν έγινε δεκτό: {why}.",
   "web.likes.back": "← ροή",

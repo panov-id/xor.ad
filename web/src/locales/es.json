@@ -187,6 +187,8 @@
   "web.inbox.span": "se apaga tras {n} min de tu silencio",
   "web.inbox.title": "Charlas",
   "web.inbox.waits_you": "te espera",
+  "web.lang.item": "idioma",
+  "web.lang.title": "Idioma",
   "web.like.refused_status": "Like no aceptado ({status}).",
   "web.like.refused_why": "Like no aceptado: {why}.",
   "web.likes.back": "← flujo",

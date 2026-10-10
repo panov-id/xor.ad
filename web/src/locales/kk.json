@@ -187,6 +187,8 @@
   "web.inbox.span": "сіз {n} мин үндемесеңіз сөнеді",
   "web.inbox.title": "Сөйлесулер",
   "web.inbox.waits_you": "сізді күтеді",
+  "web.lang.item": "тіл",
+  "web.lang.title": "Тіл",
   "web.like.refused_status": "Лайк қабылданбады ({status}).",
   "web.like.refused_why": "Лайк қабылданбады: {why}.",
   "web.likes.back": "← таспа",

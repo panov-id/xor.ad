@@ -187,6 +187,8 @@
   "web.inbox.span": "{n} daq jim tursangiz o‘chadi",
   "web.inbox.title": "Gaplar",
   "web.inbox.waits_you": "sizni kutmoqda",
+  "web.lang.item": "til",
+  "web.lang.title": "Til",
   "web.like.refused_status": "Layk qabul qilinmadi ({status}).",
   "web.like.refused_why": "Layk qabul qilinmadi: {why}.",
   "web.likes.back": "← lenta",

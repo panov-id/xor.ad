@@ -187,6 +187,8 @@
   "web.inbox.span": "gaśnie po {n} min twojego milczenia",
   "web.inbox.title": "Pogawędki",
   "web.inbox.waits_you": "czeka na ciebie",
+  "web.lang.item": "język",
+  "web.lang.title": "Język",
   "web.like.refused_status": "Polubienia nie przyjęto ({status}).",
   "web.like.refused_why": "Polubienia nie przyjęto: {why}.",
   "web.likes.back": "← strumień",

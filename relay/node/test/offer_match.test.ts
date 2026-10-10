@@ -365,6 +365,50 @@ Deno.test("both agree on the offer's match: the header is the offer alone, and t
   reset();
 });
 
+// WP-1 · open.tsv offer.like.namequeue: a renamed person who liked an offer got
+// name_pending and no match until they posted a phrase — the new name waited
+// for a verdict that only a phrase could bring. The rules now read the name
+// when it is changed: a clean one is the name at once, and the like that
+// waited on the offer becomes its match; a flagged one waits as before.
+Deno.test("a clean new name passes the rules at once, and the like that waited on an offer becomes its match", async () => {
+  reset();
+  await import("../src/routes/profile.ts");
+  const neighbour = await person();
+  const taker = await person();
+  await setName(taker.identity_id, "pending");
+  const offer = await seed(neighbour.identity_id, "отдам велосипед", { discount: "100%" });
+  assertEquals((await like(taker, offer)).body, { state: "liked", name_pending: true });
+  assertEquals(await matchOf(neighbour.identity_id, taker.identity_id), null);
+
+  const renamed = await signedCall(taker, "PATCH", "/identities/me", { name: "Аня Соседка" });
+  assertEquals(renamed.status, 200, `a clean name still waited: ${JSON.stringify(renamed.body)}`);
+  assertEquals(renamed.body.name, "Аня Соседка");
+  assertEquals(renamed.body.name_state, "accepted");
+  assertEquals(renamed.body.name_pending, undefined);
+  assert(await matchOf(neighbour.identity_id, taker.identity_id), "the waiting like did not become a match when the name passed");
+
+  // And a like after it is a match at once.
+  const other = await person();
+  const second = await seed(other.identity_id, "отдам самокат", { discount: "100%" });
+  assertEquals((await like(taker, second)).body.state, "matched");
+  reset();
+});
+
+// WP-4: a flagged name is refused when it is changed, not left pending — the
+// old name stands, so a like on an offer makes its match at once.
+Deno.test("a new name the rules flag is refused and the old name stands, so a like on an offer still makes its match", async () => {
+  reset();
+  await import("../src/routes/profile.ts");
+  const neighbour = await person();
+  const taker = await person();
+  const renamed = await signedCall(taker, "PATCH", "/identities/me", { name: "пиши в тг" });
+  assertEquals(renamed.status, 422, JSON.stringify(renamed.body));
+  assertEquals(renamed.body.error.code, "name_refused");
+  const offer = await seed(neighbour.identity_id, "отдам стул", { discount: "100%" });
+  assertEquals((await like(taker, offer)).body.state, "matched");
+  reset();
+});
+
 // W13-OM · open.tsv offer.match.authorname: the likes left on this identity's
 // offers while ITS name waited. settleOfferLikes() took only the likes it left
 // itself (liker_identity), so the author's accepted name made no match of the

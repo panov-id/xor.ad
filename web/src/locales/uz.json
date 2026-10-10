@@ -246,6 +246,7 @@
   "web.offer.warn": "U yerda bugun nima borligini tekshirmaymiz: va’daga emas, domenga qarang. O‘tish bir marta hisoblanadi.",
   "web.phrase.refused_status": "Ibora qabul qilinmadi ({status}).",
   "web.phrase.refused_why": "Ibora qabul qilinmadi: {why}.",
+  "web.name.refused_why": "Ism qabul qilinmadi: {why}.",
   "web.register.age_min": "13 yoshdan",
   "web.register.confirm": "Yozib oldingizmi? Ikkinchi va to‘rtinchi guruhlarni kiriting.",
   "web.register.consent": "foydalanish shartlari, maxfiylik siyosati va hamjamiyat qoidalarini qabul qilaman",

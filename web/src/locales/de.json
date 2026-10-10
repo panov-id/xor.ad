@@ -246,6 +246,7 @@
   "web.offer.warn": "Wir prüfen nicht, was dort heute steht: achten Sie auf die Domain, nicht auf das Versprechen. Ein Aufruf wird einmal gezählt.",
   "web.phrase.refused_status": "Phrase nicht angenommen ({status}).",
   "web.phrase.refused_why": "Phrase nicht angenommen: {why}.",
+  "web.name.refused_why": "Name nicht angenommen: {why}.",
   "web.register.age_min": "ab 13 Jahren",
   "web.register.confirm": "Aufgeschrieben? Geben Sie die zweite und vierte Gruppe ein.",
   "web.register.consent": "ich akzeptiere die Nutzungsbedingungen, die Datenschutzerklärung und die Gemeinschaftsregeln",

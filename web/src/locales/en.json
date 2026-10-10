@@ -246,6 +246,7 @@
   "web.offer.warn": "We don’t check what’s there today: look at the domain, not the promise. A visit is counted once.",
   "web.phrase.refused_status": "Phrase not accepted ({status}).",
   "web.phrase.refused_why": "Phrase not accepted: {why}.",
+  "web.name.refused_why": "Name not accepted: {why}.",
   "web.register.age_min": "13 and over only",
   "web.register.confirm": "Written it down? Enter the second and fourth groups.",
   "web.register.consent": "I accept the terms of use, the privacy policy and the community rules",

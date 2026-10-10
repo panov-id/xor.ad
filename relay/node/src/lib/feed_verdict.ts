@@ -393,12 +393,21 @@ export async function publishLocked(
 // phrase with a flag, and leaving it would hold the author's single waiting
 // slot for ever. The moment is what the refusal leaves behind, and it is what
 // the pause of §8.3 counts.
-export async function refusePhrase(id: string, scope: VerdictScope = {}): Promise<Verdict> {
+//
+// `moment: false` refuses without the moment: the model could not say (no
+// answer, a timeout, "unsure") and a phrase is refused closed, but the author
+// did nothing the pause of §8.3 is for — as a phrase the sweeper drops is not
+// counted either (WP-4, 2026-10-09).
+export async function refusePhrase(
+  id: string,
+  scope: VerdictScope = {},
+  options: { moment?: boolean } = {},
+): Promise<Verdict> {
   return await transaction<Verdict>(async (run) => {
     const row = await lockWaiting(run, id, scope);
     if (!row) return { applied: false, identityId: null };
     await run(`DELETE FROM feed_messages WHERE id = $1 AND visible_at IS NULL`, [id]);
-    if (row.author_identity) {
+    if (row.author_identity && options.moment !== false) {
       await rememberMoment(run, row.author_identity, "rejected_at_recent", KEEP_REFUSED);
     }
     inc("relay_feed_verdict_total", { verdict: "refused" });

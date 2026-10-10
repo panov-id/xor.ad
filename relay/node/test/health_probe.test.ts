@@ -88,7 +88,32 @@ staging("a staging node with no database answers /ready 503 and names database_o
   const body = await response.json();
   assertEquals(response.status, 503, "a staging node without a database answered ready");
   assertEquals(body.env, "staging");
-  assertEquals(body.reasons, ["database_off"]);
+  assertEquals(body.reasons, ["database_off", "moderator_missing"]);
+});
+
+// WP-4 (owner, 09.10.2026): the moderator model is the only reader of a
+// flagged phrase and of every offer; in staging and prod a node without it
+// cannot publish an offer, so it is not ready. Dev and local run on the rules.
+Deno.test("in staging and prod a node without the moderator model is not ready, and says why", async () => {
+  const { readiness } = await import("../src/routes/health.ts");
+  for (const env of ["staging", "prod"]) {
+    assertEquals(readiness({ database: "ok", databaseEnabled: true, vaultKey: true, env, moderator: false }),
+      { ok: false, reasons: ["moderator_missing"] }, `a ${env} node with no model was called ready`);
+    assertEquals(readiness({ database: "ok", databaseEnabled: true, vaultKey: true, env, moderator: true }),
+      { ok: true, reasons: [] });
+  }
+  for (const env of ["dev", "local"]) {
+    assertEquals(readiness({ database: "ok", databaseEnabled: true, vaultKey: true, env, moderator: false }),
+      { ok: true, reasons: [] }, `a ${env} stand on the rules alone was called not ready`);
+  }
+});
+
+// And ready() hands it the model's flag: with MODERATOR_URL set the reason goes.
+const stagingWithModel = suite({ NODE_ENV_NAME: "staging", MODERATOR_URL: "http://127.0.0.1:9" });
+stagingWithModel("a staging node with the model named does not answer moderator_missing", async () => {
+  forgetProbe();
+  const body = await (await ready()).json();
+  assertEquals(body.reasons, ["database_off"], "the model's flag did not reach /ready");
 });
 
 // A node that does not know its environment does not start (decided by quorum

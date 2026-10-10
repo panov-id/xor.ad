@@ -73,6 +73,9 @@ export function CardNotes({ logic }: { logic: CardLogic }) {
   return (
     <>
       {like?.state === "liked" && <p className="warn" data-testid="liked">{say("web.card.liked")}</p>}
+      {like?.state === "liked" && like.namePending && (
+        <p className="warn" data-testid="like-name-pending">{say("like.namePending")}</p>
+      )}
       {like?.state === "matched" && <p className="warn" data-testid="matched">{say("web.card.matched")}</p>}
       {like?.state === "refused" && <p className="error" data-testid="refused">{like.why}</p>}
       {error && <p className="error" data-testid="error">{error}</p>}

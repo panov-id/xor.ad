@@ -1,7 +1,8 @@
-// E2 · the first-tier moderator model (lib/moderator.ts): a phrase the rules
-// queue gets the model's hint beside it, after the 202; the phrase stays in the
-// person's queue whatever the model says; a clean phrase never reaches the
-// model; a dead model or an answer that is no verdict costs the author nothing.
+// The first-tier moderator model (lib/moderator.ts): with MODERATOR_URL on it
+// decides every phrase and every new name (W17-MM, WP-4; owner 09.10.2026 —
+// nobody else reads them): publish puts it out, anything else is a refusal
+// with its reason, and only the model's reject counts towards the pause.
+// With it off, the rules decide. Nothing waits for a person.
 // The model here is a stand-in HTTP server that speaks Ollama's /api/chat.
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
@@ -31,6 +32,7 @@ const auth = await import("../src/lib/identity_auth.ts");
 const moderator = await import("../src/lib/moderator.ts");
 await import("../src/routes/identity.ts");
 await import("../src/routes/feed.ts");
+await import("../src/routes/profile.ts");
 
 const KEY_ID = "ak_pub_moderatortest00001";
 await database.queryOrThrow(
@@ -116,128 +118,135 @@ async function author() {
     recovery_wrapped_key: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(48))),
   });
   assertEquals(confirmed.status, 204);
-  return (text: string) =>
-    signedCall(pair.privateKey, created.session_id, "POST", "/feed", { text, mode: "alone", lat: 41.9, lon: 12.5, area_radius: 1000 });
+  return {
+    id: created.identity_id,
+    say: (text: string) =>
+      signedCall(pair.privateKey, created.session_id, "POST", "/feed", { text, mode: "alone", lat: 41.9, lon: 12.5, area_radius: 1000 }),
+    rename: (name: string) => signedCall(pair.privateKey, created.session_id, "PATCH", "/identities/me", { name }),
+  };
 }
 
-type HintRow = { verdict: string; reason: string; model: string; ms: number };
-async function hintOf(id: string, seconds = 3): Promise<HintRow | undefined> {
-  const until = Date.now() + seconds * 1000;
-  while (Date.now() < until) {
-    const [row] = await database.queryOrThrow<HintRow>(`SELECT verdict, reason, model, ms FROM moderator_hints WHERE feed_message_id = $1`, [id]);
-    if (row) return row;
-    await new Promise((r) => setTimeout(r, 50));
+const rowOf = async (id: string) =>
+  (await database.queryOrThrow<{ visible_at: Date | null }>(`SELECT visible_at FROM feed_messages WHERE id = $1`, [id]))[0];
+// The refusals that count towards the pause of §8.3 (identity_stats).
+const refusals = async (identity: string) =>
+  (await database.queryOrThrow<{ n: number }>(
+    `SELECT coalesce(cardinality(rejected_at_recent), 0) AS n FROM identity_stats WHERE identity = $1`, [identity],
+  ))[0]?.n ?? 0;
+const nameOf = async (identity: string) =>
+  (await database.queryOrThrow<{ name: string; name_state: string; name_pending: string | null }>(
+    `SELECT name, name_state, name_pending FROM identities WHERE id = $1`, [identity],
+  ))[0];
+async function withModel<T>(url: string, step: () => Promise<T>): Promise<T> {
+  Deno.env.set("MODERATOR_URL", url);
+  try {
+    return await step();
+  } finally {
+    Deno.env.delete("MODERATOR_URL");
   }
-  return undefined;
 }
-const queued = async (id: string) =>
-  (await database.queryOrThrow<{ visible_at: Date | null }>(`SELECT visible_at FROM feed_messages WHERE id = $1`, [id]))[0]?.visible_at === null;
 
+// WP-4 (owner, 09.10.2026): nobody but the model reads a phrase. With the
+// model on it decides every phrase, flagged by the rules or not: publish puts
+// it out, reject refuses it with the model's reason and counts towards the
+// pause, unsure refuses it too but without the moment. Nothing waits.
 Deno.test({
-  name: "E2: a phrase the rules queue gets the model's hint beside it, and stays in the person's queue",
+  name: "WP-4: the model decides a phrase the rules flagged and one they did not; nothing waits for a person",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    Deno.env.set("MODERATOR_URL", MODEL_URL);
-    try {
+    await withModel(MODEL_URL, async () => {
       asked.length = 0;
       reply = '{"verdict":"reject","reason":"a link"}';
-      const say = await author();
-      const link = await say("заходите на https://example.com/party");
-      assertEquals(link.status, 202, JSON.stringify(link.body));
-      const hint = await hintOf(link.body.id);
-      assertEquals(hint?.verdict, "reject", "no hint was kept for a queued phrase");
-      assertEquals([hint?.reason, hint?.model], ["a link", moderator.MODERATOR_MODEL_DEFAULT]);
-      assert(await queued(link.body.id), "the model's reject took the phrase out of the person's queue");
+      const a = await author();
+      const link = await a.say("заходите на https://example.com/party");
+      assertEquals(link.status, 422, JSON.stringify(link.body));
+      assertEquals(link.body.error.code, "moderation_refused");
+      assertEquals(link.body.error.message, "a link", "the model's reason did not reach the author");
       assertEquals(asked, ["заходите на https://example.com/party"], "the model was not asked the phrase itself");
+      assertEquals(await refusals(a.id), 1, "the model's reject did not count towards the pause");
 
-      // A clean phrase is no longer the rules' alone (W17-MM): with the model
-      // on, it is asked too, and its "reject" holds the phrase for a person.
-      const clean = await (await author())("гуляю у реки, если кто рядом");
-      assertEquals(clean.status, 202, "a clean phrase went out past the model's reject");
-      assertEquals(asked.length, 2, "a clean phrase was not shown to the model");
-      assertEquals((await hintOf(clean.body.id))?.verdict, "reject");
+      // A crude phrase is clean by the rules; the model refuses it (W17-MM).
+      const crude = await (await author()).say("все соседи с третьего этажа тупые уроды");
+      assertEquals(crude.status, 422, `a crude phrase went out: ${JSON.stringify(crude.body)}`);
 
-      // An answer that is no verdict is kept as unsure.
-      reply = "I think it is fine";
-      const other = await (await author())("пиши в тг, расскажу");
-      assertEquals(other.status, 202);
-      assertEquals((await hintOf(other.body.id))?.verdict, "unsure");
-    } finally {
-      Deno.env.delete("MODERATOR_URL");
-    }
-  },
-});
-
-// W17-MM (owner's decision): every phrase the rules let through is shown to
-// the model before it goes out. Crude words carry no link and no contact, so
-// the rules alone published them; the model holds them for a person.
-Deno.test({
-  name: "W17-MM: a crude phrase clean by the rules waits for a person, a fine one goes out, a dead model holds it back",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    const crude = "все соседи с третьего этажа тупые уроды";
-    const inFeed = async (id: string) =>
-      (await database.queryOrThrow<{ visible_at: Date | null }>(`SELECT visible_at FROM feed_messages WHERE id = $1`, [id]))[0]?.visible_at ?? null;
-    Deno.env.set("MODERATOR_URL", MODEL_URL);
-    try {
-      asked.length = 0;
-      reply = '{"verdict":"reject","reason":"abuse"}';
-      const held = await (await author())(crude);
-      assertEquals(held.status, 202, `a crude phrase went out: ${JSON.stringify(held.body)}`);
-      assertEquals(held.body.state, "checking");
-      assertEquals(await inFeed(held.body.id), null, "a crude phrase is in the feed");
-      assertEquals(asked, [crude], "the model was not asked before the phrase went out");
-      assertEquals((await hintOf(held.body.id))?.verdict, "reject", "the person's queue got no hint");
-
+      // The model may publish what the rules flagged: it reads, they match.
       reply = '{"verdict":"publish","reason":"fine"}';
-      const fine = await (await author())("кто на каток вечером?");
-      assertEquals(fine.status, 200, `a fine phrase did not go out: ${JSON.stringify(fine.body)}`);
-      assertEquals(fine.body.state, "published");
-      assert(await inFeed(fine.body.id), "a phrase the model let through is not in the feed");
+      const offer = await (await author()).say("отдам кресло, пишите в тг");
+      assertEquals(offer.status, 200, `the model's publish did not put it out: ${JSON.stringify(offer.body)}`);
+      assert((await rowOf(offer.body.id))?.visible_at, "a phrase the model published is not in the feed");
 
-      reply = "no verdict here";
-      const unsure = await (await author())("продам велосипед недорого");
-      assertEquals(unsure.status, 202, "an unsure answer let the phrase out");
-    } finally {
-      Deno.env.delete("MODERATOR_URL");
-    }
-    // A dead model: a person looks, the phrase does not go out by the rules alone.
-    Deno.env.set("MODERATOR_URL", "http://127.0.0.1:9");
-    try {
-      const dead = await (await author())("иду гулять в парк");
-      assertEquals(dead.status, 202, "with the model dead a clean phrase went out unseen");
-      assertEquals(await inFeed(dead.body.id), null);
-    } finally {
-      Deno.env.delete("MODERATOR_URL");
-    }
-    // The flag off: as before, the rules publish a clean phrase.
-    const off = await (await author())(crude);
-    assertEquals(off.status, 200, "with no model the rules no longer published a clean phrase");
+      // An answer that is no verdict: refused, closed — and no moment.
+      reply = "I think it is fine";
+      const u = await author();
+      const unsure = await u.say("пиши в тг, расскажу");
+      assertEquals(unsure.status, 422, JSON.stringify(unsure.body));
+      assertEquals(await refusals(u.id), 0, "an unsure model counted against the author");
+    });
   },
 });
 
 Deno.test({
-  name: "E2: a dead model or no flag costs the author nothing and writes no hint",
+  name: "WP-4: a dead model refuses without a moment; with no model the rules publish what is clean and refuse what they flag",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    // Nothing listens on this port: the hint fails, the phrase is queued as ever.
-    Deno.env.set("MODERATOR_URL", "http://127.0.0.1:9");
-    try {
-      const dead = await (await author())("звони +7 999 123-45-67");
-      assertEquals(dead.status, 202);
-      assertEquals(await hintOf(dead.body.id, 0.5), undefined, "a hint was written with no model to ask");
-    } finally {
-      Deno.env.delete("MODERATOR_URL");
-    }
+    // Nothing listens on this port.
+    await withModel("http://127.0.0.1:9", async () => {
+      const a = await author();
+      const dead = await a.say("иду гулять в парк");
+      assertEquals(dead.status, 422, "with the model dead a phrase went out unread");
+      assertEquals(dead.body.error.message, "the moderator could not read the phrase; try again later");
+      assertEquals(await rowOf(dead.body.id ?? "00000000-0000-0000-0000-000000000000"), undefined);
+      assertEquals(await refusals(a.id), 0, "a dead model counted against the author");
+    });
     asked.length = 0;
-    const off = await (await author())("www.example.org");
-    assertEquals(off.status, 202);
-    await new Promise((r) => setTimeout(r, 200));
+    const clean = await (await author()).say("кто на каток вечером?");
+    assertEquals(clean.status, 200, "with no model the rules no longer published a clean phrase");
+    const b = await author();
+    const flagged = await b.say("www.example.org");
+    assertEquals(flagged.status, 422, JSON.stringify(flagged.body));
+    assertEquals(flagged.body.error.message, "the phrase was not published: link");
+    assertEquals(await refusals(b.id), 1);
     assertEquals(asked.length, 0, "the model was asked with the flag off");
-    assertEquals(await hintOf(off.body.id, 0.2), undefined);
+  },
+});
+
+// WP-4 for names: decided when they change, by the model when it is on, by
+// the rules when it is not. Refused, the old name stands — nothing pending.
+Deno.test({
+  name: "WP-4: a new name is the model's to decide — publish is the name, anything else a refusal, and the old name stands",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withModel(MODEL_URL, async () => {
+      const a = await author();
+      reply = '{"verdict":"publish","reason":"fine"}';
+      asked.length = 0;
+      const ok = await a.rename("пиши в тг");
+      assertEquals(ok.status, 200, JSON.stringify(ok.body));
+      assertEquals(asked, ["пиши в тг"], "the model was not asked the name");
+      assertEquals(await nameOf(a.id), { name: "пиши в тг", name_state: "accepted", name_pending: null });
+
+      reply = '{"verdict":"reject","reason":"a messenger"}';
+      const no = await a.rename("Оля");
+      assertEquals(no.status, 422, JSON.stringify(no.body));
+      assertEquals(no.body.error.code, "name_refused");
+      assertEquals(no.body.error.message, "a messenger");
+      assertEquals(await nameOf(a.id), { name: "пиши в тг", name_state: "accepted", name_pending: null });
+
+      reply = "no verdict";
+      assertEquals((await a.rename("Оля")).status, 422);
+    });
+    await withModel("http://127.0.0.1:9", async () => {
+      assertEquals((await (await author()).rename("Оля")).status, 422, "a dead model let a name through");
+    });
+    const c = await author();
+    assertEquals((await c.rename("Оля")).status, 200, "with no model a clean name was not the name");
+    const flagged = await c.rename("пиши в тг");
+    assertEquals(flagged.status, 422);
+    assertEquals(flagged.body.error.message, "the name was not accepted: contact");
+    assertEquals(await nameOf(c.id), { name: "Оля", name_state: "accepted", name_pending: null });
   },
 });
 
@@ -287,35 +296,6 @@ Deno.test({ name: "E2b: no more than MODERATOR_CONCURRENCY questions are in flig
 // publish or an unsure hint must not publish it either. The row is read after
 // the hint landed and a while later, so a write that follows the hint (and
 // whose failure the hint path would swallow) is seen in the row itself.
-for (const [verdict, answer] of [
-  ["publish", '{"verdict":"publish","reason":"fine"}'],
-  ["unsure", "no verdict here"],
-  ["reject", '{"verdict":"reject","reason":"a link"}'],
-] as const) {
-  Deno.test({
-    name: `VF4: a ${verdict} hint leaves the phrase in the person's queue`,
-    sanitizeOps: false,
-    sanitizeResources: false,
-    async fn() {
-      Deno.env.set("MODERATOR_URL", MODEL_URL);
-      try {
-        reply = answer;
-        const said = await (await author())(`www.example-${verdict}.org`);
-        assertEquals(said.status, 202, JSON.stringify(said.body));
-        assertEquals((await hintOf(said.body.id))?.verdict, verdict, `the ${verdict} hint did not land`);
-        await new Promise((r) => setTimeout(r, 500));
-        const [row] = await database.queryOrThrow<{ visible_at: Date | null; expires_at: Date | null }>(
-          `SELECT visible_at, expires_at FROM feed_messages WHERE id = $1`, [said.body.id],
-        );
-        assert(row, `the phrase is gone after a ${verdict} hint`);
-        assertEquals([row.visible_at, row.expires_at], [null, null], `a ${verdict} hint took the phrase out of the person's queue`);
-      } finally {
-        Deno.env.delete("MODERATOR_URL");
-      }
-    },
-  });
-}
-
 // The stand-in model stops with the process, not in a test of its own: under
 // --shuffle that test ran before the hints and left them no model (W16-SF1).
 globalThis.addEventListener("unload", () => void model.shutdown());

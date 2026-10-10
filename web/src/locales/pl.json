@@ -246,6 +246,7 @@
   "web.offer.warn": "Nie sprawdzamy, co tam dziś jest: patrz na domenę, nie na obietnicę. Przejście liczy się raz.",
   "web.phrase.refused_status": "Frazy nie przyjęto ({status}).",
   "web.phrase.refused_why": "Frazy nie przyjęto: {why}.",
+  "web.name.refused_why": "Imienia nie przyjęto: {why}.",
   "web.register.age_min": "od 13 lat",
   "web.register.confirm": "Zapisane? Wpisz drugą i czwartą grupę.",
   "web.register.consent": "akceptuję regulamin, politykę prywatności i zasady społeczności",

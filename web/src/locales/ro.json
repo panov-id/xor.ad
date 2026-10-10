@@ -246,6 +246,7 @@
   "web.offer.warn": "Nu verificăm ce e acolo azi: uită-te la domeniu, nu la promisiune. O accesare se numără o dată.",
   "web.phrase.refused_status": "Fraza n-a fost acceptată ({status}).",
   "web.phrase.refused_why": "Fraza n-a fost acceptată: {why}.",
+  "web.name.refused_why": "Numele n-a fost acceptat: {why}.",
   "web.register.age_min": "de la 13 ani",
   "web.register.confirm": "Ai notat? Introdu grupul al doilea și al patrulea.",
   "web.register.consent": "accept termenii de utilizare, politica de confidențialitate și regulile comunității",

@@ -246,6 +246,7 @@
   "web.offer.warn": "Orada bu gün nə olduğunu yoxlamırıq: vədə yox, domenə baxın. Keçid bir dəfə sayılır.",
   "web.phrase.refused_status": "İfadə qəbul edilmədi ({status}).",
   "web.phrase.refused_why": "İfadə qəbul edilmədi: {why}.",
+  "web.name.refused_why": "Ad qəbul edilmədi: {why}.",
   "web.register.age_min": "13 yaşdan",
   "web.register.confirm": "Yazdınız? İkinci və dördüncü qrupları daxil edin.",
   "web.register.consent": "istifadə şərtlərini, məxfilik siyasətini və icma qaydalarını qəbul edirəm",

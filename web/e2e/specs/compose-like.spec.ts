@@ -77,11 +77,10 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     await a.getByTestId("back").click();
     await expect(a.getByTestId("sent")).toHaveCount(0);
 
-    // C: one phrase with a discount — a neighbour's offer. The rules tier
-    // (lib/feed_verdict.ts, reason "offer") sends every offer to a person, so
-    // the node answers 202 and the feed says it is being read; the offer never
-    // becomes visible in this stand, which has no person to publish it — the
-    // badge the cards draw for `offer` is not exercised here.
+    // C: one phrase with a discount — a neighbour's offer. The rules flag every
+    // offer (reason "offer"); with the model on, the model decides it (WP-4,
+    // owner 09.10.2026) — the stand's stub publishes what carries no link or
+    // contact, so the offer goes out at 200, as a clean phrase does.
     const c = await (await browser.newContext()).newPage();
     contexts.push(c.context());
     noise(c, "C");
@@ -96,9 +95,9 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     await c.getByTestId("conditions").fill("самовывоз");
     await c.getByTestId("send").click();
     await expect(c.locator('[data-screen="feed"]')).toBeVisible({ timeout: 15000 });
-    expect(offerPosts).toEqual([202]);
-    await expect(c.getByTestId("sent")).toHaveAttribute("data-state", "checking");
-    await expect(c.getByTestId("sent")).toContainText("читается");
+    expect(offerPosts).toEqual([200]);
+    await expect(c.getByTestId("sent")).toHaveAttribute("data-state", "published");
+    await expect(c.getByTestId("sent")).toContainText(offerText);
 
     // B: a browser of their own, the same circle.
     const b = await (await browser.newContext()).newPage();
@@ -108,9 +107,9 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     b.on("response", (r) => { if (/^\/feed\/[^/]+\/like$/.test(new URL(r.url()).pathname) && r.request().method() === "POST") likePosts.push(r.status()); });
     await register(b, "Борис");
 
-    // C's offer is with a person, not in the feed (rules tier, reason "offer").
+    // C's offer is in the feed: the model published it (WP-4).
     await expect(b.getByTestId("loading")).toBeHidden({ timeout: 15000 });
-    await expect(b.getByTestId("card").filter({ hasText: offerText })).toHaveCount(0);
+    await expect(b.getByTestId("card").filter({ hasText: offerText })).toHaveCount(1, { timeout: 15000 });
 
     // §8.4: a like is a phrase meeting a phrase. Without one of B's own the
     // node answers 409, and the card says so — the node's words, until the

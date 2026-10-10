@@ -46,6 +46,9 @@ const CONFIGURED = [
   "DATABASE_URL",
   "VAULT_SHARE_KEY",
   "BACKUP_AGE_ALERT_HOURS",
+  // Read by lib/moderator.ts at each call, and by /ready since WP-4: a value
+  // one suite left would make another's node ready or not by accident.
+  "MODERATOR_URL",
 ];
 
 export function useEnvironment(overrides: Record<string, string> = {}): void {

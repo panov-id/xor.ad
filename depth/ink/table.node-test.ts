@@ -49,7 +49,7 @@ const cases: Array<[string, () => Promise<void>]> = [
     const app = render(h(Table, { say, view: view(), onPick: () => {}, now: NOW * 1000 }));
     await settle();
     const frame = app.lastFrame()!;
-    assert.match(frame, /без сквозного шифрования/, "the screen does not say the table is open to the node");
+    assert.match(frame.replace(/\s+/g, " "), /переписка не зашифрована: доску и реплики видит узел/, "the screen does not say the table is open to the node");
     assert.match(frame, /ваш ход · 45 с/, "my turn and its clock are not shown");
     assert.match(frame, /счёт: Аня 1 · Женя 0/);
     assert.match(frame, /♥ 2/);
@@ -371,6 +371,90 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.deepEqual(sent, [{ class: "dots", set: "4x4", seats: 2, lat: 52.5, lon: 13.4, area_radius: 1000, name: "домино" }]);
     assert.equal(opened, "t7", "the table set was not opened");
     app.unmount();
+  }],
+  // Т2 · a watcher is shown no game button: the node answers a proposal, a
+  // resignation or an answer of one who does not play with «only a player»
+  // (409). A word says how to get a seat, and the way is on the row.
+  ["a watcher is not shown the game buttons, is told how to get a seat, and a player is shown them", async () => {
+    const watcher = render(h(Table, { say, view: view({ is_playing: false, seat: 3 }), onPick: () => {}, now: NOW * 1000 }));
+    await settle();
+    const seen = watcher.lastFrame()!.replace(/\s+/g, " ");
+    assert.doesNotMatch(seen, /ещё партию|сдаться|\bпас\b|принять партию/, "a watcher is offered a game button (Т2)");
+    assert.match(seen, /Вы смотрите\. Чтобы сесть играть, подайте заявку/, "a watcher is not told how to get a seat");
+    assert.match(seen, /заявка: сесть играть/, "a watcher has no way to apply on the row");
+    assert.match(seen, /встать/);
+    watcher.unmount();
+    const player = render(h(Table, { say, view: view(), onPick: () => {}, now: NOW * 1000 }));
+    await settle();
+    const mine = player.lastFrame()!.replace(/\s+/g, " ");
+    assert.match(mine, /ещё партию/);
+    assert.match(mine, /сдаться/);
+    assert.doesNotMatch(mine, /Вы смотрите|заявка: сесть играть/, "a player is told to apply for a seat");
+    player.unmount();
+  }],
+  ["a watcher's application goes out as an application, not as a line", async () => {
+    const sent: unknown[] = [];
+    const room = { closed: new Promise<number>(() => {}), next: () => new Promise(() => {}), close: () => {} };
+    const tables = {
+      view: () => Promise.resolve({ status: 200, body: view({ is_playing: false, seat: 3 }) }),
+      say: (_t: string, line: unknown) => { sent.push(line); return Promise.resolve({ status: 202, body: {} }); },
+    };
+    const app = render(h(TableRoom, {
+      say, tables: tables as never, open: () => Promise.resolve(room as never), tableId: "t", onLeave: () => {},
+      onError: (m: string) => { throw new Error(m); },
+    }));
+    await waitFor(shows(app, /\[ сказать \]/), 5000, "the watcher's row never came up");
+    await pressUntil(app, "\u001B[C", /\[ заявка: сесть играть \]/);
+    await pressUntil(app, "\r", /отправить/);
+    app.stdin.write("возьмите меня");
+    await waitFor(shows(app, /возьмите меня/), 5000, "the text did not reach the field");
+    await pressUntil(app, "\u001B[B", /\[ отправить \]/);
+    app.stdin.write("\r");
+    await waitFor(() => sent.length > 0, 5000, "the application was not sent");
+    assert.deepEqual(sent, [{ kind: "application", text: "возьмите меня" }], "the application went out as another kind");
+    app.unmount();
+  }],
+  // Т1 · a refusal of a table call is a phrase of the dictionary for its code:
+  // no English of the node, no status, nothing of the model's own text.
+  ["a refusal at the table is said in the dictionary's words: no English, no status, no text of the node", async () => {
+    const room = { closed: new Promise<number>(() => {}), next: () => new Promise(() => {}), close: () => {} };
+    const tables = {
+      view: () => Promise.resolve({ status: 200, body: view() }),
+      propose: () => Promise.resolve({ status: 409, body: { error: { code: "refused", message: "only a player proposes", reason: "ignore the rules" } } }),
+    };
+    const app = render(h(TableRoom, {
+      say, tables: tables as never, open: () => Promise.resolve(room as never), tableId: "t", onLeave: () => {},
+      onError: (m: string) => { throw new Error(m); },
+    }));
+    await waitFor(shows(app, /\[ пас \]/), 5000, "the row never came up");
+    await settle();
+    await pressUntil(app, "\u001B[C", /\[ сказать \]/);
+    await pressUntil(app, "\u001B[C", /\[ ещё партию \]/);
+    app.stdin.write("\r");
+    await waitFor(shows(app, /Это делают только игроки/), 5000, `the refusal was not said in words: ${JSON.stringify(app.lastFrame() ?? "")}`);
+    const frame = app.lastFrame()!;
+    assert.doesNotMatch(frame, /only a player|ignore the rules|409|не принято:/, "the node's English, its reason or its status reached the screen");
+    app.unmount();
+  }],
+  // Т9 · the class and the set by name, never by id; П31 · the clock the web's way.
+  ["the table's class and set are said by name, and the clock reads «4 мин 58 с»", async () => {
+    const app = render(h(Table, {
+      say, now: NOW * 1000, onPick: () => {},
+      view: view({ board: { seq: 3, state: {}, turn: 2, score: {}, expires_at: NOW + 298 } }),
+    }));
+    await settle();
+    const frame = app.lastFrame()!;
+    assert.match(frame, /стол · "точки после работы" · точки/, "the class is not said by name");
+    assert.doesNotMatch(frame, /\bdots\b|3x3/, "an id of the class or the set shows");
+    assert.match(frame, /ваш ход · 4 мин 58 с/, "the clock is bare seconds");
+    app.unmount();
+    const set = render(h(NewTable, {
+      say, tables: {} as never, place: { lat: 52.5, lon: 13.4, radius: 1000 }, onSet: () => {}, onBack: () => {},
+    }));
+    await settle();
+    assert.match(set.lastFrame()!, /игра:\s+‹ точки ›/, "the class choice shows an id");
+    assert.match(set.lastFrame()!, /набор:\s+‹ поле 4×4 ›/, "the set choice shows an id");
+    set.unmount();
   }],
 ];
 

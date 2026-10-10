@@ -113,12 +113,12 @@ async function main() {
     await type(app, DOWN);
     await typeUntil(app, paper[4], new RegExp(`${paper[4]}_`));
     await type(app, DOWN, ENTER);
-    await until(app, /Где ты/);
+    await until(app, /Где вы/);
     await typeUntil(app, LAT, /41\.9/);
     await type(app, DOWN);
     await typeUntil(app, LON, /12\.5/);
     await type(app, DOWN, DOWN, ENTER);
-    await until(app, /signal/);
+    await until(app, /Лента · радиус/);
     out("ok   Борис registered in the terminal and stands at the page's point");
 
     // 2 · his phrase, from the terminal's composer.
@@ -127,7 +127,7 @@ async function main() {
     await until(app, /0\/\d+/);
     await typeUntil(app, mine, new RegExp(run));
     await type(app, DOWN, ENTER); // the actions: send
-    await until(app, /signal/, 30);
+    await until(app, /Лента · радиус/, 30);
     signal("depth-phrase", mine);
     out("ok   the phrase went from the terminal");
 
@@ -135,7 +135,7 @@ async function main() {
     // from the terminal makes the match.
     const hers = await waitFor("web-liked");
     await pickInFeed(app, "point");
-    await until(app, /Где ты/);
+    await until(app, /Где вы/);
     await type(app, DOWN, DOWN, DOWN, ENTER);
     await until(app, new RegExp(hers.split(" ").slice(-1)[0]), 60);
     const cursorOn = new RegExp(`›[^\\n]*\\n\\s*${hers}`);
@@ -152,7 +152,7 @@ async function main() {
     await until(app, /входящие/);
     await until(app, /мэтч/, 30);
     await type(app, ENTER);
-    await until(app, /истории на диске нет/, 30);
+    await until(app, /реплика:/, 30);
     signal("depth-in-chat");
     out("ok   the conversation opened in the terminal");
 

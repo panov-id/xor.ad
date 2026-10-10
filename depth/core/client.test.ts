@@ -205,19 +205,29 @@ Deno.test("the two shapes of 409 are told apart", async () => {
 });
 
 Deno.test({
-  name: "a new name waits for the queue; the old one stands until then",
+  // Until 09.10.2026 a new name waited for the queue (202) and the old one stood.
+  // The owner's decision of that day (relay routes/profile.ts, WP-4): the model,
+  // or with none the rules of §8.3, decides a name at once. A clean one is the
+  // name as the answer comes (200, accepted); a flagged one is refused with
+  // name_refused (422) and the old one stands. Nothing waits.
+  name: "a new name is decided at once: a clean one stands, a flagged one is refused and the old stays",
   ignore: !node,
   async fn() {
     const client = new Client(node!, apiKey!);
     await client.register({ name: "Аня", age: 30 }, { pin: "123456", paperCode: newPaperCode() });
     await client.confirmPaperCode();
+    const refused = await client.editProfile({ name: "https://spam.example" });
+    assertEquals(refused.status, 422, JSON.stringify(refused.body));
+    assertEquals((refused.body as { error?: { code?: string } }).error?.code, "name_refused");
+    assertEquals((await client.profile()).name, "Аня", "a refused name must leave the old one standing");
     const asked = await client.editProfile({ name: "Анна", languages: ["ru"] });
-    assertEquals(asked.status, 202, JSON.stringify(asked.body));
-    const body = asked.body as { name: string; name_pending?: string; languages: string[] };
-    assertEquals(body.name, "Аня");
-    assertEquals(body.name_pending, "Анна");
+    assertEquals(asked.status, 200, JSON.stringify(asked.body));
+    const body = asked.body as { name: string; name_state?: string; name_pending?: string; languages: string[] };
+    assertEquals(body.name, "Анна");
+    assertEquals(body.name_state, "accepted");
+    assertEquals(body.name_pending, undefined, "a name decided at once waits for no queue");
     assertEquals(body.languages, ["ru"]);
-    assertEquals((await client.profile()).name, "Аня", "the old name did not stand while the new one waits");
+    assertEquals((await client.profile()).name, "Анна");
   },
 });
 

@@ -166,7 +166,8 @@ export function Actions(
 
 // `secret` draws the value as dots: a PIN on the screen is a PIN for whoever
 // stands behind the chair.
-export type FieldSpec = { key: string; label: string; value: string; choices?: string[]; secret?: boolean };
+// `shown` names a choice in words when its id is not one (class «dots» → «точки»).
+export type FieldSpec = { key: string; label: string; value: string; choices?: string[]; secret?: boolean; shown?: (value: string) => string };
 
 // The value of a choice, as Select draws it.
 export const choiceText = (value: string): string => `‹ ${value} ›`;
@@ -217,7 +218,7 @@ export function Fields(
         Item,
         { key: f.key, on },
         `${`${f.label}:`.padEnd(width)} `,
-        f.choices ? choiceText(f.value) : f.secret ? "•".repeat(f.value.length) : f.value,
+        f.choices ? choiceText(f.shown ? f.shown(f.value) : f.value) : f.secret ? "•".repeat(f.value.length) : f.value,
         on && !f.choices ? caret() : "",
       );
     }),

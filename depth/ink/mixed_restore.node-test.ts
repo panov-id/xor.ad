@@ -91,14 +91,14 @@ async function waitFor(step: string, seconds = 120): Promise<string> {
   throw new Error(`the browser's side never reached "${step}"`);
 }
 
-// The point, typed on "Где ты": the feed after it.
+// The point, typed on "Где вы": the feed after it.
 async function standAtThePoint(app: Screen) {
-  await until(app, /Где ты/, 30);
+  await until(app, /Где вы/, 30);
   await typeUntil(app, LAT, /41\.9/);
   await type(app, DOWN);
   await typeUntil(app, LON, /12\.5/);
   await type(app, DOWN, DOWN, ENTER);
-  await until(app, /signal/, 30);
+  await until(app, /Лента · радиус/, 30);
 }
 
 async function main() {
@@ -134,14 +134,14 @@ async function main() {
     await until(app, /0\/\d+/);
     await typeUntil(app, mine, new RegExp(run));
     await type(app, DOWN, ENTER);
-    await until(app, /signal/, 30);
+    await until(app, /Лента · радиус/, 30);
     signal("depth-phrase", mine);
     out("ok   the phrase went from the terminal");
 
     // 3 · Аня liked it; her phrase liked from here makes the match.
     const hers = await waitFor("web-liked");
     await pickInFeed(app, "point");
-    await until(app, /Где ты/);
+    await until(app, /Где вы/);
     await type(app, DOWN, DOWN, DOWN, ENTER);
     await until(app, new RegExp(hers.split(" ").slice(-1)[0]), 60);
     const cursorOn = new RegExp(`›[^\\n]*\\n\\s*${hers}`);
@@ -158,7 +158,7 @@ async function main() {
     await until(app, /входящие/);
     await until(app, /мэтч/, 30);
     await type(app, ENTER);
-    await until(app, /истории на диске нет/, 30);
+    await until(app, /реплика:/, 30);
     signal("depth-in-chat");
     out("ok   the conversation opened in the terminal");
 
@@ -216,7 +216,7 @@ async function main() {
     await until(raised, /входящие/);
     await until(raised, /чат открыт/, 30);
     await type(raised, ENTER);
-    await until(raised, /истории на диске нет/, 30);
+    await until(raised, /реплика:/, 30);
     const afterRaise = `поднялась в терминале ${run}`;
     await typeUntil(raised, afterRaise, new RegExp(run));
     await type(raised, DOWN, ENTER);

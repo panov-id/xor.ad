@@ -626,7 +626,8 @@ test("a table card in the feed shows its game and free seats, sits down on open,
   }));
   await settle();
   await settle();
-  assert.match(app.lastFrame()!, /стол · dots 4x4/, "the table card is not drawn as a table");
+  assert.match(app.lastFrame()!, /стол · точки · поле 4×4/, "the table card is not drawn as a table, in words");
+  assert.doesNotMatch(app.lastFrame()!, /dots|4x4/, "the class or the set shows as an id (Т9)");
   assert.match(app.lastFrame()!, /свободно 1/);
   assert.match(app.lastFrame()!, /сесть/, "the row does not offer to sit down");
   await type(app, ENTER);
@@ -831,9 +832,10 @@ test("a match is declined with 'not now' and brought back with 'undo'", async ()
   // Since the last look (§8.12, P3): the badge in the head counts one new
   // offer and two waiting replies; the match row is marked new, the chat row
   // carries its count.
-  assert.match(app.lastFrame()!, /входящие\s+● 1\s+✉ 2/, "the head does not carry the inbox's counts");
-  assert.match(app.lastFrame()!, /Марк, 31\s+●\s+мэтч/, "a match that arrived since the last look is not marked");
-  assert.match(app.lastFrame()!, /Аня, 34\s+● 2\s+чат открыт/, "a chat with replies waiting does not show their count");
+  assert.match(app.lastFrame()!, /входящие\s+новое: 1\s+сообщений: 2/, "the head does not carry the inbox's counts in words (Т6)");
+  assert.match(app.lastFrame()!, /Марк, 31\s+новое\s+мэтч/, "a match that arrived since the last look is not marked in words");
+  assert.match(app.lastFrame()!, /Аня, 34\s+сообщений: 2\s+чат открыт · закроется в/, "a chat with replies waiting does not show their count in words");
+  assert.doesNotMatch(app.lastFrame()!, /[●✉⌛]/, "a badge is a bare symbol (Т6)");
   await type(app, RIGHT, ENTER);
   await settle();
   assert.deepEqual(calls, ["decline m1"], "'not now' did not reach the node");
@@ -844,7 +846,7 @@ test("a match is declined with 'not now' and brought back with 'undo'", async ()
   await settle();
   assert.deepEqual(calls, ["decline m1", "undo m1"], "'undo' did not reach the node");
   // Back with its mark: the look has not ended, so it is still new since the last one.
-  assert.match(app.lastFrame()!, /Марк, 31\s+●\s+мэтч/, "the match did not come back after 'undo'");
+  assert.match(app.lastFrame()!, /Марк, 31\s+новое\s+мэтч/, "the match did not come back after 'undo'");
   await type(app, DOWN);
   assert.doesNotMatch(app.lastFrame()!, /не сейчас/, "an open chat offers 'not now'");
   app.unmount();
@@ -870,17 +872,17 @@ test("the chat says its own span, counts down its last quarter, and changes it",
     }));
   const calm = chat(now + 50 * 60);
   await settle(150);
-  assert.match(calm.lastFrame()!, /гаснет после 1ч ВАШЕГО молчания/, "the header does not say one's own span");
+  assert.match(calm.lastFrame()!, /гаснет после 1 ч вашего молчания/, "the header does not say one's own span");
   assert.doesNotMatch(calm.lastFrame()!, /\d+:\d\d\b(?! \d)/, "a countdown shows long before the last quarter");
   // Into the row, along to "свой срок": send, код, свой срок.
   await type(calm, DOWN, RIGHT, RIGHT, ENTER);
   await settle(150);
   assert.deepEqual(spans, [260], "the span item did not step to the next value and tell the node");
-  assert.match(calm.lastFrame()!, /гаснет после 4:20 ВАШЕГО молчания/, "the header did not follow the new span");
+  assert.match(calm.lastFrame()!, /гаснет после 4 ч 20 мин вашего молчания/, "the header did not follow the new span");
   calm.unmount();
   const late = chat(now + 10 * 60);
   await settle(150);
-  assert.match(late.lastFrame()!, /гаснет после 1ч ВАШЕГО молчания · (9:5\d|10:00)/, "the last quarter does not count down");
+  assert.match(late.lastFrame()!, /гаснет после 1 ч вашего молчания · (9:5\d|10:00)/, "the last quarter does not count down");
   late.unmount();
 });
 
@@ -1030,7 +1032,7 @@ test("the away screen says until when, and coming back asks once more", async ()
   const frame = app.lastFrame()!;
   assert.match(frame, /Вы отошли\. Фразы сняты, беседы ждут\./);
   assert.match(frame, /до \d\d:\d\d · осталось 4[01] мин/, "the away screen does not say until when");
-  assert.doesNotMatch(frame, /signal|входящие/, "the away screen shows the product");
+  assert.doesNotMatch(frame, /Лента · радиус|входящие/, "the away screen shows the product");
   await type(app, ENTER);
   assert.equal(calls, 0, "coming back did not ask first");
   assert.match(app.lastFrame()!, /вы хотели перерыв, точно возвращаемся\?/);
@@ -1260,7 +1262,7 @@ test("the full-screen card explains its arrows once, then likes, hides and goes 
   await type(app, RIGHT);
   assert.deepEqual(calls, ["like p1", "hide p2"], "→ liked an offer, whose like cannot be taken back");
   await type(app, ENTER);
-  assert.match(app.lastFrame()!, /signal/, "enter did not go back to the feed");
+  assert.match(app.lastFrame()!, /Лента · радиус/, "enter did not go back to the feed");
   app.unmount();
 });
 
@@ -2270,7 +2272,7 @@ test("one's own consent answered \"waiting\" opens the waiting conversation, and
   const app = render(h(Inbox, { say, client: client as any, onOpen: () => {}, onWait: (m: string) => { waited = m; consented.add(m); }, consented: (m: string) => consented.has(m), onBack: () => {}, onError: collect }));
   await settle();
   await settle();
-  assert.match(app.lastFrame()!, /мэтч — ждёт твоего согласия/);
+  assert.match(app.lastFrame()!, /мэтч — ждёт вашего согласия/);
   await type(app, ENTER);
   await waitFor(() => waited === "m1", 3);
   // Back in the inbox: the row says we wait, offers "open", and "not now" is gone — one has agreed.
@@ -2329,8 +2331,8 @@ test("interest in my offer is shown as the spec words it, with my offer as the r
   await settle();
   const frame = app.lastFrame()!;
   assert.match(frame, /Борис, 31[^\n]*интересуется вашим предложением[^\n]*«отдам две табуретки»/, "the author's row does not say the interest and the offer");
-  assert.doesNotMatch(frame, /Борис, 31[^\n]*мэтч — ждёт твоего согласия/, "the offer's interest is worded as an ordinary match");
-  assert.match(frame, /Аня, 27[^\n]*мэтч — ждёт твоего согласия/, "an ordinary match lost its wording");
+  assert.doesNotMatch(frame, /Борис, 31[^\n]*мэтч — ждёт вашего согласия/, "the offer's interest is worded as an ordinary match");
+  assert.match(frame, /Аня, 27[^\n]*мэтч — ждёт вашего согласия/, "an ordinary match lost its wording");
   app.unmount();
   noErrors();
 });
@@ -2589,5 +2591,116 @@ test("the density step goes when the point becomes invalid", async () => {
   await settle(150);
   assert.match(app.lastFrame()!, /95/, "the latitude did not take the digit");
   assert.doesNotMatch(app.lastFrame()!, /рядом десятки/, "the step of the old point stayed under an invalid one");
+  app.unmount();
+});
+
+// Т3 · the feed's head: the circle in words, no coordinates, no product word.
+test("the feed's head says the circle in words: no coordinates and no «signal»", async () => {
+  const client = { feed: () => Promise.resolve({ items: [] }) };
+  const feedAt = (radius: 300 | 3000) =>
+    render(h(Feed, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      place: { lat: 59.9343, lon: 30.3351, radius },
+      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+    }));
+  const near = feedAt(300);
+  await settle();
+  const head = near.lastFrame()!.split("\n")[0];
+  assert.match(head, /Лента · радиус 300 м · возраст/, "the radius is not said in words");
+  assert.doesNotMatch(near.lastFrame()!, /59\.9343|30\.3351|signal/, "coordinates or «signal» are on the feed (Т3)");
+  near.unmount();
+  const far = feedAt(3000);
+  await settle();
+  assert.match(far.lastFrame()!.split("\n")[0], /радиус 3 км/, "a thousand metres are not kilometres");
+  far.unmount();
+});
+
+// Т4/Т5 · what the own-phrase line says: published is not «на проверке».
+test("my own phrase's line says published when the node published it, checking when a person reads it, and nothing yet when none", async () => {
+  const lineOf = async (mine?: { text: string; state: string }) => {
+    const app = render(h(Feed, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: { feed: () => Promise.resolve({ items: [{ kind: "phrase", id: "p1", text: "чужая", mode: "alone", like_count: 0 }] }), inboxEvents: () => Promise.resolve({ phrases_refused: 0 }) } as any,
+      place: { lat: 55.75, lon: 37.62, radius: 1000 },
+      mine,
+      onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+    }));
+    await settle();
+    await settle();
+    const frame = app.lastFrame()!;
+    app.unmount();
+    return frame;
+  };
+  const live = await lineOf({ text: "моя", state: "live" });
+  assert.match(live, /ваша фраза: «моя» · опубликована/, "a published phrase is not said published (Т4)");
+  assert.doesNotMatch(live, /на проверке/, "a published phrase is said to be checked (Т4)");
+  assert.match(await lineOf({ text: "моя", state: "pending" }), /ваша фраза: «моя» · на проверке/);
+  const none = await lineOf(undefined);
+  assert.match(none, /у вас пока нет своей фразы/, "the empty line is not worded as the own phrase (Т5)");
+  assert.doesNotMatch(none, /\n\s*фразы пока нет/, "a bare «фразы пока нет» stands under a feed with a phrase in it");
+});
+
+test("a phrase the node publishes (200) reaches the feed as published, one that waits (202) as pending", async () => {
+  const states: Array<string | undefined> = [];
+  const send = async (status: number) => {
+    const client = { say: () => Promise.resolve({ status, body: { id: "x" } }) };
+    const app = render(h(Write, {
+      say,
+      // deno-lint-ignore no-explicit-any
+      client: client as any,
+      place: { lat: 55.75, lon: 37.62, radius: 1000 }, limit: 146,
+      onDone: (_t: string, _id?: string, state?: string) => states.push(state), onBack: () => {}, onError: () => {},
+    }));
+    await settle();
+    await type(app, ..."привет".split(""), DOWN, ENTER);
+    await settle();
+    app.unmount();
+  };
+  await send(200);
+  await send(202);
+  assert.deepEqual(states, ["live", "pending"], "the answer's status did not reach the feed's line (Т4)");
+});
+
+// Т1 · a refused name says why in the dictionary's words.
+test("a refused name is said in the dictionary's words: no status, no English, no model text", async () => {
+  const client = {
+    editProfile: () => Promise.resolve({ status: 422, body: { error: { code: "name_refused", message: "the moderator refused this name: ссылки нельзя" } } }),
+  };
+  const errors: string[] = [];
+  const app = render(h(EditProfile, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    field: "name", current: "Аня",
+    onDone: () => {}, onBack: () => {}, onError: (m: string) => errors.push(m),
+  }));
+  await settle();
+  await type(app, BACK, BACK, BACK, ..."Анна".split(""), DOWN, ENTER);
+  await settle();
+  const frame = app.lastFrame()!.replace(/\s+/g, " ");
+  assert.match(frame, /ошибка: Имя не принято\. Выберите другое/, "the refusal is not said in words (Т1)");
+  assert.doesNotMatch(frame, /422|refused|moderator|ссылки нельзя/, "a status, English or the model's text is on the screen (Т1)");
+  assert.deepEqual(errors, [], "the refusal went to the generic error line");
+  app.unmount();
+});
+
+// Т8 · one mark of focus, and no service line under the chat.
+test("the chat's input is a labelled field: one focus mark, no «> >», and no line about the disk", async () => {
+  const client = {
+    openConversation: () => Promise.resolve({ safetyCode: "0000 0000 0000 0000 0000" }),
+    openRoom: () => Promise.resolve({ next: () => new Promise(() => {}), close: () => {} }),
+  };
+  const app = render(h(Chat, {
+    // deno-lint-ignore no-explicit-any
+    say, client: client as any, chatId: "c1", name: "Аня", age: 34, limit: 256, span: 60, endsAt: Math.floor(Date.now() / 1000) + 3000,
+    onBack: () => {}, onError: () => {},
+  }));
+  await settle(150);
+  const frame = app.lastFrame()!;
+  assert.match(frame, /^> реплика:/m, "the input is not a labelled field with one focus mark");
+  assert.doesNotMatch(frame, /> >|истории на диске/, "a doubled focus mark or a service line is on the chat (Т8)");
   app.unmount();
 });

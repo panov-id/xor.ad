@@ -94,9 +94,9 @@ async function waitFor(step: string, seconds = 120): Promise<string> {
 // The feed read again: the point typed anew (mixed.node-test.ts step 3).
 async function rereadFeed(app: Screen) {
   await pickInFeed(app, "point");
-  await until(app, /Где ты/);
+  await until(app, /Где вы/);
   await type(app, DOWN, DOWN, DOWN, ENTER);
-  await until(app, /signal/, 30);
+  await until(app, /Лента · радиус/, 30);
 }
 
 // One round with the person the browser names: his phrase, her like, his like
@@ -107,7 +107,7 @@ async function meetAndTalk(app: Screen, r: string): Promise<string> {
   await until(app, /0\/\d+/);
   await typeUntil(app, mine, new RegExp(run));
   await type(app, DOWN, ENTER);
-  await until(app, /signal/, 30);
+  await until(app, /Лента · радиус/, 30);
   signal(`depth-phrase-${r}`, mine);
   out(`ok   [${r}] the phrase went from the terminal`);
 
@@ -127,7 +127,7 @@ async function meetAndTalk(app: Screen, r: string): Promise<string> {
   await until(app, /входящие/);
   await until(app, /мэтч/, 30);
   await type(app, ENTER);
-  await until(app, /истории на диске нет/, 30);
+  await until(app, /реплика:/, 30);
   signal(`depth-in-chat-${r}`);
   out(`ok   [${r}] the conversation opened in the terminal`);
 
@@ -164,12 +164,12 @@ async function main() {
     await type(app, DOWN);
     await typeUntil(app, paper[4], new RegExp(`${paper[4]}_`));
     await type(app, DOWN, ENTER);
-    await until(app, /Где ты/, 30);
+    await until(app, /Где вы/, 30);
     await typeUntil(app, LAT, /41\.9/);
     await type(app, DOWN);
     await typeUntil(app, LON, /12\.5/);
     await type(app, DOWN, DOWN, ENTER);
-    await until(app, /signal/, 30);
+    await until(app, /Лента · радиус/, 30);
     out("ok   Борис registered in the terminal and stands at the page's point");
 
     // 2 · round one, Аня: he ends the conversation by hand — DELETE /chats/:id
@@ -186,7 +186,7 @@ async function main() {
     out("ok   [one] the conversation is out of his inbox");
     // Back to the feed for the second person.
     await pickByLabel(app, "назад", 4);
-    await until(app, /signal/, 30);
+    await until(app, /Лента · радиус/, 30);
 
     // 3 · round two, Вера: she blocks on the page — this room closes 4003 and
     // the tombstone says the conversation ended, not why (§8.9: the one
@@ -201,7 +201,7 @@ async function main() {
     // «Вернуться в ленту», then the feed read again at the point: her phrase
     // is not in it — a block hides the phrases both ways (§8.9).
     await type(app, ENTER);
-    await until(app, /signal/, 30);
+    await until(app, /Лента · радиус/, 30);
     await rereadFeed(app);
     await settle(1500);
     assert.ok(!(app.lastFrame() ?? "").includes(hers), `the blocked person's phrase is still in the feed:\n${JSON.stringify(app.lastFrame() ?? "").slice(0, 600)}`);

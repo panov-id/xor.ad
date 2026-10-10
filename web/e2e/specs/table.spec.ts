@@ -75,6 +75,10 @@ test("a dots game begun on the screen, a move on one screen shows on the other, 
   const mover = (await zhenya.getByTestId("turn").textContent())!.startsWith("ваш ход") ? zhenya : anya;
   const other = mover === zhenya ? anya : zhenya;
   await expect(mover.getByTestId("turn")).toContainText("ваш ход", { timeout: 15000 });
+  // П31 · the move's clock is read like every other span («4 мин 58 с»), never as
+  // bare seconds past a minute («298 с»).
+  await expect(mover.getByTestId("turn")).toHaveText(/· (\d+ мин )?\d+ с$/);
+  await expect(mover.getByTestId("turn")).not.toHaveText(/\d{3,} с/);
   await expect(other.locator("[data-taken]")).toHaveCount(0);
   // An edge is a button with a box of its own (W11), pressed as a person
   // presses it; its name says which edge.

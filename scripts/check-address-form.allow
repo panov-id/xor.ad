@@ -1,0 +1,10 @@
+# lang <TAB> key <TAB> why. A line addressed to the two people of one conversation at
+# once (plural «вы» of a pair), not the polite singular: neither T nor V of the one reader.
+ro	chat.codeHint	to both people of the conversation
+ro	chat.codeChanged	to both people of the conversation
+ro	web.card.liked	a mutual like, said of the pair
+ro	web.match.talk	to both people of the match
+ro	web.match.hint	to both people of the match
+ro	web.match.queue_hint	to both people of the match
+ro	web.inbox.offers	to both people of the match
+ro	web.card.block_warning	the author and the reader, then the pair

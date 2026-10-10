@@ -38,6 +38,7 @@ const cases: Array<[string, () => Promise<void>]> = [
     const app = screen(f);
     await settle();
     assert.match(app.lastFrame()!, /игры пока нет/);
+    assert.match(app.lastFrame()!, /точки \]\s+шашки и шахматы\s+домино\s+карты/, "the classes to offer are not named in words (Т9)");
     app.stdin.write("\r");
     await settle();
     assert.deepEqual(f.calls, [["propose", "dots", "4x4"]]);
@@ -47,7 +48,8 @@ const cases: Array<[string, () => Promise<void>]> = [
     const f = fake({ class: "deck", set: "deck", your_seat: null, board: null, pending: { id: "p", kind: "game", class: "deck", set: "deck", mine: false } });
     const app = screen(f);
     await settle();
-    assert.match(app.lastFrame()!, /вам предлагают: deck/);
+    assert.match(app.lastFrame()!, /вам предлагают: карты/, "the offered class is not said by name (Т9)");
+    assert.doesNotMatch(app.lastFrame()!, /deck/, "the offered class shows as an id (Т9)");
     app.stdin.write("\r");
     await settle();
     assert.deepEqual(f.calls, [["answer", "accept"]]);

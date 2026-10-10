@@ -29,6 +29,7 @@ import { Closed } from "./screens/closed.ts";
 import { NewTable, SeatedElsewhere, TableRoom } from "./table.ts";
 import { openTable, Tables } from "../core/tables.ts";
 import { Waiting } from "./screens/pending.ts";
+import { refusalWords } from "./words.ts";
 import type { SessionClose } from "./screens/closed.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
@@ -322,7 +323,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
                   if (e?.code === "already_seated" && typeof e.table === "string") {
                     return setWhere({ screen: "seatedElsewhere", there: e.table, here: id });
                   }
-                  return fail(`${say("table.refused")}: ${plain(e?.code ?? a.status, 80)}`);
+                  return fail(refusalWords(say, a, "table"));
                 }
                 setWhere({ screen: "table", id });
               })
@@ -362,7 +363,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
           client,
           place: place!,
           limit,
-          onDone: (text, id) => { setMine({ id, text, state: "pending" }); feed(); },
+          onDone: (text, id, state) => { setMine({ id, text, state: state ?? "pending" }); feed(); },
           onBack: feed,
           onError: fail,
         });

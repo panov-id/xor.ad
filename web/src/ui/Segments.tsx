@@ -1,6 +1,6 @@
 import { useId, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { Icon } from "./Icon.tsx";
-import { ErrorText } from "./control.tsx";
+import { ErrorLine } from "./ErrorLine.tsx";
 
 // Segments and Choice (kit_RU.md §3.2): a `radiogroup` named by its label,
 // `radio` buttons with aria-checked, Tab enters once (on the chosen one, the
@@ -61,7 +61,7 @@ function Radios({ kind, label, options, value, onChange, disabled, reason, error
         })}
       </div>
       {disabled && reason ? <p id={reasonId} className="ui-reason">{reason}</p> : null}
-      {error ? <ErrorText id={errorId}>{error}</ErrorText> : null}
+      {error ? <ErrorLine id={errorId}>{error}</ErrorLine> : null}
     </div>
   );
 }

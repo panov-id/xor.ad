@@ -359,5 +359,15 @@
   "web.ui.remaining": "осталось: {n}",
   "web.ui.rangeFrom": "от {n}",
   "web.ui.rangeTo": "до {n}",
-  "web.ui.rangeOrder": "«от» больше «до»"
+  "web.ui.rangeOrder": "«от» больше «до»",
+  "web.ui.notice": "внимание:",
+  "web.ui.new": "новое",
+  "web.ui.skip": "к содержимому",
+  "web.ui.statusConnecting": "соединяемся",
+  "web.ui.statusOffline": "нет сети",
+  "web.ui.statusFailed": "у нас не получилось",
+  "web.ui.code": "код",
+  "web.ui.copy": "скопировать",
+  "web.ui.copied": "скопировано",
+  "web.ui.navMain": "основная навигация"
 }

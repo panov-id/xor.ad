@@ -359,5 +359,15 @@
   "web.ui.remaining": "залишилось: {n}",
   "web.ui.rangeFrom": "від {n}",
   "web.ui.rangeTo": "до {n} включно",
-  "web.ui.rangeOrder": "«від» більше за «до»"
+  "web.ui.rangeOrder": "«від» більше за «до»",
+  "web.ui.notice": "увага:",
+  "web.ui.new": "нове",
+  "web.ui.skip": "перейти до вмісту",
+  "web.ui.statusConnecting": "з’єднуємось",
+  "web.ui.statusOffline": "немає мережі",
+  "web.ui.statusFailed": "у нас не вийшло",
+  "web.ui.code": "код",
+  "web.ui.copy": "скопіювати",
+  "web.ui.copied": "скопійовано",
+  "web.ui.navMain": "основна навігація"
 }

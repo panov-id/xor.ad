@@ -359,5 +359,15 @@
   "web.ui.remaining": "qalıb: {n}",
   "web.ui.rangeFrom": "{n}-dən",
   "web.ui.rangeTo": "{n}-dək",
-  "web.ui.rangeOrder": "“dən” “dək”dən böyükdür"
+  "web.ui.rangeOrder": "“dən” “dək”dən böyükdür",
+  "web.ui.notice": "diqqət:",
+  "web.ui.new": "yeni",
+  "web.ui.skip": "məzmuna keç",
+  "web.ui.statusConnecting": "qoşuluruq",
+  "web.ui.statusOffline": "şəbəkə yoxdur",
+  "web.ui.statusFailed": "alınmadı",
+  "web.ui.code": "kod",
+  "web.ui.copy": "kopyala",
+  "web.ui.copied": "kopyalandı",
+  "web.ui.navMain": "əsas naviqasiya"
 }

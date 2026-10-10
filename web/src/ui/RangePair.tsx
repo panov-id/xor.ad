@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { say } from "../locales/say.ts";
-import { ErrorText } from "./control.tsx";
+import { ErrorLine } from "./ErrorLine.tsx";
 
 // RangePair (kit_RU.md §3.2): two native `range` inputs named «от» and «до»;
 // arrows step; aria-valuetext says the value in words («от 25 лет»). The value
@@ -46,7 +46,7 @@ export function RangePair({ min, max, step = 1, from, to, onChange, format = (n)
         <span className="ui-range-value" aria-hidden="true">{words(to, max)}</span>
       </div>
       {disabled && reason ? <p id={ids.reason} className="ui-reason">{reason}</p> : null}
-      {bad ? <ErrorText id={ids.error}>{say("web.ui.rangeOrder")}</ErrorText> : null}
+      {bad ? <ErrorLine id={ids.error}>{say("web.ui.rangeOrder")}</ErrorLine> : null}
     </div>
   );
 }

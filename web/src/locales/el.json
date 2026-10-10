@@ -359,5 +359,15 @@
   "web.ui.remaining": "απομένουν: {n}",
   "web.ui.rangeFrom": "από {n}",
   "web.ui.rangeTo": "έως {n}",
-  "web.ui.rangeOrder": "το «από» είναι μεγαλύτερο από το «έως»"
+  "web.ui.rangeOrder": "το «από» είναι μεγαλύτερο από το «έως»",
+  "web.ui.notice": "προσοχή:",
+  "web.ui.new": "νέο",
+  "web.ui.skip": "μετάβαση στο περιεχόμενο",
+  "web.ui.statusConnecting": "συνδεόμαστε",
+  "web.ui.statusOffline": "χωρίς δίκτυο",
+  "web.ui.statusFailed": "δεν τα καταφέραμε",
+  "web.ui.code": "κωδικός",
+  "web.ui.copy": "αντιγραφή",
+  "web.ui.copied": "αντιγράφηκε",
+  "web.ui.navMain": "κύρια πλοήγηση"
 }

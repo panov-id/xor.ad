@@ -6,21 +6,34 @@
 import { useState } from "react";
 import { LANG, LANGUAGES, languageName, say } from "../locales/say.ts";
 import { Button } from "./Button.tsx";
-import { Card, LikeBurst } from "./Card.tsx";
+import { Card, type CardOf, LikeBurst } from "./Card.tsx";
 import { Checkbox } from "./Checkbox.tsx";
 import { Chip } from "./Chip.tsx";
+import { Code } from "./Code.tsx";
 import { CodeField } from "./CodeField.tsx";
 import { Disclosure } from "./Disclosure.tsx";
+import { Dot } from "./Dot.tsx";
+import { ErrorLine, focusFirstInvalid } from "./ErrorLine.tsx";
 import { Field, FieldGroup, type FieldKind, PinField } from "./Field.tsx";
 import { HeaderFeed } from "./Header.tsx";
 import { ICONS } from "./Icon.tsx";
+import { Illustration } from "./Illustration.tsx";
+import { InboxRow } from "./InboxRow.tsx";
 import { Info } from "./Info.tsx";
 import { Actions, Link, LinkButton } from "./Links.tsx";
+import { List, ListItem } from "./List.tsx";
 import { MessageInput } from "./MessageInput.tsx";
+import { EmptyState, Notice } from "./Notices.tsx";
 import { RangePair } from "./RangePair.tsx";
+import { Screen } from "./Screen.tsx";
 import { Choice, Segments } from "./Segments.tsx";
 import { Select } from "./Select.tsx";
+import { SettingRow } from "./SettingRow.tsx";
+import { ActionSheet, Confirm } from "./Sheet.tsx";
+import { StatusHeader, type StatusState } from "./Status.tsx";
+import { TabBar } from "./TabBar.tsx";
 import { Textarea } from "./Textarea.tsx";
+import { Toast } from "./Toast.tsx";
 
 const KINDS: FieldKind[] = ["text", "number", "email", "decimal", "datetime", "url"];
 const LANGS = LANGUAGES.slice(0, 4);
@@ -55,9 +68,28 @@ export function KitPreview() {
   const reason = say("web.legal.stale");
   const mode = [{ value: "phrase", label: say("web.composer.phrase") }, { value: "zone", label: say("web.composer.zone") }];
   const consent = <>{say("web.register.consent")} <Link href="#kit-link-target">{say("web.legal.terms")}</Link></>;
+  const [tab, setTab] = useState("feed");
+  const tabs = [
+    { id: "feed", icon: "feed" as const, label: say("web.nav.feed"), testid: "kit-tab-feed" },
+    { id: "inbox", icon: "say" as const, label: say("web.nav.inbox"), testid: "kit-tab-inbox" },
+    { id: "me", icon: "me" as const, label: say("me.title"), testid: "kit-tab-me" },
+  ].map((t) => ({ ...t, current: tab === t.id, onSelect: () => setTab(t.id) }));
+  const [sheet, setSheet] = useState(false);
+  const [picked, setPicked] = useState("");
+  const [confirm, setConfirm] = useState(false);
+  const [confirmed, setConfirmed] = useState(0);
+  const [status, setStatus] = useState<StatusState>("on");
+  const [toast, setToast] = useState<string | null>(null);
+  const [autoToast, setAutoToast] = useState<string | null>(null);
+  const [undone, setUndone] = useState(0);
+  const when = new Intl.DateTimeFormat(LANG, { hour: "2-digit", minute: "2-digit" }).format(new Date(2026, 9, 10, 12, 30));
+  const entities: [CardOf, string][] = [["phrase", "web.card.phrase"], ["table", "web.feed.newTable"], ["offer", "web.cabinet.offerChip"],
+    ["match", "web.inbox.offer"], ["venue", "web.cabinet.offerLive"], ["preview", "web.composer.scheme"]];
+  const nextStatus: Record<StatusState, StatusState> = { on: "connecting", connecting: "offline", offline: "failed", failed: "on" };
   return (
-    <main className="screen" data-screen="kit">
-      <HeaderFeed place={say("web.feed.title")} step="" />
+    <div className="tabbed">
+    <Screen name="kit" title={say("web.feed.title")} header={<HeaderFeed place={say("web.feed.title")} step="" />}
+      nav={<TabBar label={say("web.ui.navMain")} items={tabs} data-testid="kit-tabbar" />}>
       <div className="actions" data-testid="icons">
         {ICONS.map((name) => <Button key={name} icon={name} aria-label={name} type="button" />)}
       </div>
@@ -154,6 +186,69 @@ export function KitPreview() {
       </section>
       <section data-testid="kit-message-disabled"><MessageInput label={say("web.chat.line")} sendLabel={say("chat.send")} onSend={() => undefined} disabled reason={reason} /></section>
       <section data-testid="kit-message-busy"><MessageInput label={say("web.chat.line")} sendLabel={say("chat.send")} onSend={() => undefined} busy /></section>
-    </main>
+
+      <section data-testid="kit-sheet">
+        <Button type="button" kind="secondary" onClick={() => setSheet(true)} data-testid="kit-sheet-open">{say("web.card.details")}</Button>
+        <p data-testid="kit-sheet-picked" className="ui-kit-sent">{picked}</p>
+        <ActionSheet open={sheet} title={say("web.card.details")} onClose={() => setSheet(false)} data-testid="kit-sheet-dialog"
+          actions={[{ id: "block", label: say("web.card.block_yes"), danger: true, onSelect: () => setPicked("block") },
+            { id: "complain", label: say("web.card.complain_send"), onSelect: () => setPicked("complain") }]} />
+      </section>
+      <section data-testid="kit-confirm">
+        <Button type="button" kind="danger" onClick={() => setConfirm(true)} data-testid="kit-confirm-open">{say("web.game.resign")}</Button>
+        <p data-testid="kit-confirm-count" className="ui-kit-sent">{confirmed}</p>
+        <Confirm open={confirm} title={say("web.game.resign")} consequences={[say("web.chat.endAsk"), say("web.feed.tableFree", { n: 2 })]}
+          confirmLabel={say("web.game.resign")} cancelLabel={say("web.card.cancel")} onConfirm={() => setConfirmed((n) => n + 1)} onClose={() => setConfirm(false)}
+          data-testid="kit-confirm-dialog" />
+      </section>
+
+      <section data-testid="kit-status">
+        {(["on", "connecting", "offline", "failed"] as StatusState[]).map((state) => <StatusHeader key={state} state={state} data-testid={`kit-status-${state}`} />)}
+        <StatusHeader state={status} data-testid="kit-status-live" />
+        <Button type="button" kind="secondary" onClick={() => setStatus(nextStatus[status])} data-testid="kit-status-next">{say("web.chat.send_again")}</Button>
+      </section>
+      <section data-testid="kit-dot">
+        <InboxRow name={say("web.game.peer")} line={say("web.card.matched")} time={when} dot onOpen={() => undefined} />
+        <InboxRow name={say("web.game.peer")} line={say("web.card.matched")} time={when} onOpen={() => undefined} />
+        <div className="ui-kit-dot"><Dot data-testid="kit-dot-bare" /></div>
+      </section>
+      <section data-testid="kit-setting">
+        <SettingRow label={say("web.theme.item")} value={say("web.theme.auto")} onSelect={() => setPicked("setting")} data-testid="kit-setting-plain" />
+        <SettingRow label={say("web.game.resign")} danger onSelect={() => setPicked("danger")} data-testid="kit-setting-danger" />
+      </section>
+      <section data-testid="kit-list">
+        <List label={say("web.inbox.offers")}>
+          <ListItem action={{ label: say("liked.undo"), onSelect: () => setUndone((n) => n + 1) }}>{say("web.feed.blocked")}</ListItem>
+          <ListItem>{say("web.feed.hidden")}</ListItem>
+        </List>
+        <p data-testid="kit-list-undone" className="ui-kit-sent">{undone}</p>
+      </section>
+      <section data-testid="kit-empty"><EmptyState title={say("web.feed.empty")} line={say("web.feed.empty_hint")} action={{ label: say("web.feed.newTable"), onSelect: () => undefined }} /></section>
+      <section data-testid="kit-notice"><Notice>{say("web.offer.later")}</Notice></section>
+      <section data-testid="kit-errorline">
+        <ErrorLine>{say("web.cabinet.noShorteners")}</ErrorLine>
+        <form data-testid="kit-errorform" onSubmit={(event) => { event.preventDefault(); focusFirstInvalid(event.currentTarget); }}>
+          <Field label={say("web.cabinet.name")} {...field("ef-1")} />
+          <Field label={say("web.composer.mode")} error={say("web.cabinet.noShorteners")} {...field("ef-2")} />
+          <Button type="submit" kind="primary">{say("chat.send")}</Button>
+        </form>
+      </section>
+      <section data-testid="kit-toast">
+        <Button type="button" kind="secondary" onClick={() => setToast(say("web.card.complained"))} data-testid="kit-toast-open">{say("web.card.complain_send")}</Button>
+        <Toast text={toast} onClose={() => setToast(null)} data-testid="kit-toast-slot" />
+        <Button type="button" kind="secondary" onClick={() => setAutoToast(say("web.card.complained"))} data-testid="kit-toast-auto-open">{say("web.card.complain")}</Button>
+        <Toast text={autoToast} onClose={() => setAutoToast(null)} autoCloseMs={1500} data-testid="kit-toast-auto-slot" />
+      </section>
+      <section data-testid="kit-copy"><Code value="KUBO-7741" data-testid="kit-copy-value" /></section>
+      <section data-testid="kit-illustration">
+        <Illustration viewBox="0 0 24 24" data-testid="kit-illustration-decor"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" /></Illustration>
+        <Illustration viewBox="0 0 24 24" title={say("web.composer.scheme")} data-testid="kit-illustration-scheme"><rect x="3" y="3" width="18" height="18" fill="none" stroke="currentColor" /></Illustration>
+      </section>
+      <ul className="cards" data-testid="kit-card-of">
+        {entities.map(([of, key]) => <Card key={of} as="li" of={of}><Chip label={say(key)} tone="muted" outline /></Card>)}
+        <Card as="li" kind="own" fading data-testid="kit-card-fading"><p>{say("web.feed.soon")}</p></Card>
+      </ul>
+    </Screen>
+    </div>
   );
 }

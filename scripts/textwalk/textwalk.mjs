@@ -35,7 +35,9 @@ async function look(p, step) {
     return { id: screen?.getAttribute("data-screen") ?? "?", text, controls, title: document.title, lang: document.documentElement.lang };
   });
   const ms = Date.now() - last; last = Date.now();
-  console.log(`\n## ${p.who} · ${step} · [${s.id}] · ${ms} ms · title="${s.title}" lang=${s.lang}`);
+  // WALK_STABLE: no timings, so two walks diff line by line.
+  const took = process.env.WALK_STABLE ? "" : `${ms} ms · `;
+  console.log(`\n## ${p.who} · ${step} · [${s.id}] · ${took}title="${s.title}" lang=${s.lang}`);
   console.log(s.text.split("\n").map((l) => "  | " + l).join("\n"));
   console.log("  controls: " + s.controls.join(", "));
 }
@@ -45,7 +47,7 @@ const step = async (name, fn) => { try { await fn(); } catch (e) { console.log(`
 const anya = await phone("Аня");
 const boris = await phone("Борис");
 let code = [];
-let tag = Date.now().toString(36).slice(-3);
+let tag = process.env.WALK_STABLE ? "w1" : Date.now().toString(36).slice(-3);
 
 await step("splash", async () => { await anya.goto(BASE + "/"); await look(anya, "заставка"); });
 await step("register errors", async () => {
@@ -129,16 +131,29 @@ await step("table and game", async () => {
   await t(boris, "line-input").fill("сыграю"); await t(boris, "apply").click();
   await anya.getByTestId("table").filter({ hasText: "заявка" }).waitFor({ timeout: 15000 }); await look(anya, "стол с заявкой");
   await t(anya, "start-game").click(); await anya.waitForTimeout(1500); await look(anya, "партия началась"); await look(boris, "партия началась");
+  const turnOf = async (p) => ((await t(p, "turn").isVisible()) ? await t(p, "turn").textContent() : "—");
   for (let m = 0; m < 12; m++) {
-    if (await t(anya, "over").isVisible()) break;
-    const mine = (await t(anya, "turn").textContent())?.startsWith("ваш ход");
+    if ((await t(anya, "over").isVisible()) || !(await t(anya, "turn").isVisible())) break;
+    const mine = (await turnOf(anya)).startsWith("ваш ход");
     const mover = mine ? anya : boris; const n = await mover.locator("[data-taken]").count();
-    await mover.getByRole("button", { name: /^ребро [hv]:\d+:\d+$/ }).first().click();
-    await mover.locator("[data-taken]").nth(n).waitFor({ timeout: 15000 });
+    const edge = mover.getByRole("button", { name: /^ребро [hv]:\d+:\d+$/ }).first();
+    const name = await edge.getAttribute("aria-label");
+    await edge.click();
+    // Counted, as e2e counts it: a taken edge is an SVG mark, not a "visible" box.
+    let moved = false;
+    for (let i = 0; i < 75 && !moved; i++) { moved = (await mover.locator("[data-taken]").count()) > n; if (!moved) await mover.waitForTimeout(200); }
+    const said = (await mover.locator('[role="alert"], .error').allTextContents()).join(" / ");
+    console.log(`  ход ${m + 1}: ${mover.who} жмёт «${name}», занято было ${n}, ${moved ? "засчитан" : "НЕ засчитан за 15 с"}; занято теперь у Ани ${await anya.locator("[data-taken]").count()}, у Бориса ${await boris.locator("[data-taken]").count()}; ход: «${await turnOf(anya)}» / «${await turnOf(boris)}»${said ? `; экран: «${said}»` : ""}`);
+    if (!moved) throw new Error(`ход ${m + 1} не засчитан`);
   }
-  await t(anya, "over").waitFor({ timeout: 15000 }); await look(anya, "партия окончена"); await look(boris, "партия окончена");
+  await t(anya, "over").waitFor({ timeout: 15000 }).catch(() => {}); await look(anya, "после последнего хода"); await look(boris, "после последнего хода");
 });
 await step("me", async () => {
+  // Out of the table the way a person leaves an app: open the page again; the vault asks for the PIN.
+  if (!(await t(anya, "tab-me").isVisible())) {
+    await anya.goto(BASE + "/"); await anya.waitForTimeout(500); await look(anya, "страница открыта заново");
+    if (await anya.locator('[data-screen="unlock"]').isVisible()) { await t(anya, "unlock-pin").fill(PIN); await t(anya, "unlock").click(); }
+  }
   await t(anya, "tab-me").click(); await anya.locator('[data-screen="me"]').waitFor(); await look(anya, "я");
   await t(anya, "me-name").click(); await t(anya, "edit-value").fill("Оля тг"); await t(anya, "edit-save").click();
   await t(anya, "error").waitFor({ timeout: 15000 }).catch(() => {}); await look(anya, "смена имени на «Оля тг»");

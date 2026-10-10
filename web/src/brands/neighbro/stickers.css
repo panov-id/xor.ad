@@ -122,56 +122,56 @@
 /* The ground: --bg, a 220 "sky" from --surface down to --bg, dots r1.2 every 16. */
 :root[data-brand="neighbro"] body {
   background:
-    radial-gradient(circle at 2px 2px, var(--surface-2) 1.2px, transparent 1.6px) 0 0 / 16px 16px,
-    linear-gradient(var(--surface), var(--bg)) 0 0 / 100% 220px no-repeat,
+    radial-gradient(circle at var(--ground-dot-at) var(--ground-dot-at), var(--surface-2) var(--ground-dot-r), transparent var(--ground-dot-fade)) 0 0 / var(--ground-dot-step) var(--ground-dot-step),
+    linear-gradient(var(--surface), var(--bg)) 0 0 / 100% var(--ground-sky-h) no-repeat,
     var(--bg);
 }
 
 /* The screen's title: Russo One 22. */
-:root[data-brand="neighbro"] .ui-header-title { font-family: "Russo One", "Golos Text", sans-serif; font-size: 22px; font-weight: 400; }
+:root[data-brand="neighbro"] .ui-header-title { font-family: "Russo One", "Golos Text", sans-serif; font-size: var(--title-fs); font-weight: 400; }
 
 /* A round icon button: a circle r26 on --surface, die-cut. */
 :root[data-brand="neighbro"] .ui-button.ui-icon-only:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
-  width: 52px; min-width: 52px; height: 52px; min-height: 52px; border-radius: 50%;
+  width: var(--round-d); min-width: var(--round-d); height: var(--round-d); min-height: var(--round-d); border-radius: 50%;
   background: var(--surface); color: var(--fg); border: var(--btn-rim); box-shadow: var(--btn-shadow);
 }
 
 /* "Write" on the feed: a square 68, radius 22, --accent, die-cut, above the bar at the right. */
 :root[data-brand="neighbro"] [data-screen="feed"] [data-testid="write"] {
-  left: auto; right: max(16px, calc(50% - 171.5px)); bottom: 96px;
-  width: 68px; min-width: 68px; height: 68px; min-height: 68px; border-radius: 22px;
+  left: auto; right: max(var(--fab-inset), calc(50% - var(--phone-half))); bottom: var(--fab-bottom);
+  width: var(--fab); min-width: var(--fab); height: var(--fab); min-height: var(--fab); border-radius: var(--fab-r);
   background: var(--accent); color: var(--accent-fg); border: var(--btn-rim); box-shadow: var(--btn-shadow);
 }
 
 /* The bottom bar: a full-width band 80 on --surface with a 2 px --surface-2
    rule; the open tab a sticker tag 60×44 in tile-2. The word stays the tab's
    name for a screen reader; the sheet shows the icon alone (§9.1). */
-:root[data-brand="neighbro"] .tabbar { max-width: none; height: 80px; background: var(--surface); border-top: 2px solid var(--surface-2); }
+:root[data-brand="neighbro"] .tabbar { max-width: none; height: var(--tabbar-h); background: var(--surface); border-top: var(--tabbar-rule) solid var(--surface-2); }
 :root[data-brand="neighbro"] .tabbar .tab { justify-content: center; }
-:root[data-brand="neighbro"] .tabbar .tab span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:root[data-brand="neighbro"] .tabbar .tab span { position: absolute; width: var(--sr-size); height: var(--sr-size); overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 :root[data-brand="neighbro"] .tabbar .tab svg { position: relative; z-index: 1; stroke: var(--fg); stroke-width: 1.5; }
 :root[data-brand="neighbro"] .tabbar .tab[aria-current="page"]::after {
-  left: 50%; top: 50%; bottom: auto; width: 60px; height: 44px; margin: -22px 0 0 -30px; box-sizing: border-box;
-  border-radius: 14px; background: var(--tile-2); border: var(--btn-rim); box-shadow: var(--btn-shadow);
+  left: 50%; top: 50%; bottom: auto; width: var(--tab-tag-w); height: var(--tab-tag-h); margin: calc(var(--tab-tag-h) / -2) 0 0 calc(var(--tab-tag-w) / -2); box-sizing: border-box;
+  border-radius: var(--tab-tag-r); background: var(--tile-2); border: var(--btn-rim); box-shadow: var(--btn-shadow);
 }
 :root[data-brand="neighbro"] .tabbar .tab[aria-current="page"] svg { stroke: var(--tile-2-ink); }
-:root[data-brand="neighbro"] .ui-tabbed .screen { padding-bottom: 112px; }
-:root[data-brand="neighbro"] .ui-tabbed .screen[data-screen="feed"] { padding-bottom: 180px; }
+:root[data-brand="neighbro"] .ui-tabbed .screen { padding-bottom: var(--tabbed-pad); }
+:root[data-brand="neighbro"] .ui-tabbed .screen[data-screen="feed"] { padding-bottom: var(--tabbed-feed-pad); }
 
 /* The code on Arrival: a sticker cell 28×56 per character, 38 apart, the
    character 22/600; the input lies over the cells, its own text unseen. */
 /* The sheet's die-cut is a 7 stroke centred on the edge: the fill keeps its
    28×56, the rim shows 3.5 outside it, the shadow 5 outside at 1.5/3. The
    caret is the sheet's 2×32 bar in --accent, in the cell that comes next. */
-:root[data-brand="neighbro"] .ui-cellfield .ui-cells { display: flex; gap: 10px; padding: 0 2px; }
+:root[data-brand="neighbro"] .ui-cellfield .ui-cells { display: flex; gap: var(--cell-gap); padding: 0 var(--cell-inset); }
 :root[data-brand="neighbro"] .ui-cellfield .ui-cell {
-  position: relative; display: grid; place-items: center; width: 28px; height: 56px; border-radius: 14px;
-  background: var(--surface); color: var(--fg); font-size: 22px; font-weight: 600;
-  box-shadow: 0 0 0 3.5px var(--surface), 1.5px 3px 0 5px var(--shadow);
+  position: relative; display: grid; place-items: center; width: var(--cell-w); height: var(--cell-h); border-radius: var(--cell-r);
+  background: var(--surface); color: var(--fg); font-size: var(--cell-fs); font-weight: 600;
+  box-shadow: var(--cell-shadow);
 }
-:root[data-brand="neighbro"] .ui-cellfield .ui-cell-next::after { content: ""; width: 2px; height: 32px; background: var(--accent); }
+:root[data-brand="neighbro"] .ui-cellfield .ui-cell-next::after { content: ""; width: var(--caret-w); height: var(--caret-h); background: var(--accent); }
 :root[data-brand="neighbro"] [data-screen="arrival"] .ui-cellfield input {
   position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0;
   border: 0; box-shadow: none; background: transparent; color: transparent; caret-color: transparent; letter-spacing: 0;
 }
-:root[data-brand="neighbro"] .ui-cellfield input:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: 4px; border-radius: 16px; }
+:root[data-brand="neighbro"] .ui-cellfield input:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--cell-focus-offset); border-radius: var(--cell-focus-r); }

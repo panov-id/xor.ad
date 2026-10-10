@@ -4,7 +4,7 @@
 // shows it taken. The table's own link /t/<id> opens it after the PIN.
 
 import { expect, test } from "../fixtures/address.ts";
-import { newTable, PIN, register, runLabel, unlock, twoAtATable, writePhrase } from "./helpers.ts";
+import { newTable, openTables, PIN, register, runLabel, unlock, twoAtATable, writePhrase } from "./helpers.ts";
 
 // The node as the e2e process reaches it (network_mode service:web), and a
 // panel session as the node signs one (moderation-path.spec.ts panelToken).
@@ -95,4 +95,29 @@ test("a dots game begun on the screen, a move on one screen shows on the other, 
   await unlock(zhenya, PIN);
   await expect(zhenya.getByTestId("table")).toHaveAttribute("data-id", id, { timeout: 30000 });
   await expect(zhenya.locator("[data-taken]")).toHaveCount(1, { timeout: 15000 });
+});
+
+// П17 · a set is shown by its dictionary word, never its id («36», «3x3»); П19 ·
+// standing up from a table goes back to where the person came from (the feed or
+// the tables tab), as «new table» does.
+test("sets are named in words, and leaving a table returns to the feed or the tables tab", async ({ browser }) => {
+  test.setTimeout(150_000);
+  const zhenya = await (await browser.newContext({ viewport: { width: 393, height: 851 } })).newPage();
+  await register(zhenya, { name: "Женя", age: "30" });
+
+  await zhenya.getByTestId("new-table").click();
+  await expect(zhenya.locator('[data-screen="new-table"]')).toBeVisible();
+  await expect(zhenya.getByTestId("new-table-set").locator("option")).toHaveText(["поле 3×3", "поле 2×2", "поле 4×4"]);
+  await zhenya.getByTestId("new-table-class").selectOption("deck");
+  await expect(zhenya.getByTestId("new-table-set").locator("option")).toHaveText(["колода из 36 карт"]);
+  await zhenya.getByTestId("new-table-back").click();
+
+  await newTable(zhenya, { name: `выход ${runLabel()}`, kind: "dots", set: "2x2" });
+  await zhenya.getByTestId("table-stand").click();
+  await expect(zhenya.locator('[data-screen="feed"]')).toBeVisible({ timeout: 15000 });
+
+  await openTables(zhenya);
+  await newTable(zhenya, { name: `выход ${runLabel()}`, kind: "dots", set: "2x2" });
+  await zhenya.getByTestId("table-stand").click();
+  await expect(zhenya.locator('[data-screen="tables"]')).toBeVisible({ timeout: 15000 });
 });

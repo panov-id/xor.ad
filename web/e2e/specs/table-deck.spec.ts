@@ -23,6 +23,9 @@ test("a deck table: my hand is cards, the other's a number, and a played card sh
   await expect(other.getByTestId("others")).toHaveText(`${moverName}: 6`);
   const card = mover.getByTestId("hand").getByRole("button").first();
   const label = (await card.textContent())!.trim();
+  // A card is spoken and shown in words («дама пик»), never as the node's «QS» (П17).
+  expect(label).toMatch(/^(шестёрка|семёрка|восьмёрка|девятка|десятка|валет|дама|король|туз) (пик|червей|бубен|треф)$/);
+  await expect(card).toHaveAttribute("aria-label", `карта ${label}`);
   await card.click();
   await expect(other.getByTestId("played")).toHaveText(`на столе: ${label}`, { timeout: 15000 });
   await expect(other.getByTestId("others")).toHaveText(`${moverName}: 5`, { timeout: 15000 });

@@ -5,7 +5,7 @@
 import { useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { type BoardClass, Tables } from "../../../depth/core/tables.ts";
-import { classWord, tableRefusal } from "../api/tables.ts";
+import { classWord, setWord, tableRefusal } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
@@ -70,7 +70,7 @@ export function NewTable({ client, at, radius, onMade, onBack }: {
           setSeats(Math.min(seats, next.most));
         }} />
       <Select label={say("web.newTable.set")} value={set} testid="new-table-set"
-        options={chosen.sets.map((s) => ({ value: s, label: s }))} onChange={setSet} />
+        options={chosen.sets.map((s) => ({ value: s, label: setWord(s) }))} onChange={setSet} />
       <Select label={say("web.newTable.seats")} value={String(seats)} testid="new-table-seats"
         options={Array.from({ length: chosen.most - 1 }, (_, i) => i + 2).map((n) => ({ value: String(n), label: String(n) }))}
         onChange={(value) => setSeats(Number(value))} />

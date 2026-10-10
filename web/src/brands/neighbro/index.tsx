@@ -111,7 +111,7 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   const pendingRef = useRef(false);
   const setPending = (on: boolean) => { pendingRef.current = on; setPendingState(on); };
   const [cancelled, setCancelled] = useState(false);
-  // The clock stands while the focus or the pointer is in the undo row.
+  // The clock stands while the focus is in the undo row (not the pointer: see `held`).
   const [focusIn, setFocusIn] = useState(false);
   // Held by focus only (WCAG 2.2.1): the row appears under the pointer that placed the
   // heart, so holding on hover kept a resting mouse's like from ever going (e2e, 10.10).

@@ -76,7 +76,7 @@ type Screen =
   | { at: "reissue" }
   | { at: "departure" }
   | { at: "hidden" }
-  | { at: "table"; tableId: string }
+  | { at: "table"; tableId: string; from?: "feed" | "tables" }
   | { at: "tables" }
   | { at: "new-table"; from: "feed" | "tables" }
   | { at: "blocked" }
@@ -241,10 +241,11 @@ function Face() {
   // A table from the feed or the tables tab (W10, К6б): a seat first — the node says no to a full
   // table or a closed one, and the feed says why; seated, the table screen.
   const [tableNotice, setTableNotice] = useState<string | null>(null);
-  async function enterTable(id: string) {
+  // `from` is where the person stood: leaving the table goes back there (П19).
+  async function enterTable(id: string, from: "feed" | "tables") {
     setTableNotice(null);
     const sat = await new Tables(seated!.client).sit(id).catch((e: Error) => ({ status: 0, body: { error: { reason: e.message } } }));
-    if (sat.status >= 200 && sat.status < 300) return leaveFeed({ at: "table", tableId: id });
+    if (sat.status >= 200 && sat.status < 300) return leaveFeed({ at: "table", tableId: id, from });
     setTableNotice(tableRefusal(sat as never) ?? String(sat.status));
   }
   const me = () => setScreen({ at: "me" });
@@ -299,7 +300,7 @@ function Face() {
             radius={radius}
             onRadius={setRadius}
             onOpen={(card) => leaveFeed({ at: "card", card })}
-            onTable={(id) => void enterTable(id)}
+            onTable={(id) => void enterTable(id, "feed")}
             onNewTable={() => leaveFeed({ at: "new-table", from: "feed" })}
             notice={tableNotice}
             onWrite={() => leaveFeed({ at: "composer" })}
@@ -318,7 +319,7 @@ function Face() {
             client={seated!.client}
             at={at}
             radius={radius}
-            onTable={(id) => void enterTable(id)}
+            onTable={(id) => void enterTable(id, "tables")}
             onNewTable={() => leaveFeed({ at: "new-table", from: "tables" })}
             notice={tableNotice}
           />
@@ -414,9 +415,9 @@ function Face() {
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
     case "new-table":
-      return <NewTable client={seated!.client} at={at} radius={radius} onMade={(id) => setScreen({ at: "table", tableId: id })} onBack={() => setScreen({ at: screen.from })} />;
+      return <NewTable client={seated!.client} at={at} radius={radius} onMade={(id) => setScreen({ at: "table", tableId: id, from: screen.from })} onBack={() => setScreen({ at: screen.from })} />;
     case "table":
-      return <Table client={seated!.client} tableId={screen.tableId} onLeave={() => { history.replaceState(null, "", "/"); setScreen({ at: "feed" }); }} />;
+      return <Table client={seated!.client} tableId={screen.tableId} onLeave={() => { history.replaceState(null, "", "/"); setScreen({ at: screen.from ?? "feed" }); }} />;
     case "hidden":
       return <Hidden client={seated!.client} onBack={() => { setEdits((n) => n + 1); me(); }} />;
     case "blocked":

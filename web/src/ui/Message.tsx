@@ -71,8 +71,9 @@ export function Starters({ title, items, ...rest }: { title: string; items: read
 }
 
 // UndoRow: «отклонено · вернуть». The mark is a word in a `role=status` that
-// stands in the page with the row; «вернуть» is a Button text of 44. There is
-// no timer: the row stays until the person leaves the screen.
+// stands in the page with the row; «вернуть» is a Button text of 44. The row
+// has no clock of its own: the inbox's stays until the person leaves the screen;
+// neighbro's heart keeps a 5 s clock around it (brands/neighbro/index.tsx).
 export function UndoRow({ mark, action }: { mark: string; action: { label: string; onSelect: () => void; disabled?: boolean; testid?: string } }) {
   return (
     <div className="ui-undo">

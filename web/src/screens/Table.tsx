@@ -165,7 +165,7 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
         {turn.mine && board && <Button kind="secondary" icon="pass" aria-label={say("table.pass")} onClick={() => act(() => tables.pass(tableId, board.seq))} />}
         {view.is_playing && started && <Button kind="secondary" icon="giveup" aria-label={say("table.resign")} data-testid="resign" onClick={() => act(() => tables.resign(tableId))} />}
         <Button kind="secondary" icon="like" aria-label={say("table.like")} onClick={() => act(() => tables.like(tableId))} />
-        <Button kind="secondary" icon="leave" aria-label={say("table.stand")} onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })} />
+        <Button kind="secondary" icon="leave" aria-label={say("table.stand")} data-testid="table-stand" onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })} />
       </div>
     </Screen>
   );

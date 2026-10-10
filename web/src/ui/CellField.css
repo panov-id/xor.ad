@@ -1,0 +1,3 @@
+/* CellField: the cells are a brand's; without one the input is a plain field. */
+.ui-cells-box { position: relative; }
+.ui-cells { display: none; }

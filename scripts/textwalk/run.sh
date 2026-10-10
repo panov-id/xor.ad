@@ -2,7 +2,11 @@
 # A person's walk of the local stand, written down as text (docs/design/kit_RU.md §5):
 # headless Chromium in a container, no screenshots. Stand first: scripts/up-local.sh <brand>.
 #   scripts/textwalk/run.sh [http://localhost:4173] > walk.txt
+#   WALK_STABLE=1 ...   no timings and a fixed label, so two walks diff line by line
+# The runner image (playwright baked in) is built once; the walk itself needs no registry.
 set -euo pipefail
 d="$(cd "$(dirname "$0")" && pwd)"
-docker run --rm --network host -v "$d:/w:ro" -w /tmp mcr.microsoft.com/playwright:v1.48.2-jammy \
-  sh -c "npm i --silent playwright@1.48.2 >/dev/null 2>&1 && cp /w/textwalk.mjs . && WALK_STABLE=${WALK_STABLE:-} node textwalk.mjs ${1:-http://localhost:4173}"
+img=xor-textwalk:1.48.2
+docker image inspect "$img" >/dev/null 2>&1 || docker build -q -t "$img" "$d" >/dev/null
+docker run --rm --network host -e WALK_STABLE="${WALK_STABLE:-}" -v "$d/textwalk.mjs:/walk/textwalk.mjs:ro" "$img" \
+  node /walk/textwalk.mjs "${1:-http://localhost:4173}"

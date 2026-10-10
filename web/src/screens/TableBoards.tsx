@@ -8,6 +8,7 @@
 import { useState } from "react";
 import { dotsOf, freeEdges, type TableView } from "../../../depth/core/tables.ts";
 import { say as tableSay } from "../api/me.ts";
+import { cardWord, dieWord } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
 import { CellsGrid, DotsGrid } from "../ui/Board.tsx";
 import { Button } from "../ui/Button.tsx";
@@ -36,13 +37,13 @@ export function DeckBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
   const mine = deck.hands[String(view.seat)];
   return (
     <section data-testid="deck">
-      <p data-testid="played">{say("web.table.played", { card: deck.played.slice(-1)[0] ?? "—" })}</p>
+      <p data-testid="played">{say("web.table.played", { card: cardWord(deck.played.slice(-1)[0] ?? "—") })}</p>
       <p data-testid="stock">{say("web.table.stock", { count: deck.stock.count })}</p>
       <Others view={view} hands={deck.hands} />
       {Array.isArray(mine) && (
         <Hand label={say("web.table.hand")} data-testid="hand">
           {mine.map((card) => (
-            <HandCard key={card} text={card} name={say("web.table.card", { card })} onSelect={onMove ? () => onMove({ play: card }) : undefined} />
+            <HandCard key={card} text={cardWord(card)} name={say("web.table.card", { card: cardWord(card) })} onSelect={onMove ? () => onMove({ play: card }) : undefined} />
           ))}
         </Hand>
       )}
@@ -138,7 +139,7 @@ export function CellsBoard({ view, onMove }: { view: TableView; onMove?: Move })
   return (
     <section data-testid="cells">
       {(grid || physics) && <CellsGrid label={say("web.table.board")} rows={rows} described={described} />}
-      {dice && <p data-testid="rolled">{say("web.table.rolled", { dice: dice.rolled ? dice.rolled.join(say("web.table.and")) : say("web.table.not_rolled") })}</p>}
+      {dice && <p data-testid="rolled">{say("web.table.rolled", { dice: dice.rolled ? dice.rolled.map(dieWord).join(say("web.table.and")) : say("web.table.not_rolled") })}</p>}
       {onMove && grid && (
         <MoveInput
           legend={say("table.move")}

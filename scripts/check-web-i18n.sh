@@ -84,6 +84,12 @@ for lang in langs:
 # below, per language and per key; anything not named here must differ from ru.
 SAME_AS_RU = {
     "be": {
+        "web.die.2",  # два
+        "web.rank.A",  # туз
+        "web.rank.J",  # валет
+        "web.rank.Q",  # дама
+        "web.set.chess",  # шахматы
+        "web.table.cardName",  # {rank} {suit}
         "web.composer.zone",  # зона
         "web.composer.scheme",  # схема, не карта
         "web.composer.phrase",  # фраза
@@ -102,6 +108,9 @@ SAME_AS_RU = {
         "web.ui.you",  # вы
     },
     "kk": {
+        "web.rank.J",  # валет
+        "web.rank.K",  # король
+        "web.rank.Q",  # дама
         "web.ui.code",  # код
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.radius",  # радиус, м
@@ -115,6 +124,10 @@ SAME_AS_RU = {
         "web.transfer.browser",  # браузер
     },
     "ky": {
+        "web.rank.A",  # туз
+        "web.rank.J",  # валет
+        "web.rank.K",  # король
+        "web.rank.Q",  # дама
         "web.ui.system",  # система
         "web.ui.code",  # код
         "web.cabinet.email",  # почта
@@ -133,6 +146,9 @@ SAME_AS_RU = {
         "web.theme.title",  # Тема
     },
     "tg": {
+        "web.rank.A",  # туз
+        "web.rank.J",  # валет
+        "web.rank.Q",  # дама
         "web.ui.system",  # система
         "web.cabinet.email",  # почта
         "web.cabinet.field.promo",  # промокод
@@ -146,6 +162,18 @@ SAME_AS_RU = {
         "web.transfer.browser",  # браузер
     },
     "uk": {
+        "web.die.1",  # один
+        "web.die.2",  # два
+        "web.die.3",  # три
+        "web.rank.10",  # десятка
+        "web.rank.A",  # туз
+        "web.rank.J",  # валет
+        "web.rank.K",  # король
+        "web.rank.Q",  # дама
+        "web.set.checkers",  # шашки
+        "web.suit.C",  # треф
+        "web.suit.H",  # червей
+        "web.table.cardName",  # {rank} {suit}
         "web.ui.system",  # система
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.field.text",  # текст
@@ -170,6 +198,12 @@ SAME_AS_RU = {
         "web.theme.title",  # Тема
         "web.card.phrase",  # фраза
         "web.ui.code",  # код
+    },
+    "el": {
+        "web.table.cardName",  # {rank} {suit}
+    },
+    "pl": {
+        "web.table.cardName",  # {rank} {suit}
     },
 }
 dicts = {lang: json.loads((locales / f"{lang}.json").read_text())
@@ -213,6 +247,8 @@ SAME_AS_EN = {
         "web.feed.m",  # {n} m
     },
     "fr": {
+        "web.die.6",  # six
+        "web.rank.6",  # six
         "web.ui.code",  # code
         "web.nav.tables",  # tables
         "web.card.phrase",  # phrase
@@ -264,6 +300,21 @@ for k, v in en_web.items():
             continue
         if d.get(k) == v and k not in SAME_AS_EN.get(lang, ()):
             bad.append(f"{lang}: {k} осталась английской («{v[:40]}») и не названа в SAME_AS_EN")
+# П17: a table's set is shown by a word, never by its id. Every set the screen
+# offers (NewTable.tsx CLASSES) needs web.set.<id> in the dictionary (an NxN
+# field is one key, web.set.field); the cards and dice the node deals need a
+# word for each rank, suit and face (lib/tables_deck.ts, tables_dice.ts).
+new_table = (src / "screens/NewTable.tsx").read_text()
+set_ids = sorted(set(re.findall(r'"([\w-]+)"', " ".join(re.findall(r"sets: \[([^\]]*)\]", new_table)))))
+if not set_ids:
+    bad.append("screens/NewTable.tsx: наборов не найдено — разбор CLASSES разошёлся с кодом")
+for sid in set_ids:
+    if not re.fullmatch(r"(\d+)x\1", sid) and f"web.set.{sid}" not in ru_web:
+        bad.append(f"набор «{sid}» показывается своим id: нет ключа web.set.{sid}")
+for need in ["web.set.field", "web.table.cardName"] + [f"web.rank.{r}" for r in "6 7 8 9 10 J Q K A".split()] \
+        + [f"web.suit.{s}" for s in "SHDC"] + [f"web.die.{n}" for n in range(1, 7)]:
+    if need not in ru_web:
+        bad.append(f"нет ключа {need} (карта или кость словом)")
 for k in sorted(used):
     if k not in ru_web and k not in ru_depth:
         bad.append(f"say(\"{k}\"): такого ключа нет ни у веба, ни у терминала")

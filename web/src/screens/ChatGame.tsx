@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Answer, Client } from "../../../depth/core/client.ts";
 import { dotsOf, type BoardClass, turnOf } from "../../../depth/core/tables.ts";
 import { asTableView, ChatGames, type ChatGameView } from "../api/chatGames.ts";
-import { classWord, tableRefusal } from "../api/tables.ts";
+import { classWord, setWord, tableRefusal } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
 import { CLASSES } from "./NewTable.tsx";
 import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
@@ -61,7 +61,7 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
           onChange={(value) => { const c = CLASSES.find((x) => x.value === value)!; setKlass(c.value); setSet(c.sets[0] ?? ""); }} />
         {sets.length > 1 && (
           <Segments label={say("web.game.set")} testid="game-set" value={set}
-            options={sets.map((s) => ({ value: s, label: s, testid: `game-set-${s}` }))} onChange={setSet} />
+            options={sets.map((s) => ({ value: s, label: setWord(s), testid: `game-set-${s}` }))} onChange={setSet} />
         )}
         <Button kind="primary" type="button" icon="watch" className="ui-wide" aria-label={say("web.game.propose")} data-testid="game-propose" disabled={busy} onClick={() => act(() => games.propose(chatId, klass, set))} />
         {error && <ErrorLine>{error}</ErrorLine>}
@@ -80,7 +80,7 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
       {pending && pending.mine && <p data-testid="game-waiting">{say("web.game.waiting")}</p>}
       {pending && !pending.mine && (
         <p data-testid="game-offer">
-          {pending.kind === "rematch" ? say("web.game.rematch_offered") : say("web.game.offered", { game: `${classWord(pending.class ?? "")} ${pending.set}` })}{" "}
+          {pending.kind === "rematch" ? say("web.game.rematch_offered") : say("web.game.offered", { game: `${classWord(pending.class ?? "")} ${setWord(pending.set ?? "")}` })}{" "}
           <Button kind="primary" type="button" icon="check" aria-label={say("web.game.accept")} data-testid="game-accept" disabled={busy} onClick={() => act(() =>
             pending.kind === "rematch" ? games.answerRematch(chatId, pending.id, "accept") : games.answer(chatId, "accept"))} />{" "}
           <Button kind="secondary" type="button" icon="close" aria-label={say("web.game.decline")} data-testid="game-decline" disabled={busy} onClick={() => act(() =>

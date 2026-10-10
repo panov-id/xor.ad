@@ -12,6 +12,7 @@ import { Fragment, type ReactNode } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { nearby } from "../a11y/nearby.ts";
 import { languageIn, modes, type Sent } from "../api/actions.ts";
+import { classWord, setWord } from "../api/tables.ts";
 import { Button } from "../ui/Button.tsx";
 import { Card, CardOpen, LikeCount, openerIds } from "../ui/Card.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
@@ -144,7 +145,7 @@ export function Feed(
           ? (
             <Card as="li" key={card.id} kind="nested" of="table" data-testid="table-card" data-id={card.id}>
               <CardOpen id={card.id} onOpen={() => onTable?.(card.id)} />
-              <p id={openerIds(card.id).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {card.game} {card.set}</p>
+              <p id={openerIds(card.id).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {classWord(card.game ?? "")} {setWord(card.set ?? "")}</p>
               <span className="ui-hint" id={openerIds(card.id).foot}>{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · <LikeCount n={card.like_count ?? 0} /></span>
             </Card>
           )

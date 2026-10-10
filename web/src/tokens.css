@@ -70,4 +70,36 @@
   --field-ls: 0.6em;
   --field-border: 1.5px solid var(--border-control);   /* was 0: ~1.1:1 against --bg, under the 3:1 of §1.1 */
   --like-size: 56px;
+  /* Kit §9.2, edition 4 (scripts/design/neighbro-sheets.py). */
+  --ground-sky-h: 220px;                  /* the "sky" gradient at the top of the screen */
+  --ground-dot-at: 2px;                   /* the dot's centre in its cell */
+  --ground-dot-r: 1.2px;
+  --ground-dot-fade: 1.6px;               /* the dot's soft edge */
+  --ground-dot-step: 16px;
+  --title-fs: 22px;                       /* Russo One */
+  --round-d: 52px;                        /* the round icon button, r26 */
+  --fab: 68px;                            /* "write" on the feed */
+  --fab-r: 22px;
+  --fab-bottom: 96px;                     /* the bar's 80 and 16 above it */
+  --fab-inset: 16px;
+  --phone-half: 171.5px;                  /* half the 343 column, to align the fab with it */
+  --tabbar-h: 80px;
+  --tabbar-rule: 2px;
+  --tab-tag-w: 60px;
+  --tab-tag-h: 44px;
+  --tab-tag-r: 14px;
+  --tabbed-pad: 112px;                    /* the bar and a gap under the last card */
+  --tabbed-feed-pad: 180px;               /* the same and the fab */
+  --sr-size: 1px;                         /* a word kept for a screen reader only */
+  --cell-w: 28px;                         /* the code cell on Arrival */
+  --cell-h: 56px;
+  --cell-gap: 10px;                       /* 38 apart */
+  --cell-inset: 2px;
+  --cell-r: 14px;
+  --cell-fs: 22px;
+  --cell-shadow: 0 0 0 3.5px var(--surface), 1.5px 3px 0 5px var(--shadow);   /* the 7 rim centred on the edge */
+  --caret-w: 2px;
+  --caret-h: 32px;
+  --cell-focus-offset: 4px;
+  --cell-focus-r: 16px;
 }

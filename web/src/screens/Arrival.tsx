@@ -11,7 +11,8 @@ import { ENDINGS } from "../api/transfer.ts";
 import { Button } from "../ui/Button.tsx";
 import "./talk.css";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
-import { Field, PinField } from "../ui/Field.tsx";
+import { CellField } from "../ui/CellField.tsx";
+import { PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
 import { Actions } from "../ui/Links.tsx";
@@ -33,7 +34,7 @@ export function Arrival({ onDone, onBack, hero }: { onDone: (client: Client, lon
         ? (
           <>
             <div className="ui-info-row"><Info label={say("web.info.move")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info></div>
-            <Field label={say("move.code")} value={code} onChange={(v) => setCode(v.slice(0, 13))} autoComplete="off" data-testid="arrive-code" />
+            <CellField label={say("move.code")} cells={9} value={code} onChange={(v) => setCode(v.slice(0, 13))} autoComplete="off" data-testid="arrive-code" />
             {busy && <p role="status">{say("move.deriving")}</p>}
             <Actions>
               <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />

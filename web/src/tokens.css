@@ -102,4 +102,7 @@
   --caret-h: 32px;
   --cell-focus-offset: 4px;
   --cell-focus-r: 16px;
+  /* ND-N2: the feed and the card as on their sheets. */
+  --fs-card: 1.375rem;                    /* a phrase in the feed: 22/600 */
+  --feed-gap: 18px;                       /* between the phrase cards */
 }

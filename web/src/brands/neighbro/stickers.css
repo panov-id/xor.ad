@@ -202,3 +202,6 @@
 :root[data-brand="neighbro"] [data-screen="card"] .sticker-card { background: var(--accent); color: var(--accent-fg); }
 :root[data-brand="neighbro"] [data-screen="card"] .sticker-card .sticker-meta,
 :root[data-brand="neighbro"] [data-screen="card"] .sticker-card .sticker-count { color: inherit; }
+/* The heart stuck on the accent card is a white sticker on every sheet
+   (sticker_on_accent); in a dark theme --surface is dark, so it takes --fg. */
+:root[data-brand="neighbro"]:is([data-theme^="dark"], [data-theme="mono-dark"]) [data-screen="card"] .stuck-heart { background: var(--fg); border-color: var(--fg); color: var(--bg); }

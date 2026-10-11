@@ -16,7 +16,7 @@
   "web.cabinet.contact": "байланыш — жаңы аккаунт үчүн",
   "web.cabinet.discountUntil": "арзандатуу {until} чейин",
   "web.cabinet.duplicate": "Тирүү сунуштун тексти кайталанды. Сизде бул текст менен сунуш бар. Текстти өзгөртүңүз же мурункусунун мөөнөтү бүткөнчө күтүңүз.",
-  "web.cabinet.email": "почта",
+  "web.cabinet.email": "электрондук почта",
   "web.cabinet.envelopeCode": "конверттеги код",
   "web.cabinet.envelopeSent": "коду бар конверт {address} дарегине жөнөтүлдү; код 30 күн жарактуу",
   "web.cabinet.expired": "Шилтеменин мөөнөтү бүттү",

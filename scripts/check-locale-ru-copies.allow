@@ -2,207 +2,194 @@
 # language<TAB>depth|web<TAB>key<TAB>reason. G-RU, 11.10.2026.
 # Lines marked «baseline 11.10, not reviewed» were already equal on the day the gate came;
 # each is either a shared word (replace the reason) or a leak (translate and drop the line).
-be	depth	feed.yours	baseline 11.10, not reviewed
-be	depth	feed.like	baseline 11.10, not reviewed
-be	depth	feed.distance	baseline 11.10, not reviewed
-be	depth	write.title	baseline 11.10, not reviewed
-be	depth	chat.codeItem	baseline 11.10, not reviewed
-be	depth	common.back	baseline 11.10, not reviewed
-be	depth	statements.law	baseline 11.10, not reviewed
-be	depth	liked.at	baseline 11.10, not reviewed
-be	depth	me.title	baseline 11.10, not reviewed
-be	depth	restore.code	baseline 11.10, not reviewed
-be	depth	move.code	baseline 11.10, not reviewed
-be	depth	table.title	baseline 11.10, not reviewed
-be	depth	table.you	baseline 11.10, not reviewed
-be	depth	table.yourTurn	baseline 11.10, not reviewed
-be	depth	table.turn	baseline 11.10, not reviewed
-be	depth	table.seconds	baseline 11.10, not reviewed
-be	depth	table.passed	baseline 11.10, not reviewed
-be	depth	table.pass	baseline 11.10, not reviewed
-be	depth	table.like	baseline 11.10, not reviewed
-be	depth	table.move	baseline 11.10, not reviewed
-be	depth	table.set	baseline 11.10, not reviewed
-be	depth	feed.table	baseline 11.10, not reviewed
-be	depth	board.card	baseline 11.10, not reviewed
-be	depth	feed.m	baseline 11.10, not reviewed
-be	depth	feed.km	baseline 11.10, not reviewed
-be	depth	set.chess	baseline 11.10, not reviewed
-kk	depth	reg.pin	baseline 11.10, not reviewed
-kk	depth	loc.radius	baseline 11.10, not reviewed
-kk	depth	feed.distance	baseline 11.10, not reviewed
-kk	depth	feed.minutes	baseline 11.10, not reviewed
-kk	depth	chat.codeItem	baseline 11.10, not reviewed
-kk	depth	liked.at	baseline 11.10, not reviewed
-kk	depth	chat.spanLong10	baseline 11.10, not reviewed
-kk	depth	chat.spanLong30	baseline 11.10, not reviewed
-kk	depth	away.short	baseline 11.10, not reviewed
-kk	depth	reset.pin	baseline 11.10, not reviewed
-kk	depth	restore.code	baseline 11.10, not reviewed
-kk	depth	move.code	baseline 11.10, not reviewed
-kk	depth	lock.prompt	baseline 11.10, not reviewed
-kk	depth	table.seconds	baseline 11.10, not reviewed
-kk	depth	table.like	baseline 11.10, not reviewed
-kk	depth	board.card	baseline 11.10, not reviewed
-kk	depth	duration.min	baseline 11.10, not reviewed
-kk	depth	feed.m	baseline 11.10, not reviewed
-kk	depth	chat.draft	baseline 11.10, not reviewed
-ky	depth	reg.pin	baseline 11.10, not reviewed
-ky	depth	loc.radius	baseline 11.10, not reviewed
-ky	depth	feed.distance	baseline 11.10, not reviewed
-ky	depth	chat.codeItem	baseline 11.10, not reviewed
-ky	depth	liked.at	baseline 11.10, not reviewed
-ky	depth	reset.pin	baseline 11.10, not reviewed
-ky	depth	restore.code	baseline 11.10, not reviewed
-ky	depth	move.code	baseline 11.10, not reviewed
-ky	depth	lock.prompt	baseline 11.10, not reviewed
-ky	depth	table.title	baseline 11.10, not reviewed
-ky	depth	table.seconds	baseline 11.10, not reviewed
-ky	depth	table.like	baseline 11.10, not reviewed
-ky	depth	feed.table	baseline 11.10, not reviewed
-ky	depth	board.card	baseline 11.10, not reviewed
-ky	depth	feed.m	baseline 11.10, not reviewed
-ky	depth	feed.km	baseline 11.10, not reviewed
-tg	depth	reg.pin	baseline 11.10, not reviewed
-tg	depth	loc.radius	baseline 11.10, not reviewed
-tg	depth	feed.distance	baseline 11.10, not reviewed
-tg	depth	liked.at	baseline 11.10, not reviewed
-tg	depth	reset.pin	baseline 11.10, not reviewed
-tg	depth	lock.prompt	baseline 11.10, not reviewed
-tg	depth	table.seconds	baseline 11.10, not reviewed
-tg	depth	table.like	baseline 11.10, not reviewed
-tg	depth	feed.title	baseline 11.10, not reviewed
-tg	depth	feed.m	baseline 11.10, not reviewed
-tg	depth	feed.km	baseline 11.10, not reviewed
-uk	depth	loc.lat	baseline 11.10, not reviewed
-uk	depth	feed.yours	baseline 11.10, not reviewed
-uk	depth	feed.like	baseline 11.10, not reviewed
-uk	depth	feed.distance	baseline 11.10, not reviewed
-uk	depth	write.title	baseline 11.10, not reviewed
-uk	depth	chat.codeItem	baseline 11.10, not reviewed
-uk	depth	common.back	baseline 11.10, not reviewed
-uk	depth	statements.until	baseline 11.10, not reviewed
-uk	depth	statements.law	baseline 11.10, not reviewed
-uk	depth	liked.at	baseline 11.10, not reviewed
-uk	depth	me.title	baseline 11.10, not reviewed
-uk	depth	restore.code	baseline 11.10, not reviewed
-uk	depth	move.code	baseline 11.10, not reviewed
-uk	depth	table.seconds	baseline 11.10, not reviewed
-uk	depth	table.passed	baseline 11.10, not reviewed
-uk	depth	table.application	baseline 11.10, not reviewed
-uk	depth	table.pass	baseline 11.10, not reviewed
-uk	depth	table.like	baseline 11.10, not reviewed
-uk	depth	table.edge	baseline 11.10, not reviewed
-uk	depth	board.card	baseline 11.10, not reviewed
-uk	depth	board.my_word	baseline 11.10, not reviewed
-uk	depth	board.power	baseline 11.10, not reviewed
-uk	depth	board.stock	baseline 11.10, not reviewed
-uk	depth	feed.m	baseline 11.10, not reviewed
-uk	depth	feed.km	baseline 11.10, not reviewed
-uk	depth	set.checkers	baseline 11.10, not reviewed
-uk	depth	kit.unavailable	baseline 11.10, not reviewed
-be	web	web.composer.zone	baseline 11.10, not reviewed
-be	web	web.composer.scheme	baseline 11.10, not reviewed
-be	web	web.composer.phrase	baseline 11.10, not reviewed
-be	web	web.feed.km	baseline 11.10, not reviewed
-be	web	web.feed.m	baseline 11.10, not reviewed
-be	web	web.game.set	baseline 11.10, not reviewed
-be	web	web.game.you	baseline 11.10, not reviewed
-be	web	web.game.your_turn	baseline 11.10, not reviewed
-be	web	web.newTable.set	baseline 11.10, not reviewed
-be	web	web.table.boneyard	baseline 11.10, not reviewed
-be	web	web.table.card	baseline 11.10, not reviewed
-be	web	web.table.con_won	baseline 11.10, not reviewed
-be	web	web.table.right	baseline 11.10, not reviewed
-be	web	web.card.phrase	baseline 11.10, not reviewed
-be	web	web.ui.code	baseline 11.10, not reviewed
-be	web	web.ui.you	baseline 11.10, not reviewed
-be	web	web.set.chess	baseline 11.10, not reviewed
-be	web	web.rank.J	baseline 11.10, not reviewed
-be	web	web.rank.Q	baseline 11.10, not reviewed
-be	web	web.rank.A	baseline 11.10, not reviewed
-be	web	web.die.2	baseline 11.10, not reviewed
-kk	web	web.cabinet.field.promo	baseline 11.10, not reviewed
-kk	web	web.cabinet.radius	baseline 11.10, not reviewed
-kk	web	web.chat.line	baseline 11.10, not reviewed
-kk	web	web.composer.mode	baseline 11.10, not reviewed
-kk	web	web.feed.m	baseline 11.10, not reviewed
-kk	web	web.table.boneyard	baseline 11.10, not reviewed
-kk	web	web.table.card	baseline 11.10, not reviewed
-kk	web	web.table.piece	baseline 11.10, not reviewed
-kk	web	web.table.stock	baseline 11.10, not reviewed
-kk	web	web.transfer.browser	baseline 11.10, not reviewed
-kk	web	web.ui.code	baseline 11.10, not reviewed
-kk	web	web.rank.J	baseline 11.10, not reviewed
-kk	web	web.rank.Q	baseline 11.10, not reviewed
-kk	web	web.rank.K	baseline 11.10, not reviewed
-kk	web	web.duration.min	baseline 11.10, not reviewed
-ky	web	web.cabinet.email	baseline 11.10, not reviewed
-ky	web	web.cabinet.field.promo	baseline 11.10, not reviewed
-ky	web	web.cabinet.field.text	baseline 11.10, not reviewed
-ky	web	web.cabinet.radius	baseline 11.10, not reviewed
-ky	web	web.composer.mode	baseline 11.10, not reviewed
-ky	web	web.feed.km	baseline 11.10, not reviewed
-ky	web	web.feed.m	baseline 11.10, not reviewed
-ky	web	web.table.boneyard	baseline 11.10, not reviewed
-ky	web	web.table.card	baseline 11.10, not reviewed
-ky	web	web.table.piece	baseline 11.10, not reviewed
-ky	web	web.table.stock	baseline 11.10, not reviewed
-ky	web	web.transfer.browser	baseline 11.10, not reviewed
-ky	web	web.theme.item	baseline 11.10, not reviewed
-ky	web	web.theme.title	baseline 11.10, not reviewed
-ky	web	web.ui.code	baseline 11.10, not reviewed
-ky	web	web.ui.system	baseline 11.10, not reviewed
-ky	web	web.rank.J	baseline 11.10, not reviewed
-ky	web	web.rank.Q	baseline 11.10, not reviewed
-ky	web	web.rank.K	baseline 11.10, not reviewed
-ky	web	web.rank.A	baseline 11.10, not reviewed
-tg	web	web.cabinet.email	baseline 11.10, not reviewed
-tg	web	web.cabinet.field.promo	baseline 11.10, not reviewed
-tg	web	web.cabinet.radius	baseline 11.10, not reviewed
-tg	web	web.card.back	baseline 11.10, not reviewed
-tg	web	web.feed.km	baseline 11.10, not reviewed
-tg	web	web.feed.m	baseline 11.10, not reviewed
-tg	web	web.feed.title	baseline 11.10, not reviewed
-tg	web	web.likes.back	baseline 11.10, not reviewed
-tg	web	web.nav.feed	baseline 11.10, not reviewed
-tg	web	web.transfer.browser	baseline 11.10, not reviewed
-tg	web	web.ui.system	baseline 11.10, not reviewed
-tg	web	web.rank.J	baseline 11.10, not reviewed
-tg	web	web.rank.Q	baseline 11.10, not reviewed
-tg	web	web.rank.A	baseline 11.10, not reviewed
-uk	web	web.cabinet.field.promo	baseline 11.10, not reviewed
-uk	web	web.cabinet.field.text	baseline 11.10, not reviewed
-uk	web	web.cabinet.placeAt	baseline 11.10, not reviewed
-uk	web	web.chat.not_delivered	baseline 11.10, not reviewed
-uk	web	web.composer.mode	baseline 11.10, not reviewed
-uk	web	web.composer.zone	baseline 11.10, not reviewed
-uk	web	web.composer.phrase	baseline 11.10, not reviewed
-uk	web	web.feed.km	baseline 11.10, not reviewed
-uk	web	web.feed.m	baseline 11.10, not reviewed
-uk	web	web.offer.go	baseline 11.10, not reviewed
-uk	web	web.register.done	baseline 11.10, not reviewed
-uk	web	web.reissue.done	baseline 11.10, not reviewed
-uk	web	web.table.boneyard	baseline 11.10, not reviewed
-uk	web	web.table.card	baseline 11.10, not reviewed
-uk	web	web.table.my_word	baseline 11.10, not reviewed
-uk	web	web.table.power	baseline 11.10, not reviewed
-uk	web	web.table.stock	baseline 11.10, not reviewed
-uk	web	web.transfer.browser	baseline 11.10, not reviewed
-uk	web	web.theme.item	baseline 11.10, not reviewed
-uk	web	web.theme.title	baseline 11.10, not reviewed
-uk	web	web.card.phrase	baseline 11.10, not reviewed
-uk	web	web.filter.to	baseline 11.10, not reviewed
-uk	web	web.ui.code	baseline 11.10, not reviewed
-uk	web	web.ui.system	baseline 11.10, not reviewed
-uk	web	web.set.checkers	baseline 11.10, not reviewed
-uk	web	web.rank.10	baseline 11.10, not reviewed
-uk	web	web.rank.J	baseline 11.10, not reviewed
-uk	web	web.rank.Q	baseline 11.10, not reviewed
-uk	web	web.rank.K	baseline 11.10, not reviewed
-uk	web	web.rank.A	baseline 11.10, not reviewed
-uk	web	web.suit.H	baseline 11.10, not reviewed
-uk	web	web.suit.C	baseline 11.10, not reviewed
-uk	web	web.die.1	baseline 11.10, not reviewed
-uk	web	web.die.2	baseline 11.10, not reviewed
-uk	web	web.die.3	baseline 11.10, not reviewed
+be	depth	feed.yours	same word in be
+be	depth	feed.like	same word in be
+be	depth	feed.distance	same word in be
+be	depth	write.title	same word in be
+be	depth	chat.codeItem	same word in be
+be	depth	common.back	same word in be
+be	depth	statements.law	same word in be
+be	depth	liked.at	same word in be
+be	depth	me.title	same word in be
+be	depth	restore.code	same word in be
+be	depth	move.code	same word in be
+be	depth	table.title	same word in be
+be	depth	table.you	same word in be
+be	depth	table.yourTurn	same word in be
+be	depth	table.turn	same word in be
+be	depth	table.seconds	same word in be
+be	depth	table.passed	same word in be
+be	depth	table.pass	same word in be
+be	depth	table.like	same word in be
+be	depth	table.move	same word in be
+be	depth	table.set	same word in be
+be	depth	feed.table	same word in be
+be	depth	board.card	same word in be
+be	depth	feed.m	same word in be
+be	depth	feed.km	same word in be
+be	depth	set.chess	same word in be
+kk	depth	reg.pin	same abbreviation, already used in web ПИН
+kk	depth	loc.radius	loanword already used in this language
+kk	depth	feed.distance	unit symbol
+kk	depth	feed.minutes	minute is the same word in kk
+kk	depth	chat.codeItem	loanword already used elsewhere in this language
+kk	depth	liked.at	loanword already used as table.like in this language
+kk	depth	chat.spanLong10	minute is the same word in kk
+kk	depth	chat.spanLong30	minute is the same word in kk
+kk	depth	away.short	minute is the same word in kk
+kk	depth	reset.pin	same abbreviation, already used in web ПИН
+kk	depth	restore.code	loanword already used elsewhere in this language
+kk	depth	move.code	loanword already used elsewhere in this language
+kk	depth	lock.prompt	same abbreviation, already used in web ПИН
+kk	depth	table.seconds	unit symbol
+kk	depth	table.like	loanword already used as table.like in this language
+kk	depth	board.card	card word used by the language and by depth board.card
+kk	depth	duration.min	standard abbreviation of minute, unit
+kk	depth	feed.m	unit symbol
+ky	depth	reg.pin	same abbreviation, already used in web ПИН
+ky	depth	loc.radius	loanword already used in this language
+ky	depth	feed.distance	unit symbol
+ky	depth	chat.codeItem	loanword already used elsewhere in this language
+ky	depth	liked.at	loanword already used as table.like in this language
+ky	depth	reset.pin	same abbreviation, already used in web ПИН
+ky	depth	restore.code	loanword already used elsewhere in this language
+ky	depth	move.code	loanword already used elsewhere in this language
+ky	depth	lock.prompt	same abbreviation, already used in web ПИН
+ky	depth	table.seconds	unit symbol
+ky	depth	table.like	loanword already used as table.like in this language
+ky	depth	board.card	card word used by the language and by depth board.card
+ky	depth	feed.m	unit symbol
+ky	depth	feed.km	unit symbol
+tg	depth	reg.pin	same abbreviation, already used in web ПИН
+tg	depth	loc.radius	loanword already used in this language
+tg	depth	feed.distance	unit symbol
+tg	depth	liked.at	loanword already used as table.like in this language
+tg	depth	reset.pin	same abbreviation, already used in web ПИН
+tg	depth	lock.prompt	same abbreviation, already used in web ПИН
+tg	depth	table.seconds	unit symbol
+tg	depth	table.like	loanword already used as table.like in this language
+tg	depth	feed.title	established loan in tg (as in лентаи хабарҳо); consistent across depth/web
+tg	depth	feed.m	unit symbol
+tg	depth	feed.km	unit symbol
+uk	depth	loc.lat	same word in uk
+uk	depth	feed.yours	same word in uk
+uk	depth	feed.like	same word in uk
+uk	depth	feed.distance	same word in uk
+uk	depth	write.title	same word in uk
+uk	depth	chat.codeItem	same word in uk
+uk	depth	common.back	same word in uk
+uk	depth	statements.until	same word in uk
+uk	depth	statements.law	same word in uk
+uk	depth	liked.at	same word in uk
+uk	depth	me.title	same word in uk
+uk	depth	restore.code	same word in uk
+uk	depth	move.code	same word in uk
+uk	depth	table.seconds	same word in uk
+uk	depth	table.passed	same word in uk
+uk	depth	table.application	same word in uk
+uk	depth	table.pass	same word in uk
+uk	depth	table.like	same word in uk
+uk	depth	table.edge	same word in uk
+uk	depth	board.card	same word in uk
+uk	depth	board.my_word	same word in uk
+uk	depth	board.power	same word in uk
+uk	depth	board.stock	same word in uk
+uk	depth	feed.m	same word in uk
+uk	depth	feed.km	same word in uk
+uk	depth	set.checkers	same word in uk
+uk	depth	kit.unavailable	same word in uk
+be	web	web.composer.zone	same word in be
+be	web	web.composer.scheme	same word in be
+be	web	web.composer.phrase	same word in be
+be	web	web.feed.km	same word in be
+be	web	web.feed.m	same word in be
+be	web	web.game.set	same word in be
+be	web	web.game.you	same word in be
+be	web	web.game.your_turn	same word in be
+be	web	web.newTable.set	same word in be
+be	web	web.table.boneyard	same word in be
+be	web	web.table.card	same word in be
+be	web	web.card.phrase	same word in be
+be	web	web.ui.code	same word in be
+be	web	web.ui.you	same word in be
+be	web	web.set.chess	same word in be
+be	web	web.rank.J	same word in be
+be	web	web.rank.Q	same word in be
+be	web	web.rank.A	same word in be
+be	web	web.die.2	same word in be
+kk	web	web.cabinet.field.promo	international loanword, no native equivalent in use
+kk	web	web.cabinet.radius	loanword plus unit symbol
+kk	web	web.composer.mode	established loanword in this language
+kk	web	web.feed.m	unit symbol
+kk	web	web.table.card	card word used by the language and by depth board.card
+kk	web	web.transfer.browser	international loanword
+kk	web	web.ui.code	loanword already used elsewhere in this language
+kk	web	web.rank.J	standard card-rank term in this language
+kk	web	web.rank.Q	standard card-rank term in this language
+kk	web	web.rank.K	standard card-rank term in this language
+kk	web	web.duration.min	standard abbreviation of minute, unit
+ky	web	web.cabinet.email	established word in this language
+ky	web	web.cabinet.field.promo	international loanword, no native equivalent in use
+ky	web	web.cabinet.field.text	established word in this language
+ky	web	web.cabinet.radius	loanword plus unit symbol
+ky	web	web.composer.mode	established loanword in this language
+ky	web	web.feed.km	unit symbol
+ky	web	web.feed.m	unit symbol
+ky	web	web.table.card	card word used by the language and by depth board.card
+ky	web	web.transfer.browser	international loanword
+ky	web	web.theme.item	established word in this language
+ky	web	web.theme.title	established word in this language
+ky	web	web.ui.code	loanword already used elsewhere in this language
+ky	web	web.ui.system	established word in this language
+ky	web	web.rank.J	standard card-rank term in this language
+ky	web	web.rank.Q	standard card-rank term in this language
+ky	web	web.rank.K	standard card-rank term in this language
+ky	web	web.rank.A	standard card-rank term in this language
+tg	web	web.cabinet.email	established word in this language
+tg	web	web.cabinet.field.promo	international loanword, no native equivalent in use
+tg	web	web.cabinet.radius	loanword plus unit symbol
+tg	web	web.card.back	established loan in tg (as in лентаи хабарҳо); consistent across depth/web
+tg	web	web.feed.km	unit symbol
+tg	web	web.feed.m	unit symbol
+tg	web	web.feed.title	established loan in tg (as in лентаи хабарҳо); consistent across depth/web
+tg	web	web.likes.back	established loan in tg (as in лентаи хабарҳо); consistent across depth/web
+tg	web	web.nav.feed	established loan in tg (as in лентаи хабарҳо); consistent across depth/web
+tg	web	web.transfer.browser	international loanword
+tg	web	web.ui.system	established word in this language
+tg	web	web.rank.J	standard card-rank term in this language
+tg	web	web.rank.Q	standard card-rank term in this language
+tg	web	web.rank.A	standard card-rank term in this language
+uk	web	web.cabinet.field.promo	same word in uk
+uk	web	web.cabinet.field.text	same word in uk
+uk	web	web.cabinet.placeAt	same word in uk
+uk	web	web.chat.not_delivered	same word in uk
+uk	web	web.composer.mode	same word in uk
+uk	web	web.composer.zone	same word in uk
+uk	web	web.composer.phrase	same word in uk
+uk	web	web.feed.km	same word in uk
+uk	web	web.feed.m	same word in uk
+uk	web	web.offer.go	same word in uk
+uk	web	web.register.done	same word in uk
+uk	web	web.reissue.done	same word in uk
+uk	web	web.table.boneyard	same word in uk
+uk	web	web.table.card	same word in uk
+uk	web	web.table.my_word	same word in uk
+uk	web	web.table.power	same word in uk
+uk	web	web.table.stock	same word in uk
+uk	web	web.transfer.browser	same word in uk
+uk	web	web.theme.item	same word in uk
+uk	web	web.theme.title	same word in uk
+uk	web	web.card.phrase	same word in uk
+uk	web	web.filter.to	same word in uk
+uk	web	web.ui.code	same word in uk
+uk	web	web.ui.system	same word in uk
+uk	web	web.set.checkers	same word in uk
+uk	web	web.rank.10	same word in uk
+uk	web	web.rank.J	same word in uk
+uk	web	web.rank.Q	same word in uk
+uk	web	web.rank.K	same word in uk
+uk	web	web.rank.A	same word in uk
+uk	web	web.suit.C	same word in uk
+uk	web	web.die.1	same word in uk
+uk	web	web.die.2	same word in uk
+uk	web	web.die.3	same word in uk

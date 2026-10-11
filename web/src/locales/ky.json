@@ -281,8 +281,8 @@
   "web.table.con_won": "кон меники",
   "web.table.decline": "баш тартуу",
   "web.table.direction": "багыт dx dy",
-  "web.table.draw_boneyard": "базардан алуу",
-  "web.table.draw_deck": "колодадан алуу",
+  "web.table.draw_boneyard": "запастан алуу",
+  "web.table.draw_deck": "дастеден алуу",
   "web.table.edge_h": "сызык: {row}-катар, {col}-мамыча, туурасынан",
   "web.table.edge_taken": "{edge}, ээленген",
   "web.table.edge_v": "сызык: {row}-катар, {col}-мамыча, тигинен",
@@ -409,7 +409,7 @@
   "web.tables.title": "Жакынкы үстөлдөр",
   "web.tables.empty": "Жакын жерде үстөл азырынча жок",
   "web.tables.empty_hint": "Өзүңүздүкүн коюңуз — башкалар отурат.",
-  "web.tables.mine": "Менин столдорум",
+  "web.tables.mine": "Менин үстөлдөрүм",
   "web.tables.seated": "ушул жерде отурам",
   "web.tables.liked": "жактырылган",
   "web.set.field": "{n}×{n} талаасы",
@@ -444,6 +444,6 @@
   "web.match.line_label": "маектин биринчи сабы",
   "web.me.nameHint": "ат жандуу фраза менен ачык маек жок болгондо гана өзгөрөт",
   "web.duration.h": "{n} ст",
-  "web.table.line": "стол жанындагы сөз",
+  "web.table.line": "үстөл жанындагы сөз",
   "web.away.until": "{time} чейин · {left} калды"
 }

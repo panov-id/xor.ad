@@ -104,10 +104,16 @@
 .b-stickers[data-screen="me"] .ui-list > li { border-bottom: 0; }
 .b-stickers[data-screen="me"] .ui-setting { justify-content: flex-start; gap: 14px; min-height: 56px; padding: 0 16px 0 12px; border-radius: 10px; background: var(--surface); }
 .b-stickers[data-screen="me"] .ui-setting-chevron { margin-left: auto; color: var(--fg-muted); }
-.b-stickers[data-screen="me"] .ui-setting > .ui-glyph, .b-stickers[data-screen="me"] .ui-setting > svg { box-sizing: content-box; padding: 5px; border-radius: 50%; background: var(--tile-1); color: var(--tile-1-ink); }
-.b-stickers[data-screen="me"] .ui-list > li:nth-child(4n+2) .ui-setting > svg { background: var(--tile-2); color: var(--tile-2-ink); }
-.b-stickers[data-screen="me"] .ui-list > li:nth-child(4n+3) .ui-setting > svg { background: var(--tile-3); color: var(--tile-3-ink); }
-.b-stickers[data-screen="me"] .ui-list > li:nth-child(4n) .ui-setting > svg { background: var(--tile-4); color: var(--tile-4-ink); }
+.b-stickers[data-screen="me"] .ui-setting-icon { box-sizing: content-box; padding: 5px; border-radius: 50%; background: var(--tile-1); color: var(--tile-1-ink); }
+.b-stickers[data-screen="me"] .ui-list > li:nth-child(4n+2) .ui-setting-icon { background: var(--tile-2); color: var(--tile-2-ink); }
+.b-stickers[data-screen="me"] .ui-list > li:nth-child(4n+3) .ui-setting-icon { background: var(--tile-3); color: var(--tile-3-ink); }
+.b-stickers[data-screen="me"] .ui-list > li:nth-child(4n) .ui-setting-icon { background: var(--tile-4); color: var(--tile-4-ink); }
+/* The sheet's hero: the name row is a big tilted sticker 88 (r44, y+50) and
+   the name in Russo One beside it, on the ground — no tag, no chevron. */
+.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting { min-height: var(--me-hero-h); padding: 0 0 0 var(--s-2); gap: var(--me-hero-gap); border-color: transparent; background: transparent; }
+.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-icon { inline-size: var(--me-hero-glyph); block-size: var(--me-hero-glyph); padding: var(--me-hero-pad); transform: rotate(-6deg); box-shadow: var(--cell-shadow); }
+.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-label, .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-chevron { display: none; }
+.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-value { margin: 0; color: var(--fg); font-family: "Russo One", "Golos Text", sans-serif; font-size: var(--title-fs); }
 .b-stickers[data-screen="me"] .ui-setting-danger, .b-stickers li[data-row="reset"] .ui-setting { color: var(--danger); }
 
 /* Every button and the code field are stickers too, as on the sheets of 02.10:
@@ -196,3 +202,6 @@
 :root[data-brand="neighbro"] [data-screen="card"] .sticker-card { background: var(--accent); color: var(--accent-fg); }
 :root[data-brand="neighbro"] [data-screen="card"] .sticker-card .sticker-meta,
 :root[data-brand="neighbro"] [data-screen="card"] .sticker-card .sticker-count { color: inherit; }
+/* The heart stuck on the accent card is a white sticker on every sheet
+   (sticker_on_accent); in a dark theme --surface is dark, so it takes --fg. */
+:root[data-brand="neighbro"]:is([data-theme^="dark"], [data-theme="mono-dark"]) [data-screen="card"] .stuck-heart { background: var(--fg); border-color: var(--fg); color: var(--bg); }

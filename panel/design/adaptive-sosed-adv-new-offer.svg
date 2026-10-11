@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<g transform="translate(16.0 24.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="58" y="48" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">for venues</text>
+<rect x="16" y="80" width="361" height="52" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M196.5 88 V124" stroke="#ece4d8" stroke-width="2"/>
+<rect x="200.5" y="84" width="172.5" height="44" rx="22" fill="#bd4b2a" />
+<text x="106.25" y="112" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">venues</text>
+<text x="286.75" y="112" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="middle">offers</text>
+<rect x="16" y="152" width="361" height="76" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<text x="34" y="176" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">what</text>
+<text x="34" y="208" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">coffee and a croissant</text>
+<rect x="16" y="250" width="361" height="56" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M136.3 258 V298" stroke="#ece4d8" stroke-width="2"/>
+<path d="M256.7 258 V298" stroke="#ece4d8" stroke-width="2"/>
+<text x="76.16666666666666" y="284" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">−10%</text>
+<rect x="140.33333333333331" y="254" width="112.33333333333333" height="48" rx="24.0" fill="#bd4b2a" />
+<text x="196.49999999999997" y="284" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="middle">−15%</text>
+<text x="316.8333333333333" y="284" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">−20%</text>
+<rect x="16" y="326" width="361" height="76" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<text x="34" y="350" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">until</text>
+<text x="34" y="382" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">11:00 today</text>
+<rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «publish»</text>
+</svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<rect width="393" height="851" fill="#e5e6e9"/>
+<rect width="393" height="851" fill="url(#dots)"/>
+<g transform="rotate(-8 82 96)">
+<circle cx="83.5" cy="99" r="50" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="82" cy="96" r="50" fill="#336eb2" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(55.75 69.75) scale(2.1875)" fill="none" stroke="#ffffff" stroke-width="0.69" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+</g>
+<text x="150" y="84" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">where you are</text>
+<text x="150" y="112" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">now: Limassol, CY</text>
+<g transform="rotate(0 196.5 260.0)">
+<rect x="17.5" y="233" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="230" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(178 242) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+<g transform="rotate(0 196.5 350.0)">
+<rect x="17.5" y="315" width="361" height="76" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="312" width="361" height="76" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="34" y="336" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">city</text>
+<text x="34" y="368" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">Лимас</text>
+<g transform="rotate(0 196.5 474.0)">
+<rect x="17.5" y="413" width="361" height="128" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="410" width="361" height="128" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(30 430) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+<text x="64" y="440" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">Limassol</text>
+<text x="64" y="460" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">CY</text>
+<path d="M30 474 H363" stroke="#1a1b1e" stroke-width="1"/>
+<g transform="translate(30 494) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+<text x="64" y="504" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">Limassol (district)</text>
+<text x="64" y="524" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">CY</text>
+<g transform="rotate(0 196.5 594.0)">
+<rect x="17.5" y="559" width="361" height="76" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="556" width="361" height="76" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="34" y="580" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">coordinates from a map</text>
+<text x="34" y="612" font-family="Golos Text" font-weight="400" font-size="20" fill="#545b63" text-anchor="start">34.6823, 33.0464</text>
+<g transform="rotate(0 196.5 785.0)">
+<rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">name: «use this point»</text>
+</svg>

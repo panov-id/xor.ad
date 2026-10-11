@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<g transform="translate(16.0 24.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="58" y="48" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">for venues</text>
+<rect x="16" y="80" width="361" height="52" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M196.5 88 V124" stroke="#ece4d8" stroke-width="2"/>
+<rect x="20.0" y="84" width="172.5" height="44" rx="22" fill="#bd4b2a" />
+<text x="106.25" y="112" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="middle">venues</text>
+<text x="286.75" y="112" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">offers</text>
+<rect x="16" y="152" width="361" height="128" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 172) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10 L6 4.5 H18 L20 10 Z M5 10 V20 H19 V10 M10 20 V15 H14 V20"/></g>
+<text x="64" y="182" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">corner bakery</text>
+<text x="64" y="202" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">Limassol · checked</text>
+<g transform="translate(331 172) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 216 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 236) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10 L6 4.5 H18 L20 10 Z M5 10 V20 H19 V10 M10 20 V15 H14 V20"/></g>
+<text x="64" y="246" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">harbour café</text>
+<text x="64" y="266" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">Limassol · waiting</text>
+<g transform="translate(331 236) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5 V19 M5 12 H19"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «add a venue»</text>
+</svg>

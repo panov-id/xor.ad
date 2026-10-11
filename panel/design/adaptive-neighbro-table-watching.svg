@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<rect width="393" height="851" fill="#e5e6e9"/>
+<rect width="393" height="851" fill="url(#dots)"/>
+<g transform="rotate(0 38 40)">
+<circle cx="39.5" cy="43" r="20" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="38" cy="40" r="20" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(27.5 29.5) scale(0.875)" fill="none" stroke="#141618" stroke-width="1.71" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+</g>
+<text x="76" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">by the park</text>
+<g transform="rotate(0 355 40)">
+<circle cx="356.5" cy="43" r="20" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="355" cy="40" r="20" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(344.5 29.5) scale(0.875)" fill="none" stroke="#141618" stroke-width="1.71" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></g>
+</g>
+<g transform="rotate(0 196.5 118.0)">
+<rect x="17.5" y="93" width="361" height="56" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="90" width="361" height="56" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<path d="M136.3 98 V138" stroke="#1a1b1e" stroke-width="1.5"/>
+<path d="M256.7 98 V138" stroke="#1a1b1e" stroke-width="1.5"/>
+<text x="76.16666666666666" y="124" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="middle">you 2</text>
+<text x="196.49999999999997" y="124" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="middle">Boris 1</text>
+<text x="316.8333333333333" y="124" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="middle">your move</text>
+<g transform="rotate(0 196.0 314.0)">
+<rect x="47.5" y="167" width="300" height="300" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="46" y="164" width="300" height="300" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<circle cx="76" cy="194" r="7" fill="#141618"/>
+<circle cx="76" cy="274" r="7" fill="#141618"/>
+<circle cx="76" cy="354" r="7" fill="#141618"/>
+<circle cx="76" cy="434" r="7" fill="#141618"/>
+<circle cx="156" cy="194" r="7" fill="#141618"/>
+<circle cx="156" cy="274" r="7" fill="#141618"/>
+<circle cx="156" cy="354" r="7" fill="#141618"/>
+<circle cx="156" cy="434" r="7" fill="#141618"/>
+<circle cx="236" cy="194" r="7" fill="#141618"/>
+<circle cx="236" cy="274" r="7" fill="#141618"/>
+<circle cx="236" cy="354" r="7" fill="#141618"/>
+<circle cx="236" cy="434" r="7" fill="#141618"/>
+<circle cx="316" cy="194" r="7" fill="#141618"/>
+<circle cx="316" cy="274" r="7" fill="#141618"/>
+<circle cx="316" cy="354" r="7" fill="#141618"/>
+<circle cx="316" cy="434" r="7" fill="#141618"/>
+<g transform="rotate(0 196.5 512.0)">
+<rect x="17.5" y="489" width="361" height="52" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="486" width="361" height="52" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(30 500) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/></g>
+<text x="64" y="518" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="start">watching · 2 more watch</text>
+<g transform="rotate(0 196.5 785.0)">
+<rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13 V6 A1.5 1.5 0 0 1 11 6 V12 M11 11 V4.5 A1.5 1.5 0 0 1 14 4.5 V12 M14 11 V6 A1.5 1.5 0 0 1 17 6 V14 C17 18 15 21 11 21 C8 21 6 19 4.5 16 L3.5 13 A1.4 1.4 0 0 1 6 12 L8 15"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">name: «ask to play»</text>
+</svg>

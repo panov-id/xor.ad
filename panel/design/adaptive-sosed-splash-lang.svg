@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<g transform="translate(126.0 100.0) scale(1.4583)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="196" y="290" font-family="Golos Text" font-weight="600" font-size="36" fill="#1c140d" text-anchor="middle">sosed</text>
+<rect x="16" y="330" width="361" height="256" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 350) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12 H20.5 M12 3.5 C9 7 9 17 12 20.5 C15 17 15 7 12 3.5"/></g>
+<text x="64" y="368" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">Русский</text>
+<g transform="translate(331 350) scale(1.0)" fill="none" stroke="#983c22" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<path d="M30 394 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 414) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12 H20.5 M12 3.5 C9 7 9 17 12 20.5 C15 17 15 7 12 3.5"/></g>
+<text x="64" y="432" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">English</text>
+<path d="M30 458 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 478) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12 H20.5 M12 3.5 C9 7 9 17 12 20.5 C15 17 15 7 12 3.5"/></g>
+<text x="64" y="496" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">Ελληνικά</text>
+<path d="M30 522 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 542) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12 H20.5 M12 3.5 C9 7 9 17 12 20.5 C15 17 15 7 12 3.5"/></g>
+<text x="64" y="560" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">Türkçe</text>
+<text x="16" y="620" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">the language the page speaks; kept on this device</text>
+</svg>

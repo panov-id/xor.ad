@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="16" y="18" width="44" height="44" rx="22" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(26 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+<text x="76" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="start"></text>
+<rect x="333" y="18" width="44" height="44" rx="22" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(343 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></g>
+<rect x="16" y="90" width="361" height="360" rx="18" fill="#1fa99a" />
+<text x="36" y="150" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">walking to the</text>
+<text x="36" y="190" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">river, who's with</text>
+<text x="36" y="230" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">me? we start at the</text>
+<text x="36" y="270" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">bridge</text>
+<g transform="translate(36 330) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
+<text x="66" y="348" font-family="Golos Text" font-weight="400" font-size="15" fill="#1c140d" text-anchor="start">with friends · 300 m · 40 min left</text>
+<g transform="translate(36.0 390.0) scale(0.4167)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="86" y="416" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">6 · I'm in</text>
+<rect x="16" y="470" width="361" height="64" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 490) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<text x="64" y="508" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">if they say «like» too, it's a match</text>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<rect width="393" height="851" fill="#e5e6e9"/>
+<rect width="393" height="851" fill="url(#dots)"/>
+<g transform="rotate(-8 82 96)">
+<circle cx="83.5" cy="99" r="50" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="82" cy="96" r="50" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(55.75 69.75) scale(2.1875)" fill="none" stroke="#ffffff" stroke-width="0.69" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8.5" r="3.5"/><path d="M3.5 20 C4.5 15.5 15.5 15.5 16.5 20 M15.5 11.5 L17.5 13.5 L21 9.5"/></g>
+</g>
+<text x="150" y="84" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">is it you?</text>
+<text x="150" y="112" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">the old device shows</text>
+<text x="150" y="134" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">four characters; are</text>
+<text x="150" y="156" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">they these?</text>
+<g transform="rotate(0 196.5 272.0)">
+<rect x="17.5" y="233" width="361" height="84" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="230" width="361" height="84" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<path d="M106.2 238 V306" stroke="#1a1b1e" stroke-width="1.5"/>
+<path d="M196.5 238 V306" stroke="#1a1b1e" stroke-width="1.5"/>
+<path d="M286.8 238 V306" stroke="#1a1b1e" stroke-width="1.5"/>
+<text x="61" y="284" font-family="Golos Text" font-weight="600" font-size="28" fill="#141618" text-anchor="middle">7</text>
+<text x="151" y="284" font-family="Golos Text" font-weight="600" font-size="28" fill="#141618" text-anchor="middle">F</text>
+<text x="241" y="284" font-family="Golos Text" font-weight="600" font-size="28" fill="#141618" text-anchor="middle">2</text>
+<text x="331" y="284" font-family="Golos Text" font-weight="600" font-size="28" fill="#141618" text-anchor="middle">Q</text>
+<g transform="rotate(0 196.5 785.0)">
+<rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<path d="M267 767 V805" stroke="#04201c" stroke-width="1.5" opacity=".5"/>
+<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<g transform="translate(307 770) scale(1.25)" fill="none" stroke="#04201c" stroke-width="1.20" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">names: «they match» · «no»</text>
+</svg>

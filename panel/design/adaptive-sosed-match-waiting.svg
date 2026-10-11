@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="16" y="18" width="44" height="44" rx="22" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(26 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+<text x="76" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="start">a match</text>
+<g transform="translate(102.0 172.0) scale(1.0000)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<g transform="translate(195.0 172.0) scale(1.0000)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="196" y="320" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="middle">Boris, 31</text>
+<text x="196" y="348" font-family="Golos Text" font-weight="400" font-size="15" fill="#6b5f4c" text-anchor="middle">you both said «I'm in»</text>
+<rect x="16" y="400" width="361" height="64" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 420) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/></g>
+<text x="64" y="438" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">waiting for Boris to agree · 23 h</text>
+</svg>

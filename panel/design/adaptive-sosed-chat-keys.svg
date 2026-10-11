@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="16" y="18" width="44" height="44" rx="22" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(26 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+<text x="76" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="start">Anya</text>
+<rect x="333" y="18" width="44" height="44" rx="22" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(343 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></g>
+<rect x="16" y="96" width="265" height="52" rx="18" fill="#fdfaf4" />
+<text x="34" y="128" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="start">hi! at the river already?</text>
+<rect x="130" y="162" width="247" height="52" rx="18" fill="#bd4b2a" />
+<text x="148" y="194" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start">on my way, five minutes</text>
+<rect x="16" y="228" width="361" height="64" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 248) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/></g>
+<text x="64" y="266" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">agreeing keys with Anya…</text>
+</svg>

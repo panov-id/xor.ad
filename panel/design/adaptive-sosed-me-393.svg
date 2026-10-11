@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<text x="16" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="start">me</text>
+<rect x="16" y="90" width="361" height="96" rx="18" fill="#d68a1f" />
+<text x="36" y="146" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">Anya, 28</text>
+<rect x="16" y="204" width="361" height="72" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M196.5 212 V268" stroke="#ece4d8" stroke-width="2"/>
+<g transform="translate(34.0 228) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 A8.5 8.5 0 1 0 12 20.5 C13.5 20.5 13.5 18.5 12.5 17.5 C11.5 16.5 12.5 14.5 14 14.5 H16.5 A4 4 0 0 0 20.5 10.5 C20.5 6.5 16.5 3.5 12 3.5Z"/><circle cx="8" cy="11" r="1"/><circle cx="11" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></g>
+<text x="68.0" y="246" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">look</text>
+<g transform="translate(214.5 228) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12 H20.5 M12 3.5 C9 7 9 17 12 20.5 C15 17 15 7 12 3.5"/></g>
+<text x="248.5" y="246" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">language</text>
+<rect x="16" y="288" width="361" height="72" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M196.5 296 V352" stroke="#ece4d8" stroke-width="2"/>
+<g transform="translate(34.0 312) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 H20 M8 8 L4 12 L8 16 M16 8 L20 12 L16 16"/></g>
+<text x="68.0" y="330" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">whose phrases</text>
+<g transform="translate(214.5 312) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5 M9.5 15.5 L11.5 17.5 L14.5 13.5"/></g>
+<text x="248.5" y="330" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">PIN</text>
+<rect x="16" y="372" width="361" height="72" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M196.5 380 V436" stroke="#ece4d8" stroke-width="2"/>
+<g transform="translate(34.0 396) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M12.25 11 V17 M9.25 14 H15.25"/></g>
+<text x="68.0" y="414" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">paper code</text>
+<g transform="translate(214.5 396) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="7" height="12" rx="1.5"/><rect x="14" y="6" width="7" height="12" rx="1.5"/><path d="M10.5 12 H13.5 M12 10.5 L13.5 12 L12 13.5"/></g>
+<text x="248.5" y="414" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">move</text>
+<rect x="16" y="456" width="361" height="256" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 476) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 V18 M15 6 V18"/></g>
+<text x="64" y="494" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">step away</text>
+<g transform="translate(331 476) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 520 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 540) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+<text x="64" y="558" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">hidden</text>
+<g transform="translate(331 540) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 584 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 604) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 6 L18 18"/></g>
+<text x="64" y="622" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">blocked</text>
+<g transform="translate(331 604) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 648 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 668) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
+<text x="64" y="686" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">documents</text>
+<g transform="translate(331 668) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<rect x="16.0" y="771" width="361" height="64" rx="32" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(49.125 791) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
+<g transform="translate(139.375 791) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.2"/><circle cx="16" cy="8" r="1.2"/><circle cx="8" cy="16" r="1.2"/><circle cx="16" cy="16" r="1.2"/></g>
+<g transform="translate(229.625 791) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<rect x="291.875" y="779" width="80" height="48" rx="24" fill="#1c140d" />
+<g transform="translate(319.875 791) scale(1.0)" fill="none" stroke="#ece4d8" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
+<text x="16.0" y="761" font-family="Golos Text" font-size="14" fill="#983c22">tab bar stays at the bottom below 1024, 480 wide</text>
+</svg>

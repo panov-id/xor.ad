@@ -1,0 +1,79 @@
+# Every screen and state of the web, and the new-design sheet that draws it (owner 11.10.2026: «draw all screens, 100%»).
+# id	source	sheet (panel/design/adaptive-<brand>-<sheet>.svg; both brands)	what
+splash	screens/Splash.tsx	splash-393	the brand's mark, the ways in
+splash-lang	screens/Splash.tsx	splash-lang	the language picker open
+register-1	screens/Register.tsx	register-1	who are you
+register-1-young	screens/Register.tsx	register-1-young	age under 13 refused
+register-2	screens/Register.tsx	register-2	the PIN twice
+register-2-mismatch	screens/Register.tsx	register-2-mismatch	the PINs differ
+register-3	screens/Register.tsx	register-3	the paper code and two groups back
+register-3-wrong	screens/Register.tsx	register-3-wrong	a group typed wrong
+restore	screens/Restore.tsx	restore	back by the paper code
+restore-wrong	screens/Restore.tsx	restore-wrong	the code is not known
+arrival	screens/Arrival.tsx	arrival	a new device: type the nine characters
+arrival-check	screens/Arrival.tsx	arrival-check	the four check characters to compare
+unlock	screens/Unlock.tsx	unlock	the PIN opens the vault
+unlock-wrong	screens/Unlock.tsx	unlock-wrong	a wrong PIN, tries left
+locked	screens/Locked.tsx	locked	a pause after wrong PINs
+blocked-me	screens/Blocked.tsx	blocked-me	this identity is blocked by the node
+offer-link	screens/Offer.tsx	offer-link	a venue offer's link opened, a report
+place	screens/Place.tsx	place	where you are: here, a city, a point
+feed	screens/Feed.tsx	feed-393	the feed, tiles / stickers
+feed-empty	screens/Feed.tsx	feed-empty	nobody here yet, widen
+feed-loading	screens/Feed.tsx	feed-loading	the first load
+feed-sent	screens/Feed.tsx	feed-sent	one's own phrase under review / out
+feed-refused	screens/Composer.tsx	feed-refused	a phrase refused, with the reason
+feed-table	screens/Feed.tsx	feed-table	a table card among the phrases
+feed-offer	brands/*/index.tsx	feed-393	a venue's offer card
+card	screens/Card.tsx	card-393	a phrase open
+card-more	screens/Card.tsx	card-more	hide · block · report under «…»
+card-liked	screens/Card.tsx	card-liked	the like given, the windows lit
+card-matched	screens/Card.tsx	card-matched	it is a match
+composer	screens/Composer.tsx	composer-393	write a phrase
+composer-contact	screens/Composer.tsx	composer-contact	a contact in the text, the warning
+composer-limit	screens/Composer.tsx	composer-limit	the phrases' quota is full
+likes	screens/Likes.tsx	likes	what I said «like» to
+likes-empty	screens/Likes.tsx	likes-empty	nothing liked yet
+inbox	screens/Inbox.tsx	inbox-393	offers to talk and talks
+inbox-empty	screens/Inbox.tsx	inbox-empty	no talks yet
+match	screens/Match.tsx	match-393	a match: talk or not
+match-waiting	screens/Match.tsx	match-waiting	waiting for the other's consent
+chat	screens/Chat.tsx	chat-393	a talk
+chat-keys	screens/Chat.tsx	chat-keys	the keys being agreed
+chat-actions	screens/ChatActions.tsx	chat-actions	end · block · report · term
+chat-ended	screens/Chat.tsx	chat-ended	the talk ended
+chat-game	screens/ChatGame.tsx	chat-game	a game inside the talk
+tables	screens/TableList.tsx	tables-393	tables nearby and mine
+tables-empty	screens/TableList.tsx	tables-empty	no tables nearby
+new-table	screens/NewTable.tsx	new-table	a new table
+table	screens/Table.tsx	table-393	at a table, the board
+table-applications	screens/Table.tsx	table-applications	applications to play, the owner says yes
+table-watching	screens/Table.tsx	table-watching	watching, asking to play
+table-over	screens/Table.tsx	table-over	the game is over
+me	screens/Me.tsx	me-393	me: name and settings
+edit-name	screens/Me.tsx	edit-name	the name
+edit-age	screens/Me.tsx	edit-age	the age
+theme	screens/Me.tsx	theme	how it looks
+lang	screens/Me.tsx	lang	language
+age-filter	screens/AgeFilter.tsx	age-filter	whose phrases by age
+change-pin	screens/Me.tsx	change-pin	a new PIN
+reissue	screens/Reissue.tsx	reissue	a new paper code
+departure	screens/Departure.tsx	departure	moving to another device
+step-away	screens/Me.tsx	step-away	step away
+away	screens/Me.tsx	away	you stepped away
+reset	screens/Me.tsx	reset	start over here
+hidden	screens/Hidden.tsx	hidden	hidden phrases
+blocked	screens/Me.tsx	blocked	blocked people
+legal	screens/Legal.tsx	legal	documents
+statements	screens/Statements.tsx	statements	moderation decisions
+offer-exit	screens/Card.tsx	offer-exit	leaving for the venue
+wizard-1	(new)	wizard-1	intro: the feed nearby
+wizard-2	(new)	wizard-2	intro: the like is the mark, a match
+wizard-3	(new)	wizard-3	intro: tables and games
+wizard-4	(new)	wizard-4	intro: nothing about you leaves
+adv-sign-in	adv/Cabinet.tsx	adv-sign-in	the venue's cabinet: sign in by mail
+adv-sent	adv/Cabinet.tsx	adv-sent	the link is in the mail
+adv-expired	adv/Cabinet.tsx	adv-expired	the link expired
+adv-venues	adv/Cabinet.tsx	adv-venues	my venues
+adv-offers	adv/Cabinet.tsx	adv-offers	my offers
+adv-new-offer	adv/Cabinet.tsx	adv-new-offer	a new offer

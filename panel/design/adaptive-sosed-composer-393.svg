@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="16" y="18" width="44" height="44" rx="22" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(26 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+<text x="76" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="start">write</text>
+<rect x="16" y="90" width="361" height="180" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<text x="34" y="130" font-family="Golos Text" font-weight="600" font-size="20" fill="#6b5f4c" text-anchor="start">what's happening near you…</text>
+<text x="359" y="254" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">140 left</text>
+<rect x="16" y="290" width="361" height="56" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M136.3 298 V338" stroke="#ece4d8" stroke-width="2"/>
+<path d="M256.7 298 V338" stroke="#ece4d8" stroke-width="2"/>
+<g transform="translate(64.16666666666666 298) scale(0.85)" fill="none" stroke="#1c140d" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
+<text x="76.16666666666666" y="336" font-family="Golos Text" font-weight="600" font-size="14" fill="#1c140d" text-anchor="middle">alone</text>
+<rect x="140.33333333333331" y="294" width="112.33333333333333" height="48" rx="24.0" fill="#bd4b2a" />
+<g transform="translate(184.49999999999997 298) scale(0.85)" fill="none" stroke="#fff6f0" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
+<text x="196.49999999999997" y="336" font-family="Golos Text" font-weight="600" font-size="14" fill="#fff6f0" text-anchor="middle">friends</text>
+<g transform="translate(304.8333333333333 298) scale(0.85)" fill="none" stroke="#1c140d" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L8.5 8 L16 15.5Z"/><path d="M13 4 V6 M18 6 L16.5 7.5 M20 11 H18 M11 9 L13 7"/></g>
+<text x="316.8333333333333" y="336" font-family="Golos Text" font-weight="600" font-size="14" fill="#1c140d" text-anchor="middle">party</text>
+<rect x="16" y="366" width="361" height="56" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M136.3 374 V414" stroke="#ece4d8" stroke-width="2"/>
+<path d="M256.7 374 V414" stroke="#ece4d8" stroke-width="2"/>
+<rect x="20.0" y="370" width="112.33333333333333" height="48" rx="24.0" fill="#bd4b2a" />
+<text x="76.16666666666666" y="400" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="middle">1 h</text>
+<text x="196.49999999999997" y="400" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">3 h</text>
+<text x="316.8333333333333" y="400" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">tonight</text>
+<rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 L20 4.5 L15 20 L11.5 13Z M11.5 13 L20 4.5"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «send»</text>
+</svg>

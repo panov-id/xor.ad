@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<rect width="393" height="851" fill="#e5e6e9"/>
+<rect width="393" height="851" fill="url(#dots)"/>
+<rect x="150" y="30" width="18" height="8" rx="4" fill="#1fb39a" />
+<rect x="176" y="30" width="18" height="8" rx="4" fill="#1fb39a" />
+<rect x="202" y="30" width="18" height="8" rx="4" fill="#1fb39a" />
+<rect x="228" y="30" width="30" height="8" rx="4" fill="#1fb39a" />
+<text x="361" y="40" font-family="Golos Text" font-weight="600" font-size="15" fill="#545b63" text-anchor="end">skip</text>
+<g transform="translate(116.0 180.0) scale(1.6667)">
+<g transform="translate(6,3) scale(1.05)">
+<g transform="translate(1.5 3)"><rect x="50" y="10" width="7" height="14" rx="2" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/><path d="M36 4 L64 28 V57 H32 L20 67 V57 H8 V28 Z" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="14" stroke-linejoin="round"/></g>
+<rect x="50" y="10" width="7" height="14" rx="2" fill="#126a5c" stroke="#f1f1f3" stroke-width="7" paint-order="stroke"/><path d="M36 4 L64 28 V57 H32 L20 67 V57 H8 V28 Z" fill="#126a5c" stroke="#f1f1f3" stroke-width="9" stroke-linejoin="round" paint-order="stroke"/><rect x="22" y="32" width="18" height="5" rx="2.5" fill="#f1f1f3"/><rect x="22" y="43" width="27" height="5" rx="2.5" fill="#f1f1f3"/>
+</g>
+</g>
+<text x="196" y="520" font-family="Golos Text" font-weight="600" font-size="28" fill="#141618" text-anchor="middle">nothing about you leaves</text>
+<text x="196" y="552" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="middle">no names before a match, no numbers,</text>
+<text x="196" y="574" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="middle">no ads following you</text>
+<g transform="rotate(0 196.5 785.0)">
+<rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">name: «next»</text>
+</svg>

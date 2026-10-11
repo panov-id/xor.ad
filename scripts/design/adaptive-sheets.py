@@ -1156,6 +1156,284 @@ def draw_rest(brand):
          split=("go", "back", ("out", "back")))
 
 
+# ---------- every screen and state, 100% (owner 11.10.2026; docs/design/screens-inventory.tsv,
+# scripts/design/check-screens-drawn.sh)
+ICON.update({
+    "warn": '<path d="M12 3.5 L21 19.5 H3 Z"/><path d="M12 10 V14 M12 16.8 V17"/>',
+    "mail": '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7 L12 13 L20 7"/>',
+    "venue": '<path d="M4 10 L6 4.5 H18 L20 10 Z M5 10 V20 H19 V10 M10 20 V15 H14 V20"/>',
+    "tag": '<path d="M4 12.5 V5 A1 1 0 0 1 5 4 H12.5 L20 11.5 L12.5 19Z"/><circle cx="8.5" cy="8.5" r="1.3"/>',
+    "chat": '<path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/>',
+    "key": '<circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/>',
+    "end": '<path d="M5 15 C8 11 16 11 19 15 L17 17 L14 15.5 V13.5 C12.7 13.2 11.3 13.2 10 13.5 V15.5 L7 17Z"/>',
+    "flag": '<path d="M5 21 V4 M5 4 H17 L15 8 L17 12 H5"/>',
+    "trophy": '<path d="M8 4 H16 V9 A4 4 0 0 1 8 9 Z M8 6 H5 A3 3 0 0 0 8 11 M16 6 H19 A3 3 0 0 1 16 11 M12 13 V17 M8.5 20 H15.5 M10 17 H14"/>',
+    "hand": '<path d="M8 13 V6 A1.5 1.5 0 0 1 11 6 V12 M11 11 V4.5 A1.5 1.5 0 0 1 14 4.5 V12 M14 11 V6 A1.5 1.5 0 0 1 17 6 V14 C17 18 15 21 11 21 C8 21 6 19 4.5 16 L3.5 13 A1.4 1.4 0 0 1 6 12 L8 15"/>',
+    "people": '<circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/>',
+    "plus": '<path d="M12 5 V19 M5 12 H19"/>',
+    "sun": '<circle cx="12" cy="12" r="4"/><path d="M12 2.5 V4.5 M12 19.5 V21.5 M2.5 12 H4.5 M19.5 12 H21.5"/>',
+})
+
+
+def err(sh, y, text):
+    """The error line, welded to what it is about: a danger strip with the warning icon."""
+    k = sh.k
+    box(sh, 16, y, 361, 52, None)
+    sh.rect(16, y, 8, 52, k["danger"], 4)
+    sh.icon(36, y + 14, "warn", k["danger"]); sh.text(70, y + 32, text, 15, k["danger"], 600)
+    return y + 64
+
+
+def empty(sh, y, title, line):
+    """An empty state: the brand's mark, pale, a line under it."""
+    k = sh.k
+    sh.a('<g opacity=".35">'); mark(sh, 196, y + 70, 96); sh.a('</g>')
+    sh.text(196, y + 150, title, 20, k["fg"], 600, "middle")
+    for n, l in enumerate(wrap(line, 15, 300)[:2]): sh.text(196, y + 176 + n * 20, l, 15, k["fg-muted"], 400, "middle")
+    return y + 230
+
+
+def bar(sh, title, back=True, right=None):
+    """The top bar of an inner screen: back, title, an icon action; the mark only on the feed."""
+    k = sh.k
+    if back:
+        if sh.brand == "sosed": sh.rect(16, 18, 44, 44, k["surface"], 22, f'stroke="{k["line"]}" stroke-width="1.5"'); sh.icon(26, 28, "back", k["fg"])
+        else: sh.sticker(38, 40, 20, k["surface"], "back")
+    sh.text(76 if back else 16, 48, title, 22, w=600)
+    if right:
+        if sh.brand == "sosed": sh.rect(333, 18, 44, 44, k["surface"], 22, f'stroke="{k["line"]}" stroke-width="1.5"'); sh.icon(343, 28, right, k["fg"])
+        else: sh.sticker(355, 40, 20, k["surface"], right)
+    return 80
+
+
+def tabs_foot(sh, active):
+    chrome(sh, active)
+
+
+def phrase_tile(sh, x, y, w, text, i, liked=False, h=None):
+    k = sh.k
+    lines = wrap(text, 20, w - 36)[:3]; h = h or (44 + len(lines) * 26 + 56)
+    fill = sh.tiles[i % 4] if sh.brand == "sosed" else k["surface"]
+    fg = ink(sh, fill) if sh.brand == "sosed" else k["fg"]
+    box(sh, x, y, w, h, fill, (-0.6, 0.5)[i % 2] if sh.brand == "neighbro" else 0)
+    for n, l in enumerate(lines): sh.text(x + 18, y + 40 + n * 26, l, 20, fg, 600)
+    mi, mw = MODES[i % 3]
+    sh.icon(x + 16, y + h - 40, mi, fg, 0.8); sh.text(x + 40, y + h - 23, mw, 14, fg, 500)
+    like_btn(sh, x + w - 58, y + h - 28, 24, (6 if sh.brand == "sosed" else 2) if liked else 0, ink_=fg)
+    sh.text(x + w - 40, y + h - 22, str(3 + i), 16, fg, 600)
+    return y + h + 14
+
+
+def scr(brand, name, draw):
+    sh = Sheet(brand, 393, 851); bg(sh); draw(sh); sh.save(f"adaptive-{brand}-{name}")
+
+
+def draw_all(brand):
+    T = lambda sh, x, y, s, size=16, fill=None, w=400, a="start": sh.text(x, y, s, size, fill, w, a)
+    # --- entry states
+    scr(brand, "splash-lang", lambda sh: (mark(sh, 196, 170, 140), sh.text(196, 290, brand, 36, sh.k["fg"], 600, "middle"),
+        rows(sh, 330, [("globe2", "Русский", None, "check"), ("globe2", "English", None), ("globe2", "Ελληνικά", None), ("globe2", "Türkçe", None)]),
+        sh.text(16, 620, "the language the page speaks; kept on this device", 14, sh.k["fg-muted"])))
+    def reg_err(step, msg):
+        def d(sh):
+            title, ic, line = REG[step]
+            y = hero_at(sh, title, ic, line, (0, 1, 3)[step - 1], 36)
+            if step == 1: y = field_card(sh, 16, y, 361, "name", "Anya"); y = field_card(sh, 16, y, 170, "age", "12")
+            elif step == 2: weld(sh, 16, y, 361, 64, 6); y += 80; weld(sh, 16, y, 361, 64, 6); y += 80
+            else:
+                xs, cw = weld(sh, 16, y, 361, 64, 2); T(sh, xs[0] + 16, y + 40, "2 · ZZZZ", 20, sh.k["danger"], 600); y += 80
+            err(sh, y, msg); foot(sh, "next", icon="next")
+        return d
+    scr(brand, "register-1-young", reg_err(1, "from 13 years only"))
+    scr(brand, "register-2-mismatch", reg_err(2, "the PINs differ"))
+    scr(brand, "register-3-wrong", reg_err(3, "group 2 is not that"))
+    scr(brand, "restore-wrong", lambda sh: (hero(sh, "back by paper code", "restore", "the four groups you wrote down", 3),
+        weld(sh, 16, 230, 361, 84, 4), err(sh, 330, "no such code — check the groups"), split_foot(sh, "come back", "new code", ("restore", "paperplus"))))
+    scr(brand, "arrival", lambda sh: (hero(sh, "move here", "move", "type the nine characters your old device shows", 4),
+        weld(sh, 16, 230, 361, 84, 3), split_foot(sh, "done", "back", ("check", "back"))))
+    scr(brand, "arrival-check", lambda sh: (hero(sh, "is it you?", "itsme", "the old device shows four characters; are they these?", 4),
+        weld(sh, 16, 230, 361, 84, 4), [sh.text(16 + i * 90 + 45, 284, c, 28, sh.k["fg"], 600, "middle") for i, c in enumerate("7F2Q")],
+        split_foot(sh, "they match", "no", ("check", "close"))))
+    scr(brand, "unlock-wrong", lambda sh: (hero(sh, "welcome back", "unlock", "type your PIN to open this device's vault", 2),
+        weld(sh, 16, 230, 361, 72, 6), err(sh, 318, "wrong PIN · 2 tries left"), split_foot(sh, "open", "paper code", ("unlock", "paper"))))
+    scr(brand, "blocked-me", lambda sh: (hero(sh, "this account is paused", "block", "the decision and how to appeal are in «decisions»", 4),
+        rows(sh, 250, [("scale", "decisions", "why, and the appeal", "fwd"), ("doc", "documents", None, "fwd")])))
+    scr(brand, "offer-link", lambda sh: (hero(sh, "an offer's link", "tag", "a venue's offer brought you here; report it if it misleads", 0),
+        rows(sh, 250, [("venue", "corner bakery", "−15% · till 11:00")]), split_foot(sh, "open the app", "report", ("next", "flag"))))
+    scr(brand, "place", lambda sh: (hero(sh, "where you are", "pin", "now: Limassol, CY", 2),
+        foot_at(sh, 230, "where am I", "pin"), field_card(sh, 16, 312, 361, "city", "Лимас"),
+        rows(sh, 410, [("pin", "Limassol", "CY"), ("pin", "Limassol (district)", "CY")]),
+        field_card(sh, 16, 556, 361, "coordinates from a map", "34.6823, 33.0464", muted=True), foot(sh, "use this point", icon="check")))
+    scr(brand, "edit-age", lambda sh: (hero(sh, "your age", "pen", "neighbours see it after a match", 0), field_card(sh, 16, 230, 170, "age", "28", "from 13"), foot(sh, "save", icon="check")))
+    # --- feed states
+    def feedbar(sh, title="Limassol"):
+        k = sh.k
+        mark(sh, 32, 40, 32); T(sh, 58, 48, title, 22, k["fg"], 600)
+        xs, cw = weld(sh, 233, 18, 144, 44, 2)
+        sh.icon(xs[0] + cw / 2 - 12, 28, "pin", k["fg"]); T(sh, xs[1] + cw / 2, 46, "1 km", 14, k["fg"], 600, "middle")
+        return 82
+    def feedscreen(name, body):
+        def d(sh):
+            y = feedbar(sh); body(sh, y); chrome(sh, 0)
+        scr(brand, name, d)
+    feedscreen("feed-empty", lambda sh, y: (empty(sh, y + 60, "nobody here yet", "be the first, or look a little wider"), foot_at(sh, y + 330, "look within 3 km", "pin")))
+    feedscreen("feed-loading", lambda sh, y: [box(sh, 16 + (j % 2) * 186, y + (j // 2) * 150, 175, 136, sh.k["surface-2"] if sh.brand == "sosed" else None) for j in range(6)])
+    feedscreen("feed-sent", lambda sh, y: (box(sh, 16, y, 361, 64), sh.icon(30, y + 20, "timer", sh.k["fg"]), T(sh, 64, y + 38, "your phrase is being read", 16, sh.k["fg"], 600),
+        phrase_tile(sh, 16, y + 80, 361, "walking to the river, join?", 0), phrase_tile(sh, 16, y + 250, 361, "coffee at the corner bakery", 1)))
+    feedscreen("feed-refused", lambda sh, y: (err(sh, y, "your phrase was not posted: a phone number"), phrase_tile(sh, 16, y + 70, 361, "walking to the river, join?", 0)))
+    feedscreen("feed-table", lambda sh, y: (phrase_tile(sh, 16, y, 361, "walking to the river, join?", 0),
+        box(sh, 16, y + 170, 361, 120), sh.icon(32, y + 190, "dots", sh.k["fg"]), T(sh, 66, y + 208, "table «by the park» · dots 3×3", 16, sh.k["fg"], 600),
+        weld(sh, 32, y + 226, 329, 44, 3), [T(sh, 32 + i * 110 + 55, y + 254, t, 14, sh.k["fg"], 600, "middle") for i, t in enumerate(("1 playing", "2 watch", "1 free"))]))
+    # --- card states
+    def cardscreen(name, extra):
+        def d(sh):
+            k = sh.k; bar(sh, "", right="more")
+            fill = sh.tiles[1] if brand == "sosed" else k["surface"]; fg = ink(sh, fill) if brand == "sosed" else k["fg"]
+            box(sh, 16, 90, 361, 360, fill)
+            for n, l in enumerate(wrap("walking to the river, who's with me? we start at the bridge", 30, 320)): T(sh, 36, 150 + n * 40, l, 28, fg, 600)
+            sh.icon(36, 330, "people", fg); T(sh, 66, 348, "with friends · 300 m · 40 min left", 15, fg)
+            extra(sh, fg)
+        scr(brand, name, d)
+    cardscreen("card-393", lambda sh, fg: (split_foot(sh, "like", "hide", ("mk_" + brand, "eyeoff"))))
+    cardscreen("card-more", lambda sh, fg: rows(sh, 470, [("eyeoff", "hide", "only from my feed"), ("block", "block", "we stop seeing each other"), ("flag", "report", "against the rules")]))
+    cardscreen("card-liked", lambda sh, fg: (like_btn(sh, 56, 410, 40, 6 if brand == "sosed" else 2, ink_=fg), T(sh, 86, 416, "6 · I'm in", 16, fg, 600),
+        box(sh, 16, 470, 361, 64), sh.icon(30, 490, "check", sh.k["fg"]), T(sh, 64, 508, "if they say «like» too, it's a match", 15, sh.k["fg"], 600)))
+    cardscreen("card-matched", lambda sh, fg: (box(sh, 16, 470, 361, 64, sh.k["accent"]), sh.icon(30, 490, "people", sh.k["accent-fg"]),
+        T(sh, 64, 508, "it's a match — offer to talk", 16, sh.k["accent-fg"], 600), foot(sh, "talk", icon="chat")))
+    # --- composer
+    def composer(name, extra):
+        def d(sh):
+            k = sh.k; bar(sh, "write")
+            box(sh, 16, 90, 361, 180); T(sh, 34, 130, extra[0], 20, k["fg"] if extra[0][0] != "w" or name != "composer-393" else k["fg-muted"], 600)
+            T(sh, 359, 254, extra[1], 14, k["fg-muted"], 400, "end")
+            chips(sh, 290, [("me", "alone"), ("people", "friends"), ("party", "party")], on=1)
+            chips(sh, 366, [(None, "1 h"), (None, "3 h"), (None, "tonight")], on=0)
+            if len(extra) > 2: err(sh, 450, extra[2])
+            foot(sh, "send", icon="send")
+        scr(brand, name, d)
+    composer("composer-393", ("what's happening near you…", "140 left"))
+    composer("composer-contact", ("call me 99 123 456", "122 left", "a contact: it shows only after a match"))
+    composer("composer-limit", ("coffee anyone?", "126 left", "4 of 4 phrases are live — one must fade"))
+    # --- likes, inbox, match, chat
+    scr(brand, "likes-empty", lambda sh: (bar(sh, "my likes"), empty(sh, 120, "nothing liked yet", "the mark on a phrase says «I'm in»")))
+    def inbox(sh):
+        bar(sh, "talks", back=False)
+        rows(sh, 90, [("people", "Boris", "wants to talk · 23 h", "fwd")])
+        rows(sh, 174, [("chat", "Anya", "see you at the bridge", "fwd"), ("chat", "Lena", "thanks for the ladder!", "fwd"), ("chat", "Mark", "is the music on?", "fwd")])
+        chrome(sh, 2)
+    scr(brand, "inbox-393", inbox)
+    scr(brand, "inbox-empty", lambda sh: (bar(sh, "talks", back=False), empty(sh, 120, "no talks yet", "a like, a like back — and an offer to talk"), chrome(sh, 2)))
+    def match(name, waiting):
+        def d(sh):
+            k = sh.k; bar(sh, "a match")
+            like_btn(sh, 150, 220, 96, 6 if brand == "sosed" else 2); like_btn(sh, 243, 220, 96, 6 if brand == "sosed" else 2)
+            T(sh, 196, 320, "Boris, 31", 28, k["fg"], 600, "middle"); T(sh, 196, 348, "you both said «I'm in»", 15, k["fg-muted"], 400, "middle")
+            if waiting: box(sh, 16, 400, 361, 64); sh.icon(30, 420, "timer", k["fg"]); T(sh, 64, 438, "waiting for Boris to agree · 23 h", 15, k["fg"], 600)
+            else: split_foot(sh, "talk", "not now", ("chat", "close"))
+        scr(brand, name, d)
+    match("match-393", False); match("match-waiting", True)
+    def chat(name, extra):
+        def d(sh):
+            k = sh.k; bar(sh, "Anya", right="more")
+            y = 96
+            for who, t in (("theirs", "hi! at the river already?"), ("mine", "on my way, five minutes")):
+                w = len(t) * 9 + 40; x = 377 - w if who == "mine" else 16
+                fill = k["accent"] if who == "mine" else k["surface"]
+                box(sh, x, y, w, 52, fill); T(sh, x + 18, y + 32, t, 16, k["accent-fg"] if who == "mine" else k["fg"]); y += 66
+            extra(sh, y)
+        scr(brand, name, d)
+    def chat_field(sh):
+        xs, cw = weld(sh, 16, 851 - 92, 361, 64, 1); sh.text(36, 851 - 54, "a line…", 16, sh.k["fg-muted"])
+        sh.rect(377 - 56, 851 - 86, 48, 52, sh.k["accent"], 24); sh.icon(377 - 44, 851 - 72, "send", sh.k["accent-fg"])
+    chat("chat-393", lambda sh, y: (box(sh, 16, y, 361, 44, sh.k["surface-2"] if brand == "sosed" else None), sh.icon(30, y + 10, "timer", sh.k["fg-muted"]),
+        T(sh, 62, y + 28, "the talk fades in 6 days", 14, sh.k["fg-muted"]), chat_field(sh)))
+    chat("chat-keys", lambda sh, y: (box(sh, 16, y, 361, 64), sh.icon(30, y + 20, "key", sh.k["fg"]), T(sh, 64, y + 38, "agreeing keys with Anya…", 16, sh.k["fg"], 600)))
+    chat("chat-actions", lambda sh, y: rows(sh, y, [("timer", "the talk's term", "6 days", "fwd"), ("dots", "a game", None, "fwd"), ("end", "end the talk", None), ("block", "block", None), ("flag", "report", None)]))
+    chat("chat-ended", lambda sh, y: (box(sh, 16, y, 361, 64), sh.icon(30, y + 20, "end", sh.k["fg"]), T(sh, 64, y + 38, "the talk ended for both", 16, sh.k["fg"], 600)))
+    chat("chat-game", lambda sh, y: (box(sh, 76, y, 240, 240), [sh.a(f'<circle cx="{106 + a * 60}" cy="{y + 30 + b * 60}" r="6" fill="{sh.k["fg"]}"/>') for a in range(4) for b in range(4)],
+        T(sh, 196, y + 270, "your move", 16, sh.k["fg"], 600, "middle"), chat_field(sh)))
+    # --- tables
+    def tables(sh):
+        bar(sh, "tables", back=False, right="plus")
+        rows(sh, 90, [("dots", "dots 3×3 by the park", "1 playing · 2 watch · 1 free", "fwd"), ("dots", "quick dots", "1 playing · 1 free", "fwd"), ("dots", "yard league", "2 playing · 5 watch", "fwd")])
+        chrome(sh, 1)
+    scr(brand, "tables-393", tables)
+    scr(brand, "tables-empty", lambda sh: (bar(sh, "tables", back=False, right="plus"), empty(sh, 120, "no tables nearby", "open one — neighbours sit down"), chrome(sh, 1)))
+    def table(name, extra):
+        def d(sh):
+            k = sh.k; bar(sh, "by the park", right="more")
+            xs, cw = weld(sh, 16, 90, 361, 56, 3)
+            for x, t in zip(xs, ("you 2", "Boris 1", "your move")): T(sh, x + cw / 2, 124, t, 15, k["fg"], 600, "middle")
+            box(sh, 46, 164, 300, 300)
+            for a in range(4):
+                for b in range(4): sh.a(f'<circle cx="{76 + a * 80}" cy="{194 + b * 80}" r="7" fill="{k["fg"]}"/>')
+            extra(sh)
+        scr(brand, name, d)
+    table("table-393", lambda sh: split_foot(sh, "leave", "say", ("back", "chat")))
+    table("table-applications", lambda sh: (rows(sh, 486, [("hand", "Lena asks to play", None, "check"), ("hand", "Mark asks to play", None, "check")]), foot(sh, "start", icon="next")))
+    table("table-watching", lambda sh: (box(sh, 16, 486, 361, 52), sh.icon(30, 500, "eye", sh.k["fg"]), sh.text(64, 518, "watching · 2 more watch", 15, sh.k["fg"], 600), foot(sh, "ask to play", icon="hand")))
+    table("table-over", lambda sh: (box(sh, 16, 486, 361, 72, sh.k["accent"]), sh.icon(32, 508, "trophy", sh.k["accent-fg"]), sh.text(66, 528, "you won 5 : 4", 20, sh.k["accent-fg"], 600),
+        split_foot(sh, "again", "leave", ("restore", "back"))))
+    # --- me
+    def me(sh):
+        k = sh.k; bar(sh, "me", back=False)
+        if brand == "sosed": box(sh, 16, 90, 361, 96, sh.tiles[0]); T(sh, 36, 146, "Anya, 28", 28, ink(sh, sh.tiles[0]), 600)
+        else: sh.sticker(60, 138, 40, sh.tiles[3], "me", -6, "#ffffff"); T(sh, 116, 148, "Anya, 28", 22, k["fg"], 600)
+        y = 204
+        for r in range(3):
+            xs, cw = weld(sh, 16, y, 361, 72, 2)
+            for x, (ic, t) in zip(xs, ((("palette", "look"), ("globe2", "language")), (("age", "whose phrases"), ("lockok", "PIN")), (("paperplus", "paper code"), ("move", "move")))[r]):
+                sh.icon(x + 18, y + 24, ic, k["fg"]); T(sh, x + 52, y + 42, t, 15, k["fg"], 600)
+            y += 84
+        rows(sh, y, [("pause", "step away", None, "fwd"), ("eyeoff", "hidden", None, "fwd"), ("block", "blocked", None, "fwd"), ("doc", "documents", None, "fwd")])
+        chrome(sh, 3)
+    scr(brand, "me-393", me)
+    # --- wizard
+    def wiz(n, title, line, ill):
+        def d(sh):
+            k = sh.k
+            for j in range(4): sh.rect(150 + j * 26, 30, 18 if j != n - 1 else 30, 8, k["accent"] if j < n else k["surface-2"], 4)
+            sh.text(361, 40, "skip", 15, k["fg-muted"], 600, "end")
+            ill(sh)
+            T(sh, 196, 520, title, 28, k["fg"], 600, "middle")
+            for m, l in enumerate(wrap(line, 16, 320)[:3]): T(sh, 196, 552 + m * 22, l, 16, k["fg-muted"], 400, "middle")
+            foot(sh, "next", icon="next" if n < 4 else "check")
+        scr(brand, f"wizard-{n}", d)
+    wiz(1, "phrases nearby", "short lines from people around you; they fade on their own",
+        lambda sh: [phrase_tile(sh, 46, 90 + j * 150, 300, t, j) for j, t in enumerate(("walking to the river?", "coffee at the bakery", "chess in the yard"))][:2])
+    wiz(2, "the mark means «I'm in»", "say it to a phrase; if its author says it back, you can talk",
+        lambda sh: (like_btn(sh, 150, 260, 120, 0), like_btn(sh, 250, 260, 120, 6 if brand == "sosed" else 2)))
+    wiz(3, "tables and games", "open a table nearby, neighbours sit down and play",
+        lambda sh: (box(sh, 96, 120, 200, 200), [sh.a(f'<circle cx="{126 + a * 70}" cy="{150 + b * 70}" r="7" fill="{sh.k["fg"]}"/>') for a in range(3) for b in range(3)]))
+    wiz(4, "nothing about you leaves", "no names before a match, no numbers, no ads following you",
+        lambda sh: (mark(sh, 196, 260, 160)))
+    # --- the venue's cabinet
+    def adv(name, body):
+        def d(sh):
+            k = sh.k; mark(sh, 32, 40, 32); T(sh, 58, 48, "for venues", 20, k["fg"], 600)
+            body(sh)
+        scr(brand, name, d)
+    adv("adv-sign-in", lambda sh: (hero_at(sh, "your venue's cabinet", "venue", "a link comes to your mail; no password", 0, 80), field_card(sh, 16, 300, 361, "mail", "hello@bakery.cy"), foot(sh, "send the link", icon="mail")))
+    adv("adv-sent", lambda sh: (hero_at(sh, "the link is in your mail", "mail", "open it on this device within 15 minutes", 1, 80)))
+    adv("adv-expired", lambda sh: (hero_at(sh, "the link expired", "timer", "ask for a new one", 4, 80), foot(sh, "ask again", icon="mail")))
+    def advtabs(sh, on):
+        xs, cw = weld(sh, 16, 80, 361, 52, 2)
+        sh.rect(xs[on] + 4, 84, cw - 8, 44, sh.k["accent"], 22)
+        for i, (x, t) in enumerate(zip(xs, ("venues", "offers"))): sh.text(x + cw / 2, 112, t, 16, sh.k["accent-fg"] if i == on else sh.k["fg"], 600, "middle")
+    adv("adv-venues", lambda sh: (advtabs(sh, 0), rows(sh, 152, [("venue", "corner bakery", "Limassol · checked", "fwd"), ("venue", "harbour café", "Limassol · waiting", "fwd")]), foot(sh, "add a venue", icon="plus")))
+    adv("adv-offers", lambda sh: (advtabs(sh, 1), rows(sh, 152, [("tag", "−15% coffee and a croissant", "till 11:00 · 34 visits", "fwd"), ("tag", "−10% lunch", "ended", "fwd")]), foot(sh, "new offer", icon="plus")))
+    adv("adv-new-offer", lambda sh: (advtabs(sh, 1), field_card(sh, 16, 152, 361, "what", "coffee and a croissant"),
+        chips(sh, 250, [(None, "−10%"), (None, "−15%"), (None, "−20%")], on=1), field_card(sh, 16, 326, 361, "until", "11:00 today"), foot(sh, "publish", icon="check")))
+
+
+def foot_at(sh, y, label, icon):
+    k = sh.k
+    if sh.brand == "sosed": sh.rect(16, y, 361, 64, k["accent"], 32)
+    else: sh.sticker_rect(16, y, 361, 60, k["accent"], 30)
+    sh.icon(196 - 18, y + 12, icon, k["accent-fg"], 1.5)
+    return y + 76
+
+
 ICON["mk_sosed"] = '<path d="M3.5 7.5 H20.5 V18 H10.5 L6.5 21.5 V18 H3.5 Z"/><path d="M15.5 7.5 V3.5 M13.5 4 L17.5 3"/>'
 ICON["mk_neighbro"] = '<path d="M12 3 L20 9.5 V18 H11 L7 21.5 V18 H4 V9.5 Z"/><path d="M16 6.25 V3.5 H18 V7.9"/>'
 ICON.setdefault("close", '<path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/>')
@@ -1194,6 +1472,7 @@ for brand in ("sosed", "neighbro"):
     for step in (1, 2, 3): s_register_step(brand, step)
     for f in (s_unlock, s_restore, s_likes, s_departure): f(brand)
     draw_rest(brand)
+    draw_all(brand)
     for screen in (s_card, s_composer, s_inbox, s_chat, s_tables, s_table, s_me, s_register):
         screen(Sheet(brand, 1440, 900))
     for w in (393, 768, 1440, 2560): feed(brand, w)

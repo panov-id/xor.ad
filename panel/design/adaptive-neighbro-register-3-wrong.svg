@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<rect width="393" height="851" fill="#e5e6e9"/>
+<rect width="393" height="851" fill="url(#dots)"/>
+<g transform="rotate(-8 76 100)">
+<circle cx="77.5" cy="103" r="46" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="76" cy="100" r="46" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(51.849999999999994 75.85) scale(2.0125)" fill="none" stroke="#ffffff" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M9 12 H15.5 M9 15.5 H15.5"/></g>
+</g>
+<text x="140" y="90" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">paper code</text>
+<text x="140" y="118" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">write it down: it brings</text>
+<text x="140" y="140" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">you back on any new</text>
+<text x="140" y="162" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">device</text>
+<g transform="rotate(0 196.5 224.0)">
+<rect x="17.5" y="195" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="192" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<path d="M196.5 200 V248" stroke="#1a1b1e" stroke-width="1.5"/>
+<text x="32.0" y="232" font-family="Golos Text" font-weight="600" font-size="20" fill="#a3311f" text-anchor="start">2 · ZZZZ</text>
+<g transform="rotate(0 196.5 298.0)">
+<rect x="17.5" y="275" width="361" height="52" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="272" width="361" height="52" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<rect x="16" y="272" width="8" height="52" rx="4" fill="#a3311f" />
+<g transform="translate(36 286) scale(1.0)" fill="none" stroke="#a3311f" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 L21 19.5 H3 Z"/><path d="M12 10 V14 M12 16.8 V17"/></g>
+<text x="70" y="304" font-family="Golos Text" font-weight="600" font-size="15" fill="#a3311f" text-anchor="start">group 2 is not that</text>
+<g transform="rotate(0 196.5 785.0)">
+<rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">name: «next»</text>
+</svg>

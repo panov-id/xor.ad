@@ -125,7 +125,7 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
         <section className="block-peek" data-testid="details" aria-label={say("web.card.details")}>
           <ul className="block-peek-tiles" role="list">
             <li className="block-peek-tile t2"><Icon name={modeIcon(card.mode)} /><span>{modeLabel(card.mode)}</span></li>
-            <li className="block-peek-tile t1"><Icon name="like" /><span data-testid="like-burst">{card.like_count + (liked ? 1 : 0)}</span></li>
+            <li className="block-peek-tile t1"><Icon name="like" /><span data-testid="like-burst" aria-hidden="true">{card.like_count + (liked ? 1 : 0)}</span><span className="visually-hidden">{say("web.like.count", { n: card.like_count + (liked ? 1 : 0) })}</span></li>
             {languageIn(card.lang) && <li className="block-peek-tile t3"><Icon name="say" /><span lang={langOf(card)}>{languageIn(card.lang)}</span></li>}
             {card.soon && <li className="block-peek-tile t4"><Icon name="timer" /><span>{say("web.card.soon")}</span></li>}
           </ul>
@@ -155,7 +155,7 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
         <Button type="button" icon="hide" className="block-btn" aria-label={say("feed.hide")} disabled={busy} onClick={() => void hide()} data-testid="hide" />
         <Button type="button" icon={peek ? "back" : "open"} className={`block-btn block-peek-btn${peek ? " up" : ""}`} aria-label={say("web.card.details")} aria-expanded={peek}
           onClick={() => setPeek((p) => !p)} data-testid="peek" />
-        <Button type="button" icon="like" className="block-btn block-like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" data-lit={liked ? "" : undefined} />
+        <Button type="button" icon="like" className="block-btn block-like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" data-lit={liked ? "" : undefined} aria-pressed={liked} />
       </div>
       <Actions>
         <CardExtras card={card} logic={logic} />

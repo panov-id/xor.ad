@@ -23,10 +23,10 @@ export function Card({ kind = "plain", of, fading = false, as: Tag = "article", 
   return <Tag {...rest} data-of={of} data-fading={fading ? "true" : undefined} className={classes.filter(Boolean).join(" ")} />;
 }
 
-// The like as a gold medallion with ♥ and the count (owner 2026-10-01: no
-// stars). When `on` turns true it pops — scale 0 → 1.2 → 1 in 220 ms and a
+// The like as a medallion with the storefront's mark and the count (owner 2026-10-01: no
+// stars; 11.10.2026: the mark, not a heart). When `on` turns true it pops — scale 0 → 1.2 → 1 in 220 ms and a
 // shake (styles.css .ui-burst-pop); under prefers-reduced-motion it just
-// appears. ♥ is a symbol, not a word: no new line for the dictionaries.
+// appears. The mark is an icon, not a word: no new line for the dictionaries.
 export function LikeBurst({ count, on, ...rest }: { count: number; on: boolean } & HTMLAttributes<HTMLSpanElement>) {
   const was = useRef(on);
   const [pop, setPop] = useState(false);

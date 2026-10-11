@@ -77,6 +77,7 @@ export function Card(
           onClick={() => void doLike()}
           data-testid="like"
           data-lit={like !== null && like.state !== "refused" ? "" : undefined}
+          aria-pressed={like !== null && like.state !== "refused"}
         />
       </Actions>
     </Screen>

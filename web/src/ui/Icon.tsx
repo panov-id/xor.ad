@@ -36,7 +36,7 @@ const PATHS = {
   block: <><circle className="f" cx="12" cy="12" r="9" /><path d="M5.6 5.6 L18.4 18.4" /></>,
   write: <><path className="f" d="M4 20 L5 15 L16 4 L20 8 L9 19Z" /><path d="M14 6 L18 10" /></>,
   new: <path d="M12 5 V19 M5 12 H19" />,
-  likes: <><path className="f" d="M10 21 C4 16.5 2 13.5 2 10.5 A4 4 0 0 1 10 8.8 A4 4 0 0 1 18 10.5 C18 13.5 16 16.5 10 21Z" /><path d="M19 2 V8 M16.5 4.5 L19 2 L21.5 4.5" /></>,
+  likes: BRAND === "neighbro" ? LIKE_NEIGHBRO : LIKE_SOSED,   // «my likes»: the same mark (owner 11.10.2026)
   send: <><path className="f" d="M4 12 L20 4 L14 20 L11 13Z" /><path d="M11 13 L20 4" /></>,
   end: <path className="f" d="M5 15 C8 11 16 11 19 15 L17 17 L14 15.5 V13.5 C12.7 13.2 11.3 13.2 10 13.5 V15.5 L7 17Z" />,
   key: <><circle className="f" cx="8" cy="12" r="4" /><path d="M12 12 H21 M18 12 V15 M21 12 V14" /></>,

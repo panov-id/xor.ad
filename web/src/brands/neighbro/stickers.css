@@ -109,7 +109,7 @@
 .b-stickers[data-screen="me"] .ui-list > li:nth-child(4n+3) .ui-setting-icon { background: var(--tile-3); color: var(--tile-3-ink); }
 .b-stickers[data-screen="me"] .ui-list > li:nth-child(4n) .ui-setting-icon { background: var(--tile-4); color: var(--tile-4-ink); }
 /* The sheet's hero: the name row is a big tilted sticker 88 (r44, y+50) and
-   the name in Russo One beside it, on the ground — no tag, no chevron. */
+   the name in Golos 600 beside it, on the ground — no tag, no chevron. */
 .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting { min-height: var(--me-hero-h); padding: 0 0 0 var(--s-2); gap: var(--me-hero-gap); border-color: transparent; background: transparent; }
 .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-icon { inline-size: var(--me-hero-glyph); block-size: var(--me-hero-glyph); padding: var(--me-hero-pad); transform: rotate(-6deg); box-shadow: var(--cell-shadow); }
 .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-label, .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-chevron { display: none; }

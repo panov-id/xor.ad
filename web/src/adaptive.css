@@ -62,14 +62,14 @@
   html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) {
     top: 0; bottom: 0; left: 0; right: auto; width: var(--rail-w); max-width: none; height: auto; margin: 0;
     flex-direction: column; justify-content: flex-start; align-items: center; gap: var(--s-4);
-    padding: var(--s-6) 0; border-top: 0; border-right: 2px solid var(--surface-2); border-radius: 0; box-shadow: none;
+    padding: var(--s-6) 0 calc(var(--fab) + var(--s-8) * 2); overflow-y: auto; border-top: 0; border-right: 2px solid var(--surface-2); border-radius: 0; box-shadow: none;
   }
   html:root[data-brand="sosed"] .tabbar:not([data-testid="kit-tabbar"]) {
     top: var(--s-4); bottom: var(--s-4); left: var(--s-4); width: calc(var(--rail-w) - var(--s-4));
     border: var(--tabbar-rim); box-shadow: var(--tabbar-ring); border-radius: 32px;
   }
   html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .ui-mark[data-place="rail"] { display: block; flex: 0 0 auto; margin-bottom: var(--s-6); }
-  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab { flex: 0 0 auto; width: 80px; max-width: none; height: 64px; justify-content: center; }
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab { flex: 0 0 auto; width: 80px; max-width: none; height: auto; min-height: 64px; justify-content: center; }
   /* the word stays drawn under the icon in the rail (owner 11.10, 5a), both brands */
   html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab span {
     position: static; width: auto; height: auto; overflow: visible; clip-path: none; margin-top: 4px; font-size: 14px; z-index: 1;

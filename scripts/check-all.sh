@@ -145,6 +145,9 @@ run check-web-tokens           bash "$here/check-web-tokens.sh"
 run check-web-i18n             bash "$here/check-web-i18n.sh"
 # Одна форма обращения на язык (П29, 10.10.2026): ты/вы по большинству ключей.
 run check-address-form         python3 "$here/check-address-form.py"
+# Нет русских копий в чужих словарях (G-RU, 11.10.2026): board.* был русским в 15 языках.
+run check-locale-ru-copies     python3 "$here/check-locale-ru-copies.py"
+run test-locale-ru-copies      bash "$here/test_check-locale-ru-copies.sh"
 run check-web-kit              bash "$here/check-web-kit.sh"
 run check-web-themes           python3 "$here/design/themes-css.py" --check
 run test-web-themes            bash "$here/test_themes-css.sh"

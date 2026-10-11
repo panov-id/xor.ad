@@ -34,6 +34,7 @@ import { Splash } from "./screens/Splash.tsx";
 import { Statements } from "./screens/Statements.tsx";
 import { Legal, stillToAccept } from "./screens/Legal.tsx";
 import { Unlock } from "./screens/Unlock.tsx";
+import { markWizardSeen, Wizard, wizardSeen } from "./screens/Wizard.tsx";
 import { Departure } from "./screens/Departure.tsx";
 import { Cabinet } from "./adv/Cabinet.tsx";
 import { Table } from "./screens/Table.tsx";
@@ -89,7 +90,8 @@ type Screen =
   | { at: "step-away" }
   | { at: "away"; until: number }
   | { at: "theme" }
-  | { at: "legal" };
+  | { at: "legal" }
+  | { at: "wizard"; from: "register" | "me" };
 
 // The venue's cabinet (A1) is its own page: at adv.<storefront> in a real
 // deployment, under /adv on the stand. Decided once per load, so the face's
@@ -199,6 +201,8 @@ function Face() {
     if (!held) throw new Error("the client holds no long key");
     const longKey = await held.signing();
     setSeated({ client, keys: new ChatKeys(client, longKey), sealed });
+    // The first entry after registration shows the wizard once per device (Ц4); it lands on the feed after.
+    if (!wizardSeen()) return setScreen({ at: "wizard", from: "register" });
     await land(client);
   }
 
@@ -405,6 +409,7 @@ function Face() {
               if (row === "hidden") return setScreen({ at: "hidden" });
               if (row === "blocked") return setScreen({ at: "blocked" });
               if (row === "reissue") return setScreen({ at: "reissue" });
+              if (row === "wizard") return setScreen({ at: "wizard", from: "me" });
               if (row === "theme") return setScreen({ at: "theme" });
               setScreen({ at: "reset" });
             }}
@@ -414,6 +419,8 @@ function Face() {
       );
     case "edit":
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
+    case "wizard":
+      return <Wizard onDone={() => { markWizardSeen(); if (screen.from === "me") me(); else void land(seated!.client); }} />;
     case "legal":
       return <Legal client={seated!.client} onDone={toFeed} />;
     case "theme":

@@ -454,5 +454,21 @@
   "web.duration.h": "{n} saat",
   "web.table.line": "masada replika",
   "web.away.until": "{time} qədər · {left} qaldı",
-  "web.me.away_hint": "fasilə: ifadələr silinir, söhbətlər gözləyir"
+  "web.me.away_hint": "fasilə: ifadələr silinir, söhbətlər gözləyir",
+  "web.wizard.item": "Bu necə işləyir",
+  "web.wizard.skip": "keç",
+  "web.wizard.next": "davam",
+  "web.wizard.start": "başla",
+  "web.wizard.step": "{n}-ci addım, cəmi {m}",
+  "web.wizard.s1.title": "Yaxınlıqdakı ifadələr",
+  "web.wizard.s1.a": "Çaya gedirik?",
+  "web.wizard.s1.b": "Çörəkxanada kofe",
+  "web.wizard.s1.alone": "tək",
+  "web.wizard.s1.friends": "dostlarla",
+  "web.wizard.s2.title": "Nişan «mən də» deməkdir",
+  "web.wizard.s2.text": "Onu ifadəyə deyin. Müəllif də eyni cavabı versə, danışa bilərsiniz.",
+  "web.wizard.s3.title": "Masalar və oyunlar",
+  "web.wizard.s3.text": "Yaxınlıqda masa açın — qonşular oturub oynayır.",
+  "web.wizard.s4.title": "Sizin haqqınızda heç nə çıxmır",
+  "web.wizard.s4.text": "Cütlükdən əvvəl ad yoxdur, nömrə yoxdur, arxanızca gəzən reklam yoxdur."
 }

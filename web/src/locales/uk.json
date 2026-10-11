@@ -454,5 +454,21 @@
   "web.duration.h": "{n} год",
   "web.table.line": "репліка за столом",
   "web.away.until": "до {time} · залишилось {left}",
-  "web.me.away_hint": "перерва: фрази знімуться, розмови зачекають"
+  "web.me.away_hint": "перерва: фрази знімуться, розмови зачекають",
+  "web.wizard.item": "Як це працює",
+  "web.wizard.skip": "пропустити",
+  "web.wizard.next": "далі",
+  "web.wizard.start": "почати",
+  "web.wizard.step": "крок {n} з {m}",
+  "web.wizard.s1.title": "Фрази поруч",
+  "web.wizard.s1.a": "Підемо до річки?",
+  "web.wizard.s1.b": "Кава в пекарні",
+  "web.wizard.s1.alone": "сам",
+  "web.wizard.s1.friends": "з друзями",
+  "web.wizard.s2.title": "Мітка означає «я з вами»",
+  "web.wizard.s2.text": "Скажіть її фразі. Якщо автор відповість тим самим — можна говорити.",
+  "web.wizard.s3.title": "Столи та ігри",
+  "web.wizard.s3.text": "Відкрийте стіл поруч — сусіди сядуть і зіграють.",
+  "web.wizard.s4.title": "Про вас нічого не виходить",
+  "web.wizard.s4.text": "Жодних імен до пари, жодних номерів, жодної реклами назирці."
 }

@@ -1,0 +1,42 @@
+/* The onboarding wizard (sheets panel/design/adaptive-*-wizard-1..4.svg). One column: the top row
+   (step dots in the middle, the close × at the end — one centre line), the picture with its words, the
+   main button. The examples and the button are the column's full width, so they share its left edge;
+   the words stand 24 (--s-6) under the picture. */
+[data-screen^="wizard-"] { gap: var(--s-6); }
+[data-screen^="wizard-"] [data-part="top"] {
+  display: grid; grid-template-columns: var(--control-h) 1fr var(--control-h); align-items: center;
+  min-height: var(--control-h);
+}
+[data-screen^="wizard-"] [data-part="top"] > .ui-icon-only { grid-column: 3; justify-self: end; }
+[data-screen^="wizard-"] [data-part="dots"] { grid-column: 2; display: flex; justify-content: center; align-items: center; gap: var(--s-2); }
+[data-screen^="wizard-"] [data-part="dot"] { display: block; height: var(--s-2); width: var(--s-4); border-radius: var(--s-1); background: var(--surface-2); }
+[data-screen^="wizard-"] [data-part="dot"][data-on] { background: var(--accent); }
+[data-screen^="wizard-"] [data-part="dot"][data-on="now"] { width: var(--s-8); }
+
+[data-screen^="wizard-"] [data-part="body"] { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: var(--s-6); }
+[data-screen^="wizard-"] [data-part="art"] { display: flex; justify-content: center; align-items: center; gap: var(--s-8); }
+[data-screen^="wizard-"] [data-part="art"][data-art="phrases"] { flex-direction: column; align-items: stretch; gap: var(--s-4); }
+[data-screen^="wizard-"] [data-part="words"] { display: flex; flex-direction: column; gap: var(--s-2); text-align: center; }
+[data-screen^="wizard-"] [data-part="words"] h1 { margin: 0; font-size: var(--fs-big); line-height: 1.15; font-weight: 600; color: var(--fg); }
+[data-screen^="wizard-"] [data-part="words"] p { margin: 0; font-size: var(--fs-body); color: var(--fg-muted); }
+
+/* Step 1: two phrases as the feed draws them, each with its mode and its likes. */
+[data-screen^="wizard-"] [data-part="example"] {
+  display: flex; flex-direction: column; gap: var(--s-4); padding: var(--s-4); border-radius: var(--r-2);
+  background: var(--panel); color: var(--fg);
+}
+[data-screen^="wizard-"] [data-part="example"][data-tone="a"] { background: var(--accent); color: var(--accent-ink); }
+[data-screen^="wizard-"] [data-part="example"] p { margin: 0; font-size: var(--fs-card); font-weight: 600; }
+[data-screen^="wizard-"] [data-part="meta"] { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-meta); }
+[data-screen^="wizard-"] [data-part="mode"], [data-screen^="wizard-"] [data-part="count"] { display: inline-flex; align-items: center; gap: var(--s-2); }
+
+/* Step 2: the mark, empty and lit. */
+[data-screen^="wizard-"] [data-art="mark"] [data-lit] { --icon-fill: var(--accent); color: var(--accent-text, var(--accent)); display: inline-flex; }
+
+/* Step 3: a table seen from above, nine seats. */
+[data-screen^="wizard-"] [data-art="table"] {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-6); justify-items: center; align-items: center;
+  width: var(--wizard-table); height: var(--wizard-table); margin-inline: auto; padding: var(--s-6); box-sizing: border-box;
+  background: var(--panel); border: var(--field-border); border-radius: var(--r-2);
+}
+[data-screen^="wizard-"] [data-part="seat"] { width: var(--s-4); height: var(--s-4); border-radius: 50%; background: var(--fg); }

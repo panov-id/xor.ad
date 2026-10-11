@@ -454,5 +454,21 @@
   "web.duration.h": "{n} godz.",
   "web.table.line": "wiadomość przy stole",
   "web.away.until": "do {time} · zostało {left}",
-  "web.me.away_hint": "przerwa: zdania znikną, rozmowy poczekają"
+  "web.me.away_hint": "przerwa: zdania znikną, rozmowy poczekają",
+  "web.wizard.item": "Jak to działa",
+  "web.wizard.skip": "pomiń",
+  "web.wizard.next": "dalej",
+  "web.wizard.start": "zaczynamy",
+  "web.wizard.step": "krok {n} z {m}",
+  "web.wizard.s1.title": "Wpisy w pobliżu",
+  "web.wizard.s1.a": "Idziemy nad rzekę?",
+  "web.wizard.s1.b": "Kawa w piekarni",
+  "web.wizard.s1.alone": "sam",
+  "web.wizard.s1.friends": "ze znajomymi",
+  "web.wizard.s2.title": "Znak oznacza „jestem za”",
+  "web.wizard.s2.text": "Powiedz go wpisowi. Jeśli autor odpowie tym samym, możecie rozmawiać.",
+  "web.wizard.s3.title": "Stoły i gry",
+  "web.wizard.s3.text": "Otwórz stół w pobliżu, sąsiedzi siadają i grają.",
+  "web.wizard.s4.title": "Nic o tobie nie wychodzi",
+  "web.wizard.s4.text": "Żadnych imion przed parą, żadnych numerów, żadnych reklam, które cię śledzą."
 }

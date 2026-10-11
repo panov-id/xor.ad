@@ -15,6 +15,7 @@
      the mark 160 on a phone, 200 from 640, 440 in the poster from 1440; the entry 440 at most;
      the brand's name 40 / 72 under the mark; the poster's side margin 64. */
   --mark-hero: 160px; --mark-hero-md: 200px; --mark-hero-xl: 440px;
+  --wizard-table: 200px;   /* the wizard's table picture (screens/wizard.css) */
   --entry-w: 440px; --poster-min-h: 280px; --poster-pad: 64px;
   --fs-word: 2.5rem; --fs-word-xl: 4.5rem; --fs-hero: 2.5rem;
   --mark-drop: 24px;

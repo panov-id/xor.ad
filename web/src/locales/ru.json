@@ -454,5 +454,21 @@
   "web.duration.h": "{n} ч",
   "web.table.line": "реплика за столом",
   "web.away.until": "до {time} · осталось {left}",
-  "web.me.away_hint": "перерыв: фразы снимутся, беседы подождут"
+  "web.me.away_hint": "перерыв: фразы снимутся, беседы подождут",
+  "web.wizard.item": "Как это устроено",
+  "web.wizard.skip": "пропустить",
+  "web.wizard.next": "дальше",
+  "web.wizard.start": "начать",
+  "web.wizard.step": "шаг {n} из {m}",
+  "web.wizard.s1.title": "Фразы рядом",
+  "web.wizard.s1.a": "Идём к реке?",
+  "web.wizard.s1.b": "Кофе в пекарне",
+  "web.wizard.s1.alone": "один",
+  "web.wizard.s1.friends": "с друзьями",
+  "web.wizard.s2.title": "Метка значит «я с вами»",
+  "web.wizard.s2.text": "Скажите её фразе. Если автор ответит тем же — можно говорить.",
+  "web.wizard.s3.title": "Столы и игры",
+  "web.wizard.s3.text": "Откройте стол рядом — соседи сядут и сыграют.",
+  "web.wizard.s4.title": "О вас ничего не уходит",
+  "web.wizard.s4.text": "Ни имён до пары, ни номеров, ни рекламы по следам."
 }

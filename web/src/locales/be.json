@@ -454,5 +454,21 @@
   "web.duration.h": "{n} гадз",
   "web.table.line": "рэплыка за сталом",
   "web.away.until": "да {time} · засталося {left}",
-  "web.me.away_hint": "перапынак: фразы знікнуць, размовы пачакаюць"
+  "web.me.away_hint": "перапынак: фразы знікнуць, размовы пачакаюць",
+  "web.wizard.item": "Як гэта працуе",
+  "web.wizard.skip": "прапусціць",
+  "web.wizard.next": "далей",
+  "web.wizard.start": "пачаць",
+  "web.wizard.step": "крок {n} з {m}",
+  "web.wizard.s1.title": "Фразы побач",
+  "web.wizard.s1.a": "Пойдзем да ракі?",
+  "web.wizard.s1.b": "Кава ў пякарні",
+  "web.wizard.s1.alone": "адзін",
+  "web.wizard.s1.friends": "з сябрамі",
+  "web.wizard.s2.title": "Метка азначае «я з вамі»",
+  "web.wizard.s2.text": "Скажыце яе фразе. Калі аўтар адкажа тым самым — можна гаварыць.",
+  "web.wizard.s3.title": "Сталы і гульні",
+  "web.wizard.s3.text": "Адкрыйце стол побач — суседзі сядуць і згуляюць.",
+  "web.wizard.s4.title": "Пра вас нічога не сыходзіць",
+  "web.wizard.s4.text": "Ніякіх імёнаў да пары, ніякіх нумароў, ніякай рэкламы следам."
 }

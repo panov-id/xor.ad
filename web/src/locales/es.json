@@ -454,5 +454,21 @@
   "web.duration.h": "{n} h",
   "web.table.line": "mensaje en la mesa",
   "web.away.until": "hasta las {time} · quedan {left}",
-  "web.me.away_hint": "pausa: las frases se retiran, las charlas esperan"
+  "web.me.away_hint": "pausa: las frases se retiran, las charlas esperan",
+  "web.wizard.item": "Cómo funciona",
+  "web.wizard.skip": "omitir",
+  "web.wizard.next": "siguiente",
+  "web.wizard.start": "empezar",
+  "web.wizard.step": "paso {n} de {m}",
+  "web.wizard.s1.title": "Frases cerca",
+  "web.wizard.s1.a": "¿Vamos al río?",
+  "web.wizard.s1.b": "Café en la panadería",
+  "web.wizard.s1.alone": "solo",
+  "web.wizard.s1.friends": "con amigos",
+  "web.wizard.s2.title": "La marca significa «me apunto»",
+  "web.wizard.s2.text": "Díselo a una frase. Si su autor te lo devuelve, podéis hablar.",
+  "web.wizard.s3.title": "Mesas y juegos",
+  "web.wizard.s3.text": "Abre una mesa cerca, los vecinos se sientan y juegan.",
+  "web.wizard.s4.title": "Nada sobre ti sale de aquí",
+  "web.wizard.s4.text": "Sin nombres antes de un match, sin números, sin anuncios que te sigan."
 }

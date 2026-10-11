@@ -454,5 +454,21 @@
   "web.duration.h": "{n} სთ",
   "web.table.line": "რეპლიკა მაგიდასთან",
   "web.away.until": "{time}-მდე · დარჩა {left}",
-  "web.me.away_hint": "შესვენება: ფრაზები მოიხსნება, საუბრები დაელოდება"
+  "web.me.away_hint": "შესვენება: ფრაზები მოიხსნება, საუბრები დაელოდება",
+  "web.wizard.item": "როგორ მუშაობს",
+  "web.wizard.skip": "გამოტოვება",
+  "web.wizard.next": "შემდეგი",
+  "web.wizard.start": "დაწყება",
+  "web.wizard.step": "ნაბიჯი {n} / {m}",
+  "web.wizard.s1.title": "ფრაზები ახლოს",
+  "web.wizard.s1.a": "მდინარეზე წავიდეთ?",
+  "web.wizard.s1.b": "ყავა საცხობში",
+  "web.wizard.s1.alone": "მარტო",
+  "web.wizard.s1.friends": "მეგობრებთან ერთად",
+  "web.wizard.s2.title": "ნიშანი ნიშნავს „მეც ვარ“",
+  "web.wizard.s2.text": "უთხარით ფრაზას. თუ ავტორიც იგივეს გიპასუხებთ, შეგიძლიათ ისაუბროთ.",
+  "web.wizard.s3.title": "მაგიდები და თამაშები",
+  "web.wizard.s3.text": "გახსენით მაგიდა ახლოს — მეზობლები დასხდებიან და ითამაშებენ.",
+  "web.wizard.s4.title": "თქვენზე არაფერი გადის",
+  "web.wizard.s4.text": "წყვილამდე არც სახელი, არც ნომერი, არც თქვენს უკან მიმავალი რეკლამა."
 }

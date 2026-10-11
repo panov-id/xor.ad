@@ -454,5 +454,21 @@
   "web.duration.h": "{n} h",
   "web.table.line": "mesaj la masă",
   "web.away.until": "până la {time} · au rămas {left}",
-  "web.me.away_hint": "pauză: frazele dispar, conversațiile așteaptă"
+  "web.me.away_hint": "pauză: frazele dispar, conversațiile așteaptă",
+  "web.wizard.item": "Cum funcționează",
+  "web.wizard.skip": "omite",
+  "web.wizard.next": "mai departe",
+  "web.wizard.start": "începe",
+  "web.wizard.step": "pasul {n} din {m}",
+  "web.wizard.s1.title": "Mesaje din apropiere",
+  "web.wizard.s1.a": "Mergem la râu?",
+  "web.wizard.s1.b": "Cafea la brutărie",
+  "web.wizard.s1.alone": "singur",
+  "web.wizard.s1.friends": "cu prietenii",
+  "web.wizard.s2.title": "Semnul înseamnă „particip”",
+  "web.wizard.s2.text": "Spune-l unui mesaj. Dacă autorul îți răspunde la fel, puteți vorbi.",
+  "web.wizard.s3.title": "Mese și jocuri",
+  "web.wizard.s3.text": "Deschide o masă în apropiere, vecinii se așază și joacă.",
+  "web.wizard.s4.title": "Nimic despre tine nu pleacă",
+  "web.wizard.s4.text": "Fără nume înainte de potrivire, fără numere, fără reclame care te urmăresc."
 }

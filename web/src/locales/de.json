@@ -454,5 +454,21 @@
   "web.duration.h": "{n} Std.",
   "web.table.line": "Beitrag am Tisch",
   "web.away.until": "bis {time} · noch {left}",
-  "web.me.away_hint": "Pause: Sätze verschwinden, Gespräche warten"
+  "web.me.away_hint": "Pause: Sätze verschwinden, Gespräche warten",
+  "web.wizard.item": "So funktioniert’s",
+  "web.wizard.skip": "überspringen",
+  "web.wizard.next": "weiter",
+  "web.wizard.start": "los",
+  "web.wizard.step": "Schritt {n} von {m}",
+  "web.wizard.s1.title": "Sätze in der Nähe",
+  "web.wizard.s1.a": "Gehst du mit zum Fluss?",
+  "web.wizard.s1.b": "Kaffee in der Bäckerei",
+  "web.wizard.s1.alone": "allein",
+  "web.wizard.s1.friends": "mit Freunden",
+  "web.wizard.s2.title": "Die Marke heißt „Ich bin dabei“",
+  "web.wizard.s2.text": "Sag sie zu einem Satz. Sagt der Autor sie zurück, könnt ihr reden.",
+  "web.wizard.s3.title": "Tische und Spiele",
+  "web.wizard.s3.text": "Eröffne einen Tisch in der Nähe, Nachbarn setzen sich und spielen.",
+  "web.wizard.s4.title": "Nichts über dich verlässt dein Gerät",
+  "web.wizard.s4.text": "Keine Namen vor dem Match, keine Nummern, keine Werbung, die dir folgt."
 }

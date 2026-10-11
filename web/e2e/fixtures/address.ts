@@ -29,18 +29,31 @@ export const headersFor = (file: string): Record<string, string> => ({
   "x-client-ip": addressFor(file),
 });
 
-export const test = base.extend<{ stamped: void }>({
+// The onboarding wizard (web/src/screens/Wizard.tsx) shows once per device after a registration; every
+// spec but wizard.spec.ts meets a device that has seen it, so the specs that register go straight to
+// the feed. One place: every context of a test (the `page`'s and the ones it makes) is given the flag.
+const SEEN = () => { try { localStorage.setItem("wizard-seen", "1"); } catch { /* storage blocked */ } };
+
+export const test = base.extend<{ stamped: void; wizardSeen: boolean }>({
+  wizardSeen: [true, { option: true }],
+  context: async ({ context, wizardSeen }, use) => {
+    if (wizardSeen) await context.addInitScript(SEEN);
+    await use(context);
+  },
   // The context Playwright makes for `page`.
   contextOptions: async ({ contextOptions }, use, testInfo) => {
     await use({ ...contextOptions, extraHTTPHeaders: { ...(contextOptions.extraHTTPHeaders ?? {}), ...headersFor(testInfo.file) } });
   },
   // The contexts a spec makes itself: browser.newContext() carries the same
   // headers for as long as this test runs, and is given back afterwards.
-  stamped: [async ({ browser }, use, testInfo) => {
+  stamped: [async ({ browser, wizardSeen }, use, testInfo) => {
     const original = browser.newContext.bind(browser);
     const headers = headersFor(testInfo.file);
-    (browser as Browser).newContext = (options: BrowserContextOptions = {}) =>
-      original({ ...options, extraHTTPHeaders: { ...(options.extraHTTPHeaders ?? {}), ...headers } });
+    (browser as Browser).newContext = async (options: BrowserContextOptions = {}) => {
+      const made = await original({ ...options, extraHTTPHeaders: { ...(options.extraHTTPHeaders ?? {}), ...headers } });
+      if (wizardSeen) await made.addInitScript(SEEN);
+      return made;
+    };
     await use();
     (browser as Browser).newContext = original;
   }, { auto: true }],

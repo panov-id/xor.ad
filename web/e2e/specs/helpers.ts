@@ -48,7 +48,8 @@ export function watch(page: Page, feedAnswers: number[]): void {
 
 // The splash tagline is checked in the browser's language: Russian unless a
 // spec sets another locale and names its tagline.
-export async function register(page: Page, who = { name: "Аня", age: "28" }, tagline = "Что говорят соседи рядом."): Promise<string[]> {
+// `atWizard`: stop at the onboarding wizard (the fixture otherwise marks it seen, so a spec lands on the feed).
+export async function register(page: Page, who = { name: "Аня", age: "28" }, tagline = "Что говорят соседи рядом.", atWizard = false): Promise<string[]> {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: tagline })).toBeVisible();
   await page.getByTestId("start").click();
@@ -67,6 +68,10 @@ export async function register(page: Page, who = { name: "Аня", age: "28" }, 
   await page.getByTestId("paper-groups").locator("input").first().fill(code[1]);
   await page.getByTestId("paper-groups").locator("input").last().fill(code[3]);
   await page.getByTestId("confirm").click();
+  if (atWizard) {
+    await expect(page.getByTestId("wizard-1")).toBeVisible({ timeout: 30000 });
+    return code;
+  }
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
   await expect(page.getByTestId("loading")).toBeHidden({ timeout: 15000 });
   return code;

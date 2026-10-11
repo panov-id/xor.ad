@@ -33,7 +33,7 @@ import { Split } from "../ui/Split.tsx";
 
 // "filter" and "legal" open here, not through the parent (W14-AF, W13-LC):
 // the age filter and screen 15 are Me's own screens.
-export type MeRow = "statements" | "name" | "age" | "filter" | "hidden" | "blocked" | "legal" | "away" | "pin" | "move" | "reissue" | "reset" | "theme" | "lang";
+export type MeRow = "statements" | "name" | "age" | "filter" | "hidden" | "blocked" | "legal" | "away" | "pin" | "move" | "reissue" | "reset" | "theme" | "lang" | "wizard";
 
 export function Me({ client, restrictions, onOpen, refresh, brandClass }: {
   brandClass?: string;
@@ -83,6 +83,7 @@ export function Me({ client, restrictions, onOpen, refresh, brandClass }: {
     // (WP-3: put after "theme" it left "change PIN" alone, the Me sheet's
     // drift 16% → 25%).
     { key: "lang", label: say("web.lang.item"), value: languageName(LANG), testid: "me-lang", icon: "say" },
+    { key: "wizard", label: say("web.wizard.item"), testid: "me-wizard", icon: "info" },
     { key: "legal", label: say("web.legal.item"), testid: "me-legal", icon: "report" },
     { key: "reset", label: say("reset.item"), testid: "me-reset", icon: "reset" },
   ];

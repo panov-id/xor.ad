@@ -454,5 +454,21 @@
   "web.duration.h": "{n} soat",
   "web.table.line": "stol atrofidagi gap",
   "web.away.until": "{time} gacha · {left} qoldi",
-  "web.me.away_hint": "tanaffus: iboralar olib tashlanadi, suhbatlar kutadi"
+  "web.me.away_hint": "tanaffus: iboralar olib tashlanadi, suhbatlar kutadi",
+  "web.wizard.item": "Bu qanday ishlaydi",
+  "web.wizard.skip": "o‘tkazib yuborish",
+  "web.wizard.next": "keyingisi",
+  "web.wizard.start": "boshlash",
+  "web.wizard.step": "{n}-qadam, jami {m}",
+  "web.wizard.s1.title": "Yaqin atrofdagi iboralar",
+  "web.wizard.s1.a": "Daryoga boramizmi?",
+  "web.wizard.s1.b": "Nonvoyxonada qahva",
+  "web.wizard.s1.alone": "yolg‘iz",
+  "web.wizard.s1.friends": "do‘stlar bilan",
+  "web.wizard.s2.title": "Belgi «men ham» degani",
+  "web.wizard.s2.text": "Uni iboraga ayting. Muallifi ham shunday javob bersa, gaplashish mumkin.",
+  "web.wizard.s3.title": "Stollar va o‘yinlar",
+  "web.wizard.s3.text": "Yaqin atrofda stol oching — qo‘shnilar o‘tirib o‘ynaydi.",
+  "web.wizard.s4.title": "Siz haqingizda hech narsa chiqmaydi",
+  "web.wizard.s4.text": "Juftlikdan oldin ism yo‘q, raqam yo‘q, ortingizdan yuradigan reklama yo‘q."
 }

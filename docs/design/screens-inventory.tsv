@@ -67,10 +67,10 @@ blocked	screens/Me.tsx	blocked	blocked people
 legal	screens/Legal.tsx	legal	documents
 statements	screens/Statements.tsx	statements	moderation decisions
 offer-exit	screens/Card.tsx	offer-exit	leaving for the venue
-wizard-1	(new)	wizard-1	intro: the feed nearby
-wizard-2	(new)	wizard-2	intro: the like is the mark, a match
-wizard-3	(new)	wizard-3	intro: tables and games
-wizard-4	(new)	wizard-4	intro: nothing about you leaves
+wizard-1	screens/Wizard.tsx	wizard-1	intro: the feed nearby
+wizard-2	screens/Wizard.tsx	wizard-2	intro: the like is the mark, a match
+wizard-3	screens/Wizard.tsx	wizard-3	intro: tables and games
+wizard-4	screens/Wizard.tsx	wizard-4	intro: nothing about you leaves
 adv-sign-in	adv/Cabinet.tsx	adv-sign-in	the venue's cabinet: sign in by mail
 adv-sent	adv/Cabinet.tsx	adv-sent	the link is in the mail
 adv-expired	adv/Cabinet.tsx	adv-expired	the link expired

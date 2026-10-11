@@ -91,7 +91,7 @@
   "web.card.complained": "საჩივარი გაიგზავნა. გადაწყვეტილება ელფოსტაზე მოვა.",
   "web.card.complaint_refused": "საჩივარი არ მიიღეს ({status}).",
   "web.card.conditions": "პირობები: {conditions}",
-  "web.card.like": "♥ მომწონს",
+  "web.card.like": "მომწონს",
   "web.card.liked": "მოწონება გაიგზავნა. თუ ერთმანეთს მოეწონებით — იქნება დამთხვევა.",
   "web.card.matched": "დამთხვევა! საუბრის შეთავაზება შემოსულებში გელოდებათ.",
   "web.card.soon": " · მალე გაქრება",

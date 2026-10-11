@@ -91,7 +91,7 @@
   "web.card.complained": "Queja enviada. La decisión llegará por correo.",
   "web.card.complaint_refused": "Queja no aceptada ({status}).",
   "web.card.conditions": "condiciones: {conditions}",
-  "web.card.like": "♥ me gusta",
+  "web.card.like": "me gusta",
   "web.card.liked": "Like enviado. Si os gustáis, habrá coincidencia.",
   "web.card.matched": "¡Coincidencia! Una propuesta para hablar te espera en la bandeja de entrada.",
   "web.card.soon": " · desaparece pronto",

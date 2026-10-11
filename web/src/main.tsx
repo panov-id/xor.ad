@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App.tsx";
 import { BRAND } from "./config.ts";
 import { applyTheme } from "./theme.ts";
+import { setFavicon } from "./favicon.ts";
 import { phaseAt } from "./ui/phase.ts";
 // The kit gives the geometry (--s-*, --r-*, --control-h on :root) and the
 // faces; the colours are the brand's theme alone (themes.gen.css, from
@@ -24,6 +25,7 @@ import "./themes.gen.css";
 // refuses those; vite.config.ts also writes data-brand into the HTML at build,
 // so the brand's light theme is drawn even before this module runs.
 applyTheme(BRAND, phaseAt(new Date()));
+setFavicon();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

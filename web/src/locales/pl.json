@@ -91,7 +91,7 @@
   "web.card.complained": "Skarga wysłana. Decyzja przyjdzie mailem.",
   "web.card.complaint_refused": "Skargi nie przyjęto ({status}).",
   "web.card.conditions": "warunki: {conditions}",
-  "web.card.like": "♥ podoba mi się",
+  "web.card.like": "podoba mi się",
   "web.card.liked": "Polubienie wysłane. Jeśli spodobacie się sobie nawzajem — będzie dopasowanie.",
   "web.card.matched": "Dopasowanie! Propozycja rozmowy czeka w skrzynce.",
   "web.card.soon": " · zaraz zniknie",

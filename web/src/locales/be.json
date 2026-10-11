@@ -91,7 +91,7 @@
   "web.card.complained": "Скарга адпраўлена. Рашэнне прыйдзе на пошту.",
   "web.card.complaint_refused": "Скарга не прынята ({status}).",
   "web.card.conditions": "умовы: {conditions}",
-  "web.card.like": "♥ падабаецца",
+  "web.card.like": "падабаецца",
   "web.card.liked": "Лайк адпраўлены. Калі спадабаецеся адно аднаму — будзе метч.",
   "web.card.matched": "Метч! Прапанова пагаварыць чакае ва ўваходных.",
   "web.card.soon": " · хутка знікне",

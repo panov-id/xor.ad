@@ -11,7 +11,7 @@
 // The state and the node's calls are the shared hooks; this file only draws.
 
 import { useEffect, useId, useRef, useState, type ComponentProps, type PointerEvent as ReactPointerEvent } from "react";
-import { languageIn, likePhrase, modes } from "../../api/actions.ts";
+import { languageIn, likePhrase, modeIcon, modes } from "../../api/actions.ts";
 import { say } from "../../locales/say.ts";
 import { Feed, type FeedCard } from "../../screens/Feed.tsx";
 import { CardOpen, openerIds } from "../../ui/Card.tsx";
@@ -75,6 +75,16 @@ const UNDO_S = 5;
 // Feed.svg: sticker cards, the white rim and the hard shadow; colours walk
 // tile-1..4 with a small lean either way.
 function Sticker({ card, index, open }: { card: FeedCard; index: number; open: () => void }) {
+  // A venue's offer (sheets adaptive-neighbro-feed, 11.10.2026): the discount as an accent tag stuck on
+  // the card, the venue and what, the conditions muted; no mode and no like.
+  if (card.kind === "offer" && card.offer) return (
+    <li className={`sticker sticker-offer${index % 2 ? " lean-r" : " lean-l"}`} data-testid="card" data-id={card.id} data-kind="offer">
+      <CardOpen id={card.id} onOpen={open} />
+      <span className="ui-offer sticker-offer-tag" data-testid="offer">−{card.offer.discount_value}</span>
+      <p id={openerIds(card.id).text} lang={langOf(card)}>{card.offer.venue_name ? `${card.offer.venue_name}: ` : ""}{card.text}</p>
+      <span className="sticker-foot" id={openerIds(card.id).foot}>{card.offer.conditions ?? ""}</span>
+    </li>
+  );
   return (
     <li
       className={`sticker sticker-c${(index % 4) + 1}${index % 2 ? " lean-r" : " lean-l"}`}
@@ -85,7 +95,7 @@ function Sticker({ card, index, open }: { card: FeedCard; index: number; open: (
       {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="sticker-foot" id={openerIds(card.id).foot}>
-        <span className="ui-icon-row"><Icon name="me" size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
+        <span className="ui-icon-row"><Icon name={modeIcon(card.mode)} size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
         <span className="sticker-likes">{likesOf(card.like_count)}</span>
       </span>
     </li>

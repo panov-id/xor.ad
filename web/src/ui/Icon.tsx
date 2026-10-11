@@ -3,12 +3,35 @@
 // (class "f") is filled with --icon-fill, flat, transparent unless the button
 // sets it. An icon never speaks: the button around it carries the aria-label.
 import type { SVGAttributes } from "react";
+import { BRAND } from "../config.ts";
 
-const HEART = "M12 20.5 C5.5 16 3 12.6 3 9 A4.6 4.6 0 0 1 12 7 A4.6 4.6 0 0 1 21 9 C21 12.6 18.5 16 12 20.5Z";
+// The like is the storefront's own mark, as an outline (owner 11.10.2026: «no heart; the logo, simply,
+// as thick as the letters»; sheets panel/design/adaptive-*-like.svg). sosed: the speech bubble that is a
+// block of flats, with its antenna; its six windows are the fill — lit when the like is given.
+// neighbro: the house-shaped bubble with its chimney; its two lines are the fill. The viewer's
+// storefront decides, never the author's (docs/chat_RU.md §8: the brand is a face, not a boundary).
+const LIKE_SOSED = (
+  <>
+    <path d="M3.5 7.5 H20.5 V18 H10.5 L6.5 21.5 V18 H3.5 Z" />
+    <path d="M15.5 7.5 V3.5 M13.5 4 L17.5 3" />
+    {[6.25, 10.75, 15.25].flatMap((x) => [10, 13.75].map((y) => <rect key={`${x}-${y}`} className="f" data-window="" x={x} y={y} width="2.5" height="2.25" rx="0.4" />))}
+  </>
+);
+const LIKE_NEIGHBRO = (
+  <>
+    <path d="M12 3 L20 9.5 V18 H11 L7 21.5 V18 H4 V9.5 Z" />
+    <path d="M16 6.25 V3.5 H18 V7.9" />
+    <rect className="f" data-window="" x="8" y="11.25" width="5.5" height="1.5" rx="0.75" />
+    <rect className="f" data-window="" x="8" y="14.25" width="8.5" height="1.5" rx="0.75" />
+  </>
+);
 
 const PATHS = {
   back: <path d="M15 5 L8 12 L15 19" />,
-  like: <path className="f" d={HEART} />,
+  like: BRAND === "neighbro" ? LIKE_NEIGHBRO : LIKE_SOSED,
+  // How many are going (a phrase's mode; sheets adaptive-*-feed): «me» alone, these two the others.
+  company: <><circle cx="9" cy="8.5" r="3" /><circle cx="16.5" cy="9.5" r="2.5" /><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19" /></>,
+  party: <><path d="M4 20 L8.5 8 L16 15.5Z" /><path d="M13 4 V6 M18 6 L16.5 7.5 M20 11 H18 M11 9 L13 7" /></>,
   hide: <><path className="f" d="M2 12 C5 6 19 6 22 12 C19 18 5 18 2 12Z" /><circle cx="12" cy="12" r="3" /><path d="M4 20 L20 4" /></>,
   block: <><circle className="f" cx="12" cy="12" r="9" /><path d="M5.6 5.6 L18.4 18.4" /></>,
   write: <><path className="f" d="M4 20 L5 15 L16 4 L20 8 L9 19Z" /><path d="M14 6 L18 10" /></>,

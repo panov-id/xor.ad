@@ -12,6 +12,7 @@
 import { type ReactNode, useEffect, useId, useState } from "react";
 import { Client } from "../../../depth/core/client.ts";
 import { type LegalRevision, readManifest } from "../../../depth/core/legal.ts";
+import { Mark } from "../ui/Mark.tsx";
 import { API_KEY, NODE_BASE } from "../config.ts";
 import { acceptAndKeep, docUrl, LEGAL_ORDER } from "./Legal.tsx";
 import { newPaperCode, paperGroups, readPaperText } from "../../../depth/core/paper.ts";
@@ -154,6 +155,8 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
       title={stepTitle}
       header={<HeaderScreen title={stepTitle} action={step < 3 ? <span>{say("web.register.step", { n: step, m: 2 })}</span> : undefined} />}
     >
+      {/* the brand's mark over the form from 640 (sheets adaptive-*-register-1440; adaptive.css hides it below) */}
+      <Mark size={72} place="form" />
       {step === 1 && (
         <>
           <Field label={say("reg.name")} value={name} onChange={setName} maxLength={64} hint={say("web.register.left", { count: Math.max(0, NAME_MAX - count(name)) })} data-testid="name" />

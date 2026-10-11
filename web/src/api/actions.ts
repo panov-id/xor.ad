@@ -20,6 +20,9 @@ export const modes = (): Array<{ value: Mode; label: string }> => [
   { value: "party", label: say("web.mode.party") },
 ];
 
+// The mode's icon (sheets adaptive-*-feed, 11.10.2026): one person, a company, a party.
+export const modeIcon = (mode: string): "me" | "company" | "party" => (mode === "company" || mode === "party" ? mode : "me");
+
 // What the node said back to a phrase (§8.3; P1): out at once, or read by a
 // person first, or refused — with the reason a person can act on.
 export type Sent =

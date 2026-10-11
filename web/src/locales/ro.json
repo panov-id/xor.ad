@@ -91,7 +91,7 @@
   "web.card.complained": "Plângere trimisă. Decizia vine pe e-mail.",
   "web.card.complaint_refused": "Plângere neacceptată ({status}).",
   "web.card.conditions": "condiții: {conditions}",
-  "web.card.like": "♥ îmi place",
+  "web.card.like": "îmi place",
   "web.card.liked": "Apreciere trimisă. Dacă vă plăceți reciproc — e potrivire.",
   "web.card.matched": "Potrivire! O propunere de a vorbi te așteaptă în inbox.",
   "web.card.soon": " · dispare curând",

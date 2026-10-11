@@ -189,14 +189,15 @@ export function DotsBoard({ view, onEdge }: { view: TableView; onEdge?: (edge: s
   // letter is which — bare «Б · В» read as nothing, and «В» is «вы» on each
   // screen, oneself (walkthrough 11.10, С8). The ear has each box's name.
   const owners = [...new Set(Object.values(dots.boxes))];
+  // From 1024 the legend stands beside the board, not under it (sheets adaptive-*-table-1440; adaptive.css).
   return (
-    <>
+    <div data-part="dots-board">
       <DotsGrid label={tableSay("table.board")} n={dots.n} free={new Set(freeEdges(dots))} boxes={dots.boxes} who={who} mine={view.seat} onEdge={onEdge} />
       {owners.length > 0 && (
         <p className="ui-hint" data-testid="dots-legend" aria-hidden="true">
           {owners.map((seat) => `${[...who(seat)][0]?.toLocaleUpperCase() ?? "?"} — ${who(seat)}`).join(" · ")}
         </p>
       )}
-    </>
+    </div>
   );
 }

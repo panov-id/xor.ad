@@ -71,10 +71,12 @@ test("the info balloon opens, takes focus, closes on Esc and on a press outside,
 test("every icon button is named, and the like bursts on a press", async ({ page }) => {
   await page.goto("/kit");
   const icons = page.getByTestId("icons").getByRole("button");
-  await expect(icons).toHaveCount(43);
+  // 45: the mode's «company» and «party» joined «me» (11.10.2026, sheets adaptive-*-feed)
+  await expect(icons).toHaveCount(45);
   for (const b of await icons.all()) await expect(b).toHaveAttribute("aria-label", /\w/);
   await expect(page.getByTestId("icons").locator('[data-icon="chevron"]')).toHaveCount(1);
-  await page.getByRole("button", { name: "♥ нравится" }).click();
+  // the like's name is «лайк» (owner 11.10.2026: no heart, «just like»)
+  await page.getByRole("button", { name: "лайк" }).click();
   await expect(page.getByTestId("kit-burst")).toHaveClass(/ui-burst-on/);
   await expect(page.getByTestId("kit-burst")).toContainText("4");
 });

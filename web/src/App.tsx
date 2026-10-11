@@ -48,6 +48,7 @@ import { watchIdle } from "./idle.ts";
 import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
 import "./screens/feed.css";
+import "./adaptive.css";
 import { Screen as Frame } from "./ui/Screen.tsx";
 import { TabBar } from "./ui/TabBar.tsx";
 

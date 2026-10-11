@@ -174,3 +174,9 @@
   min-height: var(--tab-h); border-radius: var(--r-pill); padding: 0 var(--s-6) 0 var(--s-4);
   background-color: var(--surface); border: var(--tabbar-rim); box-shadow: var(--tabbar-ring); font-weight: 600;
 }
+
+/* A venue's offer in the feed (sheets adaptive-sosed-feed, 11.10.2026): the surface with its rim, the
+   discount big in accent-text, the conditions small. */
+.b-blocks .tile.tile-offer { background: var(--surface); color: var(--fg); border: var(--tabbar-rim); }
+.b-blocks .tile-offer .tile-offer-value { font-size: var(--fs-big); font-weight: 600; line-height: 1; color: var(--accent-text); }
+.b-blocks .tile-offer p { font-weight: 600; }

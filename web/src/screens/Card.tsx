@@ -76,6 +76,7 @@ export function Card(
           disabled={busy || (like !== null && like.state !== "refused")}
           onClick={() => void doLike()}
           data-testid="like"
+          data-lit={like !== null && like.state !== "refused" ? "" : undefined}
         />
       </Actions>
     </Screen>

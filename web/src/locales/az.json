@@ -91,7 +91,7 @@
   "web.card.complained": "Şikayət göndərildi. Qərar e-poçta gələcək.",
   "web.card.complaint_refused": "Şikayət qəbul edilmədi ({status}).",
   "web.card.conditions": "şərtlər: {conditions}",
-  "web.card.like": "♥ bəyən",
+  "web.card.like": "bəyən",
   "web.card.liked": "Bəyənmə göndərildi. Bir-birinizi bəyənsəniz — uyğunluq olacaq.",
   "web.card.matched": "Uyğunluq! Danışmaq təklifi gələnlərdə gözləyir.",
   "web.card.soon": " · tezliklə yox olacaq",

@@ -113,7 +113,7 @@
 .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting { min-height: var(--me-hero-h); padding: 0 0 0 var(--s-2); gap: var(--me-hero-gap); border-color: transparent; background: transparent; }
 .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-icon { inline-size: var(--me-hero-glyph); block-size: var(--me-hero-glyph); padding: var(--me-hero-pad); transform: rotate(-6deg); box-shadow: var(--cell-shadow); }
 .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-label, .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-chevron { display: none; }
-.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-value { margin: 0; color: var(--fg); font-family: "Russo One", "Golos Text", sans-serif; font-size: var(--title-fs); }
+.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-value { margin: 0; color: var(--fg); font-family: "Golos Text", sans-serif; font-weight: 600; font-size: var(--title-fs); }
 .b-stickers[data-screen="me"] .ui-setting-danger, .b-stickers li[data-row="reset"] .ui-setting { color: var(--danger); }
 
 /* Every button and the code field are stickers too, as on the sheets of 02.10:
@@ -133,8 +133,10 @@
     var(--bg);
 }
 
-/* The screen's title: Russo One 22. */
-:root[data-brand="neighbro"] .ui-header-title { font-family: "Russo One", "Golos Text", sans-serif; font-size: var(--title-fs); font-weight: 400; }
+/* The screen's title: Golos 600 22. Russo One stays only in the brand's name under the mark
+   (owner 11.10.2026: «the big letters are smeared, hard to read»). */
+:root[data-brand="neighbro"] .ui-header-title { font-family: "Golos Text", sans-serif; font-size: var(--title-fs); font-weight: 600; }
+:root[data-brand="neighbro"] [data-screen="splash"] [data-part="word"] { font-family: "Russo One", "Golos Text", sans-serif; font-weight: 400; }
 
 /* A round icon button: a circle r26 on --surface, die-cut. */
 :root[data-brand="neighbro"] .ui-button.ui-icon-only:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
@@ -205,3 +207,12 @@
 /* The heart stuck on the accent card is a white sticker on every sheet
    (sticker_on_accent); in a dark theme --surface is dark, so it takes --fg. */
 :root[data-brand="neighbro"]:is([data-theme^="dark"], [data-theme="mono-dark"]) [data-screen="card"] .stuck-heart { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+
+/* A venue's offer in the feed (sheets adaptive-neighbro-feed, 11.10.2026): the discount as an accent tag
+   stuck on the card, die-cut and a little tilted; the conditions muted. */
+.b-stickers .sticker-offer .sticker-offer-tag {
+  align-self: flex-start; padding: var(--s-1) var(--s-3); border-radius: var(--r-1); transform: rotate(-4deg);
+  background: var(--accent); color: var(--accent-fg); font-size: var(--fs-title); font-weight: 600;
+  border: var(--btn-rim); box-shadow: var(--btn-shadow);
+}
+.b-stickers .sticker-offer .sticker-foot { color: var(--fg-muted); }

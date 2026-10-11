@@ -91,7 +91,7 @@
   "web.card.complained": "Shikoyat yuborildi. Qaror pochtaga keladi.",
   "web.card.complaint_refused": "Shikoyat qabul qilinmadi ({status}).",
   "web.card.conditions": "shartlar: {conditions}",
-  "web.card.like": "♥ yoqdi",
+  "web.card.like": "yoqdi",
   "web.card.liked": "Layk yuborildi. Bir-biringizga yoqsangiz — moslik bo‘ladi.",
   "web.card.matched": "Moslik! Gaplashish taklifi kiruvchilarda kutmoqda.",
   "web.card.soon": " · tez orada yo‘qoladi",

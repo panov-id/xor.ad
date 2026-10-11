@@ -11,6 +11,13 @@
   --focus-w: 3px;
   --fs-meta: 0.875rem; --fs-body: 1rem; --fs-title: 1.25rem; --fs-card: 1.25rem; --fs-big: 2.25rem;
   --dur-1: 160ms;
+  /* The adaptive splash and the brand's mark (owner 11.10.2026, sheets panel/design/adaptive-*.svg):
+     the mark 160 on a phone, 200 from 640, 440 in the poster from 1440; the entry 440 at most;
+     the brand's name 40 / 72 under the mark; the poster's side margin 64. */
+  --mark-hero: 160px; --mark-hero-md: 200px; --mark-hero-xl: 440px;
+  --entry-w: 440px; --poster-min-h: 280px; --poster-pad: 64px;
+  --fs-word: 2.5rem; --fs-word-xl: 4.5rem; --fs-hero: 2.5rem;
+  --mark-drop: 24px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { Icon } from "./Icon.tsx";
+import { Mark } from "./Mark.tsx";
 
 // What a screen hangs on the live step: a role, a testid, the step's own value
 // for the specs (the feed's data-step, WD8).
@@ -16,6 +17,8 @@ type StepProps = HTMLAttributes<HTMLSpanElement> & { [data: `data-${string}`]: s
 export function HeaderFeed({ place, step, action, stepProps }: { place: string; step: string; action?: ReactNode; stepProps?: StepProps }) {
   return (
     <header className="ui-header">
+      {/* the brand's mark before the place, 32, below 1024; from 1024 it is at the rail's top (adaptive.css) */}
+      <Mark size={32} place="header" />
       <h1 className="ui-header-title">
         {place}{step ? <span aria-hidden="true"> · </span> : null}<span aria-live="polite" {...stepProps}>{step}</span>
       </h1>

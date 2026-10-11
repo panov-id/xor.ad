@@ -91,7 +91,7 @@
   "web.card.complained": "Complaint sent. The decision will come by email.",
   "web.card.complaint_refused": "Complaint not accepted ({status}).",
   "web.card.conditions": "terms: {conditions}",
-  "web.card.like": "♥ like",
+  "web.card.like": "like",
   "web.card.liked": "Like sent. If you like each other, it’s a match.",
   "web.card.matched": "A match! An offer to talk is waiting in your inbox.",
   "web.card.soon": " · vanishing soon",

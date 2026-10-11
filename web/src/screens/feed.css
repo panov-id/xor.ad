@@ -74,8 +74,8 @@
    the foot, all 343 wide — the sheet's upper half is its icon cycle. */
 .screen[data-screen="splash"] { justify-content: flex-end; padding-bottom: var(--s-3); }
 [data-screen="splash"] h1 { font-size: 16px; font-weight: 400; color: var(--muted); margin: 0; }
-[data-screen="splash"] > p { margin: calc(-1 * var(--s-3)) 0 var(--s-2); font-size: 16px; color: var(--muted); }
-[data-screen="splash"] > .ui-button { width: 100%; }
+[data-screen="splash"] [data-part="entry"] > p { margin: calc(-1 * var(--s-3)) 0 var(--s-2); font-size: 16px; color: var(--muted); }
+[data-screen="splash"] [data-part="entry"] > .ui-button { width: 100%; }
 
 /* WS1, sheet 01: the language code in the corner (44 at 315,12 — a name, not a
    switch: the web has none), and the icon cycle filling the upper half: two

@@ -12,7 +12,10 @@
 import type { ReactNode } from "react";
 import { say } from "../api/me.ts";
 import { chooseLanguage, LANG, LANGUAGES, languageName } from "../locales/say.ts";
+import { BRAND } from "../config.ts";
 import { Button } from "../ui/Button.tsx";
+import { Mark } from "../ui/Mark.tsx";
+import "./splash.css";
 import { Illustration } from "../ui/Illustration.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { Select } from "../ui/Select.tsx";
@@ -41,15 +44,24 @@ export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; 
           onChange={chooseLanguage}
         />
       </div>
-      <div data-part="icons" aria-hidden="true">
-        {ICONS.map((icon, i) => <Illustration key={i} viewBox="0 0 56 56" size={87}>{icon}</Illustration>)}
+      {/* The poster (owner 11.10.2026): the brand's own mark is the hero, its name under it; the
+          neighbourhood icons stay as a quiet cast around it. From 1440 the poster takes the left
+          half and the entry the right (adaptive.css). */}
+      <div data-part="poster" aria-hidden="true">
+        <div data-part="icons">
+          {ICONS.map((icon, i) => <Illustration key={i} viewBox="0 0 56 56" size={87}>{icon}</Illustration>)}
+        </div>
+        <Mark size={160} place="splash" />
+        <p data-part="word">{BRAND}</p>
       </div>
-      <h1>{say("web.splash.tagline")}</h1>
-      <p>{say("web.splash.vanishes")}</p>
-      <Button type="button" kind="primary" icon="watch" className="ui-wide" aria-label={say("web.splash.start")} onClick={onStart} data-testid="start" />
-      <div className="ui-icon-row">
-        <Button type="button" icon="key" className="ui-wide" aria-label={say("web.splash.haveCode")} onClick={onRestore} data-testid="restore" />
-        <Button type="button" icon="arrive" className="ui-wide" aria-label={say("web.splash.arrive")} onClick={onArrive} data-testid="arrive" />
+      <div data-part="entry">
+        <h1>{say("web.splash.tagline")}</h1>
+        <p>{say("web.splash.vanishes")}</p>
+        <Button type="button" kind="primary" icon="watch" className="ui-wide" aria-label={say("web.splash.start")} onClick={onStart} data-testid="start" />
+        <div className="ui-icon-row">
+          <Button type="button" icon="key" className="ui-wide" aria-label={say("web.splash.haveCode")} onClick={onRestore} data-testid="restore" />
+          <Button type="button" icon="arrive" className="ui-wide" aria-label={say("web.splash.arrive")} onClick={onArrive} data-testid="arrive" />
+        </div>
       </div>
     </Screen>
   );

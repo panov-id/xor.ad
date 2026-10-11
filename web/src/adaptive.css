@@ -1,0 +1,119 @@
+/* Adaptive layout (owner 11.10.2026: phone, tablet, big screen, ultrawide). Decided by quorum and the
+   owner on the sheets panel/design/adaptive-*.svg (scripts/design/adaptive-sheets.py):
+     < 640      the phone column as it is — nothing in this file applies;
+     640–1023   column up to 720, lists in 2 columns, the tab bar stays at the foot (480 at most);
+     >= 1024    the tab bar becomes a left rail 112, icon over word;
+     >= 1440    lists in 3 columns, content up to 1280;
+     >= 2560    4 columns, content up to 1600 (and on 3440); sosed's wide tile only from 4 columns.
+   Chat, forms, card, game: one column of 640 at most at any width.
+   Only additive media queries; every selector starts with html:root[data-brand] so it outranks the
+   brands' own :root[data-brand=…] rules whatever the order the sheets load in. */
+:root { --rail-w: 112px; --col-read: 640px; --col-list: 720px; }
+/* The like is the storefront's mark (ui/Icon.tsx): its windows (sosed) or lines (neighbro) light when the
+   like is given — one by one, once, 60 ms apart; at once under reduced motion; nothing moves at rest. */
+[data-lit] .ui-glyph[data-icon="like"] .f { fill: currentColor; }
+@media (prefers-reduced-motion: no-preference) {
+  [data-lit] .ui-glyph[data-icon="like"] .f { animation: like-window var(--dur-1) steps(1) both; }
+  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(2) { animation-delay: 60ms; }
+  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(3) { animation-delay: 120ms; }
+  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(4) { animation-delay: 180ms; }
+  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(5) { animation-delay: 240ms; }
+  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(6) { animation-delay: 300ms; }
+}
+@keyframes like-window { from { fill: transparent; } to { fill: currentColor; } }
+
+/* the mark lives in the rail only; the bar at the foot carries none (quorum 11.10) */
+.tabbar .ui-mark[data-place="rail"] { display: none; }
+.ui-mark[data-place="form"] { display: none; }
+@media (min-width: 640px) { .ui-mark[data-place="form"] { display: block; margin: 0 auto var(--s-4); } }
+.ui-header .ui-mark[data-place="header"] { flex: 0 0 auto; margin-right: var(--s-2); }
+@media (min-width: 1024px) { .ui-tabbed .ui-header .ui-mark[data-place="header"] { display: none; } }
+
+@media (min-width: 640px) {
+  /* every screen: a readable column */
+  html:root[data-brand] .screen { max-width: var(--col-read); padding-inline: var(--s-6); }
+  /* the lists: wider, in columns */
+  html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]).screen { max-width: var(--col-list); }
+  html:root[data-brand] [data-screen="feed"] :is(.tiles, .stickers),
+  html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]) .ui-cards {
+    display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); grid-auto-flow: row dense; align-items: start;
+  }
+  /* sosed's wide tile: one cell until there are 4 columns (owner 11.10, 1b) */
+  html:root[data-brand="sosed"] [data-screen="feed"] .tiles .tile-wide { grid-column: auto; }
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) { max-width: 480px; }
+  html:root[data-brand="sosed"] .tabbar:not([data-testid="kit-tabbar"]) { left: 0; right: 0; margin-inline: auto; }
+  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) { max-width: none; }
+  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab { max-width: 120px; }
+  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) { justify-content: center; }
+}
+
+@media (min-width: 640px) {
+  /* «me»: the settings in pairs at any width above the phone, both brands (sheets adaptive-*-me-1440) */
+  html:root[data-brand="neighbro"] [data-screen="me"] .ui-list { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+  html:root[data-brand="neighbro"] [data-screen="me"] .ui-list > li[data-row="name"],
+  html:root[data-brand="neighbro"] [data-screen="me"] .ui-list > li[data-row="reset"] { grid-column: 1 / -1; }
+}
+
+@media (min-width: 1024px) {
+  /* the dots' legend beside the board, not under it */
+  html:root[data-brand] [data-part="dots-board"] { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-6); align-items: start; }
+  html:root[data-brand] [data-part="dots-board"] [data-testid="dots-legend"] { position: sticky; top: var(--s-6); margin: 0; }
+  /* the rail: the same nav, the same tabs and test ids, standing on the left */
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) {
+    top: 0; bottom: 0; left: 0; right: auto; width: var(--rail-w); max-width: none; height: auto; margin: 0;
+    flex-direction: column; justify-content: flex-start; align-items: center; gap: var(--s-4);
+    padding: var(--s-6) 0; border-top: 0; border-right: 2px solid var(--surface-2); border-radius: 0; box-shadow: none;
+  }
+  html:root[data-brand="sosed"] .tabbar:not([data-testid="kit-tabbar"]) {
+    top: var(--s-4); bottom: var(--s-4); left: var(--s-4); width: calc(var(--rail-w) - var(--s-4));
+    border: var(--tabbar-rim); box-shadow: var(--tabbar-ring); border-radius: 32px;
+  }
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .ui-mark[data-place="rail"] { display: block; flex: 0 0 auto; margin-bottom: var(--s-6); }
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab { flex: 0 0 auto; width: 80px; max-width: none; height: 64px; justify-content: center; }
+  /* the word stays drawn under the icon in the rail (owner 11.10, 5a), both brands */
+  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab span {
+    position: static; width: auto; height: auto; overflow: visible; clip-path: none; margin-top: 4px; font-size: 14px; z-index: 1;
+  }
+  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab[aria-current="page"]::after { width: 72px; height: 60px; margin: -30px 0 0 -36px; }
+  /* what has the rail moves right of it */
+  html:root[data-brand] .ui-tabbed { padding-left: var(--rail-w); }
+  html:root[data-brand] .ui-tabbed .screen { padding-bottom: var(--s-6); }
+  html:root[data-brand] .ui-tabbed .screen[data-screen="feed"] { padding-bottom: var(--s-6); }
+  /* «write» sits at the rail's foot */
+  html:root[data-brand] .ui-tabbed [data-screen="feed"] [data-testid="write"] {
+    left: calc((var(--rail-w) + (var(--s-4) / 2) - var(--fab)) / 2); right: auto; bottom: var(--s-8, 32px); z-index: 11;
+  }
+  html:root[data-brand="neighbro"] .ui-tabbed [data-screen="feed"] [data-testid="write"] { left: calc((var(--rail-w) - var(--fab)) / 2); }
+}
+
+@media (min-width: 1440px) {
+  html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]).screen { max-width: 1280px; }
+  html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]) { --cols: 3; }
+}
+
+@media (min-width: 2560px) {
+  /* The brand's ground at the very edge, small and sparse (owner 11.10, 2c): two bands of 96 that never
+     reach the content; pale tiles for sosed, pale round stickers for neighbro, in the theme's own colours. */
+  html:root[data-brand] body::before, html:root[data-brand] body::after {
+    content: ""; position: fixed; top: 0; bottom: 0; width: 96px; opacity: 0.16; pointer-events: none; z-index: 0;
+  }
+  html:root[data-brand] body::before { left: calc(var(--rail-w) + var(--s-6)); }
+  html:root[data-brand] body::after { right: var(--s-6); background-position: 0 170px; }
+  html:root[data-brand="sosed"] body::before, html:root[data-brand="sosed"] body::after {
+    background:
+      linear-gradient(var(--tile-1), var(--tile-1)) 0 80px / 64px 48px no-repeat,
+      linear-gradient(var(--tile-2), var(--tile-2)) 24px 420px / 72px 64px no-repeat,
+      linear-gradient(var(--tile-3), var(--tile-3)) 0 760px / 64px 80px no-repeat,
+      linear-gradient(var(--tile-4), var(--tile-4)) 24px 1100px / 72px 48px no-repeat;
+  }
+  html:root[data-brand="neighbro"] body::before, html:root[data-brand="neighbro"] body::after {
+    background:
+      radial-gradient(circle, var(--tile-1) 0 22px, transparent 23px) 0 60px / 64px 64px no-repeat,
+      radial-gradient(circle, var(--tile-2) 0 18px, transparent 19px) 32px 420px / 64px 64px no-repeat,
+      radial-gradient(circle, var(--tile-3) 0 26px, transparent 27px) 0 760px / 64px 64px no-repeat,
+      radial-gradient(circle, var(--tile-4) 0 20px, transparent 21px) 32px 1100px / 64px 64px no-repeat;
+  }
+  html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]).screen { max-width: 1600px; }
+  html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]) { --cols: 4; }
+  html:root[data-brand="sosed"] [data-screen="feed"] .tiles .tile-wide { grid-column: span 2; }
+}

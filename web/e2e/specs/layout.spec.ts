@@ -30,7 +30,9 @@ test("the feed, the conversations and 'me' start with their band at y 0 and thei
   await register(page, { name: "Ева", age: "29" });
   // The gold comic's sky (200) and plate (76) are gone (02.10.2026): every
   // band is the kit's header again, 56 tall, the feed's too.
-  await measure(page, "feed", ":scope > header", ":scope > header h1");
+  // The feed's band opens with the brand's mark before the place (owner 11.10.2026, sheets
+  // adaptive-*-feed-393): what starts at 16 is the band's first thing, the mark.
+  await measure(page, "feed", ":scope > header", ":scope > header > :first-child");
   await page.getByTestId("nav-inbox").click();
   await measure(page, "inbox", ":scope > header", ":scope > header h1");
   await page.getByTestId("tab-me").click();

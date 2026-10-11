@@ -91,7 +91,7 @@
   "web.card.complained": "Шағым жіберілді. Шешім поштаға келеді.",
   "web.card.complaint_refused": "Шағым қабылданбады ({status}).",
   "web.card.conditions": "шарттар: {conditions}",
-  "web.card.like": "♥ ұнайды",
+  "web.card.like": "ұнайды",
   "web.card.liked": "Лайк жіберілді. Бір-біріңізге ұнасаңыз — сәйкестік болады.",
   "web.card.matched": "Сәйкестік! Сөйлесу ұсынысы кірістерде күтіп тұр.",
   "web.card.soon": " · жақында жоғалады",

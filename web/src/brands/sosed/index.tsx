@@ -6,7 +6,7 @@
 // the shared hooks (screens/logic); this file only draws.
 
 import { useState, type ComponentProps } from "react";
-import { languageIn, modes } from "../../api/actions.ts";
+import { languageIn, modeIcon, modes } from "../../api/actions.ts";
 import { say } from "../../locales/say.ts";
 import { Feed, type FeedCard } from "../../screens/Feed.tsx";
 import { CardOpen, openerIds } from "../../ui/Card.tsx";
@@ -70,6 +70,16 @@ const likesOf = (n: number) => (
 
 // Feed.svg: a wide tile, then two columns; the colours walk tile-1..4.
 function Tile({ card, index, open }: { card: FeedCard; index: number; open: () => void }) {
+  // A venue's offer (sheets adaptive-sosed-feed, 11.10.2026): on the surface, the discount big in
+  // accent-text, the venue and what, the conditions small; no mode and no like — it is no neighbour's phrase.
+  if (card.kind === "offer" && card.offer) return (
+    <li className="tile tile-offer" data-testid="card" data-id={card.id} data-kind="offer">
+      <CardOpen id={card.id} onOpen={open} />
+      <span className="ui-offer tile-offer-value" data-testid="offer">−{card.offer.discount_value}</span>
+      <p id={openerIds(card.id).text} lang={langOf(card)}>{card.offer.venue_name ? `${card.offer.venue_name}: ` : ""}{card.text}</p>
+      <span className="tile-foot ui-hint" id={openerIds(card.id).foot}>{card.offer.conditions ?? ""}</span>
+    </li>
+  );
   const wide = index % 5 === 0;
   return (
     <li
@@ -81,7 +91,7 @@ function Tile({ card, index, open }: { card: FeedCard; index: number; open: () =
       {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="tile-foot" id={openerIds(card.id).foot}>
-        <span className="ui-icon-row"><Icon name="me" size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
+        <span className="ui-icon-row"><Icon name={modeIcon(card.mode)} size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
         <span className="tile-likes">{likesOf(card.like_count)}</span>
       </span>
     </li>
@@ -114,7 +124,7 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
       {peek && (
         <section className="block-peek" data-testid="details" aria-label={say("web.card.details")}>
           <ul className="block-peek-tiles" role="list">
-            <li className="block-peek-tile t2"><Icon name="me" /><span>{modeLabel(card.mode)}</span></li>
+            <li className="block-peek-tile t2"><Icon name={modeIcon(card.mode)} /><span>{modeLabel(card.mode)}</span></li>
             <li className="block-peek-tile t1"><Icon name="like" /><span data-testid="like-burst">{card.like_count + (liked ? 1 : 0)}</span></li>
             {languageIn(card.lang) && <li className="block-peek-tile t3"><Icon name="say" /><span lang={langOf(card)}>{languageIn(card.lang)}</span></li>}
             {card.soon && <li className="block-peek-tile t4"><Icon name="timer" /><span>{say("web.card.soon")}</span></li>}
@@ -135,7 +145,7 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
           <span className="block-grip" aria-hidden="true" />
           {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
           <p className="ui-big" data-testid="text" lang={langOf(card)}>{card.text}</p>
-          <span className="block-mode"><Icon name="me" />{modeLabel(card.mode)}</span>
+          <span className="block-mode"><Icon name={modeIcon(card.mode)} />{modeLabel(card.mode)}</span>
           {card.soon && <span className="block-soon">{say("web.card.soon")}</span>}
         </article>
       </div>
@@ -145,7 +155,7 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
         <Button type="button" icon="hide" className="block-btn" aria-label={say("feed.hide")} disabled={busy} onClick={() => void hide()} data-testid="hide" />
         <Button type="button" icon={peek ? "back" : "open"} className={`block-btn block-peek-btn${peek ? " up" : ""}`} aria-label={say("web.card.details")} aria-expanded={peek}
           onClick={() => setPeek((p) => !p)} data-testid="peek" />
-        <Button type="button" icon="like" className="block-btn block-like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" />
+        <Button type="button" icon="like" className="block-btn block-like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" data-lit={liked ? "" : undefined} />
       </div>
       <Actions>
         <CardExtras card={card} logic={logic} />

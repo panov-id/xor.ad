@@ -1,0 +1,47 @@
+/* The splash's poster (owner 11.10.2026, sheets panel/design/adaptive-*-splash-*.svg): the brand's
+   mark is the hero — 160 on a phone, 200 from 640, 440 in the poster from 1440 — its name under it,
+   the neighbourhood icons a quiet cast behind it. The entry (words and the ways in) keeps the phone's
+   width, 440 at most. One entrance when the page opens; standing still under reduced motion.
+   Sizes are tokens (tokens.css); the two breakpoints are the only px here — a media query takes no var(). */
+[data-screen="splash"] [data-part="poster"] {
+  position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--s-3); min-height: var(--poster-min-h);
+}
+[data-screen="splash"] [data-part="poster"] [data-part="icons"] {
+  position: absolute; inset: 0; margin: 0; opacity: 0.16; pointer-events: none; align-content: space-between; row-gap: 0;
+}
+[data-screen="splash"] .ui-mark[data-place="splash"] { position: relative; width: var(--mark-hero); height: var(--mark-hero); }
+[data-screen="splash"] [data-part="word"] { position: relative; margin: 0; font-size: var(--fs-word); font-weight: 600; line-height: 1; color: var(--fg); }
+[data-screen="splash"] [data-part="entry"] { display: flex; flex-direction: column; gap: var(--s-3); width: 100%; max-width: var(--entry-w); margin-inline: auto; }
+
+/* The entrance: sosed's windows light one by one, neighbro's house drops in and settles. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-screen="splash"] .ui-mark[data-place="splash"][data-mark="sosed"] [data-window] { animation: mark-window var(--dur-1) steps(1) both; }
+  [data-screen="splash"] .ui-mark[data-place="splash"][data-mark="sosed"] [data-window="0"] { animation-delay: 0.15s; }
+  [data-screen="splash"] .ui-mark[data-place="splash"][data-mark="sosed"] [data-window="1"] { animation-delay: 0.27s; }
+  [data-screen="splash"] .ui-mark[data-place="splash"][data-mark="sosed"] [data-window="2"] { animation-delay: 0.39s; }
+  [data-screen="splash"] .ui-mark[data-place="splash"][data-mark="sosed"] [data-window="3"] { animation-delay: 0.51s; }
+  [data-screen="splash"] .ui-mark[data-place="splash"][data-mark="sosed"] [data-window="4"] { animation-delay: 0.63s; }
+  [data-screen="splash"] .ui-mark[data-place="splash"][data-mark="sosed"] [data-window="5"] { animation-delay: 0.75s; }
+  [data-screen="splash"] .ui-mark[data-place="splash"][data-mark="neighbro"] { animation: mark-drop 0.6s cubic-bezier(.2, 1.4, .4, 1) both; }
+}
+@keyframes mark-window { from { fill: var(--accent-fg); } to { fill: var(--accent); } }
+@keyframes mark-drop { from { transform: translateY(calc(-1 * var(--mark-drop))) rotate(-6deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (min-width: 640px) {
+  [data-screen="splash"] .ui-mark[data-place="splash"] { width: var(--mark-hero-md); height: var(--mark-hero-md); }
+}
+
+/* From 1440: the poster takes the left half, the entry 440 the right (owner 11.10, 4a). */
+@media (min-width: 1440px) {
+  html:root[data-brand] .screen[data-screen="splash"] {
+    max-width: none; min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; align-items: center;
+    padding: var(--s-6) var(--poster-pad); text-align: left;
+  }
+  [data-screen="splash"] [data-part="poster"] { height: calc(100vh - 2 * var(--s-6)); }
+  [data-screen="splash"] .ui-mark[data-place="splash"] { width: min(var(--mark-hero-xl), 50vh); height: min(var(--mark-hero-xl), 50vh); }
+  [data-screen="splash"] [data-part="word"] { font-size: var(--fs-word-xl); }
+  [data-screen="splash"] [data-part="entry"] { justify-self: center; }
+  [data-screen="splash"] [data-part="entry"] h1 { font-size: var(--fs-word); font-weight: 600; color: var(--fg); }
+  [data-screen="splash"] [data-part="lang"] { right: var(--poster-pad); }
+}

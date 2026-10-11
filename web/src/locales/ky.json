@@ -91,7 +91,7 @@
   "web.card.complained": "Даттануу жөнөтүлдү. Чечим почтага келет.",
   "web.card.complaint_refused": "Даттануу кабыл алынган жок ({status}).",
   "web.card.conditions": "шарттар: {conditions}",
-  "web.card.like": "♥ жагат",
+  "web.card.like": "жагат",
   "web.card.liked": "Лайк жөнөтүлдү. Бири-бириңизге жакса — дал келүү болот.",
   "web.card.matched": "Дал келүү! Сүйлөшүү сунушу кирүүчүлөрдө күтүп турат.",
   "web.card.soon": " · жакында жоголот",

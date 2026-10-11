@@ -320,6 +320,18 @@ components:
         - {$ref: "#/components/schemas/Page"}
         - properties:
             items: {type: array, items: {$ref: "#/components/schemas/TableCard"}}
+            mine:
+              type: array
+              description: "First page only (no `after`): the caller's own tables — where they sit and what they liked — wherever they stand, full or not, open ones only, newest first, at most 50 (П18b, 2026-10-11). items never holds these."
+              x-description-ru: "Только на первой странице (без `after`): свои столы — где сидит и что лайкнул — где бы ни стояли, полные тоже, только открытые, новые сначала, не больше 50 (П18b, 11.10.2026). В items их нет."
+              items:
+                allOf:
+                  - {$ref: "#/components/schemas/TableCard"}
+                  - type: object
+                    required: [seated, liked]
+                    properties:
+                      seated: {type: boolean}
+                      liked: {type: boolean}
     TableCreate:
       type: object
       description: Set a table (chat spec §6.1, schema tables). Field names proposed 2026-09-16.

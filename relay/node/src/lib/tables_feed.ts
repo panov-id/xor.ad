@@ -71,6 +71,11 @@ function visibleTables(extra: string, tail: string): string {
 function cardOf(row: TableRow, at: { lat: number; lon: number }, radius: number): TableCard | null {
   const published = quantise({ lat: row.lat, lon: row.lon }, row.area_radius);
   if (metresBetween(published, at) > row.area_radius + radius) return null;
+  return plainCard(row);
+}
+
+function plainCard(row: Omit<TableRow, "created_cursor">): TableCard {
+  const published = quantise({ lat: row.lat, lon: row.lon }, row.area_radius);
   return {
     kind: "table",
     id: row.id,
@@ -119,7 +124,18 @@ export async function tablesForFeed(
 // one read may keep fewer rows than it fetched — it reads on until the page is
 // full or the rows end. The page's cursor is its last *shown* table: a row
 // skipped after it is skipped again on the next page, never lost.
-const SCAN = 100;
+let SCAN = 100;
+// A read stops after this many portions even if the page is not full: a circle
+// that cuts away almost every row of a dense box would otherwise read the box
+// whole (verifier of P18, 10.10.2026). The page then ends short, with a cursor
+// from where the reading stopped, so the next page goes on from there.
+let SCANS = 10;
+
+// Only for tests: a cap small enough to reach without a thousand tables.
+export function scanLimits(portion = 100, portions = 10): void {
+  SCAN = portion;
+  SCANS = portions;
+}
 
 export async function tablesPage(
   viewer: string,
@@ -132,7 +148,7 @@ export async function tablesPage(
   const cards: TableCard[] = [];
   const keys: { micros: string; id: string }[] = [];
   let scan = after;
-  for (;;) {
+  for (let portion = 0; ; portion++) {
     const rows = await query<TableRow>(
       visibleTables(
         `AND ($6::bigint IS NULL OR (t.created_at, t.id) <
@@ -153,6 +169,7 @@ export async function tablesPage(
     if (rows.length < SCAN) break;
     const end = rows[rows.length - 1];
     scan = { micros: end.created_cursor, id: end.id };
+    if (portion + 1 >= SCANS) return { cards, last: scan, more: true };
   }
   return { cards, last: keys[keys.length - 1] ?? null, more: false };
 }
@@ -177,4 +194,33 @@ export function interleave<T>(cards: T[], tables: TableCard[]): (T | TableCard)[
   });
   while (t < tables.length) out.push(tables[t++]);
   return out;
+}
+
+// The caller's own tables for the screen «Столы» (П18b): where they sit and
+// what they liked — the two the list above leaves out, because the feed shows
+// neither (one's own is one's own, a liked one is kept by the like). Wherever
+// they stand, full or not; open ones only. A table both sat at and liked is
+// one card with both marks.
+export interface MyTableCard extends TableCard {
+  seated: boolean;
+  liked: boolean;
+}
+
+export async function myTables(viewer: string): Promise<MyTableCard[] | null> {
+  const rows = await query<Omit<TableRow, "created_cursor"> & { seated: boolean; liked: boolean }>(
+    `SELECT t.id, t.game, t.set, t.seats, t.name, t.like_count, t.lat, t.lon, t.area_radius,
+            (SELECT count(*) FROM table_seats s WHERE s.table_id = t.id AND s.left_at IS NULL AND s.playing_from IS NOT NULL)::int AS playing,
+            (SELECT count(*) FROM table_seats s WHERE s.table_id = t.id AND s.left_at IS NULL AND s.playing_from IS NULL)::int AS watching,
+            EXISTS (SELECT 1 FROM table_seats m WHERE m.table_id = t.id AND m.identity = $1 AND m.left_at IS NULL) AS seated,
+            EXISTS (SELECT 1 FROM table_likes l WHERE l.table_id = t.id AND l.identity = $1) AS liked
+       FROM tables t
+      WHERE t.closed_at IS NULL
+        AND (EXISTS (SELECT 1 FROM table_seats m WHERE m.table_id = t.id AND m.identity = $1 AND m.left_at IS NULL)
+          OR EXISTS (SELECT 1 FROM table_likes l WHERE l.table_id = t.id AND l.identity = $1))
+      ORDER BY t.created_at DESC, t.id DESC
+      LIMIT 50`,
+    [viewer],
+  );
+  if (rows === null) return null;
+  return rows.map((row) => ({ ...plainCard(row), seated: row.seated, liked: row.liked }));
 }

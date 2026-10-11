@@ -19,7 +19,7 @@ import { type Caller, callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { checkAll, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { cursorConfigured, openCursor, sealCursor } from "../lib/cursor.ts";
-import { tablesPage } from "../lib/tables_feed.ts";
+import { myTables, tablesPage } from "../lib/tables_feed.ts";
 import { log } from "../lib/log.ts";
 import { stepGame } from "../lib/tables_engine.ts";
 import { readText, verdictMode } from "../lib/feed_verdict.ts";
@@ -582,8 +582,9 @@ async function list(req: Request): Promise<Response> {
   if (url.searchParams.get("lon") === null || !Number.isFinite(lon) || lon < -180 || lon > 180) {
     return refuse("invalid_body", "lon is missing or not a longitude", 400);
   }
-  if (!Number.isFinite(radius) || radius < 100 || radius > LIST_RADIUS_CEILING) {
-    return refuse("invalid_body", `radius must be between 100 and ${LIST_RADIUS_CEILING} metres`, 400);
+  // Whole metres, as the openapi says (verifier of P18: a fraction slipped through).
+  if (!Number.isInteger(radius) || radius < 100 || radius > LIST_RADIUS_CEILING) {
+    return refuse("invalid_body", `radius must be whole metres between 100 and ${LIST_RADIUS_CEILING}`, 400);
   }
   if (!cursorConfigured()) return refuse("unavailable", "the node cannot answer right now", 503);
   const after = url.searchParams.get("after");
@@ -594,9 +595,13 @@ async function list(req: Request): Promise<Response> {
   }
   const page = await tablesPage(caller.identityId, { lat, lon }, radius, from, LIST_PAGE);
   if (!page) return refuse("unavailable", "the node cannot answer right now", 503);
+  // One's own tables (П18b), on the first page only, wherever they stand.
+  const mine = from ? null : await myTables(caller.identityId);
+  if (!from && !mine) return refuse("unavailable", "the node cannot answer right now", 503);
   return json({
     items: page.cards,
     next: page.more && page.last ? await sealCursor("tables", page.last.micros, page.last.id) : null,
+    ...(mine ? { mine } : {}),
   }, 200, sunsetHeader());
 }
 

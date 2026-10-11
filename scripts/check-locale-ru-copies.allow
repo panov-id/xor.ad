@@ -127,7 +127,6 @@ kk	web	web.rank.J	standard card-rank term in this language
 kk	web	web.rank.Q	standard card-rank term in this language
 kk	web	web.rank.K	standard card-rank term in this language
 kk	web	web.duration.min	standard abbreviation of minute, unit
-ky	web	web.cabinet.email	established word in this language
 ky	web	web.cabinet.field.promo	international loanword, no native equivalent in use
 ky	web	web.cabinet.field.text	established word in this language
 ky	web	web.cabinet.radius	loanword plus unit symbol
@@ -144,7 +143,6 @@ ky	web	web.rank.J	standard card-rank term in this language
 ky	web	web.rank.Q	standard card-rank term in this language
 ky	web	web.rank.K	standard card-rank term in this language
 ky	web	web.rank.A	standard card-rank term in this language
-tg	web	web.cabinet.email	established word in this language
 tg	web	web.cabinet.field.promo	international loanword, no native equivalent in use
 tg	web	web.cabinet.radius	loanword plus unit symbol
 tg	web	web.card.back	established loan in tg (as in лентаи хабарҳо); consistent across depth/web

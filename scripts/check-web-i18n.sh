@@ -99,10 +99,7 @@ SAME_AS_RU = {
         "web.game.you",  # вы
         "web.game.your_turn",  # Ваш ход
         "web.newTable.set",  # набор
-        "web.table.boneyard",  # базар: {count}
         "web.table.card",  # карта {card}
-        "web.table.con_won",  # кон мой
-        "web.table.right",  # {bone} справа
         "web.card.phrase",  # фраза
         "web.ui.code",  # код
         "web.ui.you",  # вы
@@ -115,13 +112,9 @@ SAME_AS_RU = {
         "web.ui.code",  # код
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.radius",  # радиус, м
-        "web.chat.line",  # реплика
         "web.composer.mode",  # режим
         "web.feed.m",  # {n} м
-        "web.table.boneyard",  # базар: {count}
         "web.table.card",  # карта {card}
-        "web.table.piece",  # фишка x:y
-        "web.table.stock",  # колода: {count}
         "web.transfer.browser",  # браузер
     },
     "ky": {
@@ -131,17 +124,13 @@ SAME_AS_RU = {
         "web.rank.Q",  # дама
         "web.ui.system",  # система
         "web.ui.code",  # код
-        "web.cabinet.email",  # почта
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.field.text",  # текст
         "web.cabinet.radius",  # радиус, м
         "web.composer.mode",  # режим
         "web.feed.km",  # {n} км — was «чак.», which is not kilometres (W16-TR)
         "web.feed.m",  # {n} м
-        "web.table.boneyard",  # базар: {count}
         "web.table.card",  # карта {card}
-        "web.table.piece",  # фишка x:y
-        "web.table.stock",  # колода: {count}
         "web.transfer.browser",  # браузер
         "web.theme.item",  # тема
         "web.theme.title",  # Тема
@@ -151,7 +140,6 @@ SAME_AS_RU = {
         "web.rank.J",  # валет
         "web.rank.Q",  # дама
         "web.ui.system",  # система
-        "web.cabinet.email",  # почта
         "web.cabinet.field.promo",  # промокод
         "web.cabinet.radius",  # радиус, м
         "web.card.back",  # ← лента
@@ -173,7 +161,6 @@ SAME_AS_RU = {
         "web.rank.Q",  # дама
         "web.set.checkers",  # шашки
         "web.suit.C",  # треф
-        "web.suit.H",  # червей
         "web.table.cardName",  # {rank} {suit}
         "web.ui.system",  # система
         "web.cabinet.field.promo",  # промокод
@@ -189,7 +176,6 @@ SAME_AS_RU = {
         "web.offer.go",  # перейти на {domain}
         "web.register.done",  # готово
         "web.reissue.done",  # готово
-        "web.table.boneyard",  # базар: {count}
         "web.table.card",  # карта {card}
         "web.table.my_word",  # ваше слово: {word}
         "web.table.power",  # сила 1–7

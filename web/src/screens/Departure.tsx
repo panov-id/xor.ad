@@ -18,6 +18,7 @@ import { Info } from "../ui/Info.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Pair, Pairs } from "../ui/Pair.tsx";
 import { Screen } from "../ui/Screen.tsx";
+import { Split } from "../ui/Split.tsx";
 
 export function Departure({ client, onBack, onGone }: { client: Client; onBack: () => void; onGone: () => void }) {
   const [pin, setPin] = useState("");
@@ -75,19 +76,18 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
   const ending = ENDINGS[state];
   const title = say(state === "approved" ? "move.doneTitle" : "move.title");
   return (
-    <Screen name="departure" title={title} data-state={out ? state : "start"} header={<HeaderScreen title={title} />}>
+    <Screen name="departure" title={title} data-state={out ? state : "start"} header={state !== "approved" && (ending || !out) ? <HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} backTestid="move-back" /> : <HeaderScreen title={title} />}>
       {state === "approved"
         ? (
           <>
             <p data-testid="move-done">{say("move.done")}</p>
-            <Button kind="primary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onGone} data-testid="move-exit" />
+            <Split><Button kind="primary" type="button" icon="back" aria-label={say("common.back")} onClick={onGone} data-testid="move-exit" /></Split>
           </>
         )
         : ending
         ? (
           <>
             <p data-testid="move-ending">{say(ending)}</p>
-            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="move-back" />
           </>
         )
         : !out
@@ -100,7 +100,6 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
             <Notice data-testid="move-price">{say("move.price")}</Notice>
             <PinField label={say("pin.current")} value={pin} onChange={setPin} data-testid="move-pin" />
             <Button kind="primary" type="button" icon="code" className="ui-wide" aria-label={say("move.go")} disabled={pin.length !== 6 || busy} onClick={() => void open()} data-testid="move-go" />
-            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="move-back" />
           </>
         )
         : state === "claimed" && out.claimant
@@ -114,8 +113,10 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
             </Pairs>
             <p className="ui-hint">{say("move.checkAsk")}</p>
             <p className="ui-hint">{say("move.leaves")}</p>
-            <Button kind="primary" type="button" icon="check" className="ui-wide" aria-label={say("move.yes")} disabled={busy} onClick={() => void decide(true)} data-testid="move-yes" />
-            <Button kind="secondary" type="button" icon="close" className="ui-wide" aria-label={say("move.no")} disabled={busy} onClick={() => void decide(false)} data-testid="move-no" />
+            <Split>
+              <Button kind="primary" type="button" icon="check" aria-label={say("move.yes")} disabled={busy} onClick={() => void decide(true)} data-testid="move-yes" />
+              <Button kind="secondary" type="button" icon="close" aria-label={say("move.no")} disabled={busy} onClick={() => void decide(false)} data-testid="move-no" />
+            </Split>
           </>
         )
         : (
@@ -124,7 +125,7 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
             <p className="ui-hint">{say("move.codeWhere")}</p>
             <p className="ui-hint">{say("move.codeLife", { n: left })}</p>
             <p className="ui-hint">{say("move.nobody")}</p>
-            <Button kind="secondary" type="button" icon="close" className="ui-wide" aria-label={say("move.stop")} disabled={busy} onClick={() => void decide(false)} data-testid="move-stop" />
+            <Split><Button kind="secondary" type="button" icon="close" aria-label={say("move.stop")} disabled={busy} onClick={() => void decide(false)} data-testid="move-stop" /></Split>
           </>
         )}
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}

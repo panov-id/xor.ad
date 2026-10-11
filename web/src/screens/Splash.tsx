@@ -18,6 +18,7 @@ import { Mark } from "../ui/Mark.tsx";
 import "./splash.css";
 import { Illustration } from "../ui/Illustration.tsx";
 import { Screen } from "../ui/Screen.tsx";
+import { Split } from "../ui/Split.tsx";
 import { Select } from "../ui/Select.tsx";
 
 // The sheet's icons, drawn in a 56 box: home, bench, teapot, domino, knight,
@@ -58,10 +59,10 @@ export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; 
         <h1>{say("web.splash.tagline")}</h1>
         <p>{say("web.splash.vanishes")}</p>
         <Button type="button" kind="primary" icon="watch" className="ui-wide" aria-label={say("web.splash.start")} onClick={onStart} data-testid="start" />
-        <div className="ui-icon-row">
-          <Button type="button" icon="key" className="ui-wide" aria-label={say("web.splash.haveCode")} onClick={onRestore} data-testid="restore" />
-          <Button type="button" icon="arrive" className="ui-wide" aria-label={say("web.splash.arrive")} onClick={onArrive} data-testid="arrive" />
-        </div>
+        <Split>
+          <Button type="button" icon="key" aria-label={say("web.splash.haveCode")} onClick={onRestore} data-testid="restore" />
+          <Button type="button" icon="arrive" aria-label={say("web.splash.arrive")} onClick={onArrive} data-testid="arrive" />
+        </Split>
       </div>
     </Screen>
   );

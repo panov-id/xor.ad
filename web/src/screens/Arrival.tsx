@@ -15,7 +15,7 @@ import { CellField } from "../ui/CellField.tsx";
 import { PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
-import { Actions } from "../ui/Links.tsx";
+import { Split } from "../ui/Split.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import type { ReactNode } from "react";
 
@@ -28,7 +28,7 @@ export function Arrival({ onDone, onBack, hero }: { onDone: (client: Client, lon
   const ending = ENDINGS[state];
   const title = say(state === "approved" ? "move.arrivedTitle" : "move.inTitle");
   return (
-    <Screen name="arrival" title={title} header={<HeaderScreen title={title} />}>
+    <Screen name="arrival" title={title} header={!into || ending ? <HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} backTestid="arrive-back" /> : <HeaderScreen title={title} />}>
       {!into && hero}
       {!into
         ? (
@@ -36,17 +36,13 @@ export function Arrival({ onDone, onBack, hero }: { onDone: (client: Client, lon
             <div className="ui-info-row"><Info label={say("web.info.move")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info></div>
             <CellField label={say("move.code")} cells={9} value={code} onChange={(v) => setCode(v.slice(0, 13))} autoComplete="off" data-testid="arrive-code" />
             {busy && <p role="status">{say("move.deriving")}</p>}
-            <Actions>
-              <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />
-              <Button kind="primary" type="button" icon="open" className="ui-wide" aria-label={say("reg.next")} disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go" />
-            </Actions>
+            <Button kind="primary" type="button" icon="open" className="ui-wide" aria-label={say("reg.next")} disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go" />
           </>
         )
         : ending
         ? (
           <>
             <p data-testid="move-ending">{say(ending)}</p>
-            <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />
           </>
         )
         : state === "approved"
@@ -56,7 +52,7 @@ export function Arrival({ onDone, onBack, hero }: { onDone: (client: Client, lon
             <PinField label={say("web.pin.new")} value={pin} onChange={setPin} data-testid="arrive-pin" />
             <PinField label={say("web.pin.newAgain")} value={again} onChange={setAgain}
               error={pin.length === 6 && again.length === 6 && pin !== again ? say("reg.pinMismatch") : undefined} data-testid="arrive-pin-again" />
-            <Button kind="primary" type="button" icon="check" className="ui-wide" aria-label={say("reg.next")} disabled={!/^\d{6}$/.test(pin) || pin !== again || busy} onClick={() => void keep()} data-testid="arrive-keep" />
+            <Split><Button kind="primary" type="button" icon="check" aria-label={say("reg.next")} disabled={!/^\d{6}$/.test(pin) || pin !== again || busy} onClick={() => void keep()} data-testid="arrive-keep" /></Split>
           </>
         )
         : (

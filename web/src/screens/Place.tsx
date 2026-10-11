@@ -10,6 +10,7 @@ import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { Field } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Screen } from "../ui/Screen.tsx";
+import { Split } from "../ui/Split.tsx";
 
 export function Place({ current, onChosen, onBack }: { current: PlaceT; onChosen: (p: PlaceT) => void; onBack: () => void }) {
   const [q, setQ] = useState("");
@@ -50,13 +51,13 @@ export function Place({ current, onChosen, onBack }: { current: PlaceT; onChosen
         <ul className="ui-cards" data-testid="place-found">
           {found.map((p) => (
             <li key={`${p.name}-${p.cc}-${p.lat}`}>
-              <Button type="button" className="ui-wide" aria-label={`${p.name}, ${p.cc}`} onClick={() => choose(p)} data-testid="place-city">{p.name} · {p.cc}</Button>
+              <Button type="button" aria-label={`${p.name}, ${p.cc}`} onClick={() => choose(p)} data-testid="place-city">{p.name} · {p.cc}</Button>
             </li>
           ))}
         </ul>
       )}
       <Field label={say("web.place.point")} value={point} onChange={setPoint} autoComplete="off" data-testid="place-point" />
-      <Button type="button" icon="check" className="ui-wide" aria-label={say("web.place.use")} onClick={() => void fromPoint()} data-testid="place-use" />
+      <Split><Button type="button" icon="check" aria-label={say("web.place.use")} onClick={() => void fromPoint()} data-testid="place-use" /></Split>
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
     </Screen>
   );

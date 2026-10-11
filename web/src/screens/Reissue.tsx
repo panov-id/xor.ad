@@ -16,8 +16,8 @@ import { CodeField } from "../ui/CodeField.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
-import { Actions } from "../ui/Links.tsx";
 import { Screen } from "../ui/Screen.tsx";
+import { Split } from "../ui/Split.tsx";
 
 export function Reissue({ client, onDone, onBack }: { client: Client; onDone: () => void; onBack: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
@@ -69,17 +69,14 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
   }
 
   return (
-    <Screen name={`reissue-${step}`} title={say("reissue.title")} header={<HeaderScreen title={say("reissue.title")} />}>
+    <Screen name={`reissue-${step}`} title={say("reissue.title")} header={step === 1 ? <HeaderScreen title={say("reissue.title")} onBack={onBack} backLabel={say("common.back")} backTestid="reissue-back" /> : <HeaderScreen title={say("reissue.title")} />}>
       {step === 1
         ? (
           <>
             <div className="ui-info-row"><Info label={say("web.info.reissue")} data-testid="reissue-info"><p>{say("reissue.intro")}</p></Info></div>
             <div data-testid="reissue-current"><CodeField value={current} onChange={setCurrent} /></div>
             {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
-            <Actions>
-              <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="reissue-back" />
-              <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("me.save")} aria-busy={busy} disabled={busy || readPaperText(currentText).length !== 16} onClick={() => void check()} data-testid="reissue-next" />
-            </Actions>
+            <Split><Button type="button" kind="primary" icon="check" aria-label={say("me.save")} aria-busy={busy} disabled={busy || readPaperText(currentText).length !== 16} onClick={() => void check()} data-testid="reissue-next" /></Split>
           </>
         )
         : (
@@ -89,7 +86,7 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
             <p>{say("web.reissue.enterGroups")}</p>
             <div data-testid="reissue-groups"><CodeField groups={[2, 4]} value={typed} onChange={setTyped} /></div>
             {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
-            <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("web.reissue.done")} disabled={busy || !second || !fourth} onClick={() => void confirm()} data-testid="reissue-confirm" />
+            <Split><Button type="button" kind="primary" icon="check" aria-label={say("web.reissue.done")} disabled={busy || !second || !fourth} onClick={() => void confirm()} data-testid="reissue-confirm" /></Split>
           </>
         )}
     </Screen>

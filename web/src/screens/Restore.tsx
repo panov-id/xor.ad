@@ -14,7 +14,6 @@ import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
-import { Actions } from "../ui/Links.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
 
@@ -51,7 +50,7 @@ export function Restore({ onDone, onBack }: { onDone: (client: Client, longKey: 
 
   const typedSome = code.some((group) => group !== "");
   return (
-    <Screen name="restore" title={say("restore.title")} header={<HeaderScreen title={say("restore.title")} />}>
+    <Screen name="restore" title={say("restore.title")} header={<HeaderScreen title={say("restore.title")} onBack={onBack} backLabel={say("common.back")} backTestid="restore-back" />}>
       <div className="ui-info-row"><Info label={say("web.info.code")} data-testid="restore-info"><p>{say("restore.intro")}</p></Info></div>
       <div data-testid="restore-code"><CodeField value={code} onChange={setCode} /></div>
       {typedSome && !codeOk && <Notice>{say("restore.bad")}</Notice>}
@@ -60,10 +59,7 @@ export function Restore({ onDone, onBack }: { onDone: (client: Client, longKey: 
       <PinField label={say("web.pin.newAgain")} value={again} onChange={setAgain}
         error={pin.length === 6 && again.length === 6 && pin !== again ? say("reg.pinMismatch") : undefined} data-testid="restore-pin-again" />
       {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
-      <Actions>
-        <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="restore-back" />
-        <Button type="button" kind="primary" icon="key" className="ui-wide" aria-label={say("restore.go")} aria-busy={busy} disabled={!codeOk || !pinOk || busy} onClick={() => void go()} data-testid="restore-go" />
-      </Actions>
+      <Button type="button" kind="primary" icon="key" className="ui-wide" aria-label={say("restore.go")} aria-busy={busy} disabled={!codeOk || !pinOk || busy} onClick={() => void go()} data-testid="restore-go" />
     </Screen>
   );
 }

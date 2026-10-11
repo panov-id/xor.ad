@@ -29,19 +29,19 @@ import { THEMES } from "../themes.gen.ts";
 import { duration } from "../locales/duration.ts";
 import { chooseLanguage, LANG, LANGUAGES, languageName } from "../locales/say.ts";
 import "./place.css";
+import { Split } from "../ui/Split.tsx";
 
 // "filter" and "legal" open here, not through the parent (W14-AF, W13-LC):
 // the age filter and screen 15 are Me's own screens.
 export type MeRow = "statements" | "name" | "age" | "filter" | "hidden" | "blocked" | "legal" | "away" | "pin" | "move" | "reissue" | "reset" | "theme" | "lang";
 
-const back = (onBack: () => void, testid: string) => <Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid={testid} />;
-
-export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }: {
+export function Me({ client, restrictions, onOpen, refresh, brandClass }: {
   brandClass?: string;
   client: Client;
   restrictions: number;
   onOpen: (row: MeRow, current?: string) => void;
-  onBack: () => void;
+  // Me is a tab-bar root: no back (kept in the type for callers).
+  onBack?: () => void;
   // Bumped by a parent after an edit, so the profile is read again.
   refresh: number;
 }) {
@@ -92,7 +92,7 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
       title={say("me.title")}
       className={brandClass}
       data-name-state={profile ? (profile.pending ? "pending" : profile.state) : "accepted"}
-      header={<HeaderScreen title={say("me.title")} action={back(onBack, "me-back")} />}
+      header={<HeaderScreen title={say("me.title")} />}
     >
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       <List label={say("me.title")}>
@@ -141,7 +141,7 @@ export function ThemePicker({ onBack }: { onBack: () => void }) {
     ...(THEMES[BRAND] ?? []).map((t) => ({ id: t.id, label: t.name, swatch: t.id })),
   ];
   return (
-    <Screen name="theme" title={say("web.theme.title")} header={<HeaderScreen title={say("web.theme.title")} action={back(onBack, "theme-back")} />}>
+    <Screen name="theme" title={say("web.theme.title")} header={<HeaderScreen title={say("web.theme.title")} onBack={onBack} backLabel={say("common.back")} backTestid="theme-back" />}>
       <Choice
         label={say("web.theme.title")}
         value={choice}
@@ -163,7 +163,7 @@ export function ThemePicker({ onBack }: { onBack: () => void }) {
 // reloads the page in it (WP-3).
 export function LanguagePicker({ onBack }: { onBack: () => void }) {
   return (
-    <Screen name="lang" title={say("web.lang.title")} header={<HeaderScreen title={say("web.lang.title")} action={back(onBack, "lang-back")} />}>
+    <Screen name="lang" title={say("web.lang.title")} header={<HeaderScreen title={say("web.lang.title")} onBack={onBack} backLabel={say("common.back")} backTestid="lang-back" />}>
       <Choice
         label={say("web.lang.title")}
         value={LANG}
@@ -203,7 +203,7 @@ export function EditProfile({ client, field, current, onDone, onBack }: {
   }
   const title = say(field === "name" ? "me.name" : "me.age");
   return (
-    <Screen name={`edit-${field}`} title={title} header={<HeaderScreen title={title} />}>
+    <Screen name={`edit-${field}`} title={title} header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} backTestid="edit-back" />}>
       <Field
         label={title}
         kind={field === "name" ? "text" : "number"}
@@ -217,23 +217,25 @@ export function EditProfile({ client, field, current, onDone, onBack }: {
         ? (
           <>
             <Notice>{say("me.band21")}</Notice>
-            <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("me.save")} onClick={() => { setAsking(false); void send(); }} data-testid="edit-save" />
-            <Button type="button" icon="close" className="ui-wide" aria-label={say("me.cancel")} onClick={() => setAsking(false)} />
+            <Split>
+              <Button type="button" kind="primary" icon="check" aria-label={say("me.save")} onClick={() => { setAsking(false); void send(); }} data-testid="edit-save" />
+              <Button type="button" icon="close" aria-label={say("me.cancel")} onClick={() => setAsking(false)} />
+            </Split>
           </>
         )
         : (
           <>
-            <Button
-              type="button"
-              kind="primary"
-              icon="check"
-              className="ui-wide"
-              aria-label={say("me.save")}
-              disabled={busy || value.trim() === "" || value.trim() === current}
-              onClick={() => (crossesUp() ? setAsking(true) : void send())}
-              data-testid="edit-save"
-            />
-            <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="edit-back" />
+            <Split>
+              <Button
+                type="button"
+                kind="primary"
+                icon="check"
+                aria-label={say("me.save")}
+                disabled={busy || value.trim() === "" || value.trim() === current}
+                onClick={() => (crossesUp() ? setAsking(true) : void send())}
+                data-testid="edit-save"
+              />
+            </Split>
           </>
         )}
     </Screen>
@@ -271,12 +273,11 @@ export function ChangePin({ client, onBack }: { client: Client; onBack: () => vo
     <PinField label={label} value={values[key]} error={error} onChange={(next) => setValues((v) => ({ ...v, [key]: next }))} data-testid={testid} />
   );
   return (
-    <Screen name="change-pin" title={say("pin.title")} data-changed={changed ? "yes" : "no"} header={<HeaderScreen title={say("pin.title")} />}>
+    <Screen name="change-pin" title={say("pin.title")} data-changed={changed ? "yes" : "no"} header={<HeaderScreen title={say("pin.title")} onBack={onBack} backLabel={say("common.back")} backTestid="pin-back" />}>
       {changed
         ? (
           <>
             <p data-testid="pin-changed">{say("pin.changed")}</p>
-            <Button type="button" kind="primary" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="pin-back" />
           </>
         )
         : (
@@ -285,8 +286,7 @@ export function ChangePin({ client, onBack }: { client: Client; onBack: () => vo
             {pin("next", say("pin.next"), "pin-next")}
             {pin("again", say("pin.again"), "pin-again", differ ? say("reg.pinMismatch") : undefined)}
             {refused && <ErrorLine data-testid="error">{refused}</ErrorLine>}
-            <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("pin.go")} aria-busy={busy} disabled={!ready} onClick={() => void send()} data-testid="pin-go" />
-            <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="pin-back" />
+            <Split><Button type="button" kind="primary" icon="check" aria-label={say("pin.go")} aria-busy={busy} disabled={!ready} onClick={() => void send()} data-testid="pin-go" /></Split>
           </>
         )}
     </Screen>
@@ -321,15 +321,14 @@ export function StartAgain({ client, onClosed, onBack }: { client: Client; onClo
     }
   }
   return (
-    <Screen name="reset" title={say("reset.title")} header={<HeaderScreen title={say("reset.title")} />}>
+    <Screen name="reset" title={say("reset.title")} header={<HeaderScreen title={say("reset.title")} onBack={onBack} backLabel={say("common.back")} backTestid="reset-back" />}>
       {/* What cannot be undone is said on the screen, not behind ⓘ: the button below is an icon. */}
       <Notice data-testid="reset-warning">{say("reset.warning")}</Notice>
       <Notice data-testid="reset-code">{say("reset.code")}</Notice>
       <p data-testid="reset-price">{counts ? say("reset.price", { phrases: String(counts.phrases), chats: String(counts.chats) }) : "…"}</p>
       <PinField label={say("reset.pin")} value={pin} onChange={setPin} data-testid="reset-pin" />
       {refused && <ErrorLine data-testid="error">{refused}</ErrorLine>}
-      <Button type="button" kind="danger" icon="reset" className="ui-wide" aria-label={say("reset.go")} disabled={pin.length !== 6 || counts === null || busy} onClick={() => void send()} data-testid="reset-go" />
-      <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="reset-back" />
+      <Split><Button type="button" kind="danger" icon="reset" aria-label={say("reset.go")} disabled={pin.length !== 6 || counts === null || busy} onClick={() => void send()} data-testid="reset-go" /></Split>
     </Screen>
   );
 }
@@ -350,7 +349,7 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
     return say("away.price", { phrases: counts.phrases, likes: counts.likes, chats: counts.ends.filter((end) => end < back).length, of: counts.ends.length });
   };
   return (
-    <Screen name="step-away" title={say("away.item")} header={<HeaderScreen title={say("away.item")} />}>
+    <Screen name="step-away" title={say("away.item")} header={<HeaderScreen title={say("away.item")} onBack={onBack} backLabel={say("common.back")} backTestid="away-back" />}>
       <Choice
         label={say("away.item")}
         value={span ?? ""}
@@ -360,21 +359,21 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
       {span ? <Notice data-testid="away-price">{price()}</Notice> : <p className="ui-hint" data-testid="away-price">{price()}</p>}
       <div className="ui-info-row"><Info label={say("away.item")} data-testid="away-warning-info"><p>{say("away.warning")}</p></Info></div>
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
-      <Button
-        type="button"
-        kind="primary"
-        icon="timer"
-        className="ui-wide"
-        aria-label={say("away.go")}
-        disabled={span === null || busy}
-        onClick={() => {
-          if (!span) return;
-          setBusy(true);
-          client.stepAway(span).then(onGone).catch((e: Error) => { setBusy(false); setError(e.message); });
-        }}
-        data-testid="away-go"
-      />
-      <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="away-back" />
+      <Split>
+        <Button
+          type="button"
+          kind="primary"
+          icon="timer"
+          aria-label={say("away.go")}
+          disabled={span === null || busy}
+          onClick={() => {
+            if (!span) return;
+            setBusy(true);
+            client.stepAway(span).then(onGone).catch((e: Error) => { setBusy(false); setError(e.message); });
+          }}
+          data-testid="away-go"
+        />
+      </Split>
     </Screen>
   );
 }
@@ -400,18 +399,19 @@ export function Away({ client, until, onBack }: { client: Client; until: number;
       <p className="ui-hint">{say("web.away.until", { time: at, left: duration(left) })}</p>
       {asking && <Notice data-testid="away-sure">{say("away.sure")}</Notice>}
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
-      <Button
-        type="button"
-        kind="primary"
-        icon="arrive"
-        className="ui-wide"
-        aria-label={say("away.back")}
-        onClick={() => {
-          if (!asking) return setAsking(true);
-          client.comeBack().then(onBack).catch((e: Error) => setError(e.message));
-        }}
-        data-testid="away-return"
-      />
+      <Split>
+        <Button
+          type="button"
+          kind="primary"
+          icon="arrive"
+          aria-label={say("away.back")}
+          onClick={() => {
+            if (!asking) return setAsking(true);
+            client.comeBack().then(onBack).catch((e: Error) => setError(e.message));
+          }}
+          data-testid="away-return"
+        />
+      </Split>
     </Screen>
   );
 }

@@ -16,7 +16,7 @@ import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
 import { Chip } from "../ui/Chip.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
-import { Actions } from "../ui/Links.tsx";
+import { Split } from "../ui/Split.tsx";
 import { Message, MessageLog, Tombstone } from "../ui/Message.tsx";
 import { MessageInput } from "../ui/MessageInput.tsx";
 import { Screen } from "../ui/Screen.tsx";
@@ -111,10 +111,10 @@ export function MatchBody({ row, keys, logic, onBack, onWaiting }: {
       )}
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       {!waiting && (
-        <Actions>
-          <Button kind="secondary" type="button" icon={declined ? "back" : "later"} className="ui-wide" aria-label={declined ? say("inbox.undo") : say("inbox.notNow")} disabled={busy} onClick={notNow} data-testid="not-now" />
-          <Button kind="primary" type="button" icon="say" className="ui-wide" aria-label={say("web.match.talk")} disabled={busy || declined} onClick={talk} data-testid="talk" />
-        </Actions>
+        <Split>
+          <Button kind="primary" type="button" icon="say" aria-label={say("web.match.talk")} disabled={busy || declined} onClick={talk} data-testid="talk" />
+          <Button kind="secondary" type="button" icon={declined ? "back" : "later"} aria-label={declined ? say("inbox.undo") : say("inbox.notNow")} disabled={busy} onClick={notNow} data-testid="not-now" />
+        </Split>
       )}
       {waiting && gone && (
         <>

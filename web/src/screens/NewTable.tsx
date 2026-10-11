@@ -60,7 +60,7 @@ export function NewTable({ client, at, radius, onMade, onBack }: {
   }
 
   return (
-    <Screen name="new-table" title={say("web.newTable.title")} header={<HeaderScreen title={say("web.newTable.title")} onBack={onBack} backLabel={say("common.back")} />}>
+    <Screen name="new-table" title={say("web.newTable.title")} header={<HeaderScreen title={say("web.newTable.title")} onBack={onBack} backLabel={say("common.back")} backTestid="new-table-back" />}>
       <Select label={say("web.newTable.class")} value={kind} testid="new-table-class"
         options={CLASSES.map((c) => ({ value: c.value, label: classWord(c.value) }))}
         onChange={(value) => {
@@ -78,7 +78,6 @@ export function NewTable({ client, at, radius, onMade, onBack }: {
       <div className="ui-info-row"><Info label={say("web.newTable.title")} data-testid="new-table-info"><p>{say("table.open")}</p></Info></div>
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       <Button kind="primary" type="button" icon="table" className="ui-wide" aria-label={say("web.newTable.go")} disabled={busy} onClick={() => void make()} data-testid="new-table-go" />
-      <Button kind="secondary" type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="new-table-back" />
     </Screen>
   );
 }

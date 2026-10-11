@@ -31,11 +31,13 @@ export function HeaderFeed({ place, step, action, stepProps }: { place: string; 
 // comes with its label, so the kit names no word of its own (check-web-i18n).
 type Back = { onBack: () => void; backLabel: string } | { onBack?: undefined; backLabel?: undefined };
 
-export function HeaderScreen({ title, onBack, backLabel, action }: { title: string; action?: ReactNode } & Back) {
+// backTestid keeps a screen's own name for its back (the specs press edit-back,
+// pin-back…): the back lives here, at the left, never as a wide button below.
+export function HeaderScreen({ title, onBack, backLabel, action, backTestid = "back" }: { title: string; action?: ReactNode; backTestid?: string } & Back) {
   return (
     <header className="ui-header ui-header-rule">
       {onBack ? (
-        <button type="button" className="ui-icon ui-icon-only" aria-label={backLabel} onClick={onBack} data-testid="back">
+        <button type="button" className="ui-icon ui-icon-only" aria-label={backLabel} onClick={onBack} data-testid={backTestid}>
           <Icon name="back" />
         </button>
       ) : null}

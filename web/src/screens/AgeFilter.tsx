@@ -55,9 +55,8 @@ export function AgeFilter({ client, onDone, onBack }: { client: Client; onDone: 
   const title = say("web.filter.title");
   if (age === null) {
     return (
-      <Screen name="age-filter" title={title} header={<HeaderScreen title={title} />}>
+      <Screen name="age-filter" title={title} header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} backTestid="filter-back" />}>
         {refused ? <ErrorLine data-testid="error">{refused}</ErrorLine> : <p className="ui-hint">…</p>}
-        <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="filter-back" />
       </Screen>
     );
   }
@@ -79,7 +78,7 @@ export function AgeFilter({ client, onDone, onBack }: { client: Client; onDone: 
     }
   }
   return (
-    <Screen name="age-filter" title={title} data-from={from} data-to={open ? "open" : to} header={<HeaderScreen title={title} />}>
+    <Screen name="age-filter" title={title} data-from={from} data-to={open ? "open" : to} header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} backTestid="filter-back" />}>
       <p className="ui-hint">{say("web.filter.hint")}</p>
       {/* A handle that goes past the other takes it along (the pair stays from <= to). */}
       <RangePair
@@ -100,7 +99,6 @@ export function AgeFilter({ client, onDone, onBack }: { client: Client; onDone: 
       <p data-testid="filter-range">{from} — {toWords}</p>
       {refused && <ErrorLine data-testid="error">{refused}</ErrorLine>}
       <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("me.save")} aria-busy={busy} disabled={busy} onClick={() => void save()} data-testid="filter-save" />
-      <Button type="button" icon="back" className="ui-wide" aria-label={say("common.back")} onClick={onBack} data-testid="filter-back" />
     </Screen>
   );
 }

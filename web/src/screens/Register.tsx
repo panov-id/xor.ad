@@ -28,6 +28,7 @@ import { Info } from "../ui/Info.tsx";
 import { Link } from "../ui/Links.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
+import { Split } from "../ui/Split.tsx";
 import { obviousPin } from "../pinWords.ts";
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
@@ -141,7 +142,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
   const foot = (reason: string | null, button: ReactNode) => (
     <div data-part="foot">
       {reason && <p id={why} className="ui-reason">{reason}</p>}
-      {button}
+      <Split>{button}</Split>
     </div>
   );
   const gate = (reason: string | null, pending = false) => ({
@@ -174,7 +175,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
               ))}
             </p>
           )}
-          {foot(whyNext, <Button type="button" kind="primary" icon="open" className="ui-wide" aria-label={say("reg.next")} {...gate(whyNext)} onClick={() => { if (!whyNext) setStep(2); }} data-testid="next" />)}
+          {foot(whyNext, <Button type="button" kind="primary" icon="open" aria-label={say("reg.next")} {...gate(whyNext)} onClick={() => { if (!whyNext) setStep(2); }} data-testid="next" />)}
         </>
       )}
       {step === 2 && (
@@ -184,7 +185,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
             error={pin.length === 6 && pinAgain.length === 6 && pin !== pinAgain ? say("reg.pinMismatch") : undefined} data-testid="pin-again" />
           {pin.length === 6 && obviousPin(pin) && <Notice>{say("web.register.easy_pin")}</Notice>}
           {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
-          {foot(whyPin, <Button type="button" kind="primary" icon="open" className="ui-wide" aria-label={busy ? say("web.register.waiting") : say("reg.next")} aria-busy={busy}
+          {foot(whyPin, <Button type="button" kind="primary" icon="open" aria-label={busy ? say("web.register.waiting") : say("reg.next")} aria-busy={busy}
             {...gate(whyPin, busy)} onClick={register} data-testid="register" />)}
         </>
       )}
@@ -195,7 +196,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
           <p>{say("web.register.confirm")}</p>
           <div data-testid="paper-groups"><CodeField groups={[2, 4]} value={typed} onChange={setTyped} /></div>
           {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
-          {foot(whyGroups, <Button type="button" kind="primary" icon="check" className="ui-wide" aria-label={say("web.register.done")} aria-busy={busy}
+          {foot(whyGroups, <Button type="button" kind="primary" icon="check" aria-label={say("web.register.done")} aria-busy={busy}
             {...gate(whyGroups, busy)} onClick={confirm} data-testid="confirm" />)}
         </>
       )}

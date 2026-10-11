@@ -12,8 +12,8 @@ import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
-import { Actions } from "../ui/Links.tsx";
 import { Screen } from "../ui/Screen.tsx";
+import { Split } from "../ui/Split.tsx";
 import { pinMismatch } from "../pinWords.ts";
 
 // The node's refusal as one line, in the terminal's words (depth/ink/locales/
@@ -60,11 +60,13 @@ export function Unlock({ record, onDone, onForget, onRestore }: { record: Record
       <div className="ui-info-row"><Info label={say("web.info.pin")} data-testid="unlock-info"><p>{say("web.unlock.remembers")}</p></Info></div>
       <PinField value={pin} onChange={setPin} data-testid="unlock-pin" />
       {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
-      <Actions data-part="foot">
-        <Button type="button" icon="forget" className="ui-wide" aria-label={say("web.unlock.forget")} onClick={async () => { await forget(); onForget(); }} data-testid="forget" />
-        {error && <Button type="button" icon="code" className="ui-wide" aria-label={say("web.unlock.restore")} onClick={onRestore} data-testid="unlock-restore" />}
-        <Button type="button" kind="primary" icon="key" className="ui-wide" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={pin.length !== 6 || busy} onClick={unlock} data-testid="unlock" />
-      </Actions>
+      <div data-part="foot">
+        <Split>
+          <Button type="button" kind="primary" icon="key" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={pin.length !== 6 || busy} onClick={unlock} data-testid="unlock" />
+          <Button type="button" icon="forget" aria-label={say("web.unlock.forget")} onClick={async () => { await forget(); onForget(); }} data-testid="forget" />
+          {error && <Button type="button" icon="code" aria-label={say("web.unlock.restore")} onClick={onRestore} data-testid="unlock-restore" />}
+        </Split>
+      </div>
     </Screen>
   );
 }

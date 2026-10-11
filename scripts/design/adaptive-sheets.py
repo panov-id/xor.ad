@@ -695,7 +695,7 @@ ICON.update({
 })
 REG = {1: ("who are you", "user", "a name neighbours will see, and your age"),
        2: ("your PIN", "lock", "six digits open this device's vault"),
-       3: ("paper code", "paper", "write it down: it brings you back on a new phone")}
+       3: ("paper code", "paper", "write it down: it brings you back on any new device")}
 
 
 def s_register_step(brand, step):

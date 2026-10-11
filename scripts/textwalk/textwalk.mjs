@@ -209,8 +209,8 @@ await step("place", async () => {
   await t(anya, "place").click(); await t(anya, "place-point").fill("34.6719, 33.0436"); await t(anya, "place-use").click();
   await anya.locator('[data-screen="feed"]').waitFor(); await look(anya, "лента по координатам");
 });
-await step("restore on a new phone", async () => {
-  const fresh = await phone("Аня, новый телефон");
+await step("restore on a new device", async () => {
+  const fresh = await phone("Аня, новое устройство");
   await fresh.goto(BASE + "/"); await t(fresh, "restore").click(); await look(fresh, "восстановление");
   await t(fresh, "restore-code").locator("input").first().fill("0000 0000 0000 0000"); await t(fresh, "restore-pin").fill("975310"); await t(fresh, "restore-pin-again").fill("975310");
   await t(fresh, "restore-go").click(); await t(fresh, "error").waitFor({ timeout: 30000 }).catch(() => {}); await look(fresh, "неверный код");

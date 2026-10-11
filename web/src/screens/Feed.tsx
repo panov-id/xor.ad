@@ -53,7 +53,7 @@ export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 const label = (r: Radius) => (r >= 1000 ? say("web.feed.km", { n: r / 1000 }) : say("web.feed.m", { n: r }));
 
 export function Feed(
-  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, sent, onTakenDown, gone, onTable, onNewTable, notice, renderPhrase, listClass, brandClass }: {
+  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, onPlace, sent, onTakenDown, gone, onTable, onNewTable, notice, renderPhrase, listClass, brandClass }: {
     client: Client;
     // A brand's FeedView draws the phrase cards its own way (web/src/brands):
     // the element must keep data-testid="card", data-id and open on a press.
@@ -66,7 +66,9 @@ export function Feed(
     // A refusal to seat, said on the feed.
     notice?: string | null;
     sealed: "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
-    at: { lat: number; lon: number };
+    at: { lat: number; lon: number; name?: string };
+    // The place's name opens the picker (screens/Place.tsx).
+    onPlace?: () => void;
     radius: Radius;
     onRadius: (r: Radius) => void;
     onOpen: (card: FeedCard) => void;
@@ -89,11 +91,12 @@ export function Feed(
     <Screen name="feed" title={say("web.feed.title")} className={brandClass} data-sealed={sealed} header={
       /* What the reader hears: the announced step, not every flicker of it. */
       <HeaderFeed
-        place={say("web.feed.title")}
+        place={at.name ?? say("web.feed.title")}
         step={said ? nearby(said) : ""}
         stepProps={{ role: "status", "data-testid": "nearby", "data-step": said ?? undefined }}
         action={
-          <span data-testid="radius">
+          <span className="ui-icon-row" data-testid="radius">
+            {onPlace && <Button type="button" icon="pin" aria-label={say("web.place.open", { name: at.name ?? "" })} onClick={onPlace} data-testid="place" />}
             <Select
               label={say("web.feed.radius")}
               options={RADII.map((r) => ({ value: String(r), label: label(r) }))}

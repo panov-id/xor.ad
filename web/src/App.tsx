@@ -48,6 +48,8 @@ import { watchIdle } from "./idle.ts";
 import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
 import "./screens/feed.css";
+import { FALLBACK, type Place as PlaceT, storedPlace } from "./geo/place.ts";
+import { Place } from "./screens/Place.tsx";
 import "./adaptive.css";
 import { Screen as Frame } from "./ui/Screen.tsx";
 import { TabBar } from "./ui/TabBar.tsx";
@@ -67,6 +69,7 @@ type Screen =
   | { at: "composer" }
   | { at: "card"; card: FeedCard }
   | { at: "likes" }
+  | { at: "place" }
   | { at: "inbox" }
   | { at: "match"; row: MatchRow }
   | { at: "chat"; row: InboxChatRow }
@@ -106,9 +109,9 @@ export function App() {
 function Face() {
   const [screen, setScreen] = useState<Screen>({ at: "loading" });
   const [seated, setSeated] = useState<Seated | null>(null);
-  // The area is placed anywhere, by the person (§8.3); until the place picker
-  // of the sheet is drawn it is one fixed point.
-  const [at] = useState({ lat: 41.9, lon: 12.5 });
+  // The area is placed anywhere, by the person (§8.3; owner 11.10.2026): the browser's position, a city from
+  // the offline list, or a point pasted from a map (screens/Place.tsx), kept on this device; Rome until then.
+  const [at, setAt] = useState<PlaceT>(() => storedPlace() ?? FALLBACK);
   // "auto" theme turns with the phase at this place (theme.ts).
   useAutoTheme(at.lon);
   const [radius, setRadius] = useState<Radius>(1000);
@@ -305,6 +308,7 @@ function Face() {
             notice={tableNotice}
             onWrite={() => leaveFeed({ at: "composer" })}
             onLikes={() => leaveFeed({ at: "likes" })}
+            onPlace={() => leaveFeed({ at: "place" })}
             sent={sent}
             onTakenDown={() => setSent(null)}
             gone={gone}
@@ -351,6 +355,8 @@ function Face() {
           }}
         />
       );
+    case "place":
+      return <Place current={at} onChosen={(p) => { setAt(p); toFeed(); }} onBack={toFeed} />;
     case "likes":
       return <Likes client={seated!.client} onBack={toFeed} />;
     case "inbox":

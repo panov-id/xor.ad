@@ -8,6 +8,7 @@ const BASE = process.argv[2] ?? "http://localhost:4173";
 const PIN = "123456";
 const b = await chromium.launch();
 let last = Date.now();
+const SHOT = { n: 0, list: [] };
 
 async function phone(who, locale = "ru-RU") {
   // WALK_WIDTH: phone 393 by default; 768 tablet, 1440 desktop, 2560/3440 wide (owner, 11.10.2026).
@@ -62,6 +63,14 @@ async function look(p, step) {
       + (over > 0 ? ` SIDEWAYS-SCROLL +${over}` : "") + (out.length ? ` PAST-EDGE ${out.join(" ")}` : "") + (small ? ` SMALL-TAPS ${small}` : "");
     return { id: screen?.getAttribute("data-screen") ?? "?", text, sr, controls, layout, title: document.title, lang: document.documentElement.lang };
   });
+  // WALK_SHOTS: a picture of every step (only with the owner's yes for the task — 11.10.2026 «screenshots of
+  // every flow»), into /shots mounted by run.sh; named by order, who and step.
+  if (process.env.WALK_SHOTS) {
+    SHOT.n += 1;
+    const file = `/shots/${String(SHOT.n).padStart(3, "0")}-${p.who}-${step}`.replace(/[^\p{L}\p{N}/._-]+/gu, "_").slice(0, 120) + ".jpg";
+    await p.screenshot({ path: file, type: "jpeg", quality: 70, fullPage: true }).catch(() => {});
+    SHOT.list.push({ n: SHOT.n, who: p.who, step, screen: s.id, file: file.slice(7) });
+  }
   const ms = Date.now() - last; last = Date.now();
   // WALK_STABLE: no timings, so two walks diff line by line.
   const took = process.env.WALK_STABLE ? "" : `${ms} ms · `;
@@ -191,6 +200,15 @@ await step("me", async () => {
   await t(anya, "error").waitFor({ timeout: 15000 }).catch(() => {}); await look(anya, "смена имени на «Оля тг»");
   await t(anya, "edit-back").click();
 });
+await step("place", async () => {
+  // Where you are (owner 11.10.2026): the feed's place button, a city typed in Russian, the feed renamed.
+  await t(anya, "nav-feed").click(); await anya.locator('[data-screen="feed"]').waitFor();
+  await t(anya, "place").click(); await anya.locator('[data-screen="place"]').waitFor(); await look(anya, "где вы");
+  await t(anya, "place-search").fill("Лимассол"); await t(anya, "place-city").first().waitFor({ timeout: 10000 }); await look(anya, "город «Лимассол»");
+  await t(anya, "place-city").first().click(); await anya.locator('[data-screen="feed"]').waitFor(); await look(anya, "лента в Лимассоле");
+  await t(anya, "place").click(); await t(anya, "place-point").fill("34.6719, 33.0436"); await t(anya, "place-use").click();
+  await anya.locator('[data-screen="feed"]').waitFor(); await look(anya, "лента по координатам");
+});
 await step("restore on a new phone", async () => {
   const fresh = await phone("Аня, новый телефон");
   await fresh.goto(BASE + "/"); await t(fresh, "restore").click(); await look(fresh, "восстановление");
@@ -203,5 +221,9 @@ await step("english", async () => {
   const en = await phone("Guest EN", "en-US"); await en.goto(BASE + "/"); await look(en, "splash, browser in English");
   await t(en, "start").click(); await look(en, "who are you");
 });
+if (process.env.WALK_SHOTS) {
+  const { writeFileSync } = await import("node:fs");
+  writeFileSync("/shots/index.json", JSON.stringify(SHOT.list, null, 1));
+}
 console.log("\nWALK END");
 await b.close();

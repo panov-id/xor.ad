@@ -107,7 +107,6 @@ be	web	web.game.set	same word in be
 be	web	web.game.you	same word in be
 be	web	web.game.your_turn	same word in be
 be	web	web.newTable.set	same word in be
-be	web	web.table.boneyard	same word in be
 be	web	web.table.card	same word in be
 be	web	web.card.phrase	same word in be
 be	web	web.ui.code	same word in be
@@ -171,7 +170,6 @@ uk	web	web.feed.m	same word in uk
 uk	web	web.offer.go	same word in uk
 uk	web	web.register.done	same word in uk
 uk	web	web.reissue.done	same word in uk
-uk	web	web.table.boneyard	same word in uk
 uk	web	web.table.card	same word in uk
 uk	web	web.table.my_word	same word in uk
 uk	web	web.table.power	same word in uk

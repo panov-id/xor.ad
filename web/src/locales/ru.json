@@ -92,6 +92,8 @@
   "web.card.complaint_refused": "Жалоба не принята ({status}).",
   "web.card.conditions": "условия: {conditions}",
   "web.card.like": "лайк",
+  "web.card.talk": "говорить",
+  "web.card.more": "ещё",
   "web.card.liked": "Лайк отправлен. Если понравитесь друг другу — будет мэтч.",
   "web.card.matched": "Мэтч! Предложение поговорить ждёт во входящих.",
   "web.card.soon": " · скоро исчезнет",

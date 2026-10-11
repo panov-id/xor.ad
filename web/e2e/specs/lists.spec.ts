@@ -45,6 +45,7 @@ test("a hidden phrase comes back from 'hidden', a block is lifted from 'blocked'
 
   // Block by the same phrase; "Заблокировано: 1" appears, and is lifted.
   await b.getByTestId("card").filter({ hasText: phrase }).click();
+  await b.getByTestId("more").click();
   await b.getByTestId("block").click();
   await b.getByTestId("block-confirm-yes").click();
   await expect(b.getByTestId("card").filter({ hasText: phrase })).toHaveCount(0, { timeout: 15000 });

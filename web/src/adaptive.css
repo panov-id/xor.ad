@@ -11,14 +11,10 @@
 :root { --rail-w: 112px; --col-read: 640px; --col-list: 720px; }
 /* The like is the storefront's mark (ui/Icon.tsx): its windows (sosed) or lines (neighbro) light when the
    like is given — one by one, once, 60 ms apart; at once under reduced motion; nothing moves at rest. */
-[data-lit] .ui-glyph[data-icon="like"] .f { fill: currentColor; }
+[data-lit] .ui-glyph[data-icon="like"] [data-window] { fill: currentColor; }
 @media (prefers-reduced-motion: no-preference) {
-  [data-lit] .ui-glyph[data-icon="like"] .f { animation: like-window var(--dur-1) steps(1) both; }
-  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(2) { animation-delay: 60ms; }
-  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(3) { animation-delay: 120ms; }
-  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(4) { animation-delay: 180ms; }
-  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(5) { animation-delay: 240ms; }
-  [data-lit] .ui-glyph[data-icon="like"] .f:nth-of-type(6) { animation-delay: 300ms; }
+  /* window n (data-window, --n set by the icon) waits n × 60 ms */
+  [data-lit] .ui-glyph[data-icon="like"] [data-window] { animation: like-window var(--dur-1) steps(1) both; animation-delay: calc(var(--n, 0) * 60ms); }
 }
 @keyframes like-window { from { fill: transparent; } to { fill: currentColor; } }
 

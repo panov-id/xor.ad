@@ -92,6 +92,8 @@
   "web.card.complaint_refused": "საჩივარი არ მიიღეს ({status}).",
   "web.card.conditions": "პირობები: {conditions}",
   "web.card.like": "მომწონს",
+  "web.card.talk": "საუბარი",
+  "web.card.more": "მეტი",
   "web.card.liked": "მოწონება გაიგზავნა. თუ ერთმანეთს მოეწონებით — იქნება დამთხვევა.",
   "web.card.matched": "დამთხვევა! საუბრის შეთავაზება შემოსულებში გელოდებათ.",
   "web.card.soon": " · მალე გაქრება",

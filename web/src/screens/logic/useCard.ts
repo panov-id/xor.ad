@@ -19,6 +19,8 @@ export function useCard(
   const [like, setLike] = useState<LikeOutcome | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
+  // The «…» sheet in the header: block, complaint, link report live behind it (CardMore).
+  const [moreOpen, setMoreOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // A venue's offer (W12; offers spec §3, §10.2): "the discount was not
   // given", with an address — the only way to send the decision back.
@@ -75,7 +77,7 @@ export function useCard(
   const hide = () => act(async () => { await hidePhrase(client, card.id); onGone("hidden", card.id); });
   const block = () => act(async () => { await blockByPhrase(client, card.id); onGone("blocked", card.id); });
   return {
-    like, liked, busy, error, doLike, hide, block, confirmBlock, setConfirmBlock,
+    like, liked, busy, error, doLike, hide, block, confirmBlock, setConfirmBlock, moreOpen, setMoreOpen,
     complaining, setComplaining, email, setEmail, text, setText, complained, complain,
     linkCode, report, reportLink,
   };

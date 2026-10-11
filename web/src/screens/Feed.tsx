@@ -20,7 +20,8 @@ import { HeaderFeed } from "../ui/Header.tsx";
 import { Actions } from "../ui/Links.tsx";
 import { EmptyState } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
-import { Select } from "../ui/Select.tsx";
+import { PlaceBar } from "../ui/PlaceBar.tsx";
+import { SkeletonTiles } from "../ui/Skeleton.tsx";
 import { StatusInline } from "../ui/Status.tsx";
 import { useFeed } from "./logic/useFeed.ts";
 import { say } from "../locales/say.ts";
@@ -95,15 +96,14 @@ export function Feed(
         step={said ? nearby(said) : ""}
         stepProps={{ role: "status", "data-testid": "nearby", "data-step": said ?? undefined }}
         action={
-          <span className="ui-icon-row" data-testid="radius">
-            {onPlace && <Button type="button" icon="pin" aria-label={say("web.place.open", { name: at.name ?? "" })} onClick={onPlace} data-testid="place" />}
-            <Select
-              label={say("web.feed.radius")}
-              options={RADII.map((r) => ({ value: String(r), label: label(r) }))}
-              value={String(radius)}
-              onChange={(value) => onRadius(Number(value) as Radius)}
-            />
-          </span>
+          <PlaceBar
+            placeLabel={say("web.place.open", { name: at.name ?? "" })}
+            onPlace={onPlace}
+            radiusLabel={say("web.feed.radius")}
+            options={RADII.map((r) => ({ value: String(r), label: label(r) }))}
+            value={String(radius)}
+            onChange={(value) => onRadius(Number(value) as Radius)}
+          />
         }
       />
     }>
@@ -167,7 +167,8 @@ export function Feed(
           </Card>
           ))}
       </ul>
-      {state === "loading" && <p className="ui-hint" data-testid="loading">…</p>}
+      {/* Loading: two rows of skeleton tiles, the columns being the feed's own (styles.css .skeleton-grid). */}
+      {state === "loading" && <SkeletonTiles data-testid="loading" />}
       {next && state === "ready" && (
         <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />
       )}

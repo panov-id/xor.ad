@@ -108,6 +108,7 @@ test("a venue's path: cabinet, envelope, offer, the neighbour's feed, its link, 
   const sent: number[] = [];
   page.on("response", (r) => { if (/^\/offers\/[^/]+\/complaints$/.test(new URL(r.url()).pathname)) sent.push(r.status()); });
   await card.click();
+  await page.getByTestId("more").click();
   await page.getByTestId("complain").click();
   await page.getByTestId("complain-email").fill("sosed@example.test");
   await page.getByTestId("complain-text").fill(said);

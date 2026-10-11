@@ -28,4 +28,3 @@
 .ui-cells .ui-cell-group { display: flex; gap: var(--cell-gap, 4px); }
 .ui-cell-group + .ui-cell-group { margin-inline-start: var(--cell-gap, 4px); }
 
-.ui-locked-timer { margin: 0; font-variant-numeric: tabular-nums; font-family: "JetBrains Mono", ui-monospace, monospace; }

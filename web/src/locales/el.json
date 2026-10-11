@@ -92,6 +92,8 @@
   "web.card.complaint_refused": "Το παράπονο δεν έγινε δεκτό ({status}).",
   "web.card.conditions": "όροι: {conditions}",
   "web.card.like": "μου αρέσει",
+  "web.card.talk": "μίλα",
+  "web.card.more": "περισσότερα",
   "web.card.liked": "Το like στάλθηκε. Αν αρέσετε ο ένας στον άλλον — θα γίνει ταίριασμα.",
   "web.card.matched": "Ταίριασμα! Μια πρόταση για κουβέντα περιμένει στα εισερχόμενα.",
   "web.card.soon": " · σβήνει σύντομα",

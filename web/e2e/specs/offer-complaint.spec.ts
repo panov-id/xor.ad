@@ -47,6 +47,7 @@ test("a venue's offer in the feed takes a complaint with an address, and the nod
   await card.click();
   await expect(page.locator('[data-screen="card"]')).toHaveAttribute("data-id", offerId);
 
+  await page.getByTestId("more").click();
   await page.getByTestId("complain").click();
   await expect(page.getByTestId("complain-send")).toBeDisabled();
   await page.getByTestId("complain-email").fill("sosed@example.test");
@@ -93,7 +94,9 @@ test("a venue's offer in the feed reports its link, signed, and the node takes i
   await card.click();
   await expect(page.locator('[data-screen="card"]')).toHaveAttribute("data-id", offerId);
 
-  await expect(page.getByTestId("report"), "the offer's card offers no link report (WS3: it moved here from the exit screen)")
+  await expect(page.getByTestId("report"), "the link report is behind «…», not on the card's face").toHaveCount(0);
+  await page.getByTestId("more").click();
+  await expect(page.getByTestId("report"), "the offer's card offers the link report in «…» (WS3: it moved here from the exit screen)")
     .toHaveAccessibleName("Ссылка ведёт не туда");
   await page.getByTestId("report").click();
   await expect(page.getByTestId("reported")).toHaveText("принято", { timeout: 15000 });

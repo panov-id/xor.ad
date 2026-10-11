@@ -1,11 +1,15 @@
 // A phrase full-screen (the card of screen 03's sheet, depth's full-screen
-// card): the text large, the mode and the language under it, and
-// the three things one can do with somebody else's phrase — like (§8.4), hide
-// it from one's own feed (§8.9), block its author (§8.9). A like that meets a
-// like becomes a match and says so; hiding and blocking take the card away
-// and lead back to the feed. Blocking asks twice and names the consequence,
-// as the terminal does. Kit elements only (K6a).
+// card): the text large, the mode and the language under it, and the main row
+// of exactly two actions welded in one capsule — like (§8.4) | hide it from
+// one's own feed (§8.9). The rarer, dangerous ones — block its author (§8.9),
+// the venue offer's complaint, the report on its link — stand behind «…» in
+// the header, in a bottom sheet (strict review 11.10, card-more.svg). A like
+// that meets a like becomes a match: the row turns into one «talk» that leads
+// to the inbox, where the offer to talk waits. Hiding and blocking take the
+// card away and lead back to the feed. Blocking asks twice and names the
+// consequence, as the terminal does. Kit elements only (K6a).
 
+import type { ReactNode } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { languageIn, modes } from "../api/actions.ts";
 import { type CardLogic, useCard } from "./logic/useCard.ts";
@@ -18,16 +22,19 @@ import { Actions } from "../ui/Links.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { StatusInline } from "../ui/Status.tsx";
 import { Screen } from "../ui/Screen.tsx";
-import { Confirm } from "../ui/Sheet.tsx";
+import { ActionSheet, Confirm, type SheetAction } from "../ui/Sheet.tsx";
+import { Split } from "../ui/Split.tsx";
 import { Textarea } from "../ui/Textarea.tsx";
 import type { FeedCard } from "./Feed.tsx";
 import { say } from "../locales/say.ts";
 
 export function Card(
-  { client, card, onBack, onGone }: {
+  { client, card, onBack, onGone, onTalk }: {
     client: Client;
     card: FeedCard;
     onBack: () => void;
+    // «talk» after a match: to the inbox, where the match's offer to talk waits.
+    onTalk?: () => void;
     // The card left the viewer's feed — hidden, or its author blocked.
     onGone: (why: "hidden" | "blocked", id: string) => void;
   },
@@ -43,7 +50,7 @@ export function Card(
       title={say("web.card.phrase")}
       data-id={card.id}
       /* Sheet 23: close on the left, the phrase's mode in words on the band. */
-      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} />}
+      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} action={<CardMore card={card} logic={logic} />} />}
     >
       <article className="ui-phrase">
         {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
@@ -58,28 +65,30 @@ export function Card(
         </p>
       </article>
       <CardNotes logic={logic} />
-      <Actions>
-        <Button
-          type="button"
-          icon="hide"
-          aria-label={say("feed.hide")}
-          disabled={busy}
-          onClick={() => void hide()}
-          data-testid="hide"
-        />
-        <CardExtras card={card} logic={logic} />
-        <Button
-          type="button"
-          kind="primary"
-          icon="like"
-          aria-label={say("web.card.like")}
-          disabled={busy || (like !== null && like.state !== "refused")}
-          onClick={() => void doLike()}
-          data-testid="like"
-          data-lit={like !== null && like.state !== "refused" ? "" : undefined}
-          aria-pressed={like !== null && like.state !== "refused"}
-        />
-      </Actions>
+      <CardTalk logic={logic} onTalk={onTalk}>
+        <Split>
+          <Button
+            type="button"
+            kind="primary"
+            icon="like"
+            aria-label={say("web.card.like")}
+            disabled={busy || (like !== null && like.state !== "refused")}
+            onClick={() => void doLike()}
+            data-testid="like"
+            data-lit={like !== null && like.state !== "refused" ? "" : undefined}
+            aria-pressed={like !== null && like.state !== "refused"}
+          />
+          <Button
+            type="button"
+            icon="hide"
+            aria-label={say("feed.hide")}
+            disabled={busy}
+            onClick={() => void hide()}
+            data-testid="hide"
+          />
+        </Split>
+      </CardTalk>
+      <CardExtras card={card} logic={logic} />
     </Screen>
   );
 }
@@ -101,20 +110,51 @@ export function CardNotes({ logic }: { logic: CardLogic }) {
   );
 }
 
-// The card's rarer actions, the same for every brand: the venue offer's
-// complaint, the report on its link, the block asked twice.
+// After a match the main row is one primary «talk»: the match is in the inbox, where the offer to talk
+// waits (App.tsx opens the inbox; Inbox opens the match, Match agrees — the existing path, no new call).
+// Without a match, or without an `onTalk`, the row stays as the caller drew it (`children`).
+export function CardTalk({ logic, onTalk, children }: { logic: CardLogic; onTalk?: () => void; children?: ReactNode }) {
+  if (logic.like?.state !== "matched" || !onTalk) return <>{children}</>;
+  return (
+    <Split label={say("web.card.matched")}>
+      <Button type="button" kind="primary" icon="say" aria-label={say("web.card.talk")} onClick={onTalk} data-testid="talk" />
+    </Split>
+  );
+}
+
+// The «…» in the header and its bottom sheet (card-more.svg): the rare actions, the quiet first, the dangerous
+// ones (block, complaint) last and red. What was done stays out of the list: a sent complaint or report is
+// said on the card (CardExtras), not offered twice.
+export function CardMore({ card, logic }: { card: FeedCard; logic: CardLogic }) {
+  const { busy, moreOpen, setMoreOpen, setConfirmBlock, setComplaining, complained, linkCode, report, reportLink } = logic;
+  const actions: SheetAction[] = [];
+  if (linkCode && report !== "sent") {
+    actions.push({ id: "report", label: say("web.offer.wrong"), onSelect: () => void reportLink(), disabled: busy || report === "sending", testid: "report" });
+  }
+  if (card.kind === "offer" && !complained) {
+    actions.push({ id: "complain", label: say("web.card.complain"), onSelect: () => setComplaining(true), danger: true, disabled: busy, testid: "complain" });
+  }
+  actions.push({ id: "block", label: say("block.item"), onSelect: () => setConfirmBlock(true), danger: true, disabled: busy, testid: "block" });
+  return (
+    <>
+      <Button type="button" icon="more" aria-label={say("web.card.more")} aria-haspopup="dialog" onClick={() => setMoreOpen(true)} data-testid="more" />
+      <ActionSheet open={moreOpen} title={say("web.card.more")} actions={actions} onClose={() => setMoreOpen(false)} data-testid="more-sheet" />
+    </>
+  );
+}
+
+// What the sheet's choices leave on the card: the complaint's form and its answer, the link report's
+// answer, the block asked twice. Shared by every brand's CardView.
 export function CardExtras({ card, logic }: { card: FeedCard; logic: CardLogic }) {
   const {
     busy, block, confirmBlock, setConfirmBlock, complaining, setComplaining, email, setEmail, text, setText,
-    complained, complain, linkCode, report, reportLink,
+    complained, complain, linkCode, report,
   } = logic;
   return (
     <>
       {card.kind === "offer" && (complained
         ? <Notice data-testid="complained">{say("web.card.complained")}</Notice>
-        : !complaining
-        ? <Button type="button" icon="report" aria-label={say("web.card.complain")} disabled={busy} onClick={() => setComplaining(true)} data-testid="complain" />
-        : (
+        : complaining && (
           <FieldGroup legend={say("web.card.complain")}>
             <Field kind="email" label={say("web.card.complain_email")} value={email} onChange={setEmail} data-testid="complain-email" />
             <Textarea label={say("web.card.complain_text")} value={text} maxLength={1000} onChange={setText} data-testid="complain-text" />
@@ -124,13 +164,8 @@ export function CardExtras({ card, logic }: { card: FeedCard; logic: CardLogic }
             </Actions>
           </FieldGroup>
         ))}
-      {linkCode && (report === "sent"
-        ? <p className="ui-hint" role="status" data-testid="reported">{say("web.offer.reported")}</p>
-        : (
-          <Button type="button" icon="link" aria-label={say("web.offer.wrong")} disabled={busy || report === "sending"} onClick={() => void reportLink()} data-testid="report" />
-        ))}
+      {linkCode && report === "sent" && <p className="ui-hint" role="status" data-testid="reported">{say("web.offer.reported")}</p>}
       {report === "failed" && <ErrorLine data-testid="report-failed">{say("web.offer.later")}</ErrorLine>}
-      <Button type="button" icon="block" aria-label={say("block.item")} disabled={busy} onClick={() => setConfirmBlock(true)} data-testid="block" />
       <Confirm
         open={confirmBlock}
         title={say("block.confirm")}

@@ -92,6 +92,8 @@
   "web.card.complaint_refused": "Բողոքը չընդունվեց ({status})։",
   "web.card.conditions": "պայմաններ՝ {conditions}",
   "web.card.like": "հավանել",
+  "web.card.talk": "զրուցել",
+  "web.card.more": "ավելին",
   "web.card.liked": "Հավանումն ուղարկված է։ Եթե իրար դուր գաք՝ կլինի համընկնում։",
   "web.card.matched": "Համընկնում։ Զրուցելու առաջարկը սպասում է մուտքայիններում։",
   "web.card.soon": " · շուտով կանհետանա",

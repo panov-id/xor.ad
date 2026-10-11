@@ -353,6 +353,7 @@ function Face() {
           client={seated!.client}
           card={screen.card}
           onBack={toFeed}
+          onTalk={() => setScreen({ at: "inbox" })}
           onGone={(why, id) => {
             setGone({ why, id });
             toFeed();

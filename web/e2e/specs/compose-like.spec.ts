@@ -165,6 +165,7 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     await expect(b.getByTestId("loading")).toBeHidden({ timeout: 15000 });
     await b.getByTestId("card").filter({ hasText: phrase }).click();
     // Blocking asks twice: "no" leaves the card in place and sends nothing.
+    await b.getByTestId("more").click();
     await b.getByTestId("block").click();
     await expect(b.getByTestId("block-confirm")).toBeVisible();
     await b.getByTestId("block-confirm-no").click();

@@ -15,7 +15,7 @@ import { languageIn, likePhrase, modeIcon, modes } from "../../api/actions.ts";
 import { say } from "../../locales/say.ts";
 import { Feed, type FeedCard } from "../../screens/Feed.tsx";
 import { CardOpen, openerIds } from "../../ui/Card.tsx";
-import { Card, CardExtras, CardNotes } from "../../screens/Card.tsx";
+import { Card, CardExtras, CardMore, CardNotes, CardTalk } from "../../screens/Card.tsx";
 import { Life, Match, MatchBody } from "../../screens/Match.tsx";
 import { useCard } from "../../screens/logic/useCard.ts";
 import { useMatch } from "../../screens/logic/useMatch.ts";
@@ -107,7 +107,7 @@ export function FeedView(props: ComponentProps<typeof Feed>) {
 }
 
 // Card.svg: the phrase as a big sticker, the heart pad under it.
-export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof Card>) {
+export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProps<typeof Card>) {
   const logic = useCard({ client, card, onGone });
   const { busy, liked, doLike } = logic;
   const actions = logic;
@@ -200,7 +200,7 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
 
   return (
     <Screen name="card" title={say("web.card.phrase")} className="b-stickers" data-id={card.id} data-heart={liked ? "sent" : pending ? "pending" : armed ? "armed" : "pad"}
-      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} />}>
+      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} action={<CardMore card={card} logic={actions} />} />}>
       <article
         ref={target}
         className={`sticker-card${armed ? " target" : ""}`}
@@ -248,9 +248,8 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
         {drag && <span className="heart-ghost" aria-hidden="true" style={{ left: drag.x, top: drag.y }}><Icon name="like" size={40} /></span>}
         <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={hideCard} data-testid="hide" />
       </div>
-      <Actions>
-        <CardExtras card={card} logic={actions} />
-      </Actions>
+      <CardTalk logic={actions} onTalk={onTalk} />
+      <CardExtras card={card} logic={actions} />
     </Screen>
   );
 }

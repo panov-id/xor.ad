@@ -2,7 +2,7 @@
 // a 2.4 outline on a 24 grid, round joins, in currentColor; a closed shape
 // (class "f") is filled with --icon-fill, flat, transparent unless the button
 // sets it. An icon never speaks: the button around it carries the aria-label.
-import type { SVGAttributes } from "react";
+import type { CSSProperties, SVGAttributes } from "react";
 import { BRAND } from "../config.ts";
 
 // The like is the storefront's own mark, as an outline (owner 11.10.2026: «no heart; the logo, simply,
@@ -14,15 +14,19 @@ const LIKE_SOSED = (
   <>
     <path d="M3.5 7.5 H20.5 V18 H10.5 L6.5 21.5 V18 H3.5 Z" />
     <path d="M15.5 7.5 V3.5 M13.5 4 L17.5 3" />
-    {[6.25, 10.75, 15.25].flatMap((x) => [10, 13.75].map((y) => <rect key={`${x}-${y}`} className="f" data-window="" x={x} y={y} width="2.5" height="2.25" rx="0.4" />))}
+    {/* n = the window's order, row by row: the like lights them 60 ms apart (adaptive.css) */}
+    {[10, 13.75].flatMap((y, row) => [6.25, 10.75, 15.25].map((x, col) => {
+      const n = row * 3 + col;
+      return <rect key={n} className="f" data-window={n} style={{ "--n": n } as CSSProperties} x={x} y={y} width="2.5" height="2.25" rx="0.4" />;
+    }))}
   </>
 );
 const LIKE_NEIGHBRO = (
   <>
     <path d="M12 3 L20 9.5 V18 H11 L7 21.5 V18 H4 V9.5 Z" />
     <path d="M16 6.25 V3.5 H18 V7.9" />
-    <rect className="f" data-window="" x="8" y="11.25" width="5.5" height="1.5" rx="0.75" />
-    <rect className="f" data-window="" x="8" y="14.25" width="8.5" height="1.5" rx="0.75" />
+    <rect className="f" data-window="0" style={{ "--n": 0 } as CSSProperties} x="8" y="11.25" width="5.5" height="1.5" rx="0.75" />
+    <rect className="f" data-window="1" style={{ "--n": 1 } as CSSProperties} x="8" y="14.25" width="8.5" height="1.5" rx="0.75" />
   </>
 );
 

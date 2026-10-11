@@ -92,6 +92,8 @@
   "web.card.complaint_refused": "Şikayət qəbul edilmədi ({status}).",
   "web.card.conditions": "şərtlər: {conditions}",
   "web.card.like": "bəyən",
+  "web.card.talk": "danış",
+  "web.card.more": "daha çox",
   "web.card.liked": "Bəyənmə göndərildi. Bir-birinizi bəyənsəniz — uyğunluq olacaq.",
   "web.card.matched": "Uyğunluq! Danışmaq təklifi gələnlərdə gözləyir.",
   "web.card.soon": " · tezliklə yox olacaq",

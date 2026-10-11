@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 import { say } from "../locales/say.ts";
 import { Icon } from "./Icon.tsx";
 
@@ -24,20 +24,14 @@ export function Card({ kind = "plain", of, fading = false, as: Tag = "article", 
 }
 
 // The like as a medallion with the storefront's mark and the count (owner 2026-10-01: no
-// stars; 11.10.2026: the mark, not a heart). When `on` turns true it pops — scale 0 → 1.2 → 1 in 220 ms and a
-// shake (styles.css .ui-burst-pop); under prefers-reduced-motion it just
-// appears. The mark is an icon, not a word: no new line for the dictionaries.
+// stars; 11.10.2026: the mark, not a heart). When `on` turns true the mark's windows light one by one,
+// 60 ms apart (adaptive.css, from `data-lit`); under prefers-reduced-motion they are just lit.
+// The mark is an icon, not a word: no new line for the dictionaries.
 export function LikeBurst({ count, on, ...rest }: { count: number; on: boolean } & HTMLAttributes<HTMLSpanElement>) {
-  const was = useRef(on);
-  const [pop, setPop] = useState(false);
-  useEffect(() => {
-    if (on && !was.current) setPop(true);
-    was.current = on;
-  }, [on]);
   return (
-    <span {...rest} className={["ui-burst", on ? "ui-burst-on" : "", pop ? "ui-burst-pop" : ""].filter(Boolean).join(" ")} onAnimationEnd={() => setPop(false)}>
+    <span {...rest} className={["ui-burst", on ? "ui-burst-on" : ""].filter(Boolean).join(" ")}>
       {/* the storefront's mark, lit when the burst is on (owner 11.10.2026: no heart) */}
-      <span className="ui-burst-heart" aria-hidden="true" data-lit={on ? "" : undefined}><Icon name="like" size={20} /></span>
+      <span className="ui-burst-like" aria-hidden="true" data-lit={on ? "" : undefined}><Icon name="like" size={20} /></span>
       <span className="ui-burst-n" aria-hidden="true">{count}</span>
       <span className="visually-hidden">{say("web.like.count", { n: count })}</span>
     </span>

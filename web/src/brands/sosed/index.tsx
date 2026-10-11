@@ -10,13 +10,14 @@ import { languageIn, modeIcon, modes } from "../../api/actions.ts";
 import { say } from "../../locales/say.ts";
 import { Feed, type FeedCard } from "../../screens/Feed.tsx";
 import { CardOpen, openerIds } from "../../ui/Card.tsx";
-import { Card, CardExtras, CardNotes } from "../../screens/Card.tsx";
+import { Card, CardExtras, CardMore, CardNotes, CardTalk } from "../../screens/Card.tsx";
 import { Life, Match, MatchBody } from "../../screens/Match.tsx";
 import { useCard } from "../../screens/logic/useCard.ts";
 import { useMatch } from "../../screens/logic/useMatch.ts";
 import { Button } from "../../ui/Button.tsx";
 import { HeaderScreen } from "../../ui/Header.tsx";
 import { Actions } from "../../ui/Links.tsx";
+import { Split } from "../../ui/Split.tsx";
 import { Screen } from "../../ui/Screen.tsx";
 import { Icon } from "../../ui/Icon.tsx";
 import { useSwipe } from "../../ui/useSwipe.ts";
@@ -105,7 +106,7 @@ export function FeedView(props: ComponentProps<typeof Feed>) {
 // Card.svg: the next tile peeking behind, the card in the accent with a
 // grab handle, and under it hide · details · like. Pull down (or ↓) opens
 // the details; ↑ closes them.
-export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof Card>) {
+export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProps<typeof Card>) {
   const logic = useCard({ client, card, onGone });
   const { busy, liked, doLike, hide } = logic;
   const [peek, setPeek] = useState(false);
@@ -118,7 +119,16 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   const lean = Math.max(-12, Math.min(12, offset.dx / 12));
   return (
     <Screen name="card" title={say("web.card.phrase")} className="b-blocks" data-id={card.id}
-      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} />}>
+      header={
+        <HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} action={
+          /* «…» holds block, complaint, link report (card-more.svg); the details toggle is the swipe-down's button twin. */
+          <span className="ui-icon-row">
+            <Button type="button" icon={peek ? "back" : "open"} className={`block-peek-btn${peek ? " up" : ""}`} aria-label={say("web.card.details")} aria-expanded={peek}
+              onClick={() => setPeek((p) => !p)} data-testid="peek" />
+            <CardMore card={card} logic={logic} />
+          </span>
+        } />
+      }>
       {/* Card-more.svg: the details are a panel of tiles above the card, icon
           and value each — only what the node sends (no distance, no clock). */}
       {peek && (
@@ -151,15 +161,13 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
       </div>
       {!peek && card.offer?.conditions && <p className="ui-hint" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
       <CardNotes logic={logic} />
-      <div className="block-actions">
-        <Button type="button" icon="hide" className="block-btn" aria-label={say("feed.hide")} disabled={busy} onClick={() => void hide()} data-testid="hide" />
-        <Button type="button" icon={peek ? "back" : "open"} className={`block-btn block-peek-btn${peek ? " up" : ""}`} aria-label={say("web.card.details")} aria-expanded={peek}
-          onClick={() => setPeek((p) => !p)} data-testid="peek" />
-        <Button type="button" icon="like" className="block-btn block-like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" data-lit={liked ? "" : undefined} aria-pressed={liked} />
-      </div>
-      <Actions>
-        <CardExtras card={card} logic={logic} />
-      </Actions>
+      <CardTalk logic={logic} onTalk={onTalk}>
+        <Split>
+          <Button type="button" kind="primary" icon="like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" data-lit={liked ? "" : undefined} aria-pressed={liked} />
+          <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={() => void hide()} data-testid="hide" />
+        </Split>
+      </CardTalk>
+      <CardExtras card={card} logic={logic} />
     </Screen>
   );
 }

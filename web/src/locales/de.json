@@ -92,6 +92,8 @@
   "web.card.complaint_refused": "Beschwerde nicht angenommen ({status}).",
   "web.card.conditions": "Bedingungen: {conditions}",
   "web.card.like": "gefällt mir",
+  "web.card.talk": "sprechen",
+  "web.card.more": "mehr",
   "web.card.liked": "Like gesendet. Wenn ihr euch gegenseitig gefallt, gibt es ein Match.",
   "web.card.matched": "Ein Match! Ein Gesprächsangebot wartet im Posteingang.",
   "web.card.soon": " · verschwindet bald",

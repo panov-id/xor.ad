@@ -92,6 +92,8 @@
   "web.card.complaint_refused": "Plainte refusée ({status}).",
   "web.card.conditions": "conditions : {conditions}",
   "web.card.like": "j’aime",
+  "web.card.talk": "parler",
+  "web.card.more": "plus",
   "web.card.liked": "Like envoyé. Si vous vous plaisez mutuellement, c’est un match.",
   "web.card.matched": "Un match ! Une proposition de parler vous attend dans la boîte de réception.",
   "web.card.soon": " · disparaît bientôt",

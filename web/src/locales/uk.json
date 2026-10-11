@@ -92,6 +92,8 @@
   "web.card.complaint_refused": "Скаргу не прийнято ({status}).",
   "web.card.conditions": "умови: {conditions}",
   "web.card.like": "подобається",
+  "web.card.talk": "говорити",
+  "web.card.more": "ще",
   "web.card.liked": "Лайк надіслано. Якщо сподобаєтеся одне одному — буде метч.",
   "web.card.matched": "Метч! Пропозиція поговорити чекає у вхідних.",
   "web.card.soon": " · скоро зникне",

@@ -136,6 +136,15 @@
   background: var(--surface); color: var(--fg); border: var(--btn-rim); box-shadow: var(--btn-shadow);
 }
 
+/* ⓘ is not a sticker on the sheets: a plain circle on --surface with the 1.5
+   line (neighbro-sheets.py infobtn), the 44 target kept. */
+:root[data-brand="neighbro"] .ui-button.ui-icon-only.ui-info-plain:not(.ui-wide) {
+  width: var(--control-h); min-width: var(--control-h); height: var(--control-h); min-height: var(--control-h);
+  border: var(--field-border); box-shadow: none;
+}
+/* The sheets draw no rule under the header: the sky runs on under the title. */
+:root[data-brand="neighbro"] .ui-header-rule { border-bottom: 0; }
+
 /* "Write" on the feed: a square 68, radius 22, --accent, die-cut, above the bar at the right. */
 :root[data-brand="neighbro"] [data-screen="feed"] [data-testid="write"] {
   left: auto; right: max(var(--fab-inset), calc(50% - var(--phone-half))); bottom: var(--fab-bottom);

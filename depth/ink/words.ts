@@ -92,6 +92,18 @@ export function moveWords(say: Say, move: unknown, klass?: string): string {
   return say("table.move");
 }
 
+// A line already in the interface's words (a refusal from refusalWords, a notice):
+// shown as it is. A plain Error's message is a fault of the transport and gets the
+// common.error frame; this does not — «Что-то пошло не так: Сначала напишите свою
+// фразу…» put a general apology before the real reason (K10 walkthrough, Т14).
+export class Told extends Error {}
+
+// The error line of a screen: Told as it is, anything else inside common.error.
+// `clean` is the caller's sanitiser (app.ts passes plain: words from outside are drawn safe).
+export function errorText(say: Say, message: string | Told, clean: (s: string) => string): string {
+  return message instanceof Told ? clean(message.message) : say("common.error", { message: clean(message) });
+}
+
 export type RefusalKind = "phrase" | "name" | "like" | "table";
 // What a table call was for: only a player proposes, answers or resigns; only a
 // watcher applies (relay routes/tables.ts answers both with 409 `refused`).

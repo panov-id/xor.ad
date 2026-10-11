@@ -33,10 +33,11 @@ setTimeout(async () => {
 }, 0);
 import { createElement as h } from "react";
 import { render } from "ink-testing-library";
-import { Feed, Location, PaperCode, PaperCodeEntry, PinSet, Registration } from "./screens.ts";
+import { explainAgain, Feed, Location, PaperCode, PaperCodeEntry, PinSet, Registration } from "./screens.ts";
 import { plain } from "./parts.ts";
 import { Away, Blocked, ChangePin, Chat, EditProfile, Hidden, Inbox, Liked, Me, StartAgain, Statements, StepAway, Write } from "./rooms.ts";
 import { strings } from "./strings.ts";
+import { errorText, Told } from "./words.ts";
 
 const say = strings("ru");
 const settle = () => new Promise((done) => setTimeout(done, 50));
@@ -2351,7 +2352,10 @@ test("a like on an offer while one's own name waits shows the §3 line, and the 
     // deno-lint-ignore no-explicit-any
     client: client as any,
     place: { lat: 55.75, lon: 37.62, radius: 1000 },
-    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: (m: string) => said.push(m),
+    // The error line as the person reads it: the §3 line is the interface's own words,
+    // not inside «Что-то пошло не так» (Т14).
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {},
+    onError: (m: string | Told) => said.push(errorText(say, m, (s) => s)),
   }));
   await settle(150);
   // The list's menu: open, like, … — an offer is liked from the list, not by the
@@ -2809,5 +2813,102 @@ test("Т18 · the write hint does not claim a check when it cannot know the node
   const frame = app.lastFrame()!.replace(/\s+/g, " ");
   assert.doesNotMatch(frame, /проверят до того, как её увидят/, "the hint promises a check the node may not make (rules publish a clean phrase at once)");
   assert.match(frame, /Выйдет сразу или встанет на проверку — что именно, скажет узел после отправки\./, "the hint does not leave the mode to the node's answer");
+  app.unmount();
+});
+
+// K10 walkthrough, Т13: the card's first arrow explained itself as
+// «внимание: вправо — лайк, влево — скрыть; скрытое вернёте в me» — a warning's
+// tone for a hint, and the English name of the «я» screen in a Russian line.
+test("the card's first-arrow hint names the «я» screen in Russian and is not a warning", async () => {
+  explainAgain();
+  const client = {
+    feed: () => Promise.resolve({ items: [{ id: "p1", text: "первая", name: "Ира", age: 30 }] }),
+    like: () => Promise.resolve({ status: 200, body: {} }),
+  };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+  }));
+  await until(() => /первая/.test(app.lastFrame() ?? ""));
+  await type(app, ENTER);
+  await until(() => /листать/.test(app.lastFrame() ?? ""));
+  await type(app, RIGHT);
+  const flat = () => (app.lastFrame() ?? "").replace(/\s+/g, " ");
+  assert.ok(await until(() => /скрытое вернёте/.test(flat())), `the first arrow did not explain the card's keys: ${flat()}`);
+  const frame = flat();
+  assert.match(frame, /скрытое вернёте на экране «я»/, "the hint does not name the «я» screen");
+  assert.doesNotMatch(frame, /\bme\b/, "an English «me» is left in the Russian hint");
+  assert.doesNotMatch(frame, /внимание:/, "a hint is drawn as a warning");
+  app.unmount();
+});
+
+// K10 walkthrough, Т10/Т16: one's own phrase offered «лайк», «скрыть», «заблокировать».
+// The node answers a like on it with a quiet 200 that counts nothing (no oracle,
+// routes/likes.ts), and the feed dropped it as liked: the person's own phrase was
+// gone from the screen. Neither the row nor the card's arrows touch one's own phrase.
+test("one's own phrase is not liked, hidden or blocked — from the row or by the card's arrows", async () => {
+  explainAgain();
+  const calls: string[] = [];
+  const client = {
+    feed: () => Promise.resolve({ items: [{ id: "mine1", text: "моя фраза" }, { id: "p2", text: "чужая фраза" }] }),
+    like: (id: string) => { calls.push(`like ${id}`); return Promise.resolve({ status: 200, body: { state: "liked" } }); },
+    hide: (id: string) => { calls.push(`hide ${id}`); return Promise.resolve(); },
+    blockByPhrase: (id: string) => { calls.push(`block ${id}`); return Promise.resolve(); },
+  };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    mine: { id: "mine1", text: "моя фраза", state: "live" },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+  }));
+  const flat = () => (app.lastFrame() ?? "").replace(/\s+/g, " ");
+  await until(() => /чужая фраза/.test(flat()));
+  // The row: the cursor stands on one's own phrase; → ⏎ is «лайк».
+  await type(app, RIGHT, ENTER);
+  await settle();
+  assert.deepEqual(calls, [], "the row liked one's own phrase");
+  // The card: the first arrow explains, the second must not act on one's own phrase.
+  await type(app, LEFT, ENTER);
+  await until(() => /листать/.test(flat()));
+  await type(app, RIGHT);
+  await until(() => /скрытое вернёте/.test(flat()));
+  await type(app, ENTER);  // «[enter] понятно»
+  await type(app, RIGHT, LEFT);
+  assert.ok(await until(() => /это ваша фраза/.test(flat())), `the card's arrow did not say it is one's own phrase: ${flat()}`);
+  await settle();
+  assert.deepEqual(calls, [], "one's own phrase was liked, hidden or blocked");
+  assert.match(flat(), /моя фраза/, "one's own phrase left the screen");
+  app.unmount();
+});
+
+// K10 walkthrough, Т14: a like the node refuses for want of one's own phrase read
+// «ошибка: Что-то пошло не так: Сначала напишите свою фразу…» — the general apology
+// before the real reason. The refusal leaves the feed as Told, and the error line
+// shows Told as it is; a fault of the transport keeps the common.error frame.
+test("a refused like says its reason without «Что-то пошло не так»", async () => {
+  const got: (string | Told)[] = [];
+  const client = {
+    feed: () => Promise.resolve({ items: [{ id: "p1", text: "первая", name: "Ира", age: 30 }] }),
+    like: () => Promise.resolve({ status: 409, body: { error: { code: "conflict" } } }),
+  };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: (m: string | Told) => got.push(m),
+  }));
+  await until(() => /первая/.test(app.lastFrame() ?? ""));
+  await type(app, RIGHT, ENTER);
+  assert.ok(await until(() => got.length === 1), "the refused like reached no error line");
+  const line = errorText(say, got[0], (s) => plain(s, 300));
+  assert.equal(line, say("refuse.likeNeedsPhrase"), `the refusal is not said in its own words: «${line}»`);
+  assert.equal(errorText(say, "socket hang up", (s) => plain(s, 300)), say("common.error", { message: "socket hang up" }),
+    "a fault of the transport lost its common.error frame");
   app.unmount();
 });

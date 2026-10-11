@@ -15,8 +15,8 @@ name with a contact 422, wrong paper code 404.
 `depth/ink/main.ts` with `DEPTH_PLAIN=1` under a pty: `script(1)` in a `node:24.21.0-alpine` container plus `util-linux-misc`.
 Two people at once, keys from a scenario. Walked: registration, PIN, paper code, point, feed, own phrase,
 card, like, inbox.
-**NOT WALKED in the terminal:** match, chat, table, «я» («me»), restore. The feed did not refresh by itself (`Т15`), after the like
-it went empty (`Т16`), and the two did not reach a match.
+**NOT WALKED in the terminal** in this first run: match, chat, table, «я» («me»), restore. The feed did not refresh by itself (`Т15`),
+after the like it went empty (`Т16`), and the two did not reach a match. Walked later, in the section "Terminal, `K10-T`".
 
 ## Web — sosed (11 lines)
 
@@ -68,3 +68,37 @@ The screen text matches sosed line by line except the card. So `С1`–`С11` ar
 
 Embarrassing: sosed — 11, neighbro — 12, terminal — 17. The terminal was not walked to the end: match, chat, table, «я» and restore
 were not walked. Not compared line by line with the 10.10 walkthrough.
+
+## Terminal, `K10-T`
+
+The terminal's walk scenario now lives in the repository: `scripts/textwalk/depth/` (`run.sh`, `drive.mjs`, `read.py`,
+steps `anya.json`, `boris.json`, `anya-restore.json`). Run:
+`scripts/textwalk/depth/run.sh <dir> scripts/textwalk/depth/{anya,boris,anya-restore}.json`, read —
+`scripts/textwalk/depth/read.py <dir>/anya.txt`. Walked: registration, PIN, code, point, feed, phrase, card,
+mutual like, match, both agreeing, chat both ways, new table, «я» («me»), restore by the paper code in a new terminal.
+
+### What became of `Т1`–`Т17`
+
+| # | Status |
+|---|---|
+| `Т1` | not changed: «Operator.» is the spec's intent (`docs/depth-client_RU.md:436`, "who knows will smile"); whether to change it is the owner's call |
+| `Т10`, `Т16` | fixed. The cause of `Т16`: on one's own phrase the node answers a like with a quiet 200 that counts nothing (`relay/node/src/routes/likes.ts:9-12`, so there is no oracle), and the feed dropped it as liked. The rest in that run was the scenario's keys: the card emptied and closed, the next presses landed in the feed's menu and took the phrase down. Now on one's own phrase «лайк», «скрыть», «заблокировать» ("like", "hide", "block") are unavailable with the reason «это ваша фраза» ("this is your phrase"), and the card's arrows do not touch it. Checked by the walk: «лайк (недоступно: это ваша фраза)», in the card — «это ваша фраза» |
+| `Т13` | fixed: «скрытое вернёте на экране «я»» ("you get hidden ones back on the «я» screen") in 17 languages, the hint without «внимание:». The first → still only explains — by design (§4.4.1) |
+| `Т14` | fixed: a node's refusal in the dictionary's words is shown without «Что-то пошло не так» (like, the name notice, the table refusal) |
+| `Т2`–`Т9`, `Т11`, `Т12`, `Т15`, `Т17` | not changed in this task |
+
+### New embarrassing lines (`Т18`–`Т26`)
+
+| # | Screen | What is seen, verbatim | Why it is embarrassing |
+|---|---|---|---|
+| `Т18` | Card, answering like | «внимание: Мэтч! Предложение поговорить ждёт во входящих.» ("attention: Match! An offer to talk waits in the inbox.") | good news in a warning's tone |
+| `Т19` | Inbox | «мэтч — ждёт вашего согласия · фраза собеседника: ■■■■■ · ваша фраза: ещё 4 ч 19 мин» ("match — waits for your consent · their phrase: ■■■■■ · your phrase: 4 h 19 min more") | signs instead of a time |
+| `Т20` | Inbox | «входящие   новое: 1» ("inbox new: 1") and in the row «Борис, 31   новое» ("Boris, 31 new"); after the chat is opened «новое» stays | doubled; «новое» does not go out |
+| `Т21` | Chat | actions «код», «свой срок: час», «попросить новые ключи» ("code", "own term: hour", "ask for new keys") | no explanation of what they are; «ключи» ("keys") is an internal word |
+| `Т22` | New table | heading «поставить стол» ("set up a table") in lowercase; «…доску и реплики видит узел, а реплики сначала проверяются» ("…the node sees the board and the lines, and the lines are checked first") | the heading is not like the other screens'; «узел» ("node") is jargon |
+| `Т23` | Table before the game | «пас (недоступно: сейчас не ваш ход)» ("pass (unavailable: not your turn now)"), «ещё партию (недоступно: нужны двое игроков)» ("another game (unavailable: two players needed)"), «сдаться» ("resign") available; «сидят  вы» ("seated you") | there is no game, yet the reason is "not your turn"; «ещё партию» and «сдаться» before the first game; no colon |
+| `Т24` | Feed in the old terminal, after the restore in a new one | «ошибка: Что-то пошло не так: feed refused: 401 {"error":{"code":"unauthorized","message":"the request is not signed by a live session"}}» | raw JSON in English; it is not said that the identity was opened by the paper code on another device |
+| `Т25` | «я» there | «имя  …», «возраст  …», «ошибка: Что-то пошло не так: profile refused: 401» ("name …", "age …", "error: Something went wrong: profile refused: 401") | ellipses instead of data and a status code instead of words |
+| `Т26` | Restore | «ошибка: Код не подошёл.» ("error: The code did not fit.") stays on the screen while the right code is typed | the old error hangs under the new input |
+
+`K10-T` result: fixed `Т10`, `Т13`, `Т14`, `Т16`; `Т1` — to the owner; new lines — 9.

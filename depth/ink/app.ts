@@ -29,7 +29,7 @@ import { Closed } from "./screens/closed.ts";
 import { NewTable, SeatedElsewhere, TableRoom } from "./table.ts";
 import { openTable, Tables } from "../core/tables.ts";
 import { Waiting } from "./screens/pending.ts";
-import { refusalWords } from "./words.ts";
+import { errorText, refusalWords, Told } from "./words.ts";
 import type { SessionClose } from "./screens/closed.ts";
 
 // The phrase's length is the node's to state (§8.3). Until GET /limits
@@ -136,7 +136,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
   // what the node or the other device sent — a JSON parser quotes its input
   // with the escapes in it. So they are drawn as anything else from outside
   // is: through plain (review panel 2026-09-26, F3).
-  const fail = (message: string) => setError(say("common.error", { message: plain(message, 300) }));
+  const fail = (message: string | Told) => setError(errorText(say, message, (s) => plain(s, 300)));
   // An error belongs to the screen it was said on: the next screen starts
   // clean. "Что-то пошло не так: no ephemeral pair…" from a conversation's
   // first opening stayed under the inbox and the feed until something else
@@ -323,7 +323,7 @@ export function App({ say, client: first, fresh, start, idleMs = IDLE_MS }: {
                   if (e?.code === "already_seated" && typeof e.table === "string") {
                     return setWhere({ screen: "seatedElsewhere", there: e.table, here: id });
                   }
-                  return fail(refusalWords(say, a, "table"));
+                  return fail(new Told(refusalWords(say, a, "table")));
                 }
                 setWhere({ screen: "table", id });
               })

@@ -955,11 +955,16 @@ def s_departure(brand):
 def s_register_step(brand, step):
     sh = Sheet(brand, 393, 851); k = sh.k; bg(sh)
     title, ic, line = REG[step]
-    # progress: three cells welded into one strip, the done ones filled
-    xs, cw = weld(sh, 16, 12, 120, 14, 3)
-    for j, x in enumerate(xs[:step]):
-        sh.rect(x + 2, 14, cw - 4, 10, (k["accent"], sh.tiles[1], sh.tiles[3])[j] if brand == "sosed" else sh.tiles[(j + 1) % 4], 5)
-    sh.text(150, 24, f"{step} / 3", 14, k["fg-muted"], 600)
+    # progress: one capsule (radius = half its height — owner 11.10: the strip looked squashed when it took the
+    # box's 18 on a height of 14); the steps done are capsules inside it
+    px, py, pw, ph = 16, 10, 132, 20
+    if brand == "sosed": sh.rect(px, py, pw, ph, k["surface-2"], ph / 2)
+    else: sh.sticker_rect(px, py, pw, ph, k["surface"], ph / 2)
+    seg = (pw - 8 - 2 * 4) / 3
+    for j in range(step):
+        c = (k["accent"], sh.tiles[1], sh.tiles[3])[j] if brand == "sosed" else sh.tiles[(j + 1) % 4]
+        sh.rect(px + 4 + j * (seg + 4), py + 4, seg, ph - 8, c, (ph - 8) / 2)
+    sh.text(px + pw + (12 if brand == "sosed" else 18), py + 15, f"{step} / 3", 14, k["fg-muted"], 600)
     sh.buf  # keep
     y = hero_at(sh, title, ic, line, (0, 1, 3)[step - 1], 36)
     if step == 1:

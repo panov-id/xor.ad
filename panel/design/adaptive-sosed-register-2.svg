@@ -1,11 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
 <rect width="393" height="851" fill="#ece4d8"/>
-<rect x="16" y="12" width="120" height="14" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<path d="M56.0 20 V18" stroke="#ece4d8" stroke-width="2"/>
-<path d="M96.0 20 V18" stroke="#ece4d8" stroke-width="2"/>
-<rect x="18.0" y="14" width="36.0" height="10" rx="5" fill="#bd4b2a" />
-<rect x="58.0" y="14" width="36.0" height="10" rx="5" fill="#1fa99a" />
-<text x="150" y="24" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">2 / 3</text>
+<rect x="16" y="10" width="132" height="20" rx="10.0" fill="#e6dbc9" />
+<rect x="20.0" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#bd4b2a" />
+<rect x="62.666666666666664" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#1fa99a" />
+<text x="160" y="25" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">2 / 3</text>
 <rect x="16" y="36" width="361" height="150" rx="28" fill="#d68a1f" />
 <g transform="translate(40 56) scale(2.0)" fill="none" stroke="#1c140d" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5"/></g>
 <text x="40" y="144" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">your PIN</text>

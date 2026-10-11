@@ -1,15 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="393" height="851" fill="#e5e6e9"/>
 <rect width="393" height="851" fill="url(#dots)"/>
-<g transform="rotate(0 76.0 19.0)">
-<rect x="17.5" y="15" width="120" height="14" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="12" width="120" height="14" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(0 82.0 20.0)">
+<rect x="17.5" y="13" width="132" height="20" rx="10.0" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="10" width="132" height="20" rx="10.0" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<path d="M56.0 20 V18" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M96.0 20 V18" stroke="#1a1b1e" stroke-width="1.5"/>
-<rect x="18.0" y="14" width="36.0" height="10" rx="5" fill="#cc2f27" />
-<rect x="58.0" y="14" width="36.0" height="10" rx="5" fill="#336eb2" />
-<text x="150" y="24" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">2 / 3</text>
+<rect x="20.0" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#cc2f27" />
+<rect x="62.666666666666664" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#336eb2" />
+<text x="166" y="25" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">2 / 3</text>
 <g transform="rotate(-8 76 100)">
 <circle cx="77.5" cy="103" r="46" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
 <circle cx="76" cy="100" r="46" fill="#336eb2" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>

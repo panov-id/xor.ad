@@ -109,6 +109,19 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
   return (
     <Screen name="card" title={say("web.card.phrase")} className="b-blocks" data-id={card.id}
       header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} />}>
+      {/* Card-more.svg: the details are a panel of tiles above the card, icon
+          and value each — only what the node sends (no distance, no clock). */}
+      {peek && (
+        <section className="block-peek" data-testid="details" aria-label={say("web.card.details")}>
+          <ul className="block-peek-tiles" role="list">
+            <li className="block-peek-tile t2"><Icon name="me" /><span>{modeLabel(card.mode)}</span></li>
+            <li className="block-peek-tile t1"><Icon name="like" /><span data-testid="like-burst">{card.like_count + (liked ? 1 : 0)}</span></li>
+            {languageIn(card.lang) && <li className="block-peek-tile t3"><Icon name="say" /><span lang={langOf(card)}>{languageIn(card.lang)}</span></li>}
+            {card.soon && <li className="block-peek-tile t4"><Icon name="timer" /><span>{say("web.card.soon")}</span></li>}
+          </ul>
+          {card.offer?.conditions && <p data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
+        </section>
+      )}
       <div className="block-stack">
         <div className="block-behind" aria-hidden="true" />
         <article
@@ -126,13 +139,6 @@ export function CardView({ client, card, onBack, onGone }: ComponentProps<typeof
           {card.soon && <span className="block-soon">{say("web.card.soon")}</span>}
         </article>
       </div>
-      {peek && (
-        <section className="block-peek" data-testid="details">
-          <p><Icon name="like" size={18} /> <span data-testid="like-burst">{card.like_count + (liked ? 1 : 0)}</span></p>
-          {languageIn(card.lang) && <p lang={langOf(card)}>{languageIn(card.lang)}</p>}
-          {card.offer?.conditions && <p data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
-        </section>
-      )}
       {!peek && card.offer?.conditions && <p className="ui-hint" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
       <CardNotes logic={logic} />
       <div className="block-actions">

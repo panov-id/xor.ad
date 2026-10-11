@@ -4,19 +4,17 @@
 // finds it in her block, seated and not liked; Аня sits down by its card,
 // likes it, and finds it in hers with both marks; the list holds it for neither.
 //
-// The table screen has no way out but standing up (table-stand), and standing
-// up ends the seat, so each comes back to the tabs as a person would after
-// closing the page: a reload and the PIN.
+// Each comes back to the tabs by the table's own "back" (TB1, owner 11.10.2026:
+// «"Назад" без вставания»): the seat stays, so the table is in «Мои столы» and
+// opens from there, still theirs.
 
 import type { Page } from "@playwright/test";
 import { expect, test } from "../fixtures/address.ts";
-import { newTable, openTables, PIN, register, runLabel, sitFromTables, unlock } from "./helpers.ts";
+import { newTable, openTables, register, runLabel, sitFromTables } from "./helpers.ts";
 
 async function backToTabs(page: Page): Promise<void> {
-  await page.reload();
-  await unlock(page, PIN);
-  await expect(page.locator('[data-screen="feed"], [data-screen="table"]').first()).toBeVisible({ timeout: 30000 });
-  if (await page.locator('[data-screen="table"]').count()) throw new Error("the reload came back to the table: there is no way to the tabs while seated");
+  await page.locator('[data-screen="table"]').getByTestId("back").click();
+  await expect(page.getByTestId("nav")).toBeVisible({ timeout: 15000 });
   await openTables(page);
 }
 
@@ -45,7 +43,10 @@ test("my tables: the one I sit at is marked seated, the one I liked is marked li
   await expect(anyaMine).toContainText("лайкнут");
   await expect(anya.getByTestId("table-card").filter({ hasText: name })).toHaveCount(0);
 
-  // The card opens the table, as a card of the list does.
+  // The card opens the table, as a card of the list does, and she is still seated there.
   await anyaMine.click();
   await expect(anya.getByTestId("table")).toBeVisible({ timeout: 30000 });
+  // The table names one's own seat «вы», not by name.
+  await expect(anya.getByTestId("table")).toContainText("сидят: Женя · вы");
+  await expect(anya.getByTestId("table-stand")).toBeVisible();
 });

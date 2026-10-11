@@ -417,7 +417,11 @@ function Face() {
     case "new-table":
       return <NewTable client={seated!.client} at={at} radius={radius} onMade={(id) => setScreen({ at: "table", tableId: id, from: screen.from })} onBack={() => setScreen({ at: screen.from })} />;
     case "table":
-      return <Table client={seated!.client} tableId={screen.tableId} onLeave={() => { history.replaceState(null, "", "/"); setScreen({ at: screen.from ?? "feed" }); }} />;
+      {
+        // Back and leave both return to where the table was opened from; back keeps the seat (TB1).
+        const away = () => { history.replaceState(null, "", "/"); setScreen({ at: screen.from ?? "feed" }); };
+        return <Table client={seated!.client} tableId={screen.tableId} onLeave={away} onBack={away} />;
+      }
     case "hidden":
       return <Hidden client={seated!.client} onBack={() => { setEdits((n) => n + 1); me(); }} />;
     case "blocked":

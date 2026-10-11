@@ -20,7 +20,11 @@ import { Pair, Pairs } from "../ui/Pair.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
 
-export function Table({ client, tableId, onLeave }: { client: Client; tableId: string; onLeave: () => void }) {
+// onBack (TB1, owner 11.10.2026: «"Назад" без вставания»): the header's arrow
+// goes to the tabs and the seat stays the person's — the table waits in «Мои
+// столы · сижу здесь» and opens from there. onLeave is for a table left behind:
+// stood up from, or gone.
+export function Table({ client, tableId, onLeave, onBack }: { client: Client; tableId: string; onLeave: () => void; onBack: () => void }) {
   const [tables] = useState(() => new Tables(client));
   const [view, setView] = useState<TableView | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +73,7 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
 
   if (!view) {
     return (
-      <Screen name="table" title={say("table.title")} header={<HeaderScreen title={say("table.title")} />}>
+      <Screen name="table" title={say("table.title")} header={<HeaderScreen title={say("table.title")} onBack={onBack} backLabel={say("common.back")} />}>
         {error ? <ErrorLine>{error}</ErrorLine> : <p className="ui-hint">…</p>}
       </Screen>
     );
@@ -85,7 +89,7 @@ export function Table({ client, tableId, onLeave }: { client: Client; tableId: s
 
   return (
     <Screen name="table" title={title} data-testid="table" data-id={tableId}
-      header={<HeaderScreen title={title} action={<Info label={say("table.title")} data-testid="table-info"><p role="note">{say("table.open")}</p></Info>} />}>
+      header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} action={<Info label={say("table.title")} data-testid="table-info"><p role="note">{say("table.open")}</p></Info>} />}>
       <p className="ui-hint">{say("table.playing")} {view.playing} · {say("table.watching")} {view.watching} · ♥ {view.like_count ?? 0}</p>
       <p className="ui-hint">{say("table.seated")}: {view.seats.map((s) => (s.seat === view.seat ? say("table.you") : s.name)).join(" · ")}</p>
       {/* The name the moderator refused (W13-TN, §6.1): the table lives on without one. */}

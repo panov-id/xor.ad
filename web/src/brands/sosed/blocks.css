@@ -42,8 +42,16 @@
 .b-blocks .block-grip { position: absolute; top: var(--s-3); left: 50%; width: 48px; height: 5px; margin-left: -24px; border-radius: 3px; background: var(--accent-fg); opacity: 0.55; }
 .b-blocks .block-mode { margin-top: auto; display: inline-flex; align-items: center; gap: var(--s-2); font-weight: 500; }
 .b-blocks .block-soon { font-weight: 500; }
-.b-blocks .block-peek { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-4); padding: var(--card-pad); border-radius: var(--card-r); background: var(--surface); }
-.b-blocks .block-peek p { margin: 0; display: inline-flex; align-items: center; gap: 6px; }
+/* Card-more.svg: the details panel on the surface with the 1.5 rim, tiles two by
+   two in tile colours, an icon on top and the value at the foot. */
+.b-blocks .block-peek { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-4); border-radius: var(--card-r); background: var(--surface); border: var(--tabbar-rim); box-shadow: var(--tabbar-ring); }
+.b-blocks .block-peek p { margin: 0; display: inline-flex; align-items: center; gap: var(--s-2); }
+.b-blocks .block-peek-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+.b-blocks .block-peek-tile { display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-3); min-height: calc(var(--s-12) * 2); padding: var(--s-4); border-radius: var(--card-r); font-size: var(--fs-title); font-weight: 600; }
+.b-blocks .block-peek-tile.t1 { background: var(--tile-1); color: var(--tile-1-ink); }
+.b-blocks .block-peek-tile.t2 { background: var(--tile-2); color: var(--tile-2-ink); }
+.b-blocks .block-peek-tile.t3 { background: var(--tile-3); color: var(--tile-3-ink); }
+.b-blocks .block-peek-tile.t4 { background: var(--tile-4); color: var(--tile-4-ink); }
 
 /* Under the card: hide 64 · details 56 · like 64, surface with a 1.5 line. */
 .b-blocks .block-actions { display: flex; justify-content: space-around; align-items: center; padding: var(--s-2) var(--s-8); }

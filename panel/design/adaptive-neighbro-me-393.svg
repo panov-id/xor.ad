@@ -66,4 +66,5 @@
 <rect x="301.875" y="777" width="60" height="44" rx="22" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
 <g transform="translate(319.875 787) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

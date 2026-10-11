@@ -34,4 +34,5 @@
 </g>
 <g transform="translate(30 490) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
 <text x="64" y="508" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="start">waiting for a like back</text>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

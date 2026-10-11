@@ -27,4 +27,5 @@
 <path d="M30 484 H363" stroke="#e6dbc9" stroke-width="1"/>
 <g transform="translate(30 504) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21 V4 M5 4 H17 L15 8 L17 12 H5"/></g>
 <text x="64" y="522" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">report</text>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#983c22" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

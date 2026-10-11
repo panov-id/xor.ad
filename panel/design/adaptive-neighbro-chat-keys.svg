@@ -28,4 +28,5 @@
 </g>
 <g transform="translate(30 248) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/></g>
 <text x="64" y="266" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">agreeing keys with Anya…</text>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

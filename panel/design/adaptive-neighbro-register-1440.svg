@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="952" viewBox="0 0 1440 952"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="1440" height="900" fill="#e5e6e9"/>
 <rect width="1440" height="900" fill="url(#dots)"/>
 <g transform="translate(684.0 74.0) scale(0.7500)">
@@ -32,6 +32,7 @@
 <rect x="500.0" y="560" width="440" height="56" rx="28" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
 <text x="720.0" y="594" font-family="Golos Text" font-weight="600" font-size="16" fill="#04201c" text-anchor="middle">next</text>
-<path d="M500.0 660 H940.0 M500.0 654 V666 M940.0 654 V666" stroke="#126a5c" stroke-width="1.5" stroke-dasharray="4 4"/>
-<text x="720.0" y="652" font-family="Golos Text" font-weight="600" font-size="14" fill="#126a5c" text-anchor="middle">form 440 — the phone's, at any width; no rail before sign-in</text>
+<rect class="frame" x="0.5" y="0.5" width="1439" height="899" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="900" width="1440" height="52" fill="#e5e6e9"/>
+<text class="note" x="16" y="928" font-family="Golos Text" font-size="14" fill="#126a5c">form 440 — the phone's, at any width; no rail before sign-in</text>
 </svg>

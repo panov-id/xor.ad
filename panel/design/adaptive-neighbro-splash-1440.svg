@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="952" viewBox="0 0 1440 952"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="1440" height="900" fill="#e5e6e9"/>
 <rect width="1440" height="900" fill="url(#dots)"/>
 <g transform="rotate(-8 32.80000000000001 190.0)">
@@ -41,5 +41,7 @@
 <rect x="860.0" y="504.0" width="440" height="56" rx="28" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
 <g transform="translate(1068.0 520.0) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/></g>
-<text x="64" y="876" font-family="Golos Text" font-size="14" fill="#126a5c">mark 440px, the hero of the poster; windows / house follow the theme accent</text>
+<rect class="frame" x="0.5" y="0.5" width="1439" height="899" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="900" width="1440" height="52" fill="#e5e6e9"/>
+<text class="note" x="16" y="928" font-family="Golos Text" font-size="14" fill="#126a5c">mark 440px, the hero of the poster; windows / house follow the theme accent</text>
 </svg>

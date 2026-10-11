@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1532" viewBox="0 0 2560 1532"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="2560" height="1440" fill="#e5e6e9"/>
 <rect x="112" y="0" width="2448" height="1440" fill="url(#dots)"/>
 <g opacity=".24">
@@ -81,11 +81,8 @@
 <circle cx="56.0" cy="1352" r="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 <g transform="translate(40.25 1336.25) scale(1.3125)" fill="none" stroke="#04201c" stroke-width="1.14" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5 V19 M5 12 H19"/></g>
 </g>
-<text x="16.0" y="1414" font-family="Golos Text" font-size="14" fill="#126a5c">rail ≥1024</text>
 <text x="536.0" y="64" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">nearby</text>
 <text x="536.0" y="96" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">1 km · 16 phrases</text>
-<path d="M536.0 118 H2136.0 M536.0 112 V124 M2136.0 112 V124" stroke="#126a5c" stroke-width="1.5" stroke-dasharray="4 4"/>
-<text x="1336.0" y="110" font-family="Golos Text" font-weight="600" font-size="14" fill="#126a5c" text-anchor="middle">content 1600 · 4 columns</text>
 <g transform="rotate(0 730.0 211.0)">
 <g transform="rotate(0 730.0 211.0)">
 <rect x="537.5" y="143" width="388.0" height="142" rx="18" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
@@ -454,5 +451,9 @@
 </g>
 <text x="1006.0" y="1372" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">2</text>
 </g>
-<text x="796.0" y="64" font-family="Golos Text" font-size="14" fill="#126a5c">sticker card 388 wide (phone 343); text stays 22/600</text>
+<rect class="frame" x="0.5" y="0.5" width="2559" height="1439" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="1440" width="2560" height="92" fill="#e5e6e9"/>
+<text class="note" x="16" y="1468" font-family="Golos Text" font-size="14" fill="#126a5c">rail ≥1024</text>
+<text class="note" x="16" y="1488" font-family="Golos Text" font-size="14" fill="#126a5c">content 1600 · 4 columns</text>
+<text class="note" x="16" y="1508" font-family="Golos Text" font-size="14" fill="#126a5c">sticker card 388 wide (phone 343); text stays 22/600</text>
 </svg>

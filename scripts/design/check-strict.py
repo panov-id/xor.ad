@@ -14,7 +14,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 SCREENS = ROOT / "web/src/screens"
 SHEETS = ROOT / "panel/design"
 INVENTORY = ROOT / "docs/design/screens-inventory.tsv"
-NOTE = re.compile(r"<text\b[^>]*>([^<]*(?:names?: «|column \d|rail ≥|stays at|mark \d+px|content \d+ ·)[^<]*)<")
+NOTE = re.compile(r"<text\b(?![^>]*class=\"note\")[^>]*>([^<]*(?:names?: «|column \d|rail ≥|stays at|mark \d+px|content \d+ ·)[^<]*)<")
 
 found = []
 for f in sorted(SCREENS.glob("*.tsx")):

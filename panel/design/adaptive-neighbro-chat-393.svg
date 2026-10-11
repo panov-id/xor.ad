@@ -35,4 +35,5 @@
 <text x="36" y="797" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">a line…</text>
 <rect x="321" y="765" width="48" height="52" rx="24" fill="#1fb39a" />
 <g transform="translate(333 779) scale(1.0)" fill="none" stroke="#04201c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 L20 4.5 L15 20 L11.5 13Z M11.5 13 L20 4.5"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

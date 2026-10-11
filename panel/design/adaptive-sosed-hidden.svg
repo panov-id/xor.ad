@@ -13,4 +13,5 @@
 <g transform="translate(30 228) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
 <text x="64" y="246" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">selling a sofa</text>
 <g transform="translate(331 228) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 A7 7 0 1 0 7.5 6.6"/><path d="M5 4.5 V8.5 H9"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#983c22" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

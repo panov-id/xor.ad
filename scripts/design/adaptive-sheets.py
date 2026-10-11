@@ -58,7 +58,7 @@ def esc(s): return s.replace("&", "&amp;").replace("<", "&lt;")
 class Sheet:
     def __init__(self, brand, w, h, theme="light"):
         t = json.load(open(os.path.join(ROOT, "web", "themes", brand, theme + ".json")))["tokens"]
-        self.k, self.brand, self.w, self.h, self.buf = t, brand, w, h, []
+        self.k, self.brand, self.w, self.h, self.buf, self.notes = t, brand, w, h, [], []
         self.tiles = [t["tile-1"], t["tile-2"], t["tile-3"], t["tile-4"]]
         head = "Russo One" if brand == "neighbro" else "Golos Text"
         self.head = head
@@ -96,16 +96,28 @@ class Sheet:
         self.icon(cx - 12 * s, cy - 12 * s, name, ink or self.k["fg"], s)
         self.a('</g>')
 
+    def note(self, s):
+        # a service note of the sheet (sizes, rules): never drawn over the screen, only in the legend strip below the frame
+        if s not in self.notes: self.notes.append(s)
+
     def label(self, x, y, s):
-        # sheet annotation, outside the product's own type: dashed box + mono-ish caption
-        self.a(f'<text x="{x}" y="{y}" font-family="Golos Text" font-size="14" fill="{self.k["accent-text"]}">{esc(s)}</text>')
+        self.note(s)
 
     def measure(self, x1, x2, y, s):
-        c = self.k["accent-text"]
-        self.a(f'<path d="M{x1} {y} H{x2} M{x1} {y - 6} V{y + 6} M{x2} {y - 6} V{y + 6}" stroke="{c}" stroke-width="1.5" stroke-dasharray="4 4"/>')
-        self.text((x1 + x2) / 2, y - 8, s, 14, c, 600, "middle")
+        self.note(s)
 
     def save(self, name):
+        import textwrap
+        w, h, k = self.w, self.h, self.k
+        lines = []
+        for n in self.notes: lines += textwrap.wrap(n, max(20, int((w - 32) / 7.4))) or [n]
+        strip = 24 + 20 * len(lines) + 8 if lines else 0
+        self.buf[0] = self.buf[0].replace(f'height="{h}" viewBox="0 0 {w} {h}"', f'height="{h + strip}" viewBox="0 0 {w} {h + strip}"', 1)
+        self.a(f'<rect class="frame" x="0.5" y="0.5" width="{w - 1}" height="{h - 1}" fill="none" stroke="{k["accent-text"]}" stroke-width="1" stroke-dasharray="6 4"/>')
+        if lines:
+            self.a(f'<rect class="legend" x="0" y="{h}" width="{w}" height="{strip}" fill="{k["bg"]}"/>')
+            for i, ln in enumerate(lines):
+                self.a(f'<text class="note" x="16" y="{h + 28 + 20 * i}" font-family="Golos Text" font-size="14" fill="{k["accent-text"]}">{esc(ln)}</text>')
         self.a("</svg>")
         open(os.path.join(OUT, name + ".svg"), "w").write("\n".join(self.buf))
         print("wrote", name)
@@ -1028,7 +1040,7 @@ def foot(sh, label, second=None, icon=None):
     if sh.brand == "sosed": sh.rect(x0, by, W, 64, k["accent"], 32)
     else: sh.sticker_rect(x0, by, W, 60, k["accent"], 30)
     sh.icon(x0 + W / 2 - 18, by + 12, icon or "check", k["accent-fg"], 1.5)
-    sh.text(x0 + W - 12, by - 8, f"name: «{label}»", 14, k["fg-muted"], 400, "end")
+    sh.note(f"name: «{label}»")
 
 
 def split_foot(sh, main, second, icons=("check", "close")):
@@ -1039,7 +1051,7 @@ def split_foot(sh, main, second, icons=("check", "close")):
     sh.a(f'<path d="M{x0 + W - 110} {by + 12} V{by + 50}" stroke="{k["accent-fg"]}" stroke-width="1.5" opacity=".5"/>')
     sh.icon(x0 + (W - 110) / 2 - 18, by + 12, icons[0], k["accent-fg"], 1.5)
     sh.icon(x0 + W - 55 - 15, by + 15, icons[1], k["accent-fg"], 1.25)
-    sh.text(x0 + W - 12, by - 8, f"names: «{main}» · «{second}»", 14, k["fg-muted"], 400, "end")
+    sh.note(f"names: «{main}» · «{second}»")
 
 
 # ---------- the rest of the screens (owner 11.10.2026: «go on drawing the other pages»), same language

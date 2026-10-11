@@ -28,4 +28,5 @@
 </g>
 <g transform="translate(30 248) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 C8 11 16 11 19 15 L17 17 L14 15.5 V13.5 C12.7 13.2 11.3 13.2 10 13.5 V15.5 L7 17Z"/></g>
 <text x="64" y="266" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">the talk ended for both</text>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

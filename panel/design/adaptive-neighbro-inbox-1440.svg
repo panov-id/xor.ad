@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="992" viewBox="0 0 1440 992"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="1440" height="900" fill="#e5e6e9"/>
 <rect x="112" y="0" width="1328" height="900" fill="url(#dots)"/>
 <g opacity=".24">
@@ -53,10 +53,7 @@
 <circle cx="56.0" cy="812" r="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 <g transform="translate(40.25 796.25) scale(1.3125)" fill="none" stroke="#04201c" stroke-width="1.14" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5 V19 M5 12 H19"/></g>
 </g>
-<text x="16.0" y="874" font-family="Golos Text" font-size="14" fill="#126a5c">rail ≥1024</text>
 <text x="456.0" y="70" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">talks</text>
-<path d="M456.0 104 H1096.0 M456.0 98 V110 M1096.0 98 V110" stroke="#126a5c" stroke-width="1.5" stroke-dasharray="4 4"/>
-<text x="776.0" y="96" font-family="Golos Text" font-weight="600" font-size="14" fill="#126a5c" text-anchor="middle">column 640</text>
 <text x="456.0" y="140" font-family="Golos Text" font-weight="600" font-size="16" fill="#545b63" text-anchor="start">offers</text>
 <text x="456.0" y="300" font-family="Golos Text" font-weight="600" font-size="16" fill="#545b63" text-anchor="start">talks</text>
 <g transform="rotate(0 776.0 192.0)">
@@ -107,5 +104,9 @@
 <text x="544.0" y="538" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">Mark</text>
 <text x="544.0" y="564" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">is the yard music still on?</text>
 <g transform="translate(1056.0 532) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
-<text x="456.0" y="720" font-family="Golos Text" font-size="14" fill="#126a5c">a list, not a grid: one column 640 at any width</text>
+<rect class="frame" x="0.5" y="0.5" width="1439" height="899" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="900" width="1440" height="92" fill="#e5e6e9"/>
+<text class="note" x="16" y="928" font-family="Golos Text" font-size="14" fill="#126a5c">rail ≥1024</text>
+<text class="note" x="16" y="948" font-family="Golos Text" font-size="14" fill="#126a5c">column 640</text>
+<text class="note" x="16" y="968" font-family="Golos Text" font-size="14" fill="#126a5c">a list, not a grid: one column 640 at any width</text>
 </svg>

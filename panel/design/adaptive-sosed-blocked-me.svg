@@ -15,4 +15,5 @@
 <g transform="translate(30 334) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
 <text x="64" y="352" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">documents</text>
 <g transform="translate(331 334) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#983c22" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

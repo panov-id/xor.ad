@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1512" viewBox="0 0 2560 1512"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
 <rect width="2560" height="1440" fill="#ece4d8"/>
 <rect x="152" y="80" width="64" height="48" rx="14" fill="#d68a1f" opacity=".16"/>
 <rect x="176" y="420" width="72" height="64" rx="14" fill="#1fa99a" opacity=".16"/>
@@ -31,13 +31,10 @@
 <text x="64.0" y="426" font-family="Golos Text" font-weight="600" font-size="14" fill="#1c140d" text-anchor="middle">me</text>
 <rect x="32.0" y="1320" width="64" height="64" rx="32" fill="#bd4b2a" />
 <g transform="translate(52.0 1340) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5 V19 M5 12 H19"/></g>
-<text x="24.0" y="1406" font-family="Golos Text" font-size="14" fill="#983c22">rail ≥1024</text>
 <text x="544.0" y="64" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">Nearby</text>
 <rect x="544.0" y="88" width="140" height="48" rx="24" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <g transform="translate(558.0 100) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
 <text x="590.0" y="118" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">1 km</text>
-<path d="M544.0 150 H2144.0 M544.0 144 V156 M2144.0 144 V156" stroke="#983c22" stroke-width="1.5" stroke-dasharray="4 4"/>
-<text x="1344.0" y="142" font-family="Golos Text" font-weight="600" font-size="14" fill="#983c22" text-anchor="middle">content 1600 · 4 columns</text>
 <rect x="544.0" y="168" width="792.0" height="136" rx="24" fill="#d68a1f" />
 <text x="560.0" y="202" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">walking to the river, join?</text>
 <g transform="translate(558.0 266) scale(0.85)" fill="none" stroke="#1c140d" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M6.5 20 C7 15.5 17 15.5 17.5 20"/></g>
@@ -252,4 +249,8 @@
 <text x="964.0" y="1265" font-family="Golos Text" font-weight="600" font-size="28" fill="#983c22" text-anchor="start">−15%</text>
 <text x="964.0" y="1295" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">Corner bakery: coffee and a croissant</text>
 <text x="964.0" y="1339" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">till 11:00 · 200 m</text>
+<rect class="frame" x="0.5" y="0.5" width="2559" height="1439" fill="none" stroke="#983c22" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="1440" width="2560" height="72" fill="#ece4d8"/>
+<text class="note" x="16" y="1468" font-family="Golos Text" font-size="14" fill="#983c22">rail ≥1024</text>
+<text class="note" x="16" y="1488" font-family="Golos Text" font-size="14" fill="#983c22">content 1600 · 4 columns</text>
 </svg>

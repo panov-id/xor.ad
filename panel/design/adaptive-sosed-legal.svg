@@ -20,4 +20,5 @@
 <text x="64" y="302" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">community rules</text>
 <text x="64" y="322" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">15 Sep 2026</text>
 <g transform="translate(331 292) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#983c22" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

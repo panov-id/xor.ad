@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="903" viewBox="0 0 393 903"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
 <rect width="393" height="851" fill="#ece4d8"/>
 <rect x="16" y="10" width="132" height="20" rx="10.0" fill="#e6dbc9" />
 <rect x="20.0" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#bd4b2a" />
@@ -24,5 +24,7 @@
 <text x="326" y="348" font-family="Golos Text" font-weight="600" font-size="13" fill="#983c22" text-anchor="middle">rules</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
 <g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></g>
-<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «next»</text>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#983c22" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="851" width="393" height="52" fill="#ece4d8"/>
+<text class="note" x="16" y="879" font-family="Golos Text" font-size="14" fill="#983c22">name: «next»</text>
 </svg>

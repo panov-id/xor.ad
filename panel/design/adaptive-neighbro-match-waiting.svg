@@ -24,4 +24,5 @@
 </g>
 <g transform="translate(30 420) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/></g>
 <text x="64" y="438" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="start">waiting for Boris to agree · 23 h</text>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

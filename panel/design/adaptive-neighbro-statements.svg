@@ -26,4 +26,5 @@
 <text x="64" y="238" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">an offer link off</text>
 <text x="64" y="258" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">9 Oct · rules</text>
 <g transform="translate(331 228) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
 </svg>

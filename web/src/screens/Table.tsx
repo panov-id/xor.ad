@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { applyFrame, dotsOf, frameNeedsView, openApplications, type TableView, Tables, turnOf } from "../../../depth/core/tables.ts";
 import { say } from "../api/me.ts";
+import { LikeCount } from "../ui/Card.tsx";
 import { durationSeconds } from "../locales/duration.ts";
 import { connectTable } from "../api/tableRoom.ts";
 import { classWord, tableRefusal } from "../api/tables.ts";
@@ -90,7 +91,7 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
   return (
     <Screen name="table" title={title} data-testid="table" data-id={tableId}
       header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} action={<Info label={say("table.title")} data-testid="table-info"><p role="note">{say("table.open")}</p></Info>} />}>
-      <p className="ui-hint">{say("table.playing")} {view.playing} · {say("table.watching")} {view.watching} · ♥ {view.like_count ?? 0}</p>
+      <p className="ui-hint">{say("table.playing")} {view.playing} · {say("table.watching")} {view.watching} · <LikeCount n={view.like_count ?? 0} /></p>
       <p className="ui-hint">{say("table.seated")}: {view.seats.map((s) => (s.seat === view.seat ? say("table.you") : s.name)).join(" · ")}</p>
       {/* The name the moderator refused (W13-TN, §6.1): the table lives on without one. */}
       {view.name_refused && <Notice data-testid="table-name-refused">{say("table.nameRefused")}</Notice>}

@@ -360,7 +360,7 @@ export function Feed(
         key: p.id,
         on: i === at,
         title: `${say("table.title")}${p.name ? ` · "${plain(p.name, 24)}"` : ""} · ${plain(gameWords(say, p.game ?? "?", p.set), 60)}`,
-        meta: `${say("table.free")} ${plain(p.free_seats ?? 0, 6)} · ${say("table.playing")} ${plain(p.playing ?? 0, 6)} · ${say("table.watching")} ${plain(p.watching ?? 0, 6)} · ♥ ${plain(p.like_count ?? 0, 6)}`,
+        meta: `${say("table.free")} ${plain(p.free_seats ?? 0, 6)} · ${say("table.playing")} ${plain(p.playing ?? 0, 6)} · ${say("table.watching")} ${plain(p.watching ?? 0, 6)} · ⌂ ${plain(p.like_count ?? 0, 6)}`,
       })
       : p.name === undefined && p.age === undefined && p.distance_m === undefined && p.minutes_ago === undefined
       // The node's feed carries none of these (routes/feed.ts items: text, mode,

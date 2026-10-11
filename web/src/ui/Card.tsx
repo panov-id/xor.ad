@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type HTMLAttributes } from "react";
 import { say } from "../locales/say.ts";
+import { Icon } from "./Icon.tsx";
 
 // The kit's card (components.svg §6, comic 2026-10-01): a paper panel with an
 // outline in --rim, the top-right corner cut, the hard shadow; the lean is a
@@ -35,7 +36,8 @@ export function LikeBurst({ count, on, ...rest }: { count: number; on: boolean }
   }, [on]);
   return (
     <span {...rest} className={["ui-burst", on ? "ui-burst-on" : "", pop ? "ui-burst-pop" : ""].filter(Boolean).join(" ")} onAnimationEnd={() => setPop(false)}>
-      <span className="ui-burst-heart" aria-hidden="true">♥</span>
+      {/* the storefront's mark, lit when the burst is on (owner 11.10.2026: no heart) */}
+      <span className="ui-burst-heart" aria-hidden="true" data-lit={on ? "" : undefined}><Icon name="like" size={20} /></span>
       <span className="ui-burst-n" aria-hidden="true">{count}</span>
       <span className="visually-hidden">{say("web.like.count", { n: count })}</span>
     </span>
@@ -47,10 +49,12 @@ export function LikeBurst({ count, on, ...rest }: { count: number; on: boolean }
 // («лайков: 1», one dictionary line for all counts: the colon form needs no
 // plural form in any of the 17 languages); the symbol and the number are for
 // the eye. For the feed's foot lines and the list of likes.
-export function LikeCount({ n }: { n: number }) {
+// The count beside the storefront's mark, not a heart (owner 11.10.2026); `lit` where the like is
+// this person's own (the «my likes» screen) — the mark's windows burn.
+export function LikeCount({ n, lit }: { n: number; lit?: boolean }) {
   return (
     <>
-      <span aria-hidden="true">♥ {n}</span>
+      <span aria-hidden="true" className="ui-icon-row" data-lit={lit ? "" : undefined}><Icon name="like" size={16} />{n}</span>
       <span className="visually-hidden">{say("web.like.count", { n })}</span>
     </>
   );

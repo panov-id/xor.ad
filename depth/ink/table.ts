@@ -23,7 +23,7 @@ export function Table(
 ): ReactElement {
   const turn = turnOf(view, now);
   const board = view.board;
-  const counts = `${say("table.playing")} ${plain(view.playing, 6)} · ${say("table.watching")} ${plain(view.watching, 6)} · ♥ ${plain(view.like_count ?? 0, 6)}`;
+  const counts = `${say("table.playing")} ${plain(view.playing, 6)} · ${say("table.watching")} ${plain(view.watching, 6)} · ⌂ ${plain(view.like_count ?? 0, 6)}`;
   const seated = view.seats.map((s) => (s.seat === view.seat ? say("table.you") : plain(s.name, 48))
     + (s.hand_count !== undefined ? ` · ${plain(s.hand_count, 6)}` : "")).join(" · ");
   const score = board

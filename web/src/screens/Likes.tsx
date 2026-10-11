@@ -59,7 +59,7 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
             {item.offer && <span className="ui-offer">−{item.offer.discount_value}</span>}
             <p>{item.text}</p>
             <span className="ui-hint">
-              <LikeCount n={item.like_count} /> · {when(item.liked_at)}
+              <LikeCount n={item.like_count} lit /> · {when(item.liked_at)}
               {item.state === "matched" ? say("web.likes.matched") : ""}
             </span>
             {item.state === "liked" && !item.offer && !spent[item.id] && (

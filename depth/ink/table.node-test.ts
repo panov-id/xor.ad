@@ -53,7 +53,7 @@ const cases: Array<[string, () => Promise<void>]> = [
     assert.match(frame.replace(/\s+/g, " "), /переписка не зашифрована: доску и реплики видит узел/, "the screen does not say the table is open to the node");
     assert.match(frame, /ваш ход · 45 с/, "my turn and its clock are not shown");
     assert.match(frame, /счёт: Аня 1 · Женя 0/);
-    assert.match(frame, /♥ 2/);
+    assert.match(frame, /⌂ 2/);
     assert.match(frame, /заявка: Костя/, "a waiting application is not shown");
     app.unmount();
   }],

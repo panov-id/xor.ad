@@ -152,7 +152,7 @@ def wrap(s,size,maxw):
 
 # ---------------- chrome ----------------
 STYLE=('<style>@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}'
-       '.h{font-family:"Russo One"}.b{font-family:"Golos Text";font-weight:400}.s{font-family:"Golos Text";font-weight:600}'
+       '.h{font-family:"Golos Text";font-weight:600}.b{font-family:"Golos Text";font-weight:400}.s{font-family:"Golos Text";font-weight:600}'
        '[role=button]:focus-visible,[role=tab]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}</style>')
 SVGS={}
 def begin(name,theme):

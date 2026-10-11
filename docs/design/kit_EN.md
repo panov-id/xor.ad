@@ -291,3 +291,22 @@ The owner's goal of 10.10: "move everything to the new design".
 3. `/kit` — the element showcase in the brand's look.
 4. Screens in descending order of their `check-web-design` share.
 5. Screens without a sheet (tables, game, inbox, registration, cabinet) — only with §9.2 elements, no look of their own.
+
+## 10. Adaptive layout and the brand's mark (2026-10-11)
+
+Decided by a quorum of 3 out of 3 and by the owner on the sheets `panel/design/adaptive-*.svg` (generator `scripts/design/adaptive-sheets.py`, gallery https://claude.ai/artifact/XCQpgYcwxeZUSFw8aXi8iR). Code: `web/src/adaptive.css`, `web/src/screens/splash.css`, `web/src/ui/Mark.tsx`, `web/src/ui/Icon.tsx` (the like), `web/src/favicon.ts`.
+
+| Width | Layout |
+|---|---|
+| < 640 | the phone as in §1–9, a 375 column; this section's rules do not apply, except the mark in the feed's header and the like |
+| 640–1023 | a column up to 720 for the feed and tables (2 columns), up to 640 for the rest; the tab bar at the foot, 480 at most |
+| ≥ 1024 | the tab bar becomes a left rail of 112: the mark 44 on top, icon and word, «write» at its foot |
+| ≥ 1440 | the feed and tables in 3 columns, capped at 1280; the splash a poster on the left, the entry 440 on the right |
+| ≥ 2560 | 4 columns, capped at 1600 (and on 3440); a pale brand pattern at the very edge |
+
+- Chat, composer, card, game and «me»: one column of 640 at most at any width. The dots' legend stands beside the board from 1024. neighbro's «me» goes in pairs from 640, as sosed's does.
+- sosed's wide tile only from 4 columns (answer 1b). neighbro's sticker stretches to the column, text 22/600 (3a).
+- The brand's mark (2026-10-11) is the landings' logo (repository sosed.place `landing/index.html:319`, repository neighbro.place `landing/icons/icon.svg`). Its colour is the theme's accent; where the accent is under 3:1 on the ground (sosed amber 2.2, turquoise 2.3; neighbro light and mono 2.1) a ring or a fill of `accent-text`. Places: the splash 160 / 200 / 440, the rail 44, the feed's header 32 below 1024, the sign-up form 72 from 640, the browser tab 16. Never in the tab bar, the chat or the inner screens.
+- The like (2026-10-11) is the outline of the storefront's own mark, a 1.5 line like the letters (the heart is gone): sosed's bubble-house with its antenna, whose 6 windows light 60 ms apart when the like is given; neighbro's house with its chimney and 2 lines. The icon follows the viewer's storefront, never the author's. The label is «like».
+- A phrase's mode icon: one person, a company, a party. A venue's offer in the feed is a card of its own: the discount big, the venue and what, the conditions small; no mode and no like.
+- neighbro's headings (2026-10-11) are Golos 600; Russo One stays only in the word «neighbro» under the mark.

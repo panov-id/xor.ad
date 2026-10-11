@@ -1,0 +1,706 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1664" height="1140" viewBox="0 0 1664 1140"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="1664" height="1140" fill="#ece4d8"/>
+<text x="32" y="56" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">sosed · the mark</text>
+<text x="32" y="86" font-family="Golos Text" font-weight="400" font-size="16" fill="#6b5f4c" text-anchor="start">sizes used: 16 favicon · 32 header · 44 rail · 160 splash (200 from 640, 440 in the poster)</text>
+<text x="32" y="110" font-family="Golos Text" font-weight="400" font-size="16" fill="#6b5f4c" text-anchor="start">colour follows the theme accent; under 3:1 on the ground → ring / fill accent-text (marked ⚑)</text>
+<rect x="32" y="140" width="296" height="276" rx="20" fill="#ece4d8" stroke="#857562" stroke-width="1"/>
+<text x="48" y="170" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">amber ⚑</text>
+<text x="48" y="190" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">accent/bg 2.2</text>
+<g transform="translate(52.0 220.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#d68a1f" stroke="#875714" stroke-width="3"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="17" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="40" width="8" height="8" fill="#d68a1f"/>
+</g>
+</g>
+<g transform="translate(246.0 214.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#d68a1f" stroke="#875714" stroke-width="3"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="17" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="40" width="8" height="8" fill="#d68a1f"/>
+</g>
+</g>
+<text x="294" y="241" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">44</text>
+<g transform="translate(252.0 280.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#d68a1f" stroke="#875714" stroke-width="3"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="17" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="40" width="8" height="8" fill="#d68a1f"/>
+</g>
+</g>
+<text x="294" y="301" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">32</text>
+<g transform="translate(260.0 348.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#d68a1f" stroke="#875714" stroke-width="3"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="17" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="40" width="8" height="8" fill="#d68a1f"/>
+</g>
+</g>
+<text x="294" y="361" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16</text>
+<rect x="352" y="140" width="296" height="276" rx="20" fill="#ece4d8" stroke="#857562" stroke-width="1"/>
+<text x="368" y="170" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">azure</text>
+<text x="368" y="190" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">accent/bg 4.1</text>
+<g transform="translate(372.0 220.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#336eb2"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="17" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="40" width="8" height="8" fill="#336eb2"/>
+</g>
+</g>
+<g transform="translate(566.0 214.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#336eb2"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="17" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="40" width="8" height="8" fill="#336eb2"/>
+</g>
+</g>
+<text x="614" y="241" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">44</text>
+<g transform="translate(572.0 280.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#336eb2"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="17" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="40" width="8" height="8" fill="#336eb2"/>
+</g>
+</g>
+<text x="614" y="301" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">32</text>
+<g transform="translate(580.0 348.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#336eb2"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="17" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="40" width="8" height="8" fill="#336eb2"/>
+</g>
+</g>
+<text x="614" y="361" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16</text>
+<rect x="672" y="140" width="296" height="276" rx="20" fill="#ece4d8" stroke="#857562" stroke-width="1"/>
+<text x="688" y="170" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">carmine</text>
+<text x="688" y="190" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">accent/bg 4.2</text>
+<g transform="translate(692.0 220.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#cc2f27"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="17" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="40" width="8" height="8" fill="#cc2f27"/>
+</g>
+</g>
+<g transform="translate(886.0 214.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#cc2f27"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="17" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="40" width="8" height="8" fill="#cc2f27"/>
+</g>
+</g>
+<text x="934" y="241" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">44</text>
+<g transform="translate(892.0 280.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#cc2f27"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="17" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="40" width="8" height="8" fill="#cc2f27"/>
+</g>
+</g>
+<text x="934" y="301" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">32</text>
+<g transform="translate(900.0 348.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#cc2f27"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="17" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="40" width="8" height="8" fill="#cc2f27"/>
+</g>
+</g>
+<text x="934" y="361" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16</text>
+<rect x="992" y="140" width="296" height="276" rx="20" fill="#0d0b0a" stroke="#857562" stroke-width="1"/>
+<text x="1008" y="170" font-family="Golos Text" font-weight="600" font-size="16" fill="#f0e7dc" text-anchor="start">dark</text>
+<text x="1008" y="190" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">accent/bg 3.9</text>
+<g transform="translate(1012.0 220.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<g transform="translate(1206.0 214.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="1254" y="241" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">44</text>
+<g transform="translate(1212.0 280.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="1254" y="301" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">32</text>
+<g transform="translate(1220.0 348.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="1254" y="361" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">16</text>
+<rect x="1312" y="140" width="296" height="276" rx="20" fill="#0d0b0a" stroke="#857562" stroke-width="1"/>
+<text x="1328" y="170" font-family="Golos Text" font-weight="600" font-size="16" fill="#f0e7dc" text-anchor="start">dark-amber</text>
+<text x="1328" y="190" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">accent/bg 7.0</text>
+<g transform="translate(1332.0 220.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#d68a1f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="17" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="40" width="8" height="8" fill="#d68a1f"/>
+</g>
+</g>
+<g transform="translate(1526.0 214.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#d68a1f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="17" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="40" width="8" height="8" fill="#d68a1f"/>
+</g>
+</g>
+<text x="1574" y="241" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">44</text>
+<g transform="translate(1532.0 280.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#d68a1f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="17" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="40" width="8" height="8" fill="#d68a1f"/>
+</g>
+</g>
+<text x="1574" y="301" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">32</text>
+<g transform="translate(1540.0 348.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#d68a1f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="25" width="8" height="8" fill="#d68a1f"/>
+<rect x="17" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="32" y="40" width="8" height="8" fill="#d68a1f"/>
+<rect x="47" y="40" width="8" height="8" fill="#d68a1f"/>
+</g>
+</g>
+<text x="1574" y="361" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">16</text>
+<rect x="32" y="440" width="296" height="276" rx="20" fill="#0d0b0a" stroke="#857562" stroke-width="1"/>
+<text x="48" y="470" font-family="Golos Text" font-weight="600" font-size="16" fill="#f0e7dc" text-anchor="start">dark-azure</text>
+<text x="48" y="490" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">accent/bg 3.8</text>
+<g transform="translate(52.0 520.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#336eb2"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="17" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="40" width="8" height="8" fill="#336eb2"/>
+</g>
+</g>
+<g transform="translate(246.0 514.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#336eb2"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="17" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="40" width="8" height="8" fill="#336eb2"/>
+</g>
+</g>
+<text x="294" y="541" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">44</text>
+<g transform="translate(252.0 580.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#336eb2"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="17" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="40" width="8" height="8" fill="#336eb2"/>
+</g>
+</g>
+<text x="294" y="601" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">32</text>
+<g transform="translate(260.0 648.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#336eb2"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="25" width="8" height="8" fill="#336eb2"/>
+<rect x="17" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="32" y="40" width="8" height="8" fill="#336eb2"/>
+<rect x="47" y="40" width="8" height="8" fill="#336eb2"/>
+</g>
+</g>
+<text x="294" y="661" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">16</text>
+<rect x="352" y="440" width="296" height="276" rx="20" fill="#0d0b0a" stroke="#857562" stroke-width="1"/>
+<text x="368" y="470" font-family="Golos Text" font-weight="600" font-size="16" fill="#f0e7dc" text-anchor="start">dark-carmine</text>
+<text x="368" y="490" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">accent/bg 3.7</text>
+<g transform="translate(372.0 520.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#cc2f27"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="17" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="40" width="8" height="8" fill="#cc2f27"/>
+</g>
+</g>
+<g transform="translate(566.0 514.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#cc2f27"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="17" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="40" width="8" height="8" fill="#cc2f27"/>
+</g>
+</g>
+<text x="614" y="541" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">44</text>
+<g transform="translate(572.0 580.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#cc2f27"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="17" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="40" width="8" height="8" fill="#cc2f27"/>
+</g>
+</g>
+<text x="614" y="601" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">32</text>
+<g transform="translate(580.0 648.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#cc2f27"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="25" width="8" height="8" fill="#cc2f27"/>
+<rect x="17" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="32" y="40" width="8" height="8" fill="#cc2f27"/>
+<rect x="47" y="40" width="8" height="8" fill="#cc2f27"/>
+</g>
+</g>
+<text x="614" y="661" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">16</text>
+<rect x="672" y="440" width="296" height="276" rx="20" fill="#0d0b0a" stroke="#857562" stroke-width="1"/>
+<text x="688" y="470" font-family="Golos Text" font-weight="600" font-size="16" fill="#f0e7dc" text-anchor="start">dark-turquoise</text>
+<text x="688" y="490" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">accent/bg 6.7</text>
+<g transform="translate(692.0 520.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#1fa99a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="17" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="40" width="8" height="8" fill="#1fa99a"/>
+</g>
+</g>
+<g transform="translate(886.0 514.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#1fa99a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="17" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="40" width="8" height="8" fill="#1fa99a"/>
+</g>
+</g>
+<text x="934" y="541" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">44</text>
+<g transform="translate(892.0 580.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#1fa99a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="17" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="40" width="8" height="8" fill="#1fa99a"/>
+</g>
+</g>
+<text x="934" y="601" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">32</text>
+<g transform="translate(900.0 648.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#1fa99a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="17" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="40" width="8" height="8" fill="#1fa99a"/>
+</g>
+</g>
+<text x="934" y="661" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">16</text>
+<rect x="992" y="440" width="296" height="276" rx="20" fill="#0d0b0a" stroke="#857562" stroke-width="1"/>
+<text x="1008" y="470" font-family="Golos Text" font-weight="600" font-size="16" fill="#f0e7dc" text-anchor="start">dark-violet</text>
+<text x="1008" y="490" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">accent/bg 3.7</text>
+<g transform="translate(1012.0 520.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#8550c5"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="17" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="40" width="8" height="8" fill="#8550c5"/>
+</g>
+</g>
+<g transform="translate(1206.0 514.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#8550c5"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="17" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="40" width="8" height="8" fill="#8550c5"/>
+</g>
+</g>
+<text x="1254" y="541" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">44</text>
+<g transform="translate(1212.0 580.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#8550c5"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="17" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="40" width="8" height="8" fill="#8550c5"/>
+</g>
+</g>
+<text x="1254" y="601" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">32</text>
+<g transform="translate(1220.0 648.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#8550c5"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="17" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="40" width="8" height="8" fill="#8550c5"/>
+</g>
+</g>
+<text x="1254" y="661" font-family="Golos Text" font-weight="400" font-size="14" fill="#9a8d7c" text-anchor="start">16</text>
+<rect x="1312" y="440" width="296" height="276" rx="20" fill="#ece4d8" stroke="#857562" stroke-width="1"/>
+<text x="1328" y="470" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">light</text>
+<text x="1328" y="490" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">accent/bg 4.0</text>
+<g transform="translate(1332.0 520.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<g transform="translate(1526.0 514.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="1574" y="541" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">44</text>
+<g transform="translate(1532.0 580.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="1574" y="601" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">32</text>
+<g transform="translate(1540.0 648.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="1574" y="661" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16</text>
+<rect x="32" y="740" width="296" height="276" rx="20" fill="#e5e5e5" stroke="#857562" stroke-width="1"/>
+<text x="48" y="770" font-family="Golos Text" font-weight="600" font-size="16" fill="#161616" text-anchor="start">mono</text>
+<text x="48" y="790" font-family="Golos Text" font-weight="400" font-size="14" fill="#616161" text-anchor="start">accent/bg 4.0</text>
+<g transform="translate(52.0 820.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#6f6f6f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#f8f8f8" stroke="#f8f8f8" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="17" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="40" width="8" height="8" fill="#6f6f6f"/>
+</g>
+</g>
+<g transform="translate(246.0 814.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#6f6f6f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#f8f8f8" stroke="#f8f8f8" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="17" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="40" width="8" height="8" fill="#6f6f6f"/>
+</g>
+</g>
+<text x="294" y="841" font-family="Golos Text" font-weight="400" font-size="14" fill="#616161" text-anchor="start">44</text>
+<g transform="translate(252.0 880.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#6f6f6f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#f8f8f8" stroke="#f8f8f8" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="17" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="40" width="8" height="8" fill="#6f6f6f"/>
+</g>
+</g>
+<text x="294" y="901" font-family="Golos Text" font-weight="400" font-size="14" fill="#616161" text-anchor="start">32</text>
+<g transform="translate(260.0 948.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#6f6f6f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#f8f8f8" stroke="#f8f8f8" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="17" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="40" width="8" height="8" fill="#6f6f6f"/>
+</g>
+</g>
+<text x="294" y="961" font-family="Golos Text" font-weight="400" font-size="14" fill="#616161" text-anchor="start">16</text>
+<rect x="352" y="740" width="296" height="276" rx="20" fill="#0b0b0b" stroke="#857562" stroke-width="1"/>
+<text x="368" y="770" font-family="Golos Text" font-weight="600" font-size="16" fill="#e8e8e8" text-anchor="start">mono-dark</text>
+<text x="368" y="790" font-family="Golos Text" font-weight="400" font-size="14" fill="#8f8f8f" text-anchor="start">accent/bg 3.9</text>
+<g transform="translate(372.0 820.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#6f6f6f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#f8f8f8" stroke="#f8f8f8" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="17" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="40" width="8" height="8" fill="#6f6f6f"/>
+</g>
+</g>
+<g transform="translate(566.0 814.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#6f6f6f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#f8f8f8" stroke="#f8f8f8" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="17" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="40" width="8" height="8" fill="#6f6f6f"/>
+</g>
+</g>
+<text x="614" y="841" font-family="Golos Text" font-weight="400" font-size="14" fill="#8f8f8f" text-anchor="start">44</text>
+<g transform="translate(572.0 880.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#6f6f6f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#f8f8f8" stroke="#f8f8f8" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="17" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="40" width="8" height="8" fill="#6f6f6f"/>
+</g>
+</g>
+<text x="614" y="901" font-family="Golos Text" font-weight="400" font-size="14" fill="#8f8f8f" text-anchor="start">32</text>
+<g transform="translate(580.0 948.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#6f6f6f"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#f8f8f8" stroke="#f8f8f8" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="25" width="8" height="8" fill="#6f6f6f"/>
+<rect x="17" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="32" y="40" width="8" height="8" fill="#6f6f6f"/>
+<rect x="47" y="40" width="8" height="8" fill="#6f6f6f"/>
+</g>
+</g>
+<text x="614" y="961" font-family="Golos Text" font-weight="400" font-size="14" fill="#8f8f8f" text-anchor="start">16</text>
+<rect x="672" y="740" width="296" height="276" rx="20" fill="#ece4d8" stroke="#857562" stroke-width="1"/>
+<text x="688" y="770" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">turquoise ⚑</text>
+<text x="688" y="790" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">accent/bg 2.3</text>
+<g transform="translate(692.0 820.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#1fa99a" stroke="#146d64" stroke-width="3"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="17" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="40" width="8" height="8" fill="#1fa99a"/>
+</g>
+</g>
+<g transform="translate(886.0 814.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#1fa99a" stroke="#146d64" stroke-width="3"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="17" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="40" width="8" height="8" fill="#1fa99a"/>
+</g>
+</g>
+<text x="934" y="841" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">44</text>
+<g transform="translate(892.0 880.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#1fa99a" stroke="#146d64" stroke-width="3"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="17" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="40" width="8" height="8" fill="#1fa99a"/>
+</g>
+</g>
+<text x="934" y="901" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">32</text>
+<g transform="translate(900.0 948.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#1fa99a" stroke="#146d64" stroke-width="3"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#1a1509" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#1a1509" stroke="#1a1509" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="25" width="8" height="8" fill="#1fa99a"/>
+<rect x="17" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="32" y="40" width="8" height="8" fill="#1fa99a"/>
+<rect x="47" y="40" width="8" height="8" fill="#1fa99a"/>
+</g>
+</g>
+<text x="934" y="961" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16</text>
+<rect x="992" y="740" width="296" height="276" rx="20" fill="#ece4d8" stroke="#857562" stroke-width="1"/>
+<text x="1008" y="770" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">violet</text>
+<text x="1008" y="790" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">accent/bg 4.2</text>
+<g transform="translate(1012.0 820.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#8550c5"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="17" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="40" width="8" height="8" fill="#8550c5"/>
+</g>
+</g>
+<g transform="translate(1206.0 814.0) scale(0.4583)">
+<circle cx="48" cy="48" r="46" fill="#8550c5"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="17" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="40" width="8" height="8" fill="#8550c5"/>
+</g>
+</g>
+<text x="1254" y="841" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">44</text>
+<g transform="translate(1212.0 880.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#8550c5"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="17" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="40" width="8" height="8" fill="#8550c5"/>
+</g>
+</g>
+<text x="1254" y="901" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">32</text>
+<g transform="translate(1220.0 948.0) scale(0.1667)">
+<circle cx="48" cy="48" r="46" fill="#8550c5"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="25" width="8" height="8" fill="#8550c5"/>
+<rect x="17" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="32" y="40" width="8" height="8" fill="#8550c5"/>
+<rect x="47" y="40" width="8" height="8" fill="#8550c5"/>
+</g>
+</g>
+<text x="1254" y="961" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16</text>
+</svg>

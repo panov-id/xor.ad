@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="1440" height="900" fill="#ece4d8"/>
+<text x="48" y="64" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">sosed · the like is the mark</text>
+<text x="48" y="96" font-family="Golos Text" font-weight="400" font-size="16" fill="#6b5f4c" text-anchor="start">no heart (owner 11.10). Tap: the windows light one by one, once; liked: they stay lit — «I'm in».</text>
+<text x="48" y="120" font-family="Golos Text" font-weight="400" font-size="16" fill="#6b5f4c" text-anchor="start">Taken back: they go dark at once. Nothing moves at rest, nothing on scroll; reduced motion: lit at once.</text>
+<text x="48" y="178" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">1 · states (96 here, 44 on a card)</text>
+<g transform="translate(72.0 222.0) scale(1.0000)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+</g>
+<text x="120" y="350" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="middle">at rest</text>
+<g transform="translate(332.0 222.0) scale(1.0000)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="380" y="350" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="middle">pressed (mid-animation)</text>
+<g transform="translate(592.0 222.0) scale(1.0000)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="640" y="350" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">liked — «I'm in»</text>
+<text x="48" y="420" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">2 · the tap, frame by frame — 6 windows, 60 ms apart, 360 ms</text>
+<g transform="translate(64.0 474.0) scale(0.7500)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+</g>
+<text x="100" y="572" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="middle">0 ms</text>
+<g transform="translate(184.0 474.0) scale(0.7500)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="220" y="572" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="middle">60 ms</text>
+<g transform="translate(304.0 474.0) scale(0.7500)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="340" y="572" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="middle">120 ms</text>
+<g transform="translate(424.0 474.0) scale(0.7500)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="460" y="572" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="middle">180 ms</text>
+<g transform="translate(544.0 474.0) scale(0.7500)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="580" y="572" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="middle">240 ms</text>
+<g transform="translate(664.0 474.0) scale(0.7500)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="700" y="572" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="middle">300 ms</text>
+<g transform="translate(784.0 474.0) scale(0.7500)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="820" y="572" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="middle">360 ms</text>
+<text x="1000" y="178" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">3 · on a phrase in the feed</text>
+<rect x="1000" y="210" width="343" height="200" rx="24" fill="#d68a1f" />
+<text x="1020" y="254" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">walking to the river, join?</text>
+<circle cx="1048" cy="362" r="28" fill="#ece4d8" opacity=".0"/>
+<g transform="translate(1028.0 346.0) scale(0.3333)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+</g>
+<text x="1076" y="368" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">3</text>
+<text x="1200" y="368" font-family="Golos Text" font-size="14" fill="#983c22">48 target</text>
+<rect x="1000" y="440" width="343" height="200" rx="24" fill="#1fa99a" />
+<text x="1020" y="484" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">coffee at the corner bakery</text>
+<circle cx="1048" cy="592" r="28" fill="#ece4d8" opacity=".0"/>
+<g transform="translate(1028.0 576.0) scale(0.3333)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="1076" y="598" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">4 · I'm in</text>
+<text x="1200" y="598" font-family="Golos Text" font-size="14" fill="#983c22">liked</text>
+<text x="48" y="868" font-family="Golos Text" font-size="14" fill="#983c22">the count says how many are in; the button's name for a screen reader: «I'm in» / «not in any more» (17 languages)</text>
+</svg>

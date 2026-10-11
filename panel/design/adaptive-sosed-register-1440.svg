@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="1440" height="900" fill="#ece4d8"/>
+<g transform="translate(684.0 74.0) scale(0.7500)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="500.0" y="210" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">who are you</text>
+<text x="500.0" y="240" font-family="Golos Text" font-weight="400" font-size="16" fill="#6b5f4c" text-anchor="start">step 1 of 3</text>
+<text x="500.0" y="286" font-family="Golos Text" font-weight="600" font-size="16" fill="#6b5f4c" text-anchor="start">name</text>
+<rect x="500.0" y="298" width="440" height="56" rx="24" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<text x="520.0" y="334" font-family="Golos Text" font-weight="400" font-size="18" fill="#1c140d" text-anchor="start">Anya</text>
+<text x="500.0" y="390" font-family="Golos Text" font-weight="600" font-size="16" fill="#6b5f4c" text-anchor="start">age</text>
+<rect x="500.0" y="402" width="440" height="56" rx="24" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<text x="520.0" y="438" font-family="Golos Text" font-weight="400" font-size="18" fill="#1c140d" text-anchor="start">28</text>
+<rect x="500.0" y="490" width="28" height="28" rx="6" fill="#bd4b2a" />
+<g transform="translate(502.0 492) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<text x="544.0" y="510" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="start">I accept the rules and the privacy notice</text>
+<rect x="500.0" y="560" width="440" height="56" rx="28" fill="#bd4b2a" />
+<text x="720.0" y="594" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="middle">next</text>
+<path d="M500.0 660 H940.0 M500.0 654 V666 M940.0 654 V666" stroke="#983c22" stroke-width="1.5" stroke-dasharray="4 4"/>
+<text x="720.0" y="652" font-family="Golos Text" font-weight="600" font-size="14" fill="#983c22" text-anchor="middle">form 440 — the phone's, at any width; no rail before sign-in</text>
+</svg>

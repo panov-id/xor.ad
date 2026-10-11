@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="28.5" y="100.8" width="67.2" height="48.0" rx="12.8" fill="#d68a1f" opacity=".22"/>
+<rect x="302.1" y="94.39999999999999" width="57.599999999999994" height="35.2" rx="12.8" fill="#1fa99a" opacity=".22"/>
+<rect x="311.7" y="267.2" width="48.0" height="57.599999999999994" rx="12.8" fill="#8550c5" opacity=".22"/>
+<rect x="36.5" y="276.8" width="54.400000000000006" height="41.6" rx="12.8" fill="#336eb2" opacity=".22"/>
+<g transform="translate(116.5 120.0) scale(1.6667)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="196.5" y="332.0" font-family="Golos Text" font-weight="600" font-size="40" fill="#1c140d" text-anchor="middle">sosed</text>
+<text x="16.0" y="400.0" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">What neighbours</text>
+<text x="16.0" y="436.0" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">say nearby</text>
+<text x="16.0" y="472.0" font-family="Golos Text" font-weight="400" font-size="20" fill="#6b5f4c" text-anchor="start">What's said fades.</text>
+<rect x="16.0" y="508.0" width="361" height="64" rx="32" fill="#bd4b2a" />
+<g transform="translate(184.5 528.0) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<rect x="16.0" y="584.0" width="361" height="56" rx="28" fill="none" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(184.5 600.0) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/></g>
+<text x="16" y="835" font-family="Golos Text" font-size="14" fill="#983c22">mark 160px; enters once, still under reduced motion</text>
+</svg>

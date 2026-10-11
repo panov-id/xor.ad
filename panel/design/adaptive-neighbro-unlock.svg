@@ -29,7 +29,8 @@
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<path d="M257 765 V805" stroke="#04201c" stroke-width="1.5" opacity=".5"/>
-<text x="136.5" y="793" font-family="Golos Text" font-weight="600" font-size="18" fill="#04201c" text-anchor="middle">open</text>
-<text x="317" y="793" font-family="Golos Text" font-weight="600" font-size="14" fill="#04201c" text-anchor="middle">paper code</text>
+<path d="M267 767 V805" stroke="#04201c" stroke-width="1.5" opacity=".5"/>
+<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 15.5 6"/></g>
+<g transform="translate(307 770) scale(1.25)" fill="none" stroke="#04201c" stroke-width="1.20" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M9 12 H15.5 M9 15.5 H15.5"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">names: «open» · «paper code»</text>
 </svg>

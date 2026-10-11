@@ -26,5 +26,6 @@
 <path d="M316.8 324 V372" stroke="#ece4d8" stroke-width="2"/>
 <text x="16" y="402" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">the PIN never leaves this device</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
-<text x="196.5" y="793" font-family="Golos Text" font-weight="600" font-size="18" fill="#fff6f0" text-anchor="middle">create</text>
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5 M9.5 15.5 L11.5 17.5 L14.5 13.5"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «create»</text>
 </svg>

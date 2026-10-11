@@ -917,7 +917,7 @@ def s_unlock(brand):
     for j, x in enumerate(xs[:4]): sh.a(f'<circle cx="{x + cw / 2:.1f}" cy="{y + 50}" r="7" fill="{k["fg"]}"/>')
     sh.a(f'<rect x="{xs[4] + cw / 2 - 1:.1f}" y="{y + 34}" width="2" height="32" fill="{k["accent"]}"/>')
     sh.text(16, y + 112, "3 tries left before a pause", 14, k["fg-muted"])
-    split_foot(sh, "open", "paper code")
+    split_foot(sh, "open", "paper code", ("unlock", "paper"))
     sh.save(f"adaptive-{brand}-unlock")
 
 
@@ -933,7 +933,7 @@ def s_restore(brand):
     y += 104
     xs, cw = weld(sh, 16, y + 20, 361, 64, 6)
     sh.text(16, y + 12, "again", 14, k["fg-muted"], 600)
-    split_foot(sh, "come back", "new code")
+    split_foot(sh, "come back", "new code", ("restore", "paperplus"))
     sh.save(f"adaptive-{brand}-restore")
 
 
@@ -948,7 +948,7 @@ def s_departure(brand):
     box(sh, 16, y, 361, 72)
     sh.icon(32, y + 24, "check", k["fg"]); sh.text(66, y + 32, "the new device asked:", 14, k["fg-muted"])
     sh.text(66, y + 56, "check 7F2Q", 20, k["fg"], 600)
-    split_foot(sh, "it is me", "cancel")
+    split_foot(sh, "it is me", "cancel", ("itsme", "close"))
     sh.save(f"adaptive-{brand}-departure")
 
 
@@ -970,14 +970,14 @@ def s_register_step(brand, step):
         sh.rect(xs[0] + cw / 2 - 16, y + 20, 32, 32, k["accent"], 8); sh.icon(xs[0] + cw / 2 - 12, y + 24, "check", k["accent-fg"])
         for x, d in zip(xs[1:], ("terms", "privacy", "rules")):
             sh.icon(x + cw / 2 - 12, y + 14, "doc", k["accent-text"]); sh.text(x + cw / 2, y + 56, d, 14, k["accent-text"], 600, "middle")
-        foot(sh, "next")
+        foot(sh, "next", icon="next")
     elif step == 2:
         sh.text(16, y + 4, "PIN", 14, k["fg-muted"], 600)
         weld(sh, 16, y + 14, 361, 64, 6); y += 96
         sh.text(16, y + 4, "again", 14, k["fg-muted"], 600)
         weld(sh, 16, y + 14, 361, 64, 6); y += 96
         sh.text(16, y + 4, "the PIN never leaves this device", 14, k["fg-muted"])
-        foot(sh, "create")
+        foot(sh, "create", icon="lockok")
     else:
         xs, cw = weld(sh, 16, y, 361, 92, 4)
         for j, (x, g) in enumerate(zip(xs, ("FEP0", "4AXR", "1JVV", "A4E3"))):
@@ -986,7 +986,7 @@ def s_register_step(brand, step):
         sh.text(16, y, "written down? groups 2 and 4", 16, k["fg"], 600)
         xs, cw = weld(sh, 16, y + 14, 361, 64, 2)
         sh.text(xs[0] + 16, y + 54, "2 · 4AXR", 20, k["fg"], 600); sh.text(xs[1] + 16, y + 54, "4 · ····", 20, k["fg-muted"])
-        foot(sh, "done")
+        foot(sh, "done", icon="check")
     sh.save(f"adaptive-{brand}-register-{step}")
 
 
@@ -1006,6 +1006,35 @@ def hero_at(sh, title, ic, line, colour_i, top):
     yy = top + 54 + len(tl) * 28
     for n, l in enumerate(wrap(line, 16, 215)[:3]): sh.text(x0 + 124, yy + n * 22, l, 16, k["fg-muted"])
     return max(top + 140, yy + 3 * 22 + 8)
+
+
+# ---------- buttons are icons, their words only their names (owner 11.10.2026: «clear icons instead of words»)
+ICON.update({
+    "next": '<path d="M5 12 H19 M13 6 L19 12 L13 18"/>',
+    "lockok": '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5 M9.5 15.5 L11.5 17.5 L14.5 13.5"/>',
+    "paperplus": '<path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M12.25 11 V17 M9.25 14 H15.25"/>',
+    "itsme": '<circle cx="10" cy="8.5" r="3.5"/><path d="M3.5 20 C4.5 15.5 15.5 15.5 16.5 20 M15.5 11.5 L17.5 13.5 L21 9.5"/>',
+})
+
+
+def foot(sh, label, second=None, icon=None):
+    """The main action as an icon (its word is only its name); `second` an icon too when given as (icon, name)."""
+    k = sh.k; x0, W = 16, 361; by = 851 - 96
+    if sh.brand == "sosed": sh.rect(x0, by, W, 64, k["accent"], 32)
+    else: sh.sticker_rect(x0, by, W, 60, k["accent"], 30)
+    sh.icon(x0 + W / 2 - 18, by + 12, icon or "check", k["accent-fg"], 1.5)
+    sh.text(x0 + W - 12, by - 8, f"name: «{label}»", 14, k["fg-muted"], 400, "end")
+
+
+def split_foot(sh, main, second, icons=("check", "close")):
+    """Main and second action welded, both icons; their words are their names only."""
+    k = sh.k; x0, W = 16, 361; by = 851 - 96
+    if sh.brand == "sosed": sh.rect(x0, by, W, 64, k["accent"], 32)
+    else: sh.sticker_rect(x0, by, W, 60, k["accent"], 30)
+    sh.a(f'<path d="M{x0 + W - 110} {by + 12} V{by + 50}" stroke="{k["accent-fg"]}" stroke-width="1.5" opacity=".5"/>')
+    sh.icon(x0 + (W - 110) / 2 - 18, by + 12, icons[0], k["accent-fg"], 1.5)
+    sh.icon(x0 + W - 55 - 15, by + 15, icons[1], k["accent-fg"], 1.25)
+    sh.text(x0 + W - 12, by - 8, f"names: «{main}» · «{second}»", 14, k["fg-muted"], 400, "end")
 
 
 ICON["mk_sosed"] = '<path d="M3.5 7.5 H20.5 V18 H10.5 L6.5 21.5 V18 H3.5 Z"/><path d="M15.5 7.5 V3.5 M13.5 4 L17.5 3"/>'

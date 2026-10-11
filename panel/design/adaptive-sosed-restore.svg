@@ -32,7 +32,8 @@
 <path d="M316.8 468 V516" stroke="#ece4d8" stroke-width="2"/>
 <text x="16" y="452" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">again</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
-<path d="M257 767 V807" stroke="#fff6f0" stroke-width="1.5" opacity=".5"/>
-<text x="136.5" y="793" font-family="Golos Text" font-weight="600" font-size="18" fill="#fff6f0" text-anchor="middle">come back</text>
-<text x="317" y="793" font-family="Golos Text" font-weight="600" font-size="14" fill="#fff6f0" text-anchor="middle">new code</text>
+<path d="M267 767 V805" stroke="#fff6f0" stroke-width="1.5" opacity=".5"/>
+<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 A7 7 0 1 0 7.5 6.6"/><path d="M5 4.5 V8.5 H9"/></g>
+<g transform="translate(307 770) scale(1.25)" fill="none" stroke="#fff6f0" stroke-width="1.20" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M12.25 11 V17 M9.25 14 H15.25"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">names: «come back» · «new code»</text>
 </svg>

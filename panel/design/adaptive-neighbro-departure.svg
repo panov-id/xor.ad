@@ -31,7 +31,8 @@
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<path d="M257 765 V805" stroke="#04201c" stroke-width="1.5" opacity=".5"/>
-<text x="136.5" y="793" font-family="Golos Text" font-weight="600" font-size="18" fill="#04201c" text-anchor="middle">it is me</text>
-<text x="317" y="793" font-family="Golos Text" font-weight="600" font-size="14" fill="#04201c" text-anchor="middle">cancel</text>
+<path d="M267 767 V805" stroke="#04201c" stroke-width="1.5" opacity=".5"/>
+<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8.5" r="3.5"/><path d="M3.5 20 C4.5 15.5 15.5 15.5 16.5 20 M15.5 11.5 L17.5 13.5 L21 9.5"/></g>
+<g transform="translate(307 770) scale(1.25)" fill="none" stroke="#04201c" stroke-width="1.20" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">names: «it is me» · «cancel»</text>
 </svg>

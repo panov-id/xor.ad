@@ -124,10 +124,13 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
       })()}
       {error && <ErrorLine>{error}</ErrorLine>}
       <ul className="ui-lines">
-        {view.lines.filter((l) => l.kind !== "move").map((l) => (
-          <li key={l.id}>{nameOf(l.seat)} — {l.kind === "sticker" ? `[${l.sticker}]` : l.text}</li>
+        {/* An application is said once, as «заявка: имя — слова», and only while
+            it is open: once the applicant plays (or is refused) it goes, instead
+            of «Борис — сыграю» hanging on after the game (walkthrough 11.10, С9). */}
+        {view.lines.filter((l) => l.kind !== "move" && l.kind !== "application").map((l) => (
+          <li key={l.id} data-testid="line">{nameOf(l.seat)} — {l.kind === "sticker" ? `[${l.sticker}]` : l.text}</li>
         ))}
-        {openApplications(view).map((l) => <li key={`w${l.id}`}>{say("table.application")}: {nameOf(l.seat)}</li>)}
+        {openApplications(view).map((l) => <li key={`w${l.id}`} data-testid="application">{say("table.application")}: {nameOf(l.seat)}{l.text ? ` — ${l.text}` : ""}</li>)}
       </ul>
       <MoveInput
         legend={say("table.say")}

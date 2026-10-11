@@ -185,5 +185,18 @@ export function CellsBoard({ view, onMove }: { view: TableView; onMove?: Move })
 export function DotsBoard({ view, onEdge }: { view: TableView; onEdge?: (edge: string) => void }) {
   const dots = dotsOf(view.board)!;
   const who = (seat: number) => (seat === view.seat ? tableSay("table.you") : view.seats.find((p) => p.seat === seat)?.name ?? `#${seat}`);
-  return <DotsGrid label={tableSay("table.board")} n={dots.n} free={new Set(freeEdges(dots))} boxes={dots.boxes} who={who} mine={view.seat} onEdge={onEdge} />;
+  // A box shows its owner's first letter (DotsGrid); the legend says whose
+  // letter is which — bare «Б · В» read as nothing, and «В» is «вы» on each
+  // screen, oneself (walkthrough 11.10, С8). The ear has each box's name.
+  const owners = [...new Set(Object.values(dots.boxes))];
+  return (
+    <>
+      <DotsGrid label={tableSay("table.board")} n={dots.n} free={new Set(freeEdges(dots))} boxes={dots.boxes} who={who} mine={view.seat} onEdge={onEdge} />
+      {owners.length > 0 && (
+        <p className="ui-hint" data-testid="dots-legend" aria-hidden="true">
+          {owners.map((seat) => `${[...who(seat)][0]?.toLocaleUpperCase() ?? "?"} — ${who(seat)}`).join(" · ")}
+        </p>
+      )}
+    </>
+  );
 }

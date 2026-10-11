@@ -10,7 +10,10 @@ const b = await chromium.launch();
 let last = Date.now();
 
 async function phone(who, locale = "ru-RU") {
-  const ctx = await b.newContext({ viewport: { width: 393, height: 851 }, locale });
+  // WALK_WIDTH: phone 393 by default; 768 tablet, 1440 desktop, 2560/3440 wide (owner, 11.10.2026).
+  const w = Number(process.env.WALK_WIDTH || 393);
+  const h = w <= 500 ? 851 : w <= 1100 ? 1024 : w <= 2000 ? 900 : 1440;
+  const ctx = await b.newContext({ viewport: { width: w, height: h }, locale });
   const p = await ctx.newPage();
   p.who = who;
   p.on("pageerror", (e) => console.log(`  ! ${who} pageerror: ${String(e).slice(0, 200)}`));
@@ -41,7 +44,19 @@ async function look(p, step) {
       const name = (el.getAttribute("aria-label") || byIds || el.innerText || el.getAttribute("placeholder") || el.getAttribute("title") || (el.labels?.[0]?.innerText ?? "") || "").trim().replace(/\s+/g, " ");
       return `${el.tagName.toLowerCase()}${el.dataset.testid ? "#" + el.dataset.testid : ""}=${name ? JSON.stringify(name.slice(0, 40)) : "БЕЗ ИМЕНИ"}`;
     });
-    return { id: screen?.getAttribute("data-screen") ?? "?", text, sr, controls, title: document.title, lang: document.documentElement.lang };
+    // Layout as a person meets it at this width: sideways scroll, things past the
+    // edge, how wide the content runs, taps too small for a finger.
+    const W = innerWidth;
+    const over = document.documentElement.scrollWidth - W;
+    const out = [...document.querySelectorAll("body *")].filter(vis).filter((el) => !el.closest(".visually-hidden"))
+      .filter((el) => { const r = el.getBoundingClientRect(); return r.right > W + 1 || r.left < -1; })
+      .slice(0, 4).map((el) => el.tagName.toLowerCase() + (el.dataset.testid ? "#" + el.dataset.testid : ""));
+    const m = (document.querySelector("main") ?? screen ?? document.body).getBoundingClientRect();
+    const small = W <= 1100 ? [...document.querySelectorAll("button, a, input, [role=button]")].filter(vis)
+      .filter((el) => { const r = el.getBoundingClientRect(); return r.height < 32 && r.width < 32; }).length : 0;
+    const layout = `w=${W} content=${Math.round(m.left)}..${Math.round(m.right)} (${Math.round(m.width)})`
+      + (over > 0 ? ` SIDEWAYS-SCROLL +${over}` : "") + (out.length ? ` PAST-EDGE ${out.join(" ")}` : "") + (small ? ` SMALL-TAPS ${small}` : "");
+    return { id: screen?.getAttribute("data-screen") ?? "?", text, sr, controls, layout, title: document.title, lang: document.documentElement.lang };
   });
   const ms = Date.now() - last; last = Date.now();
   // WALK_STABLE: no timings, so two walks diff line by line.
@@ -50,6 +65,7 @@ async function look(p, step) {
   console.log(s.text.split("\n").map((l) => "  | " + l).join("\n"));
   if (s.sr.length) console.log("  screen reader only: " + s.sr.join(" | "));
   console.log("  controls: " + s.controls.join(", "));
+  console.log("  layout: " + s.layout);
 }
 const t = (p, id) => p.getByTestId(id);
 const step = async (name, fn) => { try { await fn(); } catch (e) { console.log(`\n!! STEP FAILED: ${name}: ${String(e).split("\n")[0]}`); } };

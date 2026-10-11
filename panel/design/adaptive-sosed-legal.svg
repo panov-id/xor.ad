@@ -1,23 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
 <rect width="393" height="851" fill="#ece4d8"/>
-<rect x="16" y="24" width="361" height="184" rx="28" fill="#8550c5" />
-<g transform="translate(40 46) scale(2.2)" fill="none" stroke="#ffffff" stroke-width="0.68" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
-<text x="40" y="138" font-family="Golos Text" font-weight="600" font-size="28" fill="#ffffff" text-anchor="start">documents</text>
-<text x="40" y="164" font-family="Golos Text" font-weight="400" font-size="16" fill="#ffffff" text-anchor="start">what you agreed to, and their</text>
-<text x="40" y="186" font-family="Golos Text" font-weight="400" font-size="16" fill="#ffffff" text-anchor="start">editions</text>
-<rect x="16" y="232" width="361" height="192" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<g transform="translate(30 252) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
-<text x="64" y="262" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">terms</text>
-<text x="64" y="282" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16 Sep 2026</text>
-<g transform="translate(331 252) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
-<path d="M30 296 H363" stroke="#e6dbc9" stroke-width="1"/>
-<g transform="translate(30 316) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
-<text x="64" y="326" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">privacy</text>
-<text x="64" y="346" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16 Sep 2026</text>
-<g transform="translate(331 316) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
-<path d="M30 360 H363" stroke="#e6dbc9" stroke-width="1"/>
-<g transform="translate(30 380) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
-<text x="64" y="390" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">community rules</text>
-<text x="64" y="410" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">15 Sep 2026</text>
-<g transform="translate(331 380) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<rect x="16" y="24" width="361" height="104" rx="28" fill="#8550c5" />
+<g transform="translate(38 44) scale(1.6)" fill="none" stroke="#ffffff" stroke-width="0.94" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
+<text x="38" y="108" font-family="Golos Text" font-weight="600" font-size="26" fill="#ffffff" text-anchor="start">documents</text>
+<circle cx="343" cy="58" r="18" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(331 46) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<rect x="16" y="144" width="361" height="192" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 164) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
+<text x="64" y="174" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">terms</text>
+<text x="64" y="194" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16 Sep 2026</text>
+<g transform="translate(331 164) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 208 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 228) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
+<text x="64" y="238" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">privacy</text>
+<text x="64" y="258" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">16 Sep 2026</text>
+<g transform="translate(331 228) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 272 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 292) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
+<text x="64" y="302" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">community rules</text>
+<text x="64" y="322" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">15 Sep 2026</text>
+<g transform="translate(331 292) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
 </svg>

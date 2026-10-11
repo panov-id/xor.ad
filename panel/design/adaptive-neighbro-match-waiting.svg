@@ -18,7 +18,6 @@
 <rect x="32" y="58" width="34" height="6" rx="3" fill="#141618"/>
 </g>
 <text x="196" y="320" font-family="Golos Text" font-weight="600" font-size="28" fill="#141618" text-anchor="middle">Boris, 31</text>
-<text x="196" y="348" font-family="Golos Text" font-weight="400" font-size="15" fill="#545b63" text-anchor="middle">you both said «I'm in»</text>
 <g transform="rotate(0 196.5 432.0)">
 <rect x="17.5" y="403" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="400" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>

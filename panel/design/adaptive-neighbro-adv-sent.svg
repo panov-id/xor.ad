@@ -8,13 +8,32 @@
 </g>
 </g>
 <text x="58" y="48" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">for venues</text>
-<g transform="rotate(-8 76 144)">
-<circle cx="77.5" cy="147" r="46" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
-<circle cx="76" cy="144" r="46" fill="#336eb2" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-<g transform="translate(51.849999999999994 119.85) scale(2.0125)" fill="none" stroke="#ffffff" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7 L12 13 L20 7"/></g>
+<g transform="rotate(0 196.5 132.0)">
+<rect x="17.5" y="83" width="361" height="104" rx="18" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="80" width="361" height="104" rx="18" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="140" y="134" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">the link is in</text>
-<text x="140" y="162" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">your mail</text>
-<text x="140" y="190" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">open it on this device</text>
-<text x="140" y="212" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">within 15 minutes</text>
+<g transform="rotate(-8 68 132.0)">
+<circle cx="69.5" cy="135.0" r="32" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="68" cy="132.0" r="32" fill="#336eb2" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(51.2 115.2) scale(1.4000000000000001)" fill="none" stroke="#ffffff" stroke-width="1.07" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7 L12 13 L20 7"/></g>
+</g>
+<text x="116" y="126" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">the link is in</text>
+<text x="116" y="154" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">your mail</text>
+<circle cx="343" cy="132.0" r="18" fill="none" stroke="#545b63" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(331 120.0) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<g transform="rotate(0 196.5 238.0)">
+<rect x="17.5" y="203" width="361" height="76" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="200" width="361" height="76" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="34.0" y="226" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">valid for</text>
+<text x="34.0" y="258" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">15 min</text>
+<path d="M196.5 210 V266" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="214.5" y="226" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">sent to</text>
+<text x="214.5" y="258" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">hello@bakery.cy</text>
+<g transform="rotate(0 196.5 785.0)">
+<rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7 L12 13 L20 7"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">name: «send again»</text>
 </svg>

@@ -1,18 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
 <rect width="393" height="851" fill="#ece4d8"/>
-<rect x="16" y="24" width="361" height="184" rx="28" fill="#336eb2" />
-<g transform="translate(40 46) scale(2.2)" fill="none" stroke="#ffffff" stroke-width="0.68" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8.5" r="3.5"/><path d="M3.5 20 C4.5 15.5 15.5 15.5 16.5 20 M15.5 11.5 L17.5 13.5 L21 9.5"/></g>
-<text x="40" y="138" font-family="Golos Text" font-weight="600" font-size="28" fill="#ffffff" text-anchor="start">is it you?</text>
-<text x="40" y="164" font-family="Golos Text" font-weight="400" font-size="16" fill="#ffffff" text-anchor="start">the old device shows four</text>
-<text x="40" y="186" font-family="Golos Text" font-weight="400" font-size="16" fill="#ffffff" text-anchor="start">characters; are they these?</text>
-<rect x="16" y="230" width="361" height="84" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<path d="M106.2 238 V306" stroke="#ece4d8" stroke-width="2"/>
-<path d="M196.5 238 V306" stroke="#ece4d8" stroke-width="2"/>
-<path d="M286.8 238 V306" stroke="#ece4d8" stroke-width="2"/>
-<text x="61" y="284" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="middle">7</text>
-<text x="151" y="284" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="middle">F</text>
-<text x="241" y="284" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="middle">2</text>
-<text x="331" y="284" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="middle">Q</text>
+<rect x="16" y="24" width="361" height="196" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<rect x="22" y="30" width="349" height="92" rx="20" fill="#336eb2" />
+<g transform="translate(40 46) scale(1.4)" fill="none" stroke="#ffffff" stroke-width="1.07" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8.5" r="3.5"/><path d="M3.5 20 C4.5 15.5 15.5 15.5 16.5 20 M15.5 11.5 L17.5 13.5 L21 9.5"/></g>
+<text x="86" y="84" font-family="Golos Text" font-weight="600" font-size="24" fill="#ffffff" text-anchor="start">is it you?</text>
+<circle cx="341" cy="76.0" r="18" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(329 64.0) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<text x="34" y="146" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start"></text>
+<text x="38.0" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">1</text>
+<text x="71.625" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">7</text>
+<path d="M113.25 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<text x="121.25" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">2</text>
+<text x="154.875" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">F</text>
+<path d="M196.5 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<text x="204.5" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">3</text>
+<text x="238.125" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">2</text>
+<path d="M279.75 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<text x="287.75" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">4</text>
+<text x="321.375" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">Q</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
 <path d="M267 767 V805" stroke="#fff6f0" stroke-width="1.5" opacity=".5"/>
 <g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>

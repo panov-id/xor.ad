@@ -1,14 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
 <rect width="393" height="851" fill="#ece4d8"/>
-<rect x="16" y="24" width="361" height="162" rx="28" fill="#bd4b2a" />
-<g transform="translate(40 46) scale(2.2)" fill="none" stroke="#fff6f0" stroke-width="0.68" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L5 15 L16 4 L20 8 L9 19Z"/><path d="M14 6 L18 10"/></g>
-<text x="40" y="138" font-family="Golos Text" font-weight="600" font-size="28" fill="#fff6f0" text-anchor="start">your name</text>
-<text x="40" y="164" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start">neighbours see it after a match</text>
-<rect x="16" y="210" width="361" height="98" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<text x="34" y="234" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">name</text>
-<text x="34" y="266" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">Anya</text>
-<path d="M30 282 H363" stroke="#e6dbc9" stroke-width="1"/>
-<text x="34" y="300" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">21 letters left</text>
+<rect x="16" y="24" width="361" height="180" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<rect x="22" y="30" width="349" height="92" rx="20" fill="#bd4b2a" />
+<g transform="translate(40 46) scale(1.4)" fill="none" stroke="#fff6f0" stroke-width="1.07" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 L5 15 L16 4 L20 8 L9 19Z"/><path d="M14 6 L18 10"/></g>
+<text x="86" y="84" font-family="Golos Text" font-weight="600" font-size="24" fill="#fff6f0" text-anchor="start">your name</text>
+<circle cx="341" cy="76.0" r="18" fill="none" stroke="#fff6f0" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(329 64.0) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<text x="34" y="150" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">name</text>
+<text x="34" y="182" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">Anya</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
 <g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
 <text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «save»</text>

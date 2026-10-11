@@ -1,56 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="393" height="851" fill="#e5e6e9"/>
 <rect width="393" height="851" fill="url(#dots)"/>
-<g transform="rotate(-8 82 96)">
-<circle cx="83.5" cy="99" r="50" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
-<circle cx="82" cy="96" r="50" fill="#8550c5" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-<g transform="translate(55.75 69.75) scale(2.1875)" fill="none" stroke="#ffffff" stroke-width="0.69" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 A7 7 0 1 0 7.5 6.6"/><path d="M5 4.5 V8.5 H9"/></g>
+<g transform="rotate(0 196.5 214.0)">
+<rect x="17.5" y="27" width="361" height="380" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="24" width="361" height="380" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="150" y="84" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">back by paper code</text>
-<text x="150" y="112" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">the four groups you</text>
-<text x="150" y="134" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">wrote down, and a new</text>
-<text x="150" y="156" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">PIN</text>
-<g transform="rotate(0 196.5 228.0)">
-<rect x="17.5" y="189" width="361" height="84" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="186" width="361" height="84" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(-8 66 78.0)">
+<circle cx="67.5" cy="81.0" r="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="66" cy="78.0" r="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(50.25 62.25) scale(1.3125)" fill="none" stroke="#ffffff" stroke-width="1.14" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/></g>
 </g>
-<path d="M106.2 194 V262" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M196.5 194 V262" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M286.8 194 V262" stroke="#1a1b1e" stroke-width="1.5"/>
-<text x="28.0" y="208" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">1</text>
-<text x="61.125" y="246" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="middle">FEP0</text>
-<text x="118.25" y="208" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">2</text>
-<text x="151.375" y="246" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="middle">4AXR</text>
-<text x="208.5" y="208" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">3</text>
-<text x="241.625" y="246" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="middle">1JVV</text>
-<text x="298.75" y="208" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">4</text>
-<text x="331.875" y="246" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="middle">····</text>
-<g transform="rotate(0 196.5 342.0)">
-<rect x="17.5" y="313" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="310" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-</g>
-<path d="M76.2 318 V366" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M136.3 318 V366" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M196.5 318 V366" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M256.7 318 V366" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M316.8 318 V366" stroke="#1a1b1e" stroke-width="1.5"/>
-<text x="16" y="302" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">new PIN</text>
-<g transform="rotate(0 196.5 446.0)">
-<rect x="17.5" y="417" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="414" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-</g>
-<path d="M76.2 422 V470" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M136.3 422 V470" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M196.5 422 V470" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M256.7 422 V470" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M316.8 422 V470" stroke="#1a1b1e" stroke-width="1.5"/>
-<text x="16" y="406" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">again</text>
+<text x="112" y="72.0" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">back by paper</text>
+<text x="112" y="98.0" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">code</text>
+<circle cx="341" cy="78.0" r="18" fill="none" stroke="#545b63" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(329 66.0) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<path d="M30 124 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="146" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start"></text>
+<text x="38.0" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#545b63" text-anchor="start">1</text>
+<text x="71.625" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="middle">FEP0</text>
+<path d="M113.25 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="121.25" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#545b63" text-anchor="start">2</text>
+<text x="154.875" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="middle">4AXR</text>
+<path d="M196.5 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="204.5" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#545b63" text-anchor="start">3</text>
+<text x="238.125" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="middle">1JVV</text>
+<path d="M279.75 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="287.75" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#545b63" text-anchor="start">4</text>
+<text x="321.375" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="middle">····</text>
+<path d="M30 216 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="238" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">new PIN</text>
+<path d="M85.5 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M141.0 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M196.5 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M252.0 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M307.5 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M30 308 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="330" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">again</text>
+<path d="M85.5 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M141.0 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M196.5 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M252.0 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M307.5 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
 <g transform="rotate(0 196.5 785.0)">
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
 <path d="M267 767 V805" stroke="#04201c" stroke-width="1.5" opacity=".5"/>
-<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 A7 7 0 1 0 7.5 6.6"/><path d="M5 4.5 V8.5 H9"/></g>
+<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/></g>
 <g transform="translate(307 770) scale(1.25)" fill="none" stroke="#04201c" stroke-width="1.20" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M12.25 11 V17 M9.25 14 H15.25"/></g>
 <text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">names: «come back» · «new code»</text>
 </svg>

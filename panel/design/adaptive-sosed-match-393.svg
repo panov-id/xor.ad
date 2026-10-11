@@ -22,10 +22,9 @@
 <rect x="61" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
 </g>
 <text x="196" y="320" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="middle">Boris, 31</text>
-<text x="196" y="348" font-family="Golos Text" font-weight="400" font-size="15" fill="#6b5f4c" text-anchor="middle">you both said «I'm in»</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
 <path d="M267 767 V805" stroke="#fff6f0" stroke-width="1.5" opacity=".5"/>
-<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z M8 10.25 H15 M12.5 7.75 L15 10.25 L12.5 12.75"/></g>
 <g transform="translate(307 770) scale(1.25)" fill="none" stroke="#fff6f0" stroke-width="1.20" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
 <text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">names: «talk» · «not now»</text>
 </svg>

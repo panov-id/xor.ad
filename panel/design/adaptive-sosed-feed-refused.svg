@@ -12,22 +12,19 @@
 </g>
 </g>
 <text x="58" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="start">Limassol</text>
-<rect x="233" y="18" width="144" height="44" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<path d="M305.0 26 V54" stroke="#ece4d8" stroke-width="2"/>
-<g transform="translate(257.0 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
-<text x="341.0" y="46" font-family="Golos Text" font-weight="600" font-size="14" fill="#1c140d" text-anchor="middle">1 km</text>
-<rect x="16" y="82" width="361" height="52" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<rect x="16" y="82" width="8" height="52" rx="4" fill="#a3311f" />
-<g transform="translate(36 96) scale(1.0)" fill="none" stroke="#a3311f" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 L21 19.5 H3 Z"/><path d="M12 10 V14 M12 16.8 V17"/></g>
-<text x="70" y="114" font-family="Golos Text" font-weight="600" font-size="15" fill="#a3311f" text-anchor="start">your phrase was not posted: a phone number</text>
-<rect x="16" y="152" width="361" height="126" rx="18" fill="#d68a1f" />
-<text x="34" y="192" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">walking to the river, join?</text>
-<g transform="translate(32 238) scale(0.8)" fill="none" stroke="#1c140d" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M6.5 20 C7 15.5 17 15.5 17.5 20"/></g>
-<text x="56" y="255" font-family="Golos Text" font-weight="500" font-size="14" fill="#1c140d" text-anchor="start">alone</text>
-<g transform="translate(307.0 238.0) scale(0.2500)">
+<rect x="16" y="82" width="361" height="68" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<rect x="16" y="82" width="8" height="68" rx="4" fill="#a3311f" />
+<g transform="translate(36 104.0) scale(1.0)" fill="none" stroke="#a3311f" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 L21 19.5 H3 Z"/><path d="M12 10 V14 M12 16.8 V17"/></g>
+<text x="70" y="106" font-family="Golos Text" font-weight="600" font-size="15" fill="#a3311f" text-anchor="start">not posted: a contact number in the</text>
+<text x="70" y="126" font-family="Golos Text" font-weight="600" font-size="15" fill="#a3311f" text-anchor="start">text</text>
+<rect x="16" y="162" width="361" height="126" rx="18" fill="#d68a1f" />
+<text x="34" y="202" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">walking to the river, join?</text>
+<g transform="translate(32 248) scale(0.8)" fill="none" stroke="#1c140d" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M6.5 20 C7 15.5 17 15.5 17.5 20"/></g>
+<text x="56" y="265" font-family="Golos Text" font-weight="500" font-size="14" fill="#1c140d" text-anchor="start">alone</text>
+<g transform="translate(307.0 248.0) scale(0.2500)">
 <g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
 </g>
-<text x="337" y="256" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">3</text>
+<text x="337" y="266" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">3</text>
 <rect x="16.0" y="771" width="361" height="64" rx="32" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <rect x="21.125" y="779" width="80" height="48" rx="24" fill="#1c140d" />
 <g transform="translate(49.125 791) scale(1.0)" fill="none" stroke="#ece4d8" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>

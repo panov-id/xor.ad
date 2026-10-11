@@ -35,7 +35,7 @@
 <text x="64" y="330" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">a game</text>
 <g transform="translate(331 312) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
 <path d="M30 356 H363" stroke="#1a1b1e" stroke-width="1"/>
-<g transform="translate(30 376) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15 C8 11 16 11 19 15 L17 17 L14 15.5 V13.5 C12.7 13.2 11.3 13.2 10 13.5 V15.5 L7 17Z"/></g>
+<g transform="translate(30 376) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z M7 15 L17 5.5"/></g>
 <text x="64" y="394" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">end the talk</text>
 <path d="M30 420 H363" stroke="#1a1b1e" stroke-width="1"/>
 <g transform="translate(30 440) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 6 L18 18"/></g>

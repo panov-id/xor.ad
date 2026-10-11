@@ -33,5 +33,5 @@
 <rect x="16" y="470" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
 <g transform="translate(30 490) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
-<text x="64" y="508" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="start">if they say «like» too, it's a match</text>
+<text x="64" y="508" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="start">waiting for a like back</text>
 </svg>

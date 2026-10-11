@@ -12,10 +12,11 @@
 </g>
 </g>
 <text x="58" y="48" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">for venues</text>
-<rect x="16" y="80" width="361" height="150" rx="28" fill="#336eb2" />
-<g transform="translate(40 100) scale(2.0)" fill="none" stroke="#ffffff" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/></g>
-<text x="40" y="188" font-family="Golos Text" font-weight="600" font-size="28" fill="#ffffff" text-anchor="start">the link expired</text>
-<text x="40" y="214" font-family="Golos Text" font-weight="400" font-size="16" fill="#ffffff" text-anchor="start">ask for a new one</text>
+<rect x="16" y="80" width="361" height="104" rx="28" fill="#336eb2" />
+<g transform="translate(38 100) scale(1.6)" fill="none" stroke="#ffffff" stroke-width="0.94" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/></g>
+<text x="38" y="164" font-family="Golos Text" font-weight="600" font-size="26" fill="#ffffff" text-anchor="start">the link expired</text>
+<circle cx="343" cy="114" r="18" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(331 102) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
 <g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7 L12 13 L20 7"/></g>
 <text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «ask again»</text>

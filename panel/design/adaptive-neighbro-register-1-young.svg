@@ -1,33 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="393" height="851" fill="#e5e6e9"/>
 <rect width="393" height="851" fill="url(#dots)"/>
-<g transform="rotate(-8 76 100)">
-<circle cx="77.5" cy="103" r="46" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
-<circle cx="76" cy="100" r="46" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-<g transform="translate(51.849999999999994 75.85) scale(2.0125)" fill="none" stroke="#ffffff" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
+<g transform="rotate(0 82.0 20.0)">
+<rect x="17.5" y="13" width="132" height="20" rx="10.0" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="10" width="132" height="20" rx="10.0" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="140" y="90" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">who are you</text>
-<text x="140" y="118" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">a name neighbours will</text>
-<text x="140" y="140" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">see, and your age</text>
+<rect x="20.0" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#cc2f27" />
 <g transform="rotate(0 196.5 230.0)">
-<rect x="17.5" y="195" width="361" height="76" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="192" width="361" height="76" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<rect x="17.5" y="43" width="361" height="380" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="40" width="361" height="380" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="34" y="216" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">name</text>
-<text x="34" y="248" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">Anya</text>
-<g transform="rotate(0 101.0 318.0)">
-<rect x="17.5" y="283" width="170" height="76" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="280" width="170" height="76" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(-8 66 94.0)">
+<circle cx="67.5" cy="97.0" r="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="66" cy="94.0" r="30" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(50.25 78.25) scale(1.3125)" fill="none" stroke="#ffffff" stroke-width="1.14" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
 </g>
-<text x="34" y="304" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">age</text>
-<text x="34" y="336" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">12</text>
-<g transform="rotate(0 196.5 394.0)">
-<rect x="17.5" y="371" width="361" height="52" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="368" width="361" height="52" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-</g>
-<rect x="16" y="368" width="8" height="52" rx="4" fill="#a3311f" />
-<g transform="translate(36 382) scale(1.0)" fill="none" stroke="#a3311f" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 L21 19.5 H3 Z"/><path d="M12 10 V14 M12 16.8 V17"/></g>
-<text x="70" y="400" font-family="Golos Text" font-weight="600" font-size="15" fill="#a3311f" text-anchor="start">from 13 years only</text>
+<text x="112" y="102.0" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">who are you</text>
+<circle cx="341" cy="94.0" r="18" fill="none" stroke="#545b63" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(329 82.0) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<path d="M30 140 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="166" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">name</text>
+<text x="34" y="198" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">Anya</text>
+<path d="M30 216 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="242" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">age</text>
+<text x="34" y="274" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">12</text>
+<path d="M30 292 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<rect x="32" y="312" width="32" height="32" rx="8" fill="#1fb39a" />
+<g transform="translate(36 316) scale(1.0)" fill="none" stroke="#04201c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<g transform="translate(122 304) scale(1.0)" fill="none" stroke="#126a5c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
+<text x="134" y="348" font-family="Golos Text" font-weight="600" font-size="13" fill="#126a5c" text-anchor="middle">terms</text>
+<g transform="translate(218 304) scale(1.0)" fill="none" stroke="#126a5c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5"/></g>
+<text x="230" y="348" font-family="Golos Text" font-weight="600" font-size="13" fill="#126a5c" text-anchor="middle">privacy</text>
+<g transform="translate(314 304) scale(1.0)" fill="none" stroke="#126a5c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
+<text x="326" y="348" font-family="Golos Text" font-weight="600" font-size="13" fill="#126a5c" text-anchor="middle">rules</text>
+<path d="M16 364 H377" stroke="#a3311f" stroke-width="2"/>
+<g transform="translate(34 378) scale(1.0)" fill="none" stroke="#a3311f" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 L21 19.5 H3 Z"/><path d="M12 10 V14 M12 16.8 V17"/></g>
+<text x="68" y="396" font-family="Golos Text" font-weight="600" font-size="15" fill="#a3311f" text-anchor="start">from 13 years only</text>
 <g transform="rotate(0 196.5 785.0)">
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>

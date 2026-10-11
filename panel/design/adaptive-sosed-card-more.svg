@@ -14,14 +14,11 @@
 <text x="66" y="348" font-family="Golos Text" font-weight="400" font-size="15" fill="#1c140d" text-anchor="start">with friends · 300 m · 40 min left</text>
 <rect x="16" y="470" width="361" height="192" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <g transform="translate(30 490) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
-<text x="64" y="500" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">hide</text>
-<text x="64" y="520" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">only from my feed</text>
+<text x="64" y="508" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">hide</text>
 <path d="M30 534 H363" stroke="#e6dbc9" stroke-width="1"/>
 <g transform="translate(30 554) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 6 L18 18"/></g>
-<text x="64" y="564" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">block</text>
-<text x="64" y="584" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">we stop seeing each other</text>
+<text x="64" y="572" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">block</text>
 <path d="M30 598 H363" stroke="#e6dbc9" stroke-width="1"/>
 <g transform="translate(30 618) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21 V4 M5 4 H17 L15 8 L17 12 H5"/></g>
-<text x="64" y="628" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">report</text>
-<text x="64" y="648" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">against the rules</text>
+<text x="64" y="636" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">report</text>
 </svg>

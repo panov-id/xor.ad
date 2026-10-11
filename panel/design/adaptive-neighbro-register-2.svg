@@ -7,36 +7,38 @@
 </g>
 <rect x="20.0" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#cc2f27" />
 <rect x="62.666666666666664" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#336eb2" />
-<text x="166" y="25" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">2 / 3</text>
-<g transform="rotate(-8 76 100)">
-<circle cx="77.5" cy="103" r="46" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
-<circle cx="76" cy="100" r="46" fill="#336eb2" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-<g transform="translate(51.849999999999994 75.85) scale(2.0125)" fill="none" stroke="#ffffff" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5"/></g>
+<g transform="rotate(0 196.5 184.0)">
+<rect x="17.5" y="43" width="361" height="288" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="40" width="361" height="288" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="140" y="90" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">your PIN</text>
-<text x="140" y="118" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">six digits open this</text>
-<text x="140" y="140" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">device's vault</text>
-<text x="16" y="196" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">PIN</text>
-<g transform="rotate(0 196.5 238.0)">
-<rect x="17.5" y="209" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="206" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(-8 66 94.0)">
+<circle cx="67.5" cy="97.0" r="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="66" cy="94.0" r="30" fill="#336eb2" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(50.25 78.25) scale(1.3125)" fill="none" stroke="#ffffff" stroke-width="1.14" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5"/></g>
 </g>
-<path d="M76.2 214 V262" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M136.3 214 V262" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M196.5 214 V262" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M256.7 214 V262" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M316.8 214 V262" stroke="#1a1b1e" stroke-width="1.5"/>
-<text x="16" y="292" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">again</text>
-<g transform="rotate(0 196.5 334.0)">
-<rect x="17.5" y="305" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="302" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-</g>
-<path d="M76.2 310 V358" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M136.3 310 V358" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M196.5 310 V358" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M256.7 310 V358" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M316.8 310 V358" stroke="#1a1b1e" stroke-width="1.5"/>
-<text x="16" y="388" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">the PIN never leaves this device</text>
+<text x="112" y="102.0" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">your PIN</text>
+<circle cx="341" cy="94.0" r="18" fill="none" stroke="#545b63" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(329 82.0) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<path d="M30 140 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="162" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">PIN</text>
+<circle cx="57.8" cy="202" r="6" fill="#141618"/>
+<path d="M85.5 176 V220" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="113.2" cy="202" r="6" fill="#141618"/>
+<path d="M141.0 176 V220" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="168.8" cy="202" r="6" fill="#141618"/>
+<path d="M196.5 176 V220" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="224.2" cy="202" r="6" fill="#141618"/>
+<path d="M252.0 176 V220" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="279.8" cy="202" r="6" fill="#141618"/>
+<path d="M307.5 176 V220" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="335.2" cy="202" r="6" fill="#141618"/>
+<path d="M30 232 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="254" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">again</text>
+<path d="M85.5 268 V312" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M141.0 268 V312" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M196.5 268 V312" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M252.0 268 V312" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M307.5 268 V312" stroke="#1a1b1e" stroke-width="1.2"/>
 <g transform="rotate(0 196.5 785.0)">
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>

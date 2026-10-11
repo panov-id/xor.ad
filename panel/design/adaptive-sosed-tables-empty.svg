@@ -17,7 +17,7 @@
 </g>
 </g>
 <text x="196" y="270" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="middle">no tables nearby</text>
-<text x="196" y="296" font-family="Golos Text" font-weight="400" font-size="15" fill="#6b5f4c" text-anchor="middle">open one — neighbours sit down</text>
+<text x="196" y="296" font-family="Golos Text" font-weight="400" font-size="15" fill="#6b5f4c" text-anchor="middle"></text>
 <rect x="16.0" y="771" width="361" height="64" rx="32" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <g transform="translate(49.125 791) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
 <rect x="111.375" y="779" width="80" height="48" rx="24" fill="#1c140d" />

@@ -1,38 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="393" height="851" fill="#e5e6e9"/>
 <rect width="393" height="851" fill="url(#dots)"/>
-<g transform="rotate(-8 82 96)">
-<circle cx="83.5" cy="99" r="50" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
-<circle cx="82" cy="96" r="50" fill="#8550c5" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-<g transform="translate(55.75 69.75) scale(2.1875)" fill="none" stroke="#ffffff" stroke-width="0.69" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M12.25 11 V17 M9.25 14 H15.25"/></g>
+<g transform="rotate(0 196.5 122.0)">
+<rect x="17.5" y="27" width="361" height="196" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="24" width="361" height="196" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="150" y="84" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">a new paper code</text>
-<text x="150" y="112" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">the old code stops</text>
-<text x="150" y="134" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">working the moment this</text>
-<text x="150" y="156" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">one is shown</text>
-<text x="16" y="190" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">PIN</text>
-<g transform="rotate(0 196.5 232.0)">
-<rect x="17.5" y="203" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="200" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(-8 66 78.0)">
+<circle cx="67.5" cy="81.0" r="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="66" cy="78.0" r="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(50.25 62.25) scale(1.3125)" fill="none" stroke="#ffffff" stroke-width="1.14" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M12.25 11 V17 M9.25 14 H15.25"/></g>
 </g>
-<path d="M76.2 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M136.3 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M196.5 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M256.7 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M316.8 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<g transform="rotate(0 196.5 350.0)">
-<rect x="17.5" y="289" width="361" height="128" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="286" width="361" height="128" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-</g>
-<g transform="translate(30 306) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
-<text x="64" y="324" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">the old code stops at once</text>
-<path d="M30 350 H363" stroke="#1a1b1e" stroke-width="1"/>
-<g transform="translate(30 370) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M9 12 H15.5 M9 15.5 H15.5"/></g>
-<text x="64" y="388" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">write the new one down</text>
+<text x="112" y="86.0" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">a new paper code</text>
+<circle cx="341" cy="78.0" r="18" fill="none" stroke="#545b63" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(329 66.0) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<path d="M30 124 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="146" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">PIN</text>
+<circle cx="57.8" cy="186" r="6" fill="#141618"/>
+<path d="M85.5 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="113.2" cy="186" r="6" fill="#141618"/>
+<path d="M141.0 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="168.8" cy="186" r="6" fill="#141618"/>
+<path d="M196.5 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="224.2" cy="186" r="6" fill="#141618"/>
+<path d="M252.0 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="279.8" cy="186" r="6" fill="#141618"/>
+<path d="M307.5 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="335.2" cy="186" r="6" fill="#141618"/>
 <g transform="rotate(0 196.5 785.0)">
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M12.25 11 V17 M9.25 14 H15.25"/></g>
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/></g>
 <text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="end">name: «show»</text>
 </svg>

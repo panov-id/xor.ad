@@ -8,15 +8,19 @@
 </g>
 </g>
 <text x="58" y="48" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">for venues</text>
-<g transform="rotate(-8 76 144)">
-<circle cx="77.5" cy="147" r="46" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
-<circle cx="76" cy="144" r="46" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-<g transform="translate(51.849999999999994 119.85) scale(2.0125)" fill="none" stroke="#ffffff" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10 L6 4.5 H18 L20 10 Z M5 10 V20 H19 V10 M10 20 V15 H14 V20"/></g>
+<g transform="rotate(0 196.5 132.0)">
+<rect x="17.5" y="83" width="361" height="104" rx="18" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="80" width="361" height="104" rx="18" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="140" y="134" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">your venue's</text>
-<text x="140" y="162" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">cabinet</text>
-<text x="140" y="190" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">a link comes to your</text>
-<text x="140" y="212" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">mail; no password</text>
+<g transform="rotate(-8 68 132.0)">
+<circle cx="69.5" cy="135.0" r="32" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="68" cy="132.0" r="32" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(51.2 115.2) scale(1.4000000000000001)" fill="none" stroke="#ffffff" stroke-width="1.07" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10 L6 4.5 H18 L20 10 Z M5 10 V20 H19 V10 M10 20 V15 H14 V20"/></g>
+</g>
+<text x="116" y="126" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">your venue's</text>
+<text x="116" y="154" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">cabinet</text>
+<circle cx="343" cy="132.0" r="18" fill="none" stroke="#545b63" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(331 120.0) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
 <g transform="rotate(0 196.5 338.0)">
 <rect x="17.5" y="303" width="361" height="76" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="300" width="361" height="76" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>

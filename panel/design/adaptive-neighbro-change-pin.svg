@@ -1,44 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="393" height="851" fill="#e5e6e9"/>
 <rect width="393" height="851" fill="url(#dots)"/>
-<g transform="rotate(-8 82 96)">
-<circle cx="83.5" cy="99" r="50" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
-<circle cx="82" cy="96" r="50" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-<g transform="translate(55.75 69.75) scale(2.1875)" fill="none" stroke="#ffffff" stroke-width="0.69" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5 M9.5 15.5 L11.5 17.5 L14.5 13.5"/></g>
+<g transform="rotate(0 196.5 214.0)">
+<rect x="17.5" y="27" width="361" height="380" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="24" width="361" height="380" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="150" y="84" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">a new PIN</text>
-<text x="150" y="112" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">the old one, then the</text>
-<text x="150" y="134" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">new one twice</text>
-<text x="16" y="190" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">old PIN</text>
-<g transform="rotate(0 196.5 232.0)">
-<rect x="17.5" y="203" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="200" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(-8 66 78.0)">
+<circle cx="67.5" cy="81.0" r="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="66" cy="78.0" r="30" fill="#336eb2" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(50.25 62.25) scale(1.3125)" fill="none" stroke="#ffffff" stroke-width="1.14" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5 M9.5 15.5 L11.5 17.5 L14.5 13.5"/></g>
 </g>
-<path d="M76.2 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M136.3 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M196.5 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M256.7 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M316.8 208 V256" stroke="#1a1b1e" stroke-width="1.5"/>
-<text x="16" y="282" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">new PIN</text>
-<g transform="rotate(0 196.5 324.0)">
-<rect x="17.5" y="295" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="292" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-</g>
-<path d="M76.2 300 V348" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M136.3 300 V348" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M196.5 300 V348" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M256.7 300 V348" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M316.8 300 V348" stroke="#1a1b1e" stroke-width="1.5"/>
-<text x="16" y="374" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">again</text>
-<g transform="rotate(0 196.5 416.0)">
-<rect x="17.5" y="387" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="384" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-</g>
-<path d="M76.2 392 V440" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M136.3 392 V440" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M196.5 392 V440" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M256.7 392 V440" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M316.8 392 V440" stroke="#1a1b1e" stroke-width="1.5"/>
+<text x="112" y="86.0" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">a new PIN</text>
+<circle cx="341" cy="78.0" r="18" fill="none" stroke="#545b63" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(329 66.0) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<path d="M30 124 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="146" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">old PIN</text>
+<circle cx="57.8" cy="186" r="6" fill="#141618"/>
+<path d="M85.5 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="113.2" cy="186" r="6" fill="#141618"/>
+<path d="M141.0 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="168.8" cy="186" r="6" fill="#141618"/>
+<path d="M196.5 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="224.2" cy="186" r="6" fill="#141618"/>
+<path d="M252.0 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="279.8" cy="186" r="6" fill="#141618"/>
+<path d="M307.5 160 V204" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="335.2" cy="186" r="6" fill="#141618"/>
+<path d="M30 216 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="238" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">new PIN</text>
+<circle cx="57.8" cy="278" r="6" fill="#141618"/>
+<path d="M85.5 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="113.2" cy="278" r="6" fill="#141618"/>
+<path d="M141.0 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<circle cx="168.8" cy="278" r="6" fill="#141618"/>
+<path d="M196.5 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M252.0 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M307.5 252 V296" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M30 308 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<text x="34" y="330" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">again</text>
+<path d="M85.5 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M141.0 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M196.5 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M252.0 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
+<path d="M307.5 344 V388" stroke="#1a1b1e" stroke-width="1.2"/>
 <g transform="rotate(0 196.5 785.0)">
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>

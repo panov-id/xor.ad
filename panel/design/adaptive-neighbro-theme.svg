@@ -1,33 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="393" height="851" fill="#e5e6e9"/>
 <rect width="393" height="851" fill="url(#dots)"/>
-<g transform="rotate(-8 82 96)">
-<circle cx="83.5" cy="99" r="50" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
-<circle cx="82" cy="96" r="50" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-<g transform="translate(55.75 69.75) scale(2.1875)" fill="none" stroke="#ffffff" stroke-width="0.69" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 A8.5 8.5 0 1 0 12 20.5 C13.5 20.5 13.5 18.5 12.5 17.5 C11.5 16.5 12.5 14.5 14 14.5 H16.5 A4 4 0 0 0 20.5 10.5 C20.5 6.5 16.5 3.5 12 3.5Z"/><circle cx="8" cy="11" r="1"/><circle cx="11" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></g>
+<g transform="rotate(0 196.5 112.0)">
+<rect x="17.5" y="27" width="361" height="176" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="24" width="361" height="176" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="150" y="84" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">how it looks</text>
-<text x="150" y="112" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">light, dark or by the</text>
-<text x="150" y="134" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">time of day; an accent</text>
-<g transform="rotate(0 196.5 214.0)">
-<rect x="17.5" y="189" width="361" height="56" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="186" width="361" height="56" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(-8 66 78.0)">
+<circle cx="67.5" cy="81.0" r="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="66" cy="78.0" r="30" fill="#336eb2" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(50.25 62.25) scale(1.3125)" fill="none" stroke="#ffffff" stroke-width="1.14" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 A8.5 8.5 0 1 0 12 20.5 C13.5 20.5 13.5 18.5 12.5 17.5 C11.5 16.5 12.5 14.5 14 14.5 H16.5 A4 4 0 0 0 20.5 10.5 C20.5 6.5 16.5 3.5 12 3.5Z"/><circle cx="8" cy="11" r="1"/><circle cx="11" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></g>
 </g>
-<path d="M136.3 194 V234" stroke="#1a1b1e" stroke-width="1.5"/>
-<path d="M256.7 194 V234" stroke="#1a1b1e" stroke-width="1.5"/>
-<g transform="translate(64.16666666666666 194) scale(0.85)" fill="none" stroke="#141618" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5 V4.5 M12 19.5 V21.5 M2.5 12 H4.5 M19.5 12 H21.5"/></g>
-<text x="76.16666666666666" y="232" font-family="Golos Text" font-weight="600" font-size="14" fill="#141618" text-anchor="middle">light</text>
-<g transform="translate(184.49999999999997 194) scale(0.85)" fill="none" stroke="#141618" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5"/></g>
-<text x="196.49999999999997" y="232" font-family="Golos Text" font-weight="600" font-size="14" fill="#141618" text-anchor="middle">dark</text>
-<rect x="260.66666666666663" y="190" width="112.33333333333333" height="48" rx="24.0" fill="#1fb39a" />
-<g transform="translate(304.8333333333333 194) scale(0.85)" fill="none" stroke="#04201c" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/></g>
-<text x="316.8333333333333" y="232" font-family="Golos Text" font-weight="600" font-size="14" fill="#04201c" text-anchor="middle">auto</text>
-<text x="16" y="276" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">accent</text>
-<circle cx="44" cy="318" r="22" fill="#1fb39a" stroke="#141618" stroke-width="3"/>
-<circle cx="108" cy="318" r="22" fill="#1fb39a" stroke="none" stroke-width="3"/>
-<circle cx="172" cy="318" r="22" fill="#cc2f27" stroke="none" stroke-width="3"/>
-<circle cx="236" cy="318" r="22" fill="#336eb2" stroke="none" stroke-width="3"/>
-<circle cx="300" cy="318" r="22" fill="#8550c5" stroke="none" stroke-width="3"/>
+<text x="112" y="86.0" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">how it looks</text>
+<circle cx="341" cy="78.0" r="18" fill="none" stroke="#545b63" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(329 66.0) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<path d="M30 124 H363" stroke="#1a1b1e" stroke-width="1.2"/>
+<g transform="translate(69.5 138) scale(0.8)" fill="none" stroke="#141618" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5 V4.5 M12 19.5 V21.5 M2.5 12 H4.5 M19.5 12 H21.5"/></g>
+<text x="81.5" y="178" font-family="Golos Text" font-weight="600" font-size="13" fill="#141618" text-anchor="middle">light</text>
+<g transform="translate(184.5 138) scale(0.8)" fill="none" stroke="#141618" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5"/></g>
+<text x="196.5" y="178" font-family="Golos Text" font-weight="600" font-size="13" fill="#141618" text-anchor="middle">dark</text>
+<rect x="256.0" y="134" width="111.0" height="52" rx="26.0" fill="#1fb39a" />
+<g transform="translate(299.5 138) scale(0.8)" fill="none" stroke="#04201c" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/></g>
+<text x="311.5" y="178" font-family="Golos Text" font-weight="600" font-size="13" fill="#04201c" text-anchor="middle">auto</text>
 <g transform="rotate(0 196.5 785.0)">
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>

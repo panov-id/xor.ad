@@ -1,25 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="393" height="851" fill="#e5e6e9"/>
 <rect width="393" height="851" fill="url(#dots)"/>
-<g transform="rotate(-8 82 96)">
-<circle cx="83.5" cy="99" r="50" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
-<circle cx="82" cy="96" r="50" fill="#336eb2" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
-<g transform="translate(55.75 69.75) scale(2.1875)" fill="none" stroke="#ffffff" stroke-width="0.69" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+<g transform="rotate(0 196.5 76.0)">
+<rect x="17.5" y="27" width="361" height="104" rx="18" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="24" width="361" height="104" rx="18" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="150" y="84" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">hidden</text>
-<text x="150" y="112" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">what you hid stays out</text>
-<text x="150" y="134" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">of your feed only</text>
-<g transform="rotate(0 196.5 250.0)">
-<rect x="17.5" y="189" width="361" height="128" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="186" width="361" height="128" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(-8 68 76.0)">
+<circle cx="69.5" cy="79.0" r="32" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="68" cy="76.0" r="32" fill="#8550c5" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(51.2 59.2) scale(1.4000000000000001)" fill="none" stroke="#ffffff" stroke-width="1.07" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
 </g>
-<g transform="translate(30 206) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
-<text x="64" y="216" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">music in the yard</text>
-<text x="64" y="236" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">hidden 2 h ago</text>
-<g transform="translate(331 206) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 A7 7 0 1 0 7.5 6.6"/><path d="M5 4.5 V8.5 H9"/></g>
-<path d="M30 250 H363" stroke="#1a1b1e" stroke-width="1"/>
-<g transform="translate(30 270) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
-<text x="64" y="280" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">selling a sofa</text>
-<text x="64" y="300" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">hidden yesterday</text>
-<g transform="translate(331 270) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 A7 7 0 1 0 7.5 6.6"/><path d="M5 4.5 V8.5 H9"/></g>
+<text x="116" y="84" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">hidden</text>
+<circle cx="343" cy="76.0" r="18" fill="none" stroke="#545b63" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(331 64.0) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<g transform="rotate(0 196.5 208.0)">
+<rect x="17.5" y="147" width="361" height="128" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="144" width="361" height="128" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(30 164) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+<text x="64" y="182" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">music in the yard</text>
+<g transform="translate(331 164) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 A7 7 0 1 0 7.5 6.6"/><path d="M5 4.5 V8.5 H9"/></g>
+<path d="M30 208 H363" stroke="#1a1b1e" stroke-width="1"/>
+<g transform="translate(30 228) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+<text x="64" y="246" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">selling a sofa</text>
+<g transform="translate(331 228) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 A7 7 0 1 0 7.5 6.6"/><path d="M5 4.5 V8.5 H9"/></g>
 </svg>

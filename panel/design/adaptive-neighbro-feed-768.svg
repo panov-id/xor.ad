@@ -1,16 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="768" height="1024" viewBox="0 0 768 1024"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
 <rect width="768" height="1024" fill="#e5e6e9"/>
 <rect x="0" y="0" width="768" height="1024" fill="url(#dots)"/>
-<rect x="0" y="944" width="768" height="80" fill="#f1f1f3"/><path d="M0 944 H768" stroke="#d7d9dd" stroke-width="2"/>
-<g transform="rotate(0 204.0 984.0)">
-<rect x="175.5" y="965" width="60" height="44" rx="14" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="174.0" y="962" width="60" height="44" rx="14" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(0 384.0 972.0)">
+<rect x="17.5" y="943" width="736" height="64" rx="32" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="940" width="736" height="64" rx="32" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<g transform="translate(192.0 972) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
-<g transform="translate(312.0 972) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.2"/><circle cx="16" cy="8" r="1.2"/><circle cx="8" cy="16" r="1.2"/><circle cx="16" cy="16" r="1.2"/></g>
-<g transform="translate(432.0 972) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
-<g transform="translate(552.0 972) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
-<text x="144.0" y="934" font-family="Golos Text" font-size="14" fill="#126a5c">tab bar stays at the bottom below 1024, 480 wide</text>
+<g transform="rotate(0 108.0 972.0)">
+<rect x="79.5" y="953" width="60" height="44" rx="22" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="78.0" y="950" width="60" height="44" rx="22" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(96.0 960) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
+<g transform="translate(280.0 960) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.2"/><circle cx="16" cy="8" r="1.2"/><circle cx="8" cy="16" r="1.2"/><circle cx="16" cy="16" r="1.2"/></g>
+<g transform="translate(464.0 960) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<g transform="translate(648.0 960) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
 <g transform="translate(24.0 38.0) scale(0.3333)">
 <g transform="translate(6,3) scale(1.05)">
 <g transform="translate(1.5 3)"><rect x="50" y="10" width="7" height="14" rx="2" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/><path d="M36 4 L64 28 V57 H32 L20 67 V57 H8 V28 Z" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="14" stroke-linejoin="round"/></g>

@@ -1,19 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
 <rect width="393" height="851" fill="#ece4d8"/>
-<rect x="16" y="24" width="361" height="184" rx="28" fill="#336eb2" />
-<g transform="translate(40 46) scale(2.2)" fill="none" stroke="#ffffff" stroke-width="0.68" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 H19 L18 21 H6Z"/><path d="M3 7 H21 M9 7 V4 H15 V7"/></g>
-<text x="40" y="138" font-family="Golos Text" font-weight="600" font-size="28" fill="#ffffff" text-anchor="start">start over here</text>
-<text x="40" y="164" font-family="Golos Text" font-weight="400" font-size="16" fill="#ffffff" text-anchor="start">this device forgets you; the paper</text>
-<text x="40" y="186" font-family="Golos Text" font-weight="400" font-size="16" fill="#ffffff" text-anchor="start">code still brings you back</text>
-<rect x="16" y="232" width="361" height="192" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<g transform="translate(30 252) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
-<text x="64" y="270" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">phrases leave the feed</text>
-<path d="M30 296 H363" stroke="#e6dbc9" stroke-width="1"/>
-<g transform="translate(30 316) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
-<text x="64" y="334" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">talks end for both</text>
-<path d="M30 360 H363" stroke="#e6dbc9" stroke-width="1"/>
-<g transform="translate(30 380) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M9 12 H15.5 M9 15.5 H15.5"/></g>
-<text x="64" y="398" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">the paper code still works</text>
+<rect x="16" y="24" width="361" height="104" rx="28" fill="#336eb2" />
+<g transform="translate(38 44) scale(1.6)" fill="none" stroke="#ffffff" stroke-width="0.94" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 H19 L18 21 H6Z"/><path d="M3 7 H21 M9 7 V4 H15 V7"/></g>
+<text x="38" y="108" font-family="Golos Text" font-weight="600" font-size="26" fill="#ffffff" text-anchor="start">start over here</text>
+<circle cx="343" cy="58" r="18" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(331 46) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<rect x="16" y="144" width="361" height="192" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 164) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+<text x="64" y="182" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">phrases leave the feed</text>
+<path d="M30 208 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 228) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<text x="64" y="246" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">talks end for both</text>
+<path d="M30 272 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 292) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M9 12 H15.5 M9 15.5 H15.5"/></g>
+<text x="64" y="310" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">the paper code still works</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
 <path d="M267 767 V805" stroke="#fff6f0" stroke-width="1.5" opacity=".5"/>
 <g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7 H19 L18 21 H6Z"/><path d="M3 7 H21 M9 7 V4 H15 V7"/></g>

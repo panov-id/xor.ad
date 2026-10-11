@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
 <rect width="393" height="851" fill="#ece4d8"/>
-<rect x="16" y="24" width="361" height="184" rx="28" fill="#1fa99a" />
-<g transform="translate(40 46) scale(2.2)" fill="none" stroke="#1c140d" stroke-width="0.68" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V20 M6 20 H18 M5 8 H19 M5 8 L2.5 14 H7.5 Z M19 8 L16.5 14 H21.5 Z"/></g>
-<text x="40" y="138" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">decisions</text>
-<text x="40" y="164" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="start">why something of yours came down,</text>
-<text x="40" y="186" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="start">and how to appeal</text>
-<rect x="16" y="232" width="361" height="128" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<g transform="translate(30 252) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V20 M6 20 H18 M5 8 H19 M5 8 L2.5 14 H7.5 Z M19 8 L16.5 14 H21.5 Z"/></g>
-<text x="64" y="262" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">a phrase came down</text>
-<text x="64" y="282" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">11 Oct · spam</text>
-<g transform="translate(331 252) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
-<path d="M30 296 H363" stroke="#e6dbc9" stroke-width="1"/>
-<g transform="translate(30 316) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V20 M6 20 H18 M5 8 H19 M5 8 L2.5 14 H7.5 Z M19 8 L16.5 14 H21.5 Z"/></g>
-<text x="64" y="326" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">an offer link off</text>
-<text x="64" y="346" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">9 Oct · rules</text>
-<g transform="translate(331 316) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<rect x="16" y="24" width="361" height="104" rx="28" fill="#1fa99a" />
+<g transform="translate(38 44) scale(1.6)" fill="none" stroke="#1c140d" stroke-width="0.94" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V20 M6 20 H18 M5 8 H19 M5 8 L2.5 14 H7.5 Z M19 8 L16.5 14 H21.5 Z"/></g>
+<text x="38" y="108" font-family="Golos Text" font-weight="600" font-size="26" fill="#1c140d" text-anchor="start">decisions</text>
+<circle cx="343" cy="58" r="18" fill="none" stroke="#1c140d" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(331 46) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<rect x="16" y="144" width="361" height="128" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 164) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V20 M6 20 H18 M5 8 H19 M5 8 L2.5 14 H7.5 Z M19 8 L16.5 14 H21.5 Z"/></g>
+<text x="64" y="174" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">a phrase came down</text>
+<text x="64" y="194" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">11 Oct · spam</text>
+<g transform="translate(331 164) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 208 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 228) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V20 M6 20 H18 M5 8 H19 M5 8 L2.5 14 H7.5 Z M19 8 L16.5 14 H21.5 Z"/></g>
+<text x="64" y="238" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">an offer link off</text>
+<text x="64" y="258" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">9 Oct · rules</text>
+<g transform="translate(331 228) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
 </svg>

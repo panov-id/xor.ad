@@ -24,5 +24,5 @@
 <text x="86" y="416" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">6 · I'm in</text>
 <rect x="16" y="470" width="361" height="64" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <g transform="translate(30 490) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
-<text x="64" y="508" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">if they say «like» too, it's a match</text>
+<text x="64" y="508" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="start">waiting for a like back</text>
 </svg>

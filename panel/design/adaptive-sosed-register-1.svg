@@ -2,34 +2,26 @@
 <rect width="393" height="851" fill="#ece4d8"/>
 <rect x="16" y="10" width="132" height="20" rx="10.0" fill="#e6dbc9" />
 <rect x="20.0" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#bd4b2a" />
-<text x="160" y="25" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">1 / 3</text>
-<rect x="16" y="36" width="361" height="172" rx="28" fill="#bd4b2a" />
-<g transform="translate(40 56) scale(2.0)" fill="none" stroke="#fff6f0" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
-<text x="40" y="144" font-family="Golos Text" font-weight="600" font-size="28" fill="#fff6f0" text-anchor="start">who are you</text>
-<text x="40" y="170" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start">a name neighbours will see, and your</text>
-<text x="40" y="192" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start">age</text>
-<rect x="16" y="228" width="361" height="98" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<text x="34" y="252" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">name</text>
-<text x="34" y="284" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">Anya</text>
-<path d="M30 300 H363" stroke="#e6dbc9" stroke-width="1"/>
-<text x="34" y="318" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">24 letters left</text>
-<rect x="16" y="338" width="170" height="98" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
-<text x="34" y="362" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">age</text>
-<text x="34" y="394" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">28</text>
-<path d="M30 410 H172" stroke="#e6dbc9" stroke-width="1"/>
-<text x="34" y="428" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">from 13</text>
-<rect x="16" y="452" width="361" height="64" rx="18" fill="#e6dbc9" />
-<path d="M106.2 460 V508" stroke="#ece4d8" stroke-width="2"/>
-<path d="M196.5 460 V508" stroke="#ece4d8" stroke-width="2"/>
-<path d="M286.8 460 V508" stroke="#ece4d8" stroke-width="2"/>
-<rect x="45.125" y="468" width="32" height="32" rx="8" fill="#bd4b2a" />
-<g transform="translate(49.125 472) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
-<g transform="translate(139.375 462) scale(1.0)" fill="none" stroke="#983c22" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
-<text x="151.375" y="504" font-family="Golos Text" font-weight="600" font-size="14" fill="#983c22" text-anchor="middle">terms</text>
-<g transform="translate(229.625 462) scale(1.0)" fill="none" stroke="#983c22" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
-<text x="241.625" y="504" font-family="Golos Text" font-weight="600" font-size="14" fill="#983c22" text-anchor="middle">privacy</text>
-<g transform="translate(319.875 462) scale(1.0)" fill="none" stroke="#983c22" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
-<text x="331.875" y="504" font-family="Golos Text" font-weight="600" font-size="14" fill="#983c22" text-anchor="middle">rules</text>
+<rect x="16" y="40" width="361" height="328" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<rect x="22" y="46" width="349" height="92" rx="20" fill="#bd4b2a" />
+<g transform="translate(40 62) scale(1.4)" fill="none" stroke="#fff6f0" stroke-width="1.07" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
+<text x="86" y="100" font-family="Golos Text" font-weight="600" font-size="24" fill="#fff6f0" text-anchor="start">who are you</text>
+<circle cx="341" cy="92.0" r="18" fill="none" stroke="#fff6f0" stroke-width="1.5" opacity=".9"/>
+<g transform="translate(329 80.0) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
+<text x="34" y="166" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">name</text>
+<text x="34" y="198" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">Anya</text>
+<path d="M30 216 H363" stroke="#e6dbc9" stroke-width="1.2"/>
+<text x="34" y="242" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">age</text>
+<text x="34" y="274" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">28</text>
+<path d="M30 292 H363" stroke="#e6dbc9" stroke-width="1.2"/>
+<rect x="32" y="312" width="32" height="32" rx="8" fill="#bd4b2a" />
+<g transform="translate(36 316) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<g transform="translate(122 304) scale(1.0)" fill="none" stroke="#983c22" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/></g>
+<text x="134" y="348" font-family="Golos Text" font-weight="600" font-size="13" fill="#983c22" text-anchor="middle">terms</text>
+<g transform="translate(218 304) scale(1.0)" fill="none" stroke="#983c22" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5"/></g>
+<text x="230" y="348" font-family="Golos Text" font-weight="600" font-size="13" fill="#983c22" text-anchor="middle">privacy</text>
+<g transform="translate(314 304) scale(1.0)" fill="none" stroke="#983c22" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
+<text x="326" y="348" font-family="Golos Text" font-weight="600" font-size="13" fill="#983c22" text-anchor="middle">rules</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
 <g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></g>
 <text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «next»</text>

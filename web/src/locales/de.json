@@ -445,5 +445,6 @@
   "web.me.nameHint": "der Name ändert sich nur, wenn keine Phrase live und kein Gespräch offen ist",
   "web.duration.h": "{n} Std.",
   "web.table.line": "Beitrag am Tisch",
-  "web.away.until": "bis {time} · noch {left}"
+  "web.away.until": "bis {time} · noch {left}",
+  "web.me.away_hint": "Pause: Sätze verschwinden, Gespräche warten"
 }

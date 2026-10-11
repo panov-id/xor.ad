@@ -84,7 +84,14 @@ function PhraseLife({ row }: { row: MatchRow }) {
     <div className="ui-life" data-testid="offer-life">
       <Life end={row.phrase.expires_at} tone="theirs" />
       {theirs?.soon && <span className="ui-hint" data-testid="offer-soon">{say("web.inbox.soon")}</span>}
-      {mine && <span className="ui-hint" data-testid="offer-mine-left">{say("web.inbox.mine_left", { left: duration(mine.minutes) })}</span>}
+      {/* С6 (walk 11.10): the line is about one's own phrase, not the one above
+          it — so that phrase is named first, in quotes. */}
+      {mine && row.my_phrase && (
+        <p className="ui-hint">
+          <q data-testid="offer-mine-text">{row.my_phrase.text}</q>{" · "}
+          <span data-testid="offer-mine-left">{say("web.inbox.mine_left", { left: duration(mine.minutes) })}</span>
+        </p>
+      )}
     </div>
   );
 }

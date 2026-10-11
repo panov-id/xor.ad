@@ -445,5 +445,6 @@
   "web.me.nameHint": "имя меняется, только когда нет живой фразы и открытой беседы",
   "web.duration.h": "{n} ч",
   "web.table.line": "реплика за столом",
-  "web.away.until": "до {time} · осталось {left}"
+  "web.away.until": "до {time} · осталось {left}",
+  "web.me.away_hint": "перерыв: фразы снимутся, беседы подождут"
 }

@@ -71,12 +71,14 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
           19.09.2026), then the hint with its accent edge. */}
       {mine && (
         <Card as="section" data-part="mine" data-testid="match-mine">
+          {/* С4/С5 (walk 11.10): each phrase says whose it is, in the chat's words; the name is the header's. */}
+          <strong data-testid="match-mine-label">{say("web.chat.they_liked")}</strong>
           <p>{mine.text}</p>
           <Life end={mine.expires_at} tone="mine" />
         </Card>
       )}
       <Card as="section" kind="nested" of="match" data-part="theirs">
-        <strong>{row.name}, {row.age}</strong>
+        <strong data-testid="match-theirs-label">{say("web.chat.you_liked")}</strong>
         <Chip label={modes().find((m) => m.value === row.phrase.mode)?.label ?? row.phrase.mode} />
         <p>{row.phrase.text}</p>
         <Life end={theirs.expires_at} tone="theirs" />

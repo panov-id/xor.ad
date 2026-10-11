@@ -445,5 +445,6 @@
   "web.me.nameHint": "ат жандуу фраза менен ачык маек жок болгондо гана өзгөрөт",
   "web.duration.h": "{n} ст",
   "web.table.line": "үстөл жанындагы сөз",
-  "web.away.until": "{time} чейин · {left} калды"
+  "web.away.until": "{time} чейин · {left} калды",
+  "web.me.away_hint": "тыныгуу: сүйлөмдөр алынат, маектер күтөт"
 }

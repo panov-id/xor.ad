@@ -36,6 +36,8 @@ test("an offer shows the other's phrase as a bar, «скоро исчезнет�
   expect(Number(await row.getByTestId("life-theirs").getAttribute("data-left"))).toBeGreaterThan(0.9);
   await expect(row.getByTestId("offer-soon")).toHaveCount(0);
   await expect(row.getByTestId("offer-mine-left")).toHaveText(/ещё 4 ч (1[1-9]|20) мин/); // 251–260 minutes, said in hours and minutes (П24)
+  // С6 (walk 11.10): the minutes are named by her own phrase, not read as Борис's.
+  await expect(row.getByTestId("offer-mine-text")).toHaveText(aText);
 
   // Борис's phrase in its last fifth: ten minutes left.
   const sql = postgres(DATABASE, { max: 1 });

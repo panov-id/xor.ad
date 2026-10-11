@@ -134,6 +134,9 @@ export async function openMatch(page: Page, name: string): Promise<string> {
 
 // A table from the feed's "new table" (W10), and the one who set it lands at it.
 export async function newTable(page: Page, t: { name: string; kind?: string; set?: string }): Promise<void> {
+  // A table is made from the tables tab (owner 11.10.2026: the feed's own
+  // button repeated the tab, and left the feed's header).
+  await openTables(page);
   await page.getByTestId("new-table").click();
   await expect(page.locator('[data-screen="new-table"]')).toBeVisible();
   if (t.kind) await page.getByTestId("new-table-class").selectOption(t.kind);

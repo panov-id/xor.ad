@@ -445,5 +445,6 @@
   "web.me.nameHint": "ad yalnız canlı ifadə və açıq söhbət olmadıqda dəyişir",
   "web.duration.h": "{n} saat",
   "web.table.line": "masada replika",
-  "web.away.until": "{time} qədər · {left} qaldı"
+  "web.away.until": "{time} qədər · {left} qaldı",
+  "web.me.away_hint": "fasilə: ifadələr silinir, söhbətlər gözləyir"
 }

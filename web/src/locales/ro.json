@@ -445,5 +445,6 @@
   "web.me.nameHint": "numele se schimbă doar când nu ai nicio frază activă și nicio conversație deschisă",
   "web.duration.h": "{n} h",
   "web.table.line": "mesaj la masă",
-  "web.away.until": "până la {time} · au rămas {left}"
+  "web.away.until": "până la {time} · au rămas {left}",
+  "web.me.away_hint": "pauză: frazele dispar, conversațiile așteaptă"
 }

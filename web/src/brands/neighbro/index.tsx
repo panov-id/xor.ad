@@ -85,7 +85,7 @@ function Sticker({ card, index, open }: { card: FeedCard; index: number; open: (
       {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="sticker-foot" id={openerIds(card.id).foot}>
-        <span>{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
+        <span className="ui-icon-row"><Icon name="me" size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
         <span className="sticker-likes">{likesOf(card.like_count)}</span>
       </span>
     </li>

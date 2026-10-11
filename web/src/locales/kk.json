@@ -445,5 +445,6 @@
   "web.me.nameHint": "ат тек тірі сөз тіркесі мен ашық әңгіме болмағанда өзгереді",
   "web.duration.h": "{n} сағ",
   "web.table.line": "үстелдегі сөз",
-  "web.away.until": "{time} дейін · {left} қалды"
+  "web.away.until": "{time} дейін · {left} қалды",
+  "web.me.away_hint": "үзіліс: сөйлемдер алынады, әңгімелер күтеді"
 }

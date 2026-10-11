@@ -301,7 +301,6 @@ function Face() {
             onRadius={setRadius}
             onOpen={(card) => leaveFeed({ at: "card", card })}
             onTable={(id) => void enterTable(id, "feed")}
-            onNewTable={() => leaveFeed({ at: "new-table", from: "feed" })}
             notice={tableNotice}
             onWrite={() => leaveFeed({ at: "composer" })}
             onLikes={() => leaveFeed({ at: "likes" })}

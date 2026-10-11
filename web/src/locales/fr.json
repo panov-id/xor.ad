@@ -445,5 +445,6 @@
   "web.me.nameHint": "le prénom ne change que sans phrase en ligne ni conversation ouverte",
   "web.duration.h": "{n} h",
   "web.table.line": "message à la table",
-  "web.away.until": "jusqu'à {time} · reste {left}"
+  "web.away.until": "jusqu'à {time} · reste {left}",
+  "web.me.away_hint": "pause : les phrases disparaissent, les échanges attendent"
 }

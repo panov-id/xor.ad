@@ -109,6 +109,7 @@ test("sets are named in words, and leaving a table returns to the feed or the ta
   const zhenya = await (await browser.newContext({ viewport: { width: 393, height: 851 } })).newPage();
   await register(zhenya, { name: "Женя", age: "30" });
 
+  await openTables(zhenya);
   await zhenya.getByTestId("new-table").click();
   await expect(zhenya.locator('[data-screen="new-table"]')).toBeVisible();
   await expect(zhenya.getByTestId("new-table-set").locator("option")).toHaveText(["поле 3×3", "поле 2×2", "поле 4×4"]);
@@ -116,11 +117,9 @@ test("sets are named in words, and leaving a table returns to the feed or the ta
   await expect(zhenya.getByTestId("new-table-set").locator("option")).toHaveText(["колода из 36 карт"]);
   await zhenya.getByTestId("new-table-back").click();
 
-  await newTable(zhenya, { name: `выход ${runLabel()}`, kind: "dots", set: "2x2" });
-  await zhenya.getByTestId("table-stand").click();
-  await expect(zhenya.locator('[data-screen="feed"]')).toBeVisible({ timeout: 15000 });
-
-  await openTables(zhenya);
+  // A table is made from the tables tab only (owner 11.10.2026), so standing
+  // up from a new one returns there; the way back to the feed is a table
+  // entered from a feed card (sitFromFeed, other specs).
   await newTable(zhenya, { name: `выход ${runLabel()}`, kind: "dots", set: "2x2" });
   await zhenya.getByTestId("table-stand").click();
   await expect(zhenya.locator('[data-screen="tables"]')).toBeVisible({ timeout: 15000 });

@@ -167,3 +167,10 @@
   border-radius: var(--r-round); padding: 0;
 }
 :root[data-brand="sosed"] .ui-tabbed .screen[data-screen="feed"] { padding-bottom: calc(var(--tabbar-h) + var(--fab) + var(--s-4) * 3); }
+
+/* Sheet Feed: the zone is a pill on the surface with the 1.5 rim (140×48), not a
+   squared field — the radius picker takes that shape in the feed's header. */
+:root[data-brand="sosed"] [data-screen="feed"] > .ui-header select {
+  min-height: var(--tab-h); border-radius: var(--r-pill); padding: 0 var(--s-6) 0 var(--s-4);
+  background-color: var(--surface); border: var(--tabbar-rim); box-shadow: var(--tabbar-ring); font-weight: 600;
+}

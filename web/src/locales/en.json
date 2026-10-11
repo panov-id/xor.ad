@@ -249,7 +249,7 @@
   "web.phrase.refused_status": "Phrase not accepted ({status}).",
   "web.register.age_min": "13 and over only",
   "web.register.confirm": "Written it down? Enter the second and fourth groups.",
-  "web.register.consent": "I accept the terms of use, the privacy policy and the community rules",
+  "web.register.consent": "I accept the terms of use, the privacy policy and the community guidelines",
   "web.register.done": "done",
   "web.register.easy_pin": "this PIN is easy to guess",
   "web.register.fourth": "fourth",
@@ -445,5 +445,6 @@
   "web.me.nameHint": "the name can change only when you have no live phrase and no open conversation",
   "web.duration.h": "{n} h",
   "web.table.line": "line at the table",
-  "web.away.until": "until {time} · {left} left"
+  "web.away.until": "until {time} · {left} left",
+  "web.me.away_hint": "a break: phrases come down, talks wait"
 }

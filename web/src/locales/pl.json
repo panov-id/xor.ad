@@ -445,5 +445,6 @@
   "web.me.nameHint": "imię zmienia się tylko wtedy, gdy nie masz żywej frazy ani otwartej rozmowy",
   "web.duration.h": "{n} godz.",
   "web.table.line": "wiadomość przy stole",
-  "web.away.until": "do {time} · zostało {left}"
+  "web.away.until": "do {time} · zostało {left}",
+  "web.me.away_hint": "przerwa: zdania znikną, rozmowy poczekają"
 }

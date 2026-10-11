@@ -445,5 +445,6 @@
   "web.me.nameHint": "el nombre solo se cambia si no tienes ninguna frase viva ni conversación abierta",
   "web.duration.h": "{n} h",
   "web.table.line": "mensaje en la mesa",
-  "web.away.until": "hasta las {time} · quedan {left}"
+  "web.away.until": "hasta las {time} · quedan {left}",
+  "web.me.away_hint": "pausa: las frases se retiran, las charlas esperan"
 }

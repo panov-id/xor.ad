@@ -445,5 +445,6 @@
   "web.me.nameHint": "ism faqat tirik ibora va ochiq suhbat bo'lmaganda o'zgaradi",
   "web.duration.h": "{n} soat",
   "web.table.line": "stol atrofidagi gap",
-  "web.away.until": "{time} gacha · {left} qoldi"
+  "web.away.until": "{time} gacha · {left} qoldi",
+  "web.me.away_hint": "tanaffus: iboralar olib tashlanadi, suhbatlar kutadi"
 }

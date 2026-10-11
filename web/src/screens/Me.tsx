@@ -73,7 +73,8 @@ export function Me({ client, restrictions, onOpen, onBack, refresh, brandClass }
     { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}`, testid: "me-hidden", icon: "hide" },
     ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }), testid: "me-blocked", icon: "block" as const }] : []),
     { key: "theme", label: say("web.theme.item"), testid: "me-theme", icon: "eye" },
-    { key: "away", label: say("away.item"), testid: "me-away", icon: "timer" },
+    // С10 (walk 11.10): «отойти» says what it is, in the row.
+    { key: "away", label: say("away.item"), value: say("web.me.away_hint"), testid: "me-away", icon: "timer" },
     { key: "pin", label: say("pin.item"), testid: "me-pin", icon: "key" },
     { key: "move", label: say("move.item"), testid: "me-move", icon: "arrive" },
     { key: "reissue", label: say("reissue.item"), testid: "me-reissue", icon: "code" },

@@ -65,6 +65,20 @@ def main():
                                    " (translate it, or list it in check-locale-ru-copies.allow with a reason)")
     if baseline:
         return 0
+    # A listed pair that no longer reads as Russian is a stale line: the list is the one
+    # source for check-web-i18n.sh too (G-RU2), and a stale line there would hide the next copy.
+    for lang, side, key in sorted(allowed):
+        rel = dict(DIRS)[side]
+        path = os.path.join(root, rel, f"{lang}.json")
+        if not os.path.exists(path):
+            bad.append(f"{lang}: allow line for {side} {key}, but no {rel}/{lang}.json")
+            continue
+        d = json.load(open(path, encoding="utf-8"))
+        ru = json.load(open(os.path.join(root, rel, "ru.json"), encoding="utf-8"))
+        if key not in ru:
+            bad.append(f"{lang}: allow line for {side} {key}, a key Russian does not have")
+        elif d.get(key) != ru[key]:
+            bad.append(f"{lang}: {side} {key} no longer reads as Russian — drop it from check-locale-ru-copies.allow")
     for b in bad[:20]:
         print(f"  ✗ {b}")
     if len(bad) > 20:

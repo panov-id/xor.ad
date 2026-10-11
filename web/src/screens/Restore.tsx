@@ -10,7 +10,7 @@ import { say } from "../api/me.ts";
 import { raiseAndKeep } from "../vault.ts";
 import { Button } from "../ui/Button.tsx";
 import { CodeField } from "../ui/CodeField.tsx";
-import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { FormCard, PinPair } from "../ui/FormCard.tsx";
 import { PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
@@ -51,14 +51,18 @@ export function Restore({ onDone, onBack }: { onDone: (client: Client, longKey: 
   const typedSome = code.some((group) => group !== "");
   return (
     <Screen name="restore" title={say("restore.title")} header={<HeaderScreen title={say("restore.title")} onBack={onBack} backLabel={say("common.back")} backTestid="restore-back" />}>
-      <div className="ui-info-row"><Info label={say("web.info.code")} data-testid="restore-info"><p>{say("restore.intro")}</p></Info></div>
+      <FormCard icon="code" error={error} info={<>
+        <Info label={say("web.info.code")} data-testid="restore-info"><p>{say("restore.intro")}</p></Info>
+        <Info label={say("web.info.pin")} data-testid="restore-pin-info"><p>{say("restore.newPinPrice")}</p></Info>
+      </>}>
       <div data-testid="restore-code"><CodeField value={code} onChange={setCode} /></div>
       {typedSome && !codeOk && <Notice>{say("restore.bad")}</Notice>}
-      <div className="ui-info-row"><Info label={say("web.info.pin")} data-testid="restore-pin-info"><p>{say("restore.newPinPrice")}</p></Info></div>
+      <PinPair>
       <PinField label={say("web.pin.new")} value={pin} onChange={setPin} data-testid="restore-pin" />
       <PinField label={say("web.pin.newAgain")} value={again} onChange={setAgain}
         error={pin.length === 6 && again.length === 6 && pin !== again ? say("reg.pinMismatch") : undefined} data-testid="restore-pin-again" />
-      {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
+      </PinPair>
+      </FormCard>
       <Button type="button" kind="primary" icon="key" className="ui-wide" aria-label={say("restore.go")} aria-busy={busy} disabled={!codeOk || !pinOk || busy} onClick={() => void go()} data-testid="restore-go" />
     </Screen>
   );

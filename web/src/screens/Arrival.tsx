@@ -10,7 +10,7 @@ import { say } from "../api/me.ts";
 import { ENDINGS } from "../api/transfer.ts";
 import { Button } from "../ui/Button.tsx";
 import "./talk.css";
-import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { FormCard, PinPair } from "../ui/FormCard.tsx";
 import { CellField } from "../ui/CellField.tsx";
 import { PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
@@ -33,37 +33,41 @@ export function Arrival({ onDone, onBack, hero }: { onDone: (client: Client, lon
       {!into
         ? (
           <>
-            <div className="ui-info-row"><Info label={say("web.info.move")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info></div>
-            <CellField label={say("move.code")} cells={9} value={code} onChange={(v) => setCode(v.slice(0, 13))} autoComplete="off" data-testid="arrive-code" />
+            <FormCard icon="arrive" error={error} info={<Info label={say("web.info.move")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info>}>
+            <CellField label={say("move.code")} cells={9} groups={[3, 3, 3]} value={code} onChange={(v) => setCode(v.slice(0, 13))} autoComplete="off" data-testid="arrive-code" />
             {busy && <p role="status">{say("move.deriving")}</p>}
+            </FormCard>
             <Button kind="primary" type="button" icon="open" className="ui-wide" aria-label={say("reg.next")} disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go" />
           </>
         )
         : ending
         ? (
-          <>
+          <FormCard icon="arrive" error={error}>
             <p data-testid="move-ending">{say(ending)}</p>
-          </>
+          </FormCard>
         )
         : state === "approved"
         ? (
           <>
+            <FormCard icon="key" error={error}>
             <p>{say("move.arrived")}</p>
+            <PinPair>
             <PinField label={say("web.pin.new")} value={pin} onChange={setPin} data-testid="arrive-pin" />
             <PinField label={say("web.pin.newAgain")} value={again} onChange={setAgain}
               error={pin.length === 6 && again.length === 6 && pin !== again ? say("reg.pinMismatch") : undefined} data-testid="arrive-pin-again" />
+            </PinPair>
+            </FormCard>
             <Split><Button kind="primary" type="button" icon="check" aria-label={say("reg.next")} disabled={!/^\d{6}$/.test(pin) || pin !== again || busy} onClick={() => void keep()} data-testid="arrive-keep" /></Split>
           </>
         )
         : (
-          <>
+          <FormCard icon="arrive" error={error}>
             <dl>
               <dt>{say("move.check")}</dt><dd data-testid="arrive-check">{into.arrival.check}</dd>
             </dl>
             <p>{say("move.inWait")}</p>
-          </>
+          </FormCard>
         )}
-      {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
     </Screen>
   );
 }

@@ -21,7 +21,7 @@ import { dateLong, say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { Checkbox } from "../ui/Checkbox.tsx";
 import { CodeField } from "../ui/CodeField.tsx";
-import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { CodePlate, FormCard, PinPair } from "../ui/FormCard.tsx";
 import { Field, PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
@@ -160,6 +160,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
       <Mark size={72} place="form" />
       {step === 1 && (
         <>
+          <FormCard icon="name">
           <Field label={say("reg.name")} value={name} onChange={setName} maxLength={64} hint={say("web.register.left", { count: Math.max(0, NAME_MAX - count(name)) })} data-testid="name" />
           <Field label={say("reg.age")} kind="number" value={age} onChange={(v) => setAge(v.replace(/\D/g, "").slice(0, 3))}
             hint={young ? undefined : say("web.register.age_min")} error={young ? say("web.register.age_min") : undefined} data-testid="age" />
@@ -175,27 +176,31 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
               ))}
             </p>
           )}
+          </FormCard>
           {foot(whyNext, <Button type="button" kind="primary" icon="open" aria-label={say("reg.next")} {...gate(whyNext)} onClick={() => { if (!whyNext) setStep(2); }} data-testid="next" />)}
         </>
       )}
       {step === 2 && (
         <>
+          <FormCard icon="key" error={error}>
+          <PinPair>
           <PinField value={pin} onChange={setPin} data-testid="pin" />
           <PinField label={say("web.register.pin_again")} value={pinAgain} onChange={setPinAgain}
             error={pin.length === 6 && pinAgain.length === 6 && pin !== pinAgain ? say("reg.pinMismatch") : undefined} data-testid="pin-again" />
+          </PinPair>
           {pin.length === 6 && obviousPin(pin) && <Notice>{say("web.register.easy_pin")}</Notice>}
-          {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
+          </FormCard>
           {foot(whyPin, <Button type="button" kind="primary" icon="open" aria-label={busy ? say("web.register.waiting") : say("reg.next")} aria-busy={busy}
             {...gate(whyPin, busy)} onClick={register} data-testid="register" />)}
         </>
       )}
       {step === 3 && (
         <>
-          <p data-testid="paper-code">{groups.join(" ")}</p>
-          <div className="ui-info-row"><Info label={say("web.info.code")} data-testid="paper-info"><p>{say("web.register.paper_text")}</p></Info></div>
+          <FormCard icon="code" error={error} info={<Info label={say("web.info.code")} data-testid="paper-info"><p>{say("web.register.paper_text")}</p></Info>}>
+          <CodePlate groups={groups} data-testid="paper-code" />
           <p>{say("web.register.confirm")}</p>
           <div data-testid="paper-groups"><CodeField groups={[2, 4]} value={typed} onChange={setTyped} /></div>
-          {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
+          </FormCard>
           {foot(whyGroups, <Button type="button" kind="primary" icon="check" aria-label={say("web.register.done")} aria-busy={busy}
             {...gate(whyGroups, busy)} onClick={confirm} data-testid="confirm" />)}
         </>

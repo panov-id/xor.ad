@@ -2,6 +2,7 @@ import { useState, type ClipboardEvent, type InputHTMLAttributes, type ReactNode
 import { say } from "../locales/say.ts";
 import { Button } from "./Button.tsx";
 import { type ControlState, useControl } from "./control.tsx";
+import "./form.css";
 
 // Field (kit_RU.md §3.2): name = the <label for>, a placeholder is not a name;
 // role textbox; the kind picks the keyboard and the autocomplete token
@@ -62,7 +63,7 @@ export function PinField({ label = say("web.ui.pinName"), value, onChange, hint,
     <div className="ui-field">
       <label htmlFor={c.ids.input}>{label}</label>
       <div className="ui-pin-row">
-        <input {...rest} {...c.attrs} readOnly={c.readOnly} className="ui-input" type={shown ? "text" : "password"} inputMode="numeric" pattern="[0-9]*" maxLength={PIN_LENGTH}
+        <input {...rest} {...c.attrs} readOnly={c.readOnly} className="ui-input ui-pin-strip" type={shown ? "text" : "password"} inputMode="numeric" pattern="[0-9]*" maxLength={PIN_LENGTH}
           autoComplete="one-time-code" value={value} onChange={(event) => onChange(digits(event.target.value))} onPaste={paste} />
         <Button type="button" kind="text" onClick={() => setShown(!shown)}>{shown ? say("web.ui.hide") : say("web.ui.show")}</Button>
       </div>

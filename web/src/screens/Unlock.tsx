@@ -8,7 +8,7 @@ import type { Client } from "../../../depth/core/client.ts";
 import { forget, PinRefused, type Record_, unlockAfterReload } from "../vault.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
-import { ErrorLine } from "../ui/ErrorLine.tsx";
+import { FormCard } from "../ui/FormCard.tsx";
 import { PinField } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
@@ -57,13 +57,18 @@ export function Unlock({ record, onDone, onForget, onRestore }: { record: Record
 
   return (
     <Screen name="unlock" title={say("reg.pin")} header={<HeaderScreen title={say("reg.pin")} />}>
-      <div className="ui-info-row"><Info label={say("web.info.pin")} data-testid="unlock-info"><p>{say("web.unlock.remembers")}</p></Info></div>
-      <PinField value={pin} onChange={setPin} data-testid="unlock-pin" />
-      {error && <div data-testid="error"><ErrorLine>{error}</ErrorLine></div>}
+      {/* «forget» is not on the sheet's Split (adaptive-sosed-unlock.svg: «open» · «paper code»); it waits behind the (i) */}
+      <FormCard icon="key" error={error} info={
+        <Info label={say("web.info.pin")} data-testid="unlock-info">
+          <p>{say("web.unlock.remembers")}</p>
+          <Button type="button" icon="forget" aria-label={say("web.unlock.forget")} onClick={async () => { await forget(); onForget(); }} data-testid="forget" />
+        </Info>
+      }>
+        <PinField value={pin} onChange={setPin} data-testid="unlock-pin" />
+      </FormCard>
       <div data-part="foot">
         <Split>
           <Button type="button" kind="primary" icon="key" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={pin.length !== 6 || busy} onClick={unlock} data-testid="unlock" />
-          <Button type="button" icon="forget" aria-label={say("web.unlock.forget")} onClick={async () => { await forget(); onForget(); }} data-testid="forget" />
           {error && <Button type="button" icon="code" aria-label={say("web.unlock.restore")} onClick={onRestore} data-testid="unlock-restore" />}
         </Split>
       </div>

@@ -53,3 +53,26 @@ Measured with headless Chromium in a container, element boxes on the sosed feed 
 After the edits, green: `check-web-tokens`, `check-web-types` (0 errors).
 
 Noticed along the way, did not touch: the «написать» («write») button, per the feed style, is a pill 327×52 (kit sheet 03), but on the screen it is 64px wide. Another rule overrides the width. Recorded; it does not block the goal.
+
+## Final walkthrough of wave `К` (`К10`), 10.10.2026
+
+day59 after merging `К1`–`К9`, `К6б` (full e2e on this same tree: sosed 118/118 and neighbro 120/120, two runs each).
+`scripts/up-local.sh` with a clean database, `WALK_STABLE=1 scripts/textwalk/run.sh`, both brands:
+
+| | sosed | neighbro |
+|---|---|---|
+| steps | 51 | 51 |
+| failed steps | 0 | 0 |
+| controls without a name | 0 | 0 |
+| screens without `data-screen` | 0 | 0 |
+| node responses ≥ 400 | 3 — all intended: phrase with a contact 422, name with a contact 422, wrong code 404 | the same 3 |
+| page errors | 0 | 0 |
+| raw elements in screens (`check-web-kit`) | 0 of 30 files | — |
+
+What got better since the first pass: registration on a node refusal says what happened and what to do; age 12 —
+the reason is next to the button; languages by self-name, `lang` changes with the interface; dates in words; on the table «точки» («dots»), no
+«сдаться» («give up») before the game, the score cells have an owner; the moderation refusal reason is in interface words, without the model's text;
+the service line about keys is gone; on neighbro a like is sent after 5 s with an undo.
+
+Still embarrassing (as text, from the walkthrough output) — `П20`–`П28` in `docs/plan-goal-2026-10-10_RU.md`. Result: **NOT READY**
+for the owner's testing until they are closed and the next walkthrough confirms it.

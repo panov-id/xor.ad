@@ -175,3 +175,15 @@
   border: 0; box-shadow: none; background: transparent; color: transparent; caret-color: transparent; letter-spacing: 0;
 }
 :root[data-brand="neighbro"] .ui-cellfield input:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--cell-focus-offset); border-radius: var(--cell-focus-r); }
+
+/* ND-N2 · Feed.svg: the phrases are stickers on the surface, upright, 18 apart. */
+:root[data-brand="neighbro"] [data-screen="feed"] .stickers { gap: var(--feed-gap); }
+:root[data-brand="neighbro"] [data-screen="feed"] .sticker { background: var(--surface); color: var(--fg); transform: none; }
+:root[data-brand="neighbro"] [data-screen="feed"] .sticker .sticker-foot { color: var(--fg-muted); }
+
+/* Card.svg: the big card wears the accent, its words in --accent-fg; on a liked
+   card the heart keeps its place (moved to the sheet's r34 low right, the
+   share grew: 17.82 → 18.27, ND-N2 shot n2a). */
+:root[data-brand="neighbro"] [data-screen="card"] .sticker-card { background: var(--accent); color: var(--accent-fg); }
+:root[data-brand="neighbro"] [data-screen="card"] .sticker-card .sticker-meta,
+:root[data-brand="neighbro"] [data-screen="card"] .sticker-card .sticker-count { color: inherit; }

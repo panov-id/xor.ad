@@ -82,131 +82,28 @@ for lang in langs:
 # copy, whether or not any other language has translated it yet. A word that is
 # truly the same in a Cyrillic language (a cognate, a unit, a loanword) is named
 # below, per language and per key; anything not named here must differ from ru.
-SAME_AS_RU = {
-    "be": {
-        "web.die.2",  # два
-        "web.rank.A",  # туз
-        "web.rank.J",  # валет
-        "web.rank.Q",  # дама
-        "web.set.chess",  # шахматы
-        "web.table.cardName",  # {rank} {suit}
-        "web.composer.zone",  # зона
-        "web.composer.scheme",  # схема, не карта
-        "web.composer.phrase",  # фраза
-        "web.feed.km",  # {n} км
-        "web.feed.m",  # {n} м
-        "web.game.set",  # Набор
-        "web.game.you",  # вы
-        "web.game.your_turn",  # Ваш ход
-        "web.newTable.set",  # набор
-        "web.table.card",  # карта {card}
-        "web.card.phrase",  # фраза
-        "web.ui.code",  # код
-        "web.ui.you",  # вы
-    },
-    "kk": {
-        "web.rank.J",  # валет
-        "web.rank.K",  # король
-        "web.rank.Q",  # дама
-        "web.duration.min",  # {n} мин — the same abbreviation of a minute
-        "web.ui.code",  # код
-        "web.cabinet.field.promo",  # промокод
-        "web.cabinet.radius",  # радиус, м
-        "web.composer.mode",  # режим
-        "web.feed.m",  # {n} м
-        "web.table.card",  # карта {card}
-        "web.transfer.browser",  # браузер
-    },
-    "ky": {
-        "web.rank.A",  # туз
-        "web.rank.J",  # валет
-        "web.rank.K",  # король
-        "web.rank.Q",  # дама
-        "web.ui.system",  # система
-        "web.ui.code",  # код
-        "web.cabinet.field.promo",  # промокод
-        "web.cabinet.field.text",  # текст
-        "web.cabinet.radius",  # радиус, м
-        "web.composer.mode",  # режим
-        "web.feed.km",  # {n} км — was «чак.», which is not kilometres (W16-TR)
-        "web.feed.m",  # {n} м
-        "web.table.card",  # карта {card}
-        "web.transfer.browser",  # браузер
-        "web.theme.item",  # тема
-        "web.theme.title",  # Тема
-    },
-    "tg": {
-        "web.rank.A",  # туз
-        "web.rank.J",  # валет
-        "web.rank.Q",  # дама
-        "web.ui.system",  # система
-        "web.cabinet.field.promo",  # промокод
-        "web.cabinet.radius",  # радиус, м
-        "web.card.back",  # ← лента
-        "web.feed.km",  # {n} км
-        "web.feed.m",  # {n} м
-        "web.feed.title",  # Лента
-        "web.likes.back",  # ← лента
-        "web.nav.feed",  # лента
-        "web.transfer.browser",  # браузер
-    },
-    "uk": {
-        "web.die.1",  # один
-        "web.die.2",  # два
-        "web.die.3",  # три
-        "web.rank.10",  # десятка
-        "web.rank.A",  # туз
-        "web.rank.J",  # валет
-        "web.rank.K",  # король
-        "web.rank.Q",  # дама
-        "web.set.checkers",  # шашки
-        "web.suit.C",  # треф
-        "web.table.cardName",  # {rank} {suit}
-        "web.ui.system",  # система
-        "web.cabinet.field.promo",  # промокод
-        "web.cabinet.field.text",  # текст
-        "web.cabinet.placeAt",  # точка: {lat}, {lon} · {radius}
-        "web.chat.not_delivered",  # · не доставлено
-        "web.composer.mode",  # режим
-        "web.composer.zone",  # зона
-        "web.composer.phrase",  # фраза
-        "web.feed.km",  # {n} км
-        "web.feed.m",  # {n} м
-        "web.filter.to",  # до
-        "web.offer.go",  # перейти на {domain}
-        "web.register.done",  # готово
-        "web.reissue.done",  # готово
-        "web.table.card",  # карта {card}
-        "web.table.my_word",  # ваше слово: {word}
-        "web.table.power",  # сила 1–7
-        "web.table.stock",  # колода: {count}
-        "web.transfer.browser",  # браузер
-        "web.theme.item",  # тема
-        "web.theme.title",  # Тема
-        "web.card.phrase",  # фраза
-        "web.ui.code",  # код
-    },
-    "el": {
-        "web.table.cardName",  # {rank} {suit}
-    },
-    "pl": {
-        "web.table.cardName",  # {rank} {suit}
-    },
-}
+# The list itself lives in scripts/check-locale-ru-copies.allow (G-RU2, 11.10.2026):
+# one source for the terminal and the web, rows with side "web" are read here.
+SAME_AS_RU = {}
+for line in (root / "scripts/check-locale-ru-copies.allow").read_text().splitlines():
+    if line.strip() and not line.startswith("#"):
+        lang, side, key = line.split("\t")[:3]
+        if side == "web":
+            SAME_AS_RU.setdefault(lang, set()).add(key)
 dicts = {lang: json.loads((locales / f"{lang}.json").read_text())
          for lang in langs if lang != "ru" and (locales / f"{lang}.json").exists()}
 for lang, keys in SAME_AS_RU.items():
     for k in sorted(keys):
         if k not in ru_web:
-            bad.append(f"{lang}: исключение SAME_AS_RU на ключ {k}, которого нет в ru")
+            bad.append(f"{lang}: исключение check-locale-ru-copies.allow на ключ {k}, которого нет в ru")
         elif lang in dicts and dicts[lang].get(k) != ru_web[k]:
-            bad.append(f"{lang}: {k} уже не совпадает с ru — убрать из SAME_AS_RU")
+            bad.append(f"{lang}: {k} уже не совпадает с ru — убрать из check-locale-ru-copies.allow")
 for k, v in ru_web.items():
     if not k.startswith("web."):
         continue
     for lang, d in sorted(dicts.items()):
         if d.get(k) == v and k not in SAME_AS_RU.get(lang, ()):
-            bad.append(f"{lang}: {k} осталась русской («{v[:40]}») и не названа в SAME_AS_RU")
+            bad.append(f"{lang}: {k} осталась русской («{v[:40]}») и не названа в check-locale-ru-copies.allow")
 # W15-I18N: the same for English. A non-English dictionary whose web.* value
 # reads exactly as en.json's is an untranslated copy (the verifier put the
 # English addVenue into de and the gate said nothing). What is truly the same

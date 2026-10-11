@@ -189,3 +189,7 @@ uk	web	web.suit.C	same word in uk
 uk	web	web.die.1	same word in uk
 uk	web	web.die.2	same word in uk
 uk	web	web.die.3	same word in uk
+be	web	web.table.cardName	placeholders only: {rank} {suit}
+el	web	web.table.cardName	placeholders only: {rank} {suit}
+pl	web	web.table.cardName	placeholders only: {rank} {suit}
+uk	web	web.table.cardName	placeholders only: {rank} {suit}

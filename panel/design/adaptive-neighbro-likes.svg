@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<rect width="393" height="851" fill="#e5e6e9"/>
+<rect width="393" height="851" fill="url(#dots)"/>
+<g transform="rotate(-8 82 96)">
+<circle cx="83.5" cy="99" r="50" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="82" cy="96" r="50" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(55.75 69.75) scale(2.1875)" fill="none" stroke="#ffffff" stroke-width="0.69" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L20 9.5 V18 H11 L7 21.5 V18 H4 V9.5 Z"/><path d="M16 6.25 V3.5 H18 V7.9"/></g>
+</g>
+<text x="150" y="84" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">my likes</text>
+<text x="150" y="112" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">what you said «like» to;</text>
+<text x="150" y="134" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">you can take it back</text>
+<text x="150" y="156" font-family="Golos Text" font-weight="400" font-size="16" fill="#545b63" text-anchor="start">until a match</text>
+<g transform="rotate(-0.6 196.5 238.0)">
+<rect x="17.5" y="189" width="361" height="104" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="186" width="361" height="104" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="36" y="224" font-family="Golos Text" font-weight="600" font-size="18" fill="#141618" text-anchor="start">walking to the river, join?</text>
+<g transform="translate(36.0 248.0) scale(0.2500)">
+<g fill="none" stroke="#141618" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M48 12 L80 38 V72 H44 L28 86 V72 H16 V38 Z"/><path d="M64 25 V14 H72 V31"/></g>
+<rect x="32" y="46" width="22" height="6" rx="3" fill="#141618"/>
+<rect x="32" y="58" width="34" height="6" rx="3" fill="#141618"/>
+</g>
+<text x="68" y="266" font-family="Golos Text" font-weight="400" font-size="14" fill="#141618" text-anchor="start">3 · 2 h ago</text>
+<g transform="translate(339 246) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
+<g transform="rotate(0.5 196.5 358.0)">
+<rect x="17.5" y="309" width="361" height="104" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="306" width="361" height="104" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="36" y="344" font-family="Golos Text" font-weight="600" font-size="18" fill="#141618" text-anchor="start">coffee at the corner bakery</text>
+<g transform="translate(36.0 368.0) scale(0.2500)">
+<g fill="none" stroke="#141618" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M48 12 L80 38 V72 H44 L28 86 V72 H16 V38 Z"/><path d="M64 25 V14 H72 V31"/></g>
+<rect x="32" y="46" width="22" height="6" rx="3" fill="#141618"/>
+<rect x="32" y="58" width="34" height="6" rx="3" fill="#141618"/>
+</g>
+<text x="68" y="386" font-family="Golos Text" font-weight="400" font-size="14" fill="#141618" text-anchor="start">4 · 2 h ago</text>
+<g transform="translate(339 366) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
+<g transform="rotate(-0.4 196.5 478.0)">
+<rect x="17.5" y="429" width="361" height="104" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="426" width="361" height="104" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="36" y="464" font-family="Golos Text" font-weight="600" font-size="18" fill="#141618" text-anchor="start">a chess partner in the yard</text>
+<g transform="translate(36.0 488.0) scale(0.2500)">
+<g fill="none" stroke="#141618" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M48 12 L80 38 V72 H44 L28 86 V72 H16 V38 Z"/><path d="M64 25 V14 H72 V31"/></g>
+<rect x="32" y="46" width="22" height="6" rx="3" fill="#141618"/>
+<rect x="32" y="58" width="34" height="6" rx="3" fill="#141618"/>
+</g>
+<text x="68" y="506" font-family="Golos Text" font-weight="400" font-size="14" fill="#141618" text-anchor="start">5 · 2 h ago</text>
+<g transform="translate(339 486) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
+</svg>

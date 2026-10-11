@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="16" y="24" width="361" height="184" rx="28" fill="#d68a1f" />
+<g transform="translate(40 46) scale(2.2)" fill="none" stroke="#1c140d" stroke-width="0.68" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5 H20.5 V18 H10.5 L6.5 21.5 V18 H3.5 Z"/><path d="M15.5 7.5 V3.5 M13.5 4 L17.5 3"/></g>
+<text x="40" y="138" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">my likes</text>
+<text x="40" y="164" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="start">what you said «like» to; you can</text>
+<text x="40" y="186" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="start">take it back until a match</text>
+<rect x="16" y="232" width="361" height="104" rx="18" fill="#1fa99a" />
+<text x="36" y="270" font-family="Golos Text" font-weight="600" font-size="18" fill="#1c140d" text-anchor="start">walking to the river, join?</text>
+<g transform="translate(36.0 294.0) scale(0.2500)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+<rect x="61" y="55" width="10" height="9" rx="1.5" fill="#1c140d"/>
+</g>
+<text x="68" y="312" font-family="Golos Text" font-weight="400" font-size="14" fill="#1c140d" text-anchor="start">3 · 2 h ago</text>
+<g transform="translate(339 292) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
+<rect x="16" y="352" width="361" height="104" rx="18" fill="#8550c5" />
+<text x="36" y="390" font-family="Golos Text" font-weight="600" font-size="18" fill="#ffffff" text-anchor="start">coffee at the corner bakery</text>
+<g transform="translate(36.0 414.0) scale(0.2500)">
+<g fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="61" y="55" width="10" height="9" rx="1.5" fill="#ffffff"/>
+</g>
+<text x="68" y="432" font-family="Golos Text" font-weight="400" font-size="14" fill="#ffffff" text-anchor="start">4 · 2 h ago</text>
+<g transform="translate(339 412) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
+<rect x="16" y="472" width="361" height="104" rx="18" fill="#336eb2" />
+<text x="36" y="510" font-family="Golos Text" font-weight="600" font-size="18" fill="#ffffff" text-anchor="start">a chess partner in the yard</text>
+<g transform="translate(36.0 534.0) scale(0.2500)">
+<g fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+<rect x="25" y="40" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="43" y="40" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="61" y="40" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="25" y="55" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="43" y="55" width="10" height="9" rx="1.5" fill="#ffffff"/>
+<rect x="61" y="55" width="10" height="9" rx="1.5" fill="#ffffff"/>
+</g>
+<text x="68" y="552" font-family="Golos Text" font-weight="400" font-size="14" fill="#ffffff" text-anchor="start">5 · 2 h ago</text>
+<g transform="translate(339 532) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/></g>
+</svg>

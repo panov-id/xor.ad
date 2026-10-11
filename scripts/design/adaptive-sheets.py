@@ -686,6 +686,333 @@ def s_register(sh):
     sh.save(f"adaptive-{sh.brand}-register-1440")
 
 
+# ---------- sign-up in the brand's language (owner 11.10.2026: «the sign-up steps are dull and unlike the app»)
+ICON.update({
+    "user": '<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/>',
+    "lock": '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5"/>',
+    "paper": '<path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M9 12 H15.5 M9 15.5 H15.5"/>',
+    "doc": '<path d="M6 3.5 H18 V20.5 H6 Z"/><path d="M9 8 H15 M9 11.5 H15 M9 15 H13"/>',
+})
+REG = {1: ("who are you", "user", "a name neighbours will see, and your age"),
+       2: ("your PIN", "lock", "six digits open this device's vault"),
+       3: ("paper code", "paper", "write it down: it brings you back on a new phone")}
+
+
+def s_register_step(brand, step):
+    sh = Sheet(brand, 393, 851)
+    k = sh.k; x0 = 16; W = 361
+    sh.rail = 0
+    if brand == "neighbro": sh.a(f'<rect width="393" height="851" fill="url(#dots)"/>')
+    title, ic, line = REG[step]
+    # progress: three cells, the done ones filled
+    for j in range(3):
+        on = j < step
+        if brand == "sosed": sh.rect(x0 + j * 40, 24, 32, 12, sh.tiles[j] if on else k["surface-2"], 6)
+        else: sh.sticker(x0 + 14 + j * 36, 30, 10, sh.tiles[(j + 1) % 4] if on else k["surface"], "check" if on and j < step - 1 else "user", (-8, 6, -4)[j], "#ffffff")
+    sh.text(x0 + 140, 36, f"step {step} of 3", 14, k["fg-muted"], 600)
+    # hero
+    if brand == "sosed":
+        c = (k["accent"], sh.tiles[1], sh.tiles[3])[step - 1]; fg = ink(sh, c) if step > 1 else k["accent-fg"]
+        sh.rect(x0, 56, W, 168, c, 28)
+        sh.icon(x0 + 24, 80, ic, fg, 2.2)
+        sh.text(x0 + 24, 176, title, 28, fg, 600); sh.text(x0 + 24, 204, line, 16, fg)
+        y = 248
+    else:
+        sh.sticker(x0 + 70, 132, 52, sh.tiles[(step) % 4], ic, -8, "#ffffff")
+        sh.text(x0 + 140, 128, title, 28, w=600);
+        for n, l in enumerate(wrap(line, 16, 210)): sh.text(x0 + 140, 154 + n * 22, l, 16, k["fg-muted"])
+        y = 214
+    def field(label, value, y, hint=None, w=W, x=x0):
+        sh.text(x, y + 16, label, 14, k["fg-muted"], 600)
+        if brand == "sosed": sh.rect(x, y + 26, w, 56, k["surface"], 18, f'stroke="{k["line"]}" stroke-width="1.5"')
+        else: sh.sticker_rect(x, y + 26, w, 56, k["surface"], 16)
+        sh.text(x + 18, y + 62, value, 20, k["fg"] if value[:1] != "·" else k["fg-muted"], 600 if value[:1] != "·" else 400)
+        if hint: sh.text(x, y + 102, hint, 14, k["fg-muted"])
+        return y + (110 if hint else 96)
+    if step == 1:
+        y = field("name", "Anya", y, "24 letters left")
+        y = field("age", "28", y, "from 13", w=160)
+        # consent as one tile: the box, the sentence, the three documents as chips
+        if brand == "sosed": sh.rect(x0, y, W, 132, k["surface-2"], 22)
+        else: sh.sticker_rect(x0, y, W, 132, k["surface"], 18, -0.6)
+        sh.rect(x0 + 16, y + 18, 28, 28, k["accent"], 8); sh.icon(x0 + 18, y + 20, "check", k["accent-fg"])
+        sh.text(x0 + 56, y + 38, "I accept the rules", 16, k["fg"], 600)
+        for j, d in enumerate(("terms", "privacy", "community")):
+            cx = x0 + 16 + j * 112
+            if brand == "sosed": sh.rect(cx, y + 64, 104, 44, k["surface"], 22, f'stroke="{k["line"]}" stroke-width="1.5"')
+            else: sh.sticker_rect(cx, y + 64, 104, 44, k["surface"], 22, (-2, 1.5, -1)[j])
+            sh.icon(cx + 10, y + 74, "doc", k["accent-text"], 0.85); sh.text(cx + 36, y + 92, d, 14, k["accent-text"], 600)
+        btn = "next"
+    elif step == 2:
+        y = field("PIN, 6 digits", "· · · · · ·", y)
+        y = field("again", "· · · · · ·", y)
+        sh.text(x0, y + 8, "the PIN never leaves this device", 14, k["fg-muted"])
+        btn = "create"
+    else:
+        groups = ("FEP0", "4AXR", "1JVV", "A4E3")
+        for j, g in enumerate(groups):
+            gx = x0 + (j % 2) * 186; gy = y + (j // 2) * 92
+            if brand == "sosed": sh.rect(gx, gy, 175, 80, sh.tiles[j], 22)
+            else: sh.sticker_rect(gx, gy, 175, 80, k["surface"], 16, (-2, 1.5, 1, -1.5)[j])
+            col = ink(sh, sh.tiles[j]) if brand == "sosed" else k["fg"]
+            sh.text(gx + 16, gy + 26, str(j + 1), 14, col, 600)
+            sh.text(gx + 88, gy + 58, g, 28, col, 600, "middle")
+        y += 200
+        sh.text(x0, y, "written down? type groups 2 and 4", 16, k["fg"], 600)
+        y = field("group 2", "4AXR", y + 8, w=170)
+        field("group 4", "· · · ·", y - 96, w=170, x=x0 + 186)
+        btn = "done"
+    by = 851 - 96
+    if brand == "sosed": sh.rect(x0, by, W, 64, k["accent"], 32)
+    else: sh.sticker_rect(x0, by, W, 60, k["accent"], 30)
+    sh.text(x0 + W / 2, by + 38, btn, 18, k["accent-fg"], 600, "middle")
+    sh.save(f"adaptive-{brand}-register-{step}")
+
+
+# ---------- every other screen in the same language (owner 11.10.2026: «everything in the new design»):
+# three shapes — a form, a list, a message — each opened by the brand's hero (a tile / a big sticker).
+ICON.update({
+    "unlock": '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 15.5 6"/>',
+    "restore": '<path d="M5 12 A7 7 0 1 0 7.5 6.6"/><path d="M5 4.5 V8.5 H9"/>',
+    "bye": '<path d="M8 13 V6 A1.5 1.5 0 0 1 11 6 V12 M11 11 V4.5 A1.5 1.5 0 0 1 14 4.5 V12 M14 11 V6 A1.5 1.5 0 0 1 17 6 V14 C17 18 15 21 11 21 C8 21 6 19 4.5 16 L3.5 13 A1.4 1.4 0 0 1 6 12 L8 15"/>',
+})
+
+
+def hero(sh, title, ic, line, colour_i=0):
+    k = sh.k; x0, W = 16, 361
+    if sh.brand == "sosed":
+        c = (k["accent"], *sh.tiles)[colour_i % 5]; fg = k["accent-fg"] if colour_i == 0 else ink(sh, c)
+        lines = wrap(line, 16, W - 48)[:3]; h = 140 + len(lines) * 22
+        sh.rect(x0, 24, W, h, c, 28); sh.icon(x0 + 24, 46, ic, fg, 2.2)
+        sh.text(x0 + 24, 138, title, 28, fg, 600)
+        for n, l in enumerate(lines): sh.text(x0 + 24, 164 + n * 22, l, 16, fg)
+        return 24 + h + 24
+    sh.sticker(x0 + 66, 96, 50, sh.tiles[colour_i % 4], ic, -8, "#ffffff")
+    tl = wrap(title, 22, 215)
+    for n, l in enumerate(tl): sh.text(x0 + 134, 84 + n * 28, l, 22, w=600)
+    yy = 84 + len(tl) * 28
+    for n, l in enumerate(wrap(line, 16, 215)[:3]): sh.text(x0 + 134, yy + n * 22, l, 16, k["fg-muted"])
+    return max(176, yy + 3 * 22 + 8)
+
+
+def box(sh, x, y, w, h, fill=None, tilt=0):
+    k = sh.k
+    if sh.brand == "sosed": sh.rect(x, y, w, h, fill or k["surface"], 18, "" if fill else f'stroke="{k["line"]}" stroke-width="1.5"')
+    else: sh.sticker_rect(x, y, w, h, fill or k["surface"], 16, tilt)
+
+
+def foot(sh, label, second=None):
+    k = sh.k; x0, W = 16, 361; by = 851 - (156 if second else 96)
+    if sh.brand == "sosed": sh.rect(x0, by, W, 64, k["accent"], 32)
+    else: sh.sticker_rect(x0, by, W, 60, k["accent"], 30)
+    sh.text(x0 + W / 2, by + 38, label, 18, k["accent-fg"], 600, "middle")
+    if second:
+        box(sh, x0, by + 76, W, 56); sh.text(x0 + W / 2, by + 110, second, 16, k["fg"], 600, "middle")
+
+
+# ---------- welded parts (owner 11.10.2026: «what stands side by side is joined into one component»):
+# one ground, one rim, one shadow; inner dividers in the ground colour (sosed) or the die-cut colour (neighbro).
+def weld(sh, x, y, w, h, parts, fill=None, tilt=0):
+    """A strip of `parts` cells sharing one body; returns the cells' x positions and width."""
+    k = sh.k
+    box(sh, x, y, w, h, fill, tilt)
+    cw = w / parts
+    div = k["bg"] if sh.brand == "sosed" else k["line"]
+    for j in range(1, parts):
+        sh.a(f'<path d="M{x + j * cw:.1f} {y + 8} V{y + h - 8}" stroke="{div}" stroke-width="{2 if sh.brand == "sosed" else 1.5}"/>')
+    return [x + j * cw for j in range(parts)], cw
+
+
+def field_card(sh, x, y, w, label, value, hint=None, muted=False):
+    """Label, field and hint as one card: the label inside on top, the hint inside at the foot."""
+    k = sh.k; h = 76 + (22 if hint else 0)
+    box(sh, x, y, w, h)
+    sh.text(x + 18, y + 24, label, 14, k["fg-muted"], 600)
+    sh.text(x + 18, y + 56, value, 20, k["fg-muted"] if muted else k["fg"], 400 if muted else 600)
+    if hint:
+        sh.a(f'<path d="M{x + 14} {y + 72} H{x + w - 14}" stroke="{k["surface-2"] if sh.brand == "sosed" else k["line"]}" stroke-width="1"/>')
+        sh.text(x + 18, y + 90, hint, 14, k["fg-muted"])
+    return y + h + 12
+
+
+def split_foot(sh, main, second):
+    """The main action and the second one welded into one button: a big part and a small part."""
+    k = sh.k; x0, W = 16, 361; by = 851 - 96
+    if sh.brand == "sosed":
+        sh.rect(x0, by, W, 64, k["accent"], 32)
+        sh.a(f'<path d="M{x0 + W - 120} {by + 12} V{by + 52}" stroke="{k["accent-fg"]}" stroke-width="1.5" opacity=".5"/>')
+    else:
+        sh.sticker_rect(x0, by, W, 60, k["accent"], 30)
+        sh.a(f'<path d="M{x0 + W - 120} {by + 10} V{by + 50}" stroke="{k["accent-fg"]}" stroke-width="1.5" opacity=".5"/>')
+    sh.text(x0 + (W - 120) / 2, by + 38, main, 18, k["accent-fg"], 600, "middle")
+    sh.text(x0 + W - 60, by + 38, second, 14, k["accent-fg"], 600, "middle")
+
+
+def s_unlock(brand):
+    sh = Sheet(brand, 393, 851); k = sh.k
+    if brand == "neighbro": sh.a('<rect width="393" height="851" fill="url(#dots)"/>')
+    y = hero(sh, "welcome back", "unlock", "type your PIN to open this device's vault", 2)
+    sh.text(16, y + 16, "PIN", 14, k["fg-muted"], 600)
+    for j in range(6):
+        box(sh, 16 + j * 61, y + 28, 52, 64, None, (-2, 1, -1, 2, -1, 1)[j])
+        if j < 4: sh.a(f'<circle cx="{16 + j * 61 + 26}" cy="{y + 60}" r="7" fill="{k["fg"]}"/>')
+    sh.text(16, y + 128, "3 tries left before a pause", 14, k["fg-muted"])
+    foot(sh, "open", "forgot the PIN — paper code")
+    sh.save(f"adaptive-{brand}-unlock")
+
+
+def s_restore(brand):
+    sh = Sheet(brand, 393, 851); k = sh.k
+    if brand == "neighbro": sh.a('<rect width="393" height="851" fill="url(#dots)"/>')
+    y = hero(sh, "back by paper code", "restore", "the four groups you wrote down, and a new PIN", 3)
+    for j, g in enumerate(("FEP0", "4AXR", "1JVV", "····")):
+        gx = 16 + (j % 2) * 186; gy = y + (j // 2) * 76
+        box(sh, gx, gy, 175, 64, None, (-1.5, 1, 1.5, -1)[j])
+        sh.text(gx + 14, gy + 22, str(j + 1), 14, k["fg-muted"], 600); sh.text(gx + 88, gy + 46, g, 24, k["fg"], 600, "middle")
+    y += 168
+    for lab in ("new PIN", "again"):
+        sh.text(16, y + 16, lab, 14, k["fg-muted"], 600); box(sh, 16, y + 26, 361, 56); sh.text(34, y + 62, "· · · · · ·", 20, k["fg-muted"]); y += 96
+    foot(sh, "come back")
+    sh.save(f"adaptive-{brand}-restore")
+
+
+def s_likes(brand):
+    sh = Sheet(brand, 393, 851); k = sh.k
+    if brand == "neighbro": sh.a('<rect width="393" height="851" fill="url(#dots)"/>')
+    y = hero(sh, "my likes", f"mk_{brand}", "what you said «like» to; you can take it back until a match", 1)
+    for j, t in enumerate(("walking to the river, join?", "coffee at the corner bakery", "a chess partner in the yard")):
+        fill = sh.tiles[j + 1] if brand == "sosed" else None
+        box(sh, 16, y, 361, 104, fill, (-0.6, 0.5, -0.4)[j])
+        fg = ink(sh, fill) if fill else k["fg"]
+        sh.text(36, y + 38, t, 18, fg, 600)
+        like_btn(sh, 48, y + 74, 24, 6 if brand == "sosed" else 2, ink_=fg); sh.text(68, y + 80, f"{j + 3} · 2 h ago", 14, fg)
+        sh.icon(361 - 22, y + 60, "close", fg) if "close" in ICON else None
+        y += 120
+    sh.save(f"adaptive-{brand}-likes")
+
+
+def s_departure(brand):
+    sh = Sheet(brand, 393, 851); k = sh.k
+    if brand == "neighbro": sh.a('<rect width="393" height="851" fill="url(#dots)"/>')
+    y = hero(sh, "leaving sosed?" if brand == "sosed" else "leaving neighbro?", "bye", "your phrases, likes and talks go with you; this can't be undone", 4)
+    for j, t in enumerate(("phrases fade at once", "talks close for both sides", "the paper code stops working")):
+        box(sh, 16, y, 361, 64, None, (-0.5, 0.4, -0.3)[j]); sh.icon(32, y + 20, "check", k["fg"]); sh.text(66, y + 40, t, 16, k["fg"], 600); y += 76
+    foot(sh, "stay", "leave for good")
+    sh.save(f"adaptive-{brand}-departure")
+
+
+# ---------- welded versions (11.10.2026, owner: join what stands together)
+ICON.setdefault("move", '<rect x="3" y="6" width="7" height="12" rx="1.5"/><rect x="14" y="6" width="7" height="12" rx="1.5"/><path d="M10.5 12 H13.5 M12 10.5 L13.5 12 L12 13.5"/>')
+
+
+def bg(sh):
+    if sh.brand == "neighbro": sh.a('<rect width="393" height="851" fill="url(#dots)"/>')
+
+
+def s_unlock(brand):
+    sh = Sheet(brand, 393, 851); k = sh.k; bg(sh)
+    y = hero(sh, "welcome back", "unlock", "type your PIN to open this device's vault", 2)
+    sh.text(16, y + 4, "PIN", 14, k["fg-muted"], 600)
+    xs, cw = weld(sh, 16, y + 14, 361, 72, 6)
+    for j, x in enumerate(xs[:4]): sh.a(f'<circle cx="{x + cw / 2:.1f}" cy="{y + 50}" r="7" fill="{k["fg"]}"/>')
+    sh.a(f'<rect x="{xs[4] + cw / 2 - 1:.1f}" y="{y + 34}" width="2" height="32" fill="{k["accent"]}"/>')
+    sh.text(16, y + 112, "3 tries left before a pause", 14, k["fg-muted"])
+    split_foot(sh, "open", "paper code")
+    sh.save(f"adaptive-{brand}-unlock")
+
+
+def s_restore(brand):
+    sh = Sheet(brand, 393, 851); k = sh.k; bg(sh)
+    y = hero(sh, "back by paper code", "restore", "the four groups you wrote down, and a new PIN", 3)
+    xs, cw = weld(sh, 16, y, 361, 84, 4)
+    for j, (x, g) in enumerate(zip(xs, ("FEP0", "4AXR", "1JVV", "····"))):
+        sh.text(x + 12, y + 22, str(j + 1), 14, k["fg-muted"], 600); sh.text(x + cw / 2, y + 60, g, 22, k["fg"], 600, "middle")
+    y += 104
+    xs, cw = weld(sh, 16, y + 20, 361, 64, 6)
+    sh.text(16, y + 12, "new PIN", 14, k["fg-muted"], 600)
+    y += 104
+    xs, cw = weld(sh, 16, y + 20, 361, 64, 6)
+    sh.text(16, y + 12, "again", 14, k["fg-muted"], 600)
+    split_foot(sh, "come back", "new code")
+    sh.save(f"adaptive-{brand}-restore")
+
+
+def s_departure(brand):
+    # «departure» is moving to another device (web/src/screens/Departure.tsx): the price, the PIN, nine
+    # characters to type on the new device, then «it is me».
+    sh = Sheet(brand, 393, 851); k = sh.k; bg(sh)
+    y = hero(sh, "move to another device", "move", "type these nine characters on the new one; this device lets go", 4)
+    xs, cw = weld(sh, 16, y, 361, 84, 3)
+    for x, g in zip(xs, ("X6X", "T88", "NQ4")): sh.text(x + cw / 2, y + 54, g, 28, k["fg"], 600, "middle")
+    y += 104
+    box(sh, 16, y, 361, 72)
+    sh.icon(32, y + 24, "check", k["fg"]); sh.text(66, y + 32, "the new device asked:", 14, k["fg-muted"])
+    sh.text(66, y + 56, "check 7F2Q", 20, k["fg"], 600)
+    split_foot(sh, "it is me", "cancel")
+    sh.save(f"adaptive-{brand}-departure")
+
+
+def s_register_step(brand, step):
+    sh = Sheet(brand, 393, 851); k = sh.k; bg(sh)
+    title, ic, line = REG[step]
+    # progress: three cells welded into one strip, the done ones filled
+    xs, cw = weld(sh, 16, 12, 120, 14, 3)
+    for j, x in enumerate(xs[:step]):
+        sh.rect(x + 2, 14, cw - 4, 10, (k["accent"], sh.tiles[1], sh.tiles[3])[j] if brand == "sosed" else sh.tiles[(j + 1) % 4], 5)
+    sh.text(150, 24, f"{step} / 3", 14, k["fg-muted"], 600)
+    sh.buf  # keep
+    y = hero_at(sh, title, ic, line, (0, 1, 3)[step - 1], 36)
+    if step == 1:
+        y = field_card(sh, 16, y, 361, "name", "Anya", "24 letters left")
+        y = field_card(sh, 16, y, 170, "age", "28", "from 13")
+        # consent: the box and the three documents welded into one plate
+        xs, cw = weld(sh, 16, y + 4, 361, 64, 4, k["surface-2"] if brand == "sosed" else None)
+        sh.rect(xs[0] + cw / 2 - 16, y + 20, 32, 32, k["accent"], 8); sh.icon(xs[0] + cw / 2 - 12, y + 24, "check", k["accent-fg"])
+        for x, d in zip(xs[1:], ("terms", "privacy", "rules")):
+            sh.icon(x + cw / 2 - 12, y + 14, "doc", k["accent-text"]); sh.text(x + cw / 2, y + 56, d, 14, k["accent-text"], 600, "middle")
+        foot(sh, "next")
+    elif step == 2:
+        sh.text(16, y + 4, "PIN", 14, k["fg-muted"], 600)
+        weld(sh, 16, y + 14, 361, 64, 6); y += 96
+        sh.text(16, y + 4, "again", 14, k["fg-muted"], 600)
+        weld(sh, 16, y + 14, 361, 64, 6); y += 96
+        sh.text(16, y + 4, "the PIN never leaves this device", 14, k["fg-muted"])
+        foot(sh, "create")
+    else:
+        xs, cw = weld(sh, 16, y, 361, 92, 4)
+        for j, (x, g) in enumerate(zip(xs, ("FEP0", "4AXR", "1JVV", "A4E3"))):
+            sh.text(x + 12, y + 22, str(j + 1), 14, k["fg-muted"], 600); sh.text(x + cw / 2, y + 64, g, 22, k["fg"], 600, "middle")
+        y += 116
+        sh.text(16, y, "written down? groups 2 and 4", 16, k["fg"], 600)
+        xs, cw = weld(sh, 16, y + 14, 361, 64, 2)
+        sh.text(xs[0] + 16, y + 54, "2 · 4AXR", 20, k["fg"], 600); sh.text(xs[1] + 16, y + 54, "4 · ····", 20, k["fg-muted"])
+        foot(sh, "done")
+    sh.save(f"adaptive-{brand}-register-{step}")
+
+
+def hero_at(sh, title, ic, line, colour_i, top):
+    """The hero, starting at `top` (the register steps keep their progress strip above it)."""
+    k = sh.k; x0, W = 16, 361
+    if sh.brand == "sosed":
+        c = (k["accent"], *sh.tiles)[colour_i % 5]; fg = k["accent-fg"] if colour_i == 0 else ink(sh, c)
+        lines = wrap(line, 16, W - 48)[:3]; h = 128 + len(lines) * 22
+        sh.rect(x0, top, W, h, c, 28); sh.icon(x0 + 24, top + 20, ic, fg, 2.0)
+        sh.text(x0 + 24, top + 108, title, 28, fg, 600)
+        for n, l in enumerate(lines): sh.text(x0 + 24, top + 134 + n * 22, l, 16, fg)
+        return top + h + 20
+    sh.sticker(x0 + 60, top + 64, 46, sh.tiles[(colour_i + 1) % 4], ic, -8, "#ffffff")
+    tl = wrap(title, 22, 215)
+    for n, l in enumerate(tl): sh.text(x0 + 124, top + 54 + n * 28, l, 22, w=600)
+    yy = top + 54 + len(tl) * 28
+    for n, l in enumerate(wrap(line, 16, 215)[:3]): sh.text(x0 + 124, yy + n * 22, l, 16, k["fg-muted"])
+    return max(top + 140, yy + 3 * 22 + 8)
+
+
+ICON["mk_sosed"] = '<path d="M3.5 7.5 H20.5 V18 H10.5 L6.5 21.5 V18 H3.5 Z"/><path d="M15.5 7.5 V3.5 M13.5 4 L17.5 3"/>'
+ICON["mk_neighbro"] = '<path d="M12 3 L20 9.5 V18 H11 L7 21.5 V18 H4 V9.5 Z"/><path d="M16 6.25 V3.5 H18 V7.9"/>'
+ICON.setdefault("close", '<path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/>')
+
+
 # ---------- the marks sheet: every size the product uses, on every theme of the brand
 def marks(brand):
     themes = sorted(f[:-5] for f in os.listdir(os.path.join(ROOT, "web", "themes", brand)) if f.endswith(".json"))
@@ -716,6 +1043,8 @@ def marks(brand):
 for brand in ("sosed", "neighbro"):
     marks(brand)
     likes(brand)
+    for step in (1, 2, 3): s_register_step(brand, step)
+    for f in (s_unlock, s_restore, s_likes, s_departure): f(brand)
     for screen in (s_card, s_composer, s_inbox, s_chat, s_tables, s_table, s_me, s_register):
         screen(Sheet(brand, 1440, 900))
     for w in (393, 768, 1440, 2560): feed(brand, w)

@@ -1042,6 +1042,120 @@ def split_foot(sh, main, second, icons=("check", "close")):
     sh.text(x0 + W - 12, by - 8, f"names: «{main}» · «{second}»", 14, k["fg-muted"], 400, "end")
 
 
+# ---------- the rest of the screens (owner 11.10.2026: «go on drawing the other pages»), same language
+ICON.update({
+    "pause": '<path d="M9 6 V18 M15 6 V18"/>',
+    "palette": '<path d="M12 3.5 A8.5 8.5 0 1 0 12 20.5 C13.5 20.5 13.5 18.5 12.5 17.5 C11.5 16.5 12.5 14.5 14 14.5 H16.5 A4 4 0 0 0 20.5 10.5 C20.5 6.5 16.5 3.5 12 3.5Z"/><circle cx="8" cy="11" r="1"/><circle cx="11" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/>',
+    "age": '<path d="M4 12 H20 M8 8 L4 12 L8 16 M16 8 L20 12 L16 16"/>',
+    "pen": '<path d="M4 20 L5 15 L16 4 L20 8 L9 19Z"/><path d="M14 6 L18 10"/>',
+    "eyeoff": '<path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/>',
+    "block": '<circle cx="12" cy="12" r="8.5"/><path d="M6 6 L18 18"/>',
+    "scale": '<path d="M12 4 V20 M6 20 H18 M5 8 H19 M5 8 L2.5 14 H7.5 Z M19 8 L16.5 14 H21.5 Z"/>',
+    "out": '<path d="M14 4 H20 V10 M20 4 L11 13 M18 14 V20 H4 V6 H10"/>',
+    "trash": '<path d="M5 7 H19 L18 21 H6Z"/><path d="M3 7 H21 M9 7 V4 H15 V7"/>',
+    "dots": '<circle cx="7" cy="7" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="17" cy="7" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/><circle cx="7" cy="17" r="1.5"/><circle cx="12" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/>',
+    "globe2": '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12 H20.5 M12 3.5 C9 7 9 17 12 20.5 C15 17 15 7 12 3.5"/>',
+    "lock": '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5 V7.5 A4 4 0 0 1 16 7.5 V10.5"/>',
+    "timer": '<circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/>',
+})
+
+
+def rows(sh, y, items, icon_right=None):
+    """A list welded into one plate: rows split by hairlines, an icon on the left, an icon action on the right."""
+    k = sh.k; h = 64
+    box(sh, 16, y, 361, h * len(items))
+    for j, item in enumerate(items):
+        ic, t, sub = item[:3]; right = item[3] if len(item) > 3 else icon_right
+        yy = y + j * h
+        if j: sh.a(f'<path d="M30 {yy} H363" stroke="{k["surface-2"] if sh.brand == "sosed" else k["line"]}" stroke-width="1"/>')
+        sh.icon(30, yy + 20, ic, k["fg"]); sh.text(64, yy + (30 if sub else 38), t, 16, k["fg"], 600)
+        if sub: sh.text(64, yy + 50, sub, 14, k["fg-muted"])
+        if right: sh.icon(331, yy + 20, right, k["accent-text"] if right == "check" else k["fg-muted"])
+    return y + h * len(items) + 16
+
+
+def chips(sh, y, items, on=0, cols=3):
+    """A choice of N welded into one segmented plate; the chosen part filled."""
+    k = sh.k; w = 361; ch = 56
+    nrows = -(-len(items) // cols)
+    for r in range(nrows):
+        part = items[r * cols:(r + 1) * cols]
+        xs, cw = weld(sh, 16, y + r * (ch + 10), w, ch, len(part))
+        for j, (x, (ic, t)) in enumerate(zip(xs, part)):
+            idx = r * cols + j
+            if idx == on:
+                sh.rect(x + 4, y + r * (ch + 10) + 4, cw - 8, ch - 8, k["accent"], (ch - 8) / 2)
+            col = k["accent-fg"] if idx == on else k["fg"]
+            if ic: sh.icon(x + cw / 2 - 12, y + r * (ch + 10) + 8, ic, col, 0.85)
+            sh.text(x + cw / 2, y + r * (ch + 10) + (46 if ic else 34), t, 14 if ic else 16, col, 600, "middle")
+    return y + nrows * (ch + 10) + 8
+
+
+def page(brand, name, title, ic, line, colour, body, foot_args=None, split=None):
+    sh = Sheet(brand, 393, 851); bg(sh)
+    y = hero(sh, title, ic, line, colour)
+    body(sh, y)
+    if split: split_foot(sh, *split)
+    elif foot_args: foot(sh, *foot_args[:1], icon=foot_args[1])
+    sh.save(f"adaptive-{brand}-{name}")
+
+
+def draw_rest(brand):
+    page(brand, "locked", "a pause", "lock", "too many wrong PINs; the vault opens again in 4 minutes", 4,
+         lambda sh, y: (sh.text(16, y + 10, "back in", 14, sh.k["fg-muted"], 600), weld(sh, 16, y + 20, 361, 72, 2),
+                        sh.text(16 + 90, y + 66, "04", 28, sh.k["fg"], 600, "middle"), sh.text(16 + 270, y + 66, "12", 28, sh.k["fg"], 600, "middle")),
+         split=("wait", "paper code", ("timer", "paper")))
+    page(brand, "change-pin", "a new PIN", "lockok", "the old one, then the new one twice", 1,
+         lambda sh, y: [(sh.text(16, y + 4 + i * 92, lab, 14, sh.k["fg-muted"], 600), weld(sh, 16, y + 14 + i * 92, 361, 64, 6)) for i, lab in enumerate(("old PIN", "new PIN", "again"))],
+         ("save", "check"))
+    page(brand, "reissue", "a new paper code", "paperplus", "the old code stops working the moment this one is shown", 3,
+         lambda sh, y: (sh.text(16, y + 4, "PIN", 14, sh.k["fg-muted"], 600), weld(sh, 16, y + 14, 361, 64, 6),
+                        rows(sh, y + 100, [("check", "the old code stops at once", None), ("paper", "write the new one down", None)])),
+         ("show", "paperplus"))
+    page(brand, "reset", "start over here", "trash", "this device forgets you; the paper code still brings you back", 4,
+         lambda sh, y: rows(sh, y, [("eyeoff", "phrases leave the feed", None), ("chat", "talks end for both", None), ("paper", "the paper code still works", None)]),
+         split=("forget", "stay", ("trash", "back")))
+    page(brand, "step-away", "step away", "pause", "your phrases come down; you come back when you like", 2,
+         lambda sh, y: chips(sh, y, [("timer", "1 h"), ("timer", "1 day"), ("timer", "1 week"), (None, "until I'm back")], on=1, cols=2),
+         ("step away", "pause"))
+    page(brand, "away", "you stepped away", "pause", "nobody sees your phrases until you are back", 2,
+         lambda sh, y: rows(sh, y, [("timer", "back in 23 h", "or now, with one tap")]),
+         ("come back", "next"))
+    page(brand, "theme", "how it looks", "palette", "light, dark or by the time of day; an accent", 1,
+         lambda sh, y: (chips(sh, y, [("sun", "light"), ("lock", "dark"), ("timer", "auto")], on=2),
+                        sh.text(16, y + 90, "accent", 14, sh.k["fg-muted"], 600),
+                        [sh.a(f'<circle cx="{44 + i * 64}" cy="{y + 132}" r="22" fill="{c}" stroke="{sh.k["fg"] if i == 0 else "none"}" stroke-width="3"/>') for i, c in enumerate([sh.k["accent"], *sh.tiles])]),
+         ("save", "check"))
+    page(brand, "lang", "language", "globe2", "the app speaks it; phrases stay as written", 3,
+         lambda sh, y: rows(sh, y, [("globe2", "Русский", None, "check"), ("globe2", "English", None), ("globe2", "Ελληνικά", None), ("globe2", "Українська", None), ("globe2", "ქართული", None)]),
+         None)
+    page(brand, "age-filter", "whose phrases", "age", "the ages you see in the feed", 1,
+         lambda sh, y: (weld(sh, 16, y, 361, 72, 2), sh.text(36, y + 26, "from", 14, sh.k["fg-muted"], 600), sh.text(36, y + 56, "22", 24, sh.k["fg"], 600),
+                        sh.text(216, y + 26, "to", 14, sh.k["fg-muted"], 600), sh.text(216, y + 56, "35", 24, sh.k["fg"], 600),
+                        sh.rect(16, y + 100, 361, 8, sh.k["surface-2"], 4), sh.rect(120, y + 100, 120, 8, sh.k["accent"], 4),
+                        sh.a(f'<circle cx="120" cy="{y + 104}" r="14" fill="{sh.k["surface"]}" stroke="{sh.k["accent"]}" stroke-width="3"/><circle cx="240" cy="{y + 104}" r="14" fill="{sh.k["surface"]}" stroke="{sh.k["accent"]}" stroke-width="3"/>')),
+         ("save", "check"))
+    page(brand, "edit-name", "your name", "pen", "neighbours see it after a match", 0,
+         lambda sh, y: field_card(sh, 16, y, 361, "name", "Anya", "21 letters left"),
+         ("save", "check"))
+    page(brand, "new-table", "a new table", "dots", "a game, its size, a name; neighbours nearby can sit down", 1,
+         lambda sh, y: (chips(sh, y, [("dots", "dots"), ("check", "words"), ("scale", "cards")], on=0),
+                        chips(sh, y + 74, [(None, "2×2"), (None, "3×3"), (None, "4×4")], on=1),
+                        field_card(sh, 16, y + 148, 361, "name", "by the park")),
+         ("open the table", "next"))
+    page(brand, "hidden", "hidden", "eyeoff", "what you hid stays out of your feed only", 2,
+         lambda sh, y: rows(sh, y, [("eyeoff", "music in the yard", "hidden 2 h ago"), ("eyeoff", "selling a sofa", "hidden yesterday")], "restore"), None)
+    page(brand, "blocked", "blocked", "block", "you and they don't see each other", 4,
+         lambda sh, y: rows(sh, y, [("block", "Mark", "blocked 3 days ago"), ("block", "Lena", "blocked last week")], "close"), None)
+    page(brand, "legal", "documents", "doc", "what you agreed to, and their editions", 3,
+         lambda sh, y: rows(sh, y, [("doc", "terms", "16 Sep 2026"), ("doc", "privacy", "16 Sep 2026"), ("doc", "community rules", "15 Sep 2026")], "fwd"), None)
+    page(brand, "statements", "decisions", "scale", "why something of yours came down, and how to appeal", 2,
+         lambda sh, y: rows(sh, y, [("scale", "a phrase came down", "11 Oct · spam"), ("scale", "an offer link off", "9 Oct · rules")], "fwd"), None)
+    page(brand, "offer-exit", "leaving for the venue", "out", "corner bakery's site opens; we only count the visit", 0,
+         lambda sh, y: rows(sh, y, [("out", "corner-bakery.cy", "−15% · till 11:00")]),
+         split=("go", "back", ("out", "back")))
+
+
 ICON["mk_sosed"] = '<path d="M3.5 7.5 H20.5 V18 H10.5 L6.5 21.5 V18 H3.5 Z"/><path d="M15.5 7.5 V3.5 M13.5 4 L17.5 3"/>'
 ICON["mk_neighbro"] = '<path d="M12 3 L20 9.5 V18 H11 L7 21.5 V18 H4 V9.5 Z"/><path d="M16 6.25 V3.5 H18 V7.9"/>'
 ICON.setdefault("close", '<path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5"/>')
@@ -1079,6 +1193,7 @@ for brand in ("sosed", "neighbro"):
     likes(brand)
     for step in (1, 2, 3): s_register_step(brand, step)
     for f in (s_unlock, s_restore, s_likes, s_departure): f(brand)
+    draw_rest(brand)
     for screen in (s_card, s_composer, s_inbox, s_chat, s_tables, s_table, s_me, s_register):
         screen(Sheet(brand, 1440, 900))
     for w in (393, 768, 1440, 2560): feed(brand, w)

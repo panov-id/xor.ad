@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="16" y="24" width="361" height="184" rx="28" fill="#bd4b2a" />
+<g transform="translate(40 46) scale(2.2)" fill="none" stroke="#fff6f0" stroke-width="0.68" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4 H20 V10 M20 4 L11 13 M18 14 V20 H4 V6 H10"/></g>
+<text x="40" y="138" font-family="Golos Text" font-weight="600" font-size="28" fill="#fff6f0" text-anchor="start">leaving for the venue</text>
+<text x="40" y="164" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start">corner bakery's site opens; we only</text>
+<text x="40" y="186" font-family="Golos Text" font-weight="400" font-size="16" fill="#fff6f0" text-anchor="start">count the visit</text>
+<rect x="16" y="232" width="361" height="64" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 252) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4 H20 V10 M20 4 L11 13 M18 14 V20 H4 V6 H10"/></g>
+<text x="64" y="262" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">corner-bakery.cy</text>
+<text x="64" y="282" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">−15% · till 11:00</text>
+<rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
+<path d="M267 767 V805" stroke="#fff6f0" stroke-width="1.5" opacity=".5"/>
+<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4 H20 V10 M20 4 L11 13 M18 14 V20 H4 V6 H10"/></g>
+<g transform="translate(307 770) scale(1.25)" fill="none" stroke="#fff6f0" stroke-width="1.20" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">names: «go» · «back»</text>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="16" y="24" width="361" height="184" rx="28" fill="#8550c5" />
+<g transform="translate(40 46) scale(2.2)" fill="none" stroke="#ffffff" stroke-width="0.68" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M12.25 11 V17 M9.25 14 H15.25"/></g>
+<text x="40" y="138" font-family="Golos Text" font-weight="600" font-size="28" fill="#ffffff" text-anchor="start">a new paper code</text>
+<text x="40" y="164" font-family="Golos Text" font-weight="400" font-size="16" fill="#ffffff" text-anchor="start">the old code stops working the</text>
+<text x="40" y="186" font-family="Golos Text" font-weight="400" font-size="16" fill="#ffffff" text-anchor="start">moment this one is shown</text>
+<text x="16" y="236" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">PIN</text>
+<rect x="16" y="246" width="361" height="64" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M76.2 254 V302" stroke="#ece4d8" stroke-width="2"/>
+<path d="M136.3 254 V302" stroke="#ece4d8" stroke-width="2"/>
+<path d="M196.5 254 V302" stroke="#ece4d8" stroke-width="2"/>
+<path d="M256.7 254 V302" stroke="#ece4d8" stroke-width="2"/>
+<path d="M316.8 254 V302" stroke="#ece4d8" stroke-width="2"/>
+<rect x="16" y="332" width="361" height="128" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 352) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<text x="64" y="370" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">the old code stops at once</text>
+<path d="M30 396 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 416) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M9 12 H15.5 M9 15.5 H15.5"/></g>
+<text x="64" y="434" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">write the new one down</text>
+<rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M12.25 11 V17 M9.25 14 H15.25"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «show»</text>
+</svg>

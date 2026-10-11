@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="851" viewBox="0 0 393 851"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="16" y="24" width="361" height="184" rx="28" fill="#d68a1f" />
+<g transform="translate(40 46) scale(2.2)" fill="none" stroke="#1c140d" stroke-width="0.68" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="17" cy="7" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/><circle cx="7" cy="17" r="1.5"/><circle cx="12" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></g>
+<text x="40" y="138" font-family="Golos Text" font-weight="600" font-size="28" fill="#1c140d" text-anchor="start">a new table</text>
+<text x="40" y="164" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="start">a game, its size, a name; neighbours</text>
+<text x="40" y="186" font-family="Golos Text" font-weight="400" font-size="16" fill="#1c140d" text-anchor="start">nearby can sit down</text>
+<rect x="16" y="232" width="361" height="56" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M136.3 240 V280" stroke="#ece4d8" stroke-width="2"/>
+<path d="M256.7 240 V280" stroke="#ece4d8" stroke-width="2"/>
+<rect x="20.0" y="236" width="112.33333333333333" height="48" rx="24.0" fill="#bd4b2a" />
+<g transform="translate(64.16666666666666 240) scale(0.85)" fill="none" stroke="#fff6f0" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="17" cy="7" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/><circle cx="7" cy="17" r="1.5"/><circle cx="12" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></g>
+<text x="76.16666666666666" y="278" font-family="Golos Text" font-weight="600" font-size="14" fill="#fff6f0" text-anchor="middle">dots</text>
+<g transform="translate(184.49999999999997 240) scale(0.85)" fill="none" stroke="#1c140d" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
+<text x="196.49999999999997" y="278" font-family="Golos Text" font-weight="600" font-size="14" fill="#1c140d" text-anchor="middle">words</text>
+<g transform="translate(304.8333333333333 240) scale(0.85)" fill="none" stroke="#1c140d" stroke-width="1.76" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V20 M6 20 H18 M5 8 H19 M5 8 L2.5 14 H7.5 Z M19 8 L16.5 14 H21.5 Z"/></g>
+<text x="316.8333333333333" y="278" font-family="Golos Text" font-weight="600" font-size="14" fill="#1c140d" text-anchor="middle">cards</text>
+<rect x="16" y="306" width="361" height="56" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M136.3 314 V354" stroke="#ece4d8" stroke-width="2"/>
+<path d="M256.7 314 V354" stroke="#ece4d8" stroke-width="2"/>
+<text x="76.16666666666666" y="340" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">2×2</text>
+<rect x="140.33333333333331" y="310" width="112.33333333333333" height="48" rx="24.0" fill="#bd4b2a" />
+<text x="196.49999999999997" y="340" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="middle">3×3</text>
+<text x="316.8333333333333" y="340" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">4×4</text>
+<rect x="16" y="380" width="361" height="76" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<text x="34" y="404" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">name</text>
+<text x="34" y="436" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">by the park</text>
+<rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></g>
+<text x="365" y="747" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="end">name: «open the table»</text>
+</svg>

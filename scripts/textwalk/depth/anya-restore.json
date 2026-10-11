@@ -1,0 +1,9 @@
+[
+ {"args": "restore", "wait": 170, "mark": "Аня, новый терминал · восстановление"},
+ {"keys": "ZZZZZZZZZZZZZZZZ<down>111111<down>111111<down><enter>", "after": 5, "mark": "Аня, новый терминал · неверный код"},
+ {"keys": "<up><up><up><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>", "after": 1},
+ {"fullCode": "/out/anya.txt.code", "mark": "Аня, новый терминал · код введён"},
+ {"keys": "<down><down><down><enter>", "after": 6, "mark": "Аня, новый терминал · после восстановления"},
+ {"wait": 4, "mark": "Аня, новый терминал · позже"},
+ {"wait": 2}
+]

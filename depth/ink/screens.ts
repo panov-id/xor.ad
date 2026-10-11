@@ -12,7 +12,7 @@ import type { Answer, Client, Radius } from "../core/client.ts";
 import { readPaperCode, readPaperText } from "../core/paper.ts";
 import type { Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
-import { gameWords, radiusWord, refusalWords } from "./words.ts";
+import { gameWords, radiusWord, refusalWords, Told } from "./words.ts";
 import { Actions, Card, ErrorLine, Form, Head, Muted, Notice, off, Rule, Stack, Strong, Txt } from "./kit.ts";
 
 export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
@@ -266,7 +266,7 @@ export function Feed(
     onComplain?: (offerId: string) => void;
     // My own phrase came down (W11-B): the holder of `mine` forgets it.
     onTakenDown?: () => void;
-    onError: (message: string) => void;
+    onError: (message: string | Told) => void;
   },
 ): ReactElement {
   const [items, setItems] = useState<Phrase[] | null>(null);
@@ -302,6 +302,11 @@ export function Feed(
   const chosen = items?.[at];
   const isTable = chosen?.kind === "table";
   const isOffer = chosen?.kind === "offer";
+  // One's own phrase in one's own feed (K10, Т10/Т16): the node answers a like on it
+  // with a quiet 200 that counts nothing (routes/likes.ts: no oracle), and the feed
+  // then dropped it as liked — the person's own phrase was gone from the screen.
+  // Like, hide and block are not for one's own phrase.
+  const isOwn = (p?: Phrase) => p !== undefined && mine?.id !== undefined && p.id === mine.id;
   const drop = (id: string) => {
     setItems((list) => {
       const left = (list ?? []).filter((p) => p.id !== id);
@@ -321,6 +326,7 @@ export function Feed(
     return h(PhraseCard, {
       say,
       items: phrases,
+      own: mine?.id,
       at: here,
       onMove: (next) => {
         const to = next(here);
@@ -330,14 +336,14 @@ export function Feed(
       onLike: (p) =>
         client.like(p.id)
           .then((answer) => {
-            if (answer.status !== 200) throw new Error(refusalWords(say, answer, "like"));
+            if (answer.status !== 200) throw new Told(refusalWords(say, answer, "like"));
             setMatched(answer.body.state === "matched");
             // A like on an offer while one's own name is in the queue (§8.5,
             // S7): the like counted, the match waits — refusal-wordings §3.
-            if (answer.body.name_pending) onError(say("like.namePending"));
+            if (answer.body.name_pending) onError(new Told(say("like.namePending")));
             drop(p.id);
           })
-          .catch((e: Error) => onError(e.message)),
+          .catch((e: Error) => onError(e instanceof Told ? e : e.message)),
       onHide: (p) =>
         client.hide(p.id)
           .then(() => {
@@ -395,9 +401,9 @@ export function Feed(
       actions: [
         { key: "open", label: isTable ? say("table.sit") : say("inbox.enter"), ...off(say, [!chosen, "why.pick"], [isTable && !onOpenTable, "why.notNow"]) },
         // A table is not a phrase: no like, hide or block from this row.
-        { key: "like", label: say("feed.like"), ...off(say, [!chosen, "why.pick"], [isTable, "why.table"]) },
-        { key: "hide", label: say("feed.hide"), ...off(say, [!chosen, "why.pick"], [isTable, "why.table"]) },
-        { key: "block", label: say("block.item"), ...off(say, [!chosen, "why.pick"], [isTable, "why.table"]) },
+        { key: "like", label: say("feed.like"), ...off(say, [!chosen, "why.pick"], [isTable, "why.table"], [isOwn(chosen), "why.own"]) },
+        { key: "hide", label: say("feed.hide"), ...off(say, [!chosen, "why.pick"], [isTable, "why.table"], [isOwn(chosen), "why.own"]) },
+        { key: "block", label: say("block.item"), ...off(say, [!chosen, "why.pick"], [isTable, "why.table"], [isOwn(chosen), "why.own"]) },
         ...(onComplain ? [{ key: "complain", label: say("feed.complain"), ...off(say, [!isOffer, "why.notOffer"]) }] : []),
         { key: "write", label: say("feed.write") },
         // Taking one's own phrase down (§8.3, W11-B): in the row only while
@@ -450,12 +456,12 @@ export function Feed(
         // "liked" in the menu is where it can be taken back.
         client.like(chosen.id)
           .then((answer) => {
-            if (answer.status !== 200) throw new Error(refusalWords(say, answer, "like"));
+            if (answer.status !== 200) throw new Told(refusalWords(say, answer, "like"));
             setMatched(answer.body.state === "matched");
-            if (answer.body.name_pending) onError(say("like.namePending"));
+            if (answer.body.name_pending) onError(new Told(say("like.namePending")));
             setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id));
           })
-          .catch((e: Error) => onError(e.message));
+          .catch((e: Error) => onError(e instanceof Told ? e : e.message));
       },
       hint: say("common.rowActions"),
     }),
@@ -486,11 +492,16 @@ function FeedKeys({ count, onMove }: { count: number; onMove: (fn: (at: number) 
 // Someone else's remaining time is a word in the last 65 minutes, never a
 // number — the node sends a flag, not a time (§8.11; owner, 23.09.2026).
 let explained = false;
+// As a fresh run of the terminal: the tests share one process, and the hint is a
+// once-per-process thing.
+export function explainAgain(): void { explained = false; }
 
 export function PhraseCard(
-  { say, items, at, onMove, onLike, onHide, onClose, matched }: {
+  { say, items, own, at, onMove, onLike, onHide, onClose, matched }: {
     say: Say;
     items: Phrase[];
+    // The id of one's own phrase: the arrows do not like or hide it (K10, Т16).
+    own?: string;
     // «Мэтч!» for the like just made, said by the feed that owns the answer.
     matched?: string;
     at: number;
@@ -521,6 +532,7 @@ export function PhraseCard(
     if (key.leftArrow || key.rightArrow) {
       if (!explained) return setHint(true);
       if (!p || busy === p.id) return;
+      if (own !== undefined && p.id === own) return setNote(say("why.own"));
       if (key.leftArrow) {
         setNote(say("card.hidden"));
         setBusy(p.id);
@@ -543,7 +555,8 @@ export function PhraseCard(
       ? h(Muted, null, `   + ${Number(p.like_count) || 0}${p.soon === true ? ` · ${say("card.soon")}` : ""}`)
       : null,
     h(Rule, { width: 56 }),
-    hint ? h(Notice, { say }, say("card.hint")) : null,
+    // A hint, not a warning: Notice said «внимание:» before «вправо — лайк…» (K10, Т13).
+    hint ? h(Muted, null, say("card.hint")) : null,
     matched ? h(Notice, { say }, matched) : null,
     note ? h(Muted, null, note) : null,
     h(Muted, null, `${say("card.keys")} · ${at + 1}/${items.length}`),

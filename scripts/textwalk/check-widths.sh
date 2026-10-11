@@ -15,9 +15,10 @@ for brand in sosed neighbro; do
     n=$(grep -c 'STEP FAILED' "$f"); [ "$n" -eq 0 ] || { echo "✗ $brand $w: $n steps failed — $(grep -m1 'STEP FAILED' "$f" | cut -c1-120)"; red=1; }
     n=$(grep -c 'SIDEWAYS-SCROLL' "$f"); [ "$n" -eq 0 ] || { echo "✗ $brand $w: $n screens scroll sideways"; red=1; }
     n=$(grep -c 'PAST-EDGE' "$f"); [ "$n" -eq 0 ] || { echo "✗ $brand $w: $n screens put something past the edge — $(grep -m1 -o 'PAST-EDGE.*' "$f")"; red=1; }
+    n=$(grep -c 'SMALL-TAPS' "$f"); [ "$n" -eq 0 ] || { echo "✗ $brand $w: $n screens with a target under 24×24 (WCAG 2.5.8) — $(grep -m1 -o 'SMALL-TAPS.*' "$f" | cut -c1-120)"; red=1; }
     got=$(awk '/\[feed\]/{on=1} on&&/layout:/{match($0,/\(([0-9]+)\)/,m); print m[1]; exit}' "$f")
     [ "$got" = "${want[$w]}" ] || { echo "✗ $brand $w: the feed is ${got:-unmeasured} wide, decided ${want[$w]}"; red=1; }
   done
 done
-if [ "$red" -eq 0 ]; then echo "check-widths: GREEN — $seen walks, no failed step, no sideways scroll, the feed 375/720/1280/1600/1600"; else echo "check-widths: RED"; fi
+if [ "$red" -eq 0 ]; then echo "check-widths: GREEN — $seen walks, no failed step, no sideways scroll, no target under 24, the feed 375/720/1280/1600/1600"; else echo "check-widths: RED"; fi
 exit "$red"

@@ -52,8 +52,12 @@ async function look(p, step) {
       .filter((el) => { const r = el.getBoundingClientRect(); return r.right > W + 1 || r.left < -1; })
       .slice(0, 4).map((el) => el.tagName.toLowerCase() + (el.dataset.testid ? "#" + el.dataset.testid : ""));
     const m = (document.querySelector("main") ?? screen ?? document.body).getBoundingClientRect();
-    const small = W <= 1100 ? [...document.querySelectorAll("button, a, input, [role=button]")].filter(vis)
-      .filter((el) => { const r = el.getBoundingClientRect(); return r.height < 32 && r.width < 32; }).length : 0;
+    const smallEls = W <= 1100 ? [...document.querySelectorAll("button, a, input, [role=button]")].filter(vis)
+      .filter((el) => getComputedStyle(el).display !== "inline").filter((el) => { const r = el.getBoundingClientRect(); return r.height < 24 || r.width < 24; }) : []; // WCAG 2.5.8 (AA): at least 24×24; a link inside a sentence is its exception
+    const small = smallEls.length ? `${smallEls.length} (${smallEls.slice(0, 4).map((el) => {
+      const r = el.getBoundingClientRect();
+      return `${el.tagName.toLowerCase()}${el.dataset.testid ? "#" + el.dataset.testid : ""}${el.getAttribute("aria-label") ? "«" + el.getAttribute("aria-label").slice(0, 20) + "»" : ""} ${Math.round(r.width)}×${Math.round(r.height)}`;
+    }).join(", ")})` : 0;
     const layout = `w=${W} content=${Math.round(m.left)}..${Math.round(m.right)} (${Math.round(m.width)})`
       + (over > 0 ? ` SIDEWAYS-SCROLL +${over}` : "") + (out.length ? ` PAST-EDGE ${out.join(" ")}` : "") + (small ? ` SMALL-TAPS ${small}` : "");
     return { id: screen?.getAttribute("data-screen") ?? "?", text, sr, controls, layout, title: document.title, lang: document.documentElement.lang };

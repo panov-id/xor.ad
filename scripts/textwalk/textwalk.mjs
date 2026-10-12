@@ -104,6 +104,11 @@ await step("register errors", async () => {
   await anya.getByTestId("paper-groups").locator("input").first().fill("ZZZZ"); await anya.getByTestId("paper-groups").locator("input").last().fill(code[3]);
   await t(anya, "confirm").click().catch(() => {}); await look(anya, "неверная вторая группа");
   await anya.getByTestId("paper-groups").locator("input").first().fill(code[1]); await t(anya, "confirm").click();
+  // The wizard after sign-up (Ц4): Anya reads every step, Boris skips it.
+  for (const n of [1, 2, 3, 4]) {
+    await anya.locator(`[data-testid="wizard-${n}"]`).waitFor({ timeout: 30000 }); await look(anya, `мастер, шаг ${n}`);
+    await t(anya, n < 4 ? "wizard-next" : "wizard-start").click();
+  }
   await anya.locator('[data-screen="feed"]').waitFor({ timeout: 30000 }); await look(anya, "первая лента");
 });
 await step("boris register", async () => {
@@ -112,6 +117,7 @@ await step("boris register", async () => {
   await t(boris, "pin").fill(PIN); await t(boris, "pin-again").fill(PIN); await t(boris, "register").click();
   const c = (await t(boris, "paper-code").textContent()).trim().split(" ");
   await boris.getByTestId("paper-groups").locator("input").first().fill(c[1]); await boris.getByTestId("paper-groups").locator("input").last().fill(c[3]); await t(boris, "confirm").click();
+  await t(boris, "wizard-skip").click({ timeout: 30000 });
   await boris.locator('[data-screen="feed"]').waitFor({ timeout: 30000 }); await look(boris, "первая лента");
 });
 const write = async (p, text, label) => {

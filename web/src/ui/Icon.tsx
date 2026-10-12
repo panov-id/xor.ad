@@ -75,6 +75,15 @@ const PATHS = {
   offers: <><path className="f" d="M3 12 V4 H11 L21 14 L13 22Z" /><circle cx="7.5" cy="8" r="1.5" /></>,
   name: <><circle className="f" cx="12" cy="8" r="4" /><path className="f" d="M4 21 C4 15 20 15 20 21Z" /></>,
   chevron: <path d="M9 5 L16 12 L9 19" />,
+  // The inbox (the way back to the conversations list), a tray with its notch: not the speech bubble, which is «say».
+  inbox: <><path className="f" d="M3 13 L6 5 H18 L21 13 V19 H3Z" /><path d="M3 13 H8 L9.5 16 H14.5 L16 13 H21" /></>,
+  // «again» (a rematch): the arrow runs round against the clock; «refresh» runs with it.
+  rematch: <><path d="M4 12 A8 8 0 1 0 6.3 6.3" /><path d="M4 4 V9 H9" /></>,
+  // «show more» (the next page of a list): two chevrons down; «more» is the three dots of a sheet.
+  expand: <path d="M6 6 L12 12 L18 6 M6 13 L12 19 L18 13" />,
+  // The foot of a tile (TileFoot): who plays, a free seat. Watching is `eye`.
+  player: <><circle className="f" cx="12" cy="6.5" r="3" /><path className="f" d="M9.5 21 C9.5 16 11 14 10 11.5 H14 C13 14 14.5 16 14.5 21Z" /></>,
+  seat: <><path className="f" d="M7 3 H15 V13 H7Z" /><path d="M5 13 H17 V16 H5Z M7 16 V21 M15 16 V21" /></>,
   more: <g className="dot"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></g>,
   info: <><circle className="f" cx="12" cy="12" r="9" /><path d="M12 11 V17" /><g className="dot"><circle cx="12" cy="7.5" r="1.2" /></g></>,
 } as const;

@@ -35,7 +35,7 @@ async function waitFor(step: string, seconds = 120): Promise<string> {
 
 async function openChat(page: Page): Promise<void> {
   await page.getByTestId("nav-inbox").click();
-  await page.getByTestId("refresh").click();
+  await page.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
   await expect(page.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   await page.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(page.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 30000 });
@@ -91,7 +91,7 @@ test("the terminal ends a conversation and the page sees the tombstone; the page
     await expect(anya.getByTestId("tombstone")).not.toContainText("заблокировали");
     // And the conversation is out of her inbox.
     await anya.getByTestId("back").click();
-    await anya.getByTestId("refresh").click();
+    await anya.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
     await expect(anya.locator('[data-testid="chat"]')).toHaveCount(0, { timeout: 15000 });
     signal("web-saw-end");
 

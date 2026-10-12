@@ -58,7 +58,7 @@ export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; 
       <div data-part="entry">
         <h1>{say("web.splash.tagline")}</h1>
         <p>{say("web.splash.vanishes")}</p>
-        <Button type="button" kind="primary" icon="watch" className="ui-wide" aria-label={say("web.splash.start")} onClick={onStart} data-testid="start" />
+        <Button type="button" kind="primary" icon="open" className="ui-wide" aria-label={say("web.splash.start")} onClick={onStart} data-testid="start" />
         <Split>
           <Button type="button" icon="key" aria-label={say("web.splash.haveCode")} onClick={onRestore} data-testid="restore" />
           <Button type="button" icon="arrive" aria-label={say("web.splash.arrive")} onClick={onArrive} data-testid="arrive" />

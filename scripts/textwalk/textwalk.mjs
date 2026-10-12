@@ -149,7 +149,7 @@ await step("consent", async () => {
 await step("chat", async () => {
   await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await boris.waitForSelector('[data-screen="chat"][data-keys="open"]', { timeout: 20000 });
-  await t(anya, "refresh").click();
+  await anya.evaluate(() => window.dispatchEvent(new Event("focus")));
   await anya.locator('[data-testid="chat"] [data-testid="open-chat"]').first().click({ timeout: 15000 });
   await anya.waitForSelector('[data-screen="chat"][data-keys="open"]', { timeout: 20000 });
   await look(anya, "чат открыт");

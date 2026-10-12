@@ -267,6 +267,21 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-sheet-title { margin: 0; font-size: 1.25rem; font-weight: 600; }
 .ui-sheet-actions { gap: var(--s-2); }
 .ui-sheet-actions .ui-button { inline-size: 100%; }
+/* The dangerous group stands apart under a hairline (ActionSheet: calm actions, then danger). */
+.ui-sheet-danger { padding-block-start: var(--s-3); border-block-start: 1px solid var(--border); }
+/* TileFoot (ui/TileFoot.tsx): a tile's foot as icons with numbers; the words stay for a reader (visually-hidden). */
+.ui-tilefoot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-3); font-size: 0.875rem; color: var(--muted); }
+.ui-tilefoot-item { display: inline-flex; align-items: center; gap: var(--s-1); font-variant-numeric: tabular-nums; }
+/* BoardPanel (ui/BoardPanel.tsx): the score and the turn welded onto the board in one panel, one outline. */
+.ui-boardpanel { display: flex; flex-direction: column; border: 1px solid var(--border-control); border-radius: var(--r-2); background: var(--panel); overflow: hidden; }
+.ui-boardpanel-strip { display: flex; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; border-block-end: 1px solid var(--border); }
+.ui-boardpanel-cell { flex: 1 1 0; min-inline-size: 0; display: flex; align-items: center; justify-content: center; gap: var(--s-1); min-block-size: 52px; padding: 0 var(--s-2); text-align: center; overflow-wrap: anywhere; }
+.ui-boardpanel-cell + .ui-boardpanel-cell { border-inline-start: 1px solid var(--border); }
+.ui-boardpanel-turn { flex: 2 1 10rem; }
+.ui-boardpanel-turn[data-mine="yes"] { color: var(--accent-text); font-weight: 600; }
+.ui-boardpanel-score { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ui-boardpanel-body { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); padding: var(--s-3); min-inline-size: 0; }
+.ui-boardpanel-body:empty { display: none; }
 .ui-confirm { border-color: var(--err); }
 .ui-confirm-list { margin: 0; padding-inline-start: var(--s-4); display: flex; flex-direction: column; gap: var(--s-1); }
 .ui-toast-slot { position: fixed; inset-inline: 0; inset-block-end: 5rem; z-index: 15; display: flex; justify-content: center; padding-inline: var(--s-4); pointer-events: none; }

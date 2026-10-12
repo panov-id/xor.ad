@@ -52,7 +52,7 @@ test("two people: registration, a phrase each, a mutual like, consent, the chat,
     // The chat: a line each way, read as text on the other side.
     await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
     await expect(boris.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });
-    await anya.getByTestId("refresh").click();
+    await anya.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
     await expect(anya.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
     await anya.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
     await expect(anya.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });

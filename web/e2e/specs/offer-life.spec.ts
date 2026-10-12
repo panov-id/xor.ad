@@ -46,7 +46,7 @@ test("an offer shows the other's phrase as a bar, «скоро исчезнет�
   } finally {
     await sql.end();
   }
-  await anya.getByTestId("refresh").click();
+  await anya.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
   await expect(row.getByTestId("offer-soon")).toHaveText("скоро исчезнет", { timeout: 15000 });
   expect(Number(await row.getByTestId("life-theirs").getAttribute("data-left"))).toBeLessThan(0.2);
   // Its minutes are never printed: the only number in the row's life is Аня's own.

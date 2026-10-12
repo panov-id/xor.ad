@@ -17,6 +17,7 @@ import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { EmptyState } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
+import { TileFoot } from "../ui/TileFoot.tsx";
 import type { FeedCard } from "./Feed.tsx";
 
 export function TableList(
@@ -77,7 +78,15 @@ export function TableList(
               <Card as="li" key={card.id} kind="nested" of="table" data-testid="table-mine" data-id={card.id}>
                 <CardOpen id={`mine-${card.id}`} onOpen={() => onTable(card.id)} />
                 <p id={openerIds(`mine-${card.id}`).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {classWord(card.game ?? "")} · {setWord(card.set ?? "")}</p>
-                <span className="ui-hint" id={openerIds(`mine-${card.id}`).foot}>{[card.seated && say("web.tables.seated"), card.liked && say("web.tables.liked")].filter(Boolean).join(" · ")} · {say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · <LikeCount n={card.like_count ?? 0} /></span>
+                <TileFoot id={openerIds(`mine-${card.id}`).foot} items={[
+                  { icon: "player", n: card.playing ?? 0, label: `${say("table.playing")} ${card.playing ?? 0}` },
+                  { icon: "eye", n: card.watching ?? 0, label: `${say("table.watching")} ${card.watching ?? 0}` },
+                ]}>
+                  <LikeCount n={card.like_count ?? 0} />
+                  {/* where the person stands at this table: said in words — no icon names «sit here» or «liked» on its own */}
+                  {card.seated && <span>{say("web.tables.seated")}</span>}
+                  {card.liked && <span>{say("web.tables.liked")}</span>}
+                </TileFoot>
               </Card>
             ))}
           </ul>
@@ -96,12 +105,16 @@ export function TableList(
           <Card as="li" key={card.id} kind="nested" of="table" data-testid="table-card" data-id={card.id}>
             <CardOpen id={card.id} onOpen={() => onTable(card.id)} />
             <p id={openerIds(card.id).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {classWord(card.game ?? "")} · {setWord(card.set ?? "")}</p>
-            <span className="ui-hint" id={openerIds(card.id).foot}>{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · <LikeCount n={card.like_count ?? 0} /></span>
+            <TileFoot id={openerIds(card.id).foot} items={[
+              { icon: "player", n: card.playing ?? 0, label: `${say("table.playing")} ${card.playing ?? 0}` },
+              { icon: "eye", n: card.watching ?? 0, label: `${say("table.watching")} ${card.watching ?? 0}` },
+              { icon: "seat", n: card.free_seats ?? 0, label: say("web.feed.tableFree", { n: card.free_seats ?? 0 }) },
+            ]}><LikeCount n={card.like_count ?? 0} /></TileFoot>
           </Card>
         ))}
       </ul>
       {next && state === "ready" && (
-        <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />
+        <Button type="button" icon="expand" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />
       )}
       {state === "loading" && <p className="ui-hint" data-testid="loading">…</p>}
     </Screen>

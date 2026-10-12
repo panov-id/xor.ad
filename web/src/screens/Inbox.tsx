@@ -13,8 +13,7 @@ import type { ChatRow } from "../chat/keys.ts";
 import { duration } from "../locales/duration.ts";
 import { LANG, say } from "../locales/say.ts";
 import "../chat/chat.css";
-import { Button } from "../ui/Button.tsx";
-import { Card } from "../ui/Card.tsx";
+import { Card, CardOpen, openerIds } from "../ui/Card.tsx";
 import { Chip } from "../ui/Chip.tsx";
 import "./talk.css";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
@@ -142,7 +141,15 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
     }
   }
 
-  useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // No refresh button (strict review 11.10): the list is read on opening, and again each time the
+  // person comes back to the window or the tab — the same GET /inbox?since, nothing new.
+  useEffect(() => {
+    void load();
+    const again = () => { if (document.visibilityState !== "hidden") void load(); };
+    window.addEventListener("focus", again);
+    document.addEventListener("visibilitychange", again);
+    return () => { window.removeEventListener("focus", again); document.removeEventListener("visibilitychange", again); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const matches = rows.filter((r): r is MatchRow => r.kind === "match");
   const chats = rows.filter((r): r is InboxChatRow => r.kind === "chat");
@@ -151,15 +158,16 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
   const offers = (
     <List label={say("web.inbox.offers")} data-testid="matches">
       {shown === "offers" && matches.map((m) => (
+        // The whole row is the press (RowList): a transparent opener covers the card, no button inside it.
         <Card as="li" key={m.id} kind="nested" data-testid="match" data-id={m.id}>
+          <CardOpen id={`match-${m.id}`} onOpen={() => onOpenMatch(m)} testid="open-match" />
           <div className="ui-card-head">
-            <strong>{m.name}, {m.age}</strong>
+            <strong id={openerIds(`match-${m.id}`).text}>{m.name}, {m.age}</strong>
             {isFresh(m) && <Chip label={say("web.ui.new")} tone="accent" />}
           </div>
           <p>{m.phrase.text}</p>
           <PhraseLife row={m} />
-          <span className="ui-hint">{m.waiting_for_you ? say("web.inbox.waits_you") : say("web.inbox.offer")}</span>
-          <Button kind="secondary" type="button" icon="open" className="ui-mid" aria-label={say("inbox.enter")} onClick={() => onOpenMatch(m)} data-testid="open-match" />
+          <span className="ui-hint" id={openerIds(`match-${m.id}`).foot}>{m.waiting_for_you ? say("web.inbox.waits_you") : say("web.inbox.offer")}</span>
         </Card>
       ))}
       {shown === "offers" && declined.filter((d) => !matches.some((m) => m.id === d.id)).map((d) => (
@@ -194,7 +202,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
     <Screen
       name="inbox"
       title={title}
-      header={<HeaderScreen title={title} action={<Button kind="primary" type="button" icon="refresh" aria-label={say("web.inbox.refresh")} onClick={() => load()} data-testid="refresh" />} />}
+      header={<HeaderScreen title={title} />}
     >
       {state === "failed" && <ErrorLine data-testid="error">{error}</ErrorLine>}
       {state === "ready" && rows.length === 0 && (

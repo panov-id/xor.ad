@@ -97,7 +97,7 @@ test("a conversation opens again after a cold start: the PIN raises the same wra
   expect(keys).toEqual([["PUT", 200], ["GET", 200]]);
 
   // And a line each way reads.
-  await anya.getByTestId("refresh").click();
+  await anya.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
   await anya.locator('[data-testid="chat"] [data-testid="open-chat"]').click({ timeout: 15000 });
   await expect(anya.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });
   await anya.getByTestId("text").fill("после холодного старта слышно?");

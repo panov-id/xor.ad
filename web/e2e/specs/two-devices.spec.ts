@@ -22,7 +22,7 @@ async function fresh(browser: Browser): Promise<Page> {
 // Open the one conversation from the inbox and wait until its keys open.
 async function openChat(page: Page): Promise<void> {
   await page.getByTestId("nav-inbox").click();
-  await page.getByTestId("refresh").click();
+  await page.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
   await expect(page.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   await page.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(page.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 30000 });
@@ -34,7 +34,7 @@ async function openChat(page: Page): Promise<void> {
 // side is asked on the screen and agrees, and both stand at the next epoch.
 async function rekeyOnNewDevice(page: Page, other: Page, epoch: number): Promise<void> {
   await page.getByTestId("nav-inbox").click();
-  await page.getByTestId("refresh").click();
+  await page.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
   await expect(page.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   await page.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(page.locator('[data-screen="chat"]'), "the old conversation opened on a device it was never wrapped for").toHaveAttribute("data-keys", "failed", { timeout: 30000 });

@@ -64,7 +64,7 @@ export function openerIds(id: string): { text: string; foot: string } {
   return { text: `${base}-text`, foot: `${base}-foot` };
 }
 
-export function CardOpen({ id, onOpen }: { id: string; onOpen: () => void }) {
+export function CardOpen({ id, onOpen, testid = "card-open" }: { id: string; onOpen: () => void; testid?: string }) {
   const ids = openerIds(id);
-  return <button type="button" className="card-open" data-testid="card-open" aria-labelledby={ids.text} aria-describedby={ids.foot} onClick={onOpen} />;
+  return <button type="button" className="card-open" data-testid={testid}aria-labelledby={ids.text} aria-describedby={ids.foot} onClick={onOpen} />;
 }

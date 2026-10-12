@@ -70,7 +70,7 @@ async function twoTalking(browser: import("@playwright/test").Browser, names: [s
     }
   }
   await openChat(b);
-  await a.getByTestId("refresh").click();
+  await a.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
   await openChat(a);
   return [a, b];
 }

@@ -73,7 +73,7 @@ test("two in a conversation play dots: one offers, the other accepts on the sock
     }
   }
   await openChat(boris);
-  await anya.getByTestId("refresh").click();
+  await anya.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
   await openChat(anya);
 
   // A offers dots 2x2 through the game's own controls.

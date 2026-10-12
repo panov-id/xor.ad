@@ -22,6 +22,7 @@ import { EmptyState } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { PlaceBar } from "../ui/PlaceBar.tsx";
 import { SkeletonTiles } from "../ui/Skeleton.tsx";
+import { TileFoot } from "../ui/TileFoot.tsx";
 import { StatusInline } from "../ui/Status.tsx";
 import { useFeed } from "./logic/useFeed.ts";
 import { say } from "../locales/say.ts";
@@ -150,7 +151,11 @@ export function Feed(
             <Card as="li" key={card.id} kind="nested" of="table" data-testid="table-card" data-id={card.id}>
               <CardOpen id={card.id} onOpen={() => onTable?.(card.id)} />
               <p id={openerIds(card.id).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {classWord(card.game ?? "")} · {setWord(card.set ?? "")}</p>
-              <span className="ui-hint" id={openerIds(card.id).foot}>{say("table.playing")} {card.playing ?? 0} · {say("table.watching")} {card.watching ?? 0} · {say("web.feed.tableFree", { n: card.free_seats ?? 0 })} · <LikeCount n={card.like_count ?? 0} /></span>
+              <TileFoot id={openerIds(card.id).foot} items={[
+                { icon: "player", n: card.playing ?? 0, label: `${say("table.playing")} ${card.playing ?? 0}` },
+                { icon: "eye", n: card.watching ?? 0, label: `${say("table.watching")} ${card.watching ?? 0}` },
+                { icon: "seat", n: card.free_seats ?? 0, label: say("web.feed.tableFree", { n: card.free_seats ?? 0 }) },
+              ]}><LikeCount n={card.like_count ?? 0} /></TileFoot>
             </Card>
           )
           : renderPhrase
@@ -163,14 +168,19 @@ export function Feed(
                 undetermined language is no word for a person and no lang for a
                 reader; a known one is both. */}
             <p id={openerIds(card.id).text} lang={card.lang && card.lang !== "und" ? card.lang : undefined}>{card.text}</p>
-            <span className="ui-hint" id={openerIds(card.id).foot}>{modes().find((m) => m.value === card.mode)?.label ?? card.mode}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""} · <LikeCount n={card.like_count} />{card.soon ? say("web.feed.soon") : ""}</span>
+            <TileFoot id={openerIds(card.id).foot} items={[]}>
+              <span>{modes().find((m) => m.value === card.mode)?.label ?? card.mode}</span>
+              {languageIn(card.lang) && <span>{languageIn(card.lang)}</span>}
+              <LikeCount n={card.like_count} />
+              {card.soon && <span>{say("web.feed.soon")}</span>}
+            </TileFoot>
           </Card>
           ))}
       </ul>
       {/* Loading: two rows of skeleton tiles, the columns being the feed's own (styles.css .skeleton-grid). */}
       {state === "loading" && <SkeletonTiles data-testid="loading" />}
       {next && state === "ready" && (
-        <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />
+        <Button type="button" icon="expand" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />
       )}
     </Screen>
   );

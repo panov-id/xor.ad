@@ -47,20 +47,22 @@ export function ActionSheet({ open, title, actions, onClose, children, ...rest }
   const id = useId();
   const modal = useModal(open, onClose);
   if (!open) return null;
-  const ordered = [...actions.filter((a) => !a.danger), ...actions.filter((a) => a.danger)];
+  // Two groups (strict review 11.10): the everyday actions, and below them, set apart, the dangerous ones in red.
+  const calm = actions.filter((a) => !a.danger);
+  const loud = actions.filter((a) => a.danger);
+  const row = (a: SheetAction) => (
+    <li key={a.id}>
+      <Button type="button" kind={a.danger ? "danger" : "secondary"} disabled={a.disabled} data-testid={a.testid} onClick={() => { a.onSelect(); onClose(); }}>{a.label}</Button>
+    </li>
+  );
   return (
     <div className="ui-scrim" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <div {...rest} ref={modal.root} role="dialog" aria-modal="true" aria-labelledby={`${id}-t`} className="ui-sheet">
         <h2 id={`${id}-t`} ref={modal.title} tabIndex={-1} className="ui-sheet-title">{title}</h2>
         <Button type="button" kind="text" onClick={onClose}>{say("common.close")}</Button>
         {children}
-        <ul className="ui-sheet-actions" role="list">
-          {ordered.map((a) => (
-            <li key={a.id}>
-              <Button type="button" kind={a.danger ? "danger" : "secondary"} disabled={a.disabled} data-testid={a.testid} onClick={() => { a.onSelect(); onClose(); }}>{a.label}</Button>
-            </li>
-          ))}
-        </ul>
+        {calm.length > 0 && <ul className="ui-sheet-actions" role="list">{calm.map(row)}</ul>}
+        {loud.length > 0 && <ul className="ui-sheet-actions ui-sheet-danger" role="list" data-group="danger">{loud.map(row)}</ul>}
       </div>
     </div>
   );

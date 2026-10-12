@@ -57,7 +57,10 @@ test("a refused table name is said to the author on the table, which lives on wi
   await expect(zhenya.getByTestId("turn")).toBeVisible();
   // The game has not begun: nothing to give up yet (П7), and the button starts it.
   await expect(zhenya.getByTestId("turn")).toContainText("партия ещё не началась");
+  await zhenya.getByTestId("table-more").click();
+  await expect(zhenya.getByTestId("table-menu")).toBeVisible();
   await expect(zhenya.getByTestId("resign")).toHaveCount(0);
+  await zhenya.keyboard.press("Escape");
   await expect(zhenya.getByTestId("start-game")).toHaveAttribute("aria-label", "начать игру");
 });
 
@@ -85,7 +88,11 @@ test("a dots game begun on the screen, a move on one screen shows on the other, 
   const edge = mover.getByRole("button", { name: /^линия: ряд \d+, колонка \d+, по (горизонтали|вертикали)$/ }).first();
   await expect(edge).toHaveAttribute("aria-label", /^линия: /);
   // A game under way can be given up; the header names the class in words (П1).
+  // (giving up is behind the table's «…», with the other rare actions)
+  await mover.getByTestId("table-more").click();
   await expect(mover.getByTestId("resign")).toBeVisible();
+  await mover.keyboard.press("Escape");
+  await expect(mover.getByTestId("table-menu")).toHaveCount(0);
   await expect(zhenya.locator("h1")).toContainText("точки");
   await expect(zhenya.locator("h1")).not.toContainText("dots");
   await edge.click();

@@ -63,7 +63,7 @@ test("both see the starters in the order of the likes, marked from their own sid
   await boris.getByTestId("talk").click();
   await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 15000 });
   await openChat(boris);
-  await anya.getByTestId("refresh").click();
+  await anya.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
   await openChat(anya);
 
   // The same two rows for both, first the phrase liked first (Борис's).

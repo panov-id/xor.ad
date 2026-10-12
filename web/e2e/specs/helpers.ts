@@ -196,6 +196,16 @@ export async function twoAtATable(first: Page, second: Page, t: { name: string; 
   await expect(second.getByTestId("turn")).not.toContainText("партия ещё не началась", { timeout: 15000 });
 }
 
+// The like on an open table: the table's foot capsule holds it when nothing else is asked of the
+// seat (a watcher, or a player waiting), otherwise it is behind the table's «…» (strict review 11.10).
+export async function likeTable(page: Page): Promise<void> {
+  if (!(await page.getByTestId("like").count())) {
+    await page.getByTestId("table-more").click();
+    await expect(page.getByTestId("table-menu")).toBeVisible();
+  }
+  await page.getByTestId("like").click();
+}
+
 // The chat's handles stand behind «…» in an ActionSheet (owner, 10.10.2026):
 // open it unless it is open already. An action closes it; the span does not.
 export async function chatMenu(page: Page): Promise<void> {

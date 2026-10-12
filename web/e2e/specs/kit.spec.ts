@@ -72,7 +72,8 @@ test("every icon button is named, and the like bursts on a press", async ({ page
   await page.goto("/kit");
   const icons = page.getByTestId("icons").getByRole("button");
   // 45: the mode's «company» and «party» joined «me» (11.10.2026, sheets adaptive-*-feed)
-  await expect(icons).toHaveCount(45);
+  // 50: «inbox», «rematch», «expand», «player» and «seat» joined, so no button wears a meaning that is not its own (К3, К5)
+  await expect(icons).toHaveCount(50);
   for (const b of await icons.all()) await expect(b).toHaveAttribute("aria-label", /\w/);
   await expect(page.getByTestId("icons").locator('[data-icon="chevron"]')).toHaveCount(1);
   // the like's name is «лайк» (owner 11.10.2026: no heart, «just like»)

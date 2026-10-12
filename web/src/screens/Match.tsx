@@ -119,7 +119,7 @@ export function MatchBody({ row, keys, logic, onBack, onWaiting }: {
       {waiting && gone && (
         <>
           <Tombstone title={say("web.match.gone")} data-testid="tombstone" />
-          <Button type="button" icon="say" aria-label={say("web.match.to_inbox")} onClick={onBack} data-testid="to-inbox" />
+          <Button type="button" icon="inbox" aria-label={say("web.match.to_inbox")} onClick={onBack} data-testid="to-inbox" />
         </>
       )}
       {waiting && !gone && (
@@ -130,7 +130,7 @@ export function MatchBody({ row, keys, logic, onBack, onWaiting }: {
           </MessageLog>
           <div className="ui-icon-row">
             <Info label={say("web.match.waiting")} data-testid="queue-info"><p>{say("web.match.queue_hint")}</p></Info>
-            <Button type="button" icon="say" aria-label={say("web.match.to_inbox")} onClick={onWaiting} data-testid="to-inbox" />
+            <Button type="button" icon="inbox" aria-label={say("web.match.to_inbox")} onClick={onWaiting} data-testid="to-inbox" />
           </div>
           <MessageInput
             label={say("web.match.line_label")}

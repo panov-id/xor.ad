@@ -97,7 +97,7 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   expect(kept).toEqual([200]);
 
   // A opens it too: the queued line goes first, then a fresh one.
-  await anya.getByTestId("refresh").click();
+  await anya.evaluate(() => window.dispatchEvent(new Event("focus"))); // the inbox reads again on focus (no refresh button)
   await expect(anya.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   await anya.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
   await expect(anya.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });

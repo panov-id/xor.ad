@@ -7,7 +7,8 @@
 // Words are the terminal's dictionary where the line means the same there.
 // Behind one «…» in an ActionSheet (owner, 10.10.2026: the screen as on the
 // sheets — header, span, phrase, lines, field); the game and the safety code
-// sit there too. Each action in words; the block, the loud one, last.
+// sit there too. Each action in words, in two groups (sheet adaptive-*-chat-actions): the everyday ones,
+// then set apart and in red the ones that cannot be taken back — end and block.
 // Kit elements only (K5): Segments for the span, Confirm for the two asks.
 
 import { useState } from "react";
@@ -44,7 +45,7 @@ export function ChatActions({ menu, onMenuClose, span, busy, askedByPeer, waitin
     { id: "safety", label: say("chat.code"), onSelect: onSafety, testid: "show-safety" },
     // Asked by the other side, the agreement stands in its own card on the screen.
     ...(askedByPeer ? [] : [{ id: "rekey", label: say("web.chat.rekey_ask"), onSelect: () => onRekey("ask"), disabled: busy || waitingForPeer, testid: "rekey-ask" }]),
-    { id: "end", label: say("chat.end"), onSelect: () => setAsking("end"), testid: "end" },
+    { id: "end", label: say("chat.end"), onSelect: () => setAsking("end"), danger: true, testid: "end" },
     { id: "block", label: say("block.item"), onSelect: () => setAsking("block"), danger: true, testid: "block" },
   ];
   return (

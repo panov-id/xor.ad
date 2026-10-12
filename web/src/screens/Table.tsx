@@ -8,16 +8,18 @@ import type { Client } from "../../../depth/core/client.ts";
 import { applyFrame, dotsOf, frameNeedsView, openApplications, type TableView, Tables, turnOf } from "../../../depth/core/tables.ts";
 import { say } from "../api/me.ts";
 import { LikeCount } from "../ui/Card.tsx";
+import { BoardPanel, type PanelSeat, type PanelTurn } from "../ui/BoardPanel.tsx";
+import { ActionSheet, type SheetAction } from "../ui/Sheet.tsx";
+import { Split } from "../ui/Split.tsx";
+import { TileFoot } from "../ui/TileFoot.tsx";
 import { durationSeconds } from "../locales/duration.ts";
 import { connectTable } from "../api/tableRoom.ts";
 import { classWord, tableRefusal } from "../api/tables.ts";
 import { Button } from "../ui/Button.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
-import { Info } from "../ui/Info.tsx";
 import { MoveInput } from "../ui/MoveInput.tsx";
 import { Notice } from "../ui/Notices.tsx";
-import { Pair, Pairs } from "../ui/Pair.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
 
@@ -31,6 +33,7 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
   const [error, setError] = useState<string | null>(null);
   const [line, setLine] = useState("");
   const [, tick] = useState(0);
+  const [more, setMore] = useState(false);
 
   const load = useCallback(async () => {
     // A read that throws (locked, no network) is said, not dropped.
@@ -82,47 +85,70 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
   const turn = turnOf(view);
   const board = view.board;
   const nameOf = (seat: number) => view.seats.find((s) => s.seat === seat)?.name ?? `#${seat}`;
-  const score = board ? view.seats.filter((s) => board.score[String(s.seat)] !== undefined) : [];
+  // A seat is its name — «вы» for one's own — and, once the game has a score, its number (П13).
+  const seats: PanelSeat[] = view.seats.map((s) => ({
+    seat: s.seat,
+    name: s.seat === view.seat ? say("table.you") : s.name,
+    score: board && board.score[String(s.seat)] !== undefined ? board.score[String(s.seat)] : undefined,
+  }));
   // A game has begun when the board has a turn; before that (and after the end)
   // there is nothing to give up and the button proposes a game.
   const started = !!board && !board.over && board.turn !== null;
   const title = `${say("table.title")}${view.name ? ` · «${view.name}»` : ""} · ${classWord(view.class)}`;
+  const panelTurn: PanelTurn = !board || board.over
+    ? { testid: "over", text: say("table.over") }
+    : board.turn === null ? { testid: "turn", text: say("table.notStarted") }
+    : { testid: "turn", mine: turn.mine, text: turn.mine ? say("table.yourTurn") : `${say("table.turn")}: ${turn.name ?? "—"}`, time: durationSeconds(turn.secondsLeft) };
+
+  // A game begins by a proposal (W15): a player alone starts it at once and
+  // takes the applicants in; with others playing, each has to agree. After
+  // an end the same button is «ещё партию» (П13).
+  const pending = board?.pending as { id: string; by?: number; answers?: Record<string, string> } | null | undefined;
+  const answered = !!pending && (pending.by === view.seat || pending.answers?.[String(view.seat)] === "accept");
+  const proposed = view.is_playing && !!pending && !answered;
+  const canStart = view.is_playing && !pending && !started;
+  const canPass = turn.mine && !!board && started;
+  const like = () => act(() => tables.like(tableId));
+  const pass = () => act(() => tables.pass(tableId, board!.seq));
+  // The two main actions (SplitAction): what the table asks next — begin, again, pass — or the like when
+  // nothing is asked, and standing up. The rest (give up, and what the first slot did not take) is behind «…».
+  const sheet: SheetAction[] = [];
+  const first = canStart ? "start" : canPass ? "pass" : "like";
+  if (first !== "pass" && canPass) sheet.push({ id: "pass", label: say("table.pass"), onSelect: () => void pass(), testid: "pass" });
+  if (view.is_playing && started) sheet.push({ id: "resign", label: say("table.resign"), onSelect: () => void act(() => tables.resign(tableId)), testid: "resign" });
+  if (first !== "like") sheet.push({ id: "like", label: say("table.like"), onSelect: () => void like(), testid: "like" });
+  const stand = <Button kind="secondary" type="button" icon="leave" aria-label={say("table.stand")} data-testid="table-stand" onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })} />;
 
   return (
     <Screen name="table" title={title} data-testid="table" data-id={tableId}
-      header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} action={<Info label={say("table.title")} data-testid="table-info"><p role="note">{say("table.open")}</p></Info>} />}>
-      <p className="ui-hint">{say("table.playing")} {view.playing} · {say("table.watching")} {view.watching} · <LikeCount n={view.like_count ?? 0} /></p>
-      <p className="ui-hint">{say("table.seated")}: {view.seats.map((s) => (s.seat === view.seat ? say("table.you") : s.name)).join(" · ")}</p>
+      header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} action={<Button type="button" icon="more" aria-label={say("web.chat.more")} aria-haspopup="dialog" aria-expanded={more} onClick={() => setMore(true)} data-testid="table-more" />} />}>
+      <ActionSheet open={more} title={say("web.chat.more")} actions={sheet} onClose={() => setMore(false)} data-testid="table-menu">
+        <p role="note" className="ui-hint" data-testid="table-info">{say("table.open")}</p>
+      </ActionSheet>
+      <TileFoot items={[
+        { icon: "player", n: view.playing, label: `${say("table.playing")} ${view.playing}` },
+        { icon: "eye", n: view.watching, label: `${say("table.watching")} ${view.watching}` },
+      ]}><LikeCount n={view.like_count ?? 0} /></TileFoot>
       {/* The name the moderator refused (W13-TN, §6.1): the table lives on without one. */}
       {view.name_refused && <Notice data-testid="table-name-refused">{say("table.nameRefused")}</Notice>}
-      {!board || board.over
-        ? <p data-testid="over">{say("table.over")}</p>
-        : board.turn === null ? <p data-testid="turn">{say("table.notStarted")}</p>
-        : <p data-testid="turn">{turn.mine ? say("table.yourTurn") : `${say("table.turn")}: ${turn.name ?? "—"}`} · {durationSeconds(turn.secondsLeft)}</p>}
-      {score.length > 0 && (
-        // Whose number is which: a pair «имя — число», not the bare numbers (П13).
-        <section data-testid="score" aria-label={say("table.score")}>
-          <Pairs>
-            {score.map((s) => <Pair key={s.seat} label={s.seat === view.seat ? say("table.you") : s.name}>{board!.score[String(s.seat)]}</Pair>)}
-          </Pairs>
-        </section>
-      )}
-      {dotsOf(board) && (
-        <DotsBoard view={view} onEdge={turn.mine ? (edge) => act(() => tables.move(tableId, board!.seq, { edge })) : undefined} />
-      )}
-      {board && !board.over && (() => {
-        // The other classes (W12): each board reads its own part of the
-        // state; a move goes on the board it was made on, and only in turn.
-        const onMove = turn.mine ? (m: unknown) => void act(() => tables.move(tableId, board.seq, m)) : undefined;
-        return (
-          <>
-            <DeckBoard view={view} onMove={onMove} />
-            <WordBoard view={view} onMove={onMove} />
-            <FreeBoard view={view} onMove={onMove} />
-            <CellsBoard view={view} onMove={onMove} />
-          </>
-        );
-      })()}
+      <BoardPanel seats={seats} seatedLabel={say("table.seated")} turn={panelTurn}>
+        {dotsOf(board) && (
+          <DotsBoard view={view} onEdge={turn.mine ? (edge) => act(() => tables.move(tableId, board!.seq, { edge })) : undefined} />
+        )}
+        {board && !board.over && (() => {
+          // The other classes (W12): each board reads its own part of the
+          // state; a move goes on the board it was made on, and only in turn.
+          const onMove = turn.mine ? (m: unknown) => void act(() => tables.move(tableId, board.seq, m)) : undefined;
+          return (
+            <>
+              <DeckBoard view={view} onMove={onMove} />
+              <WordBoard view={view} onMove={onMove} />
+              <FreeBoard view={view} onMove={onMove} />
+              <CellsBoard view={view} onMove={onMove} />
+            </>
+          );
+        })()}
+      </BoardPanel>
       {error && <ErrorLine>{error}</ErrorLine>}
       <ul className="ui-lines">
         {/* An application is said once, as «заявка: имя — слова», and only while
@@ -145,37 +171,25 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
             onClick={() => { const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "application", text })).then(() => setLine("")); }} />
         )}
       />
-      {/* A game begins by a proposal (W15): a player alone starts it at once and
-          takes the applicants in; with others playing, each has to agree. After
-          an end the same button is «ещё партию» (П13). */}
-      {view.is_playing && (() => {
-        const pending = board?.pending as { id: string; by?: number; answers?: Record<string, string> } | null | undefined;
-        if (pending) {
-          if (pending.by === view.seat || pending.answers?.[String(view.seat)] === "accept") {
-            return <p className="ui-hint" data-testid="pending">{say("web.table.waitingAnswers")}</p>;
-          }
-          return (
-            <div data-testid="pending">
-              <p>{say("web.table.proposed", { name: nameOf(pending.by ?? 0) })}</p>
-              <div className="ui-actions">
-                <Button kind="primary" type="button" icon="check" aria-label={say("web.table.accept")} data-testid="accept-game" onClick={() => act(() => tables.answer(tableId, pending.id, "accept"))} />
-                <Button kind="secondary" type="button" icon="close" aria-label={say("web.table.decline")} data-testid="decline-game" onClick={() => act(() => tables.answer(tableId, pending.id, "decline"))} />
-              </div>
-            </div>
-          );
-        }
-        if (!started) {
-          const label = !board || board.over ? say("web.game.rematch") : say("web.table.start");
-          return <Button kind="primary" type="button" icon="watch" className="ui-wide" aria-label={label} data-testid="start-game" onClick={() => act(() => tables.propose(tableId, "rematch"))} />;
-        }
-        return null;
-      })()}
-      <div className="ui-icon-row">
-        {turn.mine && board && <Button kind="secondary" icon="pass" aria-label={say("table.pass")} onClick={() => act(() => tables.pass(tableId, board.seq))} />}
-        {view.is_playing && started && <Button kind="secondary" icon="giveup" aria-label={say("table.resign")} data-testid="resign" onClick={() => act(() => tables.resign(tableId))} />}
-        <Button kind="secondary" icon="like" aria-label={say("table.like")} onClick={() => act(() => tables.like(tableId))} />
-        <Button kind="secondary" icon="leave" aria-label={say("table.stand")} data-testid="table-stand" onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })} />
-      </div>
+      {view.is_playing && pending && (answered
+        ? <p className="ui-hint" data-testid="pending">{say("web.table.waitingAnswers")}</p>
+        : <p data-testid="pending">{say("web.table.proposed", { name: nameOf(pending.by ?? 0) })}</p>)}
+      {/* One capsule at the foot: accept · decline of a proposal, else the table's next step · standing up. */}
+      {proposed
+        ? (
+          <Split>
+            <Button kind="primary" type="button" icon="check" aria-label={say("web.table.accept")} data-testid="accept-game" onClick={() => act(() => tables.answer(tableId, pending!.id, "accept"))} />
+            <Button kind="secondary" type="button" icon="close" aria-label={say("web.table.decline")} data-testid="decline-game" onClick={() => act(() => tables.answer(tableId, pending!.id, "decline"))} />
+          </Split>
+        )
+        : (
+          <Split>
+            {first === "start" && <Button kind="primary" type="button" icon={!board || board.over ? "rematch" : "open"} aria-label={!board || board.over ? say("web.game.rematch") : say("web.table.start")} data-testid="start-game" onClick={() => act(() => tables.propose(tableId, "rematch"))} />}
+            {first === "pass" && <Button kind="primary" type="button" icon="pass" aria-label={say("table.pass")} data-testid="pass" onClick={() => void pass()} />}
+            {first === "like" && <Button kind="primary" type="button" icon="like" aria-label={say("table.like")} data-testid="like" onClick={() => void like()} />}
+            {stand}
+          </Split>
+        )}
     </Screen>
   );
 }

@@ -10,7 +10,7 @@
 
 import type { Page } from "@playwright/test";
 import { expect, test } from "../fixtures/address.ts";
-import { newTable, openTables, register, runLabel, sitFromTables } from "./helpers.ts";
+import { likeTable, newTable, openTables, register, runLabel, sitFromTables } from "./helpers.ts";
 
 async function backToTabs(page: Page): Promise<void> {
   await page.locator('[data-screen="table"]').getByTestId("back").click();
@@ -35,7 +35,7 @@ test("my tables: the one I sit at is marked seated, the one I liked is marked li
   await expect(zhenya.getByTestId("table-card").filter({ hasText: name })).toHaveCount(0);
 
   await sitFromTables(anya, name);
-  await anya.getByRole("button", { name: "лайк", exact: true }).click();
+  await likeTable(anya);
   await backToTabs(anya);
   const anyaMine = anya.getByTestId("tables-mine").getByTestId("table-mine").filter({ hasText: name });
   await expect(anyaMine).toHaveCount(1, { timeout: 30000 });

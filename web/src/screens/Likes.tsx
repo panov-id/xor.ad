@@ -70,7 +70,7 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
         ))}
       </ul>
       {state === "loading" && <p className="ui-hint" data-testid="loading">…</p>}
-      {next && state === "ready" && <Button type="button" icon="new" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />}
+      {next && state === "ready" && <Button type="button" icon="expand" className="ui-wide" aria-label={say("liked.more")} onClick={() => load(next)} data-testid="more" />}
     </Screen>
   );
 }

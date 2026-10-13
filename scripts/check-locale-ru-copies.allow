@@ -106,7 +106,6 @@ be	web	web.feed.m	same word in be
 be	web	web.game.set	same word in be
 be	web	web.game.you	same word in be
 be	web	web.game.your_turn	same word in be
-be	web	web.newTable.set	same word in be
 be	web	web.table.card	same word in be
 be	web	web.card.phrase	same word in be
 be	web	web.ui.code	same word in be
@@ -193,3 +192,71 @@ be	web	web.table.cardName	placeholders only: {rank} {suit}
 el	web	web.table.cardName	placeholders only: {rank} {suit}
 pl	web	web.table.cardName	placeholders only: {rank} {suit}
 uk	web	web.table.cardName	placeholders only: {rank} {suit}
+uk	web	web.set.ru	same word in uk (слова)
+uk	web	web.set.en	same word in uk (слова)
+uk	web	web.set.uk	same word in uk (слова)
+uk	web	web.set.be	same word in uk (слова)
+uk	web	web.set.de	same word in uk (слова)
+uk	web	web.set.es	same word in uk (слова)
+uk	web	web.set.fr	same word in uk (слова)
+uk	web	web.set.pl	same word in uk (слова)
+uk	web	web.set.ro	same word in uk (слова)
+uk	web	web.set.el	same word in uk (слова)
+uk	web	web.set.az	same word in uk (слова)
+uk	web	web.set.hy	same word in uk (слова)
+uk	web	web.set.ka	same word in uk (слова)
+uk	web	web.set.kk	same word in uk (слова)
+uk	web	web.set.ky	same word in uk (слова)
+uk	web	web.set.tg	same word in uk (слова)
+uk	web	web.set.uz	same word in uk (слова)
+be	web	web.set.poker	same words in be
+kk	web	web.set.reversi	same word in kk
+ky	web	web.set.reversi	same word in ky
+tg	web	web.set.reversi	same word in tg
+be	web	web.game.poker	same word in be
+kk	web	web.game.poker	same word in kk
+ky	web	web.game.poker	same word in ky
+tg	web	web.game.poker	same word in tg
+uk	web	web.game.poker	same word in uk
+ky	web	web.newTable.variant	same word in ky
+tg	web	web.newTable.variant	same word in tg
+be	web	web.sticker.wow	same word in be
+uk	web	web.sticker.wow	same word in uk
+kk	web	web.sticker.coffee	same word in kk
+ky	web	web.sticker.coffee	same word in ky
+kk	web	web.sticker.again	same word in kk
+ky	web	web.sticker.again	same word in ky
+tg	web	web.sticker.again	same word in tg
+uk	web	web.sticker.again	same word in uk
+be	web	web.table.fleet	same word in be (table games, 13.10.2026)
+be	web	web.table.sea_mine	same word in be (table games, 13.10.2026)
+be	web	web.table.pot	same word in be (table games, 13.10.2026)
+be	web	web.table.poker_head	same word in be (table games, 13.10.2026)
+be	web	web.table.street_flop	same word in be (table games, 13.10.2026)
+be	web	web.table.allin	same word in be (table games, 13.10.2026)
+be	web	web.rank.2	same word in be (table games, 13.10.2026)
+be	web	web.rank.3	same word in be (table games, 13.10.2026)
+kk	web	web.table.fleet	same word in kk (table games, 13.10.2026)
+kk	web	web.table.street_flop	same word in kk (table games, 13.10.2026)
+kk	web	web.table.street_river	same word in kk (table games, 13.10.2026)
+kk	web	web.table.dealer	same word in kk (table games, 13.10.2026)
+kk	web	web.table.allin	same word in kk (table games, 13.10.2026)
+kk	web	web.table.trump	same word in kk (table games, 13.10.2026)
+ky	web	web.table.fleet	same word in ky (table games, 13.10.2026)
+ky	web	web.table.street_flop	same word in ky (table games, 13.10.2026)
+ky	web	web.table.street_river	same word in ky (table games, 13.10.2026)
+ky	web	web.table.dealer	same word in ky (table games, 13.10.2026)
+ky	web	web.table.allin	same word in ky (table games, 13.10.2026)
+ky	web	web.table.trump	same word in ky (table games, 13.10.2026)
+tg	web	web.table.fleet	same word in tg (table games, 13.10.2026)
+tg	web	web.table.street_flop	same word in tg (table games, 13.10.2026)
+tg	web	web.table.street_river	same word in tg (table games, 13.10.2026)
+tg	web	web.table.dealer	same word in tg (table games, 13.10.2026)
+tg	web	web.table.allin	same word in tg (table games, 13.10.2026)
+uk	web	web.table.fleet	same word in uk (table games, 13.10.2026)
+uk	web	web.table.sea_mine	same word in uk (table games, 13.10.2026)
+uk	web	web.table.pot	same word in uk (table games, 13.10.2026)
+uk	web	web.table.street_flop	same word in uk (table games, 13.10.2026)
+uk	web	web.table.dealer	same word in uk (table games, 13.10.2026)
+uk	web	web.table.allin	same word in uk (table games, 13.10.2026)
+uk	web	web.table.done	same word in uk (table games, 13.10.2026)

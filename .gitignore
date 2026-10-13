@@ -23,3 +23,9 @@ docs/*.pdf
 /web/dist/
 /web/e2e/node_modules/
 /web/e2e/results/
+
+# vector walks of every screen (scripts/textwalk/svg-walk.sh), generated, not kept
+testing/walk-svg/
+
+# the project map as a database (scripts/project-map.py): rebuilt from docs/map.edges, not kept
+docs/map.sqlite

@@ -12,7 +12,7 @@ const shots = [
   ["panel-login", `${PANEL}/login`, { width: 1440, height: 900 }, "light"],
 ];
 const panelScreens = [
-  "waitlist", "dsa-notices", "feed-queue", "support", "panel-users", "brands",
+  "waitlist", "dsa-notices", "support", "panel-users", "brands",
   "api-keys", "secret-keys", "logs/client-errors", "logs/audit", "logs/server", "logs/pageviews",
 ];
 for (const p of panelScreens) {

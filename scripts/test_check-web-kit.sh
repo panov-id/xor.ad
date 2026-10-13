@@ -4,6 +4,7 @@
 #   (a) clean copy is green;
 #   (b) a raw <input> added to a screen is red and named as file:line;
 #   (c) negative control: a known ui-* className stays green, an unknown one is red;
+#       one from a kit sheet (src/ui/*.css) is green, one from a screen's sheet red;
 #   (d) lowering below the baseline stays green (ratchet only blocks growth).
 #
 #   scripts/test_check-web-kit.sh
@@ -42,6 +43,14 @@ expect 1 "outside kit vocabulary" "(c2) unknown className token — red"
 
 fresh; printf '\nexport const Probe = () => <p className={`ui-not-defined-anywhere`}>x</p>;\n' >> "$screen"
 expect 1 "ui-not-defined-anywhere" "(c3) ui-* name absent from styles.css — red (vocabulary is derived from CSS)"
+
+fresh; printf '.ui-probe-kit-only { color: inherit; }\n' >> "$work/web/src/ui/form.css"
+printf '\nexport const Probe = () => <p className="ui-probe-kit-only">x</p>;\n' >> "$screen"
+expect 0 "GREEN" "(c4) ui-* defined only in a kit sheet (src/ui/*.css) — stays green"
+
+fresh; printf '.ui-probe-screen-only { color: inherit; }\n' >> "$work/web/src/screens/splash.css"
+printf '\nexport const Probe = () => <p className="ui-probe-screen-only">x</p>;\n' >> "$screen"
+expect 1 "ui-probe-screen-only" "(c5) ui-* defined only in a screen's sheet — red (not the kit)"
 
 fresh; printf '\nexport const Probe = () => <p>{/* <input> in a comment */}</p>; // <button> too\n' >> "$screen"
 expect 0 "GREEN" "(d) tags in comments do not count — green"

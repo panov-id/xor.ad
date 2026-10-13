@@ -11,5 +11,7 @@ docker image inspect "$img" >/dev/null 2>&1 || docker build -q -t "$img" "$d" >/
 shots=()
 # WALK_SHOTS=<host dir>: a picture of every step lands there (only with the owner's yes for the task).
 if [ -n "${WALK_SHOTS:-}" ]; then mkdir -p "$WALK_SHOTS"; shots=(-e WALK_SHOTS=1 -u "$(id -u):$(id -g)" -v "$WALK_SHOTS:/shots"); fi
+# WALK_SVG=<host dir>: every step as a vector SVG plus index.html (owner 12.10.2026, for that task).
+if [ -n "${WALK_SVG:-}" ]; then mkdir -p "$WALK_SVG"; shots=(-e WALK_SVG=1 -u "$(id -u):$(id -g)" -v "$WALK_SVG:/shots"); fi
 docker run --rm --network host -e WALK_STABLE="${WALK_STABLE:-}" -e WALK_WIDTH="${WALK_WIDTH:-}" "${shots[@]}" -v "$d/textwalk.mjs:/walk/textwalk.mjs:ro" "$img" \
   node /walk/textwalk.mjs "${1:-http://localhost:4173}"

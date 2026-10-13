@@ -4,9 +4,9 @@
 # needs the owner's table first, not an invented name.
 # Before К7а: brands/neighbro/stickers.css 112, brands/sosed/blocks.css 122,
 # screens/feed.css 51, screens/place.css 45, screens/talk.css 35.
-brands/neighbro/stickers.css 49
-brands/sosed/blocks.css 59
-screens/feed.css 45
+brands/neighbro/stickers.css 35
+brands/sosed/blocks.css 17
+screens/feed.css 44
 screens/place.css 22
 screens/splash.css 2
 screens/talk.css 29

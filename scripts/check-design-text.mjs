@@ -47,7 +47,7 @@ await new Promise((done) => server.listen(PORT, "127.0.0.1", done));
 
 const only = process.env.ONLY || "";
 const files = (await readdir(DESIGN))
-  .filter((name) => /^screen-.*\.svg$/.test(name))
+  .filter((name) => /^(screen|adaptive)-.*\.svg$/.test(name))
   .filter((name) => !only || basename(name, ".svg") === only);
 if (files.length === 0) { console.error("листов нет — мерить нечего"); process.exit(3); }
 
@@ -64,6 +64,7 @@ for (const file of files) {
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(300);
 
+  if (file.startsWith("adaptive-")) await page.evaluate(() => { window.__adaptive = true; });
   const found = await page.evaluate(() => {
     const out = { frames: 0, texts: 0, issues: [] };
     const isFrame = (g) => {
@@ -77,9 +78,19 @@ for (const file of files) {
       const rb = r.getBoundingClientRect();
       return { x: rb.left, y: rb.top, w: rb.width, h: rb.height, id: `${m[1]},${m[2]}` };
     };
-    for (const g of document.querySelectorAll("g[transform]")) {
-      const f = isFrame(g);
-      if (!f) continue;
+    // An adaptive-* sheet is one screen at its own width: the frame is the sheet's
+    // first rect, drawn at the origin; the notes below it are captions.
+    const sheet = () => {
+      const svg = document.querySelector("svg");
+      const r = svg && svg.querySelector(":scope > rect");
+      if (!r || r.hasAttribute("x") || r.hasAttribute("y")) return [];
+      if (Number(r.getAttribute("width")) !== Number(svg.getAttribute("width"))) return [];
+      const rb = r.getBoundingClientRect();
+      return [{ g: svg, f: { x: rb.left, y: rb.top, w: rb.width, h: rb.height, id: "0,0" } }];
+    };
+    const framed = window.__adaptive ? sheet()
+      : [...document.querySelectorAll("g[transform]")].map((g) => ({ g, f: isFrame(g) })).filter((x) => x.f);
+    for (const { g, f } of framed) {
       out.frames++;
       // Blocks and glyphs of this frame, measured once (review panel of 2026-09-19: text that runs
       // to its card's edge or onto an icon was found only by eye, five times in one day).

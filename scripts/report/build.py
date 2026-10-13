@@ -75,7 +75,7 @@ elif _pool_rc != "0":
 else:
     pool_why = None
 missing = []
-PANEL_SCREENS = [("waitlist", "лист ожидания"), ("dsa-notices", "уведомления DSA"), ("feed-queue", "очередь ленты"),
+PANEL_SCREENS = [("waitlist", "лист ожидания"), ("dsa-notices", "уведомления DSA"),
                  ("support", "поддержка"), ("panel-users", "пользователи панели"), ("brands", "бренды"),
                  ("api-keys", "ключи API"), ("secret-keys", "секретные ключи"), ("logs-client-errors", "журнал: ошибки клиента"),
                  ("logs-audit", "журнал: аудит"), ("logs-server", "журнал: сервер"), ("logs-pageviews", "журнал: просмотры")]

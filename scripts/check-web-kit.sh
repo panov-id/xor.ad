@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Ratchet gate for the web kit (K3): screens, the cabinet (adv/) and App.tsx must not grow new raw
 # <button>/<input>/<select>/<textarea>/<a> elements, nor className tokens that
-# are not a `.ui-*` class defined in styles.css. Per-file counts are compared
+# are not a `.ui-*` class defined in styles.css or web/src/ui/*.css. Per-file counts are compared
 # with web/kit-baseline.tsv (file<TAB>count): above baseline = red, equal or
 # below = green (lower it with --update-baseline). Kit components (web/src/ui/*.tsx)
 # are tags with a capital letter and never counted.
@@ -18,7 +18,9 @@ case "$MODE" in check|--update-baseline) ;; *) echo "unknown flag: $MODE" >&2; e
 exec python3 -I - <<'PY'
 import os, re, sys, glob
 root = os.environ["WEB_ROOT"]; mode = os.environ["MODE"]
-css = open(os.path.join(root, "src/styles.css"), encoding="utf-8").read()
+# The kit's CSS: styles.css and the kit components' own sheets (src/ui/*.css, e.g. form.css
+# since 12.10.2026). A screen's own stylesheet (src/screens/*.css) is not the kit.
+css = "".join(open(p, encoding="utf-8").read() for p in [os.path.join(root, "src/styles.css")] + sorted(glob.glob(os.path.join(root, "src/ui/*.css"))))
 vocab = set(re.findall(r"\.(ui-[A-Za-z0-9_-]+)", css))
 if not vocab:
     print("check-web-kit: no .ui-* classes found in styles.css"); sys.exit(2)

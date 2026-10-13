@@ -110,11 +110,19 @@ for k, v in ru_web.items():
 # in a Latin-script language — a unit, an international word — is named here.
 SAME_AS_EN = {
     "az": {
+        "web.table.street_flop",  # poker street name, the same word in az
+        "web.table.street_river",  # poker street name, the same word in az
+        "web.newTable.podkidnoy",  # same word
+        "web.newTable.variant",  # same word
+        "web.game.poker",  # same word
+        "web.game.durak",  # same word
+        "web.set.reversi",  # reversi
         "web.cabinet.radius",  # radius, m
         "web.feed.km",  # {n} km
         "web.feed.m",  # {n} m
     },
     "de": {
+        "web.sticker.wow",  # same word
         "web.cabinet.link",  # Link: {link}
         "web.feed.km",  # {n} km
         "web.feed.m",  # {n} m
@@ -125,6 +133,12 @@ SAME_AS_EN = {
         "web.card.likes",  # likes: — kept as the loanword; worth a translator's look
     },
     "es": {
+        "web.table.street_flop",  # poker street name, the same word in es
+        "web.table.street_turn",  # poker street name, the same word in es
+        "web.table.street_river",  # poker street name, the same word in es
+        "web.sticker.title",  # same word
+        "web.game.durak",  # same word
+        "web.set.reversi",  # reversi
         "web.duration.h",  # {n} h
         "web.duration.min",  # {n} min
         "web.card.block_no",  # no
@@ -133,6 +147,13 @@ SAME_AS_EN = {
         "web.feed.m",  # {n} m
     },
     "fr": {
+        "web.table.street_flop",  # poker street name, the same word in fr
+        "web.table.street_turn",  # poker street name, the same word in fr
+        "web.table.street_river",  # poker street name, the same word in fr
+        "web.sticker.title",  # same word
+        "web.game.poker",  # same word
+        "web.game.durak",  # same word
+        "web.set.reversi",  # reversi
         "web.die.6",  # six
         "web.rank.6",  # six
         "web.duration.h",  # {n} h
@@ -151,6 +172,12 @@ SAME_AS_EN = {
         "web.table.direction",  # direction dx dy
     },
     "pl": {
+        "web.table.street_flop",  # poker street name, the same word in pl
+        "web.table.street_turn",  # poker street name, the same word in pl
+        "web.table.street_river",  # poker street name, the same word in pl
+        "web.sticker.wow",  # same word
+        "web.game.poker",  # same word
+        "web.set.reversi",  # reversi
         "web.duration.min",  # {n} min — the abbreviation of a minute is the same
         "web.ui.system",  # system
         "web.cabinet.field.url",  # link
@@ -159,6 +186,12 @@ SAME_AS_EN = {
         "web.feed.m",  # {n} m
     },
     "ro": {
+        "web.table.street_flop",  # poker street name, the same word in ro
+        "web.table.street_turn",  # poker street name, the same word in ro
+        "web.table.street_river",  # poker street name, the same word in ro
+        "web.game.poker",  # same word
+        "web.game.durak",  # same word
+        "web.set.reversi",  # reversi
         "web.duration.h",  # {n} h — the abbreviation of an hour is the same
         "web.cabinet.field.text",  # text
         "web.cabinet.field.url",  # link
@@ -166,10 +199,15 @@ SAME_AS_EN = {
         "web.feed.km",  # {n} km
         "web.feed.m",  # {n} m
         "web.game.set",  # Set
-        "web.newTable.set",  # set
         "web.transfer.browser",  # browser
     },
     "uz": {
+        "web.table.street_flop",  # poker street name, the same word in uz
+        "web.table.street_river",  # poker street name, the same word in uz
+        "web.newTable.variant",  # same word
+        "web.game.poker",  # same word
+        "web.game.durak",  # same word
+        "web.set.reversi",  # reversi
         "web.cabinet.radius",  # radius, m
         "web.feed.km",  # {n} km
         "web.feed.m",  # {n} m

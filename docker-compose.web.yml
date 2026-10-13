@@ -63,10 +63,11 @@ services:
     mem_limit: 128m
 
   # The first-tier model of §8.14 stands in here as a stub with Ollama's shape
-  # (POST /api/chat → { message: { content } }). Since W17-MM the node asks it
-  # about every phrase before publishing, so the stub says "reject" only to a
-  # phrase carrying a link, a messenger or a contact and "publish" to the rest — otherwise no
-  # phrase would ever reach a feed. A real model's judgement is relay/moderator's
+  # (POST /api/chat → { message: { content } }). The node asks it for the
+  # verdict on every phrase, name, table line and table name (13.10.2026: the
+  # model alone), so the stub says "reject" only to a text carrying a link, a
+  # messenger or a contact and "publish" to the rest — otherwise nothing would
+  # ever reach a feed. A real model's judgement is relay/moderator's
   # measurement, not this.
   moderator:
     image: denoland/deno:alpine-2.1.4
@@ -117,9 +118,8 @@ services:
       NODE_ENV_NAME: test
       NODE_ID: web-test
       ALLOWED_ORIGINS: ""
-      FEED_VERDICT: rules
-      # The model behind its flag (§8.14): set, the node asks it about every
-      # phrase the rules queue; the stub above answers.
+      # The model behind its flag (§8.14): set, the node asks it for the verdict
+      # on every phrase, name, table line and table name; the stub above answers.
       MODERATOR_URL: "http://moderator:11434"
       # The panel's sessions: the moderator spec mints its token from this.
       SESSION_SECRET: web-test-panel-secret

@@ -8,6 +8,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 mapfile -t tests < <(cd "$root" && find web/src -name '*.test.ts' | sort)
 [ "${#tests[@]}" -gt 0 ] || { echo "run-web-unit-tests: RED — no web/src/**/*.test.ts" >&2; exit 1; }
-docker run --rm -e TZ=Pacific/Kiritimati -v "$root/web/src":/repo/web/src:ro -w /repo \
+# depth/core too: the web shares its pure rules (the sticker inside a conversation, 13.10.2026).
+docker run --rm -e TZ=Pacific/Kiritimati -v "$root/web/src":/repo/web/src:ro -v "$root/depth/core":/repo/depth/core:ro -w /repo \
   --user "$(id -u):$(id -g)" node:24-alpine \
   node --experimental-strip-types --no-warnings --test "${tests[@]}"

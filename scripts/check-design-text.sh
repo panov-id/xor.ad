@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Text on the mock-up sheets against the phone frame — measured in a browser.
 #
-#   scripts/check-design-text.sh                # all screen-*.svg
+#   scripts/check-design-text.sh                # all screen-*.svg and adaptive-*.svg
 #   scripts/check-design-text.sh screen-03      # one sheet
 #   DESIGN_DIR=/some/dir scripts/check-design-text.sh   # another set (the probe)
 #

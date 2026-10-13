@@ -69,7 +69,6 @@ const PAGES = [
   // a notice held by the platform rendered its queue cell as an empty badge.
   { path: "/dsa-notices", name: "dsa-notices" },
   // The feed queue, a person's verdict on phrases (2026-09-22).
-  { path: "/feed-queue", name: "feed-queue" },
   // Support, the team's side (2026-09-22).
   { path: "/support", name: "support" },
   // No session for this one: a login page shot while signed in redirects away.

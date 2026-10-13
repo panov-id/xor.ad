@@ -14,7 +14,6 @@ import { Disclosure } from "../ui/Disclosure.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { Field } from "../ui/Field.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
-import { Illustration } from "../ui/Illustration.tsx";
 import { Info } from "../ui/Info.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { Segments } from "../ui/Segments.tsx";
@@ -37,44 +36,40 @@ export function Composer(
   const { text, setText, mode, setMode, zone, setZone, discount, setDiscount, conditions, setConditions, limit, busy, refused, used, empty, send } =
     useComposer({ client, at, radius, onSent });
 
-  // Sheet 04: the phrase with what is left of it, the mode as segments, the
-  // zone as a scheme of the steps (not a map: the point is not drawn where it
-  // is), the discount folded, and the button with its reason under the text.
-  // What the sheet shows and the page has no data for — the place's name, the
-  // quota "free 2 of 4" — is left out rather than made up (WS4).
+  // The phrase with what is left of it, the mode and the zone as pills, the
+  // discount folded, and the button with its reason at the foot. The sheet's
+  // second row is a phrase's time (1 h · 3 h · tonight), which the node does not
+  // take: the zone's steps stand in that row instead, nothing is made up (WS4).
   const title = say("write.title");
   return (
     <Screen name="composer" title={title} className={brandClass} header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} />}>
-      <Textarea
-        label={say("web.composer.phrase")}
-        value={text}
-        onChange={(next) => setText([...next].slice(0, limit).join(""))}
-        rows={3}
-        data-testid="text"
-        placeholder={say("web.composer.placeholder")}
-      />
-      <p className="ui-hint" data-testid="counter">{say("web.composer.left", { n: limit - used })}</p>
-      <Segments
-        label={say("web.composer.mode")}
-        value={mode}
-        onChange={(next) => setMode(next as typeof mode)}
-        testid="mode"
-        options={modes().map((m) => ({ value: m.value, label: m.label, testid: `mode-${m.value}` }))}
-      />
-      <p className="ui-hint">{say("web.composer.scheme")}</p>
-      <Illustration viewBox="0 0 343 120" size={343} height={120}>
-        {STEPS.map((r, i) => (
-          <circle key={r} cx="171.5" cy="60" r={10 + i * 12} className={r === zone ? "ui-scheme-on" : r < zone ? "ui-scheme-in" : "ui-scheme"} />
-        ))}
-        <circle cx="171.5" cy="60" r="4" className="ui-scheme-dot" />
-      </Illustration>
-      <Segments
-        label={say("web.composer.zone")}
-        value={String(zone)}
-        onChange={(next) => setZone(Number(next) as Radius)}
-        testid="zone"
-        options={STEPS.map((r) => ({ value: String(r), label: r < 1000 ? say("web.feed.m", { n: r }) : say("web.feed.km", { n: r / 1000 }), testid: `zone-${r}` }))}
-      />
+      {/* Sheets adaptive-*-composer-393: one panel 361×220 — what is left, the phrase, the mode and the
+          zone as two rows of pills — and «send» at the foot; the zone's word and the offer stay under it. */}
+      <div className="ui-compose" data-testid="compose-card">
+        <p className="ui-hint" data-testid="counter">{say("web.composer.left", { n: limit - used })}</p>
+        <Textarea
+          label={say("web.composer.phrase")}
+          value={text}
+          onChange={(next) => setText([...next].slice(0, limit).join(""))}
+          rows={1}
+          data-testid="text"
+          placeholder={say("web.composer.placeholder")}
+        />
+        <Segments
+          label={say("web.composer.mode")}
+          value={mode}
+          onChange={(next) => setMode(next as typeof mode)}
+          testid="mode"
+          options={modes().map((m) => ({ value: m.value, label: m.label, testid: `mode-${m.value}` }))}
+        />
+        <Segments
+          label={say("web.composer.zone")}
+          value={String(zone)}
+          onChange={(next) => setZone(Number(next) as Radius)}
+          testid="zone"
+          options={STEPS.map((r) => ({ value: String(r), label: r < 1000 ? say("web.feed.m", { n: r }) : say("web.feed.km", { n: r / 1000 }), testid: `zone-${r}` }))}
+        />
+      </div>
       <div className="ui-info-row"><Info label={say("web.composer.zone")} data-testid="composer-info"><p>{say("web.composer.linked")}</p></Info></div>
       <Disclosure summary={say("web.composer.offer")} data-testid="offer-fields">
         <p className="ui-hint">{say("web.composer.oneOffer")}</p>
@@ -82,7 +77,9 @@ export function Composer(
         <Field label={say("web.composer.conditions")} value={conditions} onChange={(next) => setConditions(next.slice(0, 200))} data-testid="conditions" placeholder={say("web.composer.conditions_hint")} autoComplete="off" />
       </Disclosure>
       {refused && <ErrorLine data-testid="refused">{refused}</ErrorLine>}
-      <Button type="button" kind="primary" icon="send" className="ui-send-wide" aria-label={say("write.send")} aria-busy={busy} disabled={empty || busy} reason={empty ? say("web.composer.textFirst") : undefined} onClick={send} data-testid="send" />
+      <div data-part="foot">
+        <Button type="button" kind="primary" icon="send" className="ui-send-wide" aria-label={say("write.send")} aria-busy={busy} disabled={empty || busy} reason={empty ? say("web.composer.textFirst") : undefined} onClick={send} data-testid="send" />
+      </div>
     </Screen>
   );
 }

@@ -30,11 +30,13 @@ import "./talk.css";
 import { Code } from "../ui/Code.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
-import { Info } from "../ui/Info.tsx";
+import { Icon } from "../ui/Icon.tsx";
 import { Message, MessageLog, Starters, Tombstone } from "../ui/Message.tsx";
 import { MessageInput } from "../ui/MessageInput.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
+import { STICKERS, Sticker } from "../ui/Sticker.tsx";
+import { stickerOf, stickerText } from "../chat/sticker.ts";
 import { StatusInline } from "../ui/Status.tsx";
 
 const hhmm = (seconds: number) => new Date(seconds * 1000).toTimeString().slice(0, 5);
@@ -47,6 +49,7 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
   } = useChat({ client, keys, row: given });
   const who = `${row.name}, ${peerAge}`;
   const [menu, setMenu] = useState(false);
+  const [plate, setPlate] = useState(false);
   const showSafety =() => setSafety(keys.safetyCodeOf(given.id) ?? say("web.chat.keys_not_open"));
   return (
     <Screen
@@ -80,15 +83,6 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
             likedBy: s.liked_by,
           }))}
         />
-      )}
-      <StatusInline data-testid="status">{"error" in status ? status.error : say(status.key, status.values)}</StatusInline>
-      {/* One's own span, always in view (§8.6 «fades after 1h of YOUR silence»),
-          and the counter once the silence has reached a quarter of it. */}
-      {!over && (
-        <div className="ui-icon-row" data-testid="fades" data-counting={quiet.counting ? "yes" : "no"}>
-          <Info label={say("web.chat.span_label")} data-testid="fades-info"><p data-testid="fades-text">{say("chat.fades", { left: duration(span) })}</p></Info>
-          {quiet.counting && <span data-testid="silence-clock"> · {quiet.clock}</span>}
-        </div>
       )}
       {safety && <Code value={safety} data-testid="safety" />}
       {/* The handles (W11-A): the span, the end for both (W17; DELETE /chats/:id),
@@ -148,7 +142,8 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
             key={l.id}
             side={l.mine ? "mine" : "theirs"}
             who={row.name}
-            text={l.text}
+            text={stickerOf(l.text) ? say(`web.sticker.${stickerOf(l.text)}`) : l.text}
+            art={stickerOf(l.text) ? <Sticker id={stickerOf(l.text)!} size={128} /> : undefined}
             time={hhmm(l.at)}
             // Not stored by the node: it goes again by itself, and now on a press (W14-RS).
             failed={l.state === "failed"}
@@ -158,7 +153,29 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
           />
         ))}
       </MessageLog>
+      {/* Under the lines (sheet adaptive-*-chat-393): one's own span as a pill, always in view (§8.6 «fades
+          after 1h of YOUR silence»), and the counter once the silence has reached a quarter of it; the link's state. */}
+      {!over && (
+        <p className="ui-icon-row" data-part="fades" data-testid="fades" data-counting={quiet.counting ? "yes" : "no"}>
+          <Icon name="timer" size={20} />
+          <span data-testid="fades-text">{say("chat.fades", { left: duration(span) })}</span>
+          {quiet.counting && <span data-testid="silence-clock"> · {quiet.clock}</span>}
+        </p>
+      )}
+      <StatusInline data-testid="status">{"error" in status ? status.error : say(status.key, status.values)}</StatusInline>
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
+      {/* The eight on one plate of 4×2 over the line, each with its word; one tap sends, the plate stays up
+          (sheet adaptive-*-chat-stickers-*). */}
+      {!over && plate && (
+        <div role="group" aria-label={say("web.sticker.title")} data-part="sticker-plate" data-testid="sticker-plate">
+          {STICKERS.map((id) => (
+            <button key={id} type="button" disabled={keysState !== "open"} onClick={() => void send(stickerText(id))} data-testid={`chat-sticker-${id}`}>
+              <Sticker id={id} size={66} />
+              <span>{say(`web.sticker.${id}`)}</span>
+            </button>
+          ))}
+        </div>
+      )}
       {!over && (
         <MessageInput
           label={say("web.chat.line")}
@@ -171,6 +188,7 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
           reason={keysState !== "open" ? say("web.chat.keys_not_open") : undefined}
           inputTestId="text"
           sendTestId="send"
+          extra={<Button kind="secondary" type="button" icon="sticker" aria-label={say("web.sticker.title")} aria-pressed={plate} onClick={() => setPlate((p) => !p)} data-testid="stickers-key" />}
         />
       )}
       {/* Ended, there is no «…»: the safety code alone stays reachable, in words. */}

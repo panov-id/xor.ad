@@ -37,7 +37,12 @@ test("registration shows the texts' links and records the three revisions on the
   for (const doc of ["terms", "privacy", "guidelines"]) {
     await expect(page.getByTestId(`legal-link-${doc}`)).toHaveAttribute("href", doc === "guidelines" ? /\/rules\.html$/ : new RegExp(`/legal\\.html\\?doc=${doc}$`));
   }
-  await expect(page.getByTestId("legal-links")).toContainText(/редакция от \d{1,2} сентября 2026/);
+  // The editions' dates wait behind the (i) of step one (sheet adaptive-*-register-1, owner 12.10.2026).
+  await page.getByTestId("register-info").getByRole("button").click();
+  for (const doc of ["terms", "privacy", "guidelines"]) {
+    await expect(page.getByTestId(`legal-edition-${doc}`)).toContainText(/редакция от \d{1,2} сентября 2026/);
+  }
+  await page.keyboard.press("Escape");
   await register(page);
   const identity = await identityOf(page);
   await expect.poll(() => acceptedOnNode(identity), { timeout: 15000 }).toEqual(["guidelines", "privacy", "terms"]);

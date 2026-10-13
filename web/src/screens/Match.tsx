@@ -14,16 +14,15 @@ import { say } from "../locales/say.ts";
 import "../chat/chat.css";
 import { Button } from "../ui/Button.tsx";
 import { Card } from "../ui/Card.tsx";
-import { Chip } from "../ui/Chip.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { Split } from "../ui/Split.tsx";
 import { Message, MessageLog, Tombstone } from "../ui/Message.tsx";
 import { MessageInput } from "../ui/MessageInput.tsx";
 import { Screen } from "../ui/Screen.tsx";
-import { modes } from "../api/actions.ts";
 import "./talk.css";
 import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
+import { Icon } from "../ui/Icon.tsx";
 import { lifeOf } from "../../../depth/core/life.ts";
 
 // What is left of a phrase, as a bar (depth/core/life.ts): the other's end is
@@ -53,7 +52,7 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
   onDeclined?: (row: MatchRow, declined: boolean) => void;
 }) {
   const logic = useMatch({ client, keys, row, onAgreed, onDeclined });
-  const { theirs, mine, waiting, gone } = logic;
+  const { theirs, waiting, gone } = logic;
 
   return (
     <Screen
@@ -62,29 +61,24 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onDeclin
       data-id={row.id}
       data-waiting={waiting ? "yes" : "no"}
       data-gone={gone ? "yes" : "no"}
-      header={<HeaderScreen title={`${row.name}, ${row.age}`} onBack={onBack} backLabel={say("common.back")} />}
+      header={<HeaderScreen title={say("web.inbox.offer")} onBack={onBack} backLabel={say("common.back")} />}
     >
-      {/* Sheet 24, «Мэтч»: my phrase that was liked, then the other person's
-          card on panel-2 — name, the mode as a chip, the phrase — each with
-          what is left of it as a bar (the node tells the other's end to its
-          match partner only, §8.11; never printed as a number, decision
-          19.09.2026), then the hint with its accent edge. */}
-      {mine && (
-        <Card as="section" data-part="mine" data-testid="match-mine">
-          {/* С4/С5 (walk 11.10): each phrase says whose it is, in the chat's words; the name is the header's. */}
-          <strong data-testid="match-mine-label">{say("web.chat.they_liked")}</strong>
-          <p>{mine.text}</p>
-          <Life end={mine.expires_at} tone="mine" />
-        </Card>
-      )}
-      <Card as="section" kind="nested" of="match" data-part="theirs">
-        <strong data-testid="match-theirs-label">{say("web.chat.you_liked")}</strong>
-        <Chip label={modes().find((m) => m.value === row.phrase.mode)?.label ?? row.phrase.mode} />
-        <p>{row.phrase.text}</p>
-        <Life end={theirs.expires_at} tone="theirs" />
-      </Card>
+      <MatchHero row={row} end={theirs.expires_at} />
       <MatchBody row={row} keys={keys} logic={logic} onBack={onBack} onWaiting={onWaiting} />
     </Screen>
+  );
+}
+
+// The match as both sheets draw it (adaptive-*-match-393): two like marks side by side, the
+// name big under them; the phrase that matched is a quiet line with what is left of it.
+export function MatchHero({ row, end }: { row: MatchRow; end?: number }) {
+  return (
+    <section className="ui-match-hero" data-testid="match-hero" aria-labelledby="match-name">
+      <span className="ui-match-marks" aria-hidden="true"><Icon name="like" size={96} /><Icon name="like" size={96} /></span>
+      <h2 id="match-name" className="ui-match-name">{row.name}, {row.age}</h2>
+      <p className="ui-hint" data-testid="match-theirs">{row.phrase.text}</p>
+      <Life end={end} tone="theirs" />
+    </section>
   );
 }
 
@@ -111,10 +105,13 @@ export function MatchBody({ row, keys, logic, onBack, onWaiting }: {
       )}
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
       {!waiting && (
-        <Split>
-          <Button kind="primary" type="button" icon="say" aria-label={say("web.match.talk")} disabled={busy || declined} onClick={talk} data-testid="talk" />
-          <Button kind="secondary" type="button" icon={declined ? "back" : "later"} aria-label={declined ? say("inbox.undo") : say("inbox.notNow")} disabled={busy} onClick={notNow} data-testid="not-now" />
-        </Split>
+        // the capsule at the screen's foot, as both sheets (adaptive-*-match-393: y 755 of 851)
+        <div data-part="foot">
+          <Split>
+            <Button kind="primary" type="button" icon="say" aria-label={say("web.match.talk")} disabled={busy || declined} onClick={talk} data-testid="talk" />
+            <Button kind="secondary" type="button" icon={declined ? "back" : "later"} aria-label={declined ? say("inbox.undo") : say("inbox.notNow")} disabled={busy} onClick={notNow} data-testid="not-now" />
+          </Split>
+        </div>
       )}
       {waiting && gone && (
         <>

@@ -262,8 +262,9 @@ export function useChat({ client, keys, row: given }: { client: Client; keys: Ch
     schedule(localId);
   }
 
-  async function send() {
-    const line = text.trim();
+  // `given`: a line not typed — a sticker (chat/sticker.ts); the typed text stays in the field then.
+  async function send(given?: string) {
+    const line = given ?? text.trim();
     if (!line) return;
     setError(null);
     try {
@@ -276,7 +277,7 @@ export function useChat({ client, keys, row: given }: { client: Client; keys: Ch
         resends.current.set(localId, { text: line, tries: 0 });
         schedule(localId);
       }
-      setText("");
+      if (given === undefined) setText("");
     } catch (e) {
       setError((e as Error).message);
     }

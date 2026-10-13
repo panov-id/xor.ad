@@ -8,13 +8,15 @@
 import { expect, test } from "../fixtures/address.ts";
 import { PIN, register } from "./helpers.ts";
 
+// The picker is the splash's first list since 12.10.2026 (sheet adaptive-*-splash-lang): a device not yet asked.
+test.describe("a device that has not been asked", () => { test.use({ langAsked: false });
 test("П3: <html lang> follows the interface language, the picker names every language in itself", async ({ browser }) => {
   const context = await browser.newContext({ locale: "en-US" });
   const page = await context.newPage();
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "What neighbours nearby are saying." })).toBeVisible();
+  await expect(page.getByTestId("lang-en")).toHaveAttribute("aria-current", "true");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  const options = await page.getByTestId("lang").locator("option").evaluateAll((list) => list.map((o) => ({ value: (o as HTMLOptionElement).value, lang: o.getAttribute("lang"), text: o.textContent })));
+  const options = await page.getByTestId("lang").locator("button").evaluateAll((list) => list.map((o) => ({ value: (o.getAttribute("data-testid") ?? "").slice(5), lang: o.getAttribute("lang"), text: o.textContent })));
   expect(options.length).toBe(17);
   for (const o of options) expect(o.lang, `option ${o.value} carries its own lang`).toBe(o.value);
   const named = Object.fromEntries(options.map((o) => [o.value, o.text]));
@@ -22,10 +24,11 @@ test("П3: <html lang> follows the interface language, the picker names every la
   expect(named).toMatchObject({ be: "Беларуская", hy: "Հայերեն", ka: "ქართული", kk: "Қазақша", ky: "Кыргызча", tg: "Тоҷикӣ", en: "English", de: "Deutsch" });
   expect(options.map((o) => o.text).join(" "), "no English exonym in the list").not.toMatch(/Belarusian|Armenian|Georgian|Kazakh|Kyrgyz|Tajik|Ukrainian|Russian/);
   // Choosing one reloads the page in it, and the document says so.
-  await page.getByTestId("lang").locator("select").selectOption("uk");
+  await page.getByTestId("lang-uk").click();
   await expect(page.getByRole("heading", { name: "Що кажуть сусіди поруч." })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "uk");
   await context.close();
+});
 });
 
 test("П4: the English splash offers «Move the identity here» with a capital", async ({ browser }) => {
@@ -131,8 +134,11 @@ test("П14, П15: the ⓘ buttons are named apart from the fields and the headin
   await expect(clean.getByRole("textbox", { name: "новый ПИН", exact: true })).toHaveCount(1);
   await expect(clean.getByRole("textbox", { name: "новый ПИН ещё раз", exact: true })).toHaveCount(1);
   await expect(clean.getByTestId("restore-info").getByRole("button")).toHaveAccessibleName("о бумажном коде");
-  await expect(clean.getByTestId("restore-pin-info").getByRole("button")).toHaveAccessibleName("о ПИНе");
+  // One ⓘ as on the sheet (adaptive-*-restore, 12.10): the new PIN's price is said inside it.
+  await expect(clean.getByTestId("restore-info").getByRole("button")).toHaveCount(1);
+  await clean.getByTestId("restore-info").getByRole("button").click();
+  await expect(clean.getByTestId("restore-pin-info")).toBeVisible();
   const headings = await clean.getByRole("heading").allTextContents();
-  for (const name of ["о бумажном коде", "о ПИНе"]) expect(headings, "an ⓘ is not named like a heading").not.toContain(name);
+  for (const name of ["о бумажном коде"]) expect(headings, "an ⓘ is not named like a heading").not.toContain(name);
   await fresh.close();
 });

@@ -70,6 +70,9 @@ test("me: the name to the queue, the PIN changed and the vault re-sealed, away a
   await expect(page.getByTestId("error")).toContainText("Осталось попыток", { timeout: 30000 });
   const before = feedAnswers.length;
   await unlock(page, "246810");
+  // The reload was on /me: "me" opens (router.ts); the feed is a tab away.
+  await expect(page.locator('[data-screen="me"]')).toBeVisible({ timeout: 30000 });
+  await page.getByTestId("nav-feed").click();
   await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('[data-screen="feed"]')).toHaveAttribute("data-sealed", "unlocked");
   await expect(page.getByTestId("loading")).toBeHidden({ timeout: 15000 });

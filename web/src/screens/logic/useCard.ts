@@ -6,7 +6,7 @@
 import { useState } from "react";
 import type { Client } from "../../../../depth/core/client.ts";
 import { blockByPhrase, hidePhrase, likePhrase, type LikeOutcome } from "../../api/actions.ts";
-import { say } from "../../locales/say.ts";
+import { LANG, say } from "../../locales/say.ts";
 import type { FeedCard } from "../Feed.tsx";
 
 export function useCard(
@@ -49,6 +49,43 @@ export function useCard(
     }
   }
 
+  // A notice under Article 16 DSA (routes/report.ts, docs/dsa/SPEC_RU.md §3):
+  // "this is illegal", not "I would rather not see it". The node requires the
+  // reasons and the declaration; name and address are asked, never required —
+  // a notice about child abuse may come without them (16(2)(c)). Sent unsigned:
+  // the notifier's identity is not attached to a notice (SPEC §6).
+  const [noticing, setNoticing] = useState(false);
+  const [noticeReason, setNoticeReason] = useState("");
+  const [noticeName, setNoticeName] = useState("");
+  const [noticeEmail, setNoticeEmail] = useState("");
+  const [noticeBona, setNoticeBona] = useState(false);
+  const [noticed, setNoticed] = useState<{ id: string; acknowledged: boolean } | null>(null);
+
+  async function sendNotice() {
+    await act(async () => {
+      const answer = await client.request<{ ok?: boolean; id?: string; acknowledged?: boolean; error?: string }>(
+        "POST",
+        "/report",
+        {
+          target_kind: card.kind === "offer" ? "offer" : "feed_message",
+          target_id: card.id,
+          reason_text: noticeReason.trim(),
+          notifier_name: noticeName.trim() || null,
+          notifier_email: noticeEmail.trim() || null,
+          bona_fide: true,
+          lang: LANG,
+          source: "web-card",
+        },
+        false,
+      );
+      if (answer.status !== 202 || !answer.body?.id) {
+        throw new Error(say("web.card.notice_refused", { status: answer.status }));
+      }
+      setNoticed({ id: answer.body.id, acknowledged: answer.body.acknowledged === true });
+      setNoticing(false);
+    });
+  }
+
   async function complain() {
     await act(async () => {
       const answer = await client.request<{ error?: { message?: string } }>(
@@ -80,6 +117,8 @@ export function useCard(
     like, liked, busy, error, doLike, hide, block, confirmBlock, setConfirmBlock, moreOpen, setMoreOpen,
     complaining, setComplaining, email, setEmail, text, setText, complained, complain,
     linkCode, report, reportLink,
+    noticing, setNoticing, noticeReason, setNoticeReason, noticeName, setNoticeName, noticeEmail, setNoticeEmail,
+    noticeBona, setNoticeBona, noticed, sendNotice,
   };
 }
 

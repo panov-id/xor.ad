@@ -1,3 +1,23 @@
 /* CellField: the cells are a brand's; without one the input is a plain field. */
 .ui-cells-box { position: relative; }
 .ui-cells { display: none; }
+
+/* Arrival (adaptive-*-arrival, both brands): the nine characters as three numbered groups side by side —
+   the group's number 13/600 muted over its three characters 22/600; the input lies over them, unseen. */
+[data-screen="arrival"] .ui-cellfield .ui-cells { display: flex; gap: var(--s-2); }
+/* No plate on the sheet: the number's baseline 150, the characters' 190, nothing drawn around them;
+   the field's label is the sheet's empty line — kept for the screen reader, not shown. */
+[data-screen="arrival"] .ui-cellfield > label { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[data-screen="arrival"] .ui-cellfield .ui-cell-group {
+  flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: auto auto; row-gap: 14px; margin: 0;
+}
+[data-screen="arrival"] .ui-cellfield .ui-cell-group::before {
+  content: attr(data-group); grid-column: 1 / -1; font-size: 13px; font-weight: 600; color: var(--fg-muted);
+}
+[data-screen="arrival"] .ui-cellfield .ui-cell { text-align: center; font-size: 22px; font-weight: 600; color: var(--fg); min-block-size: 28px; }
+[data-screen="arrival"] .ui-cellfield .ui-cell-next::after { content: "·"; color: var(--fg-muted); }
+[data-screen="arrival"] .ui-cellfield input {
+  position: absolute; inset: 0; inline-size: 100%; block-size: 100%; min-block-size: 0; padding: 0;
+  border: 0; box-shadow: none; background: transparent; color: transparent; caret-color: transparent;
+}
+[data-screen="arrival"] .ui-cellfield input:focus-visible { outline: var(--focus-w, 2px) solid var(--focus, currentColor); outline-offset: 2px; border-radius: var(--s-3); }

@@ -84,6 +84,9 @@ test("a conversation opens again after a cold start: the PIN raises the same wra
   await expect(boris.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 15000 });
   await boris.getByTestId("unlock-pin").fill(PIN);
   await boris.getByTestId("unlock").click();
+  // The reload was on /chat: its tab, the inbox, opens (router.ts); the seal's word is on the feed.
+  await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 30000 });
+  await boris.getByTestId("nav-feed").click();
   await expect(boris.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
   // "unlocked", not "unlocked-new-wrap": the pair out of the seal is the one.
   await expect(boris.locator('[data-screen="feed"]')).toHaveAttribute("data-sealed", "unlocked");

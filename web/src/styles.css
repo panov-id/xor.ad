@@ -13,7 +13,7 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.4 "Golos Text", system-ui, sans-serif; }
-.screen { max-width: 375px; min-height: 100vh; margin: 0 auto; padding: var(--s-6) var(--s-4); display: flex; flex-direction: column; gap: var(--s-4); }
+.screen { max-width: 100%; min-height: 100vh; margin: 0 auto; padding: var(--s-6) var(--s-4); display: flex; flex-direction: column; gap: var(--s-4); }
 /* A screen that opens with its header band starts at y 0, as every sheet
    draws it (kit headers at y=0): the band is the top, not 24 below it. The
    screens' own padding-top: 0 lost to the rule above on source order — equal
@@ -57,13 +57,14 @@ li:has(> .card-open:focus-visible) { outline: 3px solid var(--focus); outline-of
 .confirm { display: flex; flex-direction: column; gap: var(--s-3); border: 1px solid var(--err); border-radius: var(--r-2); padding: var(--s-4); }
 button.danger { border-color: var(--err); color: var(--err); }
 /* W5: the live step in the header, a hidden label for the radius, a link drawn as a button. */
-.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+/* ui-sr-only: the kit's name for it (screens use it; check-web-kit). */
+.visually-hidden, .ui-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 /* A plain link in the theme's words, not the browser's blue (walkthrough 10.10.2026). */
 a { color: var(--accent-text); }
 a.button { display: inline-block; text-decoration: none; text-align: center; color: var(--fg); border: 1px solid var(--border-control); border-radius: var(--r-2); padding: 10px var(--s-4); min-height: var(--control-h); }
 a.button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; } /* kit field-focus: the rim stays, one 2 px accent-text ring 2 px outside */
-.tabs { max-width: 375px; margin: 0 auto; display: flex; gap: var(--s-2); padding: var(--s-3) var(--s-4) 0; }
+.tabs { max-width: 100%; margin: 0 auto; display: flex; gap: var(--s-2); padding: var(--s-3) var(--s-4) 0; }
 .tab { flex: 1; }
 .tab.on { border-color: var(--accent); color: var(--accent-text); }
 .rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
@@ -122,12 +123,20 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .ui-icon-only.ui-wide { width: 100%; min-height: 52px; }
 .ui-icon-only.ui-mid { width: 64px; min-height: 48px; }
 .ui-icon-only.ui-wide-half { width: calc(50% - 6px); min-height: 48px; }
-.ui-icon-only.ui-send-wide { width: 128px; min-height: 52px; }
+/* «send» is the screen's one primary: the full width like every other, not a 128 stub at the left (round 1, 017) */
+.ui-icon-only.ui-send-wide { width: 100%; min-height: 52px; }
+.ui-button-reason:has(> .ui-send-wide) { display: flex; flex-direction: column-reverse; gap: var(--s-1); inline-size: 100%; }
 /* SplitAction (ui/Split.tsx): one capsule, radius h/2, a seam between, main first ×2. */
 .ui-split { display: flex; inline-size: 100%; min-height: 52px; border-radius: 26px; overflow: hidden; gap: 1px; background: var(--border); }
 .ui-split > .ui-button, .ui-split > .ui-button-reason > .ui-button { flex: 1; inline-size: auto; min-height: 52px; margin: 0; border-radius: 0; box-shadow: none; }
 .ui-split > :first-child { flex: 2; }
 .ui-split > .ui-button-reason { display: flex; flex: 2; }
+/* Icon tips (ui/iconTips.ts): the icon's word in a bubble over it. */
+.ui-icon-tip { position: fixed; z-index: 1000; max-inline-size: 240px; padding: 6px 10px; border-radius: 10px; background: var(--fg); color: var(--bg); font-size: 0.875rem; font-weight: 600; line-height: 1.3; pointer-events: none; box-shadow: 0 2px 8px color-mix(in srgb, var(--scrim) 18%, transparent); }
+.ui-icon-tip[hidden] { display: none; }
+/* sosed: each part's own 1px rim got cut by the capsule's round end — the rim belongs to the capsule. */
+:root[data-brand="sosed"] .ui-split:not([data-part="foot"] .ui-split):not([data-part="entry"] .ui-split) { border: 1px solid var(--border-control); }
+:root[data-brand="sosed"] .ui-split > .ui-button, :root[data-brand="sosed"] .ui-split > .ui-button-reason > .ui-button { border: 0; }
 .ui-glyph { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .ui-glyph .f { fill: var(--icon-fill, transparent); }
 .ui-glyph .dot { fill: currentColor; stroke: none; }
@@ -254,6 +263,9 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-setting { display: flex; align-items: center; gap: var(--s-3); inline-size: 100%; min-height: var(--control-h); padding: var(--s-2) var(--s-3); border-radius: var(--r-1); border-color: var(--border); text-align: start; }
 .ui-setting-value { margin-inline-start: auto; color: var(--muted); overflow-wrap: anywhere; }
 .ui-setting-label + .ui-setting-chevron { margin-inline-start: auto; }
+/* The label is the row's name: it never breaks mid-word («от/ой/ти»); a long value wraps instead. */
+.ui-setting-label { flex: 1 1 auto; min-inline-size: min-content; overflow-wrap: normal; }
+.ui-setting-value { flex: 0 1 auto; min-inline-size: 0; text-align: end; }
 .ui-setting-chevron { flex: none; }
 .ui-setting-danger { color: var(--err); border-color: var(--err); }
 .ui-kit-dot { position: relative; min-block-size: var(--s-6); }
@@ -278,6 +290,8 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-boardpanel-cell { flex: 1 1 0; min-inline-size: 0; display: flex; align-items: center; justify-content: center; gap: var(--s-1); min-block-size: 52px; padding: 0 var(--s-2); text-align: center; overflow-wrap: anywhere; }
 .ui-boardpanel-cell + .ui-boardpanel-cell { border-inline-start: 1px solid var(--border); }
 .ui-boardpanel-turn { flex: 2 1 10rem; }
+/* A seat keeps its name whole («Бори/с» at 393): the seat takes its own width, the turn takes the rest. */
+.ui-boardpanel-cell:not(.ui-boardpanel-turn) { flex: 0 0 auto; overflow-wrap: normal; white-space: nowrap; min-inline-size: 3.25rem; }
 .ui-boardpanel-turn[data-mine="yes"] { color: var(--accent-text); font-weight: 600; }
 .ui-boardpanel-score { font-weight: 600; font-variant-numeric: tabular-nums; }
 .ui-boardpanel-body { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); padding: var(--s-3); min-inline-size: 0; }
@@ -346,6 +360,13 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 [data-screen="inbox"] .ui-card .ui-button, [data-screen="chat"] .ui-card .ui-button { align-self: flex-start; margin-top: var(--s-2); }
 [data-screen="inbox"] .ui-header .ui-button { padding: 0 var(--s-3); font-size: 0.875rem; }
 [data-screen="chat"] .ui-actions { justify-content: flex-start; }
+/* The line to say stands at the bottom, as in every messenger: it floated right under the last message
+   and moved with each one (round 1, all widths). The screen fills the height; the input takes what is left above. */
+.screen[data-screen="chat"] { min-height: 100dvh; box-sizing: border-box; }
+.screen[data-screen="chat"] > .ui-field:has(> .ui-composer.ui-message) {
+  margin-block-start: auto; position: sticky; inset-block-end: 0; z-index: 2;
+  padding-block: var(--s-2) var(--s-3); background: var(--bg);
+}
 [data-screen="statements"] .ui-card p, [data-screen="statements"] .ui-card dl { margin: 0; }
 [data-screen="chat"] [data-testid="fades"][data-counting="yes"] { color: var(--err); font-weight: 600; }
 
@@ -374,6 +395,11 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-board-box text { fill: var(--fg); font-weight: 600; }
 .ui-board-box[data-own="yes"] text { fill: var(--accent-ink); }
 .ui-board-cells { background: var(--panel); border-radius: var(--r-2); padding: var(--s-3); margin: 0; overflow-x: auto; }
+.ui-board-tap { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: calc(var(--s-1) / 2); inline-size: 100%; max-inline-size: calc(var(--cols) * 3.25rem); }
+.ui-board-tap-cell { aspect-ratio: 1; min-inline-size: 0; min-block-size: 0; padding: 0; display: grid; place-items: center; font: inherit; line-height: 1; color: var(--fg); background: var(--panel); border: 1px solid var(--border-control); border-radius: calc(var(--r-1) / 2); }
+.ui-board-tap-cell:not(:disabled) { cursor: pointer; border-color: var(--fg); }
+.ui-board-tap-cell:disabled { cursor: default; opacity: 1; }
+.ui-board-tap-cell[data-tone="mine"], .ui-board-tap-cell[data-tone="hit"], .ui-board-tap-cell[data-tone="sunk"] { color: var(--accent-text); font-weight: 600; }
 .ui-hand { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .ui-hand-item { display: flex; align-items: center; gap: var(--s-1); }
 [data-screen="table"], [data-screen="new-table"] { padding-top: 0; }
@@ -389,3 +415,10 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-stat-label { color: var(--muted); }
 .ui-stat-bad { color: var(--err); font-weight: 600; }
 .ui-locked-timer { margin: 0; font-variant-numeric: tabular-nums; font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+/* A sticker reaction (ui/Sticker.tsx): its tile's colours from the theme; the rim is drawn per brand. */
+.ui-sticker { flex: none; overflow: visible; }
+.ui-sticker[data-tile="1"] { --st: var(--tile-1); --si: var(--tile-1-ink); }
+.ui-sticker[data-tile="2"] { --st: var(--tile-2); --si: var(--tile-2-ink); }
+.ui-sticker[data-tile="3"] { --st: var(--tile-3); --si: var(--tile-3-ink); }
+.ui-sticker[data-tile="4"] { --st: var(--tile-4); --si: var(--tile-4-ink); }

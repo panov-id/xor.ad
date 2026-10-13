@@ -23,21 +23,27 @@ import type { ReactNode } from "react";
 // `brandClass` is still passed by the brand views and no longer used: the
 // brand's rules reach this screen by its data-screen (brands/*/*.css), so the
 // screen carries no class of its own (К4).
-export function Arrival({ onDone, onBack, hero }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void; brandClass?: string; hero?: ReactNode }) {
+export function Arrival({ onDone, onBack }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void; brandClass?: string; hero?: ReactNode }) {
   const { code, setCode, pin, setPin, again, setAgain, busy, error, into, state, clean, claim, keep } = useArrival({ onDone });
   const ending = ENDINGS[state];
   const title = say(state === "approved" ? "move.arrivedTitle" : "move.inTitle");
   return (
-    <Screen name="arrival" title={title} header={!into || ending ? <HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} backTestid="arrive-back" /> : <HeaderScreen title={title} />}>
-      {!into && hero}
+    <Screen name="arrival" title={title} header={!into ? undefined : ending ? <HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} backTestid="arrive-back" /> : <HeaderScreen title={title} />}>
       {!into
         ? (
           <>
-            <FormCard icon="arrive" error={error} info={<Info label={say("web.info.move")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info>}>
+            {/* As the sheet (adaptive-*-arrival) and the restore: no header bar and no hero, the title is the
+                card's h1, «back» the second half of the foot's Split (owner 12.10.2026, docs/GOALS_RU.md §5). */}
+            <FormCard icon="arrive" title={title} heading error={error} info={<Info label={say("web.info.move")} data-testid="arrive-info"><p>{say("move.inIntro")}</p></Info>}>
             <CellField label={say("move.code")} cells={9} groups={[3, 3, 3]} value={code} onChange={(v) => setCode(v.slice(0, 13))} autoComplete="off" data-testid="arrive-code" />
             {busy && <p role="status">{say("move.deriving")}</p>}
             </FormCard>
-            <Button kind="primary" type="button" icon="open" className="ui-wide" aria-label={say("reg.next")} disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go" />
+            <div data-part="foot">
+              <Split>
+                <Button kind="primary" type="button" icon="open" aria-label={say("reg.next")} disabled={clean.length !== 9 || busy} onClick={() => void claim()} data-testid="arrive-go" />
+                <Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="arrive-back" />
+              </Split>
+            </div>
           </>
         )
         : ending

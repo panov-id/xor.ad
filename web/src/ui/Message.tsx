@@ -21,11 +21,13 @@ export function MessageLog({ label, children, ...rest }: { label: string; childr
 
 export type MessageSide = "mine" | "theirs" | "system" | "extra";
 
-export function Message({ side, who, text, time, failed, onAgain, mark, ...rest }:
-  { side: MessageSide; who?: string; text: string; time?: string; failed?: boolean; onAgain?: () => void; mark?: string } & Data) {
+// `art`: a sticker sent as the message itself (no bubble around it), its word `text` under it for the reader.
+export function Message({ side, who, text, time, failed, onAgain, mark, art, ...rest }:
+  { side: MessageSide; who?: string; text: string; time?: string; failed?: boolean; onAgain?: () => void; mark?: string; art?: ReactNode } & Data) {
   const speaker = side === "mine" ? say("web.ui.you") : side === "system" ? say("web.ui.system") : who;
   return (
-    <li {...rest} className={`ui-msg ui-msg-${side}`}>
+    <li {...rest} className={`ui-msg ui-msg-${side}${art ? " ui-msg-art" : ""}`}>
+      {art}
       {mark ? <span className="ui-msg-mark">{mark}</span> : null}
       {speaker ? <span className="visually-hidden">{speaker}: </span> : null}
       {side === "extra" ? <q>{text}</q> : <span className="ui-msg-text">{text}</span>}
@@ -56,8 +58,9 @@ export type Starter = { position: number; mark: string; text?: string; removed?:
 
 export function Starters({ title, items, ...rest }: { title: string; items: readonly Starter[] } & Data) {
   return (
-    <section {...rest} className="ui-starters" aria-labelledby="ui-starters-title">
-      <h2 id="ui-starters-title" className="ui-starters-title">{title}</h2>
+    // Folded under its title (sheet adaptive-*-chat-393 opens on the lines): a tap unfolds the starters.
+    <details {...rest} className="ui-starters" aria-labelledby="ui-starters-title">
+      <summary><h2 id="ui-starters-title" className="ui-starters-title">{title} · {items.length}</h2></summary>
       <ol className="ui-starters-list">
         {items.map((item) => (
           <li key={item.position} data-testid="starter" data-position={item.position} data-liked-by={item.likedBy}>
@@ -66,7 +69,7 @@ export function Starters({ title, items, ...rest }: { title: string; items: read
           </li>
         ))}
       </ol>
-    </section>
+    </details>
   );
 }
 

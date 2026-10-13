@@ -40,3 +40,7 @@
   background: var(--panel); border: var(--field-border); border-radius: var(--r-2);
 }
 [data-screen^="wizard-"] [data-part="seat"] { width: var(--s-4); height: var(--s-4); border-radius: 50%; background: var(--fg); }
+
+/* Step 5: where you are — a city or a point from a map, as on the place screen, in the wizard's column. */
+[data-screen^="wizard-"] [data-part="place"] { display: flex; flex-direction: column; gap: var(--s-4); }
+[data-screen^="wizard-"] [data-part="place"] [data-testid="place-now"] { margin: 0; text-align: center; }

@@ -52,6 +52,8 @@ const PATHS = {
   refresh: <><path d="M20 12 A8 8 0 1 1 17.7 6.3" /><path d="M20 4 V9 H15" /></>,
   open: <path d="M5 12 H18 M13 7 L18 12 L13 17" />,
   say: <path className="f" d="M4 5 H20 V16 H10 L5 20 V16 H4Z" />,
+  // The chat's sticker key (sheets adaptive-*-chat-stickers-*, ICON["sticker"] in scripts/design/adaptive-sheets.py).
+  sticker: <><path d="M5 4 H19 V13 L13 19 H5 Z" /><path d="M13 19 V14.5 A1.5 1.5 0 0 1 14.5 13 H19" /><path d="M9 9 V9.6 M14 9 V9.6 M8.5 13 C9.5 14.3 10.5 14.6 11 14.6" /></>,
   timer: <><circle className="f" cx="12" cy="13" r="8" /><path d="M12 9 V13 L15 15 M9 2 H15" /></>,
   check: <path d="M4 12 L10 18 L20 6" />,
   arrive: <><rect className="f" x="12" y="3" width="9" height="18" rx="2" /><path d="M2 12 H14 M10 8 L14 12 L10 16" /></>,

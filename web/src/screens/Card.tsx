@@ -14,6 +14,7 @@ import type { Client } from "../../../depth/core/client.ts";
 import { languageIn, modes } from "../api/actions.ts";
 import { type CardLogic, useCard } from "./logic/useCard.ts";
 import { Button } from "../ui/Button.tsx";
+import { Checkbox } from "../ui/Checkbox.tsx";
 import { LikeBurst } from "../ui/Card.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { Field, FieldGroup } from "../ui/Field.tsx";
@@ -126,13 +127,17 @@ export function CardTalk({ logic, onTalk, children }: { logic: CardLogic; onTalk
 // ones (block, complaint) last and red. What was done stays out of the list: a sent complaint or report is
 // said on the card (CardExtras), not offered twice.
 export function CardMore({ card, logic }: { card: FeedCard; logic: CardLogic }) {
-  const { busy, moreOpen, setMoreOpen, setConfirmBlock, setComplaining, complained, linkCode, report, reportLink } = logic;
+  const { busy, moreOpen, setMoreOpen, setConfirmBlock, setComplaining, complained, linkCode, report, reportLink, noticed, setNoticing } = logic;
   const actions: SheetAction[] = [];
   if (linkCode && report !== "sent") {
     actions.push({ id: "report", label: say("web.offer.wrong"), onSelect: () => void reportLink(), disabled: busy || report === "sending", testid: "report" });
   }
   if (card.kind === "offer" && !complained) {
     actions.push({ id: "complain", label: say("web.card.complain"), onSelect: () => setComplaining(true), danger: true, disabled: busy, testid: "complain" });
+  }
+  // Article 16 DSA: the notice path must exist in every face (docs/depth-client_RU.md §3.4).
+  if (!noticed) {
+    actions.push({ id: "notice", label: say("web.card.notice"), onSelect: () => setNoticing(true), danger: true, disabled: busy, testid: "notice" });
   }
   actions.push({ id: "block", label: say("block.item"), onSelect: () => setConfirmBlock(true), danger: true, disabled: busy, testid: "block" });
   return (
@@ -149,9 +154,32 @@ export function CardExtras({ card, logic }: { card: FeedCard; logic: CardLogic }
   const {
     busy, block, confirmBlock, setConfirmBlock, complaining, setComplaining, email, setEmail, text, setText,
     complained, complain, linkCode, report,
+    noticing, setNoticing, noticeReason, setNoticeReason, noticeName, setNoticeName, noticeEmail, setNoticeEmail,
+    noticeBona, setNoticeBona, noticed, sendNotice,
   } = logic;
   return (
     <>
+      {noticed
+        ? (
+          <Notice data-testid="noticed">
+            {say("web.card.notice_sent", { ref: noticed.id.slice(0, 8) })}{" "}
+            {say(noticed.acknowledged ? "web.card.notice_sent_mail" : "web.card.notice_sent_nomail")}
+          </Notice>
+        )
+        : noticing && (
+          <FieldGroup legend={say("web.card.notice")}>
+            <Textarea label={say("web.card.notice_reason")} value={noticeReason} maxLength={4000} onChange={setNoticeReason} data-testid="notice-reason" />
+            <Field label={say("web.card.notice_name")} value={noticeName} onChange={setNoticeName} autoComplete="name" data-testid="notice-name" />
+            <Field kind="email" label={say("web.card.notice_email")} value={noticeEmail} onChange={setNoticeEmail} data-testid="notice-email" />
+            <p className="ui-hint" data-testid="notice-csam">{say("web.card.notice_csam")}</p>
+            <Checkbox checked={noticeBona} onChange={setNoticeBona} data-testid="notice-bona">{say("web.card.notice_bona")}</Checkbox>
+            <Actions>
+              <Button kind="secondary" type="button" icon="close" aria-label={say("web.card.cancel")} onClick={() => setNoticing(false)} />
+              <Button kind="primary" type="button" icon="send" aria-label={say("web.card.notice_send")}
+                disabled={busy || !noticeReason.trim() || !noticeBona} onClick={() => void sendNotice()} data-testid="notice-send" />
+            </Actions>
+          </FieldGroup>
+        )}
       {card.kind === "offer" && (complained
         ? <Notice data-testid="complained">{say("web.card.complained")}</Notice>
         : complaining && (

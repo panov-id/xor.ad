@@ -37,8 +37,8 @@ test("theme: pick, persist across a reload, back to auto", async ({ page }) => {
   await expect(html).toHaveAttribute("data-theme", "violet");
   await unlock(page, PIN);
 
-  await page.getByTestId("tab-me").click();
-  await page.getByTestId("me-theme").click();
+  // The reload was on /me/theme: the theme screen opens again (router.ts).
+  await expect(page.locator('[data-screen="theme"]')).toBeVisible({ timeout: 30000 });
   await page.getByTestId("theme-auto").click();
   await expect(html).toHaveAttribute("data-theme-choice", "auto");
   expect(await page.evaluate((b) => localStorage.getItem(`theme:${b}`), brand)).toBeNull();

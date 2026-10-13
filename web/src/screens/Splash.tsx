@@ -9,9 +9,9 @@
 // word they would have to read. Each option is named in itself; choosing one
 // reloads the page in it and is kept on this device (locales/say.ts).
 
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { say } from "../api/me.ts";
-import { chooseLanguage, LANG, LANGUAGES, languageName } from "../locales/say.ts";
+import { keepLanguage, LANG, LANGUAGES, languageAsked, languageName } from "../locales/say.ts";
 import { BRAND } from "../config.ts";
 import { Button } from "../ui/Button.tsx";
 import { Mark } from "../ui/Mark.tsx";
@@ -19,7 +19,8 @@ import "./splash.css";
 import { Illustration } from "../ui/Illustration.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { Split } from "../ui/Split.tsx";
-import { Select } from "../ui/Select.tsx";
+import { LangList } from "../ui/LangList.tsx";
+import { TextButton } from "../ui/TextButton.tsx";
 
 // The sheet's icons, drawn in a 56 box: home, bench, teapot, domino, knight,
 // bicycle, cat, tree — in the sheet's reading order.
@@ -35,16 +36,25 @@ const ICONS: ReactNode[] = [
 ];
 
 export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; onRestore: () => void; onArrive: () => void }) {
+  // The language list first, once per device (sheet adaptive-*-splash-lang, owner 12.10.2026): the mark, the
+  // brand's name, a card of the languages each named in itself, the page's own ticked. Later it is changed in «я».
+  const [asked, setAsked] = useState(languageAsked);
+  if (!asked) {
+    return (
+      <Screen name="splash" title={say("web.lang.title")} data-state="lang">
+        <div data-part="poster" aria-hidden="true">
+          <Mark size={140} place="splash" />
+          <p data-part="word">{BRAND}</p>
+        </div>
+        <h1 className="ui-sr-only">{say("web.lang.title")}</h1>
+        <LangList langs={[LANG, ...LANGUAGES.filter((l) => l !== LANG)]} current={LANG} nameOf={languageName}
+          onPick={(lang) => { if (keepLanguage(lang)) setAsked(true); }} />
+      </Screen>
+    );
+  }
+
   return (
     <Screen name="splash" title={say("web.splash.tagline")}>
-      <div data-part="lang" data-testid="lang">
-        <Select
-          label={say("web.lang.title")}
-          options={LANGUAGES.map((lang) => ({ value: lang, label: languageName(lang), lang }))}
-          value={LANG}
-          onChange={chooseLanguage}
-        />
-      </div>
       {/* The poster (owner 11.10.2026): the brand's own mark is the hero, its name under it; the
           neighbourhood icons stay as a quiet cast around it. From 1440 the poster takes the left
           half and the entry the right (adaptive.css). */}
@@ -61,8 +71,9 @@ export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; 
         <Button type="button" kind="primary" icon="open" className="ui-wide" aria-label={say("web.splash.start")} onClick={onStart} data-testid="start" />
         <Split>
           <Button type="button" icon="key" aria-label={say("web.splash.haveCode")} onClick={onRestore} data-testid="restore" />
-          <Button type="button" icon="arrive" aria-label={say("web.splash.arrive")} onClick={onArrive} data-testid="arrive" />
         </Split>
+        {/* «arrive» is not on the sheet's two ways in (owner 12.10.2026): a quiet link under them */}
+        <TextButton block data-part="arrive" onClick={onArrive} data-testid="arrive">{say("web.splash.arrive")}</TextButton>
       </div>
     </Screen>
   );

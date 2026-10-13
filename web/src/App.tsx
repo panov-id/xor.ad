@@ -14,15 +14,15 @@
 // retired hole of SEC-2 and went with W1d, once the vault kept the wrap pair
 // (verifier of W1d, 2026-09-27).
 
-import { lazy, type ReactNode, Suspense, useEffect, useState } from "react";
+import { lazy, type ReactNode, Suspense, useEffect, useRef, useState } from "react";
 import type { Client, Radius, Statement } from "../../depth/core/client.ts";
 import type { Sent } from "./api/actions.ts";
 import { say } from "./api/me.ts";
 import { ChatKeys } from "./chat/keys.ts";
-import type { FeedCard } from "./screens/Feed.tsx";
 // The brand's views (brands/index.ts): built for one brand, the other is not bundled.
 import { ArrivalView, CardView, ChatView, ComposeView, FeedView, MatchView, MeView } from "./brands/index.ts";
-import { Inbox, type InboxChatRow, type MatchRow } from "./screens/Inbox.tsx";
+import { Inbox, type MatchRow } from "./screens/Inbox.tsx";
+import { entryOf, isEntry, isTab, pathOf, type Screen, screenOf } from "./router.ts";
 import { Likes } from "./screens/Likes.tsx";
 import { Offer } from "./screens/Offer.tsx";
 import { useAutoTheme } from "./ui/useTheme.ts";
@@ -44,12 +44,16 @@ import { Tables } from "../../depth/core/tables.ts";
 import { tableRefusal } from "./api/tables.ts";
 import { Blocked } from "./screens/Blocked.tsx";
 import { Hidden } from "./screens/Hidden.tsx";
-import { forget, readRecord, type Record_ } from "./vault.ts";
+import { forget, readRecord } from "./vault.ts";
 import { watchIdle } from "./idle.ts";
 import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
 import "./screens/feed.css";
-import { FALLBACK, type Place as PlaceT, storedPlace } from "./geo/place.ts";
+import "./ui/inner.css";
+import { FALLBACK, nameOf, type Place as PlaceT, storedPlace, storePlace } from "./geo/place.ts";
+import { parseQr, STEP_METRES } from "./geo/qr.ts";
+import { PlaceQr } from "./screens/PlaceQr.tsx";
+import { Confirm } from "./ui/Sheet.tsx";
 import { Place } from "./screens/Place.tsx";
 import "./adaptive.css";
 import { Screen as Frame } from "./ui/Screen.tsx";
@@ -59,40 +63,6 @@ type Sealed = "ok" | "failed" | "unlocked" | "unlocked-new-wrap";
 // `keys` is null while the page is locked (W13-WL): the chat keys are thrown
 // away with the lock and made anew from the long key the seal gives back.
 type Seated = { client: Client; keys: ChatKeys | null; sealed: Sealed };
-type Screen =
-  | { at: "loading" }
-  | { at: "splash" }
-  | { at: "register" }
-  | { at: "restore" }
-  | { at: "unlock"; record: Record_ }
-  | { at: "offer"; code: string }
-  | { at: "feed" }
-  | { at: "composer" }
-  | { at: "card"; card: FeedCard }
-  | { at: "likes" }
-  | { at: "place" }
-  | { at: "inbox" }
-  | { at: "match"; row: MatchRow }
-  | { at: "chat"; row: InboxChatRow }
-  | { at: "statements"; from: "feed" | "me" }
-  | { at: "me" }
-  | { at: "edit"; field: "name" | "age"; current: string }
-  | { at: "change-pin" }
-  | { at: "reissue" }
-  | { at: "departure" }
-  | { at: "hidden" }
-  | { at: "table"; tableId: string; from?: "feed" | "tables" }
-  | { at: "tables" }
-  | { at: "new-table"; from: "feed" | "tables" }
-  | { at: "blocked" }
-  | { at: "arrival" }
-  | { at: "reset" }
-  | { at: "step-away" }
-  | { at: "away"; until: number }
-  | { at: "theme" }
-  | { at: "legal" }
-  | { at: "wizard"; from: "register" | "me" };
-
 // The venue's cabinet (A1) is its own page: at adv.<storefront> in a real
 // deployment, under /adv on the stand. Decided once per load, so the face's
 // hooks below are never called conditionally.
@@ -102,6 +72,10 @@ type Screen =
 const KitPreview = import.meta.env.VITE_STAND === "1" ? lazy(() => import("./ui/KitPreview.tsx").then((m) => ({ default: m.KitPreview }))) : null;
 const KIT = KitPreview !== null && location.pathname === "/kit";
 const CABINET = location.hostname.startsWith("adv.") || /^\/adv(\/|$)/.test(location.pathname);
+// A place QR (screen 26): `/location#p=…&s=…`, read once at load and taken out of the address at once —
+// the cell stays in no history, tab restore or copied address. Anything off the shape is no QR.
+const QR = /^\/location\/?$/.test(location.pathname) ? parseQr(location.hash) : null;
+if (/^\/location\/?$/.test(location.pathname)) history.replaceState(null, "", "/");
 
 export function App() {
   if (KIT && KitPreview) return <Suspense fallback={null}><KitPreview /></Suspense>;
@@ -111,9 +85,18 @@ export function App() {
 function Face() {
   const [screen, setScreen] = useState<Screen>({ at: "loading" });
   const [seated, setSeated] = useState<Seated | null>(null);
-  // The area is placed anywhere, by the person (§8.3; owner 11.10.2026): the browser's position, a city from
-  // the offline list, or a point pasted from a map (screens/Place.tsx), kept on this device; Rome until then.
+  // The area is placed anywhere, by the person (§8.3; owner 11.10.2026): a city from the offline list or a
+  // point pasted from a map (screens/Place.tsx, the wizard's last step), kept on this device. Until then the
+  // node reads around FALLBACK, and the feed says no place is chosen rather than pretending Rome (GOALS §0).
   const [at, setAt] = useState<PlaceT>(() => storedPlace() ?? FALLBACK);
+  const [placeChosen, setPlaceChosen] = useState(() => storedPlace() !== null);
+  const choosePlace = (p: PlaceT) => { setAt(p); setPlaceChosen(true); };
+  // An opened place QR waits for the feed and asks; the point moves only on «put» (sosed.place 26-place-qr).
+  const [qr, setQr] = useState<(PlaceT & { s: number }) | null>(null);
+  useEffect(() => {
+    if (!QR) return;
+    void nameOf(QR.lat, QR.lon).then((n) => setQr({ lat: QR.lat, lon: QR.lon, name: n.name, cc: n.cc, source: "point", s: QR.s }));
+  }, []);
   // "auto" theme turns with the phase at this place (theme.ts).
   useAutoTheme(at.lon);
   const [radius, setRadius] = useState<Radius>(1000);
@@ -158,6 +141,70 @@ function Face() {
     setLocked(false);
   }
 
+  // ── The address (router.ts; owner 12.10.2026) ──
+  // Written only while an identity is open: the gates before it (splash,
+  // register, restore, unlock) leave the URL as it was loaded, so the path a
+  // person reloaded on is still there to land on. `seat` names this seated
+  // life: entries written by an earlier one (before a reload, or another
+  // identity on this device) are never trusted for their object.
+  // Every step forward pushes, tab switches included: browser Back walks the
+  // tabs as they were visited, and ends where the page was entered — it never
+  // loops, because nothing pushes on the way back.
+  const seat = useRef<string | null>(null);
+  function write(to: Screen, how: "push" | "replace") {
+    if (!seat.current || isEntry(to)) return;
+    const was = entryOf(history.state);
+    const ours = was !== null && was.seat === seat.current;
+    const i = how === "push" ? (ours ? was.i + 1 : 1) : ours ? was.i : 0;
+    const entry = { xor: 1, seat: seat.current, i, screen: to };
+    if (how === "push") history.pushState(entry, "", pathOf(to));
+    else history.replaceState(entry, "", pathOf(to));
+  }
+  const go = (to: Screen) => {
+    // The tab one is on, tapped again: no new entry for the same place.
+    if (isTab(to) && to.at === screen.at) return;
+    write(to, "push");
+    setScreen(to);
+  };
+  const swap = (to: Screen) => {
+    write(to, "replace");
+    setScreen(to);
+  };
+  // In-app "back": the browser's own when the entry behind is ours (popstate
+  // below draws it), so both backs agree; otherwise — the first entry of this
+  // seat, a reload — the screen the button always meant, in place.
+  const back = (fallback: Screen) => {
+    const was = entryOf(history.state);
+    if (was && was.seat === seat.current && was.i > 0) history.back();
+    else swap(fallback);
+  };
+  // A new seated life: its first screen replaces the entry the page stood on,
+  // so nothing behind it is a screen of this identity — the gates were never written.
+  function seatAnew(to: Screen) {
+    seat.current = Math.random().toString(36).slice(2);
+    history.replaceState({ xor: 1, seat: seat.current, i: 0, screen: to }, "", pathOf(to));
+    setScreen(to);
+  }
+  // The identity is gone from the page: the address is the splash's again.
+  function unseat() {
+    seat.current = null;
+    history.replaceState(null, "", "/");
+  }
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      // Before an identity is open the gates keep the screen; the URL is the browser's.
+      if (!seat.current) return;
+      const was = entryOf(e.state);
+      if (was && was.seat === seat.current) return setScreen(was.screen);
+      // Not this life's entry: what its path names alone — an object screen opens its tab.
+      const to = screenOf(location.pathname);
+      history.replaceState({ xor: 1, seat: seat.current, i: 0, screen: to }, "", pathOf(to));
+      setScreen(to);
+    };
+    addEventListener("popstate", onPop);
+    return () => removeEventListener("popstate", onPop);
+  }, []);
+
   useEffect(() => {
     (async () => {
       // `<storefront>/o/<code>` — the exit screen of an offer's link (W5): for
@@ -181,17 +228,20 @@ function Face() {
 
   // A seated client: the feed — unless one is away (the profile says until
   // when); the statements gate below runs on the feed.
-  async function land(client: Client) {
+  // `path`: the address the page was loaded at, which the gates left alone —
+  // its screen opens (an object screen's tab, router.ts screenOf).
+  async function land(client: Client, path = location.pathname) {
     setStatements(null);
     const profile = await client.profile().catch(() => null);
     if (profile?.stepped_away_until && profile.stepped_away_until > Date.now() / 1000) {
-      return setScreen({ at: "away", until: profile.stepped_away_until });
+      return seatAnew({ at: "away", until: profile.stepped_away_until });
     }
     // `/t/<id>` — a table's own link (W8): the node does not put tables in
-    // the feed yet, so a table is entered by its id, after the PIN.
-    const table = /^\/t\/([0-9a-f-]{36})\/?$/i.exec(location.pathname);
-    if (table) return setScreen({ at: "table", tableId: table[1] });
-    setScreen({ at: "feed" });
+    // the feed yet, so a table is entered by its id, after the PIN; the
+    // address then says /table, the id stays in the entry's state.
+    const table = /^\/t\/([0-9a-f-]{36})\/?$/i.exec(path);
+    if (table) return seatAnew({ at: "table", tableId: table[1] });
+    seatAnew(screenOf(path));
   }
 
   async function registered(client: Client, sealed: Sealed) {
@@ -202,8 +252,8 @@ function Face() {
     const longKey = await held.signing();
     setSeated({ client, keys: new ChatKeys(client, longKey), sealed });
     // The first entry after registration shows the wizard once per device (Ц4); it lands on the feed after.
-    if (!wizardSeen()) return setScreen({ at: "wizard", from: "register" });
-    await land(client);
+    if (!wizardSeen()) return seatAnew({ at: "wizard", from: "register" });
+    await land(client, "/");
   }
 
   // Opened by the PIN: the long key came out of the vault's seal, and the
@@ -219,7 +269,8 @@ function Face() {
     seated.client.statements()
       .then((items) => {
         setStatements(items);
-        if (items.length > 0) setScreen({ at: "statements", from: "feed" });
+        // In the feed's entry, not a new one: a gate, which Back should not reopen.
+        if (items.length > 0) swap({ at: "statements", from: "feed" });
       })
       .catch(() => setStatements([]));
   }, [screen.at, seated, statements]);
@@ -233,16 +284,16 @@ function Face() {
     if (screen.at !== "feed" || !seated || legalChecked === seated.client) return;
     const client = seated.client;
     setLegalChecked(client);
-    void stillToAccept(client).then((left) => { if (left.length > 0) setScreen({ at: "legal" }); });
+    void stillToAccept(client).then((left) => { if (left.length > 0) swap({ at: "legal" }); });
   }, [screen.at, seated, legalChecked]);
 
   // Leaving the feed drops what it said about the last phrase and the last card.
   const leaveFeed = (to: Screen) => {
     setSent(null);
     setGone(null);
-    setScreen(to);
+    go(to);
   };
-  const toFeed = () => setScreen({ at: "feed" });
+  const toFeed = () => back({ at: "feed" });
   // Matches declined in this page's life, kept to be taken back (W17).
   const [declined, setDeclined] = useState<MatchRow[]>([]);
 
@@ -256,7 +307,7 @@ function Face() {
     if (sat.status >= 200 && sat.status < 300) return leaveFeed({ at: "table", tableId: id, from });
     setTableNotice(tableRefusal(sat as never) ?? String(sat.status));
   }
-  const me = () => setScreen({ at: "me" });
+  const me = () => back({ at: "me" });
 
   // The tab bar at the foot, the kit's TabBar: a nav with a name, each tab named
   // by the word under its icon, aria-current on the open one.
@@ -265,7 +316,7 @@ function Face() {
       label={say("web.ui.navMain")}
       data-testid="nav"
       items={[
-        { id: "feed", icon: "feed", label: say("web.nav.feed"), current: screen.at === "feed", onSelect: () => setScreen({ at: "feed" }), testid: "nav-feed" },
+        { id: "feed", icon: "feed", label: say("web.nav.feed"), current: screen.at === "feed", onSelect: () => go({ at: "feed" }), testid: "nav-feed" },
         { id: "tables", icon: "table", label: say("web.nav.tables"), current: screen.at === "tables", onSelect: () => leaveFeed({ at: "tables" }), testid: "nav-tables" },
         { id: "inbox", icon: "say", label: say("web.nav.inbox"), current: screen.at === "inbox", onSelect: () => leaveFeed({ at: "inbox" }), testid: "nav-inbox" },
         { id: "me", icon: "me", label: say("me.title"), current: screen.at === "me", onSelect: () => leaveFeed({ at: "me" }), testid: "tab-me" },
@@ -304,7 +355,7 @@ function Face() {
           <FeedView
             client={seated!.client}
             sealed={seated!.sealed}
-            at={at}
+            at={placeChosen ? at : { ...at, name: say("web.place.none") }}
             radius={radius}
             onRadius={setRadius}
             onOpen={(card) => leaveFeed({ at: "card", card })}
@@ -318,6 +369,18 @@ function Face() {
             gone={gone}
           />
           {nav}
+          <Confirm
+            open={qr !== null}
+            data-testid="qr-sheet"
+            title={qr ? say("web.qr.ask", { where: `${qr.name} · ${STEP_METRES[qr.s - 1] < 1000 ? say("web.feed.m", { n: STEP_METRES[qr.s - 1] }) : say("web.feed.km", { n: STEP_METRES[qr.s - 1] / 1000 })}` }) : ""}
+            consequences={[say("web.qr.what")]}
+            confirmLabel={say("web.qr.put")}
+            cancelLabel={say("web.qr.later")}
+            confirmTestId="qr-put"
+            cancelTestId="qr-later"
+            onConfirm={() => { if (qr) { const { s: _s, ...p } = qr; storePlace(p); choosePlace(p); } }}
+            onClose={() => setQr(null)}
+          />
         </div>
       );
     case "tables":
@@ -353,7 +416,7 @@ function Face() {
           client={seated!.client}
           card={screen.card}
           onBack={toFeed}
-          onTalk={() => setScreen({ at: "inbox" })}
+          onTalk={() => go({ at: "inbox" })}
           onGone={(why, id) => {
             setGone({ why, id });
             toFeed();
@@ -361,7 +424,9 @@ function Face() {
         />
       );
     case "place":
-      return <Place current={at} onChosen={(p) => { setAt(p); toFeed(); }} onBack={toFeed} />;
+      return <Place current={at} onChosen={(p) => { choosePlace(p); toFeed(); }} onBack={toFeed} onQr={() => setScreen({ at: "place-qr" })} />;
+    case "place-qr":
+      return <PlaceQr place={at} onBack={() => setScreen({ at: "place" })} />;
     case "likes":
       return <Likes client={seated!.client} onBack={toFeed} />;
     case "inbox":
@@ -369,8 +434,8 @@ function Face() {
         <div className="ui-tabbed">
           <Inbox
             client={seated!.client}
-            onOpenMatch={(row) => setScreen({ at: "match", row })}
-            onOpenChat={(row) => setScreen({ at: "chat", row })}
+            onOpenMatch={(row) => go({ at: "match", row })}
+            onOpenChat={(row) => go({ at: "chat", row })}
             declined={declined}
             onUndone={(row) => setDeclined((d) => d.filter((x) => x.id !== row.id))}
           />
@@ -383,16 +448,16 @@ function Face() {
           client={seated!.client}
           keys={seated!.keys!}
           row={screen.row}
-          onAgreed={() => setScreen({ at: "inbox" })}
-          onWaiting={() => setScreen({ at: "inbox" })}
-          onBack={() => setScreen({ at: "inbox" })}
+          onAgreed={() => back({ at: "inbox" })}
+          onWaiting={() => back({ at: "inbox" })}
+          onBack={() => back({ at: "inbox" })}
           onDeclined={(row, on) => setDeclined((d) => (on ? [...d.filter((x) => x.id !== row.id), row] : d.filter((x) => x.id !== row.id)))}
         />
       );
     case "chat":
-      return <ChatView client={seated!.client} keys={seated!.keys!} row={screen.row} onBack={() => setScreen({ at: "inbox" })} />;
+      return <ChatView client={seated!.client} keys={seated!.keys!} row={screen.row} onBack={() => back({ at: "inbox" })} />;
     case "statements":
-      return <Statements items={statements ?? []} onDone={screen.from === "me" ? me : toFeed} />;
+      return <Statements items={statements ?? []} onDone={screen.from === "me" ? me : () => swap({ at: "feed" })} />;
     case "me":
       return (
         <div className="ui-tabbed">
@@ -400,19 +465,19 @@ function Face() {
             client={seated!.client}
             restrictions={statements?.length ?? 0}
             refresh={edits}
-            onBack={toFeed}
+            onBack={() => go({ at: "feed" })}
             onOpen={(row: MeRow, current) => {
-              if (row === "statements") return setScreen({ at: "statements", from: "me" });
-              if (row === "name" || row === "age") return setScreen({ at: "edit", field: row, current: current ?? "" });
-              if (row === "away") return setScreen({ at: "step-away" });
-              if (row === "pin") return setScreen({ at: "change-pin" });
-              if (row === "move") return setScreen({ at: "departure" });
-              if (row === "hidden") return setScreen({ at: "hidden" });
-              if (row === "blocked") return setScreen({ at: "blocked" });
-              if (row === "reissue") return setScreen({ at: "reissue" });
-              if (row === "wizard") return setScreen({ at: "wizard", from: "me" });
-              if (row === "theme") return setScreen({ at: "theme" });
-              setScreen({ at: "reset" });
+              if (row === "statements") return go({ at: "statements", from: "me" });
+              if (row === "name" || row === "age") return go({ at: "edit", field: row, current: current ?? "" });
+              if (row === "away") return go({ at: "step-away" });
+              if (row === "pin") return go({ at: "change-pin" });
+              if (row === "move") return go({ at: "departure" });
+              if (row === "hidden") return go({ at: "hidden" });
+              if (row === "blocked") return go({ at: "blocked" });
+              if (row === "reissue") return go({ at: "reissue" });
+              if (row === "wizard") return go({ at: "wizard", from: "me" });
+              if (row === "theme") return go({ at: "theme" });
+              go({ at: "reset" });
             }}
           />
           {nav}
@@ -421,19 +486,19 @@ function Face() {
     case "edit":
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
     case "wizard":
-      return <Wizard onDone={() => { markWizardSeen(); if (screen.from === "me") me(); else void land(seated!.client); }} />;
+      return <Wizard onPlace={choosePlace} onDone={() => { markWizardSeen(); if (screen.from === "me") me(); else void land(seated!.client, "/"); }} />;
     case "legal":
-      return <Legal client={seated!.client} onDone={toFeed} />;
+      return <Legal client={seated!.client} onDone={() => swap({ at: "feed" })} />;
     case "theme":
       return <ThemePicker onBack={me} />;
     case "change-pin":
       return <ChangePin client={seated!.client} onBack={me} />;
     case "new-table":
-      return <NewTable client={seated!.client} at={at} radius={radius} onMade={(id) => setScreen({ at: "table", tableId: id, from: screen.from })} onBack={() => setScreen({ at: screen.from })} />;
+      return <NewTable client={seated!.client} at={at} radius={radius} onMade={(id) => swap({ at: "table", tableId: id, from: screen.from })} onBack={() => back({ at: screen.from })} />;
     case "table":
       {
         // Back and leave both return to where the table was opened from; back keeps the seat (TB1).
-        const away = () => { history.replaceState(null, "", "/"); setScreen({ at: screen.from ?? "feed" }); };
+        const away = () => back({ at: screen.from ?? "feed" });
         return <Table client={seated!.client} tableId={screen.tableId} onLeave={away} onBack={away} />;
       }
     case "hidden":
@@ -443,7 +508,7 @@ function Face() {
     case "departure":
       // Moved away: the node froze this session with the approval, and the
       // device keeps nothing of the identity any more.
-      return <Departure client={seated!.client} onBack={me} onGone={() => { void forget().then(() => { setSeated(null); setStatements(null); setScreen({ at: "splash" }); }); }} />;
+      return <Departure client={seated!.client} onBack={me} onGone={() => { void forget().then(() => { unseat(); setSeated(null); setStatements(null); setScreen({ at: "splash" }); }); }} />;
     case "reissue":
       return <Reissue client={seated!.client} onDone={me} onBack={me} />;
     case "reset":
@@ -453,6 +518,7 @@ function Face() {
           onBack={me}
           onClosed={() => {
             // Everything this page knew belonged to the closed identity.
+            unseat();
             setSeated(null);
             setStatements(null);
             setScreen({ at: "splash" });
@@ -460,8 +526,8 @@ function Face() {
         />
       );
     case "step-away":
-      return <StepAway client={seated!.client} onGone={(until) => setScreen({ at: "away", until })} onBack={me} />;
+      return <StepAway client={seated!.client} onGone={(until) => swap({ at: "away", until })} onBack={me} />;
     case "away":
-      return <Away client={seated!.client} until={screen.until} onBack={toFeed} />;
+      return <Away client={seated!.client} until={screen.until} onBack={() => swap({ at: "feed" })} />;
   }
 }

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { say } from "../locales/say.ts";
 
 // Board `dots` (kit_RU.md §3.3, К6): a group of free edges, each a button whose
@@ -37,7 +38,7 @@ export function DotsGrid({ label, n, free, boxes, who, mine, onEdge }: {
     }
   }
   return (
-    <svg className="ui-board" width={size} height={size} role="group" aria-label={label} data-testid="dots">
+    <svg className="ui-board" width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="group" aria-label={label} data-testid="dots">
       {Object.entries(boxes).map(([box, seat]) => {
         const [r, c] = box.split(":").map(Number);
         const name = who(seat);
@@ -78,10 +79,43 @@ export function DotsGrid({ label, n, free, boxes, who, mine, onEdge }: {
 // Board `cells` (К6): the 8×8 as text for the eye, and a description of the
 // position for a screen reader — `img` named «доска: e2 P, e7 p, …», so the
 // glyph grid is not read cell by cell.
-export function CellsGrid({ label, rows, described }: { label: string; rows: readonly (readonly string[])[]; described: readonly string[] }) {
+export function CellsGrid({ label, rows, described, ...rest }: {
+  label: string;
+  rows: readonly (readonly string[])[];
+  described: readonly string[];
+  // `data-*` pass through (the specs find a board by them).
+  [data: `data-${string}`]: string | undefined;
+}) {
   return (
-    <pre className="ui-board-cells" role="img" aria-label={described.length ? `${label}: ${described.join(", ")}` : label}>
+    <pre {...rest} className="ui-board-cells" role="img" aria-label={described.length ? `${label}: ${described.join(", ")}` : label}>
       {rows.map((row) => row.join(" ")).join("\n")}
     </pre>
+  );
+}
+
+// Board `tap` (reversi, battleship, four in a row's columns): a grid whose
+// cells are buttons, each named in words («c4: свободно»), a tap sending the
+// move that cell stands for. A cell with no `onTap` (taken, already shot, not
+// one's turn) stays as a disabled button, so the position reads whole. A cell
+// is small by the board's own exception to 44, as the dots' edges are: ten
+// across a phone is about 30. `tone` is for the CSS (whose piece, what the
+// shot found), `data-cell` for the specs.
+export type TapCell = { id: string; glyph: string; name: string; tone?: string; onTap?: () => void };
+
+export function TapGrid({ label, cols, cells, ...rest }: {
+  label: string;
+  cols: number;
+  cells: readonly TapCell[];
+  [data: `data-${string}`]: string | undefined;
+}) {
+  return (
+    <div {...rest} role="group" aria-label={label} className="ui-board-tap" style={{ "--cols": cols } as CSSProperties}>
+      {cells.map((cell) => (
+        <button key={cell.id} type="button" className="ui-board-tap-cell" data-cell={cell.id} data-tone={cell.tone}
+          aria-label={cell.name} disabled={!cell.onTap} onClick={cell.onTap}>
+          <span aria-hidden="true">{cell.glyph}</span>
+        </button>
+      ))}
+    </div>
   );
 }

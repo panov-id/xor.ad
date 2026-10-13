@@ -16,7 +16,7 @@ import { say } from "../../locales/say.ts";
 import { Feed, type FeedCard } from "../../screens/Feed.tsx";
 import { CardOpen, openerIds } from "../../ui/Card.tsx";
 import { Card, CardExtras, CardMore, CardNotes, CardTalk } from "../../screens/Card.tsx";
-import { Life, Match, MatchBody } from "../../screens/Match.tsx";
+import { Match, MatchBody, MatchHero } from "../../screens/Match.tsx";
 import { useCard } from "../../screens/logic/useCard.ts";
 import { useMatch } from "../../screens/logic/useMatch.ts";
 import { Button } from "../../ui/Button.tsx";
@@ -77,8 +77,8 @@ const UNDO_S = 5;
 function Sticker({ card, index, open }: { card: FeedCard; index: number; open: () => void }) {
   // A venue's offer (sheets adaptive-neighbro-feed, 11.10.2026): the discount as an accent tag stuck on
   // the card, the venue and what, the conditions muted; no mode and no like.
-  if (card.kind === "offer" && card.offer) return (
-    <li className={`sticker sticker-offer${index % 2 ? " lean-r" : " lean-l"}`} data-testid="card" data-id={card.id} data-kind="offer">
+  if (card.offer) return (
+    <li className={`sticker sticker-offer${index % 2 ? " lean-r" : " lean-l"}`} data-testid="card" data-id={card.id} data-kind={card.kind === "offer" ? "offer" : undefined}>
       <CardOpen id={card.id} onOpen={open} />
       <span className="ui-offer sticker-offer-tag" data-testid="offer">−{card.offer.discount_value}</span>
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.offer.venue_name ? `${card.offer.venue_name}: ` : ""}{card.text}</p>
@@ -92,7 +92,6 @@ function Sticker({ card, index, open }: { card: FeedCard; index: number; open: (
       data-id={card.id}
     >
       <CardOpen id={card.id} onOpen={open} />
-      {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="sticker-foot" id={openerIds(card.id).foot}>
         <span className="ui-icon-row"><Icon name={modeIcon(card.mode)} size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
@@ -232,52 +231,42 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
       )}
       <span className="visually-hidden" role="status" data-testid="heart-said">{said}</span>
       <CardNotes logic={actions} />
-      <div className="heart-pad">
-        <button
-          ref={heartButton}
-          type="button"
-          className={`heart-sticker${armed ? " armed" : ""}${placed ? " used" : ""}`}
-          aria-label={say("web.card.heart")}
-          aria-pressed={armed}
-          disabled={placed || busy}
-          data-testid="heart"
-          {...heart}
-        >
-          <Icon name="like" size={36} />
-        </button>
-        {drag && <span className="heart-ghost" aria-hidden="true" style={{ left: drag.x, top: drag.y }}><Icon name="like" size={40} /></span>}
-        <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={hideCard} data-testid="hide" />
-      </div>
-      <CardTalk logic={actions} onTalk={onTalk} />
       <CardExtras card={card} logic={actions} />
+      {/* the capsule at the screen's foot (sheet adaptive-neighbro-card-393: 361×60 at y 755): the heart and «hide» */}
+      <div data-part="foot">
+        <CardTalk logic={actions} onTalk={onTalk}>
+          <div className="heart-pad">
+            <button
+              ref={heartButton}
+              type="button"
+              className={`heart-sticker${armed ? " armed" : ""}${placed ? " used" : ""}`}
+              aria-label={say("web.card.heart")}
+              aria-pressed={armed}
+              disabled={placed || busy}
+              data-testid="heart"
+              {...heart}
+            >
+              <Icon name="like" size={36} />
+            </button>
+            {drag && <span className="heart-ghost" aria-hidden="true" style={{ left: drag.x, top: drag.y }}><Icon name="like" size={40} /></span>}
+            <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={hideCard} data-testid="hide" />
+          </div>
+        </CardTalk>
+      </div>
     </Screen>
   );
 }
 
-// Match.svg: two hearts over the two phrases.
 export function MatchView(props: ComponentProps<typeof Match>) {
   const { client, keys, row, onAgreed, onWaiting, onBack, onDeclined } = props;
   const logic = useMatch({ client, keys, row, onAgreed, onDeclined });
-  const { theirs, mine, waiting, gone } = logic;
+  const { theirs, waiting, gone } = logic;
+  // Sheet adaptive-neighbro-match-393: «offer» in the header, two like marks side by side, the name
+  // big under them, the capsule at the foot; the phrase that matched is a quiet line, not a card.
   return (
     <Screen name="match" title={`${row.name}, ${row.age}`} className="b-stickers" data-id={row.id} data-waiting={waiting ? "yes" : "no"} data-gone={gone ? "yes" : "no"}
-      header={<HeaderScreen title={`${row.name}, ${row.age}`} onBack={onBack} backLabel={say("common.back")} />}>
-      <div className="sticker-hero" data-testid="match-hero" aria-hidden="true">
-        <span className="hero-heart hero-heart-a"><Icon name="like" size={64} /></span>
-        <span className="hero-heart hero-heart-b"><Icon name="like" size={64} /></span>
-      </div>
-      {mine && (
-        <section className="sticker-quote" data-part="mine" data-testid="match-mine">
-          <p>{mine.text}</p>
-          <Life end={mine.expires_at} tone="mine" />
-        </section>
-      )}
-      <section className="sticker-quote" data-part="theirs">
-        <strong>{row.name}, {row.age}</strong>
-        <span className="ui-hint">{modeLabel(row.phrase.mode)}</span>
-        <p>{row.phrase.text}</p>
-        <Life end={theirs.expires_at} tone="theirs" />
-      </section>
+      header={<HeaderScreen title={say("web.inbox.offer")} onBack={onBack} backLabel={say("common.back")} />}>
+      <MatchHero row={row} end={theirs.expires_at} />
       <MatchBody row={row} keys={keys} logic={logic} onBack={onBack} onWaiting={onWaiting} />
     </Screen>
   );

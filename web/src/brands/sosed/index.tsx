@@ -11,7 +11,7 @@ import { say } from "../../locales/say.ts";
 import { Feed, type FeedCard } from "../../screens/Feed.tsx";
 import { CardOpen, openerIds } from "../../ui/Card.tsx";
 import { Card, CardExtras, CardMore, CardNotes, CardTalk } from "../../screens/Card.tsx";
-import { Life, Match, MatchBody } from "../../screens/Match.tsx";
+import { Match, MatchBody, MatchHero } from "../../screens/Match.tsx";
 import { useCard } from "../../screens/logic/useCard.ts";
 import { useMatch } from "../../screens/logic/useMatch.ts";
 import { Button } from "../../ui/Button.tsx";
@@ -73,23 +73,21 @@ const likesOf = (n: number) => (
 function Tile({ card, index, open }: { card: FeedCard; index: number; open: () => void }) {
   // A venue's offer (sheets adaptive-sosed-feed, 11.10.2026): on the surface, the discount big in
   // accent-text, the venue and what, the conditions small; no mode and no like — it is no neighbour's phrase.
-  if (card.kind === "offer" && card.offer) return (
-    <li className="tile tile-offer" data-testid="card" data-id={card.id} data-kind="offer">
+  if (card.offer) return (
+    <li className="tile tile-offer" data-testid="card" data-id={card.id} data-kind={card.kind === "offer" ? "offer" : undefined}>
       <CardOpen id={card.id} onOpen={open} />
       <span className="ui-offer tile-offer-value" data-testid="offer">−{card.offer.discount_value}</span>
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.offer.venue_name ? `${card.offer.venue_name}: ` : ""}{card.text}</p>
       <span className="tile-foot ui-hint" id={openerIds(card.id).foot}>{card.offer.conditions ?? ""}</span>
     </li>
   );
-  const wide = index % 5 === 0;
   return (
     <li
-      className={`tile tile-c${(index % 4) + 1}${wide ? " tile-wide" : ""}`}
+      className={`tile tile-c${(index % 4) + 1}`}
       data-testid="card"
       data-id={card.id}
     >
       <CardOpen id={card.id} onOpen={open} />
-      {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="tile-foot" id={openerIds(card.id).foot}>
         <span className="ui-icon-row"><Icon name={modeIcon(card.mode)} size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
@@ -123,7 +121,7 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
         <HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} action={
           /* «…» holds block, complaint, link report (card-more.svg); the details toggle is the swipe-down's button twin. */
           <span className="ui-icon-row">
-            <Button type="button" icon={peek ? "back" : "open"} className={`block-peek-btn${peek ? " up" : ""}`} aria-label={say("web.card.details")} aria-expanded={peek}
+            <Button type="button" icon={peek ? "back" : "open"} className={`block-peek-btn ui-plain${peek ? " up" : ""}`} aria-label={say("web.card.details")} aria-expanded={peek}
               onClick={() => setPeek((p) => !p)} data-testid="peek" />
             <CardMore card={card} logic={logic} />
           </span>
@@ -143,7 +141,6 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
         </section>
       )}
       <div className="block-stack">
-        <div className="block-behind" aria-hidden="true" />
         <article
           className="block-card"
           data-testid="swipe-card"
@@ -161,38 +158,30 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
       </div>
       {!peek && card.offer?.conditions && <p className="ui-hint" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
       <CardNotes logic={logic} />
-      <CardTalk logic={logic} onTalk={onTalk}>
-        <Split>
-          <Button type="button" kind="primary" icon="like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" data-lit={liked ? "" : undefined} aria-pressed={liked} />
-          <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={() => void hide()} data-testid="hide" />
-        </Split>
-      </CardTalk>
       <CardExtras card={card} logic={logic} />
+      {/* the capsule at the screen's foot (sheet adaptive-sosed-card-393: y 755 of 851) */}
+      <div data-part="foot">
+        <CardTalk logic={logic} onTalk={onTalk}>
+          <Split>
+            <Button type="button" kind="primary" icon="like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" data-lit={liked ? "" : undefined} aria-pressed={liked} />
+            <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={() => void hide()} data-testid="hide" />
+          </Split>
+        </CardTalk>
+      </div>
     </Screen>
   );
 }
 
-// Match.svg: two tilted tiles, the accent medallion with a surface ring and
-// the heart over them; then the cards and the shared body.
 export function MatchView(props: ComponentProps<typeof Match>) {
   const { client, keys, row, onAgreed, onWaiting, onBack, onDeclined } = props;
   const logic = useMatch({ client, keys, row, onAgreed, onDeclined });
-  const { theirs, mine, waiting, gone } = logic;
+  const { theirs, waiting, gone } = logic;
+  // Sheet adaptive-sosed-match-393: «offer» in the header, two like marks side by side, the name
+  // big under them, the capsule at the foot; the phrase that matched is a quiet line, not a card.
   return (
     <Screen name="match" title={`${row.name}, ${row.age}`} className="b-blocks" data-id={row.id} data-waiting={waiting ? "yes" : "no"} data-gone={gone ? "yes" : "no"}
-      header={<HeaderScreen title={`${row.name}, ${row.age}`} onBack={onBack} backLabel={say("common.back")} />}>
-      <div className="block-hero" data-testid="match-hero" aria-hidden="true">
-        <span className="hero-tile hero-tile-a" />
-        <span className="hero-tile hero-tile-b" />
-        <span className="hero-medal"><Icon name="like" size={56} /></span>
-      </div>
-      {mine && <section className="block-quote block-mine" data-part="mine" data-testid="match-mine"><p>{mine.text}</p><Life end={mine.expires_at} tone="mine" /></section>}
-      <section className="block-quote" data-part="theirs">
-        <strong>{row.name}, {row.age}</strong>
-        <span className="ui-hint">{modeLabel(row.phrase.mode)}</span>
-        <p>{row.phrase.text}</p>
-        <Life end={theirs.expires_at} tone="theirs" />
-      </section>
+      header={<HeaderScreen title={say("web.inbox.offer")} onBack={onBack} backLabel={say("common.back")} />}>
+      <MatchHero row={row} end={theirs.expires_at} />
       <MatchBody row={row} keys={keys} logic={logic} onBack={onBack} onWaiting={onWaiting} />
     </Screen>
   );

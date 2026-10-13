@@ -31,10 +31,14 @@ test("a device raised by the paper code changes its PIN and opens with the new o
   await page.getByTestId("pin-go").click();
   await expect(page.getByTestId("pin-changed")).toContainText("ПИН сменён.", { timeout: 30000 });
 
+  await page.getByTestId("pin-back").click();
   await page.evaluate(() => sessionStorage.clear());
   await page.reload();
   const before = feed.length;
   await unlock(page, "135792");
+  // The reload was on /me: "me" opens (router.ts); the feed is a tab away.
+  await expect(page.locator('[data-screen="me"]')).toBeVisible({ timeout: 30000 });
+  await page.getByTestId("nav-feed").click();
   await expect(page.locator('[data-screen="feed"]')).toHaveAttribute("data-sealed", "unlocked", { timeout: 30000 });
   await expect(page.getByTestId("loading")).toBeHidden({ timeout: 15000 });
   expect(feed.length).toBeGreaterThan(before);

@@ -28,7 +28,9 @@ export function classWord(klass: string): string {
 // The set of a table by its dictionary name («колода из 36 карт»), never its id
 // («36»). The ids are the node's (relay/node/src/lib/tables_*.ts, listed in
 // screens/NewTable.tsx CLASSES): "3x3" "2x2" "4x4" for dots, "checkers" "chess",
-// "36", "ru", "backgammon", "double-six", "chapayev". An id with no word shows as itself.
+// "reversi" "four" "battleship" for grid, "36" (durak) "poker" for deck, a
+// language code ("ru", "en", …) for word, "backgammon", "double-six",
+// "chapayev". An id with no word shows as itself.
 export function setWord(set: string): string {
   const square = /^(\d+)x\1$/.exec(set);
   if (square) return say("web.set.field", { n: square[1] });
@@ -37,13 +39,15 @@ export function setWord(set: string): string {
   return word === key ? set : word;
 }
 
-// A card as the node deals it (lib/tables_deck.ts:12-13): a rank "6".."10",
-// "J" "Q" "K" "A" and a suit "S" "H" "D" "C", so "QS" or "10H". Spoken in words
-// («дама пик»); a string that is not a card shows as it came.
+// A card as the node deals it (lib/tables_deck.ts:12-13, lib/tables_poker.ts:20):
+// a rank "2".."10", "J" "Q" "K" "A" and a suit "S" "H" "D" "C", so "QS" or
+// "10H" — except that poker writes the ten as "T" ("TS"). Durak plays 6..A,
+// poker 2..A. Spoken in words («дама пик»); a string that is not a card shows
+// as it came.
 export function cardWord(card: string): string {
-  const m = /^(10|[6-9JQKA])([SHDC])$/.exec(card);
+  const m = /^(10|[2-9TJQKA])([SHDC])$/.exec(card);
   if (!m) return card;
-  return say("web.table.cardName", { rank: say(`web.rank.${m[1]}`), suit: say(`web.suit.${m[2]}`) });
+  return say("web.table.cardName", { rank: say(`web.rank.${m[1] === "T" ? "10" : m[1]}`), suit: say(`web.suit.${m[2]}`) });
 }
 
 // A die face 1..6 (lib/tables_dice.ts) as a number word («пять»).

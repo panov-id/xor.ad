@@ -21,17 +21,29 @@ test("a Russian browser reads Russian", async ({ page }) => {
   await expect(page.getByTestId("tab-me")).toHaveAccessibleName("я");
 });
 
-// WP-3: the person chooses, and the choice is kept on this device — a Russian
-// browser that picks Ukrainian on the splash reads Ukrainian, and still does
-// after a reload, where the browser alone would have brought Russian back.
-test("the splash's corner chooses the language, and the choice outlives a reload", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Что говорят соседи рядом." })).toBeVisible();
-  await page.getByTestId("lang").locator("select").selectOption("uk");
-  await expect(page.getByRole("heading", { name: "Що кажуть сусіди поруч." })).toBeVisible();
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Що кажуть сусіди поруч." })).toBeVisible();
-  await expect(page.getByTestId("lang").locator("select")).toHaveValue("uk");
+// WP-3: the person chooses, and the choice is kept on this device. Since 12.10.2026 the choice is the splash's
+// first list (sheet adaptive-*-splash-lang): a Russian browser sees Russian ticked, picks Ukrainian, reads
+// Ukrainian, and still does after a reload, where the browser alone would have brought Russian back; the list
+// does not come again.
+test.describe("a device that has not been asked", () => {
+  test.use({ langAsked: false });
+  test("the splash's list chooses the language, and the choice outlives a reload", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByTestId("lang-ru")).toHaveAttribute("aria-current", "true");
+    await expect(page.getByTestId("start")).toHaveCount(0);
+    await page.getByTestId("lang-uk").click();
+    await expect(page.getByRole("heading", { name: "Що кажуть сусіди поруч." })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Що кажуть сусіди поруч." })).toBeVisible();
+    await expect(page.getByTestId("lang")).toHaveCount(0);
+  });
+  test("one tap on the ticked language keeps it and opens the splash, no reload", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("lang-ru").click();
+    await expect(page.getByRole("heading", { name: "Что говорят соседи рядом." })).toBeVisible();
+    await page.reload();
+    await expect(page.getByTestId("start")).toBeVisible();
+  });
 });
 
 // From "me": every language both dictionaries know is offered, and choosing one
@@ -44,5 +56,7 @@ test("me: the language row offers every language and reloads the page in the cho
   await page.getByTestId("lang-en").click();
   await unlock(page, PIN);
   await expect(page.getByTestId("tab-me")).toHaveAccessibleName("me");
+  // The reload was on /me: "me" opens (router.ts); "write" is the feed's.
+  await page.getByTestId("nav-feed").click();
   await expect(page.getByTestId("write")).toHaveAccessibleName("write");
 });

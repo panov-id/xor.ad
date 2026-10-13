@@ -40,14 +40,39 @@ export function chosenLanguage(): string | null {
 // screens render, and some are held by the screens in state. A reload asks for
 // the PIN again (the keys are not kept across one); a language is changed
 // rarely, and a half-translated page is worse.
-export function chooseLanguage(lang: string): void {
-  if (!LANGUAGES.includes(lang) || lang === LANG) return;
+// True when the page reloads in the new language.
+export function chooseLanguage(lang: string): boolean {
+  if (!LANGUAGES.includes(lang) || lang === LANG) return false;
   try {
     storage()?.setItem(CHOSEN_KEY, lang);
   } catch {
-    return; // nowhere to keep it: a reload would come back to the browser's language
+    return false; // nowhere to keep it: a reload would come back to the browser's language
   }
   location.reload();
+  return true;
+}
+
+// The language list comes first, once per device (sheet adaptive-*-splash-lang, owner 12.10.2026): the browser's
+// language stands ticked, one tap keeps it. "lang-asked" says the list was passed; storage that throws reads as
+// asked, so a blocked device is never held on the list.
+const ASKED_KEY = "lang-asked";
+export function languageAsked(): boolean {
+  try {
+    const s = storage();
+    return s === null || s.getItem(ASKED_KEY) === "1";
+  } catch {
+    return true;
+  }
+}
+// Keeps the person's language from the list. The same as the page speaks: true, nothing to reload. Another: the
+// page reloads in it (chooseLanguage) and this returns false.
+export function keepLanguage(lang: string): boolean {
+  try {
+    storage()?.setItem(ASKED_KEY, "1");
+  } catch { /* nowhere to keep it: the list is passed for this visit */ }
+  // A storage that will not keep the choice (quota, a private window) must not hold the person on the list:
+  // no reload, the splash opens in the page's language (review 12.10).
+  return !chooseLanguage(lang);
 }
 
 // A language named in itself — "Українська", "Қазақша" — from its own

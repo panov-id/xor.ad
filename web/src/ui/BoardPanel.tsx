@@ -15,8 +15,10 @@ export type PanelTurn = {
   time?: string;
 };
 
-export function BoardPanel({ seats, seatedLabel, turn, children, ...rest }:
-  { seats: PanelSeat[]; seatedLabel: string; turn: PanelTurn; children?: ReactNode } & { [data: `data-${string}`]: string | undefined }) {
+export function BoardPanel({ seats, seatedLabel, turn, landed, children, ...rest }:
+  { seats: PanelSeat[]; seatedLabel: string; turn: PanelTurn; children?: ReactNode;
+    /** What lands on a seat's cell for a moment (a sticker said at the table). */
+    landed?: { seat: number; node: ReactNode } } & { [data: `data-${string}`]: string | undefined }) {
   return (
     <section {...rest} className="ui-boardpanel" aria-label={seatedLabel}>
       <span className="visually-hidden">{seatedLabel}: {seats.map((s) => s.name).join(" · ")}</span>
@@ -25,6 +27,7 @@ export function BoardPanel({ seats, seatedLabel, turn, children, ...rest }:
           <li key={s.seat} className="ui-boardpanel-cell" data-seat={s.seat}>
             <span>{s.name}</span>
             {s.score !== undefined && <strong className="ui-boardpanel-score">{s.score}</strong>}
+            {landed?.seat === s.seat && landed.node}
           </li>
         ))}
         <li className="ui-boardpanel-cell ui-boardpanel-turn" data-testid={turn.testid} data-mine={turn.mine ? "yes" : "no"}>

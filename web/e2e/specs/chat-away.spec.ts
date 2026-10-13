@@ -147,7 +147,7 @@ test("the other side's step away marks the header until their next line, and a t
   await expect(anya.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 20000 });
   await anya.getByTestId("unlock-pin").fill("246813");
   await anya.getByTestId("unlock").click();
-  await expect(anya.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
+  await expect(anya.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 30000 });  // the reload was on /chat: its tab
   await openChat(anya);
   await expect(anya.getByTestId("missed")).toHaveCount(0);
   await expect(anya.locator('[data-screen="chat"]')).toHaveAttribute("data-missed", "no");

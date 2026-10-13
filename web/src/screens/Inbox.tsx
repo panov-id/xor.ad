@@ -23,7 +23,6 @@ import { List, ListItem } from "../ui/List.tsx";
 import { UndoRow } from "../ui/Message.tsx";
 import { EmptyState } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
-import { Tabs } from "../ui/Tabs.tsx";
 import { lifeOf } from "../../../depth/core/life.ts";
 import { Life } from "./Match.tsx";
 
@@ -123,7 +122,6 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
     }
   }
   const [rows, setRows] = useState<InboxRow[]>([]);
-  const [tab, setTab] = useState<"offers" | "chats" | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -153,11 +151,11 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
 
   const matches = rows.filter((r): r is MatchRow => r.kind === "match");
   const chats = rows.filter((r): r is InboxChatRow => r.kind === "chat");
-  const shown = tab ?? (chats.length > 0 ? "chats" : "offers");
+  const gone = declined.filter((d) => !matches.some((m) => m.id === d.id));
   const title = say("web.inbox.title");
   const offers = (
     <List label={say("web.inbox.offers")} data-testid="matches">
-      {shown === "offers" && matches.map((m) => (
+      {matches.map((m) => (
         // The whole row is the press (RowList): a transparent opener covers the card, no button inside it.
         <Card as="li" key={m.id} kind="nested" data-testid="match" data-id={m.id}>
           <CardOpen id={`match-${m.id}`} onOpen={() => onOpenMatch(m)} testid="open-match" />
@@ -170,7 +168,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
           <span className="ui-hint" id={openerIds(`match-${m.id}`).foot}>{m.waiting_for_you ? say("web.inbox.waits_you") : say("web.inbox.offer")}</span>
         </Card>
       ))}
-      {shown === "offers" && declined.filter((d) => !matches.some((m) => m.id === d.id)).map((d) => (
+      {gone.map((d) => (
         <Card as="li" key={d.id} kind="nested" data-testid="match" data-id={d.id} data-declined="yes">
           <strong>{d.name}, {d.age}</strong>
           <p>{d.phrase.text}</p>
@@ -183,7 +181,7 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
   // «ждёт вас» on the right when replies wait.
   const conversations = (
     <List label={say("web.inbox.chats")} data-testid="chats">
-      {shown === "chats" && chats.map((c) => (
+      {chats.map((c) => (
         <ListItem key={c.id} data-testid="chat" data-id={c.id} data-state={c.state}>
           <ChatRowButton
             name={`${c.name}, ${c.age}`}
@@ -208,22 +206,10 @@ export function Inbox({ client, onOpenMatch, onOpenChat, declined = [], onUndone
       {state === "ready" && rows.length === 0 && (
         <EmptyState title={say("web.inbox.empty")} line={say("web.inbox.empty_hint")} data-testid="quiet" />
       )}
-      {/* Two tabs, as the bottom row of screen-20-21-22-24: offers to talk and
-          conversations; a tab that holds something new since the last look says
-          «новое» in its name and wears the dot. It opens on the conversations
-          when there are any. */}
-      {rows.length + declined.length > 0 && (
-        <Tabs
-          label={title}
-          value={shown}
-          onChange={(id) => setTab(id as "offers" | "chats")}
-          tabs={[
-            { id: "offers", label: say("web.inbox.offers"), fresh: matches.some(isFresh), testid: "tab-offers" },
-            { id: "chats", label: say("web.inbox.chats"), fresh: chats.some(isFresh), testid: "tab-chats" },
-          ]}
-          panels={{ offers, chats: conversations }}
-        />
-      )}
+      {/* Sheets adaptive-*-inbox-393: no tabs — the offers to talk, then the conversations, each a
+          panel of 64 rows welded together. */}
+      {matches.length + gone.length > 0 && offers}
+      {chats.length > 0 && conversations}
       {state === "loading" && <p className="ui-hint" data-testid="loading">…</p>}
     </Screen>
   );

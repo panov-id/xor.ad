@@ -16,9 +16,7 @@
   background-image: linear-gradient(to right, transparent calc(100% - 1px), var(--panel) 0);
   background-size: calc(100% / 6) 100%; background-repeat: repeat-x;
 }
-.ui-pinpair { display: flex; flex-direction: column; gap: 1px; }
-.ui-pinpair > .ui-field:first-child .ui-pin-strip.ui-input { border-end-start-radius: 0; border-end-end-radius: 0; }
-.ui-pinpair > .ui-field + .ui-field .ui-pin-strip.ui-input { border-start-start-radius: 0; border-start-end-radius: 0; }
+.ui-pinpair { display: flex; flex-direction: column; gap: 10px; }
 
 /* CodePlate: groups on one plate, a 1px seam between. */
 .ui-code-row { gap: 1px; flex-wrap: nowrap; border-radius: calc(var(--control-h, 48px) / 2); overflow: hidden; background: var(--panel); }
@@ -27,4 +25,195 @@
 .ui-codeplate > span { flex: 1; text-align: center; padding: var(--s-2) var(--s-1); background: var(--surface); white-space: pre; }
 .ui-cells .ui-cell-group { display: flex; gap: var(--cell-gap, 4px); }
 .ui-cell-group + .ui-cell-group { margin-inline-start: var(--cell-gap, 4px); }
+
+/* The entry as the adaptive sheets draw it (adaptive-*-register-*, 12.10.2026): the step capsule
+   on top instead of a header bar, the card 16 from the edge, its head a band (sosed) or a disc
+   (neighbro), the fields as rows over a rule, the box 32, the one primary 64/60 at the foot. */
+:is([data-screen^="register-"], [data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"]).screen { padding: 10px var(--s-4) 32px; gap: 10px; }
+.ui-steps { inline-size: 132px; block-size: 20px; padding: 4px; border-radius: 10px; background: var(--surface-2); box-sizing: border-box; }
+.ui-steps { display: flex; gap: 4px; }
+.ui-steps > span { display: block; flex: none; inline-size: calc((100% - (var(--of, 3) - 1) * 4px) / var(--of, 3)); block-size: 12px; border-radius: 6px; background: var(--accent); }
+.ui-steps > span:nth-child(2) { background: var(--tile-2); }
+.ui-steps > span:nth-child(3) { background: var(--tile-3); }
+:root[data-brand="neighbro"] .ui-steps { background: var(--surface); }
+
+/* The head's colour is the screen's, as the sheets give it, from the theme's tiles. */
+:root[data-brand="sosed"] [data-screen="register-1"] { --head: var(--accent); --head-ink: var(--accent-fg); }
+/* The ink on a tile is the theme's own for that tile (--tile-N-ink): the accent's ink failed 3:1 on some (review 12.10). */
+:root[data-brand="sosed"] [data-screen="register-2"] { --head: var(--tile-1); --head-ink: var(--tile-1-ink); }
+:root[data-brand="sosed"] :is([data-screen="register-3"], [data-screen="restore"]) { --head: var(--tile-3); --head-ink: var(--tile-3-ink); }
+:root[data-brand="sosed"] [data-screen="arrival"] { --head: var(--tile-4); --head-ink: var(--tile-4-ink); }
+:root[data-brand="sosed"] [data-screen="unlock"] { --head: var(--tile-2); --head-ink: var(--tile-2-ink); }
+:root[data-brand="neighbro"] [data-screen="register-1"] { --head: var(--tile-2); }
+:root[data-brand="neighbro"] [data-screen="register-2"] { --head: var(--tile-3); }
+:root[data-brand="neighbro"] :is([data-screen="register-3"], [data-screen="restore"]) { --head: var(--tile-1); }
+:root[data-brand="neighbro"] [data-screen="arrival"] { --head: var(--tile-2); }
+:root[data-brand="neighbro"] [data-screen="unlock"] { --head: var(--tile-4); }
+
+/* The reason under a closed primary, after a press on it: the error colour and a short nudge. */
+.ui-reason[data-pressed="yes"] { color: var(--err); font-weight: 600; animation: ui-nudge 320ms ease-out; }
+@keyframes ui-nudge { 0%, 100% { transform: none; } 25% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+@media (prefers-reduced-motion: reduce) { .ui-reason[data-pressed="yes"] { animation: none; } }
+
+/* The PIN is a row like any field: six cells across it, each a short rule under its dot, so the empty field
+   shows where the six digits go (round 1: «no field at all» at every width). The row is the container: a cell
+   is a sixth of what «показать» leaves, the dots stand in the cells' middles (a mono glyph is 0.6em wide). */
+.ui-form-card .ui-pin-row { container-type: inline-size; gap: 8px; }
+.ui-form-card .ui-pin-row > .ui-button { flex: none; inline-size: 88px; min-inline-size: 0; justify-content: flex-end; }
+.ui-form-card .ui-pin-strip.ui-input {
+  --cell: calc((100cqi - 96px) / 6);
+  flex: none; inline-size: calc(var(--cell) * 6); min-height: 44px; border: 0; border-radius: 0; box-shadow: none;
+  font-size: 20px; letter-spacing: calc(var(--cell) - 0.6em); padding: 0 0 0 calc((var(--cell) - 0.6em) / 2);
+  background: linear-gradient(to right, transparent 5px, var(--line) 5px, var(--line) calc(100% - 5px), transparent 0)
+    0 100% / var(--cell) 2px repeat-x;
+}
+
+:is([data-screen^="register-"], [data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"]) .ui-form-card {
+  border-radius: var(--form-r, 18px); padding: 6px 18px 4px; gap: var(--s-3);
+}
+:root[data-brand="sosed"] .ui-form-card { --form-r: 18px; border: 1.5px solid var(--line); }
+:root[data-brand="neighbro"] .ui-form-card { --form-r: 16px; }
+
+.ui-form-card .ui-form-head { min-height: 92px; gap: var(--s-4); }
+.ui-form-card .ui-form-title { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.2; }
+:root[data-brand="sosed"] .ui-form-card .ui-form-head {
+  margin-inline: -12px; padding: 0 16px 0 18px; border-radius: 20px; background: var(--head, var(--accent)); color: var(--head-ink, var(--accent-fg));
+}
+:root[data-brand="sosed"] .ui-form-card .ui-form-icon svg { inline-size: 34px; block-size: 34px; }
+:root[data-brand="neighbro"] .ui-form-card .ui-form-head { padding-inline: 2px; }
+:root[data-brand="neighbro"] .ui-form-card .ui-form-icon {
+  inline-size: 60px; block-size: 60px; border-radius: 50%; align-items: center; justify-content: center;
+  background: var(--head, var(--accent)); color: var(--paper); box-shadow: 2px 3px 0 var(--shadow);
+}
+:root[data-brand="neighbro"] .ui-form-card .ui-form-title { font-size: 22px; }
+[data-part="foot"] { margin-top: auto; display: flex; flex-direction: column; gap: var(--s-2); }
+.ui-form-card .ui-form-info button, :root[data-brand="neighbro"] .ui-form-card .ui-form-info .ui-button.ui-icon-only.ui-info-plain:not(.ui-wide):not(.ui-mid) {
+  inline-size: 36px; min-inline-size: 36px; block-size: 36px; min-height: 36px; padding: 0; border-radius: 50%;
+  border: 1.5px solid currentColor; background: transparent; color: inherit;
+}
+
+/* A field is a row: the name 14/600 muted, the value 20/600, a rule under it. */
+/* The rule is a row field's only edge: --line, 3:1 against the card (WCAG 1.4.11, review 12.10). */
+.ui-form-card .ui-field { gap: 6px; padding-block-end: var(--s-3); border-block-end: 1.2px solid var(--line); }
+/* step one's rows abut, 96 each with their hints (sheet adaptive-*-register-1 as redrawn 12.10) */
+[data-screen="register-1"] .ui-form-card { gap: 0; }
+[data-screen="register-1"] .ui-form-card .ui-field:not(.ui-consent-row .ui-field) { padding-block: 0 var(--s-3); }
+.ui-form-card .ui-field > label { font-size: 14px; font-weight: 600; color: var(--fg-muted); }
+.ui-form-card .ui-field .ui-input:not(.ui-pin-strip) {
+  min-height: 32px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; font-size: 20px; font-weight: 600;
+}
+.ui-form-card .ui-field .ui-input:not(.ui-pin-strip):focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+
+/* The paper code as the sheet draws it: four cells in a row, no box, the group's number 13 above, 22/600 letters. */
+.ui-form-card .ui-code-row { background: none; border-radius: 0; overflow: visible; gap: var(--s-2); }
+.ui-form-card .ui-code-row > .ui-code-input {
+  min-height: 40px; padding: 18px 0 0; border: 0; border-radius: 0; background: none; box-shadow: none; text-align: center;
+  font-size: 22px; font-weight: 600; letter-spacing: 0.04em; border-block-end: 1.2px solid var(--line);
+}
+:is([data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"]).screen { padding-top: 24px; }
+
+/* The plate in the card, as the sheet (adaptive-*-register-3): the groups as words 22/600, no plate, each with
+   its number 13 above (generated, so the plate's text stays the code as the paper has it). */
+.ui-form-card .ui-codeplate { background: none; overflow: visible; border-radius: 0; gap: var(--s-2); counter-reset: group; margin-block-end: 22px; }
+.ui-form-card .ui-codeplate > span { background: none; padding: 0; font-family: "Golos Text", sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.02em; }
+.ui-form-card .ui-codeplate > span::before {
+  counter-increment: group; content: counter(group); display: block; text-align: start; padding-inline-start: 3px;
+  font-size: 13px; font-weight: 600; color: var(--fg-muted); letter-spacing: 0;
+}
+
+/* Step one's last row (sheet adaptive-*-register-1): the box, then the three documents — an icon over its name 13/600. */
+.ui-consent-row { display: flex; flex-direction: column; gap: var(--s-1); }
+.ui-consent-row > .ui-field { border: 0; padding: 0; }
+.ui-consent-row .ui-check { min-height: 44px; gap: var(--s-3); font-size: 14px; font-weight: 600; }
+.ui-docs { min-width: 0; display: flex; justify-content: space-around; gap: var(--s-1); margin: 0; padding: 0; list-style: none; }
+/* a long name («правила сообщества») wraps under its icon instead of running past the edge (walk 12.10, +21 px at 393) */
+.ui-docs > li { flex: 1 1 0; min-width: min-content; }
+/* …but only between words: «пользовательс/кое» at 375 read as broken (perfectionist round 1, 3 of 3) */
+.ui-docs { flex-wrap: wrap; row-gap: var(--s-2); }
+.ui-docs a { overflow-wrap: normal; hyphens: manual; }
+.ui-docs a { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 44px; min-height: 44px; justify-content: center;
+  font-size: 13px; font-weight: 600; line-height: 1.15; text-align: center; overflow-wrap: anywhere; color: var(--accent-text); text-decoration: none; }
+
+.ui-form-sub { display: none; }
+
+/* From 1024 the sign-up is the wide sheet's (adaptive-*-register-1440, owner 12.10.2026): no card, no capsule — the
+   mark 72, the title 28 and «step 1 of 3» in words, the fields as 440×56 boxes, the consent in words, the primary
+   56 right under the form; the column 440 in the middle. */
+@media (min-width: 1024px) {
+  /* unlock and restore stand in the same 440 column as the sign-up, the button under the form
+     (round 1: their card at the top and the button 600–1300 px below it, a different product) */
+  html:root[data-brand] :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]).screen { max-width: 440px; padding: 74px 0 var(--s-6); gap: 0; }
+  :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-steps { display: none; }
+  :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-mark[data-place="form"] { margin: 0 auto 40px; }
+  html:root[data-brand] :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-form-card.ui-form-card {
+    background: none; border: 0; box-shadow: none; padding: 0; gap: 0; border-radius: 0;
+  }
+  html:root[data-brand] :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-form-card .ui-form-head {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; min-height: 0; margin: 0; padding: 0; background: none; color: var(--fg); row-gap: 6px;
+  }
+  :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-form-card .ui-form-icon { display: none; }
+  :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-form-card .ui-form-title { font-size: 28px; line-height: 34px; }
+  :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-form-sub { display: block; grid-column: 1 / -1; margin: 0; font-size: 16px; color: var(--fg-muted); }
+  :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-form-card .ui-field { margin-block-start: 24px; padding: 0; border: 0; gap: 8px; }
+  :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-form-card .ui-field > label { font-size: 16px; }
+  html:root[data-brand="sosed"] :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-form-card .ui-field .ui-input:not(.ui-pin-strip) {
+    min-height: 56px; padding: 0 20px; border: 1.5px solid var(--line); border-radius: 24px; background: var(--panel); font-size: 18px; font-weight: 400;
+  }
+  html:root[data-brand="neighbro"] :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) .ui-form-card .ui-field .ui-input:not(.ui-pin-strip) {
+    min-height: 56px; padding: 0 20px; border: 0; border-radius: 18px; background: var(--surface); font-size: 18px; font-weight: 400;
+    outline: 3.5px solid var(--paper); box-shadow: 1.5px 3px 0 3.5px var(--shadow);
+  }
+  [data-screen="register-1"] .ui-consent-row { margin-block-start: 32px; min-height: 28px; flex-wrap: wrap; }
+  [data-screen="register-1"] .ui-consent-row > .ui-field { margin: 0; }
+  [data-screen="register-1"] .ui-check { gap: var(--s-4); }
+  [data-screen="register-1"] .ui-form-card .ui-check-box { inline-size: 28px; block-size: 28px; }
+  [data-screen="register-1"] .ui-form-card .ui-check input { border-radius: 6px; }
+  :root[data-brand="neighbro"] [data-screen="register-1"] .ui-form-card .ui-check input { border-radius: 14px; outline: 3.5px solid var(--paper); }
+  [data-screen="register-1"] .ui-form-card .ui-check-mark { inset: 2px; }
+  [data-screen="register-1"] .ui-consent-words { font-size: 16px; font-weight: 400; }
+  /* The documents stay on the screen under the consent (newcomer walk 12.10: ticking blind with no links was a stop). */
+  [data-screen="register-1"] .ui-docs { justify-content: flex-start; gap: var(--s-6); }
+  [data-screen="register-1"] .ui-docs > li { flex: none; }
+  html:root :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) [data-part="foot"] { margin-top: 42px; --entry-btn-h: 56px; }
+}
+
+/* The tablet: the card keeps its width, the button follows it instead of the screen's foot (round 1, 768). */
+@media (min-width: 640px) and (max-width: 1023px) {
+  html:root :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) [data-part="foot"] { margin-top: 32px; }
+}
+
+.ui-paper-say { margin: 0; font-size: 15px; line-height: 1.35; color: var(--fg); }
+.ui-form-card [data-testid="paper-groups"] .ui-label { font-size: 15px; font-weight: 600; color: var(--fg); }
+/* the sheet's pair row is 76 with a label over each group; the field says it in one line, so it keeps the row's height */
+[data-screen="register-3"] .ui-form-card [data-testid="paper-groups"] { padding-block-end: 19px; }
+
+/* The box 32, r8, the accent when ticked. */
+.ui-form-card .ui-check-box { inline-size: 32px; block-size: 32px; }
+.ui-form-card .ui-check input { border-color: var(--line); border-radius: 8px; }
+.ui-form-card .ui-check-mark { inset: 4px; inline-size: 24px; block-size: 24px; }
+
+/* The one primary at the foot: 64 (sosed) / 60 (neighbro), the card's width, round ends. */
+:is([data-screen^="register-"], [data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"], [data-screen="match"], [data-screen="card"], [data-screen="composer"], [data-screen="table"], [data-screen="new-table"]) [data-part="foot"] .ui-split,
+:is([data-screen^="register-"], [data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"], [data-screen="match"], [data-screen="card"], [data-screen="composer"], [data-screen="table"], [data-screen="new-table"]) [data-part="foot"] .ui-split > .ui-button {
+  min-height: var(--entry-btn-h, 64px); border-radius: calc(var(--entry-btn-h, 64px) / 2);
+}
+:root[data-brand="neighbro"] [data-part="foot"] { --entry-btn-h: 60px; }
+/* The sheet draws the foot as ONE capsule in the accent: the second action is its other part, a seam of the card's colour between. */
+:is([data-screen^="register-"], [data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"], [data-screen="match"], [data-screen="card"], [data-screen="composer"], [data-screen="table"], [data-screen="new-table"]) [data-part="foot"] .ui-split { background: var(--panel); }
+html:root :is([data-screen^="register-"], [data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"], [data-screen="match"], [data-screen="card"], [data-screen="composer"], [data-screen="table"], [data-screen="new-table"]) [data-part="foot"] .ui-split > .ui-button:not(.ui-primary):not(.ui-wide):not(.ui-mid) {
+  min-height: var(--entry-btn-h, 64px); background: var(--accent); color: var(--accent-fg); border: 0; box-shadow: none; border-radius: 0; width: auto; height: auto; min-width: 0;
+}
+/* …but a quiet tint of it: in full accent «back» read as the main action while the main one was still closed (round 1, 056). */
+html:root :is([data-screen^="register-"], [data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"], [data-screen="match"], [data-screen="card"], [data-screen="composer"], [data-screen="table"], [data-screen="new-table"]) [data-part="foot"] .ui-split > .ui-button:not(.ui-primary):not(.ui-wide):not(.ui-mid) {
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel)); color: var(--fg);
+}
+/* neighbro's round icon button (stickers.css) would shrink the foot's primary to a 52 disc on --surface. */
+:root[data-brand="neighbro"] :is([data-screen^="register-"], [data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"], [data-screen="match"], [data-screen="card"], [data-screen="composer"], [data-screen="table"], [data-screen="new-table"]) [data-part="foot"] .ui-split > .ui-button.ui-primary.ui-icon-only:not(.ui-wide):not(.ui-mid) {
+  width: auto; min-width: 0; height: auto; min-height: var(--entry-btn-h, 60px); border-radius: calc(var(--entry-btn-h, 60px) / 2); background: var(--accent); color: var(--accent-fg);
+}
+:root[data-brand="neighbro"] :is([data-screen^="register-"], [data-screen="restore"], [data-screen="arrival"], [data-screen="unlock"], [data-screen="match"], [data-screen="card"], [data-screen="composer"], [data-screen="table"], [data-screen="new-table"]) [data-part="foot"] .ui-split > .ui-button.ui-primary.ui-icon-only:not(.ui-wide):not(.ui-mid)[aria-disabled="true"] {
+  background: var(--panel-2); color: var(--muted);
+}
+/* The step capsule's sticker rim stands outside its 132×20, as the sheet paints it. */
+:root[data-brand="neighbro"] .ui-steps { border: 0; margin: 0; box-sizing: border-box; inline-size: 132px; block-size: 20px; box-shadow: 0 0 0 3.5px var(--paper), 2px 3px 0 3.5px var(--shadow); }
 

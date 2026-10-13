@@ -1,0 +1,89 @@
+/* The inner phone screens as their sheets draw them (panel/design/adaptive-*-{card,composer,match,
+   tables,inbox}-393, owner 11.10.2026), both brands; the brand's look is its tokens (tokens.css). */
+
+/* The header: back at x 16 and the round action at the right are circles on the surface. */
+html:root .ui-header-rule { padding-left: var(--s-4); gap: var(--s-4); }
+html:root[data-brand] .ui-header > .ui-icon:not(.ui-plain),
+html:root[data-brand] .ui-header .ui-header-action .ui-button.ui-icon-only:not(.ui-plain):not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
+  inline-size: var(--head-btn-d); min-inline-size: var(--head-btn-d); block-size: var(--head-btn-d); min-height: var(--head-btn-d); padding: 0;
+  border-radius: var(--r-round); background: var(--surface); color: var(--fg); border: var(--head-btn-rim); box-shadow: var(--head-btn-ring);
+}
+html:root[data-brand] .ui-header .ui-button.ui-plain {
+  inline-size: var(--head-btn-d); min-inline-size: var(--head-btn-d); block-size: var(--head-btn-d); min-height: var(--head-btn-d); padding: 0;
+  border: 0; background: transparent; box-shadow: none; color: var(--fg);
+}
+
+/* ⓘ where the sheet draws none (match, composer): the glyph alone, no plate. */
+html:root[data-brand] :is([data-screen="match"], [data-screen="composer"]) .ui-button.ui-icon-only.ui-info-plain:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
+  border: 0; background: transparent; box-shadow: none;
+}
+
+/* «match»: two like marks side by side, the name big under them. */
+.ui-match-hero { display: flex; flex-direction: column; align-items: center; gap: var(--s-2); padding-block-start: calc(var(--s-12) * 2); text-align: center; }
+.ui-match-marks { display: flex; justify-content: center; color: var(--fg); }
+.ui-match-marks svg { inline-size: var(--match-mark); block-size: var(--match-mark); }
+.ui-match-name { margin: 0; font-size: var(--match-name-fs); font-weight: 600; line-height: 1.2; }
+.ui-match-hero .ui-hint { margin: 0; }
+.ui-match-hero .ui-bar { inline-size: 50%; }
+
+/* The composer: one panel — what is left, the phrase, two rows of pills (the chosen one in the accent). */
+.ui-compose {
+  display: flex; flex-direction: column; min-block-size: var(--compose-h); padding: var(--compose-pad); box-sizing: border-box;
+  border-radius: var(--panel-r); background: var(--surface); color: var(--fg); border: var(--panel-rim); box-shadow: var(--panel-ring);
+}
+.ui-compose:has(textarea:focus-visible) { outline: var(--focus-w) solid var(--focus); outline-offset: var(--s-1); }
+.ui-compose > [data-testid="counter"] { margin: 0; padding: 0 var(--s-2); font-weight: 600; }
+.ui-compose .ui-field { flex: 1; gap: 0; }
+.ui-compose .ui-field > label { position: absolute; inline-size: var(--rule-w); block-size: var(--rule-w); overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html:root[data-brand] [data-screen="composer"] .ui-compose .ui-textarea {
+  flex: 1; min-height: 0; padding: var(--s-1) var(--s-2); border: 0; border-radius: 0; background: transparent; box-shadow: none;
+  font-size: var(--compose-text-fs); font-weight: 400; resize: none; outline: none;
+}
+html:root[data-brand] [data-screen="composer"] .ui-compose .ui-segments { flex-wrap: nowrap; gap: var(--compose-gap); border: 0; border-radius: 0; overflow: visible; }
+html:root[data-brand] [data-screen="composer"] .ui-compose .ui-segments + .ui-segments { margin-block-start: var(--compose-row-gap); }
+html:root[data-brand] [data-screen="composer"] .ui-compose .ui-seg {
+  flex: 1 1 0; min-inline-size: 0; min-height: var(--compose-seg-h); padding: 0 var(--s-1);
+  border: 0; border-radius: var(--r-pill); background: transparent; box-shadow: none; color: var(--fg); transform: none;
+  font-size: var(--fs-meta); font-weight: 600; white-space: nowrap;
+}
+html:root[data-brand] [data-screen="composer"] .ui-compose .ui-seg + .ui-seg { border-left: 0; }
+html:root[data-brand] [data-screen="composer"] .ui-compose .ui-seg-on {
+  flex: 0 0 calc((100% - 2 * var(--compose-gap)) / 3); background: var(--accent); color: var(--accent-fg);
+}
+html:root[data-brand] [data-screen="composer"] [data-part="foot"] .ui-send-wide { min-height: var(--foot-h); border-radius: var(--r-pill); }
+
+/* Tables and talks: rows of 64 welded into one panel, a 1 px rule of the ground between them. */
+html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [data-testid="tables-mine"] > ul), [data-screen="inbox"] :is([data-testid="matches"], [data-testid="chats"])) {
+  gap: 0; overflow: hidden; border-radius: var(--panel-r); background: var(--surface); color: var(--fg); border: var(--panel-rim); box-shadow: var(--panel-ring);
+}
+html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [data-testid="tables-mine"] > ul), [data-screen="inbox"] :is([data-testid="matches"], [data-testid="chats"])) > li {
+  position: relative; display: flex; flex-wrap: wrap; align-content: center; column-gap: var(--s-2); row-gap: 0;
+  block-size: var(--me-row-h); min-height: 0; margin: 0; padding: 0 var(--me-chevron-pad) 0 var(--me-row-pad); overflow: hidden;
+  border: 0; border-radius: 0; background: transparent; box-shadow: none;
+}
+html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [data-testid="tables-mine"] > ul), [data-screen="inbox"] :is([data-testid="matches"], [data-testid="chats"])) > li + li { border-top: var(--rule-w) solid var(--bg); }
+/* A row's lines: the name 16/600, then one line 14 in the muted colour; what does not fit is cut. */
+:is([data-screen="tables"], [data-screen="inbox"]) li > :is(p, .ui-card-head, .ui-tilefoot, .ui-hint, .ui-life) { margin: 0; min-inline-size: 0; max-inline-size: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:is([data-screen="tables"], [data-screen="inbox"]) li > :is(p:first-of-type, .ui-card-head) { flex: 1 0 100%; font-size: var(--fs-body); font-weight: 600; }
+:is([data-screen="tables"], [data-screen="inbox"]) li > :not(p:first-of-type):not(.ui-card-head):not(.card-open) { flex: 0 1 auto; font-size: var(--fs-meta); color: var(--fg-muted); }
+[data-screen="inbox"] [data-testid="match"] > .ui-hint { order: 1; }
+[data-screen="inbox"] [data-testid="match"] > .ui-life { order: 2; display: flex; gap: var(--s-2); }
+[data-screen="inbox"] [data-testid="match"] > p { order: 3; }
+[data-screen="inbox"] [data-testid="match"] .ui-life > p { margin: 0; white-space: nowrap; }
+[data-screen="inbox"] [data-testid="match"] .ui-bar { position: absolute; inset-inline: var(--me-row-pad) var(--me-chevron-pad); inset-block-end: var(--s-1); }
+[data-screen="inbox"] [data-testid="chats"] .ui-list-text { flex: 1; block-size: 100%; }
+[data-screen="inbox"] [data-testid="chats"] .ui-inbox-row { block-size: 100%; min-height: 0; padding: 0; justify-content: center; border-radius: 0; background: transparent; }
+
+/* The feed (sheets adaptive-*-feed-393): the kit's band (56, layout.spec), then the place and the
+   circle with «who liked me» beside them, the cards 24 from the edge (content 345). */
+[data-screen="feed"] > .ui-actions { justify-content: space-between; flex-wrap: nowrap; padding-inline: var(--feed-inset); }
+[data-screen="feed"] > .ui-actions .ui-field { gap: 0; }
+[data-screen="feed"] > .ui-actions .ui-field label { position: absolute; inline-size: var(--rule-w); block-size: var(--rule-w); overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html:root[data-brand] [data-screen="feed"] > .ui-actions .ui-button.ui-icon-only[data-testid="likes"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
+  border: 0; background: transparent; box-shadow: none; color: var(--fg);
+}
+html:root[data-brand] [data-screen="feed"] .ui-placebar > .ui-button.ui-icon-only:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
+  border: 0; background: transparent; box-shadow: none; color: var(--fg); min-height: 0; block-size: auto;
+}
+html:root[data-brand] [data-screen="feed"] .ui-placebar select { min-height: 0; padding: 0 var(--s-2); border: 0; background-color: transparent; box-shadow: none; font-weight: 600; font-size: var(--fs-body); }
+html:root[data-brand] [data-screen="feed"] .ui-placebar > .ui-placebar-seam { display: none; }

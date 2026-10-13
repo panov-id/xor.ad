@@ -686,15 +686,22 @@ def s_register(sh):
     x0 = (sh.w - 440) / 2
     mark(sh, sh.w / 2, 110, 72)
     sh.text(x0, 210, "who are you", 28, w=600)
+    # the (i) beside the title holds the editions' dates and the documents' links (owner 12.10.2026)
+    info_btn(sh, x0 + 422, 200, k["fg"])
     sh.text(x0, 240, "step 1 of 3", 16, k["fg-muted"])
-    for j, (lab, val) in enumerate((("name", "Anya"), ("age", "28"))):
-        y = 270 + j * 104
+    # each field keeps its hint under it (WCAG 3.3.2, review 12.10): 41 more per field
+    for j, (lab, val, hint) in enumerate((("name", "Anya", "20 letters left"), ("age", "28", "from 13 years only"))):
+        y = 270 + j * 145
         sh.text(x0, y + 16, lab, 16, k["fg-muted"], 600)
         panel(sh, x0, y + 28, 440, 56); sh.text(x0 + 20, y + 64, val, 18)
-    panel(sh, x0, 490, 28, 28, k["accent"], 6); sh.icon(x0 + 2, 492, "check", k["accent-fg"])
-    sh.text(x0 + 44, 510, "I accept the rules and the privacy notice", 16)
-    button(sh, x0, 560, 440, "next", "pri")
-    sh.measure(x0, x0 + 440, 660, "form 440 — the phone's, at any width; no rail before sign-in")
+        sh.text(x0, y + 104, hint, 14, k["fg-muted"])
+    panel(sh, x0, 572, 28, 28, k["accent"], 6); sh.icon(x0 + 2, 574, "check", k["accent-fg"])
+    sh.text(x0 + 44, 592, "I accept the rules and the privacy notice", 16)
+    # the documents under the consent, never only behind the (i) (newcomer walk 12.10)
+    for j, (ic, d) in enumerate((("doc", "terms"), ("lock", "privacy"), ("people", "rules"))):
+        sh.icon(x0 + 10 + j * 96, 612, ic, k["accent-text"]); sh.text(x0 + 22 + j * 96, 652, d, 13, k["accent-text"], 600, "middle")
+    button(sh, x0, 702, 440, "next", "pri")
+    sh.measure(x0, x0 + 440, 802, "form 440 from 1024: boxed fields, no card (owner 12.10); no rail before sign-in")
     sh.save(f"adaptive-{sh.brand}-register-1440")
 
 
@@ -1150,11 +1157,7 @@ def draw_rest(brand):
     page(brand, "edit-name", "your name", "pen", "neighbours see it after a match", 0,
          lambda sh, y: field_card(sh, 16, y, 361, "name", "Anya", "21 letters left"),
          ("save", "check"))
-    page(brand, "new-table", "a new table", "dots", "a game, its size, a name; neighbours nearby can sit down", 1,
-         lambda sh, y: (chips(sh, y, [("dots", "dots"), ("check", "words"), ("scale", "cards")], on=0),
-                        chips(sh, y + 74, [(None, "2×2"), (None, "3×3"), (None, "4×4")], on=1),
-                        field_card(sh, 16, y + 148, 361, "name", "by the park")),
-         ("open the table", "next"))
+    # «new-table» is a wizard now (owner 13.10.2026): wiz_game / wiz_variant / wiz_preview below
     page(brand, "hidden", "hidden", "eyeoff", "what you hid stays out of your feed only", 2,
          lambda sh, y: rows(sh, y, [("eyeoff", "music in the yard", None), ("eyeoff", "selling a sofa", None)], "restore"), None)
     page(brand, "blocked", "blocked", "block", "you and they don't see each other", 4,
@@ -1501,8 +1504,7 @@ def err(sh, y, text):
 def heroform(sh, top, title, ic, colour_i, items, error=None):
     """The hero and its form as ONE plate (the welding lens): the hero inset at the plate's top, the rows under it."""
     k = sh.k; x0, W, hh = 16, 361, 92
-    heights = {"field": 76, "pin": 92, "seg": 72, "code": 92, "pair": 76, "consent": 72}
-    total = 8 + hh + sum(heights[i[0]] for i in items) + (52 if error else 0) + 4
+    total = 8 + hh + sum(row_h(i) for i in items) + (52 if error else 0) + 4
     box(sh, x0, top, W, total)
     if sh.brand == "sosed":
         c = (k["accent"], *sh.tiles)[colour_i % 5]; fg = k["accent-fg"] if colour_i == 0 else ink(sh, c)
@@ -1520,28 +1522,38 @@ def heroform(sh, top, title, ic, colour_i, items, error=None):
     return top + total + 16
 
 
+ROW_H = {"field": 76, "pin": 92, "seg": 72, "code": 92, "pair": 76, "consent": 108}
+
+
+def row_h(it):
+    """A row's height; a field with a visible hint (its 5th item) is 20 taller (WCAG 3.3.2, review 12.10)."""
+    if it[0] == "note": return len(wrap(it[1], 15, 361 - 36)) * 20 + 16
+    return ROW_H[it[0]] + (20 if it[0] == "field" and len(it) > 4 and it[4] else 0)
+
+
 def form(sh, y, items, error=None, boxed=True):
     """One plate for a whole form: rows split by hairlines; the error is the plate's footer band.
     items: ("field", label, value[, muted]) | ("pin", label, n_filled) | ("seg", [(icon, text)…], on) |
            ("code", [groups]) | ("pair", (label, value), (label, value)) | ("consent",)"""
     k = sh.k; x0, W = 16, 361
-    heights = {"field": 76, "pin": 92, "seg": 72, "code": 92, "pair": 76, "consent": 72}
-    total = sum(heights[i[0]] for i in items) + (52 if error else 0)
+    total = sum(row_h(i) for i in items) + (52 if error else 0)
     if boxed: box(sh, x0, y, W, total)
-    div = k["surface-2"] if sh.brand == "sosed" else k["line"]
+    # the rule under a row is the field's only edge: --line for 3:1 (WCAG 1.4.11, review 12.10), both brands
+    div = k["line"]
     yy = y
     for n, it in enumerate(items):
-        h = heights[it[0]]
+        h = row_h(it)
         if n or not boxed: sh.a(f'<path d="M{x0 + 14} {yy} H{x0 + W - 14}" stroke="{div}" stroke-width="1.2"/>') if n else None
         if it[0] == "field":
             sh.text(x0 + 18, yy + 26, it[1], 14, k["fg-muted"], 600)
             muted = len(it) > 3 and it[3]
             sh.text(x0 + 18, yy + 58, it[2], 20, k["fg-muted"] if muted else k["fg"], 400 if muted else 600)
+            if len(it) > 4 and it[4]: sh.text(x0 + 18, yy + 86, it[4], 13, k["fg-muted"])
         elif it[0] == "pair":
             for j, (lab, val) in enumerate(it[1:3]):
                 xx = x0 + j * W / 2
                 if j: sh.a(f'<path d="M{xx} {yy + 10} V{yy + h - 10}" stroke="{div}" stroke-width="1.2"/>')
-                sh.text(xx + 18, yy + 26, lab, 14, k["fg-muted"], 600); sh.text(xx + 18, yy + 58, val, 20, k["fg"], 600)
+                sh.text(xx + 18, yy + 26, lab, 14, k["fg-muted"], 600); sh.text(xx + 18, yy + 58, val, 20 if len(val) <= 12 else 16, k["fg"], 600)  # a mail fits half a 361 card only at 16
         elif it[0] in ("pin", "code"):
             sh.text(x0 + 18, yy + 22, it[1] if it[0] == "pin" else "", 14, k["fg-muted"], 600)
             cells = 6 if it[0] == "pin" else len(it[1])
@@ -1561,11 +1573,17 @@ def form(sh, y, items, error=None, boxed=True):
                 col = k["accent-fg"] if j == on else k["fg"]
                 if ic: sh.icon(cx + cw / 2 - 12, yy + 14, ic, col, 0.8); sh.text(cx + cw / 2, yy + 54, t, 13, col, 600, "middle")
                 else: sh.text(cx + cw / 2, yy + 42, t, 16, col, 600, "middle")
+        elif it[0] == "note":
+            # what to do, in words on the screen (owner 12.10.2026: stuck on the paper code when it hid behind the (i))
+            for n, l in enumerate(wrap(it[1], 15, W - 36)): sh.text(x0 + 18, yy + 22 + n * 20, l, 15, k["fg"])
         elif it[0] == "consent":
-            sh.rect(x0 + 16, yy + 20, 32, 32, k["accent"], 8); sh.icon(x0 + 20, yy + 24, "check", k["accent-fg"])
+            # the box and its words on one line (what is accepted is read by the eye, WCAG 3.3.2 / 2.5.3, review
+            # 12.10), the three documents under it
+            sh.rect(x0 + 16, yy + 12, 32, 32, k["accent"], 8); sh.icon(x0 + 20, yy + 16, "check", k["accent-fg"])
+            sh.text(x0 + 60, yy + 33, "I accept the terms, privacy and rules", 14, k["fg"], 600)
             for j, (ic, d) in enumerate((("doc", "terms"), ("lock", "privacy"), ("people", "rules"))):
                 cx = x0 + 70 + j * 96
-                sh.icon(cx + 36, yy + 12, ic, k["accent-text"]); sh.text(cx + 48, yy + 56, d, 13, k["accent-text"], 600, "middle")
+                sh.icon(cx + 36, yy + 52, ic, k["accent-text"]); sh.text(cx + 48, yy + 96, d, 13, k["accent-text"], 600, "middle")
         yy += h
     if error:
         sh.a(f'<path d="M{x0} {yy} H{x0 + W}" stroke="{k["danger"]}" stroke-width="2"/>')
@@ -1621,12 +1639,13 @@ def draw_fixes(brand):
             heroform(sh, 40, title, ic, (0, 1, 3)[step - 1], items, error)
             foot(sh, {"next": "next", "lockok": "create", "check": "done"}[icon], icon=icon)
         S(name or f"register-{step}", d)
-    reg(1, [("field", "name", "Anya"), ("field", "age", "28"), ("consent",)])
-    reg(1, [("field", "name", "Anya"), ("field", "age", "12"), ("consent",)], "from 13 years only", name="register-1-young")
+    reg(1, [("field", "name", "Anya", False, "20 letters left"), ("field", "age", "28", False, "from 13 years only"), ("consent",)])
+    reg(1, [("field", "name", "Anya", False, "20 letters left"), ("field", "age", "12"), ("consent",)], "from 13 years only", name="register-1-young")
     reg(2, [("pin", "PIN", 6), ("pin", "again", 0)], icon="lockok")
     reg(2, [("pin", "PIN", 6), ("pin", "again", 6)], "the PINs differ", icon="lockok", name="register-2-mismatch")
-    reg(3, [("code", ["FEP0", "4AXR", "1JVV", "A4E3"]), ("pair", ("group 2", "4AXR"), ("group 4", "····"))], icon="check")
-    reg(3, [("code", ["FEP0", "4AXR", "1JVV", "A4E3"]), ("pair", ("group 2", "ZZZZ"), ("group 4", "A4E3"))], "group 2 is not that", icon="check", name="register-3-wrong")
+    PAPER = "Write this code down on paper. It's the only way to get your identity back, and it won't be shown again."
+    reg(3, [("note", PAPER), ("code", ["FEP0", "4AXR", "1JVV", "A4E3"]), ("note", "Written it down? Enter the second and fourth groups."), ("pair", ("group 2", "4AXR"), ("group 4", "····"))], icon="check")
+    reg(3, [("note", PAPER), ("code", ["FEP0", "4AXR", "1JVV", "A4E3"]), ("note", "Written it down? Enter the second and fourth groups."), ("pair", ("group 2", "ZZZZ"), ("group 4", "A4E3"))], "group 2 is not that", icon="check", name="register-3-wrong")
     def simple(name, title, ic, colour, items, error=None, foot_args=None, split=None):
         def d(sh):
             heroform(sh, 24, title, ic, colour, items, error)
@@ -1724,15 +1743,504 @@ def marks(brand):
     sh.save(f"adaptive-{brand}-marks")
 
 
-for brand in ("sosed", "neighbro"):
-    marks(brand)
-    likes(brand)
-    for step in (1, 2, 3): s_register_step(brand, step)
-    for f in (s_unlock, s_restore, s_likes, s_departure): f(brand)
-    draw_rest(brand)
-    draw_all(brand)
-    draw_fixes(brand)
-    for screen in (s_card, s_composer, s_inbox, s_chat, s_tables, s_table, s_me, s_register):
-        screen(Sheet(brand, 1440, 900))
-    for w in (393, 768, 1440, 2560): feed(brand, w)
-    for w in (393, 768, 1440): splash(brand, w)
+# ---------- sticker reactions (owner 13.10.2026): eight, the same meaning in both brands, one tap sends one
+# in a talk and at a table. Drawn glyphs, not system emoji. ONE source (STICKERS: id, word, 24-grid path),
+# two renderings from the theme tokens: sosed — a square block, thick fg outline, bold glyph (like the kit's
+# buttons); neighbro — a die-cut sticker, white rim, its own shadow, tilted 3–5°.
+STICKERS = (
+    ("hi", "hi", '<path d="M8 13 V6 A1.5 1.5 0 0 1 11 6 V12 M11 11 V4.5 A1.5 1.5 0 0 1 14 4.5 V12 M14 11 V6 A1.5 1.5 0 0 1 17 6 V14 C17 18 15 21 11 21 C8 21 6 19 4.5 16 L3.5 13 A1.4 1.4 0 0 1 6 12 L8 15"/><path d="M19.5 3.5 L21 2.5 M20 7.5 H22"/>'),
+    ("thanks", "thanks", '<path d="M12 11 C9.5 9.3 8 8 8 6.3 A2 2 0 0 1 12 5.3 A2 2 0 0 1 16 6.3 C16 8 14.5 9.3 12 11 Z"/><path d="M2.5 14 H6.5 V21 H2.5 M6.5 15 L10 14 H14 A1.6 1.6 0 0 1 14 17.2 H10.5 M14 17.2 L19 14.8 A1.6 1.6 0 0 1 21 17.3 L15 21 H6.5"/>'),
+    ("deal", "deal", '<path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/>'),
+    ("wow", "wow", '<circle cx="12" cy="12" r="8.5"/><path d="M9 9.5 V10.2 M15 9.5 V10.2 M7.5 6.8 L10 6 M16.5 6.8 L14 6"/><circle cx="12" cy="15.2" r="2.3"/>'),
+    ("coffee", "coffee?", '<path d="M5 10 H16 V14.5 A4.5 4.5 0 0 1 11.5 19 H9.5 A4.5 4.5 0 0 1 5 14.5 Z"/><path d="M16 11 H17.5 A2 2 0 0 1 17.5 15 H16 M3.5 21.5 H18.5 M8.5 3 C7.5 4.5 9.5 5.5 8.5 7.5 M12.5 3 C11.5 4.5 13.5 5.5 12.5 7.5"/>'),
+    ("move", "good move", '<circle cx="11" cy="6.8" r="2.8"/><path d="M8 11 H14 M9 11 L8 16.5 H14 L13 11 M6 20.5 H16 M7 16.5 H15 V20.5 H7 Z M19.5 3 V7 M17.5 5 H21.5"/>'),
+    ("again", "rematch", '<path d="M5 11 A7 7 0 0 1 17.5 7 M17.5 7 V3 M17.5 7 H13.5 M19 13 A7 7 0 0 1 6.5 17 M6.5 17 V21 M6.5 17 H10.5"/>'),
+    ("giveup", "I give up", '<path d="M6 21.5 V3"/><path d="M6 4.5 C9 3 11 6 14 4.5 C16 3.5 17.5 4 19 4.5 V12.5 C17.5 12 16 11.5 14 12.5 C11 14 9 11 6 12.5 Z" fill="#ffffff"/>'),
+)
+TILT_STICKER = (-4, 3, -5, 4, -3, 5, -4, 3)   # neighbro: every sticker its own lean, 3–5° (owner 13.10)
+ICON["sticker"] = '<path d="M5 4 H19 V13 L13 19 H5 Z"/><path d="M13 19 V14.5 A1.5 1.5 0 0 1 14.5 13 H19"/><path d="M9 9 V9.6 M14 9 V9.6 M8.5 13 C9.5 14.3 10.5 14.6 11 14.6"/>'
+
+
+def sticker_part(sh, cx, cy, size, i, tilt=None):
+    """The kit part: sticker i (index into STICKERS) centred at cx, cy, `size` across, in the sheet's brand."""
+    k = sh.k; sid, word, path = STICKERS[i]
+    fill = sh.tiles[i % 4]; glyph = ink(sh, fill)
+    x, y = cx - size / 2, cy - size / 2
+    g = size * 0.62 / 24                       # the glyph fills 62% of the part
+    if sh.brand == "sosed":
+        ow = max(2, round(size / 22, 1))       # the thick outline: 2 at 36, 4.4 at 96
+        sh.a(f'<g class="sticker" data-sticker="{sid}">')
+        sh.a(f'<rect x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}" rx="{size * 0.22:.1f}" fill="{fill}" stroke="{k["fg"]}" stroke-width="{ow}"/>')
+        sw = 2.6                               # bold: thicker than the line icons' 1.5
+    else:
+        t = TILT_STICKER[i] if tilt is None else tilt
+        rim = max(4, size * 0.08)
+        sh.a(f'<g class="sticker" data-sticker="{sid}" transform="rotate({t} {cx:.1f} {cy:.1f})">')
+        sh.a(f'<rect x="{x + 1.5:.1f}" y="{y + 3:.1f}" width="{size}" height="{size}" rx="{size * 0.34:.1f}" fill="{k["shadow"]}" stroke="{k["shadow"]}" stroke-width="{rim + 3:.1f}" stroke-linejoin="round" opacity=".9"/>')
+        sh.a(f'<rect x="{x:.1f}" y="{y:.1f}" width="{size}" height="{size}" rx="{size * 0.34:.1f}" fill="{fill}" stroke="#ffffff" stroke-width="{rim:.1f}" paint-order="stroke"/>')
+        sw = 2.2
+    sh.a(f'<g transform="translate({cx - 12 * g:.1f} {cy - 12 * g:.1f}) scale({g:.4f})" fill="none" stroke="{glyph}" stroke-width="{sw}" stroke-linecap="round" stroke-linejoin="round">{path}</g>')
+    sh.a('</g>')
+
+
+def sticker_picker(sh, x, y, w, size, cols=4):
+    """The picker: all eight on ONE plate (welded), the word under each; one tap sends. Returns its bottom."""
+    k = sh.k; rows_ = -(-len(STICKERS) // cols)
+    cw = w / cols; ch = size + 48
+    box(sh, x, y, w, rows_ * ch)
+    div = k["bg"] if sh.brand == "sosed" else k["line"]
+    for r in range(1, rows_): sh.a(f'<path d="M{x + 12} {y + r * ch} H{x + w - 12}" stroke="{div}" stroke-width="{2 if sh.brand == "sosed" else 1.2}"/>')
+    for c in range(1, cols): sh.a(f'<path d="M{x + c * cw:.1f} {y + 12} V{y + rows_ * ch - 12}" stroke="{div}" stroke-width="{2 if sh.brand == "sosed" else 1.2}"/>')
+    for i, (_, word, _) in enumerate(STICKERS):
+        r, c = divmod(i, cols); cx = x + c * cw + cw / 2; cy = y + r * ch + 12 + size / 2
+        sticker_part(sh, cx, cy, size, i)
+        sh.text(cx, y + r * ch + ch - 12, word, 12 if cw < 100 else (13 if size < 70 else 15), k["fg"], 600, "middle")
+    return y + rows_ * ch
+
+
+def talk_field(sh, x0, x1, y, open_=False):
+    """The talk's line: field, the stickers' key and send welded into one bar; open_ = the picker is up."""
+    k = sh.k; W = x1 - x0
+    box(sh, x0, y, W, 64)
+    sh.text(x0 + 20, y + 39, "a line…", 16, k["fg-muted"])
+    bx = x1 - 116
+    if open_:
+        if sh.brand == "sosed": sh.rect(bx, y + 6, 52, 52, k["fg"], 26); col = k["bg"]
+        else: sh.sticker_rect(bx + 2, y + 8, 48, 48, k["tile-2"], 24, -4); col = ink(sh, k["tile-2"])
+    else: col = k["fg"]
+    sh.icon(bx + 14, y + 20, "sticker", col)
+    sh.rect(x1 - 58, y + 6, 52, 52, k["accent"], 26); sh.icon(x1 - 44, y + 20, "send", k["accent-fg"])
+
+
+def talk_lines(sh, x0, x1, y, msgs, size=18):
+    k = sh.k
+    for who, t in msgs:
+        lines = wrap(t, size, (x1 - x0) * 0.7); bw = max(len(l) for l in lines) * size * 0.54 + 40; bh = len(lines) * (size + 8) + 26
+        x = x1 - bw if who == "mine" else x0
+        fill = k["accent"] if who == "mine" else k["surface"]
+        box(sh, x, y, bw, bh, fill, (0.6 if who == "mine" else -0.6) if sh.brand == "neighbro" else 0)
+        for n, l in enumerate(lines): sh.text(x + 20, y + 34 + n * (size + 8), l, size, k["accent-fg"] if who == "mine" else k["fg"])
+        y += bh + 14
+    return y
+
+
+def top_bar(sh, x0, x1, title):
+    k = sh.k
+    if sh.brand == "sosed": sh.rect(x0, 18, 44, 44, k["surface"], 22, f'stroke="{k["line"]}" stroke-width="1.5"'); sh.icon(x0 + 10, 28, "back", k["fg"])
+    else: sh.sticker(x0 + 22, 40, 20, k["surface"], "back")
+    sh.text(x0 + 60, 48, title, 22, w=600)
+    if sh.brand == "sosed": sh.rect(x1 - 44, 18, 44, 44, k["surface"], 22, f'stroke="{k["line"]}" stroke-width="1.5"'); sh.icon(x1 - 34, 28, "more", k["fg"])
+    else: sh.sticker(x1 - 22, 40, 20, k["surface"], "more")
+
+
+TALK_H = {375: 812, 393: 851, 768: 1024, 1024: 768, 1440: 900, 2560: 1440}   # the goal's six widths (12.10)
+
+
+def talk_frame(brand, w, title="Anya"):
+    """A talk at width w: the rail and the 640 column from 1024, the phone's bar below; returns sheet, x0, x1, top, field y."""
+    h = TALK_H[w]; sh = Sheet(brand, w, h)
+    if w >= RAIL:
+        x0, x1 = frame(sh, 2, title, back=True); return sh, x0, x1, 130, h - 104
+    if brand == "neighbro": sh.a(f'<rect width="{w}" height="{h}" fill="url(#dots)"/>')
+    colw = min(640, w - 32); x0 = (w - colw) / 2; x1 = x0 + colw
+    top_bar(sh, x0, x1, title); return sh, x0, x1, 96, h - 92
+
+
+def chat_stickers(brand, w):
+    """The talk with the picker open, at each of the six widths."""
+    sh, x0, x1, top, fy = talk_frame(brand, w)
+    size = 58 if x1 - x0 < 640 else 80
+    plate_h = 2 * (size + 48)
+    py = fy - 12 - plate_h
+    talk_lines(sh, x0, x1, top, (("theirs", "hi! at the river already?"), ("mine", "on my way, five minutes"),
+                                 ("theirs", "I'm by the bridge with a dog")), 16 if w < 640 else 18)
+    sticker_picker(sh, x0, py, x1 - x0, size)
+    talk_field(sh, x0, x1, fy, open_=True)
+    sh.note(f"stickers: one plate of 4×2 over the line, {size}px each with its word; one tap sends, the plate stays up")
+    sh.note("the stickers' key sits in the line, welded between the field and send; lit while the plate is up")
+    sh.save(f"adaptive-{brand}-chat-stickers-{w}")
+
+
+def chat_sticker_sent(brand, w):
+    """A sticker sent in the talk: the sticker IS the bubble — no second frame around it."""
+    sh, x0, x1, top, fy = talk_frame(brand, w); k = sh.k
+    y = talk_lines(sh, x0, x1, top, (("theirs", "hi! at the river already?"), ("mine", "on my way, five minutes")), 16 if w < 640 else 18)
+    # mine: «deal», right; theirs: «coffee?», left — 112 each, the word under in muted
+    for who, i in (("mine", 2), ("theirs", 4)):
+        cx = x1 - 64 if who == "mine" else x0 + 64
+        sticker_part(sh, cx, y + 64, 112, i)
+        sh.text(cx, y + 148, STICKERS[i][1], 13, k["fg-muted"], 600, "middle")
+        y += 168
+    talk_field(sh, x0, x1, fy)
+    sh.note("a sent sticker is the message itself: 112, no bubble around it; its word under it for the reader")
+    sh.save(f"adaptive-{brand}-chat-sticker-sent-{w}")
+
+
+def table_sticker(brand, w):
+    """At a table, each of the six widths: the stickers' line under the board, Boris's «good move» on his score.
+    From 1024 as adaptive-*-table-1440: the rail, one column 640 (s_table); below, the phone's bar and column."""
+    h = TALK_H[w]; sh = Sheet(brand, w, h); k = sh.k
+    if w >= RAIL:
+        x0, x1 = frame(sh, 1, "by the park", back=True); sy = 130
+    else:
+        if brand == "neighbro": sh.a(f'<rect width="{w}" height="{h}" fill="url(#dots)"/>')
+        colw = min(640, w - 32); x0 = (w - colw) / 2; x1 = x0 + colw
+        top_bar(sh, x0, x1, "by the park"); sy = 90
+    W = x1 - x0
+    xs, cw = weld(sh, x0, sy, W, 56, 3)
+    for x, t in zip(xs, ("you 2", "Boris 1", "your move")): sh.text(x + cw / 2, sy + 34, t, 15 if W < 640 else 17, k["fg"], 600, "middle")
+    sticker_part(sh, xs[1] + cw - 14, sy + 2, 40 if W < 640 else 48, 5)   # what Boris just sent, on his cell's corner
+    fh = 64
+    by = sy + 76
+    B = min(W - 60, 420, h - by - 20 - 64 - 20 - fh - (24 if w >= RAIL else 28))
+    bx = x0 + (W - B) / 2
+    box(sh, bx, by, B, B)
+    st = (B - 60) / 3
+    for a in range(4):
+        for b in range(4): sh.a(f'<circle cx="{bx + 30 + a * st:.1f}" cy="{by + 30 + b * st:.1f}" r="7" fill="{k["fg"]}"/>')
+    # the table's sticker line: the eight in one welded strip under the board, one tap sends to the table
+    ly = by + B + 20; sw_ = W / 8; size = min(44, sw_ - 14)
+    box(sh, x0, ly, W, 64)
+    div = k["bg"] if brand == "sosed" else k["line"]
+    for j in range(1, 8): sh.a(f'<path d="M{x0 + j * sw_:.1f} {ly + 12} V{ly + 52}" stroke="{div}" stroke-width="{2 if brand == "sosed" else 1.2}"/>')
+    for i in range(8): sticker_part(sh, x0 + i * sw_ + sw_ / 2, ly + 32, size, i)
+    # leave | say, welded: a big part and a small part (as split_foot)
+    fy = h - fh - (24 if w >= RAIL else 28)
+    if brand == "sosed": sh.rect(x0, fy, W, fh, k["accent"], fh / 2)
+    else: sh.sticker_rect(x0, fy, W, fh, k["accent"], fh / 2)
+    cut = x0 + W * 0.7
+    sh.a(f'<path d="M{cut:.1f} {fy + 14} V{fy + fh - 14}" stroke="{k["accent-fg"]}" stroke-width="1.5" opacity=".5"/>')
+    sh.icon((x0 + cut) / 2 - 12, fy + 20, "door", k["accent-fg"]); sh.icon((cut + x1) / 2 - 12, fy + 20, "chat", k["accent-fg"])
+    sh.note("names: «leave» · «say»")
+    sh.note(f"the table's line: the eight in one strip of 8 cells, {size:.0f} each, under the board; the sent one lands on the sender's score for 4 s")
+    sh.save(f"adaptive-{brand}-table-sticker-{w}")
+
+
+def stickers_kit(brand):
+    """The kit sheet: the eight at every size the product uses (112 sent · 80 picker wide · 58 picker · 40 on a score · 34 table line), on every theme."""
+    themes = sorted(f[:-5] for f in os.listdir(os.path.join(ROOT, "web", "themes", brand)) if f.endswith(".json"))
+    cw, ch = 1000, 300
+    W, H = cw + 64, 150 + len(themes) * ch
+    sh = Sheet(brand, W, H); k0 = sh.k
+    sh.text(32, 56, f"{brand} · stickers", 28, w=600)
+    sh.text(32, 86, "hi · thanks · deal · wow · coffee? · good move · rematch · I give up — one source, the brand draws it", 16, k0["fg-muted"])
+    for n, th in enumerate(themes):
+        t = json.load(open(os.path.join(ROOT, "web", "themes", brand, th + ".json")))["tokens"]
+        sh.k = t; sh.tiles = [t["tile-1"], t["tile-2"], t["tile-3"], t["tile-4"]]
+        x, y = 32, 116 + n * ch
+        sh.rect(x, y, cw, ch - 20, t["bg"], 20, f'stroke="{k0["line"]}" stroke-width="1"')
+        sh.text(x + 20, y + 32, th, 16, t["fg"], 600)
+        for i in range(8):
+            cx = x + 70 + i * 122
+            sticker_part(sh, cx, y + 110, 96, i)
+            sh.text(cx, y + 186, STICKERS[i][1], 14, t["fg"], 600, "middle")
+            sticker_part(sh, cx - 22, y + 236, 40, i); sticker_part(sh, cx + 28, y + 236, 34, i)
+    sh.k = k0
+    sh.save(f"adaptive-{brand}-stickers")
+
+
+# ---------- a new table is a wizard (owner 13.10.2026): 1 the game from big cards, each with its mini board;
+# 2 the variant and the seats as chips; 3 the table as the feed will show it, then «sit at the table».
+# Back on every step. ONE source (GAMES: id, name, players, variants, seats, board in a 100-unit square),
+# two renderings: sosed — a square block with a thick fg outline, bold marks; neighbro — a die-cut sticker,
+# white rim, its own shadow, a light lean. The same part is the card's picture, step 2's hero and the feed's.
+GAMES = (
+    ("dots", "dots", "2", ("3×3", "2×2", "4×4"), (2,)),
+    ("checkers", "checkers", "2", ("russian", "8×8"), (2,)),
+    ("chess", "chess", "2", ("classic", "10 min", "3 min"), (2,)),
+    ("durak", "durak · 36", "2–6", ("podkidnoy", "perevodnoy"), (2, 3, 4, 5, 6)),
+    ("hangman", "hangman", "2", ("RU", "EN", "EL", "UK", "TR", "KA"), (2,)),
+    ("backgammon", "backgammon", "2", ("long", "short"), (2,)),
+    ("dominoes", "dominoes", "2–4", ("double-six",), (2, 3, 4)),
+    ("chapayev", "chapayev", "2–4", ("8×8",), (2, 4)),
+    ("reversi", "reversi", "2", ("8×8", "6×6"), (2,)),
+    ("four", "four in a row", "2", ("7×6",), (2,)),
+    ("battleship", "battleship", "2", ("10×10",), (2,)),
+    ("poker", "poker · chips", "2–6", ("hold'em", "1000 chips"), (2, 3, 4, 5, 6)),
+)
+TILT_GAME = (-3, 2, -2, 3, -3, 2, -2, 3, -3, 2, -2, 3)
+
+
+def board_body(gid, I, S, A, D, K):
+    """The drawing of a game in a 100-unit square: I ink (lines), S light piece, K dark piece, A accent, D danger."""
+    sq = lambda f: "".join(f'<rect x="{18 + c * 16}" y="{18 + r * 16}" width="16" height="16" fill="{I}" stroke="none" opacity=".26"/>'
+                           for r in range(4) for c in range(4) if (r + c) % 2 == f)
+    frame4 = f'<rect x="18" y="18" width="64" height="64" rx="2" fill="none"/>'
+    disc = lambda x, y, f, r=5.5: f'<circle cx="{x}" cy="{y}" r="{r}" fill="{f}" stroke="{I if f == K else K}" stroke-width="1.6"/>'
+    card = lambda x, y, rot, rank, suit_col, suit: (
+        f'<g transform="rotate({rot} {x + 15} {y + 42})"><rect x="{x}" y="{y}" width="30" height="42" rx="4" fill="{S}" stroke="{K}" stroke-width="1.6"/>'
+        f'<text x="{x + 5}" y="{y + 12}" font-family="Golos Text" font-weight="700" font-size="10" fill="{suit_col}" stroke="none">{rank}</text>'
+        f'<path transform="translate({x + 15} {y + 25})" d="{suit}" fill="{suit_col}" stroke="none"/></g>')
+    HEART = "M0 6 C-7 1 -7 -5 -3.2 -5.4 C-1.3 -5.6 0 -4 0 -3 C0 -4 1.3 -5.6 3.2 -5.4 C7 -5 7 1 0 6Z"
+    SPADE = "M0 -6.5 C-7 -1 -7 4 -3 4 C-1.5 4 -0.6 3 -0.3 2 L-1.8 6 H1.8 L0.3 2 C0.6 3 1.5 4 3 4 C7 4 7 -1 0 -6.5Z"
+    if gid == "dots":
+        P = (20, 40, 60, 80)
+        return (f'<rect x="20" y="20" width="20" height="20" fill="{A}" stroke="none"/>'
+                '<path d="M20 20 H40 V40 H20 Z M40 20 H60 M60 40 V60 M20 60 H40"/>'
+                + "".join(f'<circle cx="{x}" cy="{y}" r="4" fill="{I}" stroke="none"/>' for x in P for y in P))
+    if gid == "checkers":
+        return (sq(1) + frame4 + disc(34, 26, K) + disc(66, 26, K) + disc(50, 42, K)
+                + disc(26, 74, S) + disc(58, 74, S) + disc(42, 58, S))
+    if gid == "chess":
+        king = f'<path d="M-9 8 H9 L7 -1 L11 -9 L4 -4 L0 -12 L-4 -4 L-11 -9 L-7 -1 Z" fill="{K}" stroke="{S}" stroke-width="1.6"/>'
+        pawn = f'<path d="M-7 8 H7 L4 1 A5 5 0 1 0 -4 1 Z" fill="{S}" stroke="{K}" stroke-width="1.6"/>'
+        return (sq(1) + frame4 + f'<g transform="translate(42 40) scale(1.25)">{king}</g><g transform="translate(66 68) scale(1.1)">{pawn}</g>')
+    if gid == "durak":
+        return (card(14, 30, -16, "6", K, SPADE) + card(35, 24, 0, "A", D, HEART) + card(56, 30, 16, "K", K, SPADE))
+    if gid == "hangman":
+        slots = "".join(f'<path d="M{16 + j * 14} 86 H{26 + j * 14}"/>' for j in range(5))
+        lett = "".join(f'<text x="{21 + j * 14}" y="81" font-family="Golos Text" font-weight="700" font-size="12" text-anchor="middle" fill="{I}" stroke="none">{c}</text>' for j, c in ((1, "O"), (3, "O")))
+        return ('<path d="M16 66 H44 M26 66 V14 H58 V22"/>' f'<circle cx="58" cy="29" r="6.5" fill="{A}"/>'
+                '<path d="M58 35.5 V50 M58 40 L51 46 M58 40 L65 46 M58 50 L52 59 M58 50 L64 59"/>' + slots + lett)
+    if gid == "backgammon":
+        tri = "".join(f'<path d="M{16 + j * 11.33:.1f} {y0} L{21.67 + j * 11.33:.1f} {y1} L{27.33 + j * 11.33:.1f} {y0} Z" fill="{I}" stroke="none" opacity="{.6 if j % 2 else .22}"/>'
+                      for j in range(6) for (y0, y1) in ((16, 44), (84, 56)))
+        return (tri + '<rect x="16" y="16" width="68" height="68" rx="3" fill="none"/>'
+                + disc(22, 78, K, 5) + disc(22, 67, K, 5) + disc(78, 22, S, 5) + disc(78, 33, S, 5))
+    if gid == "dominoes":
+        pip = lambda x, y: f'<circle cx="{x}" cy="{y}" r="2.6" fill="{K}" stroke="none"/>'
+        t1 = (f'<rect x="14" y="20" width="60" height="28" rx="5" fill="{S}"/><path d="M44 24 V44"/>'
+              + pip(29, 34) + pip(22, 27) + pip(36, 41) + "".join(pip(x, y) for x in (52, 66) for y in (27, 41)) + pip(59, 34))
+        t2 = (f'<g transform="rotate(-8 56 68)"><rect x="26" y="54" width="60" height="28" rx="5" fill="{S}"/><path d="M56 58 V78"/>'
+              + "".join(pip(x, y) for x in (34, 48) for y in (61, 68, 75)) + pip(71, 68) + '</g>')
+        return t1 + t2
+    if gid == "chapayev":
+        arrow = f'<path d="M50 66 V38 M44 44 L50 37 L56 44" stroke="{A}" stroke-width="4"/>'
+        return (sq(0) + frame4 + "".join(disc(26 + j * 16, 26, S) for j in range(4)) + disc(26, 74, K) + disc(50, 74, K) + disc(74, 74, K) + arrow)
+    if gid == "reversi":
+        grid = "".join(f'<path d="M{18 + j * 16} 18 V82 M18 {18 + j * 16} H82" stroke-width="1.6"/>' for j in range(1, 4))
+        return (frame4 + grid + disc(42, 42, K, 6) + disc(58, 58, K, 6) + disc(26, 58, K, 6)
+                + disc(58, 42, S, 6) + disc(42, 58, S, 6) + disc(74, 26, S, 6))
+    if gid == "four":
+        o = K if lum(I) > 0.4 else S                      # the second colour stands out of the frame (I)
+        fill = {(4, 1): D, (4, 2): o, (3, 2): D, (4, 3): o, (3, 3): D, (2, 3): D, (4, 0): o}
+        holes = "".join(f'<circle cx="{25 + c * 12.5}" cy="{33 + r * 13}" r="4.8" fill="{fill.get((r, c), "BG")}" stroke="none" opacity="{1 if (r, c) in fill else .4}"/>' for r in range(5) for c in range(5))
+        return f'<rect x="14" y="22" width="72" height="66" rx="6" fill="{I}"/>' + holes
+    if gid == "battleship":
+        grid = "".join(f'<path d="M{18 + j * 12.8:.1f} 18 V82 M18 {18 + j * 12.8:.1f} H82" stroke-width="1.4"/>' for j in range(1, 5))
+        ship = f'<rect x="21" y="34" width="45" height="9" rx="4.5" fill="{I}"/><rect x="60" y="54" width="7" height="22" rx="3.5" fill="{I}"/>'
+        hit = f'<path d="M71 22 L79 30 M79 22 L71 30" stroke="{D}" stroke-width="3.6"/>'
+        return frame4 + grid + ship + hit + f'<circle cx="36" cy="66" r="2.6" fill="{I}" stroke="none"/>'
+    if gid == "poker":
+        chip = lambda y: (f'<ellipse cx="70" cy="{y}" rx="14" ry="6" fill="{A}"/>'
+                          f'<ellipse cx="70" cy="{y}" rx="9.5" ry="3.6" fill="none" stroke="{K if lum(A) > 0.4 else S}" stroke-width="2" stroke-dasharray="3 3"/>')
+        return card(12, 26, -12, "A", K, SPADE) + card(32, 30, 8, "A", D, HEART) + chip(78) + chip(70) + chip(62)
+    raise KeyError(gid)
+
+
+def game_part(sh, cx, cy, size, gi, tilt=None):
+    """The kit part: game gi's mini board, `size` across, centred at cx, cy, in the sheet's brand."""
+    k = sh.k; gid = GAMES[gi][0]
+    fill = sh.tiles[gi % 4]; I = ink(sh, fill)
+    S = "#ffffff"
+    A = k["accent"] if cr(k["accent"], fill) >= 2 else (k["fg"] if I != k["fg"] else k["bg"])
+    D = k["danger"]
+    K = min((k["fg"], k["bg"]), key=lum)                   # the dark piece: dark in every theme
+    x, y = cx - size / 2, cy - size / 2; s = size / 100
+    if sh.brand == "sosed":
+        ow = max(2, round(size / 26, 1))
+        sh.a(f'<g class="game" data-game="{gid}">')
+        sh.a(f'<rect x="{x:.1f}" y="{y:.1f}" width="{size:.1f}" height="{size:.1f}" rx="{size * 0.14:.1f}" fill="{fill}" stroke="{k["fg"]}" stroke-width="{ow}"/>')
+        sw = 3.2
+    else:
+        t = TILT_GAME[gi] if tilt is None else tilt; rim = max(4, size * 0.06)
+        sh.a(f'<g class="game" data-game="{gid}" transform="rotate({t} {cx:.1f} {cy:.1f})">')
+        sh.a(f'<rect x="{x + 1.5:.1f}" y="{y + 3:.1f}" width="{size:.1f}" height="{size:.1f}" rx="{size * 0.2:.1f}" fill="{k["shadow"]}" stroke="{k["shadow"]}" stroke-width="{rim + 3:.1f}" stroke-linejoin="round" opacity=".9"/>')
+        sh.a(f'<rect x="{x:.1f}" y="{y:.1f}" width="{size:.1f}" height="{size:.1f}" rx="{size * 0.2:.1f}" fill="{fill}" stroke="#ffffff" stroke-width="{rim:.1f}" paint-order="stroke"/>')
+        sw = 2.6
+    body = board_body(gid, I, S, A, D, K).replace('"BG"', f'"{fill}"')
+    sh.a(f'<g transform="translate({x:.1f} {y:.1f}) scale({s:.4f})" fill="none" stroke="{I}" stroke-width="{sw}" stroke-linecap="round" stroke-linejoin="round">{body}</g>')
+    sh.a('</g>')
+
+
+ICON["seat"] = '<rect x="7" y="3" width="10" height="8" rx="2"/><path d="M5.5 13.5 H18.5 M7.5 13.5 L6.5 21 M16.5 13.5 L17.5 21 M9 11 V13.5 M15 11 V13.5"/>'   # a chair
+WIZ = {1: "pick a game", 2: "how you play", 3: "how neighbours see it"}
+
+
+def wiz_frame(brand, w, step, colw, h=None):
+    """A wizard step at width w: from 1024 the rail and a centred column; below, the phone's bar. Back always.
+    Returns sheet, x0, x1, content top."""
+    h = h or TALK_H[w]; sh = Sheet(brand, w, h); k = sh.k
+    if w >= RAIL:
+        x0, x1 = frame(sh, 1, "a new table", back=True, colw=colw); ty = 70
+    else:
+        if brand == "neighbro": sh.a(f'<rect width="{w}" height="{h}" fill="url(#dots)"/>')
+        x0 = (w - colw) / 2; x1 = x0 + colw; ty = 48
+        if brand == "sosed": sh.rect(x0, 18, 44, 44, k["surface"], 22, f'stroke="{k["line"]}" stroke-width="1.5"'); sh.icon(x0 + 10, 28, "back", k["fg"])
+        else: sh.sticker(x0 + 22, 40, 20, k["surface"], "back")
+        sh.text(x0 + 60, ty, "a new table", 22, w=600)
+    # where we are: three steps welded into one strip, the done and the current filled
+    pw = 22; px = x1 - 3 * pw - 8
+    for j in range(3):
+        on = j < step
+        sh.rect(px + j * (pw + 4), ty - 12, pw, 8, k["accent"] if on else k["surface-2"], 4)
+    top = ty + 26
+    sh.text(x0, top + 6, f"{step} of 3 · {WIZ[step]}", 15, k["fg-muted"], 600)
+    sh.note(f"step {step} of 3; back on every step («back»: the step before, from step 1 the tables)")
+    return sh, x0, x1, top + 30
+
+
+def game_card(sh, x, y, cw, gi, on=False):
+    """A game's big card: its mini board, its name, how many play. One tap chooses it and goes on."""
+    k = sh.k; _, name, players, _, _ = GAMES[gi]
+    B, ch, big = card_dims(cw)
+    box(sh, x, y, cw, ch, None, (-0.5, 0.5)[gi % 2] if sh.brand == "neighbro" else 0)
+    game_part(sh, x + cw / 2, y + 16 + B / 2, B, gi)
+    p = 8 if big else 0
+    sh.text(x + 16 + p, y + B + 50 + p, name, 22 if big else 17, k["fg"], 600)
+    sh.icon(x + 14 + p, y + B + 56 + 2 * p, "people", k["fg-muted"], 0.9 if big else 0.75)
+    sh.text(x + 38 + 4 * p / 2 + p, y + B + 71 + 2.4 * p, players, 17 if big else 14, k["fg-muted"], 600)
+    return ch
+
+
+def card_dims(cw):
+    """A game card's board size, height, and whether it is the big kind (from 300 wide the words grow)."""
+    big = cw > 300; B = min(cw - 32, 300)
+    return B, B + (104 if big else 84), big
+
+
+WIZ_COLS = {375: 2, 393: 2, 768: 3, 1024: 4, 1440: 6, 2560: 4}
+
+
+def wiz_game(brand, w):
+    cols = WIZ_COLS[w]
+    colw = min(w - 32, 736) if w < RAIL else {1024: 832, 1440: 1200, 2560: 1500}[w]
+    cw = (colw - (cols - 1) * 12) / cols; ch = card_dims(cw)[1]; gap = 20 if brand == "neighbro" else 14
+    rows_ = -(-len(GAMES) // cols)
+    top0 = 130 if w >= RAIL else 104
+    need = top0 + rows_ * (ch + gap) + 24
+    sh, x0, x1, top = wiz_frame(brand, w, 1, colw, max(TALK_H[w], int(need)))
+    for gi in range(len(GAMES)):
+        r, c = divmod(gi, cols)
+        game_card(sh, x0 + c * (cw + 12), top + r * (ch + gap), cw, gi)
+    sh.note(f"{len(GAMES)} games, {cols} cards a row, {cw:.0f} wide; the card is the button: a tap picks the game and opens step 2")
+    if need > TALK_H[w]: sh.note(f"the page scrolls: the screen is {TALK_H[w]} high, the cards end at {need:.0f}")
+    sh.save(f"adaptive-{brand}-new-table-game-{w}")
+
+
+def wiz_chips(sh, x, y, w, items, on):
+    """A choice welded into one plate; the chosen part filled; wraps to rows of at most 4."""
+    k = sh.k; ch = 56
+    nrows = -(-len(items) // max(2, int(w // 60))); per = -(-len(items) // nrows)   # balanced rows, no lone chip
+    for r in range(-(-len(items) // per)):
+        part = items[r * per:(r + 1) * per]
+        xs, cw = weld(sh, x, y + r * (ch + 10), w, ch, len(part))
+        for j, (xx, t) in enumerate(zip(xs, part)):
+            idx = r * per + j
+            if idx == on: sh.rect(xx + 4, y + r * (ch + 10) + 4, cw - 8, ch - 8, k["accent"], (ch - 8) / 2)
+            sh.text(xx + cw / 2, y + r * (ch + 10) + 34, str(t), 16, k["accent-fg"] if idx == on else k["fg"], 600, "middle")
+    return y + -(-len(items) // per) * (ch + 10)
+
+
+def wiz_foot(sh, x0, x1, label, icon):
+    """The step's one main action across the column, an icon; its word is its name."""
+    k = sh.k; W = x1 - x0; fh = 64; fy = sh.h - fh - (24 if sh.w >= RAIL else 28)
+    if sh.brand == "sosed": sh.rect(x0, fy, W, fh, k["accent"], fh / 2)
+    else: sh.sticker_rect(x0, fy, W, fh, k["accent"], fh / 2)
+    sh.icon(x0 + W / 2 - 18, fy + 14, icon, k["accent-fg"], 1.5)
+    sh.note(f"name: «{label}»")
+
+
+def wiz_hero(sh, x0, x1, y, gi, extra):
+    """The chosen game welded into one plate: its board, its name, players — and a line of what is chosen."""
+    k = sh.k; W = x1 - x0; B = 112 if W < 500 else 140; h = B + 32
+    box(sh, x0, y, W, h)
+    game_part(sh, x0 + 16 + B / 2, y + 16 + B / 2, B, gi)
+    tx = x0 + B + 40
+    sh.text(tx, y + 50, GAMES[gi][1], 24 if W >= 500 else 21, k["fg"], 600)
+    sh.icon(tx - 2, y + 62, "people", k["fg-muted"], 0.8); sh.text(tx + 24, y + 79, GAMES[gi][2], 15, k["fg-muted"], 600)
+    sh.text(tx, y + 110, extra, 15, k["fg"], 600)
+    return y + h + 36
+
+
+def wiz_variant(brand, w, gi=3, var=0, seats=2):
+    colw = min(w - 32, 880 if w >= 2560 else 640)
+    sh, x0, x1, top = wiz_frame(brand, w, 2, colw); k = sh.k
+    g = GAMES[gi]
+    y = wiz_hero(sh, x0, x1, top, gi, f"{g[3][var]} · {g[4][seats]} seats")
+    sh.text(x0, y, "variant", 14, k["fg-muted"], 600)
+    y = wiz_chips(sh, x0, y + 12, colw, g[3], var) + 18
+    sh.text(x0, y, "seats", 14, k["fg-muted"], 600)
+    y = wiz_chips(sh, x0, y + 12, colw, [str(n) for n in g[4]], seats) + 18
+    field_card(sh, x0, y, colw, "a name, if you like", "by the park", "nobody has to give one")
+    wiz_foot(sh, x0, x1, "next", "next")
+    sh.note("variant and seats as welded chips; a game with one variant or one seat count still shows it, chosen")
+    sh.save(f"adaptive-{brand}-new-table-variant-{w}")
+
+
+def wiz_preview(brand, w, gi=3, var=0, seats=2):
+    colw = min(w - 32, 880 if w >= 2560 else 640)
+    sh, x0, x1, top = wiz_frame(brand, w, 3, colw); k = sh.k; W = colw
+    g = GAMES[gi]
+    # a neighbour's phrase above, pale: the table is seen among the feed, not alone
+    sh.a('<g opacity=".45">'); phrase_h = 92
+    box(sh, x0, top, W, phrase_h, sh.tiles[0] if brand == "sosed" else None)
+    sh.text(x0 + 18, top + 40, "walking to the river, join?", 18, ink(sh, sh.tiles[0]) if brand == "sosed" else k["fg"], 600)
+    sh.text(x0 + 18, top + 70, "with friends · 300 m", 14, ink(sh, sh.tiles[0]) if brand == "sosed" else k["fg-muted"])
+    sh.a('</g>')
+    # the table's card as the feed shows it: board, name, place; the seats welded under
+    y = top + phrase_h + 18; B = 120 if W < 500 else 150; ch = B + 32 + 72
+    box(sh, x0, y, W, ch, None, -0.6 if brand == "neighbro" else 0)
+    game_part(sh, x0 + 16 + B / 2, y + 16 + B / 2, B, gi)
+    tx = x0 + B + 40
+    sh.text(tx, y + 48, "by the park", 22 if W >= 500 else 19, k["fg"], 600)
+    sh.text(tx, y + 76, f"{g[1]} · {g[3][var]}", 15, k["fg"], 600)
+    sh.icon(tx - 2, y + 92, "pin", k["fg-muted"], 0.75); sh.text(tx + 22, y + 108, "here · 0 m", 14, k["fg-muted"], 600)
+    n = g[4][seats]
+    xs, cw = weld(sh, x0 + 16, y + B + 32, W - 32, 56, 3)
+    for xx, t in zip(xs, ("you sit", "0 watch", f"{n - 1} free")): sh.text(xx + cw / 2, y + B + 66, t, 15, k["fg"], 600, "middle")
+    sh.a('<g opacity=".45">'); box(sh, x0, y + ch + 18, W, 92, sh.tiles[2] if brand == "sosed" else None)
+    sh.text(x0 + 18, y + ch + 58, "coffee at the corner bakery", 18, ink(sh, sh.tiles[2]) if brand == "sosed" else k["fg"], 600)
+    sh.text(x0 + 18, y + ch + 88, "alone · 200 m", 14, ink(sh, sh.tiles[2]) if brand == "sosed" else k["fg-muted"]); sh.a('</g>')
+    wiz_foot(sh, x0, x1, "sit at the table", "seat")
+    sh.note("the table among the feed exactly as neighbours will see it; «sit at the table» opens it and you are seated")
+    sh.save(f"adaptive-{brand}-new-table-preview-{w}")
+
+
+def games_kit(brand):
+    """The kit sheet: the twelve mini boards on every theme of the brand, at 104 (and 56 for the feed's row)."""
+    themes = sorted(f[:-5] for f in os.listdir(os.path.join(ROOT, "web", "themes", brand)) if f.endswith(".json"))
+    cw, ch = 12 * 132 + 40, 230
+    W, H = cw + 64, 150 + len(themes) * ch
+    sh = Sheet(brand, W, H); k0 = sh.k
+    sh.text(32, 56, f"{brand} · games", 28, w=600)
+    sh.text(32, 86, " · ".join(g[1] for g in GAMES) + " — one source, the brand draws it", 16, k0["fg-muted"])
+    for n, th in enumerate(themes):
+        t = json.load(open(os.path.join(ROOT, "web", "themes", brand, th + ".json")))["tokens"]
+        sh.k = t; sh.tiles = [t["tile-1"], t["tile-2"], t["tile-3"], t["tile-4"]]
+        x, y = 32, 116 + n * ch
+        sh.rect(x, y, cw, ch - 20, t["bg"], 20, f'stroke="{k0["line"]}" stroke-width="1"')
+        sh.text(x + 20, y + 30, th, 16, t["fg"], 600)
+        for i in range(len(GAMES)):
+            cx = x + 86 + i * 132
+            game_part(sh, cx, y + 104, 104, i)
+            sh.text(cx, y + 186, GAMES[i][1], 13, t["fg"], 600, "middle")
+    sh.k = k0
+    sh.save(f"adaptive-{brand}-games")
+
+
+# Drawn only when run, so scripts/design/export-game-art.py can import the parts.
+if __name__ == "__main__":
+    for brand in ("sosed", "neighbro"):
+        games_kit(brand)
+        for w in TALK_H: wiz_game(brand, w); wiz_variant(brand, w); wiz_preview(brand, w)
+
+
+    for brand in ("sosed", "neighbro"):
+        stickers_kit(brand)
+        for w in TALK_H: chat_stickers(brand, w); chat_sticker_sent(brand, w)
+        for w in TALK_H: table_sticker(brand, w)
+
+
+    for brand in ("sosed", "neighbro"):
+        marks(brand)
+        likes(brand)
+        for step in (1, 2, 3): s_register_step(brand, step)
+        for f in (s_unlock, s_restore, s_likes, s_departure): f(brand)
+        draw_rest(brand)
+        draw_all(brand)
+        draw_fixes(brand)
+        for screen in (s_card, s_composer, s_inbox, s_chat, s_tables, s_table, s_me, s_register):
+            screen(Sheet(brand, 1440, 900))
+        for w in (393, 768, 1440, 2560): feed(brand, w)
+        for w in (393, 768, 1440): splash(brand, w)

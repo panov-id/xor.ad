@@ -96,19 +96,19 @@ export function Feed(
         place={at.name ?? say("web.feed.title")}
         step={said ? nearby(said) : ""}
         stepProps={{ role: "status", "data-testid": "nearby", "data-step": said ?? undefined }}
-        action={
-          <PlaceBar
-            placeLabel={say("web.place.open", { name: at.name ?? "" })}
-            onPlace={onPlace}
-            radiusLabel={say("web.feed.radius")}
-            options={RADII.map((r) => ({ value: String(r), label: label(r) }))}
-            value={String(radius)}
-            onChange={(value) => onRadius(Number(value) as Radius)}
-          />
-        }
       />
     }>
+      {/* Sheets adaptive-*-feed-393: the place and the circle as one pill under the header (sosed), a quiet
+          line (neighbro); «who liked me» beside it as a bare icon; «write» stands over the bar. */}
       <Actions>
+        <PlaceBar
+          placeLabel={say("web.place.open", { name: at.name ?? "" })}
+          onPlace={onPlace}
+          radiusLabel={say("web.feed.radius")}
+          options={RADII.map((r) => ({ value: String(r), label: label(r) }))}
+          value={String(radius)}
+          onChange={(value) => onRadius(Number(value) as Radius)}
+        />
         <Button type="button" icon="likes" aria-label={say("liked.title")} onClick={onLikes} data-testid="likes" />
         {onNewTable && <Button type="button" icon="table" aria-label={say("web.feed.newTable")} onClick={onNewTable} data-testid="new-table" />}
         <Button type="button" kind="primary" icon="write" aria-label={say("feed.write")} onClick={onWrite} data-testid="write" />

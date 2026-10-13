@@ -12,10 +12,10 @@ import { Button } from "../ui/Button.tsx";
 import { CodeField } from "../ui/CodeField.tsx";
 import { FormCard, PinPair } from "../ui/FormCard.tsx";
 import { PinField } from "../ui/Field.tsx";
-import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
+import { Split } from "../ui/Split.tsx";
 
 export function Restore({ onDone, onBack }: { onDone: (client: Client, longKey: CryptoKey) => void; onBack: () => void }) {
   // The paper code as four boxes of four (CodeField); a whole code typed or
@@ -50,11 +50,12 @@ export function Restore({ onDone, onBack }: { onDone: (client: Client, longKey: 
 
   const typedSome = code.some((group) => group !== "");
   return (
-    <Screen name="restore" title={say("restore.title")} header={<HeaderScreen title={say("restore.title")} onBack={onBack} backLabel={say("common.back")} backTestid="restore-back" />}>
-      <FormCard icon="code" error={error} info={<>
-        <Info label={say("web.info.code")} data-testid="restore-info"><p>{say("restore.intro")}</p></Info>
-        <Info label={say("web.info.pin")} data-testid="restore-pin-info"><p>{say("restore.newPinPrice")}</p></Info>
-      </>}>
+    <Screen name="restore" title={say("restore.title")}>
+      {/* one (i) as on the sheet (adaptive-*-restore): the code and the new PIN's price in it. No header bar on the
+          sheet: the title is the card's h1, «back» the second half of the foot's Split (owner 12.10.2026). */}
+      <FormCard icon="code" title={say("restore.title")} heading error={error} info={
+        <Info label={say("web.info.code")} data-testid="restore-info"><p>{say("restore.intro")}</p><p data-testid="restore-pin-info">{say("restore.newPinPrice")}</p></Info>
+      }>
       <div data-testid="restore-code"><CodeField value={code} onChange={setCode} /></div>
       {typedSome && !codeOk && <Notice>{say("restore.bad")}</Notice>}
       <PinPair>
@@ -63,7 +64,12 @@ export function Restore({ onDone, onBack }: { onDone: (client: Client, longKey: 
         error={pin.length === 6 && again.length === 6 && pin !== again ? say("reg.pinMismatch") : undefined} data-testid="restore-pin-again" />
       </PinPair>
       </FormCard>
-      <Button type="button" kind="primary" icon="key" className="ui-wide" aria-label={say("restore.go")} aria-busy={busy} disabled={!codeOk || !pinOk || busy} onClick={() => void go()} data-testid="restore-go" />
+      <div data-part="foot">
+        <Split>
+          <Button type="button" kind="primary" icon="key" aria-label={say("restore.go")} aria-busy={busy} disabled={!codeOk || !pinOk || busy} onClick={() => void go()} data-testid="restore-go" />
+          <Button type="button" icon="back" aria-label={say("common.back")} onClick={onBack} data-testid="restore-back" />
+        </Split>
+      </div>
     </Screen>
   );
 }

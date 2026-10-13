@@ -82,10 +82,8 @@ test("one's own span is set from the screen, moves only one's own end, lights th
 
   // The default: an hour, one's own, in view; no counter yet.
   await expect(screenA).toHaveAttribute("data-span", "60");
-  // The words live in the ⓘ balloon now (comic, 2026-10-01): open, read, close.
-  await anya.getByTestId("fades-info").getByRole("button").click();
+  // The words stand in the span's pill under the lines (sheet adaptive-*-chat-393).
   await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 1 ч вашего молчания");
-  await anya.keyboard.press("Escape");
   await expect(anya.getByTestId("fades")).toHaveAttribute("data-counting", "no");
   await chatMenu(anya);
   await expect(anya.getByTestId("span-60")).toHaveAttribute("aria-checked", "true");
@@ -103,7 +101,6 @@ test("one's own span is set from the screen, moves only one's own end, lights th
   // The span is chosen in place, the sheet stays open: close it first.
   await anya.keyboard.press("Escape");
   await expect(anya.getByTestId("chat-menu")).toBeHidden();
-  await anya.getByTestId("fades-info").getByRole("button").click();
   await expect(anya.getByTestId("fades-text")).toHaveText("гаснет после 10 мин вашего молчания");
   await anya.keyboard.press("Escape");
   await chatMenu(anya);

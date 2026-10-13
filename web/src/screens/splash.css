@@ -2,7 +2,8 @@
    mark is the hero — 160 on a phone, 200 from 640, 440 in the poster from 1440 — its name under it,
    the neighbourhood icons a quiet cast behind it. The entry (words and the ways in) keeps the phone's
    width, 440 at most. One entrance when the page opens; standing still under reduced motion.
-   Sizes are tokens (tokens.css); the two breakpoints are the only px here — a media query takes no var(). */
+   Sizes are tokens (tokens.css); the two max-width 1439 queries are the only px here — a media query takes no var()
+   (the other breakpoints of the splash live in adaptive.css). */
 [data-screen="splash"] [data-part="poster"] {
   position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: var(--s-3); min-height: var(--poster-min-h);
@@ -13,6 +14,77 @@
 [data-screen="splash"] .ui-mark[data-place="splash"] { position: relative; width: var(--mark-hero); height: var(--mark-hero); }
 [data-screen="splash"] [data-part="word"] { position: relative; margin: 0; font-size: var(--fs-word); font-weight: 600; line-height: 1; color: var(--fg); }
 [data-screen="splash"] [data-part="entry"] { display: flex; flex-direction: column; gap: var(--s-3); width: 100%; max-width: var(--entry-w); margin-inline: auto; }
+
+/* Below 1440 as the sheets adaptive-*-splash-393/768 draw it: the mark 96 from the top, the word 40 under it,
+   then the words 28/20 and the two ways in right under them — not pushed to the foot. */
+@media (max-width: 1439px) {
+  html:root[data-brand] [data-screen="splash"].screen { padding-top: 0; gap: 0; justify-content: flex-start; }
+  [data-screen="splash"] [data-part="poster"] { flex: none; justify-content: flex-start; min-height: 0; padding-top: var(--splash-padding-top-120); gap: var(--splash-gap-22); }
+  [data-screen="splash"] [data-part="word"] { font-size: var(--splash-font-size-40); }
+  [data-screen="splash"] [data-part="entry"] { margin-top: var(--s-8); gap: 0; }
+  [data-screen="splash"] [data-part="entry"] h1 { margin: 0; font-size: var(--splash-font-size-28); font-weight: 600; line-height: var(--splash-line-height-36); }
+  [data-screen="splash"] [data-part="entry"] > p { margin: 0 0 var(--splash-margin-18); font-size: var(--splash-font-size-20); color: var(--fg-muted); }
+}
+/* The cast around the mark, as the sheets place it: four shapes off the mark's centre, scaled with the mark
+   (--k = mark / 160). sosed: faint tiles of the theme's colours, no drawing; neighbro: sticker discs, the icon white. */
+@media (max-width: 1439px) {
+  [data-screen="splash"] [data-part="poster"] { --mk: var(--mark-hero); --k: 1; --pt: var(--splash-pt-120); padding-top: var(--pt); }
+  [data-screen="splash"] [data-part="poster"] [data-part="icons"] {
+    inset: auto; left: 50%; top: calc(var(--pt) + var(--mk) / 2); width: 0; height: 0; opacity: 1; display: block;
+  }
+}
+/* The old cast (feed.css: a 2-column grid that came and went for ever) is not on the sheets: the four stand still. */
+[data-screen="splash"] [data-part="icons"] > .ui-illustration { position: absolute; box-sizing: border-box; animation: none; }
+:root[data-brand="sosed"] [data-screen="splash"] [data-part="icons"] > .ui-illustration { stroke: transparent; }
+:root[data-brand="sosed"] [data-screen="splash"] [data-part="icons"] > .ui-illustration [data-dot] { fill: transparent; }
+:root[data-brand="neighbro"] [data-screen="splash"] [data-part="icons"] > .ui-illustration { stroke: var(--paper); stroke-width: 4; }
+:root[data-brand="neighbro"] [data-screen="splash"] [data-part="icons"] > .ui-illustration [data-dot] { fill: var(--paper); }
+  [data-screen="splash"] [data-part="icons"] > .ui-illustration:nth-child(n + 5) { display: none; }
+  :root[data-brand="sosed"] [data-screen="splash"] [data-part="icons"] > .ui-illustration { border-radius: calc(var(--splash-border-radius-12p8) * var(--k)); opacity: 0.22; color: transparent; }
+  :root[data-brand="sosed"] [data-screen="splash"] [data-part="icons"] > :nth-child(1) { left: calc(var(--splash-left-n168) * var(--k)); top: calc(var(--splash-top-n99p2) * var(--k)); width: calc(var(--splash-width-67p2) * var(--k)); height: calc(var(--s-12) * var(--k)); background: var(--tile-1); }
+  :root[data-brand="sosed"] [data-screen="splash"] [data-part="icons"] > :nth-child(2) { left: calc(var(--splash-left-105p6) * var(--k)); top: calc(var(--splash-top-n105p6) * var(--k)); width: calc(var(--splash-width-57p6) * var(--k)); height: calc(var(--splash-height-35p2) * var(--k)); background: var(--tile-2); }
+  :root[data-brand="sosed"] [data-screen="splash"] [data-part="icons"] > :nth-child(3) { left: calc(var(--splash-left-115p2) * var(--k)); top: calc(var(--splash-top-67p2) * var(--k)); width: calc(var(--s-12) * var(--k)); height: calc(var(--splash-height-57p6) * var(--k)); background: var(--tile-3); }
+  :root[data-brand="sosed"] [data-screen="splash"] [data-part="icons"] > :nth-child(4) { left: calc(var(--splash-left-n160) * var(--k)); top: calc(var(--splash-top-76p8) * var(--k)); width: calc(var(--splash-width-54p4) * var(--k)); height: calc(var(--splash-height-41p6) * var(--k)); background: var(--tile-4); }
+  :root[data-brand="neighbro"] [data-screen="splash"] [data-part="icons"] > .ui-illustration {
+    border-radius: 50%; padding: calc(var(--splash-padding-7) * var(--k)); color: var(--paper); outline: var(--splash-outline-3p5) solid var(--paper); box-shadow: var(--splash-box-shadow-1p5) var(--splash-box-shadow-3) 0 var(--splash-box-shadow-3p5) var(--shadow);
+  }
+  :root[data-brand="neighbro"] [data-screen="splash"] [data-part="icons"] > :nth-child(1) { left: calc(var(--splash-left-n142p4) * var(--k)); top: calc(var(--splash-top-n97p6) * var(--k)); width: calc(var(--splash-width-35p2) * var(--k)); height: calc(var(--splash-height-35p2) * var(--k)); background: var(--tile-2); }
+  :root[data-brand="neighbro"] [data-screen="splash"] [data-part="icons"] > :nth-child(2) { left: calc(var(--splash-left-104) * var(--k)); top: calc(var(--splash-top-n88) * var(--k)); width: calc(var(--splash-width-28p8) * var(--k)); height: calc(var(--splash-height-28p8) * var(--k)); background: var(--tile-3); }
+  :root[data-brand="neighbro"] [data-screen="splash"] [data-part="icons"] > :nth-child(3) { left: calc(var(--splash-left-112) * var(--k)); top: calc(var(--splash-top-64) * var(--k)); width: calc(var(--s-8) * var(--k)); height: calc(var(--s-8) * var(--k)); background: var(--tile-4); }
+  :root[data-brand="neighbro"] [data-screen="splash"] [data-part="icons"] > :nth-child(4) { left: calc(var(--splash-left-n132) * var(--k)); top: calc(var(--splash-top-76) * var(--k)); width: calc(var(--splash-width-27p2) * var(--k)); height: calc(var(--splash-height-27p2) * var(--k)); background: var(--tile-1); }
+
+/* The language list (sheet adaptive-*-splash-lang): the mark 140 at 100, the name 36 under it, a card 361 of rows 64,
+   each a globe, the language in itself 16/600, the page's own ticked; the card holds four rows and scrolls the rest. */
+[data-screen="splash"][data-state="lang"].screen { padding: 0 var(--s-4); gap: 0; justify-content: flex-start; display: flex; }
+[data-screen="splash"][data-state="lang"] [data-part="poster"] { flex: none; padding-top: var(--splash-padding-top-100); gap: var(--splash-gap-10); min-height: 0; justify-content: flex-start; }
+[data-screen="splash"][data-state="lang"] .ui-mark[data-place="splash"] { width: var(--splash-width-140); height: var(--splash-height-140); }
+[data-screen="splash"][data-state="lang"] [data-part="word"] { font-size: var(--splash-font-size-36); }
+[data-screen="splash"] [data-part="lang-list"].ui-card { margin: var(--splash-margin-30) 0 0; padding: 0; list-style: none; gap: 0; block-size: var(--splash-block-size-256); overflow-y: auto; border-radius: var(--splash-border-radius-18); text-align: start; }
+:root[data-brand="sosed"] [data-screen="splash"] [data-part="lang-list"].ui-card { border: var(--splash-border-1p5) solid var(--line); }
+:root[data-brand="neighbro"] [data-screen="splash"] [data-part="lang-list"].ui-card { border-radius: var(--s-4); }
+[data-part="lang-list"] button {
+  display: flex; align-items: center; gap: var(--s-4); inline-size: 100%; min-height: var(--splash-min-height-64); padding: 0 var(--s-3);
+  border: 0; border-radius: 0; background: transparent; font-size: var(--s-4); font-weight: 600; color: var(--fg); text-align: start;
+}
+[data-part="lang-list"] button > span { flex: 1; }
+/* Four rows show and the rest scroll: the bottom edge fades so the card reads as a list that goes on. */
+[data-screen="splash"] [data-part="lang-list"].ui-card { mask-image: linear-gradient(to bottom, var(--ink) calc(100% - var(--splash-mask-image-28)), color-mix(in srgb, var(--ink) 25%, transparent)); }
+[data-part="lang-list"] li + li button { border-block-start: var(--splash-border-block-start-1p2) solid var(--surface-2); }
+
+/* «arrive» under the two ways in: a quiet link, the 44 target kept. */
+html:root[data-brand] [data-screen="splash"] button[data-part="arrive"] { align-self: center; min-height: var(--control-h); margin-top: var(--s-2); border: 0; background: none; padding: 0 var(--s-3); font-size: var(--splash-font-size-15); font-weight: 600; }
+
+/* The ways in, on every width: «start» a 64 capsule in the accent, the rest one 56 outline capsule under it. */
+[data-screen="splash"] [data-part="entry"] .ui-button.ui-primary { min-height: var(--splash-min-height-64); border-radius: var(--s-8); }
+[data-screen="splash"] [data-part="entry"] .ui-split { margin-top: var(--s-3); min-height: var(--splash-min-height-56); border-radius: var(--splash-border-radius-28); background: transparent; border: var(--splash-border-1p5) solid var(--line); }
+[data-screen="splash"] [data-part="entry"] .ui-split > .ui-button { min-height: var(--splash-min-height-53); background: transparent; border: 0; }
+/* neighbro: both are stickers 56 — the accent one and a --surface one, the white rim and the hard shadow. */
+:root[data-brand="neighbro"] [data-screen="splash"] [data-part="entry"] .ui-button.ui-primary { min-height: var(--splash-min-height-56); border-radius: var(--splash-border-radius-28); }
+:root[data-brand="neighbro"] [data-screen="splash"] [data-part="entry"] .ui-split {
+  background: var(--surface); border: 0; outline: var(--splash-outline-3p5) solid var(--paper); box-shadow: var(--splash-box-shadow-1p5) var(--splash-box-shadow-3) 0 var(--splash-box-shadow-3p5) var(--shadow); overflow: hidden;
+}
+:root[data-brand="neighbro"] [data-screen="splash"] [data-part="entry"] .ui-split > .ui-button.ui-icon-only:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
+  width: auto; height: auto; min-height: var(--splash-min-height-56); background: transparent; border: 0; box-shadow: none; border-radius: 0; }
 
 /* The entrance: sosed's windows light one by one, neighbro's house drops in and settles. */
 @media (prefers-reduced-motion: no-preference) {
@@ -27,21 +99,3 @@
 }
 @keyframes mark-window { from { fill: var(--accent-fg); } to { fill: var(--accent); } }
 @keyframes mark-drop { from { transform: translateY(calc(-1 * var(--mark-drop))) rotate(-6deg); opacity: 0; } to { transform: none; opacity: 1; } }
-
-@media (min-width: 640px) {
-  [data-screen="splash"] .ui-mark[data-place="splash"] { width: var(--mark-hero-md); height: var(--mark-hero-md); }
-}
-
-/* From 1440: the poster takes the left half, the entry 440 the right (owner 11.10, 4a). */
-@media (min-width: 1440px) {
-  html:root[data-brand] .screen[data-screen="splash"] {
-    max-width: none; min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; align-items: center;
-    padding: var(--s-6) var(--poster-pad); text-align: left;
-  }
-  [data-screen="splash"] [data-part="poster"] { height: calc(100vh - 2 * var(--s-6)); }
-  [data-screen="splash"] .ui-mark[data-place="splash"] { width: min(var(--mark-hero-xl), 50vh); height: min(var(--mark-hero-xl), 50vh); }
-  [data-screen="splash"] [data-part="word"] { font-size: var(--fs-word-xl); }
-  [data-screen="splash"] [data-part="entry"] { justify-self: center; }
-  [data-screen="splash"] [data-part="entry"] h1 { font-size: var(--fs-word); font-weight: 600; color: var(--fg); }
-  [data-screen="splash"] [data-part="lang"] { right: var(--poster-pad); }
-}

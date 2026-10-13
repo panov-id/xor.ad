@@ -133,8 +133,8 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
   await expect(boris.locator('[data-screen="unlock"]')).toBeVisible({ timeout: 20000 });
   await boris.getByTestId("unlock-pin").fill("246813");
   await boris.getByTestId("unlock").click();
-  await expect(boris.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
-  await boris.getByTestId("nav-inbox").click();
+  // The reload was on /chat: its tab, the inbox, opens (router.ts).
+  await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 30000 });
   await expect(boris.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 20000 });
   await expect(boris.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
   await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
@@ -170,4 +170,41 @@ test("two people meet through likes, talk encrypted, and the second reopens the 
 
   await a.close();
   await b.close();
+});
+
+// A sticker in a conversation (owner 13.10.2026; quorum 13.10: inside the ciphertext as U+E000 "sticker:<id>",
+// web/src/chat/sticker.ts): picked from the plate over the line, it reaches the other side as its picture
+// and its word — never as the machine string.
+test("a sticker sent in a conversation arrives as its picture and its word", async ({ browser }) => {
+  test.setTimeout(180_000);
+  const anya = await personIn(await browser.newContext({ viewport: { width: 393, height: 851 } }), "Аня");
+  const boris = await personIn(await browser.newContext({ viewport: { width: 393, height: 851 } }), "Борис");
+  const run = runLabel();
+  const aText = `стикер у реки ${run}`;
+  const bText = `стикер у моста ${run}`;
+  await writePhrase(anya, aText);
+  await writePhrase(boris, bText);
+  expect(await likeByCard(anya, bText)).toBe("liked");
+  expect(await likeByCard(boris, aText)).toBe("matched");
+  await openMatch(anya, "Борис");
+  await anya.getByTestId("talk").click();
+  await expect(anya.getByTestId("waiting")).toBeVisible({ timeout: 15000 });
+  await anya.getByTestId("to-inbox").click();
+  await openMatch(boris, "Аня");
+  await boris.getByTestId("talk").click();
+  await expect(boris.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
+  await boris.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
+  await expect(boris.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });
+  await anya.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect(anya.locator('[data-testid="chat"]')).toHaveCount(1, { timeout: 15000 });
+  await anya.locator('[data-testid="chat"] [data-testid="open-chat"]').click();
+  await expect(anya.locator('[data-screen="chat"]')).toHaveAttribute("data-keys", "open", { timeout: 20000 });
+
+  await anya.getByTestId("stickers-key").click();
+  await expect(anya.getByTestId("sticker-plate").getByRole("button")).toHaveCount(8);
+  await anya.getByTestId("chat-sticker-hi").click();
+  const got = boris.locator('[data-testid="theirs"]').last();
+  await expect(got, "the sticker did not arrive as its word").toContainText("привет", { timeout: 20000 });
+  await expect(got.locator("svg.ui-sticker")).toBeVisible();
+  await expect(got, "the machine string leaked onto the screen").not.toContainText("sticker:");
 });

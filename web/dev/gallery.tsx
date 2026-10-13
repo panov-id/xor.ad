@@ -8,7 +8,7 @@ import "../src/styles.css";
 import { Button } from "../src/ui/Button.tsx";
 import { Card } from "../src/ui/Card.tsx";
 import { Chip } from "../src/ui/Chip.tsx";
-import { Composer } from "../src/ui/Composer.tsx";
+import { MessageInput as Composer } from "../src/ui/MessageInput.tsx";
 import { HeaderFeed, HeaderScreen } from "../src/ui/Header.tsx";
 import { InboxRow } from "../src/ui/InboxRow.tsx";
 

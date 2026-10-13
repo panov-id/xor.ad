@@ -37,6 +37,7 @@
 /* WD7: the match as sheet 24 — the other's card with a chip, the hint on
    panel-2 with a 4 px accent edge (card-hint), the two buttons at the bottom. */
 [data-screen="match"] [data-part="theirs"] { gap: var(--s-2); }
+[data-screen="match"] [data-part="foot"] { margin-top: auto; }
 [data-screen="match"] [data-part="theirs"] p { font-size: 20px; font-weight: 600; }
 [data-screen="match"] [data-part="hint"] { border-left: 4px solid var(--accent); }
 /* N1: sheet 24's lifespan — 3 px on a border-control track (kit `lifespan`),
@@ -57,6 +58,9 @@
 /* WD13: sheet 06 (the map's match) starts with the header band — no screen
    top — and puts the two buttons right under the cards, not at the foot. */
 .screen[data-screen="match"] { padding-top: 0; }
+/* The capsule's foot as the sheets keep it (adaptive-*-match-393): 32 under it on sosed (755+64 of 851), 36 on neighbro (755+60). */
+:root[data-brand="sosed"] .screen[data-screen="match"] { padding-bottom: var(--s-8); }
+:root[data-brand="neighbro"] .screen[data-screen="match"] { padding-bottom: calc(var(--s-8) + var(--s-1)); }
 /* N4: the starters at the head of a conversation ("Liked, in order", chat
    spec) and an extra like's card in the middle (§8.7) — one look for both,
    since the card is a starter that arrived later: the number, the mark in
@@ -76,3 +80,97 @@
 .chat .fades { margin: 0; font-size: 14px; }
 .chat .fades[data-counting="yes"] { color: var(--err); font-weight: 600; }
 .chat .chat-actions .ui-text { min-height: var(--control-h); }
+
+/* The table at a phone's width (sheets adaptive-*-table-393, *-table-sticker-393): the score a panel of
+   its own (361×56, three equal cells), the board a 300 panel under it, the strip of eight (under «say»)
+   a panel of 64 with the tiles 31 apart by 14, the foot «leave · say» at the screen's foot. */
+.screen[data-screen="table"] { padding-bottom: var(--s-8); }
+:root[data-brand="neighbro"] .screen[data-screen="table"] { padding-bottom: calc(var(--s-8) + var(--s-1)); }
+[data-screen="table"] [data-part="foot"] { margin-top: auto; }
+[data-screen="table"] .ui-boardpanel { margin-top: 17px; border: 0; border-radius: 0; background: none; overflow: visible; gap: 18px; }
+[data-screen="table"] :is(.ui-boardpanel-strip, [data-part="stickers"]) {
+  background: var(--surface); border: var(--panel-rim); box-shadow: var(--panel-ring); border-radius: var(--panel-r);
+}
+:root[data-brand="neighbro"] [data-screen="table"] :is(.ui-boardpanel-strip, [data-part="stickers"], .ui-board) { border: var(--card-rim); box-shadow: var(--card-shadow); }
+[data-screen="table"] .ui-boardpanel-strip { flex-wrap: nowrap; min-block-size: 56px; box-sizing: border-box; }
+[data-screen="table"] .ui-boardpanel-strip > .ui-boardpanel-cell.ui-boardpanel-cell { position: relative; flex: 1 1 0; min-inline-size: 0; min-block-size: 0; font-size: 15px; font-weight: 600; }
+[data-screen="table"] .ui-boardpanel-body { padding: 0; }
+[data-screen="table"] [data-part="dots-board"] { align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); }
+[data-screen="table"] .ui-board { inline-size: min(300px, 100%); block-size: auto; aspect-ratio: 1; box-sizing: border-box;
+  background: var(--surface); border: var(--panel-rim); box-shadow: var(--panel-ring); border-radius: var(--panel-r); }
+/* the sticker said lands on its sender's cell, over its top edge, for 4 s */
+[data-screen="table"] [data-part="landed"] { position: absolute; top: -22px; left: calc(50% + 23px); line-height: 0; pointer-events: none; }
+[data-screen="table"] [data-part="stickers"] { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); column-gap: 14px; padding: 0 6px; min-block-size: 64px; box-sizing: border-box; }
+:root[data-brand="neighbro"] [data-screen="table"] [data-part="stickers"] { padding: 0; }
+[data-screen="table"] [data-part="stickers"] > button { all: unset; display: grid; place-items: center; min-inline-size: 0; cursor: pointer; }
+[data-screen="table"] [data-part="stickers"] > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-1); }
+
+/* The table's games with the node's rules (reversi, four in a row, battleship, poker, durak):
+   each board section fills the panel and stacks its parts; the action buttons stand in a wrapping
+   row; the lists (table pairs, poker seats, last hand) are plain lines, not bulleted. */
+[data-screen="table"] section:is([data-testid="cells"], [data-testid="sea"], [data-testid="poker"], [data-testid="deck"]) { inline-size: 100%; display: flex; flex-direction: column; align-items: center; gap: var(--s-3); }
+[data-screen="table"] section:is([data-testid="cells"], [data-testid="sea"], [data-testid="poker"], [data-testid="deck"]) > p,
+[data-screen="table"] section:is([data-testid="cells"], [data-testid="sea"], [data-testid="poker"], [data-testid="deck"]) > ul { margin: 0; }
+[data-screen="table"] :is([data-testid="pairs"], [data-testid="poker-seats"], [data-testid="poker-last"]) { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--s-1); align-self: stretch; }
+[data-screen="table"] [data-testid="poker-seats"] > li[data-turn="yes"] { font-weight: 600; }
+[data-screen="table"] [data-part="actions"] { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2); }
+[data-screen="table"] [data-testid="sea"] > form,
+[data-screen="table"] [data-testid="poker"] > form { align-self: stretch; }
+[data-screen="table"] [data-testid="sea-mine"] { font-size: var(--fs-meta); }
+
+/* The conversation at a phone's width (sheets adaptive-*-chat-393, *-chat-stickers-393, *-chat-sticker-sent-393):
+   the lines first — a bubble 50 high, the words and the time in one row, 14 apart; the span a pill of 44 under
+   them; the line to say a panel of 64 at the foot with the stickers' key (lit while the plate is up) and send
+   52 round inside it; the plate of 4×2 over it, tiles 58 with their words; a sent sticker the message itself,
+   112, no bubble, its word under. The starters fold under their title. */
+html:root[data-brand] [data-screen="chat"] .ui-lines { gap: 14px; }
+html:root[data-brand] [data-screen="chat"] .ui-msg:not(.ui-msg-art):not(.ui-msg-system):not(.ui-msg-extra) {
+  flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-3); row-gap: 0;
+  padding: 14px 18px; font-size: 16px; line-height: 22px; border-radius: var(--panel-r); box-sizing: border-box;
+}
+html:root[data-brand] [data-screen="chat"] .ui-msg-theirs:not(.ui-msg-art) { background: var(--surface); border: 0; }
+:root[data-brand="neighbro"] [data-screen="chat"] .ui-msg:not(.ui-msg-art):not(.ui-msg-system):not(.ui-msg-extra) { box-shadow: var(--card-shadow); }
+html:root[data-brand] [data-screen="chat"] .ui-msg .ui-msg-time { font-size: 13px; line-height: 22px; opacity: 0.75; margin-inline-start: auto; }
+html:root[data-brand] [data-screen="chat"] .ui-msg-art { background: none; border: 0; box-shadow: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); font-size: 13px; font-weight: 600; color: var(--fg-muted); }
+html:root[data-brand] [data-screen="chat"] .ui-msg-mine.ui-msg-art { align-self: flex-end; }
+html:root[data-brand] [data-screen="chat"] .ui-msg-art .ui-msg-time { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html:root[data-brand] [data-screen="chat"] [data-part="fades"] {
+  display: flex; align-items: center; gap: var(--s-3); align-self: stretch; margin: 0; min-height: 44px; padding: 0 var(--s-3); box-sizing: border-box;
+  border-radius: var(--panel-r); background: var(--surface-2); color: var(--fg-muted); font-size: 14px; font-weight: 400;
+}
+:root[data-brand="neighbro"] [data-screen="chat"] [data-part="fades"] { background: var(--surface); border: var(--card-rim); box-shadow: var(--card-shadow); }
+html:root[data-brand] [data-screen="chat"] [data-part="fades"][data-counting="yes"] { color: var(--err); font-weight: 600; }
+html:root[data-brand] [data-screen="chat"] .ui-starters { padding: 0; background: none; border: 0; box-shadow: none; }
+html:root[data-brand] [data-screen="chat"] .ui-starters > summary { cursor: pointer; list-style-position: inside; min-height: 24px; }
+html:root[data-brand] [data-screen="chat"] .ui-starters > summary > h2 { display: inline; }
+html:root[data-brand] [data-screen="chat"] .ui-starters[open] > .ui-starters-list { margin-top: var(--s-2); padding: var(--s-3); border-radius: var(--panel-r); background: var(--surface); }
+/* the line to say: the field, the key and send inside one panel; the band under it masks the lines scrolled away */
+html:root[data-brand] .screen[data-screen="chat"] > .ui-field:has(> .ui-composer.ui-message) { background: linear-gradient(var(--bg), var(--bg)); }
+html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message {
+  gap: var(--s-2); min-height: 64px; padding: 0 6px 0 20px; box-sizing: border-box;
+  background: var(--surface); border: var(--panel-rim); box-shadow: var(--panel-ring); border-radius: var(--panel-r);
+}
+:root[data-brand="neighbro"] [data-screen="chat"] .ui-composer.ui-message { border: var(--card-rim); box-shadow: var(--card-shadow); padding: 0 0 0 13px; }
+html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message input { min-height: 52px; padding: 0; border: 0; box-shadow: none; background: none; font-size: 16px; }
+html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message .ui-send { width: 52px; min-height: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message .ui-button.ui-icon-only[data-testid="stickers-key"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
+  flex: none; width: 52px; min-width: 52px; height: 52px; min-height: 52px; padding: 0; border: 0; border-radius: 50%; background: none; box-shadow: none; color: var(--fg);
+}
+html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message .ui-button.ui-icon-only[data-testid="stickers-key"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide)[aria-pressed="true"] { background: var(--fg); color: var(--surface); }
+html:root[data-brand="neighbro"] [data-screen="chat"] .ui-composer.ui-message .ui-button.ui-icon-only[data-testid="stickers-key"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide)[aria-pressed="true"] { background: var(--tile-2); color: var(--tile-2-ink); }
+html:root[data-brand] [data-screen="chat"] [data-part="sticker-plate"] {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 20px; padding: 8px 0 12px; min-height: 212px; box-sizing: border-box;
+  background: var(--surface); border: var(--panel-rim); box-shadow: var(--panel-ring); border-radius: var(--panel-r);
+}
+:root[data-brand="neighbro"] [data-screen="chat"] [data-part="sticker-plate"] { border: var(--card-rim); box-shadow: var(--card-shadow); padding: 1px 0 5px; }
+html:root[data-brand] [data-screen="chat"] [data-part="sticker-plate"] > button {
+  all: unset; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); min-inline-size: 0; cursor: pointer;
+  font-size: 12px; font-weight: 600; line-height: 16px; color: var(--fg); text-align: center;
+}
+html:root[data-brand] [data-screen="chat"] [data-part="sticker-plate"] > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-1); }
+html:root[data-brand] [data-screen="chat"] [data-part="sticker-plate"] > button:disabled { cursor: default; opacity: 0.6; }
+/* the plate stands on the line to say, both at the foot */
+html:root[data-brand] .screen[data-screen="chat"] > [data-part="sticker-plate"] { margin-block-start: auto; }
+html:root[data-brand] .screen[data-screen="chat"] > [data-part="sticker-plate"] + .ui-field:has(> .ui-composer.ui-message) { margin-block-start: -12px; }
+/* the handles' section holds only dialogs: no slot of its own in the column */
+[data-screen="chat"] > [data-testid="chat-actions"] { display: contents; }

@@ -16,7 +16,7 @@ const node = process.env.WEB_NODE_URL ?? "http://localhost:62080";
 // without the panel's /admin, /auth, /o and /v1.
 // "chat" is the conversation's socket, GET /chat (protocol §4.4), forwarded
 // with `ws: true` below (W3, 2026-09-26).
-const NODE_PATHS = ["away", "blocks", "chat", "chats", "feed", "hidden", "identities", "inbox", "legal", "likes", "limits", "matches", "offers", "recovery", "sessions", "statements", "support", "tables", "vault", "health"];
+const NODE_PATHS = ["away", "blocks", "chat", "chats", "feed", "hidden", "identities", "inbox", "legal", "likes", "limits", "matches", "offers", "recovery", "report", "sessions", "statements", "support", "tables", "vault", "health"];
 // Host stays the page's: the signature covers the authority the person called
 // (identity_auth.ts signedAuthority), and the node reads it from the request.
 // The cabinet (A1): the node knows the storefront by the cabinet's Origin,
@@ -38,7 +38,16 @@ const proxy = {
     ...(advOrigin ? { headers: { origin: advOrigin } } : {}),
     bypass: (req: { headers: { accept?: string } }) => ((req.headers.accept ?? "").includes("text/html") ? "/index.html" : undefined),
   },
-  [`^/(${NODE_PATHS.join("|")})(/|$|\\?)`]: { target: node, changeOrigin: false, ws: true },
+  // The face's own addresses share first segments with the node (/feed, /tables,
+  // /inbox, /chat …; web/src/router.ts): a browser navigating there — a reload,
+  // a typed address, Accept text/html — gets the page; the page's fetches
+  // (Accept */*) and the chat's socket still go to the node.
+  [`^/(${NODE_PATHS.join("|")})(/|$|\\?)`]: {
+    target: node,
+    changeOrigin: false,
+    ws: true,
+    bypass: (req: { headers: { accept?: string } }) => ((req.headers.accept ?? "").includes("text/html") ? "/index.html" : undefined),
+  },
   // An offer's link, `<storefront>/o/<code>` (offers spec §6.2; W5): the same
   // path is a page and a node route. A browser navigating there (Accept
   // text/html) gets the page, which then asks the node for JSON at the same

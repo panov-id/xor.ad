@@ -51,15 +51,6 @@
 .b-stickers .heart-sticker.used { opacity: 0.35; box-shadow: none; }
 .b-stickers .heart-ghost { position: fixed; z-index: 30; pointer-events: none; transform: translate(-50%, -50%) rotate(-8deg); color: var(--accent-text); }
 
-/* Match.svg: two hearts leaning towards each other. */
-.b-stickers .sticker-hero { position: relative; height: 140px; display: flex; justify-content: center; align-items: center; }
-.b-stickers .hero-heart {
-  display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%;
-  background: var(--surface); border: var(--card-rim); box-shadow: var(--card-shadow);
-}
-.b-stickers .hero-heart-a { color: var(--tile-2); transform: rotate(-10deg) translateX(12px); }
-.b-stickers .hero-heart-b { color: var(--accent-text); transform: rotate(10deg) translateX(-12px); }
-.b-stickers .sticker-quote { background: var(--surface); color: var(--fg); }
 
 /* The shared screens under this brand. */
 
@@ -79,17 +70,7 @@
 [data-screen="arrival"] .ui-primary, .b-stickers[data-screen="feed"] .ui-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); box-shadow: var(--btn-shadow); border-radius: var(--btn-r); min-height: var(--btn-h); }
 [data-screen="arrival"] .ui-secondary, .b-stickers[data-screen="feed"] .ui-secondary { border-radius: var(--btn2-r); min-height: var(--btn-h); background: var(--btn2-bg); }
 
-/* Compose.svg: the field a sticker card 343×190, mode tags 109×48 (the
-   chosen in tile-2, leaning −2°), zone tags 80×48 (the chosen in tile-3). */
-.b-stickers[data-screen="composer"] .ui-textarea { min-height: 190px; padding: 20px; border-radius: var(--card-r); border: var(--card-rim); background: var(--surface); box-shadow: var(--card-shadow); font-size: 22px; font-weight: 600; }
-.b-stickers[data-screen="composer"] [data-testid="mode"] { gap: var(--s-2); border: 0; border-radius: 0; overflow: visible; }
-.b-stickers[data-screen="composer"] [data-testid="mode"] .ui-seg { min-height: 48px; border-radius: 10px; border: 0; background: var(--surface); font-size: var(--fs-body); }
-.b-stickers[data-screen="composer"] [data-testid="mode"] .ui-seg + .ui-seg { border-left: 0; }
-.b-stickers[data-screen="composer"] [data-testid="mode"] .ui-seg-on { background: var(--tile-2); color: var(--tile-2-ink); transform: rotate(-2deg); font-weight: 600; }
-.b-stickers[data-screen="composer"] .ui-illustration { display: none; }
-.b-stickers[data-screen="composer"] [data-testid="zone"] { gap: var(--s-2); }
-.b-stickers[data-screen="composer"] [data-testid="zone"] .ui-seg { min-height: 48px; border-radius: 10px; border: 0; background: var(--surface); font-size: var(--fs-body); color: var(--fg); }
-.b-stickers[data-screen="composer"] [data-testid="zone"] .ui-seg-on { background: var(--tile-3); color: var(--tile-3-ink); }
+/* The composer: screens/inner.css (sheet adaptive-neighbro-composer-393). */
 
 /* Chat.svg: the term tag 343×56 on the surface, theirs on the surface, mine
    in tile-4, radius 20, 18 px words; the message pill and the round send. */
@@ -98,23 +79,33 @@
 .b-stickers[data-screen="chat"] .ui-msg-mine { background: var(--tile-4); color: var(--tile-4-ink); }
 .b-stickers[data-screen="chat"] .ui-msg-mine .ui-msg-time { color: inherit; }
 
-/* Profile.svg: rows as tags 343×56 on the surface, 12 apart, each icon a
-   small round sticker walking tile-1..4, the chevron in the muted ink. */
-.b-stickers[data-screen="me"] .ui-list { gap: var(--s-3); }
-.b-stickers[data-screen="me"] .ui-list > li { border-bottom: 0; }
-.b-stickers[data-screen="me"] .ui-setting { justify-content: flex-start; gap: 14px; min-height: 56px; padding: 0 16px 0 12px; border-radius: 10px; background: var(--surface); }
-.b-stickers[data-screen="me"] .ui-setting-chevron { margin-left: auto; color: var(--fg-muted); }
-.b-stickers[data-screen="me"] .ui-setting-icon { box-sizing: content-box; padding: 5px; border-radius: 50%; background: var(--tile-1); color: var(--tile-1-ink); }
-.b-stickers[data-screen="me"] .ui-list > li:nth-child(4n+2) .ui-setting-icon { background: var(--tile-2); color: var(--tile-2-ink); }
-.b-stickers[data-screen="me"] .ui-list > li:nth-child(4n+3) .ui-setting-icon { background: var(--tile-3); color: var(--tile-3-ink); }
-.b-stickers[data-screen="me"] .ui-list > li:nth-child(4n) .ui-setting-icon { background: var(--tile-4); color: var(--tile-4-ink); }
-/* The sheet's hero: the name row is a big tilted sticker 88 (r44, y+50) and
-   the name in Golos 600 beside it, on the ground — no tag, no chevron. */
-.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting { min-height: var(--me-hero-h); padding: 0 0 0 var(--s-2); gap: var(--me-hero-gap); border-color: transparent; background: transparent; }
-.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-icon { inline-size: var(--me-hero-glyph); block-size: var(--me-hero-glyph); padding: var(--me-hero-pad); transform: rotate(-6deg); box-shadow: var(--cell-shadow); }
-.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-label, .b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-chevron { display: none; }
-.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-value { margin: 0; color: var(--fg); font-family: "Golos Text", sans-serif; font-weight: 600; font-size: var(--title-fs); }
-.b-stickers[data-screen="me"] .ui-setting-danger, .b-stickers li[data-row="reset"] .ui-setting { color: var(--danger); }
+/* Sheet adaptive-neighbro-me-393: the name beside a round sticker 80 in tile-4 on the
+   ground; the pairs and the list are stickers on the surface (the 7 rim and the hard
+   shadow as box-shadow, so the box keeps the sheet's size), the icons plain. */
+.b-stickers[data-screen="me"] .ui-list[data-group="hero"] { background: transparent; color: var(--fg); }
+.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting { gap: var(--me-hero-gap); padding-inline-start: var(--s-1); }
+.b-stickers[data-screen="me"] li[data-row="name"] .ui-setting-icon {
+  display: block; box-sizing: border-box; inline-size: var(--me-hero-d); block-size: var(--me-hero-d); padding: var(--me-hero-pad);
+  border-radius: var(--r-round); background: var(--tile-4); color: var(--tile-4-ink); box-shadow: var(--cell-shadow);
+}
+.b-stickers[data-screen="me"] li[data-row="age"] .ui-setting-icon { display: none; }
+.b-stickers[data-screen="me"] .ui-list:is([data-group^="pair"], [data-group="rows"]) { background: var(--surface); box-shadow: var(--cell-shadow); }
+.b-stickers[data-screen="me"] .ui-list[data-group^="pair"] > li + li { border-left: 1px solid var(--surface-2); }
+.b-stickers[data-screen="me"] .ui-list[data-group="rows"] > li + li { border-top: 1px solid var(--surface-2); }
+.b-stickers[data-screen="me"] .ui-setting:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: calc(-1 * var(--focus-w)); }
+
+/* The bar under 1024 (sheet adaptive-neighbro-me-393, chrome): a sticker capsule 361×64 on the
+   surface, 20 above the foot; the open tab a tag 60×44 in tile-2, itself the box (not a pseudo). */
+@media (max-width: 1023.98px) {
+  :root[data-brand="neighbro"] .tabbar {
+    left: var(--s-4); right: var(--s-4); bottom: var(--tabbar-bottom); max-width: var(--tabbar-w); margin-inline: auto;
+    height: var(--tabbar-h); align-items: center; justify-content: space-around; border-top: 0;
+    border-radius: var(--r-pill); box-shadow: var(--cell-shadow);
+  }
+  :root[data-brand="neighbro"] .tabbar .tab { flex: 0 0 var(--tab-tag-w); height: var(--tab-tag-h); border-radius: var(--r-pill); }
+  :root[data-brand="neighbro"] .tabbar .tab[aria-current="page"] { background: var(--tile-2); box-shadow: var(--btn-shadow); }
+  :root[data-brand="neighbro"] .tabbar .tab[aria-current="page"]::after { content: none; }
+}
 
 /* Every button and the code field are stickers too, as on the sheets of 02.10:
    the white rim and the hard offset shadow (owner 10.10, kit §8.2). */
@@ -143,6 +134,18 @@
   width: var(--round-d); min-width: var(--round-d); height: var(--round-d); min-height: var(--round-d); border-radius: 50%;
   background: var(--surface); color: var(--fg); border: var(--btn-rim); box-shadow: var(--btn-shadow);
 }
+/* Inside a SplitAction the parts are not discs (stretched, they became ellipses at every width): the capsule
+   is the sticker — rim and offset shadow on it, its parts flat, the main one in the accent. */
+:root[data-brand="neighbro"] .ui-split:not([data-part="foot"] .ui-split):not([data-part="entry"] .ui-split) {
+  border: var(--btn-rim); box-shadow: var(--btn-shadow); min-height: var(--round-d);
+}
+:root[data-brand="neighbro"] .ui-split:not([data-part="foot"] .ui-split):not([data-part="entry"] .ui-split) > .ui-button.ui-icon-only:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide),
+:root[data-brand="neighbro"] .ui-split:not([data-part="foot"] .ui-split):not([data-part="entry"] .ui-split) > .ui-button-reason > .ui-button.ui-icon-only {
+  width: auto; min-width: 0; height: auto; min-height: var(--round-d); border-radius: 0; border: 0; box-shadow: none;
+}
+:root[data-brand="neighbro"] .ui-split:not([data-part="foot"] .ui-split):not([data-part="entry"] .ui-split) .ui-button.ui-primary.ui-icon-only:not(:disabled) {
+  background: var(--accent); color: var(--accent-fg);
+}
 
 /* ⓘ is not a sticker on the sheets: a plain circle on --surface with the 1.5
    line (neighbro-sheets.py infobtn), the 44 target kept. */
@@ -158,6 +161,14 @@
   left: auto; right: max(var(--fab-inset), calc(50% - var(--phone-half))); bottom: var(--fab-bottom);
   width: var(--fab); min-width: var(--fab); height: var(--fab); min-height: var(--fab); border-radius: var(--fab-r);
   background: var(--accent); color: var(--accent-fg); border: var(--btn-rim); box-shadow: var(--btn-shadow);
+}
+/* …and on a phone the round icon button's 52 (above) gives way to the sheet's circle 60, its right edge
+   10 inside the content (adaptive-neighbro-feed-393: at 299,685). */
+@media (max-width: 1023.98px) {
+  html:root[data-brand="neighbro"] [data-screen="feed"] .ui-button.ui-icon-only[data-testid="write"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
+    right: calc(50% - var(--phone-half) + var(--feed-inset)); width: var(--fab); min-width: var(--fab); height: var(--fab); min-height: var(--fab);
+    border-radius: var(--fab-r); background: var(--accent); color: var(--accent-fg);
+  }
 }
 
 /* The bottom bar: a full-width band 80 on --surface with a 2 px --surface-2
@@ -175,33 +186,23 @@
 :root[data-brand="neighbro"] .ui-tabbed .screen { padding-bottom: var(--tabbed-pad); }
 :root[data-brand="neighbro"] .ui-tabbed .screen[data-screen="feed"] { padding-bottom: var(--tabbed-feed-pad); }
 
-/* The code on Arrival: a sticker cell 28×56 per character, 38 apart, the
-   character 22/600; the input lies over the cells, its own text unseen. */
-/* The sheet's die-cut is a 7 stroke centred on the edge: the fill keeps its
-   28×56, the rim shows 3.5 outside it, the shadow 5 outside at 1.5/3. The
-   caret is the sheet's 2×32 bar in --accent, in the cell that comes next. */
-:root[data-brand="neighbro"] .ui-cellfield .ui-cells { display: flex; gap: var(--cell-gap); padding: 0 var(--cell-inset); }
-:root[data-brand="neighbro"] .ui-cellfield .ui-cell {
-  position: relative; display: grid; place-items: center; width: var(--cell-w); height: var(--cell-h); border-radius: var(--cell-r);
-  background: var(--surface); color: var(--fg); font-size: var(--cell-fs); font-weight: 600;
-  box-shadow: var(--cell-shadow);
-}
-:root[data-brand="neighbro"] .ui-cellfield .ui-cell-next::after { content: ""; width: var(--caret-w); height: var(--caret-h); background: var(--accent); }
-:root[data-brand="neighbro"] [data-screen="arrival"] .ui-cellfield input {
-  position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0;
-  border: 0; box-shadow: none; background: transparent; color: transparent; caret-color: transparent; letter-spacing: 0;
-}
-:root[data-brand="neighbro"] .ui-cellfield input:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--cell-focus-offset); border-radius: var(--cell-focus-r); }
+/* The code on Arrival is the sheet's three groups in one field, as sosed's
+   (adaptive-neighbro-arrival, lenses' pass 11.10 22:59, 36406953): the sticker
+   cells per character (085241a9, 11.10 00:09) predate it and are gone. */
 
-/* ND-N2 · Feed.svg: the phrases are stickers on the surface, upright, 18 apart. */
-:root[data-brand="neighbro"] [data-screen="feed"] .stickers { gap: var(--feed-gap); }
+/* Sheet adaptive-neighbro-feed-393: the phrases are stickers 345 wide on the surface, upright, 24 apart. */
+:root[data-brand="neighbro"] [data-screen="feed"] .stickers { gap: var(--feed-gap); padding-inline: var(--feed-inset); }
+:root[data-brand="neighbro"] [data-screen="feed"] .stickers > li { min-height: var(--feed-card-h); }
+/* The place and the circle are a quiet line under the title (sheet adaptive-neighbro-feed-393: «1 km · …» in the muted colour). */
+html:root[data-brand="neighbro"] [data-screen="feed"] .ui-placebar { border: 0; background: transparent; box-shadow: none; min-height: 0; }
+html:root[data-brand="neighbro"] [data-screen="feed"] .ui-placebar select { color: var(--fg-muted); font-weight: 400; }
 :root[data-brand="neighbro"] [data-screen="feed"] .sticker { background: var(--surface); color: var(--fg); transform: none; }
 :root[data-brand="neighbro"] [data-screen="feed"] .sticker .sticker-foot { color: var(--fg-muted); }
 
 /* Card.svg: the big card wears the accent, its words in --accent-fg; on a liked
    card the heart keeps its place (moved to the sheet's r34 low right, the
    share grew: 17.82 → 18.27, ND-N2 shot n2a). */
-:root[data-brand="neighbro"] [data-screen="card"] .sticker-card { background: var(--accent); color: var(--accent-fg); }
+:root[data-brand="neighbro"] [data-screen="card"] .sticker-card { min-height: var(--sheet-card-h); border-radius: var(--panel-r); background: var(--surface); color: var(--fg); }
 :root[data-brand="neighbro"] [data-screen="card"] .sticker-card .sticker-meta,
 :root[data-brand="neighbro"] [data-screen="card"] .sticker-card .sticker-count { color: inherit; }
 /* The heart stuck on the accent card is a white sticker on every sheet
@@ -211,8 +212,20 @@
 /* A venue's offer in the feed (sheets adaptive-neighbro-feed, 11.10.2026): the discount as an accent tag
    stuck on the card, die-cut and a little tilted; the conditions muted. */
 .b-stickers .sticker-offer .sticker-offer-tag {
-  align-self: flex-start; padding: var(--s-1) var(--s-3); border-radius: var(--r-1); transform: rotate(-4deg);
+  align-self: flex-start; display: inline-flex; align-items: center; block-size: var(--offer-tag-h); padding: 0 var(--s-4); border-radius: var(--cell-r);
   background: var(--accent); color: var(--accent-fg); font-size: var(--fs-title); font-weight: 600;
   border: var(--btn-rim); box-shadow: var(--btn-shadow);
 }
 .b-stickers .sticker-offer .sticker-foot { color: var(--fg-muted); }
+
+/* Sheet adaptive-neighbro-card-393: the heart and «hide» are one capsule 361×60 in the accent at the
+   screen's foot, a sticker (the rim and the hard shadow); its two parts are plain on it. */
+html:root[data-brand="neighbro"] [data-screen="card"] [data-part="foot"] .heart-pad {
+  min-height: var(--foot-h); padding: 0 var(--s-6); justify-content: space-around; gap: 0;
+  border: 0; border-radius: var(--r-pill); background: var(--accent); color: var(--accent-fg); box-shadow: var(--cell-shadow);
+}
+html:root[data-brand="neighbro"] [data-screen="card"] [data-part="foot"] .heart-pad .heart-sticker,
+html:root[data-brand="neighbro"] [data-screen="card"] [data-part="foot"] .heart-pad .ui-button.ui-icon-only:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
+  inline-size: var(--head-btn-d); min-inline-size: var(--head-btn-d); block-size: var(--head-btn-d); min-height: var(--head-btn-d);
+  border: 0; background: transparent; box-shadow: none; color: inherit;
+}

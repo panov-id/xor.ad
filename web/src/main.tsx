@@ -5,6 +5,7 @@ import { BRAND } from "./config.ts";
 import { applyTheme } from "./theme.ts";
 import { setFavicon } from "./favicon.ts";
 import { phaseAt } from "./ui/phase.ts";
+import { installIconTips } from "./ui/iconTips.ts";
 // The kit gives the geometry (--s-*, --r-*, --control-h on :root) and the
 // faces; the colours are the brand's theme alone (themes.gen.css, from
 // web/themes/<brand>/*.json, per [data-brand][data-theme]) — <html> wears no
@@ -26,6 +27,7 @@ import "./themes.gen.css";
 // so the brand's light theme is drawn even before this module runs.
 applyTheme(BRAND, phaseAt(new Date()));
 setFavicon();
+installIconTips();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

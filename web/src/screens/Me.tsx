@@ -35,6 +35,17 @@ import { Split } from "../ui/Split.tsx";
 // the age filter and screen 15 are Me's own screens.
 export type MeRow = "statements" | "name" | "age" | "filter" | "hidden" | "blocked" | "legal" | "away" | "pin" | "move" | "reissue" | "reset" | "theme" | "lang" | "wizard";
 
+// The groups of the sheet adaptive-*-me-393, top to bottom.
+const ME_GROUPS: Array<[string, MeRow[]]> = [
+  ["alert", ["statements"]],
+  ["hero", ["name", "age"]],
+  ["pair", ["theme", "lang"]],
+  ["pair-2", ["filter", "pin"]],
+  ["pair-3", ["reissue", "move"]],
+  ["rows", ["away", "hidden", "blocked", "legal"]],
+  ["quiet", ["wizard", "reset"]],
+];
+
 export function Me({ client, restrictions, onOpen, refresh, brandClass }: {
   brandClass?: string;
   client: Client;
@@ -71,7 +82,9 @@ export function Me({ client, restrictions, onOpen, refresh, brandClass }: {
     { key: "age", label: say("me.age"), value: profile ? String(profile.age) : "…", testid: "me-age", icon: "me" },
     { key: "filter", label: say("web.filter.item"), testid: "me-filter", icon: "me" },
     { key: "hidden", label: hidden === null ? say("feed.hidden") : `${say("feed.hidden")} · ${hidden}`, testid: "me-hidden", icon: "hide" },
-    ...(blocked > 0 ? [{ key: "blocked" as const, label: say("blocked.count", { n: blocked }), testid: "me-blocked", icon: "block" as const }] : []),
+    // The sheet (adaptive-*-me-393) draws «blocked» always; with nobody blocked the row stays,
+    // under a testid of its own (lists.spec counts "me-blocked" only while someone is).
+    { key: "blocked", label: say("blocked.count", { n: blocked }), testid: blocked > 0 ? "me-blocked" : "me-blocked-none", icon: "block" },
     { key: "theme", label: say("web.theme.item"), testid: "me-theme", icon: "eye" },
     // С10 (walk 11.10): «отойти» says what it is, in the row.
     { key: "away", label: say("away.item"), value: say("web.me.away_hint"), testid: "me-away", icon: "timer" },
@@ -96,31 +109,39 @@ export function Me({ client, restrictions, onOpen, refresh, brandClass }: {
       header={<HeaderScreen title={say("me.title")} />}
     >
       {error && <ErrorLine data-testid="error">{error}</ErrorLine>}
-      <List label={say("me.title")}>
-        {rows.map((row) => (
-          <ListItem key={row.key} data-row={row.key}>
-            <SettingRow
-              label={row.label}
-              value={row.value}
-              danger={row.danger}
-              icon={row.icon}
-              data-testid={row.testid}
-              // Name and age open with the profile's value: until it has come
-              // the row is shown but not pressable, instead of a press that does
-              // nothing (it lost shoot-web's Me-edit-name to that race, WD7).
-              disabled={(row.key === "name" || row.key === "age") && !profile}
-              onSelect={() => {
-                if (row.key === "name") return profile && onOpen("name", profile.pending ?? profile.name);
-                if (row.key === "age") return profile && onOpen("age", String(profile.age));
-                if (row.key === "filter") return setFiltering(true);
-                if (row.key === "legal") return setLegal(true);
-                if (row.key === "lang") return setChoosingLang(true);
-                onOpen(row.key);
-              }}
-            />
-          </ListItem>
-        ))}
-      </List>
+      {/* Sheet adaptive-*-me-393: the name card, three welded pairs of tiles, one list
+          of four rows, then the quiet rows (how it works, start again) under them. */}
+      {ME_GROUPS.map(([group, keys]) => {
+        const these = keys.map((k) => rows.find((r) => r.key === k)).filter((r) => r !== undefined);
+        if (these.length === 0) return null;
+        return (
+          <List key={group} label={say("me.title")} data-group={group}>
+            {these.map((row) => (
+              <ListItem key={row.key} data-row={row.key}>
+                <SettingRow
+                  label={row.label}
+                  value={row.value}
+                  danger={row.danger}
+                  icon={row.icon}
+                  data-testid={row.testid}
+                  // Name and age open with the profile's value: until it has come
+                  // the row is shown but not pressable, instead of a press that does
+                  // nothing (it lost shoot-web's Me-edit-name to that race, WD7).
+                  disabled={(row.key === "name" || row.key === "age") && !profile}
+                  onSelect={() => {
+                    if (row.key === "name") return profile && onOpen("name", profile.pending ?? profile.name);
+                    if (row.key === "age") return profile && onOpen("age", String(profile.age));
+                    if (row.key === "filter") return setFiltering(true);
+                    if (row.key === "legal") return setLegal(true);
+                    if (row.key === "lang") return setChoosingLang(true);
+                    onOpen(row.key);
+                  }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        );
+      })}
     </Screen>
   );
 }

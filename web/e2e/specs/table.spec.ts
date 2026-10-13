@@ -4,56 +4,40 @@
 // shows it taken. The table's own link /t/<id> opens it after the PIN.
 
 import { expect, test } from "../fixtures/address.ts";
-import { newTable, openTables, PIN, register, runLabel, unlock, twoAtATable, writePhrase } from "./helpers.ts";
+import { newTable, openTables, pickTableGame, PIN, register, runLabel, unlock, twoAtATable } from "./helpers.ts";
 
-// The node as the e2e process reaches it (network_mode service:web), and a
-// panel session as the node signs one (moderation-path.spec.ts panelToken).
-const NODE_URL = process.env.WEB_NODE_URL ?? "http://node:8080";
-const SECRET = process.env.PANEL_SESSION_SECRET ?? "";
-const ENV_NAME = process.env.PANEL_ENV_NAME ?? "test";
-async function panelToken(): Promise<string> {
-  const b64 = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64url");
-  const enc = new TextEncoder();
-  const header = b64(enc.encode(JSON.stringify({ alg: "HS256", typ: "JWT" })));
-  const payload = b64(enc.encode(JSON.stringify({
-    sub: "moderator@webtest.invalid", role: "moderator", brand: null, env: ENV_NAME, exp: Math.floor(Date.now() / 1000) + 3600,
-  })));
-  const key = await crypto.subtle.importKey("raw", enc.encode(SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(`${header}.${payload}`)));
-  return `${header}.${payload}.${b64(sig)}`;
-}
-
-// W13-TN · a table's name the rules flag waits for the queue; the moderator
-// refuses it (POST /admin/table-queue/names/:id/refuse — the panel has no page
-// for tables yet, so the decision goes to the node as the panel would send
-// it); the author's open table hears the name_verdict frame and says the name
-// was not accepted, while the table goes on without one (chat spec §6.1).
-test("a refused table name is said to the author on the table, which lives on without one", async ({ browser }) => {
-  expect(SECRET, "the stand's panel session secret (docker-compose.web.yml e2e)").toBeTruthy();
+// A table's name gets the model's verdict before the table is made (owner
+// 13.10.2026: the model alone, no person queue; the stand's stub in
+// docker-compose.web.yml refuses a messenger). Refused, the table is not made
+// and the author reads why on the same screen; a clean name makes it.
+test("a refused table name is said to the author at once, and a clean one makes the table", async ({ browser }) => {
   test.setTimeout(120_000);
   const zhenya = await (await browser.newContext({ viewport: { width: 393, height: 851 } })).newPage();
   zhenya.on("pageerror", (e) => console.log(`[page error] ${e.message}`));
   await register(zhenya, { name: "Женя", age: "30" });
   const run = runLabel();
-  for (const text of ["кто на пляж?", "ищу компанию на ужин", "есть кто в парке?"]) await writePhrase(zhenya, `${text} ${run}`);
-  // "тг" is the messenger as people write it: the rules flag it, the name waits.
-  await newTable(zhenya, { name: `пиши в тг ${run}`, kind: "dots", set: "2x2" });
+  // "тг" is the messenger as people write it: the model refuses the name.
+  const made: number[] = [];
+  zhenya.on("response", (r) => { if (new URL(r.url()).pathname === "/tables" && r.request().method() === "POST") made.push(r.status()); });
+  await openTables(zhenya);
+  await zhenya.getByTestId("new-table").click();
+  await expect(zhenya.locator('[data-screen="new-table"]')).toBeVisible();
+  await pickTableGame(zhenya, "dots", "2x2");
+  await zhenya.getByTestId("new-table-name").fill(`пиши в тг ${run}`);
+  await zhenya.getByTestId("new-table-next").click();
+  await zhenya.getByTestId("new-table-go").click();
+  await expect(zhenya.getByTestId("error"), "the author was not told the name was refused").toContainText("Имя не принято.", { timeout: 20000 });
+  expect(made, "the model's refusal did not reach the author as a 422").toEqual([422]);
+  await expect(zhenya.getByTestId("table")).toHaveCount(0);
+
+  // The refusal brings the author back to the name (step 2); another name, and the table is made with it.
+  await expect(zhenya.getByTestId("new-table-step")).toHaveAttribute("data-step", "2");
+  await zhenya.getByTestId("new-table-name").fill(`точки ${run}`);
+  await zhenya.getByTestId("new-table-next").click();
+  await zhenya.getByTestId("new-table-go").click();
   const table = zhenya.getByTestId("table");
-  const id = (await table.getAttribute("data-id"))!;
-  await expect(table).not.toContainText(`пиши в тг ${run}`);
-  await expect(zhenya.getByTestId("table-name-refused")).toHaveCount(0);
-
-  // The moderator refuses the name.
-  const refused = await fetch(`${NODE_URL}/admin/table-queue/names/${id}/refuse`, {
-    method: "POST", headers: { authorization: `Bearer ${await panelToken()}` },
-  });
-  expect(refused.status, `the node did not take the refusal: ${refused.status} ${await refused.text()}`).toBeLessThan(300);
-
-  // The author hears it on the open table, and the table goes on.
-  await expect(zhenya.getByTestId("table-name-refused"), "the author was not told the name was refused").toBeVisible({ timeout: 20000 });
-  await expect(zhenya.getByTestId("table-name-refused")).toContainText("имя стола не принято — стол живёт без имени");
-  await expect(table).toHaveAttribute("data-id", id);
-  await expect(table).not.toContainText(`пиши в тг ${run}`);
+  await expect(table).toBeVisible({ timeout: 30000 });
+  await expect(table).toContainText(`точки ${run}`);
   await expect(zhenya.getByTestId("turn")).toBeVisible();
   // The game has not begun: nothing to give up yet (П7), and the button starts it.
   await expect(zhenya.getByTestId("turn")).toContainText("партия ещё не началась");
@@ -119,9 +103,20 @@ test("sets are named in words, and leaving a table returns to the feed or the ta
   await openTables(zhenya);
   await zhenya.getByTestId("new-table").click();
   await expect(zhenya.locator('[data-screen="new-table"]')).toBeVisible();
-  await expect(zhenya.getByTestId("new-table-set").locator("option")).toHaveText(["поле 3×3", "поле 2×2", "поле 4×4"]);
-  await zhenya.getByTestId("new-table-class").selectOption("deck");
-  await expect(zhenya.getByTestId("new-table-set").locator("option")).toHaveText(["колода из 36 карт"]);
+  // Step 1: twelve games, each a card that names itself and how many play.
+  await expect(zhenya.locator('[data-testid^="new-table-game-"]')).toHaveCount(12);
+  // The whole card is one button (CardOpen): its name is the game, its description how many play.
+  await expect(zhenya.getByTestId("new-table-game-durak")).toHaveAccessibleName("дурак");
+  await expect(zhenya.getByTestId("new-table-game-durak")).toHaveAccessibleDescription(/2–6/);
+  await zhenya.getByTestId("new-table-game-dots").click();
+  await expect(zhenya.getByTestId("new-table-step")).toHaveAttribute("data-step", "2");
+  await expect(zhenya.getByTestId("new-table-set").getByRole("radio")).toHaveText(["поле 3×3", "поле 2×2", "поле 4×4"]);
+  // Back is the step before: the games again, and durak plays one variant on 2 to 6 seats.
+  await zhenya.getByTestId("new-table-back").click();
+  await zhenya.getByTestId("new-table-game-durak").click();
+  await expect(zhenya.getByTestId("new-table-set").getByRole("radio")).toHaveText(["подкидной"]);
+  await expect(zhenya.getByTestId("new-table-seats").getByRole("radio")).toHaveText(["2", "3", "4", "5", "6"]);
+  await zhenya.getByTestId("new-table-back").click();
   await zhenya.getByTestId("new-table-back").click();
 
   // A table is made from the tables tab only (owner 11.10.2026), so standing
@@ -130,4 +125,27 @@ test("sets are named in words, and leaving a table returns to the feed or the ta
   await newTable(zhenya, { name: `выход ${runLabel()}`, kind: "dots", set: "2x2" });
   await zhenya.getByTestId("table-stand").click();
   await expect(zhenya.locator('[data-screen="tables"]')).toBeVisible({ timeout: 15000 });
+});
+
+// A sticker at the table (owner 13.10.2026; sheet adaptive-*-table-sticker-*): the eight in one strip
+// under the board behind «say», one tap says it, and it lands on the sender's score on the other screen.
+test("a sticker tapped at the table reaches the other player as its picture and its word", async ({ browser }) => {
+  test.setTimeout(180_000);
+  const zhenya = await (await browser.newContext({ viewport: { width: 393, height: 851 } })).newPage();
+  const anya = await (await browser.newContext({ viewport: { width: 393, height: 851 } })).newPage();
+  await register(zhenya, { name: "Женя", age: "30" });
+  await register(anya, { name: "Аня", age: "28" });
+  await twoAtATable(zhenya, anya, { name: `стикеры ${runLabel()}`, kind: "dots", set: "2x2" });
+  // The strip opens under «say» (sheet adaptive-*-table-393: the foot is «leave · say»).
+  await expect(zhenya.getByTestId("stickers")).toHaveCount(0);
+  await zhenya.getByTestId("table-say").click();
+  await expect(zhenya.getByTestId("stickers").getByRole("button")).toHaveCount(8);
+  await zhenya.getByTestId("sticker-hi").click();
+  // It lands on the sender's score for a moment, its picture named by who said it and its word,
+  // and stays in the lines as words.
+  const landed = anya.getByTestId("landed");
+  await expect(landed, "the sticker did not reach the other player").toBeVisible({ timeout: 15000 });
+  await expect(landed).toHaveAccessibleName("Женя — привет");
+  await expect(landed.locator("svg.ui-sticker")).toBeVisible();
+  await expect(anya.locator('[data-testid="line"][data-kind="sticker"]')).toContainText("Женя — привет");
 });

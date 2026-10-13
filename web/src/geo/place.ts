@@ -1,4 +1,4 @@
-// Where the person is (owner 11.10.2026): the browser's geolocation, a city from a small offline list (GeoNames
+// Where the person is (owner 11.10.2026; the browser is never asked, 12.10): a city from a small offline list (GeoNames
 // cities15000, English names, CC BY 4.0 — scripts/geo/build-cities.sh), or a point pasted from a map
 // («34.6823, 33.0464»). Nothing leaves the device to name a place: the list is ours and loads only when the
 // picker opens. A name typed in one's own script is transliterated to Latin and matched with a small
@@ -90,7 +90,7 @@ export async function searchCities(q: string, limit = 8): Promise<Place[]> {
   return hit.slice(0, limit).map((c) => ({ name: c[0], cc: c[1], lat: c[2], lon: c[3], source: "city" as const }));
 }
 
-// The nearest city of the list, to name a point from geolocation or a map.
+// The nearest city of the list, to name a point pasted from a map.
 export async function nameOf(lat: number, lon: number): Promise<{ name: string; cc: string }> {
   const all = await load();
   let best = all[0], bd = Infinity;
@@ -99,13 +99,4 @@ export async function nameOf(lat: number, lon: number): Promise<{ name: string; 
     if (d < bd) { bd = d; best = c; }
   }
   return { name: best[0], cc: best[1] };
-}
-
-// The browser's own position; null when refused or unavailable.
-export function here(): Promise<{ lat: number; lon: number } | null> {
-  return new Promise((done) => {
-    if (!("geolocation" in navigator)) return done(null);
-    navigator.geolocation.getCurrentPosition((p) => done({ lat: p.coords.latitude, lon: p.coords.longitude }), () => done(null),
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
-  });
 }

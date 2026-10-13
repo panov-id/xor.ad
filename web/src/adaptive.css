@@ -41,17 +41,7 @@
   /* sosed's wide tile: one cell until there are 4 columns (owner 11.10, 1b) */
   html:root[data-brand="sosed"] [data-screen="feed"] .tiles .tile-wide { grid-column: auto; }
   html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) { max-width: 480px; }
-  html:root[data-brand="sosed"] .tabbar:not([data-testid="kit-tabbar"]) { left: 0; right: 0; margin-inline: auto; }
-  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) { max-width: none; }
-  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab { max-width: 120px; }
-  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) { justify-content: center; }
-}
-
-@media (min-width: 640px) {
-  /* «me»: the settings in pairs at any width above the phone, both brands (sheets adaptive-*-me-1440) */
-  html:root[data-brand="neighbro"] [data-screen="me"] .ui-list { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
-  html:root[data-brand="neighbro"] [data-screen="me"] .ui-list > li[data-row="name"],
-  html:root[data-brand="neighbro"] [data-screen="me"] .ui-list > li[data-row="reset"] { grid-column: 1 / -1; }
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) { left: 0; right: 0; margin-inline: auto; }
 }
 
 @media (min-width: 1024px) {
@@ -74,7 +64,10 @@
   html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab span {
     position: static; width: auto; height: auto; overflow: visible; clip-path: none; margin-top: 4px; font-size: 14px; z-index: 1;
   }
-  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab[aria-current="page"]::after { width: 72px; height: 60px; margin: -30px 0 0 -36px; }
+  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab[aria-current="page"]::after { width: 88px; height: 60px; margin: -30px 0 0 -44px; }
+  /* «разговоры» ran past the 80 tab and its tag at every width ≥ 1024 (round 1): the tab is 92, the word 13 and whole */
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab { width: 92px; }
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab span { font-size: 13px; white-space: nowrap; }
   /* what has the rail moves right of it */
   html:root[data-brand] .ui-tabbed { padding-left: var(--rail-w); }
   html:root[data-brand] .ui-tabbed .screen { padding-bottom: var(--s-6); }
@@ -116,4 +109,56 @@
   html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]).screen { max-width: 1600px; }
   html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]) { --cols: 4; }
   html:root[data-brand="sosed"] [data-screen="feed"] .tiles .tile-wide { grid-column: span 2; }
+}
+
+/* The new-table wizard (sheets adaptive-*-new-table-game-*): its own column — 736 under 1024, 832, 1200
+   from 1440, 1500 from 2560 — and the games 3, 4, 6, then 4 bigger ones a row (WIZ_COLS). */
+@media (min-width: 640px) {
+  html:root[data-brand] [data-screen="new-table"].screen { max-width: 736px; }
+  html:root[data-brand] [data-screen="new-table"] { --game-cols: 3; }
+}
+@media (min-width: 1024px) {
+  html:root[data-brand] [data-screen="new-table"].screen { max-width: 832px; }
+  html:root[data-brand] [data-screen="new-table"] { --game-cols: 4; }
+}
+@media (min-width: 1440px) {
+  html:root[data-brand] [data-screen="new-table"].screen { max-width: 1200px; }
+  html:root[data-brand] [data-screen="new-table"] { --game-cols: 6; }
+}
+@media (min-width: 2560px) {
+  html:root[data-brand] [data-screen="new-table"].screen { max-width: 1500px; }
+  html:root[data-brand] [data-screen="new-table"] { --game-cols: 4; }
+}
+
+/* the splash (moved from screens/splash.css: breakpoints live here) */
+@media (min-width: 1440px) {
+  /* The poster stands centred in its half: the mark's centre is the poster's, less half the word under it (12 + 72). */
+  [data-screen="splash"] [data-part="poster"] { --k: 2.75; }
+  [data-screen="splash"] [data-part="poster"] [data-part="icons"] { inset: auto; left: 50%; top: calc(50% - var(--splash-top-42)); width: 0; height: 0; opacity: 1; display: block; }
+  [data-screen="splash"] [data-part="entry"] { align-self: start; margin-top: calc(50vh - var(--splash-margin-top-212)); }
+  [data-screen="splash"] [data-part="entry"] h1 { margin: 0; font-size: var(--splash-font-size-40); line-height: var(--s-12); }
+  [data-screen="splash"] [data-part="entry"] > p { margin: 0 0 var(--splash-margin-22); font-size: var(--splash-font-size-20); color: var(--fg-muted); }
+}
+@media (min-width: 640px) and (max-width: 1439px) {
+  [data-screen="splash"] [data-part="poster"] { --mk: var(--mark-hero-md); --k: 1.25; --pt: var(--mark-hero); }
+}
+
+@media (min-width: 640px) {
+  [data-screen="splash"] .ui-mark[data-place="splash"] { width: var(--mark-hero-md); height: var(--mark-hero-md); }
+}
+
+/* From 1440: the poster takes the left half, the entry 440 the right (owner 11.10, 4a). */
+@media (min-width: 1440px) {
+  html:root[data-brand] .screen[data-screen="splash"] {
+    /* the sheet: the poster centred on 32..720, the entry 440 centred in the right half */
+    max-width: none; min-height: 100vh; display: grid; grid-template-columns: calc(50vw - var(--s-8)) 1fr; align-items: center;
+    padding: var(--s-6) 0 var(--s-6) var(--s-8); text-align: left;
+  }
+  [data-screen="splash"] [data-part="poster"] { height: calc(100vh - 2 * var(--s-6)); }
+  [data-screen="splash"] .ui-mark[data-place="splash"] { width: min(var(--mark-hero-xl), 50vh); height: min(var(--mark-hero-xl), 50vh); }
+  [data-screen="splash"] [data-part="word"] { font-size: var(--fs-word-xl); }
+  [data-screen="splash"] [data-part="entry"] { justify-self: center; }
+  [data-screen="splash"] [data-part="entry"] h1 { font-size: var(--fs-word); font-weight: 600; color: var(--fg); }
+  /* The language list stands where the entry will: 440, centred in the right half, not run into the edge. */
+  [data-screen="splash"][data-state="lang"] [data-part="lang-list"].ui-card { justify-self: center; inline-size: var(--entry-w); margin: 0; }
 }

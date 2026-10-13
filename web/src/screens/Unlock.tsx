@@ -10,7 +10,6 @@ import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { FormCard } from "../ui/FormCard.tsx";
 import { PinField } from "../ui/Field.tsx";
-import { HeaderScreen } from "../ui/Header.tsx";
 import { Info } from "../ui/Info.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { Split } from "../ui/Split.tsx";
@@ -56,9 +55,10 @@ export function Unlock({ record, onDone, onForget, onRestore }: { record: Record
   }
 
   return (
-    <Screen name="unlock" title={say("reg.pin")} header={<HeaderScreen title={say("reg.pin")} />}>
-      {/* «forget» is not on the sheet's Split (adaptive-sosed-unlock.svg: «open» · «paper code»); it waits behind the (i) */}
-      <FormCard icon="key" error={error} info={
+    <Screen name="unlock" title={say("reg.pin")}>
+      {/* «forget» is not on the sheet's Split (adaptive-sosed-unlock.svg: «open» · «paper code»); it waits behind the (i).
+          No header bar on the sheet: the title is the card's h1. */}
+      <FormCard icon="key" title={say("reg.pin")} heading error={error} info={
         <Info label={say("web.info.pin")} data-testid="unlock-info">
           <p>{say("web.unlock.remembers")}</p>
           <Button type="button" icon="forget" aria-label={say("web.unlock.forget")} onClick={async () => { await forget(); onForget(); }} data-testid="forget" />

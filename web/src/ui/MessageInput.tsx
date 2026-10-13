@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Icon } from "./Icon.tsx";
 import { useControl } from "./control.tsx";
 
@@ -25,9 +25,11 @@ type Props = {
   onChange?: (text: string) => void;
   inputTestId?: string;
   sendTestId?: string;
+  /** A key welded between the field and send (the chat's stickers, sheet adaptive-*-chat-stickers-*). */
+  extra?: ReactNode;
 };
 
-export function MessageInput({ label, placeholder, sendLabel, onSend, maxLength, disabled, reason, busy, value, onChange, inputTestId, sendTestId }: Props) {
+export function MessageInput({ label, placeholder, sendLabel, onSend, maxLength, disabled, reason, busy, value, onChange, inputTestId, sendTestId, extra }: Props) {
   const [own, setOwn] = useState("");
   const controlled = value !== undefined;
   const text = controlled ? value : own;
@@ -47,6 +49,7 @@ export function MessageInput({ label, placeholder, sendLabel, onSend, maxLength,
         <label htmlFor={c.ids.input} className="visually-hidden">{label}</label>
         <input {...c.attrs} ref={field} readOnly={c.readOnly} placeholder={placeholder} value={text} maxLength={maxLength} autoComplete="off" data-testid={inputTestId}
           onChange={(event) => (controlled ? onChange?.(event.target.value) : setOwn(event.target.value))} />
+        {extra}
         <button type="submit" className={text.trim() ? "ui-send ui-send-on" : "ui-send"} aria-label={sendLabel} aria-disabled={c.attrs["aria-disabled"]} data-testid={sendTestId}>
           <Icon name="send" />
         </button>

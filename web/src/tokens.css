@@ -9,6 +9,7 @@
   --r-1: 8px; --r-2: 13px; --r-pill: 999px; --r-round: 50%;
   --control-h: 44px;   /* min-height, not height: a long label (de, el) wraps */
   --focus-w: 3px;
+  --rule-w: 1px;       /* a hairline: a rule between welded rows, a word kept for a screen reader */
   --fs-meta: 0.875rem; --fs-body: 1rem; --fs-title: 1.25rem; --fs-card: 1.25rem; --fs-big: 2.25rem;
   --dur-1: 160ms;
   /* The adaptive splash and the brand's mark (owner 11.10.2026, sheets panel/design/adaptive-*.svg):
@@ -19,6 +20,93 @@
   --entry-w: 440px; --poster-min-h: 280px; --poster-pad: 64px;
   --fs-word: 2.5rem; --fs-word-xl: 4.5rem; --fs-hero: 2.5rem;
   --mark-drop: 24px;
+  --me-card-h: 96px; --me-tile-h: 72px; --me-row-h: 64px;   /* «me», sheets adaptive-*-me-393 */
+  --me-tile-fs: 15px; --me-tile-pad: 18px; --me-row-pad: 14px; --me-icon-gap: 10px; --me-chevron-pad: 22px;
+  /* The inner phone screens, sheets adaptive-*-{card,composer,match,tables,inbox,feed}-393. */
+  --head-btn-d: 44px;          /* back and the header's round action, a circle at x 16 / 333 */
+  --sheet-card-h: 360px;       /* the open phrase */
+  --compose-pad: 10px;         /* the composer's panel 361×220: its inset, */
+  --compose-gap: 4px;          /* the gap between its pills, */
+  --compose-row-gap: 20px;     /* and between its two rows of pills */
+  --compose-seg-h: 52px;
+  --compose-h: 220px;
+  --compose-text-fs: 20px;
+  --match-mark: 96px;          /* the two like marks of «match» */
+  --match-name-fs: 28px;
+  --feed-inset: 8px;           /* the feed's content 345: 24 from the edge, the screen's 16 and this */
+  --feed-tile-h: 150px;        /* sosed's tiles: the left column 150, the right 180 */
+  --feed-tile-h-alt: 180px;
+  --feed-card-h: 172px;        /* neighbro's phrase cards */
+  --feed-row: 2px;             /* sosed's masonry: the grid's row unit (tiles span 83 and 98 rows: 150 and 180, 16 under each) */
+  --placebar-w: 140px;         /* sosed: the place and the circle, one pill 140×48 */
+  --placebar-h: 48px;
+  --offer-fs: 28px;            /* the discount on a feed offer */
+  --offer-tag-h: 40px;         /* neighbro: the discount tag 92×40 */
+}
+
+/* The splash's own sizes (screens/splash.css): the cast around the mark, the language list, the entry's capsules.
+   Each is one value of the sheets adaptive-*-splash-*; the comment names where it is used. */
+:root {
+  --splash-padding-top-120: 120px;   /* splash: padding-top of poster */
+  --splash-gap-22: 22px;   /* splash: gap of poster */
+  --splash-font-size-40: 40px;   /* splash: font-size of word */
+  --splash-font-size-28: 28px;   /* splash: font-size of entry h1 */
+  --splash-line-height-36: 36px;   /* splash: line-height of entry h1 */
+  --splash-margin-18: 18px;   /* splash: margin of entry > p */
+  --splash-font-size-20: 20px;   /* splash: font-size of entry > p */
+  --splash-pt-120: 120px;   /* splash: pt of poster */
+  --splash-border-radius-12p8: 12.8px;   /* splash: border-radius of :sosed icons > .ui-illustration */
+  --splash-left-n168: -168px;   /* splash: left of :sosed icons > :nth-child(1) */
+  --splash-top-n99p2: -99.2px;   /* splash: top of :sosed icons > :nth-child(1) */
+  --splash-width-67p2: 67.2px;   /* splash: width of :sosed icons > :nth-child(1) */
+  --splash-left-105p6: 105.6px;   /* splash: left of :sosed icons > :nth-child(2) */
+  --splash-top-n105p6: -105.6px;   /* splash: top of :sosed icons > :nth-child(2) */
+  --splash-width-57p6: 57.6px;   /* splash: width of :sosed icons > :nth-child(2) */
+  --splash-height-35p2: 35.2px;   /* splash: height of :sosed icons > :nth-child(2) */
+  --splash-left-115p2: 115.2px;   /* splash: left of :sosed icons > :nth-child(3) */
+  --splash-top-67p2: 67.2px;   /* splash: top of :sosed icons > :nth-child(3) */
+  --splash-height-57p6: 57.6px;   /* splash: height of :sosed icons > :nth-child(3) */
+  --splash-left-n160: -160px;   /* splash: left of :sosed icons > :nth-child(4) */
+  --splash-top-76p8: 76.8px;   /* splash: top of :sosed icons > :nth-child(4) */
+  --splash-width-54p4: 54.4px;   /* splash: width of :sosed icons > :nth-child(4) */
+  --splash-height-41p6: 41.6px;   /* splash: height of :sosed icons > :nth-child(4) */
+  --splash-padding-7: 7px;   /* splash: padding of :neighbro icons > .ui-illustration */
+  --splash-outline-3p5: 3.5px;   /* splash: outline of :neighbro icons > .ui-illustration */
+  --splash-box-shadow-1p5: 1.5px;   /* splash: box-shadow of :neighbro icons > .ui-illustration */
+  --splash-box-shadow-3: 3px;   /* splash: box-shadow of :neighbro icons > .ui-illustration */
+  --splash-box-shadow-3p5: 3.5px;   /* splash: box-shadow of :neighbro icons > .ui-illustration */
+  --splash-left-n142p4: -142.4px;   /* splash: left of :neighbro icons > :nth-child(1) */
+  --splash-top-n97p6: -97.6px;   /* splash: top of :neighbro icons > :nth-child(1) */
+  --splash-width-35p2: 35.2px;   /* splash: width of :neighbro icons > :nth-child(1) */
+  --splash-left-104: 104px;   /* splash: left of :neighbro icons > :nth-child(2) */
+  --splash-top-n88: -88px;   /* splash: top of :neighbro icons > :nth-child(2) */
+  --splash-width-28p8: 28.8px;   /* splash: width of :neighbro icons > :nth-child(2) */
+  --splash-height-28p8: 28.8px;   /* splash: height of :neighbro icons > :nth-child(2) */
+  --splash-left-112: 112px;   /* splash: left of :neighbro icons > :nth-child(3) */
+  --splash-top-64: 64px;   /* splash: top of :neighbro icons > :nth-child(3) */
+  --splash-left-n132: -132px;   /* splash: left of :neighbro icons > :nth-child(4) */
+  --splash-top-76: 76px;   /* splash: top of :neighbro icons > :nth-child(4) */
+  --splash-width-27p2: 27.2px;   /* splash: width of :neighbro icons > :nth-child(4) */
+  --splash-height-27p2: 27.2px;   /* splash: height of :neighbro icons > :nth-child(4) */
+  --splash-padding-top-100: 100px;   /* splash: padding-top of [data-screen=splash][data-state=lang poster */
+  --splash-gap-10: 10px;   /* splash: gap of [data-screen=splash][data-state=lang poster */
+  --splash-width-140: 140px;   /* splash: width of [data-screen=splash][data-state=lang .ui-mark[data-place=splash] */
+  --splash-height-140: 140px;   /* splash: height of [data-screen=splash][data-state=lang .ui-mark[data-place=splash] */
+  --splash-font-size-36: 36px;   /* splash: font-size of [data-screen=splash][data-state=lang word */
+  --splash-margin-30: 30px;   /* splash: margin of .ui-lang-list.ui-card */
+  --splash-block-size-256: 256px;   /* splash: block-size of .ui-lang-list.ui-card */
+  --splash-border-radius-18: 18px;   /* splash: border-radius of .ui-lang-list.ui-card */
+  --splash-border-1p5: 1.5px;   /* splash: border of :sosed .ui-lang-list.ui-card */
+  --splash-min-height-64: 64px;   /* splash: min-height of .ui-lang-list button */
+  --splash-mask-image-28: 28px;   /* splash: mask-image of .ui-lang-list.ui-card */
+  --splash-border-block-start-1p2: 1.2px;   /* splash: border-block-start of .ui-lang-list li + li button */
+  --splash-font-size-15: 15px;   /* splash: font-size of html:root[data-brand] button.splash-arrive */
+  --splash-min-height-56: 56px;   /* splash: min-height of entry .ui-split */
+  --splash-border-radius-28: 28px;   /* splash: border-radius of entry .ui-split */
+  --splash-min-height-53: 53px;   /* splash: min-height of entry .ui-split > .ui-button */
+  --splash-top-42: 42px;   /* splash: top of poster icons */
+  --splash-margin-top-212: 212px;   /* splash: margin-top of entry */
+  --splash-margin-22: 22px;   /* splash: margin of entry > p */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -44,7 +132,11 @@
   --btn2-bg: transparent;
   --tabbar-rim: 1px solid var(--line);   /* + a 1px inset ring = the sheet's 1.5 rim */
   --tabbar-ring: inset 0 0 0 1px var(--line);
-  --tabbar-w: 343px;   /* kit §9.2: the tab bar a pill 343×64, the open tab 48 tall */
+  --tabbar-w: 361px;   /* sheets adaptive-*-393 (chrome): the tab bar a pill 361×64, the open tab 80×48 */
+  --tab-w: 80px;
+  --me-r: 18px;        /* sheet adaptive-sosed-me-393 */
+  --me-name-fs: 28px;
+  --me-hero-pad-x: 20px;
   --tabbar-h: 64px;
   --tab-h: 48px;
   --fab: 72px;         /* «write» on the feed, a circle */
@@ -54,6 +146,12 @@
   --field-ls: 0.08em;
   --field-border: 1.5px solid var(--line);
   --like-size: 64px;
+  --panel-r: 18px;             /* the 393 sheets' panels: the card, the composer, the groups of rows */
+  --head-btn-rim: var(--tabbar-rim);
+  --head-btn-ring: var(--tabbar-ring);
+  --panel-rim: var(--tabbar-rim);
+  --panel-ring: var(--tabbar-ring);
+  --foot-h: 64px;              /* the capsule at a screen's foot */
 }
 
 /* neighbro «stickers» */
@@ -85,17 +183,21 @@
   --ground-dot-fade: 1.6px;               /* the dot's soft edge */
   --ground-dot-step: 16px;
   --title-fs: 22px;                       /* Golos 600 (owner 11.10.2026; Russo One only in the brand's word) */
-  --me-hero-h: 130px;                     /* Profile.svg: the hero above the rows, sticker centre y+50, rows at y+126 */
-  --me-hero-glyph: 46px;                  /* the sheet's icon r×1.05 */
-  --me-hero-pad: 21px;                    /* 46 + 2×21 = the sticker 88 (r44) */
-  --me-hero-gap: 24px;                    /* the sticker's edge to the name */
+  --me-r: 16px;                           /* sheet adaptive-neighbro-me-393 */
+  --me-name-fs: 22px;
+  --me-hero-pad-x: 4px;                   /* the sticker r40 at x20 */
+  --me-hero-d: 80px;
+  --me-hero-pad: 19px;                    /* the glyph 42 (24×1.75) in the 80 */
+  --me-hero-gap: 16px;                    /* the sticker's edge to the name */
   --round-d: 52px;                        /* the round icon button, r26 */
-  --fab: 68px;                            /* "write" on the feed */
-  --fab-r: 22px;
-  --fab-bottom: 96px;                     /* the bar's 80 and 16 above it */
+  --fab: 60px;                            /* "write" on the feed, a circle (sheet adaptive-neighbro-feed-393) */
+  --fab-r: var(--r-round);
+  --fab-bottom: 100px;                    /* the bar's 64, its 20 and 16 above it */
   --fab-inset: 16px;
   --phone-half: 171.5px;                  /* half the 343 column, to align the fab with it */
-  --tabbar-h: 80px;
+  --tabbar-h: 64px;                       /* sheets adaptive-*-393: a capsule 361×64, 20 above the foot */
+  --tabbar-w: 361px;
+  --tabbar-bottom: 20px;
   --tabbar-rule: 2px;
   --tab-tag-w: 60px;
   --tab-tag-h: 44px;
@@ -116,5 +218,11 @@
   --cell-focus-r: 16px;
   /* ND-N2: the feed and the card as on their sheets. */
   --fs-card: 1.375rem;                    /* a phrase in the feed: 22/600 */
-  --feed-gap: 18px;                       /* between the phrase cards */
+  --feed-gap: 24px;                       /* between the phrase cards (sheet adaptive-neighbro-feed-393: 140, 336, 532) */
+  --panel-r: 16px;                        /* the 393 sheets' panels: the card, the composer, the groups of rows */
+  --head-btn-rim: 0;
+  --head-btn-ring: var(--cell-shadow);
+  --panel-rim: 0;
+  --panel-ring: var(--cell-shadow);
+  --foot-h: 60px;                         /* the capsule at a screen's foot */
 }

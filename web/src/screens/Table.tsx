@@ -3,7 +3,7 @@
 // how long, the score, the lines since one's own seating. The first class drawn
 // is dots (G1c): a free edge is a button; the node keeps the rules.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { applyFrame, dotsOf, frameNeedsView, openApplications, type TableView, Tables, turnOf } from "../../../depth/core/tables.ts";
 import { say } from "../api/me.ts";
@@ -21,7 +21,9 @@ import { HeaderScreen } from "../ui/Header.tsx";
 import { MoveInput } from "../ui/MoveInput.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
-import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
+import { STICKERS, Sticker } from "../ui/Sticker.tsx";
+import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, PokerBoard, SeaBoard, WordBoard } from "./TableBoards.tsx";
+import "./talk.css";
 
 // onBack (TB1, owner 11.10.2026: «"Назад" без вставания»): the header's arrow
 // goes to the tabs and the seat stays the person's — the table waits in «Мои
@@ -34,6 +36,12 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
   const [line, setLine] = useState("");
   const [, tick] = useState(0);
   const [more, setMore] = useState(false);
+  // «say» (sheets adaptive-*-table-393, *-table-sticker-393): the strip of eight opens under the board.
+  const [saying, setSaying] = useState(false);
+  // A sticker said at the table lands on its sender's score for 4 s (sheet adaptive-*-table-sticker-393);
+  // the lines already there when the table opens do not land again.
+  const [landed, setLanded] = useState<{ seat: number; sticker: string; id: string } | null>(null);
+  const seen = useRef<Set<string> | null>(null);
 
   const load = useCallback(async () => {
     // A read that throws (locked, no network) is said, not dropped.
@@ -75,6 +83,20 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
     await load();
   }
 
+  useEffect(() => {
+    if (!view) return;
+    const stickers = view.lines.filter((l) => l.kind === "sticker" && l.sticker);
+    if (seen.current === null) { seen.current = new Set(stickers.map((l) => String(l.id))); return; }
+    const fresh = stickers.filter((l) => !seen.current!.has(String(l.id)));
+    if (!fresh.length) return;
+    for (const l of fresh) seen.current.add(String(l.id));
+    const l = fresh[fresh.length - 1];
+    const key = String(l.id);
+    setLanded({ seat: l.seat, sticker: l.sticker!, id: key });
+    // Not cleared with the effect: the view changes again within the 4 s (each frame), and the landing stays.
+    setTimeout(() => setLanded((v) => (v?.id === key ? null : v)), 4000);
+  }, [view]);
+
   if (!view) {
     return (
       <Screen name="table" title={say("table.title")} header={<HeaderScreen title={say("table.title")} onBack={onBack} backLabel={say("common.back")} />}>
@@ -113,25 +135,27 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
   // The two main actions (SplitAction): what the table asks next — begin, again, pass — or the like when
   // nothing is asked, and standing up. The rest (give up, and what the first slot did not take) is behind «…».
   const sheet: SheetAction[] = [];
-  const first = canStart ? "start" : canPass ? "pass" : "like";
+  // A game under way: the foot is «leave · say» (sheet adaptive-*-table-393); passing and the like are behind «…».
+  const first = canStart ? "start" : view.is_playing && started ? "say" : canPass ? "pass" : "like";
   if (first !== "pass" && canPass) sheet.push({ id: "pass", label: say("table.pass"), onSelect: () => void pass(), testid: "pass" });
   if (view.is_playing && started) sheet.push({ id: "resign", label: say("table.resign"), onSelect: () => void act(() => tables.resign(tableId)), testid: "resign" });
   if (first !== "like") sheet.push({ id: "like", label: say("table.like"), onSelect: () => void like(), testid: "like" });
-  const stand = <Button kind="secondary" type="button" icon="leave" aria-label={say("table.stand")} data-testid="table-stand" onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })} />;
+  const stand = <Button kind={first === "say" ? "primary" : "secondary"} type="button" icon="leave" aria-label={say("table.stand")} data-testid="table-stand" onClick={() => act(async () => { const answer = await tables.stand(tableId); if (answer.status < 400) onLeave(); return answer; })} />;
 
   return (
     <Screen name="table" title={title} data-testid="table" data-id={tableId}
       header={<HeaderScreen title={title} onBack={onBack} backLabel={say("common.back")} action={<Button type="button" icon="more" aria-label={say("web.chat.more")} aria-haspopup="dialog" aria-expanded={more} onClick={() => setMore(true)} data-testid="table-more" />} />}>
       <ActionSheet open={more} title={say("web.chat.more")} actions={sheet} onClose={() => setMore(false)} data-testid="table-menu">
         <p role="note" className="ui-hint" data-testid="table-info">{say("table.open")}</p>
+        <TileFoot items={[
+          { icon: "player", n: view.playing, label: `${say("table.playing")} ${view.playing}` },
+          { icon: "eye", n: view.watching, label: `${say("table.watching")} ${view.watching}` },
+        ]}><LikeCount n={view.like_count ?? 0} /></TileFoot>
       </ActionSheet>
-      <TileFoot items={[
-        { icon: "player", n: view.playing, label: `${say("table.playing")} ${view.playing}` },
-        { icon: "eye", n: view.watching, label: `${say("table.watching")} ${view.watching}` },
-      ]}><LikeCount n={view.like_count ?? 0} /></TileFoot>
       {/* The name the moderator refused (W13-TN, §6.1): the table lives on without one. */}
       {view.name_refused && <Notice data-testid="table-name-refused">{say("table.nameRefused")}</Notice>}
-      <BoardPanel seats={seats} seatedLabel={say("table.seated")} turn={panelTurn}>
+      <BoardPanel seats={seats} seatedLabel={say("table.seated")} turn={panelTurn}
+        landed={landed ? { seat: landed.seat, node: <span data-testid="landed" data-part="landed" role="img" aria-label={`${nameOf(landed.seat)} — ${say(`web.sticker.${landed.sticker}`)}`}><Sticker id={landed.sticker} size={46} /></span> } : undefined}>
         {dotsOf(board) && (
           <DotsBoard view={view} onEdge={turn.mine ? (edge) => act(() => tables.move(tableId, board!.seq, { edge })) : undefined} />
         )}
@@ -145,21 +169,35 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
               <WordBoard view={view} onMove={onMove} />
               <FreeBoard view={view} onMove={onMove} />
               <CellsBoard view={view} onMove={onMove} />
+              <SeaBoard view={view} onMove={onMove} />
+              <PokerBoard view={view} onMove={onMove} />
             </>
           );
         })()}
       </BoardPanel>
+      {/* The eight sticker reactions in one strip under the board (sheet adaptive-*-table-sticker-*):
+          one tap says one at the table, open to the node as the lines are (§6.1, 30.08.2026). */}
+      {saying && (
+        <div role="group" aria-label={say("web.sticker.title")} data-part="stickers" data-testid="stickers">
+          {STICKERS.map((id) => (
+            <button key={id} type="button" aria-label={say(`web.sticker.${id}`)} data-testid={`sticker-${id}`}
+              onClick={() => void act(() => tables.say(tableId, { kind: "sticker", sticker: id }))}>
+              <Sticker id={id} size={36} />
+            </button>
+          ))}
+        </div>
+      )}
       {error && <ErrorLine>{error}</ErrorLine>}
       <ul className="ui-lines">
         {/* An application is said once, as «заявка: имя — слова», and only while
             it is open: once the applicant plays (or is refused) it goes, instead
             of «Борис — сыграю» hanging on after the game (walkthrough 11.10, С9). */}
         {view.lines.filter((l) => l.kind !== "move" && l.kind !== "application").map((l) => (
-          <li key={l.id} data-testid="line">{nameOf(l.seat)} — {l.kind === "sticker" ? `[${l.sticker}]` : l.text}</li>
+          <li key={l.id} data-testid="line" data-kind={l.kind}>{nameOf(l.seat)} — {l.kind === "sticker" && l.sticker ? say(`web.sticker.${l.sticker}`) : l.text}</li>
         ))}
         {openApplications(view).map((l) => <li key={`w${l.id}`} data-testid="application">{say("table.application")}: {nameOf(l.seat)}{l.text ? ` — ${l.text}` : ""}</li>)}
       </ul>
-      <MoveInput
+      {!view.is_playing && <MoveInput
         legend={say("table.say")}
         fields={[{ label: say("web.table.line"), value: line, onChange: setLine, maxLength: 128, testid: "line-input" }]}
         submit={{ label: say("table.say"), icon: "say", testid: "line-send" }}
@@ -170,11 +208,13 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
           <Button kind="secondary" type="button" icon="queue" aria-label={say("table.application")} disabled={!line.trim()} data-testid="apply"
             onClick={() => { const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "application", text })).then(() => setLine("")); }} />
         )}
-      />
+      />}
       {view.is_playing && pending && (answered
         ? <p className="ui-hint" data-testid="pending">{say("web.table.waitingAnswers")}</p>
         : <p data-testid="pending">{say("web.table.proposed", { name: nameOf(pending.by ?? 0) })}</p>)}
-      {/* One capsule at the foot: accept · decline of a proposal, else the table's next step · standing up. */}
+      {/* One capsule at the foot: accept · decline of a proposal, else the table's next step · standing up;
+          a game under way, «leave · say». */}
+      <div data-part="foot">
       {proposed
         ? (
           <Split>
@@ -187,9 +227,13 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
             {first === "start" && <Button kind="primary" type="button" icon={!board || board.over ? "rematch" : "open"} aria-label={!board || board.over ? say("web.game.rematch") : say("web.table.start")} data-testid="start-game" onClick={() => act(() => tables.propose(tableId, "rematch"))} />}
             {first === "pass" && <Button kind="primary" type="button" icon="pass" aria-label={say("table.pass")} data-testid="pass" onClick={() => void pass()} />}
             {first === "like" && <Button kind="primary" type="button" icon="like" aria-label={say("table.like")} data-testid="like" onClick={() => void like()} />}
-            {stand}
+            {first === "say" && stand}
+            {first === "say"
+              ? <Button kind="primary" type="button" icon="say" aria-label={say("table.say")} aria-pressed={saying} data-testid="table-say" onClick={() => setSaying((v) => !v)} />
+              : stand}
           </Split>
         )}
+      </div>
     </Screen>
   );
 }

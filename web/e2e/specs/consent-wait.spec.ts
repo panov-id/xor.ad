@@ -30,7 +30,7 @@ test("after a reload, a match I agreed to shows the wait, not the button", async
   await anya.evaluate(() => sessionStorage.clear());
   await anya.reload();
   await unlock(anya, PIN);
-  await expect(anya.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
+  await expect(anya.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 30000 });  // the reload was on /match: its tab
   expect(await openMatch(anya, "Борис")).toBe(matchId);
   await expect(anya.locator('[data-screen="match"]')).toHaveAttribute("data-waiting", "yes");
   await expect(anya.getByTestId("waiting")).toBeVisible();

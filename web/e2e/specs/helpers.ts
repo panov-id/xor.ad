@@ -137,6 +137,18 @@ export async function openMatch(page: Page, name: string): Promise<string> {
   return id;
 }
 
+// The wizard's step 1 and the variant of step 2 (screens/NewTable.tsx GAMES): a
+// node class and set as the specs name them, turned into the game card to tap.
+export function tableGame(kind: string, set?: string): string {
+  if (kind === "grid") return set ?? "checkers";
+  if (kind === "deck") return set === "poker" ? "poker" : "durak";
+  return ({ dots: "dots", word: "hangman", dice: "backgammon", free: "dominoes", physics: "chapayev" } as Record<string, string>)[kind] ?? kind;
+}
+export async function pickTableGame(page: Page, kind: string, set?: string): Promise<void> {
+  await page.getByTestId(`new-table-game-${tableGame(kind, set)}`).click();
+  if (set && (kind === "dots" || kind === "word")) await page.getByTestId(`new-table-set-${set}`).click();
+}
+
 // A table from the feed's "new table" (W10), and the one who set it lands at it.
 export async function newTable(page: Page, t: { name: string; kind?: string; set?: string }): Promise<void> {
   // A table is made from the tables tab (owner 11.10.2026: the feed's own
@@ -144,9 +156,9 @@ export async function newTable(page: Page, t: { name: string; kind?: string; set
   await openTables(page);
   await page.getByTestId("new-table").click();
   await expect(page.locator('[data-screen="new-table"]')).toBeVisible();
-  if (t.kind) await page.getByTestId("new-table-class").selectOption(t.kind);
-  if (t.set) await page.getByTestId("new-table-set").selectOption(t.set);
+  await pickTableGame(page, t.kind ?? "dots", t.set);
   await page.getByTestId("new-table-name").fill(t.name);
+  await page.getByTestId("new-table-next").click();
   await page.getByTestId("new-table-go").click();
   await expect(page.getByTestId("table")).toBeVisible({ timeout: 30000 });
 }

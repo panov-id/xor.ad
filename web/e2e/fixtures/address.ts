@@ -32,12 +32,17 @@ export const headersFor = (file: string): Record<string, string> => ({
 // The onboarding wizard (web/src/screens/Wizard.tsx) shows once per device after a registration; every
 // spec but wizard.spec.ts meets a device that has seen it, so the specs that register go straight to
 // the feed. One place: every context of a test (the `page`'s and the ones it makes) is given the flag.
+// The language list of the splash (owner 12.10.2026) is passed the same way: every spec but language.spec.ts's
+// list test meets a device that has answered it, and the page speaks the browser's language as before.
 const SEEN = () => { try { localStorage.setItem("wizard-seen", "1"); } catch { /* storage blocked */ } };
+const ASKED = () => { try { localStorage.setItem("lang-asked", "1"); } catch { /* storage blocked */ } };
 
-export const test = base.extend<{ stamped: void; wizardSeen: boolean }>({
+export const test = base.extend<{ stamped: void; wizardSeen: boolean; langAsked: boolean }>({
   wizardSeen: [true, { option: true }],
-  context: async ({ context, wizardSeen }, use) => {
+  langAsked: [true, { option: true }],
+  context: async ({ context, wizardSeen, langAsked }, use) => {
     if (wizardSeen) await context.addInitScript(SEEN);
+    if (langAsked) await context.addInitScript(ASKED);
     await use(context);
   },
   // The context Playwright makes for `page`.
@@ -46,12 +51,13 @@ export const test = base.extend<{ stamped: void; wizardSeen: boolean }>({
   },
   // The contexts a spec makes itself: browser.newContext() carries the same
   // headers for as long as this test runs, and is given back afterwards.
-  stamped: [async ({ browser, wizardSeen }, use, testInfo) => {
+  stamped: [async ({ browser, wizardSeen, langAsked }, use, testInfo) => {
     const original = browser.newContext.bind(browser);
     const headers = headersFor(testInfo.file);
     (browser as Browser).newContext = async (options: BrowserContextOptions = {}) => {
       const made = await original({ ...options, extraHTTPHeaders: { ...(options.extraHTTPHeaders ?? {}), ...headers } });
       if (wizardSeen) await made.addInitScript(SEEN);
+      if (langAsked) await made.addInitScript(ASKED);
       return made;
     };
     await use();

@@ -65,7 +65,7 @@ export function TableList(
     <Screen name="tables" title={title} header={
       <HeaderScreen
         title={title}
-        action={<Button type="button" kind="primary" icon="table" aria-label={say("web.feed.newTable")} onClick={onNewTable} data-testid="new-table" />}
+        action={<Button type="button" icon="table" aria-label={say("web.feed.newTable")} onClick={onNewTable} data-testid="new-table" />}
       />
     }>
       {state === "failed" && <ErrorLine data-testid="error">{error}</ErrorLine>}

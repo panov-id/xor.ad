@@ -45,6 +45,8 @@ async function person(base = URL_) {
   // the light theme chosen by hand (theme.ts, localStorage theme:<brand>) from
   // the first paint; shoot() switches it for the night shot and back.
   await context.addInitScript((brand) => { try { localStorage.setItem(`theme:${brand}`, "light"); } catch { /* none */ } }, BRAND);
+  // The splash's language list and the onboarding wizard (owner 12.10.2026) are passed, as in web/e2e/fixtures/address.ts.
+  await context.addInitScript(() => { try { localStorage.setItem("lang-asked", "1"); localStorage.setItem("wizard-seen", "1"); } catch { /* none */ } });
   // The gate's control break (scripts/test_check-web-design.sh): every screen's
   // left padding 8 wider, drawn by the page itself, not faked in the image.
   if (process.env.WEB_BREAK === "pad8") {

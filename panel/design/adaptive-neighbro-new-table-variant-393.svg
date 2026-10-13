@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="1003" viewBox="0 0 393 1003"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<rect width="393" height="851" fill="#e5e6e9"/>
+<rect width="393" height="851" fill="url(#dots)"/>
+<g transform="rotate(0 38.0 40)">
+<circle cx="39.5" cy="43" r="20" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="38.0" cy="40" r="20" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(27.5 29.5) scale(0.875)" fill="none" stroke="#141618" stroke-width="1.71" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+</g>
+<text x="76.0" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">a new table</text>
+<rect x="303.0" y="36" width="22" height="8" rx="4" fill="#1fb39a" />
+<rect x="329.0" y="36" width="22" height="8" rx="4" fill="#1fb39a" />
+<rect x="355.0" y="36" width="22" height="8" rx="4" fill="#d7d9dd" />
+<text x="16.0" y="80" font-family="Golos Text" font-weight="600" font-size="15" fill="#545b63" text-anchor="start">2 of 3 · how you play</text>
+<g transform="rotate(0 196.5 176.0)">
+<rect x="17.5" y="107" width="361.0" height="144" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16.0" y="104" width="361.0" height="144" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g class="game" data-game="durak" transform="rotate(3 88.0 176.0)">
+<rect x="33.5" y="123.0" width="112.0" height="112.0" rx="22.4" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="9.7" stroke-linejoin="round" opacity=".9"/>
+<rect x="32.0" y="120.0" width="112.0" height="112.0" rx="22.4" fill="#8550c5" stroke="#ffffff" stroke-width="6.7" paint-order="stroke"/>
+<g transform="translate(32.0 120.0) scale(1.1200)" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(-16 29 72)"><rect x="14" y="30" width="30" height="42" rx="4" fill="#ffffff" stroke="#141618" stroke-width="1.6"/><text x="19" y="42" font-family="Golos Text" font-weight="700" font-size="10" fill="#141618" stroke="none">6</text><path transform="translate(29 55)" d="M0 -6.5 C-7 -1 -7 4 -3 4 C-1.5 4 -0.6 3 -0.3 2 L-1.8 6 H1.8 L0.3 2 C0.6 3 1.5 4 3 4 C7 4 7 -1 0 -6.5Z" fill="#141618" stroke="none"/></g><g transform="rotate(0 50 66)"><rect x="35" y="24" width="30" height="42" rx="4" fill="#ffffff" stroke="#141618" stroke-width="1.6"/><text x="40" y="36" font-family="Golos Text" font-weight="700" font-size="10" fill="#a3311f" stroke="none">A</text><path transform="translate(50 49)" d="M0 6 C-7 1 -7 -5 -3.2 -5.4 C-1.3 -5.6 0 -4 0 -3 C0 -4 1.3 -5.6 3.2 -5.4 C7 -5 7 1 0 6Z" fill="#a3311f" stroke="none"/></g><g transform="rotate(16 71 72)"><rect x="56" y="30" width="30" height="42" rx="4" fill="#ffffff" stroke="#141618" stroke-width="1.6"/><text x="61" y="42" font-family="Golos Text" font-weight="700" font-size="10" fill="#141618" stroke="none">K</text><path transform="translate(71 55)" d="M0 -6.5 C-7 -1 -7 4 -3 4 C-1.5 4 -0.6 3 -0.3 2 L-1.8 6 H1.8 L0.3 2 C0.6 3 1.5 4 3 4 C7 4 7 -1 0 -6.5Z" fill="#141618" stroke="none"/></g></g>
+</g>
+<text x="168.0" y="154" font-family="Golos Text" font-weight="600" font-size="21" fill="#141618" text-anchor="start">durak · 36</text>
+<g transform="translate(166.0 166) scale(0.8)" fill="none" stroke="#545b63" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
+<text x="192.0" y="183" font-family="Golos Text" font-weight="600" font-size="15" fill="#545b63" text-anchor="start">2–6</text>
+<text x="168.0" y="214" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="start">podkidnoy · 4 seats</text>
+<text x="16.0" y="284" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">variant</text>
+<g transform="rotate(0 196.5 324.0)">
+<rect x="17.5" y="299" width="361" height="56" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16.0" y="296" width="361" height="56" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<path d="M196.5 304 V344" stroke="#1a1b1e" stroke-width="1.5"/>
+<rect x="20.0" y="300" width="172.5" height="48" rx="24.0" fill="#1fb39a" />
+<text x="106.25" y="330" font-family="Golos Text" font-weight="600" font-size="16" fill="#04201c" text-anchor="middle">podkidnoy</text>
+<text x="286.75" y="330" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="middle">perevodnoy</text>
+<text x="16.0" y="380" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">seats</text>
+<g transform="rotate(0 196.5 420.0)">
+<rect x="17.5" y="395" width="361" height="56" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16.0" y="392" width="361" height="56" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<path d="M88.2 400 V440" stroke="#1a1b1e" stroke-width="1.5"/>
+<path d="M160.4 400 V440" stroke="#1a1b1e" stroke-width="1.5"/>
+<path d="M232.6 400 V440" stroke="#1a1b1e" stroke-width="1.5"/>
+<path d="M304.8 400 V440" stroke="#1a1b1e" stroke-width="1.5"/>
+<text x="52.1" y="426" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="middle">2</text>
+<text x="124.30000000000001" y="426" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="middle">3</text>
+<rect x="164.4" y="396" width="64.2" height="48" rx="24.0" fill="#1fb39a" />
+<text x="196.5" y="426" font-family="Golos Text" font-weight="600" font-size="16" fill="#04201c" text-anchor="middle">4</text>
+<text x="268.70000000000005" y="426" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="middle">5</text>
+<text x="340.90000000000003" y="426" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="middle">6</text>
+<g transform="rotate(0 196.5 525.0)">
+<rect x="17.5" y="479" width="361" height="98" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16.0" y="476" width="361" height="98" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="34.0" y="500" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">a name, if you like</text>
+<text x="34.0" y="532" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">by the park</text>
+<path d="M30.0 548 H363.0" stroke="#1a1b1e" stroke-width="1"/>
+<text x="34.0" y="566" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">nobody has to give one</text>
+<g transform="rotate(0 196.5 791.0)">
+<rect x="17.5" y="762" width="361.0" height="64" rx="32.0" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16.0" y="759" width="361.0" height="64" rx="32.0" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(178.5 773) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="851" width="393" height="152" fill="#e5e6e9"/>
+<text class="note" x="16" y="879" font-family="Golos Text" font-size="14" fill="#126a5c">step 2 of 3; back on every step («back»: the</text>
+<text class="note" x="16" y="899" font-family="Golos Text" font-size="14" fill="#126a5c">step before, from step 1 the tables)</text>
+<text class="note" x="16" y="919" font-family="Golos Text" font-size="14" fill="#126a5c">name: «next»</text>
+<text class="note" x="16" y="939" font-family="Golos Text" font-size="14" fill="#126a5c">variant and seats as welded chips; a game with</text>
+<text class="note" x="16" y="959" font-family="Golos Text" font-size="14" fill="#126a5c">one variant or one seat count still shows it,</text>
+<text class="note" x="16" y="979" font-family="Golos Text" font-size="14" fill="#126a5c">chosen</text>
+</svg>

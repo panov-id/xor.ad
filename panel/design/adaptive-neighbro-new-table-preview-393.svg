@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="1003" viewBox="0 0 393 1003"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<rect width="393" height="851" fill="#e5e6e9"/>
+<rect width="393" height="851" fill="url(#dots)"/>
+<g transform="rotate(0 38.0 40)">
+<circle cx="39.5" cy="43" r="20" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/>
+<circle cx="38.0" cy="40" r="20" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="translate(27.5 29.5) scale(0.875)" fill="none" stroke="#141618" stroke-width="1.71" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+</g>
+<text x="76.0" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">a new table</text>
+<rect x="303.0" y="36" width="22" height="8" rx="4" fill="#1fb39a" />
+<rect x="329.0" y="36" width="22" height="8" rx="4" fill="#1fb39a" />
+<rect x="355.0" y="36" width="22" height="8" rx="4" fill="#1fb39a" />
+<text x="16.0" y="80" font-family="Golos Text" font-weight="600" font-size="15" fill="#545b63" text-anchor="start">3 of 3 · how neighbours see it</text>
+<g opacity=".45">
+<g transform="rotate(0 196.5 150.0)">
+<rect x="17.5" y="107" width="361" height="92" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16.0" y="104" width="361" height="92" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="34.0" y="144" font-family="Golos Text" font-weight="600" font-size="18" fill="#141618" text-anchor="start">walking to the river, join?</text>
+<text x="34.0" y="174" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">with friends · 300 m</text>
+</g>
+<g transform="rotate(-0.6 196.5 326.0)">
+<rect x="17.5" y="217" width="361" height="224" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16.0" y="214" width="361" height="224" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g class="game" data-game="durak" transform="rotate(3 92.0 290.0)">
+<rect x="33.5" y="233.0" width="120.0" height="120.0" rx="24.0" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10.2" stroke-linejoin="round" opacity=".9"/>
+<rect x="32.0" y="230.0" width="120.0" height="120.0" rx="24.0" fill="#8550c5" stroke="#ffffff" stroke-width="7.2" paint-order="stroke"/>
+<g transform="translate(32.0 230.0) scale(1.2000)" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(-16 29 72)"><rect x="14" y="30" width="30" height="42" rx="4" fill="#ffffff" stroke="#141618" stroke-width="1.6"/><text x="19" y="42" font-family="Golos Text" font-weight="700" font-size="10" fill="#141618" stroke="none">6</text><path transform="translate(29 55)" d="M0 -6.5 C-7 -1 -7 4 -3 4 C-1.5 4 -0.6 3 -0.3 2 L-1.8 6 H1.8 L0.3 2 C0.6 3 1.5 4 3 4 C7 4 7 -1 0 -6.5Z" fill="#141618" stroke="none"/></g><g transform="rotate(0 50 66)"><rect x="35" y="24" width="30" height="42" rx="4" fill="#ffffff" stroke="#141618" stroke-width="1.6"/><text x="40" y="36" font-family="Golos Text" font-weight="700" font-size="10" fill="#a3311f" stroke="none">A</text><path transform="translate(50 49)" d="M0 6 C-7 1 -7 -5 -3.2 -5.4 C-1.3 -5.6 0 -4 0 -3 C0 -4 1.3 -5.6 3.2 -5.4 C7 -5 7 1 0 6Z" fill="#a3311f" stroke="none"/></g><g transform="rotate(16 71 72)"><rect x="56" y="30" width="30" height="42" rx="4" fill="#ffffff" stroke="#141618" stroke-width="1.6"/><text x="61" y="42" font-family="Golos Text" font-weight="700" font-size="10" fill="#141618" stroke="none">K</text><path transform="translate(71 55)" d="M0 -6.5 C-7 -1 -7 4 -3 4 C-1.5 4 -0.6 3 -0.3 2 L-1.8 6 H1.8 L0.3 2 C0.6 3 1.5 4 3 4 C7 4 7 -1 0 -6.5Z" fill="#141618" stroke="none"/></g></g>
+</g>
+<text x="176.0" y="262" font-family="Golos Text" font-weight="600" font-size="19" fill="#141618" text-anchor="start">by the park</text>
+<text x="176.0" y="290" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="start">durak · 36 · podkidnoy</text>
+<g transform="translate(174.0 306) scale(0.75)" fill="none" stroke="#545b63" stroke-width="2.00" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+<text x="198.0" y="322" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">here · 0 m</text>
+<g transform="rotate(0 196.5 394.0)">
+<rect x="33.5" y="369" width="329" height="56" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="32.0" y="366" width="329" height="56" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<path d="M141.7 374 V414" stroke="#1a1b1e" stroke-width="1.5"/>
+<path d="M251.3 374 V414" stroke="#1a1b1e" stroke-width="1.5"/>
+<text x="86.83333333333334" y="400" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="middle">you sit</text>
+<text x="196.50000000000003" y="400" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="middle">0 watch</text>
+<text x="306.1666666666667" y="400" font-family="Golos Text" font-weight="600" font-size="15" fill="#141618" text-anchor="middle">3 free</text>
+<g opacity=".45">
+<g transform="rotate(0 196.5 502.0)">
+<rect x="17.5" y="459" width="361" height="92" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16.0" y="456" width="361" height="92" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="34.0" y="496" font-family="Golos Text" font-weight="600" font-size="18" fill="#141618" text-anchor="start">coffee at the corner bakery</text>
+<text x="34.0" y="526" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">alone · 200 m</text>
+</g>
+<g transform="rotate(0 196.5 791.0)">
+<rect x="17.5" y="762" width="361.0" height="64" rx="32.0" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16.0" y="759" width="361.0" height="64" rx="32.0" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(178.5 773) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="8" rx="2"/><path d="M5.5 13.5 H18.5 M7.5 13.5 L6.5 21 M16.5 13.5 L17.5 21 M9 11 V13.5 M15 11 V13.5"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="851" width="393" height="152" fill="#e5e6e9"/>
+<text class="note" x="16" y="879" font-family="Golos Text" font-size="14" fill="#126a5c">step 3 of 3; back on every step («back»: the</text>
+<text class="note" x="16" y="899" font-family="Golos Text" font-size="14" fill="#126a5c">step before, from step 1 the tables)</text>
+<text class="note" x="16" y="919" font-family="Golos Text" font-size="14" fill="#126a5c">name: «sit at the table»</text>
+<text class="note" x="16" y="939" font-family="Golos Text" font-size="14" fill="#126a5c">the table among the feed exactly as neighbours</text>
+<text class="note" x="16" y="959" font-family="Golos Text" font-size="14" fill="#126a5c">will see it; «sit at the table» opens it and you</text>
+<text class="note" x="16" y="979" font-family="Golos Text" font-size="14" fill="#126a5c">are seated</text>
+</svg>

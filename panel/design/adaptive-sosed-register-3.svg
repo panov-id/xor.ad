@@ -4,30 +4,37 @@
 <rect x="20.0" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#bd4b2a" />
 <rect x="62.666666666666664" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#1fa99a" />
 <rect x="105.33333333333333" y="14" width="38.666666666666664" height="12" rx="6.0" fill="#336eb2" />
-<rect x="16" y="40" width="361" height="272" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<rect x="16" y="40" width="361" height="404" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <rect x="22" y="46" width="349" height="92" rx="20" fill="#8550c5" />
 <g transform="translate(40 62) scale(1.4)" fill="none" stroke="#ffffff" stroke-width="1.07" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 H14.5 L18.5 7.5 V20.5 H6 Z"/><path d="M14.5 3.5 V7.5 H18.5 M9 12 H15.5 M9 15.5 H15.5"/></g>
 <text x="86" y="100" font-family="Golos Text" font-weight="600" font-size="24" fill="#ffffff" text-anchor="start">paper code</text>
 <circle cx="341" cy="92.0" r="18" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".9"/>
 <g transform="translate(329 80.0) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 V16.5"/><path d="M12 7.6 V7.7" stroke-width="2.2"/></g>
-<text x="34" y="162" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start"></text>
-<text x="38.0" y="166" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">1</text>
-<text x="71.625" y="206" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">FEP0</text>
-<path d="M113.25 176 V220" stroke="#e6dbc9" stroke-width="1.2"/>
-<text x="121.25" y="166" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">2</text>
-<text x="154.875" y="206" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">4AXR</text>
-<path d="M196.5 176 V220" stroke="#e6dbc9" stroke-width="1.2"/>
-<text x="204.5" y="166" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">3</text>
-<text x="238.125" y="206" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">1JVV</text>
-<path d="M279.75 176 V220" stroke="#e6dbc9" stroke-width="1.2"/>
-<text x="287.75" y="166" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">4</text>
-<text x="321.375" y="206" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">A4E3</text>
-<path d="M30 232 H363" stroke="#e6dbc9" stroke-width="1.2"/>
-<text x="34.0" y="258" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">group 2</text>
-<text x="34.0" y="290" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">4AXR</text>
-<path d="M196.5 242 V298" stroke="#e6dbc9" stroke-width="1.2"/>
-<text x="214.5" y="258" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">group 4</text>
-<text x="214.5" y="290" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">····</text>
+<text x="34" y="162" font-family="Golos Text" font-weight="400" font-size="15" fill="#1c140d" text-anchor="start">Write this code down on paper. It's the</text>
+<text x="34" y="182" font-family="Golos Text" font-weight="400" font-size="15" fill="#1c140d" text-anchor="start">only way to get your identity back, and</text>
+<text x="34" y="202" font-family="Golos Text" font-weight="400" font-size="15" fill="#1c140d" text-anchor="start">it won't be shown again.</text>
+<path d="M30 216 H363" stroke="#857562" stroke-width="1.2"/>
+<text x="34" y="238" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start"></text>
+<text x="38.0" y="242" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">1</text>
+<text x="71.625" y="282" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">FEP0</text>
+<path d="M113.25 252 V296" stroke="#857562" stroke-width="1.2"/>
+<text x="121.25" y="242" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">2</text>
+<text x="154.875" y="282" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">4AXR</text>
+<path d="M196.5 252 V296" stroke="#857562" stroke-width="1.2"/>
+<text x="204.5" y="242" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">3</text>
+<text x="238.125" y="282" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">1JVV</text>
+<path d="M279.75 252 V296" stroke="#857562" stroke-width="1.2"/>
+<text x="287.75" y="242" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">4</text>
+<text x="321.375" y="282" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">A4E3</text>
+<path d="M30 308 H363" stroke="#857562" stroke-width="1.2"/>
+<text x="34" y="330" font-family="Golos Text" font-weight="400" font-size="15" fill="#1c140d" text-anchor="start">Written it down? Enter the second and</text>
+<text x="34" y="350" font-family="Golos Text" font-weight="400" font-size="15" fill="#1c140d" text-anchor="start">fourth groups.</text>
+<path d="M30 364 H363" stroke="#857562" stroke-width="1.2"/>
+<text x="34.0" y="390" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">group 2</text>
+<text x="34.0" y="422" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">4AXR</text>
+<path d="M196.5 374 V430" stroke="#857562" stroke-width="1.2"/>
+<text x="214.5" y="390" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">group 4</text>
+<text x="214.5" y="422" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">····</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
 <g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 L10 17.5 L19 7"/></g>
 <rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#983c22" stroke-width="1" stroke-dasharray="6 4"/>

@@ -21,12 +21,12 @@
 <rect x="16" y="168" width="361" height="224" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <text x="34" y="194" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">what</text>
 <text x="34" y="226" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">coffee and a croissant</text>
-<path d="M30 244 H363" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M30 244 H363" stroke="#857562" stroke-width="1.2"/>
 <text x="81.5" y="286" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">−10%</text>
 <rect x="141.0" y="254" width="111.0" height="52" rx="26.0" fill="#bd4b2a" />
 <text x="196.5" y="286" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="middle">−15%</text>
 <text x="311.5" y="286" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">−20%</text>
-<path d="M30 316 H363" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M30 316 H363" stroke="#857562" stroke-width="1.2"/>
 <text x="34" y="342" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">until</text>
 <text x="34" y="374" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">11:00 today</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />

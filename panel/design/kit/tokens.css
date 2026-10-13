@@ -29,6 +29,9 @@
       --s-4: 16px;      /* screen gutter (375 − 343) / 2; a card's text and button inset; header text x 16 */
       --s-6: 24px; --s-8: 32px; --s-12: 48px;
       --control-h: 44px; /* every button, field and hit zone */
+      /* the two colours no theme changes: a QR is dark dots on white or a camera cannot read it, and
+         neighbro's stickers wear a white rim in every theme (13.10.2026, check-web-tokens) */
+      --paper: #ffffff; --ink: #000000;
     }
     .k-dark {
       --bg: #0d0b0a; --panel: #262019; --panel-2: #302720; --border: #3a2e20; --border-control: #80705a;

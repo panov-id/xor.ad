@@ -29,7 +29,7 @@
 <text x="34.0" y="258" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">15 min</text>
 <path d="M196.5 210 V266" stroke="#1a1b1e" stroke-width="1.2"/>
 <text x="214.5" y="226" font-family="Golos Text" font-weight="600" font-size="14" fill="#545b63" text-anchor="start">sent to</text>
-<text x="214.5" y="258" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">hello@bakery.cy</text>
+<text x="214.5" y="258" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">hello@bakery.cy</text>
 <g transform="rotate(0 196.5 785.0)">
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>

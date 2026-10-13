@@ -9,10 +9,10 @@
 <text x="34" y="146" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start"></text>
 <text x="38.0" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">1</text>
 <text x="85.5" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">X6X</text>
-<path d="M141.0 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M141.0 160 V204" stroke="#857562" stroke-width="1.2"/>
 <text x="149.0" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">2</text>
 <text x="196.5" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">T88</text>
-<path d="M252.0 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M252.0 160 V204" stroke="#857562" stroke-width="1.2"/>
 <text x="260.0" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">3</text>
 <text x="307.5" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">···</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />

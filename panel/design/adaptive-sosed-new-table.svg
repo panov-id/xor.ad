@@ -13,12 +13,12 @@
 <text x="196.5" y="178" font-family="Golos Text" font-weight="600" font-size="13" fill="#1c140d" text-anchor="middle">words</text>
 <g transform="translate(299.5 138) scale(0.8)" fill="none" stroke="#1c140d" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 V20 M6 20 H18 M5 8 H19 M5 8 L2.5 14 H7.5 Z M19 8 L16.5 14 H21.5 Z"/></g>
 <text x="311.5" y="178" font-family="Golos Text" font-weight="600" font-size="13" fill="#1c140d" text-anchor="middle">cards</text>
-<path d="M30 196 H363" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M30 196 H363" stroke="#857562" stroke-width="1.2"/>
 <text x="81.5" y="238" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">2×2</text>
 <rect x="141.0" y="206" width="111.0" height="52" rx="26.0" fill="#bd4b2a" />
 <text x="196.5" y="238" font-family="Golos Text" font-weight="600" font-size="16" fill="#fff6f0" text-anchor="middle">3×3</text>
 <text x="311.5" y="238" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="middle">4×4</text>
-<path d="M30 268 H363" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M30 268 H363" stroke="#857562" stroke-width="1.2"/>
 <text x="34" y="294" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">name</text>
 <text x="34" y="326" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">by the park</text>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />

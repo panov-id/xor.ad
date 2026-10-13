@@ -10,13 +10,13 @@
 <text x="34" y="146" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start"></text>
 <text x="38.0" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">1</text>
 <text x="71.625" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">FEP0</text>
-<path d="M113.25 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M113.25 160 V204" stroke="#857562" stroke-width="1.2"/>
 <text x="121.25" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">2</text>
 <text x="154.875" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">4AXR</text>
-<path d="M196.5 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M196.5 160 V204" stroke="#857562" stroke-width="1.2"/>
 <text x="204.5" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">3</text>
 <text x="238.125" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">1JVV</text>
-<path d="M279.75 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M279.75 160 V204" stroke="#857562" stroke-width="1.2"/>
 <text x="287.75" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">4</text>
 <text x="321.375" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">ZZZZ</text>
 <path d="M16 216 H377" stroke="#a3311f" stroke-width="2"/>

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="963" viewBox="0 0 393 963"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<rect x="16.0" y="18" width="44" height="44" rx="22" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(26.0 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 L8 12 L14.5 18.5"/></g>
+<text x="76.0" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="start">by the park</text>
+<rect x="333.0" y="18" width="44" height="44" rx="22" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(343.0 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></g>
+<rect x="16.0" y="90" width="361.0" height="56" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M136.3 98 V138" stroke="#ece4d8" stroke-width="2"/>
+<path d="M256.7 98 V138" stroke="#ece4d8" stroke-width="2"/>
+<text x="76.16666666666666" y="124" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="middle">you 2</text>
+<text x="196.49999999999997" y="124" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="middle">Boris 1</text>
+<text x="316.8333333333333" y="124" font-family="Golos Text" font-weight="600" font-size="15" fill="#1c140d" text-anchor="middle">your move</text>
+<g class="sticker" data-sticker="move">
+<rect x="222.7" y="72.0" width="40" height="40" rx="8.8" fill="#1fa99a" stroke="#1c140d" stroke-width="2"/>
+<g transform="translate(230.3 79.6) scale(1.0333)" fill="none" stroke="#1c140d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="6.8" r="2.8"/><path d="M8 11 H14 M9 11 L8 16.5 H14 L13 11 M6 20.5 H16 M7 16.5 H15 V20.5 H7 Z M19.5 3 V7 M17.5 5 H21.5"/></g>
+</g>
+<rect x="46.0" y="166" width="301.0" height="301.0" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<circle cx="76.0" cy="196.0" r="7" fill="#1c140d"/>
+<circle cx="76.0" cy="276.3" r="7" fill="#1c140d"/>
+<circle cx="76.0" cy="356.7" r="7" fill="#1c140d"/>
+<circle cx="76.0" cy="437.0" r="7" fill="#1c140d"/>
+<circle cx="156.3" cy="196.0" r="7" fill="#1c140d"/>
+<circle cx="156.3" cy="276.3" r="7" fill="#1c140d"/>
+<circle cx="156.3" cy="356.7" r="7" fill="#1c140d"/>
+<circle cx="156.3" cy="437.0" r="7" fill="#1c140d"/>
+<circle cx="236.7" cy="196.0" r="7" fill="#1c140d"/>
+<circle cx="236.7" cy="276.3" r="7" fill="#1c140d"/>
+<circle cx="236.7" cy="356.7" r="7" fill="#1c140d"/>
+<circle cx="236.7" cy="437.0" r="7" fill="#1c140d"/>
+<circle cx="317.0" cy="196.0" r="7" fill="#1c140d"/>
+<circle cx="317.0" cy="276.3" r="7" fill="#1c140d"/>
+<circle cx="317.0" cy="356.7" r="7" fill="#1c140d"/>
+<circle cx="317.0" cy="437.0" r="7" fill="#1c140d"/>
+<rect x="16.0" y="487.0" width="361.0" height="64" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M61.1 499.0 V539.0" stroke="#ece4d8" stroke-width="2"/>
+<path d="M106.2 499.0 V539.0" stroke="#ece4d8" stroke-width="2"/>
+<path d="M151.4 499.0 V539.0" stroke="#ece4d8" stroke-width="2"/>
+<path d="M196.5 499.0 V539.0" stroke="#ece4d8" stroke-width="2"/>
+<path d="M241.6 499.0 V539.0" stroke="#ece4d8" stroke-width="2"/>
+<path d="M286.8 499.0 V539.0" stroke="#ece4d8" stroke-width="2"/>
+<path d="M331.9 499.0 V539.0" stroke="#ece4d8" stroke-width="2"/>
+<g class="sticker" data-sticker="hi">
+<rect x="23.0" y="503.4" width="31.125" height="31.125" rx="6.8" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+<g transform="translate(28.9 509.4) scale(0.8041)" fill="none" stroke="#1c140d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13 V6 A1.5 1.5 0 0 1 11 6 V12 M11 11 V4.5 A1.5 1.5 0 0 1 14 4.5 V12 M14 11 V6 A1.5 1.5 0 0 1 17 6 V14 C17 18 15 21 11 21 C8 21 6 19 4.5 16 L3.5 13 A1.4 1.4 0 0 1 6 12 L8 15"/><path d="M19.5 3.5 L21 2.5 M20 7.5 H22"/></g>
+</g>
+<g class="sticker" data-sticker="thanks">
+<rect x="68.1" y="503.4" width="31.125" height="31.125" rx="6.8" fill="#1fa99a" stroke="#1c140d" stroke-width="2"/>
+<g transform="translate(74.0 509.4) scale(0.8041)" fill="none" stroke="#1c140d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11 C9.5 9.3 8 8 8 6.3 A2 2 0 0 1 12 5.3 A2 2 0 0 1 16 6.3 C16 8 14.5 9.3 12 11 Z"/><path d="M2.5 14 H6.5 V21 H2.5 M6.5 15 L10 14 H14 A1.6 1.6 0 0 1 14 17.2 H10.5 M14 17.2 L19 14.8 A1.6 1.6 0 0 1 21 17.3 L15 21 H6.5"/></g>
+</g>
+<g class="sticker" data-sticker="deal">
+<rect x="113.2" y="503.4" width="31.125" height="31.125" rx="6.8" fill="#8550c5" stroke="#1c140d" stroke-width="2"/>
+<g transform="translate(119.2 509.4) scale(0.8041)" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></g>
+</g>
+<g class="sticker" data-sticker="wow">
+<rect x="158.4" y="503.4" width="31.125" height="31.125" rx="6.8" fill="#336eb2" stroke="#1c140d" stroke-width="2"/>
+<g transform="translate(164.3 509.4) scale(0.8041)" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9 9.5 V10.2 M15 9.5 V10.2 M7.5 6.8 L10 6 M16.5 6.8 L14 6"/><circle cx="12" cy="15.2" r="2.3"/></g>
+</g>
+<g class="sticker" data-sticker="coffee">
+<rect x="203.5" y="503.4" width="31.125" height="31.125" rx="6.8" fill="#d68a1f" stroke="#1c140d" stroke-width="2"/>
+<g transform="translate(209.4 509.4) scale(0.8041)" fill="none" stroke="#1c140d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10 H16 V14.5 A4.5 4.5 0 0 1 11.5 19 H9.5 A4.5 4.5 0 0 1 5 14.5 Z"/><path d="M16 11 H17.5 A2 2 0 0 1 17.5 15 H16 M3.5 21.5 H18.5 M8.5 3 C7.5 4.5 9.5 5.5 8.5 7.5 M12.5 3 C11.5 4.5 13.5 5.5 12.5 7.5"/></g>
+</g>
+<g class="sticker" data-sticker="move">
+<rect x="248.6" y="503.4" width="31.125" height="31.125" rx="6.8" fill="#1fa99a" stroke="#1c140d" stroke-width="2"/>
+<g transform="translate(254.5 509.4) scale(0.8041)" fill="none" stroke="#1c140d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="6.8" r="2.8"/><path d="M8 11 H14 M9 11 L8 16.5 H14 L13 11 M6 20.5 H16 M7 16.5 H15 V20.5 H7 Z M19.5 3 V7 M17.5 5 H21.5"/></g>
+</g>
+<g class="sticker" data-sticker="again">
+<rect x="293.8" y="503.4" width="31.125" height="31.125" rx="6.8" fill="#8550c5" stroke="#1c140d" stroke-width="2"/>
+<g transform="translate(299.7 509.4) scale(0.8041)" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11 A7 7 0 0 1 17.5 7 M17.5 7 V3 M17.5 7 H13.5 M19 13 A7 7 0 0 1 6.5 17 M6.5 17 V21 M6.5 17 H10.5"/></g>
+</g>
+<g class="sticker" data-sticker="giveup">
+<rect x="338.9" y="503.4" width="31.125" height="31.125" rx="6.8" fill="#336eb2" stroke="#1c140d" stroke-width="2"/>
+<g transform="translate(344.8 509.4) scale(0.8041)" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21.5 V3"/><path d="M6 4.5 C9 3 11 6 14 4.5 C16 3.5 17.5 4 19 4.5 V12.5 C17.5 12 16 11.5 14 12.5 C11 14 9 11 6 12.5 Z" fill="#ffffff"/></g>
+</g>
+<rect x="16.0" y="759" width="361.0" height="64" rx="32.0" fill="#bd4b2a" />
+<path d="M268.7 773 V809" stroke="#fff6f0" stroke-width="1.5" opacity=".5"/>
+<g transform="translate(130.35 779) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21 V4 H15 V21 M15 6 L20 8 V21 H15"/><circle cx="12" cy="12.5" r="0.9"/></g>
+<g transform="translate(310.85 779) scale(1.0)" fill="none" stroke="#fff6f0" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#983c22" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="851" width="393" height="112" fill="#ece4d8"/>
+<text class="note" x="16" y="879" font-family="Golos Text" font-size="14" fill="#983c22">names: «leave» · «say»</text>
+<text class="note" x="16" y="899" font-family="Golos Text" font-size="14" fill="#983c22">the table's line: the eight in one strip of 8</text>
+<text class="note" x="16" y="919" font-family="Golos Text" font-size="14" fill="#983c22">cells, 31 each, under the board; the sent one</text>
+<text class="note" x="16" y="939" font-family="Golos Text" font-size="14" fill="#983c22">lands on the sender's score for 4 s</text>
+</svg>

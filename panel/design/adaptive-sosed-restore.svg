@@ -10,29 +10,29 @@
 <text x="34" y="146" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start"></text>
 <text x="38.0" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">1</text>
 <text x="71.625" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">FEP0</text>
-<path d="M113.25 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M113.25 160 V204" stroke="#857562" stroke-width="1.2"/>
 <text x="121.25" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">2</text>
 <text x="154.875" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">4AXR</text>
-<path d="M196.5 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M196.5 160 V204" stroke="#857562" stroke-width="1.2"/>
 <text x="204.5" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">3</text>
 <text x="238.125" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">1JVV</text>
-<path d="M279.75 160 V204" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M279.75 160 V204" stroke="#857562" stroke-width="1.2"/>
 <text x="287.75" y="150" font-family="Golos Text" font-weight="600" font-size="13" fill="#6b5f4c" text-anchor="start">4</text>
 <text x="321.375" y="190" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="middle">····</text>
-<path d="M30 216 H363" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M30 216 H363" stroke="#857562" stroke-width="1.2"/>
 <text x="34" y="238" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">new PIN</text>
-<path d="M85.5 252 V296" stroke="#e6dbc9" stroke-width="1.2"/>
-<path d="M141.0 252 V296" stroke="#e6dbc9" stroke-width="1.2"/>
-<path d="M196.5 252 V296" stroke="#e6dbc9" stroke-width="1.2"/>
-<path d="M252.0 252 V296" stroke="#e6dbc9" stroke-width="1.2"/>
-<path d="M307.5 252 V296" stroke="#e6dbc9" stroke-width="1.2"/>
-<path d="M30 308 H363" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M85.5 252 V296" stroke="#857562" stroke-width="1.2"/>
+<path d="M141.0 252 V296" stroke="#857562" stroke-width="1.2"/>
+<path d="M196.5 252 V296" stroke="#857562" stroke-width="1.2"/>
+<path d="M252.0 252 V296" stroke="#857562" stroke-width="1.2"/>
+<path d="M307.5 252 V296" stroke="#857562" stroke-width="1.2"/>
+<path d="M30 308 H363" stroke="#857562" stroke-width="1.2"/>
 <text x="34" y="330" font-family="Golos Text" font-weight="600" font-size="14" fill="#6b5f4c" text-anchor="start">again</text>
-<path d="M85.5 344 V388" stroke="#e6dbc9" stroke-width="1.2"/>
-<path d="M141.0 344 V388" stroke="#e6dbc9" stroke-width="1.2"/>
-<path d="M196.5 344 V388" stroke="#e6dbc9" stroke-width="1.2"/>
-<path d="M252.0 344 V388" stroke="#e6dbc9" stroke-width="1.2"/>
-<path d="M307.5 344 V388" stroke="#e6dbc9" stroke-width="1.2"/>
+<path d="M85.5 344 V388" stroke="#857562" stroke-width="1.2"/>
+<path d="M141.0 344 V388" stroke="#857562" stroke-width="1.2"/>
+<path d="M196.5 344 V388" stroke="#857562" stroke-width="1.2"/>
+<path d="M252.0 344 V388" stroke="#857562" stroke-width="1.2"/>
+<path d="M307.5 344 V388" stroke="#857562" stroke-width="1.2"/>
 <rect x="16" y="755" width="361" height="64" rx="32" fill="#bd4b2a" />
 <path d="M267 767 V805" stroke="#fff6f0" stroke-width="1.5" opacity=".5"/>
 <g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#fff6f0" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12 H20.5 M17.5 12 V15 M20 12 V14.5"/></g>

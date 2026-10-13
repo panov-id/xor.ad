@@ -19,67 +19,61 @@
 # into a queue. Nothing was wrong with the writing — nothing watched the wording.
 
 # --- личность опознаётся секретом, а не парой ключей ---------------------------
-живым секретом            | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | закрытая половина ключа, 12.08.2026
-identity_id` + секрет     | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | закрытая половина ключа, 12.08.2026
-a live secret             | chat_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the private half of the key, 2026-08-12
-хэш секрета               | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | у публичного ключа нет хэша, 12.08.2026
+живым секретом | chat_RU.md | закрытая половина ключа, 12.08.2026
+identity_id` + секрет | chat_RU.md | закрытая половина ключа, 12.08.2026
+a live secret | chat_EN.md | the private half of the key, 2026-08-12
+хэш секрета | chat_RU.md | у публичного ключа нет хэша, 12.08.2026
 
 # --- подпись запросов ----------------------------------------------------------
-**Ed25519.**              | chat_RU.md chat_EN.md app-prototype-spec_RU.md app-ui-notes_RU.md app-prototype-spec_EN.md app-ui-notes_EN.md | ECDSA P-256, 19.08.2026 — Chromium ≤136 не умеет Ed25519
-подпись Ed25519           | chat-flows_RU.md | ECDSA P-256, 19.08.2026
-Ed25519 signature         | chat-flows_EN.md | ECDSA P-256, 2026-08-19
+**Ed25519.** | chat_RU.md chat_EN.md | ECDSA P-256, 19.08.2026 — Chromium ≤136 не умеет Ed25519
 
 # --- модерация ленты ------------------------------------------------------------
-Внешняя модель**          | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | две ступени на узле, 17.08.2026 — текст не покидает узел
-An external model**       | chat_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | two steps on the node, 2026-08-17
+Внешняя модель** | chat_RU.md | две ступени на узле, 17.08.2026 — текст не покидает узел
+An external model** | chat_EN.md | two steps on the node, 2026-08-17
 # Прежняя запись искала «synchronous check» и не ловила ничего — такой подстроки
 # в документах нет. Заменена на те формулировки, которые там действительно стояли.
-synchronous, before publication | chat_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | queue before publication, 2026-08-23
+synchronous, before publication | chat_EN.md depth-client_EN.md | queue before publication, 2026-08-23
 publication**, synchronously    | CLIENT_TERMS.md  | queue before publication, 2026-08-23
-синхронная, до публикации | chat_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | очередь до публикации, 23.08.2026
+синхронная, до публикации | chat_RU.md depth-client_RU.md | очередь до публикации, 23.08.2026
 
 # --- смена имени под живым разговором ---------------------------------------------
 # Область поиска расширена 21.08.2026: правило искало только в chat_*, а
 # отменённая строка всё это время жила в обеих схемах потоков — и проверка была
 # зелёной. Реестр стоит ровно столько, сколько файлов он смотрит.
-называет себя иначе       | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | имя заморожено, пока живы посты или чаты, 20.08.2026
-they now call themselves  | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the name is frozen while posts or chats live, 2026-08-20
+называет себя иначе | chat_RU.md depth-client_RU.md | имя заморожено, пока живы посты или чаты, 20.08.2026
+they now call themselves | chat_EN.md depth-client_EN.md | the name is frozen while posts or chats live, 2026-08-20
 
 # --- опознание устройства --------------------------------------------------------
-отпечаток браузера считается | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | ограничение частоты по адресу, 05.08.2026
+отпечаток браузера считается | chat_RU.md | ограничение частоты по адресу, 05.08.2026
 
 # --- предел длины сообщения ------------------------------------------------------
 # «Решает узел» обещало проверку символов там, где узел видит только шифротекст.
 # Формулировка стояла в §8.6 и в обеих схемах потоков, а чеклист приёмки той же
 # спеки уже требовал байты — противоречие прожило до 25.08.2026.
-решает узел               | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | предел по `max_ciphertext_bytes`, 25.08.2026
-the node decides          | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the limit is `max_ciphertext_bytes`, 2026-08-25
+решает узел | chat_RU.md depth-client_RU.md | предел по `max_ciphertext_bytes`, 25.08.2026
+the node decides | chat_EN.md depth-client_EN.md | the limit is `max_ciphertext_bytes`, 2026-08-25
 
 # --- бумажный код: где он выдаётся -----------------------------------------------
 # Код стоял на регистрации, ушёл 18.08.2026 на открытие первого чата и вернулся
 # 26.08.2026. Перенос пережил сам себя в chat-flows: схема потока 1 уже рисовала
 # код на регистрации, а буллет под ней объявлял перенос действующим, и обе версии
 # ошибались одинаково — парность их не ловит, потому что переводы сходились.
-перенесён с этого экрана  | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | код выдаётся на регистрации, 26.08.2026
-на открытие первого чата  | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | код выдаётся на регистрации, 26.08.2026
-Бумажный код спрашивается здесь | chat-flows_RU.md | код выдаётся на регистрации, 26.08.2026
-was moved off this screen | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the code is issued at registration, 2026-08-26
-to the opening of the first chat | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the code is issued at registration, 2026-08-26
-The paper code is asked for here | chat-flows_EN.md | the code is issued at registration, 2026-08-26
+перенесён с этого экрана | chat_RU.md depth-client_RU.md | код выдаётся на регистрации, 26.08.2026
+на открытие первого чата | chat_RU.md depth-client_RU.md | код выдаётся на регистрации, 26.08.2026
+was moved off this screen | chat_EN.md depth-client_EN.md | the code is issued at registration, 2026-08-26
+to the opening of the first chat | chat_EN.md depth-client_EN.md | the code is issued at registration, 2026-08-26
 
 # --- имя и первая публикация -----------------------------------------------------
 # «Проверяются раздельно» выпускало пост в ленту при непроверенном имени; имя
 # доезжало до собеседника с первым мэтчем. Отменено 26.08.2026: фраза выходит,
 # только когда приняты оба.
-проверяются раздельно     | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | первая публикация ждёт имени, 26.08.2026
-checked separately        | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the first publication waits for the name, 2026-08-26
+проверяются раздельно | chat_RU.md | первая публикация ждёт имени, 26.08.2026
+checked separately | chat_EN.md | the first publication waits for the name, 2026-08-26
 
 # --- игры: чем они описываются ---------------------------------------------------
 # Пока игра называлась именем, каждая новая была отдельным приложением. С
 # 26.08.2026 игра описывается семью примитивами, а имена остались только ярлыками
 # классов.
-без единого зашитого правила | chat-flows_RU.md backlog_RU.md | игра описывается примитивами, 26.08.2026
-with no rules built in at all | chat-flows_EN.md backlog_EN.md | a game is described by primitives, 2026-08-26
 
 # --- срок беседы: выбор и чей он ------------------------------------------------
 # До 26.08.2026 срок выбирали на экране согласия и брали min() из двух — один
@@ -87,19 +81,19 @@ with no rules built in at all | chat-flows_EN.md backlog_EN.md | a game is descr
 # chat_participants и меняется в самой беседе. Правка 26.08 успела дойти только до
 # комментария у колонки match_participants, а §5 и §8.6 два дня описывали
 # отменённое; поймано проходом по потокам.
-меньшее из двух           | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | срок свой у каждого, 26.08.2026
-меньший из двух           | chat_RU.md chat-flows_RU.md depth-client_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | срок свой у каждого, 26.08.2026
-В открытом чате не меняется | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | ручка в шапке беседы, меняется когда угодно, 26.08.2026
-выбор idle_ttl            | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | на согласии срока нет, 26.08.2026
-smaller of the two        | chat_EN.md chat-flows_EN.md depth-client_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | each side has its own span, 2026-08-26
-It cannot be changed inside an open chat | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | the handle sits in the header, 2026-08-26
-the idle_ttl choice       | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | no span at consent, 2026-08-26
+меньшее из двух | chat_RU.md depth-client_RU.md | срок свой у каждого, 26.08.2026
+меньший из двух | chat_RU.md depth-client_RU.md | срок свой у каждого, 26.08.2026
+В открытом чате не меняется | chat_RU.md | ручка в шапке беседы, меняется когда угодно, 26.08.2026
+выбор idle_ttl | chat_RU.md | на согласии срока нет, 26.08.2026
+smaller of the two | chat_EN.md depth-client_EN.md | each side has its own span, 2026-08-26
+It cannot be changed inside an open chat | chat_EN.md | the handle sits in the header, 2026-08-26
+the idle_ttl choice | chat_EN.md | no span at consent, 2026-08-26
 
 # --- счётчик тишины --------------------------------------------------------------
 # Порог min(20 мин, ttl/3) держался на трёх сроках от 20 минут. С десятиминутным
 # сроком он зажигал счётчик через 3:20 — две трети жизни беседы в отсчёте.
-min(20 мин, idle_ttl_minutes / 3) | chat_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | четверть своего срока, 26.08.2026
-min(20 min, idle_ttl_minutes / 3) | chat_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | a quarter of your own span, 2026-08-26
+min(20 мин, idle_ttl_minutes / 3) | chat_RU.md | четверть своего срока, 26.08.2026
+min(20 min, idle_ttl_minutes / 3) | chat_EN.md | a quarter of your own span, 2026-08-26
 
 # --- квота фраз ------------------------------------------------------------------
 # Спека говорила «четыре живых», обе витрины — «пять», в четырёх местах каждая.
@@ -107,8 +101,8 @@ min(20 min, idle_ttl_minutes / 3) | chat_EN.md app-prototype-spec_EN.md app-ui-n
 # --- потолок радиуса -------------------------------------------------------------
 # Довод «тот же потолок, который человек мог бы поставить себе сам» ссылался на
 # 10 км, когда ручка витрины уже шла до 25.
-шагами до 10 км           | chat_RU.md chat-flows_RU.md app-prototype-spec_RU.md app-ui-notes_RU.md | до 25 км, вслед за ручкой, 26.08.2026
-in steps up to 10 km      | chat_EN.md chat-flows_EN.md app-prototype-spec_EN.md app-ui-notes_EN.md | up to 25 km, following the handle, 2026-08-26
+шагами до 10 км | chat_RU.md | до 25 км, вслед за ручкой, 26.08.2026
+in steps up to 10 km | chat_EN.md | up to 25 km, following the handle, 2026-08-26
 
 # --- язык в ленте ----------------------------------------------------------------
 # Экран 3 подмешивал чужие языки долями через переменную окружения, механика §8
@@ -157,14 +151,12 @@ speak six languages       | offers/SPEC_EN.md dsa/SPEC_EN.md | seventeen and ten
 
 # --- бэклог: игры по именам ------------------------------------------------------
 # Формулировка жила в бэклоге, который не был ни под чьим наблюдением.
-никаких зашитых правил    | backlog_RU.md | игра описывается примитивами, 26.08.2026
-no built-in rules         | backlog_EN.md | a game is described by primitives, 2026-08-26
 
 # --- верхняя граница возраста ------------------------------------------------------
 # «13 AND 120» — придуманный потолок, отрезающий живого человека ради поимки
 # опечатки. Снят 28.08.2026: сверху возраст не ограничивается вовсе.
-BETWEEN 13 AND 120        | chat_RU.md migrations-step1_RU.md test-map_RU.md | CHECK (age >= 13), 28.08.2026
-BETWEEN 13 AND 120        | chat_EN.md migrations-step1_EN.md test-map_EN.md | CHECK (age >= 13), 2026-08-28
+BETWEEN 13 AND 120 | chat_RU.md | CHECK (age >= 13), 28.08.2026
+BETWEEN 13 AND 120 | chat_EN.md | CHECK (age >= 13), 2026-08-28
 
 # --- кнопка «где я» и карта --------------------------------------------------------
 # 28.08.2026: точная геопозиция не запрашивается никогда, карты нет ни в одном лице.
@@ -189,16 +181,14 @@ There is no geocoding     | depth-client_EN.md | search over a list on the devic
 # Стикеры уехали из ленты в беседу 27.08.2026, а формулировка «для сообщений/
 # чата» пережила отмену: в README шлюза до 29.08.2026, а в самом экране 16 — на
 # два абзаца ниже собственного опровержения. Ловится теперь машиной.
-стикеры для сообщений/чата | README_RU.md sosed.place/docs/16-stickers_RU.md neighbro.place/docs/16-stickers_RU.md | стикеры в беседе и за столом, 30.08.2026
-в сообщении/чате          | sosed.place/docs/16-stickers_RU.md neighbro.place/docs/16-stickers_RU.md | в беседе, 29.08.2026
-stickers for messages/chat | README.md sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | stickers in a conversation and at a table, 2026-08-30
-in a message/chat         | sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | in a conversation, 2026-08-29
+стикеры для сообщений/чата | README_RU.md | стикеры в беседе и за столом, 30.08.2026
+stickers for messages/chat | README.md | stickers in a conversation and at a table, 2026-08-30
 
 # 30.08.2026: правило ловило только «пять живых» и только в четырёх файлах, а
 # экран 20 говорил «Пять свободных слотов квоты», экран 11 по-английски — «All
 # five slots». Пережило смену числа на двое суток. Теперь и формулировок больше,
 # и область — все экраны обеих витрин.
-пять живых                | chat_RU.md chat-flows_RU.md sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | четыре живых, 28.08.2026
+пять живых | chat_RU.md sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | четыре живых, 28.08.2026
 пять свободных слот       | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | четыре свободных слота, 30.08.2026
 все пять слотов           | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | все четыре слота, 30.08.2026
 Five free quota slots     | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four free quota slots, 2026-08-30
@@ -208,11 +198,11 @@ All five slots            | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md
 # и мою же выборку, потому что искали «слоты», а там счёт фраз.
 третья из пяти            | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | третья из четырёх, 31.08.2026
 third of five             | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | third of four, 2026-08-31
-потолок за 64 минуты      | chat_RU.md chat-flows_RU.md protocol_RU.md test-map_RU.md | потолок за час, 31.08.2026
-64-minute ceiling         | chat_EN.md chat-flows_EN.md protocol_EN.md test-map_EN.md | hourly ceiling, 2026-08-31
+потолок за 64 минуты | chat_RU.md protocol_RU.md | потолок за час, 31.08.2026
+64-minute ceiling | chat_EN.md protocol_EN.md | hourly ceiling, 2026-08-31
 
 five slots free           | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four slots free, 2026-08-30
-8 за 64 минуты            | chat_RU.md chat-flows_RU.md | четыре за час, 28.08.2026
+8 за 64 минуты | chat_RU.md | четыре за час, 28.08.2026
 
 # 04.09.2026: панель ревью нашла четвёртый остаток той же правки 28.08 — на этот
 # раз на экране 9 обеих витрин, и в английской половине хуже, чем в русской: там
@@ -225,8 +215,8 @@ five slots free           | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md
 свободно 3 из 5           | sosed.place/docs/*_RU.md neighbro.place/docs/*_RU.md | свободно 3 из 4, 04.09.2026
 3 of 5 free               | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | 3 of 4 free, 2026-09-04
 Eight publications per 64 minutes | sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | four publications per hour, 2026-09-04
-five live                 | chat_EN.md chat-flows_EN.md sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | четыре живых, 2026-08-28
-8 in 64 minutes           | chat_EN.md chat-flows_EN.md | four per hour, 2026-08-28
+five live | chat_EN.md sosed.place/docs/*_EN.md neighbro.place/docs/*_EN.md | четыре живых, 2026-08-28
+8 in 64 minutes | chat_EN.md | four per hour, 2026-08-28
 
 огрублять её не нужно     | *_RU.md | наружу уходит клетка с шагом в радиус, 31.08.2026
 огрублять координаты не нужно | *_RU.md | наружу уходит клетка с шагом в радиус, 31.08.2026
@@ -307,11 +297,11 @@ sees the moves and the board | sosed.place/docs/06-match-and-chat_EN.md neighbro
 # --- жалоба на беседу идёт словами заявителя, а не копией (11.09.2026) ---------
 # Клиент не выгружает расшифрованную реплику собеседника: иначе сквозное
 # шифрование кончалось бы ровно на жалобе. Процитировать можно руками.
-Жалоба несёт свою копию   | chat_RU.md chat-flows_RU.md | слово заявителя, 11.09.2026
+Жалоба несёт свою копию | chat_RU.md | слово заявителя, 11.09.2026
 приложив копию            | chat_RU.md sosed.place/docs/06-match-and-chat_RU.md neighbro.place/docs/06-match-and-chat_RU.md | своими словами, 11.09.2026
 копию приложит ваше устройство | sosed.place/landing/legal/community-guidelines_RU.md neighbro.place/landing/legal/community-guidelines_RU.md | своими словами, 11.09.2026
 цитату надо вставить со своего | dsa/SPEC_RU.md | описание своими словами, 11.09.2026
-A report carries its own copy | chat_EN.md chat-flows_EN.md | the reporter's words, 2026-09-11
+A report carries its own copy | chat_EN.md | the reporter's words, 2026-09-11
 attaching a copy          | chat_EN.md sosed.place/docs/06-match-and-chat_EN.md neighbro.place/docs/06-match-and-chat_EN.md | in your own words, 2026-09-11
 your device attaches the copy | sosed.place/landing/legal/community-guidelines_EN.md neighbro.place/landing/legal/community-guidelines_EN.md | in your own words, 2026-09-11
 their own device attaches the copy | sosed.place/landing/legal/privacy_EN.md neighbro.place/landing/legal/privacy_EN.md | in their own words, 2026-09-11
@@ -334,8 +324,6 @@ arrives only by email | sosed.place/docs/08-chat-screen_EN.md neighbro.place/doc
 reaches them only by email | sosed.place/docs/14-support_EN.md neighbro.place/docs/14-support_EN.md | a receipt on the device, 2026-09-15
 иначе не получится писать | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | не публиковать и не открывать новые беседы, начатые идут, 15.09.2026
 writing does not work until you do | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | cannot publish or open new conversations, ongoing ones carry on, 2026-09-15
-Отправим, когда появится | refusal-wordings_RU.md | повторить, когда появится — механика §10, 15.09.2026
-We will send it when there is | refusal-wordings_EN.md | retry once there is — mechanics §10, 2026-09-15
 Осталось 3 попытки | chat_RU.md sosed.place/docs/12-identity-and-security_RU.md neighbro.place/docs/12-identity-and-security_RU.md sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | осталось попыток: N, 15.09.2026
 3 attempts left | chat_EN.md sosed.place/docs/12-identity-and-security_EN.md neighbro.place/docs/12-identity-and-security_EN.md sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | attempts left: N, 2026-09-15
 newest at the bottom, like a chat | sosed.place/landing/legal/terms_EN.md neighbro.place/landing/legal/terms_EN.md | feed shows newest at the top since screen 03 decision of 28.08.2026; terms corrected 15.09.2026
@@ -399,22 +387,15 @@ Cuvintele tot nu le citim; o mutare pe tablă nu înseamnă cuvinte. | sosed.pla
 Слів ми, як і раніше, не читаємо; хід на дошці — не слова. | sosed.place/landing/legal/community-guidelines_UK.md neighbro.place/landing/legal/community-guidelines_UK.md | S5 panel LAW-1 (UK): translation of the retired board sentence; hangman exception named, 2026-09-15
 So‘zlarni avvalgidek o‘qimaymiz; taxtadagi yurish — so‘z emas. | sosed.place/landing/legal/community-guidelines_UZ.md | S5 panel LAW-1 (UZ): translation of the retired board sentence; hangman exception named, 2026-09-15
 five attempts per invite | chat_EN.md | SEC-4: опечатка даёт другой lookup_id, уменьшать нечего; пределы промахов POST /sessions/claim, 15.09.2026
-пять попыток на приглашение | chat_RU.md chat-flows_RU.md | SEC-4: то же, 15.09.2026
-five attempts per invitation | chat-flows_EN.md | SEC-4: то же, 15.09.2026
+пять попыток на приглашение | chat_RU.md | SEC-4: то же, 15.09.2026
 five entry attempts | chat_EN.md | SEC-4: то же, 15.09.2026
 пять попыток ввода | chat_RU.md | SEC-4: то же, 15.09.2026
 a sixth entry attempt burns the invite | chat_EN.md depth-client_EN.md | SEC-4: то же, 15.09.2026
 шестая попытка ввода сжигает приглашение | chat_RU.md depth-client_RU.md | SEC-4: то же, 15.09.2026
-The sixth attempt burns the invitation | test-map_EN.md | SEC-4: то же, 15.09.2026
-Шестая попытка ввода сжигает приглашение | test-map_RU.md | SEC-4: то же, 15.09.2026
 transfer code attempts | protocol_EN.md | SEC-4: строка пределов заменена промахами claim, 15.09.2026
 попыток кода переноса | protocol_RU.md | SEC-4: то же, 15.09.2026
 5 transfer-code attempts | protocol_EN.md | SEC-10: счётчик ПИНа на сессии, кода переноса нет, 15.09.2026
 5 попыток кода переноса | protocol_RU.md | SEC-10: то же, 15.09.2026
-a comparison of two addresses the node can see | chat-flows_EN.md | SEC-11: строка «сеть» снята 29.08.2026, схема приведена 15.09.2026
-сравнение адресов, оба видны узлу | chat-flows_RU.md | SEC-11: то же, 15.09.2026
-every message is still there | chat-flows_EN.md | SEC-11: перенос сжигает долю с 11.09.2026, схема приведена 15.09.2026
-переписка вся на месте | chat-flows_RU.md | SEC-11: то же, 15.09.2026
 in the web the signing key sits outside the share | chat_EN.md | SEC-2: в вебе закрытые половины завёрнуты AES-KW под ключом хранилища, 15.09.2026
 в вебе ключ подписи лежит вне доли | chat_RU.md | SEC-2: то же, 15.09.2026
 The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects | chat_EN.md | SEC-2: то же, 15.09.2026
@@ -459,8 +440,7 @@ Their lifetime is undecided | sosed.place/docs/00-mechanics_EN.md neighbro.place
 Сузить выдачу можно как угодно | sosed.place/docs/03-feed-screen_RU.md neighbro.place/docs/03-feed-screen_RU.md | SEC-3: границы кратны 5 годам, ширина не меньше 5 лет; снято 15.09.2026
 Narrowing is free | sosed.place/docs/03-feed-screen_EN.md neighbro.place/docs/03-feed-screen_EN.md | SEC-3: bounds are multiples of 5 years, width at least 5; removed 2026-09-15
 Отказа не приходит: фраза остаётся в очереди | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | OPS-7: предел ожидания 10 минут, «проверка не состоялась»; снято 15.09.2026
-There is no refusal: the phrase stays in the queue | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md refusal-wordings_EN.md | OPS-7: 10-minute waiting limit, "the check did not happen"; removed 2026-09-15
-Отказа не будет: фраза остаётся в очереди | refusal-wordings_RU.md | OPS-7: предел ожидания 10 минут; снято 15.09.2026
+There is no refusal: the phrase stays in the queue | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | OPS-7: 10-minute waiting limit, "the check did not happen"; removed 2026-09-15
 она ждёт очереди | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | OPS-7: текст возвращается через 10 минут; снято 15.09.2026
 it is waiting its turn | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | OPS-7: the text comes back after 10 minutes; removed 2026-09-15
 Код переноса сгорел | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | SEC-4: счётчика попыток у приглашения нет, одна строка «код не подошёл или истёк»; снято 15.09.2026
@@ -469,12 +449,8 @@ The move code burned | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.
 entry may be wrong **five times** | sosed.place/docs/13-devices_EN.md neighbro.place/docs/13-devices_EN.md | SEC-4: a wrong code yields another lookup_id, no counter possible; removed 2026-09-15
 остаток срока — словом и числом | sosed.place/docs/23-phrase-viewer_RU.md neighbro.place/docs/23-phrase-viewer_RU.md | SEC-7: у чужой фразы числа нет, «скоро исчезнет» в последние 65 минут; снято 15.09.2026
 remaining time — as a word and a number | sosed.place/docs/23-phrase-viewer_EN.md neighbro.place/docs/23-phrase-viewer_EN.md | SEC-7: no number on others' phrases, "disappearing soon" in the last 65 minutes; removed 2026-09-15
-полный проход 01–21 | reviews/ROADMAP_2026-09-15_to-drawing_RU.md | CON-8: ворота 2 требуют 01–24; снято 15.09.2026
-a full pass over 01–21 | reviews/ROADMAP_2026-09-15_to-drawing_EN.md | CON-8: gate 2 requires 01–24; removed 2026-09-15
 Пять строк намеренно пусты | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | добавлены строки консоли «мы не ответили» и оформления, когда не ответили мы, — пустых семь, 15.09.2026
 Five lines are deliberately empty | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | two empty-heading rows added (console "we did not answer", appearance when we did not answer) — seven, 2026-09-15
-открылась вся переписка | test-map_RU.md | перенос сжигает долю, история не открывается, 15.09.2026
-opens the whole history | test-map_EN.md | the move burns the share, the history does not open, 2026-09-15
 редакция записывается молча | sosed.place/docs/11-empty-and-edge-states_RU.md neighbro.place/docs/11-empty-and-edge-states_RU.md | правила ждут галочки, как условия и политика, 15.09.2026
 their new revision is recorded silently | sosed.place/docs/11-empty-and-edge-states_EN.md neighbro.place/docs/11-empty-and-edge-states_EN.md | the guidelines wait for the checkbox like the terms and the policy, 2026-09-15
 
@@ -529,3 +505,7 @@ table_seats_seat_taken | protocol_RU.md protocol_EN.md | индекса нет �
 13 — 61 | depth-client_RU.md depth-client_EN.md | упоры полосы числом не подписаны, на заставке «ваша полоса», 17.09.2026
 Высаживает большинство сидящих | sosed.place/docs/00-mechanics_RU.md neighbro.place/docs/00-mechanics_RU.md | владелец 18.09.2026: большинство играющих, не меньше двух голосов
 Отказ окончателен после короткого окна отмены | sosed.place/docs/06-match-and-chat_RU.md neighbro.place/docs/06-match-and-chat_RU.md | владелец 18.09.2026: «отклонено · вернуть» без таймера до ухода с экрана 7
+стикеры для сообщений/чата | README_RU.md sosed.place/docs/16-stickers_RU.md neighbro.place/docs/16-stickers_RU.md | стикеры в беседе и за столом, 30.08.2026
+в сообщении/чате          | sosed.place/docs/16-stickers_RU.md neighbro.place/docs/16-stickers_RU.md | в беседе, 29.08.2026
+stickers for messages/chat | README.md sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | stickers in a conversation and at a table, 2026-08-30
+in a message/chat         | sosed.place/docs/16-stickers_EN.md neighbro.place/docs/16-stickers_EN.md | in a conversation, 2026-08-29

@@ -4,7 +4,7 @@
 > Postgres, ни Auth, ни Edge Functions. Сегодня: пул своих VPS-узлов, вход по
 > magic-link (сессию подписывает сам релей), данные в Bunny Storage, служебное
 > состояние в Postgres рядом с узлом.
-> Актуальное: `relay/ARCHITECTURE_RU.md`, `state-decision_RU.md`, `open-work_RU.md`.
+> Актуальное: `relay/ARCHITECTURE_RU.md`.
 
 Составлен по результатам ревью с разных сторон (корректность, a11y, PWA/SW, безопасность, i18n, производительность, архитектура, авторизация, тесты, консистентность). Пути относительно `/home/eugene-panov/Projects/panov-id/xor.ad`.
 
@@ -138,7 +138,7 @@
 - [x] `panel/src/providers/auth.ts` — `onError` инициирует logout+redirect на 401/403. ✅
 - [x] `panel/tests/report/**` — в git не трекается (0 файлов); добавил `tests/report`/`tests/results` в `panel/.gitignore` как подстраховку. ✅
 - [x] `panel/src/providers/constants.ts` — fallback на localhost/демо-anon оставлен только в dev (`import.meta.env.DEV`); в prod-сборке отсутствие `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` бросает ошибку (проверено: throw в прод-бандле). `tests/helpers/env.ts` — тест-инфра, fallback оставлен намеренно. ✅ (`panel/.env` удалён ранее в №9)
-- [x] Юнит-тесты панели — **есть с 05.08.2026** (vitest, отдельный прогон `.github/workflows/panel.yml`); см. `open-work_RU.md` G1. Перечисленные сценарии всё ещё не покрыты — это остаток, а не отсутствие тестов.
+- [x] Юнит-тесты панели — **есть с 05.08.2026** (vitest, отдельный прогон `.github/workflows/panel.yml`). Перечисленные сценарии всё ещё не покрыты — это остаток, а не отсутствие тестов.
 - [x] `panel/src/App.css` — self-host шрифтов: woff2 в `panel/public/fonts/`, `@import "./fonts.css"`, preload в `panel/index.html`. Убран Google CDN `@import`. ✅ (переход на единый variable-шрифт — отдельная дизайн-задача)
 
 ### Лендинг
@@ -151,11 +151,11 @@
 - [x] `index.html`/`legal.html` — self-host шрифтов: 15 woff2-сабсетов в `landing/fonts/` + `fonts.css`, preload latin-фейсов, `fonts.css` в SW precache. Google preconnect/link убраны, **CSP ужат до `font-src 'self'`**. Скрипт `scripts/fetch-fonts.sh`. ✅
 - [x] `index.html` — email-инпут получает `aria-label` из i18n (в `applyLang`). ✅
 - [x] `index.html` — оба `.status` получили `role="status" aria-live="polite"`. ✅
-- [ ] `index.html` — тексты в мокапах захардкожены по-английски. **Отложено**, ведётся как `open-work_RU.md` G3 — здесь дубль, решение там.
+- [ ] `index.html` — тексты в мокапах захардкожены по-английски. **Отложено**.
 - [x] `index.html` — мёртвый i18n-ключ `sayPh` удалён из всех 6 языков. ✅
 - [x] `sw.js` — offline-fallback для навигаций (`mode:navigate` → кэшированный `/`). ✅
 - [x] `sw.js` — дубль `/`+`/index.html` в precache убран (оставлен `/`). ✅
-- [x] `manifest.json` — `lang:"en"`: **won't-fix**, метаданные установленного PWA с брендовым именем валидны как есть. Дубль `open-work_RU.md` G5, решение там.
+- [x] `manifest.json` — `lang:"en"`: **won't-fix**, метаданные установленного PWA с брендовым именем валидны как есть.
 
 ---
 

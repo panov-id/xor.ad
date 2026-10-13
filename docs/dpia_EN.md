@@ -2,8 +2,8 @@
 
 Required **before processing begins** (Art. 35 GDPR), and that is the only reason
 this document exists today rather than on launch day: an assessment made
-afterwards is itself the breach. There is almost no product in the code yet — so
-much the better, because changing things here is still cheap.
+afterwards is itself the breach. The first edition was written when there was almost no product in the code; it is
+built now (`relay/node`, `web/`), and this document is revisited with it (§6).
 
 **Who assessed:** the operator, Evgenii Panov. There was no outside counsel, and
 that is stated plainly: this reflects what we know ourselves, not a lawyer's
@@ -38,10 +38,10 @@ minutes, a conversation by a span each side chooses for itself, the corresponden
 is not stored on the servers at all and is encrypted on the devices. There is no
 profile: no interest graph, no recommender, no advertising targeting.
 
-**Scale.** As of 2026-09-11 — zero users: the product tables are declared by the
-specification and not migrated (`docs/facts/open.tsv`,
-`product.tables.unmigrated`). This is an assessment of a model rather than of a
-fact, and that is its main limitation.
+**Scale.** As of 2026-09-11 — zero users, the product is described by the specification;
+since then the product tables have been migrated (`relay/node/db`). The first assessment
+was of a model rather than of a fact, and that is its main limitation until it is
+revisited against the live system.
 
 **Context.** People near one another, meeting in order to meet in life. So the
 cost of a mistake is not "data leaked" but "a person came to a person", and the
@@ -69,7 +69,7 @@ on 2026-09-10 along with the last basis resting on consent.
 | **Working out where an author lives** | the rounding grid; visibility computed from the cell; steps instead of exact counters | in a thinly populated place a neighbour is recognisable anyway — the cost is named in §8.3 |
 | **Learning when somebody is at their screen** | no presence indicators; the "ended" mark is placed by your own attempt; the confirmation count is hidden at two; the table list is not recomputed on a block | the "stepped away" label is the one exception, the person declares it themselves, and it is lifted by their message or move rather than by the span: the moment it goes does not give away the chosen span (2026-09-14) |
 | **Reading the correspondence** | encryption on the devices, no keys on the node, only undelivered ciphertext in the database (§8.8) | a game board is not encrypted, and the policy and the rules say so |
-| **Getting the history off a lost device** | a PIN plus the node's share; since 2026-09-11 any move of an identity burns the previous device's share | while the phone is in hand and unlocked, nothing helps |
+| **Getting the history off a lost device** | a PIN plus the node's share; since 2026-09-11 any move of an identity burns the previous device's share | while the device is in hand and unlocked, nothing helps |
 | **An automated refusal with no review** | the refusal names a class; the false-block budget is a published number | there is no appeal against a refusal, and since 2026-09-10 the terms say so plainly |
 | **An automated pause and a link going dark with no person** (2026-09-14) | the pause ends by itself after 15 minutes and names the time, the ground and the routes; a link goes dark only on reports from people who were posting before the offer came out, and the venue is emailed at that moment with a way to contest; every decision says it was automatic | a refusal and a pause are final; a person reads a venue's reply to the email; whether GDPR Art. 22 applies to a link going dark is a question for the lawyer |
 | **New timestamps about a person** (2026-09-14) | only the latest four and six moments, cut on write; ones older than an hour are ignored but stay until the next write; the date of the first publication — to the day | the first-publication date lives as long as the identity |

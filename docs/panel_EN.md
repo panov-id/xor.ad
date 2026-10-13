@@ -1,14 +1,13 @@
-# Panel — Admin/Moderation Panel for xor.ad
+# Panel — Operator Panel for xor.ad
 
-> **Note: describes the previous stack.** Supabase is no longer used — not its
-> Postgres, not its Auth, not its Edge Functions. Today: a pool of our own VPS
+> Supabase is retired — not its Postgres, not its Auth, not its Edge Functions. Today: a pool of our own VPS
 > nodes, magic-link sign-in (a signed session issued by the relay itself), data in
 > Bunny Storage, control state in a Postgres beside the node.
-> Current: `relay/ARCHITECTURE_EN.md`, `state-decision_EN.md`, `open-work_EN.md`.
+> Current: `relay/ARCHITECTURE_EN.md`, `deployment_EN.md`.
 
 ## Purpose
 
-An internal interface for the team: visibility into and control over the waitlist, Article 16 notices, and per-key quotas across both faces (sosed.place, neighbro.place). This is the operational surface of the shared backend, separate from the user-facing frontends. The panel is built to grow: the MVP covers the waitlist, authentication, Article 16 notices, per-key quotas and panel user management; support tickets and the sticker catalog follow later. **Bans are named nowhere in the code — no route, no column, no permission (2026-08-23); either they get built or they leave this line.**
+An internal interface for the team: visibility into and control over the waitlist, Article 16 notices, and per-key quotas across both faces (sosed.place, neighbro.place). This is the operational surface of the shared backend, separate from the user-facing frontends. The panel covers the waitlist, authentication, Article 16 notices, per-key quotas, panel user management and support requests. **Bans are named nowhere in the code — no route, no column, no permission (2026-08-23); either they get built or they leave this line.**
 
 ## Sources (design)
 
@@ -71,7 +70,7 @@ that is the only place where "what may this role do" is written:
 | Role | What it may do |
 |---|---|
 | `admin` | everything, including permissions added later (`*`) |
-| `moderator` | waitlist, panel users (read), the client / audit / pageview logs — **but not the node's server logs** — **and Article 16 notices: read and decide** |
+| `moderator` | waitlist, panel users (read), the client / audit / pageview logs — **but not the node's server logs** — **and Article 16 notices: read and decide** — a person handles complaints; the role does not decide feed content, the model does |
 | `viewer` | the waitlist only |
 | `tenant_admin` | everything inside their own brand: panel users, keys, logs. Deliberately not `*` |
 
@@ -100,8 +99,7 @@ the report threshold configurable ("5% of the audience, but not fewer than
 three"), and the spec declares the model's operating point configurable too: it
 is set by a false-block budget and lives as a node parameter (§8.14). Neither is
 in the panel: a key's daily quota can be edited, moderation cannot. **Decided
-2026-08-27: for now they are deploy-time constants** (`route-to-code_EN.md`,
-decision 2). Building a screen for a number nothing can validate — there are no
+2026-08-27: for now they are deploy-time constants**. Building a screen for a number nothing can validate — there are no
 live reports yet — is work done blind. The price is named: the threshold cannot
 be turned on the day the feed goes wrong, that needs a release. The screen comes
 back with the first live reports, and with it a permission and an audit entry:
@@ -115,13 +113,11 @@ the Article 16 decision.
 
 ## Visual style
 
-A **hybrid**, as settled in `panel-refactor_EN.md`: a calm base for tables, brutalism in the accents. Hard 2px borders, un-blurred 4/4 shadows and Unbounded for headings — but a **6px radius**, not sharp corners, and not the landing pages' look (`panel/src/App.css`). The panel's own accent is neutral, since it is shared by both faces. A record's source is marked by a **neutral** badge: colour in the panel is spent on warnings and refusals, not on brands.
+A **hybrid**, as settled earlier: a calm base for tables, brutalism in the accents. Hard 2px borders, un-blurred 4/4 shadows and Unbounded for headings — but a **6px radius**, not sharp corners, and not the landing pages' look (`panel/src/App.css`). The panel's own accent is neutral, since it is shared by both faces. A record's source is marked by a **neutral** badge: colour in the panel is spent on warnings and refusals, not on brands.
 
 ## Open questions
 
 - ~~The exact neutral accent colour~~ — settled: `#3355dd` light / `#7d9bff` dark (`panel/src/App.css`), and it passes the contrast counter.
-- The UI for support tickets and the sticker catalogue is not designed yet — it
-  will be added as the panel grows.
 
 Closed along the way: the mail sender is **Resend** (`docs/vendors-dpa_EN.md`),
 and invitations go through it too; **the quota UI is built** — the daily quota is

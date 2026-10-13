@@ -20,7 +20,7 @@ below about webhooks and notifications.
 | Admin routes | `/admin/*`: waitlist leads, brands, publishable and secret keys with quotas and revocation, panel operators with invitations, logs, Article 16 notices and Article 18 escalation; sign-in — `/auth/request-link`, `/auth/callback`, `/auth/me` |
 | The full list | `docs/api/openapi.yaml` and the page `docs/api/index_EN.html` — 39 built operations and the described ones, checked by `scripts/check-openapi.sh` against the code and the protocol (added 2026-09-15) |
 | Article 16 notices | intake, queue, decision, letters — built (`docs/dsa/`) |
-| Chat | stub slot `GET /chat` → 501 |
+| Chat | built: the `GET /chat` socket and the chat, table and feed routes — `protocol_EN.md` |
 | Storage | an "object per record" abstraction: Bunny Storage on the pool, `fs` on the local stand |
 | Mail | Resend (per brand) / SMTP on the stand |
 | Panel | Refine + magic-link sessions, the `access/` RBAC core, audit trail, log explorer |
@@ -335,7 +335,7 @@ The core's rule still holds: an unmapped resource/action pair in the panel is
    page on `LogExplorer`). No brand registration here: the platform creates it and
    invites the tenant by email (see section 0).
 6. Incoming Resend webhooks → email delivery status.
-7. The notification layer: email and in-panel notices. Web push is cancelled (`pwa-push_EN.md`).
+7. The notification layer: email and in-panel notices. Web push is cancelled.
 
 Tenancy comes first deliberately, against the temptation to start with the queue: it
 rewrites the storage key layout, and the queue, the delivery log and the quotas all sit
@@ -346,7 +346,7 @@ on top of it. In the other order every one of them gets migrated a second time.
 1. ~~Where does state move to~~ — settled 2026-07-28: **our own Postgres beside
    the node**, for control state only (keys, brands, quotas, the queue,
    idempotency, aggregates). Data — leads, page views, errors, logs — stays in
-   object storage. The reasoning: `state-decision_EN.md`.
+   object storage.
 2. ~~Who consumes the public API~~ — decided: third parties, a full BaaS with its own
    panel login (section 0). Which settles 3 — webhooks are customer-facing — and 4 —
    notifications are needed in both flavours.

@@ -45,7 +45,9 @@ chat-ended	screens/Chat.tsx	chat-ended	the talk ended
 chat-game	screens/ChatGame.tsx	chat-game	a game inside the talk
 tables	screens/TableList.tsx	tables-393	tables nearby and mine
 tables-empty	screens/TableList.tsx	tables-empty	no tables nearby
-new-table	screens/NewTable.tsx	new-table	a new table
+new-table-game	screens/NewTable.tsx	new-table-game-393	a new table, step 1: the game from big cards (mini boards)
+new-table-variant	screens/NewTable.tsx	new-table-variant-393	a new table, step 2: variant and seats as chips
+new-table-preview	screens/NewTable.tsx	new-table-preview-393	a new table, step 3: the table as the feed shows it, sit down
 table	screens/Table.tsx	table-393	at a table, the board
 table-applications	screens/Table.tsx	table-applications	applications to play, the owner says yes
 table-watching	screens/Table.tsx	table-watching	watching, asking to play
@@ -77,3 +79,6 @@ adv-expired	adv/Cabinet.tsx	adv-expired	the link expired
 adv-venues	adv/Cabinet.tsx	adv-venues	my venues
 adv-offers	adv/Cabinet.tsx	adv-offers	my offers
 adv-new-offer	adv/Cabinet.tsx	adv-new-offer	a new offer
+chat-stickers	screens/Chat.tsx	chat-stickers-393	the stickers plate open in a talk (owner 13.10)
+chat-sticker-sent	screens/Chat.tsx	chat-sticker-sent-393	a sticker sent in a talk
+table-sticker	screens/Table.tsx	table-sticker-393	the stickers line at a table

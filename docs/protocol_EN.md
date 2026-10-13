@@ -1,8 +1,7 @@
 # The protocol: the contract between a client and a node
 
-The chat spec (`chat_EN.md`) describes **what** happens, the flow diagrams
-(`chat-flows_EN.md`) **how it moves**, the test map (`test-map_EN.md`) **what
-proves it**. This is the fourth thing: **which wires it travels on**.
+The chat spec (`chat_EN.md`) describes **what** happens and **how it moves**.
+This is the second thing: **which wires it travels on**.
 
 Written on 2026-08-28, and by a count rather than by taste: the spec names **six**
 routes scattered across eight sections, while it describes three times as many
@@ -58,7 +57,7 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
   (chat spec §8: "the brand comes from the API key and from nowhere else"). No key
   is not a refusal — a terminal has no face, the phrase lands `unattributed`; a key
   nobody issued is a 401. Before, a signed caller never had a face, and every phrase
-  sent through a storefront sat in the platform's queue, out of its moderator's sight.
+  sent through a storefront sat in the platform's queue, not the storefront's.
 - **The host enters the signature — since 2026-09-21.** [retired] It was not
   there at all before, and §2 said nothing about it: a signed request was
   accepted by **any** node of the pool where that session lives, and `api.sosed`
@@ -114,7 +113,7 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
   everyone, so a counter on it is one bucket for all. Limits live **per address
   and per identity**.
 - **The support window is the current major version of the protocol only**
-  (decided 2026-08-27, `route-to-code_EN.md`). An older image gets a legible
+  (decided 2026-08-27). An older image gets a legible
   refusal with the command to update, and the sunset date is announced in advance.
 - **A client states its version in the header `x-protocol-version`** — decided 2026-09-16; the spec said "the
   client sends its version, the node knows the minimum supported" without naming a
@@ -164,7 +163,7 @@ identity.
 
 | Route | What it does | Origin |
 |---|---|---|
-| `POST /feed` | publishes a phrase; since 2026-09-26 the first tier of §8.3 — rules (a link, a contact, a phrase the author already has up) — reads it in the request: a clean phrase is published in the same transaction and answers **200** `published`, a flagged one waits for a person in the queue — **202** `checking`, `visible_at` empty until the verdict; `FEED_VERDICT=queue` turns the rules off and everything waits for a person | **built** (`routes/feed.ts`, `lib/feed_verdict.ts`; checked against the code 2026-09-26), was: spec |
+| `POST /feed` | publishes a phrase; since 2026-09-26 the first tier of §8.3 — rules (a link, a contact, a phrase the author already has up) — reads it in the request: a clean phrase is published in the same transaction and answers **200** `published`, a flagged one waits for the model's verdict — **202** `checking`, `visible_at` empty until the verdict; `FEED_VERDICT=queue` turns the rules off and everything waits for the model's verdict | **built** (`routes/feed.ts`, `lib/feed_verdict.ts`; checked against the code 2026-09-26), was: spec |
 | `GET /feed` | delivery by intersecting circles (a phrase in its last 65 minutes carries `soon` instead of its end, 2026-09-23), with the language, mode and age filters; what the viewer liked is not in it — it is in `GET /likes` (2026-09-17) | **built** (`routes/feed.ts`; checked against the code 2026-09-24), was: spec (named in the test map) |
 | `DELETE /feed/:id` | withdraws your own phrase; the slot is freed, the hourly ceiling is not | **built** (`routes/feed.ts`; checked against the code 2026-09-24), was: spec (agreed 2026-09-17) (§8.3) |
 | `GET /feed/density` | the density band under the radius handle: `nobody here yet` … `hundreds`, on release; since 2026-09-26 it counts people with a live phrase, not phrases — three people with four phrases each read "few" | **built** (`routes/feed.ts`; checked against the code 2026-09-26), was: spec (agreed 2026-09-17) (§8.3, screen 3) |
@@ -174,7 +173,7 @@ Each card in `items` of the feed answer (`{items, next}`, §6) carries `{kind, i
 
 **The band's price is named, not closed (owner's decision of 2026-09-21).** The §8.3 age band is symmetric: an author aged `a ≤ 20` is visible to a viewer aged `v` exactly when `|a − v| ≤ 2`. So the set of viewers who see a phrase is the interval `[a−2, a+2]`, and it fixes the author's age uniquely even where the edge truncates it (13–14 and 19–20). Not one field about the author's age leaves the node, and that changes nothing: the delivery itself carries the signal. We accept this as the price of the band and **make the fan-out expensive**: reading the feed is limited by `feed.read.hour` — 300 requests an hour **per identity**, not per address — and density by `feed.density.burst`, 100 an hour per identity. Counting by address would be useless: a fan-out of identities is exactly what one address is used for, and a shared address is a household behind one router.
 
-**A place QR is not an operation (screen 26, owner's decision of 2026-09-19).** The link `<storefront>/#p=<cell>&s=<step>` is parsed on the device from the fragment, which never goes to a server: `p` is the indices of a node of the same grid as `lat`/`lon` above, `s` is the `area_radius` step from 1 (100 m) to 5 (10 km); a poster link `?p=&w=&l=` is a separate path. The node knows nothing about the QR: making one is no request, opening one is no request, and a phrase at a QR point goes by an ordinary `POST /feed` with the same `lat`, `lon`, `area_radius`. There is no "by QR" field in the contract on purpose: it would link the phrases of one QR to one another; for the same reason the zone default of such a phrase is no narrower than 300 m.
+**A place QR is not an operation (screen 26, owner's decision of 2026-09-19; the `/location` path — 2026-10-12).** The link `<storefront>/location#p=<cell>&s=<step>` is parsed on the device from the fragment, which never goes to a server: `p` is the indices of a node of the same grid as `lat`/`lon` above, `s` is the `area_radius` step from 1 (100 m) to 5 (10 km); a poster link `?p=&w=&l=` is a separate path. The node knows nothing about the QR: making one is no request, opening one is no request, and a phrase at a QR point goes by an ordinary `POST /feed` with the same `lat`, `lon`, `area_radius`. There is no "by QR" field in the contract on purpose: it would link the phrases of one QR to one another; for the same reason the zone default of such a phrase is no narrower than 300 m.
 
 ### 4.3. Like, match, chat (steps 3–6)
 
@@ -237,14 +236,14 @@ itself, 4000–4999 are the application's. Hence:
 | Frame `type` | What it carries | From |
 |---|---|---|
 | `message` | an encrypted message of the conversation: `{id, ciphertext, created_at}` | chat spec §8.8 |
-| `line` | a line at the table once it is visible: `{id, seat, kind, text, sticker, refuses_seat, created_at}` — a line clean by the first tier of rules and a sticker at once, a flagged one after a moderator publishes it, `move` lines at once; `seat` is the author's seat, `refuses_seat` only on a refusal, the refused applicant's seat. **Built** 2026-09-27 (`chat/relay.ts`, `NOTIFY table_event`) | §6.1 |
+| `line` | a line at the table once it is visible: `{id, seat, kind, text, sticker, refuses_seat, created_at}` — a line clean by the first tier of rules and a sticker at once, a flagged one after the model publishes it, `move` lines at once; `sticker` is a reaction sticker from a small fixed set of standard stickers; `seat` is the author's seat, `refuses_seat` only on a refusal, the refused applicant's seat. **Built** 2026-09-27 (`chat/relay.ts`, `NOTIFY table_event`) | §6.1 |
 | `board` | the board in the shape of `GET /tables/:id`: `{seq, state, turn, score, over, expires_at, pending}`; what is hidden is cut by the room's seat — one's own hand whole, of the others' and of the stock only `{count}`, the hangman word to its setter only, a `mask` to everybody else; so the frame is built for each room. [retired] "your own hand arrives encrypted to you" — nothing at a table is encrypted (§6.1), a hand simply does not go to others. **Built** 2026-09-27 | §6, §6.1 |
 | `seat` | someone sat down, stood up, was removed or became a spectator: `{playing, watching}` — counts, neither identities nor seat numbers; a client that needs "who" reads `GET /tables/:id` again. **Built** 2026-09-27 | §6.1 |
 | `proposal` | an open game proposal in a conversation: the game view's `pending` `{id, kind: game \| rematch, class, set, mine}`, `mine` — whether the reader made it; `null` — the proposal was taken back or declined (§4.7; built 2026-09-27, `chat/relay.ts`). **Not sent** to a table's room: there an open proposal shows in `board.pending` | §4.7, §6 |
 | `confirm` | the countdown of confirming a new game: `{confirmed, of, until}`; for two, `confirmed`/`of` are not sent — **not sent**: the node has no confirmation (2026-09-27) | §6 |
 | `peer_stepped_away` | [retired 2026-09-23: built not as a type of its own but as a `sys` line with `kind: peer_stepped_away`, see below] the other person stepped away: `{}` — no span; nobody's timestamps leave the node | §8.2 "stepped away" |
 | `rekey` | the other side asked for new keys for the conversation, or agreed: `{epoch}` (§8.13, 2026-09-22) — the client rereads `GET /inbox` and asks the person |
-| `name_verdict` | the queue's verdict on a name change: `{accepted, reason}` — only to the socket of your own session: since 2026-09-24 to every open conversation room of the author's session (a session has no socket of its own; with no room open the profile's `name_state` says the same), `reason` not sent yet — a name's verdict carries none; on a table name the same with `table: id` (2026-09-17); **built** 2026-09-27: `{accepted, table}` to every room of every session of the table's author once a moderator decides the name (`lib/tables_queue.ts`) | §8.2, §6.1 |
+| `name_verdict` | the queue's verdict on a name change: `{accepted, reason}` — only to the socket of your own session: since 2026-09-24 to every open conversation room of the author's session (a session has no socket of its own; with no room open the profile's `name_state` says the same), `reason` not sent yet — a name's verdict carries none; on a table name the same with `table: id` (2026-09-17); **built** 2026-09-27: `{accepted, table}` to every room of every session of the table's author once the model decides the name (`lib/tables_queue.ts`) | §8.2, §6.1 |
 | `sys` | a system line of the conversation, not encrypted: `{kind, text}`, `kind` is `chat_opened`, `game_offer`, `age_changed`, `move`, `peer_stepped_away` (chat spec §6 and §8.6; `peer_stepped_away` since 2026-09-23, with no fields, never sent to the sessions of the one who stepped away); added 2026-09-16, CON-14. **`age_changed` is built (2026-09-22) without `text`:** `{kind: age_changed, age}` — the number, the client words the line in its own language (the owner's decision) | §6, §8.2 |
 | `closed` | the code and the reason before the close itself: `{code, reason}` — before every close the node makes (1000, 1001, 1011, 4001–4004). **Built 2026-09-26** (W3b, `relay.ts closeWith`): measured in a browser, the node's close frame with 4003 arrived as a bare 1006, straight and through the proxy alike, so the code travels as data and the close follows on the next turn; a client that got 1006 reads the code from this frame (`web/src/chat/room.ts`) | this section |
 
@@ -264,7 +263,7 @@ or takes a live identity for a dead one.
 
 ### 4.6. Tables (chat spec §6.1, screen 19)
 
-Proposed 2026-09-16, approved 2026-09-17; **built 2026-09-27** (wave 3, tasks G1–G1h: `routes/tables.ts`, `lib/tables*.ts`, `chat/relay.ts`, `db/064`–`066`, `db/070`, `db/073`). Where what was built parted from what was proposed, the earlier text stands beside it marked [retired].
+The games in the alpha are more varied, and putting up a table must be beautiful — that is the goal; the rules of new games are not described here. Proposed 2026-09-16, approved 2026-09-17; **built 2026-09-27** (wave 3, tasks G1–G1h: `routes/tables.ts`, `lib/tables*.ts`, `chat/relay.ts`, `db/064`–`066`, `db/070`, `db/073`). Where what was built parted from what was proposed, the earlier text stands beside it marked [retired].
 
 | Route | What it does | Origin |
 |---|---|---|
@@ -275,7 +274,7 @@ Proposed 2026-09-16, approved 2026-09-17; **built 2026-09-27** (wave 3, tasks G1
 | `POST /tables/:id/seat` | sit down; **200** `{seat}`, at one's own table the same number; `already_seated` if seated at another; `unavailable`, one answer for a band and a block; the number is `max + 1` under the table's lock and never reused; no more than `seat.attempts.hour` | **built** 2026-09-27 (`routes/tables.ts`) |
 | `DELETE /tables/:id/seat` | stand up: `left_at`, `NOTIFY seat_left`, the room is closed 4005; the leaver's open proposal goes; a player leaves the turn order, fewer than two players end the game; the last one out sets `closed_at`; **204**. The same leaving is done by `POST /tables`, `POST /away`, closing the identity and `POST /blocks {table, seat}` | **built** 2026-09-27 (`routes/tables.ts`) |
 | `POST /tables/:id/ticket` | a one-time ticket `{ticket, expires_in}` for the table's socket — `GET /chat` with `xor.p1, ticket.<ticket>`; only to a live seat, otherwise 404; 30 seconds; no more than 60 a minute per identity (`db/073`: `socket_tickets.table_id`) | **built** 2026-09-27 (`routes/tables.ts`) |
-| `POST /tables/:id/lines` | a line `{kind: line \| application \| refusal, text, seat?}` — **202**; the feed's first tier of rules: a clean one shows at once, a flagged one waits for a moderator (`/admin/table-queue`); a sticker `{kind: sticker, sticker}` — **200**, at once, `sticker.minute`; an application — one per game and only from one not playing; a refusal — only from a player and **with the `seat` of an applicant of this round** (400 without it, 409 when it is no applicant): the refused one sits the round out (`db/070 refuses_seat`) | **built** 2026-09-27 (`routes/tables.ts`) |
+| `POST /tables/:id/lines` | a line `{kind: line \| application \| refusal, text, seat?}` — **200** `{id}`, the moderator's verdict given inside the request (owner 2026-10-13: the model alone, no queue): refused — **422** `moderation_refused` with its reason; a sticker `{kind: sticker, sticker}` — a reaction from the fixed set, tappable in a conversation and at a table — **200**, at once, `sticker.minute`; an application — one per game and only from one not playing; a refusal — only from a player and **with the `seat` of an applicant of this round** (400 without it, 409 when it is no applicant): the refused one sits the round out (`db/070 refuses_seat`) | **built** 2026-09-27 (`routes/tables.ts`) |
 | `POST /tables/:id/moves` | a move `{seq, move}` or a pass `{seq, pass: true}`; **200** `{board}`; `stale_seq` on another version, a repeat of the same body answers the same board; `not_your_turn`; `illegal_move` with the class engine's `reason` (below); three passes in a row make a spectator; a turn has 5 minutes, an overdue one is a pass: the `table_autopass` job every 30 seconds and any request to the table | **built** 2026-09-27 (`routes/tables.ts`) |
 | `POST /tables/:id/confirm` | "I am here" for a new game | **spec** — not built |
 | `POST /tables/:id/proposals` | `{kind: rematch}` — **200** `{id}`; with one player the round opens at once; applicants start playing in the order they applied while places last, refused ones do not; `draw` and `undo` — **400**, not built; `pending_exists`, a spectator gets `refused` | **built** 2026-09-27 (`routes/tables.ts`) for `rematch` |
@@ -283,16 +282,20 @@ Proposed 2026-09-16, approved 2026-09-17; **built 2026-09-27** (wave 3, tasks G1
 | `POST /tables/:id/resign` | resign: the player becomes a spectator, a line "seat N resigned", a game of two is over; no result; **204** | **built** 2026-09-27 (`routes/tables.ts`) |
 | `POST /tables/:id/congratulate` | congratulate `{seat}` | **spec** — not built |
 | `POST /tables/:id/kick` | a vote to remove `{seat}` | **spec** — not built |
-| `GET /admin/table-queue`, `POST /admin/table-queue/lines/:id/publish \| refuse`, `POST /admin/table-queue/names/:id/publish \| refuse` | the moderator's queue for what was flagged at tables: `[{kind: line \| name, id, brand, text, waiting_seconds}]`, each decided once, permissions `feed_queue.read`/`decide`; an accepted name moves into `name`, a refused one is cleared and the table lives on without a name; the queue-age watchdog counts them too | **built** 2026-09-27 (`routes/feed_queue.ts`, `lib/tables_queue.ts`) |
+| ~~`GET /admin/table-queue`, `POST /admin/table-queue/…`~~ | [retired 2026-10-13: the model judges a table's line and name inside the request, nothing waits; the routes are gone from the node] | **retired** 2026-10-13 |
 
-**The classes' rules — what the engine checks (2026-09-27, `lib/tables_*.ts`).** A `move` is per class; whatever is not named stays with the people (spec §6).
+**The classes' rules — what the engine checks (2026-09-27, `lib/tables_*.ts`; sets added 2026-10-13).** A `move` is per class; whatever is not named stays with the people (spec §6). A set may seat fewer than its class: `reversi`, `four`, `battleship` — 2 (`SET_SEATS`, else 400).
 
 | Class | Move | The engine checks and scores |
 |---|---|---|
 | `dots` | `{edge: "h:r:c" \| "v:r:c"}`, the field from `set` `2x2`…`8x8` | the edge is on the field and free; a closed box scores and moves again; the last edge ends the game |
-| `deck` | `{play: card}` or `{draw: true}` | the node shuffles 36 cards and deals 6 each; the card from one's hand; an empty hand scores and ends the game |
-| `word` | the setter `{word}`, then the guesser `{letter}` | the word passes the first tier of rules ("set another word"); a letter is not repeated; guessed — a point to the guesser; 6 misses — a round without a point; the guesser sets the next |
+| `deck` (any set but `poker`: `36`, `durak36` — durak, 2026-10-13) | the attacker `{play: card}` or `{done: true}`, the defender `{play: card}` or `{take: true}` | the node shuffles 36 cards, deals 6 each, the stock's bottom card face up is the trump (with 6 seats the node draws a suit); the first seat attacks first; the defender beats the oldest unbeaten card — higher of its suit or a trump on a plain one; throw-ins only of a rank on the table, never more unbeaten than the defender holds, at most six; `done` with all beaten — discard, the defender attacks next; `take` — the table to the defender, who is passed over; hands refill to 6, attacker first; with the stock empty an empty hand is out; the last holding cards is the `durak`, the game is over and each other seat scores 1. Only the main attacker throws in. A turn let run out: the defender takes, the attacker with all beaten ends, one to lead leads the lowest card. The board's `deck` adds `trump`, `table [{attack, beat}]`, `attacker`, `defender`, `discard {count}`, `out`, `durak` |
+| `deck`, set `poker` (2026-10-13) | `{fold}`, `{check}`, `{call}`, `{raise: N}` (the seat's whole bet this street), `{allin}` — each `true` but raise | Texas hold'em on 52 cards, **chips only, no money, no buy-ins**: 2–6 seats, 1000 chips each, fixed blinds 10/20; the node shuffles, deals two each, keeps the betting (a raise at least the last full raise unless all-in), deals flop, turn, river, splits main and side pots at the showdown (best five of seven, the odd chip to the first winner after the button), moves the button; the node names who acts (the turn may skip seats). Cut: the stock never, two cards only to their seat; at a showdown the hands still in are shown in `last`, a folded hand never. One seat with every chip — the game is over, a point to it. A turn let run out checks if it can, else folds |
+| `word` | the setter `{word}`, then the guesser `{letter}` | `set` is an interface language — `ru`, `en`, `uk`, `be`, `de`, `es`, `fr`, `pl`, `ro`, `az`, `uz`, `el`, `hy`, `ka`, `kk`, `ky`, `tg` (2026-10-13): the word (2–24) and each letter of its alphabet, lower-cased by the language's rules, the board carries `alphabet`; `hangman` and any other set take any letter. **The word gets the moderator model's verdict before the engine (kind `game_word`, 2026-10-13): anything but publish — 422 `moderation_refused` with the reason**, at a table and in a chat; a letter is not repeated; guessed — a point to the guesser; 6 misses — a round without a point; the guesser sets the next |
 | `grid` | `{from, to}`; `set: chess` or checkers | `from` holds one's own piece, `to` does not, another's is taken |
+| `grid`, set `reversi` (2026-10-13) | `{to: "d3"}` | 8×8, the first seat dark on d5, e4; the move turns at least one of the other's in a line; a seat with no move is skipped; neither can move — over, more pieces score 1; no con |
+| `grid`, set `four` (2026-10-13) | `{column: "a"…"g"}` | 7×6, the piece falls; a full column refused; four in a line across, up or diagonal wins (1 point); a full board is a draw; no con |
+| `grid`, set `battleship` (2026-10-13; state in `sea`) | once `{fleet: [["a1","a2","a3","a4"], …]}`, then `{shot: "e5"}` | 10×10 a1..j10, fleet 4-3-3-2-2-2-1-1-1-1, straight, no overlap, not touching even at a corner; each seat places in turn, the first seat shoots first; a hit or sink keeps the turn, a miss passes it; a sunk ship's cells show as `sunk`; the whole other fleet sunk — over, a point. Cut: one's own fleet whole, of the other's only `{placed}`; the moves carry `{fleet: "placed"}` and `{shot, result}`, never the cells |
 | `dice` | `{roll: true}` once a turn, then `{move}` | two dice rolled by the node |
 | `free` | `{play: "a:b", end: left \| right}` or `{draw: true}` | the node shuffles 28 bones, 7 each (5 at 3–4 seats); a bone to a matching end; an empty hand scores the pips left in the others' hands and ends the game |
 | `physics` | `{flick: {piece: "x:y", dir: [dx, dy], power}}` | the piece slides cell by cell until it hits, pushes another's piece one cell on, off the board for a point; the last side with pieces ends the game |
@@ -356,7 +359,7 @@ Turning a request into an Article 16 notice is the client's act: the text is car
 
 #### 4.10a. Support — the team's side (described 2026-09-22, the owner's decision: after the DSA queue)
 
-Until 2026-09-22 the team could not see requests at all: the digest came as numbers, and there was nothing to read with or answer with. Panel routes, a panel session, permissions `support.read` and `support.answer` (moderator; a storefront's administrator — their own brand).
+Until 2026-09-22 the team could not see requests at all: the digest came as numbers, and there was nothing to read with or answer with. Panel routes, a panel session, permissions `support.read` and `support.answer` (the service operator; a storefront's administrator — their own brand).
 
 | Route | What it does | Origin |
 |---|---|---|
@@ -383,10 +386,10 @@ Appearance is separate, `PUT /identities/appearance` (§4.1): it belongs to each
 
 ### 4.13. Offers (`offers/SPEC_EN.md`, screens 3, 17, 23, 25)
 
-Described 2026-09-19 after auditing the screens against the contract (`docs/screens-api-map_EN.md`):
+Described 2026-09-19 after auditing the screens against the contract (the storefront screens):
 until then the contract had no offers at all. A venue offer is a feed card of its own, `kind: offer`
 with an `offer` field; a private author's offer is a phrase with `offer` filled (`discount_value`,
-`conditions`, `discount_until`), sent by `POST /feed`. The venue cabinet talks to the same relay by
+`conditions`, `discount_until`), sent by `POST /feed`: a phrase with a discount, no link and no code. A venue offer carries a promo code (a «copy» button on the card). Both kinds of offer are in the alpha. The venue cabinet talks to the same relay by
 the same e-mailed link as the panel, with the `advertiser` role (`offers/SPEC_EN.md` §2.1); the
 session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-19), and every request checks ownership. **Built 2026-09-27** (wave 3, O1–O2): the answers' shapes are in `docs/api/openapi.yaml`, the behaviour is here. A cabinet offer goes out in its own storefront's feed as a `kind: offer` card with `offer_id` on the first page, one per ten phrases of the page, and a neighbour's discount spends that share — fewer than ten phrases, no offers.
 
@@ -407,8 +410,8 @@ session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-1
 | `GET /adv/offers` | my offers: live and expired, `redirect_hits` and the complaint count — no other figures | **built** 2026-09-27 (wave 3, O1–O2; `routes/adv.ts`, `routes/offer_links.ts`, `routes/offer_complaints.ts`, `db/067`–`069`, `db/071`) |
 | `POST /adv/offers` | publish from a `verified` venue; the automatic checks or 422 with a reason; "show again" is `repeated_from` (§6, §8) | **built** 2026-09-27 (wave 3, O1–O2; `routes/adv.ts`, `routes/offer_links.ts`, `routes/offer_complaints.ts`, `db/067`–`069`, `db/071`) |
 | `GET /adv/complaints` | complaints on your offers: text and date, without the complainant and the time (§10) | **built** 2026-09-27 (wave 3, O1–O2; `routes/adv.ts`, `routes/offer_links.ts`, `routes/offer_complaints.ts`, `db/067`–`069`, `db/071`) |
-| `POST /adv/complaints/:id/response` | answer the moderator privately (§10.3) | **built** 2026-09-27 (wave 3, O1–O2; `routes/adv.ts`, `routes/offer_links.ts`, `routes/offer_complaints.ts`, `db/067`–`069`, `db/071`) |
-| `POST /admin/offer-complaints/:id/decision` | a decision `resolved` \| `rejected` with a reason; to the complainant by e-mail; one instance (§10.2) | **spec** |
+| `POST /adv/complaints/:id/response` | answer the complaint privately (§10.3) | **built** 2026-09-27 (wave 3, O1–O2; `routes/adv.ts`, `routes/offer_links.ts`, `routes/offer_complaints.ts`, `db/067`–`069`, `db/071`) |
+| `POST /admin/offer-complaints/:id/decision` | a decision `resolved` \| `rejected` with a reason, made by a person; to the complainant by e-mail; one instance (§10.2) | **spec** |
 | `POST /admin/venues/:id/suspend` | suspend a venue by hand after 3 resolved complaints within 90 days (§10.2) | **spec** |
 
 ## 5. Limits
@@ -466,7 +469,7 @@ An IPv4 host counts by its dotted address however it arrives — padded, with le
 **The storefront key `ak_pub_…` is public (the owner's decision, 2026-09-22).** It names the brand, not the person: `db/001` does not hash it, it grants nothing, and the identity's signature is checked separately (§2, `identity_guard.ts`). So it may be baked into the terminal's image and the command handed out in one line. What it does cost: browser faces are covered by the allowlist of origins, and a terminal has no origin — so what protects against someone else's terminal carrying the same key is the per-identity limits and moderation, not the key. A revoked key is refused (`revoked_at`).
 
 **The seven "per identity" rows and the ticket lifetime were added 2026-09-16 (panel, OPS-13):** each limit's key is in its row; `Retry-After` for a daily or hourly counter is the seconds until the oldest counted event leaves the sliding window; **per-identity counters live in the node's memory and are not journaled** — a restart resets them and every node of the pool keeps its own, and that is accepted: none of them guards a secret (OPS-2, LAW-5 of pass 3); moves have no rate limit of their own — the move window holds them. **The last three rows are deploy-time parameters, not constants of the code**
-(decided 2026-08-27–2026-08-28, `route-to-code_EN.md`). The environment variable names are
+(decided 2026-08-27–2026-08-28). The environment variable names are
 proposed here and need agreement: `MODERATION_FALSE_BLOCK_BUDGET`,
 `REPORT_THRESHOLD_SHARE`, `REPORT_THRESHOLD_FLOOR`. They are not in the node's
 config today and should not be: the moderation queue arrives at step 2, and
@@ -508,7 +511,7 @@ this list like the other two: since 2026-09-15 they need the checkbox too (§8.2
              "reason": "…" } }
 ```
 
-`code` is a machine name from the closed list in `docs/api/openapi.yaml` (`ApiError`), `message` is text for a person in the request's language, `reason` appears only on moderation refusals and carries a text from `refusal-wordings_EN.md`. The 409 "accept again" refusal does not move into this shape: it has its own, named above; the client tells the two bodies under one 409 apart by the presence of `error.code` — the re-acceptance has none, and `POST /feed` and the like are described in `openapi.yaml` as `oneOf` (CON-6). The codes `stale_seq` and `nothing_to_undo` were added 2026-09-16 (DATA-24, OPS-12). **A rate limit is a 429 in the same shape with `code: rate_limited` and a `Retry-After` header in seconds**, as the built `POST /report` and `POST /waitlist` do (`report.ts`, `waitlist.ts`). **The protocol version is the header `x-protocol-version` carrying the integer major version** on every request; an unsupported one answers **400** `protocol_version_unsupported` with the update command in `message`; the header is not signed, and forging it only refuses that same request. **The body of any request is capped at 1048576 bytes (1 MiB, 2026-09-24) and 30 seconds:** not all there in time — **408** `invalid_body`; cut off mid-body — **400**; the refusal carries the CORS headers. The body is counted on the stream before any route or the signature check reads it, content-length or not; over it — **413** `invalid_body`. The node takes no files, and its largest honest body is the text of a notice's reason or a support answer (`relay/node/src/lib/body_limit.ts`). **Pagination is a cursor:** `GET /feed`, `GET /inbox` and `GET /likes` take `?after=<opaque string>` and answer `{items, next}`; an empty `next` is the end; the cursor encodes (`visible_at`, `id`) for the feed, (`created_at`, `id`) for the inbox (DATA-5) and (the time of the like, `id`) for the likes (2026-09-23). **For the feed and the likes the pair is sealed since 2026-09-24** (the owner's decision, chat spec §8.11): AES-256-GCM under a key shared by the pool (`relay/node/src/lib/cursor.ts`), the list's name bound in as additional data; the cursor reveals nothing, and one the pool did not issue for that list — edited, forged, of the old `<microseconds>_<id>` shape or from the other list — answers **400** `invalid_body`. Was: "reveals nothing beyond what was already given out" [retired] — untrue, the clear pair carried another person's phrase's `visible_at` to the microsecond, and with a fixed span that is its end. The inbox cursor stays in the clear: it holds the times of one's own matches and conversations. The intake routes from the storefronts (`/waitlist`, `/report`, `/pageview`) keep the flat string `{error: "…"}` — they are built and not signed by an identity.
+`code` is a machine name from the closed list in `docs/api/openapi.yaml` (`ApiError`), `message` is text for a person in the request's language, `reason` appears only on moderation refusals and carries the refusal wording the owner approved. The 409 "accept again" refusal does not move into this shape: it has its own, named above; the client tells the two bodies under one 409 apart by the presence of `error.code` — the re-acceptance has none, and `POST /feed` and the like are described in `openapi.yaml` as `oneOf` (CON-6). The codes `stale_seq` and `nothing_to_undo` were added 2026-09-16 (DATA-24, OPS-12). **A rate limit is a 429 in the same shape with `code: rate_limited` and a `Retry-After` header in seconds**, as the built `POST /report` and `POST /waitlist` do (`report.ts`, `waitlist.ts`). **The protocol version is the header `x-protocol-version` carrying the integer major version** on every request; an unsupported one answers **400** `protocol_version_unsupported` with the update command in `message`; the header is not signed, and forging it only refuses that same request. **The body of any request is capped at 1048576 bytes (1 MiB, 2026-09-24) and 30 seconds:** not all there in time — **408** `invalid_body`; cut off mid-body — **400**; the refusal carries the CORS headers. The body is counted on the stream before any route or the signature check reads it, content-length or not; over it — **413** `invalid_body`. The node takes no files, and its largest honest body is the text of a notice's reason or a support answer (`relay/node/src/lib/body_limit.ts`). **Pagination is a cursor:** `GET /feed`, `GET /inbox` and `GET /likes` take `?after=<opaque string>` and answer `{items, next}`; an empty `next` is the end; the cursor encodes (`visible_at`, `id`) for the feed, (`created_at`, `id`) for the inbox (DATA-5) and (the time of the like, `id`) for the likes (2026-09-23). **For the feed and the likes the pair is sealed since 2026-09-24** (the owner's decision, chat spec §8.11): AES-256-GCM under a key shared by the pool (`relay/node/src/lib/cursor.ts`), the list's name bound in as additional data; the cursor reveals nothing, and one the pool did not issue for that list — edited, forged, of the old `<microseconds>_<id>` shape or from the other list — answers **400** `invalid_body`. Was: "reveals nothing beyond what was already given out" [retired] — untrue, the clear pair carried another person's phrase's `visible_at` to the microsecond, and with a fixed span that is its end. The inbox cursor stays in the clear: it holds the times of one's own matches and conversations. The intake routes from the storefronts (`/waitlist`, `/report`, `/pageview`) keep the flat string `{error: "…"}` — they are built and not signed by an identity.
 
 [retired] This said "there is no single error shape in the spec, and I did not invent one here".
 
@@ -528,7 +531,7 @@ The list is deliberately short: this is what cannot be derived from the spec, an
 it has to be settled before the first line of step 1.
 
 1. ~~**The error shape**~~ — **decided 2026-09-16:** `{error: {code, message, reason?}}`, §6.
-2. ~~**The names of the proposed routes**~~ — **all 56 agreed as they are on 2026-09-17** (`docs/api/ROUTES_2026-09-17_naming_EN.md`); the status in `openapi.yaml` is `spec`. The §8 list is empty: code may begin.
+2. ~~**The names of the proposed routes**~~ — **all 56 agreed as they are on 2026-09-17**; the status in `openapi.yaml` is `spec`. The §8 list is empty: code may begin.
 3. ~~**How a client states its protocol version**~~ — **decided 2026-09-16:** the header
    `x-protocol-version`, on the socket the subprotocol `xor.p1`; §6, §4.4.
 4. ~~**Pagination of the feed and the inbox**~~ — **decided 2026-09-16:** a cursor `?after`,
@@ -540,13 +543,12 @@ it has to be settled before the first line of step 1.
    is named: the client loses a slot to a failure not its own. Giving it back would be
    fairer, but under a flood the 503 comes from `lock_timeout`, and giving it back would
    lift the brake exactly when it holds the database (the loop's quorum, 2026-09-24).
-6. ~~**The wordings of moderation refusals**~~ — **they exist since 2026-09-08** in
-   `refusal-wordings_EN.md` §1–6 as a proposal until read aloud; in an answer they travel in
+6. ~~**The wordings of moderation refusals**~~ — **they exist since 2026-09-08**; in an answer they travel in
    the `reason` field (§6). [retired] This said "they do not exist at all".
 7. **The shared miss counter has its number: 50 an hour per node, a 15-minute
    pause. Decided 2026-09-08.** Fifty wrong paper codes in an hour across the
    node and recovery stops accepting codes for fifteen minutes, for everyone. The
-   per-address count (`chat-flows_EN.md` §5) stays: it catches one persistent
+   per-address count stays: it catches one persistent
    person, the shared one catches distributed guessing, for which changing address
    costs nothing. The numbers live in `docs/facts/limits.tsv`
    (`recovery.miss.shared`, `recovery.miss.pause`), not only here.

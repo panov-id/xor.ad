@@ -3,10 +3,8 @@
 A decentralized pool of identical Deno nodes across several VPS providers/regions.
 **dev + staging run multi-stand on shared boxes and are PRIVATE** (reachable only from
 whitelisted IPs); **prod** runs on its own boxes and is public (geo-steered via
-Bunny DNS). v1 serves the landing backend (waitlist, client-error, welcome email);
-a stubbed WS-relay slot keeps the node chat-ready.
-
-> Prep layer — the live landing stays on its current backend until cutover.
+Bunny DNS). The node serves the landing backend (waitlist, client-error, welcome
+email) and the app: identity, feed, chat over a WebSocket relay, tables.
 
 Full architecture spec: **`SPEC_EN.md`** · release regimen: **`RELEASE_EN.md`**.
 
@@ -14,7 +12,7 @@ Full architecture spec: **`SPEC_EN.md`** · release regimen: **`RELEASE_EN.md`**
 
 ```
 relay/
-  node/          identical Deno node image (routes: health · waitlist · client-error; chat slot)
+  node/          identical Deno node image (routes: health · waitlist · client-error · identity · feed · chat · tables)
   caddy/         Caddy image with the Bunny DNS module (TLS via ACME DNS-01)
   wizard/        Python pool wizard (Docker launchpad) — generates each box's
                  docker-compose.yml + Caddyfile + per-env .env from the inventory
@@ -41,7 +39,7 @@ instead of sending — dev uses this, staging/prod send via Resend).
 For local dev, `local/` is a self-contained stand (node + Mailpit + Dozzle,
 fs storage) — `cd local && docker compose up`; see `local/README.md`.
 
-## Node — v1 endpoints
+## Node — endpoints (landing set; the app routes are in `../docs/protocol_EN.md`)
 
 | Endpoint | Purpose |
 |---|---|
@@ -49,7 +47,7 @@ fs storage) — `cd local && docker compose up`; see `local/README.md`.
 | `GET /metrics` | Prometheus counters (requests/waitlist/mail) — token-gated via `METRICS_TOKEN`, 404 without it |
 | `POST /waitlist` | validate → dedup+store in Bunny Storage → welcome via Resend |
 | `POST /client-error` | fire-and-forget client error sink |
-| `GET /chat` | placeholder → `501` until the chat lands |
+| `GET /chat` | the chat room: a ticket, then frames over WebSocket (protocol §4.4) |
 
 Stateless: the only durable state is in **Bunny Storage** (`waitlist/<env>/<hash>.json`).
 Identical image everywhere; only the per-env `.env` differs.
@@ -70,7 +68,7 @@ cd wizard
 ./run.sh status                 # boxes + their env stacks
 ./run.sh up --node n1           # provision? → dns → configure (all env stacks on the box)
 ./run.sh deploy                 # rolling: re-sync + rebuild each box, verify /health
-./run.sh pool                   # CUTOVER (prod only): add to the geo-steered api.pool
+./run.sh pool                   # prod only: add to the geo-steered api.pool
 ```
 Commands: `status` · `provision` · `configure` · `dns` · `pool` · `deploy` · `up`.
 Box mode (inventory): `provision` (create the VM via provider API — Hetzner/Vultr/DO)
@@ -99,14 +97,12 @@ waitlist → fs storage + Mailpit catch + dedup). CI runs both on every
 - **SSH hardened:** `PasswordAuthentication no`, `PermitRootLogin no`, key-only —
   use a passphrase-protected key.
 - **TLS:** DNS-01 via Bunny, so certs issue with ports locked down.
-- Chat threat model (untrusted community relays → E2E) — see
-  `../docs/archive/chat-decentralized-ideas_EN.md`.
+- Chat threat model (untrusted relays → E2E) — see `../docs/protocol_EN.md`.
 
 ## Status
 
 Node functional (typechecks, `/health` 200). Wizard implements the multi-stand
 private model: `provision` (Hetzner/Vultr/DO), `dns` (per-env Bunny records),
 `configure` (ssh hardening + whitelist firewall + generated compose/Caddyfile +
-DNS-01 TLS + all env stacks), `deploy` (rolling), `pool` (prod cutover), `up`.
-Remaining: a real run against live boxes/tokens; then staging/prod. Live landing
-untouched until cutover.
+DNS-01 TLS + all env stacks), `deploy` (rolling), `pool` (prod: add to the
+geo-steered pool), `up`.

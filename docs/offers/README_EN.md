@@ -56,7 +56,7 @@ Three rules:
         repeated_from_offer_id  # if created by "show again"
         created_at
 
-    offer_complaint             # PRIVATE: only the moderator and the business see it
+    offer_complaint             # PRIVATE: only the operator and the business see it
         id
         offer_id
         user_id
@@ -243,7 +243,7 @@ needed — those are for us, not for the business.
 
 ## 7. Complaints
 
-**Private.** The moderator and the business see them. There are no public reviews, ratings or
+**Private.** The operator and the business see them. There are no public reviews, ratings or
 stars. The principle: **there is no reputation, there is admission** — a business either may
 publish offers or may not.
 
@@ -302,9 +302,9 @@ answer to a request that expects one. A complaint about a link carries no email:
 rather than a request, and an input field would kill the cheapest source of phishing
 intelligence we have.
 
-**Dispute.** The business replies privately, the moderator decides: `resolved` or `rejected`.
+**Dispute.** The business replies privately, the operator decides: `resolved` or `rejected`.
 
-    User → complaint (private) → moderator
+    User → complaint (private) → operator
                                     ↓
                  business disputes (private) → resolved / rejected
 
@@ -326,7 +326,7 @@ All of this was considered and dropped — so that it is not revisited in circle
 | A photo of the sticker as proof | An image is generated in seconds and confirms nothing |
 | A minimum discount | A threshold does not tell a sincere offer from a formal one, and there is nobody and nothing to judge formality by: the only condition is a non-empty `discount_value` (edited 2026-09-14: "that is pre-moderation's job" [retired]) |
 | Auto-repeat and scheduled offers | It turns the feed into wallpaper; a manual press also filters out dead venues |
-| Public reviews and ratings | Defamation, trolling, pressure on the moderator, accumulation instead of ephemerality |
+| Public reviews and ratings | Defamation, trolling, pressure on the operator, accumulation instead of ephemerality |
 | Commission on sales, vouchers | Taking other people's money and payment regulation |
 | Requiring a deep discount | It kills a local business's economics — that is what Groupon died of |
 | Positioning as a "discount service" | It brings deal hunters and destroys the product's tone |
@@ -348,10 +348,10 @@ advertising.
 *Answer:* a systemic quota — no more than 1 offer per N ordinary posts (1 in 10 as a
 reference), counted over a given user's feed. Systemic, not configurable.
 
-**Moderation cannot keep up with a post's life.** An offer lives hours; manual moderation
+**Checking cannot keep up with a post's life.** An offer lives hours; a manual check
 within a day means it dies unseen.
 *Answer:* publication is immediate for everyone, and what compensates for it is the automatic
-checks at publication, the interstitial, and the moderator's "hide now" button (`SPEC_EN.md` §6,
+checks at publication, the interstitial, and hiding by the model without waiting for complaints (`SPEC_EN.md` §6,
 §6.1, §15). Pre-moderating the first offers was considered and rejected: the queue eats exactly
 the hours the offer lives for.
 
@@ -402,11 +402,11 @@ year, after which an anonymised aggregate remains.
 **DSA.** A platform with user content in the EU falls under the Digital Services Act; some
 duties do not apply to micro and small enterprises — check the status before launch.
 
-## 10. Open questions
+## 10. Settled questions
 
-- Whether to keep the list of copied promo codes locally on the device
+Decided:
 
-Closed along the way:
+- the list of copied promo codes is kept locally on the device and nothing settles on the server (section 9, `SPEC_EN.md` §13)
 
 - private authors **do** get offers, but without a link and without a promo code, and no more
   than `PRIVATE_ACTIVE_OFFERS` live at a time (section 2.5)
@@ -418,7 +418,7 @@ Closed along the way:
 
 ## Status
 
-A draft specification. The key decisions are taken: placement is free, there are no redemption
+The specification, all of it in the alpha. The key decisions are taken: placement is free, there are no redemption
 codes and no metrics, the discount goes to anyone, verification is a letter with a code to an
 address, repeat placement is manual, and an external system's promo code is the second kind of
 offer.

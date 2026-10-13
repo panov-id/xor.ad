@@ -1,6 +1,6 @@
 # Watchdogs: so that nothing lies silent — specification, 2026-09-15
 
-Stage 1 of `docs/reviews/PLAN_2026-09-14_legal-mechanics_v1_EN.md` and S1 of the road to drawing.
+Stage 1 of the legal-mechanics plan (2026-09-14) and S1 of the road to drawing.
 **This is a specification, not code** — except W1, W2 and W3: they were built on 2026-09-23
 (`relay/node/src/lib/dsa_watchdog.ts`, `relay/node/src/lib/notice_notify.ts`,
 `relay/node/src/lib/tombstone_watch.ts`, migrations `db/041`–`db/043`), and their sections below describe what was built. Node code in `relay/` is outside the hardening process's
@@ -14,7 +14,7 @@ The platform's promises rest on people and jobs, and they can break without a so
 | What can fail silently | Where it is today | How it ends |
 |---|---|---|
 | An Art. 16 notice lies unexamined | `routes/report.ts`: the team gets one letter, after the notice is stored | the deadline in `dsa/SPEC_EN.md` passes unnoticed; Art. 16(6) requires "timely" processing |
-| The new-notice letter did not go | `routes/report.ts`: a `sendNoticeArrived` failure is a log line `moderator notification not sent` | the notice is in the database and nobody knows |
+| The new-notice letter did not go | `routes/report.ts`: a `sendNoticeArrived` failure is a log line `moderator notification not sent` | the notice is in the database and the team does not know |
 | A pruning job ran out of attempts | `lib/jobs.ts`: the row gets `locked_until = 'infinity'` and stays as a tombstone | a retention period promised in the privacy policy stops being kept; `armScheduledJobs()` runs only at node start (`main.ts`) |
 | A retention period without a doer | `docs/facts/limits.tsv` and `lib/scheduled.ts` are not linked by any check | a promise without a doer lives until the first panel |
 | The node does not answer | `docs/runbook-node-down_EN.md`, "What this runbook cannot do": there is no alerting | people learn it is down by going to look |
@@ -33,8 +33,7 @@ The platform's promises rest on people and jobs, and they can break without a so
   The stamp goes on as the row is taken (`FOR UPDATE SKIP LOCKED`, the condition repeated in the
   `UPDATE`) — two passes never take one row — and **comes off when the letter did not leave**: the
   next pass, in 10 minutes rather than an hour, sends it again. A letter goes at least once; a second
-  copy is the price of not losing the one that mattered (review panel 2026-09-23,
-  `docs/reviews/PANEL_2026-09-23_watchdog-c1.md`).
+  copy is the price of not losing the one that mattered (review panel 2026-09-23).
 - **The ceiling is 6 per hour per address** (decided by quorum on 2026-09-24, by the owner's number for W2):
   the first six notices of a pass go to an address one by one, the rest in one summary that names each
   by its reference, target, age and stage. None is left out, only the letters are fewer; a summary that
@@ -69,7 +68,7 @@ The platform's promises rest on people and jobs, and they can break without a so
   notices older than five minutes. The rows are leased in one short statement (`FOR UPDATE SKIP
   LOCKED`, `arrival_leased_until` for 10 minutes, the attempt counted when taken); the letters go
   outside any transaction — the pool closes a session idle in a transaction past
-  `RELAY_DB_TIMEOUT_MS`, and a moderator's decision locks the same row and must not wait on mail
+  `RELAY_DB_TIMEOUT_MS`, and a decision on a notice locks the same row and must not wait on mail
   (review panel 2026-09-23). Round robin: never tried first, then the longest untried. The first shape — "a job `dsa_notice_notify` per notice" — the queue cannot hold:
   `jobs_standing` (`db/020`) is unique on the job kind, and a second unsent letter would not have been
   queued at all (found by the W2 suite, 2026-09-23).
@@ -143,7 +142,7 @@ The platform's promises rest on people and jobs, and they can break without a so
   series rather than a zero. The alert `ModerationQueueStopped`: the 5-minute peak of the oldest age
   above 9 minutes, held for 2 minutes (`max_over_time(…[5m])`, review panel F12 on 2026-09-26: one stuck
   phrase holds the instant value only until the sweep at its 10th–11th minute, and `for: 2m` never
-  fired), `info` — until the §8.14 moderator exists every phrase lives to the limit and a `warning`
+  fired), `info` — until the §8.14 model's verdict stands on every phrase some phrases live to the limit and a `warning`
   would always ring (decided by the worker after the `FeedPublishesNothing` precedent; raise the two
   together). Nine, not ten: at the tenth the sweeper has already dropped the phrase and the evidence.
 - **Threshold.** The waiting limit `moderation.queue.wait`, 10 minutes: past it the phrase is dropped
@@ -153,9 +152,9 @@ The platform's promises rest on people and jobs, and they can break without a so
   pass. Added 2026-09-15 after the final panel (OPS-7). **Built 2026-09-26:** the node sends it itself
   (`relay/node/src/lib/moderation_watch.ts`, the `watch_moderation` job once a minute) — the boxes run
   no Alertmanager. "Moving again" means only a verdict for this face after the letter, not a queue
-  gone empty: without the §8.14 moderator the sweeper drops every phrase, and a letter would go out for
+  gone empty: without the §8.14 model's verdict the sweeper drops every phrase, and a letter would go out for
   each. Without a verdict, at most once a day per face; after a verdict, again, but not within the hour
-  (decided by quorum on 2026-09-26). A refusal carries no face in the schema, so a moderator who only
+  (decided by quorum on 2026-09-26). A refusal carries no face in the schema, so a model that only
   refuses reads as stalled — the price is one letter a day. The letter names how many phrases waited
   past nine minutes that day; on a pool of N nodes each keeps its own memory, as W7 does — the open item
   `relay.watch.process.memory` in `docs/facts/open.tsv`.

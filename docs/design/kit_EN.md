@@ -1,12 +1,12 @@
 # UI kit: one set of elements for web, showcases, and terminal
 
-Revision 4, 10.10.2026 (look from the sheets — §9). Wave `К` (`docs/plan-goal-2026-10-10_RU.md`). Review lenses: round 1 — completeness 22, accessibility 27, consistency 17; round 2 — 30. Everything is accepted into the text except what is handed to the owner in §8.
+Revision 4, 10.10.2026 (look from the sheets — §9). Wave `К`. Review lenses: round 1 — completeness 22, accessibility 27, consistency 17; round 2 — 30. Everything is accepted into the text except what is handed to the owner in §8.
 
 **Rule.** A screen is assembled only from kit elements. If the needed element does not exist, it first appears in the kit: this text, `web/src/ui/`, `depth/ink/kit.ts`. Only then does it go onto a screen. The `check-web-kit` gate turns red on raw `<button>`, `<input>`, `<select>`, `<textarea>`, `<a>` in `web/src/screens/`, `web/src/adv/`, `App.tsx`, and on a class outside the kit vocabulary. It works as a ratchet: it starts at the current count, cannot grow, and the target is zero.
 
 **Three faces.** sosed — «блоки» (blocks), neighbro — «стикеры» (stickers), depth — terminal. The landing pages `sosed.place` and `neighbro.place` take token values from the kit (§1.4). Element texts — dictionary keys only, for all 17 languages. All 17 languages are written left-to-right (`web/src/locales/*.json`). Properties are logical regardless (`margin-inline`, `padding-block`).
 
-`docs/brutalism_RU.md` describes the moderator panel; this kit does not apply to it.
+The operator panel is not covered by this kit.
 
 ## 1. Tokens
 
@@ -218,7 +218,7 @@ Rules for this face:
 
 ## 6. Order of steps
 
-The same as in the plan (`docs/plan-goal-2026-10-10_RU.md`, wave `К` table):
+Wave `К` order:
 `К1` → `К2а`, `К2б` and `К7а` → merge `К3` → `К4` → `К5` and `К6` → `К7б` → `К9` → `К10`. `К8` runs in parallel with `К4`.
 
 ## 7. Texts
@@ -298,7 +298,7 @@ Decided by a quorum of 3 out of 3 and by the owner on the sheets `panel/design/a
 
 | Width | Layout |
 |---|---|
-| < 640 | the phone as in §1–9, a 375 column; this section's rules do not apply, except the mark in the feed's header and the like |
+| < 640 | the device as in §1–9, a 375 column; this section's rules do not apply, except the mark in the feed's header and the like |
 | 640–1023 | a column up to 720 for the feed and tables (2 columns), up to 640 for the rest; the tab bar at the foot, 480 at most |
 | ≥ 1024 | the tab bar becomes a left rail of 112: the mark 44 on top, icon and word, «write» at its foot |
 | ≥ 1440 | the feed and tables in 3 columns, capped at 1280; the splash a poster on the left, the entry 440 on the right |

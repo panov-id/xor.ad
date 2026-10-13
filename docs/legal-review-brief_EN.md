@@ -63,9 +63,9 @@ mandatory discount, published for free.
 ## B. Moderation, refusals and statements of reasons
 
 **4. A statement of reasons for a refusal before publication.**
-- **Fact.** The queue refuses a phrase **before** publication; we hold that
+- **Fact.** The moderation (the model) refuses a phrase **before** publication; we hold that
   Article 17 does not reach it, because there is nothing to restrict.
-- **Where.** `docs/refusal-wordings_EN.md`, `sosed.place/docs/00-mechanics_EN.md` §5.
+- **Where.** `sosed.place/docs/00-mechanics_EN.md` §5.
 - **Question.** Does Article 17(1)(a) cover refusing to publish material that was
   never visible to anybody?
 - **Price.** If yes, the refusal screen must carry the ground in the guidelines,
@@ -75,8 +75,7 @@ mandatory discount, published for free.
 
 **5. Automatic hiding at the report threshold.**
 - **Fact.** At the threshold a message leaves the feed for everyone; Terms §15 promise
-  "to say what was done and why", and the Article 17 statement for this case is described in
-  `refusal-wordings_EN.md` §6 as a proposal (refined 2026-09-16).
+  "to say what was done and why", and the Article 17 statement for this case is described as a proposal (refined 2026-09-16).
 - **Where.** `sosed.place/docs/00-mechanics_EN.md` §5, `docs/dsa/SPEC_EN.md` §7.
 - **Question.** Does such hiding require a statement, and is naming the automation
   as the cause enough?
@@ -95,7 +94,7 @@ mandatory discount, published for free.
 **7. Proportionality under Article 14(4).**
 - **Fact.** Our measured false-block share is 7%; there is no internal appeals
   body; a refusal names the class but never shows what tripped.
-- **Where.** `docs/route-to-code_EN.md` (the 7% decision), `docs/refusal-wordings_EN.md`.
+- **Where.** `sosed.place/docs/00-mechanics_EN.md` §5.
 - **Question.** Does this pass the proportionality test of Article 14(4), which
   size does not lift?
 - **Price.** It may require a human re-examination path — we have one by email,
@@ -112,7 +111,7 @@ mandatory discount, published for free.
   that a private person's offer is an ordinary phrase with a non-empty discount?
 - **Price.** Under the harsher reading: the word "advertising" on the card,
   disclosure of who paid and of targeting parameters — we have no payer by design.
-- **Blocks publication.** no — venue offers do not open with the chat; a one-word label is a card edit.
+- **Blocks publication.** no — venue and private offers are in the alpha together with the chat; a one-word label is a card edit.
 
 **9. Article 26(2) — declaring a commercial message yourself.**
 - **Fact.** The composer with a discount is exactly that, and is nowhere called so.
@@ -127,7 +126,7 @@ mandatory discount, published for free.
 - **Question.** Might an average consumer take an offer to come from the platform,
   and does the hosting exemption then fall away?
 - **Price.** Possibly stronger visual separation of an offer.
-- **Blocks publication.** no — visual separation of the offer is a drawing question, offers come after the chat.
+- **Blocks publication.** no — visual separation of the offer is a drawing question, offers are in the alpha.
 
 **11. A saved offer.**
 - **Fact.** The card outlives the offer on the device, up to 90 days, and we have
@@ -252,7 +251,7 @@ mandatory discount, published for free.
   substance of the accepted text. Since 2026-09-15 every row is written by the
   person's own checkbox, the guidelines included — the node no longer records a
   silent re-acceptance.
-- **Where.** `docs/migrations-step1_EN.md` (the `legal_acceptances` table).
+- **Where.** `relay/node/db/049_legal_accept_once.sql`, `051_legal_accept_dated.sql` (the `legal_acceptances` table).
 - **Question.** Is that sufficient proof of accepting a particular revision in
   Cypriot proceedings?
 - **Blocks publication.** no — the proof improves by recording more; the acceptance text does not change.
@@ -295,7 +294,7 @@ mandatory discount, published for free.
 - **Question.** Are we a provider of online intermediation services under P2B Art. 2(2)? If so — the
   content of the statement under Art. 4(1) and 4(5), and the period under 4(2)–(4).
 - **Cost of the answer.** A template letter to the venue and the suspension procedure.
-- **Blocks publication.** no — venue offers come after the chat; the letter template and the suspension order are due before they open.
+- **Blocks publication.** no — venue offers are in the alpha; the letter template and the suspension order are due before launch.
 
 **30. Transit or hosting for undelivered messages.**
 - **Fact.** An encrypted message waits on the node while the recipient is away, up to 260 minutes.

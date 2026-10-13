@@ -2,17 +2,17 @@
 
 The **relay** layer is a decentralized pool of identical nodes (the BFF / edge
 tier) for the neighborhood faces. It backs the landings now (waitlist, welcome
-email) and is built to host the future decentralized chat.
+email) and the app: identity, feed, chat over a WebSocket relay, tables.
 
 Companion docs: `RELEASE_{EN,RU}.md` (release & promotion regimen), `README*`
-(quick start), `../docs/archive/chat-decentralized-ideas_*` (future chat).
+(quick start), `../docs/protocol_EN.md` (chat).
 
 ## 1. Topology
 
 ```
 <face>.place (front on Bunny CDN)
    └─ api.<face>            entry = BFF  (the relay nodes)
-         └─ [app logic] → core at xor.panov.id     (future: chat/app; N/A for the landing)
+         └─ [app logic] → core at xor.panov.id     (chat/app; N/A for the landing)
 ```
 
 - One relay node serves **every brand/face** (sosed, neighbro, …). It reads the
@@ -21,8 +21,8 @@ Companion docs: `RELEASE_{EN,RU}.md` (release & promotion regimen), `README*`
   sends the welcome; it does not call a core. The `→ core` arrow activates with
   the app/chat.
 - Public entry per face+env: `api.dev.<face>` / `api.staging.<face>` (private) and
-  `api.<face>.place` (prod). These point at the pool at **cutover** (currently the
-  nodes use their own `n1-<env>.relay.panov.id` hostnames behind the whitelist).
+  `api.<face>.place` (prod). These point at the pool; the nodes also have their own
+  `<box>-<env>.relay.panov.id` hostnames.
 
 ## 2. Environments & access
 
@@ -63,7 +63,7 @@ Stateless Deno service. Identical image everywhere; only the per-env `.env` diff
 | `GET /metrics` | Prometheus counters (requests/waitlist/mail) — token-gated via `METRICS_TOKEN`, 404 without it |
 | `POST /waitlist` | validate → dedup+store → per-brand welcome email |
 | `POST /client-error` | fire-and-forget client error sink |
-| `GET /chat` | placeholder `501` (future chat relay) |
+| `GET /chat` | the chat room: a ticket, then frames over WebSocket (protocol §4.4) |
 
 - **Observability**: structured **JSON logs** (level/msg/fields, node, env, request
   id) and a `x-request-id` on every response; **`GET /metrics`** exposes, to the holder of `METRICS_TOKEN` and nobody else (404), Prometheus
@@ -96,7 +96,7 @@ Stateless Deno service. Identical image everywhere; only the per-env `.env` diff
   `mail-<box>`.
 - **DNS-01 via Bunny** issues TLS with ports locked down (no public 80).
 - **prod** `pool` command adds the box to the geo-steered `api.<face>` record
-  (A + geolocation) — the cutover.
+  (A + geolocation).
 
 ## 7. Images & registry
 

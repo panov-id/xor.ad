@@ -1,6 +1,6 @@
 # Chat — specification
 
-Single document for the chat functionality. Consolidates requirements from `app-prototype-spec_EN.md`, `app-ui-notes_EN.md`, `backlog_EN.md`, `roadmap_EN.md`. Status: foundation (implementation in later steps).
+Single document for the chat functionality. Consolidates requirements from `roadmap_EN.md` and the storefront descriptions. Status: the working specification; everything described here is part of the alpha.
 
 ## 1. Purpose
 
@@ -119,7 +119,7 @@ nothing** and catches up through the lines of moves. Third: **the announcement i
 already written** — the vocabulary of coordinates per class of board was made for
 accessibility, and there is no need to invent it twice.
 
-**At a table a move is a `table_lines` row of kind `move`.** The moderation queue
+**At a table a move is a `table_lines` row of kind `move`.** Moderation
 does not apply to it: the text is assembled by the engine from the class of board
 and a coordinate, and there is nothing to check. It is cut off by `joined_at` like
 any other: somebody who sat down does not see the moves made before they arrived.
@@ -131,7 +131,7 @@ to be said on the screen: your words are closed, your moves are not.
 
 **Moves and game state are not encrypted — decided 2026-09-09.** Only whoever sees the board can check the rules, and until that day nobody saw it but the two of them: the state was encrypted with the conversation key (§8.13). The **board, and only the board**, is now outside end-to-end encryption.
 
-**The conversation stays encrypted.** The node comes to know what two people are playing and how — and still does not know what they are saying. That is the whole price, and it has to be stated precisely rather than as "encryption was dropped": §8.13 continues to hold for messages and stickers. **The secret word is out from under it — clarified 2026-09-12:** it sits in `state`, the engine checks "guessed" against it and the moderation queue reads it, so the node sees it. The earlier wording kept the word on the encrypted list [retired], and that had been untrue since the day the word started going through the queue.
+**The conversation stays encrypted.** The node comes to know what two people are playing and how — and still does not know what they are saying. That is the whole price, and it has to be stated precisely rather than as "encryption was dropped": §8.13 continues to hold for messages and stickers. **The secret word is out from under it — clarified 2026-09-12:** it sits in `state`, the engine checks "guessed" against it and the moderator (§8.14) reads it, so the node sees it. The earlier wording kept the word on the encrypted list [retired], and that had been untrue since the day the word started being moderated.
 
 What the node now sees in a pair: the class of board, the position, whose turn, the score. What that means for a person: **what they are playing and with whom is no longer private from the platform**, and the screen says so plainly, next to what is already written about shuffling a deck (which the node saw anyway — there is no honest randomness otherwise).
 
@@ -169,7 +169,7 @@ Adding a game means describing a field, a set of pieces **and the rules of the c
 
 **Physics is synchronised by a shared seed.** A flick is not "place a piece in a cell" but a simulation, and without a shared seed the result diverges: one player's piece is in the pocket, the other's is still on the board.
 
-**A guessed word goes through the moderation queue**, like a phrase (§8.3): another person will see it, and everything published is checked before it is shown. A refusal means "guess another one".
+**A guessed word is checked by the moderator**, like a phrase (§8.3, §8.14): another person will see it, and everything published is checked before it is shown. A refusal means "guess another one". The check is synchronous and no person takes part in it (owner's decision of 2026-10-13). Not fully built: today `judge()` is called by a phrase, a name change, a table name and a table line; the guessed word (`relay/node/src/chat/`) does not get a verdict yet.
 
 **Six shared buttons sit above any class:** **play again**, pass or hand over the
 turn, **put it back**, **resign**, **offer a draw** and **congratulate the winner**
@@ -221,7 +221,7 @@ named: thirty seconds of silence in a pair read as a freeze, and screen 19 has t
 draw that.
 
 Thirty seconds are **chosen, not measured**, and that is said plainly: it is enough
-for somebody with the phone in their hand and not enough for somebody who put it
+for somebody with the device in their hand and not enough for somebody who put it
 down — and the second is what needs filtering out. The number lives in
 `docs/facts/limits.tsv` (`table.confirm.window`).
 
@@ -280,15 +280,16 @@ class has no coordinate at all.
 The board for two lives inside a chat. A group game **does not fit** inside one: `pair_key` is unique per pair (§8.5) and the chat key is derived for two (§8.13) — a third participant would mean different cryptography and a key reissue on every departure. So a table is **a thing of its own beside the feed**, not a group chat, and private talk between two stays as it was.
 
 - **Visible in the feed** to those whose viewing circle overlaps the table's zone — by the same rules as a phrase (§8.3).
-- **A table name — optional, up to 24 graphemes, through the moderation queue — the owner's decision of 2026-09-17.** The table enters the feed at once and nameless; the name sits in `name_pending` until the queue's verdict (mechanics §5) and moves into `name` when accepted, or stays refused with the reason to the author (a `name_verdict` frame with `table`). A refused name does not close the table: it lives without one.
+- **A table name — optional, up to 24 graphemes, checked by the moderator — the owner's decision of 2026-09-17, rewritten 2026-10-13.** The name gets the model's verdict before the table is made (`judge()`, kind `table_name`; with no model, the rules of §8.3): accepted — it is the table's name; refused — the table is not made, the author hears `422 name_refused` with the reason and can pick another name or set the table up without one. No person reads the name and nothing waits. [retired] This said: the table entered the feed at once and nameless, the name sat in `name_pending` until the queue's verdict and arrived as a `name_verdict` frame with `table` — since 2026-10-13 a table has no waiting name.
 - **A table is liked without sitting down — the owner's decision of 2026-09-17.** `table_likes` (below, next to `likes`); a table's `like_count` is public like a phrase's (§8.4); who liked never goes out. A table like makes neither a match nor an offer to talk — it is a bookmark: the table leaves this person's feed for screen 25 "My likes" (`GET /likes`), from where they sit down at it.
 - **Anyone within the radius may join**, with no invitation and no application; there is no hard cap on numbers.
 - **A table takes no posting quota and is itself unlimited — decided 2026-08-30.** Not one of the four slots, no per-identity count of tables, no share of the feed: a table is a meeting place, not an utterance. The price is accepted and recorded: the only brake against feeds filling with tables is the sliding silence span, and if that is not enough, a limiter will have to be built separately.
-- **Stickers work at a table as they do in a conversation, but the node sees them (2026-08-30).** The catalogue and the names are the same (screen 16 on the storefronts); the difference is that a table has no end-to-end encryption, so the sticker's identifier is as visible to the node as the lines and the board. This is said to the person on screen rather than left as a consequence for them to derive.
+- **Stickers at a table are part of the alpha and work as they do in a conversation, but the node sees them (2026-08-30).** It is a small fixed set of standard stickers for expressing a reaction with one tap; the set and the names are the same as in a conversation; the difference is that a table has no end-to-end encryption, so the sticker's identifier is as visible to the node as the lines and the board. This is said to the person on screen rather than left as a consequence for them to derive.
+- **The alpha has more games, and creating a table must be beautiful (goal, 2026-10-13).** The set of games is more varied, and the table-creation screen is meant to be one of the most polished surfaces of the product; no rules of new games are introduced here.
 - **It lives from its last move — on one span shared by everyone (clarified 2026-08-27).** The TTL slides, and a move or a line from any sitter pushes it alike. This is a **difference from a conversation**, where since 2026-08-26 each side has its own count: there two people are involved, and each one's silence is their own business; at a table the company changes, and a per-person count would mean the table exists in different states for those sitting at it, with the board drifting apart. The cost is accepted: one active player keeps the table alive for everybody, including those who have not moved in a while.
 - **A table with one sitter is a normal state.** It is visible in the feed, people can pull up a chair, and that person is precisely waiting for company; it disappears on the same shared silence span. Closing it the moment the last guest stands up would take the table away from whoever set it up and is waiting for the first.
-- **A table is not encrypted, and that is a consequence rather than an omission.** The conversation key is derived for two and does not apply here (above), while speech at a table is public and goes through the moderation queue — there is nothing to check in ciphertext. So **the node sees both the board and the lines**, as it sees the feed. The end-to-end encryption of §8.13 is about a conversation between two; a table is outside it, and a person has to be told plainly, because they will carry the expectation over from a conversation.
-- **Talk at a table is public** and goes through the moderation queue like a phrase. The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: a 2.8 second median per reply is more noticeable here than in the feed.
+- **A table is not encrypted, and that is a consequence rather than an omission.** The conversation key is derived for two and does not apply here (above), while speech at a table is public and is checked by the moderator — there is nothing to check in ciphertext. So **the node sees both the board and the lines**, as it sees the feed. The end-to-end encryption of §8.13 is about a conversation between two; a table is outside it, and a person has to be told plainly, because they will carry the expectation over from a conversation.
+- **Talk at a table is public** and gets the moderator's verdict before it is shown, like a phrase (since 2026-10-13 synchronously, inside the request itself: accepted — `200`, the line is public at once; refused — `422 moderation_refused` with the reason, nothing written). The justification for an unchecked conversation — "talk between two is not publication" — does not hold at a table full of strangers. The cost is named: the reply waits for the model (up to `MODERATOR_TIMEOUT_MS`), which is more noticeable here than in the feed. [retired] This said a 2.8 second median per reply — that was the price of a queue that no longer exists.
 - **Whoever joins gets no history**: the board arrives as it stands, the replies from the moment they sat down. The same rule as moving an identity (§8.2), and it also removes the question of moderating retroactively.
 - **Bands — everyone with everyone**: a person may join only if they are inside every sitter's band and all of them are inside theirs. The same rule as for a pair (§8.2), applied to all at once.
 - **A table's own band is its current sitters', and it is recomputed. Decided 2026-09-08.** The feed shows a table to whoever would pass "everyone with everyone" against the people sitting at it now; somebody joins or leaves and the table's band is a different one. Taking it from whoever started the table (`created_by`) was simpler and wrong on the substance: a table has no owner — its own schema says so — and a band inherited from someone long gone describes nobody at the table. Dropping bands for tables altogether was rejected outright: a teenager would then see a table in the feed and be turned away at the seat, which is a refusal in place of an absence. **The price is accepted and it is real:** a table can vanish from somebody's feed mid-game because a person sat down. It does not touch those already at the table — the rule works on retrieval, not on seating, and lifts nobody out of a chair. **A table with nobody at it has no band and is not shown at all:** everyone may stand up (`table_seats.left_at`) while the table itself lives on for up to an hour by `last_move_at`, until the sweeper takes it. An empty table is not an invitation, it is something about to disappear; showing it to everyone would bring back the rejected "no bands" option through the back door, since the first to sit could be anyone and the second anyone else.
@@ -305,8 +306,8 @@ CREATE TABLE tables (
   game             text NOT NULL,                             -- board class: grid | free | dots | deck | dice | physics | word
   set              text NOT NULL,                             -- the set within the class, chosen when the board is put down (§6), `set` in the API
   seats            smallint NOT NULL CHECK (seats BETWEEN 2 AND 6),  -- the set's number of seats, chosen when the board is put down (§6), added 2026-09-16 (panel, DATA-19)
-  name             text CHECK (octet_length(name) <= 256),    -- the table's name, accepted by the queue; the node counts the 24-grapheme limit (2026-09-17)
-  name_pending     text CHECK (octet_length(name_pending) <= 256),  -- a name awaiting the verdict; accepted moves into name, refused is cleared with the reason to the author
+  name             text CHECK (octet_length(name) <= 256),    -- the table's name, accepted by the moderator before the table is made; the node counts the 24-grapheme limit (2026-09-17, 2026-10-13)
+  name_pending     text CHECK (octet_length(name_pending) <= 256),  -- [retired 2026-10-13] the node writes NULL here: the name gets its verdict before the table is made, no name waits; the column stays in the schema
   like_count       integer NOT NULL DEFAULT 0,                -- the public like count, as on a phrase (2026-09-17)
   lat              double precision NOT NULL,                 -- the zone's centre, as on a phrase
   lon              double precision NOT NULL,
@@ -358,13 +359,13 @@ CREATE TABLE table_lines (
   table_id         uuid NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
   author_identity  uuid REFERENCES identities(id) ON DELETE SET NULL,
   text             text CHECK (char_length(text) >= 1 AND octet_length(text) <= 2048),  -- 128 graphemes: node, empty only for a sticker (2026-09-16)
-  sticker          text,                                      -- a sticker id from our catalogue, no queue needed (2026-09-16, DATA-20)
+  sticker          text,                                      -- a sticker id from our catalogue, no moderator verdict needed (2026-09-16, DATA-20)
   seat_no          smallint NOT NULL,                         -- the author's seat at the moment of the line: after leaving and sitting down again, the old line does not move onto the new person (2026-09-16, DATA-18)
   -- What kind of line this is. `line` is ordinary speech. `application` is the
   -- opening words of somebody asking to play, `refusal` the explanation of
   -- somebody who said no. Both were made ordinary lines rather than an entity of
   -- their own on 2026-09-09: they are visible to everyone at the table, go
-  -- through the same moderation queue, fit the same 128 characters and are
+  -- the same moderator verdict, fit the same 128 characters and are
   -- reported under the same `table_line` target. A separate addressed entity
   -- would have introduced a message from one stranger to another with no mutual
   -- like — which exists nowhere (§11) — and needed a rate limit and a notice
@@ -372,22 +373,26 @@ CREATE TABLE table_lines (
   -- `move` is a move shown in words ("Anya placed a tile on e4"). The line is
   -- composed by the engine, not by a person, so the "…" menu is not shown on it at
   -- all and it is never the target of an Article 16 notice (docs/dsa/SPEC_EN.md):
-  -- there is nothing to report and no author. The moderation queue does not apply
+  -- there is nothing to report and no author. Moderation does not apply
   -- either: there is nothing to check for, the text is assembled from the class of
   -- board and a coordinate. It is visible to everyone at the table and cut off by
   -- `joined_at` like any other — somebody who sat down does not see the moves made
   -- before they arrived, exactly as they do not see the speech.
   kind             text NOT NULL DEFAULT 'line'
                      CHECK (kind IN ('line', 'application', 'refusal', 'move', 'sticker', 'congratulation')),
-  -- `sticker` and `congratulation` are published without the queue, like `move`: the catalogue is ours, the congratulation is composed by the engine. Added 2026-09-16 (panel, DATA-20, SEC-5).
+  -- `sticker` and `congratulation` are published without a moderator verdict, like `move`: the catalogue is ours, the congratulation is composed by the engine. Added 2026-09-16 (panel, DATA-20, SEC-5).
   CONSTRAINT table_lines_text_or_sticker CHECK ((kind = 'sticker') = (sticker IS NOT NULL) AND (kind = 'sticker' OR text IS NOT NULL)),
   created_at       timestamptz NOT NULL DEFAULT now(),
-  visible_at       timestamptz                                -- NULL = waiting for the queue: speech at a table is public
+  visible_at       timestamptz                                -- speech at a table is public, and since 2026-10-13 a row is written with its verdict already (visible_at = now()), the node does not write NULL
 );
 
+-- A move, a line, a sticker and an application are all written at once with
+-- `visible_at = now()`: a refused line is not written at all (422).
 CREATE INDEX table_lines_feed  ON table_lines (table_id, created_at) WHERE visible_at IS NOT NULL;
+-- The two indexes below (`WHERE visible_at IS NULL`) are left over from the queue of
+-- table lines, which no longer exists since 2026-10-13: the node writes no waiting rows, the indexes are empty (db/064).
 CREATE INDEX table_lines_queue ON table_lines (created_at) WHERE visible_at IS NULL;
-CREATE INDEX table_lines_queue_by_author ON table_lines (author_identity) WHERE visible_at IS NULL;  -- the table hold counts one's own items in checking (2026-09-14)
+CREATE INDEX table_lines_queue_by_author ON table_lines (author_identity) WHERE visible_at IS NULL;  -- [retired 2026-10-13] the table hold counted one's own items in checking (2026-09-14); there is no checking in a queue any more
 
 -- Game state at a table — introduced 2026-09-09 along with the minimal rules.
 --
@@ -602,8 +607,8 @@ is asking.
   they cannot whisper somebody's cards to a partner — nobody but the holder sees
   them.
 - **The application is opening words, the refusal is an explanation, and both are
-  ordinary lines.** They are visible to everyone at the table, go through the same
-  moderation queue, fit the same 128 characters and are reported under the same
+  ordinary lines.** They are visible to everyone at the table, get the same
+  moderator verdict, fit the same 128 characters and are reported under the same
   `table_line` target (`docs/dsa/SPEC_EN.md`). Deliberately so: an addressed
   application "to the players only" would have introduced a message from one
   stranger to another **with no mutual like** — a channel that exists nowhere
@@ -625,7 +630,7 @@ is asking.
   **An application is only made for a free seat — decided on the evening of
   2026-09-10.** The button is inactive while there are no seats, and says why: "no
   seats, wait for the game to end". It used to be available always, and a table for
-  two with twenty hopefuls collected twenty public lines through the moderation queue
+  two with twenty hopefuls collected twenty public lines through the moderator
   — the conversation at the table drowned in applications, and those playing were
   left to write eighteen explanations or to stay silent. The cost is accepted and it
   is honest: **whoever taps at the right moment sits down**, not whoever waited
@@ -642,7 +647,7 @@ is asking.
 - **Players fall below the set's minimum — the game ends at once (the owner's decision of 2026-09-18).** A player stood up, was removed or stepped away, and fewer players remain than the set needs (one at a two-seat set) — `table_games.ended_at` is set in the same transaction with no result, the table lives, the one left sees "game over" and "play again" (a new game once the set is full again). Otherwise the one left would wait fifteen minutes for three auto-passes of an empty chair (UX panel 2026-09-18, UX-P-3).
 - **A move has a deadline, and a missed move is a pass: decided 2026-09-10.** Since
   2026-09-09 the engine checks the turn order, which means the game stops on
-  whoever is not there: left, shown out, or simply put the phone down — the others
+  whoever is not there: left, shown out, or simply put the device down — the others
   wait until the table itself dies. As it stands now: **five minutes per move**,
   then an automatic pass, and **three passes in a row make a spectator** — the same
   as an unconfirmed roster. The five minutes are **chosen, not measured**
@@ -729,7 +734,7 @@ Technically the brand comes from the API key and from nowhere else (`lib/tenant.
 
 Our own node, not Supabase: Deno + our own Postgres (`relay/node/src/lib/db.ts`, driver `jsr:@db/postgres`).
 
-- **Realtime** — our own WebSocket: `relayUpgrade()` in `src/chat/relay.ts` will terminate the room by `chat_id` and fan the ciphertext out. Not built: the route exists and answers 501, so the surface is reserved and nothing pretends to serve it. No table subscriptions: the database holds only the undelivered (§8.8), never history.
+- **Realtime** — our own WebSocket: `relayUpgrade()` in `src/chat/relay.ts` terminates the room by `chat_id` and fans the ciphertext out; the `GET /chat` route is wired in `src/dispatch.ts`: a ticket opens the room, then frames flow (protocol §4.4). No table subscriptions: the database holds only the undelivered (§8.8), never history.
 
 **Which node it is must not matter.** If a room lives in one node's memory, both participants have to land on that same node — stickiness on the balancer — and losing the node tears down every conversation on it. Instead the nodes talk over a bus on the Postgres we already run:
 
@@ -744,7 +749,7 @@ peer B ──ws── node 2 ──┘        ↓
 
 What it buys: any participant can connect to any node, no stickiness is needed, and a node failure takes down only its own sockets — reconnecting to a neighbour resumes the same chat. Zero new dependencies: Postgres is already there, Redis is not needed.
 
-The limit to remember: the bus works within one database. The node pool in 8.1 assumes a shared Postgres; geographically separate independent databases would need something else — but that is a conversation for `archive/chat-decentralized-ideas_EN.md`, not for v1.
+The limit to remember: the bus works within one database. The node pool in 8.1 assumes a shared Postgres; geographically separate independent databases would need something else — but that is not for v1.
 
 **Two nodes per environment do not exist today, and that is checked in code rather than remembered (2026-08-21).** `relay/wizard/wizard.py` carries `assert_one_box_per_database` — the deploy **refuses** to bring up a second box for an environment that has a database, because each box gets its own Postgres and the state would drift apart in silence. So the picture above describes an architecture with nowhere to exist, while the acceptance criteria in §14 demand that very picture be shown. While that holds, the truth is:
 
@@ -778,7 +783,7 @@ An identity lives **on the device**: `identity_id` and a key pair whose private 
 
 This used to read "a secret, and the server stores the secret's hash" — a leftover from an earlier design, incompatible with the rest of §8: a public key has no hash, and a shared secret would mean the node can sign as the person. Corrected 2026-08-12, before it reached any code.
 
-**Every client starts as its own identity.** The key is born locally and nothing ties it to any other: the web on a phone, the web on a laptop and `depth` in a container are three different neighbours until the person transfers an identity there. The consequence is accepted deliberately: one person holding two separate identities appears twice in the feed and can like themselves. That is the price of refusing to recognise devices, and it is cheaper than a fingerprint (below).
+**Every client starts as its own identity.** The key is born locally and nothing ties it to any other: the web on one device, the web on another and `depth` in a container are three different neighbours until the person transfers an identity there. The consequence is accepted deliberately: one person holding two separate identities appears twice in the feed and can like themselves. That is the price of refusing to recognise devices, and it is cheaper than a fingerprint (below).
 
 ```sql
 CREATE TABLE identities (
@@ -872,26 +877,26 @@ CREATE INDEX legal_acceptances_latest ON legal_acceptances (identity, document, 
 
 - **Name and age** are the only registration data, asked **on the first visit**, before the feed. There is no anonymous browsing: age comes before everything else because it decides what the feed hands out (see "Age bands"). Hence both columns are `NOT NULL` from the start.
 - **Name and age can be changed** without losing the identity. A deliberate trade: "registration data" stops being immutable, and nobody has to erase themselves over a typo or a birthday.  **Once a year** the app re-asks: "still 38?" — one line, dismissed with a tap.
-- **The name changes only on a clean slate — decided 2026-08-20, narrowed 2026-08-21 from the review.** While the identity has **a live phrase in the feed or an open chat**, the **accepted** name is frozen; once neither remains, it becomes editable again. **The freeze does not extend to a name the queue rejected: that one is always editable.** Without this proviso the rule locked itself — the post passed the check, the name did not, the live phrase made the slate unclean, and the offer to "go and update the name" became impossible for the whole 4:20; the only way out was deleting a post that had passed, which is exactly the price §13 declared unjustified. The freeze protects against **substituting what the other person already accepted**; a rejected name nobody ever saw has nothing to substitute. The reason is that the name is the only thing by which a peer recognises who they agreed to talk to (§8.11: the feed never reveals an author, the name appears only from a match). Swapping it under a live conversation is a way to deceive rather than a convenience, and forbidding it here is cheaper than a system message sent after the fact. None of this touches age: it changes at any time and only upwards (see "Age bands"), because a birthday will not wait for a clean slate.
-- **The name is accepted at registration, and every change goes to the queue — the owner's decision of 2026-09-22.** [retired] This said: "The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20)". The code never did that for a day — registration writes `name_state = accepted` (`identity.ts`), and the owner decided to keep it rather than catch up with the spec. The price is named: the moderator never sees the first name. What holds it instead: the name is visible to nobody before the first match (§8.11), and there is no match without a published phrase (§8.4); a change of name goes to the queue and is accepted with the next phrase (§8.3, 2026-09-22). What follows is the history of the decision of 2026-08-20, as it was: By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. **The first publication waits on the name — edit of 2026-08-26, overriding the earlier rule.** What stood here was "a rejected name does not cancel the post, they are checked separately". [retired] Separateness closed the wrong hole: the post reached the feed and was liked while its author's name stayed unchecked — and arrived at the peer with the very first match. Now the phrase reaches the feed only when **both** are accepted; if the name is rejected the phrase waits until it is fixed and then publishes itself. Its `expires_at` counts **from publication**, not from sending, so waiting costs it no life, and while it waits a second one cannot be sent — otherwise waiting would stack a queue around the ceiling. **One verdict for both — the owner's decision of 2026-09-22:** the moderator sees the name beside the phrase (`GET /admin/feed-queue` returns `name` and `name_state`), and `publish` accepts the name in the same call — a waiting one only: `name_pending` becomes `name`, `name_state = accepted`; a rejected name the verdict leaves alone, and the call carries the name the moderator read — changed underneath, the node answers 409 (review panel 2026-09-22) (`lib/feed_verdict.ts`, test "publishing a phrase accepts the name that goes out with it"). There is no separate queue of names. **The name refusal is built (2026-09-22):** `POST /admin/feed-queue/:id/refuse-name` sets `name_state = rejected`, drops `name_pending`, the phrase stays in the queue and the sweeper leaves it until its author sends a new name (`PATCH /identities/me`); `publish` with a rejected name answers 409; a match requires `accepted` on both sides — `pending` does not match either, since `name` still holds the refused one; the profile returns `name_state`.
+- **The name changes only on a clean slate — decided 2026-08-20, narrowed 2026-08-21 from the review.** While the identity has **a live phrase in the feed or an open chat**, the **accepted** name is frozen; once neither remains, it becomes editable again. **The freeze does not extend to a name moderation rejected: that one is always editable** (since 2026-10-13 a rejected name is not stored — the old one stands — but the rule stays for rows with an old `name_state = rejected`). Without this proviso the rule locked itself — the post passed the check, the name did not, the live phrase made the slate unclean, and the offer to "go and update the name" became impossible for the whole 4:20; the only way out was deleting a post that had passed, which is exactly the price §13 declared unjustified. The freeze protects against **substituting what the other person already accepted**; a rejected name nobody ever saw has nothing to substitute. The reason is that the name is the only thing by which a peer recognises who they agreed to talk to (§8.11: the feed never reveals an author, the name appears only from a match). Swapping it under a live conversation is a way to deceive rather than a convenience, and forbidding it here is cheaper than a system message sent after the fact. None of this touches age: it changes at any time and only upwards (see "Age bands"), because a birthday will not wait for a clean slate.
+- **The name is accepted at registration, and every change gets the moderator's verdict inside the request — the owner's decisions of 2026-09-22 and 2026-10-13.** 2026-10-13 — owner: moderation is the model alone, synchronously. `PATCH /identities/me` with a new name is decided at once: the rules of §8.3 flag the name, the model reads it with those flags; `publish` — the name changes, `200`; otherwise `422 name_refused` with the reason and the old name stands. A model "reject" counts toward the pause of §8.3; "unsure", a timeout and overflow do not — the author is told "try again later". With no model (`MODERATOR_URL` unset) the rules decide: a clean name is accepted, any flag refuses. The node no longer creates a waiting name (`name_pending`): the name does not wait for the next phrase, no person reads it, and a refused name does not hold a phrase. **Everything below in this item is history before 2026-10-13:** the queue of names, `GET /admin/feed-queue`, `refuse-name`, the name waiting with the phrase and the 409 on a name change are gone. [retired] This said: "The name goes through the same moderation queue as a phrase — at the first publication and on every change (decided 2026-08-20)". The code never did that for a day — registration writes `name_state = accepted` (`identity.ts`), and the owner decided to keep it rather than catch up with the spec. The price is named: the model never sees the first name. What holds it instead: the name is visible to nobody before the first match (§8.11), and there is no match without a published phrase (§8.4); a change of name goes to the queue and is accepted with the next phrase (§8.3, 2026-09-22). What follows is the history of the decision of 2026-08-20, as it was: By the first post the queue already exists (§13, step 2), so no "name accepted unchecked" window arises: until that moment the name is visible to nobody, the feed included. **The first publication waits on the name — edit of 2026-08-26, overriding the earlier rule.** What stood here was "a rejected name does not cancel the post, they are checked separately". [retired] Separateness closed the wrong hole: the post reached the feed and was liked while its author's name stayed unchecked — and arrived at the peer with the very first match. Now the phrase reaches the feed only when **both** are accepted; if the name is rejected the phrase waits until it is fixed and then publishes itself. Its `expires_at` counts **from publication**, not from sending, so waiting costs it no life, and while it waits a second one cannot be sent — otherwise waiting would stack a queue around the ceiling. **One verdict for both — the owner's decision of 2026-09-22:** the model reads the name beside the phrase (`GET /admin/feed-queue` returns `name` and `name_state`), and `publish` accepts the name in the same call — a waiting one only: `name_pending` becomes `name`, `name_state = accepted`; a rejected name the verdict leaves alone, and the call carries the name the model read — changed underneath, the node answers 409 (review panel 2026-09-22) (`lib/feed_verdict.ts`, test "publishing a phrase accepts the name that goes out with it"). There is no separate queue of names. **The name refusal is built (2026-09-22):** `POST /admin/feed-queue/:id/refuse-name` sets `name_state = rejected`, drops `name_pending`, the phrase stays in the queue and the sweeper leaves it until its author sends a new name (`PATCH /identities/me`); `publish` with a rejected name answers 409; a match requires `accepted` on both sides — `pending` does not match either, since `name` still holds the refused one; the profile returns `name_state`.
 
 **A consequence derived from §8.11:** the name becomes visible to another person only from the first match — and a match is now unreachable without a published phrase (§8.4), that is, without an accepted name. The rule "while the name stands rejected no match opens" remains as a second line, but publication now stands first.
 
 **Silence changes nothing.** No answer means carrying on with the old number, in the same band, with no block and no nagging. The reason is simple: the re-ask is **not a check** — lying in it is exactly as easy as at registration — so punishing silence hinders the honest and takes nothing from the dishonest. The price is accepted: near the band boundary there will be people with a stale number, and they will see a slightly narrower feed than their age allows. That is an error towards caution rather than towards the sandbox.
-- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. **There is no way back inside those thirty days — decided 2026-09-11.** This used to read "a window for someone who pressed it in anger and wants back in with the paper code" [retired], and it contradicted the index above: the code is looked up only where `closed_at IS NULL`, so a closed identity is not found at all. The thirty days are not for the person but for the handling: a notice or a statement of reasons tied to a closed identity has to outlive the press, or there is nothing to execute them against. Closing, in one transaction, nulls `recovery_auth_hash` and `recovery_wrapped_key`, freezes the sessions, burns the shares, clears the queue of the undelivered, deletes the `identity_appearance` rows (added 2026-09-15 after the review panel: the privacy policy promises appearance goes on closing) nulls `support_requests.identity` (added 2026-09-14 after the review panel: screen 14 promised the link breaks on the press, while `ON DELETE SET NULL` would only fire after 30 days), and takes down what is live exactly as the PIN-limit freeze does (added 2026-09-15 after the final panel, DATA-7): phrases, those still being checked too, are deleted with their likes, queued `table_lines` are deleted, table seats get `left_at`, matches go out, `chat_games` rows are deleted, every participant of the identity's conversations gets `gone_at` and those `chats` rows are deleted — otherwise a closed identity would sit at a table for 30 days and its age would keep counting in the table's band: there is nothing to come back to and nothing to come back with. After the term, `DELETE`, and the cascades take the rest. **The sweeper was written on 2026-09-20** — `relay/node/src/lib/identity_sweeper.ts`, as the hourly `sweep_identities` job on the node's queue, carrying all three deadlines in one pass: an abandoned signup after an hour, a year without a session, thirty days after closing. [retired] This used to read "the sweeper does not exist yet, and there is nothing to write it against — the node's schema carries thirteen migrations and `identities` is not among the tables they create": the measurement was true on 2026-09-01 and went stale with migration `022_identity_and_sessions.sql`. **The sweeper does not execute the whole list above, and its own file says so:** phrases with their likes, table seats, matches, `chat_games` and the queue of the undelivered are untouched, because those tables do not exist — each joins the same statement in the step that creates it, and the paragraph above is the checklist for doing so.
+- **A closed identity is deleted after 30 days — decided 2026-08-30 from a review.** Until then "start over" only set `closed_at` and the row stayed for good: name, age, public key, the hash of the paper code, the counters and the record of what was accepted. Screen 12 promises irreversible erasure and the mechanics promise that "delete everything" really deletes everything. **There is no way back inside those thirty days — decided 2026-09-11.** This used to read "a window for someone who pressed it in anger and wants back in with the paper code" [retired], and it contradicted the index above: the code is looked up only where `closed_at IS NULL`, so a closed identity is not found at all. The thirty days are not for the person but for the handling: a notice or a statement of reasons tied to a closed identity has to outlive the press, or there is nothing to execute them against. Closing, in one transaction, nulls `recovery_auth_hash` and `recovery_wrapped_key`, freezes the sessions, burns the shares, clears the queue of the undelivered, deletes the `identity_appearance` rows (added 2026-09-15 after the review panel: the privacy policy promises appearance goes on closing) nulls `support_requests.identity` (added 2026-09-14 after the review panel: screen 14 promised the link breaks on the press, while `ON DELETE SET NULL` would only fire after 30 days), and takes down what is live exactly as the PIN-limit freeze does (added 2026-09-15 after the final panel, DATA-7): phrases, those still being checked too, are deleted with their likes, waiting `table_lines` (none exist since 2026-10-13) are deleted, table seats get `left_at`, matches go out, `chat_games` rows are deleted, every participant of the identity's conversations gets `gone_at` and those `chats` rows are deleted — otherwise a closed identity would sit at a table for 30 days and its age would keep counting in the table's band: there is nothing to come back to and nothing to come back with. After the term, `DELETE`, and the cascades take the rest. **The sweeper was written on 2026-09-20** — `relay/node/src/lib/identity_sweeper.ts`, as the hourly `sweep_identities` job on the node's queue, carrying all three deadlines in one pass: an abandoned signup after an hour, a year without a session, thirty days after closing. [retired] This used to read "the sweeper does not exist yet, and there is nothing to write it against — the node's schema carries thirteen migrations and `identities` is not among the tables they create": the measurement was true on 2026-09-01 and went stale with migration `022_identity_and_sessions.sql`. **The sweeper does not execute the whole list above, and its own file says so:** phrases with their likes, table seats, matches, `chat_games` and the queue of the undelivered are untouched, because those tables do not exist — each joins the same statement in the step that creates it, and the paragraph above is the checklist for doing so.
 
 **Taking down the live leaves the expired alone — decided by the coordinator on 2026-09-26, by a rule already written down.** Closing, stepping away and freezing take down live phrases, those awaiting review, and likes on live phrases, and taking back a like (§8.4) only a like on a live phrase; expired phrases and the likes on them go with the minute sweep by cascade (`sweepExpiredPhrases`), as everyone's do. Otherwise the take-down and the sweep took the same rows in opposite orders: under load a deadlock five times in five (`relay/node/test/take_down_stress.test.ts`). Rejected: taking every touched phrase in `id` order and skipping held ones in the sweep — more locks for what the rule already rules out.
 - **An identity with no live session for a year is closed, and deleted 30 days later — decided 2026-09-15 by the owner after the final panel (LAW-7).** The node cannot learn that a browser was cleared, so without a term an abandoned identity kept its name, age, counters and record of acceptances forever. When none of its sessions has a `last_seen_at` newer than 365 days, the identity sweeper closes it by the same transaction as "start over", and the 30 days of `identity.deletion.delay` run from there. The term is `identity.inactive.retention` in `docs/facts/limits.tsv`, executor `identity.sweeper`. The price is named: someone who returns after more than a year finds no identity, the paper code included.
-- **A frozen session does not extend the year — decided by quorum on 2026-09-25.** A live session is one whose `frozen_at` is empty and whose share the tenth PIN mistake has not locked (`vault_shares.locked_at` empty: a locked one is already a freeze, even before `frozen_at` is written; clarified 2026-09-26, B75, B87), and a frozen session's way back (a support request, the same device raised by paper code) is not use: the node's guard does not write its `last_seen_at`, the mark stops at the moment of the freeze, and the year runs from there. Otherwise a lost phone writing to support once a day would keep the identity forever — even with requests the route refused. Rejected: counting the year by live sessions only (an identity whose only session was frozen by the tenth wrong PIN would be closed on the next pass rather than after a year, and the paper code would burn for the person trying to come back) and leaving it as it is (`support.frozen.bump`).
+- **A frozen session does not extend the year — decided by quorum on 2026-09-25.** A live session is one whose `frozen_at` is empty and whose share the tenth PIN mistake has not locked (`vault_shares.locked_at` empty: a locked one is already a freeze, even before `frozen_at` is written; clarified 2026-09-26, B75, B87), and a frozen session's way back (a support request, the same device raised by paper code) is not use: the node's guard does not write its `last_seen_at`, the mark stops at the moment of the freeze, and the year runs from there. Otherwise a lost device writing to support once a day would keep the identity forever — even with requests the route refused. Rejected: counting the year by live sessions only (an identity whose only session was frozen by the tenth wrong PIN would be closed on the next pass rather than after a year, and the paper code would burn for the person trying to come back) and leaving it as it is (`support.frozen.bump`).
 - **Starting over** remains a separate action: the old identity gets `closed_at` and everything goes with it, including its long-lived key.
 
 #### The "stepped away" state (2026-08-26)
 
 **Stepping away also removes the likes given — the owner's decision of 2026-09-18:** the same transaction deletes this identity's `likes` and `table_likes` rows with a `like_count` decrement on the phrases and tables; what was liked returns to the feed (§8.4), screen 25 empties. The price is named: bookmarks on tables have to be set again after a break.
 
-A person may leave the place for a span — **20 minutes, an hour, or 4 hours** (2026-09-14: "until morning" [retired] was dropped, it had no end hour; "8 hours" [retired] the same day: longer than any conversation, review panel) — and this is not an interface pause but a state of the account on the node: `stepped_away_until timestamptz` on `identities`. **A phrase awaiting the queue's verdict is deleted along with the published ones (2026-08-30)** — there is no "accepted but held until return" state; **the hour counter behind the step-away prompt is reset by leaving**, because it counts continuous use. The point is not an errand but giving someone caught in the pull a real way out.
+A person may leave the place for a span — **20 minutes, an hour, or 4 hours** (2026-09-14: "until morning" [retired] was dropped, it had no end hour; "8 hours" [retired] the same day: longer than any conversation, review panel) — and this is not an interface pause but a state of the account on the node: `stepped_away_until timestamptz` on `identities`. **A phrase awaiting the moderator's verdict is deleted along with the published ones (2026-08-30)** — there is no "accepted but held until return" state; **the hour counter behind the step-away prompt is reset by leaving**, because it counts continuous use. The point is not an errand but giving someone caught in the pull a real way out.
 
-- **Table lines waiting for a verdict are deleted** in the same transaction, as on closing an identity: otherwise they would appear at the table after the person has gone (added 2026-09-16, DATA-26).
+- **Table lines waiting for a verdict are deleted** in the same transaction, as on closing an identity: otherwise they would appear at the table after the person has gone (added 2026-09-16, DATA-26). Since 2026-10-13 there are no waiting table lines — the verdict is given before the write, and a refused line is not written at all; the item stays as a guard for rows with `visible_at IS NULL`.
 - **Phrases are deleted** (`DELETE`, not hidden) along with their likes: quota slots free immediately, and whoever returns has nothing to catch up on.
 - **Matches are extinguished** exactly as when a phrase expires: this identity's `matches` are closed, and the other party sees a vanished offer with no reason given — someone else's decision is not reported here.
 - **Chats are not frozen.** `last_activity_at` does not move and the TTL keeps running: each side has its own count, and one person leaving must not decide for the other. The consequence is stated plainly: a four-hour departure is survived only by a 260-minute conversation, and only if one's own message in it was no more than 20 minutes earlier; an hour — only that one too, twenty minutes — the 60 and 260 ones, and a 30 one if one's own message was under 10 minutes earlier (edited 2026-09-14: "eight hours" [retired] was survived by no conversation — the longest span is 4:20).
@@ -912,27 +917,30 @@ A person may leave the place for a span — **20 minutes, an hour, or 4 hours** 
 
 **A name goes through the same check as a phrase.** It is published text: the
 other person sees it on the match card and in an open chat, so anything forbidden
-in a phrase can be said in a name. The check runs the same path and the same
-queue — **at the first publication and on every change** (decided 2026-08-20;
-this used to read "at registration", but step 1 has no queue yet and the name is
-visible to nobody).
+in a phrase can be said in a name. The check runs the same path and gives the same
+moderator verdict — **on every change of the name** (decided 2026-08-20; it used
+to read "at the first publication and on every change" and "the queue" — on
+2026-10-13 the owner decided otherwise: one model gives the verdict, synchronously,
+inside the `PATCH /identities/me` request, with no queue and no waiting name). The
+name at registration is accepted at once (see above) and is visible to nobody
+anyway.
 
 There is one difference, and it comes from a name not being disposable: a
-rejected name is **not saved**, and the previous one stays in force. For a phrase
+rejected name is **not saved** (`422 name_refused`), and the previous one stays in force. For a phrase
 a refusal means it does not exist; for a name it means the person stays who they
 were.
 
 **The case with no previous name is treated separately (2026-08-21).** On the
-first visit the name is accepted unchecked — and it is exactly that name which
-goes into the queue with the first phrase. There is nothing to fall back to, so:
+first visit the name is accepted unchecked — there is nothing to fall back to, so:
 
-- while there is no verdict the name in force is the one that exists, and it
-  **still does not go out**: the feed never reveals an author, and another
-  person's eye reaches the name only from a match (§8.11);
-- if the queue rejected it, the identity is marked "name rejected", no match
-  opens, and a **permanent line with the reason and an edit button** stays on
-  screen — restricting in silence is not allowed, as promised in §7 of
-  `dsa/SPEC_EN.md`;
+- the name in force is the one that exists, and it **still does not go out**:
+  the feed never reveals an author, and another person's eye reaches the name
+  only from a match (§8.11);
+- [retired 2026-10-13] this said: "if the queue rejected it, the identity is marked
+  'name rejected', no match opens, and a permanent line with the reason and an edit
+  button stays on screen". The node creates no new rejected names; the line stays
+  only for identities with an old `name_state = rejected`, and restricting them in
+  silence is still not allowed — as promised in §7 of `dsa/SPEC_EN.md`;
 - a rejected name is editable regardless of live phrases and open chats (above).
 
 **The other person pays too.** While the name stands rejected a mutual like does
@@ -949,7 +957,7 @@ First, it stopped working. Everything it was built from came **from the connecti
 
 Second, it misled. The spec itself called it "a barrier, not a guarantee", yet it closed other people's identities and blocked neighbours behind one home NAT: the cost of a mistake fell on the uninvolved, while shedding it took ten seconds of clearing site data. A mechanism that fails to stop the person it aims at, and hits the person it does not, is worse than no mechanism.
 
-What replaces it is **per-address rate limiting**, which exists and runs today; **feed moderation before publication** (§8.3), through a queue — which cuts the text, not the author; and **a chat door that opens only on a mutual like with double consent**. Of those three only the first is built. The queue exists as a mechanism (`lib/jobs.ts`), and the three job kinds registered on it are all housekeeping — there is no `POST /feed`, no `visible_at`, no classifier. This paragraph used to say all of it "already exists", which is the kind of sentence that decides how much time somebody budgets.
+What replaces it is **per-address rate limiting**, which exists and runs today; **feed moderation before publication** (§8.3), by the moderator's verdict — which cuts the text, not the author; and **a chat door that opens only on a mutual like with double consent**. Edit of 2026-10-13: `POST /feed`, `visible_at` and the moderator (`relay/node/src/lib/moderator.ts`) are built, the verdict is given by one model synchronously, with no person in it. [retired] This said: "Of those three only the first is built. The queue exists as a mechanism (`lib/jobs.ts`), and the three job kinds registered on it are all housekeeping — there is no `POST /feed`, no `visible_at`, no classifier" — true on that day. This paragraph used to say all of it "already exists", which is the kind of sentence that decides how much time somebody budgets.
 
 #### What exactly a request is signed with
 
@@ -1047,7 +1055,7 @@ CREATE TABLE sessions (
   CONSTRAINT sessions_frozen_pair CHECK ((frozen_at IS NULL) = (frozen_reason IS NULL))  -- 2026-09-15, final panel
 );
 CREATE UNIQUE INDEX sessions_one_live ON sessions (identity) WHERE frozen_at IS NULL;  -- named 2026-09-20: an anonymous index refuses a transfer with a message no person can read
-CREATE INDEX sessions_identity ON sessions (identity);  -- every session of an identity, frozen ones included: the partial index above serves neither a real DELETE's cascade nor the list of devices (2026-09-20)
+CREATE INDEX sessions_identity ON sessions (identity);  -- every session of an identity, frozen ones included: the partial index above serves neither a real DELETE's cascade (2026-09-20)
 
 -- One-shot actions: the pair (session, nonce) with the first answer, ten minutes (`nonce.ttl`),
 -- shared by the pool. Introduced 2026-09-16 (protocol §2, OPS-1/SEC-17), DDL on 2026-09-17 (pass 4).
@@ -1068,11 +1076,11 @@ CREATE INDEX nonces_expiry ON nonces (created_at);  -- swept by nonce.ttl by the
 
 The partial unique index is the rule itself: the database will not accept a second live session, and no code path can work around it.
 
-**Why one and not several.** The earlier design had many devices and symmetric revocation: any of them could disconnect any other. That had a hole no rule could close. Whoever talked a person out of their linking code could disconnect every device the owner had, leaving nowhere to come back to — and that is indistinguishable from the legitimate case ("was talking from the terminal, moved to the phone, killing the terminal"): to the node both are the same picture, a fresh session ending an old one. A rule like "younger than a day cannot revoke" broke exactly the case we needed, not the attack.
+**Why one and not several.** The earlier design had many devices and symmetric revocation: any of them could disconnect any other. That had a hole no rule could close. Whoever talked a person out of their linking code could disconnect every device the owner had, leaving nowhere to come back to — and that is indistinguishable from the legitimate case ("was talking from the terminal, moved to another device, killing the terminal"): to the node both are the same picture, a fresh session ending an old one. A rule like "younger than a day cannot revoke" broke exactly the case we needed, not the attack.
 
 With one session that action does not exist. Transfer is the only mechanism, and it is performed by whoever is holding the device.
 
-The price is stated plainly: **a phone and a laptop do not work at the same time**. There is no reading from two screens; there is only transferring back and forth, and transfers are cheap.
+The price is stated plainly: **two devices do not work at the same time**. There is no reading from two screens; there is only transferring back and forth, and transfers are cheap.
 
 There are four kinds of key, and keeping them apart is the point:
 
@@ -1122,7 +1130,7 @@ The reply is sealed to the new device's `wrap_pub`, not only to `secret`: `GET /
 **Freezing burns the vault share — decided 2026-09-11.** `frozen_at` only put out the
 network half: the node stopped accepting the old device's signature. The local half
 stayed — `vault_shares` hangs off the session by cascade, and a session is marked
-rather than deleted — so the old phone went on decrypting everything it had
+rather than deleted — so the old device went on decrypting everything it had
 accumulated, with its own PIN. Somebody who lost a device and raised their identity
 with the paper code believed they had shut the door; the door stayed open.
 
@@ -1133,9 +1141,9 @@ asked at exactly the moment they are typing sixteen characters and inventing a n
 PIN — the worst moment for a choice with an irreversible outcome.
 
 The cost is named plainly and it is real: **move to a laptop for an evening and come
-back, and the history on the phone is dead for good.** The disk is not wiped, the
+back, and the history on the previous device is dead for good.** The disk is not wiped, the
 files are there, but half of the key to them exists nowhere any more. In exchange, "I
-lost my phone" really does mean a closed door rather than the appearance of one.
+lost my device" really does mean a closed door rather than the appearance of one.
 
 **Moving a session takes its locks in one order — decided 2026-09-25 by the review panel.**
 Everything that moves an identity's sessions — `vault/init`, issuing and approving a
@@ -1144,7 +1152,7 @@ yearly one and the catch-up) — takes its locks the same way: first the
 `vault_shares` rows in session order, then the `sessions` rows, then the
 `identities` row. The rule is not taste: routes that each took them in their own
 order ran into each other as deadlocks, and the panel reproduced that with tests
-(`identity.lock.order`, `docs/reviews/PANEL_2026-09-25_lock-order.md`). The yearly
+(`identity.lock.order`, panel 2026-09-25). The yearly
 sweeper pass yields rather than waits: it skips a share someone holds
 (`SKIP LOCKED`) and holds the session and identity rows `FOR NO KEY UPDATE`, so as
 not to contend with the key-share lock that every insert referencing an identity
@@ -1163,7 +1171,7 @@ measurement across three engines (`scripts/check-argon2-cost.sh`, probe
 `testing/argon2-cost.mjs`): **Chromium 272 ms, Firefox 272 ms, WebKit 296 ms** at
 64 MB; at 32 MB, 143, 156 and 150 ms. No tab died for memory.
 
-So 64 MB stays. The caveat is named plainly: **this was a laptop, not a phone** —
+So 64 MB stays. The caveat is named plainly: **this was a laptop, not a small device** —
 there it will take several times longer, and it is still a once-per-sign-in operation
 rather than a per-message one. It had to be checked now: the parameters go into the
 key derivation of every device, and changing them after launch would void every vault
@@ -1189,7 +1197,7 @@ share and every paper code at once.
 
 Three lines, chosen because none pretends to be more than it is (the check line added 2026-09-15, below; this said "Two lines" [retired]).
 
-**The "network" line was removed — decided 2026-08-29, and the price is named.** [retired] It used to compare the addresses of both sides: "a laptop and a phone at home give one network, a voice on the line a thousand kilometres away gives another". That signal was the **only verifiable one** on this screen: the label is sent by the same side that is asking for the move, and anything can be written in it. Without it the confirmation rests on a pause and a time rather than on data. What goes with it is a false signal — a phone on mobile data next to you also read "different" — and the requirement for the node to compare two devices' addresses.
+**The "network" line was removed — decided 2026-08-29, and the price is named.** [retired] It used to compare the addresses of both sides: "two devices at home give one network, a voice on the line a thousand kilometres away gives another". That signal was the **only verifiable one** on this screen: the label is sent by the same side that is asking for the move, and anything can be written in it. Without it the confirmation rests on a pause and a time rather than on data. What goes with it is a false signal — a device on mobile data next to you also read "different" — and the requirement for the node to compare two devices' addresses.
 
 **"Called itself", not "device".** The label is sent by the other side, is backed by nothing, and can say anything. Presenting it as fact would be lying on the very screen built against deception.
 
@@ -1208,13 +1216,13 @@ What this step does not do: if the person has been talked into pressing it, it w
 What freezing does **not** do is wipe the disk. The local database stays where it is, but nothing can open it any more: the move burns this device's vault share (above, decided 2026-09-11), and bringing the identity back does not bring the history back.
 
 ```
-laptop is talking ─► transfer to the phone ─► laptop frozen, disk intact
+old device is talking ─► transfer to the new one ─► old device frozen, disk intact
         ...later...
-the phone shows a code ─► the laptop wakes with a new share
+the new device shows a code ─► the old one wakes with a new share
                           ─► empty windows: the old database opens by no means
 ```
 
-On the phone the chats are the same and the windows are empty: the new device has no history and no way to get any — messages are not in the database (§8.8), there is nothing to download. That is not a loss but "nothing here yet", and it should be said that way.
+On the new device the chats are the same and the windows are empty: the new device has no history and no way to get any — messages are not in the database (§8.8), there is nothing to download. That is not a loss but "nothing here yet", and it should be said that way.
 
 An empty window is not the whole of it, though: the old conversations are also **mute** on the new device, because the chat key stayed on the old one. That is fixed by reissuing the key (§8.13), the same way after a transfer and after a recovery.
 
@@ -1315,7 +1323,7 @@ The counter is decremented in its own short transaction, before the action itsel
 
 **With access locked by the PIN limit, all three actions refuse.** That is the price, said out loud: a device locked by the tenth mistake does not move the identity, does not change the PIN and does not start a new identity, because it has nothing left to prove the PIN with. The only way out is the paper code: on the same device recovery lifts `locked_at` and the freeze and returns the counter to ten, and the old PIN opens the history again; a forgotten PIN is replaced by a new one with a new share, and this device's history is lost; on a clean device — a new session, as before (§8.2 below; clarified 2026-09-14, this said "with the share burned… recovery mints a new share" [retired]). Without this rule the hole would be the exact opposite: an unlocked tab holds the signing key in memory, so after ten deliberately wrong entries a stranger with an unlocked tab would get "nothing to check" and walk off with the identity.
 
-**The tenth mistake sets `frozen_at` with the reason `pin_limit` on this device's sessions in the same transaction or, if the session's row is held, the minute's job `take_down_pin_limit` does — decided 2026-09-14 after the review panel (SEC3, SEC-A), clarified 2026-09-26 (B86).** Forbidding the three irreversible actions is not enough: an unlocked tab holds the signing key in memory (this said "in the web the signing key sits outside the share and the tab lock is client-side" [retired], see below), so whoever holds the tab would, after ten deliberately wrong entries, post, write in conversations, report and contact support on the identity's behalf until recovery. The node refuses such a session everywhere except paper-code recovery and a new support request — at most 1 request a day, flagged `from_frozen` for the team, while the identity has no other live session and without reading earlier answers. A device frozen by a move or by closing the identity (`frozen_reason` — `transfer`, `closed`) gets no such exception: otherwise a lost phone would write to support on the identity's behalf after recovery. **In the same transaction — or, if the rows are held, by the minute's job — the freeze takes down what is live, as a step-away does** (the "stepped away" state below): phrases, those still being checked too, are deleted with their likes, queued table lines are deleted, table seats are freed, matches go out, `chat_games` rows are deleted — otherwise they would stay under the name of an identity that can do nothing about them (clarified 2026-09-14 after the review panel). The price is named: both someone who forgot the PIN and someone whose phone was briefly in other hands can use nothing until the code is entered, and without the code lose the identity on this device; a holder of a stolen signing key locks access remotely but no longer erases the correspondence; while the node is under attack, code entry is closed — the pause renews and has no end (`protocol_EN.md` §8, item 7). **A locked PIN is already a freeze, even before `frozen_at` is written — decided by quorum 2026-09-26 (panel 4, K4; B75).** The freeze and the take-down take rows another transaction may hold, and then the minute's job `take_down_pin_limit` finishes them; `locked_at` is written first, in the tenth mistake's own transaction, and the node's guard refuses a session with a locked share as it refuses a frozen one — there is no window in which the tab still signs in the identity's name. A socket already open closes when the tenth mistake commits: `session_frozen` leaves from its own transaction even when the freeze went back (B72). Rejected: admitting a window of up to a minute in the spec — it is the very hole the freeze exists for, and a minute does not bound it: the session's row can be held.
+**The tenth mistake sets `frozen_at` with the reason `pin_limit` on this device's sessions in the same transaction or, if the session's row is held, the minute's job `take_down_pin_limit` does — decided 2026-09-14 after the review panel (SEC3, SEC-A), clarified 2026-09-26 (B86).** Forbidding the three irreversible actions is not enough: an unlocked tab holds the signing key in memory (this said "in the web the signing key sits outside the share and the tab lock is client-side" [retired], see below), so whoever holds the tab would, after ten deliberately wrong entries, post, write in conversations, report and contact support on the identity's behalf until recovery. The node refuses such a session everywhere except paper-code recovery and a new support request — at most 1 request a day, flagged `from_frozen` for the team, while the identity has no other live session and without reading earlier answers. A device frozen by a move or by closing the identity (`frozen_reason` — `transfer`, `closed`) gets no such exception: otherwise a lost device would write to support on the identity's behalf after recovery. **In the same transaction — or, if the rows are held, by the minute's job — the freeze takes down what is live, as a step-away does** (the "stepped away" state below): phrases, those still being checked too, are deleted with their likes, waiting table lines (none exist since 2026-10-13) are deleted, table seats are freed, matches go out, `chat_games` rows are deleted — otherwise they would stay under the name of an identity that can do nothing about them (clarified 2026-09-14 after the review panel). The price is named: both someone who forgot the PIN and someone whose device was briefly in other hands can use nothing until the code is entered, and without the code lose the identity on this device; a holder of a stolen signing key locks access remotely but no longer erases the correspondence; while the node is under attack, code entry is closed — the pause renews and has no end (`protocol_EN.md` §8, item 7). **A locked PIN is already a freeze, even before `frozen_at` is written — decided by quorum 2026-09-26 (panel 4, K4; B75).** The freeze and the take-down take rows another transaction may hold, and then the minute's job `take_down_pin_limit` finishes them; `locked_at` is written first, in the tenth mistake's own transaction, and the node's guard refuses a session with a locked share as it refuses a frozen one — there is no window in which the tab still signs in the identity's name. A socket already open closes when the tenth mistake commits: `session_frozen` leaves from its own transaction even when the freeze went back (B72). Rejected: admitting a window of up to a minute in the spec — it is the very hole the freeze exists for, and a minute does not bound it: the session's row can be held.
 
 **In the web the private halves are kept only wrapped, as in `depth` — decided 2026-09-15 by the owner after the final panel (SEC-2).** The private halves of the signing and wrapping keys lie in IndexedDB only wrapped (`wrapKey`, AES-KW under a key derived from the vault key). On unlock the tab unwraps them into memory as `extractable: false`; on locking it forgets them. A locked tab holds no socket and accepts no messages until the PIN. [retired] Until this day both halves lay in IndexedDB as bare `CryptoKey` objects and the tab lock was client-side: whoever opened the storefront in the same browser profile could sign requests, take a socket ticket and unwrap new `chat_key_wraps` with the wrapping key — post, like and read every new message without the PIN. **Now the web and `depth` are the same:** in both faces keys at rest are opened by the vault key, the PIN plus the node's share. The price is named: every unlock costs an exchange with the node, and a locked tab learns of new messages only after the PIN.
 
@@ -1543,7 +1551,7 @@ CREATE TABLE feed_messages (
   discount_value   text,                                      -- NULL = an ordinary phrase
   conditions       text,                                      -- limits on the discount
   created_at       timestamptz NOT NULL DEFAULT now(),        -- when it was submitted
-  visible_at       timestamptz,                               -- NULL = waiting on the moderation queue
+  visible_at       timestamptz,                               -- NULL = written and waiting for the moderator's verdict inside the same request (seconds, not a queue — 2026-10-13)
   expires_at       timestamptz,                               -- set together with visible_at, same UPDATE
   CONSTRAINT feed_published CHECK ((visible_at IS NULL) = (expires_at IS NULL))
 );
@@ -1554,11 +1562,11 @@ CREATE INDEX feed_by_author ON feed_messages (author_identity) WHERE author_iden
 CREATE UNIQUE INDEX feed_one_waiting ON feed_messages (author_identity) WHERE visible_at IS NULL;  -- "one at a time" is this constraint, not the count: a second waiting INSERT raises 23505; a refused row is deleted (checked in postgres:16, 2026-09-14)
 ```
 
-**`brand` is attribution, and only that (clarified 2026-08-21 from the review).** The column stood here commented "every lookup is scoped by it" — describing exactly the visibility boundary that §8 rejects in its first principle above ("the world is one"). Two places gave two opposite rules, and whoever writes the migration would copy the DDL, not a paragraph four hundred lines earlier. The comment is corrected and the column stays: **it takes part in no condition of the feed query, the like or the match**, while the boundary of the DSA snapshot is set not by the column itself but by `visibility` next to each surface (decided 2026-09-07, discussed below): for an offer the face is the boundary, for the feed and tables it is not. The fear this sentence used to carry — a notice carrying somebody else's identifier pulling another tenant's row into the reporter's moderator view — is answered by routing rather than by narrowing the lookup: a notice whose copy belongs to another face is examined by the platform, not by the storefront it was filed through (`relay/node/src/lib/dsa_snapshot.ts`; the test `dsa_snapshot_columns.test.ts` holds that contract and caught the first, too-broad edit).
+**`brand` is attribution, and only that (clarified 2026-08-21 from the review).** The column stood here commented "every lookup is scoped by it" — describing exactly the visibility boundary that §8 rejects in its first principle above ("the world is one"). Two places gave two opposite rules, and whoever writes the migration would copy the DDL, not a paragraph four hundred lines earlier. The comment is corrected and the column stays: **it takes part in no condition of the feed query, the like or the match**, while the boundary of the DSA snapshot is set not by the column itself but by `visibility` next to each surface (decided 2026-09-07, discussed below): for an offer the face is the boundary, for the feed and tables it is not. The fear this sentence used to carry — a notice carrying somebody else's identifier pulling another tenant's row into the reporter's complaint-handling view — is answered by routing rather than by narrowing the lookup: a notice whose copy belongs to another face is examined by the platform, not by the storefront it was filed through (`relay/node/src/lib/dsa_snapshot.ts`; the test `dsa_snapshot_columns.test.ts` holds that contract and caught the first, too-broad edit).
 
 **The snapshot is bounded by what the notifier could see. Decided 2026-09-07.** The world is one while a notice arrives under a brand, and until this day it was unclear what the copy should follow: the storefront it was filed through, or the target. The answer is one rule for every surface, in one sentence: **the copy is bounded by what the notifier could see.** It lands differently per surface only because the surfaces differ.
 
-For the **feed and tables** the world is one: `brand` there is attribution and takes no part in retrieval (see earlier in this same section). A phrase is visible to everyone whichever face they arrived through — so the notifier really did see it, and the lookup is not narrowed by a storefront. The notice follows the target. There is a price, accepted deliberately: **a moderator on the filing storefront will see a row attributed to another tenant.** That is not a leak — the row was public to the whole world before any notice — and refusing to examine it would mean answering "we cannot look at what you are looking at".
+For the **feed and tables** the world is one: `brand` there is attribution and takes no part in retrieval (see earlier in this same section). A phrase is visible to everyone whichever face they arrived through — so the notifier really did see it, and the lookup is not narrowed by a storefront. The notice follows the target. There is a price, accepted deliberately: **a person handling complaints on the filing storefront will see a row attributed to another tenant.** That is not a leak — the row was public to the whole world before any notice — and refusing to examine it would mean answering "we cannot look at what you are looking at".
 
 For a **venue's offer** it is the opposite: `docs/offers/SPEC_EN.md` declares `brand` the column "any search is bounded by", so there the storefront *is* the visibility boundary. An offer published under another face never existed for this reporter, and the right answer is `out_of_scope`, "we did not look under this face" — not "the target expired".
 
@@ -1627,31 +1635,38 @@ Five steps — 100, 300, 1000, 3000, 10000 — widen the set inside which a valu
 
 The area can be placed **anywhere** — there is no check against a real location and no geolocation permission is required. That is deliberate: it lets you set something up in a city you are only travelling to.
 
-**A phrase is moderated before publication — but not inside the request.** The priority here is higher than in chat: the feed is public, anyone in range sees it, and unchecked text there is a shop window. But holding the model inside the HTTP request means paying its weight on every submission, so the check moved **into a queue**:
+**A phrase gets its verdict before publication — inside the request itself, from one model (the owner's decision of 2026-10-13, rewritten).** The priority here is higher than in chat: the feed is public, anyone in range sees it, and unchecked text there is a shop window. There is no person in the check: no queue, no `202` "waits", no `/admin/feed-queue` or `/admin/table-queue` routes, no `FEED_VERDICT` switch. The request waits for the model — at most `MODERATOR_TIMEOUT_MS` (20 seconds by default) — and the author hears the result where they are looking:
 
 ```
-POST /feed  → INSERT feed_messages (visible_at = NULL) → 202, answered at once
-                 │
-                 └─ queue → passed   → visible_at = now(), the phrase is live
-                          → rejected → the row is deleted, the author gets the reason
+POST /feed  → INSERT feed_messages (visible_at = NULL)
+                 │   the rules of §8.3 read the text; their flags go to the model as context
+                 └─ judge() (lib/moderator.ts), the request waits
+                            → publish → visible_at = now(), 200 with visible_at and expires_at
+                            → else    → the row is deleted, 422 moderation_refused with the reason
 ```
+
+The row is still written "waiting", but it lives for seconds and does not leave the node: the `202 checking` inside the node only marks "written, now give the verdict" and is never returned to the client (`routes/feed.ts`). If the request dies between the write and the verdict, the sweeper (below) deletes the row with no verdict rather than publishing it.
+
+**What counts as a refusal and what does not.** The model's `publish` — `200`. Any other outcome — `422` with a reason the author sees and can write around: **"reject"** carries the model's own words and counts toward the pause of §8.3 (a refusal moment is written); **"unsure"**, no answer, a timeout and an overflow of the set of questions in flight (`MODERATOR_CONCURRENCY`, 2 by default) — "try again later", and no moment is written: the author did nothing the pause is for. [retired before 2026-10-13] This said: "reject", "unsure", a failure and a timeout leave the phrase waiting for a person with the model's hint (`202`), and "the model can hold a phrase back; it never refuses one" — there is no human moderator and will not be, the owner's decision.
+
+**With no model (`MODERATOR_URL` unset — the test suites and a node with no model) the rules of §8.3 decide alone:** a clean phrase, or one carrying only the `offer` flag, is published (`200`); any other flag — `422` with the rules' reason, and such a refusal counts toward the pause. The `offer` flag is context for the model, not a refusal: a phrase with a discount is ordinary content (private offers). That keeps the suites meaningful without a model: a clean line goes out, a link or a phone does not.
 
 **"Before publication" stays true, and that is not a formality.** While
-`visible_at` is empty the phrase is in nobody's delivery except its own author's,
-who sees it marked as being checked. That is what the storefront policy says
-("checked before it is published") and what the Art. 28 position in `dsa/` rests
-on; "publish now, take down later" would make both statements false, and "taking
+`visible_at` is empty the phrase is in nobody's delivery. That is what the storefront
+policy says ("checked before it is published") and what the Art. 28 position in `dsa/`
+rests on; "publish now, take down later" would make both statements false, and "taking
 it down quickly" does not undo the people who read it.
 
-**The first tier is rules, and it decides in the request (2026-09-26).** The node reads every phrase with rules (`relay/node/src/lib/feed_verdict.ts`): a link, including one without a scheme, with a Cyrillic domain (`.рф`, `.ру`, `.укр`, `.бел`, `.срб`) and with spelled-out punctuation (`[.]`, `(dot)`, `(точка)`, `(at)`, `(собака)`); a contact — an address, an `@handle`, a messenger by name (`tg`, `telegram`, `whatsapp`…), a telephone of seven digits or more; an offer whole; a repeat of one's own live phrase; a waiting name the rules find something in, or a refused name. Nothing found — the phrase is published in the transaction that wrote it, and the answer is **200** with `visible_at` and `expires_at`; something found — **202** `checking`, the phrase waits for a person as before. A repeat waits rather than being refused: a refusal costs a moment towards the pause. The rules have their own counter, `relay_feed_rules_total{result, reason}`; `relay_feed_verdict_total` stays the queue's, so the alert "nobody decides the feed" is not silenced by the rules' publications. `FEED_VERDICT=queue` turns the rules off, and so does any value other than `rules`. Default `rules` is the coordinator's call by the letter of the owner's task ("a clean phrase goes out at once"); the 2:1 quorum for `queue` was rejected. The price: there is no stop-word list, and rudeness without a link or contact goes out without a person — until the model of §8.14, which will take the flagged half. **With the moderator model on, a phrase clean by the rules does not go out until the model has read it either — the owner's decision, W17-MM, 2026-10-05.** A phrase the rules let through is shown to the local model after it is written and before the answer: its "publish" puts the phrase out at once (200); "reject", "unsure", a failure, a timeout (`MODERATOR_TIMEOUT_MS`) or a full set of questions in flight (`MODERATOR_CONCURRENCY`) leave the phrase waiting for a person with the model's hint (202). When the model cannot say, a person decides, not the rules alone. The model can hold a phrase back; it never refuses one. Without the `MODERATOR_URL` flag nothing changes: the rules publish what is clean.
+**What the rules read (2026-09-26, role changed 2026-10-13).** The node reads every phrase with rules (`relay/node/src/lib/feed_verdict.ts`): a link, including one without a scheme, with a Cyrillic domain (`.рф`, `.ру`, `.укр`, `.бел`, `.срб`) and with spelled-out punctuation (`[.]`, `(dot)`, `(точка)`, `(at)`, `(собака)`); a contact — an address, an `@handle`, a messenger by name (`tg`, `telegram`, `whatsapp`…), a telephone of seven digits or more; an offer whole; a repeat of one's own live phrase; a name the rules find something in. The flags are **a question for the model, not a verdict**: with the model on, a flag refuses nothing by itself, the model looks at the text and the flags together. The rules have their own counter, `relay_feed_rules_total{result, reason}` (the `queued` label value is left from the days of the queue and now means "flagged, sent to the verdict"); `relay_feed_verdict_total` counts the outcomes of a row. There is no stop-word list: rudeness without a link or contact is judged by the model (§8.14). [retired before 2026-10-13] This said: something found — `202 checking`, the phrase waits for a person; a repeat waits rather than being refused; `FEED_VERDICT=queue` turns the rules off (default `rules` is the coordinator's call of 2026-09-26, the 2:1 quorum for `queue` was rejected); with the model on (W17-MM, 2026-10-05) a phrase clean by the rules did not go out until the model had read it, and "reject"/"unsure"/a timeout left the phrase waiting for a person (`202`). Cancelled on 2026-10-09 (WP-4) and 2026-10-13: the verdict is given by the model or, without it, by the rules; there is no human tier.
 
-Two consequences of the queue, settled together with it:
+Two consequences that stay in force:
 
-- **4:20 counts from `visible_at`, not from submission.** Otherwise the queue eats
-  somebody else's life: an hour of backlog and the phrase lives three twenty.
-- **A failing queue closes rather than opens.** If there is nothing to check with
-  — the model did not come up, the queue stalled — the phrase **waits** rather
-  than publishing. Fail-open here is exactly the trick already rejected for links
+- **4:20 counts from `visible_at`, not from submission.** Otherwise the check eats
+  somebody else's life: it dragged on — the phrase lived less than its term.
+- **A failing check closes rather than opens.** If there is nothing to check with
+  — the model did not come up, more questions in flight than the limit, a timeout
+  — the phrase is **not published** (`422` "try again later") rather than going out
+  unread. Fail-open here is exactly the trick already rejected for links
   in offers ("not reviewed within two hours, publish"): it is what gets exploited,
   and it gets exploited at night.
 
@@ -1665,7 +1680,7 @@ ALTER TABLE identity_stats
   ADD COLUMN first_published_at  date;                                 -- first accepted publication, a UTC date
 ```
 
-**Moments, not a number — decided 2026-09-14 after the review panel (D4, D5, S7).** A single `integer` cannot "drop out" after an hour, and after phrases are `DELETE`d — taken down, a step-away — the "four per hour" limit had nothing left to count from. The arrays are cleaned on write and cut to the six and four latest moments — the write expression itself holds the length, not a `CHECK`: a constraint would make the verdict write fail. The window is filtered in the query too: there is no sweeper here, and a failed cleanup does not turn the window into a history. The pause and the next slot are expressions at read time (below). `first_published_at` is written at the first `visible_at` as a UTC date: it serves only the rule "the reporter posted long ago" (offers spec §10.1, storefront mechanics §5). The `identity_stats` row is created in the signup transaction — without it a conditional `UPDATE` silently refuses forever (experiment in `postgres:16`). Handles that send text for checking start with `SELECT … FROM identity_stats WHERE identity = :me FOR UPDATE`, and the check at send time counts what is still being checked: moments are written at the verdict, and without this parallel sends passed the limit before the first verdict (review panel 2026-09-14, `PANEL_2026-09-14_stage2-part1.md`). **A feed phrase goes to checking one at a time — decided 2026-09-14.** While one's own phrase is being checked the next cannot be sent — as it already was while waiting for the name (§8.2); so "four per hour" counts the moments of publications plus the one that waits. **Table lines and applications go in parallel, but the pause counts each one still being checked as a possible refusal:** while a pause is on — refused; outside a pause, if something of one's own is already being checked and together with the refusals within the hour it makes five or more, a new send waits for the verdicts — a **hold** of seconds, not a pause (clarified 2026-09-14 after the review panel: the former "refusals within the hour together with those in the queue at five or more" [retired] held sending until the end of the hour with an empty queue — experiment in `postgres:16`). A row whose checking wait expired is deleted and not counted as queued. **Every verdict is one transaction — refusal, publication, name — and first takes the same `identity_stats` row lock as a send:** deleting or publishing the queued row and appending the moment go together, or a send between them would see the queue already empty and the moment not yet written (widened 2026-09-14 after the review panel: only the refusal was named [retired], and a publication written apart from its moment let a fifth phrase into the hour). The price is named: someone typing fast at a table hits the hold for a few seconds while the verdicts come. The expressions were checked in `postgres:16` on 2026-09-14: nine refusals in a row keep six; refusals at 12:00–12:04, 12:30 and 12:55 hold the pause until 13:10; a sixth refusal after the pause within the same hour sets a new one; a publication on the same day as the offer does not count. The price of the date: "older than a day" is in fact 24 to 48 hours.
+**Moments, not a number — decided 2026-09-14 after the review panel (D4, D5, S7).** A single `integer` cannot "drop out" after an hour, and after phrases are `DELETE`d — taken down, a step-away — the "four per hour" limit had nothing left to count from. The arrays are cleaned on write and cut to the six and four latest moments — the write expression itself holds the length, not a `CHECK`: a constraint would make the verdict write fail. The window is filtered in the query too: there is no sweeper here, and a failed cleanup does not turn the window into a history. The pause and the next slot are expressions at read time (below). `first_published_at` is written at the first `visible_at` as a UTC date: it serves only the rule "the reporter posted long ago" (offers spec §10.1, storefront mechanics §5). The `identity_stats` row is created in the signup transaction — without it a conditional `UPDATE` silently refuses forever (experiment in `postgres:16`). Handles that send text for checking start with `SELECT … FROM identity_stats WHERE identity = :me FOR UPDATE`, and the check at send time counts what is still being checked: moments are written at the verdict, and without this parallel sends passed the limit before the first verdict (review panel 2026-09-14). **A feed phrase goes to checking one at a time — decided 2026-09-14.** While one's own phrase is being checked (the seconds of a request) the next cannot be sent; so "four per hour" counts the moments of publications plus the one that waits for its verdict. **If the items being checked together with the refusals within the hour make five or more, a new send waits for the verdict — a hold of seconds, not a pause** (clarified 2026-09-14 after the review panel: the former "refusals within the hour together with those in the queue at five or more" [retired] held sending until the end of the hour with an empty queue — experiment in `postgres:16`). Edit of 2026-10-13: the hold counts only the waiting feed phrase (`lib/feed_limits.ts`); table lines and applications get their verdict before the write and leave no waiting rows, and there is no waiting name any more. [retired] This said: "Table lines and applications go in parallel, but the pause counts each one still being checked as a possible refusal". A row that never got its verdict (the request died) is deleted by the sweeper and does not count. **Every verdict is one transaction — refusal, publication, name — and first takes the same `identity_stats` row lock as a send:** deleting or publishing the waiting row and appending the moment go together, or a send between them would see that nothing is waiting any more and the moment not yet written (widened 2026-09-14 after the review panel: only the refusal was named [retired], and a publication written apart from its moment let a fifth phrase into the hour). The price is named: someone typing fast at a table hits the hold for a few seconds while the verdicts come. The expressions were checked in `postgres:16` on 2026-09-14: nine refusals in a row keep six; refusals at 12:00–12:04, 12:30 and 12:55 hold the pause until 13:10; a sixth refusal after the pause within the same hour sets a new one; a publication on the same day as the offer does not count. The price of the date: "older than a day" is in fact 24 to 48 hours.
 
 ```sql
 -- writing a verdict: a one-hour window, at most the six latest moments (four for publications, `- 3`)
@@ -1699,7 +1714,7 @@ UPDATE identity_stats
  WHERE identity = :author;
 COMMIT;
 
--- "four per hour" when sending a phrase: moments of publications plus one's own waiting phrase
+-- "four per hour" when sending a phrase: moments of publications plus one's own, waiting for its verdict
 (SELECT count(*) FROM unnest(published_at_recent) t WHERE t > now() - interval '1 hour')
   + (SELECT count(*) FROM feed_messages WHERE author_identity = :me AND visible_at IS NULL) < 4
 
@@ -1708,15 +1723,15 @@ WITH s AS (SELECT rejected_at_recent AS r FROM identity_stats WHERE identity = :
      p AS (SELECT max(t) AS m FROM s, unnest(s.r) t),
      w AS (SELECT (SELECT count(*) FROM s, unnest(s.r) t, p WHERE t > p.m - interval '1 hour') AS in_pause_window,
                   (SELECT count(*) FROM s, unnest(s.r) t WHERE t > now() - interval '1 hour') AS refusals_in_hour,
-                  (SELECT count(*) FROM table_lines   WHERE author_identity = :me AND visible_at IS NULL)
-                + (SELECT count(*) FROM feed_messages WHERE author_identity = :me AND visible_at IS NULL)
-                + (SELECT count(*) FROM identities    WHERE id = :me AND name_state = 'pending') AS queued)
+                  -- since 2026-10-13 only a feed phrase can be a waiting row: table lines and names
+                  -- get the verdict before the write (table_lines and name_state = 'pending' were counted here too)
+                  (SELECT count(*) FROM feed_messages WHERE author_identity = :me AND visible_at IS NULL) AS queued)
 SELECT COALESCE(w.in_pause_window >= 5 AND now() < p.m + interval '15 min', false)  -- the pause: the hour ending at the latest refusal
     OR (w.queued > 0 AND w.refusals_in_hour + w.queued >= 5)                       -- the hold: the hour ending now
 FROM w, p
 ```
 
-The counter grows on every `rejected` and counts **over a sliding hour**, the same one the publishing limit uses. Five refusals in an hour — **15 minutes of blocked sending** for that identity, alongside the per-address rate limit. Everything that goes to checking is blocked — feed phrases, table lines and applications, a name change, an offer like that sends the name, and a hangman word (added 2026-09-15: it goes through the same queue, storefront screen 18); the feed, likes on phrases, conversations and reading stay available, so the penalty fits the offence (clarified 2026-09-14 after the review panel: the screens said "only new phrases", while table lines feed the counter too). **Each further refusal within the same sliding hour — another 15 minutes** (decided 2026-09-14): the pause is computed from the moments of refusals and has no separate deadline. **An expired queue waiting limit is not a refusal:** the outcome "the check did not happen" does not touch the counter, or a model outage would pause everyone. **What the author of a refused phrase sees — the owner's decision, W16-RJ (was: an hour after the last visit, W12-MRn 2026-10-01).** A refusal deletes the phrase and leaves only a moment in `rejected_at_recent` — no text, no id. The feed tells the author "your phrase did not pass moderation and was taken down" without naming the phrase, and the line **stands until the author's next phrase**, however long and however many visits: `GET /inbox` gives `phrases_refused` = 1 while nothing of one's own comes after the latest refusal moment — a phrase row or a publication (a publication's moment outlives a phrase that ran out or was taken down) — and 0 otherwise. One phrase waits for a verdict at a time, so only the latest refusal can stand. A phrase the author takes down before its verdict leaves no trace, and the refusal before it stands again. The pause above counts the same moments over its own hour; that hour does not touch the author's line.
+The counter grows on every `rejected` and counts **over a sliding hour**, the same one the publishing limit uses. Five refusals in an hour — **15 minutes of blocked sending** for that identity, alongside the per-address rate limit. The pause stops sending **feed phrases**; the feed, likes on phrases, conversations and reading stay available, so the penalty fits the offence. [retired before 2026-10-13] This said: everything that goes to checking is blocked — feed phrases, table lines and applications, a name change, an offer like that sends the name, and a hangman word (added 2026-09-15: it goes through the same queue, storefront screen 18; clarified 2026-09-14 after the review panel: table lines feed the counter too). Today in the code only `POST /feed` checks and feeds the pause (`refusalFor`, `refusePhrase`): a table line, a table name and a name change answer a refusal with `422` and no moment and no pause — a divergence from the earlier wording, named here rather than closed silently. **Each further refusal within the same sliding hour — another 15 minutes** (decided 2026-09-14): the pause is computed from the moments of refusals and has no separate deadline. **The outcome "the check did not happen" is not a refusal:** "unsure", a model timeout, an overflow of questions and a row left with no verdict do not touch the counter, or a model outage would pause everyone. **What the author of a refused phrase sees — the owner's decision, W16-RJ (was: an hour after the last visit, W12-MRn 2026-10-01).** A refusal deletes the phrase and leaves only a moment in `rejected_at_recent` — no text, no id. The feed tells the author "your phrase did not pass moderation and was taken down" without naming the phrase, and the line **stands until the author's next phrase**, however long and however many visits: `GET /inbox` gives `phrases_refused` = 1 while nothing of one's own comes after the latest refusal moment — a phrase row or a publication (a publication's moment outlives a phrase that ran out or was taken down) — and 0 otherwise. One phrase waits for a verdict at a time (the seconds of a request), so only the latest refusal can stand. A phrase the author takes down before its verdict (while the request is still running) leaves no trace, and the refusal before it stands again. The pause above counts the same moments over its own hour; that hour does not touch the author's line.
 
 A person reads the reason for a refusal as a dictionary phrase in the interface language, not the model's own text: the node's free text (`error.message`) never reaches the screen, and a refusal code (`moderation_refused`, `name_refused`) maps to a dictionary key in all seventeen languages — decided by quorum on 2026-10-10; rejected: showing the model's text when it is in the interface language (the language of a short string cannot be detected reliably, and the model's text may echo what the author wrote).
 
@@ -1726,7 +1741,7 @@ A person reads the reason for a refusal as a dictionary phrase in the interface 
 
 The block used to hang on the browser fingerprint so that a new identity would not lift it. There is no fingerprint any more (§8.2), and there is no point pretending: an identity takes ten seconds to make, and an address changes by switching to mobile data. This is **a speed bump, not a wall**. The feed's real defence is the check before publication: refused text is never published, however many identities are created.
 
-The counter is fed **by everything that passes the moderation queue**: feed phrases, lines and applications at a table (§6.1), and a refused name (since 2026-09-14 after the review panel: an offer like sends the name to the queue, and without this a name could be hunted for without limit). A conversation between two is not moderated (§8.8), so there is nothing there to refuse. **Edited 2026-09-14 after the review panel (S11):** this said "by the feed alone" [retired], while table lines go through the same queue and get the same refusal with its reason named — at your own empty table a wording could be hunted for without limit. This is the only place where the server remembers something bad about a person, and what it remembers is the moments of refusals within the last hour, not a text (edited 2026-09-14: "a number" [retired]): the rejected message itself is never written anywhere.
+The counter is fed **by the refusals of feed phrases** (by the code of 2026-10-13, by them alone — see above). A conversation between two is not moderated (§8.8), so there is nothing there to refuse. [retired before 2026-10-13] This said: "by everything that passes the moderation queue": feed phrases, lines and applications at a table (§6.1), and a refused name (since 2026-09-14 after the review panel: an offer like sends the name to the queue, and without this a name could be hunted for without limit); edit of 2026-09-14 (S11) — table lines get the same refusal with its reason named, and at your own empty table a wording could be hunted for without limit. An open consequence: today hunting a wording at a table and in a name change is not bounded by the counter — the per-address rate limit remains. This is the only place where the server remembers something bad about a person, and what it remembers is the moments of refusals within the last hour, not a text (edited 2026-09-14: "a number" [retired]): the rejected message itself is never written anywhere.
 
 **What does the moderating.** Two steps, both on the node:
 
@@ -1741,13 +1756,13 @@ guard       median 1083 ms   max  3376
 total       median 2789 ms   max 11948
 ```
 
-The gap from the old wording is two orders of magnitude, and it changes the construction rather than the phrasing. With a worker taking jobs one at a time the node's ceiling is about **20 phrases a minute**; an evening surge of 60 submissions a minute grows the queue linearly, and the author sees "being checked" throughout. Hence three obligations without which step 2 of §13 must not be written:
+The gap from the old wording is two orders of magnitude, and it changes the construction rather than the phrasing. The model sits in Docker on a network with no way out (`relay/moderator/docker-compose.yml`), questions to it are asked outside the write transaction, and the number of questions in flight is limited (`MODERATOR_CONCURRENCY`, 2 by default): at 2.8 seconds a question the node's ceiling is on the order of **40 phrases a minute** (60 / 2.8 × 2 — a calculation, not a measurement); an evening surge beyond that does not grow a queue, because there is none — the extra question is not asked, and its author hears "try again later" (`422`, no refusal moment written). Hence three obligations without which step 2 of §13 must not be written:
 
 - **inference out of the node's event loop** — 2.8 seconds of CPU in the same process that holds the sockets means message delivery measured in seconds;
-- **queue depth and the age of the oldest unchecked phrase exposed as metrics**, otherwise a backlog is visible only through complaints; today the node's metrics module can only count, and these two are gauges;
-- **a waiting limit named as a number**, past which a phrase does not hang forever: the author is told the check did not happen — `fail-closed` without a deadline turns into a leak of rows that never expire.
+- **the number of "try again later" refusals exposed as a metric** (`relay_moderator_hints_total{verdict}` with `unsure`, `failed`, `dropped`), otherwise an overload is visible only through complaints;
+- **a waiting limit named as a number** — `MODERATOR_TIMEOUT_MS`, 20 seconds by default: when it passes the request does not hang, the author is told the check did not happen — `fail-closed` without a deadline turns into hanging requests.
 
-**The waiting limit is 10 minutes — decided 2026-09-15 by the owner after the final panel (OPS-7).** A phrase with no verdict after 10 minutes is waited for no longer: its queue row is deleted, the slot is freed, and the author sees "the check did not happen, your text is kept — send it again"; the text stays on the device. It does not count toward the refusal pause: nothing was refused. The number is `moderation.queue.wait` in `docs/facts/limits.tsv`; watchdog W6 (`watchdogs_EN.md`) watches the age of the oldest phrase in the queue. The ordinary acceptable wait stays a measurement for the day the queue exists (§8.14). [retired] This said "The limit itself and the acceptable waiting time are the open question in §8.14".
+**The waiting limit: 10 minutes (the owner's decision of 2026-09-15, OPS-7) → the seconds of a request (the owner's decision of 2026-10-13).** The queue that had an age went away together with the human moderator: a phrase with no verdict is no longer waited for in minutes, the verdict comes in the same request or does not come. The number `moderation.queue.wait` (10 minutes, `docs/facts/limits.tsv`) is left only with the sweeper `sweep_feed_queue` (`lib/scheduled.ts`, once a minute): it deletes a phrase row with `visible_at IS NULL` older than that — that is, a request that died between the write and the verdict — and does not publish it; it does not count toward the refusal pause, and the author's slot is freed. Watchdog W6 (`watchdogs_EN.md`) and its letter (`lib/moderation_watch.ts`) in the code still read the age of such rows as "the queue has stopped": an age past nine minutes now means a dead request, not a slow person; what the watchdog means and the threshold in the registry are due for review, which is named here as an open item, not decided. [retired] This said: "A phrase with no verdict after 10 minutes is waited for no longer: its queue row is deleted, the slot is freed, and the author sees 'the check did not happen, your text is kept — send it again'; the text stays on the device. The number is `moderation.queue.wait`; watchdog W6 watches the age of the oldest phrase in the queue. The ordinary acceptable wait stays a measurement for the day the queue exists (§8.14)".
 
 **A third step — an external model for borderline text — stood here and was
 removed 2026-08-17.** It contradicted the "Bounds" further down this same
@@ -1780,7 +1795,7 @@ SELECT f.id, f.text, f.mode,
        f.area_radius, f.like_count   -- no time: with a fixed span the start is the end (§8.11, 2026-09-24)
 FROM feed_messages f
 JOIN identities author ON author.id = f.author_identity
-WHERE f.visible_at IS NOT NULL                                      -- passed the queue; without this the feed serves unchecked text
+WHERE f.visible_at IS NOT NULL                                      -- got the verdict "publish"; without this the feed serves unchecked text
   AND f.expires_at > now()
   AND author.closed_at IS NULL                                      -- a closed identity leaves the feed
   AND f.lat BETWEEN :lat - :deg AND :lat + :deg                     -- cheap index prefilter
@@ -1806,7 +1821,7 @@ WHERE f.visible_at IS NOT NULL                                      -- passed th
 ORDER BY f.visible_at DESC
 ```
 
-**Ordered by `visible_at`, not by `created_at` (edit of 2026-08-21).** A phrase held up by the queue gets its full 4:20 from the moment of publication — that is settled above — but sorting by submission time would drop it straight into the depths of the feed. The queue would be eating its life a second way, and the storefront's promise of a chronological feed would not mean what a person sees. **The time on the card is `visible_at` too — clarified 2026-09-15 after the final panel (DATA-16):** the response field keeps the name `created_at` but carries `visible_at`, or a phrase that waited an hour would show a time an hour older than its neighbours. [retired] Since 2026-09-24 the card carries no time at all (§8.11, the owner's decision); the `next` cursor carried `visible_at` to the microsecond (`reviews/PANEL_2026-09-24_owner-decisions.md`) [retired]; **since 2026-09-24 it is sealed** — AES-256-GCM under the pool's key, and a cursor the pool did not issue answers 400 (`relay/node/src/lib/cursor.ts`, protocol §6; the owner's decision).
+**Ordered by `visible_at`, not by `created_at` (edit of 2026-08-21).** A phrase held up by the check gets its full 4:20 from the moment of publication — that is settled above — but sorting by submission time would drop it straight into the depths of the feed. The check would be eating its life a second way, and the storefront's promise of a chronological feed would not mean what a person sees. **The time on the card is `visible_at` too — clarified 2026-09-15 after the final panel (DATA-16):** the response field keeps the name `created_at` but carries `visible_at`, or a phrase that waited an hour would show a time an hour older than its neighbours. [retired] Since 2026-09-24 the card carries no time at all (§8.11, the owner's decision); the `next` cursor carried `visible_at` to the microsecond [retired]; **since 2026-09-24 it is sealed** — AES-256-GCM under the pool's key, and a cursor the pool did not issue answers 400 (`relay/node/src/lib/cursor.ts`, protocol §6; the owner's decision).
 
 `:deg = (viewer_radius + 10000) / 111320` — the maximum phrase radius is known up front (10 km), so the box needs no data. Index: a plain `btree (lat, lon)`.
 
@@ -1949,25 +1964,32 @@ everyone at once — there is nothing to circumvent.
 
 #### The frame for the moderation model
 
-No specific model is named here, and that is a decision rather than an omission:
-once the check moved into a queue the choice became **reversible** — same input,
-same output, a swap touches neither the schema nor the clients. So there is no
-reason to choose blind today; what is fixed instead is the frame, and the model
-itself is the result of a measurement on the day the queue exists.
+No specific model is named in the spec, and that is a decision rather than an
+omission: once the check became a single `judge()` call the choice became
+**reversible** — same input, same output, a swap touches neither the schema nor
+the clients. So there is no reason to choose blind today; what is fixed instead is
+the frame, and the model itself is the result of a measurement. In the code the
+default is `qwen2.5:3b-instruct` (`MODERATOR_MODEL`,
+`relay/node/src/lib/moderator.ts`).
 
-**Where it runs.** On the node, in the queue. The text of a phrase **does not
-leave the node** — that is recorded in the processing register and promised in the
-storefront policy, so an external moderation service is excluded regardless of its
-quality.
+**Where it runs.** On the node, as a call inside the request (not in a queue). The
+text of a phrase **does not leave the node** — that is recorded in the processing
+register and promised in the storefront policy, so an external moderation service
+is excluded regardless of its quality. [retired before 2026-10-13] This said "On the
+node, in the queue".
 
 **Memory.** The node is a `cpx22` — 4 GB for everything, Postgres, Caddy and Deno
 included. The model's budget is at most **1.5 GB** resident, and it may not push
 Postgres out of memory: the database comes first here, the model second.
 
-**Throughput matters more than the speed of one check.** A person no longer sees
-the latency, but when the queue falls behind the phrases **wait** (fail-closed
-above) — that is, the feed empties. The target is to hold the publication peak
-without the queue growing; the number comes from a measurement, not from thin air.
+**Throughput matters more than the speed of one check.** The request waits seconds
+for the verdict, and under overload (more questions in flight than
+`MODERATOR_CONCURRENCY`) a phrase does not wait in a queue but gets "try again
+later" (fail-closed above) — that is, the feed empties through refusals, not
+through a growing queue. The target is to hold the publication peak without
+"try again later" refusals; the number comes from a measurement, not from thin air.
+[retired before 2026-10-13] This said: "when the queue falls behind the phrases wait
+… without the queue growing".
 
 **Languages that must work:** the storefronts' six — English, Russian, French,
 German, Spanish, Greek. And above all: **a mixed phrase is the norm, not an edge
@@ -2010,9 +2032,9 @@ EXISTS (SELECT 1 FROM feed_messages
 OR (SELECT discount_value IS NOT NULL FROM feed_messages WHERE id = :target)
 ```
 
-The second consequence matters more than the first, and the rule is written down for it: to like, you must publish, and publishing takes the name through the queue (§8.2). So an unchecked name reaches nobody's screen by any route — neither through a post nor through a match.
+The second consequence matters more than the first, and the rule is written down for it: to like, you must publish, and a name change gets the moderator's verdict (§8.2; since 2026-10-13 at once, in `PATCH /identities/me`, not together with the phrase through a queue). So an unchecked name reaches nobody's screen by any route — neither through a post nor through a match.
 
-**For a like on an offer without a phrase of one's own this is ensured separately — decided 2026-09-14 after the review panel (S7).** The exception above lets that like past publication, and so past the name queue, which made the promise a paragraph up untrue: the offer's author saw a name nobody had checked. Such a like now first sends the unchecked name to the queue, and the match appears only after the verdict. Name refused — no match, and the liker sees the line for a like on an offer (`xor.ad/docs/refusal-wordings_EN.md` §3; clarified 2026-09-14 — this said "the same text as when a phrase is waiting" [retired]: the liker has no phrase). The like waits meanwhile, as a phrase would (§8.2): the corrected name goes through the queue, and the match appears by itself if the offer is still alive.
+**For a like on an offer without a phrase of one's own this is ensured separately — decided 2026-09-14 after the review panel (S7).** The exception above lets that like past publication, and so past the name verdict, which made the promise a paragraph up untrue: the offer's author saw a name nobody had checked. Such a like then first sent the unchecked name to the queue, and the match appeared only after the verdict. Name refused — no match, and the liker sees the line for a like on an offer (`xor.ad/docs/refusal-wordings_EN.md` §3; clarified 2026-09-14 — this said "the same text as when a phrase is waiting" [retired]: the liker has no phrase). The like waited meanwhile, as a phrase would (§8.2): the corrected name went through the queue, and the match appeared by itself if the offer was still alive. **2026-10-13 — owner: moderation is the model alone, synchronously, there is no human queue of names.** A new name gets its verdict in `PATCH /identities/me` (`422 name_refused` on refusal), the node does not create a waiting name; the code still keeps the `name_pending` branch in `POST /likes` (`routes/likes.ts`), and a match still requires `accepted` on both sides.
 
 Counting must happen **at event time**: `likes` are cleaned along with the phrase, so a day later there is nothing left to count.
 
@@ -2481,7 +2503,7 @@ The feed query (§8.3) gains `AND NOT EXISTS (SELECT 1 FROM hidden_messages h WH
 |---|---|---|---|
 | Hide a phrase | one phrase, for me only | nobody | until the phrase dies (`CASCADE`) |
 | Block a person | all their phrases, the match and the shared chat, both ways | nobody | until lifted |
-| Report | nothing immediately — it is a signal to us | a moderator | per the procedure (§8.10) |
+| Report | nothing immediately — it is a signal to us | a person who handles complaints | per the procedure (§8.10) |
 
 Hiding is **silent and one-way**: the author is not told, their feed does not change, the like count is untouched. It is a viewer's filter, not a sanction, and it must not be confused with reporting — otherwise someone who simply does not want to see a thing ends up in the moderation queue.
 
@@ -2523,7 +2545,7 @@ This paragraph used to say the key came from "the same secret that signs request
 
 **In the panel it is marked as one side's word.** The copy came from the
 reporter and we have nothing to check it against — no original, no second
-version. The moderator sees that mark beside the text rather than inferring it.
+version. The person handling the complaint sees that mark beside the text rather than inferring it.
 A decision leans on it as a **signal**, not as evidence: measures against an
 identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 
@@ -2538,13 +2560,13 @@ identity only follow from independent grounds (§5.2 in `dsa/SPEC_EN.md`).
 
 **Expiry of other people's phrases was added to "Never" on 2026-09-08.** The
 promise was already being cited as obvious — in the reasoning for why the quota
-screen does not show the time a slot frees (`refusal-wordings_EN.md`) [retired: there was no such reasoning, see the clarification below] — and it
+screen does not show the time a slot frees [retired: there was no such reasoning, see the clarification below] — and it
 was not in the list. Obvious does not survive in a list like this one: the list
 is what people read when deciding what may go out. Same device as §8.3, where the
 centre is rounded to a cell: the feed must not work as a measuring instrument on
 other people's spans.
 
-**Clarified 2026-09-14: there was no "reasoning" in `refusal-wordings_EN.md`, and
+**Clarified 2026-09-14: there was no "reasoning" in the refusal wordings, and
 one's own spans are shown.** The paragraph above cited a reasoning for why the quota
 screen does not show when a slot frees; the review panel of 2026-09-11 found one line
 saying "in a few minutes" and not a single argument in that file. A slot is freed by
@@ -2792,8 +2814,10 @@ caught, 0.07 blocked for nothing" describes the **native** arm, the one we did
 not take; for the arm we did, the honest numbers are **0.46 and 0.07**, and they
 are corrected in both storefronts' mechanics.
 
-**What stays open:** the queue's throughput (§8.3) — a separate measurement on
-live hardware, made on the day the queue appears.
+**What stays open:** the moderator's throughput (§8.3: how many questions a second
+the model sustains at `MODERATOR_CONCURRENCY` before the author hears "try again
+later") — a separate measurement on live hardware. [retired before 2026-10-13] This
+said "the queue's throughput … made on the day the queue appears".
 
 ## 9. UI states and breakpoints
 
@@ -2875,24 +2899,30 @@ order would produce an API the terminal would have to be bent to fit.
    overridden, because a window without insurance has no way out, while a screen
    that fails to convince mends itself — the person returns a day later.
    Everything else rests on "who is this".
-**There is no unchecked-name window — decided 2026-08-20.** A gap used to stand
-here: a name goes through the same moderation queue as a phrase, the queue only
-arrives at step 2, and so between steps 1 and 2 a name was accepted unchecked.
-The gap is closed by moving the moment of the check, not the order of the steps.
+**There is no unchecked-name window — decided 2026-08-20, rewritten 2026-10-13.**
+A gap used to stand here: a name goes through the same moderation queue as a
+phrase, the queue only arrives at step 2, and so between steps 1 and 2 a name was
+accepted unchecked. The gap was closed by moving the moment of the check, not the
+order of the steps. Since 2026-10-13 (owner: moderation is the model alone,
+synchronously) there is no queue at all: the verdict is given by `judge()` inside
+the request — on a phrase and on a name change.
 
-**The name is checked at the first publication** — no queue is needed at step 1,
-because until the first post the name is visible to nobody: the feed never
-reveals an author (§8.11), and another person's eye reaches the name only from
-the first match, which is after step 4. From then on the same queue checks the
-name **on every change**.
+**The first name is accepted at registration unchecked** — until the first post it
+is visible to nobody: the feed never reveals an author (§8.11), and another
+person's eye reaches the name only from the first match, which is after step 4.
+Every **change** of the name gets the moderator's verdict at once, in
+`PATCH /identities/me` (`422 name_refused` on refusal).
 
 ```
-step 1  name accepted, seen by nobody     nothing to check and no reason to
-step 2  first post → the queue exists     the name rides into it with the phrase
-        name rejected → the phrase WAITS  only both together reach the feed;
-        the author is asked to fix it     fix the name and it publishes itself
-step 4  first match                       the name is first seen by another
+step 1  name accepted, seen by nobody       nothing to check and no reason to
+step 2  first post → verdict in the request 200 — out; 422 — not out, reason to the author
+        name change → verdict in the request 200 — name changed; 422 — the old one stands
+step 4  first match                         the name is first seen by another
 ```
+
+[retired before 2026-10-13] The scheme here said: "step 2 first post → the queue
+exists, the name rides into it with the phrase; name rejected → the phrase WAITS,
+only both together reach the feed; fix the name and it publishes itself".
 
 **While the name stands rejected, no match opens.** This is a consequence of
 §8.11 rather than a separate rule: the name is visible only from a match, so the
@@ -2901,7 +2931,7 @@ stays alive meanwhile: it passed its own check, and there is nothing to delete i
 for over a mistake in a different field.
 
 2. **Feed and geography** (§8.3) — `feed_messages`, delivery by circle overlap,
-   age bands, moderation before publication through a queue. **With this step, not
+   age bands, moderation before publication by the moderator's verdict (synchronous, 2026-10-13). **With this step, not
    after it:** the Article 17 statement screen for an author with no email
    (`dsa/SPEC_EN.md` §7). We never ask for an address, so an author usually has
    none, and without that screen the first restriction is a silent removal. The
@@ -2914,7 +2944,7 @@ for over a mistake in a different field.
    `LISTEN`/`NOTIFY` bus, delivery and acknowledgements. The largest part, and
    it depends on none of the open questions.
 6. **Encryption** (§8.13) — the ephemeral exchange, `chat_key_wraps`,
-   unwrapping on a second device. A separate step after transport: first let
+   unwrapping after the identity moves to a new device. A separate step after transport: first let
    messages travel, then let them travel encrypted.
 7. **Blocks and hiding** (§8.9), **cleanup and `alive`** (§8.10).
 8. **Notifications** (§8.12) and **games** (§6) last: the scheme works without
@@ -2982,7 +3012,7 @@ decision to put the terminal first.
 ## 14. Acceptance criteria
 
 What "the chat is done" means, checkable rather than eyeballed. Broken down by flow
-and turned into queries, these criteria live in [`test-map_EN.md`](test-map_EN.md);
+and turned into queries, these criteria live in the node's tests and the project gates;
 here are the ones without which the chat is not done at all:
 
 - Two clients hold a conversation and in at least one pair one of them is
@@ -2994,8 +3024,8 @@ here are the ones without which the chat is not done at all:
   whether a conversation survives a **node restart** — sockets break, clients
   reconnect, the chat continues with the same history. The neighbouring-node
   criterion returns the day a shared Postgres does.
-- An identity transferred to a second device shows **the same chats and empty
-  windows** there; the previous device freezes and, once the identity comes back,
+- An identity transferred to a new device shows **the same chats and empty
+  windows** there; at that moment the previous device freezes (two devices never work at once) and, once the identity comes back,
   its old history opens by no means — the share was burned by the move (§8.2),
   and this is tested the same way as ten wrong PINs. `depth` has nothing to bring
   back anyway: it writes nothing to disk but keys, so its windows are as empty after a

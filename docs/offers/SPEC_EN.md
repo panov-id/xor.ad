@@ -613,7 +613,7 @@ contract the Terms deliberately keep it out of (`../dsa/README_EN.md`, §6).
 Rules:
 
 - any user who saw the offer may complain; no proof of a visit is required
-- complaints are **private**: visible only to the moderator and the advertiser. They are never
+- complaints are **private**: visible only to the operator and the advertiser. They are never
   displayed publicly
 - the author is shown the text and the date, **without the complainant's identity and without
   the time**
@@ -624,13 +624,13 @@ Rules:
 
 The dispute:
 
-    complaint (private) → moderator
+    complaint (private) → operator
                               ↓
         advertiser replies (private) → decision: resolved | rejected
 
 - `resolved` — the complaint was found justified
 - `rejected` — the complaint was dismissed and does not count in the author's statistics
-- systematic justified complaints → `verification_status: suspended`, set by a moderator by
+- systematic justified complaints → `verification_status: suspended`, set by an operator by
   hand (the threshold and window are in 10.2)
 
 **Forbidden:** publishing complaints, letting the author delete complaints, disclosing the
@@ -690,7 +690,7 @@ complainant   by email to the address given: the decision and its reason,
 
 **Systematic behaviour.** `SUSPEND_RESOLVED_COUNT` `resolved` decisions on **different** offers
 within `SUSPEND_WINDOW_DAYS` → `verification_status: suspended` for the venue, set by a
-moderator by hand. The window keeps a seasonal venue from accumulating sins for years; the count
+operator by hand. The window keeps a seasonal venue from accumulating sins for years; the count
 keeps one failure from closing a working place. The "this is not us" button (section 11) is a
 separate and instant path and has nothing to do with this counter.
 
@@ -699,13 +699,13 @@ separate and instant path and has nothing to do with this counter.
 A separate type, filed from the interstitial (6.2). How it differs from a discount complaint:
 
 - it takes no part in `AUTOHIDE_COMPLAINTS` and does not consume `COMPLAINT_MONTHLY_LIMIT`
-- it enters the moderator's queue at high priority
+- it enters the operator's queue at high priority
 - **two complaints from different people are enough**, and the second extinguishes the link
   immediately and automatically: `redirect_disabled_at` is set with no person involved. The
   offer stays in the feed, but the jump no longer works.
   **Only complaints from people whose first accepted publication came out, by UTC date, no later than the day before yesterday (24 to 48 hours)
   and before the day the offer came out count — decided 2026-09-14 after the
-  review panel (S14), refined the same day.** Other complaints reach a moderator at the same
+  review panel (S14), refined the same day.** Other complaints reach an operator at the same
   high priority but extinguish nothing by themselves. [retired] This said "that have had a
   publication accepted" — which cost one harmless phrase per identity.
 
@@ -714,7 +714,7 @@ A separate type, filed from the interstitial (6.2). How it differs from a discou
   two are two people**: an identity costs nothing, and without the publication condition a
   competitor could extinguish someone else's link from two private windows in a minute. The
   price of the condition: a neighbour who has never written in the feed cannot extinguish a link
-  alone — their complaint waits for a moderator. The threshold
+  alone — their complaint waits for an operator. The threshold
   is deliberately low: the cost of a mistake is asymmetric here — a link extinguished for
   nothing is repaired by an examination, a deceived neighbour is repaired by nothing
 - it is not shown to the author, **but the venue gets an email the moment the link goes dark**, to
@@ -741,7 +741,7 @@ CREATE TABLE offer_link_reports (
 ```
 
 - `counts` = the reporter's first publication (`identity_stats.first_published_at`) is
-  **older than a day and earlier than the offer**; otherwise the report goes to a moderator
+  **older than a day and earlier than the offer**; otherwise the report goes to an operator
   and disables nothing.
 - The transaction starts with `SELECT … FROM offers WHERE id = :offer FOR UPDATE`, then
   `INSERT … ON CONFLICT DO NOTHING`, then `redirect_disabled_at = now()` once two `counts`
@@ -750,7 +750,7 @@ CREATE TABLE offer_link_reports (
 
 ### 10.3. Complaints are not deleted on request — only by time
 
-**Nobody can have a complaint removed: not the venue, not the moderator, not us.**
+**Nobody can have a complaint removed: not the venue, not the operator, not us.**
 The only thing that removes a complaint is retention running out: a year from the
 last offer, together with the account and its venues (section 13).
 
@@ -771,7 +771,7 @@ thing complaints are kept for at all — the ability to see a pattern.
 
 **One exception, and it is about content rather than removal.** A complaint is
 written by a stranger, and its text may contain a third party's personal data or
-something outright illegal. The moderator then **redacts the passage** rather than
+something outright illegal. The operator then **redacts the passage** rather than
 deleting the record, and the fact of redaction is stored with its date. That way
 the data-protection duty is met and history is not rewritten after the fact.
 
@@ -817,7 +817,7 @@ than the thing is.
 
 ## 12. Prohibitions
 
-An offer is refused, or hidden by a moderator, if it:
+An offer is refused, or hidden by the model, if it:
 
 - has no `discount_value`
 - promotes a stop category: the list is one for the whole product and lives in `chat_EN.md`
@@ -922,7 +922,7 @@ The accepted defence is two layers with no person on the publication path:
    (6.1)
 2. the interstitial with the full domain and a report button (6.2)
 
-Plus a moderator's **"hide now"** tool — without waiting for three complaints, for obvious junk.
+Plus hiding by the model — without waiting for three complaints, for obvious junk.
 
 The residual risk is honest and does not go away: an inattentive person will follow the link
 despite the screen. If a neighbour is defrauded through an offer, a disclaimer will not stop

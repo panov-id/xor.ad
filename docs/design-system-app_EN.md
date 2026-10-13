@@ -104,7 +104,7 @@ The delta is kept here and only here. Every difference carries its reason.
 ## Typography
 
 **Six steps and two weights — the owner's decision of 2026-09-18:** the review
-panel (`reviews/PANEL_2026-09-18_mockups-design.md`, the "Typography" lens) counted
+panel (the "Typography" lens) counted
 16 type sizes across the sheets at two weights, with family C holding six roles on
 17/16/15/14 — a one-pixel step of hierarchy, and a heading told from body text by
 nothing but weight. Hence "a wireframe". The scale is established here, adjacent
@@ -121,7 +121,7 @@ steps differ by 1.25–1.3×, and line height belongs to the step, not to the sh
 | `--fs-mono` | 13 / 20 | 400 | `--mono` = JetBrains Mono | where tabular width matters: the timer, `9/256`, the score, a ticket number |
 
 The seventh step `--fs-meta-strong` 14/600 was added by the "Feed" cluster panel the same day. The screen header is 20/600, not 18: the "Screen header" row of
-`reviews/NIGHT_2026-09-18_mockups-consistency.md` was rewritten the same day. Outside
+the consistency summary was rewritten the same day. Outside
 the scale: board coordinates at 11 mono — a single exception, below 11 the dark theme
 at 375 px is unreadable. The scale was applied to the `<style>` of every
 `panel/design/screen-*.svg` sheet by one script (70 rules); the sheets were then
@@ -184,7 +184,7 @@ The roll-out across the 14 sheets is a separate pass; until then the rules live 
 **Three signs in form — the lens quorum's decision of 2026-09-18** (the owner gave
 the word to work unattended until 13:00; the mock-up `panel/design/signs-mockup.svg`
 with variants A/B and four questions, three lenses — visual, UX, accessibility —
-voted independently; the record is in `reviews/PANEL_2026-09-18_mockups-design.md`, section 6).
+voted independently).
 
 - **Disappearance — a lifespan bar**, 3 px, at the bottom of the card under the
   caption (3 votes of 3): the track `--border-control`, the fill `--accent`, the
@@ -226,7 +226,7 @@ control's state in two) narrows, for the application, to controls. Hover, focus,
 the chosen segment, the tab, the counters — snap, and `transition: none` is written
 explicitly. An event moves: a reply or a phrase arrived, someone else's move came in, a
 sheet slid out, the table dimmed after a removal. The review panel of 2026-09-18
-(`reviews/PANEL_2026-09-18_mockups-design.md`, section 1.3) produced a catalogue of 18
+produced a catalogue of 18
 animations with code; here is what of it is the rule.
 
 **Time is a number and a step of tone, with no pulsing.** The conversation's remainder,
@@ -367,7 +367,7 @@ share of each sheet is counted by `scripts/design-kit-share.py`.
 
 One mechanic, one kit, two recognisable faces — the night brief of 2026-09-20 at the owner's
 request ("interesting and hard to confuse"). The decisions were taken by a quorum of three
-independent authors; the raw briefs and the votes are in `docs/reviews/NIGHT_2026-09-20_design.md`.
+independent authors.
 The storefronts' screens are mirrored word for word (`scripts/check-screens-mirror.sh`), so the
 character is carried by ground, rhythm, shape and typeface, not by wording.
 
@@ -420,7 +420,7 @@ sub-pixel placement nor seven type steps. It has a cell.
 
 ## Component vocabulary
 
-Collected 2026-09-16 from the storefront screens 01–24 (research agent; every row checked by the lead against the screens while preparing the drawing brief). Screen 16 "Stickers" is outside the alpha and not in the vocabulary. Fifty components; "none — mockup" means the design system has no rule and the screen's mockup sets it.
+Collected 2026-09-16 from the storefront screens 01–24 (research agent; every row checked by the lead against the screens while preparing the drawing brief). Screen 16 "Stickers" is in the alpha (a small fixed set of standard reaction stickers, tappable in a conversation and at a table); it has no row in the vocabulary, and the screen's mockup sets its rule. Fifty components; "none — mockup" means the design system has no rule and the screen's mockup sets it.
 
 | Component | Screens | States the mockup must show | Rule or token |
 |---|---|---|---|
@@ -525,7 +525,7 @@ the theme is the web's one colour source. By the owner's decision of 2026-10-02 
 - **Icons and ⓘ.** An action button is a 44×44 icon with an `aria-label` (`web/src/ui/Icon.tsx`);
   an explanation sits behind an ⓘ button (`web/src/ui/Info.tsx`).
 - **Checks.** Colours only from tokens — `scripts/check-web-tokens.sh`; agreement with the brands'
-  sheets — `scripts/check-web-design.sh`, its order and map in `docs/design/web-vs-sheets_EN.md`.
+  sheets — `scripts/check-web-design.sh`, its order and map in the script itself.
 
 ## Nothing open
 

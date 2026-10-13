@@ -432,7 +432,7 @@ screen reader would call it "left five eighths block". The mock-up
 `scripts/check-design-grid.sh`. The examples below in §4 are still drawn with the old glyphs:
 changing them is a separate decision for the owner.
 
-The same flow as the web (§13 of the spec and `chat-flows_EN.md`, flow 1): splash
+The same flow as the web (§13 of the spec, flow 1): splash
 → name and age → PIN → paper code → area → feed → matches → chat (edit of
 2026-08-26: the code returned to registration).
 The layout assumes 80 columns; narrower is a warning, not a breakage.
@@ -638,7 +638,7 @@ looking. The terminal was showing phrases only.
 **There are three actions on a phrase, not one — edit of 2026-08-27** (screen 5):
 `h` hide, `b` block, `r` report. A single report used to stand here, which meant
 the quiet exit — "stop showing me this" — existed only in the web, and in the
-terminal every irritation had to be taken to a moderator.
+terminal every irritation had to be turned into a complaint.
 
 #### 4.4.1. A card full screen
 
@@ -729,7 +729,7 @@ up a table (4.9):
 enters the feed at once, without a name; the verdict arrives as a `name_verdict` frame — the
 terminal keeps the state `name being checked` on its own table, the same word as on a phrase
 (below), and shows a rejected name as a line with the reason and a field to fix it; the table
-lives on without a name meanwhile. The limit is enforced by the node.
+lives on without a name meanwhile. The limit is enforced by the node. The games in the alpha are more varied, and putting up a table must look beautiful — that is the goal; the rules of new games are not described here.
 
 Feed moderation runs as a **queue before publication** (§8.3), which is not the
 same as "at once": `POST /feed` answers `202` immediately, the phrase sits with
@@ -741,7 +741,7 @@ not exist.
 
 **Refusals at sending — built 2026-09-23** (`depth/ink/rooms.ts`, `Write`). Before, the
 terminal counted any answer of the node as sent, and a refusal showed as "being checked". Now a
-refusal is said in the words of `refusal-wordings_EN.md`, as a red line, and the text stays in
+refusal is said in the words the owner approved, as a red line, and the text stays in
 the field: the pause after five refusals — the whole §4 block with its end (`until`); four this
 hour — "The next one can go at HH:MM" (`next_slot`); four live — "The next slot frees at HH:MM",
 the hour taken from the earliest `expires_at` of one's own phrases in `GET /identities/me` (the
@@ -863,7 +863,7 @@ although `tab` led exactly there.
 - **The tombstone — built 2026-09-23.** The node closes the room with 4003 when the
   conversation is over (closed, blocked, a span ran out); it sends no reason, so the terminal
   tells by its own clock: one's own span ran out — "The span ran out; the conversation is
-  gone.", otherwise — "The conversation has ended." (`refusal-wordings_EN.md`). One's own clock
+  gone.", otherwise — "The conversation has ended." One's own clock
   reaching zero gives the first even without the room closing. The screen is wiped at once,
   the conversation's keys are forgotten, and the one item is "Back to the feed". The live walk
   closes the conversation from the other side and waits for the tombstone.
@@ -1082,7 +1082,7 @@ only named here — their terminal mechanics are not described (§9).
 The terminal has no e-mail, so the statement (`GET /statements`, `dsa/SPEC_EN.md` §7) is
 delivered here. On the first entry
 to the feed in a run the restrictions are shown whole, in a red frame, one at a time, the up
-and down arrows between them; the five lines are those of `refusal-wordings_EN.md` §6
+and down arrows between them; the five lines are the ones the owner approved
 (without the heading "Your phrase has been hidden.", since what was restricted need not be
 a phrase),
 including the two different "How decided" lines by `automated_used` and "law:" or "terms:"
@@ -1110,7 +1110,7 @@ support, the console.
 field; under the heading — "changes on a clean slate" and "your contacts will see the change".
 A new name goes to the queue (202): the row shows "Anya → Anna · being checked". Crossing 20/21
 upwards asks "Move into the 21+ band?" with "save" / "Cancel" (storefront screen 10). The node's
-refusals are said in the words the owner approved on 2026-09-23 (`refusal-wordings_EN.md` §5):
+refusals are said in the words the owner approved on 2026-09-23:
 the name is frozen, age down across 20/21, more than ten edits a day; the pause after refusals
 is the §4 block. The live walk edits the name against the node and finds it in the queue.
 
@@ -1145,9 +1145,11 @@ hint): it stands in the exception list `scripts/check-address-form.allow`.
 
 ## 4a. Stickers
 
-Stickers are beyond the alpha (screen 16 on the storefronts), but in a text
-client their fate is peculiar, and it is recorded here on **2026-08-29**,
-because until that day the word "sticker" did not appear in this document once.
+Stickers are in the alpha (screen 16 on the storefronts): a small fixed set of
+standard stickers for expressing a reaction, tappable in a conversation and at a
+table. In a text client their fate is peculiar, and it is recorded here on
+**2026-08-29**, because until that day the word "sticker" did not appear in this
+document once.
 The decision "one sticker, and instead of the text" made a line the terminal
 could not render at all.
 
@@ -1163,9 +1165,19 @@ two-word message. The terminal does not draw the image and does not try — not 
 block graphics, not in `sixel`: the neighbouring line would be no clearer for it,
 and the output would stop being copyable.
 
-The name comes **from the catalogue** the client has already fetched whole;
+The name comes **from the fixed set** the client already knows whole;
 only the identifier travels inside the ciphertext. The terminal knows no more
 than the web does, and the node no more than the terminal.
+
+**How exactly — decided by quorum on 2026-10-13.** A message's plaintext stays the
+person's text byte for byte; a sticker is the private-use mark U+E000, `sticker:`
+and one of the set's eight identifiers (`hi`, `thanks`, `deal`, `wow`, `coffee`,
+`move`, `again`, `giveup`), e.g. `U+E000 sticker:hi`. Anything else — an unknown
+identifier, the mark without one — shows as text: the set is fixed, and nobody can
+make a client draw what it does not hold. Rejected: a JSON envelope for every
+message (an old client would show `{"text":…}` instead of every line) and a sticker
+outside the ciphertext (the node would learn where the reactions are in a
+conversation that is blind to it). The web's code is `web/src/chat/sticker.ts`.
 
 ## 5. What a terminal lacks, and what replaces it
 
@@ -1265,7 +1277,7 @@ either — the share is burned (§8.2); the terminal keeps not even that.
 
 A forgotten PIN equals a deleted volume — but not a lost identity: the paper code
 raises it again (§2.3). That is said twice: when the identity
-is created, and in the device list.
+is created, and on this device's screen.
 
 ---
 

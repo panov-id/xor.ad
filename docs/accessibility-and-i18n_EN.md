@@ -70,7 +70,7 @@ WCAG 2.2 AA; where our rule is stricter than the standard, ours applies.
 | Dragging | always doubled by a tap or by "−" / "+" steps: the radius handle, the age slider (by the year), the zone point (the "district or town" field and keyboard nudges), the board (2026-09-18 after the UX panel) | WCAG 2.5.7; the screen 23 swipe has buttons (2.5.1) |
 | Body text | at least 16px; line height a multiplier of at least 1.5; text blocks have no fixed height | with a field font under 16px Safari on iOS zooms the page on focus (known behaviour, not checked in a container); 1.5 as a requirement on ourselves is WCAG 1.4.8 (level AAA, taken on deliberately), and that vertical room is what survives Georgian, Armenian and Greek script |
 | Spacing set by the person | the layout survives line height 1.5, space after a paragraph 2×, letters 0.12em and words 0.16em with no text lost | WCAG 1.4.12 |
-| Zoom | the layout survives 200% text zoom and a 320 CSS px width with no horizontal scrolling | WCAG 1.4.4 and 1.4.10. The feed in columns by `column-width: 330px` (`app-prototype-spec_EN.md` §4): below 330px there is one column, and that it narrows to the screen rather than running off sideways is checked on the mock-up — so far checked only at 375px |
+| Zoom | the layout survives 200% text zoom and a 320 CSS px width with no horizontal scrolling | WCAG 1.4.4 and 1.4.10. The feed in columns by `column-width: 330px` (`design-system-app_EN.md`): below 330px there is one column, and that it narrows to the screen rather than running off sideways is checked on the mock-up — so far checked only at 375px |
 | Label length | labels and buttons have no fixed width; the layout is checked on the longest string among the translations; a label is never cut with an ellipsis | German runs about a third longer than Russian (part three) |
 | Motion | controls do not slide; only an event moves — an appearance, a departure, a sheet; time is a number and a step of tone, with no pulsing, bars or rings (2.2.2, 2.3.1); with `prefers-reduced-motion` no offsets, an appearance is one frame, no cycles | `design-system-app_EN.md`, the "Motion" section (2026-09-18); the landings |
 | Terminal | a working width of 80 columns; 60 not checked | below, "The terminal: what we do not know" |
@@ -94,7 +94,7 @@ word.** A sticker is sent instead of text, which makes it the line itself;
 without a name a screen reader reads emptiness where it stands, and a person in
 a terminal sees a hole in the conversation.
 
-So every sticker in the catalogue carries a short name, and it is the **same
+So every sticker of the small fixed set (the alpha) carries a short name, and it is the **same
 one** for the reader and for the terminal: not an "alt text for the web" and a
 separate "caption for the console", but one string serving both. Two strings
 would drift, as everything written twice does.

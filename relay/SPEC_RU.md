@@ -2,17 +2,17 @@
 
 Слой **relay** — децентрализованный пул одинаковых нод (BFF / edge-ярус) для
 соседских фейсов. Сейчас обслуживает лендинги (waitlist, welcome-письмо) и заложен
-под будущий децентрализованный чат.
+и приложение: личность, ленту, чат через WebSocket-релей, столы.
 
 Сопутствующее: `RELEASE_{EN,RU}.md` (регламент релизов/промоушена), `README*`
-(быстрый старт), `../docs/archive/chat-decentralized-ideas_*` (будущий чат).
+(быстрый старт), `../docs/protocol_RU.md` (чат).
 
 ## 1. Топология
 
 ```
 <face>.place (фронт на Bunny CDN)
    └─ api.<face>            вход = BFF  (ноды relay)
-         └─ [app-логика] → ядро на xor.panov.id     (будущее: чат/app; для лендинга нет)
+         └─ [app-логика] → ядро на xor.panov.id     (чат/app; для лендинга нет)
 ```
 
 - Одна нода relay обслуживает **все бренды/фейсы** (sosed, neighbro, …). Бренд
@@ -20,8 +20,8 @@
 - Для **лендинга** нода **терминальна**: `/waitlist` пишет в storage + шлёт
   welcome; к ядру не ходит. Стрелка `→ ядро` включается с app/чатом.
 - Публичный вход по фейсу+env: `api.dev.<face>` / `api.staging.<face>` (приватно) и
-  `api.<face>.place` (prod). На **cutover** они указывают на пул (сейчас ноды на
-  своих `n1-<env>.relay.panov.id` за вайтлистом).
+  `api.<face>.place` (prod). Они указывают на пул; у нод есть и свои имена
+  `<box>-<env>.relay.panov.id`.
 
 ## 2. Окружения и доступ
 
@@ -61,7 +61,7 @@ Stateless Deno-сервис. Образ одинаковый везде, раз�
 | `GET /metrics` | Prometheus-счётчики (requests/waitlist/mail) — по токену `METRICS_TOKEN`, без него 404 |
 | `POST /waitlist` | валидация → дедуп+запись → per-brand welcome-письмо |
 | `POST /client-error` | fire-and-forget сток ошибок |
-| `GET /chat` | заглушка `501` (будущий чат-релей) |
+| `GET /chat` | комната чата: билет, затем кадры по WebSocket (протокол §4.4) |
 
 - **Наблюдаемость**: структурные **JSON-логи** (level/msg/поля, node, env, request
   id) и `x-request-id` в каждом ответе; **`GET /metrics`** отдаёт Prometheus-счётчики держателю `METRICS_TOKEN` (всем прочим 404)
@@ -94,7 +94,7 @@ Stateless Deno-сервис. Образ одинаковый везде, раз�
   `mail-<box>`.
 - **DNS-01 через Bunny** выпускает TLS при закрытых портах (публичный 80 не нужен).
 - **prod** команда `pool` добавляет бокс в гео-стиринг `api.<face>` (A +
-  geolocation) — это cutover.
+  geolocation).
 
 ## 7. Образы и реестр
 

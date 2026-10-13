@@ -132,14 +132,14 @@ On **creation** of a notice, before any examination:
 
 The state of the snapshot lives in **its own column**, not in `status`. This is
 what migration `006` fixed: while "there is no snapshot" was a status value, such
-notices never reached the moderator's queue (`WHERE status IN
+notices never reached the notice queue (`WHERE status IN
 ('received','in_review')`) and were never examined at all — contrary to Art. 16.
 `status` answers "what did we decide", `snapshot_state` answers "did we manage to
 take a copy", and the two must not be mixed.
 
 **The table was added on 2026-08-28 — a consequence, not a new decision.** The
 table was introduced on 2026-08-27 (screen 19 of the storefronts), and speech at
-it is **public**: lines go through the same moderation queue as the feed, and the
+it is **public**: lines go through the same moderation (the model) as the feed, and the
 node sees both the board and the text, because the conversation key does not
 extend to a table. Public content has to have an Article 16 path — otherwise a
 notice about an unlawful line would land in `other`, which has neither a target

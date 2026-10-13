@@ -34,10 +34,10 @@ apiUrl (per env, from config.js):
 | Component | Role |
 |---|---|
 | Bunny CDN (zones `neighbro-dev/uat/prod`) | hosts the static landing |
-| relay node pool (Deno) | backend: `/waitlist`, `/client-error`, `/health`, `/metrics` (token-gated; `/chat` slot — 501 stub) |
+| relay node pool (Deno) | backend: `/waitlist`, `/client-error`, `/health`, `/metrics` (token-gated; `/chat` — the chat room over WebSocket) |
 | Caddy (on each node) | TLS (Let's Encrypt, DNS-01 via Bunny), host-based routing |
 | Bunny Storage (zone `sosed-waitlist-dev`) | leads, page views, client errors and server logs, split per tenant under `tenants/<brand>/…/<env>/` |
-| Postgres beside the node (volume on the box) | control state: keys, brands, quotas, the queue, idempotency, daily aggregates. The port is never published; without `DATABASE_URL` the node runs entirely on storage. See `docs/state-decision_EN.md` |
+| Postgres beside the node (volume on the box) | control state: keys, brands, quotas, the queue, idempotency, daily aggregates. The port is never published; without `DATABASE_URL` the node runs entirely on storage.  |
 | Resend (one account per brand) | welcome email from the brand's domain |
 | Bunny DNS (zone `relay.panov.id`) | node hostnames + geo record `api.relay.panov.id` |
 | GitHub Actions | build relay images (build-once) + deploy the landing per env |
@@ -83,7 +83,7 @@ sudo `deploy` user, default-deny firewall).
 | Bunny proxy zones `api.dev/uat.neighbro.panov.id`, `api.neighbro.place` (→ Supabase) | ❌ deleted in Phase 4 |
 | Supabase anon key + `apikey`/`Authorization` headers on the form | ❌ not sent (relay is CORS-gated) |
 | PostgREST `/rest/v1/...` | ❌ → relay `/waitlist`, `/client-error` |
-| `push_subscriptions` (Supabase) | ❌ push **cancelled 07.08.2026** (`docs/pwa-push_EN.md`); the inert code and `supabaseUrl` were removed from the landings in Phase 4, the remnants and `vapidPublicKey` on 07.08.2026 |
+| `push_subscriptions` (Supabase) | ❌ push **cancelled 07.08.2026**; the inert code and `supabaseUrl` were removed from the landings in Phase 4, the remnants and `vapidPublicKey` on 07.08.2026 |
 
 ## Decision: REST through Bunny, WebSocket direct
 
@@ -106,7 +106,7 @@ the CDN we already run and already have as a processor.
 
     pool.relay.panov.id   A (geo) → pool nodes       ← origin, closed from outside
     api.relay.panov.id    Bunny pull zone            ← what the landings call
-    ws.relay.panov.id     A (geo) → pool nodes       ← chat, direct, once it exists
+    ws.relay.panov.id     A (geo) → pool nodes       ← chat, direct
 
 `apiUrl` in `config.js` does not change: the landings call `api.relay.panov.id`
 exactly as before. What changes is what sits behind that name — a pull zone with
@@ -118,8 +118,8 @@ a problem that does not exist.
 
 **WebSockets stay off Bunny.** It can proxy them, but bills by connection-minute
 ($0.235 per million), and chat means long-lived connections. It gets its own
-`ws.` name straight into the pool. Revisit when chat is built and there is
-something to measure.
+`ws.` name straight into the pool. Revisit when there is chat traffic
+to measure.
 
 **Without a lock on the origin the whole thing is decorative.** If
 `pool.relay.panov.id` stays reachable from outside, the CDN is bypassed in one

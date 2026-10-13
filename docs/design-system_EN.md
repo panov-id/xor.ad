@@ -6,14 +6,9 @@ apply to the storefronts' twenty screens, and the title used to hide that — th
 document was called simply "Design system", and drawing an application by it was
 an invitation.
 
-**The application's screens have no source of tokens today.** There are three
-partial ones and none of them is authoritative: the storefront landings
-(Unbounded / Golos Text / JetBrains Mono, a dark base with an accent),
-`app-prototype-spec_EN.md` §1–2 (the tokens of the prototype built in July, system
-fonts, 11 accents), and this system (the panel, its own colour roles and a 6px
-radius against the storefronts' sharp corners). Choosing between them is the first
-decision of the drawing stage (`route-to-code_EN.md`), and until it is made no
-screen gets drawn: otherwise twenty mock-ups land in three different systems.
+**The source of tokens for the application's screens is `design-system-app_EN.md`.**
+This system describes the panel only (its own colour roles and a 6px radius), and
+the storefronts' screens are not to be drawn by it.
 
 
 The 2026-07-07 draft set the direction. This revision — 2026-07-31 — records what
@@ -26,7 +21,6 @@ Read alongside:
 - `panel/src/App.css` — the implementation. Every rule here exists there.
 - `panel/ui-kit.html` — the live kit, painted by that same stylesheet.
 - `panel/design/*.svg` — the drawings the decisions were made on.
-- `docs/brutalism_EN.md` — the study of the open libraries much of this grew from.
 
 ## Sources
 
@@ -359,8 +353,7 @@ parts lost their own affordances, the seams were ambiguous to hit, and it is whe
 
 ## 8. What we took from the reference, and what we left
 
-The study is `docs/brutalism_EN.md`; the drawing is
-`panel/design/reference-behaviour.svg`.
+The drawing is `panel/design/reference-behaviour.svg`.
 
 **Taken:** the hard unblurred shadow as a **distance** that a press spends; 2px
 frames everywhere; stated control heights; `inline-flex` centring and

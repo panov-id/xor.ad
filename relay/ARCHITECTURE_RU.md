@@ -33,10 +33,10 @@ apiUrl (per env, из config.js):
 | Компонент | Роль |
 |---|---|
 | Bunny CDN (зоны `neighbro-dev/uat/prod`) | хостинг статики лендинга |
-| relay node-pool (Deno) | бэкенд: `/waitlist`, `/client-error`, `/health`, `/metrics` (по токену; слот `/chat` — заглушка 501) |
+| relay node-pool (Deno) | бэкенд: `/waitlist`, `/client-error`, `/health`, `/metrics` (по токену; `/chat` — комната чата по WebSocket) |
 | Caddy (на каждой ноде) | TLS (Let's Encrypt, DNS-01 через Bunny), маршрутизация по хостнейму |
 | Bunny Storage (зона `sosed-waitlist-dev`) | лиды, просмотры, client-errors и серверные логи, разведены по арендатору и префиксу `tenants/<brand>/…/<env>/` |
-| Postgres рядом с узлом (том на боксе) | управляющее состояние: ключи, бренды, квоты, очередь, идемпотентность, дневные агрегаты. Порт наружу не публикуется; без `DATABASE_URL` узел работает целиком на хранилище. См. `docs/state-decision_RU.md` |
+| Postgres рядом с узлом (том на боксе) | управляющее состояние: ключи, бренды, квоты, очередь, идемпотентность, дневные агрегаты. Порт наружу не публикуется; без `DATABASE_URL` узел работает целиком на хранилище.  |
 | Resend (аккаунт на бренд) | welcome-письмо от домена бренда |
 | Bunny DNS (зона `relay.panov.id`) | хостнеймы нод + гео-record `api.relay.panov.id` |
 | GitHub Actions | сборка образов relay (build-once) + деплой лендинга по env |
@@ -81,7 +81,7 @@ merge dev→main, tag vX.Y.Z ──CI──▶ relay-node:vX.Y.Z → депло�
 | Bunny proxy-зоны `api.dev/uat.neighbro.panov.id`, `api.neighbro.place` (→ Supabase) | ❌ удалены в Phase 4 |
 | anon-ключ Supabase + заголовки `apikey`/`Authorization` в форме | ❌ не шлётся (relay гейтится по CORS) |
 | PostgREST `/rest/v1/...` | ❌ → relay `/waitlist`, `/client-error` |
-| `push_subscriptions` (Supabase) | ❌ push **отменён 07.08.2026** (`docs/pwa-push_RU.md`); инертный код и `supabaseUrl` убраны из лендингов в Phase 4, остатки и `vapidPublicKey` — 07.08.2026 |
+| `push_subscriptions` (Supabase) | ❌ push **отменён 07.08.2026**; инертный код и `supabaseUrl` убраны из лендингов в Phase 4, остатки и `vapidPublicKey` — 07.08.2026 |
 
 ## Решение: REST через Bunny, WebSocket напрямую
 
@@ -102,7 +102,7 @@ merge dev→main, tag vX.Y.Z ──CI──▶ relay-node:vX.Y.Z → депло�
 
     pool.relay.panov.id   A (гео) → ноды пула        ← origin, снаружи закрыт
     api.relay.panov.id    pull-зона Bunny            ← сюда бьют лендинги
-    ws.relay.panov.id     A (гео) → ноды пула        ← чат, напрямую, когда появится
+    ws.relay.panov.id     A (гео) → ноды пула        ← чат, напрямую
 
 `apiUrl` в `config.js` не меняется: лендинги как звали `api.relay.panov.id`, так
 и зовут. Меняется только то, что за этим именем — вместо A-записи pull-зона с
@@ -113,8 +113,8 @@ merge dev→main, tag vX.Y.Z ──CI──▶ relay-node:vX.Y.Z → депло�
 
 **WebSockets на Bunny не включаем.** Он их умеет, но берёт по минутам соединения
 ($0.235 за миллион), а чат — это постоянные соединения. Для него отдельное имя
-`ws.`, прямо в пул. Решение пересмотреть, когда чат будет построен и появится
-что считать.
+`ws.`, прямо в пул. Решение пересмотреть, когда появится трафик чата
+и будет что считать.
 
 **Без замка на origin схема бессмысленна.** Если `pool.relay.panov.id` останется
 доступен снаружи, CDN обходится в одну строку. Поэтому одновременно:

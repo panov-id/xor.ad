@@ -24,7 +24,7 @@ These hold for every client, ours or yours, because they live on the server:
   gets nothing;
 - **limits hold**: message length, request rate, the number of live phrases per
   identity;
-- **the feed is moderated before publication**, through a queue rather than inside
+- **the feed is moderated by the node's own model before publication**, through a queue rather than inside
   the request — `POST /feed` answers at once, the phrase stays invisible until the
   verdict, and text that does not pass is never published, whichever client sent
   it. Your client must show that waiting state instead of pretending the post is
@@ -89,7 +89,7 @@ beyond it. We will say why, and where the abuse is not deliberate we will say so
 before revoking rather than after.
 
 **Not built yet.** Per-author keys do not exist in the node's code today; the key
-type they need is an open item (`docs/open-work_EN.md` G9). Until it lands there
+type they need is an open item. Until it lands there
 is nothing to issue and nothing to revoke, and the only limits in force are the
 ones per address and per identity. These terms are written ahead of the mechanism
 on purpose, so that the mechanism is built to them.

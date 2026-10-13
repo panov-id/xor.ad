@@ -146,7 +146,7 @@ are gone and what follows is only what is genuinely unbuilt.
       with `GET /statements` (P8, `d9b928c`; `relay/node/src/routes/statements.ts`, test
       `dsa_decision_feed.test.ts`), `depth` since 2026-09-22; entry `DSA-reasons-no-mail` in `facts/open.tsv`.
 - [x] The wording of refusal reasons — shared with the feed mechanic, assembled
-      on 2026-08-31 in `docs/refusal-wordings_{RU,EN}.md`: twelve texts across six
+      on 2026-08-31 in the node's refusal texts: twelve texts across six
       classes of refusal, including §10 of the mechanics and the Article 17
       statement of reasons. The three questions still inside it are kept in
       `docs/facts/open.tsv` as `refusal.texts.readaloud`,

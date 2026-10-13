@@ -413,7 +413,7 @@ components:
       properties:
         seq: {type: integer}
         pass: {type: boolean}
-        move: {type: object, description: 'By class — a cell, an edge, a piece, a letter, {roll}, {deal}, {flick, impulse}.', x-description-ru: 'По классу — клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse}.'}
+        move: {type: object, description: 'By class — a cell, an edge, a piece, a letter, {roll}, {deal}, {flick, impulse}. Sets added 2026-10-13, rules kept whole by the node: grid reversi {to}, grid four {column: a..g}, grid battleship {fleet: [[cells]…]} once (4-3-3-2-2-2-1-1-1-1, straight, not touching; never shown to the other seat, the moves carry {fleet: placed}) then {shot}; deck 36 is durak {play}, {take}, {done}; deck poker is Texas hold''em on chips, no money, 2–6 seats, blinds 10/20, 1000 each: {fold}, {check}, {call}, {raise: N}, {allin}; word sets are interface languages (ru, en, uk, be, de, es, fr, pl, ro, az, uz, el, hy, ka, kk, ky, tg), the word and letters of that alphabet. A hangman {word} gets the moderator model''s verdict first: anything but publish is 422 moderation_refused with the reason.', x-description-ru: 'По классу — клетка, ребро, фишка, буква, {roll}, {deal}, {flick, impulse}. Наборы от 13.10.2026, правила целиком держит узел: grid reversi {to}, grid four {column: a..g}, grid battleship — один раз {fleet: [[клетки]…]} (4-3-3-2-2-2-1-1-1-1, прямые, не касаются; другому месту не показывается, в ходах {fleet: placed}), затем {shot}; deck 36 — дурак {play}, {take}, {done}; deck poker — техасский холдем на фишках, без денег, 2–6 мест, блайнды 10/20, по 1000: {fold}, {check}, {call}, {raise: N}, {allin}; наборы word — языки интерфейса (ru, en, uk, be, de, es, fr, pl, ro, az, uz, el, hy, ka, kk, ky, tg), слово и буквы из алфавита набора. Слово виселицы {word} сперва получает вердикт модели-модератора: всё, кроме publish, — 422 moderation_refused с причиной.'}
     Proposal:
       type: object
       required: [kind]
@@ -443,7 +443,7 @@ components:
       type: object
       required: [word]
       properties:
-        word: {type: string, description: The hangman word; goes through the same queue as a phrase., x-description-ru: "Слово виселицы; идёт через ту же очередь, что и фраза."}
+        word: {type: string, description: "The hangman word, of the set's alphabet; the moderator model judges it first (kind game_word, 2026-10-13) — anything but publish is 422 moderation_refused with the reason.", x-description-ru: "Слово виселицы, из алфавита набора; сперва его судит модель-модератор (вид game_word, 13.10.2026) — всё, кроме publish, — 422 moderation_refused с причиной."}
     BlockTarget:
       type: object
       description: Exactly one of feed, chat, or table+seat (chat spec §8.9). The answer is 204 whatever happens — not an oracle.
@@ -1474,176 +1474,6 @@ paths:
         "200": {description: Invited., x-description-ru: Приглашён.}
         "404": {description: not found, x-description-ru: не найден}
         "502": {description: could not send the invitation, x-description-ru: не удалось отправить приглашение}
-  /admin/feed-queue:
-    get:
-      tags: [admin]
-      summary: Phrases waiting for a verdict before anybody sees them
-      x-summary-ru: Фразы, ждущие вердикта до того, как их кто-либо увидит
-      x-status: built
-      x-internal: true
-      x-source: relay/node/src/routes/feed_queue.ts
-      security: [{panelSession: []}]
-      description: "The moderator's queue while no model is wired (chat spec §8.3, §8.14): text, mode, the name published with it and its state, how long it has waited — never the author's identity. A tenant's moderator sees their own brand only. Built 2026-09-22."
-      x-description-ru: "Очередь модератора, пока модель не подключена (спека чата §8.3, §8.14): текст, режим, имя, с которым фраза выйдет, и его состояние, сколько ждёт — и никогда личность автора. Модератор тенанта видит только свой бренд. Построено 22.09.2026."
-      responses:
-        "200": {description: "At most 200, oldest first, a plain array; x-total-count counts the whole queue, not the page (2026-09-22).", x-description-ru: "Не больше 200, старые первыми, плоским массивом; x-total-count считает всю очередь, а не страницу (22.09.2026)."}
-        "401": {description: no panel session, x-description-ru: нет сессии панели}
-        "403": {description: "no feed_queue.read", x-description-ru: "нет права feed_queue.read"}
-        "503": {description: database unavailable, x-description-ru: база недоступна}
-  /admin/table-queue:
-    get:
-      tags: [admin]
-      summary: Table lines and table names the rules flagged, waiting for a verdict
-      x-summary-ru: Реплики и имена столов, помеченные правилами и ждущие вердикта
-      x-status: built
-      x-internal: true
-      x-source: relay/node/src/routes/feed_queue.ts
-      security: [{panelSession: []}]
-      description: "What the feed's first tier of rules flagged at tables (chat spec §6.1, §8.3): [{kind: line | name, id, brand, text, waiting_seconds}] — a line's id or the table's id for a name; never an identity. A tenant's moderator sees their own brand only. Built 2026-09-27."
-      x-description-ru: "То, что первый уровень правил ленты пометил за столами (спека чата §6.1, §8.3): [{kind: line | name, id, brand, text, waiting_seconds}] — id реплики либо id стола для имени; личности нет. Модератор тенанта видит только свой бренд. Построено 27.09.2026."
-      responses:
-        "200": {description: "At most 200, oldest first, a plain array with x-total-count.", x-description-ru: "Не больше 200, старые первыми, плоским массивом с x-total-count."}
-        "401": {description: no panel session, x-description-ru: нет сессии панели}
-        "403": {description: "no feed_queue.read", x-description-ru: "нет права feed_queue.read"}
-        "503": {description: database unavailable, x-description-ru: база недоступна}
-  /admin/table-queue/lines/{id}/publish:
-    post:
-      tags: [admin]
-      summary: Publish a table line from the queue
-      x-summary-ru: Опубликовать реплику стола из очереди
-      x-status: built
-      x-internal: true
-      x-source: relay/node/src/routes/feed_queue.ts
-      security: [{panelSession: []}]
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
-      responses:
-        "200": {description: "The verdict, applied once: visible_at is stamped.", x-description-ru: "Вердикт, применён один раз: ставится visible_at."}
-        "401": {description: no panel session, x-description-ru: нет сессии панели}
-        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
-        "404": {description: A malformed id., x-description-ru: Кривой id.}
-        "409": {description: "Already decided, swept with its table, of another brand, or never existed.", x-description-ru: "Уже решено, убрано со столом, чужой бренд или не существовало."}
-        "503": {description: database unavailable, x-description-ru: база недоступна}
-  /admin/table-queue/lines/{id}/refuse:
-    post:
-      tags: [admin]
-      summary: Refuse a table line from the queue
-      x-summary-ru: Отклонить реплику стола из очереди
-      x-status: built
-      x-internal: true
-      x-source: relay/node/src/routes/feed_queue.ts
-      security: [{panelSession: []}]
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
-      responses:
-        "200": {description: "The verdict, applied once: the line is deleted.", x-description-ru: "Вердикт, применён один раз: реплика удаляется."}
-        "401": {description: no panel session, x-description-ru: нет сессии панели}
-        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
-        "404": {description: A malformed id., x-description-ru: Кривой id.}
-        "409": {description: "Already decided, swept with its table, of another brand, or never existed.", x-description-ru: "Уже решено, убрано со столом, чужой бренд или не существовало."}
-        "503": {description: database unavailable, x-description-ru: база недоступна}
-  /admin/table-queue/names/{id}/publish:
-    post:
-      tags: [admin]
-      summary: Accept a table's name from the queue
-      x-summary-ru: Принять имя стола из очереди
-      x-status: built
-      x-internal: true
-      x-source: relay/node/src/routes/feed_queue.ts
-      security: [{panelSession: []}]
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
-      responses:
-        "200": {description: "The verdict, applied once: name_pending moves into name.", x-description-ru: "Вердикт, применён один раз: name_pending переезжает в name."}
-        "401": {description: no panel session, x-description-ru: нет сессии панели}
-        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
-        "404": {description: A malformed id., x-description-ru: Кривой id.}
-        "409": {description: "Already decided, the table closed, of another brand, or never existed.", x-description-ru: "Уже решено, стол закрыт, чужой бренд или не существовало."}
-        "503": {description: database unavailable, x-description-ru: база недоступна}
-  /admin/table-queue/names/{id}/refuse:
-    post:
-      tags: [admin]
-      summary: Refuse a table's name from the queue
-      x-summary-ru: Отклонить имя стола из очереди
-      x-status: built
-      x-internal: true
-      x-source: relay/node/src/routes/feed_queue.ts
-      security: [{panelSession: []}]
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
-      responses:
-        "200": {description: "The verdict, applied once: the table lives on without a name (chat spec §6.1).", x-description-ru: "Вердикт, применён один раз: стол живёт без имени (спека чата §6.1)."}
-        "401": {description: no panel session, x-description-ru: нет сессии панели}
-        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
-        "404": {description: A malformed id., x-description-ru: Кривой id.}
-        "409": {description: "Already decided, the table closed, of another brand, or never existed.", x-description-ru: "Уже решено, стол закрыт, чужой бренд или не существовало."}
-        "503": {description: database unavailable, x-description-ru: база недоступна}
-  /admin/feed-queue/{id}/publish:
-    post:
-      tags: [admin]
-      summary: Publish a phrase from the queue
-      x-summary-ru: Опубликовать фразу из очереди
-      x-status: built
-      x-internal: true
-      x-source: relay/node/src/routes/feed_queue.ts
-      security: [{panelSession: []}]
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
-      requestBody:
-        description: "The name the moderator read beside the phrase. Publish accepts the name with the phrase (chat spec §8.2), and only if it is still this one."
-        x-description-ru: "Имя, которое модератор прочёл рядом с фразой. Publish принимает имя вместе с фразой (спека чата §8.2), и только если оно всё ещё это."
-        content:
-          application/json:
-            schema: {type: object, properties: {name: {type: string}}}
-      responses:
-        "200": {description: "The verdict, applied once.", x-description-ru: "Вердикт, применён один раз."}
-        "401": {description: no panel session, x-description-ru: нет сессии панели}
-        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
-        "404": {description: "A malformed id, or (a tenant's moderator) not a phrase of their own brand.", x-description-ru: "Кривой id либо (модератор тенанта) не фраза своего бренда."}
-        "409": {description: "Already decided, swept after moderation.queue.wait, never existed — or the name is no longer the one sent as {name}: read again; or the name stands rejected and the phrase waits for a new one.", x-description-ru: "Уже решено, выметено по moderation.queue.wait, не существовало — либо имя уже не то, что прислано в {name}: прочитать заново; либо имя отклонено и фраза ждёт нового."}
-        "503": {description: database unavailable, x-description-ru: база недоступна}
-  /admin/feed-queue/{id}/refuse-name:
-    post:
-      tags: [admin]
-      summary: Refuse the name, not the phrase
-      x-summary-ru: Отклонить имя, а не фразу
-      x-status: built
-      x-internal: true
-      x-source: relay/node/src/routes/feed_queue.ts
-      security: [{panelSession: []}]
-      description: "The name the moderator read beside the phrase is refused: name_state becomes rejected, a pending name is dropped, and the phrase stays in the queue, unswept, until its author sends a new name (chat spec §8.2, 2026-08-26). No moment is written. The body carries {name} as read."
-      x-description-ru: "Отклоняется имя, которое модератор прочёл рядом с фразой: name_state становится rejected, ждущее имя сбрасывается, фраза остаётся в очереди и не выметается, пока автор не пришлёт новое имя (спека чата §8.2, 26.08.2026). Момент не пишется. В теле — {name}, как прочитано."
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
-      requestBody:
-        content:
-          application/json:
-            schema: {type: object, properties: {name: {type: string}}}
-      responses:
-        "200": {description: "The name is refused; the phrase waits.", x-description-ru: "Имя отклонено; фраза ждёт."}
-        "401": {description: no panel session, x-description-ru: нет сессии панели}
-        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
-        "404": {description: "A malformed id, or (a tenant's moderator) not a phrase of their own brand.", x-description-ru: "Кривой id либо (модератор тенанта) не фраза своего бренда."}
-        "409": {description: "Already refused, the phrase decided or swept, the author gone, or the name is no longer the one sent as {name}.", x-description-ru: "Уже отклонено, фраза решена или выметена, автора нет либо имя уже не то, что прислано в {name}."}
-        "503": {description: database unavailable, x-description-ru: база недоступна}
-  /admin/feed-queue/{id}/refuse:
-    post:
-      tags: [admin]
-      summary: Refuse a phrase from the queue
-      x-summary-ru: Отклонить фразу из очереди
-      x-status: built
-      x-internal: true
-      x-source: relay/node/src/routes/feed_queue.ts
-      security: [{panelSession: []}]
-      parameters:
-        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
-      responses:
-        "200": {description: "The verdict, applied once.", x-description-ru: "Вердикт, применён один раз."}
-        "401": {description: no panel session, x-description-ru: нет сессии панели}
-        "403": {description: "no feed_queue.decide", x-description-ru: "нет права feed_queue.decide"}
-        "404": {description: "A malformed id, or (a tenant's moderator) not a phrase of their own brand.", x-description-ru: "Кривой id либо (модератор тенанта) не фраза своего бренда."}
-        "409": {description: "Already decided, swept after moderation.queue.wait, or never existed.", x-description-ru: "Уже решено, выметено по moderation.queue.wait либо не существовало."}
-        "503": {description: database unavailable, x-description-ru: база недоступна}
   /admin/support:
     get:
       tags: [admin]
@@ -2111,16 +1941,16 @@ paths:
         - {$ref: "#/components/parameters/IdentitySession"}
         - {$ref: "#/components/parameters/IdentityTime"}
       requestBody: {required: true, content: {application/json: {schema: {$ref: "#/components/schemas/PhraseCreate"}}}}
-      description: "Answers at once, and says which of two things happened (2026-09-26, chat spec §8.3, first tier). 200: the rules found nothing in the phrase — no link, no contact, no offer, not a repeat of one's own live phrase, no doubtful waiting name — and it was published in the same transaction, with its term. 202: the rules flagged it and it waits for a person; visible_at stays empty until the queue's verdict. A node with FEED_VERDICT=queue answers 202 to everything. With the moderator model on (MODERATOR_URL; owner's decision, W17-MM, 2026-10-05), a phrase the rules let through is shown to the model before the answer: its \"publish\" gives 200, anything else — reject, unsure, no answer within MODERATOR_TIMEOUT_MS — gives 202 and the phrase waits for a person with the model's hint. The model off, nothing changes."
-      x-description-ru: "Отвечает сразу и говорит, что из двух случилось (26.09.2026, спека чата §8.3, первая ступень). 200: правила ничего не нашли — ни ссылки, ни контакта, ни оффера, ни повтора своей живой фразы, ни спорного ждущего имени — и фраза опубликована в той же транзакции, со сроком. 202: правила пометили, фраза ждёт человека; visible_at пуст до вердикта очереди. Узел с FEED_VERDICT=queue отвечает 202 на всё. С включённой моделью-модератором (MODERATOR_URL; решение владельца, W17-MM, 05.10.2026) фразу, которую пропустили правила, до ответа видит модель: её «publish» даёт 200, всё остальное — reject, unsure, нет ответа за MODERATOR_TIMEOUT_MS — даёт 202, и фраза ждёт человека с подсказкой модели. Без модели всё как прежде."
+      description: "The moderator gives the verdict before the answer, and nobody else ever does (owner's decision, 05.10, 09.10 and 13.10.2026; chat spec §8.3, §8.14; relay/node/src/lib/moderator.ts). The phrase is written, the rules of §8.3 read it (a link, a contact, an offer, a repeat of one's own live phrase, a doubtful waiting name), and the local model (MODERATOR_URL) is asked with what the rules flagged as context. Its \"publish\" gives 200 with the term; anything else gives 422 with the reason — \"reject\" with the model's words (counts towards the pause of §8.3), \"unsure\", no answer within MODERATOR_TIMEOUT_MS or too many questions in flight with \"try again later\" (no moment). The request waits for the model rather than answering 202 and deciding later, so the author always hears the verdict in the answer. With no model wired the rules decide alone: nothing flagged, or only an offer (a private offer is ordinary content), gives 200; any other flag gives 422 with the rules' reasons. There is no person queue and no 202."
+      x-description-ru: "Вердикт выносит модератор до ответа, и больше никто и никогда (решение владельца, 05.10, 09.10 и 13.10.2026; спека чата §8.3, §8.14; relay/node/src/lib/moderator.ts). Фраза записывается, правила §8.3 её читают (ссылка, контакт, оффер, повтор своей живой фразы, спорное ждущее имя), и локальной модели (MODERATOR_URL) задаётся вопрос с пометками правил как контекстом. Её «publish» даёт 200 со сроком; всё остальное — 422 с причиной: «reject» — словами модели (идёт в счёт паузы §8.3), «unsure», нет ответа за MODERATOR_TIMEOUT_MS или слишком много вопросов разом — «попробуйте позже» (без момента). Запрос ждёт модель, а не отвечает 202 с решением потом, — автор всегда слышит вердикт в ответе. Без модели решают одни правила: ничего не помечено или помечен только оффер (частный оффер — обычный контент) — 200; любая другая пометка — 422 с причинами правил. Очереди к человеку нет, 202 нет."
       responses:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersionOrBody"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "503": {$ref: "#/components/responses/Unavailable"}
         "200":
-          description: "Published: `{id, state: \"published\", visible_at, expires_at}` — the rules of §8.3 read the phrase and found nothing to hold, and it is in the feed from this moment. Seconds since the epoch, the term is feed.phrase.span. With the moderator model on, the model said \"publish\" too (W17-MM)."
-          x-description-ru: "Опубликовано: `{id, state: \"published\", visible_at, expires_at}` — правила §8.3 прочли фразу и держать нечего, она в ленте с этого момента. Секунды с эпохи, срок — feed.phrase.span. С включённой моделью-модератором её «publish» тоже был (W17-MM)."
+          description: "Published: `{id, state: \"published\", visible_at, expires_at}` — the model said \"publish\" (or, with no model, the rules found nothing to refuse), and it is in the feed from this moment. Seconds since the epoch, the term is feed.phrase.span."
+          x-description-ru: "Опубликовано: `{id, state: \"published\", visible_at, expires_at}` — модель сказала «publish» (или, без модели, правилам нечего отклонить), фраза в ленте с этого момента. Секунды с эпохи, срок — feed.phrase.span."
           headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
           content:
             application/json:
@@ -2132,19 +1962,11 @@ paths:
                   state: {type: string, enum: [published]}
                   visible_at: {type: integer, format: unix-seconds}
                   expires_at: {type: integer, format: unix-seconds}
-        "202":
-          description: "Accepted into the queue: `{id, state: \"checking\"}` — the rules flagged something (a link, a contact, an offer, a repeat, a waiting name they doubt) and a person reads it. There is no visible_at, and its absence is deliberate — the phrase exists and is being read, and nobody has decided yet whether anyone will see it. With the moderator model on, also a phrase the rules let through and the model did not (W17-MM): reject, unsure, or no answer."
-          x-description-ru: "Принято в очередь: `{id, state: \"checking\"}` — правила что-то пометили (ссылку, контакт, оффер, повтор, сомнительное ждущее имя), и читает человек. Поля visible_at нет, и это намеренно — фраза существует и читается, а увидит ли её кто-нибудь, ещё не решено. С включённой моделью — и фраза, которую правила пропустили, а модель нет (W17-MM): reject, unsure или нет ответа."
-          headers: {x-protocol-sunset: {$ref: "#/components/headers/ProtocolSunset"}}
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [id, state]
-                properties:
-                  id: {type: string, format: uuid}
-                  state: {type: string, enum: [checking]}
-        "409": {description: "Re-acceptance required (no error.code), stepped_away, or one of the two refusals of §8.3 that are not rate limits — `refused` with `checking` while your own phrase is still being read, and `refused` with `live` when four are already up. Told apart by error.code (protocol §6).", x-description-ru: "Нужно принять заново (без error.code), stepped_away, либо один из двух отказов §8.3, которые не про частоту — `refused` с `checking`, пока читается своя фраза, и `refused` с `live`, когда четыре уже стоят. Различаются по error.code (протокол §6).", content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
+        "422":
+          description: "Refused: `error.code` moderation_refused, `error.message` the reason — the model's words, \"the moderator could not read the phrase; try again later\", or with no model \"the phrase was not published: <flags>\". Nothing is kept: the author rewrites and sends again."
+          x-description-ru: "Отклонено: `error.code` moderation_refused, `error.message` — причина: слова модели, «the moderator could not read the phrase; try again later» или без модели «the phrase was not published: <пометки>». Ничего не хранится: автор переписывает и шлёт снова."
+          content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}
+        "409": {description: "Re-acceptance required (no error.code), stepped_away, or one of the two refusals of §8.3 that are not rate limits — `refused` with `checking` while the verdict on your own previous phrase is still being given, and `refused` with `live` when four are already up. Told apart by error.code (protocol §6).", x-description-ru: "Нужно принять заново (без error.code), stepped_away, либо один из двух отказов §8.3, которые не про частоту — `refused` с `checking`, пока выносится вердикт по своей предыдущей фразе, и `refused` с `live`, когда четыре уже стоят. Различаются по error.code (протокол §6).", content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
     get:
       tags: [feed]
       summary: The feed by intersecting circles
@@ -2609,8 +2431,8 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
-      description: "Board class, set, area and seats; the author is seated and stands up from their previous table (chat spec §6.1). Refusals 409 stepped_away, 409 already_seated is not raised — the previous seat is left."
-      x-description-ru: "Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away; already_seated не поднимается — прежнее место освобождается."
+      description: "Board class, set, area and seats; the author is seated and stands up from their previous table (chat spec §6.1). Refusals 409 stepped_away, 409 already_seated is not raised — the previous seat is left. A name gets the moderator's verdict before the table is made (owner's decision, 13.10.2026: the model alone, no person queue; with no model the rules of §8.3): refused, 422 name_refused with the reason and no table — the author picks another name or none."
+      x-description-ru: "Класс доски, набор, зона и места; автор сажается и встаёт из-за прежнего стола (спека чата §6.1). Отказ 409 stepped_away; already_seated не поднимается — прежнее место освобождается. Имя получает вердикт модератора до того, как стол создан (решение владельца, 13.10.2026: только модель, очереди к человеку нет; без модели — правила §8.3): отклонено — 422 name_refused с причиной, стола нет; автор выбирает другое имя или никакого."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -2621,6 +2443,7 @@ paths:
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
         "201": {description: The table id., x-description-ru: id стола., content: {application/json: {schema: {type: object, properties: {id: {type: string, format: uuid}}}}}}
+        "422": {description: "name_refused: the moderator refused the table's name; error.message says why.", x-description-ru: "name_refused: модератор отклонил имя стола; error.message — почему.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "409": {description: "stepped_away and state refusals, or invalid_body on a reused nonce (protocol §2).", x-description-ru: "stepped_away и отказы состояния либо invalid_body на повторный nonce (протокол §2).", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
   /tables/{id}:
     get:
@@ -2758,8 +2581,8 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/tables.ts
       security: [{identitySignature: []}]
-      description: "line/application/refusal — 202, published by the queue's verdict; sticker — 200, no queue. One application per game; a refusal without text is not accepted (chat spec §6.1)."
-      x-description-ru: "line/application/refusal — 202, публикуется вердиктом очереди; sticker — 200, без очереди. Одна заявка на игру; отказ без текста не принимается (спека чата §6.1)."
+      description: "line/application/refusal — the moderator's verdict before the answer (owner's decision, 13.10.2026: the model alone, no person queue; relay/node/src/lib/moderator.ts): published, 200 and public at once; refused, 422 moderation_refused with the reason and nothing written. With no model wired the rules of §8.3 decide (a link or a contact refuses). sticker — 200, our own catalogue, no verdict. One application per game; a refusal without text is not accepted (chat spec §6.1)."
+      x-description-ru: "line/application/refusal — вердикт модератора до ответа (решение владельца, 13.10.2026: только модель, очереди к человеку нет; relay/node/src/lib/moderator.ts): опубликовано — 200, видно сразу; отклонено — 422 moderation_refused с причиной, ничего не пишется. Без модели решают правила §8.3 (ссылка или контакт — отказ). sticker — 200, свой каталог, без вердикта. Одна заявка на игру; отказ без текста не принимается (спека чата §6.1)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -2770,8 +2593,8 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
-        "202": {description: Queued., x-description-ru: В очереди.}
-        "200": {description: Sticker placed., x-description-ru: Стикер поставлен.}
+        "200": {description: "Published at once (a line, an application, a refusal), or the sticker placed: {id}.", x-description-ru: "Опубликовано сразу (реплика, заявка, отказ) или стикер поставлен: {id}."}
+        "422": {description: "moderation_refused: the moderator refused the line; error.message says why.", x-description-ru: "moderation_refused: модератор отклонил реплику; error.message — почему.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "409": {$ref: "#/components/responses/Conflict"}
   /tables/{id}/moves:
     post:
@@ -3395,8 +3218,8 @@ paths:
       x-status: built
       x-source: relay/node/src/routes/profile.ts
       security: [{identitySignature: []}]
-      description: "Any subset. A name goes to name_pending and is read by the queue beside the next phrase, accepted with it (202; the old name stands until then); refusals name_frozen (a phrase lives or a chat is open), paused, age_step_down, filter_out_of_band; profile.patch.day counts every attempt. Built 2026-09-22; the name_verdict frame and filter_modes are not built — filter_modes answers 400 (chat spec §8.2, §8.3)."
-      x-description-ru: "Любое подмножество. Имя уходит в name_pending, очередь читает его рядом со следующей фразой и принимает вместе с ней (202; до тех пор действует прежнее); отказы name_frozen (живёт фраза или открыт чат), paused, age_step_down, filter_out_of_band; profile.patch.day считает каждую попытку. Построено 22.09.2026; кадр name_verdict и filter_modes не построены — filter_modes отвечает 400 (спека чата §8.2, §8.3)."
+      description: "Any subset. A new name gets the moderator's verdict at once (owner's decision, 09.10 and 13.10.2026: the model alone, no person queue; with no model the rules of §8.3; relay/node/src/lib/moderator.ts): accepted, it is the name, 200; refused, 422 name_refused with the reason and the old name stands — nothing waits in name_pending; refusals name_frozen (a phrase lives or a chat is open), paused, age_step_down, filter_out_of_band; profile.patch.day counts every attempt. Built 2026-09-22; the name_verdict frame and filter_modes are not built — filter_modes answers 400 (chat spec §8.2, §8.3)."
+      x-description-ru: "Любое подмножество. Новое имя сразу получает вердикт модератора (решение владельца, 09.10 и 13.10.2026: только модель, очереди к человеку нет; без модели — правила §8.3; relay/node/src/lib/moderator.ts): принято — это имя, 200; отклонено — 422 name_refused с причиной, прежнее имя остаётся, в name_pending ничего не ждёт; отказы name_frozen (живёт фраза или открыт чат), paused, age_step_down, filter_out_of_band; profile.patch.day считает каждую попытку. Построено 22.09.2026; кадр name_verdict и filter_modes не построены — filter_modes отвечает 400 (спека чата §8.2, §8.3)."
       parameters:
         - {$ref: "#/components/parameters/ProtocolVersion"}
         - {$ref: "#/components/parameters/IdentitySession"}
@@ -3407,7 +3230,7 @@ paths:
         "400": {description: "invalid_body: an empty patch, a name that is not a string, is empty, carries invisible characters (controls, format characters, line separators) or exceeds name.length (24 graphemes, 400 bytes), an age outside 13–150, a filter bound that is not a whole number from 13 to 150 or null, filter_age_min above filter_age_max, more than three language codes, or filter_modes (not built); or an unsupported protocol version.", x-description-ru: "invalid_body: пустая правка, имя не строка, пустое, с невидимыми символами (управляющие, форматные, разделители строк) или длиннее name.length (24 графемы, 400 байт), возраст вне 13–150, граница фильтра не целое от 13 до 150 и не null, filter_age_min выше filter_age_max, больше трёх языков либо filter_modes (не построено); или неподдерживаемая версия протокола."}
         "429": {description: "rate_limited: profile.patch.day (10) attempts spent, with retry-after; or paused: the queue's pause after five refusals, with {until} and retry-after.", x-description-ru: "rate_limited: истрачены попытки profile.patch.day (10), с retry-after; либо paused: пауза очереди после пяти отказов, с {until} и retry-after."}
         "200": {description: Saved., x-description-ru: Сохранено., content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
-        "202": {description: "The name is queued; the profile as it stands, name_pending set.", x-description-ru: "Имя в очереди; профиль как есть, с name_pending.", content: {application/json: {schema: {$ref: "#/components/schemas/Profile"}}}}
+        "422": {description: "name_refused: the moderator refused the new name; error.message says why; the old name stands.", x-description-ru: "name_refused: модератор отклонил новое имя; error.message — почему; прежнее имя остаётся.", content: {application/json: {schema: {$ref: "#/components/schemas/ApiError"}}}}
         "409": {description: "name_frozen (a phrase lives or a chat is open; a rejected name is never frozen), age_step_down (back across 21), filter_out_of_band (with band_min and band_max), stepped_away. An age change alone clamps the old filter into the new band instead (chat spec §8.2).", x-description-ru: "name_frozen (живёт фраза или открыт чат; отклонённое имя не замораживается), age_step_down (назад через 21), filter_out_of_band (с band_min и band_max), stepped_away. Смена одного возраста зажимает старый фильтр в новую полосу, а не отказывает (спека чата §8.2).", content: {application/json: {schema: {oneOf: [{$ref: "#/components/schemas/LegalReacceptance"}, {$ref: "#/components/schemas/ApiError"}]}}}}
         "503": {$ref: "#/components/responses/Unavailable"}
   /recovery/reissue:

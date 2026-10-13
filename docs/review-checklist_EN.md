@@ -4,7 +4,7 @@
 > Postgres, not its Auth, not its Edge Functions. Today: a pool of our own VPS
 > nodes, magic-link sign-in (a signed session issued by the relay itself), data in
 > Bunny Storage, control state in a Postgres beside the node.
-> Current: `relay/ARCHITECTURE_EN.md`, `state-decision_EN.md`, `open-work_EN.md`.
+> Current: `relay/ARCHITECTURE_EN.md`.
 
 Compiled from a multi-angle review (correctness, a11y, PWA/SW, security, i18n, performance, architecture, auth, tests, consistency). Paths are relative to `/home/eugene-panov/Projects/panov-id/xor.ad`.
 
@@ -138,7 +138,7 @@ Highlights: `check()` authz hole + `shouldCreateUser:false`; invite function (ro
 - [x] `panel/src/providers/auth.ts` — `onError` triggers logout+redirect on 401/403. ✅
 - [x] `panel/tests/report/**` — not tracked in git (0 files); added `tests/report`/`tests/results` to `panel/.gitignore` as a safeguard. ✅
 - [x] `panel/src/providers/constants.ts` — the localhost/demo-anon fallback is kept only in dev (`import.meta.env.DEV`); a production build throws when `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` are missing (verified: throw present in the prod bundle). `tests/helpers/env.ts` — test infra, fallback kept on purpose. ✅ (`panel/.env` removed earlier in #9)
-- [x] Panel unit tests — **in place since 2026-08-05** (vitest, its own run in `.github/workflows/panel.yml`); see `open-work_EN.md` G1. The scenarios listed are still uncovered — that is a remainder, not an absence of tests.
+- [x] Panel unit tests — **in place since 2026-08-05** (vitest, its own run in `.github/workflows/panel.yml`). The scenarios listed are still uncovered — that is a remainder, not an absence of tests.
 - [x] `panel/src/App.css` — fonts self-hosted: woff2 in `panel/public/fonts/`, `@import "./fonts.css"`, preload in `panel/index.html`. Google CDN `@import` removed. ✅ (moving to a single variable font is a separate design task)
 
 ### Landing
@@ -151,11 +151,11 @@ Highlights: `check()` authz hole + `shouldCreateUser:false`; invite function (ro
 - [x] `index.html`/`legal.html` — fonts self-hosted: 15 woff2 subsets in `landing/fonts/` + `fonts.css`, latin faces preloaded, `fonts.css` in the SW precache. Google preconnect/link removed, **CSP tightened to `font-src 'self'`**. Script `scripts/fetch-fonts.sh`. ✅
 - [x] `index.html` — email input gets an `aria-label` from i18n (in `applyLang`). ✅
 - [x] `index.html` — both `.status` regions got `role="status" aria-live="polite"`. ✅
-- [ ] `index.html` — mockup texts hardcoded in English. **Deferred**, tracked as `open-work_EN.md` G3 — this is a duplicate, the decision lives there.
+- [ ] `index.html` — mockup texts hardcoded in English. **Deferred**.
 - [x] `index.html` — dead i18n key `sayPh` removed from all 6 languages. ✅
 - [x] `sw.js` — offline fallback for navigations (`mode:navigate` → the cached `/`). ✅
 - [x] `sw.js` — `'/'`+`'/index.html'` precache duplicate removed (kept `/`). ✅
-- [x] `manifest.json` — `lang:"en"`: **won't-fix**, installed-PWA metadata with a brand name is valid as is. Duplicate of `open-work_EN.md` G5, the decision lives there.
+- [x] `manifest.json` — `lang:"en"`: **won't-fix**, installed-PWA metadata with a brand name is valid as is.
 
 ---
 

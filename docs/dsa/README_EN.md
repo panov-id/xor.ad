@@ -95,7 +95,7 @@ Art. 28 (protection of minors).
 | **Date checked** | 5 August 2026 |
 | **Confirmed by** | the operator, Evgenii Panov |
 | **Persons employed** | 0 — the operator is a private individual with no staff and no standing contractors |
-| **Annual turnover** | donations through PayPal; the Service takes money from neither residents nor businesses. The sum is kept month by month in `docs/donations_EN.md` — clarified 2026-09-10, where this used to read "€0" beside a live button |
+| **Annual turnover** | donations through PayPal; the Service takes money from neither residents nor businesses. The sum is kept month by month — clarified 2026-09-10, where this used to read "€0" beside a live button |
 | **Conclusion** | **micro enterprise**: both figures sit below the threshold of Recommendation 2003/361/EC (fewer than 10 employed, turnover or balance sheet not above €2m) |
 | **Next check** | by 5 August 2027, and out of turn on any of the events below |
 
@@ -223,13 +223,13 @@ arguments about coffee.
 | What | Subject | Handling | Consequence |
 |---|---|---|---|
 | **Complaint about a message** | I do not want to see this | automatic: a vote counter | hidden at a threshold |
-| **Complaint about an offer** | the promise was not kept | a moderator, privately | offer hidden; repeated cases suspend the business |
+| **Complaint about an offer** | the promise was not kept | the operator, privately | offer hidden; repeated cases suspend the business |
 | **Notice under Art. 16** | the content is illegal | a human, with reasons and a reply | removal and a statement of reasons |
 
 **A complaint about an offer hits the advertisement, not the service.** "They
 refused the discount" is a checkable fact about the announcement itself: promised
 and did not deliver. "The service was poor" is unverifiable in principle, turns
-the moderator into an arbitrator of other people's deals, and pulls the platform
+the operator into an arbitrator of other people's deals, and pulls the platform
 into a contract the Terms deliberately keep it out of. Start judging service
 quality and the statement "we are not a party" stops being true.
 
@@ -285,5 +285,5 @@ there and is still a different mechanism: it accepts no reasoning, confirms no
 receipt and answers no notifier. The two must not be mixed (§6).
 
 What does remain: the gaps in the Art. 17(3) statement of reasons, and the path
-for showing that statement to an author with no email — both are in the
-open-work list.
+for showing that statement to an author with no email — both are in
+`docs/facts/open.tsv`.

@@ -1,0 +1,35 @@
+# User flows: the registry that defines "100%" for the goal in docs/GOALS_RU.md section 0.
+#
+# One flow = one row. A flow counts as done when all six gates a..f are closed.
+# Columns screens/e2e (comma-separated) name files in web/src/screens and web/e2e/specs;
+# walk is a step("...") name in scripts/textwalk/textwalk.mjs; sheet is a base name of
+# panel/design/adaptive-sosed-*.svg. "-" = none. Gates: a_e2e spec green ("?" = spec exists, not yet judged),
+# b_walk textwalk step clean, c_novice novice walkthrough, d_perfect polish list at 6 widths x 2 brands,
+# e_budget budgets met, f_owner owner accepted.
+id	flow	screens	e2e	walk	sheet	a_e2e	b_walk	c_novice	d_perfect	e_budget	f_owner
+F01	splash + language	Splash.tsx	language.spec.ts,theme.spec.ts	splash	adaptive-sosed-splash-393	?	-	-	-	-	-
+F02	register (+errors)	Register.tsx	register-feedback.spec.ts,register-feed.spec.ts,formcard.spec.ts	register errors	adaptive-sosed-register-1	?	-	-	-	-	-
+F03	wizard	Wizard.tsx	wizard.spec.ts	-	adaptive-sosed-wizard-1	?	-	-	-	-	-
+F04	composer (phrase, contact, limit)	Composer.tsx	phrase-lang.spec.ts,phrase-lines.spec.ts,compose-like.spec.ts,starters.spec.ts	phrase with a link	adaptive-sosed-composer-393	?	-	-	-	-	-
+F05	feed + card + like	Feed.tsx,Card.tsx	feed-list.spec.ts,feed-stale.spec.ts,k6-feed.spec.ts,card-more.spec.ts,heart.spec.ts,swipe.spec.ts	phrases	adaptive-sosed-feed-393	?	-	-	-	-	-
+F06	likes screen	Likes.tsx	lists.spec.ts,decline.spec.ts,decline-expire.spec.ts	likes	adaptive-sosed-likes	?	-	-	-	-	-
+F07	match + consent	Match.tsx	consent-wait.spec.ts,two-people.spec.ts	consent	adaptive-sosed-match-393	?	-	-	-	-	-
+F08	chat	Chat.tsx,Inbox.tsx	chat.spec.ts,chat-age.spec.ts,chat-away.spec.ts,chat-resend.spec.ts,chat-span.spec.ts	chat	adaptive-sosed-chat-393	?	-	-	-	-	-
+F09	keys / safety code	ChatActions.tsx	rekey.spec.ts,close-code.spec.ts	keys and safety code	adaptive-sosed-chat-keys	?	-	-	-	-	-
+F10	block / blocked list / end chat	Blocked.tsx,ChatActions.tsx	chat-block.spec.ts,mixed-chat-end.spec.ts	end and block	adaptive-sosed-blocked	?	-	-	-	-	-
+F11	chat game	ChatGame.tsx	chat-game.spec.ts,game-rounds.spec.ts,mixed-chat-game.spec.ts	table and game	adaptive-sosed-chat-game	?	-	-	-	-	-
+F12	tables: dots	Table.tsx,TableList.tsx,NewTable.tsx	table.spec.ts,table-walk.spec.ts,tables-mine.spec.ts,table-feed.spec.ts	table and game	adaptive-sosed-tables-393	?	-	-	-	-	-
+F13	tables: other classes	TableBoards.tsx	table-deck.spec.ts,mixed-table.spec.ts	-	adaptive-sosed-table-applications	?	-	-	-	-	-
+F14	me: name / age / PIN / language	Me.tsx	me.spec.ts,restore-pin.spec.ts,language.spec.ts	me	adaptive-sosed-me-393	?	-	-	-	-	-
+F15	place	Place.tsx	k4-screens.spec.ts	place	adaptive-sosed-place	?	-	-	-	-	-
+F16	restore	Restore.tsx	restore.spec.ts,mixed-restore.spec.ts,two-devices.spec.ts	restore on a new device	adaptive-sosed-restore	?	-	-	-	-	-
+F17	arrival / departure	Arrival.tsx,Departure.tsx	k4-screens.spec.ts	move to another device	adaptive-sosed-arrival	?	-	-	-	-	-
+F18	reissue paper code / reset	Reissue.tsx	reissue.spec.ts	reissue paper code	adaptive-sosed-reissue	?	-	-	-	-	-
+F19	lock / unlock	Locked.tsx,Unlock.tsx	idle-lock.spec.ts,unlock-chat.spec.ts,unlock-last-attempts.spec.ts,unlock-silent.spec.ts	lock and unlock	adaptive-sosed-unlock	?	-	-	-	-	-
+F20	age filter / hidden / step away / theme	AgeFilter.tsx,Hidden.tsx	age-filter.spec.ts,theme.spec.ts	age filter,theme,hidden phrase,step away	adaptive-sosed-age-filter	?	-	-	-	-	-
+F21	legal	Legal.tsx	legal.spec.ts	legal	adaptive-sosed-legal	?	-	-	-	-	-
+F22	DSA statements	Statements.tsx	dsa-recipients.spec.ts,takedown.spec.ts,moderation-path.spec.ts	-	adaptive-sosed-statements	?	-	-	-	-	-
+F23	venue cabinet + offer	Offer.tsx	venue-path.spec.ts,offer.spec.ts,offer-life.spec.ts,offer-complaint.spec.ts,adv.spec.ts	-	adaptive-sosed-adv-offers	?	-	-	-	-	-
+F24	offline / errors	-	wiped-storage.spec.ts,envelopes.spec.ts	offline	adaptive-sosed-feed-refused	?	-	-	-	-	-
+F25	place QR (screen 26, no code yet)	-	-	-	-	-	-	-	-	-	-
+F26	report a phrase (art.16, no code yet)	-	-	-	-	-	-	-	-	-	-

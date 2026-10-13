@@ -3,10 +3,8 @@
 Децентрализованный пул одинаковых Deno-нод на нескольких VPS-провайдерах/регионах.
 **dev + staging крутятся мульти-стендом на общих боксах и ПРИВАТНЫ** (доступ только с
 whitelist-IP); **prod** — на своих боксах, публичный (гео-стиринг через Bunny DNS).
-v1 обслуживает бэкенд лендинга (waitlist, client-error, welcome-письмо); заглушка
-WS-relay держит ноду готовой под чат.
-
-> Подготовительный слой — живой лендинг на текущем бэкенде до cutover.
+Нода обслуживает бэкенд лендинга (waitlist, client-error, welcome-письмо) и
+приложение: личность, ленту, чат через WebSocket-релей, столы.
 
 Полная спецификация: **`SPEC_RU.md`** · регламент релизов: **`RELEASE_RU.md`**.
 
@@ -14,7 +12,7 @@ WS-relay держит ноду готовой под чат.
 
 ```
 relay/
-  node/          одинаковый Deno-образ ноды (роуты: health · waitlist · client-error; слот чата)
+  node/          одинаковый Deno-образ ноды (роуты: health · waitlist · client-error · личность · лента · чат · столы)
   caddy/         образ Caddy с модулем Bunny DNS (TLS через ACME DNS-01)
   wizard/        Python-визард (Docker-launchpad) — генерирует для каждого бокса
                  docker-compose.yml + Caddyfile + per-env .env из инвентаря
@@ -48,7 +46,7 @@ hostname `<box>-<env>.<dns_zone>` (напр. `n1-dev.relay.panov.id`). Прив�
 | `GET /metrics` | Prometheus-счётчики (requests/waitlist/mail) — по токену `METRICS_TOKEN`, без него 404 |
 | `POST /waitlist` | валидация → дедуп+запись в Bunny Storage → welcome через Resend |
 | `POST /client-error` | fire-and-forget сток ошибок |
-| `GET /chat` | заглушка → `501`, пока не приедет чат |
+| `GET /chat` | комната чата: билет, затем кадры по WebSocket (протокол §4.4) |
 
 Stateless: единственное состояние — в **Bunny Storage** (`waitlist/<env>/<hash>.json`).
 Образ одинаковый везде, различается только per-env `.env`.
@@ -69,7 +67,7 @@ cd wizard
 ./run.sh status                 # боксы + их env-стеки
 ./run.sh up --node n1           # provision? → dns → configure (все env-стеки бокса)
 ./run.sh deploy                 # rolling: пере-заливка + пересборка, проверка /health
-./run.sh pool                   # CUTOVER (только prod): в гео-стиринг api.pool
+./run.sh pool                   # только prod: в гео-стиринг api.pool
 ```
 Команды: `status` · `provision` · `configure` · `dns` · `pool` · `deploy` · `up`.
 Режим бокса (в инвентаре): `provision` (создать VM через API — Hetzner/Vultr/DO)
@@ -99,14 +97,11 @@ waitlist → fs-storage + перехват в Mailpit + дедуп). CI гоня
 - **SSH захардненен:** `PasswordAuthentication no`, `PermitRootLogin no`, только
   ключ — используй ключ с passphrase.
 - **TLS:** DNS-01 через Bunny — cert выпускается при закрытых портах.
-- Модель угроз чата (недоверенные community-релеи → E2E) — см.
-  `../docs/archive/chat-decentralized-ideas_RU.md`.
+- Модель угроз чата (недоверенные релеи → E2E) — см. `../docs/protocol_RU.md`.
 
 ## Статус
 
 Нода рабочая (типы ок, `/health` 200). Визард реализует приватную мульти-стенд
 модель: `provision` (Hetzner/Vultr/DO), `dns` (per-env записи Bunny), `configure`
 (хардненинг ssh + вайтлист-файрвол + генерация compose/Caddyfile + DNS-01 TLS +
-все env-стеки), `deploy` (rolling), `pool` (prod cutover), `up`. Осталось:
-реальный прогон на живых боксах/токенах; потом staging/prod. Живой лендинг не тронут
-до cutover.
+все env-стеки), `deploy` (rolling), `pool` (prod: в гео-стиринг пула), `up`.

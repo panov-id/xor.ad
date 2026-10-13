@@ -177,7 +177,7 @@ therefore a processor for everything kept in the database, in every activity bel
   and a snapshot is kept for a year — a year of someone's locations has no
   examining value (`relay/node/src/lib/dsa_snapshot.ts`). Until 2026-09-08 this
   line said "zone", which the copy never contained.
-- **Recipients.** The moderators of the tenant the content belongs to, who examine
+- **Recipients.** The staff of the tenant the content belongs to, who examine
   the notice. Since 2026-09-07 the copy for the feed and tables is taken by the
   target rather than by the storefront the notice came through, so a notice whose
   copy belongs to another face is examined by the **platform** rather than by that
@@ -342,7 +342,7 @@ Details and what is left — [`vendors-dpa_EN.md`](./vendors-dpa_EN.md).
       appeared on the node, and there is no subscription table in the schema —
       not one endpoint was ever received. The decision covers the whole platform
       (`chat_EN.md` §8.12), the code is removed from the storefronts and the
-      deploy scripts, and the plan is rewritten in `pwa-push_EN.md`. The launch
+      deploy scripts, and the plan is dropped. The launch
       call goes by waitlist email through Resend — the "Waiting list" activity
       already covers it.
 - [ ] When creating new Bunny zones, check the region: it must be `DE`, no replicas.

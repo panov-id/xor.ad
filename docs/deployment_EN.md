@@ -61,10 +61,8 @@ no build step, only page generation and upload:
 | `deploy-uat.yml` | push to `main` | cuts `vYYYY.MM.DD-<sha7>` and deploys that tag to uat |
 | `deploy-prod.yml` | manual, with a tag | the same script with `LANDING_ENV=prod` |
 
-**`docs/deploy-prod_EN.md` is history, not a runbook** (noted 2026-09-02). The
-name looks like the row above, while the document describes the retired Supabase
-stack; at night people open the first thing the name matches. The deployment
-order in force is here and in `relay/ARCHITECTURE_EN.md`.
+The deployment order in force is here and in `relay/ARCHITECTURE_EN.md`; the old
+document about the retired Supabase stack is deleted.
 
 **Panel (`xor.ad`)** — `deploy-dev/uat/prod.yml` call the shared `_deploy.yml`:
 `npm ci && npm run build` in `panel/` with `VITE_RELAY_API_URL`, then
@@ -123,7 +121,7 @@ The production gate: `--confirm-prod` **and** the environment's `image_tag` must
 be a published GitHub Release — the wizard checks through the API. Migrations
 ship in the image and run before the node starts; the wizard waits for the
 database before migrating. The inventory (`relay/wizard/inventory.toml`) is
-gitignored — hence open item `A9` in `open-work_EN.md`.
+gitignored — hence an open item in `docs/facts/open.tsv`.
 
 Database backups: `backup-postgres.sh` is laid down on the box by the wizard and
 runs from a systemd timer; the restore is exercised by
@@ -188,12 +186,11 @@ Two optional node settings go the same way since 2026-09-24: `PROTOCOL_SUNSET_AT
 moderation in §8.3 reads the phrase by rules inside the request — a link, a
 contact, an offer, a repeat of one's own live phrase, a doubtful waiting name —
 and a clean one is published at once (`POST /feed` answers 200) while a flagged
-one waits for a person in the panel's queue (202). `queue`: the rules are off
-and every phrase waits for a person — the shape for a tenant with a live
-moderator, and the shape the node had before P1. Any other word reads as
+one waits for a verdict (202; by the owner's word of 13.10 the model gives it, not a person). `queue`: the rules are off
+and every phrase waits for a verdict — the shape the node had before P1. Any other word reads as
 `queue`: a misspelling closes, it does not open. The node has no word list, so
 "clean by the rules" means only "no links and no contacts" — rudeness without
-them goes out at once until the model of §8.14 is wired; the price is named in
+them goes out at once until the model of §8.14 reads every phrase; the price is named in
 `decisions.tsv`. The wizard does **not** pass this variable yet
 (`relay/wizard/wizard.py`, the node's environment list), so on a box only the
 default applies; `queue` cannot be chosen on a live node until the wizard learns it.
@@ -277,7 +274,7 @@ The panel is an SPA with client-side routing. Its Pull Zone needs
 `config.js` is generated at deploy time and is **not a hashed asset**, so it must
 not be cached like one. The address is versioned (`config.js?v=<build>`), the
 page itself lives for minutes, and an edge rule shortens the TTL:
-`deploy/bunny-config-cache-rule.sh`. The history is `A8` in `open-work_EN.md`.
+`deploy/bunny-config-cache-rule.sh`. The history is in `docs/facts/open.tsv`.
 
 ## Smoke after a deploy
 

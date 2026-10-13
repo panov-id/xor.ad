@@ -34,7 +34,6 @@ await import("../src/routes/tables.ts");
 await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
 await import("../src/routes/away.ts");
-await import("../src/routes/feed_queue.ts");
 await import("../src/routes/feed.ts");
 // The rooms' listeners, once and before any test: started inside one, they
 // count as that test's leak (as session_freeze.test.ts does).
@@ -154,7 +153,7 @@ async function game(): Promise<{ a: Person; b: Person; id: string }> {
   assertEquals(made.status, 201, JSON.stringify(made.body));
   const id = made.body.id as string;
   assertEquals((await signed(b, "POST", `/tables/${id}/seat`)).body, { seat: 2 });
-  assertEquals((await signed(b, "POST", `/tables/${id}/lines`, { kind: "application", text: "возьмите" })).status, 202);
+  assertEquals((await signed(b, "POST", `/tables/${id}/lines`, { kind: "application", text: "возьмите" })).status, 200);
   const round = await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
   assertEquals(round.status, 200, JSON.stringify(round.body));
   return { a, b, id };
@@ -175,7 +174,7 @@ test("a table's name and its lines refuse what nobody can see", async () => {
   const say = (text: string) => signed(b, "POST", `/tables/${id}/lines`, { kind: "line", text });
   assertEquals((await say("привет\u001b[2J")).status, 400, "a line with ESC was taken");
   assertEquals((await say("привет‮текст")).status, 400, "a line with a direction override was taken");
-  assertEquals((await say("привет")).status, 202);
+  assertEquals((await say("привет")).status, 200);
 });
 
 test("a table is seen only from a live seat, and a repeat of its nonce gets the same table", async () => {
@@ -307,7 +306,7 @@ test("blocking a seat stands the blocker up, the game goes on, and the blocker c
 test("a line is hidden only for the one who hid it, and goes with the table", async () => {
   const { a, b, id } = await game();
   const said = await signed(b, "POST", `/tables/${id}/lines`, { kind: "line", text: "привет" });
-  assertEquals(said.status, 202);
+  assertEquals(said.status, 200);
   const seen = (who: Person) =>
     signed(who, "GET", `/tables/${id}`).then((r) => (r.body.lines as { id: string }[]).some((l) => l.id === said.body.id));
   assertEquals([await seen(a), await seen(b)], [true, true]);
@@ -350,24 +349,122 @@ test("resigning makes a spectator and ends a game of two; stepping away frees th
   assertEquals(seat.n, 0, "the one who stepped away no longer sits");
 });
 
-test("lines and the name pass the feed's first tier: clean is public at once, a link waits", async () => {
+// The verdict on a table's name and lines (lib/moderator.ts; owner 13.10.2026:
+// the model alone, no person queue). No model here: the rules decide — clean
+// is public at once, a link is refused 422 with the reason and nothing waits.
+test("no model: a clean name and line are public at once, a link is refused and nothing waits", async () => {
   const a = await person();
   const clean = await signed(a, "POST", "/tables", {
     class: "grid", set: "chess", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: "шахматы у пруда", nonce: nonce(),
   });
+  assertEquals(clean.status, 201, JSON.stringify(clean.body));
   const linked = await person();
   const flagged = await signed(linked, "POST", "/tables", {
     class: "grid", set: "chess", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: "t.me/chess", nonce: nonce(),
   });
+  assertEquals([flagged.status, code(flagged)], [422, "name_refused"], JSON.stringify(flagged.body));
+  assertEquals(flagged.body.error.message, "the table name was not published: link");
   assertEquals((await signed(a, "GET", `/tables/${clean.body.id}`)).body.name, "шахматы у пруда");
-  assertEquals((await signed(linked, "GET", `/tables/${flagged.body.id}`)).body.name, null, "a link waits for the queue");
   const id = clean.body.id as string;
   const ok = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "кто играет?" });
   const link = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "пиши https://example.com" });
-  assertEquals([ok.status, link.status], [202, 202]);
+  assertEquals([ok.status, link.status], [200, 422], JSON.stringify(link.body));
+  assertEquals(code(link), "moderation_refused");
   const shown = ((await signed(a, "GET", `/tables/${id}`)).body.lines as { id: string }[]).map((l) => l.id);
   assert(shown.includes(ok.body.id), "the clean line is public");
-  assert(!shown.includes(link.body.id), "the line with a link waits");
+  const waiting = await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM table_lines WHERE table_id = $1 AND visible_at IS NULL`, [id]);
+  assertEquals(waiting[0].n, 0, "a refused line was written to wait for somebody");
+});
+
+// Model on (a stand-in with Ollama's shape): its word decides, whatever the
+// rules flagged — a line the rules let through is refused when it says reject,
+// a name the rules flag is the name when it says publish — and it is asked
+// with the kind and the rules' flags.
+test({
+  name: "model on: the model's verdict decides a table's name and lines, with the rules' flags as context",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const asked: { kind: string; phrase: string; rule_flags: string[] }[] = [];
+    let reply = '{"verdict":"publish","reason":"ok"}';
+    const model = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen: () => {} }, async (req) => {
+      const body = await req.json() as { messages: { role: string; content: string }[] };
+      asked.push(JSON.parse(body.messages.find((m) => m.role === "user")!.content));
+      return Response.json({ message: { role: "assistant", content: reply } });
+    });
+    Deno.env.set("MODERATOR_URL", `http://127.0.0.1:${model.addr.port}`);
+    try {
+      const a = await person();
+      const made = await signed(a, "POST", "/tables", {
+        class: "grid", set: "chess", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: "chess.club", nonce: nonce(),
+      });
+      assertEquals(made.status, 201, `the model's publish did not make the table: ${JSON.stringify(made.body)}`);
+      assertEquals(asked.at(-1), { kind: "table_name", phrase: "chess.club", rule_flags: ["link"] });
+      const id = made.body.id as string;
+      assertEquals((await signed(a, "GET", `/tables/${id}`)).body.name, "chess.club");
+      reply = '{"verdict":"reject","reason":"an insult"}';
+      const line = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "ну ты и пень" });
+      assertEquals([line.status, code(line), line.body.error.message], [422, "moderation_refused", "an insult"]);
+      assertEquals(asked.at(-1), { kind: "table_line", phrase: "ну ты и пень", rule_flags: [] });
+      reply = "not json";
+      const unsure = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "кто играет?" });
+      assertEquals([unsure.status, unsure.body.error.message], [422, "the moderator could not read the line; try again later"]);
+
+      // The hangman word, in every language set: the model is asked, and only its publish lets it through.
+      for (const [set, word] of [["ru", "кошка"], ["en", "garden"], ["de", "straße"], ["hangman", "кот"]]) {
+        reply = '{"verdict":"publish","reason":"ok"}'; // the application line is judged too
+        const w = await gameOf("word", set);
+        reply = '{"verdict":"reject","reason":"an insult"}';
+        const refused = await moveAs(w.a, w.id, { word });
+        assertEquals([refused.status, code(refused), refused.body.error?.message], [422, "moderation_refused", "an insult"], `${set}: ${JSON.stringify(refused.body)}`);
+        assertEquals(asked.at(-1), { kind: "game_word", phrase: word, rule_flags: [] });
+        assertEquals((await seen(w.a, w.id)).state.word.word, null, `${set}: a refused word is not set`);
+        reply = "not json";
+        assertEquals((await moveAs(w.a, w.id, { word })).status, 422, `${set}: an unsure model refuses`);
+        reply = '{"verdict":"publish","reason":"ok"}';
+        const set_ = await moveAs(w.a, w.id, { word });
+        assertEquals(set_.status, 200, `${set}: ${JSON.stringify(set_.body)}`);
+      }
+    } finally {
+      Deno.env.delete("MODERATOR_URL");
+      await model.shutdown();
+    }
+  },
+});
+
+// The model is the dearest step of POST /tables, so a request the transaction
+// would turn away never reaches it: a repeat of a used nonce gets its table
+// back unasked, and a fifth table in the hour is 429 unasked.
+test({
+  name: "model on: a repeated nonce and a table over the hour's limit never reach the model",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    let asked = 0;
+    const model = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen: () => {} }, () => {
+      asked++;
+      return Response.json({ message: { role: "assistant", content: '{"verdict":"publish","reason":"ok"}' } });
+    });
+    Deno.env.set("MODERATOR_URL", `http://127.0.0.1:${model.addr.port}`);
+    try {
+      const a = await person();
+      const made = (n: string) =>
+        signed(a, "POST", "/tables", { class: "grid", set: "chess", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: "шахматы", nonce: n });
+      const first = nonce();
+      const once = await made(first);
+      assertEquals([once.status, asked], [201, 1], JSON.stringify(once.body));
+      const again = await made(first);
+      assertEquals([again.status, again.body.id, asked], [201, once.body.id, 1], "a repeated nonce asked the model again");
+      for (let i = 0; i < 3; i++) assertEquals((await made(nonce())).status, 201);
+      assertEquals(asked, 4);
+      const fifth = await made(nonce());
+      assertEquals([fifth.status, code(fifth), asked], [429, "rate_limited", 4], "a table over the limit asked the model");
+    } finally {
+      Deno.env.delete("MODERATOR_URL");
+      await model.shutdown();
+    }
+  },
 });
 
 test("dots: the engine refuses a taken edge, scores closed boxes, and the finished game comes back over", async () => {
@@ -401,89 +498,6 @@ test("dots: the engine refuses a taken edge, scores closed boxes, and the finish
   assertEquals(Object.values(view.score).reduce((x, y) => x + y, 0), 4, "four boxes on a 2×2 field");
 });
 
-// A panel session minted as lib/auth.ts redeem() mints it (as feed_publish.test.ts does).
-async function panelAs(role: string, brand: string | null = null) {
-  const { sign } = await import("../src/lib/jwt.ts");
-  const { sha256hex } = await import("../src/lib/hash.ts");
-  const { scopedForBrand } = await import("../src/lib/scoped_storage.ts");
-  const { config } = await import("../src/config.ts");
-  const email = `${role}-${crypto.randomUUID()}@platform.test`;
-  await scopedForBrand(null).put(`panel/${config.envName}/users/${await sha256hex(email)}.json`, {
-    email, role, brand, created_at: "2026-09-27T00:00:00.000Z",
-  });
-  const token = await sign({ sub: email, role, brand, env: config.envName, exp: Math.floor(Date.now() / 1000) + 3600 }, "tables-secret");
-  return async (method: string, path: string) => {
-    const url = new URL(`https://relay.test${path}`);
-    const found = match(method, url.pathname);
-    assert(found, `no route for ${method} ${url.pathname}`);
-    const response = await found.h({
-      req: new Request(url, { method, headers: { authorization: `Bearer ${token}` } }),
-      params: found.params,
-      url,
-    });
-    const text = await response.text();
-    return { status: response.status, body: text ? JSON.parse(text) : null };
-  };
-}
-
-test({
-  name: "what the rules flagged at a table waits in the panel's queue, is decided once, and the watchdog counts it",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const { readModerationQueue } = await import("../src/lib/queue_metrics.ts");
-    const a = await person();
-    const made = await signed(a, "POST", "/tables", {
-      class: "grid", set: "chess", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000, name: "t.me/chessclub", nonce: nonce(),
-    });
-    const id = made.body.id as string;
-    const line = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "пиши https://example.com" });
-    const moderator = await panelAs("moderator");
-    const queue = (await moderator("GET", "/admin/table-queue")).body as { kind: string; id: string; text: string }[];
-    assert(queue.some((q) => q.kind === "line" && q.id === line.body.id), JSON.stringify(queue));
-    assert(queue.some((q) => q.kind === "name" && q.id === id && q.text === "t.me/chessclub"), JSON.stringify(queue));
-    assert(!JSON.stringify(queue).includes(a.identity_id), "no identity in the queue");
-    const [{ brand }] = await database.queryOrThrow<{ brand: string }>(`SELECT brand FROM tables WHERE id = $1`, [id]);
-    const watched = (await readModerationQueue())!.find((r) => r.brand === brand);
-    assert(watched && watched.waiting >= 2, `the watchdog counts table items: ${brand} ${JSON.stringify(await readModerationQueue())}`);
-
-    // Another brand's moderator cannot decide it; the right one does, once.
-    const stranger = await panelAs("moderator", "some-other-brand");
-    await database.queryOrThrow(`DELETE FROM moderation_verdicts WHERE brand = $1`, [brand]);
-    assertEquals((await stranger("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
-    assertEquals(
-      (await database.queryOrThrow(`SELECT 1 FROM moderation_verdicts WHERE brand = $1`, [brand])).length, 0,
-      "a decision that did not apply is not a verdict",
-    );
-    assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 200);
-    assertEquals(
-      (await database.queryOrThrow(`SELECT 1 FROM moderation_verdicts WHERE brand = $1`, [brand])).length, 1,
-      "a decision at a table is the watchdog's verdict for its face (db/078)",
-    );
-    assertEquals((await moderator("POST", `/admin/table-queue/lines/${line.body.id}/publish`)).status, 409);
-    const shown = ((await signed(a, "GET", `/tables/${id}`)).body.lines as { id: string }[]).map((l) => l.id);
-    assert(shown.includes(line.body.id), "published: the line is public");
-    // The name's verdict goes to the author's own rooms as name_verdict with table (G1e).
-    const relay = await import("../src/chat/relay.ts");
-    const got: { type: string; data: unknown }[] = [];
-    const key = `table:${id}`;
-    relay.roomsForTest().set(key, new Set([{
-      socket: { readyState: WebSocket.OPEN, send: (t: string) => got.push(JSON.parse(t)), close() {} } as unknown as WebSocket,
-      session: a.session_id, chat: key, seq: 0, table: id, identity: a.identity_id,
-    }]));
-    assertEquals((await moderator("POST", `/admin/table-queue/names/${id}/refuse`)).status, 200);
-    const until = Date.now() + 3000;
-    while (Date.now() < until && !got.some((f) => f.type === "name_verdict")) await new Promise((r) => setTimeout(r, 20));
-    relay.roomsForTest().delete(key);
-    assertEquals(got.find((f) => f.type === "name_verdict")?.data, { accepted: false, table: id },
-      "the author was not told the name's verdict");
-    const [t] = await database.queryOrThrow<{ name: string | null; name_pending: string | null }>(
-      `SELECT name, name_pending FROM tables WHERE id = $1`, [id]);
-    assertEquals([t.name, t.name_pending], [null, null], "a refused name leaves the table nameless");
-    assertEquals((await panelAs("viewer").then((v) => v("POST", `/admin/table-queue/names/${id}/publish`))).status, 403);
-  },
-});
-
 test("a refused applicant sits out the round; the one not refused plays", async () => {
   const a = await person();
   const b = await person();
@@ -496,7 +510,7 @@ test("a refused applicant sits out the round; the one not refused plays", async 
   await signed(c, "POST", `/tables/${id}/lines`, { kind: "application", text: "и я" });
   assertEquals(code(await signed(a, "POST", `/tables/${id}/lines`, { kind: "refusal", text: "в другой раз" })), "invalid_body");
   const no = await signed(a, "POST", `/tables/${id}/lines`, { kind: "refusal", text: "в другой раз", seat: 3 });
-  assertEquals(no.status, 202, JSON.stringify(no.body));
+  assertEquals(no.status, 200, JSON.stringify(no.body));
   // The line says whom it refuses, not only who spoke (verifier of G1e).
   const refusal = ((await signed(c, "GET", `/tables/${id}`)).body.lines as { id: string; seat: number; refuses_seat: number | null }[])
     .find((l) => l.id === no.body.id);
@@ -599,7 +613,7 @@ test({
       while (Date.now() < until && !check()) await new Promise((resolve) => setTimeout(resolve, 20));
     };
     try {
-      assertEquals((await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "привет" })).status, 202);
+      assertEquals((await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "привет" })).status, 200);
       const c = await person();
       await signed(c, "POST", `/tables/${id}/seat`);
       await waitFor(() => sent.get("a")!.some((f) => f.type === "line") && sent.get("a")!.some((f) => f.type === "seat"));
@@ -642,15 +656,49 @@ test({ name: "deck: the node deals, each sees their own hand and the others' bac
   const notMine = (theirs.state.deck.hands["2"] as string[])[0];
   const refused = await signed(a, "POST", `/tables/${id}/moves`, { seq: mine.seq, move: { play: notMine } });
   assertEquals([code(refused), refused.body.error.reason], ["illegal_move", "the card is not in your hand"]);
-  // One card left in A's hand: playing it wins the deal.
-  const last = (mine.state.deck.hands["1"] as string[])[0];
-  await database.queryOrThrow(
-    `UPDATE table_games SET state = jsonb_set(state, '{deck,hands,1}', to_jsonb(ARRAY[$2::text])) WHERE table_id = $1 AND ended_at IS NULL`,
-    [id, last],
-  );
-  const won = await signed(a, "POST", `/tables/${id}/moves`, { seq: mine.seq, move: { play: last } });
-  assertEquals(won.status, 200, JSON.stringify(won.body));
-  assertEquals([won.body.board.over, won.body.board.score["1"]], [true, 1], "an empty hand wins the deal");
+  // Durak (13.10.2026): A attacks, the turn goes to the defender, who takes.
+  const lead = (mine.state.deck.hands["1"] as string[])[0];
+  const led = await signed(a, "POST", `/tables/${id}/moves`, { seq: mine.seq, move: { play: lead } });
+  assertEquals(led.status, 200, JSON.stringify(led.body));
+  assertEquals([led.body.board.turn, led.body.board.state.deck.table], [2, [{ attack: lead, beat: null }]], "the defender answers the attack");
+  const took = await moveAs(b, id, { take: true });
+  assertEquals(took.status, 200, JSON.stringify(took.body));
+  assertEquals([took.body.board.turn, took.body.board.state.deck.hands["2"].length], [1, 7], "one who took is passed over; the table in hand");
+  // The last card: with the stock empty, the one left holding cards is the durak.
+  await setState(id, "{deck,stock}", []);
+  await setState(id, "{deck,hands,1}", ["AS"]);
+  await setState(id, "{deck,hands,2}", ["6H", "7H"]);
+  await setState(id, "{deck,trump}", "6D");
+  assertEquals((await moveAs(a, id, { play: "AS" })).status, 200);
+  const done = await moveAs(b, id, { take: true });
+  assertEquals(done.status, 200, JSON.stringify(done.body));
+  assertEquals([done.body.board.over, done.body.board.score["1"], done.body.board.state.deck.durak], [true, 1, 2], "out of cards wins, the last holder is the durak");
+});
+
+test({ name: "battleship and poker at a table: a fleet and a hand never reach the other seat, not in the board and not in the moves", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const fleet = (cols: string) => [
+    [`${cols[0]}1`, `${cols[0]}2`, `${cols[0]}3`, `${cols[0]}4`], [`${cols[1]}1`, `${cols[1]}2`, `${cols[1]}3`], [`${cols[2]}1`, `${cols[2]}2`, `${cols[2]}3`],
+    [`${cols[3]}1`, `${cols[3]}2`], [`${cols[4]}1`, `${cols[4]}2`], ["a6", "b6"], ["d6"], ["f6"], ["h6"], ["j6"],
+  ];
+  const sea = await gameOf("grid", "battleship");
+  const mine = fleet("acegi");
+  const placed = await moveAs(sea.a, sea.id, { fleet: mine });
+  assertEquals(placed.status, 200, JSON.stringify(placed.body));
+  const other = JSON.stringify(await seen(sea.b, sea.id));
+  for (const cell of mine.flat()) assert(!other.includes(`"${cell}"`), `B sees A's ${cell}: ${other}`);
+  assertEquals((await seen(sea.b, sea.id)).state.sea.fleets["1"], { placed: true });
+  const three = await signed(sea.a, "POST", "/tables", { class: "grid", set: "battleship", seats: 3, lat: 52.52, lon: 13.4, area_radius: 1000, nonce: nonce() });
+  assertEquals([three.status, three.body.error?.message], [400, "a grid table seats at most 2"]);
+
+  const poker = await gameOf("deck", "poker");
+  const a = await seen(poker.a, poker.id);
+  const b = await seen(poker.b, poker.id);
+  const aHole = a.state.poker.holes["1"] as string[];
+  assertEquals([aHole.length, a.state.poker.holes["2"]], [2, { count: 2 }]);
+  for (const card of aHole) assert(!JSON.stringify(b).includes(`"${card}"`), `B sees A's ${card}`);
+  assertEquals(reasonOf(await moveAs(poker.a, poker.id, { check: true })), "there is 10 to call", "heads-up the button posts the small blind and acts first");
+  const called = await moveAs(poker.a, poker.id, { call: true });
+  assertEquals([called.status, called.body.board.turn], [200, 2], JSON.stringify(called.body));
 });
 
 test({ name: "word: the setter's word is hidden from the others and from the moves, letters are not repeated, a guessed word scores", sanitizeOps: false, sanitizeResources: false }, async () => {
@@ -658,7 +706,7 @@ test({ name: "word: the setter's word is hidden from the others and from the mov
   let s = await seen(a, id);
   assertEquals(s.state.word.setter, 1);
   const flagged = await signed(a, "POST", `/tables/${id}/moves`, { seq: s.seq, move: { word: "telegram" } });
-  assertEquals(flagged.body.error?.reason, "set another word", "a contact word passes the rules first");
+  assertEquals([flagged.status, code(flagged)], [422, "moderation_refused"], "a contact word is refused by the moderator's verdict");
   assertEquals((await signed(a, "POST", `/tables/${id}/moves`, { seq: s.seq, move: { word: "кот" } })).status, 200);
   const guesser = await seen(b, id);
   assertEquals([guesser.state.word.word, guesser.state.word.mask], [null, "___"], "the guesser sees the word masked");

@@ -9,20 +9,23 @@
 // Built here: set up, look, sit, stand, speak, move and pass, and the first
 // round opened by a `rematch` proposal, liking a table and resigning. Not yet: the socket
 // ticket, confirming a new game, draw and undo, congratulating,
-// kicking. Lines and the name pass the feed's first tier of rules: clean is
-// public at once, flagged waits for the queue (which does not yet read tables).
+// kicking. Lines and the name get the moderator's verdict (lib/moderator.ts:
+// the model, or the rules with no model): published at once, or refused 422
+// with the reason. Nothing waits for a person.
 
 import { route } from "../lib/router.ts";
 import { json, readJson } from "../lib/http.ts";
-import { type Query, transaction } from "../lib/db.ts";
+import { query, type Query, transaction } from "../lib/db.ts";
 import { type Caller, callerOf, refuse } from "../lib/identity_guard.ts";
 import { base64urlToBytes, bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
-import { checkAll, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
+import { check, checkAll, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { cursorConfigured, openCursor, sealCursor } from "../lib/cursor.ts";
 import { myTables, tablesPage } from "../lib/tables_feed.ts";
 import { log } from "../lib/log.ts";
-import { stepGame } from "../lib/tables_engine.ts";
-import { readText, verdictMode } from "../lib/feed_verdict.ts";
+import { SET_SEATS, stepGame, turnAfter } from "../lib/tables_engine.ts";
+import { judgeWord } from "../lib/tables_word.ts";
+import { readText } from "../lib/feed_verdict.ts";
+import { judge } from "../lib/moderator.ts";
 import { foldLines, hasInvisible } from "../lib/names.ts";
 import {
   applyOverdue, bandBetween, blockedEither, boardFor, CLASSES, CONFIRM_WINDOW_MS, emptyState, leaveTable, lockGame, MOVE_WINDOW_MS, RADII, resign, scoreOf, SEAT_LIMITS, startRound, STICKER_LIMITS, TABLE_CREATE_LIMITS, tableEvent, TICKET_LIMITS, TICKET_SECONDS, touch, type GameState,
@@ -66,12 +69,15 @@ async function seatAt(run: Query, tableId: string, identity: string): Promise<Se
 }
 
 // A table request: the caller, then a transaction with the caller's live seat.
+// A route that already verified the signature passes its caller in, so the
+// request is not verified twice.
 async function atTable(
   req: Request,
   tableId: string,
   step: (run: Query, caller: Caller, seat: Seat) => Promise<Response>,
+  known?: Caller,
 ): Promise<Response> {
-  const caller = await callerOf(req);
+  const caller = known ?? await callerOf(req);
   if (caller instanceof Response) return caller;
   return await transaction(async (run) => {
     const seat = await seatAt(run, tableId, caller.identityId);
@@ -108,6 +114,9 @@ async function create(req: Request): Promise<Response> {
   // six for the deck.
   const most = ({ grid: 2, dots: 2, dice: 2, word: 2, free: 4, physics: 4, deck: 6 } as Record<string, number>)[game];
   if (seats > most) return refuse("invalid_body", `a ${game} table seats at most ${most}`, 400);
+  // A set may seat fewer than its class (lib/tables_engine.ts SET_SEATS).
+  const setMost = set === null ? undefined : SET_SEATS[game]?.[set];
+  if (setMost !== undefined && seats > setMost) return refuse("invalid_body", `a ${set} table seats at most ${setMost}`, 400);
   const name = body.name === undefined || body.name === null ? null : body.name;
   if (name !== null && (typeof name !== "string" || graphemes(name) < 1 || graphemes(name) > 24)) {
     return refuse("invalid_body", "name is up to 24 characters", 400);
@@ -116,9 +125,24 @@ async function create(req: Request): Promise<Response> {
   if (typeof name === "string" && hasInvisible(name)) {
     return refuse("invalid_body", "the name has characters nobody can see", 400);
   }
-  // The first tier of the feed's rules reads the name too: clean is the name
-  // at once, flagged waits in name_pending for the queue (§6.1, 17.09.2026).
-  const cleanName = typeof name === "string" && verdictMode() === "rules" && readText(name).length === 0 ? name : null;
+  // A table's name gets the moderator's verdict before the table is made
+  // (lib/moderator.ts; owner 13.10.2026: the model alone, no person queue):
+  // passed, it is the name; refused, the table is not made and the author
+  // hears why, 422 `name_refused`, and can choose another name or none.
+  // The model is the dearest step, so a request the transaction below would
+  // turn away never reaches it: one over the hour's limit (looked at, not
+  // counted — the transaction counts) and a repeat of a nonce already used.
+  const over = TABLE_CREATE_LIMITS.map((limit) => check(limit, caller.identityId, Date.now(), false)).find((v) => !v.allowed);
+  if (over) {
+    return refuse("rate_limited", "too many tables this hour", 429, {}, { "retry-after": String(over.retryAfterSeconds) });
+  }
+  const repeat = typeof name === "string" &&
+    ((await query(`SELECT 1 FROM nonces WHERE session_id = $1 AND nonce = $2`, [caller.sessionId, nonce])) ?? []).length > 0;
+  if (typeof name === "string" && !repeat) {
+    const judgement = await judge({ kind: "table_name", text: name, flags: readText(name) });
+    if (!judgement.publish) return refuse("name_refused", judgement.reason, 422);
+  }
+  const cleanName = typeof name === "string" ? name : null;
 
   return await transaction<Response>(async (run) => {
     // The nonce first: a repeat gets the table it made (protocol §2).
@@ -148,7 +172,7 @@ async function create(req: Request): Promise<Response> {
     const [table] = await run<{ id: string }>(
       `INSERT INTO tables (brand, game, set, seats, name, name_pending, lat, lon, area_radius, created_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
-      [caller.brand ?? "unattributed", game, set, seats, cleanName, cleanName === null ? name : null, lat, lon, radius, caller.identityId],
+      [caller.brand ?? "unattributed", game, set, seats, cleanName, null, lat, lon, radius, caller.identityId],
     );
     await run(
       `INSERT INTO table_seats (table_id, identity, seat_no, playing_from) VALUES ($1, $2, 1, now())`,
@@ -265,7 +289,20 @@ async function stand(req: Request, tableId: string): Promise<Response> {
 }
 
 async function speak(req: Request, tableId: string): Promise<Response> {
+  // The signature first: the model below is asked only for a live session,
+  // never for whoever can reach the node.
+  const known = await callerOf(req);
+  if (known instanceof Response) return known;
   const body = await readJson<{ kind?: unknown; text?: unknown; sticker?: unknown; seat?: unknown }>(req.clone());
+  // A line's verdict, given before the table's transaction since the model
+  // may take up to its timeout (lib/moderator.ts; owner 13.10.2026: the model
+  // alone, no person queue). Only for a text the checks below would take; one
+  // they refuse is refused there, unasked.
+  const said = typeof body?.text === "string" ? foldLines(body.text).trim() : "";
+  const judgement = ["line", "application", "refusal"].includes(body?.kind as string) && said &&
+      graphemes(said) <= 128 && bytes(said) <= 2048 && !hasInvisible(said)
+    ? await judge({ kind: "table_line", text: said, flags: readText(said) })
+    : null;
   return await atTable(req, tableId, async (run, caller, seat) => {
     const kind = body?.kind;
     if (kind === "sticker") {
@@ -321,28 +358,36 @@ async function speak(req: Request, tableId: string): Promise<Response> {
       );
       if (already) return refuse("refused", "one application per game", 409);
     }
-    // The first tier of the feed's rules (§8.3, lib/feed_verdict.ts): a clean
-    // line is public at once, a flagged one waits for the queue as a phrase does.
-    const clean = verdictMode() === "rules" && readText(text).length === 0;
+    // The verdict given above: published, the line is public at once, 200;
+    // refused, nothing is written and the author hears why, 422.
+    if (!judgement || judgement.publish !== true) {
+      return refuse("moderation_refused", judgement?.reason ?? "the line was not published", 422);
+    }
     const [line] = await run<{ id: string }>(
       `INSERT INTO table_lines (brand, table_id, author_identity, text, seat_no, kind, refuses_seat, visible_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, CASE WHEN $8 THEN now() END) RETURNING id`,
-      [caller.brand ?? "unattributed", tableId, caller.identityId, text, seat.seat_no, kind, target ?? null, clean],
+       VALUES ($1, $2, $3, $4, $5, $6, $7, now()) RETURNING id`,
+      [caller.brand ?? "unattributed", tableId, caller.identityId, text, seat.seat_no, kind, target ?? null],
     );
     await touch(run, tableId);
-    if (clean) await tableEvent(run, tableId, "line", line.id);
-    return json({ id: line.id }, 202, sunsetHeader());
-  });
+    await tableEvent(run, tableId, "line", line.id);
+    return json({ id: line.id }, 200, sunsetHeader());
+  }, known);
 }
 
 async function move(req: Request, tableId: string): Promise<Response> {
+  // The signature first: the model below is asked only for a live session.
+  const known = await callerOf(req);
+  if (known instanceof Response) return known;
   const raw = await req.clone().text();
   let body: { seq?: unknown; move?: unknown; pass?: unknown } | null = null;
   try {
     body = JSON.parse(raw);
   } catch { /* refused below */ }
+  // A hangman word is published text: the moderator's verdict first (lib/tables_word.ts).
+  const wordRefused = body && body.pass !== true ? await judgeWord(body.move) : null;
   return await atTable(req, tableId, async (run, _caller, seat) => {
     if (!body || !Number.isInteger(body.seq)) return refuse("invalid_body", "seq is required", 400);
+    if (wordRefused !== null) return refuse("moderation_refused", wordRefused, 422);
     const pass = body.pass === true;
     if (!pass && (body.move === undefined || body.move === null || JSON.stringify(body.move).length > 1024)) {
       return refuse("illegal_move", "a move is a value up to 1 KiB", 409, { reason: "shape" });
@@ -368,7 +413,7 @@ async function move(req: Request, tableId: string): Promise<Response> {
     if ("refused" in step) {
       return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: step.refused });
     }
-    const { again, over, shown } = step;
+    const { over, shown } = step;
     for (const scored of step.scores) {
       await run(
         `INSERT INTO table_scores (seat_id, points)
@@ -380,7 +425,7 @@ async function move(req: Request, tableId: string): Promise<Response> {
     s.board.push(pass ? { seat: seat.seat_no, pass: true } : { seat: seat.seat_no, move: shown });
     if (pass) s.passes[seat.seat_no] = (s.passes[seat.seat_no] ?? 0) + 1;
     else delete s.passes[seat.seat_no];
-    if (!again) s.turn = (turn + 1) % s.order.length;
+    s.turn = turnAfter(s, turn, step);
     const due = over ? null : new Date(Date.now() + MOVE_WINDOW_MS);
     const [after] = await run<{ seq: number }>(
       `UPDATE table_games SET state = $2::text::jsonb, seq = seq + 1, last_move_hash = $3, turn_due = $4,
@@ -403,7 +448,7 @@ async function move(req: Request, tableId: string): Promise<Response> {
       200,
       sunsetHeader(),
     );
-  });
+  }, known);
 }
 
 // A new round: applicants take the free places in the order they applied

@@ -46,12 +46,8 @@ export const PERMISSIONS = [
   // to the police about a person. Whoever holds this is who the report comes
   // from, and the audit record names them.
   "dsa_notices.escalate",
-  // The moderation queue of the feed (chat spec §8.3): phrases waiting for a
-  // verdict before anybody sees them. Reading it shows people's words and the
-  // name that goes out with them; deciding publishes or refuses. Apart from the
-  // DSA permissions on purpose — that queue is about what is already published.
-  "feed_queue.read",
-  "feed_queue.decide",
+  // No feed_queue.* since 13.10.2026: the model alone gives the verdict on a
+  // phrase, a name and a table line (lib/moderator.ts); no person does.
   // Support requests, the team's side (protocol §4.10a, 2026-09-22).
   "support.read",
   "support.answer",

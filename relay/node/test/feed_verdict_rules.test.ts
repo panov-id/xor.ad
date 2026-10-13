@@ -5,7 +5,8 @@
 
 import { assertEquals } from "jsr:@std/assert@1";
 
-const { readText, verdictMode } = await import("../src/lib/feed_verdict.ts");
+const { readText } = await import("../src/lib/feed_verdict.ts");
+const { judge } = await import("../src/lib/moderator.ts");
 
 const clean = [
   "гуляю у реки, если кто рядом",
@@ -144,19 +145,49 @@ Deno.test("the rules read in linear time on the longest phrase a node takes", ()
   assertEquals(took < 2000, true, `1200 readings took ${Math.round(took)} ms`);
 });
 
-Deno.test("the mode is rules unless the node says queue; a misspelling is queue", () => {
-  const had = Deno.env.get("FEED_VERDICT");
-  try {
-    Deno.env.delete("FEED_VERDICT");
-    assertEquals(verdictMode(), "rules");
-    Deno.env.set("FEED_VERDICT", "queue");
-    assertEquals(verdictMode(), "queue");
-    Deno.env.set("FEED_VERDICT", "RULES ");
-    assertEquals(verdictMode(), "rules");
-    Deno.env.set("FEED_VERDICT", "rule");
-    assertEquals(verdictMode(), "queue");
-  } finally {
-    if (had === undefined) Deno.env.delete("FEED_VERDICT");
-    else Deno.env.set("FEED_VERDICT", had);
-  }
+// The verdict (lib/moderator.ts judge; owner 13.10.2026: the model alone, no
+// person). Model off — the rules decide: nothing flagged publishes, a flag
+// refuses with its name, and "offer" alone never refuses (private offers).
+Deno.test("no model: the rules decide, and an offer alone is not a refusal", async () => {
+  const off = { config: null };
+  const clean = await judge({ kind: "phrase", text: "гуляю у реки" }, off);
+  assertEquals([clean.publish, clean.by], [true, "rules"]);
+  const offer = await judge({ kind: "phrase", text: "скидка соседям", flags: ["offer"] }, off);
+  assertEquals(offer.publish, true, `an offer alone was refused: ${offer.reason}`);
+  const link = await judge({ kind: "phrase", text: "x", flags: ["offer", "link", "link"] }, off);
+  assertEquals([link.publish, link.reason, link.moment], [false, "the phrase was not published: link", true]);
+  const line = await judge({ kind: "table_line", text: "x", flags: ["contact"] }, off);
+  assertEquals(line.reason, "the line was not published: contact");
+});
+
+// Model on — its word is the verdict, whatever the rules flagged, and the
+// flags reach it as context. Anything but publish refuses: reject with its
+// reason and a moment; unsure, no answer or a 500 closed, without the moment.
+Deno.test("model on: publish publishes, anything else refuses, and the rules' flags go to the model", async () => {
+  const sent: Record<string, unknown>[] = [];
+  const model = (content: string | null): typeof fetch => (_url, init) => {
+    const body = JSON.parse(String(init?.body)) as { messages: { role: string; content: string }[] };
+    sent.push(JSON.parse(body.messages.find((m) => m.role === "user")!.content));
+    return Promise.resolve(content === null ? new Response("", { status: 500 }) : Response.json({ message: { content } }));
+  };
+  const config = { url: "http://model", model: "m", timeoutMs: 1000 };
+  const on = (content: string | null) => ({ config, fetcher: model(content) });
+
+  const flaggedButFine = await judge(
+    { kind: "phrase", text: "скидка 20% соседям", flags: ["offer", "contact"], name: "Аня" },
+    on('{"verdict":"publish","reason":"ok"}'),
+  );
+  assertEquals([flaggedButFine.publish, flaggedButFine.by], [true, "model"], "the model's publish did not publish a flagged phrase");
+  assertEquals(sent.at(-1), { kind: "phrase", phrase: "скидка 20% соседям", rule_flags: ["offer", "contact"], name: "Аня" });
+
+  const rejected = await judge({ kind: "name", text: "пиши в тг" }, on('{"verdict":"reject","reason":"a messenger"}'));
+  assertEquals([rejected.publish, rejected.reason, rejected.moment], [false, "a messenger", true]);
+  const cleanButRejected = await judge({ kind: "table_line", text: "привет" }, on('{"verdict":"reject","reason":""}'));
+  assertEquals([cleanButRejected.publish, cleanButRejected.reason], [false, "the moderator refused this line"]);
+
+  const unsure = await judge({ kind: "table_name", text: "x" }, on('{"verdict":"maybe"}'));
+  assertEquals([unsure.publish, unsure.moment], [false, false]);
+  assertEquals(unsure.reason, "the moderator could not read the table name; try again later");
+  const down = await judge({ kind: "phrase", text: "x" }, on(null));
+  assertEquals([down.publish, down.moment, down.hint], [false, false, null]);
 });

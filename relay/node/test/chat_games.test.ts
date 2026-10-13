@@ -222,6 +222,34 @@ Deno.test({ name: "the hangman word stays with its setter in a chat too: not in 
   }
 });
 
+Deno.test({ name: "the hangman word in a chat goes through the moderator model: reject is 422 with its reason, publish sets it", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const asked: { kind: string; phrase: string }[] = [];
+  let reply = '{"verdict":"reject","reason":"an insult"}';
+  const model = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen: () => {} }, async (req) => {
+    const body = await req.json() as { messages: { role: string; content: string }[] };
+    asked.push(JSON.parse(body.messages.find((m) => m.role === "user")!.content));
+    return Response.json({ message: { role: "assistant", content: reply } });
+  });
+  Deno.env.set("MODERATOR_URL", `http://127.0.0.1:${model.addr.port}`);
+  try {
+    const a = await person();
+    const b = await person();
+    const chat = await chatOf(a, b);
+    await signed(a, "POST", `/chats/${chat}/game`, { class: "word", set: "en" });
+    await signed(b, "POST", `/chats/${chat}/game/answer`, { answer: "accept" });
+    const refused = await signed(a, "POST", `/chats/${chat}/game/word`, { word: "idiot" });
+    assertEquals([refused.status, refused.body.error?.code, refused.body.error?.message], [422, "moderation_refused", "an insult"]);
+    assertEquals([asked.at(-1)?.kind, asked.at(-1)?.phrase], ["game_word", "idiot"]);
+    assertEquals((await view(a, chat)).board.state.word.word, null, "a refused word is not set");
+    reply = '{"verdict":"publish","reason":"ok"}';
+    const set = await signed(a, "POST", `/chats/${chat}/game/word`, { word: "garden" });
+    assertEquals(set.status, 202, JSON.stringify(set.body));
+  } finally {
+    Deno.env.delete("MODERATOR_URL");
+    await model.shutdown();
+  }
+});
+
 Deno.test({ name: "a chat's game is only its two sides', and it goes with the conversation", sanitizeOps: false, sanitizeResources: false }, async () => {
   const a = await person();
   const b = await person();

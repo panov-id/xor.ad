@@ -19,7 +19,6 @@ Deno.env.set("MAIL_TRANSPORT", "none");
 Deno.env.set("ORIGIN_TOKEN", "moderator-live-origin");
 Deno.env.set("VAULT_SHARE_KEY", "moderator-live-vault");
 Deno.env.set("MODERATOR_TIMEOUT_MS", "300000");
-Deno.env.delete("FEED_VERDICT");
 Deno.env.set("BRANDS", JSON.stringify([{ key: "alpha", name: "Alpha", domain: "alpha.test", from: "a <a@alpha.test>" }]));
 
 Deno.test({

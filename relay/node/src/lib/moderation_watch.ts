@@ -72,8 +72,9 @@ export function forgetModerationWatch(): void {
 }
 
 // A moderator decided something for this face: a phrase or a table line or a
-// table's name, published or refused (db/078). Called by the panel's queues
-// after a decision applied. A failed write is logged and not thrown: the
+// table's name, published or refused (db/078). The panel's queues called it
+// until 13.10.2026; the model's verdict is given in the request now, and a
+// phrase waits only while it is being given. A failed write is logged and not thrown: the
 // decision itself stands, and the cost is a stopped-queue letter too many.
 export async function noteVerdict(brand: string | null): Promise<void> {
   if (!brand) return;

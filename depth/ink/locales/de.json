@@ -397,5 +397,13 @@
   "why.over": "die Partie ist beendet oder nicht begonnen",
   "why.alone": "es braucht zwei Spielende",
   "why.same": "nichts geändert",
-  "why.notNow": "gerade nicht möglich"
+  "why.notNow": "gerade nicht möglich",
+  "sticker.hi": "hallo",
+  "sticker.thanks": "danke",
+  "sticker.deal": "abgemacht",
+  "sticker.wow": "wow",
+  "sticker.coffee": "Kaffee?",
+  "sticker.move": "guter Zug",
+  "sticker.again": "Revanche",
+  "sticker.giveup": "ich gebe auf"
 }

@@ -397,5 +397,13 @@
   "why.over": "პარტია დასრულებულია ან არ დაწყებულა",
   "why.alone": "საჭიროა ორი მოთამაშე",
   "why.same": "არაფერი შეცვლილა",
-  "why.notNow": "ახლა შეუძლებელია"
+  "why.notNow": "ახლა შეუძლებელია",
+  "sticker.hi": "გამარჯობა",
+  "sticker.thanks": "მადლობა",
+  "sticker.deal": "შევთანხმდით",
+  "sticker.wow": "ვაუ",
+  "sticker.coffee": "ყავა?",
+  "sticker.move": "კარგი სვლა",
+  "sticker.again": "რევანში",
+  "sticker.giveup": "ვნებდები"
 }

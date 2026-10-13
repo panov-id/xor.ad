@@ -397,5 +397,13 @@
   "why.over": "partida s-a încheiat sau nu a început",
   "why.alone": "sunt necesari doi jucători",
   "why.same": "nu s-a schimbat nimic",
-  "why.notNow": "momentan nu se poate"
+  "why.notNow": "momentan nu se poate",
+  "sticker.hi": "salut",
+  "sticker.thanks": "mulțumesc",
+  "sticker.deal": "s-a făcut",
+  "sticker.wow": "uau",
+  "sticker.coffee": "o cafea?",
+  "sticker.move": "mutare bună",
+  "sticker.again": "revanșă",
+  "sticker.giveup": "mă predau"
 }

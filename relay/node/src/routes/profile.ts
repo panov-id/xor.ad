@@ -1,12 +1,11 @@
 // PATCH /identities/me — the profile, edited (chat spec §8.2, §8.3; protocol
 // §4.11). Any subset of {name, age, filter_age_min, filter_age_max, languages}.
 //
-// A new name is decided here, at once (FEED_VERDICT=rules, the default): by
-// the local model when it is on, by the rules of §8.3 when it is not. Passed,
-// it is the name, 200; refused, the answer is 422 with the reason and the old
-// name stands — nothing waits for a person, since nobody else reads names
-// (WP-1, WP-4; owner 09.10.2026). Only under FEED_VERDICT=queue does a name go
-// to name_pending, 202, and wait beside the next phrase (§8.2, 2026-09-22). And the accepted name is frozen while a phrase of
+// A new name is decided here, at once (lib/moderator.ts judge): by the local
+// model when it is on, by the rules of §8.3 when it is not. Passed, it is the
+// name, 200; refused, the answer is 422 with the reason and the old name
+// stands — nothing waits for a person, since nobody else reads names (WP-1,
+// WP-4; owner 09.10 and 13.10.2026). And the accepted name is frozen while a phrase of
 // yours lives or a chat is open — the person you are talking to was shown one
 // name, and it does not change under them (§8.2, 2026-08-20/21). A rejected
 // name is never frozen: it is the one thing you must be able to fix.
@@ -36,8 +35,8 @@ import { checkAll, PROFILE_PATCH_LIMITS } from "../lib/rate_limit.ts";
 import { inc } from "../lib/metrics.ts";
 import { log } from "../lib/log.ts";
 import { withoutAddresses } from "../lib/mailer.ts";
-import { readText, settleAfterVerdict, verdictMode } from "../lib/feed_verdict.ts";
-import { askModerator, moderatorConfig } from "../lib/moderator.ts";
+import { readText, settleAfterVerdict } from "../lib/feed_verdict.ts";
+import { judge } from "../lib/moderator.ts";
 import { frameSessions } from "../lib/sessions.ts";
 
 // limits.tsv name.length: 24 graphemes, and never more than 400 bytes.
@@ -115,32 +114,20 @@ async function patchProfile(req: Request): Promise<Response> {
 
   // A new name is decided before the edit's transaction, since the model may
   // take up to its timeout (WP-4; owner 09.10.2026: the model decides, nobody
-  // else reads names). With the model on, it decides every name: publish is
-  // the name, anything else — reject, unsure, no answer — is a refusal with
-  // its reason, and the old name stands. With no model, the rules of §8.3
-  // decide: a clean name is the name, a flagged one is refused with their
-  // reason. Nothing waits: a name refused here was never pending. Under
-  // FEED_VERDICT=queue a name waits beside the next phrase, as before.
-  let nameByVerdict = false;
-  if (body.name !== undefined && verdictMode() === "rules") {
+  // else reads names). Publish is the name; anything else — reject, unsure,
+  // no answer — is a refusal with its reason, and the old name stands. With
+  // no model, the rules decide. Nothing waits: a name refused here was never
+  // pending.
+  if (body.name !== undefined) {
     const wanted = body.name as string;
-    const flagged = readText(wanted);
-    if (moderatorConfig()) {
-      const hint = await askModerator(wanted);
-      inc("relay_profile_name_model_total", { result: hint?.verdict ?? "unavailable" });
-      if (hint?.verdict !== "publish") {
-        const why = hint?.verdict === "reject"
-          ? hint.reason || "the moderator refused this name"
-          : "the moderator could not read the name; try again later";
-        return refuse("name_refused", why, 422);
-      }
-    } else if (flagged.length > 0) {
-      return refuse("name_refused", `the name was not accepted: ${flagged.join(", ")}`, 422);
+    const judgement = await judge({ kind: "name", text: wanted, flags: readText(wanted) });
+    if (judgement.by === "model") {
+      inc("relay_profile_name_model_total", { result: judgement.hint?.verdict ?? "unavailable" });
     }
-    nameByVerdict = true;
+    if (!judgement.publish) return refuse("name_refused", judgement.reason, 422);
   }
 
-  let patched: "name_queued" | "applied" | null = null;
+  let patched: "applied" | null = null;
   // Set when the rules accepted the new name inside the edit: its likes on
   // offers are settled once the edit has committed, as after a verdict.
   let nameAccepted = false;
@@ -187,7 +174,6 @@ async function patchProfile(req: Request): Promise<Response> {
       }
     }
 
-    let nameQueued = false;
     if (body.name !== undefined) {
       const wanted = body.name as string;
       const already = row.name_state === "pending" ? row.name_pending === wanted : row.name === wanted;
@@ -215,27 +201,15 @@ async function patchProfile(req: Request): Promise<Response> {
             until: Math.floor(refusal.until.getTime() / 1000),
           }, { "retry-after": String(Math.max(1, Math.ceil((refusal.until.getTime() - Date.now()) / 1000))) });
         }
-        // The first tier of §8.3 reads a name as it reads a phrase, and reads
-        // it now: a name the rules find nothing in is the name at once, as it
-        // would be beside a clean phrase (lib/feed_verdict.ts, reasonsFor). It
-        // used to wait for the next phrase, so a person who renamed and then
-        // liked an offer got name_pending and no match until they posted (WP-1,
-        // open.tsv offer.like.namequeue). A name the rules flag, or any name
-        // under FEED_VERDICT=queue, waits for a person beside a phrase as before.
-        if (nameByVerdict) {
-          await run(
-            `UPDATE identities SET name = $2, name_pending = NULL, name_state = 'accepted' WHERE id = $1`,
-            [caller.identityId, wanted],
-          );
-          await frameSessions(run, caller.identityId, "name_verdict", { accepted: true });
-          nameAccepted = true;
-        } else {
-          await run(
-            `UPDATE identities SET name_pending = $2, name_state = 'pending' WHERE id = $1`,
-            [caller.identityId, wanted],
-          );
-          nameQueued = true;
-        }
+        // Passed the verdict above: the name at once (WP-1, open.tsv
+        // offer.like.namequeue — a name that waited left an offer's like
+        // without its match until the next phrase).
+        await run(
+          `UPDATE identities SET name = $2, name_pending = NULL, name_state = 'accepted' WHERE id = $1`,
+          [caller.identityId, wanted],
+        );
+        await frameSessions(run, caller.identityId, "name_verdict", { accepted: true });
+        nameAccepted = true;
       }
     }
     await run(
@@ -261,7 +235,7 @@ async function patchProfile(req: Request): Promise<Response> {
       }
     }
     // Counted once the edit commits, below (B68).
-    patched = nameQueued ? "name_queued" : "applied";
+    patched = "applied";
     // The profile as it now stands, the same shape GET gives (202 when the
     // name is still on its way, and name_pending says which).
     const [now] = await run<Row & { languages: string[]; stepped_away_until: Date | null }>(
@@ -278,7 +252,7 @@ async function patchProfile(req: Request): Promise<Response> {
       ...(now.filter_age_max === null ? {} : { filter_age_max: now.filter_age_max }),
       languages: now.languages ?? [],
       ...(now.stepped_away_until ? { stepped_away_until: Math.floor(now.stepped_away_until.getTime() / 1000) } : {}),
-    }, nameQueued ? 202 : 200, sunsetHeader());
+    }, 200, sunsetHeader());
   }).catch((error) => {
     // A 503 and a line, as every other write route answers a database that
     // could not take the edit; let out, it was a 500 with nothing logged

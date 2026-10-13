@@ -27,8 +27,6 @@ export const ROLE_PERMISSIONS: Record<Role, readonly (Permission | typeof ALL_PE
     "dsa_notices.read",
     "dsa_notices.decide",
     "dsa_notices.escalate",
-    "feed_queue.read",
-    "feed_queue.decide",
     "support.read",
     "support.answer",
     // Venue envelopes (W17-EN): platform staff print and post them. A tenant's

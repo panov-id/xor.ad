@@ -1,12 +1,9 @@
-// The first tier of §8.3 on the route: a phrase the rules find nothing in is
-// published in the transaction that wrote it and answered 200 with its term; a
-// phrase they flag waits for a person, 202, exactly as every phrase did before
-// (P1, 2026-09-26). Both outcomes are read back from the rows and the
-// counters, not from the answer alone.
-//
-// The node's default is `rules` — nothing sets FEED_VERDICT here, so the
-// default is what the first cases run under; one case sets `queue` and puts it
-// back.
+// The verdict on the route with no model wired (MODERATOR_URL unset), so the
+// rules of §8.3 decide alone (lib/moderator.ts judge): a phrase they find
+// nothing in — or only an offer — is published and answered 200 with its
+// term; one they flag is refused 422 with their reason. Nothing waits for a
+// person (owner, 13.10.2026). Outcomes are read back from the rows and the
+// counters, not from the answer alone. The model's side is moderator.test.ts.
 
 import { assert, assertEquals, assertNotEquals } from "jsr:@std/assert@1";
 
@@ -22,7 +19,7 @@ Deno.env.set("NODE_ENV_NAME", "test");
 Deno.env.set("MAIL_TRANSPORT", "none");
 Deno.env.set("ORIGIN_TOKEN", "feed-verdict-origin-token");
 Deno.env.set("VAULT_SHARE_KEY", "feed-verdict-vault-key");
-Deno.env.delete("FEED_VERDICT");
+Deno.env.delete("MODERATOR_URL");
 Deno.env.set(
   "BRANDS",
   JSON.stringify([{ key: "alpha", name: "Alpha", domain: "alpha.test", from: "a <a@alpha.test>" }]),
@@ -35,7 +32,6 @@ const metrics = await import("../src/lib/metrics.ts");
 await import("../src/routes/identity.ts");
 await import("../src/routes/feed.ts");
 await import("../src/routes/profile.ts");
-await import("../src/routes/feed_queue.ts");
 
 const KEY_ID = "ak_pub_feedverdicttest001";
 await database.queryOrThrow(
@@ -135,8 +131,7 @@ const counter = (name: string, labels: string): number => {
   return line ? Number(line.split(" ").pop()) : 0;
 };
 
-Deno.test("a clean phrase is published in the request, with its term, under the default mode", async () => {
-  assertEquals(Deno.env.get("FEED_VERDICT"), undefined);
+Deno.test("a clean phrase is published in the request, with its term, with no model", async () => {
   const me = await author();
   const before = {
     rules: counter("relay_feed_rules_total", 'result="published"'),
@@ -164,10 +159,10 @@ Deno.test("a clean phrase is published in the request, with its term, under the 
   assertEquals(stats.n, 1);
   assertNotEquals(stats.first, null);
 
-  // Counted as the rules' publication, not the queue's: the alert on a queue
-  // nobody decides reads the queue's counter.
+  // Counted as the rules' publication, and as a publication: the alert on a
+  // feed that publishes nothing reads relay_feed_verdict_total{published}.
   assertEquals(counter("relay_feed_rules_total", 'result="published"'), before.rules + 1);
-  assertEquals(counter("relay_feed_verdict_total", 'verdict="published"'), before.queue);
+  assertEquals(counter("relay_feed_verdict_total", 'verdict="published"'), before.queue + 1);
 
   // And the slot is free: the next clean phrase is not held behind "still
   // being checked".
@@ -185,16 +180,15 @@ Deno.test("the hourly ceiling counts what the rules published", async () => {
   assertEquals((fifth.body as { error: { code: string } }).error.code, "rate_limited");
 });
 
-Deno.test("with no model, a link, a contact or an offer is refused with the rules' reason, and nothing waits", async () => {
+Deno.test("with no model, a link or a contact is refused with the rules' reason, and nothing waits", async () => {
   // WP-4 (owner, 09.10.2026): nobody but the model reads a phrase. With the
   // model off, what the rules flag is refused with their reason — not left in
-  // a queue nobody reads. An offer is flagged whole (a promo code is not a
-  // shape a rule can tell), so with no model an offer does not go out.
+  // a queue nobody reads. An offer is not among them (next case).
   const flagged: Array<[Record<string, unknown>, string]> = [
     [{ text: "заходи на example.com/party" }, "link"],
     [{ text: "пиши @anyone_here" }, "contact"],
     [{ text: "звони +7 999 123-45-67" }, "contact"],
-    [{ text: "две табуретки", discount_value: "50%" }, "offer"],
+    [{ text: "две табуретки, пишите в тг", discount_value: "50%" }, "contact"],
   ];
   for (const [over, reason] of flagged) {
     const me = await author();
@@ -250,15 +244,14 @@ Deno.test("a clean new name passes the rules when it is changed, and a doubtful 
   assertEquals([still.name, still.name_state, still.name_pending], ["Аня", "accepted", null]);
 });
 
-Deno.test("under FEED_VERDICT=queue every phrase waits, as before", async () => {
-  Deno.env.set("FEED_VERDICT", "queue");
-  try {
-    const me = await author();
-    const sent = await me.say();
-    assertEquals(sent.status, 202, JSON.stringify(sent.body));
-    assertEquals((sent.body as { state: string }).state, "checking");
-    assertEquals((await rowOf((sent.body as { id: string }).id)).visible_at, null);
-  } finally {
-    Deno.env.delete("FEED_VERDICT");
-  }
+// 13.10.2026: a private offer — a phrase with a discount — is legitimate
+// content. Its "offer" flag is context for the model and never refuses on its
+// own, so with no model it publishes, counted under its flag.
+Deno.test("with no model, an offer alone is published, and its flag is counted", async () => {
+  const me = await author();
+  const before = counter("relay_feed_rules_total", 'reason="offer",result="queued"');
+  const sent = await me.say({ text: "две табуретки", discount_value: "50%", conditions: "до вечера" });
+  assertEquals(sent.status, 200, `an offer alone was refused: ${JSON.stringify(sent.body)}`);
+  assertNotEquals((await rowOf((sent.body as { id: string }).id)).visible_at, null);
+  assertEquals(counter("relay_feed_rules_total", 'reason="offer",result="queued"'), before + 1);
 });

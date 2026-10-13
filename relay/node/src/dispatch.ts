@@ -33,7 +33,6 @@ import "./routes/matches.ts"; // step 4: consent to a match, and "not now" (§8.
 import "./routes/chats.ts"; // step 5: a chat message through the node, and its receipt (§8.8)
 import "./routes/blocks.ts"; // step 7: blocks (§8.9)
 import "./routes/hidden.ts"; // and hiding a phrase for oneself
-import "./routes/feed_queue.ts"; // the moderator's queue of the feed, in the panel (§8.3)
 import "./routes/profile.ts"; // PATCH /identities/me: the profile edited, the name queued (§8.2)
 import "./routes/appearance.ts"; // GET/PUT /identities/appearance: theme, contrast, accent per face (screen 22)
 import "./routes/away.ts"; // POST/DELETE /away: stepping away and coming back (§8.2)

@@ -397,5 +397,13 @@
   "why.over": "the game is over or not started",
   "why.alone": "two players are needed",
   "why.same": "nothing has changed",
-  "why.notNow": "not possible right now"
+  "why.notNow": "not possible right now",
+  "sticker.hi": "hi",
+  "sticker.thanks": "thanks",
+  "sticker.deal": "deal",
+  "sticker.wow": "wow",
+  "sticker.coffee": "coffee?",
+  "sticker.move": "good move",
+  "sticker.again": "rematch",
+  "sticker.giveup": "I give up"
 }

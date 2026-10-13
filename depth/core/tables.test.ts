@@ -29,7 +29,7 @@ Deno.test({
     const id = made.body.id;
     const sat = await b.tables.sit(id);
     assert(sat.status >= 200 && sat.status < 300, `the seat was refused: ${sat.status} ${JSON.stringify(sat.body)}`);
-    assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 202);
+    assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 200);
     const proposed = await a.tables.propose(id, "rematch");
     assert(proposed.status >= 200 && proposed.status < 300, `the rematch was refused: ${proposed.status} ${JSON.stringify(proposed.body)}`);
 
@@ -83,9 +83,9 @@ Deno.test({
     const b = await person("Аня");
     const id = (await a.tables.create({ class: "dots", set: "2x2", seats: 2, lat: 52.52, lon: 13.4, area_radius: 1000 })).body.id;
     await b.tables.sit(id);
-    assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 202);
+    assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 200);
     const refused = await a.tables.refuse(id, 2, "в другой раз");
-    assertEquals(refused.status, 202, `a refusal naming the applicant's seat was not taken: ${JSON.stringify(refused.body)}`);
+    assertEquals(refused.status, 200, `a refusal naming the applicant's seat was not taken: ${JSON.stringify(refused.body)}`);
     const wrong = await a.tables.refuse(id, 9, "в другой раз");
     assert(wrong.status === 400 || wrong.status === 409, `a refusal of a seat with no application was taken: ${wrong.status}`);
     let thrown = "";
@@ -115,7 +115,7 @@ Deno.test({
       view = frameNeedsView(f) ? { ...applyFrame(view, f), ...(await a.tables.view(id)).body } : applyFrame(view, f);
     }
     assertEquals(view.playing + view.watching, 2, "the seat frame never said somebody sat down");
-    assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 202);
+    assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 200);
     let line = view.lines.find((l) => l.kind === "application");
     for (let i = 0; i < 10 && !line; i++) {
       view = applyFrame(view, await room.next(5000));
@@ -173,7 +173,7 @@ async function started(game: "deck" | "word") {
   assertEquals(made.status, 201, JSON.stringify(made.body));
   const id = made.body.id;
   await b.tables.sit(id);
-  assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 202);
+  assertEquals((await b.tables.say(id, { kind: "application", text: "сыграю" })).status, 200);
   const proposed = await a.tables.propose(id, "rematch");
   assert(proposed.status >= 200 && proposed.status < 300, `the rematch was refused: ${proposed.status} ${JSON.stringify(proposed.body)}`);
   const view = (await a.tables.view(id)).body;
@@ -182,7 +182,9 @@ async function started(game: "deck" | "word") {
 }
 
 Deno.test({
-  name: "deck through the core: a card from one's own hand is played, then a card is drawn from the stock",
+  // Durak since 13.10.2026 (relay/node/src/lib/tables_deck.ts): the attacker leads, the defender
+  // beats or takes; there is no drawing a card at will any more.
+  name: "deck through the core: the attacker leads a card from their hand, the defender takes the table",
   ignore: !node,
   fn: async () => {
     const { id, who } = await started("deck");
@@ -193,10 +195,12 @@ Deno.test({
     assert(Array.isArray(hand) && hand.length > 0, `one's own hand is not a list of cards: ${JSON.stringify(hand)}`);
     const played = await mover.tables.move(id, view.board!.seq, { play: hand[0] });
     assertEquals(played.status, 200, JSON.stringify(played.body));
-    assertEquals((played.body.board.state.deck as { played: string[] }).played.slice(-1)[0], hand[0], "the card played is not on the table");
-    const next = who[played.body.board.turn!];
-    const drawn = await next.tables.move(id, played.body.board.seq, { draw: true });
-    assertEquals(drawn.status, 200, JSON.stringify(drawn.body));
+    const table = (played.body.board.state.deck as { table: { attack: string; beat: string | null }[] }).table;
+    assertEquals(table.map((p) => p.attack), [hand[0]], "the card led is not on the table");
+    const defender = who[played.body.board.turn!];
+    const took = await defender.tables.move(id, played.body.board.seq, { take: true });
+    assertEquals(took.status, 200, JSON.stringify(took.body));
+    assertEquals((took.body.board.state.deck as { table: unknown[] }).table, [], "the table was not taken");
   },
 });
 

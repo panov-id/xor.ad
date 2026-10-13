@@ -17,8 +17,10 @@ import type { Grid } from "./tables_grid.ts";
 import type { Dice } from "./tables_dice.ts";
 import { type Free, freeFor } from "./tables_free.ts";
 import type { Physics } from "./tables_physics.ts";
+import { type Sea, seaFor } from "./tables_sea.ts";
+import { type Poker, pokerFor } from "./tables_poker.ts";
 import { log } from "./log.ts";
-import { startState } from "./tables_engine.ts";
+import { passGame, startState } from "./tables_engine.ts";
 
 const HOUR = 60 * 60 * 1000;
 
@@ -52,6 +54,8 @@ export interface GameState {
   dice?: Dice; // backgammon: the roll of this turn and the con claimed (lib/tables_dice.ts)
   free?: Free; // dominoes: boneyard and hands, cut per viewer (lib/tables_free.ts)
   physics?: Physics; // chapayev: pieces by cell (lib/tables_physics.ts)
+  sea?: Sea; // battleship, a grid set: fleets cut per viewer (lib/tables_sea.ts)
+  poker?: Poker; // hold'em, a deck set: stock and hands cut per viewer (lib/tables_poker.ts)
 }
 
 export const emptyState = (): GameState => ({ order: [], turn: null, passes: {}, board: [] });
@@ -214,7 +218,24 @@ export async function applyOverdue(run: Query, tableId: string): Promise<void> {
     const seat = s.order[s.turn!];
     s.board.push({ seat, pass: true });
     s.passes[seat] = (s.passes[seat] ?? 0) + 1;
-    if (s.passes[seat] >= PASS_LIMIT) {
+    // A set that keeps its own turns hears the pass too (lib/tables_engine.ts
+    // passGame): the poker seat checks or folds, the durak defender takes.
+    const passed = passGame(s, seat);
+    for (const scored of passed?.scores ?? []) {
+      await run(
+        `INSERT INTO table_scores (seat_id, points)
+         SELECT id, $3 FROM table_seats WHERE table_id = $1 AND seat_no = $2
+         ON CONFLICT (seat_id) DO UPDATE SET points = table_scores.points + $3, updated_at = now()`,
+        [tableId, scored.seat, scored.points],
+      );
+    }
+    const nextAt = passed?.next === undefined ? -1 : s.order.indexOf(passed.next);
+    if (passed?.over) {
+      await run(
+        `UPDATE table_games SET state = $2::text::jsonb, seq = seq + 1, turn_due = NULL, ended_at = now() WHERE id = $1`,
+        [game.id, JSON.stringify(s)],
+      );
+    } else if (s.passes[seat] >= PASS_LIMIT) {
       delete s.passes[seat];
       await run(
         `UPDATE table_seats SET playing_from = NULL WHERE table_id = $1 AND seat_no = $2 AND left_at IS NULL`,
@@ -222,6 +243,12 @@ export async function applyOverdue(run: Query, tableId: string): Promise<void> {
       );
       await dropFromOrder(run, game, seat, due);
       await tableEvent(run, tableId, "seat");
+    } else if (nextAt >= 0) {
+      s.turn = nextAt;
+      await run(
+        `UPDATE table_games SET state = $2::text::jsonb, seq = seq + 1, turn_due = $3 WHERE id = $1`,
+        [game.id, JSON.stringify(s), new Date(due.getTime() + MOVE_WINDOW_MS)],
+      );
     } else {
       await advance(run, game, due);
     }
@@ -391,6 +418,8 @@ export function boardFor(
   if (s.dice) state.dice = s.dice;
   if (s.free) state.free = freeFor(s.free, viewer);
   if (s.physics) state.physics = s.physics;
+  if (s.sea) state.sea = seaFor(s.sea, viewer);
+  if (s.poker) state.poker = pokerFor(s.poker, viewer);
   return {
     seq: game.seq,
     state,

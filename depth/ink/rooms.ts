@@ -9,6 +9,7 @@ import { createElement as h, useEffect, useMemo, useRef, useState } from "react"
 import type { ReactElement } from "react";
 import type { Client, InboxEvents, Liked as LikedCard, Statement } from "../core/client.ts";
 import { CursorRefused, extraLikeOf, startersOf } from "../core/client.ts";
+import { stickerOf } from "../core/sticker.ts";
 import type { ChatStarter } from "../core/client.ts";
 import { languageOf, type Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
@@ -634,7 +635,9 @@ export function Chat(
           const text = await client.read(chatId, ciphertext, id, matchId)
             .then((line) => ({ text: line, broken: false }))
             .catch((e: Error) => ({ text: e.message, broken: true }));
-          setLines((all) => [...all, { mine: false, ...text }]);
+          // A sticker is printed as its word in brackets (§4a): a mark, not somebody's two words.
+          const sticker = text.broken ? null : stickerOf(text.text);
+          setLines((all) => [...all, { mine: false, ...text, ...(sticker ? { text: `[${say(`sticker.${sticker}`)}]` } : {}) }]);
           // Seen at the node's moment, not this clock's (W13-DM2): the inbox's
           // last_activity_at is the node's whole second, and a device clock
           // ahead of the node would never see a later moment on it.

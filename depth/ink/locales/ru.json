@@ -397,5 +397,13 @@
   "why.over": "партия окончена или не начата",
   "why.alone": "нужны двое игроков",
   "why.same": "ничего не изменилось",
-  "why.notNow": "сейчас нельзя"
+  "why.notNow": "сейчас нельзя",
+  "sticker.hi": "привет",
+  "sticker.thanks": "спасибо",
+  "sticker.deal": "договорились",
+  "sticker.wow": "ого",
+  "sticker.coffee": "кофе?",
+  "sticker.move": "хороший ход",
+  "sticker.again": "реванш",
+  "sticker.giveup": "сдаюсь"
 }

@@ -1,22 +1,16 @@
 // Step 2: publishing a phrase.
 //
-// The shape of this route is decided by one sentence of §8.3 — **moderation
-// happens before publication, and not in the path of the request**. So the
-// answer is 202 with no `visible_at`: the phrase exists, it is being read, and
-// whether anybody else ever sees it is not yet known. A route that waited for
-// the verdict would make the person wait for a model, and a route that answered
-// 200 would promise something nobody has decided.
-//
-// Except what the first tier of §8.3 decides on the spot (2026-09-26, P1): the
-// rules cost nothing and read the phrase inside the same transaction that
-// wrote it, and a phrase they find nothing in is published there and answered
-// 200 with its term. With the local model on (MODERATOR_URL) the model
-// decides every phrase, flagged or not: publish, 200 — anything else, a
-// refusal with its reason, 422. With no model, what the rules flag — a link,
-// a contact, an offer, a repeat, a doubtful name — is refused with the rules'
-// reason. Nobody else reads a phrase (owner, 05.10 and 09.10.2026), so nothing
-// waits for anybody. `FEED_VERDICT` unset or `rules` is this; `queue` (or any
-// other word) makes everything wait, 202 (lib/feed_verdict.ts).
+// Moderation happens before publication (§8.3), and the model alone gives the
+// verdict (owner, 05.10, 09.10 and 13.10.2026; lib/moderator.ts). The phrase
+// is written waiting, the rules of §8.3 read it in that transaction, and
+// after the commit the verdict is given with what they flagged as context:
+// published, 200 with its term; refused, 422 with the reason the author sees
+// and can write around. The request waits for the model (at most
+// MODERATOR_TIMEOUT_MS) rather than answering 202 and deciding later: the
+// author gets the verdict where they are looking, and nothing has to carry it
+// to them afterwards. With no model wired (MODERATOR_URL unset) the rules
+// decide alone: clean or only an offer publishes, any other flag refuses.
+// Nothing waits for a person, and there is no person queue.
 //
 // What is here is the writing side and its four limits (lib/feed_limits.ts).
 // The verdict, the delivery, and the geo rounding of the delivery are their own
@@ -32,10 +26,8 @@ import { legalGate } from "../lib/legal.ts";
 import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
 import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
-import { hintQueuedPhrase, moderatorConfig } from "../lib/moderator.ts";
-import {
-  publishLocked, reasonsFor, refusePhrase, type RuleReason, settleAfterVerdict, verdictMode, type Verdict,
-} from "../lib/feed_verdict.ts";
+import { judge } from "../lib/moderator.ts";
+import { publishPhrase, reasonsFor, refusePhrase, type RuleReason } from "../lib/feed_verdict.ts";
 import { band, boundingBox, metresBetween, quantise } from "../lib/feed_geo.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
 import { query } from "../lib/db.ts";
@@ -124,17 +116,10 @@ async function publish(req: Request): Promise<Response> {
 
   const id = crypto.randomUUID();
   const published = quantise({ lat: body.lat, lon: body.lon }, body.area_radius);
-  // The verdict the request itself gave, kept for after the commit: a name
-  // that just passed settles the likes it left on offers (lib/offer_match.ts).
-  let verdict: Verdict | null = null;
-  // With the model on, every phrase is the model's to decide (W17-MM for the
-  // clean ones; WP-4 for the flagged, owner 09.10.2026) — asked after this
-  // commit, not inside it, since the question may take up to its timeout.
-  let toModel = false;
-  // With no model, a phrase the rules flagged is refused after the commit.
-  let toRefuse = false;
-  // What the rules found, said back with a refusal the model could not word.
+  // What the rules found, and the name that goes out with the phrase when it
+  // is still waiting: both go to the verdict as context (lib/moderator.ts).
   let ruleReasons: RuleReason[] = [];
+  let pendingName: string | null = null;
   const answer = await transaction<Response>(async (run) => {
     // The row is locked before anything is read, because the moments are
     // written at the verdict and two parallel sends otherwise both pass the
@@ -201,52 +186,22 @@ async function publish(req: Request): Promise<Response> {
         conditions,
       ],
     );
-    if (verdictMode() === "rules") {
-      const reasons = await reasonsFor(run, {
-        id,
-        identityId: caller.identityId,
-        text,
-        offer: discount !== null || conditions !== null,
-      });
-      if (moderatorConfig()) {
-        // The model decides every phrase, the flagged ones too (WP-4, owner
-        // 09.10.2026: nobody else reads them). What the rules found goes with
-        // the refusal if the model cannot say.
-        toModel = true;
-        ruleReasons = reasons;
-        inc("relay_feed_rules_total", { result: "to_model" });
-      } else if (reasons.length === 0) {
-        const done = await publishLocked(run, id, {}, "rules");
-        verdict = done;
-        if (done.applied && done.visibleAt && done.expiresAt) {
-          inc("relay_feed_total", { result: "published" });
-          inc("relay_feed_rules_total", { result: "published" });
-          // Seconds, as every term this node names (protocol §6).
-          return json({
-            id,
-            state: "published",
-            visible_at: Math.floor(done.visibleAt.getTime() / 1000),
-            expires_at: Math.floor(done.expiresAt.getTime() / 1000),
-          }, 200, sunsetHeader());
-        }
-        // Not applied means the name is refused and the phrase waits for a
-        // new one — the queue's case, and reasonsFor said so already unless
-        // the name changed under us; either way it waits.
-        reasons.push("name");
-      }
-      if (!toModel) {
-        // No model and the rules flagged it: refused, with the rules' reason,
-        // once this transaction has committed — not a queue nobody reads.
-        ruleReasons = reasons;
-        toRefuse = true;
-      }
-      for (const reason of new Set(reasons)) inc("relay_feed_rules_total", { result: "queued", reason });
-    }
-    // A phrase on its way to the model is counted once the model has spoken.
-    if (!toModel) inc("relay_feed_total", { result: "queued" });
-    // 202, and `visible_at` is deliberately absent rather than null-valued: the
-    // client shows "checking…", and a field that is there and empty invites a
-    // client to treat it as "published at no time".
+    ruleReasons = await reasonsFor(run, {
+      id,
+      identityId: caller.identityId,
+      text,
+      offer: discount !== null || conditions !== null,
+    });
+    const [who] = await run<{ name_pending: string | null }>(
+      `SELECT name_pending FROM identities WHERE id = $1`,
+      [caller.identityId],
+    );
+    pendingName = who?.name_pending ?? null;
+    for (const reason of new Set(ruleReasons)) inc("relay_feed_rules_total", { result: "queued", reason });
+    // Committed waiting (visible_at NULL) while the verdict is given below:
+    // the "one at a time" index holds the author's slot meanwhile, and a crash
+    // before the verdict leaves a row the sweeper deletes unread (fail-closed).
+    // This 202 never leaves the node; it marks "written, now judge it".
     return json({ id, state: "checking" }, 202, sunsetHeader());
   }).catch((error) => {
     // The unique index is the "one at a time" rule, and losing that race is an
@@ -259,45 +214,33 @@ async function publish(req: Request): Promise<Response> {
     inc("relay_feed_total", { result: "storage_failed" });
     return refuse("unavailable", "the node cannot write right now", 503);
   });
-  if (verdict && answer.status === 200) await settleAfterVerdict(verdict);
-  // The model decides (W17-MM, WP-4; owner 05.10 and 09.10.2026: nobody else
-  // reads a phrase, so there is no queue to leave it in). "publish" puts it
-  // out now. Anything else is a refusal with its reason — closed by default:
-  // "reject" says why and counts towards the pause of §8.3; "unsure", no
-  // answer, a timeout or a full set of questions in flight refuse it too, but
-  // without the moment, since the author did nothing the pause is for.
-  if (toModel && answer.status === 202) {
-    const hint = await hintQueuedPhrase(id, text);
-    inc("relay_feed_model_total", { result: hint?.verdict ?? "unavailable" });
-    if (hint?.verdict === "publish") {
-      const done = await transaction<Verdict>((run) => publishLocked(run, id, {}, "rules"));
-      await settleAfterVerdict(done);
-      if (done.applied && done.visibleAt && done.expiresAt) {
-        inc("relay_feed_total", { result: "published" });
-        return json({
-          id,
-          state: "published",
-          visible_at: Math.floor(done.visibleAt.getTime() / 1000),
-          expires_at: Math.floor(done.expiresAt.getTime() / 1000),
-        }, 200, sunsetHeader());
-      }
-    }
-    const why = hint?.verdict === "reject" && hint.reason
-      ? hint.reason
-      : hint?.verdict === "reject"
-      ? "the moderator refused this phrase"
-      : ruleReasons.length > 0
-      ? `the phrase was not published: ${[...new Set(ruleReasons)].join(", ")}`
-      : "the moderator could not read the phrase; try again later";
-    return await refuseAfterCommit(id, why, hint?.verdict === "reject");
+  if (answer.status !== 202) return answer;
+  // The verdict (lib/moderator.ts): the model's when it is on, the rules'
+  // when it is not — every phrase, flagged or not; no person reads one
+  // (owner, 05.10, 09.10 and 13.10.2026). The request waits for it, so the
+  // author hears 200 with the term or 422 with the reason, never "later".
+  const judgement = await judge({ kind: "phrase", text, flags: ruleReasons, name: pendingName }, { phraseId: id });
+  if (judgement.by === "model") inc("relay_feed_model_total", { result: judgement.hint?.verdict ?? "unavailable" });
+  if (!judgement.publish) return await refuseAfterCommit(id, judgement.reason, judgement.moment);
+  const done = await publishPhrase(id);
+  if (done.applied && done.visibleAt && done.expiresAt) {
+    inc("relay_feed_total", { result: "published" });
+    if (judgement.by === "rules") inc("relay_feed_rules_total", { result: "published" });
+    // Seconds, as every term this node names (protocol §6).
+    return json({
+      id,
+      state: "published",
+      visible_at: Math.floor(done.visibleAt.getTime() / 1000),
+      expires_at: Math.floor(done.expiresAt.getTime() / 1000),
+    }, 200, sunsetHeader());
   }
-  if (toRefuse && answer.status === 202) {
-    return await refuseAfterCommit(id, `the phrase was not published: ${[...new Set(ruleReasons)].join(", ")}`, true);
-  }
-  // A phrase the rules queued gets the local model's hint (E2), after the
-  // commit and without waiting: the person still decides.
-  if (answer.status === 202 && verdictMode() === "rules") void hintQueuedPhrase(id, text);
-  return answer;
+  // Not applied: the author's name stands refused (§8.2) and a phrase does
+  // not go out under it, or the row went meanwhile (a close, the sweeper).
+  return await refuseAfterCommit(
+    id,
+    done.nameRejected ? "the phrase was not published: name" : "the phrase was not published; try again",
+    false,
+  );
 }
 
 
@@ -350,7 +293,7 @@ interface FeedRow {
 // which deletes it unread within moderation.queue.wait — still not published.
 async function refuseAfterCommit(id: string, why: string, moment: boolean): Promise<Response> {
   try {
-    await refusePhrase(id, {}, { moment });
+    await refusePhrase(id, { moment });
   } catch (error) {
     log("error", "a refused phrase was not removed; the sweeper will", { error: String(error) });
   }

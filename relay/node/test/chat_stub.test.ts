@@ -85,14 +85,14 @@ configured("the migration the spec reserves is not already taken", () => {
   }
 });
 
-// The route exists and answers 501. A specification that describes it in the
-// present tense reads as "this works", and the person planning the work budgets
-// accordingly.
-configured("the spec does not describe the unbuilt relay as working", () => {
+// The route is built: GET /chat terminates the room (src/chat/relay.ts). A
+// specification still calling it a 501 stub reads as "nothing works", and the
+// person planning the work budgets for building what is already there.
+configured("the spec does not describe the built relay as a stub", () => {
   const line = spec.split("\n").find((text) => text.includes("relayUpgrade()"));
   assert(line, "the spec no longer mentions relayUpgrade()");
   assert(
-    /501|not built/i.test(line!),
-    "the spec describes relayUpgrade() without saying it is not built — it answers 501",
+    !/501|not built/i.test(line!),
+    "the spec calls relayUpgrade() unbuilt or 501 — it is built (src/chat/relay.ts)",
   );
 });

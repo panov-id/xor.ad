@@ -397,5 +397,13 @@
   "why.over": "la partie est finie ou pas commencée",
   "why.alone": "il faut deux joueurs",
   "why.same": "rien n'a changé",
-  "why.notNow": "impossible pour l'instant"
+  "why.notNow": "impossible pour l'instant",
+  "sticker.hi": "salut",
+  "sticker.thanks": "merci",
+  "sticker.deal": "marché conclu",
+  "sticker.wow": "waouh",
+  "sticker.coffee": "un café ?",
+  "sticker.move": "beau coup",
+  "sticker.again": "revanche",
+  "sticker.giveup": "j’abandonne"
 }

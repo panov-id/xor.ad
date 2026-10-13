@@ -14,7 +14,8 @@ import { type Caller, callerOf, refuse } from "../lib/identity_guard.ts";
 import { sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
 import { log } from "../lib/log.ts";
 import { CLASSES } from "../lib/tables.ts";
-import { startState, stepGame } from "../lib/tables_engine.ts";
+import { startState, stepGame, turnAfter } from "../lib/tables_engine.ts";
+import { judgeWord } from "../lib/tables_word.ts";
 import { type ChatGameRow, liveChat, lockChatGame, seatOf, TERM_SQL, viewOf } from "../lib/chat_games.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
@@ -32,8 +33,9 @@ async function inChat(
   req: Request,
   chatId: string,
   step: (run: Query, caller: Caller, other: string) => Promise<Response>,
+  known?: Caller,
 ): Promise<Response> {
-  const caller = await callerOf(req);
+  const caller = known ?? await callerOf(req);
   if (caller instanceof Response) return caller;
   if (!UUID.test(chatId)) return notFound();
   return await transaction(async (run) => {
@@ -120,14 +122,20 @@ async function look(req: Request, chatId: string): Promise<Response> {
 
 // POST /chats/:id/game/moves and /word — one move through the class's engine.
 async function play(req: Request, chatId: string, wordOnly: boolean): Promise<Response> {
+  // The signature first: the model below is asked only for a live session.
+  const known = await callerOf(req);
+  if (known instanceof Response) return known;
   const raw = await req.clone().text();
   let body: { seq?: unknown; move?: unknown; pass?: unknown; word?: unknown } | null = null;
   try {
     body = JSON.parse(raw);
   } catch { /* refused below */ }
+  // A hangman word is published text: the moderator's verdict first (lib/tables_word.ts).
+  const wordRefused = !body ? null : wordOnly ? await judgeWord({ word: body.word }) : body.pass === true ? null : await judgeWord(body.move);
   return await inChat(req, chatId, async (run, caller) => {
     const row = await lockChatGame(run, chatId);
     if (!row || (row.state.players?.length ?? 0) !== 2) return refuse("not_your_turn", "no game is running", 409);
+    if (wordRefused !== null) return refuse("moderation_refused", wordRefused, 422);
     if (row.over) return refuse("not_your_turn", "the game is over", 409);
     if (!body) return refuse("invalid_body", "the body is not json", 400);
     // The word of hangman is a move of its own route: {word} at the current version.
@@ -147,7 +155,7 @@ async function play(req: Request, chatId: string, wordOnly: boolean): Promise<Re
     const step = stepGame(s, row.set, move, pass, seat);
     if ("refused" in step) return refuse("illegal_move", "the move breaks the class's rules", 409, { reason: step.refused });
     s.board.push(pass ? { seat, pass: true } : { seat, move: step.shown });
-    if (!step.again) s.turn = (s.turn + 1) % s.order.length;
+    s.turn = turnAfter(s, s.turn, step);
     const score = { ...row.score };
     for (const scored of step.scores) score[scored.seat] = (score[scored.seat] ?? 0) + scored.points;
     // The move moves the mover's own term (§8.6), and the game's is the earlier of the two.
@@ -162,7 +170,7 @@ async function play(req: Request, chatId: string, wordOnly: boolean): Promise<Re
     await run(`SELECT pg_notify('chat_sys', $1)`, [`${chatId}|${JSON.stringify({ kind: "move", seat })}`]);
     await tell(run, chatId, "board");
     return json(viewOf(after, caller.identityId), wordOnly ? 202 : 200, sunsetHeader());
-  });
+  }, known);
 }
 
 // POST /chats/:id/game/proposals — {kind: rematch}; draw and undo are not built.

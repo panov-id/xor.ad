@@ -21,7 +21,6 @@ import { WaitlistList } from "./pages/waitlist/list";
 import { DsaNoticesList } from "./pages/dsa-notices/list";
 import { DsaRecipientsList } from "./pages/dsa-recipients/list";
 import { EnvelopesList } from "./pages/envelopes/list";
-import { FeedQueueList } from "./pages/feed-queue/list";
 import { SupportList } from "./pages/support/list";
 import { PanelUsersList } from "./pages/panel-users/list";
 import { ClientErrorsList } from "./pages/logs/client-errors/list";
@@ -59,11 +58,6 @@ function App() {
                 name: "envelopes",
                 list: "/envelopes",
                 meta: { label: "Envelopes to post" },
-              },
-              {
-                name: "feed_queue",
-                list: "/feed-queue",
-                meta: { label: "Feed queue" },
               },
               {
                 name: "support",
@@ -163,14 +157,6 @@ function App() {
                   element={
                     <Gated resource="envelopes">
                       <EnvelopesList />
-                    </Gated>
-                  }
-                />
-                <Route
-                  path="/feed-queue"
-                  element={
-                    <Gated resource="feed_queue">
-                      <FeedQueueList />
                     </Gated>
                   }
                 />

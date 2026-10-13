@@ -1,9 +1,11 @@
 // Sending a phrase to the feed, and the four rules that stop a person filling
 // it (chat spec §8.3).
 //
-// The route answers 202 and nothing about visibility, because moderation
-// happens before publication and outside the request. Everything here is about
-// what the node refuses and how it says so — the part a person meets.
+// There is no model here, so the rules decide in the request: a clean phrase is
+// published and answered 200 with its term, a flagged one is refused 422. What
+// a phrase looks like while the model is being asked (written, not yet judged)
+// is made directly with `waitingPhrase`. Everything here is about what the node
+// refuses and how it says so — the part a person meets.
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
@@ -19,10 +21,11 @@ Deno.env.set("NODE_ENV_NAME", "test");
 Deno.env.set("MAIL_TRANSPORT", "none");
 Deno.env.set("ORIGIN_TOKEN", "feed-publish-origin-token");
 Deno.env.set("VAULT_SHARE_KEY", "feed-publish-vault-key");
-// Every phrase waits for a person here: the suite is built on "202, then the
-// verdict by hand"; the rules of the first tier have a suite of their own
+// No model here (MODERATOR_URL is unset): the rules decide in the request, a
+// clean phrase is published at once (200). Tests that need a phrase still
+// waiting for its verdict — the state it is in while the model is being asked —
+// write one directly with `waitingPhrase`. The rules have a suite of their own
 // (feed_verdict.test.ts).
-Deno.env.set("FEED_VERDICT", "queue");
 Deno.env.set(
   "BRANDS",
   JSON.stringify([{ key: "alpha", name: "Alpha", domain: "alpha.test", from: "a <a@alpha.test>" }]),
@@ -43,7 +46,6 @@ await import("../src/routes/chats.ts");
 await import("../src/routes/inbox.ts");
 await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
-await import("../src/routes/feed_queue.ts");
 await import("../src/routes/profile.ts");
 await import("../src/routes/support.ts");
 await import("../src/routes/support_admin.ts");
@@ -177,22 +179,19 @@ const phrase = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-// Publishing something is the ordinary way to free the "one at a time" slot in
-// a test: the verdict transaction is its own piece, so it is done here by the
-// statement §8.3 gives for it.
-async function publishWaiting(identityId: string) {
+// A phrase written and not yet judged: the state a phrase is in while the model
+// is being asked. POST /feed gives its verdict in the same request, so a test
+// that needs the waiting state writes the row itself, as the route does.
+async function waitingPhrase(identityId: string, text = "ещё не читана"): Promise<string> {
+  const id = crypto.randomUUID();
   await database.queryOrThrow(
-    `UPDATE feed_messages
-        SET visible_at = now(), expires_at = now() + interval '4 hours 20 minutes'
-      WHERE author_identity = $1 AND visible_at IS NULL`,
-    [identityId],
+    `INSERT INTO feed_messages
+       (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
+        lat_published, lon_published, discount_value, conditions)
+     VALUES ($1, 'alpha', $2, $3, 'alone', 'und', 41.9, 12.5, 1000, $4, $5, NULL, NULL)`,
+    [id, identityId, text, geo.quantise({ lat: 41.9, lon: 12.5 }, 1000).lat, geo.quantise({ lat: 41.9, lon: 12.5 }, 1000).lon],
   );
-  await database.queryOrThrow(
-    `UPDATE identity_stats
-        SET published_at_recent = array_append(published_at_recent, now())
-      WHERE identity = $1`,
-    [identityId],
-  );
+  return id;
 }
 
 // FX3: a phrase is on every screen around; what nobody can see is refused.
@@ -209,7 +208,7 @@ test("a phrase's CRLF and lone CR are stored as LF, not refused", async () => {
   for (const [label, sent] of [["CRLF", "гуляю у реки\r\nкто рядом"], ["CR", "гуляю у реки\rкто рядом"]]) {
     const me = await author();
     const answer = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: sent }));
-    assert(answer.status === 200 || answer.status === 202, `a phrase with ${label} was refused: ${answer.status} ${JSON.stringify(answer.body)}`);
+    assertEquals(answer.status, 200, `a phrase with ${label} was refused: ${answer.status} ${JSON.stringify(answer.body)}`);
     const [row] = await database.queryOrThrow<{ text: string }>(
       `SELECT text FROM feed_messages WHERE author_identity = $1`, [me.identity_id],
     );
@@ -228,7 +227,7 @@ test("a phrase keeps its author's interface language, and anything else is und",
   for (const [label, lang, stored] of cases) {
     const me = await author();
     const answer = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase(lang === undefined ? {} : { lang }));
-    assert(answer.status === 200 || answer.status === 202, `${label}: the phrase was refused: ${answer.status} ${JSON.stringify(answer.body)}`);
+    assertEquals(answer.status, 200, `${label}: the phrase was refused: ${answer.status} ${JSON.stringify(answer.body)}`);
     const [row] = await database.queryOrThrow<{ lang: string }>(
       `SELECT lang FROM feed_messages WHERE author_identity = $1`, [me.identity_id],
     );
@@ -236,12 +235,13 @@ test("a phrase keeps its author's interface language, and anything else is und",
   }
 });
 
-test("a phrase is accepted for checking, not published", async () => {
+test("a clean phrase is published in the request, with its term", async () => {
   const me = await author();
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
-  assertEquals(sent.status, 202, JSON.stringify(sent.body));
-  const answer = sent.body as { id: string; state: string };
-  assertEquals(answer.state, "checking");
+  assertEquals(sent.status, 200, JSON.stringify(sent.body));
+  const answer = sent.body as { id: string; state: string; visible_at: number; expires_at: number };
+  assertEquals(answer.state, "published");
+  assertEquals(answer.expires_at - answer.visible_at, (4 * 60 + 20) * 60, "the term in the answer is not four hours and twenty minutes");
 
   const [row] = await database.queryOrThrow<
     { visible_at: Date | null; expires_at: Date | null; author_identity: string; mode: string }
@@ -249,33 +249,60 @@ test("a phrase is accepted for checking, not published", async () => {
     `SELECT visible_at, expires_at, author_identity, mode FROM feed_messages WHERE id = $1`,
     [answer.id],
   );
-  assertEquals(row.visible_at, null, "the phrase was published without a verdict");
-  assertEquals(row.expires_at, null, "a phrase with no verdict already has a term");
+  assert(row.visible_at, "the phrase was answered published but is not visible");
+  assert(row.expires_at, "a published phrase has no term");
+  assertEquals(Math.floor(row.visible_at!.getTime() / 1000), answer.visible_at, "the answer's visible_at is not the row's");
   assertEquals(row.author_identity, me.identity_id);
   assertEquals(row.mode, "alone");
 });
 
+test("a flagged phrase is refused in the request with its reason, and leaves no row but a moment", async () => {
+  const me = await author();
+  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "пиши @anyone_here" }));
+  assertEquals(sent.status, 422, JSON.stringify(sent.body));
+  const said = sent.body as { error: { code: string; message: string } };
+  assertEquals(said.error.code, "moderation_refused");
+  assert(said.error.message.startsWith("the phrase was not published:"), said.error.message);
+
+  assertEquals(
+    (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE author_identity = $1`, [me.identity_id])).length,
+    0,
+    "a refused phrase was kept as a row",
+  );
+  const [stats] = await database.queryOrThrow<{ rejected_at_recent: Date[]; published_at_recent: Date[] }>(
+    `SELECT rejected_at_recent, published_at_recent FROM identity_stats WHERE identity = $1`,
+    [me.identity_id],
+  );
+  assertEquals(stats.rejected_at_recent.length, 1, "the refusal left no moment");
+  assertEquals(stats.published_at_recent.length, 0, "a refused phrase counted as a publication");
+});
+
 test("while one phrase is being checked the next is not taken", async () => {
   // §8.3: one at a time, and held by a partial unique index rather than by a
-  // count — a count races a SELECT that looked empty a moment ago.
+  // count — a count races a SELECT that looked empty a moment ago. The phrase
+  // being checked is written directly: the route gives its verdict in the same
+  // request, so only the model's wait leaves one standing.
   const me = await author();
-  assertEquals((await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase())).status, 202);
+  const waiting = await waitingPhrase(me.identity_id);
   const second = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "и ещё одна" }));
   assertEquals(second.status, 409);
   assertEquals((second.body as { error: { code: string } }).error.code, "refused");
+  assert(
+    typeof (second.body as { error: { checking?: number } }).error.checking === "number",
+    "the refusal did not say that the previous phrase is being checked",
+  );
 
   // And the slot frees when the verdict lands.
-  await publishWaiting(me.identity_id);
+  assertEquals((await verdict.publishPhrase(waiting)).applied, true);
   const third = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "третья" }));
-  assertEquals(third.status, 202, "the slot did not free after a verdict");
+  assertEquals(third.status, 200, "the slot did not free after a verdict");
 });
 
 test("four an hour counts moments, and says when the next slot is", async () => {
   const me = await author();
   for (let i = 0; i < limits.PUBLISH_PER_HOUR; i++) {
     const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `фраза ${i}` }));
-    assertEquals(sent.status, 202, `phrase ${i + 1} was refused: ${JSON.stringify(sent.body)}`);
-    await publishWaiting(me.identity_id);
+    assertEquals(sent.status, 200, `phrase ${i + 1} was refused: ${JSON.stringify(sent.body)}`);
   }
   // The live ones are taken down so that the limit under test is the hourly one
   // rather than the four-live one — §8.3 keeps them apart on purpose.
@@ -301,9 +328,8 @@ test("four live phrases is its own limit, and a take-down frees it at once", asy
   for (let i = 0; i < limits.LIVE_MAX; i++) {
     assertEquals(
       (await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `живая ${i}` }))).status,
-      202,
+      200,
     );
-    await publishWaiting(me.identity_id);
   }
   // The hour's moments are cleared so that this case measures the live limit
   // and not the hourly one.
@@ -325,7 +351,7 @@ test("four live phrases is its own limit, and a take-down frees it at once", asy
     [me.identity_id],
   );
   const after = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "взамен" }));
-  assertEquals(after.status, 202, "a take-down did not free a slot");
+  assertEquals(after.status, 200, "a take-down did not free a slot");
 });
 
 test("a phrase whose time ran out frees its slot for the fifth", async () => {
@@ -337,9 +363,8 @@ test("a phrase whose time ran out frees its slot for the fifth", async () => {
   for (let i = 0; i < limits.LIVE_MAX; i++) {
     assertEquals(
       (await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `живая ${i}` }))).status,
-      202,
+      200,
     );
-    await publishWaiting(me.identity_id);
   }
   await database.queryOrThrow(
     `UPDATE identity_stats SET published_at_recent = '{}' WHERE identity = $1`,
@@ -352,7 +377,7 @@ test("a phrase whose time ran out frees its slot for the fifth", async () => {
     [me.identity_id],
   );
   const fifth = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "пятая" }));
-  assertEquals(fifth.status, 202, `an expired phrase still held a slot: ${JSON.stringify(fifth.body)}`);
+  assertEquals(fifth.status, 200, `an expired phrase still held a slot: ${JSON.stringify(fifth.body)}`);
 });
 
 test("five refusals in an hour buy fifteen minutes of silence", async () => {
@@ -388,7 +413,23 @@ test("five refusals in an hour buy fifteen minutes of silence", async () => {
     [me.identity_id],
   );
   const later = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
-  assertEquals(later.status, 202, "the pause outlived its fifteen minutes");
+  assertEquals(later.status, 200, "the pause outlived its fifteen minutes");
+});
+
+test("five flagged phrases in a row buy the pause, and the sixth is not even read", async () => {
+  const me = await author();
+  for (let i = 0; i < limits.REFUSALS_BEFORE_PAUSE; i++) {
+    const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `пиши @anyone_here${i}` }));
+    assertEquals(sent.status, 422, `refusal ${i + 1}: ${JSON.stringify(sent.body)}`);
+  }
+  const sixth = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
+  assertEquals(sixth.status, 429, JSON.stringify(sixth.body));
+  assertEquals((sixth.body as { error: { code: string } }).error.code, "rate_limited");
+  assertEquals(
+    (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE author_identity = $1`, [me.identity_id])).length,
+    0,
+    "the paused send left a row behind",
+  );
 });
 
 test("a phrase is measured in graphemes, and the refusal names the ceiling", async () => {
@@ -428,8 +469,7 @@ test("a radius between the steps is refused, and so is a mode nobody named", asy
 
 test("a passed phrase becomes visible and gets its term in one write", async () => {
   const me = await author();
-  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
-  const { id } = sent.body as { id: string };
+  const id = await waitingPhrase(me.identity_id);
 
   const applied = await verdict.publishPhrase(id);
   assertEquals(applied.applied, true);
@@ -459,8 +499,7 @@ test("a passed phrase becomes visible and gets its term in one write", async () 
 
 test("a refused phrase stops existing, and leaves a moment behind", async () => {
   const me = await author();
-  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
-  const { id } = sent.body as { id: string };
+  const id = await waitingPhrase(me.identity_id);
 
   assertEquals((await verdict.refusePhrase(id)).applied, true);
 
@@ -474,13 +513,12 @@ test("a refused phrase stops existing, and leaves a moment behind", async () => 
 
   // The slot frees with the row: the author can send again at once.
   const again = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "другая" }));
-  assertEquals(again.status, 202, "a refusal did not free the waiting slot");
+  assertEquals(again.status, 200, "a refusal did not free the waiting slot");
 });
 
 test("a verdict that arrives twice decides once", async () => {
   const me = await author();
-  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
-  const { id } = sent.body as { id: string };
+  const id = await waitingPhrase(me.identity_id);
 
   assertEquals((await verdict.publishPhrase(id)).applied, true);
   const second = await verdict.publishPhrase(id);
@@ -498,9 +536,8 @@ test("the moments are cut to the last few, and the hour drops out of them", asyn
   // Nine refusals in a row leave six — the number §8.3 states, checked against
   // the expression rather than against a memory of it.
   for (let i = 0; i < 9; i++) {
-    const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `раз ${i}` }));
-    assertEquals(sent.status, 202, `send ${i + 1} was refused: ${JSON.stringify(sent.body)}`);
-    await verdict.refusePhrase((sent.body as { id: string }).id);
+    const id = await waitingPhrase(me.identity_id, `раз ${i}`);
+    await verdict.refusePhrase(id);
     // The pause would stop the next send after the fifth refusal, so the
     // moments are aged out of the pause's window between rounds — what is
     // under test here is the trimming, not the pause.
@@ -528,8 +565,7 @@ test("a phrase nobody read is dropped, and its author is not charged for it", as
   // queued. No moment either way — neither a publication nor a refusal
   // happened, and the author's pause must not grow because the node was slow.
   const me = await author();
-  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
-  const { id } = sent.body as { id: string };
+  const id = await waitingPhrase(me.identity_id);
   await database.queryOrThrow(
     `UPDATE feed_messages SET created_at = now() - make_interval(mins => $2) WHERE id = $1`,
     [id, verdict.QUEUE_WAIT_MINUTES + 1],
@@ -553,13 +589,12 @@ test("a phrase nobody read is dropped, and its author is not charged for it", as
 
   // And the slot is free again.
   const again = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "заново" }));
-  assertEquals(again.status, 202, "the sweep did not free the waiting slot");
+  assertEquals(again.status, 200, "the sweep did not free the waiting slot");
 });
 
 test("a phrase still inside its wait is left alone", async () => {
   const me = await author();
-  const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
-  const { id } = sent.body as { id: string };
+  const id = await waitingPhrase(me.identity_id);
   await verdict.sweepStaleQueue();
   assertEquals(
     (await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [id])).length,
@@ -571,12 +606,12 @@ test("a phrase still inside its wait is left alone", async () => {
 
 // --- the delivery -----------------------------------------------------------
 
-// Publishes straight away: the delivery is what is under test, not the queue.
+// Published in the request (the rules pass a clean phrase): the delivery is what
+// is under test, not the verdict.
 async function livePhrase(me: { pair: CryptoKey; session_id: string }, over: Record<string, unknown> = {}) {
   const sent = await signedCall(me.pair, me.session_id, "POST", "/feed", phrase(over));
-  assertEquals(sent.status, 202, JSON.stringify(sent.body));
+  assertEquals(sent.status, 200, JSON.stringify(sent.body));
   const { id } = sent.body as { id: string };
-  await verdict.publishPhrase(id);
   return id;
 }
 
@@ -678,8 +713,7 @@ test("an empty screen grows the radius, says so, and does not change the setting
 test("a phrase still waiting for a verdict is delivered to nobody", async () => {
   const mine = await author();
   const theirs = await author();
-  const sent = await signedCall(theirs.pair.privateKey, theirs.session_id, "POST", "/feed", phrase({ text: "ещё не читана" }));
-  const { id } = sent.body as { id: string };
+  const id = await waitingPhrase(theirs.identity_id);
 
   const feed = await signedCall(mine.pair.privateKey, mine.session_id, "GET", feedUrl());
   const items = (feed.body as { items: Array<{ id: string }> }).items;
@@ -735,9 +769,8 @@ test("taking a phrase down frees the slot but not the hour", async () => {
   const ids: string[] = [];
   for (let i = 0; i < limits.LIVE_MAX; i++) {
     const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: `живая ${i}` }));
-    const { id } = sent.body as { id: string };
-    await verdict.publishPhrase(id);
-    ids.push(id);
+    assertEquals(sent.status, 200, JSON.stringify(sent.body));
+    ids.push((sent.body as { id: string }).id);
   }
 
   const [before] = await database.queryOrThrow<{ published_at_recent: Date[] }>(
@@ -1309,7 +1342,7 @@ test("an identity with no counters row can still publish", async () => {
   const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase());
   assertEquals(
     sent.status,
-    202,
+    200,
     `an identity with no counters row was refused: ${JSON.stringify(sent.body)}`,
   );
 
@@ -3211,10 +3244,9 @@ test({
   },
 });
 
-// ── The moderator's queue in the panel (§8.3: moderation before publication) ───
-// No model is wired (§8.14), so a person decides. The panel session is minted the
-// way lib/auth.ts redeem() mints it, and the operator's record is written where
-// authed() reads it on every request.
+// ── The panel session (support, the team's side) ──────────────────────────────
+// The panel session is minted the way lib/auth.ts redeem() mints it, and the
+// operator's record is written where authed() reads it on every request.
 async function panelAs(role: string, brand: string | null = null): Promise<(method: string, path: string, body?: unknown) => Promise<{ status: number; body: unknown; headers: Headers }>> {
   const { sign } = await import("../src/lib/jwt.ts");
   const { sha256hex } = await import("../src/lib/hash.ts");
@@ -3245,107 +3277,44 @@ async function panelAs(role: string, brand: string | null = null): Promise<(meth
   };
 }
 
+// ── PATCH /identities/me (§8.2, protocol §4.11) ──────────────────────────────
+const patchMe = (who: { pair: CryptoKeyPair; session_id: string }, body: unknown) =>
+  signedCall(who.pair.privateKey, who.session_id, "PATCH", "/identities/me", body);
+const profileOf = async (id: string) =>
+  (await database.queryOrThrow<Record<string, unknown>>(
+    `SELECT name, name_pending, name_state, age, filter_age_min, filter_age_max, languages
+       FROM identities WHERE id = $1`, [id]))[0];
+
 test({
-  name: "a moderator sees a waiting phrase, publishes it once, and a viewer cannot",
+  name: "a new name is judged at once: passed it is the name, refused it is 422 and the old name stands",
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
     const { reset } = await import("../src/lib/rate_limit.ts");
     reset();
-    const me = await author();
-    const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "жду вердикта человека" }));
-    assertEquals(sent.status, 202, JSON.stringify(sent.body));
-    const moderator = await panelAs("moderator");
-    const viewer = await panelAs("viewer");
-    assertEquals((await viewer("GET", "/admin/feed-queue")).status, 403, "a viewer read the moderation queue");
+    const who = await author();
+    const asked = await patchMe(who, { name: "Анна" });
+    assertEquals(asked.status, 200, JSON.stringify(asked.body));
+    assertEquals((asked.body as { name: string; name_state: string }).name, "Анна");
+    assertEquals(await profileOf(who.identity_id), {
+      name: "Анна", name_pending: null, name_state: "accepted", age: 30,
+      filter_age_min: null, filter_age_max: null, languages: [],
+    });
+    // The unchanged name is not a change.
+    assertEquals((await patchMe(who, { name: "Анна" })).status, 200);
+    // Too long, and not a string.
+    assertEquals((await patchMe(who, { name: "а".repeat(25) })).status, 400);
+    assertEquals((await patchMe(who, { name: 7 })).status, 400);
 
-    const queue = await moderator("GET", "/admin/feed-queue");
-    assertEquals(queue.status, 200, JSON.stringify(queue.body));
-    const row = (queue.body as Array<Record<string, unknown>>).find((i) => i.text === "жду вердикта человека");
-    assert(row, "a waiting phrase is not in the queue");
-    assertEquals(row.name, "Аня", "the moderator does not see the name that goes out with the phrase");
-    assert(!JSON.stringify(row).includes(me.identity_id), "the queue hands the moderator the author's identity");
-
-    assertEquals((await viewer("POST", `/admin/feed-queue/${row.id}/publish`)).status, 403);
-    const published = await moderator("POST", `/admin/feed-queue/${row.id}/publish`);
-    assertEquals(published.status, 200, JSON.stringify(published.body));
-    const [live] = await database.queryOrThrow<{ visible_at: Date | null }>(
-      `SELECT visible_at FROM feed_messages WHERE id = $1`, [row.id]);
-    assert(live.visible_at, "a published phrase is not visible");
-    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`)).status, 409, "a second verdict was applied");
-    reset();
-  },
-});
-
-test({
-  name: "a refused phrase leaves the queue and is never seen",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const { reset } = await import("../src/lib/rate_limit.ts");
-    reset();
-    const me = await author();
-    await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "это отклонят" }));
-    const moderator = await panelAs("moderator");
-    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
-      .find((i) => i.text === "это отклонят");
-    assert(row, "a waiting phrase is not in the queue");
-    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/refuse`)).status, 200);
-    const left = await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1 AND visible_at IS NOT NULL`, [row.id]);
-    assertEquals(left.length, 0, "a refused phrase became visible");
-    const again = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>);
-    assertEquals(again.find((i) => i.id === row.id), undefined, "a refused phrase stayed in the queue");
-    reset();
-  },
-});
-
-test({
-  name: "a tenant's moderator neither sees nor decides another brand's phrase",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const { reset } = await import("../src/lib/rate_limit.ts");
-    reset();
-    const me = await author();
-    await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "фраза чужого бренда" }));
-    const [row] = await database.queryOrThrow<{ id: string; brand: string }>(
-      `SELECT id, brand FROM feed_messages WHERE text = 'фраза чужого бренда' AND visible_at IS NULL`);
-    assert(row, "the phrase is not waiting");
-    const stranger = await panelAs("moderator", "some-other-brand");
-    const queue = await stranger("GET", "/admin/feed-queue");
-    assertEquals(queue.status, 200, JSON.stringify(queue.body));
-    assertEquals((queue.body as Array<{ id: string }>).find((i) => i.id === row.id), undefined,
-      "a tenant's moderator sees another brand's queue");
-    assertEquals((await stranger("POST", `/admin/feed-queue/${row.id}/publish`)).status, 404);
-    assertEquals((await stranger("POST", `/admin/feed-queue/${row.id}/refuse`)).status, 404);
-    const own = await panelAs("moderator", row.brand);
-    const refused = await own("POST", `/admin/feed-queue/${row.id}/refuse`);
-    assertEquals(refused.status, 200, `the brand's own moderator cannot decide: ${JSON.stringify(refused.body)}`);
-    reset();
-  },
-});
-
-test({
-  name: "publishing a phrase accepts the name that goes out with it",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const { reset } = await import("../src/lib/rate_limit.ts");
-    reset();
-    const me = await author();
-    await database.queryOrThrow(
-      `UPDATE identities SET name_state = 'pending', name_pending = 'Анна' WHERE id = $1`, [me.identity_id]);
-    await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "имя ждёт вместе со мной" }));
-    const moderator = await panelAs("moderator");
-    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
-      .find((i) => i.text === "имя ждёт вместе со мной");
-    assert(row, "a waiting phrase is not in the queue");
-    assertEquals(row.name_state, "pending", "the moderator is not told the name is unchecked");
-    assertEquals(row.name, "Анна", "the moderator is shown the old name, not the one that would go out");
-    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`)).status, 200);
-    const [who] = await database.queryOrThrow<{ name: string; name_state: string; name_pending: string | null }>(
-      `SELECT name, name_state, name_pending FROM identities WHERE id = $1`, [me.identity_id]);
-    assertEquals(who, { name: "Анна", name_state: "accepted", name_pending: null }, "Publish did not accept the name");
+    // A name the rules flag is refused with its reason; nothing is pending and
+    // the name that stood still stands.
+    const refused = await patchMe(who, { name: "пиши @anyone_here" });
+    assertEquals(refused.status, 422, JSON.stringify(refused.body));
+    assertEquals((refused.body as { error: { code: string } }).error.code, "name_refused");
+    assertEquals(await profileOf(who.identity_id), {
+      name: "Анна", name_pending: null, name_state: "accepted", age: 30,
+      filter_age_min: null, filter_age_max: null, languages: [],
+    });
     reset();
   },
 });
@@ -3353,9 +3322,10 @@ test({
 // The name's verdict reaches the author's open rooms as a `name_verdict`
 // frame (protocol §4.4 frames, §8.2): the node has no socket of a session's
 // own, so the frame goes to every room the session holds; with none open, the
-// profile's name_state says the same (loop plan A10, 2026-09-24).
+// profile's name_state says the same (loop plan A10, 2026-09-24). The verdict
+// is given in the request now, so the frame goes out with the rename.
 test({
-  name: "a name's verdict is announced to its author's live sessions, accepted or refused",
+  name: "an accepted name is announced to its author's live sessions in the same request",
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
@@ -3365,16 +3335,6 @@ test({
     const sql = postgres(Deno.env.get("DATABASE_URL")!, { max: 1 });
     const heard: string[] = [];
     await sql.listen("session_frame", (payload: string) => heard.push(payload));
-    const moderator = await panelAs("moderator");
-    const waiting = async (me: { identity_id: string; pair: CryptoKeyPair; session_id: string }, text: string) => {
-      await database.queryOrThrow(
-        `UPDATE identities SET name_state = 'pending', name_pending = 'Вера' WHERE id = $1`, [me.identity_id]);
-      await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text }));
-      const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
-        .find((i) => i.text === text);
-      assert(row, "a waiting phrase is not in the queue");
-      return row.id as string;
-    };
     const frameFor = async (session: string) => {
       for (let i = 0; i < 100; i++) {
         const got = heard.find((p) => p.startsWith(`${session}|`));
@@ -3385,102 +3345,21 @@ test({
     };
     try {
       const one = await author();
-      assertEquals((await moderator("POST", `/admin/feed-queue/${await waiting(one, "имя примут")}/publish`)).status, 200);
+      assertEquals((await patchMe(one, { name: "Вера" })).status, 200);
       assertEquals(await frameFor(one.session_id), { type: "name_verdict", data: { accepted: true } },
         "an accepted name was not announced to its author's session");
 
+      // A refused name is a 422 to the one who asked; no session is told of a
+      // verdict that changed nothing.
       const two = await author();
-      assertEquals((await moderator("POST", `/admin/feed-queue/${await waiting(two, "имя отклонят")}/refuse-name`)).status, 200);
-      assertEquals(await frameFor(two.session_id), { type: "name_verdict", data: { accepted: false } },
-        "a refused name was not announced to its author's session");
+      assertEquals((await patchMe(two, { name: "пиши @anyone_here" })).status, 422);
+      assertEquals(await profileOf(two.identity_id).then((p) => p.name), "Аня");
+      assertEquals(heard.find((p) => p.startsWith(`${two.session_id}|`)), undefined,
+        "a refused name was announced as a verdict");
     } finally {
       await sql.end();
       reset();
     }
-  },
-});
-
-test({
-  name: "publish accepts only the name the moderator saw, and never a rejected one unread",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const { reset } = await import("../src/lib/rate_limit.ts");
-    reset();
-    const me = await author();
-    await database.queryOrThrow(
-      `UPDATE identities SET name_state = 'pending', name_pending = 'Анна' WHERE id = $1`, [me.identity_id]);
-    await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "имя сменится под рукой" }));
-    const moderator = await panelAs("moderator");
-    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
-      .find((i) => i.text === "имя сменится под рукой");
-    assert(row);
-    // The name moves between the read and the click.
-    await database.queryOrThrow(`UPDATE identities SET name_pending = 'Анна-Мария' WHERE id = $1`, [me.identity_id]);
-    const stale = await moderator("POST", `/admin/feed-queue/${row.id}/publish`, { name: row.name });
-    assertEquals(stale.status, 409, "a name that moved under the moderator's read was accepted");
-    const [still] = await database.queryOrThrow<{ visible_at: Date | null }>(
-      `SELECT visible_at FROM feed_messages WHERE id = $1`, [row.id]);
-    assertEquals(still.visible_at, null, "the phrase went out although its name did not hold");
-    // Read again, publish what is there now.
-    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`, { name: "Анна-Мария" })).status, 200);
-
-    // A rejected name stays rejected through a publish: nothing was waiting to be accepted.
-    const other = await author();
-    await database.queryOrThrow(`UPDATE identities SET name_state = 'rejected' WHERE id = $1`, [other.identity_id]);
-    await signedCall(other.pair.privateKey, other.session_id, "POST", "/feed", phrase({ text: "имя отклонено" }));
-    const second = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
-      .find((i) => i.text === "имя отклонено");
-    assert(second);
-    // …and a phrase whose name is rejected does not go out at all: both must
-    // be accepted (§8.2, 2026-08-26).
-    const held = await moderator("POST", `/admin/feed-queue/${second.id}/publish`, { name: second.name });
-    assertEquals(held.status, 409, JSON.stringify(held.body));
-    assertEquals((held.body as { error: string }).error, "the name is rejected; the phrase waits for a new one");
-    const [who] = await database.queryOrThrow<{ name_state: string }>(
-      `SELECT name_state FROM identities WHERE id = $1`, [other.identity_id]);
-    assertEquals(who.name_state, "rejected", "publish quietly re-accepted a rejected name");
-    reset();
-  },
-});
-
-// ── PATCH /identities/me (§8.2, protocol §4.11) ──────────────────────────────
-const patchMe = (who: { pair: CryptoKeyPair; session_id: string }, body: unknown) =>
-  signedCall(who.pair.privateKey, who.session_id, "PATCH", "/identities/me", body);
-const profileOf = async (id: string) =>
-  (await database.queryOrThrow<Record<string, unknown>>(
-    `SELECT name, name_pending, name_state, age, filter_age_min, filter_age_max, languages
-       FROM identities WHERE id = $1`, [id]))[0];
-
-test({
-  name: "a new name waits for the queue, and comes out with the next phrase",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const { reset } = await import("../src/lib/rate_limit.ts");
-    reset();
-    const who = await author();
-    const asked = await patchMe(who, { name: "Анна" });
-    assertEquals(asked.status, 202, JSON.stringify(asked.body));
-    assertEquals(await profileOf(who.identity_id), {
-      name: "Аня", name_pending: "Анна", name_state: "pending", age: 30,
-      filter_age_min: null, filter_age_max: null, languages: [],
-    });
-    // Nobody sees the new name yet: the queue does, beside the next phrase.
-    await signedCall(who.pair.privateKey, who.session_id, "POST", "/feed", phrase({ text: "с новым именем" }));
-    const moderator = await panelAs("moderator");
-    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
-      .find((i) => i.text === "с новым именем");
-    assert(row);
-    assertEquals(row.name, "Анна");
-    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`, { name: "Анна" })).status, 200);
-    assertEquals((await profileOf(who.identity_id)).name, "Анна");
-    // The unchanged name is not a change: nothing goes to the queue.
-    assertEquals((await patchMe(who, { name: "Анна" })).status, 200);
-    // Too long, and not a string.
-    assertEquals((await patchMe(who, { name: "а".repeat(25) })).status, 400);
-    assertEquals((await patchMe(who, { name: 7 })).status, 400);
-    reset();
   },
 });
 
@@ -3503,7 +3382,7 @@ test({
     assertEquals((inChat.body as { error: { code: string } }).error.code, "name_frozen");
     // A rejected name is never frozen: it is corrected whenever.
     await database.queryOrThrow(`UPDATE identities SET name_state = 'rejected' WHERE id = $1`, [a.identity_id]);
-    assertEquals((await patchMe(a, { name: "Борис" })).status, 202);
+    assertEquals((await patchMe(a, { name: "Борис" })).status, 200);
     reset();
   },
 });
@@ -3555,8 +3434,8 @@ test({
     assertEquals([now.filter_age_min, now.filter_age_max], [19, 22], "the filter was not clamped into the new band");
     assertEquals((await patchMe(who, { name: "Ан\u200bна" })).status, 400);
     assertEquals((await patchMe(who, { name: "\u200b\u200b" })).status, 400);
-    assertEquals((await patchMe(who, { name: "  Анна   Мария " })).status, 202);
-    assertEquals((await profileOf(who.identity_id)).name_pending, "Анна Мария", "whitespace was not collapsed");
+    assertEquals((await patchMe(who, { name: "  Анна   Мария " })).status, 200);
+    assertEquals((await profileOf(who.identity_id)).name, "Анна Мария", "whitespace was not collapsed");
 
     // The verdict (stats → identities) and the route, in parallel, many times:
     // with the locks in opposite orders one side dies with 40P01 and the
@@ -3565,78 +3444,21 @@ test({
     await database.queryOrThrow(`DELETE FROM feed_messages WHERE author_identity = $1`, [who.identity_id]);
     for (let i = 0; i < 12; i++) {
       reset();
-      // Back to accepted each round, so the rename is a fresh pending and the verdict applies.
+      // Back to accepted each round, so the rename is a fresh change.
       await database.queryOrThrow(`UPDATE identities SET name_state = 'accepted', name_pending = NULL WHERE id = $1`, [who.identity_id]);
       // Four an hour would stop the fifth send: the moments are not the subject here.
       await database.queryOrThrow(`UPDATE identity_stats SET published_at_recent = '{}', rejected_at_recent = '{}' WHERE identity = $1`, [who.identity_id]);
-      const sent = await signedCall(who.pair.privateKey, who.session_id, "POST", "/feed", phrase({ text: `гонка ${i}` }));
-      assertEquals(sent.status, 202, JSON.stringify(sent.body));
-      const id = (sent.body as { id: string }).id;
+      // Written waiting, as while the model is asked; the verdict and the
+      // rename then race. The rename is 200, or 409 when the phrase went live first.
+      const id = await waitingPhrase(who.identity_id, `гонка ${i}`);
       const [a, b] = await Promise.all([
         verdict.publishPhrase(id),
         patchMe(who, { name: `Имя ${i}` }),
       ]);
       assert(a.applied, "the verdict did not apply");
-      assert(b.status === 202 || b.status === 409, `the rename answered ${b.status}: ${JSON.stringify(b.body)}`);
+      assert(b.status === 200 || b.status === 409, `the rename answered ${b.status}: ${JSON.stringify(b.body)}`);
       await database.queryOrThrow(`DELETE FROM feed_messages WHERE id = $1`, [id]);
     }
-    reset();
-  },
-});
-
-test({
-  name: "the moderator refuses a name: the phrase waits unswept, no match forms, a new name brings it back",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const { reset } = await import("../src/lib/rate_limit.ts");
-    reset();
-    const who = await author();
-    await signedCall(who.pair.privateKey, who.session_id, "POST", "/feed", phrase({ text: "имя не пройдёт" }));
-    const moderator = await panelAs("moderator");
-    const row = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
-      .find((i) => i.text === "имя не пройдёт");
-    assert(row);
-    const refused = await moderator("POST", `/admin/feed-queue/${row.id}/refuse-name`, { name: "Аня" });
-    assertEquals(refused.status, 200, JSON.stringify(refused.body));
-    // The name is rejected; the phrase is still there, and says so to its author.
-    assertEquals(await profileOf(who.identity_id), {
-      name: "Аня", name_pending: null, name_state: "rejected", age: 30,
-      filter_age_min: null, filter_age_max: null, languages: [],
-    });
-    const mine = await signedCall(who.pair.privateKey, who.session_id, "GET", "/identities/me");
-    assertEquals((mine.body as { name_state: string }).name_state, "rejected", "the profile does not say the name was refused");
-    // A second refusal of the same name: nothing to refuse again.
-    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/refuse-name`, { name: "Аня" })).status, 409);
-    // The sweeper leaves a phrase whose name is being fixed alone.
-    await database.queryOrThrow(`UPDATE feed_messages SET created_at = now() - interval '1 hour' WHERE id = $1`, [row.id]);
-    const verdict = await import("../src/lib/feed_verdict.ts");
-    await verdict.sweepStaleQueue();
-    const [still] = await database.queryOrThrow(`SELECT 1 FROM feed_messages WHERE id = $1`, [row.id]);
-    assert(still, "the sweeper took a phrase that was waiting for its name");
-    // No match forms while the name is rejected (§8.2 — the second line of defence).
-    const them = await author();
-    const theirs = await seedPhrase(them.identity_id, "жду мэтча");
-    await database.queryOrThrow(`UPDATE feed_messages SET visible_at = now(), expires_at = now() + interval '4 hours' WHERE id = $1`, [row.id]);
-    await like(who, theirs);
-    const back = await like(them, row.id as string);
-    assertEquals(stateOf(back), "liked", "a match formed with a rejected name");
-    await database.queryOrThrow(`UPDATE feed_messages SET visible_at = NULL, expires_at = NULL WHERE id = $1`, [row.id]);
-    // The author sends a new name; it waits beside the phrase; publish takes both.
-    assertEquals((await patchMe(who, { name: "Анна" })).status, 202);
-    const again = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
-      .find((i) => i.id === row.id);
-    assert(again, "the phrase left the queue");
-    assertEquals([again.name, again.name_state], ["Анна", "pending"]);
-    // Pending is not accepted either: `name` still holds the refused string,
-    // and a match would show it (profile panel 2026-09-22, security 3).
-    await database.queryOrThrow(`UPDATE feed_messages SET visible_at = now(), expires_at = now() + interval '4 hours' WHERE id = $1`, [row.id]);
-    await database.queryOrThrow(`DELETE FROM likes WHERE liker_identity IN ($1, $2)`, [who.identity_id, them.identity_id]);
-    await like(who, theirs);
-    assertEquals(stateOf(await like(them, row.id as string)), "liked", "a match formed while the name was still pending");
-    await database.queryOrThrow(`UPDATE feed_messages SET visible_at = NULL, expires_at = NULL WHERE id = $1`, [row.id]);
-    assertEquals((await moderator("POST", `/admin/feed-queue/${row.id}/publish`, { name: "Анна" })).status, 200);
-    assertEquals((await profileOf(who.identity_id)).name_state, "accepted");
     reset();
   },
 });
@@ -3652,7 +3474,7 @@ test({
     // The client sends the key beside the signature: the key says which face,
     // the signature says which person (§8, "brand comes from the key").
     const sent = await signedCall(me.pair.privateKey, me.session_id, "POST", "/feed", phrase({ text: "с лицом" }), { "x-api-key": KEY_ID });
-    assertEquals(sent.status, 202, JSON.stringify(sent.body));
+    assertEquals(sent.status, 200, JSON.stringify(sent.body));
     const [row] = await database.queryOrThrow<{ brand: string }>(
       `SELECT brand FROM feed_messages WHERE id = $1`, [(sent.body as { id: string }).id]);
     assertEquals(row.brand, "alpha", "a phrase sent through a storefront's key was not attributed to it");
@@ -3871,54 +3693,6 @@ test({
 });
 
 // ── Small tails of the 21–22.09 panels, with a database ────────────────────────
-test({
-  name: "the queue's x-total-count counts the whole queue, not the page of 200",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    // 201 waiting phrases of a brand of their own: one author each, as the
-    // one-waiting-per-author index requires.
-    const brand = `tail-${crypto.randomUUID().slice(0, 8)}`;
-    await database.queryOrThrow(
-      `WITH ids AS (SELECT gen_random_uuid() AS id FROM generate_series(1, 201))
-       , who AS (INSERT INTO identities (id, name, age, identity_public_key) SELECT id, 'x', 30, 'k' FROM ids RETURNING id)
-       INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius)
-       SELECT gen_random_uuid(), $1, id, 'в очереди', 'alone', 'und', 60.17, 24.94, 1000 FROM who`,
-      [brand]);
-    // Its 201 rows go when it is done: the platform moderator of the other
-    // queue tests sees every brand, and under --shuffle these filled that
-    // page of 200 before their own phrase (W16-SF2).
-    try {
-      const moderator = await panelAs("moderator", brand);
-      const queue = await moderator("GET", "/admin/feed-queue");
-      assertEquals((queue.body as unknown[]).length, 200);
-      assertEquals(queue.headers.get("x-total-count"), "201", "the count was the page, not the queue");
-    } finally {
-      await database.queryOrThrow(
-        `WITH gone AS (DELETE FROM feed_messages WHERE brand = $1 RETURNING author_identity)
-         DELETE FROM identities WHERE id IN (SELECT author_identity FROM gone)`,
-        [brand]);
-    }
-  },
-});
-
-test({
-  name: "a waiting phrase whose author is gone still shows in the queue, marked",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const [row] = await database.queryOrThrow<{ id: string }>(
-      `INSERT INTO feed_messages (id, brand, author_identity, text, mode, lang, lat, lon, area_radius)
-       VALUES (gen_random_uuid(), 'gone-brand', NULL, 'автора нет', 'alone', 'und', 60.17, 24.94, 1000) RETURNING id`);
-    // A brand of its own: the 200-long page of the platform queue is someone else's test.
-    const moderator = await panelAs("moderator", "gone-brand");
-    const seen = ((await moderator("GET", "/admin/feed-queue")).body as Array<Record<string, unknown>>)
-      .find((i) => i.id === row.id);
-    assert(seen, "an authorless waiting phrase is invisible to the moderator");
-    assertEquals(seen.name_state, "gone");
-  },
-});
-
 test({
   name: "registration refuses a name with characters nobody can see",
   sanitizeResources: false,
@@ -5013,7 +4787,7 @@ test({ name: "ran out · an own phrase that ran out does not freeze the name", s
   assertEquals((await patchMe(who, { name: "Анна" })).status, 409, "the fixture phrase does not freeze the name to begin with");
   await runOut(mine);
   const edited = await patchMe(who, { name: "Анна" });
-  assertEquals(edited.status, 202, `a phrase that ran out still froze the name: ${JSON.stringify(edited.body)}`);
+  assertEquals(edited.status, 200, `a phrase that ran out still froze the name: ${JSON.stringify(edited.body)}`);
   reset();
 });
 

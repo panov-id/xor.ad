@@ -35,7 +35,6 @@ await import("../src/routes/tables.ts");
 await import("../src/routes/blocks.ts");
 await import("../src/routes/hidden.ts");
 await import("../src/routes/away.ts");
-await import("../src/routes/feed_queue.ts");
 await import("../src/routes/feed.ts");
 // The rooms' listeners, once and before any test: started inside one, they
 // count as that test's leak (as session_freeze.test.ts does).
@@ -138,7 +137,7 @@ async function game(): Promise<{ a: Person; b: Person; id: string }> {
   assertEquals(made.status, 201, JSON.stringify(made.body));
   const id = made.body.id as string;
   assertEquals((await signed(b, "POST", `/tables/${id}/seat`)).body, { seat: 2 });
-  assertEquals((await signed(b, "POST", `/tables/${id}/lines`, { kind: "application", text: "возьмите" })).status, 202);
+  assertEquals((await signed(b, "POST", `/tables/${id}/lines`, { kind: "application", text: "возьмите" })).status, 200);
   const round = await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
   assertEquals(round.status, 200, JSON.stringify(round.body));
   return { a, b, id };
@@ -170,7 +169,7 @@ async function gameOfThree(): Promise<{ a: Person; b: Person; c: Person; id: str
   const id = made.body.id as string;
   for (const who of [b, c]) {
     assertEquals((await signed(who, "POST", `/tables/${id}/seat`)).status, 200);
-    assertEquals((await signed(who, "POST", `/tables/${id}/lines`, { kind: "application", text: "возьмите" })).status, 202);
+    assertEquals((await signed(who, "POST", `/tables/${id}/lines`, { kind: "application", text: "возьмите" })).status, 200);
   }
   const round = await signed(a, "POST", `/tables/${id}/proposals`, { kind: "rematch" });
   assertEquals(round.status, 200, JSON.stringify(round.body));

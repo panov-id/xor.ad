@@ -19,7 +19,6 @@ Deno.env.set("NODE_ENV_NAME", "test");
 Deno.env.set("MAIL_TRANSPORT", "none");
 Deno.env.set("ORIGIN_TOKEN", "moderator-origin-token");
 Deno.env.set("VAULT_SHARE_KEY", "moderator-vault-key");
-Deno.env.delete("FEED_VERDICT");
 Deno.env.delete("MODERATOR_URL");
 Deno.env.set(
   "BRANDS",
@@ -47,11 +46,15 @@ await database.queryOrThrow(
 
 // The stand-in model: answers what `reply` says and keeps every phrase asked.
 const asked: string[] = [];
+// The rules' flags each question carried (lib/moderator.ts askModerator).
+const flags: string[][] = [];
 let reply = '{"verdict":"reject","reason":"a link"}';
 const model = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen: () => {} }, async (req) => {
   const body = await req.json() as { messages: { role: string; content: string }[]; format?: string };
   const user = body.messages.find((m) => m.role === "user")!;
-  asked.push((JSON.parse(user.content) as { phrase: string }).phrase);
+  const question = JSON.parse(user.content) as { phrase: string; rule_flags: string[] };
+  asked.push(question.phrase);
+  flags.push(question.rule_flags);
   return Response.json({ message: { role: "assistant", content: reply } });
 });
 const MODEL_URL = `http://127.0.0.1:${model.addr.port}`;
@@ -122,6 +125,10 @@ async function author() {
     id: created.identity_id,
     say: (text: string) =>
       signedCall(pair.privateKey, created.session_id, "POST", "/feed", { text, mode: "alone", lat: 41.9, lon: 12.5, area_radius: 1000 }),
+    offer: (text: string, discount_value: string) =>
+      signedCall(pair.privateKey, created.session_id, "POST", "/feed", {
+        text, mode: "alone", lat: 41.9, lon: 12.5, area_radius: 1000, discount_value,
+      }),
     rename: (name: string) => signedCall(pair.privateKey, created.session_id, "PATCH", "/identities/me", { name }),
   };
 }
@@ -212,6 +219,29 @@ Deno.test({
   },
 });
 
+// 13.10.2026: a private offer — a phrase with a discount — is ordinary
+// content. Its "offer" flag goes to the model as context and never refuses on
+// its own: with no model it publishes; with the model on, the model is asked
+// with the flag and its publish puts it out.
+Deno.test({
+  name: "an offer alone is not a refusal: no model publishes it, and the model is asked with the flag",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const a = await author();
+    const plain = await a.offer("свежий хлеб соседям со скидкой", "-20 %");
+    assertEquals(plain.status, 200, `with no model an offer was refused: ${JSON.stringify(plain.body)}`);
+    await withModel(MODEL_URL, async () => {
+      flags.length = 0;
+      reply = '{"verdict":"publish","reason":"an offer"}';
+      const b = await author();
+      const sent = await b.offer("пироги к чаю, скидка соседям", "-10 %");
+      assertEquals(sent.status, 200, JSON.stringify(sent.body));
+      assertEquals(flags.at(-1), ["offer"], "the rules' flag did not reach the model");
+    });
+  },
+});
+
 // WP-4 for names: decided when they change, by the model when it is on, by
 // the rules when it is not. Refused, the old name stands — nothing pending.
 Deno.test({
@@ -282,20 +312,16 @@ Deno.test({ name: "E2b: no more than MODERATOR_CONCURRENCY questions are in flig
     return Response.json({ message: { content: '{"verdict":"reject","reason":"x"}' } });
   };
   // Ids of no phrase: the hint's row is not written, the counting is the point.
-  const asking = Array.from({ length: 5 }, () => moderator.hintQueuedPhrase(crypto.randomUUID(), "x", config, slow));
+  const asking = Array.from({ length: 5 }, () => moderator.askLimited({ kind: "phrase", text: "x" }, config, slow, crypto.randomUUID()));
   await new Promise((r) => setTimeout(r, 50));
   assertEquals(started, moderator.moderatorConcurrency(), "more questions went to the model than the limit");
   release();
   const answers = await Promise.all(asking);
   assertEquals(answers.filter((a) => a === null).length, 5 - moderator.moderatorConcurrency(), "the ones over the limit were not dropped");
   // The limit frees up once the answers are in.
-  assertEquals((await moderator.hintQueuedPhrase(crypto.randomUUID(), "x", config, slow))?.verdict, "reject");
+  assertEquals((await moderator.askLimited({ kind: "phrase", text: "x" }, config, slow, crypto.randomUUID()))?.verdict, "reject");
 });
 
-// VF4 · whatever the model says, the phrase stays in the person's queue: a
-// publish or an unsure hint must not publish it either. The row is read after
-// the hint landed and a while later, so a write that follows the hint (and
-// whose failure the hint path would swallow) is seen in the row itself.
 // The stand-in model stops with the process, not in a test of its own: under
 // --shuffle that test ran before the hints and left them no model (W16-SF1).
 globalThis.addEventListener("unload", () => void model.shutdown());

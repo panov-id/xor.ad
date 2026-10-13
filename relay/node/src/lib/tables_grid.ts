@@ -14,9 +14,14 @@
 // point to the claimant and a fresh board — and any other move of theirs
 // drops the claim. Nobody scores alone.
 
+import { newFour, newReversi } from "./tables_reversi.ts";
+
 export interface Grid {
   cells: Record<string, { seat: number; piece: string }>;
   claim: number | null;
+  // Sets whose rules the node keeps whole (lib/tables_reversi.ts); absent for
+  // checkers and chess, whose legality stays with the people.
+  rules?: "reversi" | "four";
 }
 
 const FILES = "abcdefgh";
@@ -24,6 +29,8 @@ const cell = (f: number, r: number) => `${FILES[f]}${r + 1}`;
 
 export function newGrid(set: string, seats: number[]): Grid {
   const [low, high] = [seats[0], seats[1] ?? seats[0]];
+  if (set === "reversi") return newReversi(low, high);
+  if (set === "four") return newFour();
   const cells: Grid["cells"] = {};
   if (set === "chess") {
     const back = "RNBQKBNR";

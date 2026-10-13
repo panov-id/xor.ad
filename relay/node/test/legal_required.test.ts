@@ -18,7 +18,7 @@ Deno.env.set("NODE_ENV_NAME", "test");
 Deno.env.set("MAIL_TRANSPORT", "none");
 Deno.env.set("ORIGIN_TOKEN", "legal-required-origin-token");
 Deno.env.set("VAULT_SHARE_KEY", "legal-required-vault-key");
-Deno.env.set("FEED_VERDICT", "rules");
+
 Deno.env.set("BRANDS", JSON.stringify([{ key: "sosed", name: "Sosed", domain: "sosed.test", from: "s <s@sosed.test>" }]));
 
 const { match } = await import("../src/lib/router.ts");

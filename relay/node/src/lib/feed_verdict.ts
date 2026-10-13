@@ -8,21 +8,15 @@
 // 2026-09-14). So both verdicts start by taking the same `identity_stats` row
 // `FOR UPDATE` that a send takes, and finish in the same transaction.
 //
-// **The first tier of §8.3 reads here, and a person reads the rest.** The
-// tier is rules — links, contacts, a phrase the author already has up — and
-// nothing else: no dictionary lives in this node, and none is made up here. A
-// phrase the rules find nothing in goes out in the same transaction that
-// wrote it (routes/feed.ts, `publishLocked`); one they flag waits for the
-// queue, where a person decides as before. The model of §8.14 — translate,
-// then classify — is chosen and not wired; when it is, it takes the flagged
-// half, not the clean one. What runs unattended besides the rules is the
-// sweeper below, which deletes a row that waited past `moderation.queue.wait`
-// rather than letting it through unread: a flagged phrase nobody read does not
-// become visible by default (§8.3, fail-closed).
-//
-// `FEED_VERDICT=queue` turns the rules off: every phrase waits for a person,
-// which is the shape a tenant with a live moderator may want, and the shape
-// this node had until P1 (2026-09-26).
+// **The rules of §8.3 read here, and the model gives the verdict** (owner,
+// 05.10, 09.10 and 13.10.2026; lib/moderator.ts). The rules — links,
+// contacts, an offer, a phrase the author already has up, a doubtful name —
+// are context for the model, and decide alone only when no model is wired.
+// No person gives a verdict: there is no queue and no panel route for one.
+// What runs unattended besides is the sweeper below, which deletes a row
+// that waited past `moderation.queue.wait` — a request that died between the
+// write and the verdict — rather than letting it through unread (§8.3,
+// fail-closed).
 
 import { queryOrThrow, transaction } from "./db.ts";
 import { inc } from "./metrics.ts";
@@ -40,12 +34,9 @@ for (const verdict of ["published", "expired_unread"]) inc("relay_feed_verdict_t
 // What a rule can see, and only that: a link, a way to be contacted outside the
 // node, and a phrase the author already has up. There is no word list here
 // because the node has none, and a list written for this file would be a
-// guess dressed as moderation. A phrase the rules flag is not refused — it
-// waits for a person, as every phrase did before — so a rule may err towards
-// the queue: the cost of a false flag is minutes of waiting, the cost of a
-// false refusal is a moment in rejected_at_recent and, after five, a pause
-// (§8.3, "the threshold must slow down the search for a wording, not punish";
-// quorum of three, 2026-09-26).
+// guess dressed as moderation. With the model on, a flag is a question for it,
+// not a refusal; with no model, a flag refuses (except "offer") and a refusal
+// costs a moment in rejected_at_recent and, after five, a pause (§8.3).
 //
 // The regexes are linear on purpose: no nested quantifiers, no backtracking
 // across the whole text (B106, a raw Origin of 60 KB stalled the node). The
@@ -58,14 +49,13 @@ export const RULE_REASONS: readonly RuleReason[] = Object.keys(
 ) as RuleReason[];
 
 // The rules' counter has two shapes and no third (W12-FM, open.tsv
-// feed.rules.metric): a publication by the rules, and a phrase sent to the
-// queue by one reason each — the series feed.ts increments. A bare
-// {result="queued"} was registered here and never incremented: a series at
-// zero for good, while the ones with a reason were born at 1 (B42 open for
-// them). RULE_REASONS is checked against RuleReason by the compiler, so a
-// reason added to the type without a zero here does not build.
+// feed.rules.metric): a publication by the rules alone (no model), and a
+// phrase flagged by one reason each — the series feed.ts increments. The
+// label value is still "queued", the name it had while a flagged phrase
+// waited for a person; it now means "flagged, sent to the verdict".
+// RULE_REASONS is checked against RuleReason by the compiler, so a reason
+// added to the type without a zero here does not build.
 inc("relay_feed_rules_total", { result: "published" }, 0);
-inc("relay_feed_rules_total", { result: "to_model" }, 0);
 for (const reason of RULE_REASONS) inc("relay_feed_rules_total", { result: "queued", reason }, 0);
 
 // How a rule reads the text: NFKC so that fullwidth and mathematical letters
@@ -127,35 +117,17 @@ export function readText(text: string): RuleReason[] {
   return reasons;
 }
 
-// The verdict mode of this node. `rules`, the default: the tier of §8.3 that
-// costs nothing reads every phrase, and the queue takes what it flags — a feed
-// with no moderator wired publishes nothing otherwise, which is the state the
-// alert FeedPublishesNothing calls expected. `queue`: every phrase waits for a
-// person — the shape this node had before, and the one a tenant with a live
-// moderator may want. Any other value is `queue`: a misspelt variable closes,
-// it does not open (§8.3). The default was the coordinator's call for P1
-// (2026-09-26); the quorum of three had voted two to one for `queue`, so that
-// a feed publishing on its own would be switched on per environment — noted
-// in decisions, not followed.
-export function verdictMode(): "rules" | "queue" {
-  const raw = (Deno.env.get("FEED_VERDICT") ?? "rules").trim().toLowerCase();
-  return raw === "rules" ? "rules" : "queue";
-}
-
 // Everything the rules can say about a phrase that has just been written, read
 // under the caller's transaction: the text, the offer, the name that would go
 // out with it, and whether the author already has this phrase up.
 //
-// - An offer — a phrase with a discount or conditions — waits for a person
-//   whole: it may carry neither a link nor a promo code (§8.3, offers §2), and a
-//   promo code is not a shape a rule can tell from a word.
+// - An offer — a phrase with a discount or conditions — is legitimate content
+//   (private offers); "offer" tells the model to look at it as one (it may
+//   carry neither a link nor a promo code, §8.3, offers §2) and never refuses
+//   by itself (lib/moderator.ts CONTEXT_ONLY_FLAGS).
 // - The name goes out with the phrase under one verdict (§8.2, 2026-09-22), so
-//   a waiting name is read by the same rules; a refused name is the queue's
-//   business as before.
-// - The same phrase again, while the first is still up, is a person's to read:
-//   not a refusal, because a refusal costs a moment towards the pause of §8.3
-//   and a neighbour who wrote the same line twice, changing a price, is not
-//   who the pause is for (quorum, 2026-09-26).
+//   a waiting name is read by the same rules and shown to the model.
+// - The same phrase again, while the first is still up.
 export async function reasonsFor(
   run: Run,
   phrase: { id: string; identityId: string; text: string; offer: boolean },
@@ -223,9 +195,7 @@ async function rememberMoment(
 export interface Verdict {
   applied: boolean;
   identityId: string | null;
-  // The name is no longer the one the moderator saw; nothing was written.
-  nameChanged?: boolean;
-  // The name stands refused; the phrase waits for a new one.
+  // The name stands refused; the phrase does not go out under it.
   nameRejected?: boolean;
   // This verdict turned a waiting name into the name: the likes this identity
   // left on offers while it waited become their matches once the verdict is
@@ -239,19 +209,8 @@ export interface Verdict {
 
 // Passed. The row becomes visible and gets its term in the same UPDATE — they
 // were a single NOT NULL column derived from each other once, which cannot both
-// be true at insert time (§8.3, and db/025 for the experiment).
-// `scope` is what the caller may decide: a brand for a tenant's moderator,
-// null for the platform. It is checked inside the transaction, on the locked
-// row, as the DSA verdict does — a fence checked before the lock is a fence
-// checked against a row that may have changed (security lens, 2026-09-22).
-//
-// `nameSeen` is the name the moderator read beside the phrase. The verdict
-// accepts the name only if it is still that string: a name changed between
-// the read and the click would otherwise be accepted unread (same lens).
-export interface VerdictScope {
-  brand?: string | null;
-  nameSeen?: string;
-}
+// be true at insert time (§8.3, and db/025 for the experiment). Given by the
+// model (or the rules with no model) in routes/feed.ts, never by a person.
 
 // The waiting phrase and its author's counters, locked in the order every
 // other writer of those counters takes them — identity_stats first, then the
@@ -263,28 +222,24 @@ export interface VerdictScope {
 async function lockWaiting(
   run: Run,
   id: string,
-  scope: VerdictScope,
 ): Promise<{ author_identity: string | null } | undefined> {
   const [peek] = await run<{ author_identity: string | null }>(
-    `SELECT author_identity FROM feed_messages
-      WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)`,
-    [id, scope.brand ?? null],
+    `SELECT author_identity FROM feed_messages WHERE id = $1 AND visible_at IS NULL`,
+    [id],
   );
   if (!peek) return undefined;
   if (peek.author_identity) {
     await run(`SELECT 1 FROM identity_stats WHERE identity = $1 FOR UPDATE`, [peek.author_identity]);
   }
   const [row] = await run<{ author_identity: string | null }>(
-    `SELECT author_identity FROM feed_messages
-      WHERE id = $1 AND visible_at IS NULL AND ($2::text IS NULL OR brand = $2)
-      FOR UPDATE`,
-    [id, scope.brand ?? null],
+    `SELECT author_identity FROM feed_messages WHERE id = $1 AND visible_at IS NULL FOR UPDATE`,
+    [id],
   );
   return row;
 }
 
-export async function publishPhrase(id: string, scope: VerdictScope = {}): Promise<Verdict> {
-  const verdict = await transaction<Verdict>((run) => publishLocked(run, id, scope));
+export async function publishPhrase(id: string): Promise<Verdict> {
+  const verdict = await transaction<Verdict>((run) => publishLocked(run, id));
   await settleAfterVerdict(verdict);
   return verdict;
 }
@@ -307,25 +262,16 @@ export async function settleAfterVerdict(verdict: Verdict): Promise<void> {
   }
 }
 
-// The passing verdict inside a caller's transaction. POST /feed calls it right
-// after its INSERT when the rules found nothing (routes/feed.ts): the counters
-// row it holds is the one lockWaiting takes again, in the same order, so the
-// publication and the moment land in the transaction that wrote the phrase —
-// a send arriving between them would otherwise see the queue empty and the
-// moment unwritten (§8.3, review panel 2026-09-14).
-// `by` names who read the phrase. The verdict counter stays the queue's: it
-// feeds the alert that says "a queue with nobody deciding" (alerts.yml,
-// FeedPublishesNothing), and a publication the rules made would silence it
-// on the day the human queue stops (quorum, 2026-09-26).
-export async function publishLocked(
-  run: Run,
-  id: string,
-  scope: VerdictScope = {},
-  by: "queue" | "rules" = "queue",
-): Promise<Verdict> {
+// The passing verdict inside a caller's transaction: the counters row
+// lockWaiting takes is taken in the same order a send takes it, so the
+// publication and the moment land together — a send arriving between them
+// would otherwise see nothing waiting and the moment unwritten (§8.3, review
+// panel 2026-09-14). Counted in relay_feed_verdict_total{published}, which the
+// alert FeedPublishesNothing reads beside the sweeper's expired_unread.
+export async function publishLocked(run: Run, id: string): Promise<Verdict> {
   {
     let nameAccepted = false;
-    const row = await lockWaiting(run, id, scope);
+    const row = await lockWaiting(run, id);
     // Already decided, already swept, or never existed: a verdict arriving
     // twice must not publish twice or write a second moment.
     if (!row) return { applied: false, identityId: null };
@@ -335,10 +281,6 @@ export async function publishLocked(
         `SELECT name, name_pending, name_state FROM identities WHERE id = $1 FOR UPDATE`,
         [row.author_identity],
       );
-      const goesOut = who?.name_pending ?? who?.name;
-      if (scope.nameSeen !== undefined && who && goesOut !== scope.nameSeen) {
-        return { applied: false, identityId: row.author_identity, nameChanged: true };
-      }
       // Both must be accepted (§8.2, 2026-08-26): a phrase whose name was
       // refused waits for a new name, and does not go out with the old one.
       if (who?.name_state === "rejected") {
@@ -381,7 +323,7 @@ export async function publishLocked(
         [row.author_identity],
       );
     }
-    if (by === "queue") inc("relay_feed_verdict_total", { verdict: "published" });
+    inc("relay_feed_verdict_total", { verdict: "published" });
     return {
       applied: true, identityId: row.author_identity, visibleAt: term?.visible_at, expiresAt: term?.expires_at,
       ...(nameAccepted ? { nameAccepted: true } : {}),
@@ -398,13 +340,9 @@ export async function publishLocked(
 // answer, a timeout, "unsure") and a phrase is refused closed, but the author
 // did nothing the pause of §8.3 is for — as a phrase the sweeper drops is not
 // counted either (WP-4, 2026-10-09).
-export async function refusePhrase(
-  id: string,
-  scope: VerdictScope = {},
-  options: { moment?: boolean } = {},
-): Promise<Verdict> {
+export async function refusePhrase(id: string, options: { moment?: boolean } = {}): Promise<Verdict> {
   return await transaction<Verdict>(async (run) => {
-    const row = await lockWaiting(run, id, scope);
+    const row = await lockWaiting(run, id);
     if (!row) return { applied: false, identityId: null };
     await run(`DELETE FROM feed_messages WHERE id = $1 AND visible_at IS NULL`, [id]);
     if (row.author_identity && options.moment !== false) {
@@ -415,56 +353,25 @@ export async function refusePhrase(
   });
 }
 
-// The name is refused, not the phrase (§8.2): name_state becomes rejected, a
-// pending name is dropped, and the phrase stays in the queue — it waits for a
-// new name and goes out with it (2026-08-26). Nothing is deleted and no moment
-// is written: the pause of §8.3 counts refused phrases, and this is not one.
-// The queue shows the phrase with "name rejected" until the author sends
-// another name, which makes it pending again. Applies once: a name already
-// rejected, or not the one the moderator saw, answers as not applied.
-export async function refuseName(id: string, scope: VerdictScope = {}): Promise<Verdict> {
-  return await transaction<Verdict>(async (run) => {
-    const row = await lockWaiting(run, id, scope);
-    if (!row || !row.author_identity) return { applied: false, identityId: null };
-    const [who] = await run<{ name: string; name_pending: string | null; name_state: string }>(
-      `SELECT name, name_pending, name_state FROM identities WHERE id = $1 FOR UPDATE`,
-      [row.author_identity],
-    );
-    if (!who || who.name_state === "rejected") return { applied: false, identityId: row.author_identity };
-    const goesOut = who.name_pending ?? who.name;
-    if (scope.nameSeen !== undefined && goesOut !== scope.nameSeen) {
-      return { applied: false, identityId: row.author_identity, nameChanged: true };
-    }
-    await run(
-      `UPDATE identities SET name_state = 'rejected', name_pending = NULL WHERE id = $1`,
-      [row.author_identity],
-    );
-    // No reason: the verdict carries none for a name today, and the frame
-    // does not make one up.
-    await frameSessions(run, row.author_identity, "name_verdict", { accepted: false });
-    inc("relay_feed_verdict_total", { verdict: "name_refused" });
-    return { applied: true, identityId: row.author_identity };
-  });
-}
-
 // A phrase that waited past `moderation.queue.wait` is deleted, and **no moment
 // is written** — neither a publication nor a refusal happened. §8.3 says it in
 // one line: "a row whose checking wait expired is deleted and not counted as
 // queued". Which means the author's slot frees and their pause does not grow
 // because the node was slow.
 //
-// This is the only part of the verdict that runs unattended, and that is the
-// honest shape while there is no moderator: a phrase nobody read does not
-// become visible by default, it goes away, and the number below says how often
-// that happens.
+// A row waits only while its verdict is being given (routes/feed.ts): one
+// still here past the wait is a request that died before its verdict, and a
+// phrase nobody judged does not become visible by default — it goes away, and
+// the number below says how often that happens.
 export async function sweepStaleQueue(): Promise<number> {
   const rows = await queryOrThrow<{ count: string }>(
     `WITH gone AS (
        DELETE FROM feed_messages f
         WHERE f.visible_at IS NULL
           AND f.created_at < now() - interval '${QUEUE_WAIT_MINUTES} minutes'
-          -- A phrase whose name was refused is not waiting on the node; it is
-          -- waiting on its author, and stays until a new name comes (§8.2).
+          -- Left as the gauge reads it (lib/queue_metrics.ts MODERATION_WAITING,
+          -- B12): a phrase from before 13.10.2026 held by its author's refused
+          -- name. None is made now — a refused name refuses the phrase.
           AND NOT EXISTS (SELECT 1 FROM identities a
                            WHERE a.id = f.author_identity AND a.name_state = 'rejected')
         RETURNING 1
@@ -473,9 +380,9 @@ export async function sweepStaleQueue(): Promise<number> {
   );
   const swept = Number(rows[0]?.count ?? 0);
   if (swept > 0) {
-    // Worth a line every time, not only when it is large: while no moderator is
-    // wired this number is the whole rate of the feed, and somebody reading the
-    // logs should see that phrases are being dropped rather than published.
+    // Worth a line every time, not only when it is large: a request that died
+    // before its verdict is rare, and somebody reading the logs should see
+    // that phrases are being dropped rather than published.
     log("warn", "phrases dropped after waiting for a verdict", {
       swept,
       waited_minutes: QUEUE_WAIT_MINUTES,

@@ -260,6 +260,8 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-list, .ui-sheet-actions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .ui-list-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: var(--control-h); border-bottom: 1px solid var(--border); }
 .ui-list-text { overflow-wrap: anywhere; }
+/* A row's text action («lift») is a 44 target however short its word: the width grows to the left. */
+.ui-list-row > .ui-text { min-inline-size: 44px; min-block-size: var(--control-h); justify-content: flex-end; }
 .ui-setting { display: flex; align-items: center; gap: var(--s-3); inline-size: 100%; min-height: var(--control-h); padding: var(--s-2) var(--s-3); border-radius: var(--r-1); border-color: var(--border); text-align: start; }
 .ui-setting-value { margin-inline-start: auto; color: var(--muted); overflow-wrap: anywhere; }
 .ui-setting-label + .ui-setting-chevron { margin-inline-start: auto; }

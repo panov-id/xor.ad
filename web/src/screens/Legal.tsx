@@ -146,7 +146,7 @@ export function Legal({ client, onDone, onBack }: { client: Client; onDone: () =
             const changed = pending.some((p) => p.document === r.document);
             return (
               <ListItem key={r.document} data-testid={`legal-doc-${r.document}`} data-changed={changed ? "yes" : "no"}>
-                <Link href={docUrl(r.document)} external>{say(`web.legal.${r.document}`)}</Link>
+                <Link href={docUrl(r.document)} external block>{say(`web.legal.${r.document}`)}</Link>
                 {" · "}
                 <span className="ui-hint">{say("web.legal.edition", { date: dateLong(r.revision_date) })}</span>
                 {changed && <Notice>{say("web.legal.changed")}</Notice>}

@@ -1086,7 +1086,7 @@ and down arrows between them; the five lines are the ones the owner approved
 (without the heading "Your phrase has been hidden.", since what was restricted need not be
 a phrase),
 including the two different "How decided" lines by `automated_used` and "law:" or "terms:"
-by `ground_kind`. "Got it" folds them back into the feed, and the red "Restrictions: N" row
+by `ground_kind`. "Got it" folds them back into the feed, and the red "restrictions · N" row
 is the first row of the `me` screen, which opens them again (since 2026-09-23; before `me`
 the row stood above the feed). Nothing is kept on disk (§6), so the next run is again the
 "next entry" of §7, and the statements are shown again.
@@ -1100,7 +1100,7 @@ the terminal never draws "Blocked: 0" and does not answer the storefronts' Q-48.
 **The `me` screen — built 2026-09-23 in a small form** (`depth/ink/rooms.ts`, `Me`). It is
 reached by the item "me" in the feed's menu: there is no `m` key, navigation is arrows and
 enter (2026-09-22). On top, the name and age from `GET /identities/me`, read-only; below, rows
-that open the screens already built: the red "Restrictions: N" (if any), "liked", "hidden · N",
+that open the screens already built: the red "restrictions · N" (if any), "liked", "hidden · N",
 "Blocked: N" (if any). These items left the feed's menu — the row no longer fit a hundred
 columns. Not built: editing languages, appearance, the silence and area defaults, hints,
 support, the console.

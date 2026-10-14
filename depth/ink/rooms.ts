@@ -910,7 +910,7 @@ export function Hidden(
 // reaches the person. It opens by itself when the feed is first reached in a
 // run: a run is the "next entry" §7 speaks of, and nothing is kept on disk to
 // remember that it was read (§8.13). "Got it" folds it into the red
-// "Restrictions: N" row of the feed; it is never erased.
+// "restrictions · N" row of the feed; it is never erased.
 const RESTRICTIONS: readonly string[] = ["removed", "hidden", "offer_taken_down", "access_restricted"];
 
 export function Statements(

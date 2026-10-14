@@ -84,7 +84,7 @@
   "block.confirm": "block, really?",
   "block.what": "the conversation ends for both of you, and a lifted block cannot be set again",
   "chat.end": "end the conversation",
-  "statements.count": "Restrictions: {n}",
+  "statements.count": "restrictions · {n}",
   "statements.what": "What happened",
   "statements.why": "Why",
   "statements.how": "How decided",

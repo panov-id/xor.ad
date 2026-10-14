@@ -20,6 +20,13 @@
 // cards is the durak — the game is over, and each of the others scores a point.
 // Only the main attacker throws in (others at the table wait their turn as
 // attacker): turns at a table are one seat at a time.
+//
+// Perevodnoy (set "transfer", owner 14.10.2026: both durak variants in the
+// alpha): the same, and while nothing on the table is beaten yet the defender
+// may pass the attack on with {transfer: card} of the rank already led. The
+// card joins the attacks, the next seat holding cards defends, and the one who
+// passed it on becomes the attacker. The new defender must hold at least as
+// many cards as lie unbeaten, never more than six attacks.
 
 export interface Deck {
   stock: string[];
@@ -32,6 +39,7 @@ export interface Deck {
   discard?: number;
   out?: number[]; // seats out of cards, in the order they went
   durak?: number | null;
+  transfer?: boolean; // perevodnoy: the defender may pass the attack on
 }
 
 const RANKS = ["6", "7", "8", "9", "10", "J", "Q", "K", "A"];
@@ -50,7 +58,7 @@ export function shuffle(cards: string[]): string[] {
   return cards;
 }
 
-export function newDeck(seats: number[]): Deck {
+export function newDeck(seats: number[], transfer = false): Deck {
   const cards = shuffle(SUITS.flatMap((s) => RANKS.map((r) => `${r}${s}`)));
   const hands: Record<string, string[]> = {};
   for (const seat of seats) hands[seat] = cards.splice(0, 6);
@@ -68,6 +76,7 @@ export function newDeck(seats: number[]): Deck {
     discard: 0,
     out: [],
     durak: null,
+    ...(transfer ? { transfer: true } : {}),
   };
 }
 
@@ -122,13 +131,34 @@ export function playDeck(deck: Deck, move: unknown, seat: number, live: number[]
   if (!hand) return { refused: "no hand at this seat" };
   const table = deck.table!;
   const trump = suitOf(deck.trump!);
-  const m = (typeof move === "object" && move !== null ? move : {}) as { play?: unknown; take?: unknown; done?: unknown };
+  const m = (typeof move === "object" && move !== null ? move : {}) as { play?: unknown; take?: unknown; done?: unknown; transfer?: unknown };
   const unbeaten = table.filter((p) => p.beat === null);
   if (seat === deck.defender) {
     if (m.take === true) {
       if (table.length === 0) return { refused: "there is nothing to take" };
       for (const p of table) hand.push(p.attack, ...(p.beat ? [p.beat] : []));
       return endRound(deck, true, live);
+    }
+    if (m.transfer !== undefined) {
+      if (!deck.transfer) return { refused: "this table plays podkidnoy: no passing the attack on" };
+      if (typeof m.transfer !== "string") return { refused: "pass the attack on with {transfer: card}" };
+      const at = hand.indexOf(m.transfer);
+      if (at < 0) return { refused: "the card is not in your hand" };
+      if (table.length === 0) return { refused: "there is nothing to pass on" };
+      if (table.some((p) => p.beat !== null)) return { refused: "a beaten attack cannot be passed on" };
+      if (table.some((p) => rankOf(p.attack) !== rankOf(m.transfer as string))) {
+        return { refused: "pass on only with the rank on the table" };
+      }
+      if (table.length >= 6) return { refused: "no more than six attacks a round" };
+      const next = after(deck, seat, live).find((s) => s !== seat && (deck.hands[s]?.length ?? 0) > 0);
+      if (next === undefined) return { refused: "there is no one to pass the attack on to" };
+      if ((deck.hands[next]?.length ?? 0) < table.length + 1) return { refused: "the next seat has too few cards to beat it all" };
+      hand.splice(at, 1);
+      table.push({ attack: m.transfer, beat: null });
+      deck.played.push(m.transfer);
+      deck.attacker = seat;
+      deck.defender = next;
+      return { over: false, next, winners: [] };
     }
     if (typeof m.play !== "string") return { refused: "the defender moves {play: card} or {take: true}" };
     const at = hand.indexOf(m.play);
@@ -139,7 +169,9 @@ export function playDeck(deck: Deck, move: unknown, seat: number, live: number[]
     hand.splice(at, 1);
     target.beat = m.play;
     deck.played.push(m.play);
-    return { over: false, next: deck.attacker!, winners: [] };
+    // After a transfer more than one attack may lie unbeaten: the defender goes on.
+    const left = table.some((p) => p.beat === null);
+    return { over: false, next: left ? seat : deck.attacker!, winners: [] };
   }
   if (seat !== deck.attacker) return { refused: "only the attacker and the defender move" };
   if (m.done === true) {
@@ -193,5 +225,6 @@ export function deckFor(deck: Deck, viewer: number | null) {
     discard: { count: deck.discard ?? 0 },
     out: deck.out ?? [],
     durak: deck.durak ?? null,
+    transfer: deck.transfer === true,
   };
 }

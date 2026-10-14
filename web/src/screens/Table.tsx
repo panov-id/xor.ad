@@ -18,6 +18,7 @@ import { classWord, tableRefusal } from "../api/tables.ts";
 import { Button } from "../ui/Button.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderScreen } from "../ui/Header.tsx";
+import { MessageInput } from "../ui/MessageInput.tsx";
 import { MoveInput } from "../ui/MoveInput.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
@@ -197,6 +198,13 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
         ))}
         {openApplications(view).map((l) => <li key={`w${l.id}`} data-testid="application">{say("table.application")}: {nameOf(l.seat)}{l.text ? ` — ${l.text}` : ""}</li>)}
       </ul>
+      {/* Free text at the table for the players (owner 14.10.2026: back next to «say», the stickers stay):
+          one line with its send, as the conversation's (sheet adaptive-*-table-393). */}
+      {view.is_playing && (
+        <MessageInput label={say("web.table.line")} placeholder={say("web.chat.line")} sendLabel={say("table.say")} maxLength={128}
+          value={line} onChange={setLine} inputTestId="line-input" sendTestId="line-send"
+          onSend={(text) => void act(() => tables.say(tableId, { kind: "line", text })).then(() => setLine(""))} />
+      )}
       {!view.is_playing && <MoveInput
         legend={say("table.say")}
         fields={[{ label: say("web.table.line"), value: line, onChange: setLine, maxLength: 128, testid: "line-input" }]}
@@ -204,10 +212,10 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
         onSubmit={() => { const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setLine("")); }}
         /* A watcher asks to play with a line of their own (W15): the words are
            theirs, the kind is an application (§6.1). */
-        extra={!view.is_playing && (
+        extra={
           <Button kind="secondary" type="button" icon="queue" aria-label={say("table.application")} disabled={!line.trim()} data-testid="apply"
             onClick={() => { const text = line.trim(); if (text) void act(() => tables.say(tableId, { kind: "application", text })).then(() => setLine("")); }} />
-        )}
+        }
       />}
       {view.is_playing && pending && (answered
         ? <p className="ui-hint" data-testid="pending">{say("web.table.waitingAnswers")}</p>

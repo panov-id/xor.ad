@@ -205,6 +205,34 @@ Deno.test("durak: a turn let run out — the defender takes", () => {
   assertEquals([passed.next, s.deck!.hands["2"].includes("7S")], [1, true]);
 });
 
+Deno.test("durak: transfer passes the attack on with the same rank; podkidnoy refuses it", () => {
+  const plain = durak({ "1": ["7S", "9C"], "2": ["7H", "8S"] }, "6D", ["10C"]);
+  ok(play(plain, "36", 1, { play: "7S" }));
+  assertEquals(reason(stepGame(plain, "36", { transfer: "7H" }, false, 2)), "this table plays podkidnoy: no passing the attack on");
+
+  const s = startState("deck", "transfer", [1, 2, 3]);
+  Object.assign(s.deck!, {
+    hands: { "1": ["7S", "9C"], "2": ["7H", "8H", "KS"], "3": ["AS", "AH", "6C"] },
+    trump: "6D", stock: [], table: [], played: [], attacker: 1, defender: 2, out: [], discard: 0,
+  });
+  ok(play(s, "transfer", 1, { play: "7S" }));
+  assertEquals(reason(stepGame(s, "transfer", { transfer: "8H" }, false, 2)), "pass on only with the rank on the table");
+  ok(play(s, "transfer", 2, { transfer: "7H" }));
+  assertEquals([s.deck!.attacker, s.deck!.defender, s.order[s.turn!]], [2, 3, 3], "the next seat defends, the passer attacks");
+  assertEquals(s.deck!.table!.map((p) => p.attack), ["7S", "7H"]);
+  ok(play(s, "transfer", 3, { play: "AS" }));
+  assertEquals(reason(stepGame(s, "transfer", { transfer: "6C" }, false, 3)), "a beaten attack cannot be passed on");
+  ok(play(s, "transfer", 3, { play: "AH" }));
+  assertEquals(s.order[s.turn!], 2, "the passer ends or throws in");
+
+  const short = startState("deck", "transfer", [1, 2]);
+  Object.assign(short.deck!, {
+    hands: { "1": ["7S", "9C"], "2": ["7H", "8H"] }, trump: "6D", stock: [], table: [], played: [], attacker: 1, defender: 2, out: [], discard: 0,
+  });
+  ok(play(short, "transfer", 1, { play: "7S" }));
+  assertEquals(reason(stepGame(short, "transfer", { transfer: "7H" }, false, 2)), "the next seat has too few cards to beat it all");
+});
+
 // --- poker ------------------------------------------------------------------
 
 Deno.test("poker: hands rank right, ties split by the best five of seven", () => {

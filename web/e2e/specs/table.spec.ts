@@ -111,10 +111,13 @@ test("sets are named in words, and leaving a table returns to the feed or the ta
   await zhenya.getByTestId("new-table-game-dots").click();
   await expect(zhenya.getByTestId("new-table-step")).toHaveAttribute("data-step", "2");
   await expect(zhenya.getByTestId("new-table-set").getByRole("radio")).toHaveText(["поле 3×3", "поле 2×2", "поле 4×4"]);
-  // Back is the step before: the games again, and durak plays one variant on 2 to 6 seats.
+  // Back is the step before: the games again, and durak plays two variants on 2 to 6 seats
+  // (owner 14.10.2026: podkidnoy and perevodnoy, both kept by the node).
   await zhenya.getByTestId("new-table-back").click();
   await zhenya.getByTestId("new-table-game-durak").click();
-  await expect(zhenya.getByTestId("new-table-set").getByRole("radio")).toHaveText(["подкидной"]);
+  await expect(zhenya.getByTestId("new-table-set").getByRole("radio")).toHaveText(["подкидной", "переводной"]);
+  await zhenya.getByTestId("new-table-set-transfer").click();
+  await expect(zhenya.getByTestId("new-table-set-transfer")).toHaveAttribute("aria-checked", "true");
   await expect(zhenya.getByTestId("new-table-seats").getByRole("radio")).toHaveText(["2", "3", "4", "5", "6"]);
   await zhenya.getByTestId("new-table-back").click();
   await zhenya.getByTestId("new-table-back").click();

@@ -44,6 +44,7 @@ type DeckState = {
   // Durak (lib/tables_deck.ts deckFor): the face-up card (or just its suit with
   // six at the table), the pairs on the table, who attacks and who defends.
   trump?: string | null; table?: DurakTable[]; attacker?: number | null; defender?: number | null;
+  transfer?: boolean; // perevodnoy: the defender may pass an unbeaten attack on with its rank
 };
 
 // deck: {hands: {mine: [...], other: {count}}, stock: {count}, played: [...]}.
@@ -59,6 +60,13 @@ export function DeckBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
   const pairs = deck.table ?? [];
   const trump = deck.trump ?? "";
   const canTake = !!onMove && durak && deck.defender === view.seat && pairs.length > 0;
+  // Perevodnoy: nothing beaten yet and a card of the led rank in hand — pass it on with
+  // the lowest such card that is not a trump ({transfer: card}, lib/tables_deck.ts).
+  const rank = (c: string) => c.slice(0, -1);
+  const passOn = !!onMove && durak && deck.transfer === true && deck.defender === view.seat && pairs.length > 0 &&
+      pairs.every((p) => p.beat === null) && Array.isArray(mine)
+    ? [...mine].filter((c) => c.slice(0, -1) === rank(pairs[0].attack)).sort((a, b) => Number(a.slice(-1) === trump.slice(-1)) - Number(b.slice(-1) === trump.slice(-1)))[0]
+    : undefined;
   const canDone = !!onMove && durak && deck.attacker === view.seat && pairs.length > 0 && pairs.every((p) => p.beat !== null);
   return (
     <section data-testid="deck">
@@ -90,9 +98,10 @@ export function DeckBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
         </Hand>
       )}
       {onMove && !durak && <Button kind="secondary" type="button" icon="new" aria-label={say("web.table.draw_deck")} disabled={deck.stock.count === 0} onClick={() => onMove({ draw: true })} data-testid="draw" />}
-      {(canTake || canDone) && (
+      {(canTake || canDone || passOn) && (
         <div data-part="actions">
           {canTake && <Button kind="secondary" type="button" onClick={() => onMove!({ take: true })} data-testid="take">{say("web.table.take")}</Button>}
+          {passOn && <Button kind="secondary" type="button" onClick={() => onMove!({ transfer: passOn })} data-testid="transfer">{say("web.table.transfer")}</Button>}
           {canDone && <Button kind="primary" type="button" onClick={() => onMove!({ done: true })} data-testid="done">{say("web.table.done")}</Button>}
         </div>
       )}

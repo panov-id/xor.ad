@@ -31,7 +31,7 @@ import { newPhysics, playPhysics } from "./tables_physics.ts";
 // class's default rules, as before 13.10.2026.
 export const SET_SEATS: Record<string, Record<string, number>> = {
   grid: { checkers: 2, chess: 2, reversi: 2, four: 2, battleship: 2 },
-  deck: { "36": 6, durak36: 6, durak: 6, poker: 6 },
+  deck: { "36": 6, durak36: 6, durak: 6, transfer: 6, poker: 6 },
 };
 
 export function startState(game: string, set: string, order: number[]): GameState {
@@ -39,7 +39,7 @@ export function startState(game: string, set: string, order: number[]): GameStat
   if (game === "dots") state.dots = newDots(set);
   const playable = order.length >= 2;
   if (game === "deck" && playable && set === "poker") state.poker = newPoker(order);
-  else if (game === "deck" && playable) state.deck = newDeck(order);
+  else if (game === "deck" && playable) state.deck = newDeck(order, set === "transfer");
   if (game === "word" && playable) state.word = newWord(order[0], set);
   if (game === "grid" && playable && set === "battleship") state.sea = newSea(order);
   else if (game === "grid" && playable) state.grid = newGrid(set, order);

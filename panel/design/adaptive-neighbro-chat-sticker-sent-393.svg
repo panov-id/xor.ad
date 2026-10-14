@@ -12,16 +12,24 @@
 <circle cx="355.0" cy="40" r="20" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 <g transform="translate(344.5 29.5) scale(0.875)" fill="none" stroke="#141618" stroke-width="1.71" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></g>
 </g>
-<g transform="rotate(-0.6 144.0 121.0)">
-<rect x="17.5" y="99" width="256.0" height="50" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16.0" y="96" width="256.0" height="50" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<g transform="rotate(-0.6 144 137)">
+<rect x="17.5" y="115" width="256" height="50" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="112" width="256" height="50" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="36.0" y="130" font-family="Golos Text" font-weight="400" font-size="16" fill="#141618" text-anchor="start">hi! at the river already?</text>
-<g transform="rotate(0.6 257.64 185.0)">
-<rect x="139.77999999999997" y="163" width="238.72000000000003" height="50" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="138.27999999999997" y="160" width="238.72000000000003" height="50" rx="16" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<text x="36" y="143" font-family="Golos Text" font-weight="400" font-size="16" fill="#141618" text-anchor="start">hi! at the river already?</text>
+<text class="time" x="252" y="143" font-family="Golos Text" font-weight="400" font-size="13" fill="#141618" opacity=".75" text-anchor="end">12:34</text>
+<g transform="rotate(0.6 244.5 201)">
+<rect x="113.5" y="179" width="265" height="50" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="112" y="176" width="265" height="50" rx="16" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<text x="158.27999999999997" y="194" font-family="Golos Text" font-weight="400" font-size="16" fill="#04201c" text-anchor="start">on my way, five minutes</text>
+<text x="132" y="207" font-family="Golos Text" font-weight="400" font-size="16" fill="#04201c" text-anchor="start">on my way, five minutes</text>
+<text class="time" x="357" y="207" font-family="Golos Text" font-weight="400" font-size="13" fill="#04201c" opacity=".75" text-anchor="end">12:34</text>
+<g transform="rotate(0 196.5 592)">
+<rect x="17.5" y="573" width="361" height="44" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="570" width="361" height="44" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(30 580) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7.5"/><path d="M12 9 V13 H15 M10 3 H14"/></g>
+<text x="62" y="598" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">the talk fades in 6 days</text>
 <g class="sticker" data-sticker="deal" transform="rotate(-5 313.0 288.0)">
 <rect x="258.5" y="235.0" width="112" height="112" rx="38.1" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="12.0" stroke-linejoin="round" opacity=".9"/>
 <rect x="257.0" y="232.0" width="112" height="112" rx="38.1" fill="#336eb2" stroke="#ffffff" stroke-width="9.0" paint-order="stroke"/>

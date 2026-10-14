@@ -29,8 +29,8 @@ import "./newTable.css";
 export const CLASSES: Array<{ value: BoardClass; sets: string[]; most: number }> = [
   { value: "dots", sets: ["3x3", "2x2", "4x4"], most: 2 },
   { value: "grid", sets: ["checkers", "chess", "reversi", "four", "battleship"], most: 2 },
-  // "36" is durak; "poker" is Texas hold'em on chips, no money (13.10.2026).
-  { value: "deck", sets: ["36", "poker"], most: 6 },
+  // "36" is durak podkidnoy, "transfer" durak perevodnoy (14.10.2026); "poker" is Texas hold'em on chips, no money (13.10.2026).
+  { value: "deck", sets: ["36", "transfer", "poker"], most: 6 },
   // Hangman in each interface language (relay/node/src/lib/tables_word.ts ALPHABETS).
   { value: "word", sets: ["ru", "en", "uk", "be", "de", "es", "fr", "pl", "ro", "az", "uz", "el", "hy", "ka", "kk", "ky", "tg"], most: 2 },
   { value: "dice", sets: ["backgammon"], most: 2 },
@@ -46,7 +46,7 @@ export const GAMES: Array<{ id: string; klass: BoardClass; sets: string[]; seats
   { id: "dots", klass: "dots", sets: ["3x3", "2x2", "4x4"], seats: [2] },
   { id: "checkers", klass: "grid", sets: ["checkers"], seats: [2] },
   { id: "chess", klass: "grid", sets: ["chess"], seats: [2] },
-  { id: "durak", klass: "deck", sets: ["36"], seats: [2, 3, 4, 5, 6] },
+  { id: "durak", klass: "deck", sets: ["36", "transfer"], seats: [2, 3, 4, 5, 6] },
   { id: "hangman", klass: "word", sets: CLASSES.find((c) => c.value === "word")!.sets, seats: [2] },
   { id: "backgammon", klass: "dice", sets: ["backgammon"], seats: [2] },
   { id: "dominoes", klass: "free", sets: ["double-six"], seats: [2, 3, 4] },
@@ -63,8 +63,9 @@ const gameName = (g: { id: string; klass: BoardClass; sets: string[] }) =>
   g.id === "durak" || g.id === "poker" ? say(`web.game.${g.id}`)
     : ["dots", "hangman", "dominoes"].includes(g.id) ? classWord(g.klass) : setWord(g.sets[0]);
 const seatsWord = (seats: number[]) => seats.length === 1 ? String(seats[0]) : `${seats[0]}–${seats[seats.length - 1]}`;
-// A variant's word: durak's one rule set is named by its rules, the rest by their set.
-const variantWord = (game: string, set: string) => game === "durak" ? say("web.newTable.podkidnoy") : setWord(set);
+// A variant's word: durak's two rule sets are named by their rules, the rest by their set.
+const variantWord = (game: string, set: string) =>
+  game === "durak" ? say(set === "transfer" ? "web.newTable.perevodnoy" : "web.newTable.podkidnoy") : setWord(set);
 
 export function NewTable({ client, at, radius, onMade, onBack }: {
   client: Client;

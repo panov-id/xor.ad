@@ -18,12 +18,23 @@ case "$brand" in sosed) web=4173 adv=4174 mail=62125 ;; neighbro) web=4183 adv=4
 
 override="$(mktemp)"
 trap 'rm -f "$override"' EXIT
+# One backend for both faces, as the product is (README: "one shared pool of users and feed"; owner 14.10.2026:
+# wrote on both faces and saw only his own). sosed's stand holds the node and the database; neighbro's page and
+# cabinet talk to that node over sosed's network, so a phrase written on one face is in the other's feed.
+# LOCAL_SPLIT=1 keeps the old per-brand node.
+shared=""
+if [[ $brand == neighbro && ${LOCAL_SPLIT:-0} != 1 && $cmd == up ]]; then
+  docker network inspect xor-local-sosed_default >/dev/null 2>&1 \
+    || { echo "the shared node is sosed's: run scripts/up-local.sh sosed first (or LOCAL_SPLIT=1)" >&2; exit 2; }
+  shared=', environment: { WEB_NODE_URL: "http://xor-local-sosed-node-1:8080" }, networks: [default, shared]'
+fi
 cat >"$override" <<YAML
 services:
   mailpit: { ports: ["127.0.0.1:${mail}:8025"] }
-  web: { ports: !override ["127.0.0.1:${web}:4173"] }
-  web-adv: { ports: !override ["127.0.0.1:${adv}:4173"] }
+  web: { ports: !override ["127.0.0.1:${web}:4173"]${shared} }
+  web-adv: { ports: !override ["127.0.0.1:${adv}:4173"]${shared} }
 YAML
+if [[ -n $shared ]]; then printf 'networks:\n  shared: { external: true, name: xor-local-sosed_default }\n' >>"$override"; fi
 
 dc() { VITE_BRAND="$brand" docker compose -p "xor-local-$brand" \
   -f "$root/docker-compose.web.yml" -f "$override" "$@"; }

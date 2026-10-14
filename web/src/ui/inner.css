@@ -57,7 +57,7 @@ html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [da
   gap: 0; overflow: hidden; border-radius: var(--panel-r); background: var(--surface); color: var(--fg); border: var(--panel-rim); box-shadow: var(--panel-ring);
 }
 html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [data-testid="tables-mine"] > ul), [data-screen="inbox"] :is([data-testid="matches"], [data-testid="chats"])) > li {
-  position: relative; display: flex; flex-wrap: wrap; align-content: center; column-gap: var(--s-2); row-gap: 0;
+  position: relative; display: flex; flex-direction: row; flex-wrap: wrap; align-content: center; column-gap: var(--s-2); row-gap: 0;
   block-size: var(--me-row-h); min-height: 0; margin: 0; padding: 0 var(--me-chevron-pad) 0 var(--me-row-pad); overflow: hidden;
   border: 0; border-radius: 0; background: transparent; box-shadow: none;
 }
@@ -70,6 +70,10 @@ html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [da
 [data-screen="inbox"] [data-testid="match"] > .ui-life { order: 2; display: flex; gap: var(--s-2); }
 [data-screen="inbox"] [data-testid="match"] > p { order: 3; }
 [data-screen="inbox"] [data-testid="match"] .ui-life > p { margin: 0; white-space: nowrap; }
+/* My phrase gives way, its time left stays whole: the quote is cut, the minutes are not. */
+[data-screen="inbox"] [data-testid="match"] .ui-life > p { display: flex; flex: 1 1 auto; min-inline-size: 0; }
+[data-screen="inbox"] [data-testid="match"] .ui-life > p > q { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
+[data-screen="inbox"] [data-testid="match"] .ui-life > p > span { flex: none; }
 [data-screen="inbox"] [data-testid="match"] .ui-bar { position: absolute; inset-inline: var(--me-row-pad) var(--me-chevron-pad); inset-block-end: var(--s-1); }
 [data-screen="inbox"] [data-testid="chats"] .ui-list-text { flex: 1; block-size: 100%; }
 [data-screen="inbox"] [data-testid="chats"] .ui-inbox-row { block-size: 100%; min-height: 0; padding: 0; justify-content: center; border-radius: 0; background: transparent; }
@@ -87,3 +91,19 @@ html:root[data-brand] [data-screen="feed"] .ui-placebar > .ui-button.ui-icon-onl
 }
 html:root[data-brand] [data-screen="feed"] .ui-placebar select { min-height: 0; padding: 0 var(--s-2); border: 0; background-color: transparent; box-shadow: none; font-weight: 600; font-size: var(--fs-body); }
 html:root[data-brand] [data-screen="feed"] .ui-placebar > .ui-placebar-seam { display: none; }
+
+/* Targets of 44 (WCAG 2.5.5) where the sheet draws a smaller thing: the hit area grows, the drawing does not.
+   Transparent controls grow their own box; a drawn ring (ⓘ) keeps its 36 and gets a pad around it. */
+html:root[data-brand] [data-screen="feed"] .ui-placebar > .ui-button.ui-icon-only[data-testid="place"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) { min-block-size: 44px; min-inline-size: 44px; }
+html:root[data-brand] [data-screen="feed"] .ui-placebar select { min-block-size: 44px; }
+/* The fields below 1024 are a 32 line on the card: 44 tall, the extra 12 taken back by the margins, so nothing moves. */
+@media (max-width: 1023.98px) {
+  html:root[data-brand] .ui-form-card .ui-field :is(input[data-testid="name"], input[data-testid="age"], input.ui-code-input) { min-block-size: 44px; margin-block: -6px; }
+}
+/* The composer's line: 44 with its text where it was (padding +4 above and below, margin −4). */
+html:root[data-brand] [data-screen="composer"] .ui-compose .ui-textarea { min-block-size: 44px; margin-block: -4px; padding-block: calc(var(--s-1) + 4px); }
+html:root[data-brand] .ui-button.ui-info-plain { position: relative; }
+html:root[data-brand] .ui-button.ui-info-plain::after { content: ""; position: absolute; inset: min(0px, calc((100% - 44px) / 2)); border-radius: 50%; }
+[data-screen="me"] > .ui-list[data-group="hero"] .ui-setting { min-inline-size: 44px; }
+/* Eight stickers under the board: each takes its whole eighth of the strip (no gap), so the finger's cell is the widest the row allows. */
+html:root[data-brand] [data-screen="table"] [data-part="stickers"] { column-gap: 0; padding-inline: 0; }

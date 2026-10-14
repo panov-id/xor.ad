@@ -245,7 +245,7 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-kit-sent { margin: 0; }
 
 /* Step К2б, the display elements (kit_RU.md §3.1, §3.3). Sizes on tokens and rem. */
-.ui-skip { position: absolute; inset-inline-start: var(--s-2); inset-block-start: var(--s-2); z-index: 30; padding: var(--s-2) var(--s-3); background: var(--bg); color: var(--accent-text); border: 1px solid var(--border-control); border-radius: var(--r-1); transform: translateY(-300%); }
+.ui-skip { position: absolute; inset-inline-start: var(--s-2); inset-block-start: var(--s-2); z-index: 30; display: inline-flex; align-items: center; min-block-size: 44px; padding: var(--s-2) var(--s-3); background: var(--bg); color: var(--accent-text); border: 1px solid var(--border-control); border-radius: var(--r-1); transform: translateY(-300%); }
 .ui-skip:focus-visible { transform: none; }
 .ui-content-anchor { position: absolute; inline-size: 0; block-size: 0; overflow: hidden; }
 .tabbar .tab { justify-content: center; min-height: var(--control-h); }

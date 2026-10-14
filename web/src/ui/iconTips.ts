@@ -34,7 +34,13 @@ export function installIconTips(doc: Document = document): void {
     const t = tip.getBoundingClientRect();
     const vw = doc.documentElement.clientWidth;
     const left = Math.min(Math.max(8, r.left + r.width / 2 - t.width / 2), vw - t.width - 8);
-    const above = r.top - t.height - 8;
+    let above = r.top - t.height - 8;
+    // The button's own reason (aria-describedby) stays readable: a bubble that would lie on it
+    // rises above it instead (register-3: «done» over «Not yet: enter the second…»).
+    for (const id of (el.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean)) {
+      const d = doc.getElementById(id)?.getBoundingClientRect();
+      if (d && d.width > 0 && above < d.bottom && above + t.height > d.top && left < d.right && left + t.width > d.left) above = d.top - t.height - 8;
+    }
     tip.style.left = `${left}px`;
     tip.style.top = `${above >= 8 ? above : r.bottom + 8}px`;
   };

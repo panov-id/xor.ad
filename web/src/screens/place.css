@@ -53,18 +53,21 @@
 [data-screen="me"] > .ui-list[data-group="hero"] .ui-setting { padding: 0; font-size: var(--me-name-fs); font-weight: 600; line-height: 1.2; }
 [data-screen="me"] > .ui-list[data-group="hero"] :is(.ui-setting-label, .ui-setting-chevron) { display: none; }
 [data-screen="me"] > .ui-list[data-group="hero"] li[data-row="age"] .ui-setting-value::before { content: ", "; }
-[data-screen="me"] > .ui-list[data-group^="pair"] { display: grid; grid-template-columns: 1fr 1fr; block-size: var(--me-tile-h); }
+[data-screen="me"] > .ui-list[data-group^="pair"] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); block-size: var(--me-tile-h); }
+[data-screen="me"] > .ui-list[data-group^="pair"] > li, [data-screen="me"] > .ui-list[data-group^="pair"] .ui-list-text { min-inline-size: 0; }
 [data-screen="me"] > .ui-list[data-group^="pair"] .ui-setting { block-size: 100%; padding: 0 var(--me-tile-pad); gap: var(--me-icon-gap); font-size: var(--me-tile-fs); font-weight: 600; }
-[data-screen="me"] > .ui-list[data-group^="pair"] .ui-setting-label { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-screen="me"] > .ui-list[data-group^="pair"] .ui-setting { inline-size: 100%; }
+/* «move to another device» does not fit a half of 343: two lines inside the 72 tile, not an ellipsis. */
+[data-screen="me"] > .ui-list[data-group^="pair"] .ui-setting-label { min-inline-size: 0; overflow: hidden; line-height: 1.2; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
 [data-screen="me"] > .ui-list[data-group^="pair"] :is(.ui-setting-value, .ui-setting-chevron) { display: none; }
-[data-screen="me"] > .ui-list[data-group="rows"] > li { block-size: var(--me-row-h); }
+[data-screen="me"] > .ui-list[data-group="rows"] > li { block-size: auto; min-block-size: var(--me-row-h); }
 [data-screen="me"] > .ui-list[data-group="rows"] .ui-setting {
   display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "i l c" "i v c"; align-content: center;
-  column-gap: var(--me-icon-gap); row-gap: 0; block-size: 100%; padding: 0 var(--me-chevron-pad) 0 var(--me-row-pad); font-size: var(--fs-body); font-weight: 600;
+  column-gap: var(--me-icon-gap); row-gap: 0; block-size: auto; min-block-size: var(--me-row-h); padding: var(--s-1) var(--me-chevron-pad) var(--s-1) var(--me-row-pad); font-size: var(--fs-body); font-weight: 600;
 }
 [data-screen="me"] > .ui-list[data-group="rows"] .ui-setting-icon { grid-area: i; }
 [data-screen="me"] > .ui-list[data-group="rows"] .ui-setting-label { grid-area: l; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-[data-screen="me"] > .ui-list[data-group="rows"] .ui-setting-value { grid-area: v; font-size: var(--fs-meta); font-weight: 400; color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-screen="me"] > .ui-list[data-group="rows"] .ui-setting-value { grid-area: v; font-size: var(--fs-meta); font-weight: 400; color: var(--fg-muted); white-space: normal; line-height: 1.25; }
 [data-screen="me"] > .ui-list[data-group="rows"] .ui-setting-chevron { grid-area: c; color: var(--fg-muted); }
 [data-screen="me"] > .ui-list[data-group="quiet"] .ui-setting { padding: 0 var(--me-row-pad); font-weight: 600; }
 [data-screen="me"] > .ui-list[data-group="quiet"] .ui-setting-chevron { display: none; }

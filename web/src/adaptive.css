@@ -22,7 +22,7 @@
 .tabbar .ui-mark[data-place="rail"] { display: none; }
 /* The feed's header keeps its one line of 56 with the place button beside the radius: the title ellipses rather
    than wraps (the place's full name is on the place button and in the screen reader's live step). */
-[data-screen="feed"] > .ui-header .ui-header-title { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-screen="feed"] > .ui-header .ui-header-title { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
 [data-screen="feed"] > .ui-header [data-testid="radius"] { flex: 0 0 auto; flex-wrap: nowrap; }
 .ui-mark[data-place="form"] { display: none; }
 @media (min-width: 640px) { .ui-mark[data-place="form"] { display: block; margin: 0 auto var(--s-4); } }

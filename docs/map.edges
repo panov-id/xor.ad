@@ -2456,6 +2456,7 @@ web/src/screens/Table.tsx -> web/src/ui/Button.tsx
 web/src/screens/Table.tsx -> web/src/ui/Card.tsx
 web/src/screens/Table.tsx -> web/src/ui/ErrorLine.tsx
 web/src/screens/Table.tsx -> web/src/ui/Header.tsx
+web/src/screens/Table.tsx -> web/src/ui/MessageInput.tsx
 web/src/screens/Table.tsx -> web/src/ui/MoveInput.tsx
 web/src/screens/Table.tsx -> web/src/ui/Notices.tsx
 web/src/screens/Table.tsx -> web/src/ui/Screen.tsx

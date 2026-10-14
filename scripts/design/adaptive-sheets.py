@@ -689,19 +689,18 @@ def s_register(sh):
     # the (i) beside the title holds the editions' dates and the documents' links (owner 12.10.2026)
     info_btn(sh, x0 + 422, 200, k["fg"])
     sh.text(x0, 240, "step 1 of 3", 16, k["fg-muted"])
-    # each field keeps its hint under it (WCAG 3.3.2, review 12.10): 41 more per field
-    for j, (lab, val, hint) in enumerate((("name", "Anya", "20 letters left"), ("age", "28", "from 13 years only"))):
-        y = 270 + j * 145
+    # «letters left» and «from 13» live behind the (i) with the editions (owner 12.10.2026, again 14.10.2026)
+    for j, (lab, val) in enumerate((("name", "Anya"), ("age", "28"))):
+        y = 270 + j * 104
         sh.text(x0, y + 16, lab, 16, k["fg-muted"], 600)
         panel(sh, x0, y + 28, 440, 56); sh.text(x0 + 20, y + 64, val, 18)
-        sh.text(x0, y + 104, hint, 14, k["fg-muted"])
-    panel(sh, x0, 572, 28, 28, k["accent"], 6); sh.icon(x0 + 2, 574, "check", k["accent-fg"])
-    sh.text(x0 + 44, 592, "I accept the rules and the privacy notice", 16)
+    panel(sh, x0, 490, 28, 28, k["accent"], 6); sh.icon(x0 + 2, 492, "check", k["accent-fg"])
+    sh.text(x0 + 44, 510, "I accept the rules and the privacy notice", 16)
     # the documents under the consent, never only behind the (i) (newcomer walk 12.10)
     for j, (ic, d) in enumerate((("doc", "terms"), ("lock", "privacy"), ("people", "rules"))):
-        sh.icon(x0 + 10 + j * 96, 612, ic, k["accent-text"]); sh.text(x0 + 22 + j * 96, 652, d, 13, k["accent-text"], 600, "middle")
-    button(sh, x0, 702, 440, "next", "pri")
-    sh.measure(x0, x0 + 440, 802, "form 440 from 1024: boxed fields, no card (owner 12.10); no rail before sign-in")
+        sh.icon(x0 + 10 + j * 96, 530, ic, k["accent-text"]); sh.text(x0 + 22 + j * 96, 570, d, 13, k["accent-text"], 600, "middle")
+    button(sh, x0, 620, 440, "next", "pri")
+    sh.measure(x0, x0 + 440, 720, "form 440 from 1024: boxed fields, no card (owner 12.10); no rail before sign-in")
     sh.save(f"adaptive-{sh.brand}-register-1440")
 
 
@@ -1639,8 +1638,8 @@ def draw_fixes(brand):
             heroform(sh, 40, title, ic, (0, 1, 3)[step - 1], items, error)
             foot(sh, {"next": "next", "lockok": "create", "check": "done"}[icon], icon=icon)
         S(name or f"register-{step}", d)
-    reg(1, [("field", "name", "Anya", False, "20 letters left"), ("field", "age", "28", False, "from 13 years only"), ("consent",)])
-    reg(1, [("field", "name", "Anya", False, "20 letters left"), ("field", "age", "12"), ("consent",)], "from 13 years only", name="register-1-young")
+    reg(1, [("field", "name", "Anya"), ("field", "age", "28"), ("consent",)])
+    reg(1, [("field", "name", "Anya"), ("field", "age", "12"), ("consent",)], "from 13 years only", name="register-1-young")
     reg(2, [("pin", "PIN", 6), ("pin", "again", 0)], icon="lockok")
     reg(2, [("pin", "PIN", 6), ("pin", "again", 6)], "the PINs differ", icon="lockok", name="register-2-mismatch")
     PAPER = "Write this code down on paper. It's the only way to get your identity back, and it won't be shown again."

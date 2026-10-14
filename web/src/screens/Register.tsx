@@ -179,21 +179,26 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
                   <Link href={docUrl(r.document)} external>{say(`web.legal.${r.document}`)}</Link>: {say("web.legal.edition", { date: dateLong(r.revision_date) })}
                 </p>
               ))}
+              {/* «letters left» and «from 13» wait here with the editions (owner 12.10.2026, again 14.10.2026);
+                  a too-young age still says so under its field */}
+              <p data-testid="register-left">{say("web.register.left", { count: Math.max(0, NAME_MAX - count(name)) })}</p>
+              <p data-testid="register-age-min">{say("web.register.age_min")}</p>
             </Info>
           }>
-          {/* the hints stay on the screen (WCAG 3.3.2, review 12.10; the sheet redrawn with them) */}
-          <Field label={say("reg.name")} value={name} onChange={setName} maxLength={64} hint={say("web.register.left", { count: Math.max(0, NAME_MAX - count(name)) })} data-testid="name" />
+          <Field label={say("reg.name")} value={name} onChange={setName} maxLength={64} data-testid="name" />
           <Field label={say("reg.age")} kind="number" value={age} onChange={(v) => setAge(v.replace(/\D/g, "").slice(0, 3))}
-            hint={young ? undefined : say("web.register.age_min")} error={young ? say("web.register.age_min") : undefined} data-testid="age" />
+            error={young ? say("web.register.age_min") : undefined} data-testid="age" />
           <div className="ui-consent-row">
             <Checkbox checked={consent} onChange={setConsent}><span className="ui-consent-words">{say("web.register.consent")}</span></Checkbox>
             {ordered.length > 0 && (
               <ul className="ui-docs" data-testid="legal-links">
                 {ordered.map((r) => (
                   <li key={r.document}>
-                    <Link href={docUrl(r.document)} external data-testid={`legal-link-${r.document}`}>
+                    {/* the short word is drawn on the sheet; the full name is the link's name and its bubble (owner 12.10 evening) */}
+                    <Link href={docUrl(r.document)} external data-testid={`legal-link-${r.document}`}
+                      aria-label={`${say(`web.legal.${r.document}`)} ${say("web.ui.newTab")}`} data-tip={say(`web.legal.${r.document}`)}>
                       <Icon name={DOC_ICON[r.document] ?? "consent"} />
-                      <span>{say(`web.legal.${r.document}`)}</span>
+                      <span aria-hidden="true">{say(`web.legal.short.${r.document}`)}</span>
                     </Link>
                   </li>
                 ))}
@@ -201,7 +206,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
             )}
           </div>
           </FormCard>
-          {foot(whyNext, <Button type="button" kind="primary" icon="open" aria-label={say("reg.next")} {...gate(whyNext)} onClick={() => { if (!whyNext) setStep(2); }} data-testid="next" />)}
+          {foot(whyNext, <Button type="button" kind="primary" icon="open" aria-label={say("reg.next")} data-word={say("reg.next")} {...gate(whyNext)} onClick={() => { if (!whyNext) setStep(2); }} data-testid="next" />)}
         </>
       )}
       {step === 2 && (

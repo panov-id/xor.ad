@@ -114,8 +114,9 @@ html:root[data-brand] [data-screen="feed"] .ui-placebar select { min-block-size:
 }
 /* The composer's line: 44 with its text where it was (padding +4 above and below, margin −4). */
 html:root[data-brand] [data-screen="composer"] .ui-compose .ui-textarea { min-block-size: 44px; margin-block: -4px; padding-block: calc(var(--s-1) + 4px); }
-/* The box grows with its lines: a fixed 44 held one, a second line scrolled the first up under the counter's line. */
-html:root[data-brand] [data-screen="composer"] .ui-compose .ui-textarea { field-sizing: content; }
+/* The box grows with its lines: a fixed 44 held one, a second line scrolled the first up under the counter's line.
+   Only what is typed grows it: empty, a long placeholder («who's up for the waterfront at nine?») kept two lines and 72 against the sheet's 44. */
+html:root[data-brand] [data-screen="composer"] .ui-compose .ui-textarea:not(:placeholder-shown) { field-sizing: content; }
 html:root[data-brand] .ui-button.ui-info-plain { position: relative; }
 html:root[data-brand] .ui-button.ui-info-plain::after { content: ""; position: absolute; inset: min(0px, calc((100% - 44px) / 2)); border-radius: 50%; }
 [data-screen="me"] > .ui-list[data-group="hero"] .ui-setting { min-inline-size: 44px; }

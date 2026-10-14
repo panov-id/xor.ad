@@ -29,6 +29,12 @@
 .ui-header .ui-mark[data-place="header"] { flex: 0 0 auto; margin-right: var(--s-2); }
 @media (min-width: 1024px) { .ui-tabbed .ui-header .ui-mark[data-place="header"] { display: none; } }
 
+/* The screens inside a tab (card, chat, table, a setting…) carry the rail alone: below 1024 the nav is not
+   there and the wrapper is no box, so a phone's screen stands exactly as without it. */
+.ui-railed { display: contents; }
+@media (max-width: 1023.98px) { .tabbar[data-rail-only] { display: none; } }
+@media (min-width: 1024px) { .ui-railed .ui-header .ui-mark[data-place="header"] { display: none; } }
+
 @media (min-width: 640px) {
   /* every screen: a readable column */
   html:root[data-brand] .screen { max-width: var(--col-read); padding-inline: var(--s-6); }
@@ -69,9 +75,14 @@
   html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab { width: 92px; }
   html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab span { font-size: 13px; white-space: nowrap; }
   /* what has the rail moves right of it */
+  html:root[data-brand] .ui-railed { display: block; padding-left: var(--rail-w); }
   html:root[data-brand] .ui-tabbed { padding-left: var(--rail-w); }
   html:root[data-brand] .ui-tabbed .screen { padding-bottom: var(--s-6); }
   html:root[data-brand] .ui-tabbed .screen[data-screen="feed"] { padding-bottom: var(--s-6); }
+  /* The main action stands under the content, not at the viewport's bottom (sheets adaptive-*-{card,composer,table}-1440:
+     the button 48 under the last block): the screen's gap 16 and 32 here. Phones keep margin-top: auto. */
+  html:root[data-brand] :is([data-screen="card"], [data-screen="composer"], [data-screen="match"], [data-screen="table"]).screen [data-part="foot"] { margin-top: var(--s-8, 32px); }
+  /* new-table keeps its foot at the frame's bottom: its sheets (adaptive-*-new-table-*-1440) draw it there */
   /* «write» sits at the rail's foot */
   html:root[data-brand] .ui-tabbed [data-screen="feed"] [data-testid="write"] {
     left: calc((var(--rail-w) + (var(--s-4) / 2) - var(--fab)) / 2); right: auto; bottom: var(--s-8, 32px); z-index: 11;
@@ -82,6 +93,8 @@
 @media (min-width: 1440px) {
   html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]).screen { max-width: 1280px; }
   html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]) { --cols: 3; }
+  /* sosed's tiles are pinned to column 1 / 2 for the phone's two-column mosaic (blocks.css): from 3 columns they flow */
+  html:root[data-brand="sosed"] [data-screen="feed"] .tiles > li { grid-column: auto; }
 }
 
 @media (min-width: 2560px) {
@@ -120,6 +133,13 @@
 @media (min-width: 1024px) {
   html:root[data-brand] [data-screen="new-table"].screen { max-width: 832px; }
   html:root[data-brand] [data-screen="new-table"] { --game-cols: 4; }
+}
+/* Steps 2 and 3 (variant, preview) stand in one column of 640 from 1024, 880 from 2560 (WIZ variant/preview colw) */
+@media (min-width: 1024px) {
+  html:root[data-brand] [data-screen="new-table"]:is([data-step="2"], [data-step="3"]).screen { max-width: var(--col-read); }
+}
+@media (min-width: 2560px) {
+  html:root[data-brand] [data-screen="new-table"]:is([data-step="2"], [data-step="3"]).screen { max-width: 880px; }
 }
 @media (min-width: 1440px) {
   html:root[data-brand] [data-screen="new-table"].screen { max-width: 1200px; }

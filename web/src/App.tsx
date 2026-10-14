@@ -14,7 +14,7 @@
 // retired hole of SEC-2 and went with W1d, once the vault kept the wrap pair
 // (verifier of W1d, 2026-09-27).
 
-import { lazy, type ReactNode, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, type ReactElement, type ReactNode, Suspense, useEffect, useRef, useState } from "react";
 import type { Client, Radius, Statement } from "../../depth/core/client.ts";
 import type { Sent } from "./api/actions.ts";
 import { say } from "./api/me.ts";
@@ -22,7 +22,7 @@ import { ChatKeys } from "./chat/keys.ts";
 // The brand's views (brands/index.ts): built for one brand, the other is not bundled.
 import { ArrivalView, CardView, ChatView, ComposeView, FeedView, MatchView, MeView } from "./brands/index.ts";
 import { Inbox, type MatchRow } from "./screens/Inbox.tsx";
-import { entryOf, isEntry, isTab, pathOf, type Screen, screenOf } from "./router.ts";
+import { entryOf, gateOf, isEntry, isTab, pathOf, type Screen, screenOf } from "./router.ts";
 import { Likes } from "./screens/Likes.tsx";
 import { Offer } from "./screens/Offer.tsx";
 import { useAutoTheme } from "./ui/useTheme.ts";
@@ -44,7 +44,7 @@ import { Tables } from "../../depth/core/tables.ts";
 import { tableRefusal } from "./api/tables.ts";
 import { Blocked } from "./screens/Blocked.tsx";
 import { Hidden } from "./screens/Hidden.tsx";
-import { forget, readRecord } from "./vault.ts";
+import { forget, readRecord, type Record_ } from "./vault.ts";
 import { watchIdle } from "./idle.ts";
 import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
@@ -141,16 +141,47 @@ function Face() {
     setLocked(false);
   }
 
-  // ── The address (router.ts; owner 12.10.2026) ──
-  // Written only while an identity is open: the gates before it (splash,
-  // register, restore, unlock) leave the URL as it was loaded, so the path a
-  // person reloaded on is still there to land on. `seat` names this seated
-  // life: entries written by an earlier one (before a reload, or another
-  // identity on this device) are never trusted for their object.
+  // ── The address (router.ts; owner 12.10.2026, 14.10.2026 "I do not see the routing") ──
+  // Two kinds of entry. The gates before an identity (splash "/", /register,
+  // /restore, /arrival, /unlock) are pushed by `gate` with `{gate, i}` in the
+  // state — the screen is named by the path alone, nothing of the person, and a
+  // reload on one opens it. A seated life writes `{xor, seat, i, screen}`.
+  // `seat` names this seated life: entries written by an earlier one (before a
+  // reload, or another identity on this device) are never trusted for their object.
   // Every step forward pushes, tab switches included: browser Back walks the
   // tabs as they were visited, and ends where the page was entered — it never
   // loops, because nothing pushes on the way back.
   const seat = useRef<string | null>(null);
+  // The vault's record as the page found it (null: none, or forgotten since), and
+  // the seated path a deep link asked for before sign-in: where the sign-in continues.
+  const vaulted = useRef<Record_ | null>(null);
+  const wanted = useRef<string | null>(null);
+  // A gate's screen for a path, with the record at hand: no identity to unlock means
+  // the splash; a record means one does not register over it (only /restore, which unlock offers).
+  function gateScreen(path: string): Screen {
+    const g = gateOf(path);
+    const record = vaulted.current;
+    if (g === "restore") return { at: "restore" };
+    if (record) return { at: "unlock", record };
+    if (g === "register" || g === "arrival") return { at: g };
+    return { at: "splash" };
+  }
+  // A step forward between gates: a new entry, the path the gate names.
+  function gate(to: Screen) {
+    const was = history.state as { gate?: string; i?: number } | null;
+    history.pushState({ gate: to.at, i: was?.gate && typeof was.i === "number" ? was.i + 1 : 1 }, "", pathOf(to));
+    setScreen(to);
+  }
+  // A gate's own "back": the browser's when a gate lies behind, else the first gate in place.
+  function gateBack() {
+    const was = history.state as { gate?: string; i?: number } | null;
+    if (was?.gate && (was.i ?? 0) > 0) history.back();
+    else {
+      const to: Screen = vaulted.current ? { at: "unlock", record: vaulted.current } : { at: "splash" };
+      history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
+      setScreen(to);
+    }
+  }
   function write(to: Screen, how: "push" | "replace") {
     if (!seat.current || isEntry(to)) return;
     const was = entryOf(history.state);
@@ -188,12 +219,14 @@ function Face() {
   // The identity is gone from the page: the address is the splash's again.
   function unseat() {
     seat.current = null;
-    history.replaceState(null, "", "/");
+    vaulted.current = null;
+    wanted.current = null;
+    history.replaceState({ gate: "splash", i: 0 }, "", "/");
   }
   useEffect(() => {
     const onPop = (e: PopStateEvent) => {
-      // Before an identity is open the gates keep the screen; the URL is the browser's.
-      if (!seat.current) return;
+      // Before an identity is open: the gate the path names (Back walks the gates).
+      if (!seat.current) return setScreen((now) => (now.at === "offer" || now.at === "loading" ? now : gateScreen(location.pathname)));
       const was = entryOf(e.state);
       if (was && was.seat === seat.current) return setScreen(was.screen);
       // Not this life's entry: what its path names alone — an object screen opens its tab.
@@ -212,7 +245,16 @@ function Face() {
       const offer = /^\/o\/([A-Za-z0-9_-]+)\/?$/.exec(location.pathname);
       if (offer) return setScreen({ at: "offer", code: offer[1] });
       const record = await readRecord().catch(() => undefined);
-      setScreen(record ? { at: "unlock", record } : { at: "splash" });
+      vaulted.current = record ?? null;
+      // The path the page was loaded at: a gate's own opens it (reload on /register);
+      // a seated path is kept for after the sign-in and the gate before it is the unlock or the splash.
+      const path = location.pathname;
+      const named = gateOf(path);
+      if (!named) wanted.current = path;
+      const to = gateScreen(path);
+      // The address says what is drawn: a seated path stays (it is where to continue), a gate's path follows the gate.
+      if (named) history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
+      setScreen(to);
     })();
   }, []);
 
@@ -230,7 +272,9 @@ function Face() {
   // when); the statements gate below runs on the feed.
   // `path`: the address the page was loaded at, which the gates left alone —
   // its screen opens (an object screen's tab, router.ts screenOf).
-  async function land(client: Client, path = location.pathname) {
+  async function land(client: Client, path = wanted.current ?? location.pathname) {
+    wanted.current = null;
+    vaulted.current = null;
     setStatements(null);
     const profile = await client.profile().catch(() => null);
     if (profile?.stepped_away_until && profile.stepped_away_until > Date.now() / 1000) {
@@ -253,7 +297,7 @@ function Face() {
     setSeated({ client, keys: new ChatKeys(client, longKey), sealed });
     // The first entry after registration shows the wizard once per device (Ц4); it lands on the feed after.
     if (!wizardSeen()) return seatAnew({ at: "wizard", from: "register" });
-    await land(client, "/");
+    await land(client);
   }
 
   // Opened by the PIN: the long key came out of the vault's seal, and the
@@ -310,16 +354,33 @@ function Face() {
   const me = () => back({ at: "me" });
 
   // The tab bar at the foot, the kit's TabBar: a nav with a name, each tab named
-  // by the word under its icon, aria-current on the open one.
-  const nav = seated && (screen.at === "feed" || screen.at === "tables" || screen.at === "inbox" || screen.at === "me") && (
+  // by the word under its icon, aria-current on the open one. From 1024 it is the rail (adaptive.css).
+  // The screens inside a tab (a card, a chat, a table, a setting) carry the rail only, from 1024:
+  // `data-rail-only` hides the nav below that, so a phone sees no bar there and reserves no room for it.
+  const tabOf = (at: Screen["at"], from?: string): "feed" | "tables" | "inbox" | "me" | null => {
+    switch (at) {
+      case "feed": case "tables": case "inbox": case "me": return at;
+      case "composer": case "card": case "likes": case "match": case "place": case "place-qr": return at === "match" ? "inbox" : "feed";
+      case "chat": return "inbox";
+      case "table": case "new-table": return "tables";
+      case "statements": return from === "me" ? "me" : "feed";
+      case "edit": case "change-pin": case "theme": case "hidden": case "blocked": case "reissue": case "departure": case "step-away": return "me";
+      case "wizard": return from === "me" ? "me" : null;
+      default: return null;
+    }
+  };
+  const tabNow = seated ? tabOf(screen.at, "from" in screen ? screen.from : undefined) : null;
+  const railOnly = tabNow !== null && screen.at !== tabNow;
+  const nav = tabNow && (
     <TabBar
       label={say("web.ui.navMain")}
       data-testid="nav"
+      data-rail-only={railOnly ? "" : undefined}
       items={[
-        { id: "feed", icon: "feed", label: say("web.nav.feed"), current: screen.at === "feed", onSelect: () => go({ at: "feed" }), testid: "nav-feed" },
-        { id: "tables", icon: "table", label: say("web.nav.tables"), current: screen.at === "tables", onSelect: () => leaveFeed({ at: "tables" }), testid: "nav-tables" },
-        { id: "inbox", icon: "say", label: say("web.nav.inbox"), current: screen.at === "inbox", onSelect: () => leaveFeed({ at: "inbox" }), testid: "nav-inbox" },
-        { id: "me", icon: "me", label: say("me.title"), current: screen.at === "me", onSelect: () => leaveFeed({ at: "me" }), testid: "tab-me" },
+        { id: "feed", icon: "feed", label: say("web.nav.feed"), current: tabNow === "feed", onSelect: () => go({ at: "feed" }), testid: "nav-feed" },
+        { id: "tables", icon: "table", label: say("web.nav.tables"), current: tabNow === "tables", onSelect: () => leaveFeed({ at: "tables" }), testid: "nav-tables" },
+        { id: "inbox", icon: "say", label: say("web.nav.inbox"), current: tabNow === "inbox", onSelect: () => leaveFeed({ at: "inbox" }), testid: "nav-inbox" },
+        { id: "me", icon: "me", label: say("me.title"), current: tabNow === "me", onSelect: () => leaveFeed({ at: "me" }), testid: "tab-me" },
       ]}
     />
   );
@@ -329,22 +390,23 @@ function Face() {
     return <Locked client={seated.client} onUnlocked={() => void reopened(seated.client)} />;
   }
 
+  const view = (): ReactElement | null => {
   switch (screen.at) {
     case "loading":
       return <Frame name="loading" title={say("web.splash.tagline")}><p className="ui-hint" data-testid="loading">…</p></Frame>;
     case "splash":
-      return <Splash onStart={() => setScreen({ at: "register" })} onRestore={() => setScreen({ at: "restore" })} onArrive={() => setScreen({ at: "arrival" })} />;
+      return <Splash onStart={() => gate({ at: "register" })} onRestore={() => gate({ at: "restore" })} onArrive={() => gate({ at: "arrival" })} />;
     case "arrival":
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
-      return <ArrivalView onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={() => setScreen({ at: "splash" })} />;
+      return <ArrivalView onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={gateBack} />;
     case "restore":
       // Raised by the paper code: seated as after the PIN — the vault is the
       // record, and the tab keeps none.
-      return <Restore onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={() => setScreen({ at: "splash" })} />;
+      return <Restore onDone={(client, longKey) => unlocked(client, longKey, true)} onBack={gateBack} />;
     case "register":
       return <Register onDone={(client, sealed) => { void registered(client, sealed); }} />;
     case "unlock":
-      return <Unlock record={screen.record} onDone={unlocked} onForget={() => setScreen({ at: "splash" })} onRestore={() => setScreen({ at: "restore" })} />;
+      return <Unlock record={screen.record} onDone={unlocked} onForget={() => { vaulted.current = null; gate({ at: "splash" }); }} onRestore={() => gate({ at: "restore" })} />;
     case "offer":
       // The report on the link is signed: offered only to an identity open in
       // this tab already (WS3); the link does not unlock one for it.
@@ -486,7 +548,8 @@ function Face() {
     case "edit":
       return <EditProfile client={seated!.client} field={screen.field} current={screen.current} onDone={() => { setEdits((n) => n + 1); me(); }} onBack={me} />;
     case "wizard":
-      return <Wizard onPlace={choosePlace} onDone={() => { markWizardSeen(); if (screen.from === "me") me(); else void land(seated!.client, "/"); }} />;
+      // After registration the address is /me/wizard: land where a deep link asked, else the feed, never back on the wizard.
+      return <Wizard onPlace={choosePlace} onDone={() => { markWizardSeen(); if (screen.from === "me") me(); else void land(seated!.client, wanted.current ?? "/"); }} />;
     case "legal":
       return <Legal client={seated!.client} onDone={() => swap({ at: "feed" })} />;
     case "theme":
@@ -530,4 +593,7 @@ function Face() {
     case "away":
       return <Away client={seated!.client} until={screen.until} onBack={() => swap({ at: "feed" })} />;
   }
+  };
+  const shown = view();
+  return railOnly ? <div className="ui-railed">{shown}{nav}</div> : shown;
 }

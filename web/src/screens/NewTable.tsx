@@ -114,7 +114,7 @@ export function NewTable({ client, at, radius, onMade, onBack }: {
   const what = say(step === 1 ? "web.newTable.pick" : step === 2 ? "web.newTable.how" : "web.newTable.see");
   const where = say("web.newTable.step", { n: step, what });
   return (
-    <Screen name="new-table" title={title} header={
+    <Screen name="new-table" title={title} data-step={step} header={
       <HeaderScreen title={title} onBack={step === 1 ? onBack : () => setStep(step - 1)} backLabel={say("common.back")} backTestid="new-table-back"
         action={
           <span data-part="strip" role="img" aria-label={where} data-testid="new-table-step" data-step={step}>

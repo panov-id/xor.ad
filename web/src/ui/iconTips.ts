@@ -12,7 +12,8 @@ const SHOWN_MS = 1800;
 
 function iconOnly(t: EventTarget | null): HTMLElement | null {
   const el = t instanceof Element ? t.closest<HTMLElement>("button[aria-label], a[aria-label]") : null;
-  return el && !el.textContent?.trim() ? el : null;
+  // data-tip: a link that shows a short word and names the whole document in its bubble (sign-up, step 1).
+  return el && (el.hasAttribute("data-tip") || !el.textContent?.trim()) ? el : null;
 }
 
 export function installIconTips(doc: Document = document): void {
@@ -28,7 +29,7 @@ export function installIconTips(doc: Document = document): void {
   let swallowClick = false;
 
   const show = (el: HTMLElement) => {
-    tip.textContent = el.getAttribute("aria-label") ?? "";
+    tip.textContent = el.getAttribute("data-tip") ?? el.getAttribute("aria-label") ?? "";
     tip.hidden = false;
     const r = el.getBoundingClientRect();
     const t = tip.getBoundingClientRect();

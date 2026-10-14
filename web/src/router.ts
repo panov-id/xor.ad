@@ -53,8 +53,9 @@ type At = Screen["at"];
 //   a Screen  — the path is enough to draw it (reload, a typed address);
 //   a Tab     — the screen needs what only history.state holds (an object, a
 //               value read on the way in): without it, its tab opens instead;
-//   "entry"   — before an identity is open: the gates keep their own logic
-//               and never write the address (App.tsx), the path is a name only.
+//   "entry"   — before an identity is open: a gate (App.tsx). It has a path of its own
+//               and is pushed like any step (gateOf reads it back), but opens nothing
+//               once seated.
 // The offer's exit screen keeps its inbound link `/o/<code>` (W5): the code is
 // the venue's printed link, not ours to rename, and it is entered before any identity.
 export const ROUTES: Record<At, readonly [string, Screen | Tab | "entry"]> = {
@@ -99,6 +100,14 @@ export const ROUTES: Record<At, readonly [string, Screen | Tab | "entry"]> = {
 export const TABS: readonly Tab[] = ["feed", "tables", "inbox", "me"];
 export const isTab = (s: Screen): s is { at: Tab } => (TABS as readonly string[]).includes(s.at);
 export const isEntry = (s: Screen): boolean => ROUTES[s.at][1] === "entry";
+
+// The gates before an identity: the path names the gate (reload, Back, a typed
+// address). Anything else is not a gate: a seated path asked for before sign-in.
+export type Gate = "splash" | "register" | "restore" | "unlock" | "arrival";
+const GATES: Record<string, Gate> = { "/": "splash", "/register": "register", "/restore": "restore", "/unlock": "unlock", "/arrival": "arrival" };
+export function gateOf(path: string): Gate | null {
+  return GATES[path.replace(/\/+$/, "") || "/"] ?? null;
+}
 
 export function pathOf(s: Screen): string {
   if (s.at === "edit") return `/me/${s.field}`;

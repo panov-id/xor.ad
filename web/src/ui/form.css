@@ -136,6 +136,13 @@
 
 .ui-form-sub { display: none; }
 
+/* Below 1024 the first sign-up step is the sheet's rows (adaptive-*-register-1, ROW_H in adaptive-sheets.py): a field
+   row 76 and the consent row 108, now that «letters left» and «from 13» wait behind the (i) (owner 14.10.2026). */
+@media (max-width: 1023.98px) {
+  [data-screen="register-1"] .ui-form-card .ui-field:not(.ui-consent-row .ui-field) { padding-block-end: 17.4px; }
+  [data-screen="register-1"] .ui-consent-row { row-gap: 20px; }
+}
+
 /* From 1024 the sign-up is the wide sheet's (adaptive-*-register-1440, owner 12.10.2026): no card, no capsule — the
    mark 72, the title 28 and «step 1 of 3» in words, the fields as 440×56 boxes, the consent in words, the primary
    56 right under the form; the column 440 in the middle. */
@@ -163,7 +170,11 @@
     min-height: 56px; padding: 0 20px; border: 0; border-radius: 18px; background: var(--surface); font-size: 18px; font-weight: 400;
     outline: 3.5px solid var(--paper); box-shadow: 1.5px 3px 0 3.5px var(--shadow);
   }
-  [data-screen="register-1"] .ui-consent-row { margin-block-start: 32px; min-height: 28px; flex-wrap: wrap; }
+  /* the sheet's rows: label 22 + 8 + box 56, 104 apart, no hint slot under them */
+  html:root[data-brand] [data-screen="register-1"] .ui-form-card .ui-field:not(.ui-consent-row .ui-field) { margin-block-start: 17.6px; padding-block: 0; }
+  [data-screen="register-1"] .ui-docs { margin-block-start: -1.5px; }
+  html:root[data-brand] [data-screen="register-1"].screen [data-part="foot"] { margin-top: 47px; }
+  [data-screen="register-1"] .ui-consent-row { margin-block-start: 24px; min-height: 28px; flex-wrap: wrap; }
   [data-screen="register-1"] .ui-consent-row > .ui-field { margin: 0; }
   [data-screen="register-1"] .ui-check { gap: var(--s-4); }
   [data-screen="register-1"] .ui-form-card .ui-check-box { inline-size: 28px; block-size: 28px; }
@@ -172,8 +183,20 @@
   [data-screen="register-1"] .ui-form-card .ui-check-mark { inset: 2px; }
   [data-screen="register-1"] .ui-consent-words { font-size: 16px; font-weight: 400; }
   /* The documents stay on the screen under the consent (newcomer walk 12.10: ticking blind with no links was a stop). */
-  [data-screen="register-1"] .ui-docs { justify-content: flex-start; gap: var(--s-6); }
-  [data-screen="register-1"] .ui-docs > li { flex: none; }
+  [data-screen="register-1"] .ui-docs { justify-content: flex-start; gap: 0; flex-wrap: nowrap; }
+  /* the sheet's step: an icon at x0+10+j*96, its name centred on the 44 box (adaptive-*-register-1440) */
+  /* at least the sheet's 96 step; a longer word (ru «конфиденциальность») widens its own cell instead of
+     running into the next one (14.10.2026 review) */
+  [data-screen="register-1"] .ui-docs > li { flex: none; min-inline-size: 96px; min-width: 96px; box-sizing: border-box; padding-inline-end: 12px; }
+  [data-screen="register-1"] .ui-docs a { inline-size: auto; min-inline-size: 44px; white-space: nowrap; }
+  /* the sheet has no reason line: it stays for aria-describedby (clipped), shows over the button only after a press on it */
+  [data-screen="register-1"] [data-part="foot"] { position: relative; }
+  [data-screen="register-1"] [data-part="foot"] .ui-reason {
+    position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  [data-screen="register-1"] [data-part="foot"] .ui-reason[data-pressed="yes"] {
+    inset-block-end: calc(100% + 8px); inset-inline: 0; inline-size: auto; block-size: auto; overflow: visible; clip-path: none; white-space: normal;
+  }
   html:root :is([data-screen^="register-"], [data-screen="unlock"], [data-screen="restore"], [data-screen="arrival"]) [data-part="foot"] { margin-top: 42px; --entry-btn-h: 56px; }
 }
 

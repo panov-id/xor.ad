@@ -43,14 +43,14 @@ type DeckState = {
   hands: Record<string, HandData>; stock: { count: number }; played: string[];
   // Durak (lib/tables_deck.ts deckFor): the face-up card (or just its suit with
   // six at the table), the pairs on the table, who attacks and who defends.
-  trump?: string | null; table?: DurakTable[]; attacker?: number | null; defender?: number | null;
+  trump?: string | null; table?: DurakTable[]; attacker?: number | null; defender?: number | null; thrower?: number | null;
   transfer?: boolean; // perevodnoy: the defender may pass an unbeaten attack on with its rank
 };
 
 // deck: {hands: {mine: [...], other: {count}}, stock: {count}, played: [...]}.
 // Durak (the node's "36" set, lib/tables_deck.ts) adds trump, the table's
 // attack/defence pairs and the two roles: a move is {play: card}, {take: true}
-// for the defender, {done: true} for the attacker once everything is beaten.
+// for the defender, {done: true} for whoever holds the throw-in window once everything is beaten.
 // The deck without a trump is the old generic one: {play: card} or {draw: true}.
 export function DeckBoard({ view, onMove }: { view: TableView; onMove?: Move }) {
   const deck = view.board?.state.deck as DeckState | undefined;
@@ -67,7 +67,7 @@ export function DeckBoard({ view, onMove }: { view: TableView; onMove?: Move }) 
       pairs.every((p) => p.beat === null) && Array.isArray(mine)
     ? [...mine].filter((c) => c.slice(0, -1) === rank(pairs[0].attack)).sort((a, b) => Number(a.slice(-1) === trump.slice(-1)) - Number(b.slice(-1) === trump.slice(-1)))[0]
     : undefined;
-  const canDone = !!onMove && durak && deck.attacker === view.seat && pairs.length > 0 && pairs.every((p) => p.beat !== null);
+  const canDone = !!onMove && durak && (deck.thrower ?? deck.attacker) === view.seat && pairs.length > 0 && pairs.every((p) => p.beat !== null);
   return (
     <section data-testid="deck">
       {durak && (

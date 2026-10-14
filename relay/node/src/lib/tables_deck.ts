@@ -18,15 +18,24 @@
 // the defender last. A beaten-off defender attacks next; one who took is
 // skipped. With the stock empty, an empty hand is out; the last one holding
 // cards is the durak — the game is over, and each of the others scores a point.
-// Only the main attacker throws in (others at the table wait their turn as
-// attacker): turns at a table are one seat at a time.
+// Throwing in (owner, 14.10.2026: every player but the defender throws in):
+// the main attacker leads; once everything on the table is beaten the window
+// to throw in goes round the circle, seat by seat, from the main attacker, the
+// defender skipped and so is any seat with no cards. The seat holding the
+// window throws in {play: card} of a rank on the table or passes {done: true};
+// a card thrown in sends the turn to the defender, and once it is beaten the
+// window starts again from the main attacker. The bout is beaten off when every
+// such seat has passed in a row. A turn let run out passes the window. Turns at
+// a table stay one seat at a time.
 //
 // Perevodnoy (set "transfer", owner 14.10.2026: both durak variants in the
 // alpha): the same, and while nothing on the table is beaten yet the defender
 // may pass the attack on with {transfer: card} of the rank already led. The
 // card joins the attacks, the next seat holding cards defends, and the one who
 // passed it on becomes the attacker. The new defender must hold at least as
-// many cards as lie unbeaten, never more than six attacks.
+// many cards as lie unbeaten, never more than six attacks. The one who passed
+// it on leads the throwing in; the first attacker throws in in their turn. The
+// only way to pass the attack on is to lay the card: no showing a trump.
 
 export interface Deck {
   stock: string[];
@@ -40,6 +49,16 @@ export interface Deck {
   out?: number[]; // seats out of cards, in the order they went
   durak?: number | null;
   transfer?: boolean; // perevodnoy: the defender may pass the attack on
+  thrower?: number; // the seat holding the window to throw in; absent — the attacker
+  passed?: number[]; // the seats that passed the window since the last card thrown in
+}
+
+// The seats that may throw in now, in order round the circle from the main attacker.
+function throwers(deck: Deck, live: number[]): number[] {
+  const a = deck.attacker!;
+  return [a, ...after(deck, a, live)].filter((s, i, all) =>
+    all.indexOf(s) === i && s !== deck.defender && (deck.hands[s]?.length ?? 0) > 0
+  );
 }
 
 const RANKS = ["6", "7", "8", "9", "10", "J", "Q", "K", "A"];
@@ -107,6 +126,8 @@ function endRound(deck: Deck, took: boolean, live: number[]): DeckResult {
   }
   deck.table = [];
   deck.played = [];
+  delete deck.thrower;
+  delete deck.passed;
   if (deck.stock.length === 0) {
     for (const seat of live) {
       if ((deck.hands[seat]?.length ?? 0) === 0 && !deck.out!.includes(seat)) deck.out!.push(seat);
@@ -171,14 +192,32 @@ export function playDeck(deck: Deck, move: unknown, seat: number, live: number[]
     deck.played.push(m.play);
     // After a transfer more than one attack may lie unbeaten: the defender goes on.
     const left = table.some((p) => p.beat === null);
-    return { over: false, next: left ? seat : deck.attacker!, winners: [] };
+    if (left) return { over: false, next: seat, winners: [] };
+    // All beaten: the window to throw in starts again from the main attacker.
+    const first = throwers(deck, live)[0];
+    if (first === undefined) {
+      deck.discard = (deck.discard ?? 0) + table.length * 2;
+      return endRound(deck, false, live);
+    }
+    deck.thrower = first;
+    deck.passed = [];
+    return { over: false, next: first, winners: [] };
   }
-  if (seat !== deck.attacker) return { refused: "only the attacker and the defender move" };
+  if (seat !== (deck.thrower ?? deck.attacker)) return { refused: "only the attacker and the defender move" };
   if (m.done === true) {
     if (table.length === 0) return { refused: "lead a card first" };
     if (unbeaten.length > 0) return { refused: "the defender has not beaten everything yet" };
-    deck.discard = (deck.discard ?? 0) + table.length * 2;
-    return endRound(deck, false, live);
+    const passed = [...new Set([...(deck.passed ?? []), seat])];
+    const ring = throwers(deck, live);
+    const at = ring.indexOf(seat);
+    const next = [...ring.slice(at + 1), ...ring.slice(0, at + 1)].find((s) => !passed.includes(s));
+    if (next === undefined) {
+      deck.discard = (deck.discard ?? 0) + table.length * 2;
+      return endRound(deck, false, live);
+    }
+    deck.passed = passed;
+    deck.thrower = next;
+    return { over: false, next, winners: [] };
   }
   if (typeof m.play !== "string") return { refused: "the attacker moves {play: card} or {done: true}" };
   const at = hand.indexOf(m.play);
@@ -201,7 +240,7 @@ export function playDeck(deck: Deck, move: unknown, seat: number, live: number[]
 export function passDeck(deck: Deck, seat: number, live: number[]): DeckResult | null {
   const table = deck.table ?? [];
   if (seat === deck.defender && table.length > 0) return playDeck(deck, { take: true }, seat, live);
-  if (seat !== deck.attacker) return null;
+  if (seat !== (deck.thrower ?? deck.attacker)) return null;
   if (table.length > 0) return playDeck(deck, { done: true }, seat, live);
   const lowest = [...(deck.hands[seat] ?? [])].sort((a, b) => rankOf(a) - rankOf(b))[0];
   return lowest ? playDeck(deck, { play: lowest }, seat, live) : null;
@@ -226,5 +265,6 @@ export function deckFor(deck: Deck, viewer: number | null) {
     out: deck.out ?? [],
     durak: deck.durak ?? null,
     transfer: deck.transfer === true,
+    thrower: deck.thrower ?? deck.attacker ?? null,
   };
 }

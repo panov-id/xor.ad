@@ -279,6 +279,8 @@ Deno.test("durak: transfer passes over a seat with no cards left", () => {
   ok(play(f, "transfer", 4, { play: "AS" }));
   ok(play(f, "transfer", 4, { play: "AH" }));
   ok(play(f, "transfer", 2, { done: true }));
+  assertEquals(f.order[f.turn!], 1, "the empty seat 3 is skipped by the throw-in window too");
+  ok(play(f, "transfer", 1, { done: true }));
   assert(f.deck!.hands["3"].length > 0, "seat 3 drew back in");
   assertEquals([f.deck!.attacker, f.order[f.turn!]], [4, 4], "the one who beat it off attacks next");
 });
@@ -293,7 +295,8 @@ Deno.test("durak: a bout after a transfer played to the end — beaten off or ta
   ok(play(s, "transfer", 2, { transfer: "7H" }));
   ok(play(s, "transfer", 3, { play: "AS" }));
   ok(play(s, "transfer", 3, { play: "AH" }));
-  const done = ok(play(s, "transfer", 2, { done: true }));
+  ok(play(s, "transfer", 2, { done: true }));
+  const done = ok(play(s, "transfer", 1, { done: true }));
   assertEquals(done.over, false);
   assertEquals(s.deck!.hands["2"], ["8H", "KS", "JC", "JD", "JH", "JS"], "the passer draws first");
   assertEquals(s.deck!.hands["1"], ["9C", "QD"], "the first attacker draws what is left");
@@ -310,6 +313,88 @@ Deno.test("durak: a bout after a transfer played to the end — beaten off or ta
   assertEquals(t.deck!.hands["2"], ["8H", "KS", "JC", "JD", "JH", "JS"]);
   assertEquals(t.deck!.hands["1"], ["9C", "QD"]);
   assertEquals([t.deck!.discard, t.deck!.attacker, t.deck!.defender, t.order[t.turn!]], [0, 1, 2, 1], "the taker is passed over");
+});
+
+function podkidnoy3(hands: Record<string, string[]>) {
+  const s = startState("deck", "36", [1, 2, 3]);
+  Object.assign(s.deck!, { hands, trump: "6D", stock: [], table: [], played: [], attacker: 1, defender: 2, out: [], discard: 0 });
+  return s;
+}
+
+Deno.test("durak: three at podkidnoy — the window to throw in goes round from the main attacker, seat 3 throws in, all pass and the bout is beaten off", () => {
+  const s = podkidnoy3({ "1": ["7S", "9C"], "2": ["8S", "9H", "KH", "AC"], "3": ["7C", "QC"] });
+  ok(play(s, "36", 1, { play: "7S" }));
+  assertEquals(reason(stepGame(s, "36", { play: "7C" }, false, 3)), "only the attacker and the defender move", "no throwing in before the attack is beaten");
+  ok(play(s, "36", 2, { play: "8S" }));
+  assertEquals(s.order[s.turn!], 1, "the main attacker holds the window first");
+  assertEquals(reason(stepGame(s, "36", { play: "7C" }, false, 3)), "only the attacker and the defender move", "seat 3 waits for its turn of the window");
+  ok(play(s, "36", 1, { done: true }));
+  assertEquals([s.order[s.turn!], view(s, 1).state.deck.thrower], [3, 3], "the window passes over the defender to seat 3");
+  assertEquals(reason(stepGame(s, "36", { play: "QC" }, false, 3)), "throw in only a rank already on the table");
+  ok(play(s, "36", 3, { play: "7C" }));
+  assertEquals(s.order[s.turn!], 2, "a card thrown in goes to the defender");
+  ok(play(s, "36", 2, { play: "AC" }));
+  assertEquals(s.order[s.turn!], 1, "once beaten, the window starts again from the main attacker");
+  ok(play(s, "36", 1, { done: true }));
+  assertEquals(s.order[s.turn!], 3, "the passes before the card thrown in do not count");
+  ok(play(s, "36", 3, { done: true }));
+  assertEquals([s.deck!.table, s.deck!.discard, s.deck!.attacker, s.deck!.defender], [[], 4, 2, 3], "everyone passed in a row: beaten off, the defender attacks");
+});
+
+Deno.test("durak: four at podkidnoy — a pass before a card thrown in is forgotten once it is beaten", () => {
+  const s = startState("deck", "36", [1, 2, 3, 4]);
+  Object.assign(s.deck!, {
+    hands: { "1": ["7S", "9C"], "2": ["8S", "KH", "QH"], "3": ["7C"], "4": ["7H"] },
+    trump: "6D", stock: [], table: [], played: [], attacker: 1, defender: 2, out: [], discard: 0,
+  });
+  ok(play(s, "36", 1, { play: "7S" }));
+  ok(play(s, "36", 2, { play: "8S" }));
+  ok(play(s, "36", 1, { done: true }));
+  ok(play(s, "36", 3, { done: true }));
+  ok(play(s, "36", 4, { play: "7H" }));
+  ok(play(s, "36", 2, { play: "KH" }));
+  ok(play(s, "36", 1, { done: true }));
+  assertEquals(s.order[s.turn!], 3, "seat 3 passed before 7H came; it may throw in again");
+  ok(play(s, "36", 3, { play: "7C" }));
+});
+
+Deno.test("durak: after a transfer the first attacker throws in", () => {
+  const s = transferTable({ "1": ["7S", "AC"], "2": ["7H", "8H"], "3": ["AS", "AH", "9D", "QC"] });
+  ok(play(s, "transfer", 1, { play: "7S" }));
+  ok(play(s, "transfer", 2, { transfer: "7H" }));
+  ok(play(s, "transfer", 3, { play: "AS" }));
+  ok(play(s, "transfer", 3, { play: "AH" }));
+  assertEquals(s.order[s.turn!], 2, "the one who passed it on leads the throwing in");
+  ok(play(s, "transfer", 2, { done: true }));
+  assertEquals(s.order[s.turn!], 1, "then the first attacker");
+  ok(play(s, "transfer", 1, { play: "AC" }));
+  ok(play(s, "transfer", 3, { play: "9D" }));
+  assertEquals(s.order[s.turn!], 2, "beaten: the window starts again from the main attacker");
+});
+
+Deno.test("durak: throwing in by anyone keeps the limits — six a bout, never more unbeaten than the defender holds", () => {
+  const six = podkidnoy3({ "1": ["9S"], "2": ["QC", "KC"], "3": ["7S"] });
+  six.deck!.table = ["7C", "7H", "8C", "8H", "9C", "9H"].map((attack) => ({ attack, beat: "AD" }));
+  six.turn = 2; // seat 3 holds the window
+  six.deck!.thrower = 3;
+  assertEquals(reason(stepGame(six, "36", { play: "7S" }, false, 3)), "no more than six attacks a round");
+
+  const bare = podkidnoy3({ "1": ["7S", "7C"], "2": ["8S"], "3": ["7H"] });
+  ok(play(bare, "36", 1, { play: "7S" }));
+  ok(play(bare, "36", 2, { play: "8S" }));
+  ok(play(bare, "36", 1, { done: true }));
+  assertEquals(reason(stepGame(bare, "36", { play: "7H" }, false, 3)), "the defender has no card left to beat with");
+});
+
+Deno.test("durak: a turn let run out passes the window to throw in", () => {
+  const s = podkidnoy3({ "1": ["7S", "9C"], "2": ["8S", "KH"], "3": ["7C"] });
+  ok(play(s, "36", 1, { play: "7S" }));
+  ok(play(s, "36", 2, { play: "8S" }));
+  const first = passGame(s, 1)!;
+  assertEquals([first.next, s.deck!.thrower, s.deck!.table!.length], [3, 3, 1], "the attacker's window ran out: seat 3's turn");
+  s.turn = s.order.indexOf(first.next!);
+  const second = passGame(s, 3)!;
+  assertEquals([second.next, s.deck!.table, s.deck!.attacker], [2, [], 2], "all let it run out: beaten off");
 });
 
 // --- poker ------------------------------------------------------------------

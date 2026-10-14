@@ -12,6 +12,7 @@
 #   SHOOT_BRANDS=sosed scripts/design/shoot-web.sh    # one brand
 #   scripts/design/shoot-web.sh --sheets              # only the sheets
 #   SHOTS_OUT=testing/screenshots/web-before scripts/design/shoot-web.sh
+#   SHOOT_WIDTHS=375,1024,1440 scripts/design/shoot-web.sh   # each width its own walk; <brand>-<screen>-<theme>-<W>.png off 375
 #
 # Out: testing/screenshots/web/<brand>-<screen>-<theme>.png, a list of what
 # opened and what did not in shots.tsv beside them (<brand>-<screen>), the
@@ -63,16 +64,16 @@ shoot_brand() {  # $1: brand
           | "${psql[@]}" -v name="$(cat "$out/envelope.want")")"
         [ -n "$code" ] && printf '%s' "$code" > "$out/envelope.code"
       fi
-      [ -e "$out/statement.done" ] && [ -e "$out/envelope.code" ] && exit 0
+      # No exit once both are answered: with SHOOT_WIDTHS shoot-web.mjs clears the files for each width's walk.
       sleep 0.5
     done
   ) &
   statements=$!
 
   echo "== $brand shoot"
-  timeout 900 docker run --rm --network "container:$web" \
+  timeout $((900 * $(echo "${SHOOT_WIDTHS:-375}" | tr , '\n' | wc -l))) docker run --rm --network "container:$web" \
     -v "$here/shoot-web.mjs":/tests/shoot-web.mjs:ro -v "$out":/out -w /tests \
-    -e WEB_URL=http://localhost:4173 -e WEB_BREAK="${WEB_BREAK:-}" -e BRAND="$brand" -e SHOOT_LOCALE="${SHOOT_LOCALE:-}" \
+    -e WEB_URL=http://localhost:4173 -e WEB_BREAK="${WEB_BREAK:-}" -e BRAND="$brand" -e SHOOT_LOCALE="${SHOOT_LOCALE:-}" -e SHOOT_WIDTHS="${SHOOT_WIDTHS:-375}" \
     --entrypoint node panel-tests-runner:latest shoot-web.mjs
   local code=$?
   kill "$statements" 2>/dev/null || true

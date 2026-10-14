@@ -4,7 +4,8 @@
 // and each screen is shot once per scheme. A screen that does not open is a
 // line in shots.tsv with the reason, and the walk goes on.
 import { chromium } from "@playwright/test";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 
 const URL_ = process.env.WEB_URL ?? "http://localhost:4173";
 // The stand's brand (VITE_BRAND, scripts/design/shoot-web.sh): every shot is <brand>-<screen>-<theme>.png.
@@ -15,6 +16,28 @@ const OUT = "/out";
 const PIN = "123456";
 const T = 30000;
 const rows = [];
+
+// SHOOT_WIDTHS (comma list, default 375): the whole walk once per width, each
+// in a child of this script with SHOOT_WIDTH set, so a width is a real context
+// (isMobile/hasTouch only under 768) and not a resized one. File names stay
+// <brand>-<screen>-<theme>.png at 375 and gain -<W> at any other width.
+const WIDTHS = (process.env.SHOOT_WIDTHS || "375").split(",").map((w) => Number(w.trim())).filter((w) => w > 0);
+if (!process.env.SHOOT_WIDTH && !(WIDTHS.length === 1 && WIDTHS[0] === 375)) {
+  const all = [];
+  let bad = 0;
+  for (const w of WIDTHS) {
+    console.log(`== width ${w}`);
+    // shoot-web.sh answers statement.want / envelope.want once per file; a new walk asks anew.
+    for (const f of ["statement.want", "statement.done", "envelope.want", "envelope.code", "shots.tsv"]) rmSync(`${OUT}/${f}`, { force: true });
+    const r = spawnSync(process.execPath, [process.argv[1]], { stdio: "inherit", env: { ...process.env, SHOOT_WIDTH: String(w) } });
+    if (r.status !== 0) bad = 1;
+    if (existsSync(`${OUT}/shots.tsv`)) all.push(readFileSync(`${OUT}/shots.tsv`, "utf-8").trimEnd());
+  }
+  writeFileSync(`${OUT}/shots.tsv`, all.join("\n") + "\n");
+  process.exit(bad);
+}
+const W = Number(process.env.SHOOT_WIDTH || 375);
+const SUFFIX = W === 375 ? "" : `-${W}`;
 
 const ADV = process.env.ADV_URL ?? "https://web-adv:4173";
 const MAILPIT = process.env.MAILPIT_URL ?? "http://mailpit:8025";
@@ -33,10 +56,10 @@ async function person(base = URL_) {
     // The page's CSP (style-src 'self') drops an inserted <style>, so the
     // control break below is let through — only when it is asked for.
     bypassCSP: process.env.WEB_BREAK === "pad8",
-    viewport: { width: 375, height: 812 },
+    viewport: { width: W, height: W >= 768 ? 900 : 812 },
     deviceScaleFactor: 2,
-    isMobile: true,
-    hasTouch: true,
+    isMobile: W < 768,
+    hasTouch: W < 768,
     // SHOOT_LOCALE=en-US shoots the English face (say.ts reads navigator.languages).
     locale: process.env.SHOOT_LOCALE || "ru-RU",
     // The stand's node counts registrations per address (web/e2e/fixtures/address.ts).
@@ -76,7 +99,7 @@ async function shoot(page, name) {
     await force(theme);
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(250);
-    await page.screenshot({ path: `${OUT}/${BRAND}-${name}-${theme}.png` });
+    await page.screenshot({ path: `${OUT}/${BRAND}-${name}-${theme}${SUFFIX}.png` });
   }
   await force("light");
 }
@@ -86,11 +109,11 @@ async function step(name, page, reach) {
   try {
     await reach();
     await shoot(page, name);
-    rows.push([name, "ok", ""]);
+    rows.push([name + SUFFIX, "ok", ""]);
     console.log(`  ok  ${name}`);
   } catch (e) {
     const why = String(e.message ?? e).split("\n")[0].slice(0, 200);
-    rows.push([name, "not opened", why]);
+    rows.push([name + SUFFIX, "not opened", why]);
     console.log(`  --  ${name}: ${why}`);
   }
 }

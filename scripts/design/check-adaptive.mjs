@@ -433,6 +433,9 @@ for (const [name, sc] of Object.entries(SCREENS)) {
     viewport: { width: sheet.W, height: sheet.H }, locale: "en-US", colorScheme: "light",
     extraHTTPHeaders: { "x-origin-token": "web-test-origin-token", "x-client-ip": address },
   });
+  // The sheets are the light theme: forced by hand (theme.ts, localStorage theme:<brand>), as shoot-web.mjs does —
+  // left to the place's phase, an evening run compared the dusk theme with the day sheet and called it colour defects.
+  await ctx.addInitScript((brand) => { try { localStorage.setItem(`theme:${brand}`, "light"); } catch { /* storage blocked */ } }, BRAND);
   if (!sc.fresh) await ctx.addInitScript(() => { try { localStorage.setItem("lang-asked", "1"); } catch { /* storage blocked */ } });
   const p = await ctx.newPage();
   try {

@@ -10,7 +10,17 @@
 # The log of the last run: .git/map-on-commit.log.
 set -euo pipefail
 root=$(git rev-parse --show-toplevel)
+# Commits in quick succession start several runs at once; they wrote map.sqlite together and a
+# build got lost (14.10.2026: four commits in one second, the last one never mapped). One run at a time.
+exec 9>"$(git -C "$root" rev-parse --git-path map-on-commit.lock)"
+flock 9
 commit=$(git -C "$root" rev-parse --short HEAD)
+# A run that waited may find HEAD already mapped by the one before it.
+if [ -f "$root/docs/map.sqlite" ] &&
+  [ -n "$(sqlite3 "$root/docs/map.sqlite" "SELECT 1 FROM builds WHERE git_commit = '$commit' LIMIT 1" 2>/dev/null)" ]; then
+  echo "map already built for $commit"
+  exit 0
+fi
 snap=$(mktemp -d)
 trap 'rm -rf "$snap"' EXIT
 # The snapshot dir carries the project's name: the map's title and builds.project use it.

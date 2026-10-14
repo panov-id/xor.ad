@@ -2024,6 +2024,7 @@ web/src/adv/Cabinet.tsx -> web/src/ui/Notices.tsx
 web/src/adv/Cabinet.tsx -> web/src/ui/Screen.tsx
 web/src/adv/Cabinet.tsx -> web/src/ui/Select.tsx
 web/src/adv/Cabinet.tsx -> web/src/ui/Stat.tsx
+web/src/adv/api.ts -> web/src/locales/say.ts
 web/src/api/actions.ts -> depth/core/client.ts
 web/src/api/actions.ts -> depth/core/legal.ts
 web/src/api/actions.ts -> web/src/locales/say.ts
@@ -2032,6 +2033,7 @@ web/src/api/chatActions.ts -> web/src/chat/span.ts
 web/src/api/chatGames.ts -> depth/core/client.ts
 web/src/api/chatGames.ts -> depth/core/tables.ts
 web/src/api/lists.ts -> depth/core/client.ts
+web/src/api/lists.ts -> web/src/locales/say.ts
 web/src/api/me.ts -> depth/core/client.ts
 web/src/api/me.ts -> web/src/api/actions.ts
 web/src/api/me.ts -> web/src/locales/say.ts

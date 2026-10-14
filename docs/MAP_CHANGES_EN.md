@@ -1,3 +1,10 @@
+## 14.10.2026 17:18 · edges +2 −0
+
+```diff
++ web/src/adv/api.ts -> web/src/locales/say.ts
++ web/src/api/lists.ts -> web/src/locales/say.ts
+```
+
 ## 14.10.2026 03:05 · edges +1 −0
 
 ```diff

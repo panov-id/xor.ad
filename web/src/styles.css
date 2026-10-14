@@ -324,7 +324,6 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-pair { display: flex; flex-direction: column; }
 .ui-pair-label { color: var(--muted); font-size: 0.875rem; font-weight: 600; }
 .ui-pair-value { margin: 0; overflow-wrap: anywhere; }
-.ui-tabs { display: flex; gap: var(--s-4); border-bottom: 1px solid var(--border); }
 .ui-tab { position: relative; min-height: var(--control-h); padding: 0; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 0.875rem; font-weight: 600; border-bottom: var(--s-1) solid transparent; }
 .ui-tab-on { color: var(--fg); border-bottom-color: var(--accent); }
 .ui-tab .ui-tab-dot { position: absolute; top: var(--s-2); right: calc(-1 * var(--s-3)); }

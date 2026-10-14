@@ -233,6 +233,85 @@ Deno.test("durak: transfer passes the attack on with the same rank; podkidnoy re
   assertEquals(reason(stepGame(short, "transfer", { transfer: "7H" }, false, 2)), "the next seat has too few cards to beat it all");
 });
 
+// A transfer table of three, seat 1 attacking seat 2, the hands as given.
+function transferTable(hands: Record<string, string[]>, stock: string[] = []) {
+  const s = startState("deck", "transfer", [1, 2, 3]);
+  Object.assign(s.deck!, { hands, trump: "6D", stock, table: [], played: [], attacker: 1, defender: 2, out: [], discard: 0 });
+  return s;
+}
+
+Deno.test("durak: transfer refuses a card not a string, not in hand, onto an empty table, past six attacks", () => {
+  const s = transferTable({ "1": ["7S"], "2": ["7H", "7C"], "3": ["AS", "AH"] });
+  s.turn = 1; // the defender's turn, nothing led yet
+  assertEquals(reason(stepGame(s, "transfer", { transfer: "7H" }, false, 2)), "there is nothing to pass on");
+  s.turn = 0;
+  ok(play(s, "transfer", 1, { play: "7S" }));
+  for (const bad of [null, 7, { card: "7H" }]) {
+    assertEquals(reason(stepGame(s, "transfer", { transfer: bad }, false, 2)), "pass the attack on with {transfer: card}", `transfer ${JSON.stringify(bad)}`);
+  }
+  assertEquals(reason(stepGame(s, "transfer", { transfer: "7D" }, false, 2)), "the card is not in your hand");
+  assertEquals(s.deck!.hands["2"], ["7H", "7C"], "a refused transfer took no card");
+
+  const full = transferTable({ "1": [], "2": ["7H"], "3": Array(10).fill("AS") });
+  full.deck!.table = ["7S", "7C", "7D", "7S", "7C", "7D"].map((attack) => ({ attack, beat: null }));
+  full.turn = 1;
+  assertEquals(reason(stepGame(full, "transfer", { transfer: "7H" }, false, 2)), "no more than six attacks a round");
+});
+
+Deno.test("durak: transfer passes over a seat with no cards left", () => {
+  // Seat 3 is next after 2 but holds nothing (the stock is out): the attack goes back to seat 1.
+  const s = transferTable({ "1": ["7S", "9C", "KC"], "2": ["7H", "8H"], "3": [] });
+  ok(play(s, "transfer", 1, { play: "7S" }));
+  ok(play(s, "transfer", 2, { transfer: "7H" }));
+  assertEquals([s.deck!.attacker, s.deck!.defender, s.order[s.turn!]], [2, 1, 1], "the empty seat 3 was skipped");
+
+  // Four seats, seat 3 empty while the stock still has cards: 2 passes to 4 over 3; beaten off,
+  // 3 draws back in, yet the one who beat it off (4) attacks next, not the seat after the passer.
+  const f = startState("deck", "transfer", [1, 2, 3, 4]);
+  Object.assign(f.deck!, {
+    hands: { "1": ["7S", "9C"], "2": ["7H", "8H"], "3": [], "4": ["AS", "AH", "QC"] },
+    trump: "6D", stock: ["JC", "JD", "JH", "JS", "QD", "QH", "QS", "KD", "KH", "KC", "KS"], table: [], played: [],
+    attacker: 1, defender: 2, out: [], discard: 0,
+  });
+  ok(play(f, "transfer", 1, { play: "7S" }));
+  ok(play(f, "transfer", 2, { transfer: "7H" }));
+  assertEquals(f.deck!.defender, 4, "the empty seat 3 was skipped");
+  ok(play(f, "transfer", 4, { play: "AS" }));
+  ok(play(f, "transfer", 4, { play: "AH" }));
+  ok(play(f, "transfer", 2, { done: true }));
+  assert(f.deck!.hands["3"].length > 0, "seat 3 drew back in");
+  assertEquals([f.deck!.attacker, f.order[f.turn!]], [4, 4], "the one who beat it off attacks next");
+});
+
+Deno.test("durak: a bout after a transfer played to the end — beaten off or taken: who draws, who attacks next", () => {
+  const hands = () => ({ "1": ["7S", "9C"], "2": ["7H", "8H", "KS"], "3": ["AS", "AH", "6C", "QC"] });
+  const stock = () => ["JC", "JD", "JH", "JS", "QD"];
+
+  // Beaten off: the passer (2) draws first, then the first attacker (1), the defender (3) last; 3 attacks 1.
+  const s = transferTable(hands(), stock());
+  ok(play(s, "transfer", 1, { play: "7S" }));
+  ok(play(s, "transfer", 2, { transfer: "7H" }));
+  ok(play(s, "transfer", 3, { play: "AS" }));
+  ok(play(s, "transfer", 3, { play: "AH" }));
+  const done = ok(play(s, "transfer", 2, { done: true }));
+  assertEquals(done.over, false);
+  assertEquals(s.deck!.hands["2"], ["8H", "KS", "JC", "JD", "JH", "JS"], "the passer draws first");
+  assertEquals(s.deck!.hands["1"], ["9C", "QD"], "the first attacker draws what is left");
+  assertEquals(s.deck!.hands["3"], ["6C", "QC"], "the defender draws last, the stock is out");
+  assertEquals([s.deck!.discard, s.deck!.table, s.deck!.attacker, s.deck!.defender, s.order[s.turn!]], [4, [], 3, 1, 3], "the one who beat it off attacks next");
+
+  // Taken: the defender (3) takes both attacks and the beats, is passed over; 1 attacks 2.
+  const t = transferTable(hands(), stock());
+  ok(play(t, "transfer", 1, { play: "7S" }));
+  ok(play(t, "transfer", 2, { transfer: "7H" }));
+  ok(play(t, "transfer", 3, { play: "AS" }));
+  ok(play(t, "transfer", 3, { take: true }));
+  assertEquals(t.deck!.hands["3"], ["AH", "6C", "QC", "7S", "AS", "7H"], "the taker holds the table");
+  assertEquals(t.deck!.hands["2"], ["8H", "KS", "JC", "JD", "JH", "JS"]);
+  assertEquals(t.deck!.hands["1"], ["9C", "QD"]);
+  assertEquals([t.deck!.discard, t.deck!.attacker, t.deck!.defender, t.order[t.turn!]], [0, 1, 2, 1], "the taker is passed over");
+});
+
 // --- poker ------------------------------------------------------------------
 
 Deno.test("poker: hands rank right, ties split by the best five of seven", () => {

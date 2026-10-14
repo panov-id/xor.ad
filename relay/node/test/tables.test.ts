@@ -467,6 +467,41 @@ test({
   },
 });
 
+// A text line costs a model call, so only a live seat may ask for one, and a
+// seat over its minute's lines is 429 unasked (panel 14.10.2026, security 7, 8).
+test({
+  name: "model on: a caller not at the table never reaches the model, and lines over the minute are 429",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    let asked = 0;
+    const model = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen: () => {} }, () => {
+      asked++;
+      return Response.json({ message: { role: "assistant", content: '{"verdict":"publish","reason":"ok"}' } });
+    });
+    try {
+      const { a, id } = await game();
+      const stranger = await person();
+      Deno.env.set("MODERATOR_URL", `http://127.0.0.1:${model.addr.port}`);
+      for (const kind of ["line", "application", "refusal"]) {
+        const out = await signed(stranger, "POST", `/tables/${id}/lines`, { kind, text: "пустите", seat: 2 });
+        assertEquals([out.status, code(out), asked], [404, "not_found", 0], `${kind} from a stranger asked the model`);
+      }
+      const max = tables.LINE_LIMITS[0].max;
+      for (let i = 0; i < max; i++) {
+        const ok = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: `строка ${i}` });
+        assertEquals(ok.status, 200, `line ${i}: ${JSON.stringify(ok.body)}`);
+      }
+      assertEquals(asked, max);
+      const over = await signed(a, "POST", `/tables/${id}/lines`, { kind: "line", text: "ещё одна" });
+      assertEquals([over.status, code(over), asked], [429, "rate_limited", max], "a line over the minute asked the model or was taken");
+    } finally {
+      Deno.env.delete("MODERATOR_URL");
+      await model.shutdown();
+    }
+  },
+});
+
 test("dots: the engine refuses a taken edge, scores closed boxes, and the finished game comes back over", async () => {
   const a = await person();
   const b = await person();

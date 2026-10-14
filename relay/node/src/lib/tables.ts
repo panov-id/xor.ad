@@ -33,6 +33,9 @@ export const IDLE_MINUTES = 60; // table.idle.span
 export const TABLE_CREATE_LIMITS: Limit[] = [{ name: "tables-create", max: 4, windowMs: HOUR }]; // tables.create.hour
 export const SEAT_LIMITS: Limit[] = [{ name: "seat-attempts", max: 30, windowMs: HOUR }]; // seat.attempts.hour
 export const STICKER_LIMITS: Limit[] = [{ name: "table-sticker", max: 6, windowMs: 60_000 }]; // sticker.minute
+// A text line (line, application, refusal) costs a model call each (lib/moderator.ts):
+// counted per identity like a chat message, chat.messages.minute (60).
+export const LINE_LIMITS: Limit[] = [{ name: "table-line", max: 60, windowMs: 60_000 }]; // as chat.messages.minute
 export const TICKET_LIMITS: Limit[] = [{ name: "table-ticket", max: 60, windowMs: 60_000 }]; // as chat.messages.minute, a ticket is a socket
 export const TICKET_SECONDS = 30; // ticket.lifetime
 

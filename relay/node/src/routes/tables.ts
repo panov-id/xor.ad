@@ -28,7 +28,7 @@ import { readText } from "../lib/feed_verdict.ts";
 import { judge } from "../lib/moderator.ts";
 import { foldLines, hasInvisible } from "../lib/names.ts";
 import {
-  applyOverdue, bandBetween, blockedEither, boardFor, CLASSES, CONFIRM_WINDOW_MS, emptyState, leaveTable, lockGame, MOVE_WINDOW_MS, RADII, resign, scoreOf, SEAT_LIMITS, startRound, STICKER_LIMITS, TABLE_CREATE_LIMITS, tableEvent, TICKET_LIMITS, TICKET_SECONDS, touch, type GameState,
+  applyOverdue, bandBetween, blockedEither, boardFor, CLASSES, CONFIRM_WINDOW_MS, emptyState, leaveTable, LINE_LIMITS, lockGame, MOVE_WINDOW_MS, RADII, resign, scoreOf, SEAT_LIMITS, startRound, STICKER_LIMITS, TABLE_CREATE_LIMITS, tableEvent, TICKET_LIMITS, TICKET_SECONDS, touch, type GameState,
 } from "../lib/tables.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
@@ -299,10 +299,29 @@ async function speak(req: Request, tableId: string): Promise<Response> {
   // alone, no person queue). Only for a text the checks below would take; one
   // they refuse is refused there, unasked.
   const said = typeof body?.text === "string" ? foldLines(body.text).trim() : "";
-  const judgement = ["line", "application", "refusal"].includes(body?.kind as string) && said &&
-      graphemes(said) <= 128 && bytes(said) <= 2048 && !hasInvisible(said)
-    ? await judge({ kind: "table_line", text: said, flags: readText(said) })
-    : null;
+  const asks = ["line", "application", "refusal"].includes(body?.kind as string) && said &&
+    graphemes(said) <= 128 && bytes(said) <= 2048 && !hasInvisible(said);
+  if (asks) {
+    // Who may cost a model call: a live seat at an open table, checked without
+    // a lock and outside the transaction (the model's timeout must not hold
+    // one); the transaction below checks the seat again under its lock. Same
+    // 404 as atTable for anyone not seated (SEC-4).
+    if (!UUID.test(tableId)) return notFound();
+    const seated = await query(
+      `SELECT 1 FROM table_seats s JOIN tables t ON t.id = s.table_id
+        WHERE s.table_id = $1 AND s.identity = $2 AND s.left_at IS NULL AND t.closed_at IS NULL`,
+      [tableId, known.identityId],
+    );
+    if (seated === null) return unavailable("seat check failed");
+    if (seated.length === 0) return notFound();
+    const allowed = checkAll(LINE_LIMITS, known.identityId);
+    if (!allowed.allowed) {
+      return refuse("rate_limited", "too many lines this minute", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
+  }
+  const judgement = asks ? await judge({ kind: "table_line", text: said, flags: readText(said) }) : null;
   return await atTable(req, tableId, async (run, caller, seat) => {
     const kind = body?.kind;
     if (kind === "sticker") {

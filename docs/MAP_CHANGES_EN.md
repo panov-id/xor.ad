@@ -1,3 +1,84 @@
+## 14.10.2026 01:48 · edges +62 −14
+
+```diff
++ web/dev/gallery.tsx -> web/src/ui/MessageInput.tsx
++ web/e2e/specs/games.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/games.spec.ts -> web/e2e/specs/helpers.ts
++ web/e2e/specs/icon-tips.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/place-qr.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/place-qr.spec.ts -> web/e2e/specs/helpers.ts
++ web/e2e/specs/place.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/place.spec.ts -> web/e2e/specs/helpers.ts
++ web/e2e/specs/register-feedback.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/report-phrase.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/report-phrase.spec.ts -> web/e2e/specs/helpers.ts
++ web/e2e/specs/routes.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/routes.spec.ts -> web/e2e/specs/helpers.ts
++ web/src/App.tsx -> web/src/geo/qr.ts
++ web/src/App.tsx -> web/src/router.ts
++ web/src/App.tsx -> web/src/screens/PlaceQr.tsx
++ web/src/App.tsx -> web/src/ui/Sheet.tsx
++ web/src/App.tsx -> web/src/ui/inner.css
++ web/src/chat/sticker.test.ts -> web/src/chat/sticker.ts
++ web/src/chat/sticker.test.ts -> web/src/ui/stickerArt.ts
++ web/src/chat/sticker.ts -> depth/core/sticker.ts
++ web/src/geo/qr.test.ts -> web/src/geo/qr.ts
++ web/src/main.tsx -> web/src/ui/iconTips.ts
++ web/src/router.ts -> web/src/screens/Feed.tsx
++ web/src/router.ts -> web/src/screens/Inbox.tsx
++ web/src/router.ts -> web/src/vault.ts
++ web/src/screens/Card.tsx -> web/src/ui/Checkbox.tsx
++ web/src/screens/Chat.tsx -> web/src/chat/sticker.ts
++ web/src/screens/Chat.tsx -> web/src/ui/Icon.tsx
++ web/src/screens/Chat.tsx -> web/src/ui/Sticker.tsx
++ web/src/screens/Match.tsx -> web/src/ui/Icon.tsx
++ web/src/screens/NewTable.tsx -> web/src/screens/newTable.css
++ web/src/screens/NewTable.tsx -> web/src/ui/Card.tsx
++ web/src/screens/NewTable.tsx -> web/src/ui/GameArt.tsx
++ web/src/screens/NewTable.tsx -> web/src/ui/Icon.tsx
++ web/src/screens/NewTable.tsx -> web/src/ui/Segments.tsx
++ web/src/screens/NewTable.tsx -> web/src/ui/Split.tsx
++ web/src/screens/NewTable.tsx -> web/src/ui/TileFoot.tsx
++ web/src/screens/PlaceQr.tsx -> web/src/geo/place.ts
++ web/src/screens/PlaceQr.tsx -> web/src/geo/qr.ts
++ web/src/screens/PlaceQr.tsx -> web/src/locales/say.ts
++ web/src/screens/PlaceQr.tsx -> web/src/ui/Button.tsx
++ web/src/screens/PlaceQr.tsx -> web/src/ui/Header.tsx
++ web/src/screens/PlaceQr.tsx -> web/src/ui/Screen.tsx
++ web/src/screens/PlaceQr.tsx -> web/src/ui/Segments.tsx
++ web/src/screens/PlaceQr.tsx -> web/src/ui/Split.tsx
++ web/src/screens/Register.tsx -> web/src/ui/Icon.tsx
++ web/src/screens/Restore.tsx -> web/src/ui/Split.tsx
++ web/src/screens/Splash.tsx -> web/src/ui/LangList.tsx
++ web/src/screens/Splash.tsx -> web/src/ui/TextButton.tsx
++ web/src/screens/Table.tsx -> web/src/screens/talk.css
++ web/src/screens/Table.tsx -> web/src/ui/Sticker.tsx
++ web/src/screens/TableBoards.tsx -> web/src/ui/ErrorLine.tsx
++ web/src/screens/Wizard.tsx -> web/src/geo/place.ts
++ web/src/screens/Wizard.tsx -> web/src/ui/ErrorLine.tsx
++ web/src/screens/Wizard.tsx -> web/src/ui/Field.tsx
++ web/src/screens/Wizard.tsx -> web/src/ui/Split.tsx
++ web/src/ui/GameArt.tsx -> web/src/config.ts
++ web/src/ui/GameArt.tsx -> web/src/ui/gameArt.ts
++ web/src/ui/LangList.tsx -> web/src/ui/Icon.tsx
++ web/src/ui/Sticker.tsx -> web/src/config.ts
++ web/src/ui/Sticker.tsx -> web/src/ui/stickerArt.ts
+- web/src/App.tsx -> web/src/screens/Feed.tsx
+- web/src/screens/Chat.tsx -> web/src/ui/Info.tsx
+- web/src/screens/Composer.tsx -> web/src/ui/Illustration.tsx
+- web/src/screens/Inbox.tsx -> web/src/ui/Tabs.tsx
+- web/src/screens/Match.tsx -> web/src/api/actions.ts
+- web/src/screens/Match.tsx -> web/src/ui/Chip.tsx
+- web/src/screens/NewTable.tsx -> web/src/ui/Info.tsx
+- web/src/screens/NewTable.tsx -> web/src/ui/Select.tsx
+- web/src/screens/Register.tsx -> web/src/ui/Header.tsx
+- web/src/screens/Restore.tsx -> web/src/ui/Header.tsx
+- web/src/screens/Splash.tsx -> web/src/ui/Select.tsx
+- web/src/screens/Unlock.tsx -> web/src/ui/Header.tsx
+- web/src/ui/Tabs.tsx -> web/src/locales/say.ts
+- web/src/ui/Tabs.tsx -> web/src/ui/Dot.tsx
+```
+
 ## 14.10.2026 01:07 · edges +29 −582
 
 ```diff

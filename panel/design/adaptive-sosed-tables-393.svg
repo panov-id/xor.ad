@@ -3,21 +3,22 @@
 <text x="16" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="start">tables</text>
 <rect x="333" y="18" width="44" height="44" rx="22" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <g transform="translate(343 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5 V19 M5 12 H19"/></g>
-<rect x="16" y="90" width="361" height="192" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<rect x="16" y="90" width="361" height="212" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <g transform="translate(30 110) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="17" cy="7" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/><circle cx="7" cy="17" r="1.5"/><circle cx="12" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></g>
-<text x="64" y="120" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">dots 3×3 by the park</text>
-<text x="64" y="140" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">1 playing · 2 watch · 1 free</text>
+<text x="64" y="120" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">table · «dots 3×3 by the park» ·</text>
+<text x="64" y="142" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">dots · 3×3 field</text>
+<text x="64" y="162" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">1 playing · 2 watch · 1 free</text>
 <g transform="translate(331 110) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
-<path d="M30 154 H363" stroke="#e6dbc9" stroke-width="1"/>
-<g transform="translate(30 174) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="17" cy="7" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/><circle cx="7" cy="17" r="1.5"/><circle cx="12" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></g>
-<text x="64" y="184" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">quick dots</text>
-<text x="64" y="204" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">1 playing · 1 free</text>
-<g transform="translate(331 174) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
-<path d="M30 218 H363" stroke="#e6dbc9" stroke-width="1"/>
-<g transform="translate(30 238) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="17" cy="7" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/><circle cx="7" cy="17" r="1.5"/><circle cx="12" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></g>
-<text x="64" y="248" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">yard league</text>
-<text x="64" y="268" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">2 playing · 5 watch</text>
-<g transform="translate(331 238) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 174 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 194) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="17" cy="7" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/><circle cx="7" cy="17" r="1.5"/><circle cx="12" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></g>
+<text x="64" y="204" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">quick dots</text>
+<text x="64" y="224" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">1 playing · 1 free</text>
+<g transform="translate(331 194) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 238 H363" stroke="#e6dbc9" stroke-width="1"/>
+<g transform="translate(30 258) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="17" cy="7" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="17" cy="12" r="1.5"/><circle cx="7" cy="17" r="1.5"/><circle cx="12" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></g>
+<text x="64" y="268" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">yard league</text>
+<text x="64" y="288" font-family="Golos Text" font-weight="400" font-size="14" fill="#6b5f4c" text-anchor="start">2 playing · 5 watch</text>
+<g transform="translate(331 258) scale(1.0)" fill="none" stroke="#6b5f4c" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
 <rect x="16.0" y="771" width="361" height="64" rx="32" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
 <g transform="translate(49.125 791) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
 <rect x="111.375" y="779" width="80" height="48" rx="24" fill="#1c140d" />

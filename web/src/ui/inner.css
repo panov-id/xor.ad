@@ -58,9 +58,11 @@ html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [da
 }
 html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [data-testid="tables-mine"] > ul), [data-screen="inbox"] :is([data-testid="matches"], [data-testid="chats"])) > li {
   position: relative; display: flex; flex-direction: row; flex-wrap: wrap; align-content: center; column-gap: var(--s-2); row-gap: 0;
-  block-size: var(--me-row-h); min-height: 0; margin: 0; padding: 0 var(--me-chevron-pad) 0 var(--me-row-pad); overflow: hidden;
+  block-size: auto; min-block-size: var(--me-row-h); min-height: var(--me-row-h); margin: 0; padding: var(--s-2) var(--me-chevron-pad) var(--s-2) var(--me-row-pad); box-sizing: border-box; overflow: hidden;
   border: 0; border-radius: 0; background: transparent; box-shadow: none;
 }
+/* The talks keep their fixed 64: their lines never wrap. */
+html:root[data-brand] [data-screen="inbox"] ul[data-testid="chats"] > li { block-size: var(--me-row-h); padding-block: 0; }
 html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [data-testid="tables-mine"] > ul), [data-screen="inbox"] :is([data-testid="matches"], [data-testid="chats"])) > li + li { border-top: var(--rule-w) solid var(--bg); }
 /* A row's lines: the name 16/600, then one line 14 in the muted colour; what does not fit is cut. */
 :is([data-screen="tables"], [data-screen="inbox"]) li > :is(p, .ui-card-head, .ui-tilefoot, .ui-hint, .ui-life) { margin: 0; min-inline-size: 0; max-inline-size: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -73,6 +75,14 @@ html:root[data-brand] :is([data-screen="tables"] :is([data-testid="tables"], [da
 /* My phrase gives way, its time left stays whole: the quote is cut, the minutes are not. */
 [data-screen="inbox"] [data-testid="match"] .ui-life > p { display: flex; flex: 1 1 auto; min-inline-size: 0; }
 [data-screen="inbox"] [data-testid="match"] .ui-life > p > q { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
+/* A long phrase or table title wraps to two lines and the row grows; only a third line is cut (owner 14.10.2026). */
+html:root[data-brand] [data-screen="inbox"] [data-testid="match"] .ui-life > p:has(> q) { display: block; white-space: normal; padding-block: 0; min-block-size: 0; line-height: 20px; }
+html:root[data-brand] [data-screen="inbox"] [data-testid="match"] .ui-life > p > span { display: block; white-space: nowrap; }
+html:root[data-brand] [data-screen="inbox"] [data-testid="match"] .ui-life > p > [data-part="sep"] { display: none; }
+html:root[data-brand] [data-screen="inbox"] [data-testid="match"] > .ui-life:has(> p > q) { flex: 1 1 0; }
+[data-screen="inbox"] [data-testid="match"] .ui-life > p > :is(q, span) { line-height: 20px; }
+[data-screen="inbox"] [data-testid="match"] .ui-life > p > q,
+[data-screen="tables"] li > p:first-of-type { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
 [data-screen="inbox"] [data-testid="match"] .ui-life > p > span { flex: none; }
 [data-screen="inbox"] [data-testid="match"] .ui-bar { position: absolute; inset-inline: var(--me-row-pad) var(--me-chevron-pad); inset-block-end: var(--s-1); }
 [data-screen="inbox"] [data-testid="chats"] .ui-list-text { flex: 1; block-size: 100%; }
@@ -107,3 +117,8 @@ html:root[data-brand] .ui-button.ui-info-plain::after { content: ""; position: a
 [data-screen="me"] > .ui-list[data-group="hero"] .ui-setting { min-inline-size: 44px; }
 /* Eight stickers under the board: each takes its whole eighth of the strip (no gap), so the finger's cell is the widest the row allows. */
 html:root[data-brand] [data-screen="table"] [data-part="stickers"] { column-gap: 0; padding-inline: 0; }
+/* Below 400 an eighth of the padded strip is under 44 (43 at 393, 41 at 375 in neighbro's rim): the strip
+   leaves the screen's padding and runs edge to edge, its rim and corners kept (owner 14.10.2026). */
+@media (max-width: 399.98px) {
+  html:root[data-brand] [data-screen="table"] [data-part="stickers"] { margin-inline: calc(-1 * var(--s-4)); }
+}

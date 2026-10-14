@@ -86,7 +86,7 @@ function PhraseLife({ row }: { row: MatchRow }) {
           it — so that phrase is named first, in quotes. */}
       {mine && row.my_phrase && (
         <p className="ui-hint">
-          <q data-testid="offer-mine-text">{row.my_phrase.text}</q>{" · "}
+          <q data-testid="offer-mine-text">{row.my_phrase.text}</q><span data-part="sep">{" · "}</span>
           <span data-testid="offer-mine-left">{say("web.inbox.mine_left", { left: duration(mine.minutes) })}</span>
         </p>
       )}

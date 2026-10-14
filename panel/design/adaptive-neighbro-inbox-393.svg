@@ -3,31 +3,34 @@
 <rect width="393" height="851" fill="url(#dots)"/>
 <text x="16" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">talks</text>
 <g transform="rotate(0 196.5 122.0)">
-<rect x="17.5" y="93" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="90" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<rect x="17.5" y="93" width="361" height="102" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="90" width="361" height="102" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
 <g transform="translate(30 110) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
 <text x="64" y="120" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">Boris</text>
-<text x="64" y="140" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">wants to talk · 23 h</text>
+<text x="64" y="140" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">offer</text>
+<text x="103" y="140" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">see you at the bridge</text>
+<text x="64" y="160" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">your phrase: 4 h 20 min left</text>
+<text x="64" y="182" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">wants to talk · 23 h</text>
 <g transform="translate(331 110) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
 <g transform="rotate(0 196.5 270.0)">
-<rect x="17.5" y="177" width="361" height="192" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
-<rect x="16" y="174" width="361" height="192" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+<rect x="17.5" y="215" width="361" height="192" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="212" width="361" height="192" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<g transform="translate(30 194) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
-<text x="64" y="204" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">Anya</text>
-<text x="64" y="224" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">see you at the bridge</text>
-<g transform="translate(331 194) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
-<path d="M30 238 H363" stroke="#1a1b1e" stroke-width="1"/>
-<g transform="translate(30 258) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
-<text x="64" y="268" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">Lena</text>
-<text x="64" y="288" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">thanks for the ladder!</text>
-<g transform="translate(331 258) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
-<path d="M30 302 H363" stroke="#1a1b1e" stroke-width="1"/>
-<g transform="translate(30 322) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
-<text x="64" y="332" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">Mark</text>
-<text x="64" y="352" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">is the music on?</text>
-<g transform="translate(331 322) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<g transform="translate(30 232) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<text x="64" y="242" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">Anya</text>
+<text x="64" y="262" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">see you at the bridge</text>
+<g transform="translate(331 232) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 276 H363" stroke="#1a1b1e" stroke-width="1"/>
+<g transform="translate(30 296) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<text x="64" y="306" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">Lena</text>
+<text x="64" y="326" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">thanks for the ladder!</text>
+<g transform="translate(331 296) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
+<path d="M30 340 H363" stroke="#1a1b1e" stroke-width="1"/>
+<g transform="translate(30 360) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<text x="64" y="370" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">Mark</text>
+<text x="64" y="390" font-family="Golos Text" font-weight="400" font-size="14" fill="#545b63" text-anchor="start">is the music on?</text>
+<g transform="translate(331 360) scale(1.0)" fill="none" stroke="#545b63" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 L16 12 L9.5 18.5"/></g>
 <g transform="rotate(0 196.5 799.0)">
 <rect x="17.5" y="770" width="361" height="64" rx="32" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="767" width="361" height="64" rx="32" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>

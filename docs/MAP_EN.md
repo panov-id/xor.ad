@@ -774,6 +774,7 @@ flowchart LR
 - `docs/reviews/GAPS_2026-10-12_web-vs-promise.md` → —  ·  ← docs/goal-web-whole_EN.md, docs/goal-web-whole_RU.md
 - `docs/reviews/PANEL_2026-10-12_entry-adaptive.md` → —  ·  ← —
 - `docs/reviews/PANEL_2026-10-12_goals.md` → docs/GOALS_RU.md, docs/goal-web-whole_RU.md, panel/design/screen-26-place-qr.svg  ·  ← docs/GOALS_EN.md, docs/GOALS_RU.md
+- `docs/reviews/PANEL_2026-10-14_tables.md` → —  ·  ← —
 - `docs/reviews/WALK_2026-10-12_newcomer-and-perfectionist.md` → —  ·  ← —
 - `docs/reviews/WALK_2026-10-12_svg-perfectionist.md` → —  ·  ← —
 - `docs/reviews/WIZARD_PLACE_app-patch.md` → —  ·  ← —

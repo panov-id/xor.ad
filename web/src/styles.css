@@ -146,7 +146,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .ui-primary { box-shadow: none; }
 .ui-header-rule .ui-header-title:empty { visibility: hidden; }
 button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible, [role="button"]:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
-.ui-tabbed .screen { padding-bottom: 96px; }
+.ui-tabbed .screen { padding-bottom: calc(var(--tabbar-h) + var(--tabbar-bottom) + env(safe-area-inset-bottom, 0px) + var(--s-4)); }
 
 /* The like's count with the storefront's mark (Card.tsx LikeBurst; the class keeps its old name): pops once when it turns on. */
 .ui-burst { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 2px; min-width: 52px; height: 52px; padding: 0 var(--s-2);

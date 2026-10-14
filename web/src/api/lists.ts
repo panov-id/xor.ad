@@ -3,6 +3,7 @@
 // through the core (depth/core/client.ts hidden, unhide, blocks, unblock).
 
 import type { Client } from "../../../depth/core/client.ts";
+import { LANG } from "../locales/say.ts";
 
 export type HiddenRow = { id: string; kind: string; text: string };
 export type BlockRow = { id: string; since: number };
@@ -24,5 +25,5 @@ export async function unblock(client: Client, id: string): Promise<void> {
 // The day a block was set, as the terminal writes it (rooms.ts Blocked).
 export const day = (seconds: unknown): string =>
   typeof seconds === "number" && Number.isFinite(seconds)
-    ? new Intl.DateTimeFormat("ru", { day: "numeric", month: "long", year: "numeric" }).format(new Date(seconds * 1000))
+    ? new Intl.DateTimeFormat(LANG, { day: "numeric", month: "long", year: "numeric" }).format(new Date(seconds * 1000))
     : "?";

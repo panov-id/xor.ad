@@ -37,7 +37,8 @@ async function person(base = URL_) {
     deviceScaleFactor: 2,
     isMobile: true,
     hasTouch: true,
-    locale: "ru-RU",
+    // SHOOT_LOCALE=en-US shoots the English face (say.ts reads navigator.languages).
+    locale: process.env.SHOOT_LOCALE || "ru-RU",
     // The stand's node counts registrations per address (web/e2e/fixtures/address.ts).
     extraHTTPHeaders: { "x-origin-token": "web-test-origin-token", "x-client-ip": `203.0.113.${ip++}` },
   });
@@ -222,6 +223,8 @@ await step("Chat", boris, async () => {
   await boris.waitForTimeout(1000);
 });
 await step("ChatGame", boris, async () => {
+  // The game is behind the chat's «…» (web/e2e/specs/helpers.ts chatMenu).
+  if (!(await id(boris, "chat-menu").isVisible())) await id(boris, "chat-more").click();
   await id(boris, "game-toggle").click();
   await boris.waitForTimeout(1500);
 });
@@ -245,12 +248,18 @@ await step("Unlock", anya, async () => { await anya.goto("/"); await seen(screen
 await home(anya);
 for (const text of ["кто на пляж?", "ищу компанию на ужин"]) await write(anya, `${text} ${run}`).catch(() => {});
 await step("NewTable", anya, async () => {
+  // A table is made from the tables tab (owner 11.10.2026), as helpers.ts newTable.
   await home(anya);
+  await id(anya, "nav-inbox").click();
+  await id(anya, "nav-tables").click();
+  await seen(screen(anya, "tables"));
   await id(anya, "new-table").click();
   await seen(screen(anya, "new-table"));
+  await anya.locator('[data-testid^="new-table-game-"]').first().click();
   await id(anya, "new-table-name").fill(`вечер ${run}`);
 });
 await step("Table", anya, async () => {
+  await id(anya, "new-table-next").click();
   await id(anya, "new-table-go").click();
   await seen(id(anya, "table"));
 });
@@ -259,14 +268,14 @@ await step("Table", anya, async () => {
 await step("TableBoards", anya, async () => {
   await home(boris);
   await id(boris, "nav-inbox").click();
-  await id(boris, "nav-feed").click();
+  await id(boris, "nav-tables").click();
   const card = id(boris, "table-card").filter({ hasText: `вечер ${run}` });
   await seen(card);
   await card.click();
   await seen(id(boris, "table"));
   await id(boris, "line-input").fill("сыграю");
   await id(boris, "apply").click();
-  await id(anya, "table").filter({ hasText: "заявка" }).waitFor({ timeout: 15000 });
+  await id(anya, "application").first().waitFor({ timeout: 15000 });
   await id(anya, "start-game").click({ timeout: 15000 });
   await id(anya, "turn").filter({ hasNotText: "партия ещё не началась" }).waitFor({ timeout: 15000 });
 });
@@ -280,6 +289,7 @@ await step("Blocked", boris, async () => {
   await write(vera, vText);
   await home(boris);
   await openCard(boris, vText);
+  await id(boris, "more").click();
   await id(boris, "block").click();
   await id(boris, "block-confirm-yes").click();
   await toMe(boris, "me-blocked", "blocked");
@@ -345,7 +355,7 @@ await step("Cabinet-venues", venue, async () => {
   await id(venue, "venue-lat").fill("34.6786");
   await id(venue, "venue-lon").fill("33.0413");
   await id(venue, "venue-add").click();
-  await id(venue, "venue").filter({ hasText: venueName }).getByTestId("venue-status").filter({ hasText: "не подтверждена" }).waitFor({ timeout: 15000 });
+  await id(venue, "venue").filter({ hasText: venueName }).getByTestId("venue-status").filter({ hasText: /^(не подтверждена|not confirmed)$/ }).waitFor({ timeout: 15000 });
 });
 
 // The cabinet is measured with its data, not empty (WD6b): the venue proved by
@@ -361,7 +371,7 @@ await step("Cabinet-new-offer", venue, async () => {
   const code = readFileSync(`${OUT}/envelope.code`, "utf-8").trim();
   await card.getByTestId("venue-code").fill(code.toLowerCase().replace("-", " "));
   await card.getByTestId("venue-verify").click();
-  await card.getByTestId("venue-status").filter({ hasText: /^подтверждена$/ }).waitFor({ timeout: 15000 });
+  await card.getByTestId("venue-status").filter({ hasText: /^(подтверждена|confirmed)$/ }).waitFor({ timeout: 15000 });
   await id(venue, "adv-tab-offers").click();
   await id(venue, "offer-new").click();
   await id(venue, "offer-venue").waitFor({ timeout: 15000 });
@@ -376,7 +386,7 @@ await step("Cabinet-offers", venue, async () => {
   await id(venue, "offer-publish").click();
   await id(venue, "offer-published").waitFor({ timeout: 15000 });
   await id(venue, "offer-to-list").click();
-  await id(venue, "adv-offer").filter({ hasText: "Второй круассан" }).getByTestId("adv-offer-state").filter({ hasText: "в ленте" }).waitFor({ timeout: 15000 });
+  await id(venue, "adv-offer").filter({ hasText: "Второй круассан" }).getByTestId("adv-offer-state").filter({ hasText: /^(в ленте|in the feed)$/ }).waitFor({ timeout: 15000 });
 });
 
 const stranger = await person();

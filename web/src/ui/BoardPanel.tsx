@@ -35,8 +35,7 @@ export function BoardPanel({ seats, seatedLabel, turn, landed, children, ...rest
           {turn.time !== undefined && (
             <>
               <span className="visually-hidden"> · </span>
-              <Icon name="timer" size={16} />
-              <span>{turn.time}</span>
+              <span className="ui-boardpanel-time"><Icon name="timer" size={16} /><span>{turn.time}</span></span>
             </>
           )}
         </li>

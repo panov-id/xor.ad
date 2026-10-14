@@ -4,6 +4,8 @@
 // node sets, and the node knows the storefront by the cabinet's Origin
 // (adv.<storefront>). Lists come as {items}.
 
+import { LANG } from "../locales/say.ts";
+
 export type Answer<T> = { status: number; body: T | null; retryAfter?: number };
 
 export type Venue = {
@@ -100,5 +102,5 @@ export const when = (iso: string | null): string => {
   if (!iso) return "?";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "?";
-  return `${new Intl.DateTimeFormat("ru", { day: "numeric", month: "long" }).format(d)}, ${d.toTimeString().slice(0, 5)}`;
+  return `${new Intl.DateTimeFormat(LANG, { day: "numeric", month: "long" }).format(d)}, ${d.toTimeString().slice(0, 5)}`;
 };

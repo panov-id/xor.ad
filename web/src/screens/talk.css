@@ -94,6 +94,14 @@
 :root[data-brand="neighbro"] [data-screen="table"] :is(.ui-boardpanel-strip, [data-part="stickers"], .ui-board) { border: var(--card-rim); box-shadow: var(--card-shadow); }
 [data-screen="table"] .ui-boardpanel-strip { flex-wrap: nowrap; min-block-size: 56px; box-sizing: border-box; }
 [data-screen="table"] .ui-boardpanel-strip > .ui-boardpanel-cell.ui-boardpanel-cell { position: relative; flex: 1 1 0; min-inline-size: 0; min-block-size: 0; font-size: 15px; font-weight: 600; }
+/* The turn cell (English «your turn ⏱ 5 min» was 4 cramped lines): the label and the time are two
+   nowrap pieces; when both do not fit in the third they stand as two clean lines, label over time. */
+[data-screen="table"] .ui-boardpanel-turn { flex-wrap: wrap; align-content: center; column-gap: var(--s-1); row-gap: 2px; line-height: 1.2; }
+/* The label breaks only between words (a long «the game has not started yet» wraps inside the cell); the time never breaks. */
+[data-screen="table"] .ui-boardpanel-turn > span { white-space: normal; overflow-wrap: normal; min-inline-size: 0; text-align: center; }
+.ui-boardpanel-time { display: inline-flex; align-items: center; gap: var(--s-1); white-space: nowrap; }
+/* A long title («table · «вечер mv7z8uyz» · dots») may take two lines, and then it has air above and below. */
+[data-screen="table"] .ui-header-title { line-height: 1.2; padding-block: var(--s-2); }
 [data-screen="table"] .ui-boardpanel-body { padding: 0; }
 [data-screen="table"] [data-part="dots-board"] { align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: var(--s-2); }
 [data-screen="table"] .ui-board { inline-size: min(300px, 100%); block-size: auto; aspect-ratio: 1; box-sizing: border-box;

@@ -183,7 +183,7 @@
   border-radius: var(--tab-tag-r); background: var(--tile-2); border: var(--btn-rim); box-shadow: var(--btn-shadow);
 }
 :root[data-brand="neighbro"] .tabbar .tab[aria-current="page"] svg { stroke: var(--tile-2-ink); }
-:root[data-brand="neighbro"] .ui-tabbed .screen { padding-bottom: var(--tabbed-pad); }
+:root[data-brand="neighbro"] .ui-tabbed .screen { padding-bottom: calc(var(--tabbed-pad) + env(safe-area-inset-bottom, 0px)); }
 :root[data-brand="neighbro"] .ui-tabbed .screen[data-screen="feed"] { padding-bottom: var(--tabbed-feed-pad); }
 
 /* The code on Arrival is the sheet's three groups in one field, as sosed's

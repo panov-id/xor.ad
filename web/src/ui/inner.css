@@ -80,7 +80,9 @@ html:root[data-brand] [data-screen="inbox"] [data-testid="match"] .ui-life > p:h
 html:root[data-brand] [data-screen="inbox"] [data-testid="match"] .ui-life > p > span { display: block; white-space: nowrap; }
 html:root[data-brand] [data-screen="inbox"] [data-testid="match"] .ui-life > p > [data-part="sep"] { display: none; }
 html:root[data-brand] [data-screen="inbox"] [data-testid="match"] > .ui-life:has(> p > q) { flex: 1 1 0; }
-[data-screen="inbox"] [data-testid="match"] .ui-life > p > :is(q, span) { line-height: 20px; }
+/* styles.css:360 sizes every p in an inbox card 1.25rem/600 (0,2,1), which beats .ui-hint: the hint line keeps its 14 muted here. */
+html:root[data-brand] [data-screen="inbox"] [data-testid="match"] .ui-life > p { font-size: var(--fs-meta); font-weight: 400; line-height: 20px; color: var(--fg-muted); }
+html:root[data-brand] [data-screen="inbox"] [data-testid="match"] .ui-life > p > :is(q, span) { font: inherit; line-height: 20px; }
 [data-screen="inbox"] [data-testid="match"] .ui-life > p > q,
 [data-screen="tables"] li > p:first-of-type { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
 [data-screen="inbox"] [data-testid="match"] .ui-life > p > span { flex: none; }
@@ -112,6 +114,8 @@ html:root[data-brand] [data-screen="feed"] .ui-placebar select { min-block-size:
 }
 /* The composer's line: 44 with its text where it was (padding +4 above and below, margin −4). */
 html:root[data-brand] [data-screen="composer"] .ui-compose .ui-textarea { min-block-size: 44px; margin-block: -4px; padding-block: calc(var(--s-1) + 4px); }
+/* The box grows with its lines: a fixed 44 held one, a second line scrolled the first up under the counter's line. */
+html:root[data-brand] [data-screen="composer"] .ui-compose .ui-textarea { field-sizing: content; }
 html:root[data-brand] .ui-button.ui-info-plain { position: relative; }
 html:root[data-brand] .ui-button.ui-info-plain::after { content: ""; position: absolute; inset: min(0px, calc((100% - 44px) / 2)); border-radius: 50%; }
 [data-screen="me"] > .ui-list[data-group="hero"] .ui-setting { min-inline-size: 44px; }

@@ -124,7 +124,7 @@
 :root[data-brand="sosed"] .tabbar .tab[aria-current="page"] svg { stroke: var(--bg); }
 :root[data-brand="sosed"] .tabbar .tab[aria-current="page"]::after { content: none; }
 :root[data-brand="sosed"] .tabbar .tab:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: var(--s-1); }
-:root[data-brand="sosed"] .ui-tabbed .screen { padding-bottom: calc(var(--tabbar-h) + var(--s-4) * 2 + var(--s-2)); }
+:root[data-brand="sosed"] .ui-tabbed .screen { padding-bottom: calc(var(--tabbar-h) + var(--s-4) * 2 + var(--s-2) + env(safe-area-inset-bottom, 0px)); }
 /* On the kit's page the bar is a specimen, not the page's navigation: it
    stands in the flow, so no element is ever read through its surface (axe). */
 :root[data-brand="sosed"] .tabbar[data-testid="kit-tabbar"] { position: static; margin: var(--s-4) auto 0; }

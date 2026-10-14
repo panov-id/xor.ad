@@ -3,8 +3,8 @@
    Colours only from the kit's tokens (scripts/check-web-tokens.sh); the
    shared button, input and card are the kit components' (WD2), not here. */
 
-/* A tabbed screen leaves the bar's 64 free at its foot. */
-.ui-tabbed .screen { padding-bottom: 88px; }
+/* A tabbed screen leaves the bar free at its foot: its 64, its 20 above the foot, the safe area and 16 of air, so the last row scrolls fully clear of it (the Me screen's «start again» sat under it). */
+.ui-tabbed .screen { padding-bottom: calc(var(--tabbar-h) + var(--tabbar-bottom) + env(safe-area-inset-bottom, 0px) + var(--s-4)); }
 /* No line of a tabbed screen may widen the page: one unbroken string (the
    inbox's footer printed raw JSON 631 wide, 27.09.2026) made a phone's layout
    viewport 656 for 393, zoomed the page out and moved the fixed bar from under

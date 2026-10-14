@@ -109,7 +109,7 @@
   "web.chat.keys_not_kept": "Der Knoten hat die Schlüssel dieses Gesprächs nicht gespeichert ({reason}): nach dem Neuladen der Seite lässt es sich nicht öffnen — bitten Sie dann um neue Schlüssel.",
   "web.chat.keys_not_open": "Schlüssel noch nicht geöffnet",
   "web.chat.keys_ready": "Schlüssel sind da",
-  "web.chat.line": "Zeile",
+  "web.chat.line": "Nachricht",
   "web.chat.moved": "Identität auf ein anderes Gerät umgezogen",
   "web.chat.not_delivered": " · nicht zugestellt",
   "web.chat.not_opened": "(nicht geöffnet: {message})",

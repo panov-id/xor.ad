@@ -9,7 +9,7 @@ import { PIN, register, unlock } from "./helpers.ts";
 test.describe("an English browser", () => {
   test.use({ locale: "en-US" });
   test("the shared words are the terminal's English", async ({ page }) => {
-    await register(page, undefined, "What neighbours nearby are saying.");
+    await register(page, undefined, "What neighbors nearby are saying.");
     await expect(page.getByTestId("write")).toHaveAccessibleName("write");
     await expect(page.getByTestId("tab-me")).toHaveAccessibleName("me");
   });

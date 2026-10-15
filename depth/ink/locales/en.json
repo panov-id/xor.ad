@@ -77,6 +77,7 @@
   "feed.takedown": "take the phrase down",
   "feed.takedownRefused": "the phrase could not be taken down: {status}",
   "feed.hidden": "hidden",
+  "feed.liked": "liked",
   "hidden.title": "hidden phrases",
   "hidden.empty": "nothing is hidden",
   "hidden.restore": "bring it back",

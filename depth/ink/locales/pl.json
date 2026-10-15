@@ -77,6 +77,7 @@
   "feed.takedown": "zdejmij frazę",
   "feed.takedownRefused": "nie udało się zdjąć frazy: {status}",
   "feed.hidden": "ukryte",
+  "feed.liked": "polubione",
   "hidden.title": "ukryte zdania",
   "hidden.empty": "nic nie jest ukryte",
   "hidden.restore": "przywróć",

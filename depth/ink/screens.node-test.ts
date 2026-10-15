@@ -658,6 +658,30 @@ test("a feed phrase the node sends with no name, age or distance is drawn as its
   app.unmount();
 });
 
+// A liked phrase stays in the feed with the mark (owner, 15.10.2026), and a
+// second like on it is not sent.
+test("a liked phrase stays in the feed marked liked, and the row sends no second like", async () => {
+  let likes = 0;
+  const client = {
+    feed: () => Promise.resolve({ items: [{ kind: "phrase", id: "p1", text: "кто на пробежку", mode: "alone", like_count: 3, liked: true }] }),
+    like: () => { likes++; return Promise.resolve({ status: 200, body: { state: "liked" } }); },
+  };
+  const app = render(h(Feed, {
+    say,
+    // deno-lint-ignore no-explicit-any
+    client: client as any,
+    place: { lat: 55.75, lon: 37.62, radius: 1000 },
+    onWrite: () => {}, onInbox: () => {}, onPoint: () => {}, onMe: () => {}, onError: () => {},
+  }));
+  await settle();
+  await settle();
+  const frame = app.lastFrame()!;
+  assert.match(frame, /кто на пробежку/, "the liked phrase is not on the feed");
+  assert.match(frame, /лайкнуто/, "the liked phrase carries no mark");
+  assert.equal(likes, 0);
+  app.unmount();
+});
+
 // One's own line in a conversation is led by "вы", not by the label of the
 // send button (live walk, 10.10.2026: «отправить: Да, по выходным»).
 test("one's own line in a chat is led by «вы», not by the send button's label", async () => {
@@ -1253,7 +1277,7 @@ test("the full-screen card explains its arrows once, then likes, hides and goes 
   await type(app, ENTER, RIGHT);
   await settle();
   assert.deepEqual(calls, ["like p1"], "→ did not like after the explanation");
-  assert.match(app.lastFrame()!, /вторая фраза/, "the liked card stayed on the screen");
+  assert.match(app.lastFrame()!, /вторая фраза/, "the card did not go on to the next phrase");
   assert.doesNotMatch(app.lastFrame()!, /скоро исчезнет/, "a phrase with time left was said to be going");
   await type(app, LEFT);
   await settle();

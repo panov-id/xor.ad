@@ -77,6 +77,7 @@
   "feed.takedown": "so'zni olib tashlash",
   "feed.takedownRefused": "so'zni olib tashlab bo'lmadi: {status}",
   "feed.hidden": "yashirilgan",
+  "feed.liked": "yoqtirilgan",
   "hidden.title": "yashirilgan so'zlar",
   "hidden.empty": "hech narsa yashirilmagan",
   "hidden.restore": "qaytarish",

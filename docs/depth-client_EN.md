@@ -615,8 +615,7 @@ looking. The terminal was showing phrases only.
   2026-08-27). An ordinary like requires a live phrase on both sides or no match
   can ever happen; an offer's match is one-sided, and without the exception you
   would have to write something of your own before claiming the free chairs.
-- **What you liked is not in the feed — the owner's decision of 2026-09-17** (storefront
-  screen 3). `l` takes the card out of `signal`: the **node** filters the feed by its own
+- **A liked phrase stays in the feed, marked — the owner's decision of 2026-10-15** ("let's keep the phrases I liked, otherwise it's unclear where they went"; [retired] the decision of 2026-09-17 "what you liked is not in the feed"). The node serves such a phrase in `GET /feed` with the flag `liked: true` (`protocol_EN.md` §4.2); the terminal draws the line `+ liked` and sends no second like; tables are still filtered by `table_likes`. Hidden and blocked things still leave the feed. What follows is the earlier decision of 2026-09-17, kept as history. [retired] `l` takes the card out of `signal`: the **node** filters the feed by its own
   `likes` and `table_likes` (`GET /feed`, `protocol_EN.md` §4.2), not the client. In the
   card's place, for a few seconds, the line `liked · [u] undo` [built differently on
   2026-09-23: the terminal removes the card at once and there is no "undo" line in the feed —
@@ -994,8 +993,8 @@ shows and what it is obliged to say out loud:
 ### 4.10. What you liked — `liked`
 
 **Introduced 2026-09-17 together with the rule "what you liked is not in the feed"** (4.4,
-storefront screen 25): a like takes the card out of `signal`, and without this screen there
-would be nowhere to take the like back.
+storefront screen 25): a like took the card out of `signal`, and without this screen there
+would have been nowhere to take the like back. Since 2026-10-15 a liked phrase stays in the feed too, marked `liked` (4.4); this screen is still the only place a like is taken back.
 
 ```
   liked                                        newest on top
@@ -1035,7 +1034,7 @@ would be nowhere to take the like back.
 - Empty — the line `nothing liked`, as on storefront screen 11.
 
 **Built 2026-09-23 for phrases** (`depth/ink/rooms.ts`, `Liked`; the node — `GET /likes` in
-`relay/node/src/routes/likes.ts`, and `GET /feed` no longer serves what was liked). The
+`relay/node/src/routes/likes.ts`, `GET /feed` since 2026-10-15 serves what was liked, with the flag `liked`). The
 terminal has no letter keys (owner's decision 2026-09-22, navigation is arrows and enter), so
 the mockup's `l` and `u` are the menu items "take the like back" and "undo"; "taken back"
 stands in the card's place until the person leaves the screen. A match card is `(*)`, "offer

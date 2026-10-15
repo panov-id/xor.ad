@@ -77,6 +77,7 @@
   "feed.takedown": "ifadəni götür",
   "feed.takedownRefused": "ifadəni götürmək mümkün olmadı: {status}",
   "feed.hidden": "gizlədilmiş",
+  "feed.liked": "bəyənilib",
   "hidden.title": "gizlədilmiş sözlər",
   "hidden.empty": "heç nə gizlədilməyib",
   "hidden.restore": "qaytar",

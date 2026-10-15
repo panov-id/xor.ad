@@ -77,6 +77,7 @@
   "feed.takedown": "Phrase entfernen",
   "feed.takedownRefused": "die Phrase konnte nicht entfernt werden: {status}",
   "feed.hidden": "ausgeblendet",
+  "feed.liked": "geliked",
   "hidden.title": "ausgeblendete Sätze",
   "hidden.empty": "nichts ist ausgeblendet",
   "hidden.restore": "zurückholen",

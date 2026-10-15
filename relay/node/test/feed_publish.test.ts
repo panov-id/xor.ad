@@ -4196,11 +4196,16 @@ test({
   },
 });
 
-// ── GET /likes (depth-client §4.10, screen 25): a liked phrase leaves the feed ──
+// ── GET /likes (depth-client §4.10, screen 25): a liked phrase stays in the feed, marked (owner, 15.10.2026) ──
 const feedIds = async (who: { pair: CryptoKeyPair; session_id: string }) => {
   const r = await signedCall(who.pair.privateKey, who.session_id, "GET", "/feed?lat=60.17&lon=24.94&radius=1000");
   assertEquals(r.status, 200, JSON.stringify(r.body));
   return (r.body as { items: Array<{ id: string }> }).items.map((i) => i.id);
+};
+const feedItems = async (who: { pair: CryptoKeyPair; session_id: string }) => {
+  const r = await signedCall(who.pair.privateKey, who.session_id, "GET", "/feed?lat=60.17&lon=24.94&radius=1000");
+  assertEquals(r.status, 200, JSON.stringify(r.body));
+  return (r.body as { items: Array<{ id: string; liked?: boolean }> }).items;
 };
 const likesOf = async (who: { pair: CryptoKeyPair; session_id: string }, after?: string) => {
   const r = await signedCall(who.pair.privateKey, who.session_id, "GET", after ? `/likes?after=${after}` : "/likes");
@@ -4208,7 +4213,7 @@ const likesOf = async (who: { pair: CryptoKeyPair; session_id: string }, after?:
   return r.body as { items: Array<{ id: string; state: string; text: string; liked_at: number }>; next: string | null };
 };
 
-test({ name: "a liked phrase leaves my feed, not anybody else's, and waits in my likes", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a liked phrase stays in my feed marked liked, unmarked for anybody else, and is also in my likes", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4219,8 +4224,9 @@ test({ name: "a liked phrase leaves my feed, not anybody else's, and waits in my
   assert((await feedIds(a)).includes(theirs), "the fixture phrase is not in the feed to begin with");
 
   assertEquals(stateOf(await like(a, theirs)), "liked");
-  assertEquals((await feedIds(a)).includes(theirs), false, "a liked phrase stayed in the liker's feed");
-  assert((await feedIds(c)).includes(theirs), "a like took the phrase out of somebody else's feed");
+  assertEquals((await feedItems(a)).find((i) => i.id === theirs)?.liked, true, "a liked phrase is not in the liker's feed marked liked");
+  assertEquals((await feedItems(c)).find((i) => i.id === theirs)?.liked, undefined, "A's like marked the phrase in somebody else's feed");
+  assertEquals((await feedItems(a)).filter((i) => i.liked).length, 1, "something not liked is marked liked");
   const list = await likesOf(a);
   assertEquals(list.items.map((i) => [i.id, i.state, i.text]), [[theirs, "liked", "гуляю у залива"]]);
   assertEquals((await likesOf(c)).items.length, 0, "another person's likes leaked into this list");
@@ -4241,7 +4247,7 @@ test({ name: "a like that became a match is listed as matched, on both sides", s
   reset();
 });
 
-test({ name: "a like taken back returns the phrase to the feed, and a block takes it out of the list", sanitizeOps: false, sanitizeResources: false }, async () => {
+test({ name: "a like taken back clears the mark in the feed, and a block takes it out of the list", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const a = await author();
@@ -4255,7 +4261,7 @@ test({ name: "a like taken back returns the phrase to the feed, and a block take
   assertEquals((await likesOf(a)).items.map((i) => i.id), [fromC, fromB], "not newest like first");
 
   await signedCall(a.pair.privateKey, a.session_id, "DELETE", `/feed/${fromB}/like`);
-  assert((await feedIds(a)).includes(fromB), "a like taken back did not return the phrase to the feed");
+  assertEquals((await feedItems(a)).find((i) => i.id === fromB)?.liked, undefined, "a like taken back left the mark in the feed");
   assertEquals((await likesOf(a)).items.map((i) => i.id), [fromC]);
 
   await signedCall(c.pair.privateKey, c.session_id, "POST", "/blocks", { feed: await seedPhrase(a.identity_id, "ещё одна"), nonce: nonce() });
@@ -4323,9 +4329,10 @@ test({ name: "likes inside one millisecond page without losing one", sanitizeOps
 });
 
 // Density reads what the feed would deliver (routes/feed.ts): what the viewer
-// liked or hid is gone from their feed, so it is gone from their density too —
-// and only from theirs (review panel 23.09.2026).
-test({ name: "density leaves out what the viewer liked or hid, and only for them", sanitizeOps: false, sanitizeResources: false }, async () => {
+// hid is gone from their feed, so it is gone from their density too, and only
+// from theirs (review panel 23.09.2026); what they liked stays in both
+// (owner, 15.10.2026).
+test({ name: "density leaves out what the viewer hid, keeps what they liked, and only for them", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();
   const here = { lat: -33.87, lon: 151.21 };
@@ -4360,7 +4367,9 @@ test({ name: "density leaves out what the viewer liked or hid, and only for them
   assert(before !== "none", "the fixture phrases are not in A's density to begin with");
   assertEquals(stateOf(await like(a, liked)), "liked");
   await signedCall(a.pair.privateKey, a.session_id, "POST", "/hidden", { feed: hidden });
-  assertEquals(await density(a), "none", "density still counts what A liked or hid");
+  assertEquals(await density(a), before, "density dropped a phrase A liked, which the feed still shows");
+  await signedCall(a.pair.privateKey, a.session_id, "POST", "/hidden", { feed: liked });
+  assertEquals(await density(a), "none", "density still counts what A hid");
   assertEquals(await density(c), before, "A's like and hide changed somebody else's density");
   reset();
 });

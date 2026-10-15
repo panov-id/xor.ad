@@ -77,6 +77,7 @@
   "feed.takedown": "հանել արտահայտությունը",
   "feed.takedownRefused": "արտահայտությունը հանել չհաջողվեց՝ {status}",
   "feed.hidden": "թաքցվածը",
+  "feed.liked": "հավանված",
   "hidden.title": "թաքցված արտահայտություններ",
   "hidden.empty": "ոչինչ թաքցված չէ",
   "hidden.restore": "վերադարձնել",

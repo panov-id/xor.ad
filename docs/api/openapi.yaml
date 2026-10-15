@@ -224,6 +224,7 @@ components:
         area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
         like_count: {type: integer}
         soon: {type: boolean, description: "Present and true in the last 65 minutes of a phrase (limits likes.soon.threshold): the word 'disappearing soon' instead of a number — someone else's end never leaves the node as a time (§8.11; 2026-09-23, GET /feed and GET /likes).", x-description-ru: "Есть и равно true в последние 65 минут фразы (limits likes.soon.threshold): слово «скоро исчезнет» вместо числа — чужой срок наружу временем не уходит (§8.11; 23.09.2026, GET /feed и GET /likes)."}
+        liked: {type: boolean, description: "Present and true on a phrase the caller liked: it stays in GET /feed since 2026-10-15 (owner: \"let's keep the phrases I liked, otherwise it's unclear where they went\"). Absent otherwise; not sent in GET /likes, where every card is liked (see state).", x-description-ru: "Есть и равно true у фразы, которую лайкнул вызывающий: с 15.10.2026 она остаётся в GET /feed (владелец: «давай оставлять фразы которые лайкнул, а то не понятно куда делись»). Иначе отсутствует; в GET /likes не шлётся, там все карточки лайкнуты (см. state)."}
         lang: {type: string, description: "The feed's language filter reads it, and `und` passes every filter (2026-09-21). Since 2026-10-05 (W17-LG) it is the language of the author's interface, sent as PhraseCreate.lang and kept only if it is one of the faces' seventeen; otherwise, and for every phrase before that, `und`.", x-description-ru: "По нему работает языковой фильтр ленты, и `und` проходит любой фильтр (21.09.2026). С 05.10.2026 (W17-LG) это язык интерфейса автора — он приходит в PhraseCreate.lang и сохраняется, только если это один из семнадцати языков лиц; иначе, как и у всех фраз до того, — `und`."}
         farther_than_asked: {type: boolean, description: "Present and true only when the radius was grown because the circle asked for was empty (protocol §4.2).", x-description-ru: "Есть и равно true только когда радиус вырос, потому что запрошенный круг был пуст (протокол §4.2)."}
     LikeResult:
@@ -1976,8 +1977,9 @@ paths:
       security: [{identitySignature: []}]
       description: >-
         With language, mode and age filters; 30 cards, then more by cursor
-        (screen 3; protocol §6, decided 2026-09-16). What the viewer liked is not
-        delivered — it is in GET /likes (2026-09-17).
+        (screen 3; protocol §6, decided 2026-09-16). A phrase the viewer
+        liked stays in it with `liked: true` (owner, 2026-10-15; was: not delivered,
+        2026-09-17); GET /likes is unchanged, hidden and blocked are still out.
 
 
         The viewer's circle arrives with the request: `lat`, `lon` and `radius`.
@@ -2002,8 +2004,9 @@ paths:
         ten phrases, no offers.
       x-description-ru: >-
         С фильтрами языка, режима и возраста; 30 карточек, дальше ещё по курсору
-        (экран 3; протокол §6, решено 16.09.2026). Лайкнутого зрителем в выдаче
-        нет — оно в GET /likes (17.09.2026).
+        (экран 3; протокол §6, решено 16.09.2026). Лайкнутая зрителем фраза
+        остаётся в выдаче с `liked: true` (владелец, 15.10.2026; было: не отдаётся,
+        17.09.2026); GET /likes как был, скрытое и заблокированное по-прежнему вне.
 
 
         Круг зрителя приходит с запросом: `lat`, `lon` и `radius`. §8.3 ставит

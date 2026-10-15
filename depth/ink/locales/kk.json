@@ -77,6 +77,7 @@
   "feed.takedown": "сөз тіркесін алып тастау",
   "feed.takedownRefused": "сөз тіркесін алып тастау мүмкін болмады: {status}",
   "feed.hidden": "жасырылған",
+  "feed.liked": "ұнатылған",
   "hidden.title": "жасырылған сөздер",
   "hidden.empty": "ештеңе жасырылмаған",
   "hidden.restore": "қайтару",

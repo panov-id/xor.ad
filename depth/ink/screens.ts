@@ -307,6 +307,9 @@ export function Feed(
   // then dropped it as liked — the person's own phrase was gone from the screen.
   // Like, hide and block are not for one's own phrase.
   const isOwn = (p?: Phrase) => p !== undefined && mine?.id !== undefined && p.id === mine.id;
+  // A like keeps the phrase in the feed, marked (owner, 15.10.2026; was: it left).
+  const mark = (id: string) =>
+    setItems((list) => (list ?? []).map((p) => p.id === id ? { ...p, liked: true, like_count: (p.like_count ?? 0) + 1 } : p));
   const drop = (id: string) => {
     setItems((list) => {
       const left = (list ?? []).filter((p) => p.id !== id);
@@ -341,7 +344,9 @@ export function Feed(
             // A like on an offer while one's own name is in the queue (§8.5,
             // S7): the like counted, the match waits — refusal-wordings §3.
             if (answer.body.name_pending) onError(new Told(say("like.namePending")));
-            drop(p.id);
+            mark(p.id);
+            // The liked phrase stays marked; the card goes on to the next one, as it did.
+            setAt(Math.max(0, (items ?? []).findIndex((q) => q.id === phrases[Math.min(phrases.length - 1, here + 1)]?.id)));
           })
           .catch((e: Error) => onError(e instanceof Told ? e : e.message)),
       onHide: (p) =>
@@ -366,7 +371,7 @@ export function Feed(
       // The node's feed carries none of these (routes/feed.ts items: text, mode,
       // area, like_count — nothing about the author, §8.11): a header of "?, ?
       // · 0 м · 0 мин" was the terminal inventing four facts it was not told.
-      ? h(Card, { key: p.id, on: i === at, title: plain(p.text, 200) })
+      ? h(Card, { key: p.id, on: i === at, title: plain(p.text, 200), ...(p.liked ? { meta: `+ ${say("feed.liked")}` } : {}) })
       : h(Card, {
         key: p.id,
         on: i === at,
@@ -374,6 +379,7 @@ export function Feed(
           say("feed.minutes", { minutes: plain(p.minutes_ago ?? 0, 6) })
         }`,
         body: plain(p.text, 200),
+        ...(p.liked ? { meta: `+ ${say("feed.liked")}` } : {}),
       });
   return h(
     Stack,
@@ -452,14 +458,15 @@ export function Feed(
             .then(() => setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id)))
             .catch((e: Error) => onError(e.message));
         }
-        // What I liked is not in my feed (§4.10): the card leaves at once, and
-        // "liked" in the menu is where it can be taken back.
+        // What I liked stays in my feed, marked (§4.10, 15.10.2026); "liked" in
+        // the menu is still where the like is taken back. No second like.
+        if (chosen.liked) return;
         client.like(chosen.id)
           .then((answer) => {
             if (answer.status !== 200) throw new Told(refusalWords(say, answer, "like"));
             setMatched(answer.body.state === "matched");
             if (answer.body.name_pending) onError(new Told(say("like.namePending")));
-            setItems((list) => (list ?? []).filter((p) => p.id !== chosen.id));
+            mark(chosen.id);
           })
           .catch((e: Error) => onError(e instanceof Told ? e : e.message));
       },
@@ -541,6 +548,7 @@ export function PhraseCard(
       // An offer's like makes an offer to talk at once and cannot be taken
       // back, so → only goes on past it (§4.4.1).
       if (p.offer !== undefined) return onMove((i) => Math.min(items.length - 1, i + 1));
+      if (p.liked) return setNote(say("feed.liked"));
       setNote(null);
       setBusy(p.id);
       onLike(p);
@@ -552,7 +560,7 @@ export function PhraseCard(
     h(Rule, { width: 56 }),
     p ? h(Txt, null, `   ${plain(p.text, 400)}`) : h(Muted, null, "…"),
     p
-      ? h(Muted, null, `   + ${Number(p.like_count) || 0}${p.soon === true ? ` · ${say("card.soon")}` : ""}`)
+      ? h(Muted, null, `   + ${Number(p.like_count) || 0}${p.liked ? ` · ${say("feed.liked")}` : ""}${p.soon === true ? ` · ${say("card.soon")}` : ""}`)
       : null,
     h(Rule, { width: 56 }),
     // A hint, not a warning: Notice said «внимание:» before «вправо — лайк…» (K10, Т13).

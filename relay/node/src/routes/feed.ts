@@ -267,6 +267,7 @@ interface FeedRow {
   visible_at: Date;
   visible_at_cursor: string;
   soon: boolean;
+  liked: boolean;
   author_age: number;
 }
 
@@ -480,7 +481,9 @@ async function deliver(req: Request, url: URL): Promise<Response> {
               (extract(epoch from f.visible_at) * 1000000)::bigint::text
                 AS visible_at_cursor,
               f.discount_value, f.conditions, f.visible_at, a.age AS author_age,
-              f.expires_at <= now() + (${SOON_MINUTES} * interval '1 minute') AS soon
+              f.expires_at <= now() + (${SOON_MINUTES} * interval '1 minute') AS soon,
+              EXISTS (SELECT 1 FROM likes lk
+                       WHERE lk.liker_identity = $15::uuid AND lk.feed_message_id = f.id) AS liked
          FROM feed_messages f
          JOIN identities a ON a.id = f.author_identity
         WHERE ${livePhraseOf("f")}
@@ -507,10 +510,9 @@ async function deliver(req: Request, url: URL): Promise<Response> {
           -- §8.9: what the viewer hid for themselves stays out of their feed only.
           AND NOT EXISTS (SELECT 1 FROM hidden_messages h
                            WHERE h.identity = $15::uuid AND h.feed_message_id = f.id)
-          -- What the viewer liked is not in their feed (17.09.2026, depth-client
-          -- §4.10): it lives in GET /likes, where the like can be taken back.
-          AND NOT EXISTS (SELECT 1 FROM likes l
-                           WHERE l.liker_identity = $15::uuid AND l.feed_message_id = f.id)
+          -- What the viewer liked stays in their feed, marked liked (owner,
+          -- 15.10.2026: «давай оставлять фразы которые лайкнул, а то не понятно
+          -- куда делись»; reverses 17.09.2026). GET /likes is unchanged.
           AND ($10::bigint IS NULL OR (f.visible_at, f.id) <
                 (timestamptz 'epoch' + $10::bigint * interval '1 microsecond', $11::uuid))
           -- The circles intersect: the distance between the centres is no more
@@ -566,6 +568,8 @@ async function deliver(req: Request, url: URL): Promise<Response> {
       // remaining time does not leave the node (§8.11; limits.tsv
       // likes.soon.threshold; flag and not a time — owner, 23.09.2026).
       ...(row.soon ? { soon: true } : {}),
+      // The viewer's own like, only when true (owner, 15.10.2026).
+      ...(row.liked ? { liked: true } : {}),
       // "Farther than you asked", and only when it is true. The viewer's own
       // setting is not changed by this: an empty screen gets a temporary
       // answer, not a silent edit of somebody's preferences (§8.3).
@@ -756,14 +760,12 @@ async function density(req: Request, url: URL): Promise<Response> {
         AND NOT EXISTS (SELECT 1 FROM blocks b
                        WHERE (b.blocker_identity = $12::uuid AND b.blocked_identity = f.author_identity)
                         OR (b.blocker_identity = f.author_identity AND b.blocked_identity = $12::uuid))
-        -- What the viewer hid or liked is not in their feed, so it is not in
-        -- their "who is here" either: otherwise the handle says "a few" over a
-        -- feed that is empty for them (review panel 23.09.2026; hidden was
-        -- missing since the hidden list was built, liked since 3fd4faa).
+        -- What the viewer hid is not in their feed, so it is not in their
+        -- "who is here" either: otherwise the handle says "a few" over a feed
+        -- that is empty for them (review panel 23.09.2026). Liked phrases stay
+        -- in the feed since 15.10.2026, so they count here too.
         AND NOT EXISTS (SELECT 1 FROM hidden_messages h
                          WHERE h.identity = $12::uuid AND h.feed_message_id = f.id)
-        AND NOT EXISTS (SELECT 1 FROM likes l
-                         WHERE l.liker_identity = $12::uuid AND l.feed_message_id = f.id)
         -- The published centre here too: the handle answers a coarser question
         -- than the feed, but its none/few boundary is still a yes-or-no about
         -- one circle, and a yes-or-no about the exact centre is the same

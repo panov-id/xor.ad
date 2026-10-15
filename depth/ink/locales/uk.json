@@ -77,6 +77,7 @@
   "feed.takedown": "зняти фразу",
   "feed.takedownRefused": "фразу зняти не вдалося: {status}",
   "feed.hidden": "сховане",
+  "feed.liked": "вподобано",
   "hidden.title": "сховані фрази",
   "hidden.empty": "нічого не сховано",
   "hidden.restore": "повернути",

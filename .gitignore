@@ -1,10 +1,12 @@
 .idea/
 # Generated visual-test output, not source
 /testing/screenshots/
+/testing/redesign/
 # Test runtime artifacts (created inside the Docker runners)
 /testing/node_modules/
 /testing/results/
 /testing/report/
+/testing/load/
 # Deploy secrets — real tokens/keys, never committed
 /deploy/.env.deploy
 /deploy/github-secrets.json

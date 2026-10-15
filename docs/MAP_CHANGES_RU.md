@@ -1,3 +1,12 @@
+## 14.10.2026 23:37 · связей +4 −0
+
+```diff
++ web/e2e/specs/rail.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/rail.spec.ts -> web/e2e/specs/helpers.ts
++ web/e2e/specs/routes-gates.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/routes-gates.spec.ts -> web/e2e/specs/helpers.ts
+```
+
 ## 14.10.2026 17:18 · связей +2 −0
 
 ```diff

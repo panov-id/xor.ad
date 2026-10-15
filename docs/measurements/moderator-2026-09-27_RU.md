@@ -2,7 +2,7 @@
 
 Модель: `qwen2.5:3b-instruct` (Ollama `0.3.14`), в Docker, в сети `internal` без шлюза. Что наружу
 не выйти, скрипт проверяет, а не предполагает. Ноутбук, 8 ядер CPU, без GPU. Корпус — тот же, что в
-[`feed-rules-2026-09-27_RU.md`](feed-rules-2026-09-27_RU.md): массивы `scripts/measure-feed-rules.ts`
+`feed-rules-2026-09-27_RU.md` (удалён в 2628ec93): массивы `scripts/measure-feed-rules.ts`
 взяты как есть. Класс `repeat` исключён: это связь двух фраз, а не текст. Вопрос задаёт
 `relay/node/src/lib/moderator.ts` (`askModerator`) — тот же промпт и тот же вызов, что в узле.
 Скрипт: `relay/moderator/measure.sh`. Числа ниже вставлены из его JSON, не набраны.

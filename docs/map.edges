@@ -1914,6 +1914,8 @@ web/e2e/specs/place-qr.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/place-qr.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/place.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/place.spec.ts -> web/e2e/specs/helpers.ts
+web/e2e/specs/rail.spec.ts -> web/e2e/fixtures/address.ts
+web/e2e/specs/rail.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/register-feed.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/register-feedback.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/reissue.spec.ts -> web/e2e/fixtures/address.ts
@@ -1926,6 +1928,8 @@ web/e2e/specs/restore-pin.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/restore-pin.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/restore.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/restore.spec.ts -> web/e2e/specs/helpers.ts
+web/e2e/specs/routes-gates.spec.ts -> web/e2e/fixtures/address.ts
+web/e2e/specs/routes-gates.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/routes.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/routes.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/starters.spec.ts -> web/e2e/fixtures/address.ts

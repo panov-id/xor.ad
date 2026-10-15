@@ -2,7 +2,7 @@
 
 Model: `qwen2.5:3b-instruct` (Ollama `0.3.14`), in Docker, on an `internal` network with no gateway.
 That nothing can get out is checked by the script, not assumed. A laptop, 8 CPU cores, no GPU. The
-corpus is the one from [`feed-rules-2026-09-27_EN.md`](feed-rules-2026-09-27_EN.md): the arrays of
+corpus is the one from `feed-rules-2026-09-27_EN.md` (removed in 2628ec93): the arrays of
 `scripts/measure-feed-rules.ts` taken as they are. The `repeat` class is left out: it is a relation
 between two phrases, not a text. The question is asked by `relay/node/src/lib/moderator.ts`
 (`askModerator`) — the same prompt and the same call as in the node. Script:

@@ -122,7 +122,7 @@ async function step(name, page, reach) {
 // pressLike): sosed's button; neighbro's heart tapped, then the card — the like
 // goes after the 5 s undo window.
 async function like(page) {
-  if (BRAND === "neighbro") { await id(page, "heart").click(); await id(page, "heart-target").click(); }
+  if (BRAND === "neighbro") await id(page, "heart").click(); // one tap places it (owner, 14.10)
   else await id(page, "like").click();
 }
 
@@ -207,8 +207,8 @@ await anya.locator('[data-testid="sent"][data-state="published"]').waitFor({ tim
 await step("Card", anya, async () => { await openCard(anya, bText); });
 // Card-more: sosed's details pulled down (the peek), neighbro's heart picked
 // up over the card; put back after the shot.
-await step("Card-more", anya, async () => { await id(anya, BRAND === "neighbro" ? "heart" : "peek").click(); await anya.waitForTimeout(300); });
-await id(anya, BRAND === "neighbro" ? "heart" : "peek").click().catch(() => {});
+await step("Card-more", anya, async () => { await id(anya, BRAND === "neighbro" ? "more" : "peek").click(); await anya.waitForTimeout(300); });
+if (BRAND === "neighbro") await anya.keyboard.press("Escape"); else await id(anya, "peek").click().catch(() => {});
 await step("Card-liked", anya, async () => { await like(anya); await seen(id(anya, "liked")); });
 await step("Likes", boris, async () => {
   await home(boris);

@@ -71,7 +71,7 @@ test("registration with a PIN and the paper code, then the feed", async ({ page 
   await expect(page.getByTestId("sealed-failed"), "a healthy seal shows no error line").toHaveCount(0);
   const record = await page.evaluate(() =>
     new Promise<{ identityId: string; sessionId: string; sealedLength: number; salt: number; sealedWrap: number; wrapCheck: number } | null>((resolve) => {
-      const req = indexedDB.open("xor-vault", 1);
+      const req = indexedDB.open("xor-vault");
       req.onsuccess = () => {
         const get = req.result.transaction("identity").objectStore("identity").get("me");
         get.onsuccess = () => {

@@ -36,13 +36,20 @@ export const headersFor = (file: string): Record<string, string> => ({
 // list test meets a device that has answered it, and the page speaks the browser's language as before.
 const SEEN = () => { try { localStorage.setItem("wizard-seen", "1"); } catch { /* storage blocked */ } };
 const ASKED = () => { try { localStorage.setItem("lang-asked", "1"); } catch { /* storage blocked */ } };
+// The reload grace (web/src/grace.ts; owner 14.10.2026): a reload within 30 s of the last input opens without
+// the PIN. The specs written before it reload and expect the unlock, and they are right about a tab left for
+// 30 s — so every context meets the stand's wait set to 0 ms (vault.ts graceMsOf), as if the 30 s had passed;
+// reload-grace.spec.ts alone asks for the grace with `graced: true`.
+const NO_GRACE = () => { try { sessionStorage.setItem("xor-grace-ms", "0"); } catch { /* storage blocked */ } };
 
-export const test = base.extend<{ stamped: void; wizardSeen: boolean; langAsked: boolean }>({
+export const test = base.extend<{ stamped: void; wizardSeen: boolean; langAsked: boolean; graced: boolean }>({
   wizardSeen: [true, { option: true }],
   langAsked: [true, { option: true }],
-  context: async ({ context, wizardSeen, langAsked }, use) => {
+  graced: [false, { option: true }],
+  context: async ({ context, wizardSeen, langAsked, graced }, use) => {
     if (wizardSeen) await context.addInitScript(SEEN);
     if (langAsked) await context.addInitScript(ASKED);
+    if (!graced) await context.addInitScript(NO_GRACE);
     await use(context);
   },
   // The context Playwright makes for `page`.
@@ -51,13 +58,14 @@ export const test = base.extend<{ stamped: void; wizardSeen: boolean; langAsked:
   },
   // The contexts a spec makes itself: browser.newContext() carries the same
   // headers for as long as this test runs, and is given back afterwards.
-  stamped: [async ({ browser, wizardSeen, langAsked }, use, testInfo) => {
+  stamped: [async ({ browser, wizardSeen, langAsked, graced }, use, testInfo) => {
     const original = browser.newContext.bind(browser);
     const headers = headersFor(testInfo.file);
     (browser as Browser).newContext = async (options: BrowserContextOptions = {}) => {
       const made = await original({ ...options, extraHTTPHeaders: { ...(options.extraHTTPHeaders ?? {}), ...headers } });
       if (wizardSeen) await made.addInitScript(SEEN);
       if (langAsked) await made.addInitScript(ASKED);
+      if (!graced) await made.addInitScript(NO_GRACE);
       return made;
     };
     await use();

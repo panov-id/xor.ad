@@ -94,12 +94,11 @@ export async function writePhrase(page: Page, text: string): Promise<void> {
 }
 
 // The like on an open card, as the brand gives it (02.10.2026): sosed's
-// button; neighbro's heart tapped and then the card — the like then goes
+// button; neighbro's heart, one tap — the like then goes
 // after the 5 s undo window, so whoever waits for "liked" waits 15 s.
 export async function pressLike(page: Page): Promise<void> {
   if ((await page.locator("html").getAttribute("data-brand")) === "neighbro") {
     await page.getByTestId("heart").click();
-    await page.getByTestId("heart-target").click();
   } else {
     await page.getByTestId("like").click();
   }

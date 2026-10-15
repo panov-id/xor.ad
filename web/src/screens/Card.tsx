@@ -1,7 +1,7 @@
 // A phrase full-screen (the card of screen 03's sheet, depth's full-screen
 // card): the text large, the mode and the language under it, and the main row
-// of exactly two actions welded in one capsule — like (§8.4) | hide it from
-// one's own feed (§8.9). The rarer, dangerous ones — block its author (§8.9),
+// of one action in a capsule — like (§8.4); hiding it from
+// one's own feed (§8.9) stands first behind «…» (owner, 14.10.2026). The rarer, dangerous ones — block its author (§8.9),
 // the venue offer's complaint, the report on its link — stand behind «…» in
 // the header, in a bottom sheet (strict review 11.10, card-more.svg). A like
 // that meets a like becomes a match: the row turns into one «talk» that leads
@@ -37,11 +37,11 @@ export function Card(
     // «talk» after a match: to the inbox, where the match's offer to talk waits.
     onTalk?: () => void;
     // The card left the viewer's feed — hidden, or its author blocked.
-    onGone: (why: "hidden" | "blocked", id: string) => void;
+    onGone: (why: "hidden" | "blocked", id: string, handle?: string) => void;
   },
 ) {
   const logic = useCard({ client, card, onGone });
-  const { like, busy, doLike, hide } = logic;
+  const { like, busy, doLike } = logic;
   const mode = modes().find((m) => m.value === card.mode)?.label ?? card.mode;
   const language = languageIn(card.lang);
 
@@ -60,7 +60,7 @@ export function Card(
         {card.offer?.conditions && <p className="ui-hint" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
         {language && <p className="ui-hint" lang={card.lang}>{language}</p>}
         <p className="ui-card-likes">
-          <LikeBurst count={card.like_count + (like && like.state !== "refused" ? 1 : 0)} on={like !== null && like.state !== "refused"}
+          <LikeBurst count={card.like_count + (!card.liked && like && like.state !== "refused" ? 1 : 0)} on={logic.liked}
             data-testid="like-burst" />
           {card.soon ? <span className="ui-hint">{say("web.card.soon")}</span> : null}
         </p>
@@ -78,14 +78,6 @@ export function Card(
             data-testid="like"
             data-lit={like !== null && like.state !== "refused" ? "" : undefined}
             aria-pressed={like !== null && like.state !== "refused"}
-          />
-          <Button
-            type="button"
-            icon="hide"
-            aria-label={say("feed.hide")}
-            disabled={busy}
-            onClick={() => void hide()}
-            data-testid="hide"
           />
         </Split>
       </CardTalk>
@@ -126,9 +118,12 @@ export function CardTalk({ logic, onTalk, children }: { logic: CardLogic; onTalk
 // The «…» in the header and its bottom sheet (card-more.svg): the rare actions, the quiet first, the dangerous
 // ones (block, complaint) last and red. What was done stays out of the list: a sent complaint or report is
 // said on the card (CardExtras), not offered twice.
-export function CardMore({ card, logic }: { card: FeedCard; logic: CardLogic }) {
-  const { busy, moreOpen, setMoreOpen, setConfirmBlock, setComplaining, complained, linkCode, report, reportLink, noticed, setNoticing } = logic;
-  const actions: SheetAction[] = [];
+export function CardMore({ card, logic, onHide }: { card: FeedCard; logic: CardLogic; onHide?: () => void }) {
+  const { hide, busy, moreOpen, setMoreOpen, setConfirmBlock, setComplaining, complained, linkCode, report, reportLink, noticed, setNoticing } = logic;
+  // «hide» stands first, the quietest: the feed answers with «hidden · return» for a few seconds (owner, 14.10.2026).
+  const actions: SheetAction[] = [
+    { id: "hide", label: say("feed.hide"), onSelect: onHide ?? (() => void hide()), disabled: busy, testid: "hide" },
+  ];
   if (linkCode && report !== "sent") {
     actions.push({ id: "report", label: say("web.offer.wrong"), onSelect: () => void reportLink(), disabled: busy || report === "sending", testid: "report" });
   }

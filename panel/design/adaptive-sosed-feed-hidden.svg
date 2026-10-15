@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="943" viewBox="0 0 393 943"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#e6dbc9"/></pattern></defs>
+<rect width="393" height="851" fill="#ece4d8"/>
+<g transform="translate(16.0 24.0) scale(0.3333)">
+<circle cx="48" cy="48" r="46" fill="#bd4b2a"/>
+<g transform="translate(17,18) scale(0.86)"><path d="M48 6 V18 M42 8 L54 4" fill="none" stroke="#fff6f0" stroke-width="3" stroke-linecap="round"/><path d="M10 18 H62 V56 H30 L18 66 V56 H10 Z" fill="#fff6f0" stroke="#fff6f0" stroke-width="4" stroke-linejoin="round"/>
+<rect x="17" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="25" width="8" height="8" fill="#bd4b2a"/>
+<rect x="17" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="32" y="40" width="8" height="8" fill="#bd4b2a"/>
+<rect x="47" y="40" width="8" height="8" fill="#bd4b2a"/>
+</g>
+</g>
+<text x="58" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#1c140d" text-anchor="start">Limassol</text>
+<rect x="233" y="18" width="144" height="44" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<path d="M305.0 26 V54" stroke="#ece4d8" stroke-width="2"/>
+<g transform="translate(257.0 28) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+<text x="341.0" y="46" font-family="Golos Text" font-weight="600" font-size="14" fill="#1c140d" text-anchor="middle">1 km</text>
+<rect x="16" y="82" width="361" height="64" rx="18" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<g transform="translate(30 102) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+<text x="64" y="120" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">hidden</text>
+<text x="363" y="120" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="end">return</text>
+<rect x="16" y="178" width="361" height="126" rx="18" fill="#1fa99a" />
+<text x="34" y="218" font-family="Golos Text" font-weight="600" font-size="20" fill="#1c140d" text-anchor="start">coffee at the corner bakery</text>
+<g transform="translate(32 264) scale(0.8)" fill="none" stroke="#1c140d" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
+<text x="56" y="281" font-family="Golos Text" font-weight="500" font-size="14" fill="#1c140d" text-anchor="start">with friends</text>
+<g transform="translate(307.0 264.0) scale(0.2500)">
+<g fill="none" stroke="#1c140d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 H82 V72 H42 L26 86 V72 H14 Z"/><path d="M62 30 V14 M54 16 L70 10"/></g>
+</g>
+<text x="337" y="282" font-family="Golos Text" font-weight="600" font-size="16" fill="#1c140d" text-anchor="start">4</text>
+<rect x="16.0" y="771" width="361" height="64" rx="32" fill="#fdfaf4" stroke="#857562" stroke-width="1.5"/>
+<rect x="21.125" y="779" width="80" height="48" rx="24" fill="#1c140d" />
+<g transform="translate(49.125 791) scale(1.0)" fill="none" stroke="#ece4d8" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
+<g transform="translate(139.375 791) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.2"/><circle cx="16" cy="8" r="1.2"/><circle cx="8" cy="16" r="1.2"/><circle cx="16" cy="16" r="1.2"/></g>
+<g transform="translate(229.625 791) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<g transform="translate(319.875 791) scale(1.0)" fill="none" stroke="#1c140d" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#983c22" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="851" width="393" height="92" fill="#ece4d8"/>
+<text class="note" x="16" y="879" font-family="Golos Text" font-size="14" fill="#983c22">gone after 5 s; «return» puts the phrase back;</text>
+<text class="note" x="16" y="899" font-family="Golos Text" font-size="14" fill="#983c22">me → hidden stays</text>
+<text class="note" x="16" y="919" font-family="Golos Text" font-size="14" fill="#983c22">tab bar stays at the bottom below 1024, 480 wide</text>
+</svg>

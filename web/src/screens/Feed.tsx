@@ -8,16 +8,18 @@
 // used to stand at the foot is gone (owner 10.10.2026) — the seal's state stays
 // in data-sealed, and a seal that does not match is an ErrorLine in words.
 
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type ReactNode, useEffect, useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { nearby } from "../a11y/nearby.ts";
 import { languageIn, modes, type Sent } from "../api/actions.ts";
+import { unhide } from "../api/lists.ts";
 import { classWord, setWord } from "../api/tables.ts";
 import { Button } from "../ui/Button.tsx";
 import { Card, CardOpen, LikeCount, openerIds } from "../ui/Card.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { HeaderFeed } from "../ui/Header.tsx";
 import { Actions } from "../ui/Links.tsx";
+import { UndoRow } from "../ui/Message.tsx";
 import { EmptyState } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { PlaceBar } from "../ui/PlaceBar.tsx";
@@ -49,13 +51,18 @@ export interface FeedCard {
   watching?: number;
   name?: string | null;
   soon?: boolean;
+  // The viewer's own like, kept in the feed since 15.10.2026 (routes/feed.ts): marked, not hidden.
+  liked?: boolean;
 }
+
+// How long the «hidden · return» row stands on the feed.
+const UNDO_HIDE_S = 5;
 
 export const RADII: Radius[] = [100, 300, 1000, 3000, 10000];
 const label = (r: Radius) => (r >= 1000 ? say("web.feed.km", { n: r / 1000 }) : say("web.feed.m", { n: r }));
 
 export function Feed(
-  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, onPlace, sent, onTakenDown, gone, onTable, onNewTable, notice, renderPhrase, listClass, brandClass }: {
+  { client, sealed, at, radius, onRadius, onOpen, onWrite, onLikes, onPlace, sent, onTakenDown, gone, onUnhidden, onTable, onNewTable, notice, renderPhrase, listClass, brandClass }: {
     client: Client;
     // A brand's FeedView draws the phrase cards its own way (web/src/brands):
     // the element must keep data-testid="card", data-id and open on a press.
@@ -83,11 +90,28 @@ export function Feed(
     // My own phrase came down: the holder of `sent` forgets it.
     onTakenDown?: () => void;
     // A card that left this feed on the card screen: hidden, or its author blocked.
-    gone?: { why: "hidden" | "blocked"; id: string } | null;
+    gone?: { why: "hidden" | "blocked"; id: string; handle?: string } | null;
+    // «return» on the hidden phrase's row: the holder of `gone` forgets it.
+    onUnhidden?: () => void;
   },
 ) {
   const { items, next, state, error, takingDown, takedownRefused, takeDown, load, refused, said } =
     useFeed({ client, at, radius, sent, onTakenDown });
+  // «hidden · return» stands UNDO_HIDE_S seconds after a phrase was hidden on its card (owner, 14.10.2026), then goes;
+  // the phrase stays hidden (me → hidden · N → return still brings it back).
+  const [undoing, setUndoing] = useState(false);
+  const [undoError, setUndoError] = useState<string | null>(null);
+  useEffect(() => {
+    setUndoError(null);
+    if (gone?.why !== "hidden") { setUndoing(false); return; }
+    setUndoing(true);
+    const timer = setTimeout(() => setUndoing(false), UNDO_HIDE_S * 1000);
+    return () => clearTimeout(timer);
+  }, [gone]);
+  function bringBack() {
+    if (!gone?.handle) return;
+    unhide(client, gone.handle).then(() => { setUndoing(false); onUnhidden?.(); void load(); }).catch((e: Error) => setUndoError(e.message));
+  }
   const widerTo = radius < 10000 ? RADII[RADII.indexOf(radius) + 1] : null;
   return (
     <Screen name="feed" title={say("web.feed.title")} className={brandClass} data-sealed={sealed} header={
@@ -130,10 +154,14 @@ export function Feed(
       {sent && takedownRefused !== null && (
         <ErrorLine data-testid="takedown-refused">{say("feed.takedownRefused", { status: takedownRefused })}</ErrorLine>
       )}
-      {gone && (
-        <p className="ui-hint" data-testid="gone" data-why={gone.why}>
-          {gone.why === "hidden" ? say("web.feed.hidden") : say("web.feed.blocked")}
-        </p>
+      {gone?.why === "hidden" && undoing && (
+        <div data-testid="gone" data-why="hidden">
+          <UndoRow mark={say("web.feed.hidden")} action={{ label: say("web.feed.hidden_undo"), onSelect: bringBack, testid: "hidden-undo" }} />
+        </div>
+      )}
+      {undoError && <ErrorLine data-testid="hidden-undo-error">{undoError}</ErrorLine>}
+      {gone?.why === "blocked" && (
+        <p className="ui-hint" data-testid="gone" data-why="blocked">{say("web.feed.blocked")}</p>
       )}
       {state === "failed" && <ErrorLine data-testid="error">{error}</ErrorLine>}
       {notice && <ErrorLine data-testid="table-refused">{notice}</ErrorLine>}
@@ -171,7 +199,7 @@ export function Feed(
             <TileFoot id={openerIds(card.id).foot} items={[]}>
               <span>{modes().find((m) => m.value === card.mode)?.label ?? card.mode}</span>
               {languageIn(card.lang) && <span>{languageIn(card.lang)}</span>}
-              <LikeCount n={card.like_count} />
+              <LikeCount n={card.like_count} lit={card.liked} />
               {card.soon && <span>{say("web.feed.soon")}</span>}
             </TileFoot>
           </Card>

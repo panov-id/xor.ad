@@ -23,6 +23,7 @@ import {
   addVenue, answerComplaint, type Complaint, complaints, me, movePlace, notUs, type Offer, offers, openSession, orderEnvelope, type Place, publish, RADII, type Refusal, signIn,
   signUp, type Venue, venues, verify, when,
 } from "./api.ts";
+import { BRAND, NAMES } from "../config.ts";
 import { say } from "../locales/say.ts";
 import { Info } from "../ui/Info.tsx";
 
@@ -69,8 +70,10 @@ export function Cabinet() {
   ] : undefined;
   return (
     // Sheet 17's strip: where you are, in mono, and the other section as a
-    // word — a separate web sign-in, no app navigation.
-    <Screen name={`adv-${view}`} title={title} header={<Nav where={`${location.host}${PATHS[view]}`} label={title} items={items} />}>
+    // word — a separate web sign-in, no app navigation. The address is the
+    // cabinet's public one (adv.<storefront>), never the host the page was
+    // opened on: on a stand that is an internal name (web-adv:4173).
+    <Screen name={`adv-${view}`} title={title} header={<Nav where={`adv.${NAMES[BRAND]}${PATHS[view]}`} label={title} items={items} />}>
       {view === "loading" && <p className="ui-hint" data-testid="loading">…</p>}
       {view === "sign-in" && <SignIn onSent={() => setView("sent")} onError={setError} />}
       {view === "sent" && (

@@ -61,11 +61,11 @@ const modeLabel = (mode: string) => modes().find((m) => m.value === mode)?.label
 const langOf = (card: FeedCard) => (card.lang && card.lang !== "und" ? card.lang : undefined);
 // The like count for the eye (the heart and the number) and for the ear (its
 // name, «лайков: 3»): a bare number after an icon is read as «три» (П16).
-const likesOf = (n: number) => (
+const likesOf = (n: number, mine?: boolean) => (
   <>
     <Icon name="like" size={18} />
     <span aria-hidden="true">{n}</span>
-    <span className="visually-hidden">{say("web.like.count", { n })}</span>
+    <span className="visually-hidden">{say("web.like.count", { n })}{mine ? `, ${say("web.feed.liked")}` : ""}</span>
   </>
 );
 
@@ -91,7 +91,7 @@ function Tile({ card, index, open }: { card: FeedCard; index: number; open: () =
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="tile-foot" id={openerIds(card.id).foot}>
         <span className="ui-icon-row"><Icon name={modeIcon(card.mode)} size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
-        <span className="tile-likes">{likesOf(card.like_count)}</span>
+        <span className="tile-likes" data-mine={card.liked ? "" : undefined} data-lit={card.liked ? "" : undefined} data-testid={card.liked ? "liked-mark" : undefined}>{likesOf(card.like_count, card.liked)}</span>
       </span>
     </li>
   );
@@ -133,7 +133,7 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
         <section className="block-peek" data-testid="details" aria-label={say("web.card.details")}>
           <ul className="block-peek-tiles" role="list">
             <li className="block-peek-tile t2"><Icon name={modeIcon(card.mode)} /><span>{modeLabel(card.mode)}</span></li>
-            <li className="block-peek-tile t1"><Icon name="like" /><span data-testid="like-burst" aria-hidden="true">{card.like_count + (liked ? 1 : 0)}</span><span className="visually-hidden">{say("web.like.count", { n: card.like_count + (liked ? 1 : 0) })}</span></li>
+            <li className="block-peek-tile t1"><Icon name="like" /><span data-testid="like-burst" aria-hidden="true">{card.like_count + (liked && !card.liked ? 1 : 0)}</span><span className="visually-hidden">{say("web.like.count", { n: card.like_count + (liked && !card.liked ? 1 : 0) })}</span></li>
             {languageIn(card.lang) && <li className="block-peek-tile t3"><Icon name="say" /><span lang={langOf(card)}>{languageIn(card.lang)}</span></li>}
             {card.soon && <li className="block-peek-tile t4"><Icon name="timer" /><span>{say("web.card.soon")}</span></li>}
           </ul>
@@ -164,7 +164,6 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
         <CardTalk logic={logic} onTalk={onTalk}>
           <Split>
             <Button type="button" kind="primary" icon="like" aria-label={say("web.card.like")} disabled={busy || liked} onClick={() => void doLike()} data-testid="like" data-lit={liked ? "" : undefined} aria-pressed={liked} />
-            <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={() => void hide()} data-testid="hide" />
           </Split>
         </CardTalk>
       </div>

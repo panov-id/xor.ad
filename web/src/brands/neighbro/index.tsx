@@ -61,11 +61,11 @@ const modeLabel = (mode: string) => modes().find((m) => m.value === mode)?.label
 const langOf = (card: FeedCard) => (card.lang && card.lang !== "und" ? card.lang : undefined);
 // The like count for the eye (the heart and the number) and for the ear (its
 // name, «лайков: 3»): a bare number after an icon is read as «три» (П16).
-const likesOf = (n: number) => (
+const likesOf = (n: number, mine?: boolean) => (
   <>
     <Icon name="like" size={18} />
     <span aria-hidden="true">{n}</span>
-    <span className="visually-hidden">{say("web.like.count", { n })}</span>
+    <span className="visually-hidden">{say("web.like.count", { n })}{mine ? `, ${say("web.feed.liked")}` : ""}</span>
   </>
 );
 
@@ -95,7 +95,7 @@ function Sticker({ card, index, open }: { card: FeedCard; index: number; open: (
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="sticker-foot" id={openerIds(card.id).foot}>
         <span className="ui-icon-row"><Icon name={modeIcon(card.mode)} size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
-        <span className="sticker-likes">{likesOf(card.like_count)}</span>
+        <span className="sticker-likes" data-mine={card.liked ? "" : undefined} data-lit={card.liked ? "" : undefined} data-testid={card.liked ? "liked-mark" : undefined}>{likesOf(card.like_count, card.liked)}</span>
       </span>
     </li>
   );
@@ -110,7 +110,6 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
   const logic = useCard({ client, card, onGone });
   const { busy, liked, doLike } = logic;
   const actions = logic;
-  const [armed, setArmed] = useState(false);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const press = useRef<{ x: number; y: number; id: number; moved: boolean } | null>(null);
   const target = useRef<HTMLElement | null>(null);
@@ -132,9 +131,7 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
   const ids = useId();
   const described = [card.offer && `${ids}-offer`, `${ids}-meta`, card.offer?.conditions && `${ids}-cond`, `${ids}-count`].filter(Boolean).join(" ");
   // Said once, when the like has gone, or when it was taken back (P3).
-  const said = liked ? say("web.card.liked") : cancelled ? say("web.like.cancelled") : "";
-  // A picked heart sends focus to its target, which sits before it (P4).
-  useEffect(() => { if (armed) target.current?.focus(); }, [armed]);
+  const said = liked && !card.liked ? say("web.card.liked") : cancelled ? say("web.like.cancelled") : "";
   useEffect(() => {
     if (!pending || held) return;
     const timer = setTimeout(() => {
@@ -148,7 +145,6 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
 
   function place() {
     if (placed || busy) return;
-    setArmed(false);
     setCancelled(false);
     setPending(true);
   }
@@ -193,30 +189,26 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
     onPointerCancel() { press.current = null; setDrag(null); },
     onClick() {
       if (press.current?.moved) { press.current = null; return; }
-      if (!placed) setArmed((a) => !a);
+      // A tap (click, Enter, Space) places the heart on the card at once (owner, 14.10.2026).
+      place();
     },
   };
 
   return (
-    <Screen name="card" title={say("web.card.phrase")} className="b-stickers" data-id={card.id} data-heart={liked ? "sent" : pending ? "pending" : armed ? "armed" : "pad"}
-      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} action={<CardMore card={card} logic={actions} />} />}>
+    <Screen name="card" title={say("web.card.phrase")} className="b-stickers" data-id={card.id} data-heart={liked ? "sent" : pending ? "pending" : "pad"}
+      header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} action={<CardMore card={card} logic={actions} onHide={hideCard} />} />}>
       <article
         ref={target}
-        className={`sticker-card${armed ? " target" : ""}`}
+        className="sticker-card"
         data-testid="heart-target"
-        role="button"
-        tabIndex={armed ? 0 : -1}
         aria-labelledby={`${ids}-text`}
         aria-describedby={described}
-        aria-disabled={!armed}
-        onClick={() => { if (armed) place(); }}
-        onKeyDown={(k) => { if (armed && (k.key === "Enter" || k.key === " ")) { k.preventDefault(); place(); } }}
       >
         {card.offer && <span className="ui-offer" id={`${ids}-offer`} data-testid="offer">−{card.offer.discount_value}</span>}
         <p className="ui-big" id={`${ids}-text`} data-testid="text" lang={langOf(card)}>{card.text}</p>
         <span className="sticker-meta" id={`${ids}-meta`}>{modeLabel(card.mode)}{card.soon ? say("web.card.soon") : ""}</span>
         {card.offer?.conditions && <span className="sticker-meta" id={`${ids}-cond`} data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</span>}
-        <span className="sticker-count" id={`${ids}-count`} data-testid="like-burst"><Icon name="like" size={18} /><span className="visually-hidden">{say("web.card.likes")} </span>{card.like_count + (liked ? 1 : 0)}</span>
+        <span className="sticker-count" id={`${ids}-count`} data-testid="like-burst"><Icon name="like" size={18} /><span className="visually-hidden">{say("web.card.likes")} </span>{card.like_count + (liked && !card.liked ? 1 : 0)}</span>
         {placed && <span className="stuck-heart" data-testid="stuck-heart" aria-hidden="true"><Icon name="like" size={40} /></span>}
       </article>
       {/* Right after the card, so Tab from it finds «отменить» first (WCAG 2.2.1). */}
@@ -232,16 +224,15 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
       <span className="visually-hidden" role="status" data-testid="heart-said">{said}</span>
       <CardNotes logic={actions} />
       <CardExtras card={card} logic={actions} />
-      {/* the capsule at the screen's foot (sheet adaptive-neighbro-card-393: 361×60 at y 755): the heart and «hide» */}
+      {/* the capsule at the screen's foot (sheet adaptive-neighbro-card-393: 361×60 at y 755): the heart (hide is behind «…») */}
       <div data-part="foot">
         <CardTalk logic={actions} onTalk={onTalk}>
           <div className="heart-pad">
             <button
               ref={heartButton}
               type="button"
-              className={`heart-sticker${armed ? " armed" : ""}${placed ? " used" : ""}`}
+              className={`heart-sticker${placed ? " used" : ""}`}
               aria-label={say("web.card.heart")}
-              aria-pressed={armed}
               disabled={placed || busy}
               data-testid="heart"
               {...heart}
@@ -249,7 +240,6 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
               <Icon name="like" size={36} />
             </button>
             {drag && <span className="heart-ghost" aria-hidden="true" style={{ left: drag.x, top: drag.y }}><Icon name="like" size={40} /></span>}
-            <Button type="button" icon="hide" aria-label={say("feed.hide")} disabled={busy} onClick={hideCard} data-testid="hide" />
           </div>
         </CardTalk>
       </div>

@@ -1,6 +1,5 @@
 // neighbro "stickers" with one heart (owner's decision 02.10.2026): the heart
-// is dragged onto the card, or tapped and then the card tapped, or picked and
-// placed with Enter. The like goes to the node 5 s after the heart lands
+// is dragged onto the card, or tapped once (click, Enter, Space) and it lands. The like goes to the node 5 s after the heart lands
 // (owner's decision 10.10.2026, kit_RU.md §8.5): until then an UndoRow says
 // «лайк уйдёт через 5 с · отменить», «отменить» takes the heart back, the clock
 // stands while the focus is in the row (WCAG 2.2.1), and leaving the card sends
@@ -44,7 +43,7 @@ async function carry(page: Page, to: { x: number; y: number }): Promise<void> {
   await page.mouse.up();
 }
 
-test("neighbro heart: drag, tap-tap and Enter place it; the like goes 5 s later and the other side sees it then", async ({ browser }) => {
+test("neighbro heart: drag, one tap and Enter place it; the like goes 5 s later and the other side sees it then", async ({ browser }) => {
   test.setTimeout(300_000);
   const label = runLabel();
   const lines = ["сердце перетащить", "сердце нажатием", "сердце клавишей"].map((l) => `${l} ${label}`);
@@ -88,27 +87,22 @@ test("neighbro heart: drag, tap-tap and Enter place it; the like goes 5 s later 
     // The other side sees it: her heart on his phrase makes the match (hers goes after her own window).
     await open(a, his);
     await a.getByTestId("heart").click();
-    await a.getByTestId("heart-target").click();
     await expect(a.getByTestId("matched"), "his like was on the node when hers came").toBeVisible({ timeout: 20000 });
     await b.getByTestId("back").click();
 
-    // 3. Tap the heart, tap the card: sent after the window.
+    // 3. One tap on the heart: placed, and sent after the window.
     seen.length = 0;
     const tapId = await open(b, lines[1]);
     await b.getByTestId("heart").click();
-    await expect(b.getByTestId("heart")).toHaveAttribute("aria-pressed", "true");
-    await b.getByTestId("heart-target").click();
-    await expect(b.getByTestId("liked"), "tap-tap sent the like after the window").toBeVisible({ timeout: 15000 });
+    await expect(b.locator('[data-screen="card"]'), "one tap places the heart").toHaveAttribute("data-heart", "pending");
+    await expect(b.getByTestId("liked"), "one tap on the heart sent the like after the window").toBeVisible({ timeout: 15000 });
     expect(seen.map((l) => l.id)).toEqual([tapId]);
     await b.getByTestId("back").click();
 
-    // 4. The keyboard: Enter picks the heart, Enter on the card places it.
+    // 4. The keyboard: Enter on the heart places it.
     seen.length = 0;
     const keyId = await open(b, lines[2]);
     await b.getByTestId("heart").focus();
-    await b.keyboard.press("Enter");
-    await expect(b.getByTestId("heart")).toHaveAttribute("aria-pressed", "true");
-    await b.getByTestId("heart-target").focus();
     await b.keyboard.press("Enter");
     await expect(b.getByTestId("liked"), "Enter sent the like after the window").toBeVisible({ timeout: 15000 });
     expect(seen.map((l) => l.id)).toEqual([keyId]);
@@ -137,7 +131,6 @@ test("neighbro heart: «отменить» takes it back, the clock stands while
     const screen = b.locator('[data-screen="card"]');
     const place = async () => {
       await b.getByTestId("heart").click();
-      await b.getByTestId("heart-target").click();
       await expect(screen).toHaveAttribute("data-heart", "pending");
     };
 

@@ -150,8 +150,18 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     expect(likePosts).toEqual([200]);
     await expect(await likeControl(b)).toBeDisabled();
 
-    // "Liked" lists it, and the like is taken back — the phrase made no match.
+    // The liked phrase stays in the feed, marked (owner, 15.10.2026): not "gone, where to?".
     await b.getByTestId("back").click();
+    await expect(b.getByTestId("loading")).toBeHidden({ timeout: 15000 });
+    const tile = b.getByTestId("card").filter({ hasText: phrase });
+    await expect(tile, "a liked phrase left the feed").toHaveCount(1);
+    await expect(tile.getByTestId("liked-mark"), "the liked phrase carries no mark").toHaveCount(1);
+    // Opened again it is liked already: the like button is off, no second like goes out.
+    await tile.click();
+    await expect(await likeControl(b)).toBeDisabled();
+    await b.getByTestId("back").click();
+
+    // "Liked" lists it, and the like is taken back — the phrase made no match.
     await b.getByTestId("likes").click();
     await expect(b.locator('[data-screen="likes"]')).toBeVisible();
     const liked = b.getByTestId("liked-card").filter({ hasText: phrase });
@@ -171,6 +181,7 @@ test("a phrase goes out at 200, another person likes it from the card, and finds
     await b.getByTestId("block-confirm-no").click();
     await expect(b.getByTestId("block-confirm")).toBeHidden();
     await expect(b.locator('[data-screen="card"]')).toHaveAttribute("data-id", phraseId);
+    await b.getByTestId("more").click();
     await b.getByTestId("hide").click();
     await expect(b.getByTestId("gone")).toHaveAttribute("data-why", "hidden");
     await expect(b.getByTestId("card").filter({ hasText: phrase })).toHaveCount(0);

@@ -9,6 +9,7 @@
 // a real page never reads it.
 
 import { IDLE_MS, IdleTimer } from "../../depth/core/lock.ts";
+import { stampGrace } from "./vault.ts";
 
 const KEY = "xor-idle-ms";
 const INPUTS = ["keydown", "pointerdown", "touchstart", "wheel"] as const;
@@ -23,7 +24,13 @@ export function idleMsOf(): number {
 // off and lets the clock go.
 export function watchIdle(onIdle: () => void, ms = idleMsOf()): { stop(): void } {
   const timer = new IdleTimer(onIdle, ms);
-  const touch = () => timer.touch();
+  // The same inputs stamp the reload grace's clock (grace.ts), once a second at most.
+  let stamped = 0;
+  const touch = () => {
+    timer.touch();
+    const now = Date.now();
+    if (now - stamped >= 1000) { stamped = now; stampGrace(); }
+  };
   for (const type of INPUTS) document.addEventListener(type, touch, { passive: true, capture: true });
   return {
     stop() {

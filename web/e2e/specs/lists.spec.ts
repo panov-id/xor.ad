@@ -28,6 +28,7 @@ test("a hidden phrase comes back from 'hidden', a block is lifted from 'blocked'
 
   // Hide from the card; the phrase is in "скрытое · 1".
   await b.getByTestId("card").filter({ hasText: phrase }).click();
+  await b.getByTestId("more").click();
   await b.getByTestId("hide").click();
   await expect(b.getByTestId("card").filter({ hasText: phrase })).toHaveCount(0);
   await b.getByTestId("tab-me").click();

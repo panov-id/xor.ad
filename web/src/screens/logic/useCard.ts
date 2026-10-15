@@ -13,7 +13,8 @@ export function useCard(
   { client, card, onGone }: {
     client: Client;
     card: FeedCard;
-    onGone: (why: "hidden" | "blocked", id: string) => void;
+    // `handle` is what DELETE /hidden/<handle> takes: the hide's own, not the phrase's id.
+    onGone: (why: "hidden" | "blocked", id: string, handle?: string) => void;
   },
 ) {
   const [like, setLike] = useState<LikeOutcome | null>(null);
@@ -109,9 +110,10 @@ export function useCard(
     }
   }
 
-  const liked = like !== null && like.state !== "refused";
+  // A phrase liked before the card opened (the feed marks it) is liked: no second like.
+  const liked = card.liked === true || (like !== null && like.state !== "refused");
   const doLike = () => act(async () => setLike(await likePhrase(client, card.id)));
-  const hide = () => act(async () => { await hidePhrase(client, card.id); onGone("hidden", card.id); });
+  const hide = () => act(async () => { const handle = await hidePhrase(client, card.id); onGone("hidden", card.id, handle); });
   const block = () => act(async () => { await blockByPhrase(client, card.id); onGone("blocked", card.id); });
   return {
     like, liked, busy, error, doLike, hide, block, confirmBlock, setConfirmBlock, moreOpen, setMoreOpen,

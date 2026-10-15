@@ -42,10 +42,14 @@ import { base64url, type SigningKey } from "../../depth/core/sign.ts";
 import { HeldKey } from "../../depth/core/transfer.ts";
 import { Arrival } from "../../depth/core/transfer_move.ts";
 import { API_KEY, NODE_BASE } from "./config.ts";
+import * as grace from "./grace.ts";
 import { say } from "./locales/say.ts";
 
 const DB = "xor-vault";
 const STORE = "identity";
+// The reload grace's key store (grace.ts; owner 14.10.2026): version 2 of the
+// same database adds it beside the identity.
+const GRACE_STORE = "grace";
 const P256 = { name: "ECDSA", namedCurve: "P-256" } as const;
 
 export interface Record_ {
@@ -82,17 +86,21 @@ export interface Record_ {
 
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: "id" });
+    const req = indexedDB.open(DB, 2);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: "id" });
+      if (!db.objectStoreNames.contains(GRACE_STORE)) db.createObjectStore(GRACE_STORE);
+    };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
-function tx<T>(mode: IDBTransactionMode, op: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+function tx<T>(mode: IDBTransactionMode, op: (store: IDBObjectStore) => IDBRequest<T>, name = STORE): Promise<T> {
   return open().then((db) =>
     new Promise<T>((resolve, reject) => {
-      const req = op(db.transaction(STORE, mode).objectStore(STORE));
+      const req = op(db.transaction(name, mode).objectStore(name));
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
     })
@@ -100,7 +108,71 @@ function tx<T>(mode: IDBTransactionMode, op: (store: IDBObjectStore) => IDBReque
 }
 
 export const readRecord = (): Promise<Record_ | undefined> => tx("readonly", (s) => s.get("me") as IDBRequest<Record_ | undefined>);
-export const forget = (): Promise<undefined> => tx("readwrite", (s) => s.delete("me") as IDBRequest<undefined>);
+// Forgetting the identity drops the grace with it: nothing of the vault key stays in any tab.
+export const forget = async (): Promise<undefined> => {
+  await dropGrace();
+  return await tx("readwrite", (s) => s.delete("me") as IDBRequest<undefined>);
+};
+
+// ── The reload grace (grace.ts) bound to the page's stores ──
+// The wait is a parameter of the stand's build (VITE_STAND=1) as idle.ts's is:
+// sessionStorage "xor-grace-ms"; a real page never reads it.
+function graceMsOf(): number {
+  if (import.meta.env.VITE_STAND !== "1") return grace.GRACE_MS;
+  const given = Number(sessionStorage.getItem("xor-grace-ms") ?? "");
+  return Number.isFinite(given) && given >= 0 ? given : grace.GRACE_MS;
+}
+type GraceRow = { key: CryptoKey; at: number };
+const graceKeys: grace.KeyStore = {
+  put: async (id, row) => { await tx("readwrite", (s) => s.put(row, id), GRACE_STORE); },
+  // One readwrite transaction: the get and the delete inside it, so a second
+  // taker of the same id — a duplicate tab, a tab reloaded twice — finds nothing.
+  take: (id) => open().then((db) =>
+    new Promise<GraceRow | undefined>((resolve, reject) => {
+      const t = db.transaction(GRACE_STORE, "readwrite");
+      const store = t.objectStore(GRACE_STORE);
+      const got = store.get(id) as IDBRequest<GraceRow | undefined>;
+      let row: GraceRow | undefined;
+      got.onsuccess = () => { row = got.result; store.delete(id); };
+      t.oncomplete = () => resolve(row);
+      t.onerror = () => reject(t.error);
+      t.onabort = () => reject(t.error);
+    })),
+  prune: (before) => open().then((db) =>
+    new Promise<void>((resolve, reject) => {
+      const t = db.transaction(GRACE_STORE, "readwrite");
+      const walk = t.objectStore(GRACE_STORE).openCursor();
+      walk.onsuccess = () => {
+        const c = walk.result;
+        if (!c) return;
+        if ((c.value as GraceRow).at < before) c.delete();
+        c.continue();
+      };
+      t.oncomplete = () => resolve();
+      t.onerror = () => reject(t.error);
+      t.onabort = () => reject(t.error);
+    })),
+  clear: async () => { await tx("readwrite", (s) => s.clear(), GRACE_STORE); },
+};
+const graceDeps = (): grace.GraceDeps => ({ tab: sessionStorage, keys: graceKeys, graceMs: graceMsOf() });
+// One Keeper for the document: the halves in memory, on the disk only while
+// the input is fresh (grace.ts Keeper). A storage that refuses (private mode,
+// quota) costs the grace, never the unlock.
+let keeper: grace.Keeper | null = null;
+const keeperOf = (): grace.Keeper => (keeper ??= new grace.Keeper(graceDeps()));
+async function armGrace(local: Uint8Array, share: Uint8Array): Promise<void> {
+  try { await keeperOf().hold(local, share); } catch { /* no grace, the PIN as before */ }
+}
+// An input (idle.ts): the stamp, the row's age, the clock over; armed again after a quiet spell.
+export const stampGrace = (): void => { void keeperOf().touch().catch(() => undefined); };
+// The lock, «forget», the closing of the identity: memory and both stores, every tab.
+export const dropGrace = (): Promise<void> => keeperOf().release().catch(() => undefined);
+// The document is leaving: a reload may take the grace, a duplicate may not (grace.ts leaving).
+export const leavingWithGrace = (): void => { try { grace.leaving({ tab: sessionStorage }); } catch { /* storage blocked */ } };
+// Back from the back/forward cache: the leave mark goes (grace.ts returning).
+export const returningWithGrace = (): void => { try { grace.returning({ tab: sessionStorage }); } catch { /* storage blocked */ } };
+// The tab hidden or frozen: nothing on the disk until the next input in view (grace.ts Keeper.suspend).
+export const hiddenWithGrace = (): void => { void keeperOf().suspend().catch(() => undefined); };
 
 function fromBase64url(text: string): Uint8Array {
   const b64 = text.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - text.length % 4) % 4);
@@ -182,6 +254,7 @@ export async function registerAndKeep(
     savedAt: Date.now(),
   };
   await tx("readwrite", (s) => s.put(record));
+  await armGrace(pin.local, share);
   return { client, record, share };
 }
 
@@ -248,6 +321,39 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
     throw new PinRefused(code, given.body?.error?.attempts_left, given.retryAfter);
   }
   const share = fromBase64url(given.body.share);
+  return await openWith(record, material.local, share);
+}
+
+// A reload within the grace (grace.ts; owner 14.10.2026): the halves the tab
+// kept open the seals without the PIN and without a call to the node — no
+// attempt is spent, none is reset. null when there is no grace: the screen asks
+// the PIN as before.
+export async function unlockByGrace(record: Record_): Promise<{ client: Client; longKey: CryptoKey; wrapSame: boolean } | null> {
+  const deps = graceDeps();
+  // Rows of tabs that died mid-window go first (security review 15.10.2026).
+  await grace.sweep(deps);
+  const halves = await grace.take(deps).catch(() => null);
+  // No grace: the stamp goes too; the shared store is other tabs' and stays.
+  if (!halves) { deps.tab.removeItem(grace.STAMP_KEY); return null; }
+  try {
+    return await openWith(record, halves.local, halves.share);
+  } catch {
+    // A seal that does not open with what the tab kept (a PIN changed in
+    // another tab re-sealed the record): the PIN, not an error — and nothing
+    // of the grace left behind.
+    await dropGrace();
+    return null;
+  } finally {
+    halves.local.fill(0);
+    halves.share.fill(0);
+  }
+}
+
+// The seals open under HKDF(local ‖ share), the keys into memory
+// non-extractable, a seated client; both halves are wiped here — after the
+// grace for the next reload is armed with them.
+async function openWith(record: Record_, local: Uint8Array, share: Uint8Array): Promise<{ client: Client; longKey: CryptoKey; wrapSame: boolean }> {
+  const material = { local };
   // One vault key for both seals, and the halves wiped once both are open
   // (verifier of W1c): a wipe between the two left the wrapping pair sealed
   // under a key made of zeros — the first red run after the merge of W1d.
@@ -280,6 +386,7 @@ export async function unlockAfterReload(record: Record_, pin: string): Promise<{
     } finally {
       wrapPkcs8.fill(0);
     }
+    await armGrace(material.local, share);
   } finally {
     material.local.fill(0);
     share.fill(0);
@@ -351,8 +458,11 @@ export async function changePinAndReseal(client: Client, current: string, next: 
       savedAt: Date.now(),
     };
     after.auth.fill(0);
-    after.local.fill(0);
     await tx("readwrite", (s) => s.put(resealed));
+    // The tab's grace held the old halves; they open nothing now.
+    await dropGrace();
+    await armGrace(after.local, fromBase64url(newShare.body.share));
+    after.local.fill(0);
     return changed;
   } finally {
     longPkcs8.fill(0);
@@ -420,10 +530,11 @@ export async function raiseAndKeep(
   (sessionPkcs8 as Uint8Array).fill(0);
   (wrapPkcs8 as Uint8Array).fill(0);
   material.auth.fill(0);
+  await tx("readwrite", (s) => s.put(record));
+  await armGrace(material.local, share);
   material.local.fill(0);
   share.fill(0);
   longExtractable = null;
-  await tx("readwrite", (s) => s.put(record));
   const reopened = await unseal(key, record.sealedLong);
   const longKey = await crypto.subtle.importKey("pkcs8", reopened as BufferSource, P256, false, ["sign"]);
   reopened.fill(0);
@@ -479,6 +590,7 @@ export async function keepArrived(a: Arriving, pin: string): Promise<{ client: C
   if (given.status !== 200) throw new Error(`the node did not hand back its share: ${given.status}`);
   const share = fromBase64url(given.body.share);
   const key = await vaultKey(material.local, share);
+  await armGrace(material.local, share);
   material.local.fill(0);
   share.fill(0);
   const longPkcs8 = await held.use(async (k) => new Uint8Array(await crypto.subtle.exportKey("pkcs8", k)));

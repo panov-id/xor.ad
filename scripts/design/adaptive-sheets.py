@@ -1294,6 +1294,10 @@ def draw_all(brand):
     feedscreen("feed-loading", lambda sh, y: [box(sh, 16 + (j % 2) * 186, y + (j // 2) * 150, 175, 136, sh.k["surface-2"] if sh.brand == "sosed" else None) for j in range(6)])
     feedscreen("feed-sent", lambda sh, y: (box(sh, 16, y, 361, 64), sh.icon(30, y + 20, "timer", sh.k["fg"]), T(sh, 64, y + 38, "your phrase is being read", 16, sh.k["fg"], 600),
         phrase_tile(sh, 16, y + 80, 361, "walking to the river, join?", 0), phrase_tile(sh, 16, y + 250, 361, "coffee at the corner bakery", 1)))
+    # after «hide» in the menu: «hidden · return» stands 5 s over the list, the hidden phrase is already out of it
+    feedscreen("feed-hidden", lambda sh, y: (box(sh, 16, y, 361, 64), sh.icon(30, y + 20, "eyeoff", sh.k["fg"]), T(sh, 64, y + 38, "hidden", 16, sh.k["fg"], 600),
+        T(sh, 363, y + 38, "return", 16, sh.k["fg"], 600, "end"), sh.label(16, y + 82, "gone after 5 s; «return» puts the phrase back; me → hidden stays"),
+        phrase_tile(sh, 16, y + 96, 361, "coffee at the corner bakery", 1)))
     feedscreen("feed-refused", lambda sh, y: (err(sh, y, "your phrase was not posted: a phone number"), phrase_tile(sh, 16, y + 70, 361, "walking to the river, join?", 0)))
     feedscreen("feed-table", lambda sh, y: (phrase_tile(sh, 16, y, 361, "walking to the river, join?", 0),
         box(sh, 16, y + 170, 361, 120), sh.icon(32, y + 190, "dots", sh.k["fg"]), T(sh, 66, y + 208, "table «by the park» · dots 3×3", 16, sh.k["fg"], 600),
@@ -1308,7 +1312,8 @@ def draw_all(brand):
             sh.icon(36, 330, "people", fg); T(sh, 66, 348, "with friends · 300 m · 40 min left", 15, fg)
             extra(sh, fg)
         scr(brand, name, d)
-    cardscreen("card-393", lambda sh, fg: (split_foot(sh, "like", "hide", ("mk_" + brand, "eyeoff"))))
+    # owner 14.10.2026: «hide» left the bar for the «…» menu; the bar keeps the like alone
+    cardscreen("card-393", lambda sh, fg: (foot(sh, "like", icon="mk_" + brand)))
     cardscreen("card-more", lambda sh, fg: rows(sh, 470, [("eyeoff", "hide", None), ("block", "block", None), ("flag", "report", None)]))
     cardscreen("card-liked", lambda sh, fg: (like_btn(sh, 56, 410, 40, 6 if brand == "sosed" else 2, ink_=fg), T(sh, 86, 416, "6 · I'm in", 16, fg, 600),
         box(sh, 16, 470, 361, 64), sh.icon(30, 490, "check", sh.k["fg"]), T(sh, 64, 508, "waiting for a like back", 15, sh.k["fg"], 600)))

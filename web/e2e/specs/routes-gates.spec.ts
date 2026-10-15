@@ -34,7 +34,8 @@ test("gates: each names itself in the path, Back walks them, a direct link and a
 test("gates: a seated path opened before sign-in is where the unlock lands", async ({ page }) => {
   await register(page);
   await page.goto("/me");
-  // A record on the device: the gate before /me is the unlock, and the address keeps /me.
+  // A record on the device, and the reload grace spent (the fixture's 0 ms stands for 30 s of no input;
+  // reload-grace.spec.ts has the live window): the gate before /me is the unlock, and the address keeps /me.
   await on(page, "unlock");
   expect(path(page)).toBe("/me");
   await unlock(page, PIN);

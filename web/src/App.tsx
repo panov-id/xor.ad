@@ -44,7 +44,7 @@ import { Tables } from "../../depth/core/tables.ts";
 import { tableRefusal } from "./api/tables.ts";
 import { Blocked } from "./screens/Blocked.tsx";
 import { Hidden } from "./screens/Hidden.tsx";
-import { forget, readRecord, type Record_ } from "./vault.ts";
+import { dropGrace, forget, hiddenWithGrace, leavingWithGrace, readRecord, type Record_, returningWithGrace, unlockByGrace } from "./vault.ts";
 import { watchIdle } from "./idle.ts";
 import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
@@ -104,7 +104,7 @@ function Face() {
   // until the person leaves it (W2, after the verifier).
   // `id` is what POST /feed answered — the feed takes the phrase down by it (W11-C).
   const [sent, setSent] = useState<{ state: Exclude<Sent, { state: "refused" }>["state"]; text: string; id?: string } | null>(null);
-  const [gone, setGone] = useState<{ why: "hidden" | "blocked"; id: string } | null>(null);
+  const [gone, setGone] = useState<{ why: "hidden" | "blocked"; id: string; handle?: string } | null>(null);
   // The statements, read once per seated client on the first entry into the
   // feed; null until read, so the read happens once (depth/ink app.ts).
   const [statements, setStatements] = useState<Statement[] | null>(null);
@@ -123,7 +123,8 @@ function Face() {
     const client = seated.client;
     const watch = watchIdle(() => {
       if (!client.canLock || client.locked) return;
-      void client.lock().then(() => {
+      // The reload grace dies with the lock (grace.ts): a reload now asks the PIN.
+      void dropGrace().then(() => client.lock()).then(() => {
         setSeated((was) => (was && was.client === client ? { ...was, keys: null } : was));
         setLocked(true);
       });
@@ -238,6 +239,38 @@ function Face() {
     return () => removeEventListener("popstate", onPop);
   }, []);
 
+  // The document leaving (a reload, a same-tab address): the grace's leave mark
+  // (grace.ts leaving) — a duplicate of the tab gets none, and so no grace.
+  // Hidden or frozen (a mobile tab may be discarded with its timers): the grace
+  // leaves the disk at once; back from the bfcache the leave mark goes.
+  // Chromium fires visibilitychange → hidden on a reload too, right before
+  // pagehide, in the same task (Page Lifecycle): so the suspend waits a task,
+  // and pagehide — the reload — calls it off; a tab merely switched away from
+  // has no pagehide, and its suspend runs at once.
+  useEffect(() => {
+    let pending: ReturnType<typeof setTimeout> | null = null;
+    const onVisibility = () => {
+      if (document.visibilityState !== "hidden") return;
+      if (pending !== null) clearTimeout(pending);
+      pending = setTimeout(() => { pending = null; hiddenWithGrace(); }, 0);
+    };
+    const onHide = () => {
+      if (pending !== null) clearTimeout(pending);
+      pending = null;
+      leavingWithGrace();
+    };
+    const onShow = (e: Event) => { if ((e as PageTransitionEvent).persisted) returningWithGrace(); };
+    addEventListener("pagehide", onHide);
+    addEventListener("pageshow", onShow);
+    document.addEventListener("visibilitychange", onVisibility);
+    document.addEventListener("freeze", hiddenWithGrace);
+    return () => {
+      removeEventListener("pagehide", onHide);
+      removeEventListener("pageshow", onShow);
+      document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener("freeze", hiddenWithGrace);
+    };
+  }, []);
   useEffect(() => {
     (async () => {
       // `<storefront>/o/<code>` — the exit screen of an offer's link (W5): for
@@ -251,6 +284,14 @@ function Face() {
       const path = location.pathname;
       const named = gateOf(path);
       if (!named) wanted.current = path;
+      // A reload within 30 s of the last input (owner 14.10.2026; grace.ts): the
+      // seals open with what this tab kept, no PIN — the page lands where the
+      // address says, or on the feed from a gate's own path.
+      const graced = record ? await unlockByGrace(record) : null;
+      if (graced) {
+        setSeated({ client: graced.client, keys: new ChatKeys(graced.client, graced.longKey), sealed: graced.wrapSame ? "unlocked" : "unlocked-new-wrap" });
+        return void land(graced.client, named ? "/" : path);
+      }
       const to = gateScreen(path);
       // The address says what is drawn: a seated path stays (it is where to continue), a gate's path follows the gate.
       if (named) history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
@@ -429,6 +470,7 @@ function Face() {
             sent={sent}
             onTakenDown={() => setSent(null)}
             gone={gone}
+            onUnhidden={() => setGone(null)}
           />
           {nav}
           <Confirm
@@ -479,8 +521,8 @@ function Face() {
           card={screen.card}
           onBack={toFeed}
           onTalk={() => go({ at: "inbox" })}
-          onGone={(why, id) => {
-            setGone({ why, id });
+          onGone={(why, id, handle) => {
+            setGone({ why, id, handle });
             toFeed();
           }}
         />

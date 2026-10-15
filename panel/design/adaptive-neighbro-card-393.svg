@@ -26,10 +26,8 @@
 <rect x="17.5" y="758" width="361" height="60" rx="30" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
 <rect x="16" y="755" width="361" height="60" rx="30" fill="#1fb39a" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
 </g>
-<path d="M267 767 V805" stroke="#04201c" stroke-width="1.5" opacity=".5"/>
-<g transform="translate(123.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L20 9.5 V18 H11 L7 21.5 V18 H4 V9.5 Z"/><path d="M16 6.25 V3.5 H18 V7.9"/></g>
-<g transform="translate(307 770) scale(1.25)" fill="none" stroke="#04201c" stroke-width="1.20" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+<g transform="translate(178.5 767) scale(1.5)" fill="none" stroke="#04201c" stroke-width="1.00" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L20 9.5 V18 H11 L7 21.5 V18 H4 V9.5 Z"/><path d="M16 6.25 V3.5 H18 V7.9"/></g>
 <rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
 <rect class="legend" x="0" y="851" width="393" height="52" fill="#e5e6e9"/>
-<text class="note" x="16" y="879" font-family="Golos Text" font-size="14" fill="#126a5c">names: «like» · «hide»</text>
+<text class="note" x="16" y="879" font-family="Golos Text" font-size="14" fill="#126a5c">name: «like»</text>
 </svg>

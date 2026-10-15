@@ -109,6 +109,7 @@ test("sosed card: swipe right likes, swipe left hides, pull down opens details â
     // The eye.
     seen.length = 0;
     const hideId = await open(b, lines[3]);
+    await b.getByTestId("more").click();
     await b.getByTestId("hide").click();
     await expect(b.getByTestId("gone"), "the eye hid the phrase").toHaveAttribute("data-why", "hidden", { timeout: 15000 });
     expect(said(seen), "the eye is the same call").toEqual([`hide ${hideId} 200`]);

@@ -32,7 +32,8 @@ test("tabs change the path, Back walks them, a reload lands where the path says,
   await expect(page.locator('[data-screen="feed"]')).toBeVisible();
   expect(path(page)).toBe("/feed");
 
-  // A deep, id-less screen survives a reload: the PIN, then the composer.
+  // A deep, id-less screen survives a reload: the PIN (the fixture spends the reload grace,
+  // fixtures/address.ts NO_GRACE; the grace itself is reload-grace.spec.ts), then the composer.
   await page.getByTestId("write").click();
   await expect(page.locator('[data-screen="composer"]')).toBeVisible();
   expect(path(page)).toBe("/write");

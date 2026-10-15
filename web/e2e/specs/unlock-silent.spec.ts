@@ -10,7 +10,7 @@ test("a spoiled seal on the disk: the PIN screen says the way in is closed and l
   await register(page);
   // Flip the last byte of the long key's seal: AES-GCM's tag no longer holds.
   await page.evaluate(() => new Promise<void>((resolve, reject) => {
-    const open = indexedDB.open("xor-vault", 1);
+    const open = indexedDB.open("xor-vault");
     open.onerror = () => reject(open.error);
     open.onsuccess = () => {
       const store = open.result.transaction("identity", "readwrite").objectStore("identity");

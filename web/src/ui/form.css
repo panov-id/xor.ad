@@ -19,8 +19,12 @@
 .ui-pinpair { display: flex; flex-direction: column; gap: 10px; }
 
 /* CodePlate: groups on one plate, a 1px seam between. */
-.ui-code-row { gap: 1px; flex-wrap: nowrap; border-radius: calc(var(--control-h, 48px) / 2); overflow: hidden; background: var(--panel); }
+.ui-code-row { gap: 1px; flex-wrap: nowrap; border-radius: calc(var(--control-h, 48px) / 2); background: var(--panel); }
 .ui-code-row > .ui-code-input { flex: 1; inline-size: auto; min-inline-size: 0; border-radius: 0; }
+/* The plate's ends are the end cells' own corners, not a clip over them: a clip cut the rim of the first and last
+   cell at the plate's radius (measured at 1440, both faces). */
+.ui-code-row > .ui-code-input:first-child { border-start-start-radius: calc(var(--control-h, 48px) / 2); border-end-start-radius: calc(var(--control-h, 48px) / 2); }
+.ui-code-row > .ui-code-input:last-child { border-start-end-radius: calc(var(--control-h, 48px) / 2); border-end-end-radius: calc(var(--control-h, 48px) / 2); }
 .ui-codeplate { display: flex; gap: 1px; margin: 0; overflow: hidden; border-radius: calc(var(--control-h, 48px) / 2); background: var(--panel); font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: 0.08em; }
 .ui-codeplate > span { flex: 1; text-align: center; padding: var(--s-2) var(--s-1); background: var(--surface); white-space: pre; }
 .ui-cells .ui-cell-group { display: flex; gap: var(--cell-gap, 4px); }

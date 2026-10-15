@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="393" height="923" viewBox="0 0 393 923"><defs><style>@font-face{font-family:"Golos Text";font-weight:400 700;src:url(fonts/golos.ttf)}@font-face{font-family:"Russo One";src:url(fonts/russo.ttf)}</style><pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#d7d9dd"/></pattern></defs>
+<rect width="393" height="851" fill="#e5e6e9"/>
+<rect width="393" height="851" fill="url(#dots)"/>
+<g transform="translate(16.0 24.0) scale(0.3333)">
+<g transform="translate(6,3) scale(1.05)">
+<g transform="translate(1.5 3)"><rect x="50" y="10" width="7" height="14" rx="2" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10"/><path d="M36 4 L64 28 V57 H32 L20 67 V57 H8 V28 Z" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="14" stroke-linejoin="round"/></g>
+<rect x="50" y="10" width="7" height="14" rx="2" fill="#126a5c" stroke="#f1f1f3" stroke-width="7" paint-order="stroke"/><path d="M36 4 L64 28 V57 H32 L20 67 V57 H8 V28 Z" fill="#126a5c" stroke="#f1f1f3" stroke-width="9" stroke-linejoin="round" paint-order="stroke"/><rect x="22" y="32" width="18" height="5" rx="2.5" fill="#f1f1f3"/><rect x="22" y="43" width="27" height="5" rx="2.5" fill="#f1f1f3"/>
+</g>
+</g>
+<text x="58" y="48" font-family="Golos Text" font-weight="600" font-size="22" fill="#141618" text-anchor="start">Limassol</text>
+<g transform="rotate(0 305.0 40.0)">
+<rect x="234.5" y="21" width="144" height="44" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="233" y="18" width="144" height="44" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<path d="M305.0 26 V54" stroke="#1a1b1e" stroke-width="1.5"/>
+<g transform="translate(257.0 28) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 C7.5 15.5 6 12.5 6 9.5 A6 6 0 0 1 18 9.5 C18 12.5 16.5 15.5 12 21Z"/><circle cx="12" cy="9.5" r="2.2"/></g>
+<text x="341.0" y="46" font-family="Golos Text" font-weight="600" font-size="14" fill="#141618" text-anchor="middle">1 km</text>
+<g transform="rotate(0 196.5 114.0)">
+<rect x="17.5" y="85" width="361" height="64" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="82" width="361" height="64" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(30 102) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 C6 7 18 7 21 12 C18 17 6 17 3 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 20 L20 4"/></g>
+<text x="64" y="120" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">hidden</text>
+<text x="363" y="120" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="end">return</text>
+<g transform="rotate(0.5 196.5 241.0)">
+<rect x="17.5" y="181" width="361" height="126" rx="16" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="178" width="361" height="126" rx="16" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<text x="34" y="218" font-family="Golos Text" font-weight="600" font-size="20" fill="#141618" text-anchor="start">coffee at the corner bakery</text>
+<g transform="translate(32 264) scale(0.8)" fill="none" stroke="#141618" stroke-width="1.88" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.5"/><path d="M3.5 19.5 C4 15 14 15 14.5 19.5 M14 15 C17.5 14.5 20.5 16 20.5 19"/></g>
+<text x="56" y="281" font-family="Golos Text" font-weight="500" font-size="14" fill="#141618" text-anchor="start">with friends</text>
+<g transform="translate(307.0 264.0) scale(0.2500)">
+<g fill="none" stroke="#141618" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M48 12 L80 38 V72 H44 L28 86 V72 H16 V38 Z"/><path d="M64 25 V14 H72 V31"/></g>
+</g>
+<text x="337" y="282" font-family="Golos Text" font-weight="600" font-size="16" fill="#141618" text-anchor="start">4</text>
+<g transform="rotate(0 196.5 799.0)">
+<rect x="17.5" y="770" width="361" height="64" rx="32" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="16" y="767" width="361" height="64" rx="32" fill="#f1f1f3" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="rotate(0 61.125 799.0)">
+<rect x="32.625" y="780" width="60" height="44" rx="22" fill="#1a1b1e" stroke="#1a1b1e" stroke-width="10" stroke-linejoin="round" opacity=".9"/>
+<rect x="31.125" y="777" width="60" height="44" rx="22" fill="#cc2f27" stroke="#ffffff" stroke-width="7" paint-order="stroke"/>
+</g>
+<g transform="translate(49.125 787) scale(1.0)" fill="none" stroke="#ffffff" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="9" rx="2"/><rect x="13" y="4" width="7" height="5" rx="2"/><rect x="4" y="15" width="7" height="5" rx="2"/><rect x="13" y="11" width="7" height="9" rx="2"/></g>
+<g transform="translate(139.375 787) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.2"/><circle cx="16" cy="8" r="1.2"/><circle cx="8" cy="16" r="1.2"/><circle cx="16" cy="16" r="1.2"/></g>
+<g transform="translate(229.625 787) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 A2.5 2.5 0 0 1 6.5 4 H17.5 A2.5 2.5 0 0 1 20 6.5 V14 A2.5 2.5 0 0 1 17.5 16.5 H10 L6 20 V16.5 A2.5 2.5 0 0 1 4 14Z"/></g>
+<g transform="translate(319.875 787) scale(1.0)" fill="none" stroke="#141618" stroke-width="1.50" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20 C5.5 15.5 18.5 15.5 19.5 20"/></g>
+<rect class="frame" x="0.5" y="0.5" width="392" height="850" fill="none" stroke="#126a5c" stroke-width="1" stroke-dasharray="6 4"/>
+<rect class="legend" x="0" y="851" width="393" height="72" fill="#e5e6e9"/>
+<text class="note" x="16" y="879" font-family="Golos Text" font-size="14" fill="#126a5c">gone after 5 s; «return» puts the phrase back;</text>
+<text class="note" x="16" y="899" font-family="Golos Text" font-size="14" fill="#126a5c">me → hidden stays</text>
+</svg>

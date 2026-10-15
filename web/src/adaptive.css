@@ -182,3 +182,15 @@
   /* The language list stands where the entry will: 440, centred in the right half, not run into the edge. */
   [data-screen="splash"][data-state="lang"] [data-part="lang-list"].ui-card { justify-self: center; inline-size: var(--entry-w); margin: 0; }
 }
+
+/* The cabinet's strip is the window's width, its content stays in the column of 640 (measured at 1440: the strip was
+   the column's 620). The screen drops its max-width and keeps the column as side padding; the strip takes that
+   padding back as a negative margin, so the two cancel whatever the scrollbar does to 100vw. Under 640 the screen
+   is the window already and nothing changes. */
+@media (min-width: 640px) {
+  html:root[data-brand] [data-screen^="adv-"].screen { --gut: max(var(--s-6), calc((100vw - var(--col-read)) / 2 + var(--s-6))); max-width: none; padding-inline: var(--gut); }
+  html:root[data-brand] [data-screen^="adv-"].screen > .ui-nav-bar { margin-inline: calc(-1 * var(--gut)); padding-inline: var(--gut); }
+}
+
+/* A phrase the viewer liked stays in the feed with the mark lit in the accent (owner, 15.10.2026). */
+[data-mine] { color: var(--accent-text); font-weight: 700; }

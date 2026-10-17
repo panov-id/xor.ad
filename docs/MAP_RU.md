@@ -745,8 +745,8 @@ flowchart LR
 - `docs/design-system-app_RU.md` → docs/depth-client_RU.md, docs/design-system_RU.md, panel/design/app-kit.svg, panel/design/empty-nav-mockup.svg, panel/design/kit/components.svg, panel/design/sheets/screen-brands.svg, panel/design/signs-mockup.svg, panel/design/spark-mockup.svg  ·  ← README_RU.md, docs/accessibility-and-i18n_RU.md, docs/design-system_RU.md
 - `docs/design-system_EN.md` → docs/design-system-app_EN.md, panel/design/kit-full.svg, panel/design/reference-behaviour.svg  ·  ← README.md, docs/accessibility-and-i18n_EN.md, docs/design-system-app_EN.md
 - `docs/design-system_RU.md` → docs/design-system-app_RU.md, panel/design/kit-full.svg, panel/design/reference-behaviour.svg  ·  ← README_RU.md, docs/accessibility-and-i18n_RU.md, docs/design-system-app_RU.md
-- `docs/design/kit_EN.md` → docs/report-2026-10-02-brands.pdf  ·  ← —
-- `docs/design/kit_RU.md` → docs/report-2026-10-02-brands.pdf  ·  ← —
+- `docs/design/kit_EN.md` → —  ·  ← —
+- `docs/design/kit_RU.md` → —  ·  ← —
 - `docs/design/themes_EN.md` → docs/design/themes_RU.md  ·  ← docs/design/themes_RU.md
 - `docs/design/themes_RU.md` → docs/design/themes_EN.md  ·  ← docs/design/themes_EN.md
 - `docs/dpia_EN.md` → docs/article-30-register_EN.md, docs/dsa/SPEC_EN.md  ·  ← docs/article-30-register_EN.md
@@ -815,24 +815,11 @@ flowchart LR
 - `relay/SPEC_EN.md` → .github/workflows/relay.yml, docs/protocol_EN.md  ·  ← docs/deployment_EN.md, relay/README.md
 - `relay/SPEC_RU.md` → .github/workflows/relay.yml, docs/protocol_RU.md  ·  ← docs/deployment_RU.md, relay/README_RU.md
 - `relay/local/README.md` → relay/local/observability/alertmanager.yml, relay/local/observability/alerts.yml, relay/local/observability/grafana/dashboards/relay-identity.json, relay/local/observability/prometheus.yml  ·  ← relay/README.md, relay/README_RU.md
-- `relay/moderation-bench/README_EN.md` → docs/vendors-dpa_EN.md, relay/moderation-bench/README_RU.md, relay/moderation-bench/evaluation.json, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_RU.md
-- `relay/moderation-bench/README_RU.md` → docs/vendors-dpa_RU.md, relay/moderation-bench/README_EN.md, relay/moderation-bench/evaluation.json, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_EN.md
+- `relay/moderation-bench/README_EN.md` → docs/vendors-dpa_EN.md, relay/moderation-bench/README_RU.md, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_RU.md
+- `relay/moderation-bench/README_RU.md` → docs/vendors-dpa_RU.md, relay/moderation-bench/README_EN.md, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_EN.md
 - `relay/moderator/README_EN.md` → —  ·  ← —
 - `relay/moderator/README_RU.md` → —  ·  ← —
 - `relay/node/src/access/README.md` → —  ·  ← —
-- `testing/walk-svg/round1/PROMPT.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-1024.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-1440.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-2560.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-375.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-393.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-768.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-1024.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-1440.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-2560.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-375.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-393.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-768.notes.md` → —  ·  ← —
 
 ## ПРОВЕРКА
 - все связи сверены с диском, расхождений нет

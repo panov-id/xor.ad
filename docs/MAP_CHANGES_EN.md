@@ -1,3 +1,12 @@
+## 17.10.2026 19:12 · edges +0 −4
+
+```diff
+- docs/design/kit_EN.md -> docs/report-2026-10-02-brands.pdf
+- docs/design/kit_RU.md -> docs/report-2026-10-02-brands.pdf
+- relay/moderation-bench/README_EN.md -> relay/moderation-bench/evaluation.json
+- relay/moderation-bench/README_RU.md -> relay/moderation-bench/evaluation.json
+```
+
 ## 17.10.2026 13:19 · edges +4 −0
 
 ```diff

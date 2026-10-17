@@ -124,7 +124,6 @@ export async function openWith(
   // The key that signs: the session's own after a raise, the long key after a registration (there they are one key).
   const sessionSigning: SigningKey = session ? { privateKey: session, publicSpki: record.sessionSpki ?? record.longSpki } : longSigning;
   // The same wrapping pair as before the reload, out of its seal (W1d).
-  wrapPrivate = (await crypto.subtle.generateKey(WRAP_ALGORITHM, false, WRAP_USAGES) as CryptoKeyPair).privateKey;
   const same = equal(await checkOf(wrapPrivate), record.wrapCheck);
   client.seat({
     identityId: record.identityId,

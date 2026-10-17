@@ -5,6 +5,7 @@
 // all. A phrase that became a match leads to the inbox, which the web face
 // does not have yet: it is named, not linked. Kit elements only (K6a).
 
+import { offerLabel } from "../ui/offer.ts";
 import { useEffect, useState } from "react";
 import type { Client, Liked } from "../../../depth/core/client.ts";
 import { likedPhrases, unlikePhrase } from "../api/actions.ts";
@@ -56,7 +57,7 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
       <ul className="ui-cards" data-testid="liked">
         {items.map((item) => (
           <Card as="li" key={item.id} of="phrase" data-testid="liked-card" data-id={item.id}>
-            {item.offer && <span className="ui-offer">−{item.offer.discount_value}</span>}
+            {item.offer && <span className="ui-offer">{offerLabel(item.offer.discount_value)}</span>}
             <p>{item.text}</p>
             <span className="ui-hint">
               <LikeCount n={item.like_count} lit /> · {when(item.liked_at)}

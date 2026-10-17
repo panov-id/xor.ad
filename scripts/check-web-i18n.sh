@@ -122,6 +122,7 @@ SAME_AS_EN = {
         "web.feed.m",  # {n} m
     },
     "de": {
+        "web.card.match.neighbro.kick",  # «II — Match»: the landing's own words in de (neighbro.place/sosed.place landing/index.html s2k)
         "web.sticker.wow",  # same word
         "web.cabinet.link",  # Link: {link}
         "web.feed.km",  # {n} km
@@ -133,6 +134,8 @@ SAME_AS_EN = {
         "web.card.likes",  # likes: — kept as the loanword; worth a translator's look
     },
     "es": {
+        "web.card.match.sosed.kick",  # «II — Match»: the landing's own words in es (neighbro.place/sosed.place landing/index.html s2k)
+        "web.card.match.neighbro.kick",  # «II — Match»: the landing's own words in es (neighbro.place/sosed.place landing/index.html s2k)
         "web.table.street_flop",  # poker street name, the same word in es
         "web.table.street_turn",  # poker street name, the same word in es
         "web.table.street_river",  # poker street name, the same word in es
@@ -147,6 +150,8 @@ SAME_AS_EN = {
         "web.feed.m",  # {n} m
     },
     "fr": {
+        "web.card.match.sosed.kick",  # «II — Match»: the landing's own words in fr (neighbro.place/sosed.place landing/index.html s2k)
+        "web.card.match.neighbro.kick",  # «II — Match»: the landing's own words in fr (neighbro.place/sosed.place landing/index.html s2k)
         "web.table.street_flop",  # poker street name, the same word in fr
         "web.table.street_turn",  # poker street name, the same word in fr
         "web.table.street_river",  # poker street name, the same word in fr

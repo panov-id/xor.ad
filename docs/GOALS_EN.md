@@ -6,6 +6,14 @@ Checked against the tree on 13.10 with grep/git/ls. Anything not run is marked N
 
 ## 0. THE GOAL — single (owner's word, 12.10 evening)
 
+**16.10.2026, the main goal (owner's word): «the main goal is a working app in the new design».**
+The web face of both brands works on the stand in the new design: the 15.10 decisions, the concept
+`testing/redesign/2026-10-15/brief/concept/`, own fonts if the owner accepts them. The goal below
+("every flow liked") is what "working" means. The work is split between two sessions: code (`web/`,
+`relay/`, `depth/`, e2e) and the design source (`testing/redesign/`: brief, concept, fonts). Criteria —
+`mem/goal-app-in-new-design.md`.
+
+
 **We need a product.** Every flow works on the local stand, and everyone who goes through it
 likes it. **Done = 100% of flows: walked, verified, liked.** Not "tests green", not "sheet
 drawn" — a person went through and is pleased.

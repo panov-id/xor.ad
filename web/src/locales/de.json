@@ -598,5 +598,14 @@
   "web.sticker.coffee": "Kaffee?",
   "web.sticker.move": "guter Zug",
   "web.sticker.again": "Revanche",
-  "web.sticker.giveup": "ich gebe auf"
+  "web.sticker.giveup": "ich gebe auf",
+  "web.card.match.sosed.kick": "II — Match",
+  "web.card.match.sosed.title": "Ein beidseitiges Plus und ihr seid im Chat",
+  "web.card.match.sosed.text": "Du gibst dem ein Plus, der dich angesprochen hat. Beidseitig — der Chat öffnet sich. Einseitig — Stille.",
+  "web.card.match.neighbro.kick": "II — Match",
+  "web.card.match.neighbro.title": "Ein beidseitiges Like öffnet die Tür",
+  "web.card.match.neighbro.text": "Ein privater Chat erscheint nur, wenn ihr es beide wollt. Deine Aufmerksamkeit ist geschützt.",
+  "web.card.what_now": "Und jetzt",
+  "web.card.like_it": "Gefällt es dir?",
+  "web.card.gestures": "wischen → gefällt mir · ← verbergen · ↓ Details"
 }

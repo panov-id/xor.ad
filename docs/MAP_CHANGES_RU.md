@@ -1,3 +1,43 @@
+## 17.10.2026 13:19 · связей +4 −0
+
+```diff
++ web/src/brands/neighbro/index.tsx -> web/src/brands/neighbro/scenes/port.svg
++ web/src/brands/sosed/index.tsx -> web/src/brands/sosed/scenes/port.svg
++ web/src/screens/Feed.tsx -> web/src/brands/neighbro/scenes/facade.svg
++ web/src/screens/Feed.tsx -> web/src/brands/sosed/scenes/facade.svg
+```
+
+## 17.10.2026 13:18 · связей +26 −0
+
+```diff
++ docs/design/kit_EN.md -> docs/report-2026-10-02-brands.pdf
++ docs/design/kit_RU.md -> docs/report-2026-10-02-brands.pdf
++ relay/moderation-bench/README_EN.md -> relay/moderation-bench/evaluation.json
++ relay/moderation-bench/README_RU.md -> relay/moderation-bench/evaluation.json
++ scripts/load/bots.mjs -> depth/core/client.ts
++ scripts/load/bots.mjs -> depth/core/legal.ts
++ scripts/load/bots.mjs -> depth/core/paper.ts
++ web/e2e/specs/hide-undo.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/hide-undo.spec.ts -> web/e2e/specs/helpers.ts
++ web/e2e/specs/reload-grace.spec.ts -> web/e2e/fixtures/address.ts
++ web/e2e/specs/reload-grace.spec.ts -> web/e2e/specs/helpers.ts
++ web/src/adv/Cabinet.tsx -> web/src/config.ts
++ web/src/brands/neighbro/index.tsx -> web/src/ui/offer.ts
++ web/src/brands/sosed/index.tsx -> web/src/ui/offer.ts
++ web/src/grace.test.ts -> web/src/grace.ts
++ web/src/grace.ts -> depth/core/sign.ts
++ web/src/idle.ts -> web/src/vault.ts
++ web/src/screens/Card.tsx -> web/src/ui/offer.ts
++ web/src/screens/Feed.tsx -> web/src/api/lists.ts
++ web/src/screens/Feed.tsx -> web/src/config.ts
++ web/src/screens/Feed.tsx -> web/src/ui/Message.tsx
++ web/src/screens/Feed.tsx -> web/src/ui/offer.ts
++ web/src/screens/Likes.tsx -> web/src/ui/offer.ts
++ web/src/ui/PlaceBar.tsx -> web/src/ui/Segments.tsx
++ web/src/ui/offer.test.ts -> web/src/ui/offer.ts
++ web/src/vault.ts -> web/src/grace.ts
+```
+
 ## 14.10.2026 23:37 · связей +4 −0
 
 ```diff

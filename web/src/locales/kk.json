@@ -598,5 +598,14 @@
   "web.sticker.coffee": "кофе?",
   "web.sticker.move": "жақсы жүріс",
   "web.sticker.again": "реванш",
-  "web.sticker.giveup": "берілемін"
+  "web.sticker.giveup": "берілемін",
+  "web.card.match.sosed.kick": "II — сәйкес келді",
+  "web.card.match.sosed.title": "Өзара плюс — енді жеке чатта",
+  "web.card.match.sosed.text": "Кірген адамға плюс қоясың. Екеуіңде сәйкес келсе — чат ашылады. Бір жақты болса — тыныштық.",
+  "web.card.match.neighbro.kick": "II — Сәйкес келді",
+  "web.card.match.neighbro.title": "Өзара лайк есікті ашады",
+  "web.card.match.neighbro.text": "Жеке чат екеуің де қалағанда ғана ашылады. Назарың қорғалған.",
+  "web.card.what_now": "Енді не",
+  "web.card.like_it": "Ұнады ма?",
+  "web.card.gestures": "сырғыт → ұнайды · ← жасыру · ↓ толығырақ"
 }

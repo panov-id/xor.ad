@@ -598,5 +598,14 @@
   "web.sticker.coffee": "qahva?",
   "web.sticker.move": "yaxshi yurish",
   "web.sticker.again": "revansh",
-  "web.sticker.giveup": "taslim bo‘laman"
+  "web.sticker.giveup": "taslim bo‘laman",
+  "web.card.match.sosed.kick": "II — mos tushdi",
+  "web.card.match.sosed.title": "Ikki tomon plyus — lichkadasiz",
+  "web.card.match.sosed.text": "Yoqqan odamga plyus qoʻyasan. Ikkalangda mos tushsa — chat ochiladi. Bir tomonlama boʻlsa — jimlik, hech kim bilmaydi.",
+  "web.card.what_now": "Endi nima",
+  "web.card.like_it": "Yoqdimi?",
+  "web.card.gestures": "suring → yoqdi · ← yashirish · ↓ batafsil",
+  "web.card.match.neighbro.kick": "II — Moslik",
+  "web.card.match.neighbro.title": "O‘zaro layk eshikni ochadi",
+  "web.card.match.neighbro.text": "Shaxsiy chat faqat ikkingiz ham xohlaganingizda paydo bo‘ladi. Diqqatingiz himoyalangan."
 }

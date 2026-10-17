@@ -598,5 +598,14 @@
   "web.sticker.coffee": "սուրճ՞",
   "web.sticker.move": "լավ քայլ",
   "web.sticker.again": "ռևանշ",
-  "web.sticker.giveup": "հանձնվում եմ"
+  "web.sticker.giveup": "հանձնվում եմ",
+  "web.card.match.sosed.kick": "II — համընկավ",
+  "web.card.match.sosed.title": "Փոխադարձ պլյուս — ու անձնականում եք",
+  "web.card.match.sosed.text": "Պլյուս ես դնում նրան, ով մտավ։ Երկուսի մոտ էլ համընկավ — բացվում է չատ։ Մի կողմ — լռություն, ոչ ոք չի իմանա։",
+  "web.card.what_now": "Հետո՞",
+  "web.card.like_it": "Դուր եկա՞վ",
+  "web.card.gestures": "սահեցրու → հավանել · ← թաքցնել · ↓ մանրամասներ",
+  "web.card.match.neighbro.kick": "II — Համընկնում",
+  "web.card.match.neighbro.title": "Փոխադարձ հավանումը բացում է դուռը",
+  "web.card.match.neighbro.text": "Մասնավոր չատը հայտնվում է միայն այն դեպքում, երբ երկուսդ էլ դա ցանկանում եք։ Քո ուշադրությունը պաշտպանված է։"
 }

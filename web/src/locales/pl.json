@@ -598,5 +598,14 @@
   "web.sticker.coffee": "kawa?",
   "web.sticker.move": "dobry ruch",
   "web.sticker.again": "rewanż",
-  "web.sticker.giveup": "poddaję się"
+  "web.sticker.giveup": "poddaję się",
+  "web.card.match.sosed.kick": "II — dopasowanie",
+  "web.card.match.sosed.title": "Wzajemny plus — i jesteście na priv",
+  "web.card.match.sosed.text": "Dajesz plusa temu, kto zaczepił. Zgadza się u obojga — otwiera się czat. W jedną stronę — cisza.",
+  "web.card.what_now": "Co dalej",
+  "web.card.like_it": "Podoba ci się?",
+  "web.card.gestures": "przesuń → podoba mi się · ← ukryj · ↓ szczegóły",
+  "web.card.match.neighbro.kick": "II — Dopasowanie",
+  "web.card.match.neighbro.title": "Wzajemne polubienie otwiera drzwi",
+  "web.card.match.neighbro.text": "Prywatny czat pojawia się tylko wtedy, gdy oboje tego chcecie. Twoja uwaga jest chroniona."
 }

@@ -44,7 +44,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 REQUIRED = ["bg", "surface", "surface-2", "fg", "fg-muted", "line", "accent", "accent-fg",
             "accent-text", "danger", "focus", "shadow", "tile-1", "tile-2", "tile-3", "tile-4"]
-OPTIONAL = ["tile-5"]  # neighbro has five tiles, sosed four
+OPTIONAL = ["tile-5", "field"]  # neighbro has five tiles, sosed four; field: an input's ground (redesign 16.10.2026, tokens-next.json), the screens fall back to transparent
 HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 

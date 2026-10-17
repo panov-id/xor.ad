@@ -39,7 +39,9 @@ const RU = LOC === "ru";
 const DIR = `${OUT}/${BRAND}/${LOC}/${W}`;
 mkdirSync(DIR, { recursive: true });
 const NA = RU ? "Аня" : "Anna", NB = RU ? "Борис" : "Boris", NV = RU ? "Вера" : "Vera";
-const run = Date.now().toString(36);
+// The widths and brands run as parallel processes that start in the same millisecond: the mark names the
+// width and brand too, or two runs post the same phrase and a card opens the other run's copy (16.10.2026).
+const run = `${Date.now().toString(36)}${W}${BRAND[0]}`;
 const aText = RU ? `гуляю у набережной Лимассола, если кто рядом ${run}` : `walking along the Limassol promenade, anyone near? ${run}`;
 const bText = RU ? `иду на старый порт за кофе ${run}` : `heading to the old port for coffee ${run}`;
 const rows = [];

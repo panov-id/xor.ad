@@ -354,6 +354,8 @@ docs/design-system_EN.md -> panel/design/reference-behaviour.svg
 docs/design-system_RU.md -> docs/design-system-app_RU.md
 docs/design-system_RU.md -> panel/design/kit-full.svg
 docs/design-system_RU.md -> panel/design/reference-behaviour.svg
+docs/design/kit_EN.md -> docs/report-2026-10-02-brands.pdf
+docs/design/kit_RU.md -> docs/report-2026-10-02-brands.pdf
 docs/design/themes_EN.md -> docs/design/themes_RU.md
 docs/design/themes_RU.md -> docs/design/themes_EN.md
 docs/dpia_EN.md -> docs/article-30-register_EN.md
@@ -614,10 +616,12 @@ relay/local/README.md -> relay/local/observability/grafana/dashboards/relay-iden
 relay/local/README.md -> relay/local/observability/prometheus.yml
 relay/moderation-bench/README_EN.md -> docs/vendors-dpa_EN.md
 relay/moderation-bench/README_EN.md -> relay/moderation-bench/README_RU.md
+relay/moderation-bench/README_EN.md -> relay/moderation-bench/evaluation.json
 relay/moderation-bench/README_EN.md -> relay/moderation-bench/fetch_resources.py
 relay/moderation-bench/README_EN.md -> relay/moderation-bench/pipeline.py
 relay/moderation-bench/README_RU.md -> docs/vendors-dpa_RU.md
 relay/moderation-bench/README_RU.md -> relay/moderation-bench/README_EN.md
+relay/moderation-bench/README_RU.md -> relay/moderation-bench/evaluation.json
 relay/moderation-bench/README_RU.md -> relay/moderation-bench/fetch_resources.py
 relay/moderation-bench/README_RU.md -> relay/moderation-bench/pipeline.py
 relay/moderator/measure.ts -> relay/node/src/lib/moderator.ts
@@ -1799,6 +1803,9 @@ relay/node/tools/seed_admin.ts -> relay/node/src/config.ts
 relay/node/tools/seed_admin.ts -> relay/node/src/lib/auth.ts
 relay/node/tools/seed_admin.ts -> relay/node/src/lib/hash.ts
 relay/node/tools/seed_admin.ts -> relay/node/src/lib/storage.ts
+scripts/load/bots.mjs -> depth/core/client.ts
+scripts/load/bots.mjs -> depth/core/legal.ts
+scripts/load/bots.mjs -> depth/core/paper.ts
 scripts/measure-feed-rules.ts -> depth/core/client.ts
 scripts/measure-feed-rules.ts -> depth/core/paper.ts
 testing/e2e/neighbro-hardening.spec.ts -> testing/helpers/env.ts
@@ -1866,6 +1873,8 @@ web/e2e/specs/heart-a11y.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/heart.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/heart.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/helpers.ts -> web/e2e/fixtures/address.ts
+web/e2e/specs/hide-undo.spec.ts -> web/e2e/fixtures/address.ts
+web/e2e/specs/hide-undo.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/icon-tips.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/idle-lock.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/idle-lock.spec.ts -> web/e2e/specs/helpers.ts
@@ -1922,6 +1931,8 @@ web/e2e/specs/reissue.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/reissue.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/rekey.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/rekey.spec.ts -> web/e2e/specs/helpers.ts
+web/e2e/specs/reload-grace.spec.ts -> web/e2e/fixtures/address.ts
+web/e2e/specs/reload-grace.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/report-phrase.spec.ts -> web/e2e/fixtures/address.ts
 web/e2e/specs/report-phrase.spec.ts -> web/e2e/specs/helpers.ts
 web/e2e/specs/restore-pin.spec.ts -> web/e2e/fixtures/address.ts
@@ -2014,6 +2025,7 @@ web/src/App.tsx -> web/src/ui/useTheme.ts
 web/src/App.tsx -> web/src/vault.ts
 web/src/a11y/nearby.ts -> web/src/locales/say.ts
 web/src/adv/Cabinet.tsx -> web/src/adv/api.ts
+web/src/adv/Cabinet.tsx -> web/src/config.ts
 web/src/adv/Cabinet.tsx -> web/src/locales/say.ts
 web/src/adv/Cabinet.tsx -> web/src/ui/Button.tsx
 web/src/adv/Cabinet.tsx -> web/src/ui/Card.tsx
@@ -2052,6 +2064,7 @@ web/src/api/transfer.ts -> web/src/locales/say.ts
 web/src/brands/index.ts -> web/src/brands/neighbro/index.tsx
 web/src/brands/index.ts -> web/src/brands/sosed/index.tsx
 web/src/brands/neighbro/index.tsx -> web/src/api/actions.ts
+web/src/brands/neighbro/index.tsx -> web/src/brands/neighbro/scenes/port.svg
 web/src/brands/neighbro/index.tsx -> web/src/brands/neighbro/stickers.css
 web/src/brands/neighbro/index.tsx -> web/src/locales/say.ts
 web/src/brands/neighbro/index.tsx -> web/src/screens/Arrival.tsx
@@ -2070,8 +2083,10 @@ web/src/brands/neighbro/index.tsx -> web/src/ui/Icon.tsx
 web/src/brands/neighbro/index.tsx -> web/src/ui/Links.tsx
 web/src/brands/neighbro/index.tsx -> web/src/ui/Message.tsx
 web/src/brands/neighbro/index.tsx -> web/src/ui/Screen.tsx
+web/src/brands/neighbro/index.tsx -> web/src/ui/offer.ts
 web/src/brands/sosed/index.tsx -> web/src/api/actions.ts
 web/src/brands/sosed/index.tsx -> web/src/brands/sosed/blocks.css
+web/src/brands/sosed/index.tsx -> web/src/brands/sosed/scenes/port.svg
 web/src/brands/sosed/index.tsx -> web/src/locales/say.ts
 web/src/brands/sosed/index.tsx -> web/src/screens/Arrival.tsx
 web/src/brands/sosed/index.tsx -> web/src/screens/Card.tsx
@@ -2089,6 +2104,7 @@ web/src/brands/sosed/index.tsx -> web/src/ui/Icon.tsx
 web/src/brands/sosed/index.tsx -> web/src/ui/Links.tsx
 web/src/brands/sosed/index.tsx -> web/src/ui/Screen.tsx
 web/src/brands/sosed/index.tsx -> web/src/ui/Split.tsx
+web/src/brands/sosed/index.tsx -> web/src/ui/offer.ts
 web/src/brands/sosed/index.tsx -> web/src/ui/useSwipe.ts
 web/src/chat/keys.ts -> depth/core/client.ts
 web/src/chat/keys.ts -> depth/core/seal.ts
@@ -2101,7 +2117,10 @@ web/src/favicon.ts -> web/src/config.ts
 web/src/geo/place.test.ts -> web/src/geo/place.ts
 web/src/geo/place.ts -> web/src/geo/cities.json
 web/src/geo/qr.test.ts -> web/src/geo/qr.ts
+web/src/grace.test.ts -> web/src/grace.ts
+web/src/grace.ts -> depth/core/sign.ts
 web/src/idle.ts -> depth/core/lock.ts
+web/src/idle.ts -> web/src/vault.ts
 web/src/locales/duration.ts -> web/src/locales/say.ts
 web/src/main.tsx -> panel/design/kit/tokens.css
 web/src/main.tsx -> web/src/App.tsx
@@ -2164,6 +2183,7 @@ web/src/screens/Card.tsx -> web/src/ui/Sheet.tsx
 web/src/screens/Card.tsx -> web/src/ui/Split.tsx
 web/src/screens/Card.tsx -> web/src/ui/Status.tsx
 web/src/screens/Card.tsx -> web/src/ui/Textarea.tsx
+web/src/screens/Card.tsx -> web/src/ui/offer.ts
 web/src/screens/Chat.tsx -> depth/core/client.ts
 web/src/screens/Chat.tsx -> web/src/chat/chat.css
 web/src/screens/Chat.tsx -> web/src/chat/keys.ts
@@ -2235,7 +2255,11 @@ web/src/screens/Departure.tsx -> web/src/ui/Split.tsx
 web/src/screens/Feed.tsx -> depth/core/client.ts
 web/src/screens/Feed.tsx -> web/src/a11y/nearby.ts
 web/src/screens/Feed.tsx -> web/src/api/actions.ts
+web/src/screens/Feed.tsx -> web/src/api/lists.ts
 web/src/screens/Feed.tsx -> web/src/api/tables.ts
+web/src/screens/Feed.tsx -> web/src/brands/neighbro/scenes/facade.svg
+web/src/screens/Feed.tsx -> web/src/brands/sosed/scenes/facade.svg
+web/src/screens/Feed.tsx -> web/src/config.ts
 web/src/screens/Feed.tsx -> web/src/locales/say.ts
 web/src/screens/Feed.tsx -> web/src/screens/logic/useFeed.ts
 web/src/screens/Feed.tsx -> web/src/ui/Button.tsx
@@ -2243,12 +2267,14 @@ web/src/screens/Feed.tsx -> web/src/ui/Card.tsx
 web/src/screens/Feed.tsx -> web/src/ui/ErrorLine.tsx
 web/src/screens/Feed.tsx -> web/src/ui/Header.tsx
 web/src/screens/Feed.tsx -> web/src/ui/Links.tsx
+web/src/screens/Feed.tsx -> web/src/ui/Message.tsx
 web/src/screens/Feed.tsx -> web/src/ui/Notices.tsx
 web/src/screens/Feed.tsx -> web/src/ui/PlaceBar.tsx
 web/src/screens/Feed.tsx -> web/src/ui/Screen.tsx
 web/src/screens/Feed.tsx -> web/src/ui/Skeleton.tsx
 web/src/screens/Feed.tsx -> web/src/ui/Status.tsx
 web/src/screens/Feed.tsx -> web/src/ui/TileFoot.tsx
+web/src/screens/Feed.tsx -> web/src/ui/offer.ts
 web/src/screens/Hidden.tsx -> depth/core/client.ts
 web/src/screens/Hidden.tsx -> web/src/api/lists.ts
 web/src/screens/Hidden.tsx -> web/src/api/me.ts
@@ -2295,6 +2321,7 @@ web/src/screens/Likes.tsx -> web/src/ui/ErrorLine.tsx
 web/src/screens/Likes.tsx -> web/src/ui/Header.tsx
 web/src/screens/Likes.tsx -> web/src/ui/Notices.tsx
 web/src/screens/Likes.tsx -> web/src/ui/Screen.tsx
+web/src/screens/Likes.tsx -> web/src/ui/offer.ts
 web/src/screens/Locked.tsx -> depth/core/client.ts
 web/src/screens/Locked.tsx -> depth/core/transfer.ts
 web/src/screens/Locked.tsx -> web/src/locales/say.ts
@@ -2623,6 +2650,7 @@ web/src/ui/Nav.tsx -> web/src/ui/Button.tsx
 web/src/ui/Notices.tsx -> web/src/locales/say.ts
 web/src/ui/Notices.tsx -> web/src/ui/Button.tsx
 web/src/ui/PlaceBar.tsx -> web/src/ui/Button.tsx
+web/src/ui/PlaceBar.tsx -> web/src/ui/Segments.tsx
 web/src/ui/PlaceBar.tsx -> web/src/ui/Select.tsx
 web/src/ui/RangePair.tsx -> web/src/locales/say.ts
 web/src/ui/RangePair.tsx -> web/src/ui/ErrorLine.tsx
@@ -2647,6 +2675,7 @@ web/src/ui/TileFoot.tsx -> web/src/ui/Icon.tsx
 web/src/ui/Toast.tsx -> web/src/locales/say.ts
 web/src/ui/Toast.tsx -> web/src/ui/Button.tsx
 web/src/ui/control.tsx -> web/src/ui/ErrorLine.tsx
+web/src/ui/offer.test.ts -> web/src/ui/offer.ts
 web/src/ui/phase.test.ts -> web/src/ui/phase.ts
 web/src/ui/usePhase.ts -> web/src/ui/phase.ts
 web/src/ui/useTheme.ts -> web/src/config.ts
@@ -2660,4 +2689,5 @@ web/src/vault.ts -> depth/core/sign.ts
 web/src/vault.ts -> depth/core/transfer.ts
 web/src/vault.ts -> depth/core/transfer_move.ts
 web/src/vault.ts -> web/src/config.ts
+web/src/vault.ts -> web/src/grace.ts
 web/src/vault.ts -> web/src/locales/say.ts

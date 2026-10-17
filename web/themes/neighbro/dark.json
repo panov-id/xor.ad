@@ -21,7 +21,8 @@
   "tile-2": "#cc2f27",
   "tile-3": "#336eb2",
   "tile-4": "#8550c5",
-  "tile-5": "#7fd19a"
+  "tile-5": "#7fd19a",
+  "field": "#111314"
  },
  "night": "dark",
  "tile-ink": {

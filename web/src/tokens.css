@@ -12,6 +12,28 @@
   --rule-w: 1px;       /* a hairline: a rule between welded rows, a word kept for a screen reader */
   --fs-meta: 0.875rem; --fs-body: 1rem; --fs-title: 1.25rem; --fs-card: 1.25rem; --fs-big: 2.25rem;
   --dur-1: 160ms;
+  /* The redesign's type (concept 15.10.2026 concept_RU.md:12): a mono overline over each zone, the feed's
+     place large on the facade scene (52 on 375, 96 on 1440), the step under it 17 → 22. */
+  --overline-fs: 11px;
+  --overline-ls: 0.2em;
+  --hero-h: 220px;
+  --table-name-fs: 28px;        /* a table's name on the feed: sosed Golos 800 30, neighbro Unbounded 900 26 (concept) */
+  --card-scene-h: clamp(150px, 17vw, 240px);   /* the card's port strip: 169 on 375, 239 on 1440 (sheets *-card-*) */
+  --card-phrase-fs: clamp(30px, 3.2vw, 46px);  /* the phrase on the card: 30 on 375, 46 on 1440 */
+  --ask-fs: clamp(34px, 3.1vw, 44px);          /* «like it?» from 1024: 44 (sosed), 34 Unbounded (neighbro) */
+  --card-spread-w: 1240px;                     /* the card's spread: 780 | 48 | 412 */
+  --rail-tag-w: 68px;           /* neighbro's current tab on the rail: 68×66 (sheet neighbro-card-1440) */
+  --rail-tag-h: 66px;
+  --rail-word-fs: 10px;         /* the rail's words, mono caps 10 (sheets *-1440) */
+  --chip-r: var(--r-pill);       /* the radius chips: sosed pills, neighbro square (concept) */
+  --plus-sq: 18px;              /* neighbro's square «+» (concept_RU.md:39) */
+  --plus-d: 32px;               /* the landing's round «+» on a feed card */
+  --hero-pad: 16px;
+  --hero-place-fs: clamp(40px, 13.9vw, 96px);   /* 52 at 375 (sheet sosed-feed-375 y=150), 96 from 691 */
+  --hero-place-ls: -0.035em;
+  --hero-step-fs: clamp(17px, 1.6vw, 22px);
+  --title-face: "Golos Text", sans-serif;
+  --title-weight: 800;
   /* The adaptive splash and the brand's mark (owner 11.10.2026, sheets panel/design/adaptive-*.svg):
      the mark 160 on a phone, 200 from 640, 440 in the poster from 1440; the entry 440 at most;
      the brand's name 40 / 72 under the mark; the poster's side margin 64. */
@@ -38,10 +60,9 @@
   --feed-tile-h-alt: 180px;
   --feed-card-h: 172px;        /* neighbro's phrase cards */
   --feed-row: 2px;             /* sosed's masonry: the grid's row unit (tiles span 83 and 98 rows: 150 and 180, 16 under each) */
-  --placebar-w: 140px;         /* sosed: the place and the circle, one pill 140×48 */
-  --placebar-h: 48px;
-  --offer-fs: 28px;            /* the discount on a feed offer */
-  --offer-tag-h: 40px;         /* neighbro: the discount tag 92×40 */
+  --offer-fs: 68px;            /* the discount on a feed offer: 68/900 (concept sosed-feed-375); neighbro 58 */
+  --card-accent-shadow: 8px 8px 0 var(--accent);   /* neighbro's open phrase on a phone: the accent's hard shadow, 16 from 1024 */
+  --offer-shadow: 16px 16px 0 var(--accent);   /* neighbro: what is singled out wears the accent's hard shadow (concept_RU.md:39) */
 }
 
 /* The splash's own sizes (screens/splash.css): the cast around the mark, the language list, the entry's capsules.
@@ -117,15 +138,15 @@
 
 /* sosed «blocks» */
 :root[data-brand="sosed"] {
-  --card-r: 24px;
-  --card-big-r: 32px;
+  --card-r: 16px;
+  --card-big-r: 16px;
   --card-pad: 16px;
   --card-big-pad: 32px 24px 24px;   /* «большая — 32/24/24» of the --card-pad row */
   --card-rim: none;
   --card-shadow: none;
   --card-lean: 0deg;
   --card-focus-offset: 3px;
-  --btn-r: 32px;
+  --btn-r: 13px;
   --btn-h: var(--control-h);
   --btn-shadow: none;
   --btn2-r: var(--r-2);
@@ -146,7 +167,7 @@
   --field-ls: 0.08em;
   --field-border: 1.5px solid var(--line);
   --like-size: 64px;
-  --panel-r: 18px;             /* the 393 sheets' panels: the card, the composer, the groups of rows */
+  --panel-r: 16px;             /* the 393 sheets' panels: the card, the composer, the groups of rows */
   --head-btn-rim: var(--tabbar-rim);
   --head-btn-ring: var(--tabbar-ring);
   --panel-rim: var(--tabbar-rim);
@@ -156,21 +177,26 @@
 
 /* neighbro «stickers» */
 :root[data-brand="neighbro"] {
-  --card-r: 18px;
-  --card-big-r: 18px;
+  --title-face: "Unbounded", "Golos Text", sans-serif;   /* owner 15.10.2026: the landing's Unbounded 900 */
+  --title-weight: 900;
+  --chip-r: 0;
+  --offer-fs: 58px;
+  --hero-place-fs: clamp(40px, 13vw, 96px);      /* Unbounded is wider: 49 at 375 (sheet neighbro-feed-375) */
+  --card-r: 0;
+  --card-big-r: 0;
   --card-pad: 18px 20px;
   --card-big-pad: 18px 20px;
-  --card-rim: 7px solid var(--surface);   /* §1.3 says --panel; styles.css: --panel is var(--surface) */
-  --card-shadow: 1.5px 3px 0 5px var(--shadow);
-  --card-lean: 1deg;                      /* the magnitude: the even card leans −1×, the odd +1× */
+  --card-rim: 2px solid var(--line);   /* §1.3 says --panel; styles.css: --panel is var(--surface) */
+  --card-shadow: 4px 4px 0 color-mix(in srgb, var(--shadow) 40%, transparent);
+  --card-lean: 0deg;                      /* the magnitude: the even card leans −1×, the odd +1× */
   --card-focus-offset: 6px;
-  --btn-r: 28px;
+  --btn-r: 4px;
   --btn-h: 56px;
-  --btn-rim: 4px solid var(--surface);    /* the sheets' sticker: a white rim and a hard offset shadow (owner 10.10, §8.2) */
-  --btn-shadow: 1.5px 4px 0 3px var(--shadow);
-  --btn2-r: 28px;
+  --btn-rim: 2px solid var(--line);    /* the sheets' sticker: a white rim and a hard offset shadow (owner 10.10, §8.2) */
+  --btn-shadow: 3px 3px 0 var(--shadow);
+  --btn2-r: 4px;
   --btn2-bg: var(--surface);
-  --field-r: 10px;
+  --field-r: 0;
   --field-h: 56px;
   --field-fs: 22px;
   --field-ls: 0.6em;
@@ -191,7 +217,7 @@
   --me-hero-gap: 16px;                    /* the sticker's edge to the name */
   --round-d: 52px;                        /* the round icon button, r26 */
   --fab: 60px;                            /* "write" on the feed, a circle (sheet adaptive-neighbro-feed-393) */
-  --fab-r: var(--r-round);
+  --fab-r: 4px;
   --fab-bottom: 100px;                    /* the bar's 64, its 20 and 16 above it */
   --fab-inset: 16px;
   --phone-half: 171.5px;                  /* half the 343 column, to align the fab with it */
@@ -219,7 +245,7 @@
   /* ND-N2: the feed and the card as on their sheets. */
   --fs-card: 1.375rem;                    /* a phrase in the feed: 22/600 */
   --feed-gap: 24px;                       /* between the phrase cards (sheet adaptive-neighbro-feed-393: 140, 336, 532) */
-  --panel-r: 16px;                        /* the 393 sheets' panels: the card, the composer, the groups of rows */
+  --panel-r: 0;                        /* the 393 sheets' panels: the card, the composer, the groups of rows */
   --head-btn-rim: 0;
   --head-btn-ring: var(--cell-shadow);
   --panel-rim: 0;

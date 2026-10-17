@@ -127,3 +127,32 @@ html:root[data-brand] [data-screen="table"] [data-part="stickers"] { column-gap:
 @media (max-width: 399.98px) {
   html:root[data-brand] [data-screen="table"] [data-part="stickers"] { margin-inline: calc(-1 * var(--s-4)); }
 }
+
+/* The redesign (concept 15.10.2026, sheets *-feed-375/1440): the place pin and the five radii as chips in a row —
+   no capsule; mono caps, the chosen one filled (sosed: ink, neighbro: the accent with its 2 px rim). */
+html:root[data-brand] [data-screen="feed"] .ui-placebar {
+  flex: 1 1 auto; flex-wrap: wrap; inline-size: auto; block-size: auto; min-height: 0; gap: var(--s-2);
+  border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible;
+}
+html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-placebar-radius { padding: 0; }
+html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-field { gap: 0; }
+html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-label { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-segments { flex-wrap: nowrap; gap: var(--s-2); }
+html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-seg {
+  flex: 0 0 auto; min-height: var(--control-h); padding: 0 var(--s-3); border: var(--rule-w) solid var(--line); border-radius: var(--chip-r);
+  background: var(--surface); color: var(--fg); box-shadow: none;
+  font-family: "JetBrains Mono", monospace; font-size: var(--overline-fs); font-weight: 500; letter-spacing: var(--overline-ls); text-transform: uppercase;
+}
+html:root[data-brand="sosed"] [data-screen="feed"] .ui-placebar .ui-seg-on { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+html:root[data-brand="neighbro"] [data-screen="feed"] .ui-placebar .ui-seg { border: var(--card-rim); }
+html:root[data-brand="neighbro"] [data-screen="feed"] .ui-placebar .ui-seg-on { background: var(--accent); color: var(--accent-ink); }
+/* A phone (sheets *-feed-375): the chips are a row of their own, 16..358, five equal; the pin stays with the
+   buttons. In one row with them the fifth chip ran to x 398, the page laid out 399 wide and the tab bar slid
+   under the tiles (layout.spec, 17.10.2026). */
+@media (max-width: 767.98px) {
+  html:root[data-brand] [data-screen="feed"] > .ui-actions { flex-wrap: wrap; }
+  html:root[data-brand] [data-screen="feed"] .ui-placebar { display: contents; }
+  html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-placebar-radius { order: 1; flex: 1 1 100%; min-inline-size: 0; }
+  html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-placebar-radius > * { flex: 1 1 auto; min-inline-size: 0; }
+  html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-seg { flex: 1 1 0; min-inline-size: 0; padding: 0; }
+}

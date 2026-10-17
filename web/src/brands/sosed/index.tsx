@@ -5,6 +5,7 @@
 // each with its button under the card. The state and the node's calls are
 // the shared hooks (screens/logic); this file only draws.
 
+import { offerLabel } from "../../ui/offer.ts";
 import { useState, type ComponentProps } from "react";
 import { languageIn, modeIcon, modes } from "../../api/actions.ts";
 import { say } from "../../locales/say.ts";
@@ -22,6 +23,7 @@ import { Screen } from "../../ui/Screen.tsx";
 import { Icon } from "../../ui/Icon.tsx";
 import { useSwipe } from "../../ui/useSwipe.ts";
 import "./blocks.css";
+import portScene from "./scenes/port.svg?url";
 
 import { Composer } from "../../screens/Composer.tsx";
 import { Chat } from "../../screens/Chat.tsx";
@@ -76,21 +78,25 @@ function Tile({ card, index, open }: { card: FeedCard; index: number; open: () =
   if (card.offer) return (
     <li className="tile tile-offer" data-testid="card" data-id={card.id} data-kind={card.kind === "offer" ? "offer" : undefined}>
       <CardOpen id={card.id} onOpen={open} />
-      <span className="ui-offer tile-offer-value" data-testid="offer">−{card.offer.discount_value}</span>
+      <span className="ui-offer tile-offer-value" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.offer.venue_name ? `${card.offer.venue_name}: ` : ""}{card.text}</p>
       <span className="tile-foot ui-hint" id={openerIds(card.id).foot}>{card.offer.conditions ?? ""}</span>
     </li>
   );
   return (
     <li
-      className={`tile tile-c${(index % 4) + 1}`}
+      className="tile"
       data-testid="card"
       data-id={card.id}
+      data-index={index}
     >
       <CardOpen id={card.id} onOpen={open} />
+      {/* The redesign (concept 15.10.2026, sheet sosed-feed-375): paper, the mode and language as a mono
+          overline on top, the phrase, then the landing's round «+» and the count in mono at the foot. */}
+      <span className="tile-over ui-icon-row"><Icon name={modeIcon(card.mode)} size={14} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="tile-foot" id={openerIds(card.id).foot}>
-        <span className="ui-icon-row"><Icon name={modeIcon(card.mode)} size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
+        <span className="tile-plus" aria-hidden="true">+</span>
         <span className="tile-likes" data-mine={card.liked ? "" : undefined} data-lit={card.liked ? "" : undefined} data-testid={card.liked ? "liked-mark" : undefined}>{likesOf(card.like_count, card.liked)}</span>
       </span>
     </li>
@@ -149,12 +155,20 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
           style={{ transform: `translate(${offset.dx}px, ${offset.dy}px) rotate(${lean}deg)` }}
           {...bind}
         >
-          <span className="block-grip" aria-hidden="true" />
-          {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
+          {/* The redesign (concept 15.10.2026, sheets sosed-card-375/1440): paper with the old port's scene as a
+              strip melting into it, the mode and language as an overline, the phrase large, the likes in mono. */}
+          <img className="block-scene" src={portScene} alt="" aria-hidden="true" decoding="async" draggable={false} />
+          {card.offer && <span className="ui-offer" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>}
+          <span className="block-over ui-icon-row"><Icon name={modeIcon(card.mode)} size={14} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}</span>
           <p className="ui-big" data-testid="text" lang={langOf(card)}>{card.text}</p>
-          <span className="block-mode"><Icon name={modeIcon(card.mode)} />{modeLabel(card.mode)}</span>
           {card.soon && <span className="block-soon">{say("web.card.soon")}</span>}
+          <span className="block-count">{say("web.like.count", { n: card.like_count + (liked && !card.liked ? 1 : 0) })}</span>
         </article>
+      </div>
+      {/* The actions' column from 1024 (concept: «what now · like it?» over the like). */}
+      <div className="block-ask" aria-hidden="true">
+        <p className="ui-overline">{say("web.card.what_now")}</p>
+        <p className="block-ask-title">{say("web.card.like_it")}</p>
       </div>
       {!peek && card.offer?.conditions && <p className="ui-hint" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
       <CardNotes logic={logic} />
@@ -167,6 +181,14 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
           </Split>
         </CardTalk>
       </div>
+      {/* the gestures' hint under the like (sheets sosed-card-375 y 578, -1440 y 356) */}
+      <p className="block-gestures" data-testid="card-gestures">{say("web.card.gestures")}</p>
+      {/* «how the match works», the landing's words (owner 16.10.2026: keep it on the card), from 1024. */}
+      <section className="block-match" data-testid="card-match">
+        <p className="ui-overline">{say("web.card.match.sosed.kick")}</p>
+        <h2>{say("web.card.match.sosed.title")}</h2>
+        <p>{say("web.card.match.sosed.text")}</p>
+      </section>
     </Screen>
   );
 }

@@ -8,20 +8,27 @@
 // counts per spec, not per run, as it counts per household in production; the
 // ceiling itself is untouched, and a spec that registers eleven still meets it.
 //
-// The address is a function of the spec's file name, so a run is repeatable
-// and two specs never share one.
+// The address is the spec's place in its folder's sorted listing, so a run is
+// repeatable and two specs never share one. A hash of the name did not keep
+// that promise: 14 groups of specs shared an address, and three specs'
+// registrations together met the ceiling (16.10.2026).
 
+import { readdirSync } from "node:fs";
+import { basename, dirname } from "node:path";
 import { test as base, type Browser, type BrowserContextOptions } from "@playwright/test";
 
 export { expect, type BrowserContext, type Page } from "@playwright/test";
 
 export const ORIGIN_TOKEN = "web-test-origin-token";
 
-// 203.0.113.0/24 is documentation space (RFC 5737): never routed, never a real neighbour.
+// The three documentation blocks (RFC 5737): never routed, never a real neighbour.
+const BLOCKS = ["203.0.113", "198.51.100", "192.0.2"];
+
 export function addressFor(file: string): string {
-  let h = 0;
-  for (const c of file.replace(/^.*\//, "")) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return `203.0.113.${(h % 250) + 1}`;
+  const specs = readdirSync(dirname(file)).filter((f) => f.endsWith(".ts")).sort();
+  const i = specs.indexOf(basename(file));
+  if (i < 0 || i >= BLOCKS.length * 254) throw new Error(`addressFor: no address for ${file}`);
+  return `${BLOCKS[Math.floor(i / 254)]}.${(i % 254) + 1}`;
 }
 
 export const headersFor = (file: string): Record<string, string> => ({

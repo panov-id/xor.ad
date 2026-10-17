@@ -28,8 +28,8 @@ test("П6, П2, П16: no keys line on the feed, the radius is a named select, a 
     await expect(b.getByTestId("sealed-failed")).toHaveCount(0);
     await expect(feed.locator("footer"), "the feed has no foot of its own").toHaveCount(0);
 
-    // The radius is the kit's Select: its label names it for a reader (the band stays 56).
-    await expect(b.getByTestId("radius").getByRole("combobox")).toHaveAccessibleName("радиус круга");
+    // The radius is the kit's Segments, chips in a row (redesign 16.10.2026): the group's label names it for a reader.
+    await expect(b.getByTestId("radius").getByRole("radiogroup")).toHaveAccessibleName("радиус круга");
 
     // П16 and П2: the foot of a card reads «лайков: 0», never a bare number, and no language code.
     await b.getByTestId("nav-inbox").click();

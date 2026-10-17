@@ -68,6 +68,7 @@
   --tile-3: #336eb2;
   --tile-4: #8550c5;
   --tile-5: #7fd19a;
+  --field: #111314;
   --tile-1-ink: #04201c;
   --tile-2-ink: #fdeceb;
   --tile-3-ink: #eaf2ff;
@@ -169,6 +170,7 @@
   --tile-3: #336eb2;
   --tile-4: #8550c5;
   --tile-5: #3f9a5c;
+  --field: #ffffff;
   --tile-1-ink: #04201c;
   --tile-2-ink: #fdeceb;
   --tile-3-ink: #eaf2ff;
@@ -337,6 +339,7 @@
   --tile-2: #1fa99a;
   --tile-3: #8550c5;
   --tile-4: #336eb2;
+  --field: #262019;
   --tile-1-ink: #1a1509;
   --tile-2-ink: #1a1509;
   --tile-3-ink: #fff6f0;
@@ -476,6 +479,7 @@
   --tile-2: #1fa99a;
   --tile-3: #8550c5;
   --tile-4: #336eb2;
+  --field: #fdfaf4;
   --tile-1-ink: #1a1509;
   --tile-2-ink: #1a1509;
   --tile-3-ink: #fff6f0;

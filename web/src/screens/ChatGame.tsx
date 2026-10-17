@@ -11,7 +11,7 @@ import { asTableView, ChatGames, type ChatGameView } from "../api/chatGames.ts";
 import { classWord, setWord, tableRefusal } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
 import { CLASSES } from "./NewTable.tsx";
-import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, WordBoard } from "./TableBoards.tsx";
+import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, PokerBoard, SeaBoard, WordBoard } from "./TableBoards.tsx";
 import { Button } from "../ui/Button.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";
 import { Segments } from "../ui/Segments.tsx";
@@ -99,6 +99,8 @@ export function ChatGame({ client, chatId, bump }: { client: Client; chatId: str
               <WordBoard view={view} onMove={onMove} />
               <FreeBoard view={view} onMove={onMove} />
               <CellsBoard view={view} onMove={onMove} />
+              <SeaBoard view={view} onMove={onMove} />
+              <PokerBoard view={view} onMove={onMove} />
             </>
           )}
           {board.over

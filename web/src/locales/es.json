@@ -598,5 +598,14 @@
   "web.sticker.coffee": "¿café?",
   "web.sticker.move": "buena jugada",
   "web.sticker.again": "revancha",
-  "web.sticker.giveup": "me rindo"
+  "web.sticker.giveup": "me rindo",
+  "web.card.match.sosed.kick": "II — match",
+  "web.card.match.sosed.title": "Un plus mutuo y estáis en privado",
+  "web.card.match.sosed.text": "Le das plus a quien te enganchó. Coincide en ambos — se abre el chat. En un sentido — silencio.",
+  "web.card.match.neighbro.kick": "II — Match",
+  "web.card.match.neighbro.title": "Un like mutuo abre la puerta",
+  "web.card.match.neighbro.text": "Un chat privado aparece solo cuando ambos queréis. Tu atención está protegida.",
+  "web.card.what_now": "Y ahora",
+  "web.card.like_it": "¿Te gusta?",
+  "web.card.gestures": "desliza → me gusta · ← ocultar · ↓ detalles"
 }

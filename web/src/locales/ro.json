@@ -598,5 +598,14 @@
   "web.sticker.coffee": "o cafea?",
   "web.sticker.move": "mutare bună",
   "web.sticker.again": "revanșă",
-  "web.sticker.giveup": "mă predau"
+  "web.sticker.giveup": "mă predau",
+  "web.card.match.sosed.kick": "II — potrivit",
+  "web.card.match.sosed.title": "Un plus reciproc și sunteți în privat",
+  "web.card.match.sosed.text": "Dai plus celui care te-a prins. Amândoi plus — se deschide un chat. Într-un singur sens — tăcere, nimeni nu află.",
+  "web.card.what_now": "Și acum",
+  "web.card.like_it": "Îți place?",
+  "web.card.gestures": "glisează → îmi place · ← ascunde · ↓ detalii",
+  "web.card.match.neighbro.kick": "II — Potrivire",
+  "web.card.match.neighbro.title": "O apreciere reciprocă deschide ușa",
+  "web.card.match.neighbro.text": "Un chat privat apare doar când amândoi vă doriți. Atenția ta e protejată."
 }

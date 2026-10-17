@@ -598,5 +598,14 @@
   "web.sticker.coffee": "кофе?",
   "web.sticker.move": "жакшы жүрүш",
   "web.sticker.again": "реванш",
-  "web.sticker.giveup": "багынам"
+  "web.sticker.giveup": "багынам",
+  "web.card.match.sosed.kick": "II — дал келди",
+  "web.card.match.sosed.title": "Экөө тең плюс — жашыруун катта",
+  "web.card.match.sosed.text": "Жаккан адамга плюс коёсуң. Экөө тең дал келсе — чат ачылат. Бир жактуу болсо — тынчтык, эч ким билбейт.",
+  "web.card.what_now": "Эми эмне",
+  "web.card.like_it": "Жактыбы?",
+  "web.card.gestures": "сүрүп өткөр → жагат · ← жашыр · ↓ кененирээк",
+  "web.card.match.neighbro.kick": "II — Дал келүү",
+  "web.card.match.neighbro.title": "Өз ара лайк эшикти ачат",
+  "web.card.match.neighbro.text": "Жеке чат экөөңөр тең каалагандагы гана пайда болот. Көңүлүң корголгон."
 }

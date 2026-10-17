@@ -598,5 +598,14 @@
   "web.sticker.coffee": "coffee?",
   "web.sticker.move": "good move",
   "web.sticker.again": "rematch",
-  "web.sticker.giveup": "I give up"
+  "web.sticker.giveup": "I give up",
+  "web.card.what_now": "What now",
+  "web.card.like_it": "Like it?",
+  "web.card.gestures": "swipe → like · ← hide · ↓ details",
+  "web.card.match.sosed.kick": "II — match",
+  "web.card.match.sosed.title": "A mutual plus and you're in DMs",
+  "web.card.match.sosed.text": "You plus whoever caught you. Both plus — a chat opens. One-way — silence, nobody knows.",
+  "web.card.match.neighbro.kick": "II — Match",
+  "web.card.match.neighbro.title": "A mutual like opens the door",
+  "web.card.match.neighbro.text": "A private chat appears only when both of you want it. Your attention is protected."
 }

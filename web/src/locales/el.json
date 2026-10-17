@@ -598,5 +598,14 @@
   "web.sticker.coffee": "καφέ;",
   "web.sticker.move": "καλή κίνηση",
   "web.sticker.again": "ρεβάνς",
-  "web.sticker.giveup": "τα παρατάω"
+  "web.sticker.giveup": "τα παρατάω",
+  "web.card.match.sosed.kick": "II — ταίριασμα",
+  "web.card.match.sosed.title": "Αμοιβαίο συν κι είστε σε προσωπικό",
+  "web.card.match.sosed.text": "Βάζεις συν σε όποιον σε τσίμπησε. Ταιριάζει κι απ' τους δύο — ανοίγει το chat. Μονόπλευρα — σιωπή.",
+  "web.card.match.neighbro.kick": "II — Ταίριασμα",
+  "web.card.match.neighbro.title": "Ένα αμοιβαίο like ανοίγει την πόρτα",
+  "web.card.match.neighbro.text": "Ένα ιδιωτικό chat εμφανίζεται μόνο όταν το θέλετε και οι δύο. Η προσοχή σου προστατεύεται.",
+  "web.card.what_now": "Και τώρα",
+  "web.card.like_it": "Σου αρέσει;",
+  "web.card.gestures": "σύρε → μου αρέσει · ← απόκρυψη · ↓ λεπτομέρειες"
 }

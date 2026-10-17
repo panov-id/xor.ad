@@ -10,6 +10,7 @@
 // back is the likes list's, as on sosed.
 // The state and the node's calls are the shared hooks; this file only draws.
 
+import { offerLabel } from "../../ui/offer.ts";
 import { useEffect, useId, useRef, useState, type ComponentProps, type PointerEvent as ReactPointerEvent } from "react";
 import { languageIn, likePhrase, modeIcon, modes } from "../../api/actions.ts";
 import { say } from "../../locales/say.ts";
@@ -26,6 +27,7 @@ import { UndoRow } from "../../ui/Message.tsx";
 import { Screen } from "../../ui/Screen.tsx";
 import { Icon } from "../../ui/Icon.tsx";
 import "./stickers.css";
+import portScene from "./scenes/port.svg?url";
 
 import { Composer } from "../../screens/Composer.tsx";
 import { Chat } from "../../screens/Chat.tsx";
@@ -78,23 +80,27 @@ function Sticker({ card, index, open }: { card: FeedCard; index: number; open: (
   // A venue's offer (sheets adaptive-neighbro-feed, 11.10.2026): the discount as an accent tag stuck on
   // the card, the venue and what, the conditions muted; no mode and no like.
   if (card.offer) return (
-    <li className={`sticker sticker-offer${index % 2 ? " lean-r" : " lean-l"}`} data-testid="card" data-id={card.id} data-kind={card.kind === "offer" ? "offer" : undefined}>
+    <li className="sticker sticker-offer" data-testid="card" data-id={card.id} data-kind={card.kind === "offer" ? "offer" : undefined}>
       <CardOpen id={card.id} onOpen={open} />
-      <span className="ui-offer sticker-offer-tag" data-testid="offer">−{card.offer.discount_value}</span>
+      <span className="ui-offer sticker-offer-tag" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.offer.venue_name ? `${card.offer.venue_name}: ` : ""}{card.text}</p>
       <span className="sticker-foot" id={openerIds(card.id).foot}>{card.offer.conditions ?? ""}</span>
     </li>
   );
   return (
     <li
-      className={`sticker sticker-c${(index % 4) + 1}${index % 2 ? " lean-r" : " lean-l"}`}
+      className="sticker"
       data-testid="card"
       data-id={card.id}
+      data-index={index}
     >
       <CardOpen id={card.id} onOpen={open} />
+      {/* The redesign (concept 15.10.2026, sheet neighbro-feed-375): the landing's card — r0, a 2 px rim,
+          a hard shadow; the mode and language as a mono overline, the square «+» and the count at the foot. */}
+      <span className="sticker-over ui-icon-row"><Icon name={modeIcon(card.mode)} size={14} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
       <p id={openerIds(card.id).text} lang={langOf(card)}>{card.text}</p>
       <span className="sticker-foot" id={openerIds(card.id).foot}>
-        <span className="ui-icon-row"><Icon name={modeIcon(card.mode)} size={16} />{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.feed.soon") : ""}</span>
+        <span className="sticker-plus" aria-hidden="true">+</span>
         <span className="sticker-likes" data-mine={card.liked ? "" : undefined} data-lit={card.liked ? "" : undefined} data-testid={card.liked ? "liked-mark" : undefined}>{likesOf(card.like_count, card.liked)}</span>
       </span>
     </li>
@@ -204,13 +210,21 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
         aria-labelledby={`${ids}-text`}
         aria-describedby={described}
       >
-        {card.offer && <span className="ui-offer" id={`${ids}-offer`} data-testid="offer">−{card.offer.discount_value}</span>}
+        {/* The redesign (concept 15.10.2026, sheets neighbro-card-375/1440): the port scene in a frame of its
+            own, the mode and language as a mono overline over the phrase. */}
+        <img className="sticker-scene" src={portScene} alt="" aria-hidden="true" decoding="async" draggable={false} />
+        {card.offer && <span className="ui-offer" id={`${ids}-offer`} data-testid="offer">{offerLabel(card.offer.discount_value)}</span>}
+        <span className="sticker-meta sticker-over" id={`${ids}-meta`}>{modeLabel(card.mode)}{languageIn(card.lang) ? ` · ${languageIn(card.lang)}` : ""}{card.soon ? say("web.card.soon") : ""}</span>
         <p className="ui-big" id={`${ids}-text`} data-testid="text" lang={langOf(card)}>{card.text}</p>
-        <span className="sticker-meta" id={`${ids}-meta`}>{modeLabel(card.mode)}{card.soon ? say("web.card.soon") : ""}</span>
         {card.offer?.conditions && <span className="sticker-meta" id={`${ids}-cond`} data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</span>}
         <span className="sticker-count" id={`${ids}-count`} data-testid="like-burst"><Icon name="like" size={18} /><span className="visually-hidden">{say("web.card.likes")} </span>{card.like_count + (liked && !card.liked ? 1 : 0)}</span>
         {placed && <span className="stuck-heart" data-testid="stuck-heart" aria-hidden="true"><Icon name="like" size={40} /></span>}
       </article>
+      {/* The actions' column from 1024 (concept: «what now · like it?» over the heart). */}
+      <div className="sticker-ask" aria-hidden="true">
+        <p className="ui-overline">{say("web.card.what_now")}</p>
+        <p className="sticker-ask-title">{say("web.card.like_it")}</p>
+      </div>
       {/* Right after the card, so Tab from it finds «отменить» first (WCAG 2.2.1). */}
       {pending && (
         <div
@@ -243,6 +257,12 @@ export function CardView({ client, card, onBack, onGone, onTalk }: ComponentProp
           </div>
         </CardTalk>
       </div>
+      {/* «how the match works», the landing's words (owner 16.10.2026: keep it on the card), from 1024. */}
+      <section className="sticker-match" data-testid="card-match">
+        <p className="ui-overline">{say("web.card.match.neighbro.kick")}</p>
+        <h2>{say("web.card.match.neighbro.title")}</h2>
+        <p>{say("web.card.match.neighbro.text")}</p>
+      </section>
     </Screen>
   );
 }

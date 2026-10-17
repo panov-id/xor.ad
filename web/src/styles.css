@@ -29,6 +29,9 @@ h2 { font-size: 18px; margin: 0; }
 label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); }
 label.row { flex-direction: row; align-items: flex-start; gap: 10px; color: var(--fg); }
 input, select { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--border-control); border-radius: var(--r-1); padding: 10px var(--s-3); min-height: var(--control-h); }
+/* The app's fields stand on their own ground (redesign 16.10.2026, the themes' --field); the landings keep theirs. */
+/* :is() of bare elements keeps the weight of `input` (0,0,1), so a component's own ground (.ui-composer input …) still wins. */
+:is(input, select, textarea):where(:not([type="checkbox"], [type="radio"], [type="range"])) { background-color: var(--field, transparent); }
 input:focus { outline: none; }
 button { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--border-control); border-radius: var(--r-2); padding: 0 var(--s-4); min-height: var(--control-h); cursor: pointer; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
@@ -106,6 +109,16 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 /* A header with no back icon keeps the title on the 16 edge, as the sheets do. */
 .ui-header-rule:not(:has(.ui-icon)) { padding-left: var(--s-4); }
 .ui-header-title { flex: 1; font-size: 20px; font-weight: 600; margin: 0; }
+.ui-header-band { flex: 1; font-family: "JetBrains Mono", monospace; font-size: var(--overline-fs); font-weight: 500; letter-spacing: var(--overline-ls); text-transform: uppercase; }
+.ui-overline { margin: 0; font-family: "JetBrains Mono", monospace; font-size: var(--overline-fs); font-weight: 500; letter-spacing: var(--overline-ls); text-transform: uppercase; color: var(--accent-text); }
+/* The feed's hero: the scene under a veil of the ground, the words on it (sheets *-feed-375/1440). */
+.ui-feedhero { position: relative; isolation: isolate; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--s-1); min-height: var(--hero-h); margin: calc(-1 * var(--s-4)) calc(-1 * var(--s-4)) 0;   /* flush under the band: the screen's gap is taken back */ padding: var(--hero-pad); overflow: hidden; }
+.ui-feedhero-scene { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
+.ui-feedhero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 35%, transparent), var(--bg)); }
+.ui-feedhero-place { margin: 0; font-family: var(--title-face); font-weight: var(--title-weight); font-size: var(--hero-place-fs); letter-spacing: var(--hero-place-ls); line-height: 1; text-transform: uppercase; overflow-wrap: anywhere; color: var(--fg); }
+.ui-feedhero-step { margin: 0; font-size: var(--hero-step-fs); font-weight: 500; color: var(--fg-muted); }
+/* The card's header names the zone, not a title (concept sheets *-card-*: «PHRASE» mono 11 in accent-text). */
+html:root[data-brand] [data-screen="card"] .ui-header-title { font-family: "JetBrains Mono", monospace; font-size: var(--overline-fs); font-weight: 500; letter-spacing: var(--overline-ls); text-transform: uppercase; color: var(--accent-text); }
 .ui-header-action { font-size: 14px; font-weight: 600; color: var(--accent-text); }
 .ui-icon { width: var(--control-h); min-height: var(--control-h); padding: 0; border: 0; display: grid; place-items: center; background: transparent; }
 .ui-icon svg { fill: none; stroke: var(--fg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -305,6 +318,9 @@ a.ui-button { border-width: 1px; border-style: solid; text-decoration: none; }
 .ui-toast-text { overflow-wrap: anywhere; }
 /* The entity of a card (Card `of`): the rim is the second channel, the words inside are the first. */
 .ui-card-of-table { background: var(--panel-2); }
+.ui-card-of-table > p { display: flex; flex-direction: column; gap: var(--s-1); margin: 0; }
+.ui-table-over { color: var(--fg-muted); }
+.ui-table-name { font-family: var(--title-face); font-weight: var(--title-weight); font-size: var(--table-name-fs); letter-spacing: -0.02em; line-height: 1.05; text-transform: uppercase; overflow-wrap: anywhere; }
 .ui-card-of-offer { border-color: var(--accent); }
 .ui-card-of-match { box-shadow: inset 0 0 0 1px var(--accent-text); }
 .ui-card-of-venue { border-color: var(--border-control); }

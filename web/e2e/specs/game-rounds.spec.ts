@@ -150,3 +150,23 @@ test("a first proposal declined: the offer goes from both screens, and the propo
   // Nothing is running, so the proposer is offered to propose again.
   await expect(anya.getByTestId("game-propose")).toBeVisible({ timeout: 15000 });
 });
+
+// The chat draws every board the table draws (Table.tsx): battleship and poker
+// were offered in the chat's list and accepted, then showed no board at all.
+for (const [klass, set, testid] of [["grid", "battleship", "sea"], ["deck", "poker", "poker"]] as const) {
+  test(`${set} in a conversation: accepted, both see its board`, async ({ browser }) => {
+    test.setTimeout(180_000);
+    const [anya, boris] = await twoTalking(browser, ["Аня", "Борис"]);
+    await propose(anya, klass, set);
+    await expect(boris.getByTestId("game-offer")).toBeVisible({ timeout: 20000 });
+    await boris.getByTestId("game-accept").click();
+    if (set === "battleship") {
+      // Fleets are placed seat by seat (TableBoards.tsx SeaBoard): the proposer gets the fleet field,
+      // the other's sea is in its placing phase with nothing to show yet.
+      await expect(anya.getByTestId("fleet-input"), "battleship: no fleet field for the first seat").toBeVisible({ timeout: 20000 });
+      await expect(boris.locator('[data-testid="sea"][data-phase="place"]'), "battleship: no board for the second seat").toHaveCount(1, { timeout: 20000 });
+    } else {
+      for (const page of [anya, boris]) await expect(page.getByTestId(testid), `${set}: no board on screen`).toBeVisible({ timeout: 20000 });
+    }
+  });
+}

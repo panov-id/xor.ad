@@ -70,10 +70,18 @@
   html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab span {
     position: static; width: auto; height: auto; overflow: visible; clip-path: none; margin-top: 4px; font-size: 14px; z-index: 1;
   }
-  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab[aria-current="page"]::after { width: 88px; height: 60px; margin: -30px 0 0 -44px; }
+  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) .tab[aria-current="page"]::after { width: var(--rail-tag-w); height: var(--rail-tag-h); margin: calc(var(--rail-tag-h) / -2) 0 0 calc(var(--rail-tag-w) / -2); }
+  /* The redesign (concept 15.10.2026, sheets neighbro-*-1440): the rail is a panel of the landing — r0, a 2 px rim,
+     the hard shadow — 24 off the edges; the words mono in caps. */
+  html:root[data-brand="neighbro"] { --rail-w: 116px; }   /* 24 off the edge + the panel's 92 */
+  html:root[data-brand="neighbro"] .tabbar:not([data-testid="kit-tabbar"]) {
+    top: var(--s-6); bottom: var(--s-6); left: var(--s-6); width: calc(var(--rail-w) - var(--s-6));
+    background: var(--surface); border: var(--card-rim); box-shadow: var(--card-shadow); border-radius: 0;
+  }
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab span { font-family: "JetBrains Mono", monospace; font-weight: 500; letter-spacing: var(--overline-ls); text-transform: uppercase; }
   /* «разговоры» ran past the 80 tab and its tag at every width ≥ 1024 (round 1): the tab is 92, the word 13 and whole */
   html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab { width: 92px; }
-  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab span { font-size: 13px; white-space: nowrap; }
+  html:root[data-brand] .tabbar:not([data-testid="kit-tabbar"]) .tab span { font-size: var(--rail-word-fs); white-space: nowrap; }
   /* what has the rail moves right of it */
   html:root[data-brand] .ui-railed { display: block; padding-left: var(--rail-w); }
   html:root[data-brand] .ui-tabbed { padding-left: var(--rail-w); }
@@ -95,6 +103,38 @@
   html:root[data-brand] :is([data-screen="feed"], [data-screen="tables"]) { --cols: 3; }
   /* sosed's tiles are pinned to column 1 / 2 for the phone's two-column mosaic (blocks.css): from 3 columns they flow */
   html:root[data-brand="sosed"] [data-screen="feed"] .tiles > li { grid-column: auto; }
+}
+/* The redesign at 1440 (sheets *-feed-1440): the feed runs from the rail to the right edge, its scene flush with
+   the screen's sides, three columns of exactly 400 at x 160 / 580 / 1000. 2560+ keeps its four flowing columns. */
+@media (min-width: 1440px) and (max-width: 2559.98px) {
+  html:root[data-brand] [data-screen="feed"].screen { max-width: none; }
+  html:root[data-brand] [data-screen="feed"] :is(.tiles, .stickers) { grid-template-columns: repeat(3, 400px); column-gap: 20px; }
+  html:root[data-brand] [data-screen="feed"] .ui-feedhero { margin-inline: calc(-1 * var(--s-6)); }
+  /* The sheets' scene ends at y 380; under the 56 band that is 324 of it. */
+  html:root[data-brand] [data-screen="feed"] { --hero-h: 324px; }
+  /* The chips sit in the scene's foot (y 290 of its 380), from x 160, the pin after them. The row follows the
+     scene by the screen's gap 16, so it is pulled back by 380 - 290 + 16. No z-index: a stacking context here
+     would shut the fixed «write» inside it, under the rail (17.10.2026); coming after the scene, it paints above. */
+  html:root[data-brand] [data-screen="feed"] > .ui-actions { position: relative; margin-block: -106px 97px; }   /* tiles back at y 448 */
+  html:root[data-brand] [data-screen="feed"] .ui-placebar { display: contents; }
+  html:root[data-brand] [data-screen="feed"] .ui-placebar [data-testid="place"] { order: 1; }
+  html:root[data-brand] [data-screen="feed"] > .ui-actions > [data-testid="likes"] { order: 2; }
+  /* «Write» leaves the rail for the row's right end in the scene, 96 x 54 (sheet: 1304, 280). */
+  html:root[data-brand] .ui-tabbed [data-screen="feed"] > .ui-actions > .ui-button.ui-icon-only[data-testid="write"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
+    position: absolute; inset: 0 16px auto auto; inline-size: auto; min-inline-size: 96px; block-size: 54px; min-block-size: 54px;
+    gap: var(--s-2); padding-inline: var(--s-4);
+  }
+  /* Its word beside the icon: the button's own translated name (depth/ink/locales feed.write), not a new string. */
+  html:root[data-brand] .ui-tabbed [data-screen="feed"] > .ui-actions > [data-testid="write"]::after {
+    content: attr(aria-label); font-family: "JetBrains Mono", monospace; font-size: var(--overline-fs); font-weight: 500;
+    letter-spacing: var(--overline-ls); text-transform: uppercase; white-space: nowrap;
+  }
+  /* Both sheets draw the rail as a 92 panel 24 off the edges (to 116) and the screen 20 after it, at 136. */
+  html:root[data-brand="sosed"] { --rail-w: 116px; }
+  html:root[data-brand="sosed"] .tabbar:not([data-testid="kit-tabbar"]) {
+    top: var(--s-6); bottom: var(--s-6); left: var(--s-6); width: calc(var(--rail-w) - var(--s-6));
+  }
+  html:root[data-brand] .ui-tabbed { padding-left: calc(var(--rail-w) + 20px); }
 }
 
 @media (min-width: 2560px) {

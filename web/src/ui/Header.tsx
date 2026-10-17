@@ -14,16 +14,27 @@ type StepProps = HTMLAttributes<HTMLSpanElement> & { [data: `data-${string}`]: s
 // step. HeaderScreen: back, title, an optional word action in accent-text, a
 // hairline under.
 // The time of day is the theme's night pair (theme.ts), not a sky drawn here.
-export function HeaderFeed({ place, step, action, stepProps }: { place: string; step: string; action?: ReactNode; stepProps?: StepProps }) {
+// The redesign (concept 15.10.2026, sheets *-feed-375/1440): the band keeps its
+// 56 with the mark and a mono line (the feed and its circle); under it the
+// brand's facade scene carries an overline, the place large and the step under
+// it — the place is the screen's h1, the step stays the live status.
+export function HeaderFeed({ place, step, action, stepProps, band, overline, scene }:
+  { place: string; step: string; action?: ReactNode; stepProps?: StepProps; band?: string; overline?: string; scene?: string }) {
   return (
-    <header className="ui-header">
-      {/* the brand's mark before the place, 32, below 1024; from 1024 it is at the rail's top (adaptive.css) */}
-      <Mark size={32} place="header" />
-      <h1 className="ui-header-title">
-        {place}{step ? <span aria-hidden="true"> · </span> : null}<span aria-live="polite" {...stepProps}>{step}</span>
-      </h1>
-      {action}
-    </header>
+    <>
+      <header className="ui-header">
+        {/* the brand's mark, 32, below 1024; from 1024 it is at the rail's top (adaptive.css) */}
+        <Mark size={32} place="header" />
+        <span className="ui-header-band">{band}</span>
+        {action}
+      </header>
+      <section className="ui-feedhero" data-testid="feed-hero">
+        {scene ? <img className="ui-feedhero-scene" src={scene} alt="" aria-hidden="true" decoding="async" /> : null}
+        {overline ? <p className="ui-overline">{overline}</p> : null}
+        <h1 className="ui-feedhero-place">{place}</h1>
+        <p className="ui-feedhero-step"><span aria-live="polite" {...stepProps}>{step}</span></p>
+      </section>
+    </>
   );
 }
 

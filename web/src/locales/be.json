@@ -598,5 +598,14 @@
   "web.sticker.coffee": "кава?",
   "web.sticker.move": "добры ход",
   "web.sticker.again": "рэванш",
-  "web.sticker.giveup": "здаюся"
+  "web.sticker.giveup": "здаюся",
+  "web.card.match.sosed.kick": "II — супала",
+  "web.card.match.sosed.title": "Узаемны плюс — і вы ў прыватцы",
+  "web.card.match.sosed.text": "Ставіш плюс таму, хто зайшоў. Супала ў абодвух — адкрываецца чат. У адзін бок — цішыня.",
+  "web.card.match.neighbro.kick": "II — Супала",
+  "web.card.match.neighbro.title": "Узаемны лайк адчыняе дзверы",
+  "web.card.match.neighbro.text": "Прыватны чат з’яўляецца, толькі калі абодва гэтага хочуць. Твая ўвага пад аховай.",
+  "web.card.what_now": "Што далей",
+  "web.card.like_it": "Падабаецца?",
+  "web.card.gestures": "свайп → падабаецца · ← схаваць · ↓ падрабязнасці"
 }

@@ -598,5 +598,14 @@
   "web.sticker.coffee": "ყავა?",
   "web.sticker.move": "კარგი სვლა",
   "web.sticker.again": "რევანში",
-  "web.sticker.giveup": "ვნებდები"
+  "web.sticker.giveup": "ვნებდები",
+  "web.card.match.sosed.kick": "II — დაემთხვა",
+  "web.card.match.sosed.title": "ორმხრივი პლუსი — და თქვენ პირად ჩატში ხართ",
+  "web.card.match.sosed.text": "პლუსს უსვამ იმას, ვინც მოგეწონა. ორივესთან რომ დაემთხვევა — იხსნება ჩატი. ცალმხრივად — სიჩუმე.",
+  "web.card.match.neighbro.kick": "II — დაემთხვა",
+  "web.card.match.neighbro.title": "ორმხრივი მოწონება ხსნის კარს",
+  "web.card.match.neighbro.text": "პირადი ჩატი ჩნდება მხოლოდ მაშინ, როცა ორივეს სურს. შენი ყურადღება დაცულია.",
+  "web.card.what_now": "ახლა რა",
+  "web.card.like_it": "მოგწონს?",
+  "web.card.gestures": "გადაასრიალე → მომწონს · ← დამალვა · ↓ დეტალები"
 }

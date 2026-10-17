@@ -598,5 +598,14 @@
   "web.sticker.coffee": "un café ?",
   "web.sticker.move": "beau coup",
   "web.sticker.again": "revanche",
-  "web.sticker.giveup": "j’abandonne"
+  "web.sticker.giveup": "j’abandonne",
+  "web.card.match.sosed.kick": "II — match",
+  "web.card.match.sosed.title": "Un plus mutuel et vous voilà en privé",
+  "web.card.match.sosed.text": "Tu mets un plus à qui t'a accroché. Match des deux côtés — le chat s'ouvre. À sens unique — silence.",
+  "web.card.match.neighbro.kick": "II — Match",
+  "web.card.match.neighbro.title": "Un like mutuel ouvre la porte",
+  "web.card.match.neighbro.text": "Un chat privé n'apparaît que si vous le voulez tous les deux. Ton attention est protégée.",
+  "web.card.what_now": "Et maintenant",
+  "web.card.like_it": "Ça te plaît ?",
+  "web.card.gestures": "glisse → j’aime · ← masquer · ↓ détails"
 }

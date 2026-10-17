@@ -65,7 +65,7 @@ test("the header's live step reaches a polite region once per change, and the sc
   const before = densities.length;
   const seen = new Set<string>();
   for (const r of ["100", "300", "3000", "10000", "1000"]) {
-    await page.getByTestId("radius").locator("select").selectOption(r);
+    await page.getByTestId(`radius-${r}`).click();   // the radii are chips (redesign 16.10.2026)
     seen.add((await nearby.getAttribute("data-step")) ?? "");
   }
   await expect.poll(() => densities.length, { timeout: 15000 }).toBeGreaterThanOrEqual(before + 5);

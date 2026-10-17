@@ -598,5 +598,14 @@
   "web.sticker.coffee": "кава?",
   "web.sticker.move": "гарний хід",
   "web.sticker.again": "реванш",
-  "web.sticker.giveup": "здаюся"
+  "web.sticker.giveup": "здаюся",
+  "web.card.match.sosed.kick": "II — збіглося",
+  "web.card.match.sosed.title": "Взаємний плюс — і ви в приваті",
+  "web.card.match.sosed.text": "Ставиш плюс тому, хто зайшов. Збіглося в обох — відкривається чат. В один бік — тиша.",
+  "web.card.match.neighbro.kick": "II — Збіглося",
+  "web.card.match.neighbro.title": "Взаємний лайк відчиняє двері",
+  "web.card.match.neighbro.text": "Приватний чат з’являється, лише коли обидва цього хочуть. Твоя увага під захистом.",
+  "web.card.what_now": "Що далі",
+  "web.card.like_it": "Подобається?",
+  "web.card.gestures": "свайп → подобається · ← сховати · ↓ подробиці"
 }

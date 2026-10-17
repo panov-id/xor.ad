@@ -8,6 +8,7 @@
 // used to stand at the foot is gone (owner 10.10.2026) — the seal's state stays
 // in data-sealed, and a seal that does not match is an ErrorLine in words.
 
+import { offerLabel } from "../ui/offer.ts";
 import { Fragment, type ReactNode, useEffect, useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { nearby } from "../a11y/nearby.ts";
@@ -28,6 +29,13 @@ import { TileFoot } from "../ui/TileFoot.tsx";
 import { StatusInline } from "../ui/Status.tsx";
 import { useFeed } from "./logic/useFeed.ts";
 import { say } from "../locales/say.ts";
+import { BRAND } from "../config.ts";
+import sosedFacade from "../brands/sosed/scenes/facade.svg?url";
+import neighbroFacade from "../brands/neighbro/scenes/facade.svg?url";
+
+// The feed's scene (concept 15.10.2026, illustrations/<brand>-facade): a file of
+// its own, fetched once and cached; the other brand's is never requested.
+const FACADE = BRAND === "neighbro" ? neighbroFacade : sosedFacade;
 
 export interface FeedCard {
   id: string;
@@ -117,6 +125,9 @@ export function Feed(
     <Screen name="feed" title={say("web.feed.title")} className={brandClass} data-sealed={sealed} header={
       /* What the reader hears: the announced step, not every flicker of it. */
       <HeaderFeed
+        band={`${say("web.feed.title")} · ${label(radius)}`}
+        overline={say("web.feed.title")}
+        scene={FACADE}
         place={at.name ?? say("web.feed.title")}
         step={said ? nearby(said) : ""}
         stepProps={{ role: "status", "data-testid": "nearby", "data-step": said ?? undefined }}
@@ -178,7 +189,11 @@ export function Feed(
           ? (
             <Card as="li" key={card.id} kind="nested" of="table" data-testid="table-card" data-id={card.id}>
               <CardOpen id={card.id} onOpen={() => onTable?.(card.id)} />
-              <p id={openerIds(card.id).text}>{say("table.title")}{card.name ? ` · «${card.name}»` : ""} · {classWord(card.game ?? "")} · {setWord(card.set ?? "")}</p>
+              {/* The redesign (concept 15.10.2026): the game as a mono overline, the table's name large in caps. */}
+              <p id={openerIds(card.id).text}>
+                <span className="ui-overline ui-table-over">{say("table.title")} · {classWord(card.game ?? "")} · {setWord(card.set ?? "")}</span>
+                {card.name ? <span className="ui-table-name">{card.name}</span> : null}
+              </p>
               <TileFoot id={openerIds(card.id).foot} items={[
                 { icon: "player", n: card.playing ?? 0, label: `${say("table.playing")} ${card.playing ?? 0}` },
                 { icon: "eye", n: card.watching ?? 0, label: `${say("table.watching")} ${card.watching ?? 0}` },
@@ -191,7 +206,7 @@ export function Feed(
           : (
           <Card as="li" key={card.id} of="phrase" data-testid="card" data-id={card.id}>
             <CardOpen id={card.id} onOpen={() => onOpen(card)} />
-            {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
+            {card.offer && <span className="ui-offer" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>}
             {/* The node files every phrase as "und" (relay routes/feed.ts): an
                 undetermined language is no word for a person and no lang for a
                 reader; a known one is both. */}

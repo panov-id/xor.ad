@@ -598,5 +598,14 @@
   "web.sticker.coffee": "қаҳва?",
   "web.sticker.move": "гаштаи хуб",
   "web.sticker.again": "реванш",
-  "web.sticker.giveup": "таслим мешавам"
+  "web.sticker.giveup": "таслим мешавам",
+  "web.card.match.sosed.kick": "II — мувофиқ шуд",
+  "web.card.match.sosed.title": "Плюси мутақобила — ва шумо дар личка",
+  "web.card.match.sosed.text": "Ба касе, ки маъқулат шуд, плюс мегузорӣ. Ҳар ду мувофиқ — чат кушода мешавад. Як тарафа — хомӯшӣ, ҳеҷ кас намедонад.",
+  "web.card.what_now": "Акнун чӣ",
+  "web.card.like_it": "Писанд омад?",
+  "web.card.gestures": "кашед → писанд аст · ← пинҳон кардан · ↓ тафсилот",
+  "web.card.match.neighbro.kick": "II — Мувофиқат",
+  "web.card.match.neighbro.title": "Лайки мутақобила дарро мекушояд",
+  "web.card.match.neighbro.text": "Чати хусусӣ танҳо вақте пайдо мешавад, ки ҳардуятон мехоҳед. Диққати ту ҳифз шудааст."
 }

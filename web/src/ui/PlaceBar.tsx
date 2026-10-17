@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Button } from "./Button.tsx";
-import { Select, type SelectOption } from "./Select.tsx";
+import { Segments } from "./Segments.tsx";
+import type { SelectOption } from "./Select.tsx";
 
 // PlaceBar (strict review 11.10, «weld the adjacent»): the place and the radius are one task — «where, how
 // far» — so they stand in ONE capsule: the pin that opens the place picker, a 1px seam, the radius select.
@@ -24,8 +25,10 @@ export function PlaceBar({ placeLabel, onPlace, radiusLabel, options, value, onC
           <span className="ui-placebar-seam" aria-hidden="true" />
         </>
       )}
+      {/* The redesign (concept 15.10.2026, sheets *-feed-*): the five radii as chips in a row, the chosen one
+          filled; one radiogroup named by the radius' word (hidden: the chips say what they are). */}
       <span className="ui-placebar-radius">
-        <Select label={radiusLabel} options={options} value={value} onChange={onChange} />
+        <Segments label={radiusLabel} options={options.map((o) => ({ ...o, testid: `radius-${o.value}` }))} value={value} onChange={onChange} testid="radius-chips" />
       </span>
       {children}
     </span>

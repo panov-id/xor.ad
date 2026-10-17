@@ -598,5 +598,14 @@
   "web.sticker.coffee": "кофе?",
   "web.sticker.move": "хороший ход",
   "web.sticker.again": "реванш",
-  "web.sticker.giveup": "сдаюсь"
+  "web.sticker.giveup": "сдаюсь",
+  "web.card.what_now": "Что дальше",
+  "web.card.like_it": "Нравится?",
+  "web.card.gestures": "свайп → лайк · ← скрыть · ↓ детали",
+  "web.card.match.sosed.kick": "II — совпало",
+  "web.card.match.sosed.title": "Взаимный плюс — и вы в личке",
+  "web.card.match.sosed.text": "Ставишь плюс тому, кто зашёл. Совпало у обоих — открывается чат. В одну сторону — тишина, никто не узнает.",
+  "web.card.match.neighbro.kick": "II — Совпало",
+  "web.card.match.neighbro.title": "Взаимный лайк открывает дверь",
+  "web.card.match.neighbro.text": "Приватный чат появляется, только когда оба этого хотят. Твоё внимание под защитой."
 }

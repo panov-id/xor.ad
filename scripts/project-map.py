@@ -462,6 +462,8 @@ def xor_files(root: Path, suffixes):
             continue
         if "/tests/report/" in f"/{rel}":  # Playwright's built report, not the project's code
             continue
+        if rel.parts[:2] == ("testing", "redesign"):  # captures and the designer's brief: 10k links of shots, no code
+            continue
         if rel.parts[:1] == ("docs",) and re.match(r"MAP(_CHANGES)?_(RU|EN)\.md$", rel.name):
             continue  # the map itself names every file — reading it back would map the map
 
@@ -485,7 +487,7 @@ def xor(root: Path):
                 name = spec.split("/")[0] if not spec.startswith("@") else "/".join(spec.split("/")[:2])
                 external[name].add(rel)
                 continue
-            target = (p.parent / spec).resolve()
+            target = (p.parent / spec.split("?")[0]).resolve()  # Vite's '?url' / '?raw' name the same file
             found = None
             for cand in [target] + [target.with_suffix(s) for s in XOR_CODE] + [target / f"index{s}" for s in XOR_CODE]:
                 if cand.is_file():

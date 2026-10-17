@@ -9,6 +9,7 @@
 // card away and lead back to the feed. Blocking asks twice and names the
 // consequence, as the terminal does. Kit elements only (K6a).
 
+import { offerLabel } from "../ui/offer.ts";
 import type { ReactNode } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { languageIn, modes } from "../api/actions.ts";
@@ -54,7 +55,7 @@ export function Card(
       header={<HeaderScreen title={say("web.card.phrase")} onBack={onBack} backLabel={say("web.card.back")} action={<CardMore card={card} logic={logic} />} />}
     >
       <article className="ui-phrase">
-        {card.offer && <span className="ui-offer" data-testid="offer">−{card.offer.discount_value}</span>}
+        {card.offer && <span className="ui-offer" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>}
         <p className="ui-big" data-testid="text">{card.text}</p>
         <p className="ui-hint" data-testid="mode">{mode}</p>
         {card.offer?.conditions && <p className="ui-hint" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}

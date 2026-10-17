@@ -8,13 +8,12 @@
 
 /* Sheet adaptive-sosed-feed-393: two columns of 164.5, 16 apart, 24 from the edge; the left tiles 150,
    the right 180, each column on its own beat (a masonry: rows of 2, a tile spans its height and the 16 under it). */
+/* The redesign (concept 15.10.2026, sheet sosed-feed-375): one column of paper cards on a phone, 14 apart;
+   the columns from 640 are adaptive.css's. */
 .b-blocks .tiles {
-  list-style: none; margin: 0; padding: 0 var(--feed-inset); display: grid; grid-template-columns: 1fr 1fr;
-  grid-auto-rows: var(--feed-row); column-gap: var(--s-4); row-gap: 0;
+  list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-3);
 }
 .b-blocks .tiles > li { margin: 0; overflow: hidden; }
-.b-blocks .tiles > li:nth-child(odd) { grid-column: 1; grid-row-end: span 83; block-size: var(--feed-tile-h); }
-.b-blocks .tiles > li:nth-child(even) { grid-column: 2; grid-row-end: span 98; block-size: var(--feed-tile-h-alt); }
 .b-blocks .tile p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .b-blocks .tile {
   display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-3);
@@ -22,12 +21,11 @@
   font-size: var(--fs-body); font-weight: 500; line-height: 1.35;
 }
 .b-blocks .tile p { margin: 0; overflow-wrap: anywhere; }
-.b-blocks .tile-c1 { background: var(--tile-1); color: var(--tile-1-ink); }
-.b-blocks .tile-c2 { background: var(--tile-2); color: var(--tile-2-ink); }
-.b-blocks .tile-c3 { background: var(--tile-3); color: var(--tile-3-ink); }
-.b-blocks .tile-c4 { background: var(--tile-4); color: var(--tile-4-ink); }
-.b-blocks .tile .ui-offer { color: inherit; font-weight: 700; }
-.b-blocks .tile-foot { display: flex; justify-content: space-between; align-items: center; font-size: var(--fs-meta); font-weight: 600; }
+.b-blocks .tile { background: var(--surface); color: var(--fg); border: var(--rule-w) solid var(--line); }
+.b-blocks .tile .ui-offer { color: var(--accent-text); font-weight: 900; }
+.b-blocks .tile-over { font-family: "JetBrains Mono", monospace; font-size: var(--overline-fs); font-weight: 500; letter-spacing: var(--overline-ls); text-transform: uppercase; color: var(--fg-muted); }
+.b-blocks .tile-foot { display: flex; justify-content: space-between; align-items: center; font-family: "JetBrains Mono", monospace; font-size: var(--fs-meta); font-weight: 500; color: var(--fg-muted); }
+.b-blocks .tile-plus { display: grid; place-items: center; inline-size: var(--plus-d); block-size: var(--plus-d); border-radius: 50%; background: var(--accent); color: var(--accent-fg); font-family: "Golos Text", sans-serif; font-size: var(--fs-title); font-weight: 700; line-height: 1; }
 .b-blocks .tile-likes { display: inline-flex; align-items: center; gap: var(--s-1); font-variant-numeric: tabular-nums; }
 .b-blocks .tile:has(> .card-open:focus-visible) { outline: var(--focus-w) solid var(--focus); outline-offset: var(--card-focus-offset); }
 
@@ -35,19 +33,46 @@
    like and hide are the capsule at the screen's foot (ui/form.css). */
 .b-blocks .block-stack { position: relative; }
 .b-blocks .block-card {
-  position: relative; display: flex; flex-direction: column; gap: var(--s-3);
+  position: relative; display: flex; flex-direction: column; gap: var(--s-3); overflow: hidden;
   min-height: var(--sheet-card-h); padding: var(--card-big-pad); border-radius: var(--panel-r);
-  background: var(--tile-2); color: var(--tile-2-ink);
+  background: var(--surface); color: var(--fg); border: var(--rule-w) solid var(--line);
   touch-action: none; user-select: none; cursor: grab;
   transition: transform var(--dur-1) ease-out;
 }
 .b-blocks .block-card:active { cursor: grabbing; transition: none; }
 /* P7 (panel 03.10.2026): the snap-back is motion too; under reduced motion the card jumps. */
 @media (prefers-reduced-motion: reduce) { .b-blocks .block-card { transition: none; } }
-.b-blocks .block-card .ui-big { font-size: var(--fs-big); font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; margin: 0; overflow-wrap: anywhere; }
-.b-blocks .block-card .ui-offer { color: inherit; font-weight: 700; }
-.b-blocks .block-grip { position: absolute; top: var(--s-3); left: 50%; width: 48px; height: 5px; margin-left: -24px; border-radius: 3px; background: currentColor; opacity: 0.55; }
-.b-blocks .block-mode { margin-top: auto; display: inline-flex; align-items: center; gap: var(--s-2); font-weight: 500; }
+/* The concept's port strip: the card's top, melting into the paper (sheet sosed-card-375: 341×169 inside the card). */
+.b-blocks .block-scene {
+  display: block; inline-size: calc(100% + 2 * var(--s-4)); block-size: var(--card-scene-h); margin: calc(-1 * var(--s-4)) calc(-1 * var(--s-4)) 0;
+  object-fit: cover; object-position: center 60%; pointer-events: none;
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+.b-blocks .block-over, .b-blocks .block-count { font-family: "JetBrains Mono", monospace; font-size: var(--overline-fs); font-weight: 500; letter-spacing: var(--overline-ls); text-transform: uppercase; color: var(--fg-muted); }
+.b-blocks .block-count { margin-top: auto; }
+.b-blocks .block-card .ui-big { font-size: var(--card-phrase-fs); font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; margin: 0; overflow-wrap: anywhere; }
+.b-blocks .block-card .ui-offer { color: var(--accent-text); font-weight: 900; }
+.b-blocks .block-ask { display: none; }
+.b-blocks .block-ask-title { margin: 0; font-family: var(--title-face); font-weight: var(--title-weight); font-size: var(--ask-fs); letter-spacing: -0.035em; line-height: 1; text-transform: uppercase; }
+.b-blocks .block-gestures { margin: 0; font-family: "JetBrains Mono", monospace; font-size: var(--overline-fs); font-weight: 500; letter-spacing: var(--overline-ls); text-transform: uppercase; color: var(--fg-muted); }
+.b-blocks .block-match { display: none; }
+.b-blocks .block-match h2 { margin: 0; font-family: var(--title-face); font-weight: var(--title-weight); font-size: var(--fs-title); }
+.b-blocks .block-match p { margin: 0; color: var(--fg-muted); }
+.b-blocks .block-match .ui-overline { color: var(--accent-text); }
+/* From 1024 the card spreads (concept: «card | actions», owner 15.10.2026): the card on the left, the
+   question, the like, the gestures and the match words on the right. */
+@media (min-width: 1024px) {
+  html:root[data-brand="sosed"] [data-screen="card"].screen {
+    max-width: var(--card-spread-w); display: grid; grid-template-columns: minmax(0, 780fr) minmax(0, 412fr);
+    column-gap: var(--s-12); row-gap: var(--s-4); align-content: start;
+  }
+  html:root[data-brand="sosed"] [data-screen="card"].screen > * { grid-column: 2; }
+  html:root[data-brand="sosed"] [data-screen="card"].screen > :is(header, .block-peek) { grid-column: 1 / -1; }
+  html:root[data-brand="sosed"] [data-screen="card"].screen > .block-stack { grid-column: 1; grid-row: span 8; }
+  html:root[data-brand="sosed"] [data-screen="card"] [data-part="foot"] { margin-top: 0; }
+  .b-blocks .block-ask { display: flex; flex-direction: column; gap: var(--s-2); }
+  .b-blocks .block-match { display: flex; flex-direction: column; gap: var(--s-2); padding-top: var(--s-6); border-top: var(--rule-w) solid var(--line); }
+}
 .b-blocks .block-soon { font-weight: 500; }
 /* Card-more.svg: the details panel on the surface with the 1.5 rim, tiles two by
    two in tile colours, an icon on top and the value at the foot. */
@@ -137,15 +162,10 @@
 }
 :root[data-brand="sosed"] .ui-tabbed .screen[data-screen="feed"] { padding-bottom: calc(var(--tabbar-h) + var(--fab) + var(--s-4) * 3); }
 
-/* Sheet adaptive-sosed-feed-393: the place and the circle are one pill 140×48 on the surface with the 1.5 rim. */
-:root[data-brand="sosed"] [data-screen="feed"] .ui-placebar {
-  flex: 0 0 auto; inline-size: var(--placebar-w); block-size: var(--placebar-h); min-height: 0; padding-inline-start: var(--s-1);
-  border-radius: var(--r-pill); background: var(--surface); border: var(--panel-rim); box-shadow: var(--panel-ring);
-}
 
 /* A venue's offer in the feed (sheets adaptive-sosed-feed, 11.10.2026): the surface with its rim, the
    discount big in accent-text, the conditions small. */
-.b-blocks .tile.tile-offer { background: var(--surface); color: var(--fg); border: var(--panel-rim); box-shadow: var(--panel-ring); justify-content: flex-start; }
-.b-blocks .tile-offer .tile-offer-value { font-size: var(--offer-fs); font-weight: 600; line-height: 1; color: var(--accent-text); }
+.b-blocks .tile.tile-offer { justify-content: flex-start; }
+.b-blocks .tile-offer .tile-offer-value { font-size: var(--offer-fs); font-weight: 900; letter-spacing: -0.035em; line-height: 1; color: var(--accent-text); }
 .b-blocks .tile-offer .tile-foot { margin-block-start: auto; }
 .b-blocks .tile-offer p { font-weight: 600; }

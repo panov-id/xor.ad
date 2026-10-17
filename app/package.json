@@ -1,0 +1,24 @@
+{
+  "name": "app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The new shell of xor.ad, beside web/: sosed Dusk, dark only. Screens move over from web/ one by one.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5174",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4174",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.0",
+    "@types/react-dom": "19.1.0",
+    "@vitejs/plugin-react": "4.4.1",
+    "typescript": "5.8.3",
+    "vite": "6.3.5"
+  }
+}

@@ -1,0 +1,123 @@
+import { useEffect, useRef, useState } from "react";
+import type { Client } from "@sdk/client.ts";
+import { gateOf, gateScreen, pathOf, type Screen } from "../router";
+import { Feed } from "../screens/Feed";
+import { Gate } from "../screens/Gate";
+import { Loading } from "../screens/Loading";
+import { Locked } from "../screens/Locked";
+import { Register, type Seated } from "../screens/Register";
+import { Splash } from "../screens/Splash";
+import { Unlock } from "../screens/Unlock";
+import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
+import { LayerStack } from "./layers";
+import { useSkeleton } from "./loading";
+
+// In the dev server ?boot=<ms> makes the boot wait, to look at the loading screen.
+async function boot(): Promise<void> {
+  const ms = import.meta.env.DEV ? Number(new URLSearchParams(location.search).get("boot")) : 0;
+  if (ms > 0) await new Promise<void>((r) => setTimeout(r, ms));
+}
+
+// The gates before an identity (web/src/App.tsx): a step forward pushes a history entry named by
+// the gate, Back walks them, a reload opens the gate the path names, or the PIN when this device
+// keeps an identity — and no PIN at all within the reload grace (depth/core/grace.ts).
+export function App() {
+  const [screen, setScreen] = useState<Screen>({ at: "loading" });
+  const [booting, setBooting] = useState(true);
+  // The identity the page holds (a registration made it, the PIN or the grace opened it), in memory only: the disk has it sealed.
+  const [seated, setSeated] = useState<Seated | null>(null);
+  // Five minutes without input: the core is locked and the face is one line (Locked.tsx).
+  const [locked, setLocked] = useState(false);
+  // The vault's record as the page found it (null: none, or forgotten since): the gates read it.
+  const vaulted = useRef<Record_ | null>(null);
+  // Waiting rules (MOTION.md): the loading screen shows only if the wait outlasts 300 ms, and then stays 600 ms.
+  const loadingShown = useSkeleton(booting);
+
+  useEffect(() => {
+    void (async () => {
+      await boot();
+      const record = await readRecord().catch(() => undefined);
+      vaulted.current = record ?? null;
+      // A reload within 30 s of the last input (owner 14.10.2026; grace.ts): the seals open with what this tab
+      // kept, no PIN — the page lands on the feed.
+      const graced = record ? await unlockByGrace(record).catch(() => null) : null;
+      if (graced) {
+        vaulted.current = null;
+        setSeated({ client: graced.client, sealed: graced.wrapSame ? "unlocked" : "unlocked-new-wrap" });
+        history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
+        setScreen({ at: "feed" });
+        return setBooting(false);
+      }
+      const to = gateScreen(location.pathname, vaulted.current);
+      if (gateOf(location.pathname)) history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
+      setScreen(to);
+      setBooting(false);
+    })();
+  }, []);
+
+  useEffect(() => {
+    const onPop = () => setScreen((now) => (now.at === "loading" ? now : gateScreen(location.pathname, vaulted.current)));
+    addEventListener("popstate", onPop);
+    return () => removeEventListener("popstate", onPop);
+  }, []);
+
+  // The document leaving, hidden, frozen, back from the bfcache: the grace's marks (the same as the web's).
+  useEffect(() => watchLifecycle({ hiddenWithGrace, leavingWithGrace, returningWithGrace }), []);
+
+  // The lock (web App.tsx W13-WL): five minutes without input with an identity on the page. The reload grace
+  // dies with the lock: a reload now asks the PIN. Not `registered` alone: a raised identity has a session before a PIN.
+  useEffect(() => {
+    if (!seated || locked) return;
+    const client = seated.client;
+    const watch = watchIdle(() => {
+      if (!client.canLock || client.locked) return;
+      void dropGrace().then(() => client.lock()).then(() => setLocked(true));
+    }, stampGrace, idleMs());
+    return () => watch.stop();
+  }, [seated?.client, locked]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The stand's build only: the client in the page's own scope for a test to drive (web does the same).
+  useEffect(() => {
+    if (import.meta.env.VITE_STAND !== "1") return;
+    (globalThis as unknown as { xor?: unknown }).xor = seated ? { client: seated.client } : undefined;
+  }, [seated]);
+
+  function gate(to: Screen) {
+    const was = history.state as { gate?: string; i?: number } | null;
+    history.pushState({ gate: to.at, i: was?.gate && typeof was.i === "number" ? was.i + 1 : 1 }, "", pathOf(to));
+    setScreen(to);
+  }
+  // A gate's own "back": the browser's when a gate lies behind, else the first gate in place.
+  function gateBack() {
+    const was = history.state as { gate?: string; i?: number } | null;
+    if (was?.gate && (was.i ?? 0) > 0) return history.back();
+    const to: Screen = vaulted.current ? { at: "unlock", record: vaulted.current } : { at: "splash" };
+    history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
+    setScreen(to);
+  }
+
+  // Registered or unlocked: the feed. The gates behind are left: Back does not return to them.
+  function seat(who: Seated) {
+    vaulted.current = null;
+    setSeated(who);
+    history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
+    setScreen({ at: "feed" });
+  }
+  const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
+
+  // One line and nothing else while locked: no name, no counts, no rooms.
+  if (locked && seated) return <LayerStack base={<Locked client={seated.client} onUnlocked={() => setLocked(false)} />} />;
+
+  const view = () => {
+    if (loadingShown) return <Loading />;
+    switch (screen.at) {
+      case "loading": return null; // the wait is under 300 ms: nothing is drawn
+      case "splash": return <Splash onStart={() => gate({ at: "register" })} onRestore={() => gate({ at: "restore" })} onArrive={() => gate({ at: "arrival" })} />;
+      case "register": return <Register onDone={seat} />;
+      case "unlock": return <Unlock record={screen.record} onDone={unlocked} onForget={() => { vaulted.current = null; gate({ at: "splash" }); }} onRestore={() => gate({ at: "restore" })} />;
+      case "restore": case "arrival": return <Gate at={screen.at} onBack={gateBack} />;
+      case "feed": return seated ? <Feed client={seated.client} /> : null;
+    }
+  };
+  return <LayerStack base={view()} />;
+}

@@ -1,0 +1,4 @@
+{"color":{"night":"#141119","navBar":"#0D0B11","sheet":"#2B2440","panel":"#3A3157","panel2":"#4A4070","text":"#F4EEFC","muted":"#B9B0CF","ink":"#17141F","lime":"#C6F27E","yellow":"#F7CF5A","peach":"#F2C08D","lilac":"#CBB8F6","coral":"#F0705F","avatar":["#F2B8A2","#BCD6F2","#CDB8F2","#C9E6B5","#F6DC94"]},
+"font":{"family":"Outfit","weights":[400,500,600,700,800]},
+"radius":{"sheetMobile":40,"sheetTablet":48,"panelDesktop":36,"card":28,"row":22,"pill":999,"navBar":36},
+"size":{"touchMin":44,"button":54,"buttonLarge":60,"radiusCircle":62,"navBar":72}}

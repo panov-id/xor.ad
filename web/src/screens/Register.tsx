@@ -11,11 +11,11 @@
 
 import { type ReactNode, useEffect, useId, useState } from "react";
 import { Client } from "../../../depth/core/client.ts";
-import { type LegalRevision, readManifest } from "../../../depth/core/legal.ts";
+import { inLegalOrder, type LegalRevision, readManifest } from "../../../depth/core/legal.ts";
 import { Mark } from "../ui/Mark.tsx";
 import { API_KEY, NODE_BASE } from "../config.ts";
-import { acceptAndKeep, docUrl, LEGAL_ORDER } from "./Legal.tsx";
-import { newPaperCode, paperGroups, readPaperText } from "../../../depth/core/paper.ts";
+import { acceptAndKeep, docUrl } from "./Legal.tsx";
+import { newPaperCode, paperGroups } from "../../../depth/core/paper.ts";
 import { openSealed, registerAndKeep, type Record_ } from "../vault.ts";
 import { dateLong, say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
@@ -30,22 +30,21 @@ import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { Split } from "../ui/Split.tsx";
 import { obviousPin } from "../pinWords.ts";
+import { ageDigits, groupsMatch, isYoung, lettersLeft, pinsDiffer, refusalOf, whyGroups as groupsReason, whyNext as nextReason, whyPin as pinReason } from "../../../depth/core/register.ts";
 
-const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
-const count = (s: string) => [...graphemes.segment(s)].length;
-const NAME_MAX = 24;
-const AGE_MIN = 13;
+// The rules (what stops "next", the PIN pair, the typed groups, what a refusal means) are the core's:
+// depth/core/register.ts, shared with the app's register. This file is the words and the screen.
 // The documents' icons on step one (sheet adaptive-*-register-1: a page, a lock, people).
 const DOC_ICON: Record<string, IconName> = { terms: "consent", privacy: "key", guidelines: "company" };
 
 // What the node's refusal means to the person (П9): the address limit (429)
 // says what happened and what to do; any other status says its number; a call
-// that never got an answer (offline, a dropped connection) and anything else
-// say that it did not work. The core's message is "registration refused: <status> …".
+// that never got an answer and anything else say that it did not work (the
+// reading is the core's, register.ts refusalOf).
 function refusalLine(e: unknown): string {
-  const status = /registration refused: (\d{3})/.exec(e instanceof Error ? e.message : "")?.[1];
-  if (status === "429") return say("web.register.limit");
-  if (status) return say("web.register.refused", { status });
+  const r = refusalOf(e);
+  if (r.kind === "limit") return say("web.register.limit");
+  if (r.kind === "refused") return say("web.register.refused", { status: r.status });
   return say("web.register.failed");
 }
 
@@ -77,21 +76,17 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
   const agreed = consent;
 
   const ageNumber = Number(age);
-  const young = age !== "" && ageNumber < AGE_MIN;
+  const young = isYoung(age);
   // "Next" is unavailable (aria-disabled, never `disabled`: it keeps its focus),
   // and the first thing missing is said in words beside it, tied by
   // aria-describedby (kit_RU.md §2; П10 — age 12 had only the general hint).
-  const whyNext = name.trim().length === 0 || count(name) > NAME_MAX ? say("web.register.why_name")
-    : age === "" || !Number.isInteger(ageNumber) ? say("web.register.why_age")
-    : young ? say("web.register.why_young")
-    : !agreed ? say("web.register.why_consent")
-    : null;
-  const pinOk = /^\d{6}$/.test(pin) && pin === pinAgain;
+  const nextWhy = nextReason({ name, age, consent: agreed });
+  const whyNext = nextWhy ? say(`web.register.why_${nextWhy}`) : null;
+  const pinWhy = pinReason(pin, pinAgain);
+  const pinOk = pinWhy === null;
   // Both full and different says so: the general «enter 6 digits» left a person with 12 digits typed wondering (round 1, 008).
-  const whyPin = pinOk ? null
-    : /^\d{6}$/.test(pin) && /^\d{6}$/.test(pinAgain) ? say("web.register.why_pin_differ")
-    : say("web.register.why_pin");
-  const whyGroups = second && fourth ? null : say("web.register.why_groups");
+  const whyPin = pinWhy ? say(`web.register.why_${pinWhy}`) : null;
+  const whyGroups = groupsReason(second, fourth) ? say("web.register.why_groups") : null;
   const groups = paperGroups(code);
 
   async function register() {
@@ -111,7 +106,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
 
   async function confirm() {
     if (!made || busy || whyGroups) return;
-    if (readPaperText(second) !== groups[1] || readPaperText(fourth) !== groups[3]) {
+    if (!groupsMatch(groups, second, fourth)) {
       setError(say("web.register.groups_mismatch"));
       return;
     }
@@ -145,7 +140,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
 
   const stepTitle = step === 1 ? say("web.register.who") : step === 2 ? say("reg.pin") : say("web.register.paper_title");
   const stepWords = say("web.register.step", { n: step, m: 3 });
-  const ordered = revisions ? [...revisions].sort((a, b) => LEGAL_ORDER.indexOf(a.document) - LEGAL_ORDER.indexOf(b.document)) : [];
+  const ordered = revisions ? inLegalOrder(revisions) : [];
   // What stands at the foot: the reason the primary is unavailable, then the primary.
   // A press on the closed primary answers: the reason flashes in the error colour (round 1: 004 = 005, the press read as nothing).
   const foot = (reason: string | null, button: ReactNode) => (
@@ -181,12 +176,12 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
               ))}
               {/* «letters left» and «from 13» wait here with the editions (owner 12.10.2026, again 14.10.2026);
                   a too-young age still says so under its field */}
-              <p data-testid="register-left">{say("web.register.left", { count: Math.max(0, NAME_MAX - count(name)) })}</p>
+              <p data-testid="register-left">{say("web.register.left", { count: lettersLeft(name) })}</p>
               <p data-testid="register-age-min">{say("web.register.age_min")}</p>
             </Info>
           }>
           <Field label={say("reg.name")} value={name} onChange={setName} maxLength={64} data-testid="name" />
-          <Field label={say("reg.age")} kind="number" value={age} onChange={(v) => setAge(v.replace(/\D/g, "").slice(0, 3))}
+          <Field label={say("reg.age")} kind="number" value={age} onChange={(v) => setAge(ageDigits(v))}
             error={young ? say("web.register.age_min") : undefined} data-testid="age" />
           <div className="ui-consent-row">
             <Checkbox checked={consent} onChange={setConsent}><span className="ui-consent-words">{say("web.register.consent")}</span></Checkbox>
@@ -217,7 +212,7 @@ export function Register({ onDone }: { onDone: (client: Client, sealed: "ok" | "
           <PinPair>
           <PinField value={pin} onChange={setPin} data-testid="pin" />
           <PinField label={say("web.register.pin_again")} value={pinAgain} onChange={setPinAgain}
-            error={pin.length === 6 && pinAgain.length === 6 && pin !== pinAgain ? say("reg.pinMismatch") : undefined} data-testid="pin-again" />
+            error={pinsDiffer(pin, pinAgain) ? say("reg.pinMismatch") : undefined} data-testid="pin-again" />
           </PinPair>
           {pin.length === 6 && obviousPin(pin) && <Notice>{say("web.register.easy_pin")}</Notice>}
           </FormCard>

@@ -34,253 +34,54 @@
 // wrap_public_key open again. Same seal, same vault key; the public half is
 // the node's to remember (sessions.wrap_public_key).
 
-import { type Answer, Client, type HeldLongKey, WRAP_ALGORITHM, WRAP_USAGES } from "../../depth/core/client.ts";
+import { type Answer, Client, WRAP_ALGORITHM } from "../../depth/core/client.ts";
 import { raise as raiseByCode, type Outcome } from "../../depth/core/recovery.ts";
 import { open as unseal, seal, vaultKey } from "../../depth/core/lock.ts";
 import { derivePin } from "../../depth/core/pin.ts";
-import { base64url, type SigningKey } from "../../depth/core/sign.ts";
+import { base64url } from "../../depth/core/sign.ts";
 import { HeldKey } from "../../depth/core/transfer.ts";
 import { Arrival } from "../../depth/core/transfer_move.ts";
+import { checkOf, openSealed, type Record_ } from "../../depth/core/enroll.ts";
+import { type Opened } from "../../depth/core/unlock.ts";
+import { createKeep } from "../../depth/web-platform/vault_keep.ts";
+import * as grace from "../../depth/core/grace.ts";
 import { API_KEY, NODE_BASE } from "./config.ts";
-import * as grace from "./grace.ts";
 import { say } from "./locales/say.ts";
 
-const DB = "xor-vault";
-const STORE = "identity";
-// The reload grace's key store (grace.ts; owner 14.10.2026): version 2 of the
-// same database adds it beside the identity.
-const GRACE_STORE = "grace";
 const P256 = { name: "ECDSA", namedCurve: "P-256" } as const;
 
-export interface Record_ {
-  id: "me";
-  identityId: string;
-  sessionId: string;
-  longSpki: string;
-  deviceSalt: Uint8Array;
-  // The long key under the paper code, as POST /recovery/confirm took it.
-  wrappedLongKey: Uint8Array;
-  // iv(12) ‖ AES-GCM(pkcs8 of the long key) under the storage key.
-  sealedLong: Uint8Array;
-  // The session's own signing key, sealed the same way, when it is not the
-  // long key: a raise by paper code on a clean device makes a fresh session
-  // key (recovery.ts), and it is what signs from then on (W6).
-  sealedSession?: Uint8Array;
-  sessionSpki?: string;
-  // The wrapping pair's private half, sealed the same way (W1d), and its
-  // public half as base64url SPKI — seat() takes it, the chat keys wrap under
-  // it (W3), and the node never says it back.
-  sealedWrap: Uint8Array;
-  wrapSpki: string;
-  // What the wrapping key derives with a fixed public point: not a secret of
-  // anything (the point is public and the same everywhere), and after a reload
-  // the raised key must derive the same — the page's own proof that the pair
-  // came back, which the e2e reads.
-  wrapCheck: Uint8Array;
-  // The unlock pair's private half, non-extractable, unsealed: it signs
-  // POST /vault/share and nothing the node accepts elsewhere (db/063).
-  unlockKey: CryptoKey;
-  unlockSpki: string;
-  savedAt: number;
-}
+// The record this device keeps (depth/core/enroll.ts: the core makes it, the face stores it).
+export type { Record_ };
 
-function open(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB, 2);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: "id" });
-      if (!db.objectStoreNames.contains(GRACE_STORE)) db.createObjectStore(GRACE_STORE);
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-function tx<T>(mode: IDBTransactionMode, op: (store: IDBObjectStore) => IDBRequest<T>, name = STORE): Promise<T> {
-  return open().then((db) =>
-    new Promise<T>((resolve, reject) => {
-      const req = op(db.transaction(name, mode).objectStore(name));
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    })
-  );
-}
-
-export const readRecord = (): Promise<Record_ | undefined> => tx("readonly", (s) => s.get("me") as IDBRequest<Record_ | undefined>);
-// Forgetting the identity drops the grace with it: nothing of the vault key stays in any tab.
-export const forget = async (): Promise<undefined> => {
-  await dropGrace();
-  return await tx("readwrite", (s) => s.delete("me") as IDBRequest<undefined>);
-};
-
-// ── The reload grace (grace.ts) bound to the page's stores ──
-// The wait is a parameter of the stand's build (VITE_STAND=1) as idle.ts's is:
+// ── Where the record lives and how it opens: shared with the app shell (depth/web-platform/) ──
+// The IndexedDB scheme ("xor-vault" v2: identity, grace), the reload grace bound to this tab's stores, and
+// the two ways of opening after a reload (PIN, grace) are the platform's — one copy for both faces, so an
+// identity made by either opens in the other. What is the web's own stays below.
+// The grace's wait is a parameter of the stand's build (VITE_STAND=1) as idle.ts's is:
 // sessionStorage "xor-grace-ms"; a real page never reads it.
 function graceMsOf(): number {
   if (import.meta.env.VITE_STAND !== "1") return grace.GRACE_MS;
   const given = Number(sessionStorage.getItem("xor-grace-ms") ?? "");
   return Number.isFinite(given) && given >= 0 ? given : grace.GRACE_MS;
 }
-type GraceRow = { key: CryptoKey; at: number };
-const graceKeys: grace.KeyStore = {
-  put: async (id, row) => { await tx("readwrite", (s) => s.put(row, id), GRACE_STORE); },
-  // One readwrite transaction: the get and the delete inside it, so a second
-  // taker of the same id — a duplicate tab, a tab reloaded twice — finds nothing.
-  take: (id) => open().then((db) =>
-    new Promise<GraceRow | undefined>((resolve, reject) => {
-      const t = db.transaction(GRACE_STORE, "readwrite");
-      const store = t.objectStore(GRACE_STORE);
-      const got = store.get(id) as IDBRequest<GraceRow | undefined>;
-      let row: GraceRow | undefined;
-      got.onsuccess = () => { row = got.result; store.delete(id); };
-      t.oncomplete = () => resolve(row);
-      t.onerror = () => reject(t.error);
-      t.onabort = () => reject(t.error);
-    })),
-  prune: (before) => open().then((db) =>
-    new Promise<void>((resolve, reject) => {
-      const t = db.transaction(GRACE_STORE, "readwrite");
-      const walk = t.objectStore(GRACE_STORE).openCursor();
-      walk.onsuccess = () => {
-        const c = walk.result;
-        if (!c) return;
-        if ((c.value as GraceRow).at < before) c.delete();
-        c.continue();
-      };
-      t.oncomplete = () => resolve();
-      t.onerror = () => reject(t.error);
-      t.onabort = () => reject(t.error);
-    })),
-  clear: async () => { await tx("readwrite", (s) => s.clear(), GRACE_STORE); },
-};
-const graceDeps = (): grace.GraceDeps => ({ tab: sessionStorage, keys: graceKeys, graceMs: graceMsOf() });
-// One Keeper for the document: the halves in memory, on the disk only while
-// the input is fresh (grace.ts Keeper). A storage that refuses (private mode,
-// quota) costs the grace, never the unlock.
-let keeper: grace.Keeper | null = null;
-const keeperOf = (): grace.Keeper => (keeper ??= new grace.Keeper(graceDeps()));
-async function armGrace(local: Uint8Array, share: Uint8Array): Promise<void> {
-  try { await keeperOf().hold(local, share); } catch { /* no grace, the PIN as before */ }
-}
-// An input (idle.ts): the stamp, the row's age, the clock over; armed again after a quiet spell.
-export const stampGrace = (): void => { void keeperOf().touch().catch(() => undefined); };
-// The lock, «forget», the closing of the identity: memory and both stores, every tab.
-export const dropGrace = (): Promise<void> => keeperOf().release().catch(() => undefined);
-// The document is leaving: a reload may take the grace, a duplicate may not (grace.ts leaving).
-export const leavingWithGrace = (): void => { try { grace.leaving({ tab: sessionStorage }); } catch { /* storage blocked */ } };
-// Back from the back/forward cache: the leave mark goes (grace.ts returning).
-export const returningWithGrace = (): void => { try { grace.returning({ tab: sessionStorage }); } catch { /* storage blocked */ } };
-// The tab hidden or frozen: nothing on the disk until the next input in view (grace.ts Keeper.suspend).
-export const hiddenWithGrace = (): void => { void keeperOf().suspend().catch(() => undefined); };
+const keep = createKeep({ node: { base: NODE_BASE, key: API_KEY }, graceMs: graceMsOf });
+export const { readRecord, forget, stampGrace, dropGrace, leavingWithGrace, returningWithGrace, hiddenWithGrace, unlockByGrace } = keep;
+const { armGrace, putRecord } = keep;
 
 function fromBase64url(text: string): Uint8Array {
   const b64 = text.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - text.length % 4) % 4);
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 }
 
-// A fixed public point for the wrap check: the generator's own public key of
-// a P-256 pair with private scalar 1 — public, constant, the same for every
-// device. Deriving with it proves nothing about any peer; it tells the same
-// private key from a different one.
-const CHECK_POINT_JWK = {
-  kty: "EC",
-  crv: "P-256",
-  x: "axfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpY",
-  y: "T-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU",
-} as const;
-async function checkOf(wrapPrivate: CryptoKey): Promise<Uint8Array> {
-  const point = await crypto.subtle.importKey("jwk", CHECK_POINT_JWK, WRAP_ALGORITHM, false, []);
-  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: point }, wrapPrivate, 256));
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", bits));
-}
+// A registered client and the record this device keeps of it (depth/web-platform/vault_keep.ts: the registration
+// is the core's, enroll.ts registerIdentity; keeping it on this disk and arming the reload grace are the
+// platform's, shared with the app shell). The paper code is the caller's to show and to ask back; it is not
+// written anywhere here.
+export const registerAndKeep = keep.registerAndKeep;
 
-// A registered client and the record this device keeps of it. The paper code
-// is the caller's to show and to ask back; it is not written anywhere here.
-export async function registerAndKeep(
-  who: { name: string; age: number },
-  secrets: { pin: string; paperCode: string },
-): Promise<{ client: Client; record: Record_; share: Uint8Array }> {
-  const client = new Client(NODE_BASE, API_KEY);
-  // The long key passes through here extractable once, at registration, as
-  // the spec allows (§8.13, quorum 2026-09-26) — kept only until it is sealed.
-  let extractable: CryptoKey | null = null;
-  const hold = async (key: CryptoKey): Promise<HeldLongKey> => {
-    extractable = key;
-    return await HeldKey.hold(key);
-  };
-  // The wrapping pair's pkcs8, copied for the one seal below and wiped after.
-  let wrapPkcs8: Uint8Array | null = null;
-  const holdWrap = async (pkcs8: Uint8Array): Promise<void> => {
-    wrapPkcs8 = pkcs8.slice();
-  };
-  // The unlock pair: private half never extractable, public half to the node.
-  const unlock = await crypto.subtle.generateKey(P256, false, ["sign", "verify"]) as CryptoKeyPair;
-  const unlockSpki = base64url(new Uint8Array(await crypto.subtle.exportKey("spki", unlock.publicKey)));
-  const born = await client.register(who, secrets, { hold, unlockPub: unlockSpki, holdWrap });
-  // The core made the salt; the PIN is derived again here for the local half
-  // and for the node's share. The node counts this as a proof, and resets its
-  // counter — the PIN is fresh from the same screen.
-  const deviceSalt = client.deviceSalt!;
-  const pin = await derivePin(secrets.pin, deviceSalt);
-  const given = await client.request<{ share: string }>("POST", "/vault/share", { auth: base64url(pin.auth) });
-  if (given.status !== 200) throw new Error(`the node did not hand back its share: ${given.status}`);
-  const share = fromBase64url(given.body.share);
-  const key = await vaultKey(pin.local, share);
-  const pkcs8 = new Uint8Array(await crypto.subtle.exportKey("pkcs8", extractable!));
-  extractable = null;
-  const sealedLong = await seal(key, pkcs8);
-  pkcs8.fill(0);
-  if (!wrapPkcs8) throw new Error("the core did not hand the wrapping pair over");
-  const sealedWrap = await seal(key, wrapPkcs8);
-  const wrapCheck = await checkOf(await crypto.subtle.importKey("pkcs8", wrapPkcs8 as BufferSource, WRAP_ALGORITHM, false, ["deriveBits"]));
-  const wrapSpki = client.wrapPublicSpki;
-  if (!wrapSpki) throw new Error("the core did not say the wrapping pair's public half");
-  (wrapPkcs8 as Uint8Array).fill(0);
-  wrapPkcs8 = null;
-  const record: Record_ = {
-    id: "me",
-    identityId: client.identityId,
-    sessionId: born.sessionId,
-    longSpki: client.longSpki,
-    deviceSalt,
-    wrappedLongKey: client.wrappedLongKey!,
-    sealedLong,
-    sealedWrap,
-    wrapSpki,
-    wrapCheck,
-    unlockKey: unlock.privateKey,
-    unlockSpki,
-    savedAt: Date.now(),
-  };
-  await tx("readwrite", (s) => s.put(record));
-  await armGrace(pin.local, share);
-  return { client, record, share };
-}
-
-// Proof that a sealed long key opens under the same PIN and share — the check
-// the unlock screen will make once the spec says what signs the exchange. It
-// is exercised by the e2e run right after registration, while the share is
-// still in hand, so that the seal is known to be a seal and not a blob.
-export async function openSealed(record: Record_, pin: string, share: Uint8Array): Promise<CryptoKey> {
-  const material = await derivePin(pin, record.deviceSalt);
-  try {
-    return await unsealLong(record, await vaultKey(material.local, share));
-  } finally {
-    material.auth.fill(0);
-    material.local.fill(0);
-  }
-}
-
-// The long key out of its seal, into memory non-extractable.
-async function unsealLong(record: Record_, key: CryptoKey): Promise<CryptoKey> {
-  const pkcs8 = await unseal(key, record.sealedLong);
-  try {
-    return await crypto.subtle.importKey("pkcs8", pkcs8 as BufferSource, P256, false, ["sign"]);
-  } finally {
-    pkcs8.fill(0);
-  }
-}
+// Proof that a sealed long key opens under the same PIN and share (the core's, enroll.ts openSealed):
+// exercised by the e2e run right after registration, while the share is still in hand.
+export { openSealed };
 
 
 // The node's answer to a wrong PIN, as the unlock screen shows it: attempts
@@ -291,131 +92,14 @@ export class PinRefused extends Error {
   }
 }
 
-// After a reload: the PIN, the unlock key's one signed call for the share,
-// the storage key, the long key unwrapped into memory non-extractable, and a
-// seated client. The record is read here; the caller shows the screen.
-export async function unlockAfterReload(record: Record_, pin: string): Promise<{ client: Client; longKey: CryptoKey; wrapSame: boolean }> {
-  const material = await derivePin(pin, record.deviceSalt);
-  // A client seated with the unlock key as its session key: it can sign
-  // exactly what the node lets that key sign. The long-key and wrapping slots
-  // are filled with the same key and a throwaway pair — nothing reads them
-  // before the real seat below.
-  const asking = new Client(NODE_BASE, API_KEY);
-  const throwaway = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, false, ["deriveBits"]) as CryptoKeyPair;
-  const unlockSigning: SigningKey = { privateKey: record.unlockKey, publicSpki: record.unlockSpki };
-  asking.seat({
-    identityId: record.identityId,
-    sessionId: record.sessionId,
-    sessionKey: unlockSigning,
-    longKey: record.unlockKey,
-    longSpki: record.unlockSpki,
-    wrapPrivate: throwaway.privateKey,
-  });
-  const given = await asking.request<{ share?: string; error?: { code?: string; attempts_left?: number } }>(
-    "POST", "/vault/share", { auth: base64url(material.auth) },
-  );
-  material.auth.fill(0);
-  if (given.status !== 200 || !given.body?.share) {
-    material.local.fill(0);
-    const code = given.body?.error?.code ?? `status_${given.status}`;
-    throw new PinRefused(code, given.body?.error?.attempts_left, given.retryAfter);
-  }
-  const share = fromBase64url(given.body.share);
-  return await openWith(record, material.local, share);
+// After a reload: the PIN, the unlock key's one signed call for the share, the storage key, the long key
+// unwrapped into memory non-extractable, and a seated client (depth/core/unlock.ts — the same for the app
+// shell). The record is read here; the caller shows the screen.
+export async function unlockAfterReload(record: Record_, pin: string): Promise<Opened> {
+  const r = await keep.unlockAfterReload(record, pin);
+  if (!r.ok) throw new PinRefused(r.code, r.attemptsLeft, r.retryAfter);
+  return r.opened;
 }
-
-// A reload within the grace (grace.ts; owner 14.10.2026): the halves the tab
-// kept open the seals without the PIN and without a call to the node — no
-// attempt is spent, none is reset. null when there is no grace: the screen asks
-// the PIN as before.
-export async function unlockByGrace(record: Record_): Promise<{ client: Client; longKey: CryptoKey; wrapSame: boolean } | null> {
-  const deps = graceDeps();
-  // Rows of tabs that died mid-window go first (security review 15.10.2026).
-  await grace.sweep(deps);
-  const halves = await grace.take(deps).catch(() => null);
-  // No grace: the stamp goes too; the shared store is other tabs' and stays.
-  if (!halves) { deps.tab.removeItem(grace.STAMP_KEY); return null; }
-  try {
-    return await openWith(record, halves.local, halves.share);
-  } catch {
-    // A seal that does not open with what the tab kept (a PIN changed in
-    // another tab re-sealed the record): the PIN, not an error — and nothing
-    // of the grace left behind.
-    await dropGrace();
-    return null;
-  } finally {
-    halves.local.fill(0);
-    halves.share.fill(0);
-  }
-}
-
-// The seals open under HKDF(local ‖ share), the keys into memory
-// non-extractable, a seated client; both halves are wiped here — after the
-// grace for the next reload is armed with them.
-async function openWith(record: Record_, local: Uint8Array, share: Uint8Array): Promise<{ client: Client; longKey: CryptoKey; wrapSame: boolean }> {
-  const material = { local };
-  // One vault key for both seals, and the halves wiped once both are open
-  // (verifier of W1c): a wipe between the two left the wrapping pair sealed
-  // under a key made of zeros — the first red run after the merge of W1d.
-  let long: CryptoKey;
-  let held: HeldLongKey;
-  let session: CryptoKey | null = null;
-  let wrapPrivate: CryptoKey;
-  try {
-    const key = await vaultKey(material.local, share);
-    // Held as the registration and the raise hold it, so a move can hand the
-    // long key over after a reload too (T1; transfer.ts HeldKey).
-    const longPkcs8 = await unseal(key, record.sealedLong);
-    try {
-      held = await HeldKey.hold(await crypto.subtle.importKey("pkcs8", longPkcs8 as BufferSource, P256, true, ["sign"]));
-      long = await crypto.subtle.importKey("pkcs8", longPkcs8 as BufferSource, P256, false, ["sign"]);
-    } finally {
-      longPkcs8.fill(0);
-    }
-    if (record.sealedSession) {
-      const sessionPkcs8 = await unseal(key, record.sealedSession);
-      try {
-        session = await crypto.subtle.importKey("pkcs8", sessionPkcs8 as BufferSource, P256, false, ["sign"]);
-      } finally {
-        sessionPkcs8.fill(0);
-      }
-    }
-    const wrapPkcs8 = await unseal(key, record.sealedWrap);
-    try {
-      wrapPrivate = await crypto.subtle.importKey("pkcs8", wrapPkcs8 as BufferSource, WRAP_ALGORITHM, false, WRAP_USAGES);
-    } finally {
-      wrapPkcs8.fill(0);
-    }
-    await armGrace(material.local, share);
-  } finally {
-    material.local.fill(0);
-    share.fill(0);
-  }
-  const client = new Client(NODE_BASE, API_KEY);
-  const longSigning: SigningKey = { privateKey: long, publicSpki: record.longSpki };
-  // The key that signs: the session's own after a raise, the long key after
-  // a registration (there they are one key).
-  const sessionSigning: SigningKey = session ? { privateKey: session, publicSpki: record.sessionSpki ?? record.longSpki } : longSigning;
-  // The same wrapping pair as before the reload, out of its seal (W1d).
-  const same = equal(await checkOf(wrapPrivate), record.wrapCheck);
-  client.seat({
-    identityId: record.identityId,
-    sessionId: record.sessionId,
-    sessionKey: sessionSigning,
-    longKey: long,
-    longSpki: record.longSpki,
-    wrapPrivate,
-    wrapPublicSpki: record.wrapSpki,
-    deviceSalt: record.deviceSalt,
-    // Empty after a move (keepArrived): nothing to hand the core.
-    wrappedLongKey: record.wrappedLongKey.length ? record.wrappedLongKey : undefined,
-    held,
-  });
-  // The signing half goes back too: the chat keys sign with it (chat/keys.ts).
-  return { client, longKey: long, wrapSame: same };
-}
-
-const equal = (a: Uint8Array, b: Uint8Array): boolean => a.length === b.length && a.every((x, i) => x === b[i]);
 
 // Changing the PIN re-seals the vault (W4, 2026-09-26): the vault key is
 // HKDF(local ‖ share), and POST /vault/pin gives the node a new auth and a
@@ -458,7 +142,7 @@ export async function changePinAndReseal(client: Client, current: string, next: 
       savedAt: Date.now(),
     };
     after.auth.fill(0);
-    await tx("readwrite", (s) => s.put(resealed));
+    await putRecord(resealed);
     // The tab's grace held the old halves; they open nothing now.
     await dropGrace();
     await armGrace(after.local, fromBase64url(newShare.body.share));
@@ -530,7 +214,7 @@ export async function raiseAndKeep(
   (sessionPkcs8 as Uint8Array).fill(0);
   (wrapPkcs8 as Uint8Array).fill(0);
   material.auth.fill(0);
-  await tx("readwrite", (s) => s.put(record));
+  await putRecord(record);
   await armGrace(material.local, share);
   material.local.fill(0);
   share.fill(0);
@@ -619,7 +303,7 @@ export async function keepArrived(a: Arriving, pin: string): Promise<{ client: C
   a.wrapPkcs8.fill(0);
   a.sessionPkcs8 = null;
   a.wrapPkcs8 = null;
-  await tx("readwrite", (s) => s.put(record));
+  await putRecord(record);
   return { client, longKey: await held.signing() };
 }
 
@@ -647,5 +331,5 @@ export async function rememberWrappedLongKey(client: Client): Promise<void> {
   if (!record) return;
   const wrapped = client.wrappedLongKey;
   if (!wrapped) return;
-  await tx("readwrite", (s) => s.put({ ...record, wrappedLongKey: wrapped, savedAt: Date.now() }));
+  await putRecord({ ...record, wrappedLongKey: wrapped, savedAt: Date.now() });
 }

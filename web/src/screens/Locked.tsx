@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
+import { canOpen, clockText, pinRefusal, secondsLeft, untilOf } from "../../../depth/core/pin_gate.ts";
 import { HeldKey } from "../../../depth/core/transfer.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
@@ -33,11 +34,10 @@ export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () 
     }, 1000);
     return () => clearInterval(t);
   }, [until]);
-  const left = until === null ? 0 : Math.max(0, Math.ceil((until - now) / 1000));
-  const clock = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+  const clock = clockText(secondsLeft(until, now));
 
   async function open() {
-    if (pin.length !== 6 || busy) return;
+    if (!canOpen(pin, busy)) return;
     setBusy(true);
     setRefused(null);
     setUntil(null);
@@ -49,11 +49,14 @@ export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () 
       if (r.ok) return onUnlocked();
       const error = (r.answer.body as { error?: { code?: string; attempts_left?: number } } | null)?.error;
       // The same words as at start-up, with §8.2's second sentence on the last three (W14-WP; pinWords.ts).
-      if (error?.code === "pin_mismatch") return setRefused(pinMismatch(error.attempts_left));
-      if (error?.code === "pin_locked" || r.answer.status === 401) return setRefused(say("pin.locked"));
-      if (error?.code === "rate_limited") {
-        if (typeof r.answer.retryAfter === "number") { setNow(Date.now()); setUntil(Date.now() + r.answer.retryAfter * 1000); }
-        return setRefused(say("pin.wait", { n: r.answer.retryAfter ?? "?" }));
+      // What the refusal means is the core's (pin_gate.ts pinRefusal, shared with the app shell); the words are here.
+      const refusal = pinRefusal({ code: error?.code, status: r.answer.status, attemptsLeft: error?.attempts_left, retryAfter: r.answer.retryAfter });
+      if (refusal.kind === "mismatch") return setRefused(pinMismatch(refusal.left));
+      if (refusal.kind === "locked") return setRefused(say("pin.locked"));
+      if (refusal.kind === "wait") {
+        const end = untilOf(Date.now(), refusal.seconds);
+        if (end !== null) { setNow(Date.now()); setUntil(end); }
+        return setRefused(say("pin.wait", { n: refusal.seconds ?? "?" }));
       }
       setRefused(`${r.answer.status}`);
     } catch (e) {
@@ -70,7 +73,7 @@ export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () 
           <PinField label={say("lock.prompt")} value={pin} onChange={setPin} autoFocus data-testid="lock-pin" />
           {until !== null && <p className="ui-locked-timer" role="timer" data-testid="locked-timer">{clock}</p>}
         </FormCard>
-        <Button type="submit" kind="primary" icon="key" className="ui-wide" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={pin.length !== 6 || busy} data-testid="lock-go" />
+        <Button type="submit" kind="primary" icon="key" className="ui-wide" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={!canOpen(pin, busy)} data-testid="lock-go" />
       </form>
     </Screen>
   );

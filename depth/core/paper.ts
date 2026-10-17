@@ -20,6 +20,7 @@
 // multiples of eight bytes and a P-256 pkcs8 is not one.
 
 import { argon2id } from "hash-wasm";
+import { readPaperText } from "./paper_text.ts";
 import { PIN_ITERATIONS, PIN_MEMORY_KIB, PIN_PARALLELISM } from "./pin.ts";
 
 export const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -44,9 +45,10 @@ export function paperGroups(code: string): string[] {
 // alphabet and is refused rather than guessed, as is any other stray character.
 // The reading alone, for a part of a code — the screen that asks two groups
 // back reads them the same way, from here, so the two cannot drift.
-export function readPaperText(typed: string): string {
-  return typed.toUpperCase().replace(/[\s-]/g, "").replace(/[IL]/g, "1").replace(/O/g, "0");
-}
+// (Its body lives in paper_text.ts, which imports nothing: the registration
+// rules of register.ts read typed groups with it and run where this file's
+// Argon2 module is not installed.)
+export { readPaperText };
 
 export function readPaperCode(typed: string): string {
   const clean = readPaperText(typed);

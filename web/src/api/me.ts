@@ -42,8 +42,8 @@ export function profileRefusal(answer: Answer<unknown>): string | null {
   return null;
 }
 
-export const AWAY_MINUTES = { short: 20, hour: 60, long: 240 } as const;
-export type AwaySpan = keyof typeof AWAY_MINUTES;
+export { AWAY_MINUTES, type AwaySpan, graphemes } from "../../../depth/core/limits.ts";
+import { AWAY_MINUTES, type AwaySpan } from "../../../depth/core/limits.ts";
 export const AWAY_ORDER: AwaySpan[] = ["short", "hour", "long"];
 
 // What a step away costs, counted on the spot as the terminal counts it:
@@ -77,6 +77,4 @@ export async function resetCounts(client: Client): Promise<{ phrases: number; ch
   return { phrases: me.phrases?.length ?? 0, chats: inbox.length };
 }
 
-const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
-export const graphemes = (text: string, max: number) => [...segmenter.segment(text)].slice(0, max).map((s) => s.segment).join("");
 export const NAME_MAX = 24;

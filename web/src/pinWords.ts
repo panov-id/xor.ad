@@ -7,14 +7,16 @@
 // the same. The obvious-PIN list is the core's (depth/core/pin.ts
 // obviousPin): the two faces warn about the same PINs, by one list.
 
+import { isLastAttempts } from "../../depth/core/pin_gate.ts";
 import { say } from "./locales/say.ts";
 
 export { obviousPin } from "../../depth/core/pin.ts";
 
-export const LAST_ATTEMPTS = 3;
+// Which attempts count as the last ones is the core's (depth/core/pin_gate.ts), shared with the app shell.
+export { LAST_ATTEMPTS } from "../../depth/core/pin_gate.ts";
 
 export function pinMismatch(attemptsLeft: number | undefined): string {
   const n = attemptsLeft === undefined ? "?" : String(attemptsLeft);
   const line = say("pin.mismatch", { n });
-  return attemptsLeft !== undefined && attemptsLeft <= LAST_ATTEMPTS ? `${line} ${say("pin.mismatchLast")}` : line;
+  return isLastAttempts(attemptsLeft) ? `${line} ${say("pin.mismatchLast")}` : line;
 }

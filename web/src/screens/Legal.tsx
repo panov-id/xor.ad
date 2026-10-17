@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
-import { type Accepted, acceptAll, type LegalDocument, type LegalRevision, readManifest, toAccept } from "../../../depth/core/legal.ts";
+import { type Accepted, acceptAll, acceptedKey, documentAddress, keepAcceptedIn, LEGAL_ORDER as ORDER, type LegalDocument, type LegalRevision, readAcceptedIn, readManifest, toAccept } from "../../../depth/core/legal.ts";
 import { BRAND, NAMES } from "../config.ts";
 import { dateLong, say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
@@ -23,20 +23,20 @@ import { List, ListItem } from "../ui/List.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
 
-export const LEGAL_ORDER: LegalDocument[] = ["terms", "privacy", "guidelines"];
+// The order is the core's (legal.ts), one for both faces.
+export const LEGAL_ORDER: LegalDocument[] = [...ORDER];
 
 // Where the storefront shows each text (sosed.place and neighbro.place alike).
 export function docUrl(doc: LegalDocument): string {
-  const site = `https://${NAMES[BRAND] ?? NAMES.sosed}`;
-  return doc === "guidelines" ? `${site}/rules.html` : `${site}/legal.html?doc=${doc}`;
+  return documentAddress(NAMES[BRAND] ?? NAMES.sosed, doc);
 }
 
-const storeKey = (identityId: string) => `xor-legal:${BRAND}:${identityId}`;
+const storeKey = (identityId: string) => acceptedKey(BRAND, identityId);
 export function readAccepted(identityId: string): Accepted {
-  try { return JSON.parse(localStorage.getItem(storeKey(identityId)) ?? "{}") as Accepted; } catch { return {}; }
+  return readAcceptedIn(localStorage, storeKey(identityId));
 }
 export function keepAccepted(identityId: string, accepted: Accepted): void {
-  try { localStorage.setItem(storeKey(identityId), JSON.stringify(accepted)); } catch { /* the start-up check asks again */ }
+  keepAcceptedIn(localStorage, storeKey(identityId), accepted);
 }
 
 // The start-up check: what changed since this device accepted, or [] when

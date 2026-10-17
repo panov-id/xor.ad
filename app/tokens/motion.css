@@ -1,0 +1,79 @@
+/* Motion tokens from MOTION.md (sosed-animated). Times in ms, offsets in px. */
+:root {
+  --ease: cubic-bezier(.22, .9, .24, 1);
+
+  /* screen entry */
+  --d-header: 450ms;
+  --o-header: 12px;
+  --t-sheet-in-start: 120ms;
+  --d-sheet-in: 600ms;
+  --o-sheet-in: 620px;
+  --d-item: 500ms;
+  --o-item: 24px;
+  --t-item-start: 350ms;
+  --stagger-item: 80ms;
+  --d-action: 550ms;
+  --o-action: 40px;
+  --t-action-start: 450ms;
+  --d-tabbar: 550ms;
+  --o-tabbar: 130px;
+  --t-tabbar-start: 300ms;
+  --t-tile-start: 650ms;   /* splash tiles come in (opacity) */
+  --d-tile: 400ms;
+  --t-copy-start: 430ms;   /* splash text and the language list: one stagger step after the first item */
+
+  /* loading and waiting */
+  --d-shimmer: 1300ms;
+  --stagger-arrive: 120ms;
+  --d-press: 450ms;
+  --d-spinner: 900ms;
+  --spinner-arc: 28%;
+  --d-typing: 900ms;
+  --o-typing: 5px;
+  --stagger-typing: 150ms;
+  --d-bubble: 350ms;
+  --stagger-bubble: 380ms;
+  --scale-bubble-from: .85;
+  --d-pulse: 1600ms;
+  --scale-pulse: 1.07;
+
+  /* sheets and windows */
+  --d-dim: 400ms;
+  --t-dim-start: 450ms;
+  --dim: rgba(13, 11, 17, .72);
+  --d-sheet: 550ms;
+  --d-popup: 650ms;
+  --scale-popup-peak: 1.03;
+  --scale-under: .93;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --d-header: 0.01ms;
+    --t-sheet-in-start: 0ms;
+    --d-sheet-in: 0.01ms;
+    --d-item: 0.01ms;
+    --t-item-start: 0ms;
+    --stagger-item: 0ms;
+    --d-action: 0.01ms;
+    --t-action-start: 0ms;
+    --d-tabbar: 0.01ms;
+    --t-tabbar-start: 0ms;
+    --t-tile-start: 0ms;
+    --d-tile: 0.01ms;
+    --t-copy-start: 0ms;
+    --d-shimmer: 0.01ms;
+    --stagger-arrive: 0ms;
+    --d-press: 0.01ms;
+    --d-spinner: 0.01ms;
+    --d-typing: 0.01ms;
+    --stagger-typing: 0ms;
+    --d-bubble: 0.01ms;
+    --stagger-bubble: 0ms;
+    --d-pulse: 0.01ms;
+    --d-dim: 0.01ms;
+    --t-dim-start: 0ms;
+    --d-sheet: 0.01ms;
+    --d-popup: 0.01ms;
+  }
+}

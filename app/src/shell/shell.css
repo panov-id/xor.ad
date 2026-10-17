@@ -1,0 +1,97 @@
+* { box-sizing: border-box; margin: 0; }
+html, body, #root { height: 100%; }
+body {
+  background: var(--c-night);
+  color: var(--c-text);
+  font-family: var(--font-stack);
+  font-weight: var(--fw-500);
+  font-size: var(--fs-body);
+  line-height: var(--lh-tight);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; min-height: var(--s-touch-min); }
+
+.layers { position: relative; height: 100%; overflow: hidden; background: var(--c-night); }
+.layer-base {
+  position: absolute; inset: 0; transform-origin: 50% 100%;
+  transition: transform var(--d-sheet) var(--ease);
+  view-transition-name: base;
+}
+.layer-base[data-under="true"] { transform: scale(var(--scale-under)); }
+.dim {
+  position: absolute; inset: 0; background: var(--dim); opacity: 0; pointer-events: none;
+  transition: opacity var(--d-dim) var(--ease);
+}
+.dim[data-on="true"] { opacity: 1; pointer-events: auto; }
+.layer-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; min-height: 40%;
+  background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  padding: var(--sp-6);
+  animation: sheet-up var(--d-sheet) var(--ease) both;
+  view-transition-name: sheet;
+}
+@keyframes sheet-up { from { transform: translateY(var(--sheet-rise)); } to { transform: none; } }
+@keyframes sheet-down { from { transform: none; } to { transform: translateY(var(--sheet-rise)); } }
+@keyframes under { from { transform: none; } to { transform: scale(var(--scale-under)); } }
+@keyframes unlayer { from { transform: scale(var(--scale-under)); } to { transform: none; } }
+
+/* View Transitions path: the browser animates the snapshots, the CSS
+   transitions above stand down. */
+:root[data-vt] .layer-base, :root[data-vt] .dim { transition: none; }
+:root[data-vt] .layer-sheet { animation: none; }
+::view-transition-group(*) { animation-duration: var(--d-sheet); animation-timing-function: var(--ease); }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+:root[data-vt="open"]::view-transition-new(sheet) { animation: sheet-up var(--d-sheet) var(--ease) both; }
+:root[data-vt="open"]::view-transition-old(base) { animation: under var(--d-sheet) var(--ease) both; }
+:root[data-vt="open"]::view-transition-new(base) { animation: none; }
+:root[data-vt="close"]::view-transition-old(sheet) { animation: sheet-down var(--d-sheet) var(--ease) both; }
+:root[data-vt="close"]::view-transition-new(base) { animation: unlayer var(--d-sheet) var(--ease) both; }
+:root[data-vt="close"]::view-transition-old(base) { animation: none; }
+
+.screen { position: relative; height: 100%; display: flex; flex-direction: column; }
+.screen-head { padding: var(--sp-8) var(--sp-6) var(--sp-4); animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
+.screen-head h1 { font-size: var(--fs-title); font-weight: var(--fw-800); }
+.sheet-content {
+  flex: 1; background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  padding: var(--sp-6) var(--sp-4) calc(var(--s-nav-bar) + var(--nav-gap-bottom) + var(--sp-6));
+  animation: sheet-up var(--d-sheet-in) var(--ease) var(--t-sheet-in-start) both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(var(--from, var(--o-item))); } to { opacity: 1; transform: none; } }
+
+.card { border-radius: var(--r-card); padding: var(--sp-5); color: var(--c-ink); display: grid; gap: var(--sp-4); justify-items: start;
+  animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
+.card-lime { background: var(--c-lime); }
+.avatar { width: var(--avatar); height: var(--avatar); border-radius: var(--r-pill); background: var(--c-avatar-1);
+  display: grid; place-items: center; font-weight: var(--fw-700); }
+.phrase { font-size: var(--fs-phrase); font-weight: var(--fw-700); }
+.pill { background: var(--c-ink); color: var(--c-text); border-radius: var(--r-pill); padding: 0 var(--sp-6); height: var(--s-button); }
+
+.sheet-body { display: grid; gap: var(--sp-4); justify-items: start; }
+
+.tabbar {
+  position: absolute; left: 50%; bottom: var(--nav-gap-bottom); transform: translateX(-50%);
+  width: calc(100% - 2 * var(--sp-4)); max-width: var(--tabbar-max); height: var(--s-nav-bar);
+  background: var(--c-nav-bar); border-radius: var(--r-nav-bar);
+  display: flex; align-items: center; justify-content: space-around; padding: 0 var(--nav-pad-x);
+  animation: bar-up var(--d-tabbar) var(--ease) var(--t-tabbar-start) both;
+}
+@keyframes bar-up { from { opacity: 0; transform: translate(-50%, var(--o-tabbar)); } to { opacity: 1; transform: translate(-50%, 0); } }
+.tab { color: var(--c-muted); font-weight: var(--fw-600); padding: 0 var(--sp-3); border-radius: var(--r-pill); }
+.tab[aria-current="page"] { color: var(--c-ink); background: var(--c-lime); }
+
+.skeleton { border-radius: var(--r-card); background: var(--c-panel); position: relative; overflow: hidden; }
+.skeleton-line { height: var(--skeleton-line); border-radius: var(--r-pill); }
+.skeleton-card { height: var(--skeleton-card); }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, var(--c-panel2), transparent);
+  transform: translateX(-100%);
+  animation: shimmer var(--d-shimmer) linear infinite;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* Icons (shell/Icon.tsx): the box is --icon-size, the stroke --stroke, in 24-grid units. */
+.icon { width: var(--icon-size, var(--icon-tile)); height: var(--icon-size, var(--icon-tile)); flex: none;
+  fill: none; stroke: currentColor; stroke-width: var(--stroke, 2.2); stroke-linecap: round; stroke-linejoin: round; }
+.sr-only { position: absolute; width: var(--hair); height: var(--hair); overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[tabindex="-1"]:focus { outline: none; }

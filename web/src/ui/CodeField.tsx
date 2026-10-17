@@ -1,5 +1,5 @@
 import { useRef, type ClipboardEvent, type KeyboardEvent } from "react";
-import { readPaperText } from "../../../depth/core/paper.ts";
+import { CODE_GROUP, CODE_GROUPS, layOutGroups } from "../../../depth/core/register.ts";
 import { say } from "../locales/say.ts";
 import { type ControlState, useControl } from "./control.tsx";
 
@@ -11,44 +11,21 @@ import { type ControlState, useControl } from "./control.tsx";
 // readPaperText, the same reading the terminal uses). A whole code pasted into
 // any group is laid out over all of them; Backspace in an empty group goes back;
 // the fourth character moves on to the next group.
-export const CODE_GROUP = 4;
-export const CODE_GROUPS = 4;
+export { CODE_GROUP, CODE_GROUPS };
 
 type Props = ControlState & { label?: string; groups?: readonly number[]; value: readonly string[]; onChange: (value: string[]) => void };
-
-const clean = (raw: string) => readPaperText(raw).replace(/[^0-9A-Z]/g, "");
 
 export function CodeField({ label = say("web.ui.codeName"), groups = [1, 2, 3, 4], value, onChange, hint, error, disabled, reason, busy }: Props) {
   const c = useControl({ hint, error, disabled, reason, busy });
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const focusAt = (index: number) => inputs.current[index]?.focus();
 
+  // The laying out of typed and pasted text is the core's (register.ts layOutGroups), one for both faces.
   const write = (index: number, raw: string) => {
     if (disabled) return;
-    const text = clean(raw);
-    const next = [...value];
-    if (text.length <= CODE_GROUP) {
-      next[index] = text;
-      onChange(next);
-      if (text.length === CODE_GROUP && index < groups.length - 1) focusAt(index + 1);
-      return;
-    }
-    // More than one group's worth: a paste. A whole code goes to the shown
-    // groups by their place on the paper; anything else fills on from here.
-    let last = index;
-    if (text.length === CODE_GROUP * CODE_GROUPS) {
-      groups.forEach((place, i) => { next[i] = text.slice((place - 1) * CODE_GROUP, place * CODE_GROUP); });
-      last = groups.length - 1;
-    } else {
-      for (let i = index; i < groups.length; i++) {
-        const chunk = text.slice((i - index) * CODE_GROUP, (i - index + 1) * CODE_GROUP);
-        if (!chunk) break;
-        next[i] = chunk;
-        last = i;
-      }
-    }
+    const { next, focus } = layOutGroups(value, index, raw, groups);
     onChange(next);
-    focusAt(last);
+    if (focus !== null) focusAt(focus);
   };
   const paste = (index: number, event: ClipboardEvent<HTMLInputElement>) => {
     event.preventDefault();

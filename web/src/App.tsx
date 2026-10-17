@@ -46,6 +46,7 @@ import { Blocked } from "./screens/Blocked.tsx";
 import { Hidden } from "./screens/Hidden.tsx";
 import { dropGrace, forget, hiddenWithGrace, leavingWithGrace, readRecord, type Record_, returningWithGrace, unlockByGrace } from "./vault.ts";
 import { watchIdle } from "./idle.ts";
+import { watchLifecycle } from "../../depth/web-platform/vault_keep.ts";
 import { Locked } from "./screens/Locked.tsx";
 import "./chat/chat.css";
 import "./screens/feed.css";
@@ -239,38 +240,9 @@ function Face() {
     return () => removeEventListener("popstate", onPop);
   }, []);
 
-  // The document leaving (a reload, a same-tab address): the grace's leave mark
-  // (grace.ts leaving) — a duplicate of the tab gets none, and so no grace.
-  // Hidden or frozen (a mobile tab may be discarded with its timers): the grace
-  // leaves the disk at once; back from the bfcache the leave mark goes.
-  // Chromium fires visibilitychange → hidden on a reload too, right before
-  // pagehide, in the same task (Page Lifecycle): so the suspend waits a task,
-  // and pagehide — the reload — calls it off; a tab merely switched away from
-  // has no pagehide, and its suspend runs at once.
-  useEffect(() => {
-    let pending: ReturnType<typeof setTimeout> | null = null;
-    const onVisibility = () => {
-      if (document.visibilityState !== "hidden") return;
-      if (pending !== null) clearTimeout(pending);
-      pending = setTimeout(() => { pending = null; hiddenWithGrace(); }, 0);
-    };
-    const onHide = () => {
-      if (pending !== null) clearTimeout(pending);
-      pending = null;
-      leavingWithGrace();
-    };
-    const onShow = (e: Event) => { if ((e as PageTransitionEvent).persisted) returningWithGrace(); };
-    addEventListener("pagehide", onHide);
-    addEventListener("pageshow", onShow);
-    document.addEventListener("visibilitychange", onVisibility);
-    document.addEventListener("freeze", hiddenWithGrace);
-    return () => {
-      removeEventListener("pagehide", onHide);
-      removeEventListener("pageshow", onShow);
-      document.removeEventListener("visibilitychange", onVisibility);
-      document.removeEventListener("freeze", hiddenWithGrace);
-    };
-  }, []);
+  // The document leaving, hidden, frozen, back from the bfcache: the grace's marks
+  // (depth/web-platform/vault_keep.ts watchLifecycle, the same for the app shell; grace.ts says why).
+  useEffect(() => watchLifecycle({ hiddenWithGrace, leavingWithGrace, returningWithGrace }), []);
   useEffect(() => {
     (async () => {
       // `<storefront>/o/<code>` — the exit screen of an offer's link (W5): for

@@ -10,6 +10,7 @@ import type { ReactElement } from "react";
 import type { Client, InboxEvents, Liked as LikedCard, Statement } from "../core/client.ts";
 import { CursorRefused, extraLikeOf, startersOf } from "../core/client.ts";
 import { stickerOf } from "../core/sticker.ts";
+import { AWAY_MINUTES, graphemes } from "../core/limits.ts";
 import type { ChatStarter } from "../core/client.ts";
 import { languageOf, type Say } from "./strings.ts";
 import { plain, useKeys } from "./parts.ts";
@@ -1248,7 +1249,7 @@ export function Me(
 // terminal's voice, decided by the owner on 23.09.2026 — counted on the spot:
 // one's live phrases (GET /identities/me), the likes one gave (GET /likes), and
 // the conversations whose own end comes before the break does (GET /inbox).
-export const AWAY_MINUTES = { short: 20, hour: 60, long: 240 } as const;
+export { AWAY_MINUTES };
 type AwaySpan = keyof typeof AWAY_MINUTES;
 const AWAY_ORDER: AwaySpan[] = ["short", "hour", "long"];
 
@@ -1378,8 +1379,6 @@ export function Away(
 // node decides and says why not; the words for its refusals were approved by
 // the owner on 23.09.2026 (refusal-wordings §5). Crossing 20/21 upwards is
 // asked before saving, since it cannot be undone (§8.2).
-const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
-const graphemes = (text: string, max: number) => [...segmenter.segment(text)].slice(0, max).map((s) => s.segment).join("");
 
 export function EditProfile(
   { say, client, field, current, onDone, onBack, onError }: {

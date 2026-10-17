@@ -43,9 +43,11 @@
 //
 // Not stored: the PIN, the long key, the vault key. Not localStorage.
 // The stores and the clock are parameters so that node:test exercises the
-// rules without a browser (grace.test.ts); vault.ts binds the real ones.
+// rules without a browser (web/src/grace.test.ts); the faces bind the real ones
+// (depth/web-platform/vault_keep.ts). Moved here from web/src/ on 17.10.2026:
+// the web and the app shell keep one grace.
 
-import { base64url } from "../../depth/core/sign.ts";
+import { base64url } from "./sign.ts";
 
 export const GRACE_MS = 30_000;
 export const TAB_KEY = "xor-grace";

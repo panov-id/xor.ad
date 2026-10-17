@@ -1,0 +1,87 @@
+/* feed (sosed Dusk w1_feed ...) and the card (w1_card, w1_card-more). Sizes are tokens (tokens/layout.css). The tile classes
+   are fd-*: `.tile` and `.card` of other screens are not these. */
+.fd-feed { overflow: hidden; }
+.fd-head { padding: var(--fd-head-top) 0 var(--sp-4); animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
+.fd-chips { list-style: none; padding: 0 var(--sp-4); display: flex; gap: var(--fd-chip-gap); overflow-x: auto; scrollbar-width: none; }
+.fd-chip { flex: none; min-width: var(--fd-chip); height: var(--fd-chip); padding: 0 var(--sp-3); border-radius: var(--r-pill); background: var(--c-sheet);
+  color: var(--c-text); font-size: var(--fs-caption); font-weight: var(--fw-600); border: var(--hair) solid var(--c-panel); }
+.fd-chip[aria-pressed="true"] { border: calc(var(--hair) * 3) solid var(--c-lime); }
+.fd-head h1 { padding: var(--fd-title-gap) var(--sp-4) 0; font-size: var(--fs-feed-title); font-weight: var(--fw-700); }
+.fd-list { overflow-y: auto; display: flex; flex-direction: column; gap: var(--fd-list-gap); }
+.fd-cards { list-style: none; padding: 0; display: grid; gap: var(--fd-list-gap); }
+
+.fd-card { --tone: var(--c-lime); position: relative; display: grid; grid-template-columns: 1fr auto; gap: var(--fd-card-gap); align-items: start;
+  padding: var(--fd-card-pad); border-radius: var(--r-card); background: var(--tone); color: var(--c-ink);
+  animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
+.fd-yellow { --tone: var(--c-yellow); }
+.fd-peach { --tone: var(--c-peach); }
+.fd-coral { --tone: var(--c-coral); }
+.fd-open { text-align: start; font-size: var(--fs-tile); font-weight: var(--fw-800); line-height: var(--lh-tight); min-height: 0; padding: 0; overflow-wrap: anywhere; }
+.fd-open::after { content: ""; position: absolute; inset: 0; border-radius: var(--r-card); }  /* the whole tile is the press */
+.fd-hand { position: relative; z-index: 1; width: var(--fd-hand); height: var(--fd-hand); min-height: 0; border-radius: var(--r-pill);
+  background: var(--c-ink); color: var(--c-text); display: grid; place-items: center; }
+.fd-hand .icon { --icon-size: var(--icon-fd); --stroke: 2; }
+.fd-hand[data-lit] { color: var(--tone); }
+.fd-hand:disabled { cursor: default; }
+.fd-hand-static { z-index: auto; }
+.fd-offer { grid-column: 1 / -1; justify-self: start; padding: var(--sp-1) var(--sp-3); border-radius: var(--r-pill); background: var(--c-ink); color: var(--c-text);
+  font-size: var(--fs-caption); font-weight: var(--fw-700); }
+.fd-foot { grid-column: 1 / -1; position: relative; z-index: 1; pointer-events: none; display: flex; align-items: center; justify-content: space-between;
+  height: var(--fd-foot-h); padding: 0 var(--sp-2) 0 var(--fd-foot-pad); border-radius: var(--r-pill); background: var(--c-text); font-size: var(--fs-caption); font-weight: var(--fw-600); }
+.fd-in { display: flex; align-items: center; gap: var(--sp-2); }
+.fd-in .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }
+.fd-mode { height: var(--fd-mode-h); padding: 0 var(--fd-mode-pad); border-radius: var(--r-pill); background: var(--tone); display: grid; place-items: center; font-weight: var(--fw-700); }
+
+.fd-undo { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
+  border-radius: var(--r-pill); background: var(--c-night); color: var(--c-muted); font-size: var(--fs-caption); }
+.fd-return { height: var(--s-button); padding: 0 var(--sp-5); border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: flex; align-items: center; gap: var(--sp-2); font-weight: var(--fw-700); }
+.fd-return .icon { --icon-size: var(--icon-fd-sm); }
+.fd-hint, .fd-line { font-size: var(--fs-caption); color: var(--c-muted); padding: 0 var(--sp-2); }
+.fd-line-error { color: var(--c-coral); }
+
+.fd-fail { display: grid; gap: var(--sp-3); }
+.fd-banner { display: flex; gap: var(--sp-3); align-items: flex-start; padding: var(--fd-banner-pad); border-radius: var(--r-row); background: var(--c-coral); color: var(--c-ink); font-size: var(--fs-notice); }
+.fd-banner .icon { --icon-size: var(--icon-notice); --stroke: 2; flex: none; }
+.fd-banner strong { font-weight: var(--fw-800); }
+.fd-banner p { font-weight: var(--fw-500); }
+.fd-skeletons { display: grid; gap: var(--fd-list-gap); }
+
+.fd-empty { display: grid; justify-items: center; text-align: center; gap: var(--sp-3); padding: var(--fd-empty-top) var(--sp-4) 0; color: var(--c-muted); }
+.fd-empty-icon { width: var(--fd-empty-circle); height: var(--fd-empty-circle); border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text); display: grid; place-items: center; }
+.fd-empty-icon .icon { --icon-size: var(--icon-fd-empty); --stroke: 1.8; }
+.fd-empty h2 { color: var(--c-text); font-size: var(--fs-phrase); font-weight: var(--fw-800); }
+.fd-wider { height: var(--s-button); padding: 0 var(--sp-6); border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: flex; align-items: center; gap: var(--sp-2); font-weight: var(--fw-700); }
+.fd-wider .icon { --icon-size: var(--icon-fd-sm); }
+
+/* the card full-screen over the feed */
+.fd-screen { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; background: var(--c-night); animation: rise var(--d-item) var(--ease) both; --from: var(--o-item); }
+.fd-bar { height: var(--h-fd-bar); padding: 0 var(--sp-2); display: grid; grid-template-columns: var(--s-touch-min) 1fr var(--s-touch-min); align-items: center; }
+.fd-bar h1 { text-align: center; font-size: var(--fs-body); font-weight: var(--fw-700); }
+.fd-icon-btn { width: var(--s-touch-min); display: grid; place-items: center; border-radius: var(--r-pill); }
+.fd-icon-btn .icon { --icon-size: var(--icon-fd); --stroke: 2; }
+.fd-body { flex: 1; overflow-y: auto; background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: var(--sp-4); display: grid; align-content: start; gap: var(--sp-4); }
+.fd-big { padding: var(--sp-5); }
+.fd-text { font-size: var(--fs-card-text); font-weight: var(--fw-800); line-height: var(--lh-tight); overflow-wrap: anywhere; }
+.fd-rows { display: grid; }
+.fd-rows div { display: flex; justify-content: space-between; align-items: center; min-height: var(--fd-row-h); border-bottom: var(--hair) solid var(--c-panel); font-size: var(--fs-notice); }
+.fd-rows dt { color: var(--c-muted); }
+.fd-rows dd { font-weight: var(--fw-700); text-align: end; }
+.fd-note { font-size: var(--fs-notice); color: var(--c-muted); }
+.fd-foot-bar { padding: var(--sp-4) var(--sp-4) max(var(--nav-gap-bottom), env(safe-area-inset-bottom)); background: var(--c-sheet); }
+.cta:disabled, .cta[aria-disabled="true"] { opacity: var(--o-disabled); }
+.cta-danger { background: var(--c-coral); color: var(--c-ink); }
+
+/* «…» as a bottom sheet (rendered by the layer stack, so its own width and padding) */
+.fd-sheet { display: grid; gap: var(--sp-3); max-width: var(--tabbar-max); margin-inline: auto; }
+.fd-grab { justify-self: center; width: var(--fd-grab-w); height: var(--fd-grab-h); border-radius: var(--r-pill); background: var(--c-panel2); }
+.fd-sheet h2 { font-size: var(--fs-body); font-weight: var(--fw-700); }
+.fd-menu { list-style: none; padding: 0; display: grid; gap: var(--sp-2); }
+.fd-menu button { width: 100%; height: var(--fd-menu-h); padding: 0 var(--sp-4); border-radius: var(--r-row); background: var(--c-panel); display: flex; align-items: center; gap: var(--sp-3); font-weight: var(--fw-700); }
+.fd-menu button span { flex: 1; text-align: start; }
+.fd-menu .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }
+.fd-menu .fd-danger { color: var(--c-coral); }
+.fd-ask { display: grid; gap: var(--sp-3); }
+.fd-ask-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-cta); }
+.fd-ask textarea { min-height: var(--fd-textarea-h); padding: var(--sp-3) var(--sp-4); border-radius: var(--r-row); background: var(--c-panel); color: var(--c-text); font: inherit; border: 0; resize: none; }
+.fd-check { display: flex; gap: var(--sp-3); align-items: flex-start; font-size: var(--fs-caption); color: var(--c-muted); }
+.fd-sheet-error { font-size: var(--fs-notice); color: var(--c-coral); }

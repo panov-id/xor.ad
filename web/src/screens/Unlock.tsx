@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
+import { canOpen, pinRefusal } from "../../../depth/core/pin_gate.ts";
 import { forget, PinRefused, type Record_, unlockAfterReload } from "../vault.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
@@ -20,10 +21,12 @@ import { pinMismatch } from "../pinWords.ts";
 // answers before the PIN is checked — and reads as the lock; 429 is "too
 // soon", the PIN was not checked, so no attempts are named (verifier of W1c).
 function pinLine(e: PinRefused): string {
+  // What the refusal means is the core's (pin_gate.ts pinRefusal, shared with the app shell); the words are here.
+  const r = pinRefusal({ code: e.code, attemptsLeft: e.attemptsLeft, retryAfter: e.retryAfter });
   // With the second sentence of §8.2 on the last three attempts (W14-WP; pinWords.ts).
-  if (e.code === "pin_mismatch") return pinMismatch(e.attemptsLeft);
-  if (e.code === "pin_locked" || e.code === "unauthorized" || e.code === "status_401") return say("pin.locked");
-  if (e.code === "rate_limited") return say("pin.wait", { n: e.retryAfter ?? "?" });
+  if (r.kind === "mismatch") return pinMismatch(r.left);
+  if (r.kind === "locked") return say("pin.locked");
+  if (r.kind === "wait") return say("pin.wait", { n: r.seconds ?? "?" });
   return e.message;
 }
 
@@ -68,7 +71,7 @@ export function Unlock({ record, onDone, onForget, onRestore }: { record: Record
       </FormCard>
       <div data-part="foot">
         <Split>
-          <Button type="button" kind="primary" icon="key" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={pin.length !== 6 || busy} onClick={unlock} data-testid="unlock" />
+          <Button type="button" kind="primary" icon="key" aria-label={busy ? say("web.unlock.asking") : say("inbox.enter")} aria-busy={busy} disabled={!canOpen(pin, busy)} onClick={unlock} data-testid="unlock" />
           {error && <Button type="button" icon="code" aria-label={say("web.unlock.restore")} onClick={onRestore} data-testid="unlock-restore" />}
         </Split>
       </div>

@@ -1,4 +1,5 @@
 import { useState, type ClipboardEvent, type InputHTMLAttributes, type ReactNode } from "react";
+import { PIN_LENGTH, pinDigits } from "../../../depth/core/register.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "./Button.tsx";
 import { type ControlState, useControl } from "./control.tsx";
@@ -48,8 +49,8 @@ export function FieldGroup({ legend, children }: { legend: string; children: Rea
 // PinField: one <input>, six digits, hidden until «показать»; a paste is read
 // whole (WCAG 3.3.8), anything that is not a digit falls out of it; Enter is the
 // form's own submit. A pair «PIN / ещё раз» is two PinFields.
-const PIN_LENGTH = 6;
-const digits = (text: string) => text.replace(/\D/g, "").slice(0, PIN_LENGTH);
+// The digits rule is the core's (register.ts pinDigits), one for both faces.
+const digits = pinDigits;
 
 export function PinField({ label = say("web.ui.pinName"), value, onChange, hint, error, disabled, reason, busy, ...rest }:
   Omit<Native, "maxLength" | "autoComplete"> & ControlState & { label?: string; value: string; onChange: (value: string) => void }) {

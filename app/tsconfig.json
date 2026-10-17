@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@sdk/*": ["../depth/core/*"],
+      "@platform/*": ["../depth/web-platform/*"],
+      "@brand": ["./src/brands/sosed/index.ts"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}

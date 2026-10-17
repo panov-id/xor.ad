@@ -15,6 +15,7 @@ COPY web/package.json web/package-lock.json ./
 RUN npm ci
 
 COPY depth/core /repo/depth/core
+COPY depth/web-platform /repo/depth/web-platform
 COPY depth/ink/locales /repo/depth/ink/locales
 COPY panel/design/kit /repo/panel/design/kit
 COPY panel/design/fonts /repo/panel/design/fonts

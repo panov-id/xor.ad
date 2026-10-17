@@ -70,3 +70,27 @@ export async function acceptAll(
   }
   return { accepted: now, stale: null };
 }
+
+// The order the documents are shown in, on both faces: the terms, the privacy
+// policy, the community guidelines.
+export const LEGAL_ORDER: readonly LegalDocument[] = ["terms", "privacy", "guidelines"];
+
+export const inLegalOrder = (list: readonly LegalRevision[]): LegalRevision[] =>
+  [...list].sort((a, b) => LEGAL_ORDER.indexOf(a.document) - LEGAL_ORDER.indexOf(b.document));
+
+// What this device accepted, kept by face and identity in the device's own
+// storage (localStorage on both faces): the same key, so a face reads what
+// the other kept. A storage that throws reads as nothing accepted; the
+// start-up check asks again.
+export const acceptedKey = (brand: string, identityId: string): string => `xor-legal:${brand}:${identityId}`;
+type Keep = Pick<Storage, "getItem" | "setItem">;
+export function readAcceptedIn(store: Keep | null, key: string): Accepted {
+  try { return JSON.parse(store?.getItem(key) ?? "{}") as Accepted; } catch { return {}; }
+}
+export function keepAcceptedIn(store: Keep | null, key: string, accepted: Accepted): void {
+  try { store?.setItem(key, JSON.stringify(accepted)); } catch { /* the start-up check asks again */ }
+}
+
+// Where the storefront shows each text (the host is the brand's: sosed.place, neighbro.place).
+export const documentAddress = (host: string, doc: LegalDocument): string =>
+  doc === "guidelines" ? `https://${host}/rules.html` : `https://${host}/legal.html?doc=${doc}`;

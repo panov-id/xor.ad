@@ -10,6 +10,7 @@ import { Actions, Board, ErrorLine, Form, Head, Muted, Notice, off, Stack, Txt }
 import { ClassBoard } from "./table_boards.ts";
 import { classWord, durationSeconds, edgeWords, moveWords, refusalWords, setWord, type TableAction as Why } from "./words.ts";
 import type { Room } from "../core/client.ts";
+import { graphemes } from "../core/limits.ts";
 import {
   applyFrame, type BoardClass, dotsOf, drawDots, frameNeedsView, freeEdges, openApplications, SEAT_LOST, type Tables, type TableView, turnOf,
 } from "../core/tables.ts";
@@ -249,8 +250,6 @@ const MOST: Record<string, number> = { grid: 2, dots: 2, dice: 2, word: 2, free:
 const seatsOf = (kind: string) => Array.from({ length: (MOST[kind] ?? 2) - 1 }, (_, i) => String(i + 2));
 // 24 graphemes, as the node counts them: a slice by UTF-16 units split an
 // emoji and the node stored U+FFFD (verifier, 2026-09-27).
-const graphemes = (text: string, most: number) =>
-  [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text)].slice(0, most).map((g) => g.segment).join("");
 // The table's name is also held to 256 bytes (db/064: octet_length(name) <= 256):
 // 24 family emoji are 600 and the node answered 503 (verifier, 2026-09-27).
 const tableName = (text: string) => {

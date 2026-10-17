@@ -1,0 +1,195 @@
+/* Hand-written layout scale for the shell. Raw px live in tokens files only. */
+:root {
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --nav-gap-bottom: 22px;
+  --nav-pad-x: 12px;
+  --fs-title: 30px;
+  --fs-phrase: 21px;
+  --fs-body: 15px;
+  --fs-caption: 12px;
+  --lh-tight: 1.2;
+  --avatar: 40px;
+  --skeleton-line: 14px;
+  --skeleton-card: 150px;
+  --tab-dot: 6px;
+  --sheet-rise: 620px;
+  --tabbar-max: 420px;
+}
+@media (min-width: 834px) { :root { --fs-title: 40px; } }
+
+/* Slice 1a (splash, splash-lang, loading): every size read off the sosed Dusk sheets
+   (mobile_390_w2_splash / w2_splash-lang / w2_loading, 1 pt = 1.3333 px). */
+:root {
+  --stage-w: 390px;            /* the sheets' width: the poster (tiles, hero) is laid out on it and centred */
+  --entry-max: 390px;          /* the text and buttons keep the phone's column on a wider screen */
+  --fs-hero: 34px;             /* splash headline; 36.8 px line pitch on the sheet */
+  --lh-hero: 1.09;
+  --fs-cta: 16px;              /* button words */
+  --fs-brand: 24px;            /* the brand word beside the mark */
+  --hero-text-w: 300px;        /* the headline breaks after the second word, as the sheet does */
+  --s-cta: 58px;              /* the two ways in (the kit's 54/60 are not what the sheet draws) */
+  --gap-cta: 10px;             /* between the buttons, and between a button's icon and its word */
+  --icon-cta: 20px;
+  --icon-tile: 24px;
+  --tile: 52px;
+  --r-tile: 16px;
+  --circle-hero: 120px;
+  --icon-hero: 60px;
+  --circle-loading: 96px;
+  --icon-loading: 48px;
+  --mark: 48px;
+  --mark-icon: 24px;
+  --underline-offset: 3px;
+  --hair: 1px;
+  --splash-hero-top: 124px;
+  --splash-copy-top: 346px;    /* top of the headline's first line box */
+  --splash-sub-gap: 7px;
+  --tile-1-x: 46px;  --tile-1-y: 81px;
+  --tile-2-x: 305px; --tile-2-y: 71px;
+  --tile-3-x: 76px;  --tile-3-y: 240px;
+  --tile-4-x: 315px; --tile-4-y: 230px;
+  --tile-5-x: 185px; --tile-5-y: 51px;
+  --tile-6-x: 36px;  --tile-6-y: 160px;
+  --tile-7-x: 335px; --tile-7-y: 150px;
+  --tile-8-x: 195px; --tile-8-y: 270px;
+  --lang-top: 22px;
+  --lang-side: 22px;           /* the mark's inset on the language sheet */
+  --lang-sub-gap: 6px;         /* title baseline 115 → hint baseline 142 on the sheet */
+  --arrive-lift: 2px;          /* the arrive link and the buttons above sit 2 px higher on the sheet */
+  --lang-list-top: 14px;       /* hint baseline 142 → first row top 160 */
+  --s-lang-row: 55.67px;       /* row pitch 63.67 on the sheet */
+  --r-lang-row: 20px;
+  --lang-check: 20px;
+  --lang-pad-end: 14px;
+  --loading-top: 322px;
+  --gap-ring: 22px;
+  --gap-loading-text: 14px;
+  --spinner: 72px;
+}
+
+/* Slice 1b (register-1..3): read off mobile_390_w1_register-1/2/3. The sheets are 390 wide; the column is kept on wider screens. */
+:root {
+  --reg-side: 22px;            /* the mark, the step words and the bars sit 22 from the edge */
+  --reg-head-top: 22.7px;
+  --reg-mark: 43.8px;
+  --r-reg-mark: 14px;
+  --reg-mark-icon: 22px;
+  --reg-step-gap: 14px;        /* mark to the step words */
+  --reg-bars-gap: 7.8px;       /* step words to the bars */
+  --reg-sheet-gap: 17.9px;     /* bars to the sheet's top edge */
+  --h-bar: 8px;
+  --gap-bar: 6px;
+  --reg-pad: 16px;            /* the sheet's side padding */
+  --reg-pad-top: 19.7px;
+  --reg-title-gap: 3.4px;
+  --reg-sub-gap: 13.3px;       /* the line under the title to the first label */
+  --fs-label: 13px;            /* step words, counters, hints, chips */
+  --fs-field-label: 14px;
+  --lh-label: 16px;
+  --lh-sub: 21.9px;
+  --gap-field: 12.7px;         /* a control to the next label */
+  --gap-label: 8.6px;          /* a label to its control */
+  --reg-label-inset: 6px;      /* the label sits 6 in from the box */
+  --s-field: 55.71px;
+  --r-field: 20px;
+  --fs-field: 17.5px;
+  --reg-field-pad: 18px;
+  --lh-counter: 14.3px;
+  --gap-counter: 8.6px;
+  --box: 27.85px;              /* the consent box */
+  --r-box: 9px;
+  --gap-check: 12px;
+  --gap-consent: 12px;         /* the age hint to the consent row */
+  --gap-chips: 10px;
+  --h-chip: 29.85px;
+  --gap-chip: 6px;
+  --pad-chip: 12px;
+  --reg-foot-bottom: 25.4px;
+  --gap-reason: 10px;
+  --o-disabled: .48;
+  --fs-input: 16px;            /* the real input under the cells: no zoom on focus */
+  --gap-cell: 8px;
+  --h-pin-cell: 57.7px;
+  --h-code-cell: 51.74px;
+  --r-cell: 18px;
+  --dot: 13.93px;
+  --ring: 1.6px;
+  --fs-cell: 20px;
+  --notice-gap: 12px;
+  --pad-notice: 14.4px;
+  --pad-notice-x: 18px;
+  --gap-notice: 10px;
+  --icon-notice: 20px;
+  --fs-notice: 14px;
+  --lh-notice: 19.9px;
+  --plate-gap: -.8px;          /* the sub-line (its own gap below) to the plate: 12.5 in all */
+  --plate-pad: 17.7px;
+  --plate-pad-top: 19.7px;
+  --r-plate: 28px;
+  --gap-plate-head: 8px;
+  --icon-plate: 18px;
+  --plate-cells-gap: 12.3px;
+  --h-plate-cell: 47.6px;
+  --r-plate-cell: 14px;
+  --gap-plate-cell: 7.8px;
+  --fs-plate-cell: 22.5px;
+  --ls-plate-cell: .05em;
+  --nudge-plate-cell: 2.4px;   /* the sheet sets the letters 1.2 lower than the box centre */
+  --reg-sub-w: 352px;          /* the sub-line breaks where the sheets break it */
+  --plate-note-gap: 15.5px;
+  --plate-cell-shade: rgba(0, 0, 0, .12);
+}
+
+/* Slice 1c (unlock, locked): read off mobile_390_w2_unlock / w2_locked. The cells, labels, sub-line, mark and buttons are
+   the register sheets' (same tokens above); these are what only these two sheets draw. */
+:root {
+  --gate-title-gap: 15.6px;    /* the mark's bottom to the title's line box */
+  --h-gate-error: 52.73px;     /* the coral box under the cells: one line, icon, 12 px under the cells (--notice-gap) */
+  --gate-foot-gap: 10px;       /* between the two buttons */
+  --lock-top: 277.6px;         /* the body's top padding to the lock's circle (300.3 on the sheet) */
+  --circle-lock: 83.6px;
+  --icon-lock: 28px;
+  --fs-lock-title: 26px;
+  --lock-title-gap: 14.1px;    /* the circle's bottom to the title's line box */
+  --lock-sub-gap: 15.1px;      /* the title's line box to the sub-line's */
+  --gap-timer: 12px;
+  --fs-timer: 20px;
+}
+
+/* Slice 2 (feed): read off mobile_390_w1_feed / w1_feed-error / w1_feed-hidden-return / w1_feed-blocked / w2_feed-empty /
+   w1_card / w1_card-more (the sheets' 390 px; sizes eyeballed from a 390 render, not measured: the next pass measures). */
+:root {
+  --fd-chip: 60px;             /* a radius chip's circle */
+  --fd-chip-gap: 12px;
+  --fd-head-top: 24px;
+  --fs-feed-title: 28px;
+  --fd-title-gap: 14px;
+  --fd-card-pad: 18px;
+  --fd-card-gap: 12px;
+  --fd-list-gap: 12px;
+  --fs-tile: 20px;
+  --fd-hand: 48px;             /* the hand's circle on a tile */
+  --fd-foot-h: 44px;           /* the white strip at a tile's foot */
+  --fd-foot-pad: 14px;
+  --fd-mode-h: 30px;
+  --fd-mode-pad: 14px;
+  --icon-fd: 20px;
+  --icon-fd-sm: 16px;
+  --h-fd-bar: 56px;            /* the card screen's header */
+  --fd-menu-h: 56px;           /* a row of the «…» sheet */
+  --fd-grab-w: 40px;
+  --fd-grab-h: 4px;
+  --fd-banner-pad: 16px;
+  --fd-empty-circle: 96px;
+  --icon-fd-empty: 40px;
+  --fd-empty-top: 64px;
+  --fs-card-text: 26px;
+  --fd-row-h: 48px;
+  --fd-textarea-h: 96px;
+}

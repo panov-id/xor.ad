@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import {
   arm, type Clock, drop, GO_KEY, GRACE_MS, type GraceDeps, Keeper, type KeyStore, leaving, REFRESH_MS, returning, STAMP_KEY, stamp, sweep,
   TAB_KEY, type TabStore, take,
-} from "./grace.ts";
+} from "../../depth/core/grace.ts";
 
 function tabStore(): TabStore & { map: Map<string, string> } {
   const map = new Map<string, string>();

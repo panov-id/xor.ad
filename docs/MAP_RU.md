@@ -6,10 +6,18 @@
 
 ```mermaid
 flowchart LR
+  app[app] --> depth[depth]
   depth[depth] --> relay[relay]
   scripts[scripts] --> depth[depth]
   web[web] --> depth[depth]
   web[web] --> panel[panel]
+```
+
+### app
+
+```mermaid
+flowchart LR
+  app_src[app/src] --> app_tokens[app/tokens]
 ```
 
 ### depth
@@ -18,6 +26,7 @@ flowchart LR
 flowchart LR
   depth_ink[depth/ink] --> depth_core[depth/core]
   depth_tools[depth/tools] --> depth_core[depth/core]
+  depth_web_platform[depth/web-platform] --> depth_core[depth/core]
 ```
 
 ### relay
@@ -43,51 +52,93 @@ flowchart LR
 
 ## Файлы кода → импорты · кто импортирует их
 
+- `app/src/brands/sosed/index.ts` → —  ·  ← —
+- `app/src/config.ts` → —  ·  ← app/src/screens/Register.tsx, app/src/vault.ts
+- `app/src/i18n-core.ts` → —  ·  ← app/src/i18n.ts, app/src/screens/register.test.ts, app/src/screens/say.test.ts, app/src/screens/splash.test.ts
+- `app/src/i18n.ts` → app/src/i18n-core.ts  ·  ← app/src/screens/Feed.tsx, app/src/screens/Gate.tsx, app/src/screens/Loading.tsx, app/src/screens/Locked.tsx, app/src/screens/Register.tsx, app/src/screens/Splash.tsx, app/src/screens/Unlock.tsx, app/src/screens/feed-card.tsx, app/src/screens/pin-line.ts, app/src/screens/register-parts.tsx
+- `app/src/main.tsx` → app/src/screens/feed.css, app/src/screens/screens.css, app/src/shell/App.tsx, app/src/shell/shell.css, app/tokens/fonts.css, app/tokens/layout.css, app/tokens/motion.css, app/tokens/sosed.gen.css  ·  ← —
+- `app/src/place.ts` → —  ·  ← app/src/screens/Feed.tsx, app/src/screens/feed.test.ts
+- `app/src/router.ts` → —  ·  ← app/src/screens/gates.test.ts, app/src/shell/App.tsx
+- `app/src/screens/Feed.tsx` → app/src/i18n.ts, app/src/place.ts, app/src/screens/feed-card.tsx, app/src/screens/feed-logic.ts, app/src/shell/Icon.tsx, app/src/shell/Skeleton.tsx, app/src/shell/TabBar.tsx, app/src/shell/icons.ts, app/src/shell/loading.ts  ·  ← app/src/shell/App.tsx
+- `app/src/screens/Gate.tsx` → app/src/i18n.ts, app/src/shell/Screen.tsx  ·  ← app/src/shell/App.tsx
+- `app/src/screens/Loading.tsx` → app/src/i18n.ts, app/src/shell/Icon.tsx, app/src/shell/Screen.tsx, app/src/shell/icons.ts  ·  ← app/src/shell/App.tsx
+- `app/src/screens/Locked.tsx` → app/src/i18n.ts, app/src/screens/pin-line.ts, app/src/screens/register-parts.tsx, app/src/shell/Icon.tsx, app/src/shell/Screen.tsx, app/src/shell/icons.ts  ·  ← app/src/shell/App.tsx
+- `app/src/screens/Register.tsx` → app/src/config.ts, app/src/i18n.ts, app/src/screens/register-parts.tsx, app/src/shell/Icon.tsx, app/src/shell/Screen.tsx, app/src/shell/icons.ts, app/src/vault.ts  ·  ← app/src/shell/App.tsx
+- `app/src/screens/Splash.tsx` → app/src/i18n.ts, app/src/shell/Icon.tsx, app/src/shell/Screen.tsx, app/src/shell/icons.ts  ·  ← app/src/shell/App.tsx
+- `app/src/screens/Unlock.tsx` → app/src/i18n.ts, app/src/screens/pin-line.ts, app/src/screens/register-parts.tsx, app/src/shell/Icon.tsx, app/src/shell/Screen.tsx, app/src/shell/icons.ts, app/src/vault.ts  ·  ← app/src/shell/App.tsx
+- `app/src/screens/feed-card.tsx` → app/src/i18n.ts, app/src/screens/feed-logic.ts, app/src/shell/Icon.tsx, app/src/shell/icons.ts, app/src/shell/layers.tsx  ·  ← app/src/screens/Feed.tsx
+- `app/src/screens/feed-logic.ts` → —  ·  ← app/src/screens/Feed.tsx, app/src/screens/feed-card.tsx, app/src/screens/feed.test.ts
+- `app/src/screens/feed.test.ts` → app/src/place.ts, app/src/screens/feed-logic.ts  ·  ← —
+- `app/src/screens/gates.test.ts` → app/src/router.ts  ·  ← —
+- `app/src/screens/grace.test.ts` → depth/core/grace.ts  ·  ← —
+- `app/src/screens/pin-line.ts` → app/src/i18n.ts  ·  ← app/src/screens/Locked.tsx, app/src/screens/Unlock.tsx
+- `app/src/screens/pin_gate.test.ts` → depth/core/pin_gate.ts  ·  ← —
+- `app/src/screens/register-parts.tsx` → app/src/i18n.ts, app/src/shell/Icon.tsx, app/src/shell/icons.ts  ·  ← app/src/screens/Locked.tsx, app/src/screens/Register.tsx, app/src/screens/Unlock.tsx
+- `app/src/screens/register.test.ts` → app/src/i18n-core.ts, depth/core/register.ts  ·  ← —
+- `app/src/screens/say.test.ts` → app/src/i18n-core.ts  ·  ← —
+- `app/src/screens/splash.test.ts` → app/src/i18n-core.ts  ·  ← —
+- `app/src/shell/App.tsx` → app/src/router.ts, app/src/screens/Feed.tsx, app/src/screens/Gate.tsx, app/src/screens/Loading.tsx, app/src/screens/Locked.tsx, app/src/screens/Register.tsx, app/src/screens/Splash.tsx, app/src/screens/Unlock.tsx, app/src/shell/layers.tsx, app/src/shell/loading.ts, app/src/vault.ts  ·  ← app/src/main.tsx
+- `app/src/shell/Icon.tsx` → app/src/shell/icons.ts  ·  ← app/src/screens/Feed.tsx, app/src/screens/Loading.tsx, app/src/screens/Locked.tsx, app/src/screens/Register.tsx, app/src/screens/Splash.tsx, app/src/screens/Unlock.tsx, app/src/screens/feed-card.tsx, app/src/screens/register-parts.tsx
+- `app/src/shell/Screen.tsx` → —  ·  ← app/src/screens/Gate.tsx, app/src/screens/Loading.tsx, app/src/screens/Locked.tsx, app/src/screens/Register.tsx, app/src/screens/Splash.tsx, app/src/screens/Unlock.tsx
+- `app/src/shell/Skeleton.tsx` → —  ·  ← app/src/screens/Feed.tsx
+- `app/src/shell/TabBar.tsx` → —  ·  ← app/src/screens/Feed.tsx
+- `app/src/shell/icons.ts` → —  ·  ← app/src/screens/Feed.tsx, app/src/screens/Loading.tsx, app/src/screens/Locked.tsx, app/src/screens/Register.tsx, app/src/screens/Splash.tsx, app/src/screens/Unlock.tsx, app/src/screens/feed-card.tsx, app/src/screens/register-parts.tsx, app/src/shell/Icon.tsx
+- `app/src/shell/layers.tsx` → —  ·  ← app/src/screens/feed-card.tsx, app/src/shell/App.tsx
+- `app/src/shell/loading.ts` → —  ·  ← app/src/screens/Feed.tsx, app/src/shell/App.tsx
+- `app/src/vault.ts` → app/src/config.ts  ·  ← app/src/screens/Register.tsx, app/src/screens/Unlock.tsx, app/src/shell/App.tsx
+- `app/vite.config.ts` → —  ·  ← —
 - `deploy/panel-security-headers.mjs` → —  ·  ← —
 - `depth/core/chat_games.test.ts` → depth/core/chat_games.ts, depth/core/client.ts, depth/core/paper.ts, depth/core/tables.ts  ·  ← —
 - `depth/core/chat_games.ts` → depth/core/client.ts, depth/core/tables.ts  ·  ← depth/core/chat_games.test.ts, depth/ink/chat_game.node-test.ts, depth/ink/chat_game.ts, depth/ink/live.node-test.ts, depth/ink/rooms.ts
 - `depth/core/chat_starters.test.ts` → depth/core/client.ts  ·  ← —
 - `depth/core/client.test.ts` → depth/core/client.ts, depth/core/paper.ts  ·  ← —
-- `depth/core/client.ts` → depth/core/lock.ts, depth/core/paper.ts, depth/core/pending.ts, depth/core/pin.ts, depth/core/seal.ts, depth/core/sign.ts  ·  ← depth/core/chat_games.test.ts, depth/core/chat_games.ts, depth/core/chat_starters.test.ts, depth/core/client.test.ts, depth/core/complaint.test.ts, depth/core/inbox_pages.test.ts, depth/core/lock.test.ts, depth/core/match.test.ts, depth/core/pending.test.ts, depth/core/recovery.test.ts, depth/core/recovery.ts, depth/core/room_next.test.ts, depth/core/seal_move.test.ts, depth/core/socket.test.ts, depth/core/tables.test.ts, depth/core/tables.ts, depth/core/transfer_move.test.ts, depth/core/transfer_move.ts, depth/core/wrap_pair.test.ts, depth/ink/app.ts, depth/ink/live.node-test.ts, depth/ink/main.ts, depth/ink/mixed.node-test.ts, depth/ink/mixed_chat_end.node-test.ts, depth/ink/mixed_chat_game.node-test.ts, depth/ink/mixed_move.node-test.ts, depth/ink/mixed_restore.node-test.ts, depth/ink/mixed_starters.node-test.ts, depth/ink/mixed_table.node-test.ts, depth/ink/move.ts, depth/ink/rooms.ts, depth/ink/screens.node-test.ts, depth/ink/screens.ts, depth/ink/screens/complaint.ts, depth/ink/screens/lock.ts, depth/ink/screens/pending.ts, depth/ink/table.ts, depth/tools/seed_phrase.ts, scripts/load/bots.mjs, scripts/measure-feed-rules.ts, web/src/App.tsx, web/src/api/actions.ts, web/src/api/chatActions.ts, web/src/api/chatGames.ts, web/src/api/lists.ts, web/src/api/me.ts, web/src/api/tableRoom.ts, web/src/api/tables.ts, web/src/chat/keys.ts, web/src/chat/room.ts, web/src/screens/AgeFilter.tsx, web/src/screens/Arrival.tsx, web/src/screens/Blocked.tsx, web/src/screens/Card.tsx, web/src/screens/Chat.tsx, web/src/screens/ChatGame.tsx, web/src/screens/Composer.tsx, web/src/screens/Departure.tsx, web/src/screens/Feed.tsx, web/src/screens/Hidden.tsx, web/src/screens/Inbox.tsx, web/src/screens/Legal.tsx, web/src/screens/Likes.tsx, web/src/screens/Locked.tsx, web/src/screens/Match.tsx, web/src/screens/Me.tsx, web/src/screens/NewTable.tsx, web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/Statements.tsx, web/src/screens/Table.tsx, web/src/screens/TableList.tsx, web/src/screens/Unlock.tsx, web/src/screens/logic/useArrival.ts, web/src/screens/logic/useCard.ts, web/src/screens/logic/useChat.ts, web/src/screens/logic/useComposer.ts, web/src/screens/logic/useFeed.ts, web/src/screens/logic/useMatch.ts, web/src/screens/logic/useMe.ts, web/src/vault.ts
+- `depth/core/client.ts` → depth/core/lock.ts, depth/core/paper.ts, depth/core/pending.ts, depth/core/pin.ts, depth/core/seal.ts, depth/core/sign.ts  ·  ← depth/core/chat_games.test.ts, depth/core/chat_games.ts, depth/core/chat_starters.test.ts, depth/core/client.test.ts, depth/core/complaint.test.ts, depth/core/enroll.ts, depth/core/inbox_pages.test.ts, depth/core/lock.test.ts, depth/core/match.test.ts, depth/core/pending.test.ts, depth/core/recovery.test.ts, depth/core/recovery.ts, depth/core/room_next.test.ts, depth/core/seal_move.test.ts, depth/core/socket.test.ts, depth/core/tables.test.ts, depth/core/tables.ts, depth/core/transfer_move.test.ts, depth/core/transfer_move.ts, depth/core/unlock.ts, depth/core/wrap_pair.test.ts, depth/ink/app.ts, depth/ink/live.node-test.ts, depth/ink/main.ts, depth/ink/mixed.node-test.ts, depth/ink/mixed_chat_end.node-test.ts, depth/ink/mixed_chat_game.node-test.ts, depth/ink/mixed_move.node-test.ts, depth/ink/mixed_restore.node-test.ts, depth/ink/mixed_starters.node-test.ts, depth/ink/mixed_table.node-test.ts, depth/ink/move.ts, depth/ink/rooms.ts, depth/ink/screens.node-test.ts, depth/ink/screens.ts, depth/ink/screens/complaint.ts, depth/ink/screens/lock.ts, depth/ink/screens/pending.ts, depth/ink/table.ts, depth/tools/seed_phrase.ts, depth/web-platform/vault_keep.ts, scripts/load/bots.mjs, scripts/measure-feed-rules.ts, web/src/App.tsx, web/src/api/actions.ts, web/src/api/chatActions.ts, web/src/api/chatGames.ts, web/src/api/lists.ts, web/src/api/me.ts, web/src/api/tableRoom.ts, web/src/api/tables.ts, web/src/chat/keys.ts, web/src/chat/room.ts, web/src/screens/AgeFilter.tsx, web/src/screens/Arrival.tsx, web/src/screens/Blocked.tsx, web/src/screens/Card.tsx, web/src/screens/Chat.tsx, web/src/screens/ChatGame.tsx, web/src/screens/Composer.tsx, web/src/screens/Departure.tsx, web/src/screens/Feed.tsx, web/src/screens/Hidden.tsx, web/src/screens/Inbox.tsx, web/src/screens/Legal.tsx, web/src/screens/Likes.tsx, web/src/screens/Locked.tsx, web/src/screens/Match.tsx, web/src/screens/Me.tsx, web/src/screens/NewTable.tsx, web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/Statements.tsx, web/src/screens/Table.tsx, web/src/screens/TableList.tsx, web/src/screens/Unlock.tsx, web/src/screens/logic/useArrival.ts, web/src/screens/logic/useCard.ts, web/src/screens/logic/useChat.ts, web/src/screens/logic/useComposer.ts, web/src/screens/logic/useFeed.ts, web/src/screens/logic/useMatch.ts, web/src/screens/logic/useMe.ts, web/src/vault.ts
 - `depth/core/complaint.test.ts` → depth/core/client.ts, depth/core/paper.ts  ·  ← —
+- `depth/core/enroll.ts` → depth/core/client.ts, depth/core/lock.ts, depth/core/pin.ts, depth/core/seal.ts, depth/core/sign.ts, depth/core/transfer.ts  ·  ← depth/core/unlock.ts, depth/web-platform/vault_keep.ts, depth/web-platform/vault_store.ts, web/src/vault.ts
+- `depth/core/grace.ts` → depth/core/sign.ts  ·  ← app/src/screens/grace.test.ts, depth/web-platform/vault_keep.ts, depth/web-platform/vault_store.ts, web/src/grace.test.ts, web/src/vault.ts
 - `depth/core/inbox_pages.test.ts` → depth/core/client.ts, depth/core/paper.ts  ·  ← —
 - `depth/core/legal.test.ts` → depth/core/legal.ts  ·  ← —
-- `depth/core/legal.ts` → —  ·  ← depth/core/legal.test.ts, scripts/load/bots.mjs, web/src/api/actions.ts, web/src/screens/Legal.tsx, web/src/screens/Register.tsx
+- `depth/core/legal.ts` → —  ·  ← depth/core/legal.test.ts, scripts/load/bots.mjs, web/src/api/actions.ts, web/src/register.test.ts, web/src/screens/Legal.tsx, web/src/screens/Register.tsx
 - `depth/core/life.test.ts` → depth/core/life.ts  ·  ← —
 - `depth/core/life.ts` → —  ·  ← depth/core/life.test.ts, depth/ink/rooms.ts, web/src/screens/Inbox.tsx, web/src/screens/Match.tsx
+- `depth/core/limits.ts` → —  ·  ← depth/core/register.ts, depth/ink/rooms.ts, depth/ink/table.ts, web/src/api/me.ts, web/src/limits.test.ts
 - `depth/core/lock.test.ts` → depth/core/client.ts, depth/core/lock.ts, depth/core/paper.ts, depth/core/transfer.ts  ·  ← —
-- `depth/core/lock.ts` → depth/core/pin.ts  ·  ← depth/core/client.ts, depth/core/lock.test.ts, depth/ink/app.ts, web/src/idle.ts, web/src/vault.ts
+- `depth/core/lock.ts` → depth/core/pin.ts  ·  ← depth/core/client.ts, depth/core/enroll.ts, depth/core/lock.test.ts, depth/core/unlock.ts, depth/ink/app.ts, depth/web-platform/idle.ts, web/src/vault.ts
 - `depth/core/match.test.ts` → depth/core/client.ts, depth/core/paper.ts  ·  ← —
 - `depth/core/paper.test.ts` → depth/core/paper.ts  ·  ← —
-- `depth/core/paper.ts` → depth/core/pin.ts  ·  ← depth/core/chat_games.test.ts, depth/core/client.test.ts, depth/core/client.ts, depth/core/complaint.test.ts, depth/core/inbox_pages.test.ts, depth/core/lock.test.ts, depth/core/match.test.ts, depth/core/paper.test.ts, depth/core/pending.test.ts, depth/core/recovery.test.ts, depth/core/recovery.ts, depth/core/socket.test.ts, depth/core/tables.test.ts, depth/core/transfer.test.ts, depth/core/transfer.ts, depth/core/transfer_move.test.ts, depth/ink/app.ts, depth/ink/live.node-test.ts, depth/ink/move.ts, depth/ink/screens.node-test.ts, depth/ink/screens.ts, depth/tools/seed_phrase.ts, scripts/load/bots.mjs, scripts/measure-feed-rules.ts, web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/logic/useArrival.ts, web/src/ui/CodeField.tsx
+- `depth/core/paper.ts` → depth/core/paper_text.ts, depth/core/pin.ts  ·  ← depth/core/chat_games.test.ts, depth/core/client.test.ts, depth/core/client.ts, depth/core/complaint.test.ts, depth/core/inbox_pages.test.ts, depth/core/lock.test.ts, depth/core/match.test.ts, depth/core/paper.test.ts, depth/core/pending.test.ts, depth/core/recovery.test.ts, depth/core/recovery.ts, depth/core/socket.test.ts, depth/core/tables.test.ts, depth/core/transfer.test.ts, depth/core/transfer.ts, depth/core/transfer_move.test.ts, depth/ink/app.ts, depth/ink/live.node-test.ts, depth/ink/move.ts, depth/ink/screens.node-test.ts, depth/ink/screens.ts, depth/tools/seed_phrase.ts, scripts/load/bots.mjs, scripts/measure-feed-rules.ts, web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/logic/useArrival.ts
+- `depth/core/paper_text.ts` → —  ·  ← depth/core/paper.ts, depth/core/register.ts
 - `depth/core/pending.test.ts` → depth/core/client.ts, depth/core/paper.ts, depth/core/pending.ts  ·  ← —
 - `depth/core/pending.ts` → —  ·  ← depth/core/client.ts, depth/core/pending.test.ts, depth/ink/screens.node-test.ts
 - `depth/core/pin.test.ts` → depth/core/pin.ts  ·  ← —
-- `depth/core/pin.ts` → —  ·  ← depth/core/client.ts, depth/core/lock.ts, depth/core/paper.ts, depth/core/pin.test.ts, depth/core/transfer.ts, depth/ink/rooms.ts, depth/ink/screens.ts, web/src/pinWords.ts, web/src/vault.ts
+- `depth/core/pin.ts` → —  ·  ← depth/core/client.ts, depth/core/enroll.ts, depth/core/lock.ts, depth/core/paper.ts, depth/core/pin.test.ts, depth/core/transfer.ts, depth/core/unlock.ts, depth/ink/rooms.ts, depth/ink/screens.ts, web/src/pinWords.ts, web/src/vault.ts
+- `depth/core/pin_gate.ts` → —  ·  ← app/src/screens/pin_gate.test.ts, web/src/pinWords.ts, web/src/pin_gate.test.ts, web/src/screens/Locked.tsx, web/src/screens/Unlock.tsx
 - `depth/core/reconnect.test.ts` → depth/core/reconnect.ts  ·  ← —
 - `depth/core/reconnect.ts` → —  ·  ← depth/core/reconnect.test.ts, depth/ink/rooms.ts, web/src/api/tableRoom.ts, web/src/chat/room.ts
 - `depth/core/recovery.test.ts` → depth/core/client.ts, depth/core/paper.ts, depth/core/recovery.ts  ·  ← —
 - `depth/core/recovery.ts` → depth/core/client.ts, depth/core/paper.ts, depth/core/sign.ts  ·  ← depth/core/recovery.test.ts, depth/core/recovery_publichalf.test.ts, depth/core/transfer_move.test.ts, depth/ink/app.ts, depth/ink/live.node-test.ts, web/src/screens/Reissue.tsx, web/src/vault.ts
 - `depth/core/recovery_publichalf.test.ts` → depth/core/recovery.ts, depth/core/sign.ts  ·  ← —
+- `depth/core/register.ts` → depth/core/limits.ts, depth/core/paper_text.ts  ·  ← app/src/screens/register.test.ts, web/src/register.test.ts, web/src/screens/Register.tsx, web/src/ui/CodeField.tsx, web/src/ui/Field.tsx
 - `depth/core/resend.test.ts` → depth/core/resend.ts  ·  ← —
 - `depth/core/resend.ts` → —  ·  ← depth/core/resend.test.ts, web/src/screens/logic/useChat.ts
 - `depth/core/room_next.test.ts` → depth/core/client.ts  ·  ← —
 - `depth/core/safety.test.ts` → depth/core/seal.ts, depth/core/sign.ts  ·  ← —
 - `depth/core/seal.test.ts` → depth/core/seal.ts, depth/core/sign.ts  ·  ← —
-- `depth/core/seal.ts` → depth/core/sign.ts  ·  ← depth/core/client.ts, depth/core/safety.test.ts, depth/core/seal.test.ts, depth/core/seal_move.test.ts, depth/core/transfer.ts, depth/core/transfer_move.ts, web/src/chat/keys.ts
+- `depth/core/seal.ts` → depth/core/sign.ts  ·  ← depth/core/client.ts, depth/core/enroll.ts, depth/core/safety.test.ts, depth/core/seal.test.ts, depth/core/seal_move.test.ts, depth/core/transfer.ts, depth/core/transfer_move.ts, depth/core/unlock.ts, web/src/chat/keys.ts
 - `depth/core/seal_move.test.ts` → depth/core/client.ts, depth/core/seal.ts, depth/core/sign.ts  ·  ← —
 - `depth/core/sign.test.ts` → depth/core/sign.ts, relay/node/src/lib/identity_auth.ts  ·  ← —
-- `depth/core/sign.ts` → —  ·  ← depth/core/client.ts, depth/core/recovery.ts, depth/core/recovery_publichalf.test.ts, depth/core/safety.test.ts, depth/core/seal.test.ts, depth/core/seal.ts, depth/core/seal_move.test.ts, depth/core/sign.test.ts, depth/core/transfer.test.ts, depth/core/transfer.ts, depth/core/transfer_move.ts, depth/core/transfer_move_outcomes.test.ts, web/src/grace.ts, web/src/vault.ts
+- `depth/core/sign.ts` → —  ·  ← depth/core/client.ts, depth/core/enroll.ts, depth/core/grace.ts, depth/core/recovery.ts, depth/core/recovery_publichalf.test.ts, depth/core/safety.test.ts, depth/core/seal.test.ts, depth/core/seal.ts, depth/core/seal_move.test.ts, depth/core/sign.test.ts, depth/core/transfer.test.ts, depth/core/transfer.ts, depth/core/transfer_move.ts, depth/core/transfer_move_outcomes.test.ts, depth/core/unlock.ts, web/src/vault.ts
 - `depth/core/socket.test.ts` → depth/core/client.ts, depth/core/paper.ts  ·  ← —
 - `depth/core/sticker.ts` → —  ·  ← depth/ink/rooms.ts, web/src/chat/sticker.ts
 - `depth/core/tables.test.ts` → depth/core/client.ts, depth/core/paper.ts, depth/core/tables.ts  ·  ← —
 - `depth/core/tables.ts` → depth/core/client.ts  ·  ← depth/core/chat_games.test.ts, depth/core/chat_games.ts, depth/core/tables.test.ts, depth/core/tables_view.test.ts, depth/ink/app.ts, depth/ink/chat_game.ts, depth/ink/live.node-test.ts, depth/ink/table.node-test.ts, depth/ink/table.ts, depth/ink/table_boards.ts, web/src/App.tsx, web/src/api/chatGames.ts, web/src/api/tableRoom.ts, web/src/screens/ChatGame.tsx, web/src/screens/NewTable.tsx, web/src/screens/Table.tsx, web/src/screens/TableBoards.tsx
 - `depth/core/tables_view.test.ts` → depth/core/tables.ts  ·  ← —
 - `depth/core/transfer.test.ts` → depth/core/paper.ts, depth/core/sign.ts, depth/core/transfer.ts  ·  ← —
-- `depth/core/transfer.ts` → depth/core/paper.ts, depth/core/pin.ts, depth/core/seal.ts, depth/core/sign.ts  ·  ← depth/core/lock.test.ts, depth/core/transfer.test.ts, depth/core/transfer_move.test.ts, depth/core/transfer_move.ts, depth/core/transfer_move_outcomes.test.ts, depth/ink/app.ts, depth/ink/live.node-test.ts, depth/ink/screens.node-test.ts, web/src/screens/Locked.tsx, web/src/vault.ts
+- `depth/core/transfer.ts` → depth/core/paper.ts, depth/core/pin.ts, depth/core/seal.ts, depth/core/sign.ts  ·  ← depth/core/enroll.ts, depth/core/lock.test.ts, depth/core/transfer.test.ts, depth/core/transfer_move.test.ts, depth/core/transfer_move.ts, depth/core/transfer_move_outcomes.test.ts, depth/core/unlock.ts, depth/ink/app.ts, depth/ink/live.node-test.ts, depth/ink/screens.node-test.ts, web/src/screens/Locked.tsx, web/src/vault.ts
 - `depth/core/transfer_move.test.ts` → depth/core/client.ts, depth/core/paper.ts, depth/core/recovery.ts, depth/core/transfer.ts, depth/core/transfer_move.ts  ·  ← —
 - `depth/core/transfer_move.ts` → depth/core/client.ts, depth/core/seal.ts, depth/core/sign.ts, depth/core/transfer.ts  ·  ← depth/core/transfer_move.test.ts, depth/core/transfer_move_outcomes.test.ts, depth/ink/live.node-test.ts, depth/ink/move.ts, web/src/api/transfer.ts, web/src/screens/Departure.tsx, web/src/screens/logic/useArrival.ts, web/src/vault.ts
 - `depth/core/transfer_move_outcomes.test.ts` → depth/core/sign.ts, depth/core/transfer.ts, depth/core/transfer_move.ts  ·  ← —
+- `depth/core/unlock.ts` → depth/core/client.ts, depth/core/enroll.ts, depth/core/lock.ts, depth/core/pin.ts, depth/core/seal.ts, depth/core/sign.ts, depth/core/transfer.ts  ·  ← depth/web-platform/vault_keep.ts, web/src/vault.ts
 - `depth/core/wrap_pair.test.ts` → depth/core/client.ts  ·  ← —
 - `depth/ink/app.ts` → depth/core/client.ts, depth/core/lock.ts, depth/core/paper.ts, depth/core/recovery.ts, depth/core/tables.ts, depth/core/transfer.ts, depth/ink/kit.ts, depth/ink/move.ts, depth/ink/parts.ts, depth/ink/rooms.ts, depth/ink/screens.ts, depth/ink/screens/closed.ts, depth/ink/screens/complaint.ts, depth/ink/screens/lock.ts, depth/ink/screens/pending.ts, depth/ink/screens/restore.ts, depth/ink/strings.ts, depth/ink/table.ts, depth/ink/words.ts  ·  ← depth/ink/live.node-test.ts, depth/ink/main.ts, depth/ink/mixed.node-test.ts, depth/ink/mixed_chat_end.node-test.ts, depth/ink/mixed_chat_game.node-test.ts, depth/ink/mixed_move.node-test.ts, depth/ink/mixed_restore.node-test.ts, depth/ink/mixed_starters.node-test.ts, depth/ink/mixed_table.node-test.ts, depth/ink/screens.node-test.ts
 - `depth/ink/chat_game.node-test.ts` → depth/core/chat_games.ts, depth/ink/chat_game.ts, depth/ink/strings.ts  ·  ← —
@@ -106,7 +157,7 @@ flowchart LR
 - `depth/ink/mixed_table.node-test.ts` → depth/core/client.ts, depth/ink/app.ts, depth/ink/kit.ts, depth/ink/strings.ts  ·  ← —
 - `depth/ink/move.ts` → depth/core/client.ts, depth/core/paper.ts, depth/core/transfer_move.ts, depth/ink/kit.ts, depth/ink/parts.ts, depth/ink/screens.ts, depth/ink/strings.ts  ·  ← depth/ink/app.ts, depth/ink/screens.node-test.ts
 - `depth/ink/parts.ts` → —  ·  ← depth/ink/app.ts, depth/ink/chat_game.ts, depth/ink/kit.ts, depth/ink/move.ts, depth/ink/rooms.ts, depth/ink/screens.node-test.ts, depth/ink/screens.ts, depth/ink/screens/complaint.ts, depth/ink/screens/lock.ts, depth/ink/screens/pending.ts, depth/ink/table.ts, depth/ink/table_boards.ts
-- `depth/ink/rooms.ts` → depth/core/chat_games.ts, depth/core/client.ts, depth/core/life.ts, depth/core/pin.ts, depth/core/reconnect.ts, depth/core/sticker.ts, depth/ink/chat_game.ts, depth/ink/kit.ts, depth/ink/parts.ts, depth/ink/screens.ts, depth/ink/strings.ts, depth/ink/words.ts  ·  ← depth/ink/app.ts, depth/ink/kit.node-test.ts, depth/ink/screens.node-test.ts, depth/ink/starters.node-test.ts
+- `depth/ink/rooms.ts` → depth/core/chat_games.ts, depth/core/client.ts, depth/core/life.ts, depth/core/limits.ts, depth/core/pin.ts, depth/core/reconnect.ts, depth/core/sticker.ts, depth/ink/chat_game.ts, depth/ink/kit.ts, depth/ink/parts.ts, depth/ink/screens.ts, depth/ink/strings.ts, depth/ink/words.ts  ·  ← depth/ink/app.ts, depth/ink/kit.node-test.ts, depth/ink/screens.node-test.ts, depth/ink/starters.node-test.ts
 - `depth/ink/screens.node-test.ts` → depth/core/client.ts, depth/core/paper.ts, depth/core/pending.ts, depth/core/transfer.ts, depth/ink/app.ts, depth/ink/kit.ts, depth/ink/move.ts, depth/ink/parts.ts, depth/ink/rooms.ts, depth/ink/screens.ts, depth/ink/screens/closed.ts, depth/ink/screens/complaint.ts, depth/ink/screens/lock.ts, depth/ink/screens/pending.ts, depth/ink/screens/restore.ts, depth/ink/strings.ts, depth/ink/words.ts  ·  ← —
 - `depth/ink/screens.ts` → depth/core/client.ts, depth/core/paper.ts, depth/core/pin.ts, depth/ink/kit.ts, depth/ink/parts.ts, depth/ink/strings.ts, depth/ink/words.ts  ·  ← depth/ink/app.ts, depth/ink/kit.node-test.ts, depth/ink/live.node-test.ts, depth/ink/move.ts, depth/ink/rooms.ts, depth/ink/screens.node-test.ts, depth/ink/screens/lock.ts, depth/ink/screens/restore.ts
 - `depth/ink/screens/closed.ts` → depth/ink/kit.ts, depth/ink/strings.ts  ·  ← depth/ink/app.ts, depth/ink/screens.node-test.ts
@@ -118,10 +169,13 @@ flowchart LR
 - `depth/ink/strings.test.ts` → depth/ink/strings.ts  ·  ← —
 - `depth/ink/strings.ts` → —  ·  ← depth/ink/app.ts, depth/ink/chat_game.node-test.ts, depth/ink/chat_game.ts, depth/ink/kit.node-test.ts, depth/ink/kit.ts, depth/ink/live.node-test.ts, depth/ink/main.ts, depth/ink/mixed.node-test.ts, depth/ink/mixed_chat_end.node-test.ts, depth/ink/mixed_chat_game.node-test.ts, depth/ink/mixed_move.node-test.ts, depth/ink/mixed_restore.node-test.ts, depth/ink/mixed_starters.node-test.ts, depth/ink/mixed_table.node-test.ts, depth/ink/move.ts, depth/ink/rooms.ts, depth/ink/screens.node-test.ts, depth/ink/screens.ts, depth/ink/screens/closed.ts, depth/ink/screens/complaint.ts, depth/ink/screens/lock.ts, depth/ink/screens/pending.ts, depth/ink/screens/restore.ts, depth/ink/starters.node-test.ts, depth/ink/strings.test.ts, depth/ink/table.node-test.ts, depth/ink/table.ts, depth/ink/table_boards.ts, depth/ink/words.ts
 - `depth/ink/table.node-test.ts` → depth/core/tables.ts, depth/ink/strings.ts, depth/ink/table.ts, depth/ink/words.ts  ·  ← —
-- `depth/ink/table.ts` → depth/core/client.ts, depth/core/tables.ts, depth/ink/kit.ts, depth/ink/parts.ts, depth/ink/strings.ts, depth/ink/table_boards.ts, depth/ink/words.ts  ·  ← depth/ink/app.ts, depth/ink/live.node-test.ts, depth/ink/table.node-test.ts
+- `depth/ink/table.ts` → depth/core/client.ts, depth/core/limits.ts, depth/core/tables.ts, depth/ink/kit.ts, depth/ink/parts.ts, depth/ink/strings.ts, depth/ink/table_boards.ts, depth/ink/words.ts  ·  ← depth/ink/app.ts, depth/ink/live.node-test.ts, depth/ink/table.node-test.ts
 - `depth/ink/table_boards.ts` → depth/core/tables.ts, depth/ink/kit.ts, depth/ink/parts.ts, depth/ink/strings.ts  ·  ← depth/ink/chat_game.ts, depth/ink/table.ts
 - `depth/ink/words.ts` → depth/ink/strings.ts  ·  ← depth/ink/app.ts, depth/ink/chat_game.ts, depth/ink/rooms.ts, depth/ink/screens.node-test.ts, depth/ink/screens.ts, depth/ink/table.node-test.ts, depth/ink/table.ts
 - `depth/tools/seed_phrase.ts` → depth/core/client.ts, depth/core/paper.ts  ·  ← —
+- `depth/web-platform/idle.ts` → depth/core/lock.ts  ·  ← web/src/idle.ts
+- `depth/web-platform/vault_keep.ts` → depth/core/client.ts, depth/core/enroll.ts, depth/core/grace.ts, depth/core/unlock.ts, depth/web-platform/vault_store.ts  ·  ← web/src/App.tsx, web/src/vault.ts
+- `depth/web-platform/vault_store.ts` → depth/core/enroll.ts, depth/core/grace.ts  ·  ← depth/web-platform/vault_keep.ts
 - `docs/reviews/pg-driver-probes/facts.ts` → —  ·  ← —
 - `docs/reviews/pg-driver-probes/probe.ts` → —  ·  ← —
 - `panel/check-contrast.mjs` → —  ·  ← —
@@ -423,7 +477,10 @@ flowchart LR
 - `scripts/design/capture-redesign.mjs` → —  ·  ← —
 - `scripts/design/check-adaptive.mjs` → —  ·  ← —
 - `scripts/design/compare-web.mjs` → —  ·  ← —
+- `scripts/design/measure-app.mjs` → scripts/design/sheet-geometry.mjs  ·  ← —
+- `scripts/design/sheet-geometry.mjs` → —  ·  ← scripts/design/measure-app.mjs
 - `scripts/design/shoot-web.mjs` → —  ·  ← —
+- `scripts/design/static-switch.mjs` → —  ·  ← —
 - `scripts/load/bots.mjs` → depth/core/client.ts, depth/core/legal.ts, depth/core/paper.ts  ·  ← —
 - `scripts/measure-feed-rules.ts` → depth/core/client.ts, depth/core/paper.ts  ·  ← —
 - `scripts/render-design-mockup.mjs` → —  ·  ← —
@@ -535,7 +592,7 @@ flowchart LR
 - `web/e2e/specs/venue-path.spec.ts` → web/e2e/fixtures/address.ts, web/e2e/specs/helpers.ts  ·  ← —
 - `web/e2e/specs/wiped-storage.spec.ts` → web/e2e/fixtures/address.ts, web/e2e/specs/helpers.ts  ·  ← —
 - `web/e2e/specs/wizard.spec.ts` → web/e2e/fixtures/address.ts, web/e2e/specs/helpers.ts  ·  ← —
-- `web/src/App.tsx` → depth/core/client.ts, depth/core/tables.ts, web/src/adaptive.css, web/src/adv/Cabinet.tsx, web/src/api/actions.ts, web/src/api/me.ts, web/src/api/tables.ts, web/src/brands/index.ts, web/src/chat/chat.css, web/src/chat/keys.ts, web/src/geo/place.ts, web/src/geo/qr.ts, web/src/idle.ts, web/src/router.ts, web/src/screens/Blocked.tsx, web/src/screens/Departure.tsx, web/src/screens/Hidden.tsx, web/src/screens/Inbox.tsx, web/src/screens/Legal.tsx, web/src/screens/Likes.tsx, web/src/screens/Locked.tsx, web/src/screens/Me.tsx, web/src/screens/NewTable.tsx, web/src/screens/Offer.tsx, web/src/screens/Place.tsx, web/src/screens/PlaceQr.tsx, web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/Splash.tsx, web/src/screens/Statements.tsx, web/src/screens/Table.tsx, web/src/screens/TableList.tsx, web/src/screens/Unlock.tsx, web/src/screens/Wizard.tsx, web/src/screens/feed.css, web/src/ui/KitPreview.tsx, web/src/ui/Screen.tsx, web/src/ui/Sheet.tsx, web/src/ui/TabBar.tsx, web/src/ui/inner.css, web/src/ui/useTheme.ts, web/src/vault.ts  ·  ← web/src/main.tsx
+- `web/src/App.tsx` → depth/core/client.ts, depth/core/tables.ts, depth/web-platform/vault_keep.ts, web/src/adaptive.css, web/src/adv/Cabinet.tsx, web/src/api/actions.ts, web/src/api/me.ts, web/src/api/tables.ts, web/src/brands/index.ts, web/src/chat/chat.css, web/src/chat/keys.ts, web/src/geo/place.ts, web/src/geo/qr.ts, web/src/idle.ts, web/src/router.ts, web/src/screens/Blocked.tsx, web/src/screens/Departure.tsx, web/src/screens/Hidden.tsx, web/src/screens/Inbox.tsx, web/src/screens/Legal.tsx, web/src/screens/Likes.tsx, web/src/screens/Locked.tsx, web/src/screens/Me.tsx, web/src/screens/NewTable.tsx, web/src/screens/Offer.tsx, web/src/screens/Place.tsx, web/src/screens/PlaceQr.tsx, web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/Splash.tsx, web/src/screens/Statements.tsx, web/src/screens/Table.tsx, web/src/screens/TableList.tsx, web/src/screens/Unlock.tsx, web/src/screens/Wizard.tsx, web/src/screens/feed.css, web/src/ui/KitPreview.tsx, web/src/ui/Screen.tsx, web/src/ui/Sheet.tsx, web/src/ui/TabBar.tsx, web/src/ui/inner.css, web/src/ui/useTheme.ts, web/src/vault.ts  ·  ← web/src/main.tsx
 - `web/src/a11y/nearby.ts` → web/src/locales/say.ts  ·  ← web/src/screens/Feed.tsx, web/src/screens/logic/useFeed.ts
 - `web/src/adv/Cabinet.tsx` → web/src/adv/api.ts, web/src/config.ts, web/src/locales/say.ts, web/src/ui/Button.tsx, web/src/ui/Card.tsx, web/src/ui/Chip.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Field.tsx, web/src/ui/Header.tsx, web/src/ui/Info.tsx, web/src/ui/List.tsx, web/src/ui/Nav.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx, web/src/ui/Select.tsx, web/src/ui/Stat.tsx  ·  ← web/src/App.tsx
 - `web/src/adv/api.ts` → web/src/locales/say.ts  ·  ← web/src/adv/Cabinet.tsx
@@ -543,7 +600,7 @@ flowchart LR
 - `web/src/api/chatActions.ts` → depth/core/client.ts, web/src/chat/span.ts  ·  ← web/src/screens/logic/useChat.ts
 - `web/src/api/chatGames.ts` → depth/core/client.ts, depth/core/tables.ts  ·  ← web/src/screens/ChatGame.tsx
 - `web/src/api/lists.ts` → depth/core/client.ts, web/src/locales/say.ts  ·  ← web/src/screens/Blocked.tsx, web/src/screens/Feed.tsx, web/src/screens/Hidden.tsx, web/src/screens/logic/useMe.ts
-- `web/src/api/me.ts` → depth/core/client.ts, web/src/api/actions.ts, web/src/locales/say.ts  ·  ← web/src/App.tsx, web/src/api/tables.ts, web/src/screens/AgeFilter.tsx, web/src/screens/Arrival.tsx, web/src/screens/Blocked.tsx, web/src/screens/Departure.tsx, web/src/screens/Hidden.tsx, web/src/screens/Me.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/Splash.tsx, web/src/screens/Statements.tsx, web/src/screens/Table.tsx, web/src/screens/TableBoards.tsx, web/src/screens/Wizard.tsx, web/src/screens/logic/useArrival.ts
+- `web/src/api/me.ts` → depth/core/client.ts, depth/core/limits.ts, web/src/api/actions.ts, web/src/locales/say.ts  ·  ← web/src/App.tsx, web/src/api/tables.ts, web/src/screens/AgeFilter.tsx, web/src/screens/Arrival.tsx, web/src/screens/Blocked.tsx, web/src/screens/Departure.tsx, web/src/screens/Hidden.tsx, web/src/screens/Me.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/Splash.tsx, web/src/screens/Statements.tsx, web/src/screens/Table.tsx, web/src/screens/TableBoards.tsx, web/src/screens/Wizard.tsx, web/src/screens/logic/useArrival.ts
 - `web/src/api/tableRoom.ts` → depth/core/client.ts, depth/core/reconnect.ts, depth/core/tables.ts  ·  ← web/src/screens/Table.tsx
 - `web/src/api/tables.ts` → depth/core/client.ts, web/src/api/actions.ts, web/src/api/me.ts  ·  ← web/src/App.tsx, web/src/screens/ChatGame.tsx, web/src/screens/Feed.tsx, web/src/screens/NewTable.tsx, web/src/screens/Table.tsx, web/src/screens/TableBoards.tsx, web/src/screens/TableList.tsx
 - `web/src/api/transfer.ts` → depth/core/transfer_move.ts, web/src/locales/say.ts  ·  ← web/src/screens/Arrival.tsx, web/src/screens/Departure.tsx, web/src/screens/logic/useArrival.ts
@@ -562,13 +619,15 @@ flowchart LR
 - `web/src/geo/place.ts` → web/src/geo/cities.json  ·  ← web/src/App.tsx, web/src/geo/place.test.ts, web/src/screens/Place.tsx, web/src/screens/PlaceQr.tsx, web/src/screens/Wizard.tsx
 - `web/src/geo/qr.test.ts` → web/src/geo/qr.ts  ·  ← —
 - `web/src/geo/qr.ts` → —  ·  ← web/src/App.tsx, web/src/geo/qr.test.ts, web/src/screens/PlaceQr.tsx
-- `web/src/grace.test.ts` → web/src/grace.ts  ·  ← —
-- `web/src/grace.ts` → depth/core/sign.ts  ·  ← web/src/grace.test.ts, web/src/vault.ts
-- `web/src/idle.ts` → depth/core/lock.ts, web/src/vault.ts  ·  ← web/src/App.tsx
+- `web/src/grace.test.ts` → depth/core/grace.ts  ·  ← —
+- `web/src/idle.ts` → depth/web-platform/idle.ts, web/src/vault.ts  ·  ← web/src/App.tsx
+- `web/src/limits.test.ts` → depth/core/limits.ts  ·  ← —
 - `web/src/locales/duration.ts` → web/src/locales/say.ts  ·  ← web/src/screens/Chat.tsx, web/src/screens/Inbox.tsx, web/src/screens/Me.tsx, web/src/screens/Table.tsx
 - `web/src/locales/say.ts` → —  ·  ← web/src/a11y/nearby.ts, web/src/adv/Cabinet.tsx, web/src/adv/api.ts, web/src/api/actions.ts, web/src/api/lists.ts, web/src/api/me.ts, web/src/api/transfer.ts, web/src/brands/neighbro/index.tsx, web/src/brands/sosed/index.tsx, web/src/locales/duration.ts, web/src/pinWords.ts, web/src/screens/AgeFilter.tsx, web/src/screens/Card.tsx, web/src/screens/Chat.tsx, web/src/screens/ChatActions.tsx, web/src/screens/ChatGame.tsx, web/src/screens/Composer.tsx, web/src/screens/Feed.tsx, web/src/screens/Inbox.tsx, web/src/screens/Legal.tsx, web/src/screens/Likes.tsx, web/src/screens/Locked.tsx, web/src/screens/Match.tsx, web/src/screens/Me.tsx, web/src/screens/NewTable.tsx, web/src/screens/Offer.tsx, web/src/screens/Place.tsx, web/src/screens/PlaceQr.tsx, web/src/screens/Register.tsx, web/src/screens/Splash.tsx, web/src/screens/Statements.tsx, web/src/screens/TableBoards.tsx, web/src/screens/TableList.tsx, web/src/screens/Unlock.tsx, web/src/screens/logic/useCard.ts, web/src/screens/logic/useChat.ts, web/src/screens/logic/useComposer.ts, web/src/ui/Board.tsx, web/src/ui/Card.tsx, web/src/ui/Code.tsx, web/src/ui/CodeField.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Field.tsx, web/src/ui/InboxRow.tsx, web/src/ui/KitPreview.tsx, web/src/ui/Links.tsx, web/src/ui/Message.tsx, web/src/ui/Notices.tsx, web/src/ui/RangePair.tsx, web/src/ui/Screen.tsx, web/src/ui/Sheet.tsx, web/src/ui/Stat.tsx, web/src/ui/Status.tsx, web/src/ui/Textarea.tsx, web/src/ui/Toast.tsx, web/src/vault.ts
 - `web/src/main.tsx` → panel/design/kit/tokens.css, web/src/App.tsx, web/src/config.ts, web/src/favicon.ts, web/src/styles.css, web/src/theme.ts, web/src/themes.gen.css, web/src/tokens.css, web/src/ui/iconTips.ts, web/src/ui/phase.ts  ·  ← —
-- `web/src/pinWords.ts` → depth/core/pin.ts, web/src/locales/say.ts  ·  ← web/src/screens/Locked.tsx, web/src/screens/Register.tsx, web/src/screens/Unlock.tsx
+- `web/src/pinWords.ts` → depth/core/pin.ts, depth/core/pin_gate.ts, web/src/locales/say.ts  ·  ← web/src/screens/Locked.tsx, web/src/screens/Register.tsx, web/src/screens/Unlock.tsx
+- `web/src/pin_gate.test.ts` → depth/core/pin_gate.ts  ·  ← —
+- `web/src/register.test.ts` → depth/core/legal.ts, depth/core/register.ts  ·  ← —
 - `web/src/router.ts` → web/src/screens/Feed.tsx, web/src/screens/Inbox.tsx, web/src/vault.ts  ·  ← web/src/App.tsx
 - `web/src/screens/AgeFilter.tsx` → depth/core/client.ts, web/src/api/me.ts, web/src/locales/say.ts, web/src/ui/Button.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Header.tsx, web/src/ui/RangePair.tsx, web/src/ui/Screen.tsx  ·  ← web/src/screens/Me.tsx
 - `web/src/screens/Arrival.tsx` → depth/core/client.ts, web/src/api/me.ts, web/src/api/transfer.ts, web/src/screens/logic/useArrival.ts, web/src/screens/talk.css, web/src/ui/Button.tsx, web/src/ui/CellField.tsx, web/src/ui/Field.tsx, web/src/ui/FormCard.tsx, web/src/ui/Header.tsx, web/src/ui/Info.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx  ·  ← web/src/brands/neighbro/index.tsx, web/src/brands/sosed/index.tsx
@@ -584,14 +643,14 @@ flowchart LR
 - `web/src/screens/Inbox.tsx` → depth/core/client.ts, depth/core/life.ts, web/src/chat/chat.css, web/src/chat/keys.ts, web/src/locales/duration.ts, web/src/locales/say.ts, web/src/screens/Match.tsx, web/src/screens/talk.css, web/src/ui/Card.tsx, web/src/ui/Chip.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Header.tsx, web/src/ui/InboxRow.tsx, web/src/ui/List.tsx, web/src/ui/Message.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx  ·  ← web/src/App.tsx, web/src/router.ts, web/src/screens/Chat.tsx, web/src/screens/Match.tsx, web/src/screens/logic/useChat.ts, web/src/screens/logic/useMatch.ts
 - `web/src/screens/Legal.tsx` → depth/core/client.ts, depth/core/legal.ts, web/src/config.ts, web/src/locales/say.ts, web/src/ui/Button.tsx, web/src/ui/Checkbox.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Header.tsx, web/src/ui/Links.tsx, web/src/ui/List.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx  ·  ← web/src/App.tsx, web/src/screens/Me.tsx, web/src/screens/Register.tsx
 - `web/src/screens/Likes.tsx` → depth/core/client.ts, web/src/api/actions.ts, web/src/locales/say.ts, web/src/ui/Button.tsx, web/src/ui/Card.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Header.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx, web/src/ui/offer.ts  ·  ← web/src/App.tsx
-- `web/src/screens/Locked.tsx` → depth/core/client.ts, depth/core/transfer.ts, web/src/locales/say.ts, web/src/pinWords.ts, web/src/ui/Button.tsx, web/src/ui/Field.tsx, web/src/ui/FormCard.tsx, web/src/ui/Screen.tsx  ·  ← web/src/App.tsx
+- `web/src/screens/Locked.tsx` → depth/core/client.ts, depth/core/pin_gate.ts, depth/core/transfer.ts, web/src/locales/say.ts, web/src/pinWords.ts, web/src/ui/Button.tsx, web/src/ui/Field.tsx, web/src/ui/FormCard.tsx, web/src/ui/Screen.tsx  ·  ← web/src/App.tsx
 - `web/src/screens/Match.tsx` → depth/core/client.ts, depth/core/life.ts, web/src/chat/chat.css, web/src/chat/keys.ts, web/src/locales/say.ts, web/src/screens/Inbox.tsx, web/src/screens/logic/useMatch.ts, web/src/screens/talk.css, web/src/ui/Button.tsx, web/src/ui/Card.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Header.tsx, web/src/ui/Icon.tsx, web/src/ui/Info.tsx, web/src/ui/Message.tsx, web/src/ui/MessageInput.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx  ·  ← web/src/brands/neighbro/index.tsx, web/src/brands/sosed/index.tsx, web/src/screens/Inbox.tsx
 - `web/src/screens/Me.tsx` → depth/core/client.ts, web/src/api/me.ts, web/src/config.ts, web/src/locales/duration.ts, web/src/locales/say.ts, web/src/screens/AgeFilter.tsx, web/src/screens/Legal.tsx, web/src/screens/logic/useMe.ts, web/src/screens/place.css, web/src/theme.ts, web/src/themes.gen.ts, web/src/ui/Button.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Field.tsx, web/src/ui/Header.tsx, web/src/ui/Icon.tsx, web/src/ui/Info.tsx, web/src/ui/List.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx, web/src/ui/Segments.tsx, web/src/ui/SettingRow.tsx, web/src/ui/Split.tsx, web/src/vault.ts  ·  ← web/src/App.tsx, web/src/brands/neighbro/index.tsx, web/src/brands/sosed/index.tsx
 - `web/src/screens/NewTable.tsx` → depth/core/client.ts, depth/core/tables.ts, web/src/api/tables.ts, web/src/locales/say.ts, web/src/screens/newTable.css, web/src/ui/Button.tsx, web/src/ui/Card.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Field.tsx, web/src/ui/GameArt.tsx, web/src/ui/Header.tsx, web/src/ui/Icon.tsx, web/src/ui/Screen.tsx, web/src/ui/Segments.tsx, web/src/ui/Split.tsx, web/src/ui/TileFoot.tsx  ·  ← web/src/App.tsx, web/src/screens/ChatGame.tsx
 - `web/src/screens/Offer.tsx` → web/src/config.ts, web/src/locales/say.ts, web/src/ui/Button.tsx, web/src/ui/Code.tsx, web/src/ui/Header.tsx, web/src/ui/Links.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx  ·  ← web/src/App.tsx
 - `web/src/screens/Place.tsx` → web/src/geo/place.ts, web/src/locales/say.ts, web/src/ui/Button.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Field.tsx, web/src/ui/Header.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx  ·  ← web/src/App.tsx
 - `web/src/screens/PlaceQr.tsx` → web/src/geo/place.ts, web/src/geo/qr.ts, web/src/locales/say.ts, web/src/ui/Button.tsx, web/src/ui/Header.tsx, web/src/ui/Screen.tsx, web/src/ui/Segments.tsx, web/src/ui/Split.tsx  ·  ← web/src/App.tsx
-- `web/src/screens/Register.tsx` → depth/core/client.ts, depth/core/legal.ts, depth/core/paper.ts, web/src/config.ts, web/src/locales/say.ts, web/src/pinWords.ts, web/src/screens/Legal.tsx, web/src/ui/Button.tsx, web/src/ui/Checkbox.tsx, web/src/ui/CodeField.tsx, web/src/ui/Field.tsx, web/src/ui/FormCard.tsx, web/src/ui/Icon.tsx, web/src/ui/Info.tsx, web/src/ui/Links.tsx, web/src/ui/Mark.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx, web/src/vault.ts  ·  ← web/src/App.tsx
+- `web/src/screens/Register.tsx` → depth/core/client.ts, depth/core/legal.ts, depth/core/paper.ts, depth/core/register.ts, web/src/config.ts, web/src/locales/say.ts, web/src/pinWords.ts, web/src/screens/Legal.tsx, web/src/ui/Button.tsx, web/src/ui/Checkbox.tsx, web/src/ui/CodeField.tsx, web/src/ui/Field.tsx, web/src/ui/FormCard.tsx, web/src/ui/Icon.tsx, web/src/ui/Info.tsx, web/src/ui/Links.tsx, web/src/ui/Mark.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx, web/src/vault.ts  ·  ← web/src/App.tsx
 - `web/src/screens/Reissue.tsx` → depth/core/client.ts, depth/core/paper.ts, depth/core/recovery.ts, web/src/api/me.ts, web/src/ui/Button.tsx, web/src/ui/CodeField.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Header.tsx, web/src/ui/Info.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx, web/src/vault.ts  ·  ← web/src/App.tsx
 - `web/src/screens/Restore.tsx` → depth/core/client.ts, depth/core/paper.ts, web/src/api/me.ts, web/src/ui/Button.tsx, web/src/ui/CodeField.tsx, web/src/ui/Field.tsx, web/src/ui/FormCard.tsx, web/src/ui/Info.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx, web/src/vault.ts  ·  ← web/src/App.tsx
 - `web/src/screens/Splash.tsx` → web/src/api/me.ts, web/src/config.ts, web/src/locales/say.ts, web/src/screens/splash.css, web/src/ui/Button.tsx, web/src/ui/Illustration.tsx, web/src/ui/LangList.tsx, web/src/ui/Mark.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx, web/src/ui/TextButton.tsx  ·  ← web/src/App.tsx
@@ -599,7 +658,7 @@ flowchart LR
 - `web/src/screens/Table.tsx` → depth/core/client.ts, depth/core/tables.ts, web/src/api/me.ts, web/src/api/tableRoom.ts, web/src/api/tables.ts, web/src/locales/duration.ts, web/src/screens/TableBoards.tsx, web/src/screens/talk.css, web/src/ui/BoardPanel.tsx, web/src/ui/Button.tsx, web/src/ui/Card.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Header.tsx, web/src/ui/MessageInput.tsx, web/src/ui/MoveInput.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx, web/src/ui/Sheet.tsx, web/src/ui/Split.tsx, web/src/ui/Sticker.tsx, web/src/ui/TileFoot.tsx  ·  ← web/src/App.tsx
 - `web/src/screens/TableBoards.tsx` → depth/core/tables.ts, web/src/api/me.ts, web/src/api/tables.ts, web/src/locales/say.ts, web/src/ui/Board.tsx, web/src/ui/Button.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Hand.tsx, web/src/ui/MoveInput.tsx  ·  ← web/src/screens/ChatGame.tsx, web/src/screens/Table.tsx
 - `web/src/screens/TableList.tsx` → depth/core/client.ts, web/src/api/tables.ts, web/src/locales/say.ts, web/src/screens/Feed.tsx, web/src/ui/Button.tsx, web/src/ui/Card.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Header.tsx, web/src/ui/Notices.tsx, web/src/ui/Screen.tsx, web/src/ui/TileFoot.tsx  ·  ← web/src/App.tsx
-- `web/src/screens/Unlock.tsx` → depth/core/client.ts, web/src/locales/say.ts, web/src/pinWords.ts, web/src/ui/Button.tsx, web/src/ui/Field.tsx, web/src/ui/FormCard.tsx, web/src/ui/Info.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx, web/src/vault.ts  ·  ← web/src/App.tsx
+- `web/src/screens/Unlock.tsx` → depth/core/client.ts, depth/core/pin_gate.ts, web/src/locales/say.ts, web/src/pinWords.ts, web/src/ui/Button.tsx, web/src/ui/Field.tsx, web/src/ui/FormCard.tsx, web/src/ui/Info.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx, web/src/vault.ts  ·  ← web/src/App.tsx
 - `web/src/screens/Wizard.tsx` → web/src/api/me.ts, web/src/geo/place.ts, web/src/screens/wizard.css, web/src/ui/Button.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Field.tsx, web/src/ui/Icon.tsx, web/src/ui/Mark.tsx, web/src/ui/Screen.tsx, web/src/ui/Split.tsx  ·  ← web/src/App.tsx
 - `web/src/screens/logic/useArrival.ts` → depth/core/client.ts, depth/core/paper.ts, depth/core/transfer_move.ts, web/src/api/me.ts, web/src/api/transfer.ts, web/src/vault.ts  ·  ← web/src/screens/Arrival.tsx
 - `web/src/screens/logic/useCard.ts` → depth/core/client.ts, web/src/api/actions.ts, web/src/locales/say.ts, web/src/screens/Feed.tsx  ·  ← web/src/brands/neighbro/index.tsx, web/src/brands/sosed/index.tsx, web/src/screens/Card.tsx
@@ -619,11 +678,11 @@ flowchart LR
 - `web/src/ui/Checkbox.tsx` → web/src/ui/Icon.tsx, web/src/ui/control.tsx  ·  ← web/src/screens/Card.tsx, web/src/screens/Legal.tsx, web/src/screens/Register.tsx, web/src/ui/KitPreview.tsx
 - `web/src/ui/Chip.tsx` → —  ·  ← web/dev/gallery.tsx, web/src/adv/Cabinet.tsx, web/src/screens/Inbox.tsx, web/src/ui/KitPreview.tsx
 - `web/src/ui/Code.tsx` → web/src/locales/say.ts, web/src/ui/Button.tsx  ·  ← web/src/screens/Chat.tsx, web/src/screens/Departure.tsx, web/src/screens/Offer.tsx, web/src/ui/KitPreview.tsx
-- `web/src/ui/CodeField.tsx` → depth/core/paper.ts, web/src/locales/say.ts, web/src/ui/control.tsx  ·  ← web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/ui/KitPreview.tsx
+- `web/src/ui/CodeField.tsx` → depth/core/register.ts, web/src/locales/say.ts, web/src/ui/control.tsx  ·  ← web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/ui/KitPreview.tsx
 - `web/src/ui/Disclosure.tsx` → web/src/ui/Icon.tsx  ·  ← web/src/screens/Composer.tsx, web/src/ui/KitPreview.tsx
 - `web/src/ui/Dot.tsx` → —  ·  ← web/src/ui/InboxRow.tsx, web/src/ui/KitPreview.tsx
 - `web/src/ui/ErrorLine.tsx` → web/src/locales/say.ts  ·  ← web/src/adv/Cabinet.tsx, web/src/screens/AgeFilter.tsx, web/src/screens/Blocked.tsx, web/src/screens/Card.tsx, web/src/screens/Chat.tsx, web/src/screens/ChatGame.tsx, web/src/screens/Composer.tsx, web/src/screens/Departure.tsx, web/src/screens/Feed.tsx, web/src/screens/Hidden.tsx, web/src/screens/Inbox.tsx, web/src/screens/Legal.tsx, web/src/screens/Likes.tsx, web/src/screens/Match.tsx, web/src/screens/Me.tsx, web/src/screens/NewTable.tsx, web/src/screens/Place.tsx, web/src/screens/Reissue.tsx, web/src/screens/Table.tsx, web/src/screens/TableBoards.tsx, web/src/screens/TableList.tsx, web/src/screens/Wizard.tsx, web/src/ui/FormCard.tsx, web/src/ui/KitPreview.tsx, web/src/ui/RangePair.tsx, web/src/ui/Segments.tsx, web/src/ui/control.tsx
-- `web/src/ui/Field.tsx` → web/src/locales/say.ts, web/src/ui/Button.tsx, web/src/ui/control.tsx, web/src/ui/form.css  ·  ← web/src/adv/Cabinet.tsx, web/src/screens/Arrival.tsx, web/src/screens/Card.tsx, web/src/screens/Composer.tsx, web/src/screens/Departure.tsx, web/src/screens/Locked.tsx, web/src/screens/Me.tsx, web/src/screens/NewTable.tsx, web/src/screens/Place.tsx, web/src/screens/Register.tsx, web/src/screens/Restore.tsx, web/src/screens/Unlock.tsx, web/src/screens/Wizard.tsx, web/src/ui/KitPreview.tsx, web/src/ui/MoveInput.tsx
+- `web/src/ui/Field.tsx` → depth/core/register.ts, web/src/locales/say.ts, web/src/ui/Button.tsx, web/src/ui/control.tsx, web/src/ui/form.css  ·  ← web/src/adv/Cabinet.tsx, web/src/screens/Arrival.tsx, web/src/screens/Card.tsx, web/src/screens/Composer.tsx, web/src/screens/Departure.tsx, web/src/screens/Locked.tsx, web/src/screens/Me.tsx, web/src/screens/NewTable.tsx, web/src/screens/Place.tsx, web/src/screens/Register.tsx, web/src/screens/Restore.tsx, web/src/screens/Unlock.tsx, web/src/screens/Wizard.tsx, web/src/ui/KitPreview.tsx, web/src/ui/MoveInput.tsx
 - `web/src/ui/FormCard.tsx` → web/src/ui/Card.tsx, web/src/ui/ErrorLine.tsx, web/src/ui/Icon.tsx, web/src/ui/form.css  ·  ← web/src/screens/Arrival.tsx, web/src/screens/Locked.tsx, web/src/screens/Register.tsx, web/src/screens/Restore.tsx, web/src/screens/Unlock.tsx
 - `web/src/ui/GameArt.tsx` → web/src/config.ts, web/src/ui/gameArt.ts  ·  ← web/src/screens/NewTable.tsx
 - `web/src/ui/Hand.tsx` → web/src/ui/Button.tsx  ·  ← web/src/screens/TableBoards.tsx
@@ -671,21 +730,32 @@ flowchart LR
 - `web/src/ui/usePhase.ts` → web/src/ui/phase.ts  ·  ← web/src/ui/useTheme.ts
 - `web/src/ui/useSwipe.ts` → —  ·  ← web/src/brands/sosed/index.tsx
 - `web/src/ui/useTheme.ts` → web/src/config.ts, web/src/theme.ts, web/src/ui/usePhase.ts  ·  ← web/src/App.tsx
-- `web/src/vault.ts` → depth/core/client.ts, depth/core/lock.ts, depth/core/pin.ts, depth/core/recovery.ts, depth/core/sign.ts, depth/core/transfer.ts, depth/core/transfer_move.ts, web/src/config.ts, web/src/grace.ts, web/src/locales/say.ts  ·  ← web/src/App.tsx, web/src/idle.ts, web/src/router.ts, web/src/screens/Me.tsx, web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/Unlock.tsx, web/src/screens/logic/useArrival.ts
+- `web/src/vault.ts` → depth/core/client.ts, depth/core/enroll.ts, depth/core/grace.ts, depth/core/lock.ts, depth/core/pin.ts, depth/core/recovery.ts, depth/core/sign.ts, depth/core/transfer.ts, depth/core/transfer_move.ts, depth/core/unlock.ts, depth/web-platform/vault_keep.ts, web/src/config.ts, web/src/locales/say.ts  ·  ← web/src/App.tsx, web/src/idle.ts, web/src/router.ts, web/src/screens/Me.tsx, web/src/screens/Register.tsx, web/src/screens/Reissue.tsx, web/src/screens/Restore.tsx, web/src/screens/Unlock.tsx, web/src/screens/logic/useArrival.ts
 - `web/src/vite-env.d.ts` → —  ·  ← —
 - `web/vite.config.ts` → —  ·  ← —
 
 ## Внешние пакеты → сколько файлов
 
 - @axe-core/playwright: 4
-- @brand: 1
+- @brand: 5
 - @eslint/js: 1
-- @playwright/test: 33
+- @platform/idle.ts: 1
+- @platform/vault_keep.ts: 1
+- @playwright/test: 34
 - @refinedev/core: 16
 - @refinedev/devtools: 1
 - @refinedev/kbar: 1
 - @refinedev/react-router: 1
-- @vitejs/plugin-react: 2
+- @sdk/client.ts: 7
+- @sdk/enroll.ts: 4
+- @sdk/grace.ts: 1
+- @sdk/legal.ts: 1
+- @sdk/paper.ts: 1
+- @sdk/pin.ts: 1
+- @sdk/pin_gate.ts: 3
+- @sdk/register.ts: 4
+- @sdk/transfer.ts: 1
+- @vitejs/plugin-react: 3
 - eslint-plugin-react-hooks: 1
 - eslint-plugin-react-refresh: 1
 - globals: 1
@@ -693,29 +763,29 @@ flowchart LR
 - ink: 3
 - ink-testing-library: 13
 - jsr:@std: 127
-- node:assert: 20
+- node:assert: 30
 - node:async_hooks: 1
 - node:child_process: 3
 - node:crypto: 1
 - node:dns: 1
-- node:fs: 39
-- node:http: 5
+- node:fs: 44
+- node:http: 6
 - node:module: 1
-- node:path: 13
+- node:path: 14
 - node:perf_hooks: 1
-- node:test: 7
+- node:test: 17
 - node:timers: 1
-- node:url: 4
+- node:url: 5
 - npm:pg@8.13.1: 8
 - npm:postgres@3.4.4: 23
 - playwright: 13
 - postgres: 12
 - qrcode-generator: 1
-- react: 133
-- react-dom: 3
+- react: 146
+- react-dom: 5
 - react-router: 4
 - typescript-eslint: 1
-- vite: 2
+- vite: 3
 - vitest: 10
 - …: 1
 
@@ -745,8 +815,8 @@ flowchart LR
 - `docs/design-system-app_RU.md` → docs/depth-client_RU.md, docs/design-system_RU.md, panel/design/app-kit.svg, panel/design/empty-nav-mockup.svg, panel/design/kit/components.svg, panel/design/sheets/screen-brands.svg, panel/design/signs-mockup.svg, panel/design/spark-mockup.svg  ·  ← README_RU.md, docs/accessibility-and-i18n_RU.md, docs/design-system_RU.md
 - `docs/design-system_EN.md` → docs/design-system-app_EN.md, panel/design/kit-full.svg, panel/design/reference-behaviour.svg  ·  ← README.md, docs/accessibility-and-i18n_EN.md, docs/design-system-app_EN.md
 - `docs/design-system_RU.md` → docs/design-system-app_RU.md, panel/design/kit-full.svg, panel/design/reference-behaviour.svg  ·  ← README_RU.md, docs/accessibility-and-i18n_RU.md, docs/design-system-app_RU.md
-- `docs/design/kit_EN.md` → —  ·  ← —
-- `docs/design/kit_RU.md` → —  ·  ← —
+- `docs/design/kit_EN.md` → docs/report-2026-10-02-brands.pdf  ·  ← —
+- `docs/design/kit_RU.md` → docs/report-2026-10-02-brands.pdf  ·  ← —
 - `docs/design/themes_EN.md` → docs/design/themes_RU.md  ·  ← docs/design/themes_RU.md
 - `docs/design/themes_RU.md` → docs/design/themes_EN.md  ·  ← docs/design/themes_EN.md
 - `docs/dpia_EN.md` → docs/article-30-register_EN.md, docs/dsa/SPEC_EN.md  ·  ← docs/article-30-register_EN.md
@@ -815,11 +885,24 @@ flowchart LR
 - `relay/SPEC_EN.md` → .github/workflows/relay.yml, docs/protocol_EN.md  ·  ← docs/deployment_EN.md, relay/README.md
 - `relay/SPEC_RU.md` → .github/workflows/relay.yml, docs/protocol_RU.md  ·  ← docs/deployment_RU.md, relay/README_RU.md
 - `relay/local/README.md` → relay/local/observability/alertmanager.yml, relay/local/observability/alerts.yml, relay/local/observability/grafana/dashboards/relay-identity.json, relay/local/observability/prometheus.yml  ·  ← relay/README.md, relay/README_RU.md
-- `relay/moderation-bench/README_EN.md` → docs/vendors-dpa_EN.md, relay/moderation-bench/README_RU.md, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_RU.md
-- `relay/moderation-bench/README_RU.md` → docs/vendors-dpa_RU.md, relay/moderation-bench/README_EN.md, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_EN.md
+- `relay/moderation-bench/README_EN.md` → docs/vendors-dpa_EN.md, relay/moderation-bench/README_RU.md, relay/moderation-bench/evaluation.json, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_RU.md
+- `relay/moderation-bench/README_RU.md` → docs/vendors-dpa_RU.md, relay/moderation-bench/README_EN.md, relay/moderation-bench/evaluation.json, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_EN.md
 - `relay/moderator/README_EN.md` → —  ·  ← —
 - `relay/moderator/README_RU.md` → —  ·  ← —
 - `relay/node/src/access/README.md` → —  ·  ← —
+- `testing/walk-svg/round1/PROMPT.md` → —  ·  ← —
+- `testing/walk-svg/round1/neighbro-1024.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/neighbro-1440.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/neighbro-2560.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/neighbro-375.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/neighbro-393.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/neighbro-768.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/sosed-1024.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/sosed-1440.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/sosed-2560.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/sosed-375.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/sosed-393.notes.md` → —  ·  ← —
+- `testing/walk-svg/round1/sosed-768.notes.md` → —  ·  ← —
 
 ## ПРОВЕРКА
 - все связи сверены с диском, расхождений нет

@@ -68,10 +68,12 @@ test("an identity with an open conversation moves from the page into the termina
     signal("web-heard", "move");
 
     console.log("[step] The move: nine characters behind the PIN, the terminal types them");
-    // Back to the feed the way a person leaves a conversation on this page:
-    // a reload, the vault and the PIN (unlock-chat.spec).
+    // A reload in the conversation, the vault and the PIN (unlock-chat.spec): the
+    // reload was on /chat, so its tab, the inbox, opens (router.ts); then the feed.
     await page.reload();
     await unlock(page, PIN);
+    await expect(page.locator('[data-screen="inbox"]')).toBeVisible({ timeout: 30000 });
+    await page.getByTestId("nav-feed").click();
     await expect(page.locator('[data-screen="feed"]')).toBeVisible({ timeout: 30000 });
     await page.getByTestId("tab-me").click();
     await page.getByTestId("me-move").click();

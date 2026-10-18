@@ -113,7 +113,9 @@
 .chg-turn { flex: none; height: var(--chg-turn-h); padding-inline: var(--chg-turn-pad); border-radius: var(--r-pill); background: var(--c-panel);
   display: inline-flex; align-items: center; font-size: var(--fs-chg-turn); font-weight: var(--fw-700); }
 .chg-turn[data-turn="theirs"] { color: var(--c-muted); }
-.chg-board { height: var(--chg-board-h); border-radius: var(--r-row); background: var(--c-sheet); }
+/* min-height, not height: the place takes the board the game has (four in a row fills it; backgammon's field and the
+   dominoes are taller and grow it rather than be cut) */
+.chg-board { min-height: var(--chg-board-h); border-radius: var(--r-row); background: var(--c-sheet); }
 .chg-ask { display: flex; flex-direction: column; gap: var(--sp-2); }
 .chg-note { margin: 0; font-size: var(--fs-chm-value); line-height: var(--lh-ch-over-text); color: var(--c-muted); }
 .chg-cta, .chg-quiet { height: var(--chg-resign-h); min-height: var(--chg-resign-h); border-radius: var(--r-pill); font-weight: var(--fw-700); }

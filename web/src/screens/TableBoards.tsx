@@ -9,6 +9,7 @@
 
 import { useState } from "react";
 import { dotsOf, freeEdges, type TableView } from "../../../depth/core/tables.ts";
+import { FLEET_EXAMPLE, parseFleet } from "../../../depth/core/tables_sea.ts";
 import { say as tableSay } from "../api/me.ts";
 import { cardWord, dieWord } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
@@ -287,15 +288,8 @@ type Sea = {
 };
 const SEA_FILES = [..."abcdefghij"];
 const SEA_CELLS = Array.from({ length: 10 }, (_, r) => SEA_FILES.map((f) => `${f}${r + 1}`));
-const FLEET_EXAMPLE = "a1 a2 a3 a4; c1 c2 c3; e1 e2 e3; a6 a7; c6 c7; e6 e7; h1; h3; h5; h7";
-
-// «a1 a2; c1» → [["a1","a2"],["c1"]]; null when a cell is not a1..j10. The
-// node checks the fleet itself (sizes, straightness, no touching).
-export function parseFleet(text: string): string[][] | null {
-  const ships = text.split(";").map((ship) => ship.toLowerCase().split(/[\s,]+/).filter(Boolean)).filter((ship) => ship.length > 0);
-  if (ships.length === 0 || ships.some((ship) => ship.some((cell) => !/^[a-j](10|[1-9])$/.test(cell)))) return null;
-  return ships;
-}
+// The fleet typed as ships of cells is shared with the app (depth/core/tables_sea.ts).
+export { parseFleet };
 
 export function SeaBoard({ view, onMove }: { view: TableView; onMove?: Move }) {
   const sea = view.board?.state.sea as Sea | undefined;

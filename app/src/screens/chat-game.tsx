@@ -1,7 +1,7 @@
 // The game in a conversation (sosed Dusk: w3_chat-game), the shell only: the proposal and its answer, whose move,
 // the end and another round, resign — through ChatGames (depth/core/chat_games.ts, the web's ChatGame.tsx calls the
 // same). The board itself is GameBoard's place: its props are what a table's board takes (the chat's view as a
-// table's, asTableView); the boards come in from the games branch, a stand-in draws the place until then.
+// table's, asTableView), drawn by the games branch's Board.
 // The web's testids: chat-game, game-propose, game-waiting, game-offer, game-accept, game-decline, game-turn,
 // game-rematch, game-resign; new ones: game-board, game-line, game-hide.
 import { useEffect, useMemo, useState } from "react";
@@ -12,12 +12,21 @@ import { failedLine, label, say } from "../i18n";
 import { Icon } from "../shell/Icon";
 import { flag } from "../shell/icons";
 import { CHIP_GAME, type GameStage, proposerKey, stageOf } from "./chat-game-logic";
+import { Board } from "./tables/boards";
+import { movesIn } from "./tables/table-logic";
 
 const gameName = (set: string): string => label(`web.set.${set}`);
 
-/** The board's place: what a table's board takes. A stand-in until the boards of the games branch come in. */
-export function GameBoard({ game, state }: { game: TableView; state: "mine" | "theirs" | "over"; onMove: (move: unknown) => void }) {
-  return <div className="chg-board" data-testid="game-board" data-class={game.class} data-set={game.set} data-state={state} role="img" aria-label={gameName(game.set)} />;
+/** The board's place: a table's board (screens/tables/boards.tsx Board) on the chat's game seen as a table — the same
+ * panel, the state the node gives, my seat; a move only in my turn, and it goes to ChatGames.move (onMove). */
+export function GameBoard({ game, state, onMove }: { game: TableView; state: "mine" | "theirs" | "over"; onMove: (move: unknown) => void }) {
+  return (
+    <div className="chg-board" data-testid="game-board" data-class={game.class} data-set={game.set} data-state={state} aria-label={gameName(game.set)}>
+      <div className="tg-panel" data-class={game.class} data-set={game.set}>
+        <Board klass={game.class} set={game.set} state={game.board?.state} seat={game.seat} onMove={movesIn(state, onMove)} />
+      </div>
+    </div>
+  );
 }
 
 export interface GameActions {

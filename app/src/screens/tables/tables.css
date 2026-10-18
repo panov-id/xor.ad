@@ -191,3 +191,103 @@
 .tg-pip { width: var(--tg-pip); height: var(--tg-pip); border-radius: var(--r-pill); }
 .tg-pip[data-on] { background: var(--c-pip); }
 .tg-dice-step { margin-top: var(--sp-4); width: 100%; }
+
+/* dominoes: the field 284.5 high; the line left from its inset, doubles standing across it, then my hand */
+.tg-panel[data-class="free"] { padding: 0; }
+.tg-dominoes { min-height: var(--tg-dom-h); padding: var(--tg-line-top) 0 var(--sp-4); display: grid; align-content: start; }
+.tg-dline { display: flex; align-items: center; gap: var(--tg-line-gap); padding-inline: var(--tg-line-start) var(--sp-4); min-height: var(--tg-bone-long); overflow-x: auto; scrollbar-width: none; }
+.tg-hand { margin-top: var(--tg-hand-top); display: flex; gap: var(--tg-hand-gap); padding-inline: var(--tg-hand-start) 0; overflow-x: auto; scrollbar-width: none; }
+.tg-hand-bone { flex: none; min-height: 0; padding: 0; background: none; border-radius: var(--tg-bone-r); }
+.tg-hand-bone[aria-pressed="true"] { outline: var(--tg-pick-line) solid var(--c-yellow); outline-offset: var(--tg-pick-gap); }
+.tg-hand-bone:disabled { cursor: default; }
+.tg-bone { flex: none; width: var(--tg-bone-long); height: var(--tg-bone-short); border-radius: var(--tg-bone-r); background: var(--c-die); display: grid; grid-template-columns: 1fr 1fr;
+  box-shadow: inset 0 0 0 var(--tg-cell-line) var(--c-ink); }
+.tg-bone[data-standing] { width: var(--tg-bone-short); height: var(--tg-bone-long); grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+.tg-half { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); place-items: center; padding: var(--tg-dpip-pad); }
+.tg-half + .tg-half { box-shadow: inset var(--tg-cell-line) 0 0 0 var(--c-ink); }
+.tg-bone[data-standing] .tg-half + .tg-half { box-shadow: inset 0 var(--tg-cell-line) 0 0 var(--c-ink); }
+.tg-dpip { width: var(--tg-dpip); height: var(--tg-dpip); border-radius: var(--r-pill); }
+.tg-dpip[data-on] { background: var(--c-pip); }
+.tg-ends { margin-top: var(--sp-3); padding-inline: var(--sp-4); display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+.tg-draw { margin: var(--sp-3) var(--sp-4) 0; }
+/* battleship: a found ship is one bar (its cells join over the gap), a hit carries a dark dot, a miss a small light one */
+.tg-panel[data-set="battleship"] { padding: var(--tg-sea-pad); }
+.tg-sea { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: var(--tg-sea-gap); }
+.tg-sea.tg-place { display: block; padding: var(--tg-panel-pad); }
+.tg-fleet { display: grid; gap: var(--sp-2); }
+.tg-fleet input { min-width: 0; height: var(--tg-line-h); padding: 0 var(--tg-line-pad); border: 0; border-radius: var(--r-pill); background: var(--c-sheet); color: var(--c-text); font: inherit; }
+.tg-shot { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; min-height: 0; padding: 0; border-radius: var(--tg-sea-r); background: none; }
+.tg-shot:disabled { cursor: default; }
+.tg-shot[data-result="hit"], .tg-shot[data-result="sunk"] { background: var(--c-peach); }
+.tg-mark { width: var(--tg-sea-mark); height: var(--tg-sea-mark); border-radius: var(--r-pill); background: var(--c-ink); pointer-events: none; }
+.tg-shot[data-result="miss"]::after { content: ""; width: var(--tg-sea-miss); height: var(--tg-sea-miss); border-radius: var(--r-pill); background: var(--c-muted); }
+.tg-shot[data-join~="r"] { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.tg-shot[data-join~="l"] { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.tg-shot[data-join~="d"] { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.tg-shot[data-join~="u"] { border-top-left-radius: 0; border-top-right-radius: 0; }
+.tg-shot[data-join~="r"]::before, .tg-shot[data-join~="d"]::before { content: ""; position: absolute; background: var(--c-peach); }
+.tg-shot[data-join~="r"]::before { left: 100%; top: 0; width: var(--tg-sea-gap); height: 100%; }
+.tg-shot[data-join~="d"]::before { top: 100%; left: 0; height: var(--tg-sea-gap); width: 100%; }
+.tb-sheet > .tg-sea-own { width: var(--tg-own-w); margin-top: var(--sp-4); display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: var(--tg-own-gap); }
+.tg-own { aspect-ratio: 1; border-radius: var(--tg-own-r); background: var(--c-board); }
+.tg-own[data-ship] { background: var(--c-lime); }
+.tg-own[data-shot="hit"], .tg-own[data-shot="sunk"] { background: var(--c-yellow); }
+.tg-own[data-shot="miss"] { box-shadow: inset 0 0 0 var(--tg-cell-line) var(--c-muted); }
+/* chapayev: pieces only on the bare panel; the picked piece rings yellow, cells it can flick to carry a dot, the aim is a line over the board */
+.tg-panel[data-set="chapayev"] { padding: 0; overflow: hidden; }
+.tg-chapayev { position: relative; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.tg-pc { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; min-height: 0; padding: 0; background: none; }
+.tg-pc:disabled { cursor: default; }
+.tg-pc span { display: block; width: min(var(--tg-pc), 72%); aspect-ratio: 1; border-radius: var(--r-pill); }
+.tg-pc[data-stand="mine"] span { background: var(--c-lime); }
+.tg-pc[data-stand="theirs"] span { background: var(--c-peach); }
+.tg-pc[data-picked] span { box-shadow: 0 0 0 var(--tg-pc-ring) var(--c-yellow); }
+.tg-pc[data-reach]:not([data-stand="theirs"]) span { width: var(--tg-pc-reach); background: var(--c-yellow); }
+.tg-pc[data-reach][data-stand="theirs"] span { box-shadow: 0 0 0 var(--tg-pc-ring) var(--c-yellow); }
+.tg-aim { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; stroke: var(--c-yellow); stroke-width: var(--tg-aim-w); stroke-linecap: round; fill: none; }
+.tg-aim marker path { fill: var(--c-yellow); stroke: none; }
+/* cards on a panel (durak, poker): the panel is a container; every card, rank and mark is placed in px of the sheet's panel
+   (--x --y centre, --w --h size, --r turn, unitless) times --k = this panel's width over the sheet's, so it all scales as one */
+.tg-panel[data-class="deck"] { padding: 0; overflow: hidden; }
+.tg-dk { container-type: inline-size; }
+.tg-dk-stage { --k: calc(100cqw / var(--tg-dk-ref)); position: relative; height: calc(var(--stage-h) * var(--k)); }
+.tg-dk-fan, .tg-dk-pair, .tg-dk-hand { display: contents; }
+.tg-dk-card { position: absolute; left: calc((var(--x) - var(--w) / 2) * var(--k)); top: calc((var(--y) - var(--h) / 2) * var(--k));
+  width: calc(var(--w) * var(--k)); height: calc(var(--h) * var(--k)); rotate: calc(var(--r) * 1deg); padding: 0; min-height: 0; border: 0;
+  border-radius: var(--tg-dk-r); background: var(--c-card); color: var(--c-suit-black); }
+.tg-dk-card[data-red] { color: var(--c-suit-red); }
+button.tg-dk-card:disabled { cursor: default; }
+.tg-back span { position: absolute; inset: calc(var(--tg-dk-inset) * var(--k)); border-radius: var(--tg-dk-r2); background: var(--c-peach); }
+.tg-trump-suit { background: none; }
+.tg-rank { position: absolute; left: calc(var(--tg-rank-x) * var(--k)); top: calc(var(--tg-rank-y) * var(--k)); font-size: calc(var(--tg-rank-fs) * var(--k)); font-weight: var(--fw-700); line-height: 1; font-variant-numeric: proportional-nums; transform-origin: 0 50%; scale: var(--tg-rank-sx) 1; }
+.tg-rank[data-len="2"] { letter-spacing: var(--tg-rank-ls10); }
+.tg-suit { position: absolute; left: 50%; top: calc(50% + var(--dy, var(--tg-suit-dy)) * var(--k)); translate: -50% -50%; width: calc(var(--sw) * var(--k)); height: calc(var(--sh) * var(--k)); fill: currentColor; }
+.tg-suit[data-suit="H"] { --sw: var(--tg-suit-h-w); --sh: var(--tg-suit-h-h); }
+.tg-suit[data-suit="D"] { --sw: var(--tg-suit-d-w); --sh: var(--tg-suit-d-h); }
+.tg-suit[data-suit="S"] { --sw: var(--tg-suit-s-w); --sh: var(--tg-suit-s-h); }
+.tg-suit[data-suit="C"] { --sw: var(--tg-suit-c-w); --sh: var(--tg-suit-c-h); }
+/* poker: the suits on a card stand on one line; the seats are two chip discs and the stack under them; the pot is a number */
+.tg-pk .tg-suit[data-suit="C"], .tg-pk-hole .tg-suit[data-suit="C"] { --dy: var(--tg-pk-dy-c); }
+.tg-pk .tg-suit[data-suit="D"], .tg-pk-hole .tg-suit[data-suit="D"] { --dy: var(--tg-pk-dy-d); }
+.tg-pk .tg-suit[data-suit="S"], .tg-pk-hole .tg-suit[data-suit="S"] { --dy: var(--tg-pk-dy-s); }
+.tg-pk .tg-suit[data-suit="H"], .tg-pk-hole .tg-suit[data-suit="H"] { --dy: var(--tg-pk-dy-h); }
+.tg-pk-pot { position: absolute; left: calc(var(--x) * var(--k)); top: calc(var(--y) * var(--k)); translate: -50% -100%; font-size: calc(var(--tg-rank-fs) * var(--k)); font-weight: var(--fw-700); line-height: 1; }
+.tg-pk-seat { position: absolute; left: calc(var(--x) * var(--k)); top: calc(var(--y) * var(--k)); width: calc(var(--w) * var(--k)); height: calc(var(--h) * var(--k)); }
+.tg-chips-mark i { position: absolute; width: calc(var(--tg-chip-d) * var(--k)); height: calc(var(--tg-chip-d) * var(--k)); border-radius: var(--r-pill); }
+.tg-chips-mark i:first-child { left: 0; top: 0; background: var(--c-yellow); }
+.tg-chips-mark i:last-child { left: calc(var(--tg-chip-dx) * var(--k)); top: calc(var(--tg-chip-dy) * var(--k)); background: var(--c-peach); }
+.tg-pk-stack { position: absolute; left: 0; right: 0; top: calc(100% + var(--tg-pk-stack-gap) * var(--k)); text-align: center; font-size: calc(var(--tg-pk-fs) * var(--k)); line-height: 1; color: var(--c-muted); }
+.tg-pk-seat[data-mine] .tg-pk-stack { color: var(--c-lime); }
+.tg-pk-seat[data-turn] .tg-chips-mark i:first-child { box-shadow: 0 0 0 calc(2 * var(--k)) var(--c-text); }
+.tg-pk-seat[data-folded] { opacity: .45; }
+.tg-pk-acts { margin-top: var(--sp-2); display: grid; gap: var(--sp-3); }
+.tg-pk-acts .tg-actions { margin-top: 0; flex-wrap: wrap; }
+.tg-pk-acts .tg-set { margin-top: 0; padding-bottom: 0; }
+.tg-actions { margin-top: var(--sp-4); display: flex; justify-content: center; gap: var(--sp-3); }
+
+/* the con by agreement under the board */
+.tg-con { margin-top: var(--sp-3); width: 100%; }
+.tg-con-wait { margin-top: var(--sp-3); font-size: var(--fs-notice); }
+
+/* a table's board in a talk's game (chat-game.tsx GameBoard, w3_chat-game): on the game's own place, smaller cells, no panel of its own */
+.chg-board .tg-panel { background: none; padding: var(--tg-chat-pad); --tg-cell: var(--tg-chat-cell); --tg-cell-gap: var(--tg-chat-gap); }

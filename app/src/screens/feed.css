@@ -8,7 +8,10 @@
 .fd-chip[aria-pressed="true"] { border: calc(var(--hair) * 3) solid var(--c-lime); }
 .fd-head h1 { padding: var(--fd-title-gap) var(--sp-4) 0; font-size: var(--fs-feed-title); font-weight: var(--fw-700); }
 .fd-list { overflow-y: auto; display: flex; flex-direction: column; gap: var(--fd-list-gap); }
-.fd-cards { list-style: none; padding: 0; display: grid; gap: var(--fd-list-gap); }
+.fd-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }   /* the panel of the wide sheets; on a phone only a wrapper */
+.fd-brand { display: none; }   /* the tablet sheet's wordmark over the title (tokens/wide.css shows it) */
+.fd-cards { display: grid; grid-template-columns: repeat(var(--fd-cols, 1), minmax(0, 1fr)); column-gap: var(--fd-list-gap); align-items: start; }
+.fd-col { list-style: none; padding: 0; display: grid; gap: var(--fd-list-gap); align-content: start; }
 
 .fd-card { --tone: var(--c-lime); position: relative; display: grid; grid-template-columns: 1fr auto; gap: var(--fd-card-gap); align-items: start;
   padding: var(--fd-card-pad); border-radius: var(--r-card); background: var(--tone); color: var(--c-ink);
@@ -57,9 +60,16 @@
 .fd-screen { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; background: var(--c-night); animation: rise var(--d-item) var(--ease) both; --from: var(--o-item); }
 .fd-bar { height: var(--h-fd-bar); padding: 0 var(--sp-2); display: grid; grid-template-columns: var(--s-touch-min) 1fr var(--s-touch-min); align-items: center; }
 .fd-bar h1 { text-align: center; font-size: var(--fs-body); font-weight: var(--fw-700); }
+.fd-back-word { display: none; }   /* the desktop sheet words its back (tokens/wide.css) */
 .fd-icon-btn { width: var(--s-touch-min); display: grid; place-items: center; border-radius: var(--r-pill); }
 .fd-icon-btn .icon { --icon-size: var(--icon-fd); --stroke: 2; }
-.fd-body { flex: 1; overflow-y: auto; background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: var(--sp-4); display: grid; align-content: start; gap: var(--sp-4); }
+.fd-body { flex: 1; overflow-y: auto; background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-4); }
+.fd-body > * { flex: none; }
+.fd-left { display: contents; }   /* the card and «I'm in»: one column on the wide sheets (tokens/wide.css) */
+.fd-foot-bar { order: 1; }
+.fd-side { display: grid; gap: var(--sp-4); }
+.fd-more { display: none; }   /* «more nearby» is the tablet sheet's (tokens/wide.css) */
+.fd-screen > .tabbar { display: none; }   /* the rail is the desktop sheets' */
 .fd-big { padding: var(--sp-5); }
 .fd-text { font-size: var(--fs-card-text); font-weight: var(--fw-800); line-height: var(--lh-tight); overflow-wrap: anywhere; }
 .fd-rows { display: grid; }
@@ -67,7 +77,9 @@
 .fd-rows dt { color: var(--c-muted); }
 .fd-rows dd { font-weight: var(--fw-700); text-align: end; }
 .fd-note { font-size: var(--fs-notice); color: var(--c-muted); }
-.fd-foot-bar { padding: var(--sp-4) var(--sp-4) max(var(--nav-gap-bottom), env(safe-area-inset-bottom)); background: var(--c-sheet); }
+/* «I'm in» stays at the foot of the card screen on a phone: sticky at the bottom of the scrolling body, its padding reaching the body's edges. */
+.fd-foot-bar { margin: auto calc(var(--sp-4) * -1) calc(var(--sp-4) * -1); position: sticky; bottom: 0;
+  padding: var(--sp-4) var(--sp-4) max(var(--nav-gap-bottom), env(safe-area-inset-bottom)); background: var(--c-sheet); }
 .cta:disabled, .cta[aria-disabled="true"] { opacity: var(--o-disabled); }
 .cta-danger { background: var(--c-coral); color: var(--c-ink); }
 

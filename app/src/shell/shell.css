@@ -81,6 +81,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .tab .icon { --icon-size: var(--icon-tab); --stroke: 2; }
 .tab[aria-current="page"] { color: var(--c-ink); background: var(--c-lime); }
 .tab[aria-disabled="true"] { cursor: default; }
+.rail-brand, .tab-word, .rail-say { display: none; }   /* the desktop rail's parts (tokens/wide.css) */
 
 .skeleton { border-radius: var(--r-card); background: var(--c-panel); position: relative; overflow: hidden; }
 .skeleton-line { height: var(--skeleton-line); border-radius: var(--r-pill); }

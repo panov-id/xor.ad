@@ -10,6 +10,7 @@ import { failedLine, label, LANG, say } from "../i18n";
 import { Icon } from "../shell/Icon";
 import { blockMark, chevronLeft, chevronRight, ellipsis, eyeOff, flag, hand } from "../shell/icons";
 import { useLayers } from "../shell/layers";
+import { type Tab, TabBar } from "../shell/TabBar";
 import { type FeedCard, langOf, type LikeOutcome, offerLabel, type Tone } from "./feed-logic";
 
 const modeWord = (mode: string): string => {
@@ -50,9 +51,9 @@ function Foot({ card }: { card: FeedCard }) {
 }
 
 /** A tile of the list: the whole tile opens the card, the hand likes at once. */
-export function Tile({ card, tone, busy, onOpen, onLike }: { card: FeedCard; tone: Tone; busy: boolean; onOpen: () => void; onLike: () => void }) {
+export function Tile({ card, tone, busy, onOpen, onLike, testid = "card" }: { card: FeedCard; tone: Tone; busy: boolean; onOpen: () => void; onLike: () => void; testid?: string }) {
   return (
-    <li className={`fd-card fd-${tone}`} data-testid="card" data-id={card.id}>
+    <li className={`fd-card fd-${tone}`} data-testid={testid} data-id={card.id}>
       {card.offer && <span className="fd-offer" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>}
       <button type="button" className="fd-open" onClick={onOpen} lang={langOf(card.lang)}>{card.text}</button>
       <button type="button" className="fd-hand" aria-label={say("web.card.like")} aria-pressed={card.liked === true} disabled={busy || card.liked === true}
@@ -65,10 +66,14 @@ export function Tile({ card, tone, busy, onOpen, onLike }: { card: FeedCard; ton
 }
 
 /** The card full-screen over the feed: back, the phrase large, three rows, «I'm in». */
-export function CardScreen({ client, card, tone, onBack, onGone, onLike }: {
+export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, onBack, onGone, onLike }: {
   client: Client;
   card: FeedCard;
   tone: Tone;
+  /** Other phrases of the feed, shown under the card on the tablet sheet (tablet_834_Phrase: «more nearby»). */
+  more?: Array<{ card: FeedCard; tone: Tone }>;
+  onOpenMore?: (id: string) => void;
+  onTab?: (tab: Tab) => void;
   onBack: () => void;
   onGone: (why: "hidden" | "blocked", id: string, handle?: string) => void;
   onLike: (card: FeedCard) => Promise<LikeOutcome>;
@@ -85,19 +90,28 @@ export function CardScreen({ client, card, tone, onBack, onGone, onLike }: {
   }
   return (
     <main className="fd-screen" data-screen="card" data-id={card.id}>
+      <div className="fd-panel">
       <header className="fd-bar">
-        <button type="button" className="fd-icon-btn" aria-label={say("common.back")} onClick={onBack} data-testid="back"><Icon d={chevronLeft} /></button>
+        <button type="button" className="fd-icon-btn" aria-label={say("common.back")} onClick={onBack} data-testid="back"><Icon d={chevronLeft} /><span className="fd-back-word" aria-hidden="true">{say("common.back")}</span></button>
         <h1>{label("web.card.phrase")}</h1>
         <button type="button" className="fd-icon-btn" aria-label={say("web.card.more")} data-testid="more-menu"
           onClick={() => open("card-more", <MoreSheet client={client} card={card} onGone={onGone} />)}><Icon d={ellipsis} /></button>
       </header>
       <section className="fd-body">
+        <div className="fd-left">
         <article className={`fd-card fd-big fd-${tone}`} data-id={card.id}>
           {card.offer && <span className="fd-offer" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>}
           <p className="fd-text" data-testid="text" lang={langOf(card.lang)}>{card.text}</p>
           <span className="fd-hand fd-hand-static" data-lit={lit ? "" : undefined} aria-hidden="true"><Icon d={hand} /></span>
           <Foot card={lit && !card.liked ? { ...card, like_count: card.like_count + 1, liked: true } : card} />
         </article>
+        <footer className="fd-foot-bar">
+          <button type="button" className="cta cta-primary" disabled={busy || lit} aria-disabled={busy || lit} onClick={() => void like()} data-testid="like" data-lit={lit ? "" : undefined}>
+            <Icon d={hand} /><span>{say("app.feed.im_in")}</span>
+          </button>
+        </footer>
+        </div>
+        <div className="fd-side">
         {card.offer?.conditions && <p className="fd-note" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
         <dl className="fd-rows">
           <div><dt>{say("app.feed.row_going")}</dt><dd>{modeWord(card.mode)}</dd></div>
@@ -105,12 +119,18 @@ export function CardScreen({ client, card, tone, onBack, onGone, onLike }: {
           <div><dt>{say("app.feed.row_in")}</dt><dd>{card.like_count + (lit && !card.liked ? 1 : 0)}{card.soon ? say("web.card.soon") : ""}</dd></div>
         </dl>
         {line && <p className="fd-note" role="status" data-testid="like-line" data-state={outcome?.state}>{line}</p>}
+        </div>
+        {more.length > 0 && (
+          <section className="fd-more" aria-labelledby="fd-more-h">
+            <h2 id="fd-more-h">{say("app.feed.more_nearby")}</h2>
+            <ul className="fd-col">
+              {more.map((m) => <Tile key={m.card.id} card={m.card} tone={m.tone} busy={false} testid="card-near" onOpen={() => onOpenMore?.(m.card.id)} onLike={() => onOpenMore?.(m.card.id)} />)}
+            </ul>
+          </section>
+        )}
       </section>
-      <footer className="fd-foot-bar">
-        <button type="button" className="cta cta-primary" disabled={busy || lit} aria-disabled={busy || lit} onClick={() => void like()} data-testid="like" data-lit={lit ? "" : undefined}>
-          <Icon d={hand} /><span>{say("app.feed.im_in")}</span>
-        </button>
-      </footer>
+      </div>
+      <TabBar active="feed" onSelect={onTab} />
     </main>
   );
 }

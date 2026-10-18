@@ -187,12 +187,49 @@ if (want("chat-game")) {
   compare(scr, "turn pill", shapeOf(sh[4]), await box(page, ".chg-turn"));
   left(scr, "turn words", T[5], await line(page, ".chg-turn"));
   compare(scr, "board's place", shapeOf(sh[5]), await box(page, ".chg-board"));
+  // the table's board in the place (screens/tables/boards.tsx): the sheet's cells, top row and the pieces
+  const cells = sh.filter((x) => Math.abs(x.w - 34.4) < 0.3);
+  const top = cells.filter((x) => Math.abs(x.y - cells[0].y) < 1).sort((a, b) => a.x - b.x);
+  for (let i = 0; i < 7; i++) compare(scr, `cell ${"abcdefg"[i]}6`, shapeOf(top[i]), await box(page, `[data-testid="four-col-${"abcdefg"[i]}"] .tg-cell`, 0));
+  const at = (c) => [Math.round((c.x - top[0].x) / 45.2), 5 - Math.round((c.y - top[0].y) / 45.2)];
+  for (const c of cells.filter((x) => x.fill !== "#2b2440")) {
+    const [col, row] = at(c);
+    compare(scr, `piece ${"abcdefg"[col]}${row + 1}`, shapeOf(c), await box(page, `[data-testid="four-col-${"abcdefg"[col]}"] .tg-cell`, 5 - row));
+  }
+  note(await page.locator('.tg-cell[data-stand="mine"]').count() === 6 && await page.locator('.tg-cell[data-stand="theirs"]').count() === 4, "chat-game: six of mine, four of Nino's, as the sheet");
   compare(scr, "resign", shapeOf(sh[49]), await box(page, ".chg-resign"));
   left(scr, "resign words", T[7], await line(page, ".chg-resign span"));
   compare(scr, "field", shapeOf(sh[50]), await box(page, ".ch-input"));
   compare(scr, "send", shapeOf(sh[51]), await box(page, ".ch-send"));
   note((await page.locator(".ch-quick").count()) === 0, `${scr}: no chips while the game is open`);
   await fonts(page, scr, [["title", ".chg-head h2"], ["resign", ".chg-resign span"]]);
+  await overflowAt(page, scr, 390); await shot(page, scr);
+  await ctx.close();
+}
+
+if (want("composer")) {
+  const scr = "composer", S = await sheet("composer"), sh = S.shapes, T = S.lines;
+  const { ctx, page } = await open(browser, `${PREVIEW}/stand/composer`, 390, scr);
+  await page.waitForSelector('[data-screen="composer"]'); await settle(page);
+  left(scr, "title", T[0], await line(page, ".cp-head h1"));
+  left(scr, "sub", T[1], await line(page, ".cp-head p"));
+  compare(scr, "sheet left,top", [sh[1].x, sh[1].y], (await box(page, ".cp-sheet")).slice(0, 2));
+  compare(scr, "card", shapeOf(sh[2]), await box(page, ".cp-card"));
+  left(scr, "card label", T[2], await line(page, ".cp-card label"));
+  left(scr, "lives", T[5], await line(page, ".cp-card-foot span", 0));
+  right(scr, "letters left", T[6], await line(page, ".cp-card-foot span", 1));
+  left(scr, "going", T[7], await line(page, ".cp-sheet h2", 0));
+  const modes = await boxOf(page, ".cp-mode");
+  [3, 4, 5].forEach((s, i) => compare(scr, `mode ${i + 1}`, shapeOf(sh[s]), modes[i] ?? NAN4));
+  left(scr, "hears", T[11], await line(page, ".cp-sheet h2", 1));
+  const zones = await boxOf(page, ".cp-zone");
+  [6, 7, 8, 9, 10].forEach((s, i) => compare(scr, `zone ${i + 1}`, shapeOf(sh[s]), zones[i] ?? NAN4));
+  compare(scr, "live panel", shapeOf(sh[11]), await box(page, ".cp-live"));
+  compare(scr, "ring", shapeOf(sh[13]), await box(page, ".cp-ring"));
+  left(scr, "ring words", T[17], await line(page, ".cp-ring span"));
+  left(scr, "live words", T[15], await line(page, ".cp-live p"));
+  compare(scr, "send", shapeOf(sh[12]), await box(page, ".cp-send"));
+  await fonts(page, scr, [["title", ".cp-head h1"], ["phrase", ".cp-card textarea"]]);
   await overflowAt(page, scr, 390); await shot(page, scr);
   await ctx.close();
 }

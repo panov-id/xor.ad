@@ -282,16 +282,21 @@ export async function wideSheets(h) {
     const ava = await boxOf(page, ".tk-list .tk-avatar");
     p.avatars.forEach((s, k) => compare(scr, `row ${k + 1} avatar`, abs(shape(S, s)), ava[k] ?? NAN4));
     for (let k = 0; k < p.names.length; k++) textAt(scr, `row ${k + 1} name`, T[p.names[k]], await line(page, `.tk-list .tk-rows li:nth-child(${k + 1}) .tk-name`));
-    compare(scr, "the talk", abs(shape(S, p.pane)), await one(page, '[data-testid="chat-pane"]'));
+    const paneE = shape(S, p.pane), paneA = await one(page, '[data-testid="chat-pane"]');
+    compare(scr, "the talk (left, top, width)", [paneE.x, paneE.y, paneE.w], paneA.slice(0, 3));
+    if (p.bar) info(`${scr}: the talk ends above the bar (the sheet draws no bar and no other way out; the bar stays, xor-ad-0b 18.10): its height ${paneA[3].toFixed(1)} against the sheet's ${paneE.h.toFixed(1)}, the chips and the field are compared from its bottom`);
+    // from the talk's bottom where the bar shortens it: the gap to the bottom, the left, the width, the height
+    const fromBottom = (name, e, a) => compare(scr, name, [e.x, paneE.y + paneE.h - (e.y + e.h), e.w, e.h], [a[0], paneA[1] + paneA[3] - (a[1] + a[3]), a[2], a[3]]);
     compare(scr, "the talk's avatar", abs(shape(S, p.paneAvatar)), await one(page, ".ch-pane .ch-avatar"));
     textAt(scr, "the talk's name", T[p.paneName], await line(page, ".ch-pane .ch-who h1"));
     textAt(scr, "the talk's fade line", T[p.paneName + 1], await line(page, ".ch-pane .ch-line"));
     { const r = await one(page, ".ch-pane .ch-ring"), e = shape(S, p.ring); compare(scr, "the talk's ring (right, top, height)", [e.x + e.w, e.y, e.h], [r[0] + r[2], r[1], r[3]]); }
     { const d = shape(S, p.divider), b = await one(page, ".ch-pane .ch-sheet"); compare(scr, "the talk's divider (left, top, width)", [d.x, d.y, d.w], [b[0], b[1], b[2]]); }
     const chips = await boxOf(page, ".ch-pane .ch-chip");
-    p.chips.forEach((s, k) => compare(scr, `chip ${k + 1}`, abs(shape(S, s)), chips[k] ?? NAN4));
-    compare(scr, "the field", abs(shape(S, p.field)), await one(page, ".ch-pane .ch-input"));
-    compare(scr, "send", abs(shape(S, p.send)), await one(page, ".ch-pane .ch-send"));
+    const at = p.bar ? fromBottom : (name, e, a) => compare(scr, name, abs(e), a);
+    p.chips.forEach((s, k) => at(`chip ${k + 1}`, shape(S, s), chips[k] ?? NAN4));
+    at("the field", shape(S, p.field), await one(page, ".ch-pane .ch-input"));
+    at("send", shape(S, p.send), await one(page, ".ch-pane .ch-send"));
     info(`${scr}: the talk's lines are not compared (no keys open them on the stand); the rows' lines are the web's (waiting, over, my span), not the last line`);
     await overflowAt(page, scr, w);
     if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${scr}.png` });
@@ -303,7 +308,7 @@ export async function wideSheets(h) {
   await feed("desktop", 1440, "desktop", "desktop_1440_Feed", { tiles: [12, 25, 16, 29, 18, 33, 21], panel: 6, tile: 12, hand: 13, foot: 14, chip: 15, title: [13, 14] });
   await me("tablet", 834, "tablet", "tablet_834_Me");
   await talks("tablet", 834, "tablet", "tablet_834_Talks", { brand: 0, title: 1, offers: 4, faces: [7, 8, 9, 10], sheet: 11, selected: 12, avatars: [13, 14, 15, 16],
-    names: [12, 16, 20, 24], pane: 17, paneAvatar: 19, paneName: 29, ring: 35, divider: 18, chips: [26, 27, 28, 29], field: 30, send: 31 });
+    names: [12, 16, 20, 24], pane: 17, paneAvatar: 19, paneName: 29, ring: 35, divider: 18, chips: [26, 27, 28, 29], field: 30, send: 31, bar: true });
   await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sub: 1, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });
   await me("desktop", 1440, "desktop", "desktop_1440_Me");
   await write("desktop", 1440, "desktop", "desktop_1440_Write", { where: 8, title: 9, panel: 6, card: 7, label: 10, lives: 13, going: 15, modes: 8, hears: 19, zones: 11,

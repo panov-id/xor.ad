@@ -5,7 +5,7 @@
 // quiet, error; plus open-likes and chat-ring.
 // Not as the sheet: the line under a talk is the web's (waiting, over, my span), not its last line — the inbox
 // carries no text of a talk; the search in the head is not drawn (the web has no search over talks).
-import { useEffect, useState, type CSSProperties } from "react";
+import { type ReactNode, useEffect, useState, type CSSProperties } from "react";
 import type { Client } from "@sdk/client.ts";
 import { failedLine, label, LANG, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
@@ -19,7 +19,8 @@ import { chatRowOf, isFresh, lineOf, ringOf, splitInbox, type MatchRow, type Row
 const LAST_LOOK = "xor-inbox-last-look";
 const FACES = 4; // the sheet's avatar colours, in turn
 const now = () => Math.floor(Date.now() / 1000);
-const clock = (s?: number) => (s === undefined ? "" : new Date(s * 1000).toLocaleTimeString(LANG, { hour: "2-digit", minute: "2-digit" }));
+// 24 hours, as the sheets write it («21:04») and as a talk's own lines do (screens/chat-logic.ts clockOf)
+const clock = (s?: number) => (s === undefined ? "" : new Date(s * 1000).toLocaleTimeString(LANG, { hour: "2-digit", minute: "2-digit", hour12: false }));
 
 function Ring({ talk }: { talk: TalkRow }) {
   const ring = ringOf(talk, now());
@@ -59,7 +60,7 @@ export function useInbox(client: Client, mark: boolean): { rows: Row[] | null; e
 export interface TalksActions { onOpenMatch: (row: MatchRow) => void; onOpenChat: (row: InboxChatRow) => void; onLikes: () => void }
 
 /** The strip of offers and the rows of talks: the talks' screen and the desktop's right pane draw the same list. */
-export function TalksList({ rows, error, actions }: { rows: Row[] | null; error: string | null; actions: TalksActions }) {
+export function TalksList({ rows, error, actions, selectedId }: { rows: Row[] | null; error: string | null; actions: TalksActions; selectedId?: string }) {
   const { onOpenMatch, onOpenChat, onLikes } = actions;
   const { offers, talks } = splitInbox(rows ?? []);
   return (
@@ -86,7 +87,7 @@ export function TalksList({ rows, error, actions }: { rows: Row[] | null; error:
       <ul className="tk-rows" aria-label={label("web.inbox.chats")} data-testid="chats">
         {talks.map((c, i) => (
           <li key={c.id} data-testid="chat" data-id={c.id} data-state={c.state}>
-            <button type="button" className="tk-row" disabled={!chatRowOf(c)} onClick={() => { const row = chatRowOf(c); if (row) onOpenChat(row); }} data-testid="open-chat">
+            <button type="button" className="tk-row" aria-current={c.id === selectedId ? "true" : undefined} disabled={!chatRowOf(c)} onClick={() => { const row = chatRowOf(c); if (row) onOpenChat(row); }} data-testid="open-chat">
               <span className="tk-avatar" data-face={i % FACES} aria-hidden="true">{initial(c.name)}</span>
               <span className="tk-who">
                 <span className="tk-name">{c.name}, {c.age}</span>
@@ -103,19 +104,27 @@ export function TalksList({ rows, error, actions }: { rows: Row[] | null; error:
   );
 }
 
-export function Inbox({ client, onTab, onOpenMatch, onOpenChat, onLikes }: {
+/** The tablet and up (tablet_834_Talks): the open talk stands beside the list (`beside`, the shell's ChatPane in its pane
+ * frame), its row lit (`selectedId`); with none chosen yet, the first talk that opens is chosen (`pickFirst`), as the sheet. */
+export function Inbox({ client, onTab, onOpenMatch, onOpenChat, onLikes, beside, selectedId, pickFirst }: {
   client: Client; onTab: (tab: Tab) => void;
   onOpenMatch: (row: MatchRow) => void; onOpenChat: (row: InboxChatRow) => void; onLikes: () => void;
+  beside?: ReactNode; selectedId?: string; pickFirst?: boolean;
 }) {
   const { rows, error } = useInbox(client, true);
+  useEffect(() => {
+    if (!pickFirst || selectedId || !rows) return;
+    for (const c of splitInbox(rows).talks) { const row = chatRowOf(c); if (row) { onOpenChat(row); return; } }
+  }, [pickFirst, selectedId, rows]); // eslint-disable-line react-hooks/exhaustive-deps
   const title = say("app.talks.title");
   return (
-    <Screen name="inbox" title={title} className="tk">
+    <Screen name="inbox" title={title} className="tk" data-beside={beside ? "" : undefined}>
       <header className="me-head"><span className="word">sosed</span></header>
       <h1 className="tk-title">{title}</h1>
       <p className="tk-sub">{say("app.talks.sub")}</p>
       <div className="tk-sheet">
-        <TalksList rows={rows} error={error} actions={{ onOpenMatch, onOpenChat, onLikes }} />
+        <div className="tk-list"><TalksList rows={rows} error={error} actions={{ onOpenMatch, onOpenChat, onLikes }} selectedId={selectedId} /></div>
+        {beside}
       </div>
       <TabBar active="chats" onSelect={onTab} />
     </Screen>

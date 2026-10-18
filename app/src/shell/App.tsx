@@ -42,8 +42,7 @@ async function boot(): Promise<void> {
 // The desktop (1440 and up, tokens/wide.css): the talks' pane stands at the right of the panel of these screens
 // (sosed Dusk desktop_1440_Feed, _Phrase, _Me, _Write); below it is not mounted and reads nothing.
 const PANE_BESIDE = new Set<Screen["at"]>(["feed", "me", "composer"]);
-function useWide(): boolean {
-  const query = "(min-width: 1440px)";
+function useWide(query = "(min-width: 1440px)"): boolean {
   const [wide, setWide] = useState(() => typeof matchMedia === "function" && matchMedia(query).matches);
   useEffect(() => {
     if (typeof matchMedia !== "function") return;
@@ -78,6 +77,9 @@ export function App() {
   // Waiting rules (MOTION.md): the loading screen shows only if the wait outlasts 300 ms, and then stays 600 ms.
   const loadingShown = useSkeleton(booting);
   const wide = useWide();
+  // The tablet and up: the talks' screen opens a talk beside its list (tablet_834_Talks), not over it.
+  const twoPane = useWide("(min-width: 834px)");
+  const [beside, setBeside] = useState<InboxChatRow | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -292,7 +294,11 @@ export function App() {
       case "chat": return seated && chatKeys ? <Chat key={screen.row.id} client={seated.client} keys={chatKeys} row={screen.row} onBack={chatBack} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       // The talks (w3): a match and a talk open over the inbox — a talk's row is the chat's when the node gave it whole.
-      case "inbox": return seated ? <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={openChat} /> : null;
+      case "inbox": return seated ? (
+        <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={twoPane ? setBeside : openChat}
+          pickFirst={twoPane} selectedId={twoPane ? beside?.id : undefined}
+          beside={twoPane && beside && chatKeys ? <Chat key={beside.id} client={seated.client} keys={chatKeys} row={beside} onBack={() => setBeside(null)} frame="pane" /> : undefined} />
+      ) : null;
       // What I am in on, over the inbox (i: 1): its back is the history's Back onto /inbox; a reload on it, the inbox.
       // A match over the inbox (i: 1, its row in the entry); "Let's talk" agreed by both goes to the talks (the talk's own screen is the chat wave's), a lone yes is the wait in place.
       case "match": return seated && chatKeys ? <Match client={seated.client} keys={chatKeys} row={screen.row} onAgreed={() => tab("chats")}

@@ -82,6 +82,35 @@
   }
   /* .cp .cp-sheet: composer.css loads after this file */
   .cp .cp-sheet { padding-inline: max(var(--ch-side), calc((100% - var(--cp-col)) / 2)); }
+
+  /* the talks with a talk open beside the list (tablet_834_Talks; Inbox.tsx beside, Chat.tsx frame "pane"): the offers' strip
+     in the head at the right of the title, the sheet in two columns — the list 299.8, the talk 465.6 — the bar not drawn */
+  .tk[data-beside] { position: relative; height: 100dvh; display: flex; flex-direction: column; }
+  .tk[data-beside] > .tabbar { display: none; }
+  .tk[data-beside] .me-head { height: auto; }
+  .tk[data-beside] .tk-title { position: absolute; left: 32.8px; top: 158.9px; transform: translateY(-80%); width: auto; max-width: none; margin: 0; padding: 0;
+    font-size: 40px; line-height: 1; }
+  .tk[data-beside] .tk-sub { display: none; }
+  /* the strip stands in the sheet's frame (the sheet is positioned): its top is the head's 81.5 less the sheet's 249.8 */
+  .tk[data-beside] .tk-strip { position: absolute; left: 432.4px; top: -164px; width: auto; max-width: none; margin: 0; padding: 0;
+    --tk-offers: 66.3px; --tk-face: 60px; --tk-strip-gap: 15.9px; }
+  .tk[data-beside] .tk-sheet { position: absolute; left: 0; right: 0; top: 249.8px; bottom: 0; margin: 0; display: grid; grid-template-columns: 299.8px 465.6px;
+    column-gap: 19.9px; align-items: start; padding: 24px; }
+  .tk[data-beside] .tk-sheet > * { max-width: none; margin: 0; }
+  .tk[data-beside] .tk-list { --tk-row-h: 71.9px; --tk-row-side: 12px; --tk-rows-top: 0px; }
+  .tk[data-beside] .tk-rows { margin-top: 0; display: flex; flex-direction: column; gap: 4px; }
+  /* one line under the name, cut as the sheet cuts it («The round oven on Lesel…»); an empty one keeps its place */
+  .tk[data-beside] .tk-line { min-height: 1.25em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tk[data-beside] .tk-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* «Nino, 27» on one line beside a long time */
+  .tk-row[aria-current="true"] { background: var(--c-peach); color: var(--c-ink); border-radius: var(--r-row); }
+  .tk-row[aria-current="true"] .tk-line, .tk-row[aria-current="true"] .tk-time { color: #5a4636; }
+  .ch.ch-pane { min-height: 0; height: 895.3px; border-radius: var(--r-card); overflow: hidden;
+    --ch-side: 19.9px; --ch-side-end: 19.9px; --ch-head-h: 79.9px; --ch-avatar-x: 19.9px; --ch-avatar-y: 20px; --ch-avatar: 48px;
+    --ch-who-x: 81.2px; --ch-name-base: 42px; --ch-line-base: 62px; --ch-ring-end: 19.9px; --ch-ring-y: 22px; --ch-ring: 44px; --ch-pad-top: 13px;
+    --ch-foot-bottom: 19.9px; --ch-field-gap: 12px; --ch-chip-pad: 13.5px; }
+  .ch-pane .ch-sheet { background: none; border-radius: 0; border-top: 1px solid var(--c-panel); margin-inline: var(--ch-side); }
+  .ch-pane .ch-lines, .ch-pane .ch-foot { padding-inline: 0; }
+  .ch-pane .ch-more { left: auto; right: calc(var(--ch-ring-end) + var(--ch-ring) + 8px); }
 }
 
 /* ── desktop ── */

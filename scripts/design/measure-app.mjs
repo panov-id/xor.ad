@@ -244,7 +244,9 @@ const INBOX_AT = (h, m) => Date.UTC(2026, 9, 18, h, m) / 1000;
 function inboxRows() {
   const now = Math.floor(Date.now() / 1000);
   const offer = (id, name, age, fresh) => ({ kind: "match", id, name, age, phrase: { text: "…", mode: "alone" }, waiting_for_you: false, state: "proposed", arrived_since: fresh });
-  const talk = (id, name, age, left, last, more = {}) => ({ kind: "chat", id, name, age, state: "open", chat_expires_at: now + left * 60 - 5, my_span: 60, last_activity_at: last, ...more });
+  // a talk's keys' half of the row (chatRowOf takes a row whole): epochs and the other's public key
+  const keys = (peer) => ({ me: "id-stub", key_epoch: 1, rekey_requested: false, peer: { key_epoch: 1, identity_id: `id-${peer}`, identity_public_key: `pk-${peer}` } });
+  const talk = (id, name, age, left, last, more = {}) => ({ kind: "chat", id, name, age, state: "open", chat_expires_at: now + left * 60 - 5, my_span: 60, last_activity_at: last, ...keys(name.toLowerCase()), ...more });
   return [
     offer("m1", "Nino", 27, true), offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false), offer("m4", "Tamar", 33, false),
     talk("c1", "Nino", 27, 38, INBOX_AT(21, 4), { pending_messages: 1 }), talk("c2", "Levan", 34, 52, INBOX_AT(20, 10)),
@@ -305,6 +307,8 @@ function nodeStub(opts = {}) {
       if (key === "GET /identities/me") return json(200, { identity_id: "id-stub", ...profile, ...(away.until ? { stepped_away_until: away.until } : {}) });
       if (key === "GET /statements") return json(200, { items: [] });
       if (key === "GET /inbox") return json(200, { items: inboxRows(), events: {} });
+      // the talk beside the list: no wrap kept, no room — 503, not 404 (a ticket's 404 is the talk's end, room.ts)
+      if (u.pathname.startsWith("/chats/")) return json(503, { error: "unavailable" });
       // the composer (measure-app-wide.mjs write): the node's limits
       if (key === "GET /limits") return json(200, { phrase_length: 128, chat_ciphertext_chars: 8000 });
       if (key === "DELETE /away") { away.until = null; return route.fulfill({ status: 204 }); }

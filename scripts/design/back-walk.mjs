@@ -240,7 +240,7 @@ try {
     const fwd = await page.locator("main[data-screen]").first().getAttribute("data-screen");
     await page.goBack(); await settle(page);
     const back = await page.locator("main[data-screen]").first().getAttribute("data-screen");
-    check(back === "inbox", `11b Forward onto the match (${fwd}), then Back: the inbox again (screen ${back})`);
+    check(fwd === "match-waiting" && back === "inbox", `11b after my yes, Forward onto /match is the wait (screen ${fwd}), then Back: the inbox again (screen ${back})`);
     await ctx.close();
   }
   // 5. the away screen (until an hour on) → Back: still the away screen

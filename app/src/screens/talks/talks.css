@@ -103,7 +103,8 @@
 .tk-bubble { max-width: var(--wt-bubble-max); padding: var(--wt-bubble-pad); border-radius: var(--wt-bubble-r) var(--wt-bubble-r) var(--wt-bubble-tail) var(--wt-bubble-r);
   background: var(--c-lime); color: var(--c-ink); font-size: var(--fs-wt-bubble); font-weight: var(--fw-700); line-height: var(--lh-tight); overflow-wrap: anywhere; }
 .tk-bubble-time { font-size: var(--fs-wt-time); font-weight: var(--fw-500); color: var(--c-muted); }
-.tk-wait-foot { flex: none; display: grid; gap: var(--wt-foot-gap); padding-bottom: max(var(--wt-foot-bottom), env(safe-area-inset-bottom)); }
+/* minmax(0, 1fr): the field's own width (an input's size) would widen an auto column past the sheet on a narrow phone */
+.tk-wait-foot { flex: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--wt-foot-gap); padding-bottom: max(var(--wt-foot-bottom), env(safe-area-inset-bottom)); }
 .tk-compose { display: flex; gap: var(--wt-send-gap); }
 .tk-compose input { flex: 1; min-width: 0; height: var(--wt-input-h); padding: 0 var(--wt-input-pad); border: 0; border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text);
   font: inherit; font-size: var(--fs-wt-input); font-weight: var(--fw-500); }

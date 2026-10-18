@@ -16,9 +16,9 @@ import { matchView, type MatchRow } from "./talks-logic";
 
 
 // No back button on the sheet: the system Back leaves it, onto the inbox it was opened over.
-export function Match({ client, keys, row, onAgreed, onBack, onTalks }: {
+export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onTalks }: {
   client: Client; keys: ChatKeys; row: MatchRow;
-  onAgreed: (chatId: string) => void; onBack: () => void; onTalks: () => void;
+  onAgreed: (chatId: string) => void; onWaiting: (row: MatchRow) => void; onBack: () => void; onTalks: () => void;
 }) {
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -33,7 +33,7 @@ export function Match({ client, keys, row, onAgreed, onBack, onTalks }: {
     keys.consent(row.id).then((answer) => {
       if (answer.status !== 200) throw new Error(`consent: ${answer.status}`);
       if (answer.body.state === "agreed" && answer.body.chat_id) onAgreed(answer.body.chat_id);
-      else setAgreed(true);
+      else { setAgreed(true); onWaiting({ ...row, my_consent: "waiting" }); }
     }).catch((e: Error) => setError(failedLine(e))).finally(() => setBusy(false));
   };
   const notNow = () => {

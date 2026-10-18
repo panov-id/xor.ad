@@ -234,7 +234,13 @@ for (let i = 0; ; i++) {
 const stub = nodeStub();
 const { ctx, page } = await open(browser, PREVIEW + "/", 390, { screen: "w3", prepare: stub.prepare });
 await registerFull(page);
-await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]', { timeout: 20000 });
+await page.click('[data-testid="tab-chats"]');
+if (!(await page.waitForSelector('[data-screen="inbox"]', { timeout: 20000 }).then(() => true, () => false))) {
+  await page.screenshot({ path: `${SHOTS}/w3_tab-chats-${TAG}-missing.png` });
+  const at = await page.locator("main[data-screen]").first().getAttribute("data-screen").catch(() => "(none)");
+  console.log(`measure-app-w3: SPOILED — the talks tab did not open the inbox (screen ${at}, url ${new URL(page.url()).pathname}); shot w3_tab-chats-${TAG}-missing.png`);
+  process.exit(2);
+}
 await page.locator('[data-testid="chat"]').nth(3).waitFor({ timeout: 20000 });
 note(new URL(page.url()).pathname === "/inbox", `walk: the tab bar's «talks» opens the inbox at ${new URL(page.url()).pathname}`);
 note(stub.calls.some((c) => c === "GET /inbox"), `walk: the inbox reads GET /inbox (${stub.calls.filter((c) => c.includes("/inbox")).join(", ") || "never"})`);
@@ -378,7 +384,19 @@ for (const w of [375, 320]) {
   const shown = await o.page.locator('[data-testid="chat"]').nth(3).waitFor({ timeout: 20000 }).then(() => true, () => false);
   if (!shown) await o.page.screenshot({ path: `${SHOTS}/w3_inbox-${TAG}-${w}-missing.png` });
   note(shown, `walk: the inbox at ${w}[${TAG}] shows its four talks (${await o.page.locator('[data-testid="chat"]').count()} in the DOM, screen ${await o.page.locator("main[data-screen]").first().getAttribute("data-screen").catch(() => "(none)")})`);
-  await settle(o.page); await overflowAt(o.page, "inbox", w); await o.ctx.close();
+  await settle(o.page); await overflowAt(o.page, "inbox", w);
+  // the other three at this width, the way a person goes: «Offers», back, a face, «Let's talk»
+  await o.page.click('[data-testid="open-likes"]'); await o.page.locator('[data-testid="liked-card"]').nth(2).waitFor({ timeout: 20000 }).catch(() => {});
+  await settle(o.page); await overflowAt(o.page, "likes", w);
+  await o.page.click('[data-testid="likes-back"]'); await o.page.waitForSelector('[data-screen="inbox"]', { timeout: 20000 });
+  await o.page.locator('[data-testid="open-match"]').first().click(); await o.page.waitForSelector('[data-screen="match"]', { timeout: 20000 });
+  await settle(o.page); await overflowAt(o.page, "match", w);
+  await o.page.click('[data-testid="talk"]'); await o.page.waitForSelector('[data-screen="match-waiting"]', { timeout: 20000 });
+  await o.page.fill('[data-testid="queued-line"]', "Hi! Coffee near the bakery?"); await o.page.click('[data-testid="enqueue"]');
+  await settle(o.page); await overflowAt(o.page, "match-waiting", w);
+  const wide = await o.page.evaluate(() => [...document.querySelectorAll('[data-testid="waiting"] *')].map((e) => [e.tagName.toLowerCase() + (typeof e.className === "string" && e.className ? "." + e.className.split(" ")[0] : ""), Math.round(e.getBoundingClientRect().right)]).filter(([, r]) => r > innerWidth - parseFloat(getComputedStyle(document.querySelector('[data-testid="waiting"]')).paddingRight) + 0.5).slice(0, 6));
+  if (wide.length) note(false, `waiting @${w}: past the sheet's content edge — ${wide.map(([t, r]) => `${t} to ${r}`).join(", ")}`);
+  await o.ctx.close();
 }
 
 await browser.close();

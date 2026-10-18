@@ -237,6 +237,22 @@ try {
     check(field === 0 && at === "feed", `10 an ended chat shows the tombstone without a field or «…», and its back is the feed (field/more ${field}, screen ${at})`);
     await ctx.close();
   }
+  // 11. the game chip (w3_chat «Backgammon?»): the game takes the lines' place and the chips', with no game yet it
+  // offers one; «Hide the game» gives the lines back
+  {
+    const ROW = { kind: "chat", id: "chat-game", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
+    await page.click('[data-testid="quick-game"]'); await page.waitForSelector('[data-testid="chat-game"]');
+    const open_ = { chips: await page.locator(".ch-quick").count(), lines: await page.locator('[data-testid="lines"]').count(), propose: await page.locator('[data-testid="game-propose"]').count() };
+    await page.click('[data-testid="game-hide"]'); await settle(page);
+    const shut = { game: await page.locator('[data-testid="chat-game"]').count(), lines: await page.locator('[data-testid="lines"]').count(), chips: await page.locator(".ch-quick").count() };
+    check(open_.chips === 0 && open_.lines === 0 && open_.propose === 1 && shut.game === 0 && shut.lines === 1 && shut.chips === 1,
+      `11 the game chip opens the game in the lines' place, «Hide the game» gives them back (open ${JSON.stringify(open_)}, hidden ${JSON.stringify(shut)})`);
+    await ctx.close();
+  }
   // 4. Me → Move → Back: Me again, not the feed (App.tsx toMove pushes i: 1; popstate → seatScreen("/me"))
   {
     const { ctx, page } = await open(browser); await registerFull(page);

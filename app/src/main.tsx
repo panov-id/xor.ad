@@ -16,5 +16,5 @@ import { ChatStand } from "./screens/chat-stand";
 
 // The stand's build draws a few panes from views of their own for the measure (screens/chat-stand.tsx); a real
 // build has no such path.
-const stand = import.meta.env.VITE_STAND === "1" ? location.pathname.match(/^\/stand\/(chat|chat-over|chat-more)$/)?.[1] as "chat" | "chat-over" | "chat-more" | undefined : undefined;
+const stand = import.meta.env.VITE_STAND === "1" ? location.pathname.match(/^\/stand\/(chat|chat-over|chat-more|chat-game)$/)?.[1] as "chat" | "chat-over" | "chat-more" | "chat-game" | undefined : undefined;
 createRoot(document.getElementById("root")!).render(stand ? <ChatStand pane={stand} /> : <App />);

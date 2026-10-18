@@ -101,3 +101,26 @@
 .chm-go { background: var(--c-coral); color: var(--c-ink); }
 .ch-safety-line { margin: 0; padding: var(--sp-2) var(--ch-side-end) 0 var(--ch-side); font-size: var(--fs-ch-time); font-weight: var(--fw-700);
   color: var(--c-muted); font-variant-numeric: tabular-nums; }
+
+/* The game in the chat (chat-game.tsx; w3_chat-game). */
+.ch-game { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; padding: var(--chg-top) var(--ch-side-end) 0 var(--ch-side); }
+.chg { flex: 1; display: flex; flex-direction: column; }
+.chg-line { margin: 0; text-align: center; font-size: var(--fs-chg-line); font-weight: var(--fw-600); line-height: 1; color: var(--c-muted); }
+.chg-panel { margin-top: var(--chg-panel-gap); min-height: var(--chg-panel-h); border-radius: var(--r-card); background: var(--c-panel);
+  padding: var(--chg-pad) var(--chg-pad) var(--chg-pad-bottom); display: flex; flex-direction: column; gap: var(--chg-board-gap); }
+.chg-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); min-height: var(--chg-turn-h); }
+.chg-head h2 { margin: 0; transform: translateY(var(--chg-title-drop)); min-width: 0; font-size: var(--fs-chg-title); font-weight: var(--fw-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chg-turn { flex: none; height: var(--chg-turn-h); padding-inline: var(--chg-turn-pad); border-radius: var(--r-pill); background: var(--c-panel);
+  display: inline-flex; align-items: center; font-size: var(--fs-chg-turn); font-weight: var(--fw-700); }
+.chg-turn[data-turn="theirs"] { color: var(--c-muted); }
+.chg-board { height: var(--chg-board-h); border-radius: var(--r-row); background: var(--c-sheet); }
+.chg-ask { display: flex; flex-direction: column; gap: var(--sp-2); }
+.chg-note { margin: 0; font-size: var(--fs-chm-value); line-height: var(--lh-ch-over-text); color: var(--c-muted); }
+.chg-cta, .chg-quiet { height: var(--chg-resign-h); min-height: var(--chg-resign-h); border-radius: var(--r-pill); font-weight: var(--fw-700); }
+.chg-cta { background: var(--c-lime); color: var(--c-ink); }
+.chg-quiet { background: var(--c-sheet); }
+.chg-error { margin: 0; font-size: var(--fs-ch-time); color: var(--c-coral); }
+.chg-resign { margin-top: auto; margin-bottom: var(--chg-resign-gap); height: var(--chg-resign-h); min-height: var(--chg-resign-h); border-radius: var(--r-pill);
+  background: var(--c-panel); display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  font-size: var(--fs-chg-resign); font-weight: var(--fw-700); }
+.chg-resign .icon { --icon-size: var(--icon-notice); --stroke: 2; }

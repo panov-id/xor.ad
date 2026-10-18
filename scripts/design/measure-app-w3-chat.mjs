@@ -177,6 +177,26 @@ if (want("chat-over")) {
   await ctx.close();
 }
 
+if (want("chat-game")) {
+  const scr = "chat-game", S = await sheet("chat-game"), sh = S.shapes, T = S.lines;
+  const { ctx, page } = await open(browser, `${PREVIEW}/stand/chat-game`, 390, scr);
+  await page.waitForSelector('[data-testid="chat-game"]'); await settle(page);
+  left(scr, "proposal line", T[3], await line(page, ".chg-line"));
+  compare(scr, "panel", shapeOf(sh[3]), await box(page, ".chg-panel"));
+  left(scr, "title", T[4], await line(page, ".chg-head h2"));
+  compare(scr, "turn pill", shapeOf(sh[4]), await box(page, ".chg-turn"));
+  left(scr, "turn words", T[5], await line(page, ".chg-turn"));
+  compare(scr, "board's place", shapeOf(sh[5]), await box(page, ".chg-board"));
+  compare(scr, "resign", shapeOf(sh[49]), await box(page, ".chg-resign"));
+  left(scr, "resign words", T[7], await line(page, ".chg-resign span"));
+  compare(scr, "field", shapeOf(sh[50]), await box(page, ".ch-input"));
+  compare(scr, "send", shapeOf(sh[51]), await box(page, ".ch-send"));
+  note((await page.locator(".ch-quick").count()) === 0, `${scr}: no chips while the game is open`);
+  await fonts(page, scr, [["title", ".chg-head h2"], ["resign", ".chg-resign span"]]);
+  await overflowAt(page, scr, 390); await shot(page, scr);
+  await ctx.close();
+}
+
 if (want("chat-more")) {
   const scr = "chat-more", S = await sheet("chat-more"), sh = S.shapes, T = S.lines;
   const { ctx, page } = await open(browser, `${PREVIEW}/stand/chat-more`, 390, scr);

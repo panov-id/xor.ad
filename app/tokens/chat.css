@@ -82,4 +82,22 @@
   --fs-chm-value: 14px;
   --chm-chev-end: 14px;
   --chm-value-pull: 3.5px;
+
+  /* the game in the chat (w3_chat-game) */
+  --chg-top: 24.3px;
+  --fs-chg-line: 12.75px;
+  --chg-panel-gap: 12.2px;
+  --chg-panel-h: 352.2px;
+  --chg-pad: 19.9px;
+  --chg-pad-bottom: 19.2px;
+  --fs-chg-title: 15.4px;
+  --chg-title-drop: 2.2px;
+  --chg-turn-h: 29.9px;
+  --chg-turn-pad: 13.6px;
+  --fs-chg-turn: 13px;
+  --chg-board-gap: 11.9px;
+  --chg-board-h: 271.2px;
+  --chg-resign-h: 49.8px;
+  --chg-resign-gap: 9.7px;
+  --fs-chg-resign: 16px;
 }

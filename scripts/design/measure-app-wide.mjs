@@ -325,6 +325,7 @@ export async function wideSheets(h) {
     compare(scr, "let's talk", abs(shape(S, p.talk)), await one(page, ".tk-talk"));
     textAt(scr, "let's talk words", T[p.talkWords], await line(page, ".tk-talk"));
     textAt(scr, "not now", T[p.later], await line(page, ".tk-later"));
+    if (p.behind) info(`${scr}: not compared — ${p.behind}`);
     await overflowAt(page, scr, w);
     if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${scr}.png` });
     await o.ctx.close();
@@ -339,6 +340,8 @@ export async function wideSheets(h) {
   await talks("desktop", 1440, "desktop", "desktop_1440_Talks", { count: 8, title: 9, rail: { active: 2, say: 4 }, offers: 10, faces: [13, 14, 15, 16], sheet: 6, selected: 17,
     avatars: [18, 19, 20, 21], names: [20, 24, 28, 32], pane: 22, paneAvatar: 23, paneName: 37, ring: 44, chips: [34, 35, 36, 37], field: 38, send: 39, bar: "in the panel (the sheet draws it past the panel's foot, its field below the window)" });
   await bothIn("tablet", 834, "tablet", "tablet_834_BothIn", { card: 1, pill: 2, pillWords: 0, faces: [5, 7], hand: 8, title: 1, hint: 2, captions: [4, 6], talk: 3, talkWords: 8, later: 9 });
+  await bothIn("desktop", 1440, "desktop", "desktop_1440_BothIn", { card: 54, pill: 55, pillWords: 64, faces: [58, 60], hand: 61, title: 65, hint: 66, captions: [68, 70], talk: 56, talkWords: 72, later: 73,
+    behind: "the feed behind the card and the open talk at the right (the sheet draws the card over the screen it came from; here the match is a screen of its own)" });
   await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sub: 1, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });
   await me("desktop", 1440, "desktop", "desktop_1440_Me");
   await write("desktop", 1440, "desktop", "desktop_1440_Write", { where: 8, title: 9, panel: 6, card: 7, label: 10, lives: 13, going: 15, modes: 8, hears: 19, zones: 11,

@@ -1,0 +1,85 @@
+/* The conversation (sheets mobile w3_chat, w3_chat-over): sizes read off the sheets (app/src/screens/chat.css uses
+   them). The sheets' canvas is 388 wide in a 390 viewport. */
+:root {
+  --ch-side: 15.9px;
+  --ch-side-end: 17.9px;
+  --ch-head-h: 88.3px;
+  --ch-back-x: 25px;
+  --ch-back-y: 24.7px;
+  --ch-avatar-x: 71.6px;
+  --ch-avatar-y: 22.7px;
+  --ch-avatar: 47.8px;
+  --fs-ch-avatar: 19px;
+  --ch-who-x: 130.6px;
+  --fs-ch-name: 19.5px;
+  --ch-name-base: 44.6px;
+  --fs-ch-line: 13.5px;
+  --ch-line-base: 64.5px;
+  --ch-ring-end: 23.9px;
+  --ch-ring-y: 24.7px;
+  --ch-ring: 43.8px;
+  --ch-ring-w: 4.5px;
+  --fs-ch-ring: 13.5px;
+  --ch-more-x: 280px;
+
+  --ch-pad-top: 21.9px;
+  --ch-starter-h: 29.9px;
+  --ch-starter-pad: 13.2px;
+  --fs-ch-starter: 12.7px;
+  --ch-starter-gap: 12px;
+  --ch-bubble-max: 270.6px;
+  --ch-bubble-pad-x: 16.1px;
+  --ch-bubble-pad-y: 11px;
+  --fs-ch-bubble: 14.4px;
+  --lh-ch-bubble: 20.9px;
+  --fs-ch-time: 11px;
+  --lh-ch-time: 16px;
+  --ch-time-gap: 2px;
+  --ch-row-gap: 11px;
+
+  --ch-chip-h: 39.8px;
+  --ch-chip-pad: 12.9px;
+  --ch-chip-gap: 8px;
+  --fs-ch-chip: 13.1px;
+  --ch-field-gap: 10px;
+  --ch-field-h: 53.7px;
+  --ch-field-pad: 21px;
+  --fs-ch-field: 16px;
+  --ch-foot-bottom: 25.4px;
+
+  --ch-over-top: 25px;
+  --ch-over-mark: 95.5px;
+  --ch-over-mark-icon: 34px;
+  --fs-ch-over-title: 23.9px;
+  --ch-over-title-gap: 16.5px;
+  --ch-over-text-gap: 16.6px;
+  --ch-over-text-max: 300px;
+  --fs-ch-over-text: 14.6px;
+  --lh-ch-over-text: 22.9px;
+  --ch-over-button-gap: 12.9px;
+  --ch-safety-h: 49.7px;
+  --ch-safety-pad: 6.2px;
+  --ch-safety-pad-end: 4.5px;
+  --ch-safety-gap: 2.9px;
+  --fs-ch-safety: 15px;
+
+  /* the «…» sheet (w3_chat-more) */
+  --chm-top: 370.9px;
+  --chm-shade: rgba(20, 17, 25, .62);
+  --chm-grab-top: 13px;
+  --chm-grab-w: 46px;
+  --chm-grab-h: 5px;
+  --chm-title-x: 22.2px;
+  --fs-chm-title: 18.6px;
+  --chm-title-base: 44.8px;
+  --chm-rows-top: 59.7px;
+  --chm-row-h: 55.7px;
+  --chm-row-gap: 9.95px;
+  --chm-row-pad: 13.9px;
+  --chm-icon: 37.8px;
+  --chm-text-gap: 13px;
+  --fs-chm-row: 15.6px;
+  --fs-chm-value: 14px;
+  --chm-chev-end: 14px;
+  --chm-value-pull: 3.5px;
+}

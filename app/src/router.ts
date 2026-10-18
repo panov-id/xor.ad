@@ -8,6 +8,7 @@ import type { Record_ } from "@sdk/enroll.ts";
 import type { MatchRow } from "./screens/talks/talks-logic";
 // The path, not @sdk: node:test (run-app-unit-tests.sh) has no aliases.
 import { codeOfPath } from "../../depth/core/offer_exit.ts";
+import type { InboxChatRow } from "@platform/chat/keys.ts";
 
 export type Screen =
   | { at: "loading" }
@@ -26,7 +27,9 @@ export type Screen =
   | { at: "tables" }
   | { at: "new-table" }
   | { at: "table"; id: string }
-  | { at: "offer"; code: string };
+  | { at: "offer"; code: string }
+  // A chat travels in history.state only (web router.ts): the row is a structured copy, never in the address.
+  | { at: "chat"; row: InboxChatRow };
 
 type At = Screen["at"];
 
@@ -48,6 +51,7 @@ export const ROUTES: Record<At, string> = {
   "new-table": "/tables/new",
   table: "/table",
   offer: "/o",
+  chat: "/chat",
 };
 
 // A path names a gate (reload, Back, a typed address); anything else is not one.
@@ -61,8 +65,8 @@ export function gateOf(path: string): Gate | null {
 export const pathOf = (s: Screen): string => (s.at === "offer" ? `/o/${s.code}` : ROUTES[s.at]);
 
 /** A seat's own address (an identity on the page): /move is the departure, /me is Me, /away the away screen, /inbox, /likes,
- * /match the talks, /tables the tables, /tables/new the wizard; anything else is the feed. */
-export const seatScreen = (path: string, state?: { until?: number; row?: MatchRow; id?: string } | null): Screen => {
+ * /match the talks, /tables the tables, /tables/new the wizard, /chat the chat its entry carries; anything else is the feed. */
+export const seatScreen = (path: string, state?: { until?: number; row?: MatchRow | InboxChatRow; id?: string } | null): Screen => {
   const p = path.replace(/\/+$/, "");
   const offer = codeOfPath(p);
   if (offer) return { at: "offer", code: offer };
@@ -71,11 +75,13 @@ export const seatScreen = (path: string, state?: { until?: number; row?: MatchRo
   if (p === ROUTES.inbox) return { at: "inbox" };
   if (p === ROUTES.likes) return { at: "likes" };
   // A match rides in its history entry, as the web's (web/src/router.ts): without it (a typed /match) the inbox.
-  if (p === ROUTES.match) return state?.row && typeof state.row === "object" ? { at: "match", row: state.row } : { at: "inbox" };
+  if (p === ROUTES.match) return state?.row && typeof state.row === "object" ? { at: "match", row: state.row as MatchRow } : { at: "inbox" };
   if (p === ROUTES.tables) return { at: "tables" };
   if (p === ROUTES["new-table"]) return { at: "new-table" };
   // A table rides in its history entry (its id), as the web's: without one (a typed /table) the list.
   if (p === ROUTES.table) return typeof state?.id === "string" && state.id ? { at: "table", id: state.id } : { at: "tables" };
+  // A chat's entry without its row (a typed /chat, a reload: the row is not kept on the disk) is the feed.
+  if (p === ROUTES.chat && state?.row?.kind === "chat") return { at: "chat", row: state.row };
   // The away screen's until rides in its history entry (App.tsx awayCheck); a lapsed one is the feed.
   if (p === ROUTES.away && typeof state?.until === "number" && state.until > Date.now() / 1000) return { at: "away", until: state.until };
   return { at: "feed" };

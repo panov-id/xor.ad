@@ -8,7 +8,7 @@ const PREVIEW = process.env.PREVIEW_URL ?? "http://localhost:4174";
 // The dev server is the stand build (VITE_STAND=1): it reads the grace from sessionStorage "xor-grace-ms" (app/src/vault.ts).
 const DEV = process.env.DEV_URL ?? "http://localhost:5174";
 const PIN = "483915";
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|inbox|likes|matches|tables)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|inbox|likes|matches|tables|chats)(\/|$)/;
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 const phrase = (n) => ({ id: `ph-${n}`, text: `Walk phrase number ${n}`, mode: "walk", lang: "en", like_count: n });
 const ITEMS = [phrase(1), phrase(2), phrase(3)];
@@ -53,6 +53,9 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
       seats: [{ seat: 1, name: "Alex", role: "playing" }, { seat: 2, name: "Nino", role: "playing" }],
       board: { seq: 1, state: { grid: { cells: {}, claim: null, rules: "four" } }, turn: 1, score: {}, expires_at: Math.floor(Date.now() / 1000) + 200, pending: null } });
     if (key === "POST /tables/t1/ticket") return json(503, { error: { code: "unavailable" } });
+    // the chat (C1-C3): the node keeps no wrap and answers no chat room — the pane stands on its row alone.
+    // 503, not 404: a ticket's 404 is the chat's end (room.ts), and the walks need it open
+    if (u.pathname.startsWith("/chats/")) return json(503, { error: "unavailable" });
     if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
     if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
     if (key === "POST /legal/accept") return json(200, {});
@@ -177,6 +180,68 @@ try {
       seen.push(`${n}:${at}@${url.startsWith("http://localhost") ? new URL(url).pathname : url}${r === null ? " (no entry)" : ""}`);
     }
     check(!seen.some((x) => /:(splash|register)@/.test(x)), `7b four Backs after the registration draw no gate (${seen.join(", ")})`);
+    await ctx.close();
+  }
+  // C1. a chat over the feed (App.tsx openChat pushes i + 1; its row rides in the entry): C1a Back → the feed, address too;
+  // C1b the chat's own back is the same; C1c Forward onto the chat entry opens it again from the row the entry keeps.
+  {
+    const ROW = { kind: "chat", id: "chat-walk", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    const openIt = async () => { await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 }); };
+    await openIt();
+    check(new URL(page.url()).pathname === "/chat", `C1 the chat opens at /chat (url ${new URL(page.url()).pathname}, state ${await state(page)})`);
+    await page.goBack(); await settle(page);
+    let at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "feed" && new URL(page.url()).pathname === "/feed", `C1a chat → Back lands on the feed (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "chat" && (await page.locator(".ch-who h1").textContent()) === "Nino, 27", `C1c Forward onto the chat entry opens it from its row (screen ${at})`);
+    await page.click('[data-testid="chat-back"]'); await settle(page);
+    at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "feed" && new URL(page.url()).pathname === "/feed", `C1b the chat's own back lands on the feed (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await ctx.close();
+  }
+  // C2. the chat's «…» sheet rides its own entry (Chat.tsx openMenu): C2a Back closes it and leaves the chat open;
+  // C2b the shade closes it the same way, no entry left behind; C2c «End the talk» asks once more, «Cancel» returns to the rows.
+  {
+    const ROW = { kind: "chat", id: "chat-menu", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
+    const depth = () => page.evaluate(() => history.length);
+    const before = await depth();
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.goBack(); await settle(page);
+    let menus = await page.locator('[data-testid="chat-menu"]').count();
+    let at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(menus === 0 && at === "chat" && new URL(page.url()).pathname === "/chat", `C2a Back closes the «…» sheet, the chat stays (sheets ${menus}, screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.click('[data-testid="menu-close"]', { position: { x: 20, y: 20 } }); await settle(page);
+    menus = await page.locator('[data-testid="chat-menu"]').count();
+    const sheetLeft = await page.evaluate(() => history.state?.sheet ?? null);
+    check(menus === 0 && sheetLeft === null, `C2b the shade closes it and leaves no sheet entry (sheets ${menus}, state.sheet ${sheetLeft}, history ${before}→${await depth()})`);
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.click('[data-testid="end"]');
+    const asks = await page.locator('[data-testid="end-confirm"]').count();
+    await page.click('[data-testid="menu-cancel"]');
+    const rows = await page.locator('[data-testid="end"]').count();
+    check(asks === 1 && rows === 1, `C2c «End the talk» asks once more and «Cancel» returns to the rows (confirm ${asks}, rows ${rows})`);
+    await ctx.close();
+  }
+  // C3. an ended chat (the row says so): the tombstone, no field, no «…»; its back is the feed
+  {
+    const ROW = { kind: "chat", id: "chat-ended", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "ended",
+      chat_expires_at: Math.floor(Date.now() / 1000), my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-testid="tombstone"]', { timeout: 15000 });
+    const field = await page.locator('[data-testid="text"], [data-testid="chat-more"]').count();
+    await page.click('[data-testid="chat-back"]'); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(field === 0 && at === "feed", `C3 an ended chat shows the tombstone without a field or «…», and its back is the feed (field/more ${field}, screen ${at})`);
     await ctx.close();
   }
   // 4. Me → Move → Back: Me again, not the feed (App.tsx toMove pushes i: 1; popstate → seatScreen("/me"))

@@ -36,3 +36,6 @@ export const hourglass = "M5 22h14 M5 2h14 M17 22v-4.172a2 2 0 0 0-.586-1.414L12
 export const tables = "M6 5h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3z M12 5v14";
 export const chat = "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z";
 export const person = "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0z";
+
+// The rail's «say something» (desktop sheets): a plus.
+export const plus = "M5 12h14 M12 5v14";

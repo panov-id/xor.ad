@@ -5,18 +5,28 @@
 #
 #   SHEETS=<dir with w2_*.svg and w1_register-*.svg> scripts/measure-app.sh
 #   INTEROP=0 scripts/measure-app.sh     skip the web build and the web<->app identity walks (default: on)
+#   WIDE=1 scripts/measure-app.sh        only the tablet (834 x 1194) and desktop (1440 x 900) sheets of the feed, the phrase card and "Me":
+#                                        the viewport is the sheet's width (scripts/design/measure-app-wide.mjs); SHEETS= is then the folder with tablet/ and desktop/
+#                                        (default: the sosed-5-static-tablet-desktop export). Without WIDE the run is the phone's, unchanged.
 #   CSS_OVERRIDE=':root{--splash-hero-top:134px}' scripts/measure-app.sh     # positive control: must go red
 #
 # Shots (390 wide, 0.5 scale) land in $SHOTS (default: the session scratchpad's shots/).
 set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 pad=/tmp/claude-1000/-home-eugene-panov-Projects-panov-id-xor-ad/39d2bcd4-67ff-42f5-80ec-45795e475b7a/scratchpad
-sheets="${SHEETS:-$pad/nd2/sosed-3-static-waves1-2/sosed-static/mobile}"
+if [ "${WIDE:-0}" = "1" ]; then sheets="${SHEETS:-$pad/nd2/sosed-5-static-tablet-desktop/sosed-static}"
+else sheets="${SHEETS:-$pad/nd2/sosed-3-static-waves1-2/sosed-static/mobile}"; fi
 shots="${SHOTS:-$pad/shots}"
 node_image="node:24.21.0-alpine"
 runner="panel-tests-runner:latest"
-[ -f "$sheets/w2_splash.svg" ] || { echo "measure-app: SPOILED — no sheets in $sheets (SHEETS=)"; exit 2; }
-[ -f "$sheets/w1_register-3.svg" ] || { echo "measure-app: SPOILED — no w1_register-*.svg in $sheets (SHEETS=)"; exit 2; }
+if [ "${WIDE:-0}" = "1" ]; then
+  for f in tablet/tablet_834_Feed tablet/tablet_834_Phrase tablet/tablet_834_Me desktop/desktop_1440_Feed desktop/desktop_1440_Phrase desktop/desktop_1440_Me; do
+    [ -f "$sheets/$f.svg" ] || { echo "measure-app: SPOILED — no $f.svg in $sheets (SHEETS=)"; exit 2; }
+  done
+else
+  [ -f "$sheets/w2_splash.svg" ] || { echo "measure-app: SPOILED — no sheets in $sheets (SHEETS=)"; exit 2; }
+  [ -f "$sheets/w1_register-3.svg" ] || { echo "measure-app: SPOILED — no w1_register-*.svg in $sheets (SHEETS=)"; exit 2; }
+fi
 [ -f "$root/app/package-lock.json" ] || { echo "measure-app: SPOILED — app/package-lock.json missing"; exit 2; }
 lock="$(sha1sum "$root/app/package-lock.json" | cut -c1-12)"
 vol="app-node-modules-$lock"
@@ -62,6 +72,7 @@ run() {   # $1 locale tag, $2 1 = compare with the sheets (they are English), 0 
   # the runner shares the server's network namespace: the page is http://localhost (WebCrypto needs a secure context)
   docker run --rm --network "container:$srv" -u "$(id -u):$(id -g)" -e HOME=/tmp \
     -v "${MEASURE:-$root/scripts/design/measure-app.mjs}":/tests/measure-app.mjs:ro -v "$root/scripts/design/sheet-geometry.mjs":/tests/sheet-geometry.mjs:ro \
+    -v "$root/scripts/design/measure-app-wide.mjs":/tests/measure-app-wide.mjs:ro -e WIDE="${WIDE:-0}" \
     -v "$sheets":/sheets:ro -v "$shots":/shots -w /tests \
     -e CSS_OVERRIDE="${CSS_OVERRIDE:-}" -e LANG_TAG="$1" -e GEOMETRY="$2" -e WEB_BUILT="$web_dist" \
     --entrypoint node "$runner" measure-app.mjs

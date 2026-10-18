@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
+import { type ChatKeys, chatKeysFor } from "@platform/chat/keys.ts";
 import { gateOf, gateScreen, pathOf, type Screen, seatScreen } from "../router";
 import { Arrival } from "../screens/Arrival";
 import { Away } from "../screens/Away";
@@ -33,6 +34,16 @@ export function App() {
   const [booting, setBooting] = useState(true);
   // The identity the page holds (a registration made it, the PIN or the grace opened it), in memory only: the disk has it sealed.
   const [seated, setSeated] = useState<Seated | null>(null);
+  // The chat keys of the seat (depth/web-platform/chat/keys.ts chatKeysFor): made from the long key the seat
+  // holds, whichever way it was taken (registration, PIN, grace, a move); gone with the seat.
+  const [chatKeys, setChatKeys] = useState<ChatKeys | null>(null);
+  useEffect(() => {
+    setChatKeys(null);
+    if (!seated) return;
+    let live = true;
+    chatKeysFor(seated.client).then((k) => { if (live) setChatKeys(k); }, (e) => console.error(e));
+    return () => { live = false; };
+  }, [seated?.client]); // eslint-disable-line react-hooks/exhaustive-deps
   // Five minutes without input: the core is locked and the face is one line (Locked.tsx).
   const [locked, setLocked] = useState(false);
   // The vault's record as the page found it (null: none, or forgotten since): the gates read it.

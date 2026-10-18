@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
-import type { ChatRow } from "../chat/keys.ts";
+import type { InboxChatRow } from "../../../depth/web-platform/chat/keys.ts";
 import { duration } from "../locales/duration.ts";
 import { LANG, say } from "../locales/say.ts";
 import "../chat/chat.css";
@@ -44,17 +44,8 @@ export interface MatchRow {
   answered_since?: boolean;
 }
 
-export type InboxChatRow = ChatRow & {
-  name: string;
-  age: number;
-  state: "open" | "ended";
-  chat_expires_at: number;
-  my_span: number;
-  opened_since?: boolean;
-  pending_messages?: number;
-  ending_soon?: boolean;
-  last_activity_at?: number;
-};
+// The chat's row is the platform's (depth/web-platform/chat/keys.ts), shared with the app shell.
+export type { InboxChatRow };
 
 export type InboxRow = MatchRow | InboxChatRow;
 

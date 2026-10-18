@@ -4,7 +4,7 @@
 // screens/Match.tsx.
 
 import { useEffect, useState } from "react";
-import type { ChatKeys } from "../../chat/keys.ts";
+import type { ChatKeys } from "../../../../depth/web-platform/chat/keys.ts";
 import type { Client } from "../../../../depth/core/client.ts";
 import type { MatchRow } from "../Inbox.tsx";
 

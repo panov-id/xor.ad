@@ -24,16 +24,16 @@ export function StepHead({ n, of }: { n: number; of: number }) {
 }
 
 /** A text field: its label above, the box, and what stands under it (a counter, a hint, an error). */
-export function Field({ text, value, onChange, testid, kind = "text", under, maxLength, autoComplete, invalid }: {
-  text: string; value: string; onChange: (v: string) => void; testid: string; kind?: "text" | "number"; under?: ReactNode;
-  maxLength?: number; autoComplete?: string; invalid?: boolean;
+export function Field({ text, value, onChange, testid, kind = "text", under, maxLength, autoComplete, invalid, placeholder }: {
+  text: string; value: string; onChange: (v: string) => void; testid: string; kind?: "text" | "number" | "email"; under?: ReactNode;
+  maxLength?: number; autoComplete?: string; invalid?: boolean; placeholder?: string;
 }) {
   const id = useId();
   return (
     <div className="reg-field">
       <label htmlFor={id}>{text}</label>
-      <input id={id} className="reg-input" type="text" inputMode={kind === "number" ? "numeric" : undefined} pattern={kind === "number" ? "[0-9]*" : undefined}
-        autoComplete={autoComplete ?? (kind === "number" ? "off" : "nickname")} maxLength={maxLength} value={value} aria-invalid={invalid || undefined}
+      <input id={id} className="reg-input" type={kind === "email" ? "email" : "text"} inputMode={kind === "number" ? "numeric" : kind === "email" ? "email" : undefined} pattern={kind === "number" ? "[0-9]*" : undefined}
+        autoComplete={autoComplete ?? (kind === "number" ? "off" : kind === "email" ? "email" : "nickname")} maxLength={maxLength} placeholder={placeholder} value={value} aria-invalid={invalid || undefined}
         onChange={(e) => onChange(e.target.value)} data-testid={testid} />
       {under}
     </div>

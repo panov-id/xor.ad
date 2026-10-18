@@ -12,6 +12,8 @@ import { Register, type Seated } from "../screens/Register";
 import { Splash } from "../screens/Splash";
 import { Unlock } from "../screens/Unlock";
 import { Me } from "../screens/me/Me";
+import { Offer } from "../screens/Offer";
+import { codeOfPath } from "@sdk/offer_exit.ts";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
 import type { Tab } from "./TabBar";
@@ -57,6 +59,12 @@ export function App() {
         void awayCheck(graced.client);
         return setBooting(false);
       }
+      // An offer's link (`/o/<code>`, web App.tsx): its exit screen opens before any unlock; a kept identity stays shut.
+      const offered = codeOfPath(location.pathname);
+      if (offered) {
+        setScreen({ at: "offer", code: offered });
+        return setBooting(false);
+      }
       const to = gateScreen(location.pathname, vaulted.current);
       if (gateOf(location.pathname)) history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
       setScreen(to);
@@ -79,6 +87,8 @@ export function App() {
       }
       setScreen((now) => {
       if (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed")) return now;
+      const offered = held.current ? null : codeOfPath(location.pathname);
+      if (offered) return { at: "offer", code: offered };
       if (!held.current || gateOf(location.pathname)) return gateScreen(location.pathname, vaulted.current);
       const to = seatScreen(location.pathname, history.state as { until?: number } | null);
       // A seat's address that opens another screen (an /away whose until lapsed): the entry says where the person is.
@@ -168,6 +178,12 @@ export function App() {
     history.pushState({ gate: "departure", i: 1 }, "", pathOf({ at: "departure" }));
     setScreen({ at: "departure" });
   };
+  // The offer's exit, left: a seat goes back to its feed, in place; with no seat the page starts over from "/" (web App.tsx).
+  const leaveOffer = () => {
+    if (seated) return toFeed();
+    history.replaceState(null, "", "/");
+    location.reload();
+  };
   // The identity closed for good (Me → Start again): nothing of it stays; the splash.
   const closed = () => {
     held.current = false;
@@ -193,6 +209,7 @@ export function App() {
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
+      case "offer": return <Offer code={screen.code} client={seated?.client} onBack={leaveOffer} />;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }
   };

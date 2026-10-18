@@ -5,6 +5,8 @@
 // added with their screens. "feed" is where a registration or an unlock lands (a seat, not a gate: a reload on
 // it asks the PIN when the device keeps an identity, and opens the splash when it keeps none, as the web does).
 import type { Record_ } from "@sdk/enroll.ts";
+// The path, not @sdk: node:test (run-app-unit-tests.sh) has no aliases.
+import { codeOfPath } from "../../depth/core/offer_exit.ts";
 
 export type Screen =
   | { at: "loading" }
@@ -16,7 +18,8 @@ export type Screen =
   | { at: "feed" }
   | { at: "departure" }
   | { at: "away"; until: number }
-  | { at: "me" };
+  | { at: "me" }
+  | { at: "offer"; code: string };
 
 type At = Screen["at"];
 
@@ -31,6 +34,7 @@ export const ROUTES: Record<At, string> = {
   departure: "/move",
   away: "/away",
   me: "/me",
+  offer: "/o",
 };
 
 // A path names a gate (reload, Back, a typed address); anything else is not one.
@@ -41,11 +45,13 @@ export function gateOf(path: string): Gate | null {
   return GATES[path.replace(/\/+$/, "") || "/"] ?? null;
 }
 
-export const pathOf = (s: Screen): string => ROUTES[s.at];
+export const pathOf = (s: Screen): string => (s.at === "offer" ? `/o/${s.code}` : ROUTES[s.at]);
 
 /** A seat's own address (an identity on the page): /move is the departure, /me is Me, /away the away screen; anything else is the feed. */
 export const seatScreen = (path: string, state?: { until?: number } | null): Screen => {
   const p = path.replace(/\/+$/, "");
+  const offer = codeOfPath(p);
+  if (offer) return { at: "offer", code: offer };
   if (p === ROUTES.departure) return { at: "departure" };
   if (p === ROUTES.me) return { at: "me" };
   // The away screen's until rides in its history entry (App.tsx awayCheck); a lapsed one is the feed.

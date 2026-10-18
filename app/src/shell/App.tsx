@@ -66,10 +66,22 @@ export function App() {
 
   useEffect(() => {
     // An entry of the feed (its open card included) is the feed's own to read (screens/Feed.tsx), not a gate to re-pick.
-    const onPop = () => setScreen((now) => {
+    const onPop = () => {
+      // Seated, Back that lands on a gate (splash, register: entries left from before the seat) does not reopen it:
+      // the screen stays and takes that entry over (an away keeps its until), so a person in never sees the splash again.
+      if (held.current && gateOf(location.pathname)) {
+        setScreen((now) => {
+          const until = (now as { until?: number }).until;
+          history.replaceState({ gate: now.at, i: 0, ...(until === undefined ? {} : { until }) }, "", pathOf(now));
+          return now;
+        });
+        return;
+      }
+      setScreen((now) => {
       if (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed")) return now;
       return held.current && !gateOf(location.pathname) ? seatScreen(location.pathname, history.state as { until?: number } | null) : gateScreen(location.pathname, vaulted.current);
-    });
+      });
+    };
     addEventListener("popstate", onPop);
     return () => removeEventListener("popstate", onPop);
   }, []);

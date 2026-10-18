@@ -1,5 +1,5 @@
 // Measures the rendered app/ table (the frame, then each game's board) against the Dusk sheets of wave 3 (mobile
-// w3_table-four, w3_table-dots, w3_table-hangman, w3_table-reversi, w3_table-checkers, w3_table-chess, w3_table-backgammon; more games as their boards come), and walks it against a stubbed node: the list's «Watch» opens the
+// w3_table-four, w3_table-dots, w3_table-hangman, w3_table-reversi, w3_table-checkers, w3_table-chess, w3_table-backgammon, w3_table-dominoes; the other four games are another branch's as their boards come), and walks it against a stubbed node: the list's «Watch» opens the
 // table, a column's tap sends the move. Run by scripts/measure-app-w3-games.sh inside the Playwright image, on an
 // internal network: PREVIEW is the built app (with its CSP). Built on measure-app-w4.mjs (its helpers, its report).
 // Expected values are read from the sheets (sheet-geometry.mjs), never typed in; indices are the sheets' drawing order.
@@ -77,10 +77,11 @@ async function overflowAt(page, screen, w) {
       if (e.closest("[aria-hidden='true']") && e.tagName === "path") continue;
       const tag = `${e.tagName.toLowerCase()}${e.dataset.testid ? `[${e.dataset.testid}]` : typeof e.className === "string" && e.className ? "." + e.className.split(" ")[0] : ""}`;
       // the sticker chips scroll sideways by design (w3_table-*: four shown of eight): what is past the edge is scrolled to
-      const scrolled = e.closest(".tg-chips") && !e.classList.contains("tg-chips");
+      // the dominoes' line and hand scroll sideways too (a line grows to 28 bones, a hand holds up to seven)
+      const scrolled = [".tg-chips", ".tg-dline", ".tg-hand"].some((c) => e.closest(c) && !e.classList.contains(c.slice(1)));
       if (r.width && !scrolled && (r.right > vw + 0.5 || r.left < -0.5)) out.push(`${tag} outside the viewport: ${r.left.toFixed(1)}..${r.right.toFixed(1)} of ${vw}`);
       const clips = cs.overflowX !== "visible" || cs.textOverflow === "ellipsis";
-      if (e.tagName !== "INPUT" && clips && e.scrollWidth > e.clientWidth + 1 && !e.classList.contains("me-body") && !e.classList.contains("tg-chips")) out.push(`${tag} clips horizontally: scrollWidth ${e.scrollWidth} > clientWidth ${e.clientWidth}`);
+      if (e.tagName !== "INPUT" && clips && e.scrollWidth > e.clientWidth + 1 && !e.classList.contains("me-body") && !["tg-chips", "tg-dline", "tg-hand"].some((c) => e.classList.contains(c))) out.push(`${tag} clips horizontally: scrollWidth ${e.scrollWidth} > clientWidth ${e.clientWidth}`);
     }
     return out;
   }, w);
@@ -114,7 +115,9 @@ const cellsOf = (m) => Object.fromEntries(Object.entries(m).map(([id, seat]) => 
 // w3_table-dots: 4×4, two boxes mine (seat 1), two Nino's, two loose edges.
 const DOTS = { edges: ["h:1:1", "h:2:1", "v:1:1", "v:1:2", "h:1:2", "h:2:2", "v:1:3", "h:3:1", "v:2:1", "v:2:2", "h:3:3", "h:4:3", "v:3:3", "v:3:4", "h:4:0", "v:0:4"],
   boxes: { "1:1": 1, "1:2": 1, "2:1": 2, "3:3": 2 } };
-const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" }, t4: { class: "grid", set: "reversi" }, t5: { class: "grid", set: "checkers" }, t6: { class: "grid", set: "chess" }, t7: { class: "dice", set: "backgammon" } };
+const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" }, t4: { class: "grid", set: "reversi" }, t5: { class: "grid", set: "checkers" }, t6: { class: "grid", set: "chess" }, t7: { class: "dice", set: "backgammon" }, t8: { class: "free", set: "double-six" } };
+// w3_table-dominoes: a line of five (doubles at both ends), my hand of five, Nino's five as a count.
+const LINE = ["6:6", "6:3", "3:1", "1:5", "5:5"], HAND = ["0:6", "4:5", "2:3", "1:2", "3:3"];
 // w3_table-checkers and w3_table-chess: the sheets' positions (mine seat 1, lime; Nino peach).
 const man = (seat) => ({ seat, piece: "M" });
 const CHECKERS = Object.fromEntries([..."b8 d8 f8 h8 a7 c7 e7 g7 f6 h6".split(" ").map((id) => [id, man(2)]), ..."d4 a3 c3 g3 b2 d2 f2 h2 a1 c1 e1 g1".split(" ").map((id) => [id, man(1)])]);
@@ -136,6 +139,7 @@ function tableView(s, id) {
     : g.set === "checkers" ? { grid: { cells: { ...s.checkers }, claim: null } }
     : g.set === "chess" ? { grid: { cells: { ...CHESS }, claim: null } }
     : g.class === "dice" ? { dice: { rolled: s.rolled, claim: null } }
+    : g.class === "free" ? { free: { hands: { "1": [...s.hand], "2": { count: 5 } }, boneyard: { count: 4 }, line: [...s.line] } }
     : { grid: { cells: cellsOf(s.cells), claim: null, rules: "four" } };
   return {
     id, class: g.class, set: g.set, seat: 1, is_playing: true, playing: 2, watching: 0, name: "Evening at the yard", like_count: 0, lines: [],
@@ -145,7 +149,7 @@ function tableView(s, id) {
 }
 function nodeStub() {
   const calls = [], moves = [];
-  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], rev: { ...REVERSI }, checkers: { ...CHECKERS }, rolled: [5, 3], due: Math.floor(Date.now() / 1000) + 100 };
+  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], rev: { ...REVERSI }, checkers: { ...CHECKERS }, rolled: [5, 3], hand: [...HAND], line: [...LINE], due: Math.floor(Date.now() / 1000) + 100 };
   const prepare = async (ctx) => {
     await ctx.route("**/*", async (route) => {
       const req = route.request(), u = new URL(req.url());
@@ -170,6 +174,7 @@ function nodeStub() {
         if (m.move?.letter) s.guessed.push(m.move.letter);
         if (m.move?.to && !m.move?.from) s.rev[m.move.to] = 1;
         if (m.move?.move === true) s.rolled = null;
+        if (m.move?.play) { s.hand = s.hand.filter((b) => b !== m.move.play); if (m.move.end === "left") s.line.unshift(m.move.play.split(":").reverse().join(":")); else s.line.push(m.move.play); }
         if (m.move?.from) { s.checkers[m.move.to] = s.checkers[m.move.from]; delete s.checkers[m.move.from]; }
         s.seq++; s.turn = 2;
         return json(200, { board: tableView(s, t[1]).board });
@@ -428,6 +433,34 @@ for (const [nth, set] of [[4, "checkers"], [5, "chess"]]) {
   note(sb.moves[0]?.move?.move === true && sb.moves[0]?.table === "t7", `walk: «move made» sends {move: {move: true}} (${JSON.stringify(sb.moves[0] ?? null)})`);
   await o.ctx.close();
 }
+// w3_table-dominoes: the eighth table
+{
+  const sdo = nodeStub();
+  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: sdo.prepare });
+  await registerFull(o.page); await toTable(o.page, 7);
+  await o.page.locator('[data-testid="hand-bone"]').nth(4).waitFor({ timeout: 20000 });
+  if (want("dominoes")) {
+    const S = sheetOf("dominoes"), sh = S.shapes, scr = "dominoes";
+    await settle(o.page);
+    await tableFrame(o.page, scr, S);
+    compare(scr, "panel height", [sh[4].h], [(await box(o.page, ".tg-panel"))[3]]);
+    const standing = sh.filter((x) => Math.abs(x.w - 29.9) < 0.3 && Math.abs(x.h - 59.7) < 0.3);
+    const lying = sh.filter((x) => Math.abs(x.w - 59.7) < 0.3 && Math.abs(x.h - 29.9) < 0.3);
+    const line = [standing[0], ...lying.filter((x) => x.y < 350), standing[1]];
+    for (let i = 0; i < line.length; i++) compare(scr, `line bone ${i + 1}`, shapeOf(line[i]), await box(o.page, '[data-testid="line-bone"]', i));
+    const hand = lying.filter((x) => x.y >= 350);
+    for (let i = 0; i < hand.length; i++) compare(scr, `hand bone ${i + 1}`, shapeOf(hand[i]), await box(o.page, '[data-testid="hand-bone"] .tg-bone', i));
+    await shot(o.page, "table-dominoes");
+  }
+  await overflowAt(o.page, "table-dominoes", 390);
+  note(await o.page.locator('[data-testid="hand-bone"]').nth(2).isDisabled(), "walk: 2:3 fits no end and takes no tap");
+  await o.page.locator('[data-testid="hand-bone"]').first().click();
+  for (let k = 0; k < 40 && sdo.moves.length === 0; k++) await o.page.waitForTimeout(100);
+  note(sdo.moves[0]?.move?.play === "0:6" && sdo.moves[0]?.move?.end === "left", `walk: 0:6 goes to the left end, its only match ({play, end}: ${JSON.stringify(sdo.moves[0] ?? null)})`);
+  await o.page.locator('[data-testid="line-bone"]').nth(5).waitFor({ timeout: 10000 }).catch(() => {});
+  note(await o.page.locator('[data-testid="line-bone"]').count() === 6, "walk: the line has six bones after the node's answer");
+  await o.ctx.close();
+}
 for (const w of [375, 320]) {
   const s2 = nodeStub();
   const o = await open(browser, PREVIEW + "/", w, { screen: "w3g", prepare: s2.prepare });
@@ -444,7 +477,7 @@ for (const w of [375, 320]) {
   await settle(o.page); await overflowAt(o.page, "table-reversi", w);
   for (const [nth, set] of [[4, "checkers"], [5, "chess"]]) {
     await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
-    await o.page.locator('[data-testid="table-open"]').nth(6).waitFor({ timeout: 20000 });   // the whole list again, not the first rows
+    await o.page.locator('[data-testid="table-open"]').nth(7).waitFor({ timeout: 20000 });   // the whole list again, not the first rows
     await o.page.locator('[data-testid="table-open"]').nth(nth).click();
     const ok = await o.page.locator('[data-testid="sq-h1"]').waitFor({ timeout: 20000 }).then(() => true, () => false);
     if (!ok) { await o.page.screenshot({ path: `${SHOTS}/w3_table-${set}-${TAG}-${w}-missing.png` }); note(false, `walk: ${set} at ${w}[${TAG}] did not open (shot w3_table-${set}-${TAG}-${w}-missing.png)`); continue; }
@@ -453,6 +486,9 @@ for (const w of [375, 320]) {
   await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
   await o.page.locator('[data-testid="table-open"]').nth(6).click(); await o.page.locator('[data-testid="die"]').nth(1).waitFor({ timeout: 20000 });
   await settle(o.page); await overflowAt(o.page, "table-backgammon", w);
+  await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+  await o.page.locator('[data-testid="table-open"]').nth(7).click(); await o.page.locator('[data-testid="hand-bone"]').nth(4).waitFor({ timeout: 20000 });
+  await settle(o.page); await overflowAt(o.page, "table-dominoes", w);
   await o.ctx.close();
 }
 

@@ -194,3 +194,31 @@ const PIPS: Record<number, number[]> = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0,
 export const pipsOf = (face: number): number[] => PIPS[face] ?? [];
 // What the dice ask of me: in my turn, to roll while nothing fell, else to say the move is made; out of turn nothing.
 export const diceStep = (d: Dice, myTurn: boolean): "roll" | "moved" | null => (!myTurn ? null : d.rolled ? "moved" : "roll");
+
+// ── dominoes (relay/node/src/lib/tables_free.ts playFree, freeFor): the line as laid ("a:b" left to right), my hand whole,
+// the others' and the boneyard as counts. A bone goes to an end one of its halves matches (the first anywhere) ──
+export type FreeView = { hands: Record<string, string[] | { count: number }>; boneyard: { count: number }; line: string[] };
+export const freeOf = (state: BoardState): FreeView | null => {
+  const f = (state as { free?: FreeView } | null | undefined)?.free;
+  return f && Array.isArray(f.line) && f.hands ? f : null;
+};
+const halves = (bone: string): [number, number] => bone.split(":").map(Number) as [number, number];
+export type DominoView = {
+  line: Array<{ bone: string; a: number; b: number; double: boolean }>;
+  hand: Array<{ bone: string; a: number; b: number; ends: Array<"left" | "right"> }>;
+  draw: boolean;
+};
+export function dominoView(f: FreeView, seat: number): DominoView {
+  const line = f.line.map((bone) => { const [a, b] = halves(bone); return { bone, a, b, double: a === b }; });
+  const left = line.length ? line[0].a : null, right = line.length ? line[line.length - 1].b : null;
+  const mine = Array.isArray(f.hands[String(seat)]) ? (f.hands[String(seat)] as string[]) : [];
+  const hand = mine.map((bone) => {
+    const [a, b] = halves(bone);
+    const ends: Array<"left" | "right"> = line.length === 0 ? ["right"] : [
+      ...(a === left || b === left ? ["left" as const] : []),
+      ...(a === right || b === right ? ["right" as const] : []),
+    ];
+    return { bone, a, b, ends };
+  });
+  return { line, hand, draw: f.boneyard.count > 0 && hand.every((h) => h.ends.length === 0) };
+}

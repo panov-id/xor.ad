@@ -191,3 +191,22 @@
 .tg-pip { width: var(--tg-pip); height: var(--tg-pip); border-radius: var(--r-pill); }
 .tg-pip[data-on] { background: var(--c-pip); }
 .tg-dice-step { margin-top: var(--sp-4); width: 100%; }
+
+/* dominoes: the field 284.5 high; the line left from its inset, doubles standing across it, then my hand */
+.tg-panel[data-class="free"] { padding: 0; }
+.tg-dominoes { min-height: var(--tg-dom-h); padding: var(--tg-line-top) 0 var(--sp-4); display: grid; align-content: start; }
+.tg-dline { display: flex; align-items: center; gap: var(--tg-line-gap); padding-inline: var(--tg-line-start) var(--sp-4); min-height: var(--tg-bone-long); overflow-x: auto; scrollbar-width: none; }
+.tg-hand { margin-top: var(--tg-hand-top); display: flex; gap: var(--tg-hand-gap); padding-inline: var(--tg-hand-start) 0; overflow-x: auto; scrollbar-width: none; }
+.tg-hand-bone { flex: none; min-height: 0; padding: 0; background: none; border-radius: var(--tg-bone-r); }
+.tg-hand-bone[aria-pressed="true"] { outline: var(--tg-pick-line) solid var(--c-yellow); outline-offset: var(--tg-pick-gap); }
+.tg-hand-bone:disabled { cursor: default; }
+.tg-bone { flex: none; width: var(--tg-bone-long); height: var(--tg-bone-short); border-radius: var(--tg-bone-r); background: var(--c-die); display: grid; grid-template-columns: 1fr 1fr;
+  box-shadow: inset 0 0 0 var(--tg-cell-line) var(--c-ink); }
+.tg-bone[data-standing] { width: var(--tg-bone-short); height: var(--tg-bone-long); grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+.tg-half { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); place-items: center; padding: var(--tg-dpip-pad); }
+.tg-half + .tg-half { box-shadow: inset var(--tg-cell-line) 0 0 0 var(--c-ink); }
+.tg-bone[data-standing] .tg-half + .tg-half { box-shadow: inset 0 var(--tg-cell-line) 0 0 var(--c-ink); }
+.tg-dpip { width: var(--tg-dpip); height: var(--tg-dpip); border-radius: var(--r-pill); }
+.tg-dpip[data-on] { background: var(--c-pip); }
+.tg-ends { margin-top: var(--sp-3); padding-inline: var(--sp-4); display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+.tg-draw { margin: var(--sp-3) var(--sp-4) 0; }

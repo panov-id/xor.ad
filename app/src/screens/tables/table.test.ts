@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { diceOf, diceStep, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { diceOf, diceStep, dominoView, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -137,4 +137,17 @@ test("dice: pips as dice are drawn (5 the corners and the middle, 6 two columns)
   assert.equal(diceStep({ rolled: [5, 3], claim: null }, false), null);
   assert.deepEqual(diceOf({ dice: { rolled: [5, 3], claim: null } })?.rolled, [5, 3]);
   assert.equal(diceOf({ grid: {} }), null);
+});
+
+test("dominoes: the line's doubles stand; a bone of mine fits the end a half matches (the node's rule); draw only when none fits", () => {
+  const f = { hands: { "1": ["0:6", "4:5", "2:3"], "2": { count: 5 } }, boneyard: { count: 4 }, line: ["6:6", "6:3", "3:1", "1:5", "5:5"] };
+  const v = dominoView(f, 1);
+  assert.deepEqual(v.line.map((l) => l.double), [true, false, false, false, true]);
+  assert.deepEqual(v.hand.map((h) => [h.bone, h.ends.join("+")]), [["0:6", "left"], ["4:5", "right"], ["2:3", ""]]);
+  assert.equal(v.draw, false, "a bone fits: no draw");
+  assert.equal(dominoView({ ...f, hands: { "1": ["2:3"] } }, 1).draw, true, "none fits and the boneyard has bones");
+  assert.equal(dominoView({ ...f, hands: { "1": ["2:3"] }, boneyard: { count: 0 } }, 1).draw, false, "an empty boneyard: no draw");
+  assert.deepEqual(dominoView({ ...f, line: [] }, 1).hand[0].ends, ["right"], "the first bone goes anywhere");
+  assert.deepEqual(dominoView({ ...f, line: ["5:3", "3:5"] }, 1).hand[1].ends, ["left", "right"], "both ends open on a 5");
+  assert.deepEqual(dominoView(f, 2).hand, [], "another's hand is only a count");
 });

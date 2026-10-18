@@ -1,10 +1,10 @@
 // The boards on the table's panel (sheets w3_table-*), one per game, each drawing its own part of the node's state
 // (relay/node/src/lib/tables_*.ts) through table-logic.ts; a tap is a move only in turn (onMove given), the node
 // refuses the rest. Testids: four, four-col-<a..g>; dots, dot, edge-<id>, box; hangman, gallows, mask, slot, key-<letter>,
-// word-input, word-go; reversi, cell-<a1..h8>; squares, sq-<a1..h8>; backgammon, die, roll, moved.
+// word-input, word-go; reversi, cell-<a1..h8>; squares, sq-<a1..h8>; backgammon, die, roll, moved; dominoes, line-bone, hand-bone, end-left, end-right, draw.
 import { useState } from "react";
 import { say } from "../../i18n";
-import { type BoardState, diceOf, diceStep, dotsLayout, dotsStateOf, fourColumns, gridOf, hangmanView, pipsOf, reversiCells, squares, tapSquare, wordOf } from "./table-logic";
+import { type BoardState, diceOf, diceStep, dominoView, dotsLayout, dotsStateOf, fourColumns, freeOf, gridOf, hangmanView, pipsOf, reversiCells, squares, tapSquare, wordOf } from "./table-logic";
 
 type Move = (m: unknown) => void;
 export type BoardProps = { state: BoardState; seat: number; onMove?: Move };
@@ -16,6 +16,7 @@ export function Board({ klass, set, ...props }: BoardProps & { klass: string; se
   if (klass === "grid" && (set === "checkers" || set === "chess")) return <SquaresBoard {...props} chess={set === "chess"} />;
   if (klass === "dots") return <DotsBoard {...props} />;
   if (klass === "dice") return <BackgammonBoard {...props} />;
+  if (klass === "free") return <DominoesBoard {...props} />;
   if (klass === "word") return <HangmanBoard {...props} />;
   return null;
 }
@@ -176,6 +177,46 @@ export function BackgammonBoard({ state, onMove }: BoardProps) {
           {say(step === "roll" ? "web.table.roll" : "web.table.moved")}
         </button>
       )}
+    </div>
+  );
+}
+
+// A bone: two halves of pips (none for a blank), lying in the line or standing (a double in the line).
+function Bone({ a, b, standing, testid }: { a: number; b: number; standing?: boolean; testid?: string }) {
+  const half = (n: number) => <span className="tg-half">{Array.from({ length: 9 }, (_, k) => <span key={k} className="tg-dpip" data-on={pipsOf(n).includes(k) || undefined} />)}</span>;
+  return <span className="tg-bone" data-standing={standing || undefined} data-testid={testid}>{half(a)}{half(b)}</span>;
+}
+
+// Dominoes (w3_table-dominoes): the line as laid (a double stands across it), then my hand. A tap on a bone that fits
+// one end plays it there ({play, end}); one that fits both asks which; none fits — take one from the boneyard ({draw}).
+export function DominoesBoard({ state, seat, onMove }: BoardProps) {
+  const [ask, setAsk] = useState<string | null>(null);
+  const f = freeOf(state);
+  if (!f) return null;
+  const v = dominoView(f, seat);
+  const play = (bone: string, ends: Array<"left" | "right">) => {
+    if (ends.length === 1) { setAsk(null); onMove?.({ play: bone, end: ends[0] }); } else if (ends.length === 2) setAsk(bone);
+  };
+  return (
+    <div className="tg-dominoes" data-testid="dominoes">
+      <div className="tg-dline" role="list" aria-label={say("web.table.board")}>
+        {v.line.map((l, i) => <span key={i} role="listitem" aria-label={l.bone}><Bone a={l.a} b={l.b} standing={l.double} testid="line-bone" /></span>)}
+      </div>
+      <div className="tg-hand" role="group" aria-label={say("web.table.hand")}>
+        {v.hand.map((h) => (
+          <button key={h.bone} type="button" className="tg-hand-bone" disabled={!onMove || h.ends.length === 0} aria-pressed={ask === h.bone || undefined}
+            onClick={() => play(h.bone, h.ends)} aria-label={h.bone} data-testid="hand-bone">
+            <Bone a={h.a} b={h.b} />
+          </button>
+        ))}
+      </div>
+      {ask && (
+        <div className="tg-ends">
+          <button type="button" className="cta cta-quiet" onClick={() => { onMove?.({ play: ask, end: "left" }); setAsk(null); }} data-testid="end-left">{say("app.table.to_left")}</button>
+          <button type="button" className="cta cta-quiet" onClick={() => { onMove?.({ play: ask, end: "right" }); setAsk(null); }} data-testid="end-right">{say("app.table.to_right")}</button>
+        </div>
+      )}
+      {onMove && v.draw && <button type="button" className="cta cta-primary tg-draw" onClick={() => onMove({ draw: true })} data-testid="draw">{say("app.table.draw")}</button>}
     </div>
   );
 }

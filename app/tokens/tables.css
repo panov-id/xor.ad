@@ -118,9 +118,11 @@
   --tb-dk-r: 6px;
   --tb-dk-r2: 4px;
   --tb-dk-inset: 3.97;
-  --tb-rank-fs: 14;
-  --tb-rank-x: 5;
-  --tb-rank-y: 6;
+  --tb-rank-fs: 15.6;
+  --tb-rank-x: 7.5;
+  --tb-rank-y: 6.93;
+  --tb-rank-sx: 0.83;
+  --tb-rank-ls10: -0.1em;
   --tb-suit-dy: 3.5;
   --tb-suit-h-w: 12.8;
   --tb-suit-h-h: 12.85;
@@ -128,8 +130,18 @@
   --tb-suit-d-h: 16.45;
   --tb-suit-s-w: 11.4;
   --tb-suit-s-h: 15.6;
-  --tb-suit-c-w: 13.5;
-  --tb-suit-c-h: 14.5;
+  --tb-suit-c-w: 12.81;
+  --tb-suit-c-h: 16.47;
+  /* poker's cards (49.75 × 69.64): the suits stand on one line, so each is lifted by its own height */
+  --tb-pk-dy-c: 3.03;
+  --tb-pk-dy-d: 3.03;
+  --tb-pk-dy-s: 3.48;
+  --tb-pk-dy-h: 3.92;
+  --tb-pk-fs: 12;
+  --tb-chip-d: 27.85;
+  --tb-chip-dx: 11.94;
+  --tb-chip-dy: 5.97;
+  --tb-pk-stack-gap: 4;
   --c-card: #F7F4FB;
   --c-suit-red: #D93A4B;
   --c-suit-black: #121212;

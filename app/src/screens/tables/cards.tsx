@@ -29,7 +29,7 @@ export function cardName(card: string): string {
 
 export function CardFace({ card, at, onClick, testid, extra }: { card: string; at: Placed; onClick?: () => void; testid?: string; extra?: CSSProperties }) {
   const p = cardParts(card);
-  const body = p && <><span className="tb-rank">{p.rank}</span><SuitMark suit={p.suit} /></>;
+  const body = p && <><span className="tb-rank" data-len={p.rank.length}>{p.rank}</span><SuitMark suit={p.suit} /></>;
   const common = { className: "tb-dk-card tb-face-card", "data-red": (p && isRed(p.suit)) || undefined, style: { ...placedVars(at), ...extra } as CSSProperties, "data-card": card, "data-testid": testid };
   return onClick
     ? <button type="button" {...common} onClick={onClick} aria-label={say("web.table.card", { card: cardName(card) })}>{body}</button>

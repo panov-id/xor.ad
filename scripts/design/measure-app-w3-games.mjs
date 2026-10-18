@@ -146,6 +146,19 @@ KEEP.t6 = true;
 POS.t6 = () => ({ hand: ["9S", "8H", "7D", "6S", "10S", "QH"], table: [{ attack: "6H", beat: "10H" }, { attack: "7S", beat: "8S" }] });
 STATE.t6 = (p) => ({ deck: { hands: { "1": [...p.hand], "2": { count: 5 } }, stock: { count: 14 }, played: [], trump: "10D", table: p.table.map((x) => ({ ...x })), attacker: 1, defender: 2 } });
 APPLY.t6 = (p, m) => { if (m.play) { p.hand = p.hand.filter((c) => c !== m.play); p.table.push({ attack: m.play, beat: null }); } };
+// w3_table-poker: four at the table (me seat 1 at the bottom left), the turn dealt (10C 9H 7D 6S, the river a back), a pot of 6,
+// two to call; the seats' chips in the sheet's four corners: seat 2 bottom right, 3 top right, 4 top left.
+// t7 is the sheet (the seat to act is Nino's, so the foot carries only my two cards, as the sheet's frame); t8 is the same table with
+// me to act, for the actions (they stand under the panel and push the stickers down: not the sheet's frame).
+const pokerState = (toAct) => ({ poker: { chips: { "1": 900, "2": 850, "3": 1000, "4": 780 }, button: 1, hand: 3, street: "turn", board: ["10C", "9H", "7D", "6S"],
+  holes: { "1": ["AS", "KH"], "2": { count: 2 }, "3": { count: 2 }, "4": { count: 2 } }, bets: { "1": 0, "2": 2, "3": 0, "4": 0 }, pot: 6, current: 2, min_raise: 4, folded: [], to_act: toAct, last: null } });
+GAMES.t7 = { class: "deck", set: "poker" };
+GAMES.t8 = { class: "deck", set: "poker" };
+KEEP.t8 = true;
+POS.t7 = () => ({});
+POS.t8 = () => ({});
+STATE.t7 = () => pokerState(2);
+STATE.t8 = () => pokerState(1);
 function tableView(s, id) {
   const g = GAMES[id];
   const state = STATE[id] ? STATE[id](s.pos[id])
@@ -448,12 +461,62 @@ LATER.push({
   },
 });
 
+const textBox = async (page, sel, nth = 0) => (await line(page, sel, nth)) ?? [NaN, NaN, NaN];   // ink left, right, baseline of the first line
+LATER.push({
+  name: "poker", nth: 6, ready: '[data-testid="board-0"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes, L = S.lines;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tb-panel"))[3]]);
+    for (const [i, id] of ["board-0", "board-1", "board-2", "board-3"].entries()) {
+      compare(scr, `${id} card`, shapeOf(sh[5 + 2 * i]), await box(page, `[data-testid="${id}"]`));
+      compare(scr, `${id} suit (centre)`, shapeCentre(sh[6 + 2 * i]), centreOf(await box(page, `[data-testid="${id}"] .tb-suit`)));
+    }
+    compare(scr, "board-4 (a back)", shapeOf(sh[13]), await box(page, '[data-testid="board-4"]'));
+    compare(scr, "board-4 inner", shapeOf(sh[14]), await box(page, '[data-testid="board-4"] span'));
+    // the seats' chip marks: the sheet's yellow disc then the peach one, at its top-left, top-right, bottom-left, bottom-right
+    for (const [i, seat] of [4, 3, 1, 2].entries()) {
+      compare(scr, `seat ${seat} chips (yellow)`, shapeOf(sh[15 + 2 * i]), await box(page, `[data-testid="pk-seat-${seat}"] .tb-chips-mark i`, 0));
+      compare(scr, `seat ${seat} chips (peach)`, shapeOf(sh[16 + 2 * i]), await box(page, `[data-testid="pk-seat-${seat}"] .tb-chips-mark i`, 1));
+    }
+    const rank = L.filter((l) => Math.abs(l.base - 266.63) < 0.1);
+    const r0 = await textBox(page, '[data-testid="board-0"] .tb-rank'), r1 = await textBox(page, '[data-testid="board-1"] .tb-rank'), r2 = await textBox(page, '[data-testid="board-2"] .tb-rank'), r3 = await textBox(page, '[data-testid="board-3"] .tb-rank');
+    compare(scr, "rank 10C (left,right,base)", [rank[0].left, rank[0].right, rank[0].base], r0);
+    compare(scr, "rank 9H (left) .. 7D (right)", [rank[1].left, rank[1].right, rank[1].base], [r1[0], r2[1], r2[2]]);
+    compare(scr, "rank 6S (left,right,base)", [rank[2].left, rank[2].right, rank[2].base], r3);
+    const pot = L.find((l) => Math.abs(l.base - 342.04) < 0.1);
+    compare(scr, "pot (left,right,base)", [pot.left, pot.right, pot.base], await textBox(page, '[data-testid="pot"]'));
+    // not compared: the seats' stacks under the chip marks and my two cards under the panel (the sheet draws neither)
+  },
+  async walk(page) {
+    note(await page.locator('[data-testid="hole-AS"]').count() === 1 && await page.locator('[data-testid="hole-KH"]').count() === 1, "walk: my two cards stand under the panel");
+    note(await page.locator('[data-testid="poker-call"]').count() === 0, "walk: it is Nino's turn to act: no actions offered");
+  },
+});
+LATER.push({
+  name: "poker-actions", nth: 7, ready: '[data-testid="poker-call"]', compare: null,
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="poker-check"]').isDisabled() && await page.locator('[data-testid="poker-call"]').isEnabled(), "walk: two to call: check is shut, call is open");
+    await page.click('[data-testid="poker-call"]');
+    const c = await movedBy(stub, "t8");
+    note(JSON.stringify(c?.move) === '{"call":true}' && c?.seq === 7, `walk: call sends {call: true} (${JSON.stringify(c ?? null)})`);
+    await page.fill('[data-testid="raise-input"]', "8"); await page.click('[data-testid="raise-go"]');
+    for (let k = 0; k < 40 && stub.moves.length < 2; k++) await page.waitForTimeout(100);
+    note(JSON.stringify(stub.moves[1]?.move) === '{"raise":8}', `walk: a raise to 8 sends {raise: 8} (${JSON.stringify(stub.moves[1]?.move ?? null)})`);
+    await page.click('[data-testid="poker-allin"]');
+    for (let k = 0; k < 40 && stub.moves.length < 3; k++) await page.waitForTimeout(100);
+    note(JSON.stringify(stub.moves[2]?.move) === '{"allin":true}', `walk: all in sends {allin: true} (${JSON.stringify(stub.moves[2]?.move ?? null)})`);
+    await page.click('[data-testid="poker-fold"]');
+    for (let k = 0; k < 40 && stub.moves.length < 4; k++) await page.waitForTimeout(100);
+    note(JSON.stringify(stub.moves[3]?.move) === '{"fold":true}', `walk: fold sends {fold: true} (${JSON.stringify(stub.moves[3]?.move ?? null)})`);
+  },
+});
+
 for (const g of LATER) {
   const st = nodeStub();
   const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: st.prepare });
   await registerFull(o.page); await toTable(o.page, g.nth);
   await o.page.locator(g.ready).first().waitFor({ timeout: 20000 });
-  if (want(g.name)) {
+  if (g.compare && want(g.name)) {
     const S = sheetOf(g.name);
     await settle(o.page);
     await tableFrame(o.page, g.name, S);

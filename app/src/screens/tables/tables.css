@@ -198,11 +198,29 @@
 button.tb-dk-card:disabled { cursor: default; }
 .tb-back span { position: absolute; inset: calc(var(--tb-dk-inset) * var(--k)); border-radius: var(--tb-dk-r2); background: var(--c-peach); }
 .tb-trump-suit { background: none; }
-.tb-rank { position: absolute; left: calc(var(--tb-rank-x) * var(--k)); top: calc(var(--tb-rank-y) * var(--k)); font-size: calc(var(--tb-rank-fs) * var(--k)); font-weight: var(--fw-700); line-height: 1; }
-.tb-suit { position: absolute; left: 50%; top: calc(50% + var(--tb-suit-dy) * var(--k)); translate: -50% -50%; width: calc(var(--sw) * var(--k)); height: calc(var(--sh) * var(--k)); fill: currentColor; }
+.tb-rank { position: absolute; left: calc(var(--tb-rank-x) * var(--k)); top: calc(var(--tb-rank-y) * var(--k)); font-size: calc(var(--tb-rank-fs) * var(--k)); font-weight: var(--fw-700); line-height: 1; font-variant-numeric: proportional-nums; transform-origin: 0 50%; scale: var(--tb-rank-sx) 1; }
+.tb-rank[data-len="2"] { letter-spacing: var(--tb-rank-ls10); }
+.tb-suit { position: absolute; left: 50%; top: calc(50% + var(--dy, var(--tb-suit-dy)) * var(--k)); translate: -50% -50%; width: calc(var(--sw) * var(--k)); height: calc(var(--sh) * var(--k)); fill: currentColor; }
 .tb-suit[data-suit="H"] { --sw: var(--tb-suit-h-w); --sh: var(--tb-suit-h-h); }
 .tb-suit[data-suit="D"] { --sw: var(--tb-suit-d-w); --sh: var(--tb-suit-d-h); }
 .tb-suit[data-suit="S"] { --sw: var(--tb-suit-s-w); --sh: var(--tb-suit-s-h); }
 .tb-suit[data-suit="C"] { --sw: var(--tb-suit-c-w); --sh: var(--tb-suit-c-h); }
+/* poker: the suits on a card stand on one line; the seats are two chip discs and the stack under them; the pot is a number */
+.tb-pk .tb-suit[data-suit="C"], .tb-pk-hole .tb-suit[data-suit="C"] { --dy: var(--tb-pk-dy-c); }
+.tb-pk .tb-suit[data-suit="D"], .tb-pk-hole .tb-suit[data-suit="D"] { --dy: var(--tb-pk-dy-d); }
+.tb-pk .tb-suit[data-suit="S"], .tb-pk-hole .tb-suit[data-suit="S"] { --dy: var(--tb-pk-dy-s); }
+.tb-pk .tb-suit[data-suit="H"], .tb-pk-hole .tb-suit[data-suit="H"] { --dy: var(--tb-pk-dy-h); }
+.tb-pk-pot { position: absolute; left: calc(var(--x) * var(--k)); top: calc(var(--y) * var(--k)); translate: -50% -100%; font-size: calc(var(--tb-rank-fs) * var(--k)); font-weight: var(--fw-700); line-height: 1; }
+.tb-pk-seat { position: absolute; left: calc(var(--x) * var(--k)); top: calc(var(--y) * var(--k)); width: calc(var(--w) * var(--k)); height: calc(var(--h) * var(--k)); }
+.tb-chips-mark i { position: absolute; width: calc(var(--tb-chip-d) * var(--k)); height: calc(var(--tb-chip-d) * var(--k)); border-radius: var(--r-pill); }
+.tb-chips-mark i:first-child { left: 0; top: 0; background: var(--c-yellow); }
+.tb-chips-mark i:last-child { left: calc(var(--tb-chip-dx) * var(--k)); top: calc(var(--tb-chip-dy) * var(--k)); background: var(--c-peach); }
+.tb-pk-stack { position: absolute; left: 0; right: 0; top: calc(100% + var(--tb-pk-stack-gap) * var(--k)); text-align: center; font-size: calc(var(--tb-pk-fs) * var(--k)); line-height: 1; color: var(--c-muted); }
+.tb-pk-seat[data-mine] .tb-pk-stack { color: var(--c-lime); }
+.tb-pk-seat[data-turn] .tb-chips-mark i:first-child { box-shadow: 0 0 0 calc(2 * var(--k)) var(--c-text); }
+.tb-pk-seat[data-folded] { opacity: .45; }
+.tb-pk-acts { margin-top: var(--sp-2); display: grid; gap: var(--sp-3); }
+.tb-pk-acts .tb-actions { margin-top: 0; flex-wrap: wrap; }
+.tb-pk-acts .tb-set { margin-top: 0; padding-bottom: 0; }
 .tb-actions { margin-top: var(--sp-4); display: flex; justify-content: center; gap: var(--sp-3); }
 .tb-set input { min-width: 0; height: var(--tb-line-h); padding: 0 var(--tb-line-pad); border: 0; border-radius: var(--r-pill); background: var(--c-sheet); color: var(--c-text); font: inherit; }

@@ -20,7 +20,10 @@ export type Screen =
   | { at: "me" }
   | { at: "inbox" }
   | { at: "likes" }
-  | { at: "match"; row: MatchRow };
+  | { at: "match"; row: MatchRow }
+  | { at: "tables" }
+  | { at: "new-table" }
+  | { at: "table"; id: string };
 
 type At = Screen["at"];
 
@@ -38,6 +41,9 @@ export const ROUTES: Record<At, string> = {
   inbox: "/inbox",
   likes: "/likes",
   match: "/match",
+  tables: "/tables",
+  "new-table": "/tables/new",
+  table: "/table",
 };
 
 // A path names a gate (reload, Back, a typed address); anything else is not one.
@@ -51,8 +57,8 @@ export function gateOf(path: string): Gate | null {
 export const pathOf = (s: Screen): string => ROUTES[s.at];
 
 /** A seat's own address (an identity on the page): /move is the departure, /me is Me, /away the away screen, /inbox, /likes,
- * /match the talks; anything else is the feed. */
-export const seatScreen = (path: string, state?: { until?: number; row?: MatchRow } | null): Screen => {
+ * /match the talks, /tables the tables, /tables/new the wizard; anything else is the feed. */
+export const seatScreen = (path: string, state?: { until?: number; row?: MatchRow; id?: string } | null): Screen => {
   const p = path.replace(/\/+$/, "");
   if (p === ROUTES.departure) return { at: "departure" };
   if (p === ROUTES.me) return { at: "me" };
@@ -60,6 +66,10 @@ export const seatScreen = (path: string, state?: { until?: number; row?: MatchRo
   if (p === ROUTES.likes) return { at: "likes" };
   // A match rides in its history entry, as the web's (web/src/router.ts): without it (a typed /match) the inbox.
   if (p === ROUTES.match) return state?.row && typeof state.row === "object" ? { at: "match", row: state.row } : { at: "inbox" };
+  if (p === ROUTES.tables) return { at: "tables" };
+  if (p === ROUTES["new-table"]) return { at: "new-table" };
+  // A table rides in its history entry (its id), as the web's: without one (a typed /table) the list.
+  if (p === ROUTES.table) return typeof state?.id === "string" && state.id ? { at: "table", id: state.id } : { at: "tables" };
   // The away screen's until rides in its history entry (App.tsx awayCheck); a lapsed one is the feed.
   if (p === ROUTES.away && typeof state?.until === "number" && state.until > Date.now() / 1000) return { at: "away", until: state.until };
   return { at: "feed" };

@@ -2,8 +2,7 @@ import { say } from "../i18n";
 import { Icon } from "./Icon";
 import { chat, home, person, plus, tables } from "./icons";
 
-// The bar under the feed and "Me" (sheet w4_me): four round tabs, the current one lime. Chats and tables
-// are not in this shell yet: their tabs are drawn and say so (aria-disabled), they open nothing.
+// The bar under the feed, the talks, the tables and "Me" (sheet w4_me): four round tabs, the current one lime.
 // On the desktop sheets (desktop_1440_*) the same nav is the rail at the left: the brand word, the four tabs with their
 // words, «say something» (the composer is not in this shell: drawn, aria-disabled). tokens/wide.css shows one or the other.
 export type Tab = "feed" | "tables" | "chats" | "me";
@@ -13,7 +12,7 @@ const TABS: Array<{ tab: Tab; d: string; key: string }> = [
   { tab: "chats", d: chat, key: "app.tab.chats" },
   { tab: "me", d: person, key: "app.tab.me" },
 ];
-const OPEN: Tab[] = ["feed", "chats", "me"];
+const OPEN: Tab[] = ["feed", "tables", "chats", "me"];
 
 export function TabBar({ active = "feed", onSelect }: { active?: Tab; onSelect?: (tab: Tab) => void }) {
   return (

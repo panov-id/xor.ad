@@ -17,6 +17,9 @@ import { Inbox } from "../screens/talks/Inbox";
 import { Likes } from "../screens/talks/Likes";
 import { Match } from "../screens/talks/Match";
 import type { MatchRow } from "../screens/talks/talks-logic";
+import { NewTable } from "../screens/tables/NewTable";
+import { Table } from "../screens/tables/Table";
+import { Tables } from "../screens/tables/Tables";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
 import type { Tab } from "./TabBar";
@@ -95,7 +98,7 @@ export function App() {
       setScreen((now) => {
       if (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed")) return now;
       if (!held.current || gateOf(location.pathname)) return gateScreen(location.pathname, vaulted.current);
-      const to = seatScreen(location.pathname, history.state as { until?: number } | null);
+      const to = seatScreen(location.pathname, history.state as { until?: number; row?: MatchRow; id?: string } | null);
       // A seat's address that opens another screen (an /away whose until lapsed): the entry says where the person is.
       if (location.pathname.replace(/\/+$/, "") !== pathOf(to)) history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
       return to;
@@ -174,10 +177,25 @@ export function App() {
   const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
   // The tab bar: the feed and "Me" are seats as the feed is (a reload asks the PIN); one replaces the other in history.
   const tab = (to: Tab) => {
-    if (to === "tables") return;
+    if (to !== "feed" && to !== "tables" && to !== "chats" && to !== "me") return;
     const at = to === "chats" ? "inbox" : to;
     history.replaceState({ gate: at, i: 0 }, "", pathOf({ at }));
     setScreen({ at });
+  };
+  // The tables' «New table»: the wizard on top of the list, so its first Back (i: 1) is the history's Back onto /tables.
+  // A row's «Watch»: the table over the list (i: 1, its id in the entry), so Back is the history's Back onto /tables.
+  const toTable = (id: string) => {
+    history.pushState({ gate: "table", i: 1, id }, "", pathOf({ at: "table", id }));
+    setScreen({ at: "table", id });
+  };
+  const toNewTable = () => {
+    history.pushState({ gate: "new-table", i: 1 }, "", pathOf({ at: "new-table" }));
+    setScreen({ at: "new-table" });
+  };
+  // A table made: the list again, in place of the wizard's entry (the table's own screen, w3_table-*, is not in this shell yet).
+  const toTables = () => {
+    history.replaceState({ gate: "tables", i: 0 }, "", pathOf({ at: "tables" }));
+    setScreen({ at: "tables" });
   };
   // Me's move row: the departure on top of Me, so its back (i: 1) is the history's Back onto /me.
   const toMove = () => {
@@ -216,6 +234,10 @@ export function App() {
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
+      case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /> : null;
+      // Back keeps the seat (web TB1); standing up, or a seat lost, is the list again.
+      case "table": return seated ? <Table client={seated.client} tableId={screen.id} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} onLeave={toTables} /> : null;
+      case "new-table": return seated ? <NewTable client={seated.client} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       // The talks (w3): a match and a talk open over it once their screens are here (onOpenMatch, onOpenChat).
       case "inbox": return seated ? <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={() => {}} /> : null;

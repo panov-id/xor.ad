@@ -8,7 +8,7 @@ const PREVIEW = process.env.PREVIEW_URL ?? "http://localhost:4174";
 // The dev server is the stand build (VITE_STAND=1): it reads the grace from sessionStorage "xor-grace-ms" (app/src/vault.ts).
 const DEV = process.env.DEV_URL ?? "http://localhost:5174";
 const PIN = "483915";
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|inbox|likes|matches)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|inbox|likes|matches|tables)(\/|$)/;
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 const phrase = (n) => ({ id: `ph-${n}`, text: `Walk phrase number ${n}`, mode: "walk", lang: "en", like_count: n });
 const ITEMS = [phrase(1), phrase(2), phrase(3)];
@@ -48,6 +48,11 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     if (key === "POST /matches/m1/consent") return json(200, { state: "waiting" });
     if (key === "GET /likes") return json(200, { items: [{ kind: "phrase", id: "p1", text: "Who has a ladder?", mode: "alone", like_count: 4, state: "liked", liked_at: 0 }], next: null });
     if (key === "GET /inbox") return json(200, { items: [{ kind: "match", id: "m1", name: "Nino", age: 27, waiting_for_you: false, state: "proposed", phrase: { text: "Backgammon tonight?", mode: "alone" } }, { kind: "chat", id: "c1", name: "Nino", age: 27, state: "open", chat_expires_at: Math.floor(Date.now() / 1000) + 1800 }], events: {} });
+    if (key === "GET /tables") return json(200, { items: [{ id: "t1", game: "grid", set: "four", playing: 2, free_seats: 0, watching: 0, like_count: 0 }], next: null, mine: [] });
+    if (key === "GET /tables/t1") return json(200, { id: "t1", class: "grid", set: "four", seat: 1, is_playing: true, playing: 2, watching: 0, like_count: 0, lines: [],
+      seats: [{ seat: 1, name: "Alex", role: "playing" }, { seat: 2, name: "Nino", role: "playing" }],
+      board: { seq: 1, state: { grid: { cells: {}, claim: null, rules: "four" } }, turn: 1, score: {}, expires_at: Math.floor(Date.now() / 1000) + 200, pending: null } });
+    if (key === "POST /tables/t1/ticket") return json(503, { error: { code: "unavailable" } });
     if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
     if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
     if (key === "POST /legal/accept") return json(200, {});
@@ -241,6 +246,20 @@ try {
     await page.goBack(); await settle(page);
     const back = await page.locator("main[data-screen]").first().getAttribute("data-screen");
     check(fwd === "match-waiting" && back === "inbox", `11b after my yes, Forward onto /match is the wait (screen ${fwd}), then Back: the inbox again (screen ${back})`);
+    await ctx.close();
+  }
+  // T1. the tables → a row's «Watch» → the table → Back: the list (App.tsx toTable pushes i: 1 with the id); T1b Forward: the table again
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-tables"]'); await page.waitForSelector('[data-screen="tables"]');
+    await page.locator('[data-testid="table-open"]').first().click(); await page.waitForSelector('[data-screen="table"]', { timeout: 10000 }).catch(() => null);
+    const onTable = new URL(page.url()).pathname, idIn = (await state(page)).includes('"id":"t1"');
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(onTable === "/table" && idIn && at === "tables" && new URL(page.url()).pathname === "/tables", `T1 tables → Watch (${onTable}, id in the entry ${idIn}) → Back lands on the list (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    const again = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(again === "table", `T1b Forward brings the table back from its entry (screen ${again}, url ${new URL(page.url()).pathname})`);
     await ctx.close();
   }
   // 5. the away screen (until an hour on) → Back: still the away screen

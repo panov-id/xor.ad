@@ -1,4 +1,4 @@
-// The table's socket in the web face (C1; protocol §4.4; G1e): a ticket from
+// The table's socket for both faces, web and app (C1; protocol §4.4; G1e): a ticket from
 // POST /tables/:id/ticket, the room on GET /chat, frames handed to the screen
 // in order — as the conversation's socket does (depth/web-platform/chat/room.ts), on the core's
 // openTable and reconnect.ts.
@@ -8,9 +8,9 @@
 // restarted, the line dropped, the ticket went stale — back in after a delay
 // that doubles to half a minute, and the screen reads the table whole again.
 
-import type { Client, Frame } from "../../../depth/core/client.ts";
-import { reconnectDelay } from "../../../depth/core/reconnect.ts";
-import { openTable, SEAT_LOST } from "../../../depth/core/tables.ts";
+import type { Client, Frame } from "../core/client.ts";
+import { reconnectDelay } from "../core/reconnect.ts";
+import { openTable, SEAT_LOST } from "../core/tables.ts";
 
 export type TableEvent = { kind: "connected" } | { kind: "frame"; frame: Frame } | { kind: "gone" } | { kind: "reconnecting"; inMs: number };
 

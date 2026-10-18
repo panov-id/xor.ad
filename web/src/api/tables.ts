@@ -3,6 +3,7 @@
 // (depth/core/tables.ts). Nothing here draws; screens/Table.tsx does.
 
 import type { Answer } from "../../../depth/core/client.ts";
+import { makeTableWords } from "../../../depth/core/new_table.ts";
 import { refusalText } from "./actions.ts";
 import { say } from "./me.ts";
 
@@ -18,26 +19,12 @@ export function tableRefusal(answer: Answer<unknown>): string | null {
   return refusalText("name", error?.code, answer.status);
 }
 
-// The class of a table by its dictionary name («точки»), never its id («dots»).
-export function classWord(klass: string): string {
-  const key = `web.class.${klass}`;
-  const word = say(key);
-  return word === key ? klass : word;
-}
-
-// The set of a table by its dictionary name («колода из 36 карт»), never its id
-// («36»). The ids are the node's (relay/node/src/lib/tables_*.ts, listed in
-// screens/NewTable.tsx CLASSES): "3x3" "2x2" "4x4" for dots, "checkers" "chess",
-// "reversi" "four" "battleship" for grid, "36" (durak) "poker" for deck, a
-// language code ("ru", "en", …) for word, "backgammon", "double-six",
-// "chapayev". An id with no word shows as itself.
-export function setWord(set: string): string {
-  const square = /^(\d+)x\1$/.exec(set);
-  if (square) return say("web.set.field", { n: square[1] });
-  const key = `web.set.${set}`;
-  const word = say(key);
-  return word === key ? set : word;
-}
+// The class of a table by its dictionary name («точки»), never its id («dots»), and the set by its name
+// («колода из 36 карт»; an id with no word shows as itself): depth/core/new_table.ts makeTableWords, shared with the
+// app. The ids of the sets are the node's (relay/node/src/lib/tables_*.ts, listed in screens/NewTable.tsx CLASSES).
+const words = makeTableWords(say);
+export const classWord = words.classWord;
+export const setWord = words.setWord;
 
 // A card as the node deals it (lib/tables_deck.ts:12-13, lib/tables_poker.ts:20):
 // a rank "2".."10", "J" "Q" "K" "A" and a suit "S" "H" "D" "C", so "QS" or

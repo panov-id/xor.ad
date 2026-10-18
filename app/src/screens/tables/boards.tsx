@@ -4,20 +4,35 @@
 // word-input, word-go; reversi, cell-<a1..h8>; squares, sq-<a1..h8>; backgammon, die, roll, moved; dominoes, line-bone, hand-bone, end-left, end-right, draw.
 import { useState } from "react";
 import { say } from "../../i18n";
+import { DurakBoard, DurakUnder } from "./boards-deck";
+import { ChapayevBoard } from "./boards-physics";
+import { PokerBoard, PokerUnder } from "./boards-poker";
+import { SeaBoard, SeaUnder } from "./boards-sea";
 import { type BoardState, diceOf, diceStep, dominoView, dotsLayout, dotsStateOf, fourColumns, freeOf, gridOf, hangmanView, pipsOf, reversiCells, squares, tapSquare, wordOf } from "./table-logic";
 
 type Move = (m: unknown) => void;
-export type BoardProps = { state: BoardState; seat: number; onMove?: Move };
+// `seats`: the playing seats in the node's order (a board of four sides knows by it which side is mine).
+export type BoardProps = { state: BoardState; seat: number; seats?: number[]; onMove?: Move };
 
 /** The board for a game (class and set as the node names them); a board knows nothing of the screen it stands on. */
 export function Board({ klass, set, ...props }: BoardProps & { klass: string; set: string }) {
   if (klass === "grid" && set === "four") return <FourBoard {...props} />;
   if (klass === "grid" && set === "reversi") return <ReversiBoard {...props} />;
   if (klass === "grid" && (set === "checkers" || set === "chess")) return <SquaresBoard {...props} chess={set === "chess"} />;
+  if (klass === "grid" && set === "battleship") return <SeaBoard {...props} />;
+  if (klass === "physics") return <ChapayevBoard {...props} />;
+  if (klass === "deck") return set === "poker" ? <PokerBoard {...props} /> : <DurakBoard {...props} />;
   if (klass === "dots") return <DotsBoard {...props} />;
   if (klass === "dice") return <BackgammonBoard {...props} />;
   if (klass === "free") return <DominoesBoard {...props} />;
   if (klass === "word") return <HangmanBoard {...props} />;
+  return null;
+}
+
+/** What a game keeps under its panel (battleship: my own sea; durak: take, pass on, done); null for the games with nothing there. */
+export function BoardUnder({ klass, set, ...props }: BoardProps & { klass: string; set: string }) {
+  if (klass === "grid" && set === "battleship") return <SeaUnder {...props} />;
+  if (klass === "deck") return set === "poker" ? <PokerUnder {...props} /> : <DurakUnder {...props} />;
   return null;
 }
 

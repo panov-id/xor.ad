@@ -18,7 +18,7 @@ import { chevronLeft, chevronRight, ellipsis } from "../../shell/icons";
 import { useLayers } from "../../shell/layers";
 import { Screen } from "../../shell/Screen";
 import { initial } from "../me/me-logic";
-import { Board } from "./boards";
+import { Board, BoardUnder } from "./boards";
 import { gameName } from "./table-row";
 import { facePair, firstAction, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
 import { toneAt } from "./tables-logic";
@@ -130,8 +130,9 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
       </div>
       <div className="tg-sheet">
         <div className="tg-panel" data-class={view.class} data-set={view.set}>
-          <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} onMove={onMove} />
+          <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} seats={view.seats.filter((s) => s.role === "playing").map((s) => s.seat).sort((a, b) => a - b)} onMove={onMove} />
         </div>
+        <BoardUnder klass={view.class} set={view.set} state={board?.state} seat={view.seat} onMove={onMove} />
         {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
         {proposed && (
           <div className="tg-ask">

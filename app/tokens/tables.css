@@ -132,4 +132,51 @@
   --tg-bone-r: 5px;
   --tg-dpip: 5.6px;
   --tg-dpip-pad: 2.6px;
+  /* battleship: the other's sea 10×10 on the panel, found ships as bars, my own sea small under it */
+  --tg-sea-pad: 2.99px;
+  --tg-sea-gap: 5.97px;
+  --tg-sea-r: 8px;
+  --tg-sea-mark: 17.81px;
+  --tg-sea-miss: 7px;
+  --tg-own-w: 140px;
+  --tg-own-gap: 2px;
+  --tg-own-r: 2px;
+  /* chapayev: 8×8 cells filling the panel, a piece 72% of a cell; the picked piece's ring, a reachable cell's dot, the aim's line */
+  --tg-pc: 32.03px;
+  --tg-pc-ring: 3px;
+  --tg-pc-reach: 8px;
+  --tg-aim-w: 0.14;
+  /* cards (durak, poker): every number but the colours and radii is px of the sheets' 356.18 px panel (unitless), scaled with
+     the panel's width by tables.css; a suit's mark has the ink box the sheet draws for it */
+  --tg-dk-ref: 356.18;
+  --tg-dk-r: 6px;
+  --tg-dk-r2: 4px;
+  --tg-dk-inset: 3.97;
+  --tg-rank-fs: 15.6;
+  --tg-rank-x: 7.5;
+  --tg-rank-y: 6.93;
+  --tg-rank-sx: 0.83;
+  --tg-rank-ls10: -0.1em;
+  --tg-suit-dy: 3.5;
+  --tg-suit-h-w: 12.8;
+  --tg-suit-h-h: 12.85;
+  --tg-suit-d-w: 12.8;
+  --tg-suit-d-h: 16.45;
+  --tg-suit-s-w: 11.4;
+  --tg-suit-s-h: 15.6;
+  --tg-suit-c-w: 12.81;
+  --tg-suit-c-h: 16.47;
+  /* poker's cards (49.75 × 69.64): the suits stand on one line, so each is lifted by its own height */
+  --tg-pk-dy-c: 3.03;
+  --tg-pk-dy-d: 3.03;
+  --tg-pk-dy-s: 3.48;
+  --tg-pk-dy-h: 3.92;
+  --tg-pk-fs: 12;
+  --tg-chip-d: 27.85;
+  --tg-chip-dx: 11.94;
+  --tg-chip-dy: 5.97;
+  --tg-pk-stack-gap: 4;
+  --c-card: #F7F4FB;
+  --c-suit-red: #D93A4B;
+  --c-suit-black: #121212;
 }

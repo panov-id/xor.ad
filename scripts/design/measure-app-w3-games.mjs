@@ -1,5 +1,6 @@
 // Measures the rendered app/ table (the frame, then each game's board) against the Dusk sheets of wave 3 (mobile
-// w3_table-four, w3_table-dots, w3_table-hangman, w3_table-reversi, w3_table-checkers, w3_table-chess, w3_table-backgammon, w3_table-dominoes; the other four games are another branch's as their boards come), and walks it against a stubbed node: the list's «Watch» opens the
+// w3_table-four, w3_table-dots, w3_table-hangman, then the eight on LATER: battleship, chapayev, durak, poker, reversi,
+// checkers, chess, backgammon, dominoes), and walks it against a stubbed node: the list's «Watch» opens the
 // table, a column's tap sends the move. Run by scripts/measure-app-w3-games.sh inside the Playwright image, on an
 // internal network: PREVIEW is the built app (with its CSP). Built on measure-app-w4.mjs (its helpers, its report).
 // Expected values are read from the sheets (sheet-geometry.mjs), never typed in; indices are the sheets' drawing order.
@@ -77,7 +78,7 @@ async function overflowAt(page, screen, w) {
       if (e.closest("[aria-hidden='true']") && e.tagName === "path") continue;
       const tag = `${e.tagName.toLowerCase()}${e.dataset.testid ? `[${e.dataset.testid}]` : typeof e.className === "string" && e.className ? "." + e.className.split(" ")[0] : ""}`;
       // the sticker chips scroll sideways by design (w3_table-*: four shown of eight): what is past the edge is scrolled to
-      // the dominoes' line and hand scroll sideways too (a line grows to 28 bones, a hand holds up to seven)
+      // the chips scroll sideways, and the dominoes' line and hand (a line grows to 28 bones, a hand holds up to seven)
       const scrolled = [".tg-chips", ".tg-dline", ".tg-hand"].some((c) => e.closest(c) && !e.classList.contains(c.slice(1)));
       if (r.width && !scrolled && (r.right > vw + 0.5 || r.left < -0.5)) out.push(`${tag} outside the viewport: ${r.left.toFixed(1)}..${r.right.toFixed(1)} of ${vw}`);
       const clips = cs.overflowX !== "visible" || cs.textOverflow === "ellipsis";
@@ -115,31 +116,87 @@ const cellsOf = (m) => Object.fromEntries(Object.entries(m).map(([id, seat]) => 
 // w3_table-dots: 4×4, two boxes mine (seat 1), two Nino's, two loose edges.
 const DOTS = { edges: ["h:1:1", "h:2:1", "v:1:1", "v:1:2", "h:1:2", "h:2:2", "v:1:3", "h:3:1", "v:2:1", "v:2:2", "h:3:3", "h:4:3", "v:3:3", "v:3:4", "h:4:0", "v:0:4"],
   boxes: { "1:1": 1, "1:2": 1, "2:1": 2, "3:3": 2 } };
-const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" }, t4: { class: "grid", set: "reversi" }, t5: { class: "grid", set: "checkers" }, t6: { class: "grid", set: "chess" }, t7: { class: "dice", set: "backgammon" }, t8: { class: "free", set: "double-six" } };
-// w3_table-dominoes: a line of five (doubles at both ends), my hand of five, Nino's five as a count.
-const LINE = ["6:6", "6:3", "3:1", "1:5", "5:5"], HAND = ["0:6", "4:5", "2:3", "1:2", "3:3"];
+const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" } };
+// w3_table-hangman: Nino set the word, I guess; tried q e t a f k (the sheet's spent keys), the mask shows them.
+const WORD = { setter: 2, set: "en", alphabet: [..."abcdefghijklmnopqrstuvwxyz"], word: null, mask: "ka__e__e__", guessed: ["q", "e", "t", "a", "f", "k"], misses: 3, misses_left: 3 };
+// The games after hangman, one table each in the list (t4, t5, …): GAMES names the class and set, POS the position of the
+// sheet (a copy per stub, moved by APPLY when the node "answers" a move), STATE the node's state of it for seat 1.
+const POS = {};
+const KEEP = {};
+const STATE = {};
+const APPLY = {};
+// w3_table-battleship: the shooting phase; my shots found four ships (a hit on each of three, the fourth sunk whole), one miss;
+// my own fleet a1..a4 and more, the other's shots hit a2 and missed b6.
+const ship = (...ids) => ids;
+const SEA_MINE = [ship("a1", "a2", "a3", "a4"), ship("c1", "c2", "c3"), ship("e1", "e2", "e3"), ship("a6", "a7"), ship("c6", "c7"), ship("e6", "e7"), ship("h1"), ship("h3"), ship("h5"), ship("h7")];
+GAMES.t4 = { class: "grid", set: "battleship" };
+POS.t4 = () => ({
+  shots: { "1": { b2: "sunk", c2: "hit", d2: "sunk", e2: "sunk", g5: "sunk", g6: "hit", g7: "sunk", c8: "sunk", d8: "hit", i3: "sunk", i4: "sunk", f9: "miss" }, "2": { a2: "hit", b6: "miss" } },
+});
+STATE.t4 = (p) => ({ sea: { phase: "shoot", fleets: { "1": SEA_MINE, "2": { placed: true } }, shots: p.shots } });
+APPLY.t4 = (p, m) => { if (m.shot) p.shots["1"][m.shot] = "miss"; };
+// w3_table-chapayev: eight pieces a side on the two edges (the node deals six; the sheet draws eight), mine (seat 1) at the bottom
+// (y 0), Nino's on y 7; a flick goes by piece, direction and power.
+GAMES.t5 = { class: "physics", set: "chapayev" };
+POS.t5 = () => ({ cells: Object.fromEntries([...Array(8).keys()].flatMap((x) => [[`${x}:0`, 1], [`${x}:7`, 2]])) });
+STATE.t5 = (p) => ({ physics: { cells: { ...p.cells } } });
+APPLY.t5 = (p, m) => { const f = m.flick; if (f) { delete p.cells[f.piece]; const [x, y] = f.piece.split(":").map(Number); p.cells[`${x + f.dir[0] * f.power}:${y + f.dir[1] * f.power}`] = 1; } };
+// w3_table-durak: Nino (seat 2) holds five, the stock fourteen, trump the ten of diamonds; two pairs on the table, both beaten,
+// I attack (so «done» is mine), my six cards are the sheet's fan: 9S 8H 7D 6S 10S QH.
+GAMES.t6 = { class: "deck", set: "36" };
+KEEP.t6 = true;
+POS.t6 = () => ({ hand: ["9S", "8H", "7D", "6S", "10S", "QH"], table: [{ attack: "6H", beat: "10H" }, { attack: "7S", beat: "8S" }] });
+STATE.t6 = (p) => ({ deck: { hands: { "1": [...p.hand], "2": { count: 5 } }, stock: { count: 14 }, played: [], trump: "10D", table: p.table.map((x) => ({ ...x })), attacker: 1, defender: 2 } });
+APPLY.t6 = (p, m) => { if (m.play) { p.hand = p.hand.filter((c) => c !== m.play); p.table.push({ attack: m.play, beat: null }); } };
+// w3_table-poker: four at the table (me seat 1 at the bottom left), the turn dealt (10C 9H 7D 6S, the river a back), a pot of 6,
+// two to call; the seats' chips in the sheet's four corners: seat 2 bottom right, 3 top right, 4 top left.
+// t7 is the sheet (the seat to act is Nino's, so the foot carries only my two cards, as the sheet's frame); t8 is the same table with
+// me to act, for the actions (they stand under the panel and push the stickers down: not the sheet's frame).
+const pokerState = (toAct) => ({ poker: { chips: { "1": 900, "2": 850, "3": 1000, "4": 780 }, button: 1, hand: 3, street: "turn", board: ["10C", "9H", "7D", "6S"],
+  holes: { "1": ["AS", "KH"], "2": { count: 2 }, "3": { count: 2 }, "4": { count: 2 } }, bets: { "1": 0, "2": 2, "3": 0, "4": 0 }, pot: 6, current: 2, min_raise: 4, folded: [], to_act: toAct, last: null } });
+GAMES.t7 = { class: "deck", set: "poker" };
+GAMES.t8 = { class: "deck", set: "poker" };
+KEEP.t8 = true;
+POS.t7 = () => ({});
+POS.t8 = () => ({});
+STATE.t7 = () => pokerState(2);
+STATE.t8 = () => pokerState(1);
+
+// w3_table-reversi … w3_table-dominoes (t9 … t13): the other branch's five, on the same tables.
+GAMES.t9 = { class: "grid", set: "reversi" };
+// w3_table-reversi: mine lime, Nino peach (rank 8 on top).
+POS.t9 = () => ({ cells: { d6: 1, e6: 2, c5: 2, d5: 2, e5: 1, d4: 1, e4: 2, f4: 2, e3: 1, f3: 1 } });
+STATE.t9 = (p) => ({ grid: { cells: cellsOf(p.cells), claim: null, rules: "reversi" } });
+APPLY.t9 = (p, m) => { if (m.to) p.cells[m.to] = 1; };
 // w3_table-checkers and w3_table-chess: the sheets' positions (mine seat 1, lime; Nino peach).
 const man = (seat) => ({ seat, piece: "M" });
-const CHECKERS = Object.fromEntries([..."b8 d8 f8 h8 a7 c7 e7 g7 f6 h6".split(" ").map((id) => [id, man(2)]), ..."d4 a3 c3 g3 b2 d2 f2 h2 a1 c1 e1 g1".split(" ").map((id) => [id, man(1)])]);
-const CHESS = (() => {
+GAMES.t10 = { class: "grid", set: "checkers" };
+POS.t10 = () => ({ cells: Object.fromEntries([..."b8 d8 f8 h8 a7 c7 e7 g7 f6 h6".split(" ").map((id) => [id, man(2)]), ..."d4 a3 c3 g3 b2 d2 f2 h2 a1 c1 e1 g1".split(" ").map((id) => [id, man(1)])]) });
+STATE.t10 = (p) => ({ grid: { cells: { ...p.cells }, claim: null } });
+APPLY.t10 = (p, m) => { if (m.from) { p.cells[m.to] = p.cells[m.from]; delete p.cells[m.from]; } };
+GAMES.t11 = { class: "grid", set: "chess" };
+POS.t11 = () => {
   const c = {}, back = "RNBQKBNR";
   for (let f = 0; f < 8; f++) { const x = "abcdefgh"[f]; c[`${x}8`] = { seat: 2, piece: back[f] }; c[`${x}1`] = { seat: 1, piece: back[f] }; if (x !== "e") c[`${x}7`] = { seat: 2, piece: "P" }; if (x !== "d") c[`${x}2`] = { seat: 1, piece: "P" }; }
   c.e5 = { seat: 2, piece: "P" }; c.d4 = { seat: 1, piece: "P" };
-  return c;
-})();
-// w3_table-reversi: mine lime, Nino peach (rank 8 on top).
-const REVERSI = { d6: 1, e6: 2, c5: 2, d5: 2, e5: 1, d4: 1, e4: 2, f4: 2, e3: 1, f3: 1 };
-// w3_table-hangman: Nino set the word, I guess; tried q e t a f k (the sheet's spent keys), the mask shows them.
-const WORD = { setter: 2, set: "en", alphabet: [..."abcdefghijklmnopqrstuvwxyz"], word: null, mask: "ka__e__e__", guessed: ["q", "e", "t", "a", "f", "k"], misses: 3, misses_left: 3 };
+  return { cells: c };
+};
+STATE.t11 = (p) => ({ grid: { cells: { ...p.cells }, claim: null } });
+// w3_table-backgammon: the node's dice 5 and 3; no men (the node keeps no position, relay tables_dice.ts).
+GAMES.t12 = { class: "dice", set: "backgammon" };
+POS.t12 = () => ({ rolled: [5, 3] });
+STATE.t12 = (p) => ({ dice: { rolled: p.rolled, claim: null } });
+APPLY.t12 = (p, m) => { if (m.move === true) p.rolled = null; if (m.roll) p.rolled = [2, 2]; };
+// w3_table-dominoes: a line of five (doubles at both ends), my hand of five, Nino's five as a count.
+GAMES.t13 = { class: "free", set: "double-six" };
+POS.t13 = () => ({ line: ["6:6", "6:3", "3:1", "1:5", "5:5"], hand: ["0:6", "4:5", "2:3", "1:2", "3:3"] });
+STATE.t13 = (p) => ({ free: { hands: { "1": [...p.hand], "2": { count: 5 } }, boneyard: { count: 4 }, line: [...p.line] } });
+APPLY.t13 = (p, m) => { if (m.play) { p.hand = p.hand.filter((b) => b !== m.play); if (m.end === "left") p.line.unshift(m.play.split(":").reverse().join(":")); else p.line.push(m.play); } };
 function tableView(s, id) {
   const g = GAMES[id];
-  const state = g.class === "dots" ? { dots: { n: 4, edges: [...s.edges], boxes: { ...DOTS.boxes } } }
+  const state = STATE[id] ? STATE[id](s.pos[id])
+    : g.class === "dots" ? { dots: { n: 4, edges: [...s.edges], boxes: { ...DOTS.boxes } } }
     : g.class === "word" ? { word: { ...WORD, guessed: [...s.guessed] } }
-    : g.set === "reversi" ? { grid: { cells: cellsOf(s.rev), claim: null, rules: "reversi" } }
-    : g.set === "checkers" ? { grid: { cells: { ...s.checkers }, claim: null } }
-    : g.set === "chess" ? { grid: { cells: { ...CHESS }, claim: null } }
-    : g.class === "dice" ? { dice: { rolled: s.rolled, claim: null } }
-    : g.class === "free" ? { free: { hands: { "1": [...s.hand], "2": { count: 5 } }, boneyard: { count: 4 }, line: [...s.line] } }
     : { grid: { cells: cellsOf(s.cells), claim: null, rules: "four" } };
   return {
     id, class: g.class, set: g.set, seat: 1, is_playing: true, playing: 2, watching: 0, name: "Evening at the yard", like_count: 0, lines: [],
@@ -149,7 +206,8 @@ function tableView(s, id) {
 }
 function nodeStub() {
   const calls = [], moves = [];
-  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], rev: { ...REVERSI }, checkers: { ...CHECKERS }, rolled: [5, 3], hand: [...HAND], line: [...LINE], due: Math.floor(Date.now() / 1000) + 100 };
+  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], due: Math.floor(Date.now() / 1000) + 100,
+    pos: Object.fromEntries(Object.entries(POS).map(([id, make]) => [id, make()])) };
   const prepare = async (ctx) => {
     await ctx.route("**/*", async (route) => {
       const req = route.request(), u = new URL(req.url());
@@ -165,18 +223,15 @@ function nodeStub() {
       if (key === "GET /feed") return json(200, { items: [], next: null });
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
       if (key === "GET /tables") return json(200, { items: Object.entries(GAMES).map(([id, g]) => ({ id, game: g.class, set: g.set, playing: 2, free_seats: 0, watching: 0, like_count: 0, name: "Evening at the yard" })), next: null, mine: [] });
-      const t = /^\/tables\/(t\d)(\/.*)?$/.exec(u.pathname);
+      const t = /^\/tables\/(t\d+)(\/.*)?$/.exec(u.pathname);
       if (t && req.method() === "GET" && !t[2]) return json(200, tableView(s, t[1]));
       if (t && t[2] === "/moves") {
         const m = body(); moves.push({ ...m, table: t[1] });
         if (m.move?.column) { const col = m.move.column; let r = 1; while (s.cells[`${col}${r}`]) r++; s.cells[`${col}${r}`] = 1; }
         if (m.move?.edge) s.edges.push(m.move.edge);
         if (m.move?.letter) s.guessed.push(m.move.letter);
-        if (m.move?.to && !m.move?.from) s.rev[m.move.to] = 1;
-        if (m.move?.move === true) s.rolled = null;
-        if (m.move?.play) { s.hand = s.hand.filter((b) => b !== m.move.play); if (m.move.end === "left") s.line.unshift(m.move.play.split(":").reverse().join(":")); else s.line.push(m.move.play); }
-        if (m.move?.from) { s.checkers[m.move.to] = s.checkers[m.move.from]; delete s.checkers[m.move.from]; }
-        s.seq++; s.turn = 2;
+        if (APPLY[t[1]]) APPLY[t[1]](s.pos[t[1]], m.move ?? {});
+        s.seq++; s.turn = KEEP[t[1]] ? 1 : 2;   // KEEP: a table where my turn goes on after a move (durak's throw-in, then done)
         return json(200, { board: tableView(s, t[1]).board });
       }
       if (t && t[2] === "/ticket") return json(503, { error: { code: "unavailable" } });   // no room in the stub: the screen reads the view
@@ -240,7 +295,10 @@ for (let i = 0; ; i++) {
 }
 const sheetOf = (n) => readSheet(`${SHEETS}/w3_table-${n}.svg`);
 async function toTable(page, nth = 0) {
-  await page.click('[data-testid="tab-tables"]'); await page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+  // the first tap can land before the tab bar is wired after the feed's first paint: tap again once before calling it spoiled
+  await page.click('[data-testid="tab-tables"]');
+  await page.waitForSelector('[data-screen="tables"]', { timeout: 8000 }).catch(async () => { await page.click('[data-testid="tab-tables"]'); });
+  await page.waitForSelector('[data-screen="tables"]', { timeout: 20000 }).catch((e) => { console.log(`toTable: no tables screen; page errors: ${csp.join(" | ") || "none"}`); throw e; });
   await page.locator('[data-testid="table-open"]').nth(nth).click(); await page.waitForSelector('[data-screen="table"]', { timeout: 20000 });
   await page.locator(".tg-panel").first().waitFor({ timeout: 20000 });
 }
@@ -342,125 +400,253 @@ await ctx.close();
   note(sh3.moves[0]?.move?.letter === "r" && sh3.moves[0]?.table === "t3", `walk: a tap on R sends {move: {letter: "r"}} (${JSON.stringify(sh3.moves[0] ?? null)})`);
   await o.ctx.close();
 }
-// w3_table-reversi: the fourth table
-{
-  const sr = nodeStub();
-  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: sr.prepare });
-  await registerFull(o.page); await toTable(o.page, 3);
-  await o.page.locator('[data-testid="cell-h1"]').waitFor({ timeout: 20000 });
-  const hints = await o.page.locator(".tg-hint").evaluateAll((els) => els.map((e) => e.closest("button").dataset.testid.slice(5)).sort().join(" "));
-  if (want("reversi")) {
-    const S = sheetOf("reversi"), sh = S.shapes, scr = "reversi";
-    await settle(o.page);
-    await tableFrame(o.page, scr, S);
-    compare(scr, "panel height", [sh[4].h], [(await box(o.page, ".tg-panel"))[3]]);
-    const pieces = sh.filter((x) => Math.abs(x.w - 33.8) < 0.3);
-    const at = (x, y) => `${"abcdefgh"[Math.round((x - 15.9 - 5.35) / 44.525)]}${8 - Math.round((y - 160 - 5.35) / 44.525)}`;
-    for (const p of pieces) compare(scr, `piece ${at(p.x, p.y)}`, shapeOf(p), await box(o.page, `[data-testid="cell-${at(p.x, p.y)}"] .tg-piece`));
+// ── the games after hangman: one open table each (list position `nth`), `ready` says the board stands, `compare` measures it
+// against the sheet (S, scr), `walk` taps a move and reads what the stub got ──
+const LATER = [];
+const movedBy = async (stub, tableId) => { for (let k = 0; k < 40 && stub.moves.length === 0; k++) await new Promise((r) => setTimeout(r, 100)); return stub.moves.find((m) => m.table === tableId); };
+
+const unionBox = async (page, ids) => {   // the box round several elements (a ship is one bar of its cells)
+  const bs = []; for (const id of ids) bs.push(await box(page, `[data-testid="${id}"]`));
+  const x0 = Math.min(...bs.map((b) => b[0])), y0 = Math.min(...bs.map((b) => b[1]));
+  return [x0, y0, Math.max(...bs.map((b) => b[0] + b[2])) - x0, Math.max(...bs.map((b) => b[1] + b[3])) - y0];
+};
+
+LATER.push({
+  name: "battleship", nth: 3, ready: '[data-testid="shot-a1"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    const ships = [["b2", "c2", "d2", "e2"], ["g5", "g6", "g7"], ["c8", "d8"], ["i3", "i4"]];
+    for (const [i, ids] of ships.entries()) compare(scr, `ship ${ids[0]}..${ids.at(-1)}`, shapeOf(sh[5 + i]), await unionBox(page, ids.map((c) => `shot-${c}`)));
+    for (const [i, c] of ["c2", "g6", "d8"].entries()) compare(scr, `hit mark ${c}`, shapeOf(sh[9 + i]), await box(page, `[data-testid="shot-${c}"] [data-testid="mark"]`));
+  },
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="sea-own"] [data-ship]').count() === 20 && await page.locator('[data-testid="own-a2"][data-shot="hit"]').count() === 1, "walk: my own sea stands under the panel, 20 ship cells, the other's hit on a2");
+    note(await page.locator('[data-testid="shot-f9"][data-result="miss"]').count() === 1 && await page.locator('[data-testid="shot-h1"]').isEnabled(), "walk: a miss stands, a free cell takes a shot in my turn");
+    await page.click('[data-testid="shot-h1"]');
+    const m = await movedBy(stub, "t4");
+    note(m?.move?.shot === "h1" && m?.seq === 7, `walk: a tap on h1 sends {seq: 7, move: {shot: "h1"}} (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="shot-h1"][data-result="miss"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="shot-h1"][data-result="miss"]').count() === 1 && await page.locator('[data-testid="shot-a1"]').isDisabled(), "walk: h1 stands a miss after the node's answer, no taps with the turn passed");
+  },
+});
+
+LATER.push({
+  name: "chapayev", nth: 4, ready: '[data-testid="pc-0:0"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    for (let x = 0; x < 8; x++) {
+      compare(scr, `piece ${x}:7 (Nino)`, shapeOf(sh[5 + x]), await box(page, `[data-testid="pc-${x}:7"] span`));
+      compare(scr, `piece ${x}:0 (mine)`, shapeOf(sh[13 + x]), await box(page, `[data-testid="pc-${x}:0"] span`));
+    }
+    // not compared: the sheet's aim arrow (shapes 21, 22) leans at any angle; the node's flick goes along 8 directions only
+  },
+  async walk(page, stub) {
+    note(await page.locator('.tg-pc[data-stand="mine"]').count() === 8 && await page.locator('.tg-pc[data-stand="theirs"]').count() === 8, "walk: eight pieces a side, mine at the bottom");
+    await page.click('[data-testid="pc-3:0"]');
+    note(await page.locator('[data-testid="pc-3:3"]').isEnabled() && await page.locator('[data-testid="pc-4:2"]').isDisabled() && await page.locator('[data-testid="pc-3:0"][data-picked]').count() === 1, "walk: a taken-up piece offers the cells on its lines (3:3), not 4:2");
+    await page.click('[data-testid="pc-3:3"]');
+    note(await page.locator('[data-testid="aim"]').count() === 1 && stub.moves.length === 0, "walk: the first tap on a target aims (an arrow), nothing is sent");
+    await page.click('[data-testid="pc-3:3"]');
+    const m = await movedBy(stub, "t5");
+    note(JSON.stringify(m?.move) === '{"flick":{"piece":"3:0","dir":[0,1],"power":3}}' && m?.seq === 7, `walk: the same target again flicks (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="pc-3:3"][data-stand="mine"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="pc-3:3"][data-stand="mine"]').count() === 1 && await page.locator('[data-testid="pc-3:0"][data-stand="free"]').count() === 1 && await page.locator('[data-testid="pc-0:0"]').isDisabled(), "walk: the piece stands at 3:3 after the node's answer, no taps with the turn passed");
+  },
+});
+
+const centreOf = (b) => [b[0] + b[2] / 2, b[1] + b[3] / 2];
+const shapeCentre = (s) => [s.x + s.w / 2, s.y + s.h / 2];
+LATER.push({
+  name: "durak", nth: 5, ready: '[data-testid="hand-9S"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    for (let i = 0; i < 5; i++) {
+      compare(scr, `opponent card ${i + 1}`, shapeOf(sh[5 + 2 * i]), await box(page, ".tg-dk-fan .tg-back", i));
+      compare(scr, `opponent card ${i + 1} inner`, shapeOf(sh[6 + 2 * i]), await box(page, ".tg-dk-fan .tg-back span", i));
+    }
+    compare(scr, "stock", shapeOf(sh[15]), await box(page, '[data-testid="stock"]'));
+    compare(scr, "stock inner", shapeOf(sh[16]), await box(page, '[data-testid="stock"] span'));
+    compare(scr, "trump card", shapeOf(sh[17]), await box(page, '[data-testid="trump"]'));
+    compare(scr, "trump suit (centre)", shapeCentre(sh[18]), centreOf(await box(page, '[data-testid="trump"] .tg-suit')));
+    const cards = [["attack-0", 19, 20], ["beat-0", 21, 22], ["attack-1", 23, 24], ["beat-1", 25, 26], ["hand-9S", 27, 28], ["hand-8H", 29, 30], ["hand-7D", 31, 32], ["hand-6S", 33, 34], ["hand-10S", 35, 36], ["hand-QH", 37, 38]];
+    for (const [id, c, m] of cards) {
+      compare(scr, `card ${id}`, shapeOf(sh[c]), await box(page, `[data-testid="${id}"]`));
+      compare(scr, `${id} suit (centre)`, shapeCentre(sh[m]), centreOf(await box(page, `[data-testid="${id}"] .tg-suit`)));
+    }
+    // not compared: the ranks' glyphs (rotated text with the card); the sheet's panel is what the cards stand on
+  },
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="done"]').count() === 1 && await page.locator('[data-testid="take"]').count() === 0, "walk: I attack and all is beaten: «done» is offered, «take» is not");
+    await page.click('[data-testid="done"]');
+    const d = await movedBy(stub, "t6");
+    note(JSON.stringify(d?.move) === '{"done":true}' && d?.seq === 7, `walk: «done» sends {done: true} (${JSON.stringify(d ?? null)})`);
+    await page.locator('[data-testid="hand-9S"]').waitFor({ timeout: 10000 });
+    await page.click('[data-testid="hand-9S"]');
+    for (let k = 0; k < 40 && stub.moves.length < 2; k++) await page.waitForTimeout(100);
+    const m = stub.moves[1];
+    note(JSON.stringify(m?.move) === '{"play":"9S"}' && m?.seq === 8, `walk: a tap on 9S plays it (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="attack-2"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="attack-2"]').count() === 1 && await page.locator('[data-testid="hand-9S"]').count() === 0, "walk: 9S leaves the hand and lies on the table as an attack, unbeaten");
+    note(await page.locator('[data-testid="done"]').count() === 0, "walk: with a card unbeaten on the table «done» is gone");
+  },
+});
+
+const textBox = async (page, sel, nth = 0) => (await line(page, sel, nth)) ?? [NaN, NaN, NaN];   // ink left, right, baseline of the first line
+LATER.push({
+  name: "poker", nth: 6, ready: '[data-testid="board-0"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes, L = S.lines;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    for (const [i, id] of ["board-0", "board-1", "board-2", "board-3"].entries()) {
+      compare(scr, `${id} card`, shapeOf(sh[5 + 2 * i]), await box(page, `[data-testid="${id}"]`));
+      compare(scr, `${id} suit (centre)`, shapeCentre(sh[6 + 2 * i]), centreOf(await box(page, `[data-testid="${id}"] .tg-suit`)));
+    }
+    compare(scr, "board-4 (a back)", shapeOf(sh[13]), await box(page, '[data-testid="board-4"]'));
+    compare(scr, "board-4 inner", shapeOf(sh[14]), await box(page, '[data-testid="board-4"] span'));
+    // the seats' chip marks: the sheet's yellow disc then the peach one, at its top-left, top-right, bottom-left, bottom-right
+    for (const [i, seat] of [4, 3, 1, 2].entries()) {
+      compare(scr, `seat ${seat} chips (yellow)`, shapeOf(sh[15 + 2 * i]), await box(page, `[data-testid="pk-seat-${seat}"] .tg-chips-mark i`, 0));
+      compare(scr, `seat ${seat} chips (peach)`, shapeOf(sh[16 + 2 * i]), await box(page, `[data-testid="pk-seat-${seat}"] .tg-chips-mark i`, 1));
+    }
+    const rank = L.filter((l) => Math.abs(l.base - 266.63) < 0.1);
+    const r0 = await textBox(page, '[data-testid="board-0"] .tg-rank'), r1 = await textBox(page, '[data-testid="board-1"] .tg-rank'), r2 = await textBox(page, '[data-testid="board-2"] .tg-rank'), r3 = await textBox(page, '[data-testid="board-3"] .tg-rank');
+    compare(scr, "rank 10C (left,right,base)", [rank[0].left, rank[0].right, rank[0].base], r0);
+    compare(scr, "rank 9H (left) .. 7D (right)", [rank[1].left, rank[1].right, rank[1].base], [r1[0], r2[1], r2[2]]);
+    compare(scr, "rank 6S (left,right,base)", [rank[2].left, rank[2].right, rank[2].base], r3);
+    const pot = L.find((l) => Math.abs(l.base - 342.04) < 0.1);
+    compare(scr, "pot (left,right,base)", [pot.left, pot.right, pot.base], await textBox(page, '[data-testid="pot"]'));
+    // not compared: the seats' stacks under the chip marks and my two cards under the panel (the sheet draws neither)
+  },
+  async walk(page) {
+    note(await page.locator('[data-testid="hole-AS"]').count() === 1 && await page.locator('[data-testid="hole-KH"]').count() === 1, "walk: my two cards stand under the panel");
+    note(await page.locator('[data-testid="poker-call"]').count() === 0, "walk: it is Nino's turn to act: no actions offered");
+  },
+});
+LATER.push({
+  name: "poker-actions", nth: 7, ready: '[data-testid="poker-call"]', compare: null,
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="poker-check"]').isDisabled() && await page.locator('[data-testid="poker-call"]').isEnabled(), "walk: two to call: check is shut, call is open");
+    await page.click('[data-testid="poker-call"]');
+    const c = await movedBy(stub, "t8");
+    note(JSON.stringify(c?.move) === '{"call":true}' && c?.seq === 7, `walk: call sends {call: true} (${JSON.stringify(c ?? null)})`);
+    await page.fill('[data-testid="raise-input"]', "8"); await page.click('[data-testid="raise-go"]');
+    for (let k = 0; k < 40 && stub.moves.length < 2; k++) await page.waitForTimeout(100);
+    note(JSON.stringify(stub.moves[1]?.move) === '{"raise":8}', `walk: a raise to 8 sends {raise: 8} (${JSON.stringify(stub.moves[1]?.move ?? null)})`);
+    await page.click('[data-testid="poker-allin"]');
+    for (let k = 0; k < 40 && stub.moves.length < 3; k++) await page.waitForTimeout(100);
+    note(JSON.stringify(stub.moves[2]?.move) === '{"allin":true}', `walk: all in sends {allin: true} (${JSON.stringify(stub.moves[2]?.move ?? null)})`);
+    await page.click('[data-testid="poker-fold"]');
+    for (let k = 0; k < 40 && stub.moves.length < 4; k++) await page.waitForTimeout(100);
+    note(JSON.stringify(stub.moves[3]?.move) === '{"fold":true}', `walk: fold sends {fold: true} (${JSON.stringify(stub.moves[3]?.move ?? null)})`);
+  },
+});
+
+
+// ── the other branch's five: reversi, checkers, chess, backgammon, dominoes ──
+const cellAt = (x, y, inset = 0) => `${"abcdefgh"[Math.round((x - 15.9 - inset) / 44.525)]}${8 - Math.round((y - 160 - inset) / 44.525)}`;
+LATER.push({
+  name: "reversi", nth: 8, ready: '[data-testid="cell-h1"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    const hints = await page.locator(".tg-hint").evaluateAll((els) => els.map((e) => e.closest("button").dataset.testid.slice(5)).sort().join(" "));
+    for (const p of sh.filter((x) => Math.abs(x.w - 33.8) < 0.3)) { const id = cellAt(p.x, p.y, 5.35); compare(scr, `piece ${id}`, shapeOf(p), await box(page, `[data-testid="cell-${id}"] .tg-piece`)); }
     for (const d of sh.filter((x) => Math.abs(x.w - 10.8) < 0.3 && x.y > 150)) {
-      const id = at(d.x - 11.5, d.y - 11.5);
-      // A hint is the node's rule (a piece there turns one of theirs); the sheet's dots are drawn by hand, and a dot on a
-      // cell that turns nothing is the sheet's slip, said and not compared.
+      const id = cellAt(d.x - 11.5, d.y - 11.5, 5.35);
+      // A hint is the node's rule (a piece there turns one of theirs); a dot of the sheet on a cell that turns nothing is its slip.
       if (!hints.split(" ").includes(id)) { notes.push({ bad: false, text: `reversi: the sheet's dot on ${id} is no legal move of this position (legal: ${hints}) — not compared` }); continue; }
-      compare(scr, `hint ${id}`, shapeOf(d), await box(o.page, `[data-testid="cell-${id}"] .tg-hint`));
+      compare(scr, `hint ${id}`, shapeOf(d), await box(page, `[data-testid="cell-${id}"] .tg-hint`));
     }
-    await shot(o.page, "table-reversi");
-  }
-  await overflowAt(o.page, "table-reversi", 390);
-  const first = hints.split(" ")[0];
-  await o.page.click(`[data-testid="cell-${first}"]`);
-  for (let k = 0; k < 40 && sr.moves.length === 0; k++) await o.page.waitForTimeout(100);
-  note(sr.moves[0]?.move?.to === first && sr.moves[0]?.table === "t4", `walk: a tap on the hint ${first} sends {move: {to}} (${JSON.stringify(sr.moves[0] ?? null)})`);
-  note(await o.page.locator('[data-testid="cell-a8"]').isDisabled(), "walk: a cell that turns nothing takes no tap");
-  await o.ctx.close();
-}
-// w3_table-checkers and w3_table-chess: the fifth and sixth tables
-for (const [nth, set] of [[4, "checkers"], [5, "chess"]]) {
-  const sq = nodeStub();
-  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: sq.prepare });
-  await registerFull(o.page); await toTable(o.page, nth);
-  await o.page.locator('[data-testid="sq-h1"]').waitFor({ timeout: 20000 });
-  if (want(set)) {
-    const S = sheetOf(set), sh = S.shapes, scr = set;
-    await settle(o.page);
-    await tableFrame(o.page, scr, S);
-    compare(scr, "panel height", [sh[4].h], [(await box(o.page, ".tg-panel"))[3]]);
-    const at = (x, y) => `${"abcdefgh"[Math.round((x - 15.9) / 44.525)]}${8 - Math.round((y - 160) / 44.525)}`;
+  },
+  async walk(page, stub) {
+    const first = (await page.locator(".tg-hint").evaluateAll((els) => els.map((e) => e.closest("button").dataset.testid.slice(5)).sort()))[0];
+    await page.click(`[data-testid="cell-${first}"]`);
+    const m = await movedBy(stub, "t9");
+    note(m?.move?.to === first, `walk: a tap on the hint ${first} sends {move: {to}} (${JSON.stringify(m ?? null)})`);
+    note(await page.locator('[data-testid="cell-a8"]').isDisabled(), "walk: a cell that turns nothing takes no tap");
+  },
+});
+for (const [nth, set, id] of [[9, "checkers", "t10"], [10, "chess", "t11"]]) LATER.push({
+  name: set, nth, ready: '[data-testid="sq-h1"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
     const tints = sh.filter((x) => Math.abs(x.w - 44.6) < 0.3);
-    for (const t of [tints[0], tints[13], tints[31]]) compare(scr, `tint ${at(t.x, t.y)}`, shapeOf(t), await box(o.page, `[data-testid="sq-${at(t.x, t.y)}"]`));
+    for (const t of [tints[0], tints[13], tints[31]]) compare(scr, `tint ${cellAt(t.x, t.y)}`, shapeOf(t), await box(page, `[data-testid="sq-${cellAt(t.x, t.y)}"]`));
     const size = set === "chess" ? 33.8 : 32;
-    const men = sh.filter((x) => Math.abs(x.w - size) < 0.3);
-    for (const m of men) { const id = at(m.x - (44.525 - size) / 2, m.y - (44.525 - size) / 2); compare(scr, `piece ${id}`, shapeOf(m), await box(o.page, `[data-testid="sq-${id}"] .tg-man`)); }
-    if (set === "chess") for (const l of S.lines.filter((l) => l.base > 170 && l.base < 520)) {
-      const id = at(l.left - 8, l.base - 25);
-      left(scr, `letter ${id}`, l, await line(o.page, `[data-testid="sq-${id}"] .tg-man`));
-    }
-    await shot(o.page, `table-${set}`);
-  }
-  await overflowAt(o.page, `table-${set}`, 390);
-  if (set === "checkers") {
-    await o.page.click('[data-testid="sq-d4"]');
-    note(await o.page.locator('[data-testid="sq-d4"] .tg-man[data-picked]').count() === 1, "walk: a tap on my man at d4 picks it (the yellow ring)");
-    await o.page.click('[data-testid="sq-e5"]');
-    for (let k = 0; k < 40 && sq.moves.length === 0; k++) await o.page.waitForTimeout(100);
-    note(sq.moves[0]?.move?.from === "d4" && sq.moves[0]?.move?.to === "e5", `walk: then e5 sends {move: {from: "d4", to: "e5"}} (${JSON.stringify(sq.moves[0] ?? null)})`);
-    await o.page.locator('[data-testid="sq-e5"] .tg-man[data-stand="mine"]').waitFor({ timeout: 10000 }).catch(() => {});
-    note(await o.page.locator('[data-testid="sq-e5"] .tg-man[data-stand="mine"]').count() === 1, "walk: the man stands on e5 after the node's answer");
-  }
-  await o.ctx.close();
-}
-// w3_table-backgammon: the seventh table (the node's dice 5 and 3; no men — the node keeps no position)
-{
-  const sb = nodeStub();
-  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: sb.prepare });
-  await registerFull(o.page); await toTable(o.page, 6);
-  await o.page.locator('[data-testid="die"]').nth(1).waitFor({ timeout: 20000 });
-  if (want("backgammon")) {
-    const S = sheetOf("backgammon"), sh = S.shapes, scr = "backgammon";
-    await settle(o.page);
-    await tableFrame(o.page, scr, S);
-    compare(scr, "field", shapeOf(sh[4]), await box(o.page, ".tg-bg"));
-    compare(scr, "bar", shapeOf(sh.find((x) => Math.abs(x.w - 19.9) < 0.3)), await box(o.page, ".tg-bg-bar"));
+    for (const m of sh.filter((x) => Math.abs(x.w - size) < 0.3)) { const at = cellAt(m.x - (44.525 - size) / 2, m.y - (44.525 - size) / 2); compare(scr, `piece ${at}`, shapeOf(m), await box(page, `[data-testid="sq-${at}"] .tg-man`)); }
+    if (set === "chess") for (const l of S.lines.filter((l) => l.base > 170 && l.base < 520)) { const at = cellAt(l.left - 8, l.base - 25); left(scr, `letter ${at}`, l, await line(page, `[data-testid="sq-${at}"] .tg-man`)); }
+  },
+  async walk(page, stub) {
+    if (set !== "checkers") return;
+    await page.click('[data-testid="sq-d4"]');
+    note(await page.locator('[data-testid="sq-d4"] .tg-man[data-picked]').count() === 1, "walk: a tap on my man at d4 picks it (the yellow ring)");
+    await page.click('[data-testid="sq-e5"]');
+    const m = await movedBy(stub, id);
+    note(m?.move?.from === "d4" && m?.move?.to === "e5", `walk: then e5 sends {move: {from: "d4", to: "e5"}} (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="sq-e5"] .tg-man[data-stand="mine"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="sq-e5"] .tg-man[data-stand="mine"]').count() === 1, "walk: the man stands on e5 after the node's answer");
+  },
+});
+LATER.push({
+  name: "backgammon", nth: 11, ready: '[data-testid="die"] >> nth=1',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "field", shapeOf(sh[4]), await box(page, ".tg-bg"));
+    compare(scr, "bar", shapeOf(sh.find((x) => Math.abs(x.w - 19.9) < 0.3)), await box(page, ".tg-bg-bar"));
     const dice = sh.filter((x) => Math.abs(x.w - 29.9) < 0.3);
-    for (let i = 0; i < 2; i++) compare(scr, `die ${i + 1}`, shapeOf(dice[i]), await box(o.page, '[data-testid="die"]', i));
+    for (let i = 0; i < 2; i++) compare(scr, `die ${i + 1}`, shapeOf(dice[i]), await box(page, '[data-testid="die"]', i));
     const pips = sh.filter((x) => Math.abs(x.w - 5.2) < 0.3 && x.x < dice[0].x + dice[0].w);
-    for (let i = 0; i < pips.length; i++) compare(scr, `five's pip ${i + 1}`, shapeOf(pips[i]), await box(o.page, '[data-testid="die"] .tg-pip[data-on]', i));
-    await shot(o.page, "table-backgammon");
-  }
-  await overflowAt(o.page, "table-backgammon", 390);
-  await o.page.click('[data-testid="moved"]');
-  for (let k = 0; k < 40 && sb.moves.length === 0; k++) await o.page.waitForTimeout(100);
-  note(sb.moves[0]?.move?.move === true && sb.moves[0]?.table === "t7", `walk: «move made» sends {move: {move: true}} (${JSON.stringify(sb.moves[0] ?? null)})`);
-  await o.ctx.close();
-}
-// w3_table-dominoes: the eighth table
-{
-  const sdo = nodeStub();
-  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: sdo.prepare });
-  await registerFull(o.page); await toTable(o.page, 7);
-  await o.page.locator('[data-testid="hand-bone"]').nth(4).waitFor({ timeout: 20000 });
-  if (want("dominoes")) {
-    const S = sheetOf("dominoes"), sh = S.shapes, scr = "dominoes";
-    await settle(o.page);
-    await tableFrame(o.page, scr, S);
-    compare(scr, "panel height", [sh[4].h], [(await box(o.page, ".tg-panel"))[3]]);
+    for (let i = 0; i < pips.length; i++) compare(scr, `five's pip ${i + 1}`, shapeOf(pips[i]), await box(page, '[data-testid="die"] .tg-pip[data-on]', i));
+  },
+  async walk(page, stub) {
+    await page.click('[data-testid="moved"]');
+    const m = await movedBy(stub, "t12");
+    note(m?.move?.move === true, `walk: «move made» sends {move: {move: true}} (${JSON.stringify(m ?? null)})`);
+  },
+});
+LATER.push({
+  name: "dominoes", nth: 12, ready: '[data-testid="hand-bone"] >> nth=4',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
     const standing = sh.filter((x) => Math.abs(x.w - 29.9) < 0.3 && Math.abs(x.h - 59.7) < 0.3);
     const lying = sh.filter((x) => Math.abs(x.w - 59.7) < 0.3 && Math.abs(x.h - 29.9) < 0.3);
     const line = [standing[0], ...lying.filter((x) => x.y < 350), standing[1]];
-    for (let i = 0; i < line.length; i++) compare(scr, `line bone ${i + 1}`, shapeOf(line[i]), await box(o.page, '[data-testid="line-bone"]', i));
+    for (let i = 0; i < line.length; i++) compare(scr, `line bone ${i + 1}`, shapeOf(line[i]), await box(page, '[data-testid="line-bone"]', i));
     const hand = lying.filter((x) => x.y >= 350);
-    for (let i = 0; i < hand.length; i++) compare(scr, `hand bone ${i + 1}`, shapeOf(hand[i]), await box(o.page, '[data-testid="hand-bone"] .tg-bone', i));
-    await shot(o.page, "table-dominoes");
+    for (let i = 0; i < hand.length; i++) compare(scr, `hand bone ${i + 1}`, shapeOf(hand[i]), await box(page, '[data-testid="hand-bone"] .tg-bone', i));
+  },
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="hand-bone"]').nth(2).isDisabled(), "walk: 2:3 fits no end and takes no tap");
+    await page.locator('[data-testid="hand-bone"]').first().click();
+    const m = await movedBy(stub, "t13");
+    note(m?.move?.play === "0:6" && m?.move?.end === "left", `walk: 0:6 goes to the left end, its only match (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="line-bone"]').nth(5).waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="line-bone"]').count() === 6, "walk: the line has six bones after the node's answer");
+  },
+});
+
+for (const g of LATER) {
+  const st = nodeStub();
+  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: st.prepare });
+  await registerFull(o.page); await toTable(o.page, g.nth);
+  await o.page.locator(g.ready).first().waitFor({ timeout: 20000 });
+  if (g.compare && want(g.name)) {
+    const S = sheetOf(g.name);
+    await settle(o.page);
+    await tableFrame(o.page, g.name, S);
+    await g.compare(o.page, S, g.name);
+    await shot(o.page, `table-${g.name}`);
   }
-  await overflowAt(o.page, "table-dominoes", 390);
-  note(await o.page.locator('[data-testid="hand-bone"]').nth(2).isDisabled(), "walk: 2:3 fits no end and takes no tap");
-  await o.page.locator('[data-testid="hand-bone"]').first().click();
-  for (let k = 0; k < 40 && sdo.moves.length === 0; k++) await o.page.waitForTimeout(100);
-  note(sdo.moves[0]?.move?.play === "0:6" && sdo.moves[0]?.move?.end === "left", `walk: 0:6 goes to the left end, its only match ({play, end}: ${JSON.stringify(sdo.moves[0] ?? null)})`);
-  await o.page.locator('[data-testid="line-bone"]').nth(5).waitFor({ timeout: 10000 }).catch(() => {});
-  note(await o.page.locator('[data-testid="line-bone"]').count() === 6, "walk: the line has six bones after the node's answer");
+  await overflowAt(o.page, `table-${g.name}`, 390);
+  await g.walk(o.page, st);
   await o.ctx.close();
 }
+
 for (const w of [375, 320]) {
   const s2 = nodeStub();
   const o = await open(browser, PREVIEW + "/", w, { screen: "w3g", prepare: s2.prepare });
@@ -472,23 +658,11 @@ for (const w of [375, 320]) {
   await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
   await o.page.locator('[data-testid="table-open"]').nth(2).click(); await o.page.locator('[data-testid="key-p"]').waitFor({ timeout: 20000 });
   await settle(o.page); await overflowAt(o.page, "table-hangman", w);
-  await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
-  await o.page.locator('[data-testid="table-open"]').nth(3).click(); await o.page.locator('[data-testid="cell-h1"]').waitFor({ timeout: 20000 });
-  await settle(o.page); await overflowAt(o.page, "table-reversi", w);
-  for (const [nth, set] of [[4, "checkers"], [5, "chess"]]) {
+  for (const g of LATER) {
     await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
-    await o.page.locator('[data-testid="table-open"]').nth(7).waitFor({ timeout: 20000 });   // the whole list again, not the first rows
-    await o.page.locator('[data-testid="table-open"]').nth(nth).click();
-    const ok = await o.page.locator('[data-testid="sq-h1"]').waitFor({ timeout: 20000 }).then(() => true, () => false);
-    if (!ok) { await o.page.screenshot({ path: `${SHOTS}/w3_table-${set}-${TAG}-${w}-missing.png` }); note(false, `walk: ${set} at ${w}[${TAG}] did not open (shot w3_table-${set}-${TAG}-${w}-missing.png)`); continue; }
-    await settle(o.page); await overflowAt(o.page, `table-${set}`, w);
+    await o.page.locator('[data-testid="table-open"]').nth(g.nth).click(); await o.page.locator(g.ready).first().waitFor({ timeout: 20000 });
+    await settle(o.page); await overflowAt(o.page, `table-${g.name}`, w);
   }
-  await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
-  await o.page.locator('[data-testid="table-open"]').nth(6).click(); await o.page.locator('[data-testid="die"]').nth(1).waitFor({ timeout: 20000 });
-  await settle(o.page); await overflowAt(o.page, "table-backgammon", w);
-  await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
-  await o.page.locator('[data-testid="table-open"]').nth(7).click(); await o.page.locator('[data-testid="hand-bone"]').nth(4).waitFor({ timeout: 20000 });
-  await settle(o.page); await overflowAt(o.page, "table-dominoes", w);
   await o.ctx.close();
 }
 

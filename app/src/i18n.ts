@@ -280,6 +280,8 @@ export const APP: Dicts = {
     "app.filter.open_note": "С {n} верхней границы нет.",
     // Tables (w3_tables, w3_new-table-1..3); written 18.10.2026, the quorum on the words has not been held.
     // The sheets are English; this Russian is not off a sheet.
+    "app.tables.playing": "Играют сейчас",
+    "app.tables.start": "Начать игру",
     "app.tables.sub": "Садитесь, смотрите или заведите свой.",
     "app.tables.watch": "Смотреть",
     "app.tables.seated": "{n} из {seats} сидят",
@@ -625,6 +627,8 @@ export const APP: Dicts = {
     "app.filter.to": "Up to the age of",
     "app.filter.open_note": "From {n} the top has no limit.",
     // Tables: the sheets' own words (w3_tables, w3_new-table-1..3).
+    "app.tables.playing": "Playing now",
+    "app.tables.start": "Start a game",
     "app.tables.sub": "Sit down, watch, or set up your own.",
     "app.tables.watch": "Watch",
     "app.tables.seated": "{n} of {seats} seated",

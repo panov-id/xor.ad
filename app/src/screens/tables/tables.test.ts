@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { GAMES, gameOfTable, makeTableWords, nameLeft, refusalCode, seatsWord, tableBody, tableCounts } from "../../../../depth/core/new_table.ts";
 import { pathOf, seatScreen } from "../../router.ts";
-import { apart, back, canNext, mergeTables, nameRefused, next, pick, startWizard, subParts, toneAt } from "./tables-logic.ts";
+import { apart, back, canNext, mergeTables, nameRefused, next, pick, START_GAMES, startWizard, subParts, toneAt } from "./tables-logic.ts";
 
 test("the twelve games, in the sheets' order, each with a variant and a seat the node plays", () => {
   assert.deepEqual(GAMES.map((g) => g.id), ["dots", "checkers", "chess", "durak", "hangman", "backgammon", "dominoes", "chapayev", "reversi", "four", "battleship", "poker"]);
@@ -119,4 +119,11 @@ test("the seat's own addresses: /tables the list, /tables/new the wizard, a trai
   assert.deepEqual(seatScreen("/tables/whatever"), { at: "feed" }, "an address the shell does not know is the feed");
   assert.equal(pathOf({ at: "tables" }), "/tables");
   assert.equal(pathOf({ at: "new-table" }), "/tables/new");
+});
+
+test("«Start a game»: the wide sheets' six, in their order, each a game the node sets up; a pick lands on the wizard's first step", () => {
+  assert.deepEqual(START_GAMES, ["backgammon", "durak", "chess", "dots", "dominoes", "poker"]);
+  for (const id of START_GAMES) assert.ok(GAMES.some((g) => g.id === id), id);
+  const w = pick(startWizard(), "durak");
+  assert.deepEqual([w.step, w.draft.game], [1, "durak"]);
 });

@@ -234,9 +234,9 @@ export function App() {
     history.pushState({ gate: "table", i: 1, id }, "", pathOf({ at: "table", id }));
     setScreen({ at: "table", id });
   };
-  const toNewTable = () => {
-    history.pushState({ gate: "new-table", i: 1 }, "", pathOf({ at: "new-table" }));
-    setScreen({ at: "new-table" });
+  const toNewTable = (game?: string) => {
+    history.pushState({ gate: "new-table", i: 1, ...(game ? { game } : {}) }, "", pathOf({ at: "new-table" }));
+    setScreen(game ? { at: "new-table", game } : { at: "new-table" });
   };
   // A table made: the list again, in place of the wizard's entry (the table's own screen, w3_table-*, is not in this shell yet).
   const toTables = () => {
@@ -290,7 +290,7 @@ export function App() {
       case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /> : null;
       // Back keeps the seat (web TB1); standing up, or a seat lost, is the list again.
       case "table": return seated ? <Table client={seated.client} tableId={screen.id} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} onLeave={toTables} /> : null;
-      case "new-table": return seated ? <NewTable client={seated.client} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} /> : null;
+      case "new-table": return seated ? <NewTable client={seated.client} picked={screen.game} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} /> : null;
       case "chat": return seated && chatKeys ? <Chat key={screen.row.id} client={seated.client} keys={chatKeys} row={screen.row} onBack={chatBack} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       // The talks (w3): a match and a talk open over the inbox — a talk's row is the chat's when the node gave it whole.

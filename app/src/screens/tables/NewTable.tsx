@@ -25,9 +25,10 @@ import { die, seat } from "./icons";
 import { countsLine, gameName, metaOf, TableRow, variantWord } from "./table-row";
 import { back, canNext, nameRefused, next, pick, startWizard, TABLES_RADIUS, toneAt, type Wizard } from "./tables-logic";
 
-export function NewTable({ client, onMade, onBack }: { client: Client; onMade: (id: string) => void; onBack: () => void }) {
+// `picked`: a game chosen already (the wide tables' «Start a game»), the wizard opens on its first step with it chosen.
+export function NewTable({ client, onMade, onBack, picked }: { client: Client; onMade: (id: string) => void; onBack: () => void; picked?: string }) {
   const place = useRef(storedPlace()).current;
-  const [w, setW] = useState<Wizard>(startWizard);
+  const [w, setW] = useState<Wizard>(() => (picked ? pick(startWizard(), picked) : startWizard()));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const game = gameById(w.draft.game);

@@ -1,4 +1,4 @@
-// The tablet (834) and desktop (1440) sheets of the feed, the phrase card and "Me", against the rendered app/: the third part of
+// The tablet (834) and desktop (1440) sheets of the feed, the phrase card, "Me", the talks, the composer and the tables, against the rendered app/: the third part of
 // measure-app.mjs, run by `WIDE=1 scripts/measure-app.sh` (the viewport is the sheet's width: 834 x 1194, 1440 x 900).
 //   tablet/tablet_834_{Feed,Phrase,Me}.svg, desktop/desktop_1440_{Feed,Phrase,Me}.svg
 //
@@ -303,10 +303,62 @@ export async function wideSheets(h) {
     await o.ctx.close();
   }
 
+
+  // ── the tables (tablet_834_Tables, desktop_1440_Tables): the list's «Playing now» as the sheets' five, «Start a game»'s six,
+  // «New table»; GET /tables answered here over the stub (measure-app.mjs's has no tables) ──
+  const TABLE_CARDS = [
+    { id: "t1", game: "dice", set: "backgammon", playing: 2, free_seats: 0, watching: 3, like_count: 0 },
+    { id: "t2", game: "deck", set: "36", playing: 3, free_seats: 1, watching: 1, like_count: 0 },
+    { id: "t3", game: "grid", set: "chess", playing: 1, free_seats: 1, watching: 0, like_count: 0 },
+    { id: "t4", game: "dots", set: "4x4", playing: 2, free_seats: 0, watching: 5, like_count: 0 },
+    { id: "t5", game: "free", set: "double-six", playing: 2, free_seats: 2, watching: 2, like_count: 0 },
+  ];
+  async function tables(kind, w, dir, file, p) {
+    const scr = `${kind}-tables`, S = sheet(dir, file), T = S.lines, stub = nodeStub();
+    const prepare = async (ctx, page) => {
+      await stub.prepare(ctx, page);
+      await ctx.route(/\/tables(\?|$)/, (route) => route.request().resourceType() === "fetch" || route.request().resourceType() === "xhr"
+        ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: TABLE_CARDS, next: null, mine: [] }) }) : route.fallback());
+      await ctx.addInitScript(() => { try { localStorage.setItem("place.v1", JSON.stringify({ lat: 41.69, lon: 44.8, name: "Sololaki" })); } catch {} });
+    };
+    const o = await open(browser, PREVIEW + "/", w, { screen: "walk-wide-" + scr, prepare });
+    await registerFull(o.page);
+    await o.page.click('[data-testid="tab-tables"]'); await o.page.locator('[data-testid="table-card"]').nth(4).waitFor({ timeout: 20000 });
+    await settle(o.page);
+    const page = o.page, t = '[data-screen="tables"]';
+    compare(scr, "New table", abs(shape(S, p.newTable)), await one(page, `${t} .tb-new`));
+    textAt(scr, "title", T[p.title], await line(page, `${t} .tb-head h1`));
+    textAt(scr, "sub", T[p.sub], await line(page, `${t} .tb-sub`));
+    textAt(scr, "«Playing now»", T[p.playing], await line(page, `${t} .tb-playing`));
+    const rows = await boxOf(page, `${t} [data-testid="tables"] .tb-row`);
+    p.rows.forEach((si, k) => compare(scr, `row ${k + 1}`, abs(shape(S, si)), rows[k] ?? NAN4));
+    compare(scr, "row 1 face", abs(shape(S, p.face)), await one(page, `${t} [data-testid="tables"] .tb-row .tb-face`));
+    compare(scr, "row 1 «Watch»", abs(shape(S, p.watch)), await one(page, `${t} [data-testid="tables"] .tb-row .tb-watch`));
+    textAt(scr, "row 1 name", T[p.name], await line(page, `${t} [data-testid="tables"] .tb-row .tb-name`));
+    textAt(scr, "row 1 counts", T[p.meta], await line(page, `${t} [data-testid="tables"] .tb-row .tb-meta`));
+    textAt(scr, "«Start a game»", T[p.start], await line(page, `${t} .tb-start h2`));
+    const tiles = await boxOf(page, `${t} .tb-game`);
+    p.tiles.forEach((si, k) => compare(scr, `game tile ${k + 1}`, abs(shape(S, si)), tiles[k] ?? NAN4));
+    for (const [k, li] of p.tileWords.entries()) if (li !== null) textAt(scr, `game tile ${k + 1} word`, T[li], await line(page, `${t} .tb-start li:nth-child(${k + 1}) .tb-game span`));
+    if (kind === "tablet") { textAt(scr, "brand word", T[0], await line(page, `${t} .tb-head .word`)); await bar(scr, page, S, p.bar, t); }
+    else { compare(scr, "panel", abs(shape(S, p.panel)), await one(page, `${t} .tb-sheet`)); await rail(scr, page, S, `${t} .tabbar`, p.rail);
+      info(`${scr}: the talks' pane at the right of the panel is wide2's (not drawn here); the sheet runs tile 1's and tile 2's words into one line, so tile 2's word is not compared`); }
+    info(`${scr}: the games' icons in the tiles and the row faces are strokes (not compared); the search in the head is not drawn`);
+    await overflowAt(page, scr, w);
+    if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${scr}.png` });
+    // «Start a game»'s durak: the wizard opens on its first step with durak picked
+    await page.click('[data-testid="start-durak"]'); await page.waitForSelector('[data-screen="new-table"]', { timeout: 20000 });
+    const picked = await page.locator('[aria-pressed="true"], [aria-checked="true"]').first().textContent().catch(() => "");
+    notes.push({ bad: !/durak|дурак/i.test(picked ?? ""), text: `${scr}: «Start a game» → Durak opens the wizard with durak picked (${(picked ?? "").trim()})` });
+    await o.ctx.close();
+  }
+
   // tile shapes in the sheets' feed order, by the shape's place in the file (readSheet's list)
   await feed("tablet", 834, "tablet", "tablet_834_Feed", { tiles: [6, 20, 10, 24, 12, 27, 16], list: 5, tile: 6, hand: 7, foot: 8, chip: 9, title: [14, 15] });
   await feed("desktop", 1440, "desktop", "desktop_1440_Feed", { tiles: [12, 25, 16, 29, 18, 33, 21], panel: 6, tile: 12, hand: 13, foot: 14, chip: 15, title: [13, 14] });
   await me("tablet", 834, "tablet", "tablet_834_Me");
+  await tables("tablet", 834, "tablet", "tablet_834_Tables", { newTable: 1, title: 1, sub: 2, playing: 4, rows: [3, 12, 6, 15, 9], face: 4, watch: 5, name: 5, meta: 6,
+    start: 20, tiles: [18, 19, 20, 21, 22, 23], tileWords: [21, 22, 23, 24, 25, 26], bar: { bar: 24, tab: 25 } });
   await talks("tablet", 834, "tablet", "tablet_834_Talks", { brand: 0, title: 1, offers: 4, faces: [7, 8, 9, 10], sheet: 11, selected: 12, avatars: [13, 14, 15, 16],
     names: [12, 16, 20, 24], pane: 17, paneAvatar: 19, paneName: 29, ring: 35, divider: 18, chips: [26, 27, 28, 29], field: 30, send: 31, bar: true });
   await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sub: 1, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });

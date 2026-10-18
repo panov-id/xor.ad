@@ -50,3 +50,7 @@ export function subParts(parts: Array<string | null | undefined | false>): strin
   const seen = new Set<string>();
   return parts.filter((p): p is string => !!p && !seen.has(p.toLowerCase()) && !!seen.add(p.toLowerCase())).join(" · ");
 }
+
+// «Start a game» on the wide sheets (tablet_834_Tables, desktop_1440_Tables): six games in the sheets' order, each opening the
+// wizard with that game picked. Only games the node sets up (depth/core new_table.ts GAMES).
+export const START_GAMES = ["backgammon", "durak", "chess", "dots", "dominoes", "poker"].filter((id) => gameById(id));

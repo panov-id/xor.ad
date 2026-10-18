@@ -31,6 +31,7 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     };
   });
   let share = null, until = null;
+  const said = [];
   await ctx.route("**/*", async (route) => {
     const req = route.request(), u = new URL(req.url());
     if (!["fetch", "xhr"].includes(req.resourceType()) || !NODE_PATH.test(u.pathname)) return route.fallback();
@@ -40,6 +41,9 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     if (key === "POST /identities") { share = JSON.parse(req.postData()).share; return json(200, { identity_id: "id-stub", session_id: "sess-stub" }); }
     if (key === "POST /vault/share") return json(200, { share });
     if (key === "GET /feed") return json(200, { items: ITEMS, next: null });
+    // the composer (12): a phrase out at once, the node's limits
+    if (key === "POST /feed") { said.push(JSON.parse(req.postData())); return json(200, { id: "ph-new" }); }
+    if (key === "GET /limits") return json(200, { phrase_length: 128, chat_ciphertext_chars: 8000 });
     if (key === "GET /identities/me") {
       if (awayIn !== null && until === null) until = Math.floor(Date.now() / 1000) + awayIn;
       return json(200, { identity_id: "id-stub", name: "Alex", ...(until ? { stepped_away_until: until } : {}) });
@@ -57,7 +61,7 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
   const page = await ctx.newPage();
   page.on("pageerror", (e) => console.log(`pageerror: ${e}`));
   await page.goto(base + "/", { waitUntil: "load" });
-  return { ctx, page };
+  return { ctx, page, said };
 }
 
 async function registerFull(page, { land = "feed" } = {}) {
@@ -251,6 +255,28 @@ try {
     const shut = { game: await page.locator('[data-testid="chat-game"]').count(), lines: await page.locator('[data-testid="lines"]').count(), chips: await page.locator(".ch-quick").count() };
     check(open_.chips === 0 && open_.lines === 0 && open_.propose === 1 && shut.game === 0 && shut.lines === 1 && shut.chips === 1,
       `11 the game chip opens the game in the lines' place, «Hide the game» gives them back (open ${JSON.stringify(open_)}, hidden ${JSON.stringify(shut)})`);
+    await ctx.close();
+  }
+  // 12. the feed's «say it» opens the composer at /write over the feed: 12a Back → the feed; 12b its own back the same;
+  // 12c a phrase said goes to the node with the feed's circle and lands on the feed
+  {
+    const { ctx, page, said } = await open(browser); await registerFull(page);
+    const at = async () => [await page.locator("main[data-screen]").first().getAttribute("data-screen"), new URL(page.url()).pathname];
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]');
+    const opened = await at();
+    await page.goBack(); await settle(page);
+    const a = await at();
+    check(opened.join() === "composer,/write" && a.join() === "feed,/feed", `12a «say it» opens /write, Back lands on the feed (${opened} → ${a})`);
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]');
+    await page.click('[data-testid="composer-back"]'); await settle(page);
+    const b = await at();
+    check(b.join() === "feed,/feed", `12b the composer's own back lands on the feed (${b})`);
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]');
+    await page.fill('[data-testid="text"]', "Backgammon in the yard tonight?");
+    await page.click('[data-testid="send"]'); await page.waitForSelector('[data-screen="feed"]', { timeout: 15000 }).catch(() => null);
+    const c = await at();
+    check(c.join() === "feed,/feed" && said.length === 1 && said[0].text === "Backgammon in the yard tonight?" && said[0].area_radius === 1000 && said[0].mode === "alone",
+      `12c a phrase said goes out (${JSON.stringify(said[0] ?? null)}) and lands on the feed (${c})`);
     await ctx.close();
   }
   // 4. Me → Move → Back: Me again, not the feed (App.tsx toMove pushes i: 1; popstate → seatScreen("/me"))

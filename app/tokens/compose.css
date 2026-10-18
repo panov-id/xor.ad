@@ -1,0 +1,47 @@
+/* The phrase for the feed (sheet mobile w3_composer): sizes read off the sheet (app/src/screens/composer.css uses
+   them). The sheet's canvas is 388 wide in a 390 viewport. */
+:root {
+  --cp-head-h: 158px;
+  --cp-back-x: 14px;
+  --cp-back-y: 24px;
+  --cp-title-x: 22.4px;
+  --cp-title-base: 105.3px;
+  --fs-cp-title: 30px;
+  --cp-sub-base: 134.1px;
+  --fs-cp-sub: 15px;
+
+  --cp-pad-top: 21.9px;
+  --cp-card-h: 184.1px;
+  --cp-card-pad: 20.2px;
+  --cp-label-base: 33.8px;
+  --fs-cp-label: 13.5px;
+  --cp-text-top: 14px;
+  --fs-cp-text: 24.7px;
+  --lh-cp-text: 28.9px;
+  --cp-foot-base: 161.1px;
+  --fs-cp-foot: 13px;
+
+  --cp-h2-gap: 16.3px;
+  --fs-cp-h2: 15.5px;
+  --cp-group-gap: 15.8px;
+  --cp-mode-h: 83.6px;
+  --cp-mode-gap: 7.9px;
+  --cp-mode-label: 21.9px;
+  --fs-cp-mode: 14px;
+  --cp-zone-h: 39.8px;
+  --cp-zone-gap: 6px;
+  --cp-zone-pad: 15.85px;
+  --fs-cp-zone: 13px;
+
+  --cp-live-gap: 15.9px;
+  --cp-live-h: 67.65px;
+  --cp-live-pad: 13.9px;
+  --cp-ring: 43.8px;
+  --cp-ring-w: 4.5px;
+  --fs-cp-ring: 13px;
+  --cp-live-text-gap: 12.3px;
+  --fs-cp-live: 14px;
+  --cp-send-gap: 15.9px;
+  --cp-send-h: 59.7px;
+  --fs-cp-send: 16.5px;
+}

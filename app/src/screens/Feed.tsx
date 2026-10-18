@@ -4,14 +4,14 @@
 // and screens/logic/useFeed.ts, in this shell's frame. The same testids: cards, card, loading, error, quiet, more,
 // gone (data-why), hidden-undo, hidden-undo-error; new ones: retry, wider, radius-<m>.
 //
-// Not here yet: the «say it» chip and the composer, the place picker, search/menu in the header, the density line,
+// The «say it» chip opens the composer (Composer.tsx, w3_composer). Not here yet: the place picker, search/menu in the header, the density line,
 // the tables between phrases (a table item is skipped), one's own sent phrase over the list.
 import { useEffect, useRef, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
 import { failedLine, label, say } from "../i18n";
 import { storedPlace } from "../place";
 import { Icon } from "../shell/Icon";
-import { flag, map, refresh, undo } from "../shell/icons";
+import { flag, map, pen, refresh, undo } from "../shell/icons";
 import { useSkeleton } from "../shell/loading";
 import { Skeleton } from "../shell/Skeleton";
 import { type Tab, TabBar } from "../shell/TabBar";
@@ -25,7 +25,7 @@ const radiusText = (r: Radius): string => {
   return say(w.key, { n: w.n });
 };
 
-export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => void }) {
+export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (tab: Tab) => void; onCompose?: (radius: Radius) => void }) {
   const place = useRef(storedPlace()).current;
   const [radius, setRadius] = useState<Radius>(1000);
   const [items, setItems] = useState<FeedCard[]>([]);
@@ -192,6 +192,10 @@ export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => 
             <button type="button" className="cta cta-quiet" onClick={() => void load(next)} data-testid="more">{say("app.feed.more_cards")}</button>
           )}
         </section>
+        {/* «Say it» over the bar (w3_composer's way in): the composer opens with the feed's circle, the web's testid. */}
+        {onCompose && (
+          <button type="button" className="fd-say" onClick={() => onCompose(radius)} aria-label={say("app.compose.title")} data-testid="write"><Icon d={pen} /></button>
+        )}
         <TabBar active="feed" onSelect={onTab} />
       </main>
       {card && (

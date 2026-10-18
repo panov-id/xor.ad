@@ -5,6 +5,7 @@
 // added with their screens. "feed" is where a registration or an unlock lands (a seat, not a gate: a reload on
 // it asks the PIN when the device keeps an identity, and opens the splash when it keeps none, as the web does).
 import type { Record_ } from "@sdk/enroll.ts";
+import type { Radius } from "@sdk/client.ts";
 import type { InboxChatRow } from "@platform/chat/keys.ts";
 
 export type Screen =
@@ -19,7 +20,9 @@ export type Screen =
   | { at: "away"; until: number }
   | { at: "me" }
   // A chat travels in history.state only (web router.ts): the row is a structured copy, never in the address.
-  | { at: "chat"; row: InboxChatRow };
+  | { at: "chat"; row: InboxChatRow }
+  // The phrase for the feed (web /write), with the feed's circle it opened from.
+  | { at: "composer"; radius: Radius };
 
 type At = Screen["at"];
 
@@ -35,6 +38,7 @@ export const ROUTES: Record<At, string> = {
   away: "/away",
   me: "/me",
   chat: "/chat",
+  composer: "/write",
 };
 
 // A path names a gate (reload, Back, a typed address); anything else is not one.
@@ -49,12 +53,13 @@ export const pathOf = (s: Screen): string => ROUTES[s.at];
 
 /** A seat's own address (an identity on the page): /move is the departure, /me is Me, /away the away screen, /chat
  * the chat its entry carries; anything else is the feed. */
-export const seatScreen = (path: string, state?: { until?: number; row?: InboxChatRow } | null): Screen => {
+export const seatScreen = (path: string, state?: { until?: number; row?: InboxChatRow; radius?: Radius } | null): Screen => {
   const p = path.replace(/\/+$/, "");
   if (p === ROUTES.departure) return { at: "departure" };
   if (p === ROUTES.me) return { at: "me" };
   // A chat's entry without its row (a typed /chat, a reload: the row is not kept on the disk) is the feed.
   if (p === ROUTES.chat && state?.row?.kind === "chat") return { at: "chat", row: state.row };
+  if (p === ROUTES.composer) return { at: "composer", radius: state?.radius ?? 1000 };
   // The away screen's until rides in its history entry (App.tsx awayCheck); a lapsed one is the feed.
   if (p === ROUTES.away && typeof state?.until === "number" && state.until > Date.now() / 1000) return { at: "away", until: state.until };
   return { at: "feed" };

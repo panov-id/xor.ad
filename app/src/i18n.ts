@@ -329,6 +329,8 @@ export const APP: Dicts = {
     "app.stepaway.come_down.other": "{n} come down",
     "app.stepaway.in_on_you": "Liked you",
     "app.stepaway.neighbours": "{n} neighbours",
+    "app.stepaway.neighbours.one": "{n} neighbour",
+    "app.stepaway.neighbours.other": "{n} neighbours",
     "app.stepaway.wait": "{n} wait",
     "app.stepaway.wait.one": "{n} waits",
     "app.stepaway.wait.other": "{n} wait",

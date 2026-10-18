@@ -24,8 +24,8 @@ export function Statements({ client, onBack }: { client: Client; onBack: () => v
           <Banner tone="coral" icon={flag} title={say("app.statements.head", { date: dayMonth(LANG, new Date(s.created_at * 1000)) })}
             text={say(`app.statements.${s.restriction}`) + (s.until ? ` ${capital(say("statements.until", { date: dayMonth(LANG, new Date(s.until * 1000)) }), LANG)}.` : "")} />
           <Pairs rows={[
-            [say("app.statements.what"), s.facts],
-            [say("app.statements.why"), s.ground_text],
+            [say("app.statements.what"), s.facts, "prose"],
+            [say("app.statements.why"), s.ground_text, "prose"],
             [say("app.statements.decided"), say(s.automated_used ? "app.statements.automatically" : "app.statements.person")],
             [say("app.statements.next"), say("app.statements.can_appeal")],
           ]} />

@@ -38,11 +38,12 @@ export function Row({ text, value, sub, icon, onOpen, testid, href }: {
   return <button type="button" className="me-row" data-icon={icon ? "yes" : undefined} onClick={onOpen} data-testid={testid}>{inner}</button>;
 }
 
-/** Label and value between hairlines (w4_me-reset, w4_statements, w4_step-away). */
-export function Pairs({ rows, testid }: { rows: Array<[string, string]>; testid?: string }) {
+/** Label and value between hairlines (w4_me-reset, w4_statements, w4_step-away). A "prose" row is free text from the
+ *  node (a statement's facts and grounds): it wraps and grows, read whole, never cut to one line. */
+export function Pairs({ rows, testid }: { rows: Array<[string, string] | [string, string, "prose"]>; testid?: string }) {
   return (
     <dl className="me-pairs" data-testid={testid}>
-      {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+      {rows.map(([k, v, kind]) => <div key={k} className={kind === "prose" ? "me-pair--prose" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
     </dl>
   );
 }

@@ -16,6 +16,7 @@
 .tile .icon { --stroke: 1.9; }
 @keyframes tile-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pulse { 50% { transform: scale(var(--scale-pulse)); } }
+@keyframes pulse-scale { 50% { scale: var(--scale-pulse); } }   /* `scale`, not `transform`: it rides on top of the entry's rise */
 
 .entry { z-index: 1; padding: 0 var(--sp-4) max(var(--nav-gap-bottom), env(safe-area-inset-bottom)); }
 .copy { margin-top: var(--splash-copy-top); animation: rise var(--d-item) var(--ease) var(--t-copy-start) both; }
@@ -28,7 +29,7 @@
 .cta .icon { --icon-size: var(--icon-cta); }
 .cta-primary { background: var(--c-lime); color: var(--c-ink); }
 .cta-quiet { background: var(--c-panel); color: var(--c-text); font-weight: var(--fw-600); }
-.link { justify-self: center; margin-bottom: var(--arrive-lift); min-height: var(--s-touch-min); padding: 0 var(--sp-3); font-size: var(--fs-body); font-weight: var(--fw-600); color: var(--c-text);
+.link { justify-self: center; margin-bottom: var(--arrive-lift); min-height: var(--s-touch-min); padding: 0 var(--sp-3); font-size: var(--fs-body); font-weight: var(--fw-500); color: var(--c-text);
   text-decoration: underline; text-decoration-thickness: var(--hair); text-underline-offset: var(--underline-offset); }
 
 /* ── splash-lang ── */
@@ -43,7 +44,7 @@
 .lang-list { list-style: none; padding: var(--lang-list-top) var(--sp-4) calc(var(--sp-6) + env(safe-area-inset-bottom)); flex: 1; min-height: 0; overflow-y: auto;
   display: grid; align-content: start; gap: var(--sp-2); animation: rise var(--d-item) var(--ease) var(--t-copy-start) both; }
 .lang-list button { width: 100%; height: var(--s-lang-row); border-radius: var(--r-lang-row); background: var(--c-panel); color: var(--c-text);
-  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--lang-pad-end) 0 var(--sp-4);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--lang-pad-end) 0 var(--lang-pad-start);
   font-size: var(--fs-body); font-weight: var(--fw-600); text-align: start; }
 .lang-list .icon { --icon-size: var(--lang-check); --stroke: 1.9; }
 
@@ -81,7 +82,7 @@
   animation: sheet-up var(--d-sheet-in) var(--ease) var(--t-sheet-in-start) both; display: flex; flex-direction: column; }
 .reg-body { width: 100%; max-width: var(--entry-max); margin-inline: auto; flex: 1; min-height: 0; display: flex; flex-direction: column;
   padding: var(--reg-pad-top) var(--reg-pad) max(var(--reg-foot-bottom), env(safe-area-inset-bottom)); }
-.reg-body > * { animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
+.reg-body > * { animation: rise var(--d-item) var(--ease) var(--delay) both; }
 .reg-body > .reg-foot { --from: var(--o-action); animation: rise var(--d-action) var(--ease) var(--t-action-start) both; }
 .reg-body h1 { font-size: var(--fs-title); font-weight: var(--fw-700); line-height: var(--lh-tight); }
 .reg-sub { max-width: var(--reg-sub-w); margin: var(--reg-title-gap) 0 var(--reg-sub-gap); font-size: var(--fs-body); line-height: var(--lh-sub); color: var(--c-muted); }
@@ -141,7 +142,7 @@
 .gate { overflow: hidden auto; }
 .gate-body { width: 100%; max-width: var(--entry-max); margin-inline: auto; flex: 1; min-height: 0; display: flex; flex-direction: column;
   padding: var(--reg-head-top) var(--reg-pad) max(var(--reg-foot-bottom), env(safe-area-inset-bottom)); }
-.gate-body > * { animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
+.gate-body > * { animation: rise var(--d-item) var(--ease) var(--delay) both; }
 .gate-body > .reg-mark { margin-inline-start: var(--reg-label-inset); animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
 .gate-body h1 { margin-top: var(--gate-title-gap); font-size: var(--fs-title); font-weight: var(--fw-700); line-height: var(--lh-tight); }
 .gate-error { margin-top: var(--notice-gap); min-height: var(--h-gate-error); display: flex; align-items: center; gap: var(--gap-notice); padding: 0 var(--pad-notice-x);
@@ -154,7 +155,46 @@
 
 /* locked: the lock, the title and the sub-line stand in the middle, the cells below */
 .gate-locked { padding-top: calc(var(--reg-head-top) + var(--lock-top)); }
-.lock-circle { align-self: center; width: var(--circle-lock); height: var(--circle-lock); border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text); display: grid; place-items: center; }
+.lock-circle { animation: rise var(--d-item) var(--ease) var(--delay) both, pulse-scale var(--d-pulse) ease-in-out infinite; align-self: center; width: var(--circle-lock); height: var(--circle-lock); border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text); display: grid; place-items: center; }
 .lock-circle .icon { --icon-size: var(--icon-lock); }
 .gate-locked h1 { margin-top: var(--lock-title-gap); font-size: var(--fs-lock-title); text-align: center; }
 .gate-locked .reg-sub { margin: var(--lock-sub-gap) auto var(--reg-sub-gap); text-align: center; }
+
+/* ── the list stagger (MOTION.md: items rise from 0.35 s, one every 0.08 s) ──
+   --i is the item's place in the column; the screens' own first layers (header, mark) are not counted. */
+.reg-body > *, .gate-body > *, .fd-cards > .fd-card { --delay: calc(var(--t-item-start) + var(--i, 0) * var(--stagger-item)); }
+.reg-body > :nth-child(2), .gate-body > :nth-child(3), .fd-cards > :nth-child(2) { --i: 1; }
+.reg-body > :nth-child(3), .gate-body > :nth-child(4), .fd-cards > :nth-child(3) { --i: 2; }
+.reg-body > :nth-child(4), .gate-body > :nth-child(5), .fd-cards > :nth-child(4) { --i: 3; }
+.reg-body > :nth-child(5), .gate-body > :nth-child(6), .fd-cards > :nth-child(5) { --i: 4; }
+.reg-body > :nth-child(n+6), .gate-body > :nth-child(n+7), .fd-cards > :nth-child(n+6) { --i: 5; }
+.gate-locked > :nth-child(2) { --i: 1; }
+.gate-locked > :nth-child(3) { --i: 2; }
+.gate-locked > :nth-child(4) { --i: 3; }
+.gate-locked > :nth-child(n+5) { --i: 4; }
+.fd-cards > .fd-card:nth-child(n) { animation-delay: var(--delay); }
+
+/* ── a button waiting for the server (MOTION.md: the press wave 0.45 s, then a ring turns in place of the word) ──
+   aria-busy is the state (the screens set it with the request and drop it with the answer). The wave sits behind the
+   button (z-index -1 in the parent's stacking context) so only its halo shows. */
+.cta[aria-busy="true"] { position: relative; }
+.cta[aria-busy="true"][aria-disabled="true"] { opacity: 1; }
+.cta[aria-busy="true"] > * { animation: spin-in var(--d-spin-in) var(--ease) var(--t-spin-start) reverse both; }
+.cta[aria-busy="true"]::before { content: ""; position: absolute; z-index: -1; left: 50%; top: 50%; width: var(--press-d); height: var(--press-d);
+  margin: calc(var(--press-d) / -2) 0 0 calc(var(--press-d) / -2); border-radius: var(--r-pill); background: var(--press); pointer-events: none;
+  animation: press var(--d-press) var(--ease) both; }
+.cta[aria-busy="true"]::after { content: ""; position: absolute; left: 50%; top: 50%; width: var(--spin-d); height: var(--spin-d);
+  margin: calc(var(--spin-d) / -2) 0 0 calc(var(--spin-d) / -2); border-radius: var(--r-pill);
+  background: conic-gradient(var(--c-ink) 0 var(--spinner-arc), var(--spin-track) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--spin-w)), #000 calc(100% - var(--spin-w) + var(--hair)));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--spin-w)), #000 calc(100% - var(--spin-w) + var(--hair)));
+  animation: spin-in var(--d-spin-in) var(--ease) var(--t-spin-start) both, spin var(--d-spinner) linear var(--t-spin-start) infinite; }
+@keyframes press { 0% { transform: scale(var(--scale-press-from)); opacity: 0; } 11% { transform: scale(var(--scale-press-hit)); opacity: 1; } 100% { transform: scale(var(--scale-press-to)); opacity: 0; } }
+@keyframes spin-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Standing still: no wave, the ring stays as it is, the lock does not breathe. */
+@media (prefers-reduced-motion: reduce) {
+  .lock-circle { animation: rise var(--d-item) var(--ease) var(--delay) both; }
+  .cta[aria-busy="true"]::before { display: none; }
+  .cta[aria-busy="true"]::after { animation: spin-in var(--d-spin-in) var(--ease) var(--t-spin-start) both; }
+}

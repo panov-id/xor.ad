@@ -22,6 +22,7 @@ __pycache__/
 docs/*.pdf
 /depth/node_modules/
 /web/node_modules/
+/app/node_modules/
 /web/dist/
 /web/e2e/node_modules/
 /web/e2e/results/

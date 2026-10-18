@@ -123,7 +123,7 @@ async function open(browser, url, width, { locale = LOCALE, dsf = 1, asked = tru
   const ctx = await browser.newContext({ viewport: { width, height: h }, deviceScaleFactor: dsf, locale, isMobile: width < 768, hasTouch: width < 768, bypassCSP: !!OVERRIDE });
   await ctx.addInitScript((a) => {
     if (a) { try { localStorage.setItem("lang-asked", "1"); } catch {} }
-    document.addEventListener("securitypolicyviolation", (e) => console.error("CSP violation: " + e.violatedDirective + " " + e.blockedURI));
+    document.addEventListener("securitypolicyviolation", (e) => console.error("CSP violation: " + e.violatedDirective + " " + e.blockedURI + " @" + e.sourceFile + ":" + e.lineNumber + ":" + e.columnNumber + " [" + e.sample + "]"));
   }, asked);
   const page = await ctx.newPage();
   if (prepare) await prepare(ctx, page);
@@ -706,7 +706,7 @@ const shut = (page, testid) => page.getAttribute(`[data-testid="${testid}"]`, "a
     const o = await sit(stub, "walk-feed-empty");
     await o.page.waitForSelector('[data-testid="quiet"]', { timeout: 20000 }).catch(() => null);
     note((await o.page.locator('[data-testid="quiet"]').isVisible()) && (await o.page.locator('[data-testid="wider"]').isVisible()) && (await cardsOf(o.page).count()) === 0, "walk: an empty page says the quiet and offers the wider circle; no cards");
-    await o.page.click('[data-testid="wider"]'); await o.page.waitForFunction(() => document.querySelector('[data-testid="radius-3000"]')?.getAttribute("aria-pressed") === "true", null, { timeout: 10000 }).catch(() => null);
+    await o.page.click('[data-testid="wider"]'); await o.page.locator('[data-testid="radius-3000"][aria-pressed="true"]').waitFor({ timeout: 10000 }).catch(() => null);
     note((await o.page.getAttribute('[data-testid="radius-3000"]', "aria-pressed")) === "true", "walk: «wider» moves the radius from 1 km to 3 km");
     await o.ctx.close();
   }
@@ -739,7 +739,7 @@ const shut = (page, testid) => page.getAttribute(`[data-testid="${testid}"]`, "a
     const left = await cardsOf(o.page).count();
     note((await vis('[data-testid="gone"][data-why="hidden"]')) && (await vis('[data-testid="hidden-undo"]')) && left === 2 && stub.calls.includes("POST /hidden") && (await o.page.locator('[data-screen="card"]').count()) === 0, `walk: hide leaves "hidden · return" on the feed and ${left} of 3 cards (POST /hidden sent)`);
     if (GEOMETRY) await o.page.screenshot({ path: `${SHOTS}/feed-hidden.png` });
-    await o.page.click('[data-testid="hidden-undo"]'); await o.page.waitForFunction(() => document.querySelectorAll('[data-testid="cards"] [data-testid="card"]').length === 3, null, { timeout: 10000 }).catch(() => null);
+    await o.page.click('[data-testid="hidden-undo"]'); await o.page.locator('[data-testid="cards"] [data-testid="card"]').nth(2).waitFor({ timeout: 10000 }).catch(() => null);   // not waitForFunction: Playwright compiles its predicate with eval in the page, which the CSP forbids (violation noise)
     note((await cardsOf(o.page).count()) === 3 && (await o.page.locator('[data-testid="gone"]').count()) === 0 && stub.calls.includes("DELETE /hidden/h-ph-2"), "walk: «return» brings the phrase back: 3 cards again, the note gone (DELETE /hidden/<handle> sent)");
     await o.ctx.close();
   }

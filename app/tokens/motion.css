@@ -25,7 +25,18 @@
   /* loading and waiting */
   --d-shimmer: 1300ms;
   --stagger-arrive: 120ms;
-  --d-press: 450ms;
+  --d-press: 450ms;        /* the press wave: 0.2 -> 0.3 (opaque) in --d-press-hit, then out to 1.2 */
+  --d-press-hit: 50ms;
+  --scale-press-from: .2;
+  --scale-press-hit: .3;
+  --scale-press-to: 1.2;
+  --press-d: 140px;        /* the wave's circle (r 70 in the sheets) */
+  --press: rgba(198, 242, 126, .45);
+  --t-spin-start: 150ms;   /* the indicator comes in this long after the press begins, fading --d-spin-in */
+  --d-spin-in: 150ms;
+  --spin-d: 25.5px;        /* r 11 + half the stroke 3.5, in the sheets */
+  --spin-w: 3.5px;
+  --spin-track: rgba(127, 127, 127, .35);
   --d-spinner: 900ms;
   --spinner-arc: 28%;
   --d-typing: 900ms;
@@ -65,6 +76,9 @@
     --d-shimmer: 0.01ms;
     --stagger-arrive: 0ms;
     --d-press: 0.01ms;
+    --d-press-hit: 0.01ms;
+    --t-spin-start: 0ms;
+    --d-spin-in: 0.01ms;
     --d-spinner: 0.01ms;
     --d-typing: 0.01ms;
     --stagger-typing: 0ms;

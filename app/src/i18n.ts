@@ -52,7 +52,7 @@ export const APP: Dicts = {
     "app.feed.act_failed": "Не получилось: {message}",
   },
   en: {
-    "app.loading.opening": "Opening the neighborhood…",
+    "app.loading.opening": "Opening the neighbourhood…",
     "app.lang.hint": "{n} languages. You can change it later in Me.",
     "app.reg.sub1": "Neighbours see your first name and age. Nothing else.",
     "app.reg.name": "First name",

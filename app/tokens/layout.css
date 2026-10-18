@@ -67,6 +67,7 @@
   --r-lang-row: 20px;
   --lang-check: 20px;
   --lang-pad-end: 14px;
+  --lang-pad-start: 15px;       /* the sheet's label ink starts about 15 px inside the row (29.9..30.9 minus the row's 16), not 16 */
   --loading-top: 322px;
   --gap-ring: 22px;
   --gap-loading-text: 14px;

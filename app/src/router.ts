@@ -16,7 +16,8 @@ export type Screen =
   | { at: "feed" }
   | { at: "departure" }
   | { at: "away"; until: number }
-  | { at: "me" };
+  | { at: "me" }
+  | { at: "inbox" };
 
 type At = Screen["at"];
 
@@ -31,6 +32,7 @@ export const ROUTES: Record<At, string> = {
   departure: "/move",
   away: "/away",
   me: "/me",
+  inbox: "/inbox",
 };
 
 // A path names a gate (reload, Back, a typed address); anything else is not one.
@@ -48,6 +50,7 @@ export const seatScreen = (path: string, state?: { until?: number } | null): Scr
   const p = path.replace(/\/+$/, "");
   if (p === ROUTES.departure) return { at: "departure" };
   if (p === ROUTES.me) return { at: "me" };
+  if (p === ROUTES.inbox) return { at: "inbox" };
   // The away screen's until rides in its history entry (App.tsx awayCheck); a lapsed one is the feed.
   if (p === ROUTES.away && typeof state?.until === "number" && state.until > Date.now() / 1000) return { at: "away", until: state.until };
   return { at: "feed" };

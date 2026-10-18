@@ -1,0 +1,44 @@
+/* The talks (sheets mobile w3_inbox, w3_likes, w3_match, w3_match-waiting): sizes read off the sheets
+   (scripts/design/sheet-geometry.mjs); app/src/screens/talks/talks.css uses them. */
+:root {
+  --tk-side: 22.5px;
+  --tk-title-top: 19.3px;
+  --fs-tk-title: 31px;
+  --tk-sub-top: 3.6px;
+  --fs-tk-sub: 15px;
+  --lh-tk-sub: 21.9px;
+  --tk-sheet-gap: 18px;
+  --c-ring-rest: #3D3557;
+  --tk-strip-top: 20.7px;
+  --tk-strip-pad: 14.7px;
+  --tk-offers: 64px;
+  --tk-face: 57.7px;
+  --tk-face-ring: 68.6px;
+  --tk-strip-gap: 15.9px;
+  --tk-strip-first-gap: 14.8px;
+  --tk-label-gap: 6.3px;
+  --fs-tk-label: 12px;
+  --fs-tk-face: 22px;
+  --tk-rows-top: 6.9px;
+  --tk-row-end: 29.8px;
+  --tk-time-lift: -1.8px;
+  --tk-row-h: 83.6px;
+  --tk-row-side: 27.9px;
+  --tk-avatar: 47.8px;
+  --fs-tk-avatar: 18px;
+  --tk-row-gap: 12.9px;
+  --fs-tk-name: 16px;
+  --fs-tk-line: 14px;
+  --fs-tk-time: 12px;
+  --tk-ring: 43.8px;
+  --tk-ring-stroke: 4.4px;
+  --fs-tk-ring: 13.5px;
+  --tk-trail-gap: 12.4px;
+  --tk-dot: 9.9px;
+  --tk-face-top: 1.25px;
+  --tk-ring-gap: 2.5px;
+  --tk-ring-out: 5.4px;
+  --tk-dash: 2.5px;
+  --tk-hand: 26px;
+  --tk-ring-aa: 0.5px;
+}

@@ -8,7 +8,7 @@ const PREVIEW = process.env.PREVIEW_URL ?? "http://localhost:4174";
 // The dev server is the stand build (VITE_STAND=1): it reads the grace from sessionStorage "xor-grace-ms" (app/src/vault.ts).
 const DEV = process.env.DEV_URL ?? "http://localhost:5174";
 const PIN = "483915";
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|inbox)(\/|$)/;
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 const phrase = (n) => ({ id: `ph-${n}`, text: `Walk phrase number ${n}`, mode: "walk", lang: "en", like_count: n });
 const ITEMS = [phrase(1), phrase(2), phrase(3)];
@@ -45,6 +45,7 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
       return json(200, { identity_id: "id-stub", name: "Alex", ...(until ? { stepped_away_until: until } : {}) });
     }
     if (key === "GET /statements") return json(200, []);
+    if (key === "GET /inbox") return json(200, { items: [{ kind: "chat", id: "c1", name: "Nino", age: 27, state: "open", chat_expires_at: Math.floor(Date.now() / 1000) + 1800 }], events: {} });
     if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
     if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
     if (key === "POST /legal/accept") return json(200, {});
@@ -179,6 +180,18 @@ try {
     await page.goBack(); await settle(page);
     const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
     check(at === "me" && new URL(page.url()).pathname === "/me", `4 Me → Move → Back lands on Me (screen ${at}, url ${new URL(page.url()).pathname}, state ${await state(page)})`);
+    await ctx.close();
+  }
+  // 8. the talks tab (App.tsx tab: replaces the entry, as Me): /inbox, and Back from it draws no gate over the seat
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.locator('[data-testid="chat"]').first().waitFor({ timeout: 10000 });
+    check(new URL(page.url()).pathname === "/inbox", `8a the talks tab opens the inbox at ${new URL(page.url()).pathname}, state ${await state(page)}`);
+    await page.goBack({ timeout: 3000 }).catch(() => null); await settle(page);
+    const url = page.url();
+    const at = url.startsWith("http://localhost") ? await page.locator("main[data-screen]").first().getAttribute("data-screen").catch(() => "(none)") : "(left the app)";
+    check(at !== "splash" && at !== "register", `8b Back from the inbox draws no gate (screen ${at}, url ${url.startsWith("http://localhost") ? new URL(url).pathname : url})`);
     await ctx.close();
   }
   // 5. the away screen (until an hour on) → Back: still the away screen

@@ -11,7 +11,7 @@ const TABS: Array<{ tab: Tab; d: string; key: string }> = [
   { tab: "chats", d: chat, key: "app.tab.chats" },
   { tab: "me", d: person, key: "app.tab.me" },
 ];
-const OPEN: Tab[] = ["feed", "me"];
+const OPEN: Tab[] = ["feed", "chats", "me"];
 
 export function TabBar({ active = "feed", onSelect }: { active?: Tab; onSelect?: (tab: Tab) => void }) {
   return (

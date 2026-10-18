@@ -4,11 +4,13 @@ import "../tokens/sosed.gen.css";
 import "../tokens/motion.css";
 import "../tokens/layout.css";
 import "../tokens/me.css";
+import "../tokens/talks.css";
 import "./shell/shell.css";
 import "./screens/screens.css";
 import "./screens/feed.css";
 import "./screens/move.css";
 import "./screens/me/me.css";
+import "./screens/talks/talks.css";
 import { App } from "./shell/App";
 
 createRoot(document.getElementById("root")!).render(<App />);

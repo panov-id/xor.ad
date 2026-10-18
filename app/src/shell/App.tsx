@@ -12,6 +12,7 @@ import { Register, type Seated } from "../screens/Register";
 import { Splash } from "../screens/Splash";
 import { Unlock } from "../screens/Unlock";
 import { Me } from "../screens/me/Me";
+import { Inbox } from "../screens/talks/Inbox";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
 import type { Tab } from "./TabBar";
@@ -159,9 +160,10 @@ export function App() {
   const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
   // The tab bar: the feed and "Me" are seats as the feed is (a reload asks the PIN); one replaces the other in history.
   const tab = (to: Tab) => {
-    if (to !== "feed" && to !== "me") return;
-    history.replaceState({ gate: to, i: 0 }, "", pathOf({ at: to }));
-    setScreen({ at: to });
+    if (to === "tables") return;
+    const at = to === "chats" ? "inbox" : to;
+    history.replaceState({ gate: at, i: 0 }, "", pathOf({ at }));
+    setScreen({ at });
   };
   // Me's move row: the departure on top of Me, so its back (i: 1) is the history's Back onto /me.
   const toMove = () => {
@@ -192,6 +194,8 @@ export function App() {
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
+      // The talks (w3): a match and a talk open over it once their screens are here (onOpenMatch, onOpenChat).
+      case "inbox": return seated ? <Inbox client={seated.client} onTab={tab} onLikes={() => {}} onOpenMatch={() => {}} onOpenChat={() => {}} /> : null;
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }

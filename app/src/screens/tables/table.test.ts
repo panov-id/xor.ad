@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { conStep, diceOf, diceStep, dominoView, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { conStep, diceOf, movesIn, diceStep, dominoView, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -161,4 +161,11 @@ test("the con: in turn, claim the game; the other's claim, agree to it; mine sta
   assert.deepEqual(conStep(grid(null, "reversi"), 1, true), { offer: null, waiting: false }, "reversi's end is the node's");
   assert.deepEqual(conStep({ dice: { rolled: null, claim: null } }, 1, true).offer, "claim", "backgammon too");
   assert.deepEqual(conStep({ dots: { n: 4 } }, 1, true).offer, null);
+});
+
+test("a board in a talk takes a move only in my turn", () => {
+  const go = () => "moved";
+  assert.equal(movesIn("mine", go), go);
+  assert.equal(movesIn("theirs", go), undefined);
+  assert.equal(movesIn("over", go), undefined);
 });

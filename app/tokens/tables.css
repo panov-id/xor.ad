@@ -179,4 +179,7 @@
   --c-card: #F7F4FB;
   --c-suit-red: #D93A4B;
   --c-suit-black: #121212;
+  --tg-chat-cell: 34.4px;
+  --tg-chat-gap: 10.8px;
+  --tg-chat-pad: 5.4px;
 }

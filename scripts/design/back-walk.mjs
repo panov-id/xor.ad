@@ -17,7 +17,7 @@ const results = [];
 const check = (ok, text) => { results.push({ ok, text }); console.log(`${ok ? "PASS" : "FAIL"} ${text}`); };
 
 // awayIn: seconds from the first profile read to the step away's end (null: no step away).
-async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
+async function open(browser, { base = PREVIEW, graceMs, awayIn = null, game = null } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: "en-US" });
   if (graceMs !== undefined) await ctx.addInitScript((g) => { sessionStorage.setItem("xor-grace-ms", String(g)); }, graceMs);
   await ctx.addInitScript(() => {
@@ -31,6 +31,7 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     };
   });
   let share = null, until = null;
+  const gameMoves = [];   // a talk's game (G): what the board sent to POST /chats/<id>/game/moves
   const said = [];
   await ctx.route("**/*", async (route) => {
     const req = route.request(), u = new URL(req.url());
@@ -57,6 +58,9 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     // the chat (8): the inbox has none to report and the node keeps no wrap — the pane stands on its row alone
     if (key === "GET /inbox") return json(200, { items: [] });
     // 503, not 404: a ticket's 404 is the chat's end (room.ts), and the walks need it open
+    // a talk's game (G): the view the node gives (ChatGames.view), and the move the board sends (ChatGames.move)
+    if (game && key === `GET /chats/chat-walk/game`) return json(200, game);
+    if (game && key === `POST /chats/chat-walk/game/moves`) { const b = JSON.parse(req.postData() ?? "{}"); gameMoves.push(b); return json(200, { ...game, board: { ...game.board, seq: game.board.seq + 1, turn: 2 } }); }
     if (u.pathname.startsWith("/chats/")) return json(503, { error: "unavailable" });
     if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
     if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
@@ -66,7 +70,7 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
   const page = await ctx.newPage();
   page.on("pageerror", (e) => console.log(`pageerror: ${e}`));
   await page.goto(base + "/", { waitUntil: "load" });
-  return { ctx, page, said };
+  return { ctx, page, said, gameMoves };
 }
 
 async function registerFull(page, { land = "feed" } = {}) {
@@ -182,6 +186,27 @@ try {
       seen.push(`${n}:${at}@${url.startsWith("http://localhost") ? new URL(url).pathname : url}${r === null ? " (no entry)" : ""}`);
     }
     check(!seen.some((x) => /:(splash|register)@/.test(x)), `7b four Backs after the registration draw no gate (${seen.join(", ")})`);
+    await ctx.close();
+  }
+  // G. a talk's game: the table's board in the chat (chat-game.tsx GameBoard → boards.tsx Board); a move goes to ChatGames.move,
+  // POST /chats/<id>/game/moves with the board's seq — four in a row by a column, backgammon by «move made»
+  for (const [name, view, tap, expect] of [
+    ["four", { class: "grid", set: "four", your_seat: 1, pending: null, board: { seq: 9, state: { grid: { cells: { d1: { seat: 2, piece: "O" } }, claim: null, rules: "four" } }, turn: 1, score: {}, expires_at: null } },
+      '[data-testid="four-col-f"]', { seq: 9, move: { column: "f" } }],
+    ["backgammon", { class: "dice", set: "backgammon", your_seat: 1, pending: null, board: { seq: 4, state: { dice: { rolled: [5, 3], claim: null } }, turn: 1, score: {}, expires_at: null } },
+      '[data-testid="moved"]', { seq: 4, move: { move: true } }],
+  ]) {
+    const ROW = { kind: "chat", id: "chat-walk", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page, gameMoves } = await open(browser, { base: DEV, game: view }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
+    await page.click('[data-testid="quick-game"]');
+    const board = await page.locator(tap).waitFor({ timeout: 15000 }).then(() => true, () => false);
+    const live = board && await page.locator(tap).isEnabled();   // a board without a move (out of turn, or none passed) is shut: said, not hung on
+    if (live) await page.click(tap);
+    for (let k = 0; k < 40 && gameMoves.length === 0; k++) await page.waitForTimeout(100);
+    check(live && JSON.stringify(gameMoves[0]) === JSON.stringify(expect), `G ${name} in a talk: the table's board stands in the game (${board ? (live ? "open" : "shut") : "absent"}), its move goes to ChatGames.move (${JSON.stringify(gameMoves[0] ?? null)})`);
     await ctx.close();
   }
   // 8. a chat over the feed (App.tsx openChat pushes i + 1; its row rides in the entry): 8a Back → the feed, address too;

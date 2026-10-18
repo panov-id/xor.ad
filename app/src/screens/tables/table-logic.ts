@@ -236,3 +236,6 @@ export function conStep(state: BoardState, seat: number, myTurn: boolean): ConSt
   if (!myTurn) return { offer: null, waiting: false };
   return { offer: claim === null ? "claim" : "agree", waiting: false };
 }
+
+// A board elsewhere (a talk's game, chat-game.tsx GameBoard): it takes a move only in my turn; out of it, over, nothing.
+export const movesIn = <M>(turn: "mine" | "theirs" | "over", onMove: M): M | undefined => (turn === "mine" ? onMove : undefined);

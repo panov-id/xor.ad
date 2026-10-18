@@ -35,8 +35,10 @@ export function standView(over: boolean): ChatView {
 }
 
 const none = () => {};
+// w3_chat-game's position (the table's w3_table-four too): mine (seat 2) lime, Nino's (seat 1) peach; columns a..g, rows from the bottom.
+const FOUR: Record<string, number> = { d4: 1, d3: 2, e3: 1, c2: 2, d2: 1, e2: 2, b1: 2, c1: 1, d1: 2, e1: 2 };
 const GAME: ChatGameView = { class: "grid", set: "four", your_seat: 2, pending: null,
-  board: { seq: 9, state: {}, turn: 2, score: {}, expires_at: null } };
+  board: { seq: 9, state: { grid: { cells: Object.fromEntries(Object.entries(FOUR).map(([id, seat]) => [id, { seat, piece: "O" }])), claim: null, rules: "four" } }, turn: 2, score: {}, expires_at: null } };
 const gameActions = { onPropose: none, onAnswer: none, onMove: none, onResign: none, onRematch: none, onHide: none };
 
 export function ChatStand({ pane }: { pane: "chat" | "chat-over" | "chat-more" | "chat-game" }) {

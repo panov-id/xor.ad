@@ -288,3 +288,6 @@ button.tg-dk-card:disabled { cursor: default; }
 /* the con by agreement under the board */
 .tg-con { margin-top: var(--sp-3); width: 100%; }
 .tg-con-wait { margin-top: var(--sp-3); font-size: var(--fs-notice); }
+
+/* a table's board in a talk's game (chat-game.tsx GameBoard, w3_chat-game): on the game's own place, smaller cells, no panel of its own */
+.chg-board .tg-panel { background: none; padding: var(--tg-chat-pad); --tg-cell: var(--tg-chat-cell); --tg-cell-gap: var(--tg-chat-gap); }

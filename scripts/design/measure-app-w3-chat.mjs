@@ -187,6 +187,16 @@ if (want("chat-game")) {
   compare(scr, "turn pill", shapeOf(sh[4]), await box(page, ".chg-turn"));
   left(scr, "turn words", T[5], await line(page, ".chg-turn"));
   compare(scr, "board's place", shapeOf(sh[5]), await box(page, ".chg-board"));
+  // the table's board in the place (screens/tables/boards.tsx): the sheet's cells, top row and the pieces
+  const cells = sh.filter((x) => Math.abs(x.w - 34.4) < 0.3);
+  const top = cells.filter((x) => Math.abs(x.y - cells[0].y) < 1).sort((a, b) => a.x - b.x);
+  for (let i = 0; i < 7; i++) compare(scr, `cell ${"abcdefg"[i]}6`, shapeOf(top[i]), await box(page, `[data-testid="four-col-${"abcdefg"[i]}"] .tg-cell`, 0));
+  const at = (c) => [Math.round((c.x - top[0].x) / 45.2), 5 - Math.round((c.y - top[0].y) / 45.2)];
+  for (const c of cells.filter((x) => x.fill !== "#2b2440")) {
+    const [col, row] = at(c);
+    compare(scr, `piece ${"abcdefg"[col]}${row + 1}`, shapeOf(c), await box(page, `[data-testid="four-col-${"abcdefg"[col]}"] .tg-cell`, 5 - row));
+  }
+  note(await page.locator('.tg-cell[data-stand="mine"]').count() === 6 && await page.locator('.tg-cell[data-stand="theirs"]').count() === 4, "chat-game: six of mine, four of Nino's, as the sheet");
   compare(scr, "resign", shapeOf(sh[49]), await box(page, ".chg-resign"));
   left(scr, "resign words", T[7], await line(page, ".chg-resign span"));
   compare(scr, "field", shapeOf(sh[50]), await box(page, ".ch-input"));

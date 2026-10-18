@@ -197,6 +197,33 @@ if (want("chat-game")) {
   await ctx.close();
 }
 
+if (want("composer")) {
+  const scr = "composer", S = await sheet("composer"), sh = S.shapes, T = S.lines;
+  const { ctx, page } = await open(browser, `${PREVIEW}/stand/composer`, 390, scr);
+  await page.waitForSelector('[data-screen="composer"]'); await settle(page);
+  left(scr, "title", T[0], await line(page, ".cp-head h1"));
+  left(scr, "sub", T[1], await line(page, ".cp-head p"));
+  compare(scr, "sheet left,top", [sh[1].x, sh[1].y], (await box(page, ".cp-sheet")).slice(0, 2));
+  compare(scr, "card", shapeOf(sh[2]), await box(page, ".cp-card"));
+  left(scr, "card label", T[2], await line(page, ".cp-card label"));
+  left(scr, "lives", T[5], await line(page, ".cp-card-foot span", 0));
+  right(scr, "letters left", T[6], await line(page, ".cp-card-foot span", 1));
+  left(scr, "going", T[7], await line(page, ".cp-sheet h2", 0));
+  const modes = await boxOf(page, ".cp-mode");
+  [3, 4, 5].forEach((s, i) => compare(scr, `mode ${i + 1}`, shapeOf(sh[s]), modes[i] ?? NAN4));
+  left(scr, "hears", T[11], await line(page, ".cp-sheet h2", 1));
+  const zones = await boxOf(page, ".cp-zone");
+  [6, 7, 8, 9, 10].forEach((s, i) => compare(scr, `zone ${i + 1}`, shapeOf(sh[s]), zones[i] ?? NAN4));
+  compare(scr, "live panel", shapeOf(sh[11]), await box(page, ".cp-live"));
+  compare(scr, "ring", shapeOf(sh[13]), await box(page, ".cp-ring"));
+  left(scr, "ring words", T[17], await line(page, ".cp-ring span"));
+  left(scr, "live words", T[15], await line(page, ".cp-live p"));
+  compare(scr, "send", shapeOf(sh[12]), await box(page, ".cp-send"));
+  await fonts(page, scr, [["title", ".cp-head h1"], ["phrase", ".cp-card textarea"]]);
+  await overflowAt(page, scr, 390); await shot(page, scr);
+  await ctx.close();
+}
+
 if (want("chat-more")) {
   const scr = "chat-more", S = await sheet("chat-more"), sh = S.shapes, T = S.lines;
   const { ctx, page } = await open(browser, `${PREVIEW}/stand/chat-more`, 390, scr);

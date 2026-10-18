@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import type { Client } from "@sdk/client.ts";
+import type { Client, Radius } from "@sdk/client.ts";
 import { type ChatKeys, chatKeysFor, type InboxChatRow } from "@platform/chat/keys.ts";
 import { gateOf, gateScreen, pathOf, type Screen, seatScreen } from "../router";
 import { Arrival } from "../screens/Arrival";
 import { Chat } from "../screens/Chat";
+import { Composer } from "../screens/Composer";
 import { Away } from "../screens/Away";
 import { Departure } from "../screens/Departure";
 import { Feed } from "../screens/Feed";
@@ -194,6 +195,13 @@ export function App() {
     history.pushState({ gate: "chat", i: (typeof was?.i === "number" ? was.i : 0) + 1, row }, "", pathOf({ at: "chat", row }));
     setScreen({ at: "chat", row });
   };
+  // The composer over the feed (web App.tsx: composer from the feed's «say it»): its circle rides in the entry; sent
+  // or backed out of, the feed again by the history's Back.
+  const openComposer = (radius: Radius) => {
+    const was = history.state as { i?: number } | null;
+    history.pushState({ gate: "composer", i: (typeof was?.i === "number" ? was.i : 0) + 1, radius }, "", pathOf({ at: "composer", radius }));
+    setScreen({ at: "composer", radius });
+  };
   const chatBack = () => ((history.state as { i?: number } | null)?.i ? history.back() : toFeed());
   const tab = (to: Tab) => {
     if (to !== "feed" && to !== "tables" && to !== "chats" && to !== "me") return;
@@ -258,7 +266,8 @@ export function App() {
       case "restore": return <Gate at={screen.at} onBack={gateBack} />;
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
-      case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
+      case "feed": return seated ? <Feed client={seated.client} onTab={tab} onCompose={openComposer} /> : null;
+      case "composer": return seated ? <Composer client={seated.client} radius={screen.radius} onSent={chatBack} onBack={chatBack} /> : null;
       case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /> : null;
       // Back keeps the seat (web TB1); standing up, or a seat lost, is the list again.
       case "table": return seated ? <Table client={seated.client} tableId={screen.id} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} onLeave={toTables} /> : null;

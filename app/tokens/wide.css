@@ -115,6 +115,10 @@
   .ch-pane .ch-lines, .ch-pane .ch-foot { padding-inline: 0; }
   .ch-pane .ch-more { left: auto; right: calc(var(--ch-ring-end) + var(--ch-ring) + 8px); }
 
+  /* both in (tablet_834_BothIn): the phone's card, 419.7 wide, in the middle of the window both ways; the sheet's feed behind
+     it is the screen it came from, here the match is a screen of its own (its back is the history's) */
+  .tk-match-screen { display: grid; place-items: center; min-height: 100dvh; background: var(--c-sheet); }
+  .tk-match { width: 419.7px; max-width: none; margin: 0; --mt-cta-gap: 12.2px; } /* the sheet's «not now» stands 2.2 lower under «let's talk» */
 }
 
 /* ── desktop ── */

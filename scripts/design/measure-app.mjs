@@ -248,7 +248,7 @@ function inboxRows() {
   const keys = (peer) => ({ me: "id-stub", key_epoch: 1, rekey_requested: false, peer: { key_epoch: 1, identity_id: `id-${peer}`, identity_public_key: `pk-${peer}` } });
   const talk = (id, name, age, left, last, more = {}) => ({ kind: "chat", id, name, age, state: "open", chat_expires_at: now + left * 60 - 5, my_span: 60, last_activity_at: last, ...keys(name.toLowerCase()), ...more });
   return [
-    offer("m1", "Nino", 27, true), offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false), offer("m4", "Tamar", 33, false),
+    { ...offer("m1", "Nino", 27, true), phrase: { text: "Backgammon tonight?", mode: "alone" }, my_phrase: { text: "Bakery open after ten?", mode: "alone" } }, offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false), offer("m4", "Tamar", 33, false),
     talk("c1", "Nino", 27, 38, INBOX_AT(21, 4), { pending_messages: 1 }), talk("c2", "Levan", 34, 52, INBOX_AT(20, 10)),
     talk("c3", "Mariam", 29, 12, INBOX_AT(18, 32)), talk("c4", "Giorgi", 41, 0, INBOX_AT(17, 5), { state: "ended", chat_expires_at: now - 60 }),
   ];

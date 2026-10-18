@@ -305,6 +305,31 @@ export async function wideSheets(h) {
     await o.ctx.close();
   }
 
+  // ── both in (tablet_834_BothIn, desktop_1440_BothIn): from the talks' strip, Nino's offer; the card ──
+  async function bothIn(kind, w, dir, file, p) {
+    const scr = `${kind}-bothin`, S = sheet(dir, file), T = S.lines;
+    const o = await sit(kind, w, "walk-wide-" + scr);
+    const page = o.page;
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-testid="open-match"]', { timeout: 20000 });
+    await page.locator('[data-testid="open-match"]').first().click(); await page.waitForSelector('[data-screen="match"]', { timeout: 20000 }); await settle(page);
+    compare(scr, "card", abs(shape(S, p.card)), await one(page, ".tk-match"));
+    compare(scr, "pill", abs(shape(S, p.pill)), await one(page, ".tk-pill"));
+    textAt(scr, "pill words", T[p.pillWords], await line(page, ".tk-pill"));
+    const faces = await boxOf(page, ".tk-big");
+    p.faces.forEach((s, k) => compare(scr, `face ${k + 1}`, abs(shape(S, s)), faces[k] ?? NAN4));
+    compare(scr, "hand", abs(shape(S, p.hand)), await one(page, ".tk-hand"));
+    textAt(scr, "title", T[p.title], await line(page, ".tk-match-title"));
+    textAt(scr, "hint line 1", T[p.hint], await line(page, ".tk-match-hint"));
+    const caps = [await line(page, ".tk-quote:nth-child(1) figcaption"), await line(page, ".tk-quote:nth-child(2) figcaption")];
+    p.captions.forEach((t, k) => textAt(scr, `quote ${k + 1} caption`, T[t], caps[k]));
+    compare(scr, "let's talk", abs(shape(S, p.talk)), await one(page, ".tk-talk"));
+    textAt(scr, "let's talk words", T[p.talkWords], await line(page, ".tk-talk"));
+    textAt(scr, "not now", T[p.later], await line(page, ".tk-later"));
+    await overflowAt(page, scr, w);
+    if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${scr}.png` });
+    await o.ctx.close();
+  }
+
   // tile shapes in the sheets' feed order, by the shape's place in the file (readSheet's list)
   await feed("tablet", 834, "tablet", "tablet_834_Feed", { tiles: [6, 20, 10, 24, 12, 27, 16], list: 5, tile: 6, hand: 7, foot: 8, chip: 9, title: [14, 15] });
   await feed("desktop", 1440, "desktop", "desktop_1440_Feed", { tiles: [12, 25, 16, 29, 18, 33, 21], panel: 6, tile: 12, hand: 13, foot: 14, chip: 15, title: [13, 14] });
@@ -313,6 +338,7 @@ export async function wideSheets(h) {
     names: [12, 16, 20, 24], pane: 17, paneAvatar: 19, paneName: 29, ring: 35, divider: 18, chips: [26, 27, 28, 29], field: 30, send: 31, bar: "above the bar (the sheet draws no bar and no other way out; the bar stays, xor-ad-0b 18.10)" });
   await talks("desktop", 1440, "desktop", "desktop_1440_Talks", { count: 8, title: 9, rail: { active: 2, say: 4 }, offers: 10, faces: [13, 14, 15, 16], sheet: 6, selected: 17,
     avatars: [18, 19, 20, 21], names: [20, 24, 28, 32], pane: 22, paneAvatar: 23, paneName: 37, ring: 44, chips: [34, 35, 36, 37], field: 38, send: 39, bar: "in the panel (the sheet draws it past the panel's foot, its field below the window)" });
+  await bothIn("tablet", 834, "tablet", "tablet_834_BothIn", { card: 1, pill: 2, pillWords: 0, faces: [5, 7], hand: 8, title: 1, hint: 2, captions: [4, 6], talk: 3, talkWords: 8, later: 9 });
   await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sub: 1, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });
   await me("desktop", 1440, "desktop", "desktop_1440_Me");
   await write("desktop", 1440, "desktop", "desktop_1440_Write", { where: 8, title: 9, panel: 6, card: 7, label: 10, lives: 13, going: 15, modes: 8, hears: 19, zones: 11,

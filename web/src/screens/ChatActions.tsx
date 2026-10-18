@@ -12,7 +12,7 @@
 // Kit elements only (K5): Segments for the span, Confirm for the two asks.
 
 import { useState } from "react";
-import { SPANS, type Span } from "../chat/span.ts";
+import { SPANS, type Span } from "../../../depth/web-platform/chat/span.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { Segments } from "../ui/Segments.tsx";

@@ -18,7 +18,7 @@ import { lazy, type ReactElement, type ReactNode, Suspense, useEffect, useRef, u
 import type { Client, Radius, Statement } from "../../depth/core/client.ts";
 import type { Sent } from "./api/actions.ts";
 import { say } from "./api/me.ts";
-import { ChatKeys } from "./chat/keys.ts";
+import { ChatKeys } from "../../depth/web-platform/chat/keys.ts";
 // The brand's views (brands/index.ts): built for one brand, the other is not bundled.
 import { ArrivalView, CardView, ChatView, ComposeView, FeedView, MatchView, MeView } from "./brands/index.ts";
 import { Inbox, type MatchRow } from "./screens/Inbox.tsx";

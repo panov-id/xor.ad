@@ -7,7 +7,7 @@
 // and takes the queue with it (Q9, §8.5): the wait asks the inbox for it.
 
 import { type MatchLogic, useMatch } from "./logic/useMatch.ts";
-import type { ChatKeys } from "../chat/keys.ts";
+import type { ChatKeys } from "../../../depth/web-platform/chat/keys.ts";
 import type { Client } from "../../../depth/core/client.ts";
 import type { MatchRow } from "./Inbox.tsx";
 import { say } from "../locales/say.ts";

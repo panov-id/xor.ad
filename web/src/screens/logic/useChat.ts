@@ -5,11 +5,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../../../depth/core/client.ts";
-import type { ChatKeys } from "../../chat/keys.ts";
-import { connectRoom } from "../../chat/room.ts";
-import { endsAtOf, resetEnd, shiftEnd, silence, spanOf, type Span } from "../../chat/span.ts";
-import { isPeerAway, missedSince, sawActivity } from "../../chat/away.ts";
-import { blockByChat, endChat as closeForBoth, setSpan } from "../../api/chatActions.ts";
+import type { ChatKeys } from "../../../../depth/web-platform/chat/keys.ts";
+import { connectRoom } from "../../../../depth/web-platform/chat/room.ts";
+import { endsAtOf, resetEnd, shiftEnd, silence, spanOf, type Span } from "../../../../depth/web-platform/chat/span.ts";
+import { isPeerAway, missedSince, sawActivity } from "../../../../depth/web-platform/chat/away.ts";
+import { blockByChat, endChat as closeForBoth, setSpan } from "../../../../depth/web-platform/chat/chat_actions.ts";
 import type { InboxChatRow } from "../Inbox.tsx";
 import { say } from "../../locales/say.ts";
 import { resendPause } from "../../../../depth/core/resend.ts";

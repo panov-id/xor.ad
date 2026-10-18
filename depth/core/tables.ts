@@ -65,7 +65,9 @@ export interface NewTable {
 const at = (id: string, rest = "") => `/tables/${encodeURIComponent(id)}${rest}`;
 
 export class Tables {
-  constructor(private readonly client: Client) {}
+  // A plain field, not a parameter property: node's type stripping (the app's unit tests) cannot read those.
+  private readonly client: Client;
+  constructor(client: Client) { this.client = client; }
 
   create(table: NewTable): Promise<Answer<{ id: string }>> {
     return this.client.tableCall("POST", "/tables", { ...table, nonce: nonce() });

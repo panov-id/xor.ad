@@ -13,7 +13,7 @@ import { ActionSheet, type SheetAction } from "../ui/Sheet.tsx";
 import { Split } from "../ui/Split.tsx";
 import { TileFoot } from "../ui/TileFoot.tsx";
 import { durationSeconds } from "../locales/duration.ts";
-import { connectTable } from "../api/tableRoom.ts";
+import { connectTable } from "../../../depth/web-platform/table_room.ts";
 import { classWord, tableRefusal } from "../api/tables.ts";
 import { Button } from "../ui/Button.tsx";
 import { ErrorLine } from "../ui/ErrorLine.tsx";

@@ -1,6 +1,6 @@
 // Measures the rendered app/ talks against the Dusk sheets of wave 3 (mobile w3_inbox, w3_likes, w3_match,
 // w3_match-waiting), and walks the tab bar to them against a stubbed node. Run by
-// scripts/measure-app-w3.sh inside the Playwright image, on an internal network: PREVIEW is the built app (with its
+// scripts/measure-app-w3-talks.sh inside the Playwright image, on an internal network: PREVIEW is the built app (with its
 // CSP). Built on measure-app-w4.mjs (its helpers, its node stub, its report). Expected values are read from the
 // sheets (sheet-geometry.mjs), never typed in; indices are the sheets' drawing order.
 // Not compared: the line under a talk's name by its words (the sheet shows a last line, the app the web's line —
@@ -227,7 +227,7 @@ const browser = await chromium.launch();
 mkdirSync(SHOTS, { recursive: true });
 for (let i = 0; ; i++) {
   try { if ((await fetch(PREVIEW)).ok) break; } catch {}
-  if (i > 120) { console.log(`measure-app-w3: SPOILED (${PREVIEW} never answered)`); process.exit(2); }
+  if (i > 120) { console.log(`measure-app-w3-talks: SPOILED (${PREVIEW} never answered)`); process.exit(2); }
   await new Promise((r) => setTimeout(r, 1000));
 }
 
@@ -238,7 +238,7 @@ await page.click('[data-testid="tab-chats"]');
 if (!(await page.waitForSelector('[data-screen="inbox"]', { timeout: 20000 }).then(() => true, () => false))) {
   await page.screenshot({ path: `${SHOTS}/w3_tab-chats-${TAG}-missing.png` });
   const at = await page.locator("main[data-screen]").first().getAttribute("data-screen").catch(() => "(none)");
-  console.log(`measure-app-w3: SPOILED — the talks tab did not open the inbox (screen ${at}, url ${new URL(page.url()).pathname}); shot w3_tab-chats-${TAG}-missing.png`);
+  console.log(`measure-app-w3-talks: SPOILED — the talks tab did not open the inbox (screen ${at}, url ${new URL(page.url()).pathname}); shot w3_tab-chats-${TAG}-missing.png`);
   process.exit(2);
 }
 await page.locator('[data-testid="chat"]').nth(3).waitFor({ timeout: 20000 });
@@ -415,5 +415,5 @@ for (const n of notes) console.log(`${n.bad ? "DEFECT" : "ok    "} ${n.text}`);
 console.log(csp.length ? `DEFECT console/CSP errors (${csp.length}): ${[...new Set(csp)].slice(0, 8).join(" | ")}` : "ok     console/CSP errors: none");
 const good = rows.filter((r) => r.ok).length;
 const clean = !notes.some((n) => n.bad) && !csp.length;
-console.log(GEOMETRY ? `measure-app-w3: ${good} of ${rows.length} within ${TOL}px; notes ${clean ? "clean" : "DEFECTS"}` : `measure-app-w3[${TAG}]: fonts, overflow, walks, CSP ${clean ? "clean" : "DEFECTS"}`);
+console.log(GEOMETRY ? `measure-app-w3-talks: ${good} of ${rows.length} within ${TOL}px; notes ${clean ? "clean" : "DEFECTS"}` : `measure-app-w3-talks[${TAG}]: fonts, overflow, walks, CSP ${clean ? "clean" : "DEFECTS"}`);
 process.exit(good === rows.length && clean ? 0 : 1);

@@ -61,3 +61,26 @@
   font-size: var(--fs-lk-meta); font-weight: var(--fw-700); line-height: var(--lh-tight); color: var(--c-ink); }
 .tk-meta .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }
 .tk-more { margin-top: var(--lk-gap); width: 100%; min-height: var(--s-touch-min); border-radius: var(--r-pill); background: var(--c-sheet-2, var(--c-night)); color: var(--c-text); font-weight: var(--fw-700); }
+
+/* ── w3_match: the coral card on the night, the pair of faces, the two phrases, two buttons ── */
+.tk-match-screen { background: var(--c-night); overflow-y: auto; }
+.tk-match { width: calc(100% - 2 * var(--mt-side)); max-width: var(--entry-max); margin: var(--mt-top) auto var(--sp-6); padding: var(--mt-pad-top) var(--mt-pad) var(--mt-pad-bottom);
+  border-radius: var(--r-card); background: var(--c-coral); color: var(--c-ink); display: flex; flex-direction: column; align-items: center; text-align: center; }
+.tk-pill { height: var(--mt-pill-h); padding: 0 var(--mt-pill-pad); border-radius: var(--r-pill); background: var(--c-ink); color: var(--c-coral);
+  display: grid; place-items: center; font-size: var(--fs-mt-pill); font-weight: var(--fw-700); }
+.tk-pair { margin-top: var(--mt-pair-top); display: flex; align-items: center; }
+.tk-big { width: var(--mt-face); height: var(--mt-face); border-radius: var(--r-pill); box-shadow: 0 0 0 var(--mt-face-ring) var(--c-coral);
+  display: grid; place-items: center; font-size: var(--fs-mt-face); font-weight: var(--fw-800); }
+.tk-hand { position: relative; z-index: 1; width: var(--mt-hand); height: var(--mt-hand); margin-inline: calc(var(--mt-overlap) * -1); border-radius: var(--r-pill);
+  background: var(--c-ink); color: var(--c-coral); display: grid; place-items: center; }
+.tk-hand .icon { --icon-size: var(--icon-fd); --stroke: 2; }
+.tk-match-title { margin-top: var(--mt-title-top); font-size: var(--fs-mt-title); font-weight: var(--fw-800); line-height: var(--lh-mt-title); }
+.tk-match-hint { margin-top: var(--mt-hint-top); font-size: var(--fs-mt-hint); font-weight: var(--fw-500); line-height: var(--lh-mt-hint); }
+.tk-quotes { margin-top: var(--mt-quotes-top); width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: var(--mt-quotes-gap); text-align: start; }
+.tk-quote { margin: 0; padding: var(--mt-quote-pad); border-radius: var(--r-card); background: var(--c-coral-soft); }
+.tk-quote figcaption { font-size: var(--fs-mt-cap); font-weight: var(--fw-500); }
+.tk-quote blockquote { margin: var(--mt-cap-gap) 0 0; font-size: var(--fs-mt-quote); font-weight: var(--fw-700); line-height: var(--lh-mt-quote); }
+.tk-talk, .tk-later { width: 100%; height: var(--mt-cta-h); border-radius: var(--r-pill); font-size: var(--fs-mt-cta); font-weight: var(--fw-700); }
+.tk-talk { margin-top: var(--mt-cta-top); background: var(--c-ink); color: var(--c-text); }
+.tk-later { margin-top: var(--mt-cta-gap); border: var(--mt-later-line) solid var(--c-ink); background: none; color: var(--c-ink); }
+.tk-talk:disabled, .tk-later:disabled { opacity: var(--o-disabled); }

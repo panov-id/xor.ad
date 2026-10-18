@@ -181,3 +181,16 @@ export function tapSquare(g: Grid, seat: number, picked: string | null, at: stri
   if (picked) return { picked: null, move: { from: picked, to: at } };
   return { picked: null };
 }
+
+// ── backgammon (relay/node/src/lib/tables_dice.ts): the node rolls; a turn is {roll: true}, then {move} as the people
+// agree — the node keeps no position of the checkers, so the board draws the field and the dice, not the men ──
+export type Dice = { rolled: [number, number] | null; claim: number | null };
+export const diceOf = (state: BoardState): Dice | null => {
+  const d = (state as { dice?: Dice } | null | undefined)?.dice;
+  return d && typeof d === "object" && "rolled" in d ? d : null;
+};
+// A die's pips on its 3×3 (0 top left … 8 bottom right), as dice are drawn.
+const PIPS: Record<number, number[]> = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+export const pipsOf = (face: number): number[] => PIPS[face] ?? [];
+// What the dice ask of me: in my turn, to roll while nothing fell, else to say the move is made; out of turn nothing.
+export const diceStep = (d: Dice, myTurn: boolean): "roll" | "moved" | null => (!myTurn ? null : d.rolled ? "moved" : "roll");

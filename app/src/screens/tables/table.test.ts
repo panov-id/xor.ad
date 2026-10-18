@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { diceOf, diceStep, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -126,4 +126,15 @@ test("a tap: my piece picks it (twice drops it); picked, a square not mine is th
   assert.deepEqual(tapSquare(g, 1, "d4", "e5"), { picked: null, move: { from: "d4", to: "e5" } }, "onto theirs: the move (a take)");
   assert.deepEqual(tapSquare(g, 1, "d4", "d5"), { picked: null, move: { from: "d4", to: "d5" } });
   assert.deepEqual(tapSquare(g, 1, null, "e5"), { picked: null }, "nothing picked: theirs does nothing");
+});
+
+test("dice: pips as dice are drawn (5 the corners and the middle, 6 two columns); my turn rolls, then says the move is made", () => {
+  assert.deepEqual(pipsOf(5), [0, 2, 4, 6, 8]);
+  assert.deepEqual(pipsOf(6), [0, 2, 3, 5, 6, 8]);
+  assert.deepEqual([1, 2, 3, 4, 5, 6].map((f) => pipsOf(f).length), [1, 2, 3, 4, 5, 6]);
+  assert.equal(diceStep({ rolled: null, claim: null }, true), "roll");
+  assert.equal(diceStep({ rolled: [5, 3], claim: null }, true), "moved");
+  assert.equal(diceStep({ rolled: [5, 3], claim: null }, false), null);
+  assert.deepEqual(diceOf({ dice: { rolled: [5, 3], claim: null } })?.rolled, [5, 3]);
+  assert.equal(diceOf({ grid: {} }), null);
 });

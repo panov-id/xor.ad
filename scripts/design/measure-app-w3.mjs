@@ -244,7 +244,7 @@ if (want("tables")) {
   const metas = await page.locator('[data-testid="table-card"] .tb-meta').allInnerTexts();
   note(RU || (names.join(",") === "Backgammon,Durak,Chess,Dominoes" && metas[0] === "2 of 2 seated · 3 watching" && metas[1] === "3 of 4 seated · 1 watching"), `tables: the rows read ${names.join(", ")}; ${metas.join(" | ")}`);
   note(!RU || (metas[0] === "2 из 2 сидят · 3 смотрят" && metas[1] === "3 из 4 сидят · 1 смотрит" && metas[2] === "1 из 2 сидит · 0 смотрят"), `tables: the rows read ${metas.join(" | ")}`);
-  note(RU || (await page.locator('[data-testid="table-card"] .tb-watch').first().getAttribute("aria-disabled")) === "true", "tables: «Watch» is shut while no table screen opens from it (aria-disabled)");
+  note((await page.locator('[data-testid="table-card"] .tb-watch').first().getAttribute("aria-disabled")) === null, "tables: «Watch» is open — the table screen opens from it (screens/tables/Table.tsx)");
   await fonts(page, scr, [["title", ".tb-head h1"], ["row", ".tb-name"], ["meta", ".tb-meta"], ["new", ".tb-new span"]]);
   await overflowAt(page, scr, 390); await shot(page, scr);
 }
@@ -262,7 +262,7 @@ if (want("tables")) {
   // the cursor: «Show more» brings the next page, a table seen twice is drawn once
   stub.s.next = "c1"; stub.s.page2 = [CARDS[3], { id: "t5", game: "grid", set: "reversi", playing: 1, free_seats: 1, watching: 0, like_count: 0, name: "Evening at the yard" }];
   await toFeed(); await toTables(); await page.waitForSelector('[data-testid="more"]');
-  await page.click('[data-testid="more"]'); await page.waitForFunction(() => document.querySelectorAll('[data-testid="table-card"]').length === 5, null, { timeout: 20000 }).catch(() => null);
+  await page.click('[data-testid="more"]'); await page.locator('[data-testid="table-card"]').nth(4).waitFor({ timeout: 20000 }).catch(() => null);   // a locator, not waitForFunction: that one is Playwright's eval, refused by the page's CSP
   const after = await page.locator('[data-testid="table-card"] .tb-name').allInnerTexts();
   note(after.length === 5 && after[4] === "Evening at the yard", `walk: «more» adds the next page without a table twice: ${after.join(", ")}`);
   const named = await page.locator('[data-testid="table-card"] .tb-meta').last().innerText();

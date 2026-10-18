@@ -1,10 +1,10 @@
 // The boards on the table's panel (sheets w3_table-*), one per game, each drawing its own part of the node's state
 // (relay/node/src/lib/tables_*.ts) through table-logic.ts; a tap is a move only in turn (onMove given), the node
 // refuses the rest. Testids: four, four-col-<a..g>; dots, dot, edge-<id>, box; hangman, gallows, mask, slot, key-<letter>,
-// word-input, word-go; reversi, cell-<a1..h8>; squares, sq-<a1..h8>.
+// word-input, word-go; reversi, cell-<a1..h8>; squares, sq-<a1..h8>; backgammon, die, roll, moved.
 import { useState } from "react";
 import { say } from "../../i18n";
-import { type BoardState, dotsLayout, dotsStateOf, fourColumns, gridOf, hangmanView, reversiCells, squares, tapSquare, wordOf } from "./table-logic";
+import { type BoardState, diceOf, diceStep, dotsLayout, dotsStateOf, fourColumns, gridOf, hangmanView, pipsOf, reversiCells, squares, tapSquare, wordOf } from "./table-logic";
 
 type Move = (m: unknown) => void;
 export type BoardProps = { state: BoardState; seat: number; onMove?: Move };
@@ -15,6 +15,7 @@ export function Board({ klass, set, ...props }: BoardProps & { klass: string; se
   if (klass === "grid" && set === "reversi") return <ReversiBoard {...props} />;
   if (klass === "grid" && (set === "checkers" || set === "chess")) return <SquaresBoard {...props} chess={set === "chess"} />;
   if (klass === "dots") return <DotsBoard {...props} />;
+  if (klass === "dice") return <BackgammonBoard {...props} />;
   if (klass === "word") return <HangmanBoard {...props} />;
   return null;
 }
@@ -24,11 +25,11 @@ export function FourBoard({ state, seat, onMove }: BoardProps) {
   const grid = gridOf(state);
   if (!grid) return null;
   return (
-    <div className="tb-four" role="group" aria-label={say("web.table.columns")} data-testid="four">
+    <div className="tg-four" role="group" aria-label={say("web.table.columns")} data-testid="four">
       {fourColumns(grid, seat).map((c) => (
-        <button key={c.column} type="button" className="tb-col" disabled={!onMove || !c.open} onClick={() => onMove?.({ column: c.column })}
+        <button key={c.column} type="button" className="tg-col" disabled={!onMove || !c.open} onClick={() => onMove?.({ column: c.column })}
           aria-label={say("web.table.column", { col: c.column })} data-testid={`four-col-${c.column}`}>
-          {c.cells.map((s, i) => <span key={i} className="tb-cell" data-stand={s} />)}
+          {c.cells.map((s, i) => <span key={i} className="tg-cell" data-stand={s} />)}
         </button>
       ))}
     </div>
@@ -43,15 +44,15 @@ export function DotsBoard({ state, seat, onMove }: BoardProps) {
   const l = dotsLayout(dots, seat);
   const at = (r: number, c: number) => ({ "--r": r, "--c": c }) as React.CSSProperties;
   return (
-    <div className="tb-dots" style={{ "--n": l.n } as React.CSSProperties} role="group" aria-label={say("web.table.board")} data-testid="dots">
-      {l.boxes.map((b) => <span key={`b${b.r}:${b.c}`} className="tb-box" data-stand={b.stand} style={at(b.r, b.c)} data-testid="box" />)}
+    <div className="tg-dots" style={{ "--n": l.n } as React.CSSProperties} role="group" aria-label={say("web.table.board")} data-testid="dots">
+      {l.boxes.map((b) => <span key={`b${b.r}:${b.c}`} className="tg-box" data-stand={b.stand} style={at(b.r, b.c)} data-testid="box" />)}
       {l.edges.map((e) => (
-        <button key={e.id} type="button" className="tb-edge" data-dir={e.dir} data-taken={e.taken || undefined} style={at(e.r, e.c)}
+        <button key={e.id} type="button" className="tg-edge" data-dir={e.dir} data-taken={e.taken || undefined} style={at(e.r, e.c)}
           disabled={e.taken || !onMove} onClick={() => onMove?.({ edge: e.id })} aria-label={e.id} data-testid={`edge-${e.id}`}>
           <span />
         </button>
       ))}
-      {Array.from({ length: (l.n + 1) ** 2 }, (_, i) => <span key={`d${i}`} className="tb-dot" style={at(Math.floor(i / (l.n + 1)), i % (l.n + 1))} data-testid="dot" />)}
+      {Array.from({ length: (l.n + 1) ** 2 }, (_, i) => <span key={`d${i}`} className="tg-dot" style={at(Math.floor(i / (l.n + 1)), i % (l.n + 1))} data-testid="dot" />)}
     </div>
   );
 }
@@ -69,27 +70,27 @@ export function HangmanBoard({ state, seat, onMove }: BoardProps) {
   if (!w) return null;
   const h = hangmanView(w, seat, !!onMove);
   return (
-    <div className="tb-hangman" data-testid="hangman" data-mode={h.mode}>
-      <svg className="tb-gallows" viewBox="0 0 120 160" role="img" aria-label={say("web.table.guessed", { letters: w.guessed.join(" ") || "—", misses: h.misses })} data-testid="gallows">
+    <div className="tg-hangman" data-testid="hangman" data-mode={h.mode}>
+      <svg className="tg-gallows" viewBox="0 0 120 160" role="img" aria-label={say("web.table.guessed", { letters: w.guessed.join(" ") || "—", misses: h.misses })} data-testid="gallows">
         {GALLOWS.filter(Boolean).map((d) => <path key={d} d={d} />)}
         {MAN.slice(0, h.misses).map((d) => <path key={d} d={d} />)}
       </svg>
-      <p className="tb-mask" data-testid="mask" aria-label={h.slots.map((c) => c ?? "_").join(" ")}>
-        {h.slots.map((c, i) => <span key={i} className="tb-slot" data-testid="slot">{c ?? ""}</span>)}
+      <p className="tg-mask" data-testid="mask" aria-label={h.slots.map((c) => c ?? "_").join(" ")}>
+        {h.slots.map((c, i) => <span key={i} className="tg-slot" data-testid="slot">{c ?? ""}</span>)}
       </p>
       {h.mode === "set"
         ? (
-          <form className="tb-set" onSubmit={(e) => { e.preventDefault(); const v = word.trim(); if (v) { onMove?.({ word: v }); setWord(""); } }}>
+          <form className="tg-set" onSubmit={(e) => { e.preventDefault(); const v = word.trim(); if (v) { onMove?.({ word: v }); setWord(""); } }}>
             <input value={word} maxLength={24} onChange={(e) => setWord(e.target.value)} aria-label={say("web.table.set_word")} placeholder={say("web.table.set_word")} data-testid="word-input" />
             <button type="submit" className="cta cta-primary" disabled={!word.trim()} data-testid="word-go">{say("web.table.set")}</button>
           </form>
         )
         : (
-          <div className="tb-keys" role="group" aria-label={say("web.table.letter")}>
+          <div className="tg-keys" role="group" aria-label={say("web.table.letter")}>
             {h.rows.map((row, r) => (
-              <div key={r} className="tb-key-row">
+              <div key={r} className="tg-key-row">
                 {row.map((k) => (
-                  <button key={k.letter} type="button" className="tb-key" data-used={k.used || undefined} disabled={k.used || h.mode !== "guess"}
+                  <button key={k.letter} type="button" className="tg-key" data-used={k.used || undefined} disabled={k.used || h.mode !== "guess"}
                     onClick={() => onMove?.({ letter: k.letter })} aria-label={k.letter} data-testid={`key-${k.letter}`}>{k.used ? "" : k.letter}</button>
                 ))}
               </div>
@@ -106,13 +107,13 @@ export function ReversiBoard({ state, seat, onMove }: BoardProps) {
   const grid = gridOf(state);
   if (!grid) return null;
   return (
-    <div className="tb-reversi" role="group" aria-label={say("web.table.board")} data-testid="reversi">
+    <div className="tg-reversi" role="group" aria-label={say("web.table.board")} data-testid="reversi">
       {reversiCells(grid, seat).map((c) => (
-        <button key={c.id} type="button" className="tb-sq" disabled={!onMove || !c.legal} onClick={() => onMove?.({ to: c.id })}
+        <button key={c.id} type="button" className="tg-sq" disabled={!onMove || !c.legal} onClick={() => onMove?.({ to: c.id })}
           aria-label={say(c.stand === "mine" ? "web.table.cell_mine" : c.stand === "theirs" ? "web.table.cell_theirs" : "web.table.cell_free", { cell: c.id })}
           data-testid={`cell-${c.id}`}>
-          {c.stand !== "free" && <span className="tb-piece" data-stand={c.stand} />}
-          {c.stand === "free" && c.legal && onMove && <span className="tb-hint" />}
+          {c.stand !== "free" && <span className="tg-piece" data-stand={c.stand} />}
+          {c.stand === "free" && c.legal && onMove && <span className="tg-hint" />}
         </button>
       ))}
     </div>
@@ -131,15 +132,50 @@ export function SquaresBoard({ state, seat, onMove, chess }: BoardProps & { ches
     if (next.move) onMove?.(next.move);
   };
   return (
-    <div className="tb-squares" data-chess={chess || undefined} role="group" aria-label={say("web.table.board")} data-testid="squares">
+    <div className="tg-squares" data-chess={chess || undefined} role="group" aria-label={say("web.table.board")} data-testid="squares">
       {squares(grid, seat).map((q) => (
-        <button key={q.id} type="button" className="tb-sq2" data-tint={q.tint || undefined} disabled={!onMove} onClick={() => tap(q.id)}
+        <button key={q.id} type="button" className="tg-sq2" data-tint={q.tint || undefined} disabled={!onMove} onClick={() => tap(q.id)}
           aria-pressed={picked === q.id || undefined}
           aria-label={say(q.stand === "mine" ? "web.table.cell_mine" : q.stand === "theirs" ? "web.table.cell_theirs" : "web.table.cell_free", { cell: q.id })}
           data-testid={`sq-${q.id}`}>
-          {q.stand !== "free" && <span className="tb-man" data-stand={q.stand} data-picked={picked === q.id || undefined}>{q.letter}</span>}
+          {q.stand !== "free" && <span className="tg-man" data-stand={q.stand} data-picked={picked === q.id || undefined}>{q.letter}</span>}
         </button>
       ))}
+    </div>
+  );
+}
+
+// Backgammon (w3_table-backgammon): the field (two halves of twelve points and the bar) and the node's dice. The node
+// rolls and keeps no position of the men (relay tables_dice.ts: how to move on what fell stays with the people), so
+// the board draws no men — what is drawn is what the node knows. In turn: roll ({roll: true}), then «move made» ({move}).
+export function BackgammonBoard({ state, onMove }: BoardProps) {
+  const d = diceOf(state);
+  if (!d) return null;
+  const step = diceStep(d, !!onMove);
+  return (
+    <div className="tg-bg-wrap">
+      <div className="tg-bg" role="img" aria-label={d.rolled ? say("web.table.rolled", { dice: d.rolled.join(" · ") }) : say("web.table.not_rolled")} data-testid="backgammon">
+        {[0, 1].map((half) => (
+          <div key={half} className="tg-bg-half" data-half={half}>
+            {Array.from({ length: 12 }, (_, i) => <span key={i} className="tg-point" data-up={i >= 6 || undefined} data-tone={i % 2} />)}
+          </div>
+        ))}
+        <span className="tg-bg-bar" />
+        {d.rolled && (
+          <span className="tg-dice">
+            {d.rolled.map((face, i) => (
+              <span key={i} className="tg-die" data-testid="die" data-face={face}>
+                {Array.from({ length: 9 }, (_, k) => <span key={k} className="tg-pip" data-on={pipsOf(face).includes(k) || undefined} />)}
+              </span>
+            ))}
+          </span>
+        )}
+      </div>
+      {step && (
+        <button type="button" className="cta cta-primary tg-dice-step" onClick={() => onMove?.(step === "roll" ? { roll: true } : { move: true })} data-testid={step}>
+          {say(step === "roll" ? "web.table.roll" : "web.table.moved")}
+        </button>
+      )}
     </div>
   );
 }

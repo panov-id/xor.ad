@@ -70,7 +70,7 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
   const game = view ? gameOfTable(view.class, view.set) : undefined;
   const title = view ? tableTitle(game ? label(gameName(game)) : label("table.title"), view.name) : label("table.title");
   const bar = (more?: ReactNode) => (
-    <header className="me-bar tb-bar">
+    <header className="me-bar tg-bar">
       <button type="button" className="me-back" aria-label={label("common.back")} onClick={onBack} data-testid="table-back"><Icon d={chevronLeft} /></button>
       <h1>{title}</h1>
       {more}
@@ -78,9 +78,9 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
   );
   if (!view) {
     return (
-      <Screen name="table" title={title} className="me-sub tb-table">
+      <Screen name="table" title={title} className="me-sub tg-table">
         {bar()}
-        <div className="tb-sheet">{error ? <p className="me-error" role="alert" data-testid="error">{error}</p> : <p className="tb-quiet">…</p>}</div>
+        <div className="tg-sheet">{error ? <p className="me-error" role="alert" data-testid="error">{error}</p> : <p className="tg-quiet">…</p>}</div>
       </Screen>
     );
   }
@@ -103,7 +103,7 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
     <div className="fd-sheet" data-testid="table-menu">
       <span className="fd-grab" aria-hidden="true" />
       <h2>{title}</h2>
-      <p className="tb-open" role="note">{say("table.open")}</p>
+      <p className="tg-open" role="note">{say("table.open")}</p>
       <ul className="fd-menu">
         {first !== "start" && onMove && <li><button type="button" onClick={() => { close(); void act(() => tables.pass(tableId, board!.seq)); }} data-testid="pass"><span>{say("table.pass")}</span><Icon d={chevronRight} /></button></li>}
         {view.is_playing && started && <li><button type="button" onClick={() => { close(); void act(() => tables.resign(tableId)); }} data-testid="resign"><span>{say("table.resign")}</span><Icon d={chevronRight} /></button></li>}
@@ -114,45 +114,45 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
   ));
 
   return (
-    <Screen name="table" title={title} className="me-sub tb-table" data-testid="table" data-id={tableId}>
-      {bar(<button type="button" className="me-back tb-more" aria-label={say("web.chat.more")} aria-haspopup="dialog" onClick={menu} data-testid="table-more"><Icon d={ellipsis} /></button>)}
-      <div className="tb-faces">
-        {left && <span className="tb-face" data-face="me" data-testid="face-left" aria-hidden="true">{initial(view.is_playing ? (left.name || "?") : left.name)}</span>}
-        <p className="tb-me" data-testid={board?.over ? "over" : "turn"}>
+    <Screen name="table" title={title} className="me-sub tg-table" data-testid="table" data-id={tableId}>
+      {bar(<button type="button" className="me-back tg-more" aria-label={say("web.chat.more")} aria-haspopup="dialog" onClick={menu} data-testid="table-more"><Icon d={ellipsis} /></button>)}
+      <div className="tg-faces">
+        {left && <span className="tg-face" data-face="me" data-testid="face-left" aria-hidden="true">{initial(view.is_playing ? (left.name || "?") : left.name)}</span>}
+        <p className="tg-me" data-testid={board?.over ? "over" : "turn"}>
           {mine.who === "you" ? label("table.you") : mine.name}<span aria-hidden="true"> · </span>{line}
         </p>
         {ring && (
-          <span className="tb-ring" style={{ "--share": ring.share } as CSSProperties} role="img" aria-label={say("app.table.minutes", { n: ring.minutes })} data-testid="move-ring">
+          <span className="tg-ring" style={{ "--share": ring.share } as CSSProperties} role="img" aria-label={say("app.table.minutes", { n: ring.minutes })} data-testid="move-ring">
             <span aria-hidden="true">{ring.minutes}</span>
           </span>
         )}
-        {right && <span className="tb-face" data-face="them" data-testid="face-right" aria-label={right.name}>{initial(right.name)}</span>}
+        {right && <span className="tg-face" data-face="them" data-testid="face-right" aria-label={right.name}>{initial(right.name)}</span>}
       </div>
-      <div className="tb-sheet">
-        <div className="tb-panel" data-class={view.class} data-set={view.set}>
+      <div className="tg-sheet">
+        <div className="tg-panel" data-class={view.class} data-set={view.set}>
           <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} onMove={onMove} />
         </div>
         {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
         {proposed && (
-          <div className="tb-ask">
+          <div className="tg-ask">
             <button type="button" className="cta cta-primary" onClick={() => void act(() => tables.answer(tableId, pending!.id, "accept"))} data-testid="accept-game">{say("web.table.accept")}</button>
             <button type="button" className="cta cta-quiet" onClick={() => void act(() => tables.answer(tableId, pending!.id, "decline"))} data-testid="decline-game">{say("web.table.decline")}</button>
           </div>
         )}
         {!proposed && first === "start" && (
-          <button type="button" className="cta cta-primary tb-start" onClick={() => void act(() => tables.propose(tableId, "rematch"))} data-testid="start-game">
+          <button type="button" className="cta cta-primary tg-start" onClick={() => void act(() => tables.propose(tableId, "rematch"))} data-testid="start-game">
             {say(!board || board.over ? "web.game.rematch" : "web.table.start")}
           </button>
         )}
         {/* Words at the table for the players (owner 14.10.2026: «вернуть текст игрокам»), above the stickers. */}
         {view.is_playing && (
-          <form className="tb-line" onSubmit={(e) => { e.preventDefault(); const text = said.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setSaid("")); }}>
+          <form className="tg-line" onSubmit={(e) => { e.preventDefault(); const text = said.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setSaid("")); }}>
             <input value={said} maxLength={128} onChange={(e) => setSaid(e.target.value)} placeholder={say("app.table.message")} aria-label={say("web.table.line")} data-testid="line-input" />
           </form>
         )}
-        <div className="tb-chips" role="group" aria-label={say("web.sticker.title")} data-testid="stickers">
+        <div className="tg-chips" role="group" aria-label={say("web.sticker.title")} data-testid="stickers">
           {STICKER_CHIPS.map((id, i) => (
-            <button key={id} type="button" className="tb-chip" data-tone={toneAt(i)} onClick={() => void act(() => tables.say(tableId, { kind: "sticker", sticker: id }))} data-testid={`sticker-${id}`}>
+            <button key={id} type="button" className="tg-chip" data-tone={toneAt(i)} onClick={() => void act(() => tables.say(tableId, { kind: "sticker", sticker: id }))} data-testid={`sticker-${id}`}>
               {chipWord(id)}
             </button>
           ))}

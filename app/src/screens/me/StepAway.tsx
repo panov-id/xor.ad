@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan } from "@sdk/limits.ts";
 import { awayCounts } from "@sdk/me.ts";
-import { label, say } from "../../i18n";
+import { label, say, sayCount } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { hourglass } from "./icons";
 import { awayRows } from "./me-logic";
@@ -45,10 +45,10 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
         </div>
       </div>
       <Pairs testid="away-price" rows={[
-        [say("app.me.phrases"), rows ? say("app.stepaway.come_down", { n: rows.phrases }) : "…"],
+        [say("app.me.phrases"), rows ? sayCount("app.stepaway.come_down", rows.phrases) : "…"],
         [say("app.stepaway.in_on_you"), rows ? say("app.stepaway.neighbours", { n: rows.likes }) : "…"],
         // A talk whose own end comes before the break's ends with it: said beside the ones that wait.
-        [say("app.me.talks"), rows ? (rows.end > 0 ? say("app.stepaway.wait_end", { n: rows.wait, m: rows.end }) : say("app.stepaway.wait", { n: rows.wait })) : "…"],
+        [say("app.me.talks"), rows ? (rows.end > 0 ? `${sayCount("app.stepaway.wait", rows.wait)} · ${sayCount("app.stepaway.end", rows.end)}` : sayCount("app.stepaway.wait", rows.wait)) : "…"],
       ]} />
       <ErrorLine text={error} />
     </SubPage>

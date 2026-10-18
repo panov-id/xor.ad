@@ -1,7 +1,7 @@
 // The shell's words: the web's own locales (web/src/locales) and the terminal's
 // (depth/ink/locales), read in place through the @locales / @ink-locales aliases
 // (vite.config.ts), plus the few lines only this shell has (APP below).
-import { byLang, capital, chooseLanguage, chosenLanguage, type Dicts, keepLanguage, languageAsked, languageName, languagesOf, makeSay, pickLanguage } from "./i18n-core";
+import { byLang, capital, chooseLanguage, chosenLanguage, type Dicts, keepLanguage, languageAsked, languageName, languagesOf, makeSay, makeSayCount, pickLanguage } from "./i18n-core";
 
 const depth = byLang(import.meta.glob("@ink-locales/*.json", { eager: true, import: "default" }));
 const web = byLang(import.meta.glob("@locales/*.json", { eager: true, import: "default" }));
@@ -155,11 +155,24 @@ export const APP: Dicts = {
     "app.stepaway.short": "20 мин",
     "app.stepaway.hour": "1 ч",
     "app.stepaway.long": "4 ч",
+    // Counted lines (sayCount): a form per Intl.PluralRules; the plain key for a form not written here.
     "app.stepaway.come_down": "{n} снимутся",
+    "app.stepaway.come_down.one": "{n} снимется",
+    "app.stepaway.come_down.few": "{n} снимутся",
+    "app.stepaway.come_down.many": "{n} снимутся",
+    "app.stepaway.come_down.other": "{n} снимутся",
     "app.stepaway.in_on_you": "Отметили вас",
     "app.stepaway.neighbours": "соседей: {n}",
     "app.stepaway.wait": "{n} подождут",
-    "app.stepaway.wait_end": "{n} подождут · {m} закончатся",
+    "app.stepaway.wait.one": "{n} подождёт",
+    "app.stepaway.wait.few": "{n} подождут",
+    "app.stepaway.wait.many": "{n} подождут",
+    "app.stepaway.wait.other": "{n} подождут",
+    "app.stepaway.end": "{n} закончатся",
+    "app.stepaway.end.one": "{n} закончится",
+    "app.stepaway.end.few": "{n} закончатся",
+    "app.stepaway.end.many": "{n} закончатся",
+    "app.stepaway.end.other": "{n} закончатся",
     "app.filter.title": "Кого вы видите",
     "app.filter.band": "В вашей полосе: от {from} до {to}.",
     "app.filter.band_open": "В вашей полосе: от {from} и старше.",
@@ -311,10 +324,16 @@ export const APP: Dicts = {
     "app.stepaway.hour": "1 h",
     "app.stepaway.long": "4 h",
     "app.stepaway.come_down": "{n} come down",
+    "app.stepaway.come_down.one": "{n} comes down",
+    "app.stepaway.come_down.other": "{n} come down",
     "app.stepaway.in_on_you": "Liked you",
     "app.stepaway.neighbours": "{n} neighbours",
     "app.stepaway.wait": "{n} wait",
-    "app.stepaway.wait_end": "{n} wait · {m} end",
+    "app.stepaway.wait.one": "{n} waits",
+    "app.stepaway.wait.other": "{n} wait",
+    "app.stepaway.end": "{n} end",
+    "app.stepaway.end.one": "{n} ends",
+    "app.stepaway.end.other": "{n} end",
     "app.filter.title": "Who you see",
     "app.filter.band": "Within your band: {from} to {to}.",
     "app.filter.band_open": "Within your band: {from} and up.",
@@ -338,6 +357,7 @@ export const LANG = pickLanguage(LANGUAGES, typeof navigator === "undefined" ? [
 if (typeof document !== "undefined") document.documentElement.lang = LANG;
 
 export const say = makeSay(LANG, [depth, web, APP]);
+export const sayCount = makeSayCount(LANG, say);
 export const nameOf = (lang: string) => languageName(web, lang);
 export const asked = () => languageAsked(storage());
 /** Keeps the pick from the splash's list; false means the page is reloading in the new language. */

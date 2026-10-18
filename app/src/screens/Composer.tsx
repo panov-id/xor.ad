@@ -5,7 +5,8 @@
 // (depth/core/life.ts PHRASE_LIFE_SECONDS). The web's testids: text, send, refused, counter; new ones:
 // composer-back, mode-<mode>, zone-<m>, live-left.
 //
-// Not here yet: the neighbour's offer (discount and conditions), the zone's word under it.
+// The desktop (desktop_1440_Write) adds the rail, the yard's line over the title and «how neighbours will see it» beside the form
+// (the feed's own tile); below 1440 they are not shown (tokens/wide.css). Not here yet: the neighbour's offer (discount and conditions).
 import { useEffect, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
 import { PHRASE_LIFE_SECONDS } from "@sdk/life.ts";
@@ -15,6 +16,8 @@ import { storedPlace } from "../place";
 import { Icon } from "../shell/Icon";
 import { chevronLeft, crowd, person, smile } from "../shell/icons";
 import { Screen } from "../shell/Screen";
+import { type Tab, TabBar } from "../shell/TabBar";
+import { Tile } from "./feed-card";
 import { canSay, lettersLeft, liveLeft } from "./composer-logic";
 import { RADII, radiusWord } from "./feed-logic";
 
@@ -24,9 +27,12 @@ const life = (): { h: number; m: number } => ({ h: Math.floor(PHRASE_LIFE_SECOND
 
 export interface ComposerState {
   text: string; mode: Mode; zone: Radius; limit: number; live: { left: number; of: number } | null; busy: boolean; refused: string | null;
+  /** The place's name (the feed's, place.ts), for the yard's line; empty when none is chosen. */
+  place?: string;
 }
 export interface ComposerActions {
   onText: (text: string) => void; onMode: (mode: Mode) => void; onZone: (zone: Radius) => void; onSend: () => void; onBack: () => void;
+  onTab?: (tab: Tab) => void;
 }
 
 export function ComposerPane({ state, actions }: { state: ComposerState; actions: ComposerActions }) {
@@ -36,9 +42,18 @@ export function ComposerPane({ state, actions }: { state: ComposerState; actions
     <Screen name="composer" title={label("app.compose.title")} className="cp">
       <header className="cp-head">
         <button type="button" className="cp-back" aria-label={say("common.back")} onClick={actions.onBack} data-testid="composer-back"><Icon d={chevronLeft} /></button>
+        {state.place && <p className="cp-where">{say("app.compose.where", { place: state.place })}</p>}
         <h1>{label("app.compose.title")}</h1>
         <p>{say("app.compose.sub", { h, m })}</p>
       </header>
+      <aside className="cp-preview" aria-label={say("app.compose.preview")}>
+        <h2>{say("app.compose.preview")}</h2>
+        <ul className="cp-preview-tile">
+          <Tile card={{ id: "preview", text: state.text.trim() || say("app.compose.your_phrase"), mode: state.mode, lang: LANG, like_count: 0 }}
+            tone="lime" busy onOpen={() => {}} onLike={() => {}} testid="preview" />
+        </ul>
+        <p>{say("app.compose.preview_text", { zone: say(radiusWord(state.zone).key, { n: radiusWord(state.zone).n }), h, m })}</p>
+      </aside>
       <form className="cp-sheet" onSubmit={(e) => { e.preventDefault(); actions.onSend(); }}>
         <div className="cp-card">
           <label htmlFor="cp-text">{say("app.compose.your_phrase")}</label>
@@ -80,13 +95,14 @@ export function ComposerPane({ state, actions }: { state: ComposerState; actions
           {say("app.compose.send")}
         </button>
       </form>
+      <TabBar active="feed" onSelect={actions.onTab} />
     </Screen>
   );
 }
 
 /** The composer held for the screen: the node's limit, one's own live phrases, the send. */
-export function Composer({ client, radius, onSent, onBack }:
-  { client: Client; radius: Radius; onSent: (sent: Exclude<Sent, { state: "refused" }>, text: string) => void; onBack: () => void }) {
+export function Composer({ client, radius, onSent, onBack, onTab }:
+  { client: Client; radius: Radius; onSent: (sent: Exclude<Sent, { state: "refused" }>, text: string) => void; onBack: () => void; onTab?: (tab: Tab) => void }) {
   const [text, setText] = useState("");
   const [mode, setMode] = useState<Mode>("alone");
   const [zone, setZone] = useState<Radius>(radius);
@@ -114,8 +130,8 @@ export function Composer({ client, radius, onSent, onBack }:
     }
   }
   return (
-    <ComposerPane state={{ text, mode, zone, limit, live, busy, refused }} actions={{
-      onText: (t) => setText(t), onMode: setMode, onZone: setZone, onSend: () => void send(), onBack,
+    <ComposerPane state={{ text, mode, zone, limit, live, busy, refused, place: storedPlace().name }} actions={{
+      onText: (t) => setText(t), onMode: setMode, onZone: setZone, onSend: () => void send(), onBack, onTab,
     }} />
   );
 }

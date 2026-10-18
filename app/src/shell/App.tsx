@@ -5,6 +5,7 @@ import { gateOf, gateScreen, pathOf, type Screen, seatScreen } from "../router";
 import { Arrival } from "../screens/Arrival";
 import { Chat } from "../screens/Chat";
 import { Composer } from "../screens/Composer";
+import { TalksPane } from "../screens/talks/TalksPane";
 import { Away } from "../screens/Away";
 import { Departure } from "../screens/Departure";
 import { Feed } from "../screens/Feed";
@@ -38,6 +39,21 @@ async function boot(): Promise<void> {
 // The gates before an identity (web/src/App.tsx): a step forward pushes a history entry named by
 // the gate, Back walks them, a reload opens the gate the path names, or the PIN when this device
 // keeps an identity — and no PIN at all within the reload grace (depth/core/grace.ts).
+// The desktop (1440 and up, tokens/wide.css): the talks' pane stands at the right of the panel of these screens
+// (sosed Dusk desktop_1440_Feed, _Phrase, _Me, _Write); below it is not mounted and reads nothing.
+const PANE_BESIDE = new Set<Screen["at"]>(["feed", "me", "composer"]);
+function useWide(): boolean {
+  const query = "(min-width: 1440px)";
+  const [wide, setWide] = useState(() => typeof matchMedia === "function" && matchMedia(query).matches);
+  useEffect(() => {
+    if (typeof matchMedia !== "function") return;
+    const m = matchMedia(query), on = () => setWide(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  return wide;
+}
+
 export function App() {
   const [screen, setScreen] = useState<Screen>({ at: "loading" });
   const [booting, setBooting] = useState(true);
@@ -61,6 +77,7 @@ export function App() {
   const held = useRef(false);
   // Waiting rules (MOTION.md): the loading screen shows only if the wait outlasts 300 ms, and then stays 600 ms.
   const loadingShown = useSkeleton(booting);
+  const wide = useWide();
 
   useEffect(() => {
     void (async () => {
@@ -267,7 +284,7 @@ export function App() {
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} onCompose={openComposer} /> : null;
-      case "composer": return seated ? <Composer client={seated.client} radius={screen.radius} onSent={chatBack} onBack={chatBack} /> : null;
+      case "composer": return seated ? <Composer client={seated.client} radius={screen.radius} onSent={chatBack} onBack={chatBack} onTab={tab} /> : null;
       case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /> : null;
       // Back keeps the seat (web TB1); standing up, or a seat lost, is the list again.
       case "table": return seated ? <Table client={seated.client} tableId={screen.id} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} onLeave={toTables} /> : null;
@@ -287,5 +304,8 @@ export function App() {
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }
   };
-  return <LayerStack base={view()} />;
+  const pane = wide && seated && !loadingShown && PANE_BESIDE.has(screen.at)
+    ? <TalksPane client={seated.client} actions={{ onOpenMatch: toMatch, onOpenChat: openChat, onLikes: toLikes }} />
+    : null;
+  return <LayerStack base={<>{view()}{pane}</>} />;
 }

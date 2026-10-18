@@ -144,4 +144,28 @@
   .me-home .me-rows { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
   .me-body > .me-danger { grid-column: 1; grid-row: 2; }
   .me-body > * + * { margin-top: 0; }
+
+  /* the phrase for the feed (desktop_1440_Write): the rail, the panel of 767 as the feed's, the form (379.5) at its left and
+     «how neighbours will see it» (299.6) beside it; .cp.cp: composer.css loads after this file */
+  .cp.cp { position: relative; height: 100dvh; min-height: 0; }
+  .cp.cp::before { content: ""; position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom);
+    width: min(767px, calc(100% - var(--panel-left) - 24px)); background: var(--c-sheet); border-radius: var(--r-sheet); }
+  .cp.cp > .tabbar { display: flex; }
+  .cp.cp .cp-head { position: absolute; left: var(--panel-left); top: var(--panel-top); width: 767px; height: 125.84px; }
+  .cp.cp .cp-back, .cp.cp .cp-head > p:not(.cp-where) { display: none; }
+  .cp.cp .cp-where { display: block; position: absolute; left: 30.3px; top: 45.9px; transform: translateY(-80%); margin: 0; white-space: nowrap;
+    font-size: 13px; font-weight: 600; line-height: 1; color: var(--c-muted); }
+  .cp.cp .cp-head h1 { left: 30.6px; top: 91.8px; font-size: 41.6px; }
+  .cp.cp .cp-sheet { position: absolute; left: 278.6px; top: 149.8px; width: 379.5px; padding: 0; background: none; border-radius: 0; flex: none; }
+  .cp.cp .cp-preview { display: block; position: absolute; left: 686px; top: 149.8px; width: 299.6px; }
+  .cp-preview h2 { margin: 0; font-size: 15.5px; font-weight: 700; line-height: 1; transform: translateY(3px); }
+  .cp-preview-tile { list-style: none; margin: 16.4px 0 0; padding: 0; }
+  .cp-preview-tile .fd-card { height: 163.8px; }
+  .cp-preview p { margin: 12px 0 0; font-size: 13.5px; line-height: 18px; color: var(--c-muted); }
+
+  /* the talks' pane at the right of the panel (TalksPane.tsx) */
+  .tk-pane { position: fixed; left: 1039.6px; top: var(--panel-top); bottom: var(--panel-bottom); width: 375.5px; overflow-y: auto;
+    background: var(--c-sheet); border-radius: var(--r-sheet); padding: 0 0 24px; z-index: 2;
+    --tk-row-side: 35.9px; --tk-row-h: 85.9px; --tk-strip-top: 8.5px; --tk-strip-pad: 22.8px; }
+  .tk-pane h2 { margin: 0; padding: 26.9px 0 0 24.4px; font-size: 20px; font-weight: 800; line-height: 1.2; }
 }

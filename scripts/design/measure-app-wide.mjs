@@ -223,8 +223,27 @@ export async function wideSheets(h) {
     await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]'); await settle(page);
     await page.fill('[data-testid="text"]', "Backgammon in the yard tonight?"); await page.click('[data-testid="mode-company"]'); await settle(page);
     textAt(scr, "title", T[p.title], await line(page, ".cp-head h1"));
-    textAt(scr, "line under the title", T[p.title + 1], await line(page, ".cp-head p"));
-    compare(scr, "sheet left,top", [shape(S, p.sheet).x, shape(S, p.sheet).y], (await one(page, ".cp-sheet")).slice(0, 2));
+    if (p.sub !== undefined) textAt(scr, "line under the title", T[p.sub], await line(page, ".cp-head p:not(.cp-where)"));
+    if (p.where !== undefined) textAt(scr, "the yard's line", T[p.where], await line(page, ".cp-where"));
+    if (p.sheet !== undefined) compare(scr, "sheet left,top", [shape(S, p.sheet).x, shape(S, p.sheet).y], (await one(page, ".cp-sheet")).slice(0, 2));
+    if (p.panel !== undefined) {
+      const panel = await page.evaluate(() => { const m = document.querySelector(".cp"), r = m.getBoundingClientRect(), cs = getComputedStyle(m, "::before");
+        return [r.left + parseFloat(cs.left), r.top + parseFloat(cs.top), parseFloat(cs.width), parseFloat(cs.height)]; });
+      compare(scr, "panel", abs(shape(S, p.panel)), panel);
+    }
+    if (p.preview) {
+      textAt(scr, "how neighbours will see it", T[p.preview.title], await line(page, ".cp-preview h2"));
+      compare(scr, "preview tile", abs(shape(S, p.preview.tile)), await one(page, ".cp-preview-tile .fd-card"));
+      textAt(scr, "preview words", T[p.preview.text], await line(page, ".cp-preview p"));
+    }
+    if (p.rail) await rail(scr, page, S, ".cp > .tabbar", p.rail);
+    if (p.pane) {
+      compare(scr, "talks pane", abs(shape(S, p.pane.box)), await one(page, ".tk-pane"));
+      textAt(scr, "talks pane title", T[p.pane.title], await line(page, ".tk-pane h2"));
+      const ava = await boxOf(page, ".tk-pane .tk-avatar");
+      p.pane.avatars.forEach((s, k) => compare(scr, `talks pane avatar ${k + 1}`, abs(shape(S, s)), ava[k] ?? NAN4));
+      for (let k = 0; k < p.pane.names.length; k++) textAt(scr, `talks pane name ${k + 1}`, T[p.pane.names[k]], await line(page, `.tk-pane .tk-rows li:nth-child(${k + 1}) .tk-name`));
+    }
     compare(scr, "card", abs(shape(S, p.card)), await one(page, ".cp-card"));
     textAt(scr, "card label", T[p.label], await line(page, ".cp-card label"));
     textAt(scr, "lives", T[p.lives], await line(page, ".cp-card-foot span:first-child"));
@@ -250,7 +269,10 @@ export async function wideSheets(h) {
   await feed("tablet", 834, "tablet", "tablet_834_Feed", { tiles: [6, 20, 10, 24, 12, 27, 16], list: 5, tile: 6, hand: 7, foot: 8, chip: 9, title: [14, 15] });
   await feed("desktop", 1440, "desktop", "desktop_1440_Feed", { tiles: [12, 25, 16, 29, 18, 33, 21], panel: 6, tile: 12, hand: 13, foot: 14, chip: 15, title: [13, 14] });
   await me("tablet", 834, "tablet", "tablet_834_Me");
-  await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });
+  await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sub: 1, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });
   await me("desktop", 1440, "desktop", "desktop_1440_Me");
+  await write("desktop", 1440, "desktop", "desktop_1440_Write", { where: 8, title: 9, panel: 6, card: 7, label: 10, lives: 13, going: 15, modes: 8, hears: 19, zones: 11,
+    live: 16, ring: 39, ringWords: 60, liveWords: 23, send: 17, preview: { title: 25, tile: 18, text: 30 }, rail: { active: 2, say: 4 },
+    pane: { box: 22, title: 32, avatars: [33, 35, 36, 37], names: [43, 47, 51, 55] } });
   info("not compared (the sheets draw them, this shell has not the thing): the right pane of the desktop feed and card (Talks, a chat), the quota card and the rail's quota, the chips' counts, the tiles' distance and time, the search icon, the unread dot, the thread \"Beside it\" and \"Reply beside\", the density line, the offer and table tiles as drawn");
 }

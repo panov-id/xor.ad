@@ -1,5 +1,5 @@
 // Measures the rendered app/ table (the frame, then each game's board) against the Dusk sheets of wave 3 (mobile
-// w3_table-four, w3_table-dots, w3_table-hangman; more games as their boards come), and walks it against a stubbed node: the list's «Watch» opens the
+// w3_table-four, w3_table-dots, w3_table-hangman, w3_table-reversi; more games as their boards come), and walks it against a stubbed node: the list's «Watch» opens the
 // table, a column's tap sends the move. Run by scripts/measure-app-w3-games.sh inside the Playwright image, on an
 // internal network: PREVIEW is the built app (with its CSP). Built on measure-app-w4.mjs (its helpers, its report).
 // Expected values are read from the sheets (sheet-geometry.mjs), never typed in; indices are the sheets' drawing order.
@@ -114,13 +114,16 @@ const cellsOf = (m) => Object.fromEntries(Object.entries(m).map(([id, seat]) => 
 // w3_table-dots: 4×4, two boxes mine (seat 1), two Nino's, two loose edges.
 const DOTS = { edges: ["h:1:1", "h:2:1", "v:1:1", "v:1:2", "h:1:2", "h:2:2", "v:1:3", "h:3:1", "v:2:1", "v:2:2", "h:3:3", "h:4:3", "v:3:3", "v:3:4", "h:4:0", "v:0:4"],
   boxes: { "1:1": 1, "1:2": 1, "2:1": 2, "3:3": 2 } };
-const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" } };
+const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" }, t4: { class: "grid", set: "reversi" } };
+// w3_table-reversi: mine lime, Nino peach (rank 8 on top).
+const REVERSI = { d6: 1, e6: 2, c5: 2, d5: 2, e5: 1, d4: 1, e4: 2, f4: 2, e3: 1, f3: 1 };
 // w3_table-hangman: Nino set the word, I guess; tried q e t a f k (the sheet's spent keys), the mask shows them.
 const WORD = { setter: 2, set: "en", alphabet: [..."abcdefghijklmnopqrstuvwxyz"], word: null, mask: "ka__e__e__", guessed: ["q", "e", "t", "a", "f", "k"], misses: 3, misses_left: 3 };
 function tableView(s, id) {
   const g = GAMES[id];
   const state = g.class === "dots" ? { dots: { n: 4, edges: [...s.edges], boxes: { ...DOTS.boxes } } }
     : g.class === "word" ? { word: { ...WORD, guessed: [...s.guessed] } }
+    : g.set === "reversi" ? { grid: { cells: cellsOf(s.rev), claim: null, rules: "reversi" } }
     : { grid: { cells: cellsOf(s.cells), claim: null, rules: "four" } };
   return {
     id, class: g.class, set: g.set, seat: 1, is_playing: true, playing: 2, watching: 0, name: "Evening at the yard", like_count: 0, lines: [],
@@ -130,7 +133,7 @@ function tableView(s, id) {
 }
 function nodeStub() {
   const calls = [], moves = [];
-  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], due: Math.floor(Date.now() / 1000) + 100 };
+  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], rev: { ...REVERSI }, due: Math.floor(Date.now() / 1000) + 100 };
   const prepare = async (ctx) => {
     await ctx.route("**/*", async (route) => {
       const req = route.request(), u = new URL(req.url());
@@ -153,6 +156,7 @@ function nodeStub() {
         if (m.move?.column) { const col = m.move.column; let r = 1; while (s.cells[`${col}${r}`]) r++; s.cells[`${col}${r}`] = 1; }
         if (m.move?.edge) s.edges.push(m.move.edge);
         if (m.move?.letter) s.guessed.push(m.move.letter);
+        if (m.move?.to) s.rev[m.move.to] = 1;
         s.seq++; s.turn = 2;
         return json(200, { board: tableView(s, t[1]).board });
       }
@@ -319,6 +323,38 @@ await ctx.close();
   note(sh3.moves[0]?.move?.letter === "r" && sh3.moves[0]?.table === "t3", `walk: a tap on R sends {move: {letter: "r"}} (${JSON.stringify(sh3.moves[0] ?? null)})`);
   await o.ctx.close();
 }
+// w3_table-reversi: the fourth table
+{
+  const sr = nodeStub();
+  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: sr.prepare });
+  await registerFull(o.page); await toTable(o.page, 3);
+  await o.page.locator('[data-testid="cell-h1"]').waitFor({ timeout: 20000 });
+  const hints = await o.page.locator(".tb-hint").evaluateAll((els) => els.map((e) => e.closest("button").dataset.testid.slice(5)).sort().join(" "));
+  if (want("reversi")) {
+    const S = sheetOf("reversi"), sh = S.shapes, scr = "reversi";
+    await settle(o.page);
+    await tableFrame(o.page, scr, S);
+    compare(scr, "panel height", [sh[4].h], [(await box(o.page, ".tb-panel"))[3]]);
+    const pieces = sh.filter((x) => Math.abs(x.w - 33.8) < 0.3);
+    const at = (x, y) => `${"abcdefgh"[Math.round((x - 15.9 - 5.35) / 44.525)]}${8 - Math.round((y - 160 - 5.35) / 44.525)}`;
+    for (const p of pieces) compare(scr, `piece ${at(p.x, p.y)}`, shapeOf(p), await box(o.page, `[data-testid="cell-${at(p.x, p.y)}"] .tb-piece`));
+    for (const d of sh.filter((x) => Math.abs(x.w - 10.8) < 0.3 && x.y > 150)) {
+      const id = at(d.x - 11.5, d.y - 11.5);
+      // A hint is the node's rule (a piece there turns one of theirs); the sheet's dots are drawn by hand, and a dot on a
+      // cell that turns nothing is the sheet's slip, said and not compared.
+      if (!hints.split(" ").includes(id)) { notes.push({ bad: false, text: `reversi: the sheet's dot on ${id} is no legal move of this position (legal: ${hints}) — not compared` }); continue; }
+      compare(scr, `hint ${id}`, shapeOf(d), await box(o.page, `[data-testid="cell-${id}"] .tb-hint`));
+    }
+    await shot(o.page, "table-reversi");
+  }
+  await overflowAt(o.page, "table-reversi", 390);
+  const first = hints.split(" ")[0];
+  await o.page.click(`[data-testid="cell-${first}"]`);
+  for (let k = 0; k < 40 && sr.moves.length === 0; k++) await o.page.waitForTimeout(100);
+  note(sr.moves[0]?.move?.to === first && sr.moves[0]?.table === "t4", `walk: a tap on the hint ${first} sends {move: {to}} (${JSON.stringify(sr.moves[0] ?? null)})`);
+  note(await o.page.locator('[data-testid="cell-a8"]').isDisabled(), "walk: a cell that turns nothing takes no tap");
+  await o.ctx.close();
+}
 for (const w of [375, 320]) {
   const s2 = nodeStub();
   const o = await open(browser, PREVIEW + "/", w, { screen: "w3g", prepare: s2.prepare });
@@ -329,7 +365,10 @@ for (const w of [375, 320]) {
   await settle(o.page); await overflowAt(o.page, "table-dots", w);
   await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
   await o.page.locator('[data-testid="table-open"]').nth(2).click(); await o.page.locator('[data-testid="key-p"]').waitFor({ timeout: 20000 });
-  await settle(o.page); await overflowAt(o.page, "table-hangman", w); await o.ctx.close();
+  await settle(o.page); await overflowAt(o.page, "table-hangman", w);
+  await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+  await o.page.locator('[data-testid="table-open"]').nth(3).click(); await o.page.locator('[data-testid="cell-h1"]').waitFor({ timeout: 20000 });
+  await settle(o.page); await overflowAt(o.page, "table-reversi", w); await o.ctx.close();
 }
 
 await browser.close();

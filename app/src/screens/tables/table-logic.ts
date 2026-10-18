@@ -127,3 +127,34 @@ export function hangmanView(w: Word, seat: number, myTurn: boolean): HangmanView
   const used = new Set(w.guessed);
   return { mode, slots, rows: keyRows(w.alphabet).map((r) => r.map((letter) => ({ letter, used: used.has(letter) }))), misses: w.misses };
 }
+
+// ── reversi (relay/node/src/lib/tables_reversi.ts playReversi): 8×8, a move {to} must turn at least one of the other's
+// pieces. The hints are the node's own rule read on this side (its `turned`); the node still decides on the move ──
+const FILES8 = "abcdefgh";
+const DIRS8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+function turns(g: Grid, f: number, r: number, seat: number): number {
+  if (g.cells[`${FILES8[f]}${r + 1}`]) return 0;
+  let n = 0;
+  for (const [df, dr] of DIRS8) {
+    let run = 0, x = f + df, y = r + dr;
+    while (x >= 0 && x < 8 && y >= 0 && y < 8) {
+      const p = g.cells[`${FILES8[x]}${y + 1}`];
+      if (!p) { run = 0; break; }
+      if (p.seat === seat) break;
+      run++; x += df; y += dr;
+    }
+    if (x < 0 || x > 7 || y < 0 || y > 7) run = 0;
+    n += run;
+  }
+  return n;
+}
+// The 64 cells, rank 8 on top and a1 bottom left (as the board is set), each with who stands on it and whether a piece
+// of mine there would turn one of theirs.
+export function reversiCells(g: Grid, seat: number): Array<{ id: string; stand: Stand; legal: boolean }> {
+  const out: Array<{ id: string; stand: Stand; legal: boolean }> = [];
+  for (let r = 7; r >= 0; r--) for (let f = 0; f < 8; f++) {
+    const id = `${FILES8[f]}${r + 1}`;
+    out.push({ id, stand: standOf(g, id, seat), legal: turns(g, f, r, seat) > 0 });
+  }
+  return out;
+}

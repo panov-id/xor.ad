@@ -98,4 +98,8 @@
   --fs-tb-key: 13px;
   --tb-keys-bottom: 0px;
   --tb-keys-shift: -2.3px;
+  --tb-piece: 33.8px;
+  --tb-hint: 10.8px;
+  --tb-sq-line: 1px;
+  --tb-field-r: 2px;
 }

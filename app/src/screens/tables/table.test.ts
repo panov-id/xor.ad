@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, reversiCells, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -92,4 +92,18 @@ test("hangman: the guesser in turn guesses, the setter in turn sets; the mask's 
   assert.equal(hangmanView({ ...w, mask: null }, 2, true).mode, "set", "no word yet: the setter in turn sets it");
   assert.equal(hangmanView({ ...w, mask: null }, 1, true).mode, "wait");
   assert.deepEqual(hangmanView({ ...w, word: "kalle" }, 2, false).slots, ["k", "a", "l", "l", "e"], "the setter sees the word whole");
+});
+
+test("reversi: 64 cells, rank 8 first; a legal cell is one that turns a piece of theirs, as the node's rule", () => {
+  // the opening: mine on d5, e4; theirs on d4, e5 (relay newReversi with me low)
+  const open = { cells: { d5: { seat: 1, piece: "O" }, e4: { seat: 1, piece: "O" }, d4: { seat: 2, piece: "O" }, e5: { seat: 2, piece: "O" } }, rules: "reversi" };
+  const cells = reversiCells(open, 1);
+  assert.equal(cells.length, 64);
+  assert.deepEqual([cells[0].id, cells[63].id], ["a8", "h1"]);
+  assert.deepEqual(cells.filter((c) => c.legal).map((c) => c.id).sort(), ["c4", "d3", "e6", "f5"], "the four opening moves of the first seat");
+  assert.equal(cells.find((c) => c.id === "d5")?.stand, "mine");
+  assert.equal(cells.find((c) => c.id === "d4")?.legal, false, "a taken cell is never a move");
+  // a run of theirs that reaches the edge without mine behind it turns nothing
+  const edge = { cells: { a1: { seat: 2, piece: "O" }, b1: { seat: 2, piece: "O" } }, rules: "reversi" };
+  assert.equal(reversiCells(edge, 1).find((c) => c.id === "c1")?.legal, false);
 });

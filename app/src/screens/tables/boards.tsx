@@ -1,10 +1,10 @@
 // The boards on the table's panel (sheets w3_table-*), one per game, each drawing its own part of the node's state
 // (relay/node/src/lib/tables_*.ts) through table-logic.ts; a tap is a move only in turn (onMove given), the node
 // refuses the rest. Testids: four, four-col-<a..g>; dots, dot, edge-<id>, box; hangman, gallows, mask, slot, key-<letter>,
-// word-input, word-go.
+// word-input, word-go; reversi, cell-<a1..h8>.
 import { useState } from "react";
 import { say } from "../../i18n";
-import { type BoardState, dotsLayout, dotsStateOf, fourColumns, gridOf, hangmanView, wordOf } from "./table-logic";
+import { type BoardState, dotsLayout, dotsStateOf, fourColumns, gridOf, hangmanView, reversiCells, wordOf } from "./table-logic";
 
 type Move = (m: unknown) => void;
 export type BoardProps = { state: BoardState; seat: number; onMove?: Move };
@@ -12,6 +12,7 @@ export type BoardProps = { state: BoardState; seat: number; onMove?: Move };
 /** The board for a game (class and set as the node names them); a board knows nothing of the screen it stands on. */
 export function Board({ klass, set, ...props }: BoardProps & { klass: string; set: string }) {
   if (klass === "grid" && set === "four") return <FourBoard {...props} />;
+  if (klass === "grid" && set === "reversi") return <ReversiBoard {...props} />;
   if (klass === "dots") return <DotsBoard {...props} />;
   if (klass === "word") return <HangmanBoard {...props} />;
   return null;
@@ -94,6 +95,25 @@ export function HangmanBoard({ state, seat, onMove }: BoardProps) {
             ))}
           </div>
         )}
+    </div>
+  );
+}
+
+// Reversi (w3_table-reversi): the 8×8 field over the whole panel, the pieces, and a dot on each cell where a piece of mine
+// would turn one of theirs — the moves the node will take; a tap there is the move ({to}).
+export function ReversiBoard({ state, seat, onMove }: BoardProps) {
+  const grid = gridOf(state);
+  if (!grid) return null;
+  return (
+    <div className="tb-reversi" role="group" aria-label={say("web.table.board")} data-testid="reversi">
+      {reversiCells(grid, seat).map((c) => (
+        <button key={c.id} type="button" className="tb-sq" disabled={!onMove || !c.legal} onClick={() => onMove?.({ to: c.id })}
+          aria-label={say(c.stand === "mine" ? "web.table.cell_mine" : c.stand === "theirs" ? "web.table.cell_theirs" : "web.table.cell_free", { cell: c.id })}
+          data-testid={`cell-${c.id}`}>
+          {c.stand !== "free" && <span className="tb-piece" data-stand={c.stand} />}
+          {c.stand === "free" && c.legal && onMove && <span className="tb-hint" />}
+        </button>
+      ))}
     </div>
   );
 }

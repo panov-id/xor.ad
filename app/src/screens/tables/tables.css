@@ -150,3 +150,13 @@
 .tb-key:disabled { cursor: default; }
 .tb-set { margin-top: var(--tb-keys-top); width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-2); padding-bottom: var(--tb-keys-bottom); }
 .tb-set input { min-width: 0; height: var(--tb-line-h); padding: 0 var(--tb-line-pad); border: 0; border-radius: var(--r-pill); background: var(--c-sheet); color: var(--c-text); font: inherit; }
+
+/* reversi: the field fills the panel, a line between cells; a piece and a hint centred in theirs */
+.tb-panel[data-set="reversi"] { padding: 0; aspect-ratio: 1; overflow: hidden; border-radius: var(--tb-field-r); }
+.tb-reversi { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); aspect-ratio: 1; }
+.tb-sq { min-height: 0; padding: 0; display: grid; place-items: center; background: none; box-shadow: inset 0 0 0 var(--tb-sq-line) var(--c-cell-line); }
+.tb-sq:disabled { cursor: default; }
+.tb-piece { width: var(--tb-piece); height: var(--tb-piece); border-radius: var(--r-pill); box-shadow: inset 0 0 0 var(--tb-cell-line) var(--c-ink); }
+.tb-piece[data-stand="mine"] { background: var(--c-lime); }
+.tb-piece[data-stand="theirs"] { background: var(--c-peach); }
+.tb-hint { width: var(--tb-hint); height: var(--tb-hint); border-radius: var(--r-pill); background: var(--c-yellow); }

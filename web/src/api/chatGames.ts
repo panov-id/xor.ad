@@ -1,7 +1,7 @@
 // A game inside a conversation (GC3; the node's routes/chat_games.ts, GC1).
 // The two sides propose, answer, move, ask for a rematch and resign; the node
 // keeps the rules and cuts the board by seat, as at a table. Frames `board`
-// and `proposal` come on the chat's own socket (chat/room.ts gives them as
+// and `proposal` come on the chat's own socket (depth/web-platform/chat/room.ts gives them as
 // `sys`); on either, the screen reads the game again — the node builds the
 // view, nothing here puts one together from a frame.
 

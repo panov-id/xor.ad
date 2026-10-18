@@ -8,7 +8,7 @@ const PREVIEW = process.env.PREVIEW_URL ?? "http://localhost:4174";
 // The dev server is the stand build (VITE_STAND=1): it reads the grace from sessionStorage "xor-grace-ms" (app/src/vault.ts).
 const DEV = process.env.DEV_URL ?? "http://localhost:5174";
 const PIN = "483915";
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|tables)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|tables|inbox|chats)(\/|$)/;
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 const phrase = (n) => ({ id: `ph-${n}`, text: `Walk phrase number ${n}`, mode: "walk", lang: "en", like_count: n });
 const ITEMS = [phrase(1), phrase(2), phrase(3)];
@@ -31,6 +31,7 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     };
   });
   let share = null, until = null;
+  const said = [];
   await ctx.route("**/*", async (route) => {
     const req = route.request(), u = new URL(req.url());
     if (!["fetch", "xhr"].includes(req.resourceType()) || !NODE_PATH.test(u.pathname)) return route.fallback();
@@ -40,6 +41,9 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     if (key === "POST /identities") { share = JSON.parse(req.postData()).share; return json(200, { identity_id: "id-stub", session_id: "sess-stub" }); }
     if (key === "POST /vault/share") return json(200, { share });
     if (key === "GET /feed") return json(200, { items: ITEMS, next: null });
+    // the composer (12): a phrase out at once, the node's limits
+    if (key === "POST /feed") { said.push(JSON.parse(req.postData())); return json(200, { id: "ph-new" }); }
+    if (key === "GET /limits") return json(200, { phrase_length: 128, chat_ciphertext_chars: 8000 });
     if (key === "GET /identities/me") {
       if (awayIn !== null && until === null) until = Math.floor(Date.now() / 1000) + awayIn;
       return json(200, { identity_id: "id-stub", name: "Alex", ...(until ? { stepped_away_until: until } : {}) });
@@ -50,6 +54,10 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
       seats: [{ seat: 1, name: "Alex", role: "playing" }, { seat: 2, name: "Nino", role: "playing" }],
       board: { seq: 1, state: { grid: { cells: {}, claim: null, rules: "four" } }, turn: 1, score: {}, expires_at: Math.floor(Date.now() / 1000) + 200, pending: null } });
     if (key === "POST /tables/t1/ticket") return json(503, { error: { code: "unavailable" } });
+    // the chat (8): the inbox has none to report and the node keeps no wrap — the pane stands on its row alone
+    if (key === "GET /inbox") return json(200, { items: [] });
+    // 503, not 404: a ticket's 404 is the chat's end (room.ts), and the walks need it open
+    if (u.pathname.startsWith("/chats/")) return json(503, { error: "unavailable" });
     if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
     if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
     if (key === "POST /legal/accept") return json(200, {});
@@ -58,7 +66,7 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
   const page = await ctx.newPage();
   page.on("pageerror", (e) => console.log(`pageerror: ${e}`));
   await page.goto(base + "/", { waitUntil: "load" });
-  return { ctx, page };
+  return { ctx, page, said };
 }
 
 async function registerFull(page, { land = "feed" } = {}) {
@@ -174,6 +182,106 @@ try {
       seen.push(`${n}:${at}@${url.startsWith("http://localhost") ? new URL(url).pathname : url}${r === null ? " (no entry)" : ""}`);
     }
     check(!seen.some((x) => /:(splash|register)@/.test(x)), `7b four Backs after the registration draw no gate (${seen.join(", ")})`);
+    await ctx.close();
+  }
+  // 8. a chat over the feed (App.tsx openChat pushes i + 1; its row rides in the entry): 8a Back → the feed, address too;
+  // 8b the chat's own back is the same; 8c Forward onto the chat entry opens it again from the row the entry keeps.
+  {
+    const ROW = { kind: "chat", id: "chat-walk", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    const openIt = async () => { await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 }); };
+    await openIt();
+    check(new URL(page.url()).pathname === "/chat", `8 the chat opens at /chat (url ${new URL(page.url()).pathname}, state ${await state(page)})`);
+    await page.goBack(); await settle(page);
+    let at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "feed" && new URL(page.url()).pathname === "/feed", `8a chat → Back lands on the feed (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "chat" && (await page.locator(".ch-who h1").textContent()) === "Nino, 27", `8c Forward onto the chat entry opens it from its row (screen ${at})`);
+    await page.click('[data-testid="chat-back"]'); await settle(page);
+    at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "feed" && new URL(page.url()).pathname === "/feed", `8b the chat's own back lands on the feed (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await ctx.close();
+  }
+  // 9. the chat's «…» sheet rides its own entry (Chat.tsx openMenu): 9a Back closes it and leaves the chat open;
+  // 9b the shade closes it the same way, no entry left behind; 9c «End the talk» asks once more, «Cancel» returns to the rows.
+  {
+    const ROW = { kind: "chat", id: "chat-menu", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
+    const depth = () => page.evaluate(() => history.length);
+    const before = await depth();
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.goBack(); await settle(page);
+    let menus = await page.locator('[data-testid="chat-menu"]').count();
+    let at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(menus === 0 && at === "chat" && new URL(page.url()).pathname === "/chat", `9a Back closes the «…» sheet, the chat stays (sheets ${menus}, screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.click('[data-testid="menu-close"]', { position: { x: 20, y: 20 } }); await settle(page);
+    menus = await page.locator('[data-testid="chat-menu"]').count();
+    const sheetLeft = await page.evaluate(() => history.state?.sheet ?? null);
+    check(menus === 0 && sheetLeft === null, `9b the shade closes it and leaves no sheet entry (sheets ${menus}, state.sheet ${sheetLeft}, history ${before}→${await depth()})`);
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.click('[data-testid="end"]');
+    const asks = await page.locator('[data-testid="end-confirm"]').count();
+    await page.click('[data-testid="menu-cancel"]');
+    const rows = await page.locator('[data-testid="end"]').count();
+    check(asks === 1 && rows === 1, `9c «End the talk» asks once more and «Cancel» returns to the rows (confirm ${asks}, rows ${rows})`);
+    await ctx.close();
+  }
+  // 10. an ended chat (the row says so): the tombstone, no field, no «…»; its back is the feed
+  {
+    const ROW = { kind: "chat", id: "chat-ended", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "ended",
+      chat_expires_at: Math.floor(Date.now() / 1000), my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-testid="tombstone"]', { timeout: 15000 });
+    const field = await page.locator('[data-testid="text"], [data-testid="chat-more"]').count();
+    await page.click('[data-testid="chat-back"]'); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(field === 0 && at === "feed", `10 an ended chat shows the tombstone without a field or «…», and its back is the feed (field/more ${field}, screen ${at})`);
+    await ctx.close();
+  }
+  // 11. the game chip (w3_chat «Backgammon?»): the game takes the lines' place and the chips', with no game yet it
+  // offers one; «Hide the game» gives the lines back
+  {
+    const ROW = { kind: "chat", id: "chat-game", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
+    await page.click('[data-testid="quick-game"]'); await page.waitForSelector('[data-testid="chat-game"]');
+    const open_ = { chips: await page.locator(".ch-quick").count(), lines: await page.locator('[data-testid="lines"]').count(), propose: await page.locator('[data-testid="game-propose"]').count() };
+    await page.click('[data-testid="game-hide"]'); await settle(page);
+    const shut = { game: await page.locator('[data-testid="chat-game"]').count(), lines: await page.locator('[data-testid="lines"]').count(), chips: await page.locator(".ch-quick").count() };
+    check(open_.chips === 0 && open_.lines === 0 && open_.propose === 1 && shut.game === 0 && shut.lines === 1 && shut.chips === 1,
+      `11 the game chip opens the game in the lines' place, «Hide the game» gives them back (open ${JSON.stringify(open_)}, hidden ${JSON.stringify(shut)})`);
+    await ctx.close();
+  }
+  // 12. the feed's «say it» opens the composer at /write over the feed: 12a Back → the feed; 12b its own back the same;
+  // 12c a phrase said goes to the node with the feed's circle and lands on the feed
+  {
+    const { ctx, page, said } = await open(browser); await registerFull(page);
+    const at = async () => [await page.locator("main[data-screen]").first().getAttribute("data-screen"), new URL(page.url()).pathname];
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]');
+    const opened = await at();
+    await page.goBack(); await settle(page);
+    const a = await at();
+    check(opened.join() === "composer,/write" && a.join() === "feed,/feed", `12a «say it» opens /write, Back lands on the feed (${opened} → ${a})`);
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]');
+    await page.click('[data-testid="composer-back"]'); await settle(page);
+    const b = await at();
+    check(b.join() === "feed,/feed", `12b the composer's own back lands on the feed (${b})`);
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]');
+    await page.fill('[data-testid="text"]', "Backgammon in the yard tonight?");
+    await page.click('[data-testid="send"]'); await page.waitForSelector('[data-screen="feed"]', { timeout: 15000 }).catch(() => null);
+    const c = await at();
+    check(c.join() === "feed,/feed" && said.length === 1 && said[0].text === "Backgammon in the yard tonight?" && said[0].area_radius === 1000 && said[0].mode === "alone",
+      `12c a phrase said goes out (${JSON.stringify(said[0] ?? null)}) and lands on the feed (${c})`);
     await ctx.close();
   }
   // 4. Me → Move → Back: Me again, not the feed (App.tsx toMove pushes i: 1; popstate → seatScreen("/me"))

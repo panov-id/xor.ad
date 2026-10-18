@@ -85,3 +85,7 @@
 .fd-ask textarea { min-height: var(--fd-textarea-h); padding: var(--sp-3) var(--sp-4); border-radius: var(--r-row); background: var(--c-panel); color: var(--c-text); font: inherit; border: 0; resize: none; }
 .fd-check { display: flex; gap: var(--sp-3); align-items: flex-start; font-size: var(--fs-caption); color: var(--c-muted); }
 .fd-sheet-error { font-size: var(--fs-notice); color: var(--c-coral); }
+/* «Say it» over the bar (Feed.tsx onCompose): a round lime button at the right, above the tab bar. */
+.fd-say { position: fixed; right: var(--tabbar-side); bottom: calc(var(--tabbar-bottom) + var(--s-nav-bar) + var(--sp-3)); z-index: 5;
+  width: var(--s-nav-bar); height: var(--s-nav-bar); border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: grid; place-items: center; }
+.fd-say .icon { --icon-size: var(--icon-fd); --stroke: 2.2; }

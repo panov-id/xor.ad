@@ -1,0 +1,43 @@
+/* The phrase for the feed (Composer.tsx; sheet w3_composer). Sizes: app/tokens/compose.css. */
+.cp { min-height: 100dvh; display: flex; flex-direction: column; background: var(--c-night); color: var(--c-text); }
+.cp-head { position: relative; height: var(--cp-head-h); flex: none; }
+.cp-back { position: absolute; left: var(--cp-back-x); top: var(--cp-back-y); width: var(--s-touch-min); height: var(--s-touch-min);
+  display: grid; place-items: center; border-radius: var(--r-pill); }
+.cp-back .icon { --icon-size: var(--icon-fd); --stroke: 2.2; }
+.cp-head h1 { position: absolute; left: var(--cp-title-x); top: var(--cp-title-base); transform: translateY(-80%); margin: 0; white-space: nowrap;
+  font-size: var(--fs-cp-title); font-weight: var(--fw-800); line-height: 1; }
+.cp-head p { position: absolute; left: var(--cp-title-x); top: var(--cp-sub-base); transform: translateY(-80%); margin: 0; white-space: nowrap;
+  font-size: var(--fs-cp-sub); font-weight: var(--fw-600); line-height: 1; color: var(--c-muted); }
+
+.cp-sheet { flex: 1; display: flex; flex-direction: column; background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  padding: var(--cp-pad-top) var(--ch-side-end) max(var(--sp-6), env(safe-area-inset-bottom)) var(--ch-side); }
+.cp-card { position: relative; height: var(--cp-card-h); border-radius: var(--r-card); background: var(--c-lime); color: var(--c-ink); }
+.cp-card label { position: absolute; left: var(--cp-card-pad); top: var(--cp-label-base); transform: translateY(-80%);
+  font-size: var(--fs-cp-label); font-weight: var(--fw-700); line-height: 1; }
+.cp-card textarea { position: absolute; left: var(--cp-card-pad); right: var(--cp-card-pad); top: calc(var(--cp-label-base) + var(--cp-text-top));
+  height: calc(var(--lh-cp-text) * 2); resize: none; border: 0; padding: 0; background: transparent; color: inherit;
+  font: inherit; font-size: var(--fs-cp-text); font-weight: var(--fw-800); line-height: var(--lh-cp-text); }
+.cp-card textarea:focus { outline: none; }
+.cp-card-foot { position: absolute; left: var(--cp-card-pad); right: var(--cp-card-pad); top: var(--cp-foot-base); transform: translateY(-80%);
+  display: flex; justify-content: space-between; font-size: var(--fs-cp-foot); font-weight: var(--fw-700); line-height: 1; }
+.cp-sheet h2 { margin: var(--cp-group-gap) 0 0; font-size: var(--fs-cp-h2); font-weight: var(--fw-700); }
+.cp-modes { margin-top: var(--cp-h2-gap); display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--cp-mode-gap); }
+.cp-mode { height: var(--cp-mode-h); min-height: var(--cp-mode-h); border-radius: var(--r-row); background: var(--c-panel); display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end; gap: var(--sp-2); padding-bottom: var(--cp-mode-label); font-size: var(--fs-cp-mode); font-weight: var(--fw-700); }
+.cp-mode .icon { --icon-size: var(--icon-notice); --stroke: 2; }
+.cp-mode[aria-checked="true"] { background: var(--c-yellow); color: var(--c-ink); }
+.cp-zones { margin-top: var(--cp-h2-gap); display: flex; gap: var(--cp-zone-gap); }
+.cp-zone { flex: none; height: var(--cp-zone-h); min-height: var(--cp-zone-h); padding-inline: var(--cp-zone-pad); border-radius: var(--r-pill); background: var(--c-panel);
+  font-size: var(--fs-cp-zone); font-weight: var(--fw-700); white-space: nowrap; }
+.cp-zone[aria-checked="true"] { background: var(--c-lime); color: var(--c-ink); }
+.cp-live { margin-top: var(--cp-live-gap); height: var(--cp-live-h); border-radius: var(--r-row); background: var(--c-panel);
+  display: flex; align-items: center; gap: var(--cp-live-text-gap); padding-inline: var(--cp-live-pad); }
+.cp-ring { position: relative; flex: none; width: var(--cp-ring); height: var(--cp-ring); border-radius: var(--r-pill);
+  background: conic-gradient(var(--c-yellow) calc(var(--cp-ring-left) * 360deg), var(--c-panel2) 0); display: grid; place-items: center; }
+.cp-ring::before { content: ""; position: absolute; inset: var(--cp-ring-w); border-radius: var(--r-pill); background: var(--c-panel); }
+.cp-ring span { position: relative; font-size: var(--fs-cp-ring); font-weight: var(--fw-800); }
+.cp-live p { margin: 0; font-size: var(--fs-cp-live); font-weight: var(--fw-600); }
+.cp-refused { margin: var(--sp-3) 0 0; font-size: var(--fs-cp-foot); color: var(--c-coral); }
+.cp-send { margin-top: var(--cp-send-gap); height: var(--cp-send-h); min-height: var(--cp-send-h); border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink);
+  font-size: var(--fs-cp-send); font-weight: var(--fw-800); }
+.cp-send:disabled { opacity: var(--o-disabled); cursor: default; }

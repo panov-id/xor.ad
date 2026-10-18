@@ -9,6 +9,6 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 mapfile -t tests < <(cd "$root" && find app/src -name '*.test.ts' | sort)
 [ "${#tests[@]}" -gt 0 ] || { echo "run-app-unit-tests: RED — no app/src/**/*.test.ts" >&2; exit 1; }
 docker run --rm -e TZ=Pacific/Kiritimati \
-  -v "$root/app/src":/repo/app/src:ro -v "$root/app/tokens":/repo/app/tokens:ro -v "$root/web/src/locales":/repo/web/src/locales:ro -v "$root/depth/ink/locales":/repo/depth/ink/locales:ro -v "$root/depth/core":/repo/depth/core:ro \
+  -v "$root/app/src":/repo/app/src:ro -v "$root/app/tokens":/repo/app/tokens:ro -v "$root/web/src/locales":/repo/web/src/locales:ro -v "$root/depth/ink/locales":/repo/depth/ink/locales:ro -v "$root/depth/core":/repo/depth/core:ro -v "$root/depth/web-platform":/repo/depth/web-platform:ro \
   -w /repo --user "$(id -u):$(id -g)" node:24-alpine \
   node --experimental-strip-types --no-warnings --test "${tests[@]}"

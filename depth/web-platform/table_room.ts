@@ -1,6 +1,6 @@
 // The table's socket for both faces, web and app (C1; protocol §4.4; G1e): a ticket from
 // POST /tables/:id/ticket, the room on GET /chat, frames handed to the screen
-// in order — as the conversation's socket does (chat/room.ts), on the core's
+// in order — as the conversation's socket does (depth/web-platform/chat/room.ts), on the core's
 // openTable and reconnect.ts.
 //
 // A close: 4005 the seat is gone (stood up, dropped) — the room does not come

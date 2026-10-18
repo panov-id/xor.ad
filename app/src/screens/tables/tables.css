@@ -111,3 +111,25 @@
 .tb-cell { width: var(--tb-cell); height: var(--tb-cell); border-radius: var(--r-pill); background: var(--c-sheet); box-shadow: inset 0 0 0 var(--tb-cell-line) var(--c-cell-line); }
 .tb-cell[data-stand="mine"] { background: var(--c-lime); box-shadow: inset 0 0 0 var(--tb-cell-line) var(--c-ink); }
 .tb-cell[data-stand="theirs"] { background: var(--c-peach); box-shadow: inset 0 0 0 var(--tb-cell-line) var(--c-ink); }
+
+.tb-panel[data-class="dots"] { aspect-ratio: 1; }
+/* dots: a square field of n×n boxes; dots, edges and boxes placed by their row and column (--r, --c) */
+.tb-dots { position: relative; width: calc(var(--n) * var(--tb-dot-pitch) + var(--tb-dot)); height: calc(var(--n) * var(--tb-dot-pitch) + var(--tb-dot));
+  margin: var(--tb-dots-inset); }
+.tb-dot { position: absolute; z-index: 2; left: calc(var(--c) * var(--tb-dot-pitch)); top: calc(var(--r) * var(--tb-dot-pitch));
+  width: var(--tb-dot); height: var(--tb-dot); border-radius: var(--r-pill); background: var(--c-text); pointer-events: none; }
+.tb-box { position: absolute; left: calc(var(--c) * var(--tb-dot-pitch) + var(--tb-dot) / 2); top: calc(var(--r) * var(--tb-dot-pitch) + var(--tb-dot) / 2);
+  width: var(--tb-dot-pitch); height: var(--tb-dot-pitch); }
+.tb-box[data-stand="mine"] { background: var(--c-box-mine); }
+.tb-box[data-stand="theirs"] { background: var(--c-box-theirs); }
+.tb-edge { position: absolute; z-index: 1; min-height: 0; padding: 0; background: none; display: grid; place-items: center; }
+.tb-edge[data-dir="h"] { left: calc(var(--c) * var(--tb-dot-pitch) + var(--tb-dot) / 2); top: calc(var(--r) * var(--tb-dot-pitch) + var(--tb-dot) / 2 - var(--tb-edge-hit) / 2);
+  width: var(--tb-dot-pitch); height: var(--tb-edge-hit); }
+.tb-edge[data-dir="v"] { left: calc(var(--c) * var(--tb-dot-pitch) + var(--tb-dot) / 2 - var(--tb-edge-hit) / 2); top: calc(var(--r) * var(--tb-dot-pitch) + var(--tb-dot) / 2);
+  width: var(--tb-edge-hit); height: var(--tb-dot-pitch); }
+.tb-edge span { display: block; border-radius: var(--r-pill); }
+.tb-edge[data-dir="h"] span { width: 100%; height: var(--tb-edge-line); }
+.tb-edge[data-dir="v"] span { width: var(--tb-edge-line); height: 100%; }
+.tb-edge[data-taken] span { background: var(--c-text); }
+.tb-edge:not([data-taken]):not(:disabled):hover span, .tb-edge:not([data-taken]):not(:disabled):focus-visible span { background: var(--c-yellow); }
+.tb-edge:disabled { cursor: default; }

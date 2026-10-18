@@ -72,4 +72,11 @@
   --c-board: #3A3157;
   --c-cell-line: #4A4070;
   --c-ring-rest: #3D3557;
+  --tb-dot: 9.9px;
+  --tb-dot-pitch: 59.35px;
+  --tb-dots-inset: 18.5px;
+  --tb-edge-hit: 24px;
+  --tb-edge-line: 4px;
+  --c-box-mine: #6B5878;
+  --c-box-theirs: #5E5A6E;
 }

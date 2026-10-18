@@ -75,3 +75,22 @@ export function fourColumns(g: Grid, seat: number): Array<{ column: string; open
 // The stickers as the sheets' chips run (w3_table-*: hi, coffee, deal first), then the rest of the catalogue in its order.
 const FIRST = ["hi", "coffee", "deal"];
 export const STICKER_CHIPS: string[] = [...FIRST.filter((id) => (STICKER_IDS as readonly string[]).includes(id)), ...STICKER_IDS.filter((id) => !FIRST.includes(id))];
+
+// ── dots (relay/node/src/lib/tables_dots.ts, depth/core/tables.ts dotsOf): n×n boxes, an edge "h:r:c" above box r,c or
+// "v:r:c" left of it; a box names the seat that closed it ──
+export type DotsLayout = {
+  n: number;
+  edges: Array<{ id: string; dir: "h" | "v"; r: number; c: number; taken: boolean }>;
+  boxes: Array<{ r: number; c: number; stand: Exclude<Stand, "free"> }>;
+};
+export function dotsLayout(dots: { n: number; edges: string[]; boxes: Record<string, number> }, seat: number): DotsLayout {
+  const taken = new Set(dots.edges);
+  const edges: DotsLayout["edges"] = [];
+  for (let r = 0; r <= dots.n; r++) for (let c = 0; c < dots.n; c++) edges.push({ id: `h:${r}:${c}`, dir: "h", r, c, taken: taken.has(`h:${r}:${c}`) });
+  for (let r = 0; r < dots.n; r++) for (let c = 0; c <= dots.n; c++) edges.push({ id: `v:${r}:${c}`, dir: "v", r, c, taken: taken.has(`v:${r}:${c}`) });
+  const boxes = Object.entries(dots.boxes).map(([at, owner]) => {
+    const [r, c] = at.split(":").map(Number);
+    return { r, c, stand: owner === seat ? "mine" as const : "theirs" as const };
+  });
+  return { n: dots.n, edges, boxes };
+}

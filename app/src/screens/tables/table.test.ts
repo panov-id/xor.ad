@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { facePair, firstAction, fourColumns, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { dotsLayout, facePair, firstAction, fourColumns, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -63,4 +63,13 @@ test("four in a row: columns a..g, top row first; a column with its top taken ta
 test("the sticker chips: hi, coffee, deal first as the sheets; the whole catalogue, each once", () => {
   assert.deepEqual(STICKER_CHIPS.slice(0, 3), ["hi", "coffee", "deal"]);
   assert.deepEqual([...STICKER_CHIPS].sort(), [...STICKER_IDS].sort());
+});
+
+test("dots: every edge of an n×n field once, taken as the node says; a closed box is mine by my seat", () => {
+  const l = dotsLayout({ n: 4, edges: ["h:4:0", "v:0:4"], boxes: { "1:1": 1, "3:3": 2 } }, 1);
+  assert.equal(l.edges.length, 2 * 4 * 5, "40 edges on a 4×4 field");
+  assert.equal(new Set(l.edges.map((e) => e.id)).size, 40);
+  assert.deepEqual(l.edges.filter((e) => e.taken).map((e) => e.id).sort(), ["h:4:0", "v:0:4"]);
+  assert.deepEqual(l.edges.find((e) => e.id === "v:0:4"), { id: "v:0:4", dir: "v", r: 0, c: 4, taken: true });
+  assert.deepEqual(l.boxes, [{ r: 1, c: 1, stand: "mine" }, { r: 3, c: 3, stand: "theirs" }]);
 });

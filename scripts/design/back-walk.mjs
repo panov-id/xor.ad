@@ -45,6 +45,7 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
       return json(200, { identity_id: "id-stub", name: "Alex", ...(until ? { stepped_away_until: until } : {}) });
     }
     if (key === "GET /statements") return json(200, []);
+    if (key === "POST /matches/m1/consent") return json(200, { state: "waiting" });
     if (key === "GET /likes") return json(200, { items: [{ kind: "phrase", id: "p1", text: "Who has a ladder?", mode: "alone", like_count: 4, state: "liked", liked_at: 0 }], next: null });
     if (key === "GET /inbox") return json(200, { items: [{ kind: "match", id: "m1", name: "Nino", age: 27, waiting_for_you: false, state: "proposed", phrase: { text: "Backgammon tonight?", mode: "alone" } }, { kind: "chat", id: "c1", name: "Nino", age: 27, state: "open", chat_expires_at: Math.floor(Date.now() / 1000) + 1800 }], events: {} });
     if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
@@ -223,6 +224,23 @@ try {
     await page.goForward(); await settle(page);
     const again = await page.locator("main[data-screen]").first().getAttribute("data-screen");
     check(again === "match", `10b Forward brings the match back from its entry (screen ${again}, url ${new URL(page.url()).pathname})`);
+    await ctx.close();
+  }
+  // 11. the match → «Let's talk» (the other has not said yes) → the wait in place → its back and the system Back: the inbox
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.locator('[data-testid="open-match"]').first().click(); await page.waitForSelector('[data-screen="match"]');
+    await page.click('[data-testid="talk"]'); await page.waitForSelector('[data-screen="match-waiting"]', { timeout: 10000 }).catch(() => null);
+    const waitUrl = new URL(page.url()).pathname;
+    await page.click('[data-testid="waiting-back"]').catch(() => null); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(waitUrl === "/match" && at === "inbox" && new URL(page.url()).pathname === "/inbox", `11 match → Let's talk → the wait (${waitUrl}) → its back → the inbox (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    const fwd = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    await page.goBack(); await settle(page);
+    const back = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(back === "inbox", `11b Forward onto the match (${fwd}), then Back: the inbox again (screen ${back})`);
     await ctx.close();
   }
   // 5. the away screen (until an hour on) → Back: still the away screen

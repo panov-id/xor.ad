@@ -1,6 +1,6 @@
 // w3_match (sosed Dusk, mobile): two faces and the hand between them, "you and Nino are both in", the two phrases
 // that met, "Let's talk" and "Not now" — the web's useMatch moves: keys.consent (POST consent with this device's
-// chat key), client.decline and its undo. Once I said yes the screen is the wait (w3_match-waiting, MatchWaiting.tsx).
+// chat key), client.decline and its undo. Once I said yes (here, or the node remembers it) the screen is the wait (w3_match-waiting, MatchWaiting.tsx).
 // What to show is talks-logic.ts matchView. Testids (the web's): talk, not-now, match-hint, error.
 // The keys are the seat's (App.tsx chatKeys, depth/web-platform/chat/keys.ts chatKeysFor); my initial from my profile.
 import { useEffect, useState } from "react";
@@ -11,27 +11,29 @@ import { Icon } from "../../shell/Icon";
 import { hand } from "../../shell/icons";
 import { Screen } from "../../shell/Screen";
 import { initial } from "../me/me-logic";
+import { MatchWaiting } from "./MatchWaiting";
 import { matchView, type MatchRow } from "./talks-logic";
 
 
 // No back button on the sheet: the system Back leaves it, onto the inbox it was opened over.
-export function Match({ client, keys, row, onAgreed, onWaiting }: {
+export function Match({ client, keys, row, onAgreed, onBack, onTalks }: {
   client: Client; keys: ChatKeys; row: MatchRow;
-  onAgreed: (chatId: string) => void; onWaiting: () => void;
+  onAgreed: (chatId: string) => void; onBack: () => void; onTalks: () => void;
 }) {
+  const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [declined, setDeclined] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [me, setMe] = useState("");
   useEffect(() => { client.profile().then((p) => setMe(String((p as { name?: string }).name ?? ""))).catch(() => setMe("")); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const view = matchView(row, { agreed: false, declined });
+  const view = matchView(row, { agreed, declined });
 
   const talk = () => {
     setBusy(true); setError(null);
     keys.consent(row.id).then((answer) => {
       if (answer.status !== 200) throw new Error(`consent: ${answer.status}`);
       if (answer.body.state === "agreed" && answer.body.chat_id) onAgreed(answer.body.chat_id);
-      else onWaiting();
+      else setAgreed(true);
     }).catch((e: Error) => setError(failedLine(e))).finally(() => setBusy(false));
   };
   const notNow = () => {
@@ -43,6 +45,7 @@ export function Match({ client, keys, row, onAgreed, onWaiting }: {
     }).catch((e: Error) => setError(failedLine(e))).finally(() => setBusy(false));
   };
 
+  if (view === "waiting" || view === "gone") return <MatchWaiting client={client} keys={keys} row={row} startGone={view === "gone"} onBack={onBack} onTalks={onTalks} />;
   const title = say("app.match.both", { name: row.name });
   return (
     <Screen name="match" title={title} className="tk-match-screen" data-id={row.id} data-view={view}>

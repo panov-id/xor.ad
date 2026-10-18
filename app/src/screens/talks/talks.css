@@ -84,3 +84,33 @@
 .tk-talk { margin-top: var(--mt-cta-top); background: var(--c-ink); color: var(--c-text); }
 .tk-later { font-size: var(--fs-mt-later); margin-top: var(--mt-cta-gap); border: var(--mt-later-line) solid var(--c-ink); background: none; color: var(--c-ink); }
 .tk-talk:disabled, .tk-later:disabled { opacity: var(--o-disabled); }
+
+/* ── w3_match-waiting: who, the note, my queued lines as bubbles, the line to write and "To talks" at the foot ── */
+.tk-wait { margin-top: var(--wt-sheet-gap); display: flex; flex-direction: column; padding: var(--wt-pad-top) var(--me-side-end) 0 var(--me-side); }
+.tk-wait > * { width: 100%; max-width: calc(var(--entry-max) - var(--me-side) - var(--me-side-end)); margin-inline: auto; }
+.tk-wait-who { display: flex; align-items: center; gap: var(--wt-who-gap); }
+.tk-wait-face { flex: none; width: var(--wt-face); height: var(--wt-face); border-radius: var(--r-pill); display: grid; place-items: center;
+  color: var(--c-ink); font-size: var(--fs-wt-face); font-weight: var(--fw-700); }
+.tk-who-text { flex: 1; min-width: 0; display: grid; gap: var(--wt-name-gap); padding-top: var(--wt-who-shift); }
+.tk-wait-name { font-size: var(--fs-wt-name); font-weight: var(--fw-700); line-height: var(--lh-tight); }
+.tk-wait-state { font-size: var(--fs-tk-time); font-weight: var(--fw-500); color: var(--c-muted); line-height: var(--lh-tight); }
+.tk-wait-ring { flex: none; width: var(--tk-ring); height: var(--tk-ring); border-radius: var(--r-pill); border: var(--tk-ring-stroke) solid var(--c-ring-rest); margin-inline-end: var(--wt-ring-end); }
+.tk-wait-note { margin-top: var(--wt-note-top); min-height: var(--wt-note-h); padding: var(--wt-note-pad); border-radius: var(--r-card); background: var(--c-panel);
+  display: flex; align-items: center; gap: var(--wt-note-gap); font-size: var(--fs-tk-line); font-weight: var(--fw-500); line-height: var(--lh-wt-note); }
+.tk-wait-note .icon { flex: none; --icon-size: var(--icon-fd-sm); --stroke: 2; }
+.tk-queue { flex: 1; min-height: 0; overflow-y: auto; list-style: none; padding: 0; margin: var(--wt-queue-top) 0 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.tk-bubble-row { display: flex; flex-direction: column; align-items: flex-end; gap: var(--wt-time-gap); }
+.tk-bubble { max-width: var(--wt-bubble-max); padding: var(--wt-bubble-pad); border-radius: var(--wt-bubble-r) var(--wt-bubble-r) var(--wt-bubble-tail) var(--wt-bubble-r);
+  background: var(--c-lime); color: var(--c-ink); font-size: var(--fs-wt-bubble); font-weight: var(--fw-700); line-height: var(--lh-tight); overflow-wrap: anywhere; }
+.tk-bubble-time { font-size: var(--fs-wt-time); font-weight: var(--fw-500); color: var(--c-muted); }
+.tk-wait-foot { flex: none; display: grid; gap: var(--wt-foot-gap); padding-bottom: max(var(--wt-foot-bottom), env(safe-area-inset-bottom)); }
+.tk-compose { display: flex; gap: var(--wt-send-gap); }
+.tk-compose input { flex: 1; min-width: 0; height: var(--wt-input-h); padding: 0 var(--wt-input-pad); border: 0; border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text);
+  font: inherit; font-size: var(--fs-wt-input); font-weight: var(--fw-500); }
+.tk-compose input::placeholder { color: var(--c-placeholder); }
+.tk-send { flex: none; width: var(--wt-input-h); height: var(--wt-input-h); min-height: 0; border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: grid; place-items: center; }
+.tk-send:disabled { opacity: 1; }
+.tk-send .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }
+.tk-to-talks { height: var(--wt-talks-h); min-height: 0; border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text);
+  display: flex; align-items: center; justify-content: center; gap: var(--wt-talks-gap); font-size: var(--fs-wt-name); font-weight: var(--fw-700); }
+.tk-to-talks .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }

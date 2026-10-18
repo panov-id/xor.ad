@@ -220,8 +220,8 @@ export function App() {
       // The talks (w3): a match and a talk open over it once their screens are here (onOpenMatch, onOpenChat).
       case "inbox": return seated ? <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={() => {}} /> : null;
       // What I am in on, over the inbox (i: 1): its back is the history's Back onto /inbox; a reload on it, the inbox.
-      // A match over the inbox (i: 1, its row in the entry); "Let's talk" agreed by both opens the talk, a lone yes the wait.
-      case "match": return seated && chatKeys ? <Match client={seated.client} keys={chatKeys} row={screen.row} onAgreed={() => tab("chats")} onWaiting={() => tab("chats")} /> : null;
+      // A match over the inbox (i: 1, its row in the entry); "Let's talk" agreed by both goes to the talks (the talk's own screen is the chat wave's), a lone yes is the wait in place.
+      case "match": return seated && chatKeys ? <Match client={seated.client} keys={chatKeys} row={screen.row} onAgreed={() => tab("chats")} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : tab("chats")} onTalks={() => tab("chats")} /> : null;
       case "likes": return seated ? <Likes client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : tab("chats")} /> : null;
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;

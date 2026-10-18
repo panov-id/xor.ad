@@ -86,3 +86,10 @@ export function matchView(row: MatchRow, here: { agreed: boolean; declined: bool
   if (here.declined) return "declined";
   return row.waiting_for_you ? "they-agreed" : "offer";
 }
+
+// A wait's look at the inbox (web useMatch, every 5 s): my yes is gone once the other said "not now" (my_consent
+// "gone", Q9); their undo brings it back. A match no longer listed tells nothing new: the last word stands.
+export function goneIn(rows: Row[], matchId: string, was: boolean): boolean {
+  const mine = rows.find((r): r is MatchRow => r.kind === "match" && (r as MatchRow).id === matchId);
+  return mine ? mine.my_consent === "gone" : was;
+}

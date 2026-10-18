@@ -1,7 +1,7 @@
 // The talks screens' rules (talks-logic.ts). scripts/run-app-unit-tests.sh, node:test.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { canTakeBack, distanceWord, isFresh, lineOf, matchView, metresBetween, ringOf, splitInbox, type LikedRow, type MatchRow, type TalkRow } from "./talks-logic.ts";
+import { canTakeBack, distanceWord, goneIn, isFresh, lineOf, matchView, metresBetween, ringOf, splitInbox, type LikedRow, type MatchRow, type TalkRow } from "./talks-logic.ts";
 
 const talk = (over: Partial<TalkRow> = {}): TalkRow => ({ kind: "chat", id: "c", name: "Nino", age: 27, state: "open", chat_expires_at: 10_000, ...over });
 
@@ -64,4 +64,13 @@ test("a match: offer, or they agreed already; declined here; my yes waits, and i
   assert.equal(matchView({ ...row, my_consent: "waiting" }, here), "waiting", "after a reload the node remembers my yes");
   assert.equal(matchView({ ...row, my_consent: "gone" }, here), "gone");
   assert.equal(matchView({ ...row, my_consent: "gone" }, { ...here, gone: false }), "waiting", "their undo brings the wait back");
+});
+
+test("a wait: gone once the other said not now, back on their undo; a match not in the list keeps the last word", () => {
+  const row = (my_consent: MatchRow["my_consent"]): MatchRow => ({ kind: "match", id: "m1", name: "Nino", age: 27, waiting_for_you: false, phrase: { text: "", mode: "alone" }, my_consent });
+  assert.equal(goneIn([row("waiting")], "m1", false), false);
+  assert.equal(goneIn([talk(), row("gone")], "m1", false), true);
+  assert.equal(goneIn([row("waiting")], "m1", true), false, "their undo brings the wait back");
+  assert.equal(goneIn([talk()], "m1", true), true);
+  assert.equal(goneIn([{ ...row("gone"), id: "m2" }], "m1", false), false, "another match's word is not mine");
 });

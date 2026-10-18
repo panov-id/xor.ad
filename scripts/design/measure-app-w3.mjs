@@ -1,5 +1,5 @@
-// Measures the rendered app/ talks against the Dusk sheets of wave 3 (mobile w3_inbox, w3_likes, w3_match;
-// w3_match-waiting as its screen comes), and walks the tab bar to them against a stubbed node. Run by
+// Measures the rendered app/ talks against the Dusk sheets of wave 3 (mobile w3_inbox, w3_likes, w3_match,
+// w3_match-waiting), and walks the tab bar to them against a stubbed node. Run by
 // scripts/measure-app-w3.sh inside the Playwright image, on an internal network: PREVIEW is the built app (with its
 // CSP). Built on measure-app-w4.mjs (its helpers, its node stub, its report). Expected values are read from the
 // sheets (sheet-geometry.mjs), never typed in; indices are the sheets' drawing order.
@@ -117,12 +117,12 @@ const LATER = [
 ];
 // w3_inbox's people: four offers (Nino new), four talks — 38, 52 and 12 minutes left of the hour, Giorgi's over.
 const at = (h, m) => Date.UTC(2026, 9, 18, h, m) / 1000;
-function inboxRows() {
+function inboxRows(gone = false) {
   const now = Math.floor(Date.now() / 1000);
   const offer = (id, name, age, fresh, more = {}) => ({ kind: "match", id, name, age, phrase: { text: "…", mode: "alone" }, waiting_for_you: false, state: "proposed", arrived_since: fresh, ...more });
   const talk = (id, name, age, left, last, more = {}) => ({ kind: "chat", id, name, age, state: "open", chat_expires_at: now + left * 60 - 5, my_span: 60, last_activity_at: last, ...more });
   return [
-    offer("m1", "Nino", 27, true, { phrase: { text: "Backgammon tonight?", mode: "alone" }, my_phrase: { text: "Bakery open after ten?", mode: "alone" } }), offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false), offer("m4", "Tamar", 33, false),
+    offer("m1", "Nino", 27, true, { phrase: { text: "Backgammon tonight?", mode: "alone" }, my_phrase: { text: "Bakery open after ten?", mode: "alone" }, ...(gone ? { my_consent: "gone" } : {}) }), offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false), offer("m4", "Tamar", 33, false),
     talk("c1", "Nino", 27, 38, at(21, 4), { pending_messages: 1 }), talk("c2", "Levan", 34, 52, at(20, 10)), talk("c3", "Mariam", 29, 12, at(18, 32)),
     talk("c4", "Giorgi", 41, 0, at(17, 5), { state: "ended", chat_expires_at: now - 60 }),
   ];
@@ -167,7 +167,7 @@ function nodeStub() {
       if (key === "POST /matches/m1/decline") { s.declined = true; return route.fulfill({ status: 204 }); }
       if (key === "GET /likes") return json(200, { items: likedRows().filter((r) => !s.unliked.includes(r.id)), next: null });
       if (req.method() === "DELETE" && /^\/feed\/[^/]+\/like$/.test(u.pathname)) { s.unliked.push(decodeURIComponent(u.pathname.split("/")[2])); return json(200, {}); }
-      if (key === "GET /inbox") return json(200, { items: inboxRows(), events: {} });
+      if (key === "GET /inbox") return json(200, { items: inboxRows(s.goneNow), events: {} });
       if (key === "POST /away") { s.away = body().span; return json(200, { until: Math.floor(Date.now() / 1000) + 3600 }); }
       if (key === "POST /identities/close") { s.closed = true; return json(200, {}); }
       if (key === "GET /feed") return json(200, { items: [], next: null });
@@ -333,6 +333,42 @@ await overflowAt(page, "match", 390);
 await page.click('[data-testid="talk"]');
 for (let k = 0; k < 50 && !stub.s.consented; k++) await page.waitForTimeout(100);
 note(stub.s.consented === true, `walk: «Let's talk» sends the consent (POST /matches/m1/consent ${stub.s.consented ? "sent" : "never sent"})`);
+
+// w3_match-waiting: the node answered "waiting" — the wait in place; one line queued, as the sheet
+await page.waitForSelector('[data-screen="match-waiting"]', { timeout: 20000 });
+await page.fill('[data-testid="queued-line"]', "Hi! Coffee near the bakery?");
+await page.click('[data-testid="enqueue"]');
+await page.locator(".tk-bubble").first().waitFor({ timeout: 10000 });
+note((await page.locator('[data-testid="queued-line"]').inputValue()) === "", "walk: a queued line leaves the field empty and stands as a bubble");
+if (want("match-waiting")) {
+  const S = sheet("match-waiting"), sh = S.shapes, L = S.lines, scr = "waiting";
+  await page.locator('[data-testid="queued-line"]').blur();
+  await settle(page);
+  compare(scr, "sheet left,top", [sh[1].x, sh[1].y], (await box(page, ".tk-wait")).slice(0, 2));
+  compare(scr, "face", shapeOf(sh[2]), await box(page, ".tk-wait-face"));
+  compare(scr, "empty ring", shapeOf(sh[3]), await box(page, ".tk-wait-ring"));
+  compare(scr, "note", shapeOf(sh[4]), await box(page, ".tk-wait-note"));
+  compare(scr, "bubble", shapeOf(sh[5]), await box(page, ".tk-bubble"));
+  compare(scr, "input", shapeOf(sh[6]), await box(page, ".tk-compose input"));
+  compare(scr, "send", shapeOf(sh[7]), await box(page, ".tk-send"));
+  compare(scr, "to talks", shapeOf(sh[8]), await box(page, ".tk-to-talks"));
+  left(scr, "title", L[0], await line(page, ".me-bar h1"));
+  left(scr, "face letter", L[1], await line(page, ".tk-wait-face"));
+  left(scr, "name", L[2], await line(page, ".tk-wait-name"));
+  left(scr, "state", L[3], await line(page, ".tk-wait-state"));
+  left(scr, "note line 1", L[4], await line(page, ".tk-wait-note span", 0, 0));
+  left(scr, "note line 2", L[5], await line(page, ".tk-wait-note span", 0, 1));
+  left(scr, "bubble text", L[6], await line(page, ".tk-bubble"));
+  right(scr, "bubble time", L[7], await line(page, ".tk-bubble-time"));
+  left(scr, "to talks label", L[9], await line(page, ".tk-to-talks span"));
+  await shot(page, "match-waiting");
+}
+await overflowAt(page, "match-waiting", 390);
+stub.s.goneNow = true;   // the other said "not now" to my yes: the next look (5 s) drops the wait
+await page.locator('[data-testid="tombstone"]').waitFor({ timeout: 12000 }).catch(() => {});
+note(await page.locator('[data-testid="tombstone"]').count() === 1 && await page.locator(".tk-bubble").count() === 0, `walk: their «not now» turns the wait into «gone» and drops the queued line (${await page.locator(".tk-bubble").count()} bubbles left)`);
+await page.click('[data-testid="to-inbox"]'); await page.waitForSelector('[data-screen="inbox"]', { timeout: 20000 });
+note(new URL(page.url()).pathname === "/inbox", `walk: «To talks» opens the inbox at ${new URL(page.url()).pathname}`);
 await ctx.close();
 for (const w of [375, 320]) {
   const s2 = nodeStub();

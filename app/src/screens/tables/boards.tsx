@@ -4,16 +4,19 @@
 // word-input, word-go.
 import { useState } from "react";
 import { say } from "../../i18n";
+import { ChapayevBoard } from "./boards-physics";
 import { SeaBoard, SeaUnder } from "./boards-sea";
 import { type BoardState, dotsLayout, dotsStateOf, fourColumns, gridOf, hangmanView, wordOf } from "./table-logic";
 
 type Move = (m: unknown) => void;
-export type BoardProps = { state: BoardState; seat: number; onMove?: Move };
+// `seats`: the playing seats in the node's order (a board of four sides knows by it which side is mine).
+export type BoardProps = { state: BoardState; seat: number; seats?: number[]; onMove?: Move };
 
 /** The board for a game (class and set as the node names them); a board knows nothing of the screen it stands on. */
 export function Board({ klass, set, ...props }: BoardProps & { klass: string; set: string }) {
   if (klass === "grid" && set === "four") return <FourBoard {...props} />;
   if (klass === "grid" && set === "battleship") return <SeaBoard {...props} />;
+  if (klass === "physics") return <ChapayevBoard {...props} />;
   if (klass === "dots") return <DotsBoard {...props} />;
   if (klass === "word") return <HangmanBoard {...props} />;
   return null;

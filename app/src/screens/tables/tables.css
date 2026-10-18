@@ -172,4 +172,17 @@
 .tb-own[data-ship] { background: var(--c-lime); }
 .tb-own[data-shot="hit"], .tb-own[data-shot="sunk"] { background: var(--c-yellow); }
 .tb-own[data-shot="miss"] { box-shadow: inset 0 0 0 var(--tb-cell-line) var(--c-muted); }
+/* chapayev: pieces only on the bare panel; the picked piece rings yellow, cells it can flick to carry a dot, the aim is a line over the board */
+.tb-panel[data-set="chapayev"] { padding: 0; overflow: hidden; }
+.tb-chapayev { position: relative; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.tb-pc { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; min-height: 0; padding: 0; background: none; }
+.tb-pc:disabled { cursor: default; }
+.tb-pc span { display: block; width: min(var(--tb-pc), 72%); aspect-ratio: 1; border-radius: var(--r-pill); }
+.tb-pc[data-stand="mine"] span { background: var(--c-lime); }
+.tb-pc[data-stand="theirs"] span { background: var(--c-peach); }
+.tb-pc[data-picked] span { box-shadow: 0 0 0 var(--tb-pc-ring) var(--c-yellow); }
+.tb-pc[data-reach]:not([data-stand="theirs"]) span { width: var(--tb-pc-reach); background: var(--c-yellow); }
+.tb-pc[data-reach][data-stand="theirs"] span { box-shadow: 0 0 0 var(--tb-pc-ring) var(--c-yellow); }
+.tb-aim { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; stroke: var(--c-yellow); stroke-width: var(--tb-aim-w); stroke-linecap: round; fill: none; }
+.tb-aim marker path { fill: var(--c-yellow); stroke: none; }
 .tb-set input { min-width: 0; height: var(--tb-line-h); padding: 0 var(--tb-line-pad); border: 0; border-radius: var(--r-pill); background: var(--c-sheet); color: var(--c-text); font: inherit; }

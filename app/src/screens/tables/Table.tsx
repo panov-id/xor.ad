@@ -130,7 +130,7 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
       </div>
       <div className="tb-sheet">
         <div className="tb-panel" data-class={view.class} data-set={view.set}>
-          <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} onMove={onMove} />
+          <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} seats={view.seats.filter((s) => s.role === "playing").map((s) => s.seat).sort((a, b) => a - b)} onMove={onMove} />
         </div>
         <BoardUnder klass={view.class} set={view.set} state={board?.state} seat={view.seat} />
         {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}

@@ -107,4 +107,9 @@
   --tb-own-w: 140px;
   --tb-own-gap: 2px;
   --tb-own-r: 2px;
+  /* chapayev: 8×8 cells filling the panel, a piece 72% of a cell; the picked piece's ring, a reachable cell's dot, the aim's line */
+  --tb-pc: 32.03px;
+  --tb-pc-ring: 3px;
+  --tb-pc-reach: 8px;
+  --tb-aim-w: 0.14;
 }

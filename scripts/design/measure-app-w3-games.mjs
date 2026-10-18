@@ -132,6 +132,12 @@ POS.t4 = () => ({
 });
 STATE.t4 = (p) => ({ sea: { phase: "shoot", fleets: { "1": SEA_MINE, "2": { placed: true } }, shots: p.shots } });
 APPLY.t4 = (p, m) => { if (m.shot) p.shots["1"][m.shot] = "miss"; };
+// w3_table-chapayev: eight pieces a side on the two edges (the node deals six; the sheet draws eight), mine (seat 1) at the bottom
+// (y 0), Nino's on y 7; a flick goes by piece, direction and power.
+GAMES.t5 = { class: "physics", set: "chapayev" };
+POS.t5 = () => ({ cells: Object.fromEntries([...Array(8).keys()].flatMap((x) => [[`${x}:0`, 1], [`${x}:7`, 2]])) });
+STATE.t5 = (p) => ({ physics: { cells: { ...p.cells } } });
+APPLY.t5 = (p, m) => { const f = m.flick; if (f) { delete p.cells[f.piece]; const [x, y] = f.piece.split(":").map(Number); p.cells[`${x + f.dir[0] * f.power}:${y + f.dir[1] * f.power}`] = 1; } };
 function tableView(s, id) {
   const g = GAMES[id];
   const state = STATE[id] ? STATE[id](s.pos[id])
@@ -368,6 +374,31 @@ LATER.push({
     note(m?.move?.shot === "h1" && m?.seq === 7, `walk: a tap on h1 sends {seq: 7, move: {shot: "h1"}} (${JSON.stringify(m ?? null)})`);
     await page.locator('[data-testid="shot-h1"][data-result="miss"]').waitFor({ timeout: 10000 }).catch(() => {});
     note(await page.locator('[data-testid="shot-h1"][data-result="miss"]').count() === 1 && await page.locator('[data-testid="shot-a1"]').isDisabled(), "walk: h1 stands a miss after the node's answer, no taps with the turn passed");
+  },
+});
+
+LATER.push({
+  name: "chapayev", nth: 4, ready: '[data-testid="pc-0:0"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tb-panel"))[3]]);
+    for (let x = 0; x < 8; x++) {
+      compare(scr, `piece ${x}:7 (Nino)`, shapeOf(sh[5 + x]), await box(page, `[data-testid="pc-${x}:7"] span`));
+      compare(scr, `piece ${x}:0 (mine)`, shapeOf(sh[13 + x]), await box(page, `[data-testid="pc-${x}:0"] span`));
+    }
+    // not compared: the sheet's aim arrow (shapes 21, 22) leans at any angle; the node's flick goes along 8 directions only
+  },
+  async walk(page, stub) {
+    note(await page.locator('.tb-pc[data-stand="mine"]').count() === 8 && await page.locator('.tb-pc[data-stand="theirs"]').count() === 8, "walk: eight pieces a side, mine at the bottom");
+    await page.click('[data-testid="pc-3:0"]');
+    note(await page.locator('[data-testid="pc-3:3"]').isEnabled() && await page.locator('[data-testid="pc-4:2"]').isDisabled() && await page.locator('[data-testid="pc-3:0"][data-picked]').count() === 1, "walk: a taken-up piece offers the cells on its lines (3:3), not 4:2");
+    await page.click('[data-testid="pc-3:3"]');
+    note(await page.locator('[data-testid="aim"]').count() === 1 && stub.moves.length === 0, "walk: the first tap on a target aims (an arrow), nothing is sent");
+    await page.click('[data-testid="pc-3:3"]');
+    const m = await movedBy(stub, "t5");
+    note(JSON.stringify(m?.move) === '{"flick":{"piece":"3:0","dir":[0,1],"power":3}}' && m?.seq === 7, `walk: the same target again flicks (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="pc-3:3"][data-stand="mine"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="pc-3:3"][data-stand="mine"]').count() === 1 && await page.locator('[data-testid="pc-3:0"][data-stand="free"]').count() === 1 && await page.locator('[data-testid="pc-0:0"]').isDisabled(), "walk: the piece stands at 3:3 after the node's answer, no taps with the turn passed");
   },
 });
 

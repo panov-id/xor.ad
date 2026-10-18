@@ -1,0 +1,149 @@
+// Live check of the feed card's «back» (app/src/screens/Feed.tsx openCard/closeCard/onPop, App.tsx:60 guard).
+// Run by scripts/back-walk.sh (build + preview :4174 + stand dev :5174 in containers, no network out).
+// The node is a stub (same routes as scripts/design/measure-app.mjs nodeStub, trimmed to registration + feed).
+import { chromium } from "@playwright/test";
+
+const PREVIEW = process.env.PREVIEW_URL ?? "http://localhost:4174";
+// The dev server is the stand build (VITE_STAND=1): it reads the grace from sessionStorage "xor-grace-ms" (app/src/vault.ts).
+const DEV = process.env.DEV_URL ?? "http://localhost:5174";
+const PIN = "483915";
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report)(\/|$)/;
+const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
+const phrase = (n) => ({ id: `ph-${n}`, text: `Walk phrase number ${n}`, mode: "walk", lang: "en", like_count: n });
+const ITEMS = [phrase(1), phrase(2), phrase(3)];
+
+const results = [];
+const check = (ok, text) => { results.push({ ok, text }); console.log(`${ok ? "PASS" : "FAIL"} ${text}`); };
+
+async function open(browser, { base = PREVIEW, graceMs } = {}) {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: "en-US" });
+  if (graceMs !== undefined) await ctx.addInitScript((g) => { sessionStorage.setItem("xor-grace-ms", String(g)); }, graceMs);
+  await ctx.addInitScript(() => {
+    try { localStorage.setItem("lang-asked", "1"); } catch {}
+    // registerFull types groups 2 and 4 of this paper code (measure-app.mjs does the same)
+    const alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ", want = "K7QM2XWDPE4R9FTE";
+    const real = crypto.getRandomValues.bind(crypto); let used = false;
+    crypto.getRandomValues = (a) => {
+      if (!used && a instanceof Uint8Array && a.length === 16) { used = true; for (let i = 0; i < 16; i++) a[i] = alphabet.indexOf(want[i]); return a; }
+      return real(a);
+    };
+  });
+  let share = null;
+  await ctx.route("**/*", async (route) => {
+    const req = route.request(), u = new URL(req.url());
+    if (!["fetch", "xhr"].includes(req.resourceType()) || !NODE_PATH.test(u.pathname)) return route.fallback();
+    const key = `${req.method()} ${u.pathname}`;
+    const json = (status, body) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    if (key === "GET /legal/manifest") return json(200, { documents: DOCS });
+    if (key === "POST /identities") { share = JSON.parse(req.postData()).share; return json(200, { identity_id: "id-stub", session_id: "sess-stub" }); }
+    if (key === "POST /vault/share") return json(200, { share });
+    if (key === "GET /feed") return json(200, { items: ITEMS, next: null });
+    if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
+    if (key === "POST /legal/accept") return json(200, {});
+    console.log(`UNEXPECTED ${key}`); return route.abort();
+  });
+  const page = await ctx.newPage();
+  page.on("pageerror", (e) => console.log(`pageerror: ${e}`));
+  await page.goto(base + "/", { waitUntil: "load" });
+  return { ctx, page };
+}
+
+async function registerFull(page) {
+  await page.click('[data-testid="start"]');
+  await page.waitForSelector('[data-screen="register-1"]');
+  await page.fill('[data-testid="name"]', "Alex"); await page.fill('[data-testid="age"]', "32"); await page.check(".reg-check input");
+  await page.click('[data-testid="next"]'); await page.waitForSelector('[data-screen="register-2"]');
+  await page.fill('[data-testid="pin"]', PIN); await page.fill('[data-testid="pin-again"]', PIN);
+  await page.click('[data-testid="register"]'); await page.waitForSelector('[data-screen="register-3"]', { timeout: 90000 });
+  const gi = page.locator('[data-testid="paper-groups"] input');
+  await gi.nth(0).fill("2XWD"); await gi.nth(1).fill("9FTE");
+  await page.click('[data-testid="confirm"]');
+  await page.waitForSelector('[data-screen="feed"]', { timeout: 20000 });
+  await page.waitForSelector('[data-testid="cards"] [data-testid="card"]', { timeout: 20000 });
+}
+
+const tile = (page, n) => page.locator(`[data-testid="card"][data-id="ph-${n}"] .fd-open`);
+const cardOpen = (page) => page.locator('[data-screen="card"]').count();
+const onFeed = async (page) => (await page.locator('[data-screen="feed"]').count()) === 1 && new URL(page.url()).pathname === "/feed";
+const depth = (page) => page.evaluate(() => history.length);
+const state = (page) => page.evaluate(() => JSON.stringify(history.state));
+const settle = (page) => page.waitForTimeout(300);   // popstate is async after history.back()
+
+const browser = await chromium.launch();
+try {
+  // 1. open a card → system Back → the feed, card closed, still /feed
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    const before = await depth(page);
+    await tile(page, 1).click(); await page.waitForSelector('[data-screen="card"][data-id="ph-1"]');
+    const pushed = await depth(page);
+    await page.goBack(); await settle(page);
+    check(pushed === before + 1 && (await cardOpen(page)) === 0 && (await onFeed(page)), `1 open → Back → feed (history ${before}→${pushed}, card ${await cardOpen(page)}, state ${await state(page)})`);
+    // 1b. the card's own «back» button does the same and leaves no entry with a card
+    await tile(page, 2).click(); await page.waitForSelector('[data-screen="card"][data-id="ph-2"]');
+    await page.click('[data-screen="card"] [data-testid="back"]'); await settle(page);
+    check((await cardOpen(page)) === 0 && (await onFeed(page)) && !(await state(page)).includes('"card"'), `1b card's back button → feed, state ${await state(page)}`);
+    // 1c. two cards in a row (regression of the mount cleanup): A → Back → B → Back → feed
+    await tile(page, 1).click(); await page.waitForSelector('[data-screen="card"][data-id="ph-1"]');
+    await page.goBack(); await settle(page);
+    await tile(page, 3).click(); await page.waitForSelector('[data-screen="card"][data-id="ph-3"]');
+    await page.goBack(); await settle(page);
+    check((await cardOpen(page)) === 0 && (await onFeed(page)), `1c two cards in a row, each closed by Back → feed (card ${await cardOpen(page)})`);
+    await ctx.close();
+  }
+  // 2. double tap on a tile → one entry; a single Back closes the card
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    const before = await depth(page);
+    // dispatch both clicks in one task: the second lands before React redraws (the race openCard guards)
+    await tile(page, 1).evaluate((b) => { b.click(); b.click(); });
+    await page.waitForSelector('[data-screen="card"][data-id="ph-1"]');
+    const after = await depth(page);
+    await page.goBack(); await settle(page);
+    check(after === before + 1 && (await cardOpen(page)) === 0 && (await onFeed(page)), `2 double tap → +1 entry (${before}→${after}), one Back closes (card ${await cardOpen(page)})`);
+    await ctx.close();
+  }
+  // 3. reload on an open card → feed without a card; Back opens nothing
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await tile(page, 2).click(); await page.waitForSelector('[data-screen="card"][data-id="ph-2"]');
+    await page.reload(); await page.waitForSelector('[data-screen="feed"], [data-screen="unlock"]', { timeout: 20000 });
+    // inside the 30 s grace the reload lands on the feed; outside it the PIN is asked
+    if (await page.locator('[data-screen="unlock"]').count()) {
+      check(false, "3 reload asked the PIN (grace missed) — rerun faster or type the PIN here");
+    } else {
+      await page.waitForSelector('[data-testid="cards"] [data-testid="card"]', { timeout: 20000 });
+      const afterReload = await state(page);
+      check((await cardOpen(page)) === 0 && !afterReload.includes('"card"'), `3a reload on a card → feed, no card, state ${afterReload}`);
+      await page.goBack(); await settle(page);
+      check((await cardOpen(page)) === 0, `3b Back after the reload opens no card (url ${new URL(page.url()).pathname}, state ${await state(page)})`);
+    }
+    await ctx.close();
+  }
+  // 3c. reload on an open card OUTSIDE the grace (stand: 1.5 s) → the PIN → the feed; Back opens no old card
+  {
+    const { ctx, page } = await open(browser, { base: DEV, graceMs: 1500 }); await registerFull(page);
+    await tile(page, 2).click(); await page.waitForSelector('[data-screen="card"][data-id="ph-2"]');
+    const onCard = await state(page);
+    await page.waitForTimeout(2500);   // past the stand's 1.5 s grace
+    await page.reload(); await page.waitForSelector('[data-screen="feed"], [data-screen="unlock"]', { timeout: 20000 });
+    const asked = (await page.locator('[data-screen="unlock"]').count()) === 1;
+    const atUnlock = await state(page);
+    check(asked, `3c-1 reload past the grace asks the PIN (state on the card ${onCard}, at unlock ${atUnlock})`);
+    if (asked) {
+      await page.fill('[data-testid="unlock-pin"]', PIN); await page.click('[data-testid="unlock"]');
+      await page.waitForSelector('[data-screen="feed"]', { timeout: 20000 });
+      await page.waitForSelector('[data-testid="cards"] [data-testid="card"]', { timeout: 20000 });
+      const afterPin = await state(page);
+      check((await cardOpen(page)) === 0 && !afterPin.includes('"card"'), `3c-2 after the PIN: feed, no card, state ${afterPin}`);
+      await page.goBack(); await settle(page);
+      check((await cardOpen(page)) === 0, `3c-3 Back after the PIN opens no old card (url ${new URL(page.url()).pathname}, state ${await state(page)}, card ${await cardOpen(page)})`);
+    }
+    await ctx.close();
+  }
+} finally {
+  await browser.close();
+}
+const bad = results.filter((r) => !r.ok).length;
+console.log(`${results.length - bad}/${results.length} passed`);
+process.exit(bad ? 1 : 0);

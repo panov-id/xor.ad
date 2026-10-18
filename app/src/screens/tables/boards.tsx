@@ -4,6 +4,7 @@
 // word-input, word-go.
 import { useState } from "react";
 import { say } from "../../i18n";
+import { DurakBoard, DurakUnder } from "./boards-deck";
 import { ChapayevBoard } from "./boards-physics";
 import { SeaBoard, SeaUnder } from "./boards-sea";
 import { type BoardState, dotsLayout, dotsStateOf, fourColumns, gridOf, hangmanView, wordOf } from "./table-logic";
@@ -17,14 +18,16 @@ export function Board({ klass, set, ...props }: BoardProps & { klass: string; se
   if (klass === "grid" && set === "four") return <FourBoard {...props} />;
   if (klass === "grid" && set === "battleship") return <SeaBoard {...props} />;
   if (klass === "physics") return <ChapayevBoard {...props} />;
+  if (klass === "deck" && set !== "poker") return <DurakBoard {...props} />;
   if (klass === "dots") return <DotsBoard {...props} />;
   if (klass === "word") return <HangmanBoard {...props} />;
   return null;
 }
 
-/** What a game keeps under its panel (battleship: my own sea); null for the games with nothing there. */
+/** What a game keeps under its panel (battleship: my own sea; durak: take, pass on, done); null for the games with nothing there. */
 export function BoardUnder({ klass, set, ...props }: BoardProps & { klass: string; set: string }) {
   if (klass === "grid" && set === "battleship") return <SeaUnder {...props} />;
+  if (klass === "deck" && set !== "poker") return <DurakUnder {...props} />;
   return null;
 }
 

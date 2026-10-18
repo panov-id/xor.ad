@@ -120,6 +120,7 @@ const WORD = { setter: 2, set: "en", alphabet: [..."abcdefghijklmnopqrstuvwxyz"]
 // The games after hangman, one table each in the list (t4, t5, …): GAMES names the class and set, POS the position of the
 // sheet (a copy per stub, moved by APPLY when the node "answers" a move), STATE the node's state of it for seat 1.
 const POS = {};
+const KEEP = {};
 const STATE = {};
 const APPLY = {};
 // w3_table-battleship: the shooting phase; my shots found four ships (a hit on each of three, the fourth sunk whole), one miss;
@@ -138,6 +139,13 @@ GAMES.t5 = { class: "physics", set: "chapayev" };
 POS.t5 = () => ({ cells: Object.fromEntries([...Array(8).keys()].flatMap((x) => [[`${x}:0`, 1], [`${x}:7`, 2]])) });
 STATE.t5 = (p) => ({ physics: { cells: { ...p.cells } } });
 APPLY.t5 = (p, m) => { const f = m.flick; if (f) { delete p.cells[f.piece]; const [x, y] = f.piece.split(":").map(Number); p.cells[`${x + f.dir[0] * f.power}:${y + f.dir[1] * f.power}`] = 1; } };
+// w3_table-durak: Nino (seat 2) holds five, the stock fourteen, trump the ten of diamonds; two pairs on the table, both beaten,
+// I attack (so «done» is mine), my six cards are the sheet's fan: 9S 8H 7D 6S 10S QH.
+GAMES.t6 = { class: "deck", set: "36" };
+KEEP.t6 = true;
+POS.t6 = () => ({ hand: ["9S", "8H", "7D", "6S", "10S", "QH"], table: [{ attack: "6H", beat: "10H" }, { attack: "7S", beat: "8S" }] });
+STATE.t6 = (p) => ({ deck: { hands: { "1": [...p.hand], "2": { count: 5 } }, stock: { count: 14 }, played: [], trump: "10D", table: p.table.map((x) => ({ ...x })), attacker: 1, defender: 2 } });
+APPLY.t6 = (p, m) => { if (m.play) { p.hand = p.hand.filter((c) => c !== m.play); p.table.push({ attack: m.play, beat: null }); } };
 function tableView(s, id) {
   const g = GAMES[id];
   const state = STATE[id] ? STATE[id](s.pos[id])
@@ -177,7 +185,7 @@ function nodeStub() {
         if (m.move?.edge) s.edges.push(m.move.edge);
         if (m.move?.letter) s.guessed.push(m.move.letter);
         if (APPLY[t[1]]) APPLY[t[1]](s.pos[t[1]], m.move ?? {});
-        s.seq++; s.turn = 2;
+        s.seq++; s.turn = KEEP[t[1]] ? 1 : 2;   // KEEP: a table where my turn goes on after a move (durak's throw-in, then done)
         return json(200, { board: tableView(s, t[1]).board });
       }
       if (t && t[2] === "/ticket") return json(503, { error: { code: "unavailable" } });   // no room in the stub: the screen reads the view
@@ -399,6 +407,44 @@ LATER.push({
     note(JSON.stringify(m?.move) === '{"flick":{"piece":"3:0","dir":[0,1],"power":3}}' && m?.seq === 7, `walk: the same target again flicks (${JSON.stringify(m ?? null)})`);
     await page.locator('[data-testid="pc-3:3"][data-stand="mine"]').waitFor({ timeout: 10000 }).catch(() => {});
     note(await page.locator('[data-testid="pc-3:3"][data-stand="mine"]').count() === 1 && await page.locator('[data-testid="pc-3:0"][data-stand="free"]').count() === 1 && await page.locator('[data-testid="pc-0:0"]').isDisabled(), "walk: the piece stands at 3:3 after the node's answer, no taps with the turn passed");
+  },
+});
+
+const centreOf = (b) => [b[0] + b[2] / 2, b[1] + b[3] / 2];
+const shapeCentre = (s) => [s.x + s.w / 2, s.y + s.h / 2];
+LATER.push({
+  name: "durak", nth: 5, ready: '[data-testid="hand-9S"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tb-panel"))[3]]);
+    for (let i = 0; i < 5; i++) {
+      compare(scr, `opponent card ${i + 1}`, shapeOf(sh[5 + 2 * i]), await box(page, ".tb-dk-fan .tb-back", i));
+      compare(scr, `opponent card ${i + 1} inner`, shapeOf(sh[6 + 2 * i]), await box(page, ".tb-dk-fan .tb-back span", i));
+    }
+    compare(scr, "stock", shapeOf(sh[15]), await box(page, '[data-testid="stock"]'));
+    compare(scr, "stock inner", shapeOf(sh[16]), await box(page, '[data-testid="stock"] span'));
+    compare(scr, "trump card", shapeOf(sh[17]), await box(page, '[data-testid="trump"]'));
+    compare(scr, "trump suit (centre)", shapeCentre(sh[18]), centreOf(await box(page, '[data-testid="trump"] .tb-suit')));
+    const cards = [["attack-0", 19, 20], ["beat-0", 21, 22], ["attack-1", 23, 24], ["beat-1", 25, 26], ["hand-9S", 27, 28], ["hand-8H", 29, 30], ["hand-7D", 31, 32], ["hand-6S", 33, 34], ["hand-10S", 35, 36], ["hand-QH", 37, 38]];
+    for (const [id, c, m] of cards) {
+      compare(scr, `card ${id}`, shapeOf(sh[c]), await box(page, `[data-testid="${id}"]`));
+      compare(scr, `${id} suit (centre)`, shapeCentre(sh[m]), centreOf(await box(page, `[data-testid="${id}"] .tb-suit`)));
+    }
+    // not compared: the ranks' glyphs (rotated text with the card); the sheet's panel is what the cards stand on
+  },
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="done"]').count() === 1 && await page.locator('[data-testid="take"]').count() === 0, "walk: I attack and all is beaten: «done» is offered, «take» is not");
+    await page.click('[data-testid="done"]');
+    const d = await movedBy(stub, "t6");
+    note(JSON.stringify(d?.move) === '{"done":true}' && d?.seq === 7, `walk: «done» sends {done: true} (${JSON.stringify(d ?? null)})`);
+    await page.locator('[data-testid="hand-9S"]').waitFor({ timeout: 10000 });
+    await page.click('[data-testid="hand-9S"]');
+    for (let k = 0; k < 40 && stub.moves.length < 2; k++) await page.waitForTimeout(100);
+    const m = stub.moves[1];
+    note(JSON.stringify(m?.move) === '{"play":"9S"}' && m?.seq === 8, `walk: a tap on 9S plays it (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="attack-2"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="attack-2"]').count() === 1 && await page.locator('[data-testid="hand-9S"]').count() === 0, "walk: 9S leaves the hand and lies on the table as an attack, unbeaten");
+    note(await page.locator('[data-testid="done"]').count() === 0, "walk: with a card unbeaten on the table «done» is gone");
   },
 });
 

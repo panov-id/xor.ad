@@ -185,4 +185,24 @@
 .tb-pc[data-reach][data-stand="theirs"] span { box-shadow: 0 0 0 var(--tb-pc-ring) var(--c-yellow); }
 .tb-aim { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; stroke: var(--c-yellow); stroke-width: var(--tb-aim-w); stroke-linecap: round; fill: none; }
 .tb-aim marker path { fill: var(--c-yellow); stroke: none; }
+/* cards on a panel (durak, poker): the panel is a container; every card, rank and mark is placed in px of the sheet's panel
+   (--x --y centre, --w --h size, --r turn, unitless) times --k = this panel's width over the sheet's, so it all scales as one */
+.tb-panel[data-class="deck"] { padding: 0; overflow: hidden; }
+.tb-dk { container-type: inline-size; }
+.tb-dk-stage { --k: calc(100cqw / var(--tb-dk-ref)); position: relative; height: calc(var(--stage-h) * var(--k)); }
+.tb-dk-fan, .tb-dk-pair, .tb-dk-hand { display: contents; }
+.tb-dk-card { position: absolute; left: calc((var(--x) - var(--w) / 2) * var(--k)); top: calc((var(--y) - var(--h) / 2) * var(--k));
+  width: calc(var(--w) * var(--k)); height: calc(var(--h) * var(--k)); rotate: calc(var(--r) * 1deg); padding: 0; min-height: 0; border: 0;
+  border-radius: var(--tb-dk-r); background: var(--c-card); color: var(--c-suit-black); }
+.tb-dk-card[data-red] { color: var(--c-suit-red); }
+button.tb-dk-card:disabled { cursor: default; }
+.tb-back span { position: absolute; inset: calc(var(--tb-dk-inset) * var(--k)); border-radius: var(--tb-dk-r2); background: var(--c-peach); }
+.tb-trump-suit { background: none; }
+.tb-rank { position: absolute; left: calc(var(--tb-rank-x) * var(--k)); top: calc(var(--tb-rank-y) * var(--k)); font-size: calc(var(--tb-rank-fs) * var(--k)); font-weight: var(--fw-700); line-height: 1; }
+.tb-suit { position: absolute; left: 50%; top: calc(50% + var(--tb-suit-dy) * var(--k)); translate: -50% -50%; width: calc(var(--sw) * var(--k)); height: calc(var(--sh) * var(--k)); fill: currentColor; }
+.tb-suit[data-suit="H"] { --sw: var(--tb-suit-h-w); --sh: var(--tb-suit-h-h); }
+.tb-suit[data-suit="D"] { --sw: var(--tb-suit-d-w); --sh: var(--tb-suit-d-h); }
+.tb-suit[data-suit="S"] { --sw: var(--tb-suit-s-w); --sh: var(--tb-suit-s-h); }
+.tb-suit[data-suit="C"] { --sw: var(--tb-suit-c-w); --sh: var(--tb-suit-c-h); }
+.tb-actions { margin-top: var(--sp-4); display: flex; justify-content: center; gap: var(--sp-3); }
 .tb-set input { min-width: 0; height: var(--tb-line-h); padding: 0 var(--tb-line-pad); border: 0; border-radius: var(--r-pill); background: var(--c-sheet); color: var(--c-text); font: inherit; }

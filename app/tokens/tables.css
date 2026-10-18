@@ -112,4 +112,25 @@
   --tb-pc-ring: 3px;
   --tb-pc-reach: 8px;
   --tb-aim-w: 0.14;
+  /* cards (durak, poker): every number but the colours and radii is px of the sheets' 356.18 px panel (unitless), scaled with
+     the panel's width by tables.css; a suit's mark has the ink box the sheet draws for it */
+  --tb-dk-ref: 356.18;
+  --tb-dk-r: 6px;
+  --tb-dk-r2: 4px;
+  --tb-dk-inset: 3.97;
+  --tb-rank-fs: 14;
+  --tb-rank-x: 5;
+  --tb-rank-y: 6;
+  --tb-suit-dy: 3.5;
+  --tb-suit-h-w: 12.8;
+  --tb-suit-h-h: 12.85;
+  --tb-suit-d-w: 12.8;
+  --tb-suit-d-h: 16.45;
+  --tb-suit-s-w: 11.4;
+  --tb-suit-s-h: 15.6;
+  --tb-suit-c-w: 13.5;
+  --tb-suit-c-h: 14.5;
+  --c-card: #F7F4FB;
+  --c-suit-red: #D93A4B;
+  --c-suit-black: #121212;
 }

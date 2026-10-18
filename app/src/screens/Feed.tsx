@@ -17,7 +17,7 @@ import { Skeleton } from "../shell/Skeleton";
 import { TabBar } from "../shell/TabBar";
 import { CardScreen, likeLine, Tile } from "./feed-card";
 import {
-  type FeedCard, type Gone, likeOutcome, type LikeOutcome, mergePage, RADII, radiusWord, toneOf, UNDO_HIDE_MS, visibleCards, widerRadius, withLike,
+  cardEntry, cardOf, type FeedCard, type Gone, likeOutcome, type LikeOutcome, mergePage, RADII, radiusWord, toneOf, UNDO_HIDE_MS, visibleCards, widerRadius, withLike, withoutCard,
 } from "./feed-logic";
 
 const radiusText = (r: Radius): string => {
@@ -38,6 +38,29 @@ export function Feed({ client }: { client: Client }) {
   const [liking, setLiking] = useState<string | null>(null);
   const [likeNote, setLikeNote] = useState<LikeOutcome | null>(null);
   const skeleton = useSkeleton(state === "loading");
+
+  // The system Back closes an open card, it does not leave the feed: opening pushes an entry, the popstate lands the
+  // card from the entry now under it, and the card's own «back» is that same Back (history.back) so the entry goes too.
+  // Back is asynchronous: until its popstate lands, the card's entry is still current, so a tap then would be eaten by it.
+  const goingBack = useRef(false);
+  function openCard(id: string) {
+    if (goingBack.current) return;
+    // Already on a card's entry (a second tap before the redraw): swap the card, never stack a second entry Back must eat.
+    if (cardOf(history.state)) history.replaceState({ ...history.state, card: id }, "", location.href);
+    else history.pushState(cardEntry(history.state, id), "", location.href);
+    setOpened(id);
+  }
+  function closeCard() {
+    if (cardOf(history.state)) { goingBack.current = true; history.back(); }
+    else setOpened(null);
+  }
+  useEffect(() => {
+    // After a reload the card is gone from the screen but its entry is not; drop the name so Back past it opens nothing.
+    if (cardOf(history.state)) history.replaceState(withoutCard(history.state), "", location.href);
+    const onPop = () => { goingBack.current = false; setOpened(cardOf(history.state)); };
+    addEventListener("popstate", onPop);
+    return () => removeEventListener("popstate", onPop);
+  }, []);
 
   // A page asked before the radius changed is stale: its answer would mix the old circle into the new one (web
   // useFeed, D2). Every radius starts a generation; only an answer of the current one is drawn.
@@ -159,7 +182,7 @@ export function Feed({ client }: { client: Client }) {
 
           <ul className="fd-cards" data-testid="cards">
             {cards.map((c, i) => (
-              <Tile key={c.id} card={c} tone={toneOf(c, i)} busy={liking === c.id} onOpen={() => setOpened(c.id)} onLike={() => void likeFromTile(c)} />
+              <Tile key={c.id} card={c} tone={toneOf(c, i)} busy={liking === c.id} onOpen={() => openCard(c.id)} onLike={() => void likeFromTile(c)} />
             ))}
           </ul>
           {state === "loading" && skeleton && (
@@ -176,9 +199,9 @@ export function Feed({ client }: { client: Client }) {
           client={client}
           card={card}
           tone={toneOf(card, Math.max(0, cards.findIndex((c) => c.id === card.id)))}
-          onBack={() => setOpened(null)}
+          onBack={closeCard}
           onLike={like}
-          onGone={(why, id, handle) => { setOpened(null); setLikeNote(null); setGone({ why, id, handle }); }}
+          onGone={(why, id, handle) => { closeCard(); setOpened(null); setLikeNote(null); setGone({ why, id, handle }); }}
         />
       )}
     </>

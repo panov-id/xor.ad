@@ -80,3 +80,22 @@ export function withLike(card: FeedCard): FeedCard {
 export function langOf(lang: string | undefined): string | undefined {
   return !lang || lang === "und" ? undefined : lang;
 }
+
+/** The history entry an open card stands on: the feed's own entry (gate, i) one step deeper, with the card's id. */
+export function cardEntry(was: unknown, id: string): { gate: string; i: number; card: string } {
+  const w = (was ?? {}) as { gate?: unknown; i?: unknown };
+  return { gate: typeof w.gate === "string" ? w.gate : "feed", i: typeof w.i === "number" ? w.i + 1 : 1, card: id };
+}
+
+/** The card a history entry stands for; null on any entry that is not a card's (so Back, which lands on one, closes the card). */
+export function cardOf(state: unknown): string | null {
+  const card = (state as { card?: unknown } | null)?.card;
+  return typeof card === "string" && card !== "" ? card : null;
+}
+
+/** The entry with its card dropped: a card entry left over from before a reload stands for nothing on screen. */
+export function withoutCard(state: unknown): unknown {
+  if (!cardOf(state)) return state;
+  const { card: _card, ...rest } = state as { card: string };
+  return rest;
+}

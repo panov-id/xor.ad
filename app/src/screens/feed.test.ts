@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { placeOf } from "../place.ts";
-import { type FeedCard, type Gone, likeOutcome, mergePage, offerLabel, RADII, radiusWord, toneOf, UNDO_HIDE_MS, visibleCards, widerRadius, withLike } from "./feed-logic.ts";
+import { cardEntry, cardOf, withoutCard, type FeedCard, type Gone, likeOutcome, mergePage, offerLabel, RADII, radiusWord, toneOf, UNDO_HIDE_MS, visibleCards, widerRadius, withLike } from "./feed-logic.ts";
 
 const c = (id: string, extra: Partial<FeedCard> = {}): FeedCard => ({ id, text: `t${id}`, mode: "alone", lang: "und", like_count: 0, ...extra });
 
@@ -71,4 +71,21 @@ test("placeOf: the web's stored place is read as it is; anything else is no plac
   assert.equal(placeOf("not json"), null);
   assert.equal(placeOf('{"lat":"41","lon":44,"name":"x"}'), null);
   assert.equal(placeOf('{"lat":41,"lon":44}'), null);
+});
+
+test("cardEntry/cardOf: an open card is one history entry deeper and names its card; any other entry names none", () => {
+  const e = cardEntry({ gate: "feed", i: 0 }, "p1");
+  assert.deepEqual(e, { gate: "feed", i: 1, card: "p1" });
+  assert.equal(cardOf(e), "p1");
+  assert.equal(cardOf({ gate: "feed", i: 0 }), null);
+  assert.equal(cardOf(null), null);
+  assert.equal(cardOf({ card: "" }), null);
+  assert.deepEqual(cardEntry(null, "p2"), { gate: "feed", i: 1, card: "p2" });
+});
+
+test("withoutCard: a stale card entry keeps its place in history but names no card; other entries pass as they are", () => {
+  assert.deepEqual(withoutCard({ gate: "feed", i: 1, card: "p1" }), { gate: "feed", i: 1 });
+  const plain = { gate: "feed", i: 0 };
+  assert.equal(withoutCard(plain), plain);
+  assert.equal(withoutCard(null), null);
 });

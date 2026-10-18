@@ -56,7 +56,8 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const onPop = () => setScreen((now) => (now.at === "loading" ? now : gateScreen(location.pathname, vaulted.current)));
+    // An entry of the feed (its open card included) is the feed's own to read (screens/Feed.tsx), not a gate to re-pick.
+    const onPop = () => setScreen((now) => (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed") ? now : gateScreen(location.pathname, vaulted.current)));
     addEventListener("popstate", onPop);
     return () => removeEventListener("popstate", onPop);
   }, []);

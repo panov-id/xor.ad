@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
-import { facePair, firstAction, meLine, MOVE_SECONDS, moveRing, tableTitle } from "./table-logic.ts";
+import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
+import { facePair, firstAction, fourColumns, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -46,4 +47,20 @@ test("the foot: begin while nothing runs, say during a game, the like for a watc
   assert.equal(firstAction(view()), "say");
   assert.equal(firstAction(view({ is_playing: false, seat: 3 })), "like");
   assert.equal(firstAction(view({}, { over: true })), "start", "after an end: again");
+});
+
+test("four in a row: columns a..g, top row first; a column with its top taken takes no piece; mine is my seat's", () => {
+  const cells: Record<string, { seat: number; piece: string }> = { d1: { seat: 1, piece: "O" }, d2: { seat: 2, piece: "O" } };
+  for (let r = 1; r <= 6; r++) cells[`g${r}`] = { seat: r % 2 ? 1 : 2, piece: "O" };
+  const cols = fourColumns({ cells, rules: "four" }, 1);
+  assert.deepEqual(cols.map((c) => c.column).join(""), "abcdefg");
+  assert.deepEqual(cols[3].cells, ["free", "free", "free", "free", "theirs", "mine"], "row 6 on top, row 1 at the bottom");
+  assert.equal(cols[3].open, true);
+  assert.equal(cols[6].open, false, "a full column");
+  assert.deepEqual(fourColumns({ cells, rules: "four" }, 2)[3].cells.slice(4), ["mine", "theirs"], "seen from the other seat");
+});
+
+test("the sticker chips: hi, coffee, deal first as the sheets; the whole catalogue, each once", () => {
+  assert.deepEqual(STICKER_CHIPS.slice(0, 3), ["hi", "coffee", "deal"]);
+  assert.deepEqual([...STICKER_CHIPS].sort(), [...STICKER_IDS].sort());
 });

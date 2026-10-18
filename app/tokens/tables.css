@@ -43,4 +43,33 @@
   --nt-hint-gap: 12px;
   --nt-counter-gap: 6.1px;     /* the name's box to its counter */
   --nt-face-wash: rgba(255, 255, 255, .55);
+  --tb-bar-end: 12px;
+  --lh-tb-title: 20.9px;
+  --tb-faces-top: 13.4px;
+  --tb-side: 21.9px;
+  --tb-side-end: 23.9px;
+  --tb-face: 39.8px;
+  --tb-face-gap: 8.2px;
+  --fs-tb-face: 15px;
+  --fs-tb-me: 14px;
+  --tb-ring-stroke: 4px;
+  --tb-ring-aa: 0.5px;
+  --fs-tb-ring: 12px;
+  --tb-sheet-gap: 17.9px;
+  --tb-pad-top: 21.9px;
+  --tb-foot-bottom: 25.4px;
+  --tb-panel-pad: 6.2px;
+  --tb-line-h: 44px;
+  --tb-line-pad: 18px;
+  --tb-chips-top: 16px;
+  --tb-chip-gap: 7.8px;
+  --tb-chip-h: 39.8px;
+  --tb-chip-pad: 14px;
+  --fs-tb-chip: 13px;
+  --tb-cell: 38.6px;
+  --tb-cell-gap: 12.2px;
+  --tb-cell-line: 1px;
+  --c-board: #3A3157;
+  --c-cell-line: #4A4070;
+  --c-ring-rest: #3D3557;
 }

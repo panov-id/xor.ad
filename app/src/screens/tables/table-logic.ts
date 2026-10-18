@@ -1,6 +1,7 @@
 // The table's frame (sheets w3_table-*): the turn's ring, the title, the two faces at the top, the line under mine,
 // and what the foot offers first — the web's Table.tsx rules, moved out of the screen. The game's rules are the
 // node's (relay/node/src/lib/tables_*.ts); depth/core/tables.ts turnOf says whose turn and how long.
+import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
 import { type TableSeat, type TableView, turnOf } from "../../../../depth/core/tables.ts";
 
 // The node's term for a move (docs/facts/limits.tsv table.move.window: 5 minutes, then an automatic pass).
@@ -52,3 +53,25 @@ export function firstAction(view: TableView): "start" | "say" | "pass" | "like" 
   if (turnOf(view).mine && started) return "pass";
   return "like";
 }
+
+// ── four in a row (relay/node/src/lib/tables_reversi.ts playFour): 7 columns a..g, 6 rows, a piece falls ──
+export type Grid = { cells: Record<string, { seat: number; piece: string }>; rules?: string };
+export type Stand = "mine" | "theirs" | "free";
+export const gridOf = (view: TableView): Grid | null => {
+  const g = (view.board?.state as { grid?: Grid } | undefined)?.grid;
+  return g && typeof g === "object" && g.cells ? g : null;
+};
+const standOf = (g: Grid, id: string, seat: number): Stand => (g.cells[id] ? (g.cells[id].seat === seat ? "mine" : "theirs") : "free");
+
+// Columns left to right, each its cells top (row 6) to bottom (row 1), and whether a piece still goes in (its top free).
+export function fourColumns(g: Grid, seat: number): Array<{ column: string; open: boolean; cells: Stand[] }> {
+  return [..."abcdefg"].map((column) => ({
+    column,
+    open: !g.cells[`${column}6`],
+    cells: [6, 5, 4, 3, 2, 1].map((r) => standOf(g, `${column}${r}`, seat)),
+  }));
+}
+
+// The stickers as the sheets' chips run (w3_table-*: hi, coffee, deal first), then the rest of the catalogue in its order.
+const FIRST = ["hi", "coffee", "deal"];
+export const STICKER_CHIPS: string[] = [...FIRST.filter((id) => (STICKER_IDS as readonly string[]).includes(id)), ...STICKER_IDS.filter((id) => !FIRST.includes(id))];

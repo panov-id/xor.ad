@@ -13,6 +13,7 @@ import { Splash } from "../screens/Splash";
 import { Unlock } from "../screens/Unlock";
 import { Me } from "../screens/me/Me";
 import { NewTable } from "../screens/tables/NewTable";
+import { Table } from "../screens/tables/Table";
 import { Tables } from "../screens/tables/Tables";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
@@ -166,6 +167,11 @@ export function App() {
     setScreen({ at: to });
   };
   // The tables' «New table»: the wizard on top of the list, so its first Back (i: 1) is the history's Back onto /tables.
+  // A row's «Watch»: the table over the list (i: 1, its id in the entry), so Back is the history's Back onto /tables.
+  const toTable = (id: string) => {
+    history.pushState({ gate: "table", i: 1, id }, "", pathOf({ at: "table", id }));
+    setScreen({ at: "table", id });
+  };
   const toNewTable = () => {
     history.pushState({ gate: "new-table", i: 1 }, "", pathOf({ at: "new-table" }));
     setScreen({ at: "new-table" });
@@ -203,7 +209,9 @@ export function App() {
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
-      case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} /> : null;
+      case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /> : null;
+      // Back keeps the seat (web TB1); standing up, or a seat lost, is the list again.
+      case "table": return seated ? <Table client={seated.client} tableId={screen.id} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} onLeave={toTables} /> : null;
       case "new-table": return seated ? <NewTable client={seated.client} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;

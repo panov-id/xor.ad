@@ -13,7 +13,8 @@ import { hand } from "../../shell/icons";
 import { Screen } from "../../shell/Screen";
 import { TabBar, type Tab } from "../../shell/TabBar";
 import { initial } from "../me/me-logic";
-import { isFresh, lineOf, ringOf, splitInbox, type MatchRow, type Row, type TalkRow } from "./talks-logic";
+import type { InboxChatRow } from "@platform/chat/keys.ts";
+import { chatRowOf, isFresh, lineOf, ringOf, splitInbox, type MatchRow, type Row, type TalkRow } from "./talks-logic";
 
 const LAST_LOOK = "xor-inbox-last-look";
 const FACES = 4; // the sheet's avatar colours, in turn
@@ -33,7 +34,7 @@ function Ring({ talk }: { talk: TalkRow }) {
 
 export function Inbox({ client, onTab, onOpenMatch, onOpenChat, onLikes }: {
   client: Client; onTab: (tab: Tab) => void;
-  onOpenMatch: (row: MatchRow) => void; onOpenChat: (row: TalkRow) => void; onLikes: () => void;
+  onOpenMatch: (row: MatchRow) => void; onOpenChat: (row: InboxChatRow) => void; onLikes: () => void;
 }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +85,7 @@ export function Inbox({ client, onTab, onOpenMatch, onOpenChat, onLikes }: {
         <ul className="tk-rows" aria-label={label("web.inbox.chats")} data-testid="chats">
           {talks.map((c, i) => (
             <li key={c.id} data-testid="chat" data-id={c.id} data-state={c.state}>
-              <button type="button" className="tk-row" onClick={() => onOpenChat(c)} data-testid="open-chat">
+              <button type="button" className="tk-row" disabled={!chatRowOf(c)} onClick={() => { const row = chatRowOf(c); if (row) onOpenChat(row); }} data-testid="open-chat">
                 <span className="tk-avatar" data-face={i % FACES} aria-hidden="true">{initial(c.name)}</span>
                 <span className="tk-who">
                   <span className="tk-name">{c.name}, {c.age}</span>

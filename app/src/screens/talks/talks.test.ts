@@ -1,7 +1,7 @@
 // The talks screens' rules (talks-logic.ts). scripts/run-app-unit-tests.sh, node:test.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { canTakeBack, distanceWord, goneIn, isFresh, lineOf, matchView, metresBetween, ringOf, splitInbox, type LikedRow, type MatchRow, type TalkRow } from "./talks-logic.ts";
+import { canTakeBack, chatRowOf, distanceWord, goneIn, isFresh, lineOf, matchView, metresBetween, ringOf, splitInbox, type LikedRow, type MatchRow, type TalkRow } from "./talks-logic.ts";
 
 const talk = (over: Partial<TalkRow> = {}): TalkRow => ({ kind: "chat", id: "c", name: "Nino", age: 27, state: "open", chat_expires_at: 10_000, ...over });
 
@@ -73,4 +73,15 @@ test("a wait: gone once the other said not now, back on their undo; a match not 
   assert.equal(goneIn([row("waiting")], "m1", true), false, "their undo brings the wait back");
   assert.equal(goneIn([talk()], "m1", true), true);
   assert.equal(goneIn([{ ...row("gone"), id: "m2" }], "m1", false), false, "another match's word is not mine");
+});
+
+test("a talk opens a chat only with the node's whole row: the keys' part and my span; a row without them opens none", () => {
+  const whole = { kind: "chat", id: "c1", me: "id-me", key_epoch: 1, rekey_requested: false, name: "Nino", age: 27, state: "open", chat_expires_at: 2_000, my_span: 60,
+    peer: { key_epoch: 1, identity_id: "id-nino", identity_public_key: "pk" } };
+  assert.equal(chatRowOf(whole)?.id, "c1");
+  assert.equal(chatRowOf(whole), whole, "the same row, not a copy that loses fields");
+  assert.equal(chatRowOf({ ...whole, peer: undefined }), null, "no peer key: no chat");
+  assert.equal(chatRowOf({ ...whole, my_span: undefined }), null);
+  assert.equal(chatRowOf({ ...whole, kind: "match" }), null);
+  assert.equal(chatRowOf(talk()), null, "the list's few fields are not a chat");
 });

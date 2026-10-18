@@ -75,13 +75,13 @@ export const seatScreen = (path: string, state?: { until?: number; row?: MatchRo
   if (p === ROUTES.inbox) return { at: "inbox" };
   if (p === ROUTES.likes) return { at: "likes" };
   // A match rides in its history entry, as the web's (web/src/router.ts): without it (a typed /match) the inbox.
-  if (p === ROUTES.match) return state?.row && typeof state.row === "object" ? { at: "match", row: state.row as MatchRow } : { at: "inbox" };
+  if (p === ROUTES.match) return state?.row?.kind === "match" ? { at: "match", row: state.row as MatchRow } : { at: "inbox" };
   if (p === ROUTES.tables) return { at: "tables" };
   if (p === ROUTES["new-table"]) return { at: "new-table" };
   // A table rides in its history entry (its id), as the web's: without one (a typed /table) the list.
   if (p === ROUTES.table) return typeof state?.id === "string" && state.id ? { at: "table", id: state.id } : { at: "tables" };
   // A chat's entry without its row (a typed /chat, a reload: the row is not kept on the disk) is the feed.
-  if (p === ROUTES.chat && state?.row?.kind === "chat") return { at: "chat", row: state.row };
+  if (p === ROUTES.chat && state?.row?.kind === "chat") return { at: "chat", row: state.row as InboxChatRow };
   // The away screen's until rides in its history entry (App.tsx awayCheck); a lapsed one is the feed.
   if (p === ROUTES.away && typeof state?.until === "number" && state.until > Date.now() / 1000) return { at: "away", until: state.until };
   return { at: "feed" };

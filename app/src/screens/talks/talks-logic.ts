@@ -1,3 +1,4 @@
+import type { InboxChatRow } from "../../../../depth/web-platform/chat/keys.ts";
 // w3_inbox's rules, kept out of the screen: offers to talk (the strip on top) and talks (the rows below) from one
 // GET /inbox?since page (web Inbox.tsx), what is new since the last look, and the ring — the minutes a talk has
 // before an hour of silence ends it (§8.12: «a talk fades after an hour of silence»).
@@ -92,4 +93,18 @@ export function matchView(row: MatchRow, here: { agreed: boolean; declined: bool
 export function goneIn(rows: Row[], matchId: string, was: boolean): boolean {
   const mine = rows.find((r): r is MatchRow => r.kind === "match" && (r as MatchRow).id === matchId);
   return mine ? mine.my_consent === "gone" : was;
+}
+
+// ── a talk's row into the chat (App.tsx openChat, depth/web-platform/chat/keys.ts InboxChatRow) ──
+// The inbox reads the node's whole row; TalkRow above is the few fields the list draws. The chat needs the rest — the
+// keys' part (me, key_epoch, the peer's public key) and my span — so a row opens a chat only when the node gave them;
+// one without is not passed on half-made (null: its row takes no press).
+export function chatRowOf(row: Row): InboxChatRow | null {
+  const r = row as Partial<InboxChatRow> & { kind: string };
+  const peer = r.peer as Partial<InboxChatRow["peer"]> | undefined;
+  const ok = r.kind === "chat" && typeof r.id === "string" && typeof r.me === "string" && typeof r.key_epoch === "number"
+    && typeof r.name === "string" && typeof r.age === "number" && (r.state === "open" || r.state === "ended")
+    && typeof r.chat_expires_at === "number" && typeof r.my_span === "number"
+    && !!peer && typeof peer.identity_id === "string" && typeof peer.identity_public_key === "string" && typeof peer.key_epoch === "number";
+  return ok ? (row as InboxChatRow) : null;
 }

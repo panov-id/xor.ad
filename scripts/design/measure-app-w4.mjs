@@ -215,7 +215,7 @@ const { ctx, page } = await open(browser, PREVIEW + "/", 390, { screen: "w4", pr
 await registerFull(page);
 stub.s.docs = LATER;
 await page.click('[data-testid="tab-me"]'); await page.waitForSelector('[data-screen="me"]', { timeout: 20000 });
-await page.waitForFunction(() => /\d/.test(document.querySelector('[data-testid="me-name-age"]')?.textContent ?? ""), null, { timeout: 20000 });
+await page.locator('[data-testid="me-name-age"]', { hasText: /\d/ }).waitFor({ timeout: 20000 });
 note(new URL(page.url()).pathname === "/me", `walk: the tab bar's «me» opens Me at ${new URL(page.url()).pathname}`);
 
 // w4_me
@@ -442,7 +442,11 @@ if (want("step-away")) {
   await enter(page, "me-away", "step-away");
   note((await page.getAttribute('[data-testid="away-go"]', "aria-disabled")) === "true", "step-away: nothing chosen at first, Step away shut (§8.2)");
   await page.click('[data-testid="away-hour"]');
-  await page.waitForFunction(() => !document.querySelector('[data-testid="away-price"]')?.textContent?.includes("…"), null, { timeout: 20000 }); await settle(page);
+  // Wait on what the next steps need, by locators (waitForFunction is Playwright's eval, which the page's CSP may refuse):
+  // the hour chosen, «Step away» open, the price counted.
+  await page.locator('[data-testid="away-hour"][aria-checked="true"]').waitFor({ timeout: 20000 });
+  await page.locator('[data-testid="away-go"]:not([aria-disabled])').waitFor({ timeout: 20000 });
+  await page.locator('[data-testid="away-price"]', { hasNotText: "…" }).waitFor({ timeout: 20000 }); await settle(page);
   await frame(page, scr, S);
   for (let i = 0; i < 3; i++) compare(scr, `chip ${i + 1}`, shapeOf(sh[2 + i]), await box(page, ".me-chip", i));
   for (let i = 0; i < 3; i++) compare(scr, `hairline ${i + 1} (x,y,w)`, [sh[5 + i].x, sh[5 + i].y, sh[5 + i].w], (await box(page, ".me-pairs div", i)).slice(0, 3));
@@ -497,7 +501,7 @@ if (want("me-reset")) {
   const S = sheet("me-reset"), sh = S.shapes, scr = "me-reset";
   await page.locator('[data-testid="me-reset"]').scrollIntoViewIfNeeded();
   await enter(page, "me-reset", "reset");
-  await page.waitForFunction(() => !document.querySelector('[data-testid="reset-price"]')?.textContent?.includes("…"), null, { timeout: 20000 });
+  await page.locator('[data-testid="reset-price"]', { hasNotText: "…" }).waitFor({ timeout: 20000 });
   await page.fill('[data-testid="reset-pin"]', "271828"); await page.locator('[data-testid="reset-pin"]').blur(); await settle(page);
   await frame(page, scr, S);
   compare(scr, "coral banner", shapeOf(sh[2]), await box(page, '[data-testid="reset-warning"]'));

@@ -157,6 +157,20 @@ try {
     check(at !== "splash" && at !== "register", `7 Back from the feed after the registration draws no gate (screen ${at}, url ${new URL(page.url()).pathname}, state ${await state(page)})`);
     await ctx.close();
   }
+  // 7b. Back pressed again and again after the registration: never a gate drawn while the page is still the app's
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    const seen = [];
+    for (let n = 1; n <= 4; n++) {
+      const r = await page.goBack({ timeout: 3000 }).catch(() => "none");
+      await settle(page);
+      const url = page.url();
+      const at = url.startsWith("http://localhost") ? await page.locator("main[data-screen]").first().getAttribute("data-screen").catch(() => "(none)") : "(left the app)";
+      seen.push(`${n}:${at}@${url.startsWith("http://localhost") ? new URL(url).pathname : url}${r === null ? " (no entry)" : ""}`);
+    }
+    check(!seen.some((x) => /:(splash|register)@/.test(x)), `7b four Backs after the registration draw no gate (${seen.join(", ")})`);
+    await ctx.close();
+  }
   // 4. Me → Move → Back: Me again, not the feed (App.tsx toMove pushes i: 1; popstate → seatScreen("/me"))
   {
     const { ctx, page } = await open(browser); await registerFull(page);

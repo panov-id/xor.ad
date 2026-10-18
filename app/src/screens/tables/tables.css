@@ -133,3 +133,20 @@
 .tb-edge[data-taken] span { background: var(--c-text); }
 .tb-edge:not([data-taken]):not(:disabled):hover span, .tb-edge:not([data-taken]):not(:disabled):focus-visible span { background: var(--c-yellow); }
 .tb-edge:disabled { cursor: default; }
+
+/* hangman: the gallows, the word's slots, the keyboard rows centred */
+.tb-hangman { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; }
+/* the gallows stands left of the middle, as the sheet draws it (its base from x 55) */
+.tb-gallows { justify-self: start; margin-inline-start: var(--tb-gallows-start); width: var(--tb-gallows-w); height: var(--tb-gallows-h); margin-top: var(--tb-gallows-top); fill: none; stroke: var(--c-text); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+/* a long word narrows its slots rather than leave the panel */
+.tb-mask { margin-top: var(--tb-mask-top); max-width: 100%; display: flex; gap: var(--tb-slot-gap); min-height: var(--tb-slot-h); }
+.tb-slot { flex: 0 1 var(--tb-slot); min-width: 0; width: var(--tb-slot); height: var(--tb-slot-h); border-bottom: var(--tb-slot-line) solid var(--c-text); display: grid; place-items: end center;
+  font-size: var(--fs-tb-slot); font-weight: var(--fw-700); line-height: 1; text-transform: uppercase; }
+.tb-keys { margin-top: var(--tb-keys-top); max-width: 100%; translate: var(--tb-keys-shift) 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--tb-key-row-gap); padding-bottom: var(--tb-keys-bottom); }
+.tb-key-row { min-width: 0; display: flex; justify-content: center; gap: var(--tb-key-gap); }
+.tb-key { flex: 0 1 var(--tb-key-w); min-width: 0; width: var(--tb-key-w); height: var(--tb-key-h); min-height: 0; padding: 0; border-radius: var(--tb-key-r); background: var(--c-sheet); color: var(--c-text);
+  box-shadow: inset 0 0 0 var(--tb-cell-line) var(--c-cell-line); font-size: var(--fs-tb-key); font-weight: var(--fw-700); text-transform: uppercase; }
+.tb-key[data-used] { background: var(--c-cell-line); box-shadow: none; }
+.tb-key:disabled { cursor: default; }
+.tb-set { margin-top: var(--tb-keys-top); width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-2); padding-bottom: var(--tb-keys-bottom); }
+.tb-set input { min-width: 0; height: var(--tb-line-h); padding: 0 var(--tb-line-pad); border: 0; border-radius: var(--r-pill); background: var(--c-sheet); color: var(--c-text); font: inherit; }

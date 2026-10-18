@@ -79,4 +79,23 @@
   --tb-edge-line: 4px;
   --c-box-mine: #6B5878;
   --c-box-theirs: #5E5A6E;
+  --tb-gallows-w: 147px;
+  --tb-gallows-h: 174.7px;
+  --tb-gallows-top: 14px;
+  --tb-gallows-start: 20.6px;
+  --tb-mask-top: 8px;
+  --tb-slot: 24px;
+  --tb-slot-h: 30px;
+  --tb-slot-gap: 6px;
+  --tb-slot-line: 3px;
+  --fs-tb-slot: 22px;
+  --tb-keys-top: 25.8px;
+  --tb-key-w: 28.9px;
+  --tb-key-h: 33.8px;
+  --tb-key-gap: 3.9px;
+  --tb-key-row-gap: 6px;
+  --tb-key-r: 8px;
+  --fs-tb-key: 13px;
+  --tb-keys-bottom: 0px;
+  --tb-keys-shift: -2.3px;
 }

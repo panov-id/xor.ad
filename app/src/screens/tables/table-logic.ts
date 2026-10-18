@@ -57,8 +57,10 @@ export function firstAction(view: TableView): "start" | "say" | "pass" | "like" 
 // ── four in a row (relay/node/src/lib/tables_reversi.ts playFour): 7 columns a..g, 6 rows, a piece falls ──
 export type Grid = { cells: Record<string, { seat: number; piece: string }>; rules?: string };
 export type Stand = "mine" | "theirs" | "free";
-export const gridOf = (view: TableView): Grid | null => {
-  const g = (view.board?.state as { grid?: Grid } | undefined)?.grid;
+// A board's state as the node gives it (Board.state at a table, the game's state in a talk): each game reads its part.
+export type BoardState = Record<string, unknown> | null | undefined;
+export const gridOf = (state: BoardState): Grid | null => {
+  const g = (state as { grid?: Grid } | null | undefined)?.grid;
   return g && typeof g === "object" && g.cells ? g : null;
 };
 const standOf = (g: Grid, id: string, seat: number): Stand => (g.cells[id] ? (g.cells[id].seat === seat ? "mine" : "theirs") : "free");
@@ -83,6 +85,10 @@ export type DotsLayout = {
   edges: Array<{ id: string; dir: "h" | "v"; r: number; c: number; taken: boolean }>;
   boxes: Array<{ r: number; c: number; stand: Exclude<Stand, "free"> }>;
 };
+export const dotsStateOf = (state: BoardState): { n: number; edges: string[]; boxes: Record<string, number> } | null => {
+  const d = (state as { dots?: { n: number; edges: string[]; boxes: Record<string, number> } } | null | undefined)?.dots;
+  return d && typeof d.n === "number" && Array.isArray(d.edges) ? d : null;
+};
 export function dotsLayout(dots: { n: number; edges: string[]; boxes: Record<string, number> }, seat: number): DotsLayout {
   const taken = new Set(dots.edges);
   const edges: DotsLayout["edges"] = [];
@@ -93,4 +99,31 @@ export function dotsLayout(dots: { n: number; edges: string[]; boxes: Record<str
     return { r, c, stand: owner === seat ? "mine" as const : "theirs" as const };
   });
   return { n: dots.n, edges, boxes };
+}
+
+// ── hangman (relay/node/src/lib/tables_word.ts wordFor): the setter sets a word, the other guesses a letter at a time;
+// six misses end a round. The node gives the mask ("_" a hidden letter), the letters tried and the set's alphabet ──
+export type Word = { setter: number; set?: string | null; alphabet?: string[] | null; word: string | null; mask: string | null; guessed: string[]; misses: number };
+export const wordOf = (state: BoardState): Word | null => {
+  const w = (state as { word?: Word } | null | undefined)?.word;
+  return w && typeof w === "object" && Array.isArray(w.guessed) ? w : null;
+};
+const QWERTY = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+const EN = "abcdefghijklmnopqrstuvwxyz";
+// The keyboard: English as the sheet lays it (QWERTY); any other alphabet in its own order, ten to a row. A set
+// without an alphabet (the old "hangman") takes English letters.
+export function keyRows(alphabet: string[] | null | undefined): string[][] {
+  const letters = alphabet && alphabet.length ? alphabet : [...EN];
+  if (letters.join("") === EN) return QWERTY.map((r) => [...r]);
+  const rows: string[][] = [];
+  for (let i = 0; i < letters.length; i += 10) rows.push(letters.slice(i, i + 10));
+  return rows;
+}
+export type HangmanView = { mode: "set" | "guess" | "wait"; slots: Array<string | null>; rows: Array<Array<{ letter: string; used: boolean }>>; misses: number };
+export function hangmanView(w: Word, seat: number, myTurn: boolean): HangmanView {
+  const mode = w.mask === null ? (w.setter === seat && myTurn ? "set" : "wait") : (w.setter !== seat && myTurn ? "guess" : "wait");
+  const shown = w.word ?? w.mask;   // the setter sees the word whole
+  const slots = shown === null ? [] : [...shown].map((c) => (c === "_" ? null : c));
+  const used = new Set(w.guessed);
+  return { mode, slots, rows: keyRows(w.alphabet).map((r) => r.map((letter) => ({ letter, used: used.has(letter) }))), misses: w.misses };
 }

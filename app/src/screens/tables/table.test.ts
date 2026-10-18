@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { dotsLayout, facePair, firstAction, fourColumns, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -72,4 +72,24 @@ test("dots: every edge of an n×n field once, taken as the node says; a closed b
   assert.deepEqual(l.edges.filter((e) => e.taken).map((e) => e.id).sort(), ["h:4:0", "v:0:4"]);
   assert.deepEqual(l.edges.find((e) => e.id === "v:0:4"), { id: "v:0:4", dir: "v", r: 0, c: 4, taken: true });
   assert.deepEqual(l.boxes, [{ r: 1, c: 1, stand: "mine" }, { r: 3, c: 3, stand: "theirs" }]);
+});
+
+test("hangman keys: English as QWERTY (three rows), another alphabet ten to a row in its order, none given is English", () => {
+  assert.deepEqual(keyRows([..."abcdefghijklmnopqrstuvwxyz"]).map((r) => r.join("")), ["qwertyuiop", "asdfghjkl", "zxcvbnm"]);
+  assert.deepEqual(keyRows(null).map((r) => r.length), [10, 9, 7]);
+  const ru = [..."абвгдеёжзийклмнопрстуфхцчшщъыьэюя"];
+  assert.deepEqual(keyRows(ru).map((r) => r.length), [10, 10, 10, 3]);
+  assert.equal(keyRows(ru).flat().join(""), ru.join(""), "every letter once, in order");
+});
+test("hangman: the guesser in turn guesses, the setter in turn sets; the mask's _ is a hidden slot; tried letters are used", () => {
+  const w = { setter: 2, alphabet: null, word: null, mask: "ka__e", guessed: ["k", "a", "e", "q"], misses: 1 };
+  const g = hangmanView(w, 1, true);
+  assert.equal(g.mode, "guess");
+  assert.deepEqual(g.slots, ["k", "a", null, null, "e"]);
+  assert.deepEqual(g.rows[0].filter((k) => k.used).map((k) => k.letter), ["q", "e"]);
+  assert.equal(hangmanView(w, 1, false).mode, "wait");
+  assert.equal(hangmanView(w, 2, true).mode, "wait", "the setter never guesses their own word, even in turn");
+  assert.equal(hangmanView({ ...w, mask: null }, 2, true).mode, "set", "no word yet: the setter in turn sets it");
+  assert.equal(hangmanView({ ...w, mask: null }, 1, true).mode, "wait");
+  assert.deepEqual(hangmanView({ ...w, word: "kalle" }, 2, false).slots, ["k", "a", "l", "l", "e"], "the setter sees the word whole");
 });

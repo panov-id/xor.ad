@@ -18,7 +18,7 @@ import { chevronLeft, chevronRight, ellipsis } from "../../shell/icons";
 import { useLayers } from "../../shell/layers";
 import { Screen } from "../../shell/Screen";
 import { initial } from "../me/me-logic";
-import { DotsBoard, FourBoard } from "./boards";
+import { Board } from "./boards";
 import { gameName } from "./table-row";
 import { facePair, firstAction, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
 import { toneAt } from "./tables-logic";
@@ -130,8 +130,7 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
       </div>
       <div className="tb-sheet">
         <div className="tb-panel" data-class={view.class} data-set={view.set}>
-          {view.set === "four" && <FourBoard view={view} onMove={onMove} />}
-          {view.class === "dots" && <DotsBoard view={view} onMove={onMove} />}
+          <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} onMove={onMove} />
         </div>
         {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
         {proposed && (

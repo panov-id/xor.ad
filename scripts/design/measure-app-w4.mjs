@@ -411,15 +411,25 @@ if (want("statements")) {
   await page.waitForSelector('[data-testid="statement"]', { timeout: 20000 }); await settle(page);
   await frame(page, scr, S);
   compare(scr, "banner", shapeOf(sh[2]), await box(page, ".me-statement .me-banner"));
-  for (let i = 0; i < 4; i++) compare(scr, `hairline ${i + 1} (x,y,w)`, [sh[3 + i].x, sh[3 + i].y, sh[3 + i].w], (await box(page, ".me-pairs div", i)).slice(0, 3));
-  compare(scr, "appeal", shapeOf(sh[7]), await box(page, '[data-testid="statements-appeal"]'));
+  // The facts and the ground are prose (5ef374bf, parts.tsx Pairs "prose"): the value wraps under its label, so those
+  // rows are taller than the sheet's one-line rows. Of a prose row only the row's top and its label's left edge and
+  // baseline are compared; whatever stands below is expected lower by what the prose rows measured over the sheet's.
+  const rowH = sh[4].y - sh[3].y;
+  const prose = await page.locator(".me-pairs div").evaluateAll((els) => els.map((e) => e.classList.contains("me-pair--prose")));
+  let grown = 0;
+  for (let i = 0; i < 4; i++) {
+    const b = await box(page, ".me-pairs div", i);
+    compare(scr, `hairline ${i + 1} (x,y,w)`, [sh[3 + i].x, sh[3 + i].y + grown, sh[3 + i].w], b.slice(0, 3));
+    const lab = S.lines[3 + 2 * i];
+    left(scr, `label ${i + 1}`, { ...lab, base: lab.base + grown }, await line(page, ".me-pairs dt", i));
+    if (!prose[i]) right(scr, `value ${i + 1}`, { ...S.lines[4 + 2 * i], base: S.lines[4 + 2 * i].base + grown }, await line(page, ".me-pairs dd", i));
+    if (prose[i]) grown += b[3] - rowH;
+  }
+  note(prose.filter(Boolean).length === 2 && prose[0] && prose[1], `statements: the facts and the ground are the prose rows (${prose.join(",")}); rows below expected ${grown.toFixed(1)} px lower`);
+  compare(scr, "appeal", [sh[7].x, sh[7].y + grown, sh[7].w, sh[7].h], await box(page, '[data-testid="statements-appeal"]'));
   left(scr, "banner title", S.lines[1], await line(page, ".me-statement .me-banner strong"));
   left(scr, "banner text", S.lines[2], await line(page, ".me-statement .me-banner p"));
-  for (let i = 0; i < 4; i++) {
-    left(scr, `label ${i + 1}`, S.lines[3 + 2 * i], await line(page, ".me-pairs dt", i));
-    right(scr, `value ${i + 1}`, S.lines[4 + 2 * i], await line(page, ".me-pairs dd", i));
-  }
-  left(scr, "appeal label", S.lines[11], await line(page, '[data-testid="statements-appeal"] span'));
+  left(scr, "appeal label", { ...S.lines[11], base: S.lines[11].base + grown }, await line(page, '[data-testid="statements-appeal"] span'));
   await overflowAt(page, scr, 390); await shot(page, scr);
   await page.click('[data-testid="statements-appeal"]');
   note(await page.locator('[data-testid="statements-ways"]').isVisible(), "walk: Appeal opens the ways to appeal");

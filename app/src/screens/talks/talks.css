@@ -115,3 +115,6 @@
 .tk-to-talks { height: var(--wt-talks-h); min-height: 0; border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text);
   display: flex; align-items: center; justify-content: center; gap: var(--wt-talks-gap); font-size: var(--fs-wt-name); font-weight: var(--fw-700); }
 .tk-to-talks .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }
+
+/* the desktop's count over the title (Inbox.tsx; tokens/wide.css shows it at 1440 and up) */
+.tk-count { display: none; }

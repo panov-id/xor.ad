@@ -111,6 +111,7 @@
   .ch-pane .ch-sheet { background: none; border-radius: 0; border-top: 1px solid var(--c-panel); margin-inline: var(--ch-side); }
   .ch-pane .ch-lines, .ch-pane .ch-foot { padding-inline: 0; }
   .ch-pane .ch-more { left: auto; right: calc(var(--ch-ring-end) + var(--ch-ring) + 8px); }
+
 }
 
 /* ── desktop ── */
@@ -197,4 +198,19 @@
     background: var(--c-sheet); border-radius: var(--r-sheet); padding: 0 0 24px; z-index: 2;
     --tk-row-side: 35.9px; --tk-row-h: 85.9px; --tk-strip-top: 8.5px; --tk-strip-pad: 22.8px; }
   .tk-pane h2 { margin: 0; padding: 26.9px 0 0 24.4px; font-size: 20px; font-weight: 800; line-height: 1.2; }
+
+  /* the talks with a talk beside the list (desktop_1440_Talks): the rail, the panel the whole width, the count, the title and the
+     strip at its top, the list (339.6) and the talk (745) side by side; no right pane here */
+  .tk[data-beside] .me-head { display: none; }
+  .tk[data-beside] .tk-count { display: block; position: absolute; left: 279px; top: 69.9px; transform: translateY(-80%); margin: 0; z-index: 1;
+    font-size: 13px; font-weight: 600; line-height: 1; color: var(--c-muted); }
+  .tk[data-beside] .tk-title { left: 279.4px; top: 114.8px; z-index: 1; }
+  .tk[data-beside] .tk-sheet { left: var(--panel-left); right: auto; top: var(--panel-top); bottom: var(--panel-bottom); width: 1166.5px;
+    grid-template-columns: 339.6px 745px; column-gap: 21.9px; padding: 230.7px 30px 22px; overflow: hidden; }
+  .tk[data-beside] .tk-strip { left: 28.8px; top: 124.6px; --tk-offers: 64.3px; --tk-face: 57.9px; --tk-strip-gap: 16px; }
+  /* the sheet draws the talk past the panel's foot (its field below the window): here it ends in the panel, the field in sight */
+  .ch.ch-pane {
+    --ch-side: 22px; --ch-side-end: 22px; --ch-avatar-x: 22px; --ch-avatar-y: 21.9px; --ch-avatar: 47.9px; --ch-who-x: 83.2px; --ch-name-base: 43.9px;
+    --ch-line-base: 63.9px; --ch-ring-end: 21.9px; --ch-ring-y: 23.9px; --ch-foot-bottom: 22px; --ch-field-gap: 11.9px; --ch-head-h: 80.8px; }
+  .ch-pane .ch-sheet { border-top: 0; }
 }

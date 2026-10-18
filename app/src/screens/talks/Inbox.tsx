@@ -120,6 +120,8 @@ export function Inbox({ client, onTab, onOpenMatch, onOpenChat, onLikes, beside,
   return (
     <Screen name="inbox" title={title} className="tk" data-beside={beside ? "" : undefined}>
       <header className="me-head"><span className="word">sosed</span></header>
+      {/* the desktop's line over the title (desktop_1440_Talks «4 talks · 3 new offers»): counted off the inbox's rows */}
+      {rows && <p className="tk-count">{say("app.talks.count", { talks: splitInbox(rows).talks.length, offers: splitInbox(rows).offers.filter(isFresh).length })}</p>}
       <h1 className="tk-title">{title}</h1>
       <p className="tk-sub">{say("app.talks.sub")}</p>
       <div className="tk-sheet">

@@ -1,0 +1,69 @@
+/* Tables and the new-table wizard (sosed Dusk, sheets mobile w3_tables, w3_new-table-1..3). Sizes are tokens
+   (tokens/tables.css). The bar over the wizard is the move's (move.css .mv-bar), its step bars the register's. */
+
+.tb, .nt { overflow: hidden; background: var(--c-night); }
+
+/* ── the list ── */
+.tb-head { flex: none; width: 100%; max-width: var(--entry-max); margin: var(--me-head-top) auto 0; padding-inline-start: var(--me-head-side); line-height: var(--lh-tight);
+  animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
+.tb-head h1 { margin-top: var(--tb-title-top); font-size: var(--fs-title); font-weight: var(--fw-800); line-height: var(--lh-tight); }
+.tb-sub { margin-top: var(--tb-sub-gap); font-size: var(--fs-body); color: var(--c-muted); font-weight: var(--fw-500); }
+.tb-sheet { flex: 1; min-height: 0; margin-top: var(--tb-sheet-gap); background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  display: flex; flex-direction: column; animation: sheet-up var(--d-sheet-in) var(--ease) var(--t-sheet-in-start) both; }
+.tb-body { width: 100%; max-width: var(--entry-max); margin-inline: auto; flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: var(--tb-gap);
+  padding: var(--tb-pad-top) var(--me-side-end) calc(var(--s-nav-bar) + var(--tabbar-bottom) + var(--sp-4)) var(--me-side); }
+.tb-body > * { flex: none; }
+.tb-new { height: var(--tb-new-h); font-size: var(--fs-tb-new); }
+.tb-list { list-style: none; padding: 0; display: grid; gap: var(--tb-gap); }
+.tb-list > li { animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
+.tb-mine { display: grid; gap: var(--tb-mine-gap); }
+.tb-mine h2 { padding-inline: var(--reg-label-inset); font-size: var(--fs-field-label); font-weight: var(--fw-700); color: var(--c-muted); }
+
+/* a table: its face, what it is, and the way in. The wizard's last step draws the same row. */
+.tb-row { --tone: var(--c-lime); display: flex; align-items: center; gap: var(--tb-face-gap); padding: var(--tb-row-pad); border-radius: var(--tb-row-r); background: var(--c-panel); }
+.tb-row.tb-yellow { --tone: var(--c-yellow); }
+.tb-row.tb-peach { --tone: var(--c-peach); }
+.tb-row.tb-lilac { --tone: var(--c-lilac); }
+.tb-face { flex: none; width: var(--tb-face); height: var(--tb-face); border-radius: var(--tb-face-r); background: var(--tone); color: var(--c-ink); display: grid; place-items: center; }
+.tb-face .icon { --icon-size: var(--icon-tb-face); --stroke: 2; }
+.tb-text { flex: 1; min-width: 0; }
+.tb-name { font-size: var(--fs-tb-name); line-height: var(--lh-tb-line); font-weight: var(--fw-700); overflow-wrap: anywhere; }
+.tb-meta { margin-top: var(--tb-meta-lift); font-size: var(--fs-tb-meta); line-height: var(--lh-tb-line); font-weight: var(--fw-500); color: var(--c-muted); }
+.tb-watch { flex: none; min-height: 0; width: var(--tb-watch-w); height: var(--tb-watch-h); margin-inline-start: calc(var(--tb-watch-gap) - var(--tb-face-gap)); border-radius: var(--r-pill);
+  background: var(--c-lime); color: var(--c-ink); font-size: var(--fs-tb-watch); font-weight: var(--fw-700); display: grid; place-items: center; }
+.tb-watch[aria-disabled="true"] { cursor: default; }
+
+/* ── the wizard ── */
+.nt-steps { flex: none; width: 100%; max-width: var(--entry-max); margin: var(--nt-steps-lift) auto 0; padding-inline: var(--reg-side);
+  animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
+.nt-steps .reg-step { margin-top: 0; }
+.nt-sheet { flex: 1; min-height: 0; margin-top: var(--nt-sheet-gap); background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  display: flex; flex-direction: column; animation: sheet-up var(--d-sheet-in) var(--ease) var(--t-sheet-in-start) both; }
+.nt-body { width: 100%; max-width: var(--entry-max); margin-inline: auto; flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column;
+  padding: var(--nt-pad-top) var(--me-side-end) var(--sp-4) var(--me-side); }
+.nt-body > * { flex: none; animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
+.nt-title { font-size: var(--fs-nt-title); font-weight: var(--fw-800); line-height: var(--lh-tight); }
+.nt-body > .nt-lead { margin-top: var(--nt-title-gap); font-size: var(--fs-body); line-height: var(--lh-sub); color: var(--c-muted); }
+.nt-body > .nt-lead + .reg-field { margin-top: var(--nt-lead-gap); }
+.nt-body > .reg-field + .reg-field { margin-top: var(--nt-group-gap); }
+.nt-body .reg-counter { margin-top: var(--nt-counter-gap); }
+.nt-foot { width: 100%; max-width: var(--entry-max); margin-inline: auto; display: grid;
+  padding: var(--me-foot-top) var(--me-side-end) max(var(--reg-foot-bottom), env(safe-area-inset-bottom)) var(--me-side);
+  --from: var(--o-action); animation: rise var(--d-action) var(--ease) var(--t-action-start) both; }
+.nt-foot .cta[aria-disabled="true"] { opacity: var(--o-disabled); }
+
+/* step 1: the games */
+.nt-games { list-style: none; padding: 0; margin-top: var(--nt-grid-top); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--nt-grid-gap); }
+.nt-game { --tone: var(--c-lime); position: relative; width: 100%; height: var(--nt-game-h); min-height: 0; padding: var(--nt-game-pad); border-radius: var(--nt-game-r); background: var(--tone); color: var(--c-ink);
+  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; text-align: start; }
+.nt-game.tb-yellow { --tone: var(--c-yellow); }
+.nt-game.tb-peach { --tone: var(--c-peach); }
+.nt-game.tb-lilac { --tone: var(--c-lilac); }
+.nt-game[aria-checked="true"] { box-shadow: inset 0 0 0 var(--nt-game-ring) var(--c-ink); }
+.nt-face { width: var(--nt-game-face); height: var(--nt-game-face); border-radius: var(--r-pill); background: var(--nt-face-wash); display: grid; place-items: center; }
+.nt-face .icon { --icon-size: var(--icon-nt-face); --stroke: 2; }
+.nt-game-name { font-size: var(--fs-nt-game); font-weight: var(--fw-700); line-height: var(--lh-tight); }
+
+/* step 3: the table as neighbours see it */
+.nt-body > .nt-see { margin-top: var(--nt-grid-top); }
+.nt-body > .nt-hint { margin-top: var(--nt-hint-gap); font-size: var(--fs-notice); line-height: var(--lh-notice); color: var(--c-muted); }

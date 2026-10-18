@@ -2,8 +2,8 @@ import { say } from "../i18n";
 import { Icon } from "./Icon";
 import { chat, home, person, tables } from "./icons";
 
-// The bar under the feed and "Me" (sheet w4_me): four round tabs, the current one lime. Chats and tables
-// are not in this shell yet: their tabs are drawn and say so (aria-disabled), they open nothing.
+// The bar under the feed, the tables and "Me" (sheet w4_me): four round tabs, the current one lime. Chats
+// are not in this shell yet: their tab is drawn and says so (aria-disabled), it opens nothing.
 export type Tab = "feed" | "tables" | "chats" | "me";
 const TABS: Array<{ tab: Tab; d: string; key: string }> = [
   { tab: "feed", d: home, key: "app.tab.feed" },
@@ -11,7 +11,7 @@ const TABS: Array<{ tab: Tab; d: string; key: string }> = [
   { tab: "chats", d: chat, key: "app.tab.chats" },
   { tab: "me", d: person, key: "app.tab.me" },
 ];
-const OPEN: Tab[] = ["feed", "me"];
+const OPEN: Tab[] = ["feed", "tables", "me"];
 
 export function TabBar({ active = "feed", onSelect }: { active?: Tab; onSelect?: (tab: Tab) => void }) {
   return (

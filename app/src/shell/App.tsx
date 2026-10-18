@@ -12,6 +12,8 @@ import { Register, type Seated } from "../screens/Register";
 import { Splash } from "../screens/Splash";
 import { Unlock } from "../screens/Unlock";
 import { Me } from "../screens/me/Me";
+import { NewTable } from "../screens/tables/NewTable";
+import { Tables } from "../screens/tables/Tables";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
 import type { Tab } from "./TabBar";
@@ -159,9 +161,19 @@ export function App() {
   const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
   // The tab bar: the feed and "Me" are seats as the feed is (a reload asks the PIN); one replaces the other in history.
   const tab = (to: Tab) => {
-    if (to !== "feed" && to !== "me") return;
+    if (to !== "feed" && to !== "tables" && to !== "me") return;
     history.replaceState({ gate: to, i: 0 }, "", pathOf({ at: to }));
     setScreen({ at: to });
+  };
+  // The tables' «New table»: the wizard on top of the list, so its first Back (i: 1) is the history's Back onto /tables.
+  const toNewTable = () => {
+    history.pushState({ gate: "new-table", i: 1 }, "", pathOf({ at: "new-table" }));
+    setScreen({ at: "new-table" });
+  };
+  // A table made: the list again, in place of the wizard's entry (the table's own screen, w3_table-*, is not in this shell yet).
+  const toTables = () => {
+    history.replaceState({ gate: "tables", i: 0 }, "", pathOf({ at: "tables" }));
+    setScreen({ at: "tables" });
   };
   // Me's move row: the departure on top of Me, so its back (i: 1) is the history's Back onto /me.
   const toMove = () => {
@@ -191,6 +203,8 @@ export function App() {
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
+      case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} /> : null;
+      case "new-table": return seated ? <NewTable client={seated.client} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;

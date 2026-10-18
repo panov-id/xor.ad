@@ -16,7 +16,9 @@ export type Screen =
   | { at: "feed" }
   | { at: "departure" }
   | { at: "away"; until: number }
-  | { at: "me" };
+  | { at: "me" }
+  | { at: "tables" }
+  | { at: "new-table" };
 
 type At = Screen["at"];
 
@@ -31,6 +33,8 @@ export const ROUTES: Record<At, string> = {
   departure: "/move",
   away: "/away",
   me: "/me",
+  tables: "/tables",
+  "new-table": "/tables/new",
 };
 
 // A path names a gate (reload, Back, a typed address); anything else is not one.
@@ -43,11 +47,13 @@ export function gateOf(path: string): Gate | null {
 
 export const pathOf = (s: Screen): string => ROUTES[s.at];
 
-/** A seat's own address (an identity on the page): /move is the departure, /me is Me, /away the away screen; anything else is the feed. */
+/** A seat's own address (an identity on the page): /move is the departure, /me is Me, /tables the tables, /tables/new the wizard, /away the away screen; anything else is the feed. */
 export const seatScreen = (path: string, state?: { until?: number } | null): Screen => {
   const p = path.replace(/\/+$/, "");
   if (p === ROUTES.departure) return { at: "departure" };
   if (p === ROUTES.me) return { at: "me" };
+  if (p === ROUTES.tables) return { at: "tables" };
+  if (p === ROUTES["new-table"]) return { at: "new-table" };
   // The away screen's until rides in its history entry (App.tsx awayCheck); a lapsed one is the feed.
   if (p === ROUTES.away && typeof state?.until === "number" && state.until > Date.now() / 1000) return { at: "away", until: state.until };
   return { at: "feed" };

@@ -192,4 +192,10 @@
   --fs-card-text: 26px;
   --fd-row-h: 48px;
   --fd-textarea-h: 96px;
+  /* the tab bar (sheet w4_me: bar 23.9,747 340.3x71.6, lime tab 53.7 at 294.5) */
+  --tabbar-side: 24.85px;
+  --tabbar-bottom: 25.4px;
+  --tabbar-pad: 16px;
+  --tab: 53.7px;
+  --icon-tab: 22px;
 }

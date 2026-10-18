@@ -8,8 +8,10 @@ import { Locked } from "../screens/Locked";
 import { Register, type Seated } from "../screens/Register";
 import { Splash } from "../screens/Splash";
 import { Unlock } from "../screens/Unlock";
+import { Me } from "../screens/me/Me";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
+import type { Tab } from "./TabBar";
 import { useSkeleton } from "./loading";
 
 // In the dev server ?boot=<ms> makes the boot wait, to look at the loading screen.
@@ -104,6 +106,19 @@ export function App() {
     setScreen({ at: "feed" });
   }
   const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
+  // The tab bar: the feed and "Me" are seats as the feed is (a reload asks the PIN); one replaces the other in history.
+  const tab = (to: Tab) => {
+    if (to !== "feed" && to !== "me") return;
+    history.replaceState({ gate: to, i: 0 }, "", pathOf({ at: to }));
+    setScreen({ at: to });
+  };
+  // The identity closed for good (Me → Start again): nothing of it stays; the splash.
+  const closed = () => {
+    vaulted.current = null;
+    setSeated(null);
+    history.replaceState({ gate: "splash", i: 0 }, "", pathOf({ at: "splash" }));
+    setScreen({ at: "splash" });
+  };
 
   // One line and nothing else while locked: no name, no counts, no rooms.
   if (locked && seated) return <LayerStack base={<Locked client={seated.client} onUnlocked={() => setLocked(false)} />} />;
@@ -116,7 +131,8 @@ export function App() {
       case "register": return <Register onDone={seat} />;
       case "unlock": return <Unlock record={screen.record} onDone={unlocked} onForget={() => { vaulted.current = null; gate({ at: "splash" }); }} onRestore={() => gate({ at: "restore" })} />;
       case "restore": case "arrival": return <Gate at={screen.at} onBack={gateBack} />;
-      case "feed": return seated ? <Feed client={seated.client} /> : null;
+      case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
+      case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} /> : null;
     }
   };
   return <LayerStack base={view()} />;

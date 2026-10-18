@@ -29,4 +29,5 @@ export const idleMs = (): number => idleMsOf(stand);
 const keep = createKeep({ node: { base: NODE_BASE, key: API_KEY }, graceMs: graceMsOf });
 export const {
   readRecord, registerAndKeep, forget, stampGrace, dropGrace, leavingWithGrace, returningWithGrace, hiddenWithGrace, unlockAfterReload, unlockByGrace,
+  changePinAndReseal,
 } = keep;

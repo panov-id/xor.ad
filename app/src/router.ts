@@ -13,7 +13,8 @@ export type Screen =
   | { at: "restore" }
   | { at: "arrival" }
   | { at: "unlock"; record: Record_ }
-  | { at: "feed" };
+  | { at: "feed" }
+  | { at: "me" };
 
 type At = Screen["at"];
 
@@ -25,6 +26,7 @@ export const ROUTES: Record<At, string> = {
   arrival: "/arrival",
   unlock: "/unlock",
   feed: "/feed",
+  me: "/me",
 };
 
 // A path names a gate (reload, Back, a typed address); anything else is not one.

@@ -62,7 +62,9 @@ test("the screens' words: every key used exists; the app's own have ru and en al
     .concat(["terms", "privacy", "guidelines"].flatMap((d) => [`web.legal.${d}`, `web.legal.short.${d}`]));
   assert.ok(used.length > 15, `only ${used.length} keys found in the screens`);
   const ru = appKeys("ru"), en = appKeys("en");
-  assert.deepEqual([...ru].sort(), [...en].sort(), "the app's own words differ between ru and en");
+  // A counted line's forms are the language's own (ru one/few/many/other, en one/other): alike is the plain keys.
+  const plain = (keys: Set<string>) => [...keys].filter((k) => !/\.(zero|one|two|few|many|other)$/.test(k)).sort();
+  assert.deepEqual(plain(ru), plain(en), "the app's own words differ between ru and en");
   for (const key of new Set([...used, ...built])) {
     if (key.startsWith("app.")) { assert.ok(ru.has(key) && en.has(key), `${key}: not in the app's own ru and en`); continue; }
     for (const lang of ["ru", "en"]) {

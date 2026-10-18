@@ -14,6 +14,10 @@ step "app-tokens.py --check"
 docker run --rm --user "$(id -u):$(id -g)" -v "$root":/repo:ro -w /repo "$py_image" \
   python3 -I scripts/design/app-tokens.py --check || fail=1
 
+step "app-i18n-keys.py (no key twice in a language, every called key there)"
+docker run --rm --network none --user "$(id -u):$(id -g)" -v "$root":/repo:ro -w /repo "$py_image" \
+  python3 -I scripts/design/app-i18n-keys.py /repo || fail=1
+
 step "no raw px in app/src (sizes live in app/tokens)"
 if grep -rEn '[0-9]px' "$root/app/src" --include='*.css' --include='*.ts' --include='*.tsx'; then
   echo "raw px outside app/tokens: add a token to app/tokens/layout.css"; fail=1
@@ -27,14 +31,25 @@ vol="app-node-modules-$lock"
 docker volume create "$vol" >/dev/null
 # the volume is created root-owned; hand it to the runner once
 docker run --rm -v "$vol":/m alpine:3 chown "$(id -u):$(id -g)" /m
+depth_vol="depth-node-modules-$(sha1sum "$root/depth/package-lock.json" | cut -c1-12)"   # depth/core's own deps (hash-wasm): a clean checkout has none
+docker volume create "$depth_vol" >/dev/null
+docker run --rm -v "$depth_vol":/m alpine:3 chown "$(id -u):$(id -g)" /m
+
+# depth/core imports hash-wasm from depth/node_modules: a volume keyed by depth's lock (a worktree has no
+# depth/node_modules on the disk, and the host's must not be what makes this green).
+depth_vol="depth-node-modules-$(sha1sum "$root/depth/package-lock.json" | cut -c1-12)"
+docker volume create "$depth_vol" >/dev/null
+docker run --rm -v "$depth_vol":/m alpine:3 chown "$(id -u):$(id -g)" /m
 
 step "tsc --noEmit + vite build"
 out="$(mktemp -d)"; trap 'rm -rf "$out"' EXIT
 chmod 777 "$out"
 timeout 600 docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e npm_config_cache=/tmp/npm \
-  -v "$root":/repo -v "$vol":/repo/app/node_modules -v "$out":/out \
+  -v "$root":/repo -v "$vol":/repo/app/node_modules -v "$depth_vol":/repo/depth/node_modules -v "$out":/out \
   -w /repo/app "$node_image" sh -c '
+    [ -f ../depth/node_modules/.lock-ok ] || { (cd ../depth && npm ci --no-audit --no-fund >/dev/null 2>&1) && touch ../depth/node_modules/.lock-ok; } || { echo "SPOILED: npm ci in depth failed"; exit 3; }
     [ -f node_modules/.lock-ok ] || { npm ci --no-audit --no-fund >/dev/null 2>&1 && touch node_modules/.lock-ok; } || { echo "SPOILED: npm ci failed"; exit 3; }
+    [ -f ../depth/node_modules/.lock-ok ] || { (cd ../depth && npm ci --no-audit --no-fund >/dev/null 2>&1) && touch ../depth/node_modules/.lock-ok; } || { echo "SPOILED: npm ci in depth failed"; exit 3; }
     npx tsc --noEmit -p . || exit 1
     npx vite build --outDir /out/dist --emptyOutDir || exit 1
     if grep -rEl "fonts\.(googleapis|gstatic)" /out/dist; then echo "external font URL in dist"; exit 1; fi

@@ -16,11 +16,9 @@ import { RangePair } from "../ui/RangePair.tsx";
 import { Screen } from "../ui/Screen.tsx";
 
 // The band, as the node draws it (relay/node/src/lib/feed_geo.ts band):
-// up to 20 — [max(13, A-2), A+2]; from 21 — [min(21, A-2), no limit].
-export function ageBand(age: number): { low: number; high: number | null } {
-  if (age <= 20) return { low: Math.max(13, age - 2), high: age + 2 };
-  return { low: Math.min(21, age - 2), high: null };
-}
+// up to 20 — [max(13, A-2), A+2]; from 21 — [min(21, A-2), no limit]. One copy for both faces: depth/core/limits.ts.
+import { ageBand } from "../../../depth/core/limits.ts";
+export { ageBand };
 
 // The adult's right handle needs an end to slide to: its last step is
 // «без ограничения», sent as null.

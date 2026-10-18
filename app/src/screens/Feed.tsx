@@ -8,13 +8,13 @@
 // the tables between phrases (a table item is skipped), one's own sent phrase over the list.
 import { useEffect, useRef, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
-import { label, say } from "../i18n";
+import { failedLine, label, say } from "../i18n";
 import { storedPlace } from "../place";
 import { Icon } from "../shell/Icon";
 import { flag, map, refresh, undo } from "../shell/icons";
 import { useSkeleton } from "../shell/loading";
 import { Skeleton } from "../shell/Skeleton";
-import { TabBar } from "../shell/TabBar";
+import { type Tab, TabBar } from "../shell/TabBar";
 import { CardScreen, likeLine, Tile } from "./feed-card";
 import {
   cardEntry, cardOf, type FeedCard, type Gone, likeOutcome, type LikeOutcome, mergePage, RADII, radiusWord, toneOf, UNDO_HIDE_MS, visibleCards, widerRadius, withLike, withoutCard,
@@ -25,7 +25,7 @@ const radiusText = (r: Radius): string => {
   return say(w.key, { n: w.n });
 };
 
-export function Feed({ client }: { client: Client }) {
+export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => void }) {
   const place = useRef(storedPlace()).current;
   const [radius, setRadius] = useState<Radius>(1000);
   const [items, setItems] = useState<FeedCard[]>([]);
@@ -103,7 +103,7 @@ export function Feed({ client }: { client: Client }) {
         setGone(null);
         void load();
       })
-      .catch((e: Error) => setUndoError(say("app.feed.act_failed", { message: e.message })));
+      .catch((e: Error) => setUndoError(failedLine(e)));
   }
 
   // The hand and «I'm in»: POST /feed/:id/like; the card in the list takes the like at once (the node's count comes with the next page).
@@ -192,7 +192,7 @@ export function Feed({ client }: { client: Client }) {
             <button type="button" className="cta cta-quiet" onClick={() => void load(next)} data-testid="more">{say("app.feed.more_cards")}</button>
           )}
         </section>
-        <TabBar />
+        <TabBar active="feed" onSelect={onTab} />
       </main>
       {card && (
         <CardScreen

@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
-import { byLang, languagesOf, makeSay } from "../i18n-core.ts";
+import { byLang, languagesOf, makeSay, makeSayCount } from "../i18n-core.ts";
 
 const depth = { ru: { "common.back": "назад", "a": "ру-а" }, en: { "common.back": "back" } };
 const web = { ru: { "web.x": "икс {n}", "web.y": "игрек" }, en: { "web.x": "x {n}" } };
@@ -45,4 +45,24 @@ test("the real dictionaries: every offered language names itself and has the spl
     }
     assert.ok(w[lang]["web.lang.self"], `${lang}: no web.lang.self of its own`);
   }
+});
+
+// The counted lines as the shell has them (i18n.ts APP, app.stepaway.*): the form the language's Intl.PluralRules picks.
+test("sayCount: Russian agrees with its number — 1, 2, 5, 11, 21; a form not written is the plain key", () => {
+  const dicts = { ru: {
+    "c": "{n} снимутся", "c.one": "{n} снимется", "c.few": "{n} снимутся", "c.many": "{n} снимутся (много)", "plain": "{n} просто",
+  } };
+  const count = makeSayCount("ru", makeSay("ru", [dicts]));
+  assert.equal(count("c", 1), "1 снимется");
+  assert.equal(count("c", 2), "2 снимутся");
+  assert.equal(count("c", 5), "5 снимутся (много)");
+  assert.equal(count("c", 11), "11 снимутся (много)", "11 is many in Russian, not one");
+  assert.equal(count("c", 21), "21 снимется");
+  assert.equal(count("plain", 3), "3 просто");
+});
+test("sayCount: English is one/other", () => {
+  const en = { en: { "w": "{n} wait", "w.one": "{n} waits", "w.other": "{n} wait" } };
+  const count = makeSayCount("en", makeSay("en", [en]));
+  assert.equal(count("w", 1), "1 waits");
+  assert.equal(count("w", 2), "2 wait");
 });

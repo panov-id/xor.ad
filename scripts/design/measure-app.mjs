@@ -1,5 +1,5 @@
-// Measures the real rendered app/ (splash, splash-lang, loading, register-1..3, unlock, locked) against the Dusk sheets
-// mobile/w2_{splash,splash-lang,loading,unlock,locked}.svg and mobile/w1_register-{1,2,3}.svg; walks the registration, the reload, the PIN, the lock
+// Measures the real rendered app/ (splash, splash-lang, loading, register-1..3, unlock, locked, the move, away) against the Dusk sheets
+// mobile/w2_{splash,splash-lang,loading,unlock,locked,departure-*,arrival-*,away}.svg and mobile/w1_register-{1,2,3}.svg; walks the registration, the reload, the PIN, the lock, the move
 // and the web<->app interop against a stubbed node. Run by scripts/measure-app.sh inside the Playwright
 // image, on an internal network: PREVIEW (the built app, with its CSP) and DEV (the dev server, for
 // the ?boot=<ms> hook, which exists in dev only) are two ports of the container called `app`.
@@ -233,12 +233,16 @@ for (const u of [PREVIEW, DEV]) {   // wait for both servers
 // The page's calls to the node never leave the browser: every fetch to a node path is answered by this stub
 // (and the network the page sits on has no way out anyway). The stub keeps the share the page sent at
 // POST /identities and hands it back at POST /vault/share, as the node does.
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away)(\/|$)/;
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 function nodeStub(opts = {}) {
   const calls = []; let share = null, pinAuth = null, left = 10, closed = false, misses = 0, soon = opts.soon ?? 0;
   // The feed the stub answers: { status, items, next } — a walk changes it between taps; the default is an empty page.
   const feed = { status: 200, items: [], next: null, hidden: new Set() };
+  // The move's windows by lookup id, as the node keeps them (transfer.ts): the old device's invite, the new one's claim, the reply.
+  const moves = new Map();
+  // A step away: until when (seconds), or null; GET /identities/me says it.
+  const away = { until: null };
   const prepare = async (ctx) => {
     // The sheets show the paper code K7QM 2XWD PL4R 9FTE (an L is not in the alphabet: E stands in, of about its width): the first 16 random bytes asked (the page's paper code, the first
     // thing it draws) are those characters' places in the alphabet; every later call is the real generator.
@@ -279,11 +283,30 @@ function nodeStub(opts = {}) {
       if (key === "POST /hidden") { const id = JSON.parse(req.postData()).feed; feed.hidden.add(id); return json(200, { id: `h-${id}` }); }
       if (req.method() === "DELETE" && u.pathname.startsWith("/hidden/")) { feed.hidden.delete(decodeURIComponent(u.pathname.slice(8)).replace(/^h-/, "")); return route.fulfill({ status: 204 }); }
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
+      if (key === "GET /identities/me") return json(200, { identity_id: "id-stub", ...(away.until ? { stepped_away_until: away.until } : {}) });
+      if (key === "DELETE /away") { away.until = null; return route.fulfill({ status: 204 }); }
+      // the arriving device's first PIN: a new share and a new proof (relay vault.ts init); the next /vault/share sets the proof
+      if (key === "POST /vault/init") { share = JSON.parse(req.postData()).share; pinAuth = null; left = 10; closed = false; return json(200, {}); }
+      if (key === "POST /sessions/invite") { moves.set(JSON.parse(req.postData()).lookup_id, { state: "waiting" }); return json(200, { expires_in: 120 }); }
+      if (key === "POST /sessions/claim") {
+        const b = JSON.parse(req.postData()), m = moves.get(b.lookup_id);
+        if (!m || m.state !== "waiting") return json(404, { error: { code: "not_found" } });
+        m.state = "claimed"; m.claim_envelope = b.envelope; return json(200, {});
+      }
+      const mv = /^\/sessions\/([^/]+)(\/(approve|reject|ack))?$/.exec(u.pathname);
+      if (mv) {
+        const m = moves.get(decodeURIComponent(mv[1]));
+        if (!m) return json(404, { error: { code: "not_found" } });
+        if (req.method() === "GET") return json(200, { state: m.state, ...(m.state === "claimed" ? { claim_envelope: m.claim_envelope } : {}), ...(m.state === "approved" ? { reply_envelope: m.reply, session_id: "sess-moved" } : {}) });
+        if (mv[3] === "approve") { m.state = "approved"; m.reply = JSON.parse(req.postData()).reply; return json(200, { state: "approved", session_id: "sess-moved" }); }
+        if (mv[3] === "reject") { m.state = "rejected"; return json(200, {}); }
+        if (mv[3] === "ack") return json(200, {});
+      }
       if (key === "POST /legal/accept") return json(200, {});
       calls.push(`UNEXPECTED ${key}`); return route.abort();
     });
   };
-  return { calls, prepare, feed, state: () => ({ left, closed, misses }) };
+  return { calls, prepare, feed, away, moves, state: () => ({ left, closed, misses }) };
 }
 // Walks the page to a register step; `filled` leaves the first screen as the sheet draws it.
 async function walk(page, step, { name = "Alex", age = "32", pin = "123456", again = pin } = {}) {
@@ -742,6 +765,183 @@ const shut = (page, testid) => page.getAttribute(`[data-testid="${testid}"]`, "a
     await o.page.click('[data-testid="hidden-undo"]'); await o.page.locator('[data-testid="cards"] [data-testid="card"]').nth(2).waitFor({ timeout: 10000 }).catch(() => null);   // not waitForFunction: Playwright compiles its predicate with eval in the page, which the CSP forbids (violation noise)
     note((await cardsOf(o.page).count()) === 3 && (await o.page.locator('[data-testid="gone"]').count()) === 0 && stub.calls.includes("DELETE /hidden/h-ph-2"), "walk: «return» brings the phrase back: 3 cards again, the note gone (DELETE /hidden/<handle> sent)");
     await o.ctx.close();
+  }
+}
+
+// ── the move (w2_departure-start/-code/-claimed/-done, w2_arrival-code/-check/-pin) and the step away (w2_away) ──
+// Two devices, one stub: device A (registered) opens /move, device B (a fresh browser context) types A's code. The stub
+// relays between them as the node does (relay/node/src/routes/transfer.ts): invite, claim, state, approve, ack.
+{
+  const stub = nodeStub();
+  const dev = (S) => S.shapes.slice(1);   // [0] is the background
+  const sheetOf = (n) => sheet(n);
+  const textRows = (scr, page, pairs) => Promise.all(pairs.map(async ([name, exp, sel, i = 0]) => textCompare(scr, name, exp, await lineAt(page, sel, i))));
+  const boxes = (scr, name, exp, act) => exp.forEach((e, i) => compare(scr, `${name} ${i + 1}`, shapeOf(e), act[i] ?? NAN4));
+  const shotOf = async (page, name) => { if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${name}.png` }); };
+  const toMove = (page) => page.evaluate(() => { history.pushState({ gate: "departure", i: 1 }, "", "/move"); dispatchEvent(new PopStateEvent("popstate")); });
+
+  // A: registered, then the address /move
+  const A = await open(browser, PREVIEW + "/", 390, { screen: "departure-start", prepare: stub.prepare });
+  await registerFull(A.page);
+  await toMove(A.page); await A.page.waitForSelector('[data-screen="departure"][data-state="start"]');
+  await A.page.fill('[data-testid="move-pin"]', PIN); await A.page.locator('[data-testid="move-pin"]').blur(); await settle(A.page);
+  {
+    const S = sheetOf("departure-start"), sh = dev(S), T = S.lines, scr = "departure-start";
+    compare(scr, "price box", shapeOf(sh[1]), (await boxOf(A.page, ".mv-warn"))[0] ?? NAN4);
+    const cells = await boxOf(A.page, ".reg-cell"), dots = await boxOf(A.page, ".reg-cell i");
+    boxes(scr, "cell", [2, 4, 6, 8, 10, 12].map((i) => sh[i]), cells);
+    boxes(scr, "dot", [3, 5, 7, 9, 11, 13].map((i) => sh[i]), dots);
+    compare(scr, "get code button", shapeOf(sh[14]), (await boxOf(A.page, '[data-testid="move-go"]'))[0] ?? NAN4);
+    await textRows(scr, A.page, [["bar title", T[0], ".mv-title"], ["price title", T[1], ".mv-warn-title"],
+      ["price line 1", T[2], ".mv-warn-title + p", 0], ["price line 2", T[3], ".mv-warn-title + p", 1], ["price line 3", T[4], ".mv-warn-title + p", 2], ["price line 4", T[5], ".mv-warn-title + p", 3],
+      ["PIN label", T[6], ".mv-pin label"], ["button label", T[7], '[data-testid="move-go"] span']]);
+    compare(scr, "price line count", [4], [(await linesOf(A.page, ".mv-warn-title + p")).length]);
+    await fonts(A.page, scr, [["bar", ".mv-title"], ["price", ".mv-warn-title + p"], ["button", '[data-testid="move-go"] span']]); await overflowAt(A.page, scr, 390);
+    await shotOf(A.page, scr);
+  }
+  await A.page.click('[data-testid="move-go"]');
+  await A.page.waitForSelector('[data-screen="departure"][data-state="waiting"] [data-testid="move-code"]', { timeout: 60000 }); await settle(A.page);
+  const code = (await A.page.getAttribute('[data-testid="move-code"]', "aria-label")).replaceAll(" ", "");
+  {
+    const S = sheetOf("departure-code"), sh = dev(S), T = S.lines, scr = "departure-code";
+    boxes(scr, "code cell", sh.slice(1, 10), await boxOf(A.page, '[data-testid="move-code"] .mv-char'));
+    compare(scr, "stop button", shapeOf(sh[11]), (await boxOf(A.page, '[data-testid="move-stop"]'))[0] ?? NAN4);
+    await textRows(scr, A.page, [["bar title", T[0], ".mv-title"], ["title", T[1], ".mv-body h1"], ["life words", T[5], '[data-testid="move-life"]'],
+      ["ring minutes", T[6], ".mv-ring > span"], ["stop label", T[7], '[data-testid="move-stop"] span']]);
+    note(/^[0-9A-Z]{9}$/.test(code) && stub.calls.includes("POST /sessions/invite"), `walk: move — the PIN's proof opened the invite (POST /sessions/invite), nine characters shown (${code.length})`);
+    await fonts(A.page, scr, [["title", ".mv-body h1"], ["code", '[data-testid="move-code"] .mv-char']]); await overflowAt(A.page, scr, 390);
+    await shotOf(A.page, scr);
+  }
+
+  // B: a fresh device, the splash's "arrive", six of the nine typed (the sheet's caret on the seventh)
+  const B = await open(browser, PREVIEW + "/", 390, { screen: "arrival-code", prepare: stub.prepare });
+  await B.page.waitForSelector('[data-testid="arrive"]'); await B.page.click('[data-testid="arrive"]');
+  await B.page.waitForSelector('[data-screen="arrival"][data-state="code"]');
+  await B.page.fill('[data-testid="arrive-code"]', code.slice(0, 6)); await settle(B.page);
+  {
+    const S = sheetOf("arrival-code"), sh = dev(S), T = S.lines, scr = "arrival-code";
+    boxes(scr, "cell", [1, 2, 3, 4, 5, 6, 7, 9, 10].map((i) => sh[i]), await boxOf(B.page, ".reg-cell"));
+    const ring = await B.page.evaluate(() => { const a = document.querySelector(".reg-cells:focus-within .reg-cell[data-active]"); if (!a) return null; const r = a.getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; });
+    compare(scr, "caret ring (7th cell)", shapeOf(sh[8]), ring ?? NAN4);
+    compare(scr, "next button", shapeOf(sh[11]), (await boxOf(B.page, '[data-testid="arrive-go"]'))[0] ?? NAN4);
+    await textRows(scr, B.page, [["bar title", T[0], ".mv-title"], ["title", T[1], ".mv-body h1"], ["sub line 1", T[2], ".mv-sub", 0], ["sub line 2", T[3], ".mv-sub", 1],
+      ["next label", T[6], '[data-testid="arrive-go"] span']]);
+    note((await B.page.getAttribute('[data-testid="arrive-go"]', "aria-disabled")) === "true", "walk: move in — «next» is shut with six of nine characters");
+    await fonts(B.page, scr, [["title", ".mv-body h1"], ["sub", ".mv-sub"]]); await overflowAt(B.page, scr, 390);
+    await shotOf(B.page, scr);
+  }
+  await B.page.fill('[data-testid="arrive-code"]', `${code.slice(0, 3)}-${code.slice(3, 6)} ${code.slice(6).toLowerCase()}`);
+  await B.page.click('[data-testid="arrive-go"]');
+  await B.page.waitForSelector('[data-screen="arrival"][data-state="claimed"] [data-testid="arrive-check"]', { timeout: 60000 }); await settle(B.page);
+  {
+    const S = sheetOf("arrival-check"), sh = dev(S), T = S.lines, scr = "arrival-check";
+    boxes(scr, "check cell", sh.slice(1, 5), await boxOf(B.page, '[data-testid="arrive-check"] .mv-char'));
+    compare(scr, "waiting ring", shapeOf(sh[5]), (await boxOf(B.page, ".mv-wait"))[0] ?? NAN4);
+    await textRows(scr, B.page, [["bar title", T[0], ".mv-title"], ["title", T[1], ".mv-body h1"], ["sub line 1", T[2], ".mv-sub", 0], ["sub line 2", T[3], ".mv-sub", 1],
+      ["waiting words", T[5], ".mv-waiting"]]);
+    note(stub.calls.includes("POST /sessions/claim"), "walk: move in — the code typed with a dash, a space and in lower case is claimed (POST /sessions/claim)");
+    await fonts(B.page, scr, [["title", ".mv-body h1"], ["waiting", ".mv-waiting"]]); await overflowAt(B.page, scr, 390);
+    await shotOf(B.page, scr);
+  }
+
+  // A: somebody claimed — who, when, the four characters
+  await A.page.waitForSelector('[data-screen="departure"][data-state="claimed"] [data-testid="move-yes"]', { timeout: 30000 }); await settle(A.page);
+  const checkA = await A.page.getAttribute('[data-testid="move-check"]', "aria-label"), checkB = await B.page.getAttribute('[data-testid="arrive-check"]', "aria-label");
+  {
+    const S = sheetOf("departure-claimed"), sh = dev(S), T = S.lines, scr = "departure-claimed";
+    compare(scr, "who card", shapeOf(sh[1]), (await boxOf(A.page, ".mv-who"))[0] ?? NAN4);
+    compare(scr, "who mark", shapeOf(sh[2]), (await boxOf(A.page, ".mv-avatar"))[0] ?? NAN4);
+    boxes(scr, "check cell", sh.slice(3, 7), await boxOf(A.page, '[data-testid="move-check"] .mv-char'));
+    compare(scr, "yes button", shapeOf(sh[7]), (await boxOf(A.page, '[data-testid="move-yes"]'))[0] ?? NAN4);
+    compare(scr, "no button", shapeOf(sh[8]), (await boxOf(A.page, '[data-testid="move-no"]'))[0] ?? NAN4);
+    await textRows(scr, A.page, [["bar title", T[0], ".mv-title"], ["title", T[1], ".mv-body h1"], ["sub line 1", T[2], ".mv-sub", 0], ["sub line 2", T[3], ".mv-sub", 1],
+      ["mark letter", T[4], ".mv-avatar"], ["name", T[5], '[data-testid="move-label"]'], ["when", T[6], ".mv-who-when"],
+      ["yes label", T[8], '[data-testid="move-yes"] span'], ["no label", T[9], '[data-testid="move-no"] span']]);
+    note(!!checkA && checkA === checkB, `walk: move — the old device shows the same four characters as the new one (${checkA} / ${checkB})`);
+    await fonts(A.page, scr, [["title", ".mv-body h1"], ["name", '[data-testid="move-label"]']]); await overflowAt(A.page, scr, 390);
+    await shotOf(A.page, scr);
+  }
+  await A.page.click('[data-testid="move-yes"]');
+  await A.page.waitForSelector('[data-screen="departure"][data-state="approved"] [data-testid="move-exit"]', { timeout: 30000 }); await settle(A.page);
+  {
+    const S = sheetOf("departure-done"), sh = dev(S), T = S.lines, scr = "departure-done";
+    compare(scr, "circle", shapeOf(sh[1]), (await boxOf(A.page, ".mv-circle"))[0] ?? NAN4);
+    compare(scr, "to the start button", shapeOf(sh[2]), (await boxOf(A.page, '[data-testid="move-exit"]'))[0] ?? NAN4);
+    await textRows(scr, A.page, [["bar title", T[0], ".mv-title"], ["title", T[1], ".mv-body h1"], ["words line 1", T[2], '[data-testid="move-done"]', 0],
+      ["words line 2", T[3], '[data-testid="move-done"]', 1], ["button label", T[4], '[data-testid="move-exit"] span']]);
+    await fonts(A.page, scr, [["title", ".mv-body h1"], ["words", '[data-testid="move-done"]']]); await overflowAt(A.page, scr, 390);
+    await shotOf(A.page, scr);
+  }
+
+  // B: approved — the first PIN, the second field two digits in (the sheet's caret on the third)
+  await B.page.waitForSelector('[data-screen="arrival"][data-state="approved"] [data-testid="arrive-pin"]', { timeout: 30000 });
+  await B.page.fill('[data-testid="arrive-pin"]', PIN); await B.page.fill('[data-testid="arrive-pin-again"]', PIN.slice(0, 2)); await settle(B.page);
+  {
+    const S = sheetOf("arrival-pin"), sh = dev(S), T = S.lines, scr = "arrival-pin";
+    compare(scr, "confirmed box", shapeOf(sh[1]), (await boxOf(B.page, ".mv-ok"))[0] ?? NAN4);
+    const cells = await boxOf(B.page, ".reg-cell"), dots = await boxOf(B.page, ".reg-cell i");
+    boxes(scr, "cell", [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 21, 22].map((i) => sh[i]), cells);
+    boxes(scr, "dot", [3, 5, 7, 9, 11, 13, 15, 17].map((i) => sh[i]), dots);
+    const ring = await B.page.evaluate(() => { const a = document.querySelector(".reg-cells:focus-within .reg-cell[data-active]"); if (!a) return null; const r = a.getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; });
+    compare(scr, "caret ring (repeat, 3rd cell)", shapeOf(sh[19]), ring ?? NAN4);
+    compare(scr, "done button", shapeOf(sh[23]), (await boxOf(B.page, '[data-testid="arrive-keep"]'))[0] ?? NAN4);
+    await textRows(scr, B.page, [["bar title", T[0], ".mv-title"], ["confirmed words", T[1], ".mv-ok span"], ["new PIN label", T[2], ".mv-body > .mv-pin:nth-child(2) label"],
+      ["repeat label", T[3], ".mv-body > .mv-pin:nth-child(3) label"], ["done label", T[4], '[data-testid="arrive-keep"] span']]);
+    await fonts(B.page, scr, [["confirmed", ".mv-ok span"], ["label", ".mv-pin label"]]); await overflowAt(B.page, scr, 390);
+    await shotOf(B.page, scr);
+  }
+  await B.page.fill('[data-testid="arrive-pin-again"]', PIN); await B.page.click('[data-testid="arrive-keep"]');
+  await B.page.waitForSelector(feedSel, { timeout: 60000 }).catch(() => null);
+  const diskB = await stored(B.page);
+  note((await B.page.locator(feedSel).count()) === 1 && stub.calls.includes("POST /vault/init") && stub.calls.some((c) => /^POST \/sessions\/.+\/ack$/.test(c)) && diskB?.fields?.includes("sealedLong") && diskB?.fields?.includes("sessionSpki"),
+    `walk: move in — the first PIN seals the arrived identity on this disk (fields ${diskB?.fields}) and lands on the feed; node saw /vault/init and the ack`);
+  // A: «To the start» forgets the identity here
+  await A.page.click('[data-testid="move-exit"]'); await A.page.waitForSelector('[data-screen="splash"]', { timeout: 20000 }).catch(() => null);
+  note((await A.page.locator('[data-screen="splash"]').count()) === 1 && (await stored(A.page))?.fields === null, "walk: move — «To the start» on the old device forgets the identity and opens the splash");
+  note(!stub.calls.some((c) => c.startsWith("UNEXPECTED")), `walk: move — no call the stub does not know (${stub.calls.filter((c) => c.startsWith("UNEXPECTED")).join(", ") || "none"})`);
+  await A.ctx.close(); await B.ctx.close();
+  for (const w of [834, 1440]) {   // the column keeps the phone's width on wider screens
+    const s2 = nodeStub(), o2 = await open(browser, PREVIEW + "/", w, { screen: "departure-start", prepare: s2.prepare });
+    await registerFull(o2.page); await toMove(o2.page); await o2.page.waitForSelector('[data-screen="departure"]'); await settle(o2.page); await overflowAt(o2.page, "departure-start", w); await o2.ctx.close();
+  }
+
+  // a refusal: a code that does not match says so and stays
+  {
+    const s3 = nodeStub(), o3 = await open(browser, PREVIEW + "/arrival", 390, { screen: "walk-move-bad", prepare: s3.prepare });
+    await o3.page.waitForSelector('[data-testid="arrive-code"]'); await o3.page.fill('[data-testid="arrive-code"]', "ABCDEFGHJ"); await o3.page.click('[data-testid="arrive-go"]');
+    await o3.page.waitForSelector('[data-testid="error"]', { timeout: 60000 }).catch(() => null);
+    note((await text(o3.page, '[data-testid="error"]')).length > 10 && (await o3.page.locator('[data-state="code"]').count()) === 1, `walk: move in — an unknown code says "${(await text(o3.page, '[data-testid="error"]')).slice(0, 60)}" and stays on the code`);
+    await o3.ctx.close();
+  }
+}
+
+// the step away: the profile says until when (15:40 on the sheet, set so in the page's clock); «Come back» asks DELETE /away
+{
+  const stub = nodeStub(), S = sheet("away"), sh = S.shapes.slice(1), T = S.lines, scr = "away";
+  const o = await open(browser, PREVIEW + "/", 390, { screen: scr, prepare: stub.prepare });
+  await registerFull(o.page);
+  stub.away.until = await o.page.evaluate(() => { const d = new Date(); d.setHours(15, 40, 0, 0); if (d.getTime() < Date.now() + 120000) d.setDate(d.getDate() + 1); return Math.floor(d.getTime() / 1000); });
+  await o.page.reload(); await o.page.waitForSelector('[data-screen="away"]', { timeout: 20000 }); await settle(o.page);
+  compare(scr, "circle", shapeOf(sh[1]), (await boxOf(o.page, ".mv-circle"))[0] ?? NAN4);
+  const rowsBox = await boxOf(o.page, ".mv-rows div");
+  for (let i = 0; i < 3; i++) compare(scr, `row ${i + 1} line (top, width)`, [sh[2 + i].x, sh[2 + i].y, sh[2 + i].w], rowsBox[i] ? [rowsBox[i][0], rowsBox[i][1], rowsBox[i][2]] : [NaN, NaN, NaN]);
+  compare(scr, "come back button", shapeOf(sh[5]), (await boxOf(o.page, '[data-testid="away-return"]'))[0] ?? NAN4);
+  const row = async (name, exp, sel, i = 0) => textCompare(scr, name, exp, await lineAt(o.page, sel, i));
+  await row("brand word", T[0], ".mv-brand"); await row("title", T[1], ".mv-body h1");
+  await row("words line 1", T[2], '[data-testid="away-line"]', 0); await row("words line 2", T[3], '[data-testid="away-line"]', 1);
+  for (let i = 0; i < 3; i++) { await row(`row ${i + 1} name`, T[4 + 2 * i], `.mv-rows div:nth-child(${i + 1}) dt`); await row(`row ${i + 1} value`, T[5 + 2 * i], `.mv-rows div:nth-child(${i + 1}) dd`); }
+  await row("button label", T[10], '[data-testid="away-return"] span');
+  const until = await text(o.page, '[data-testid="away-until"]');
+  note(GEOMETRY ? until === "15:40" : /15:40/.test(until), `walk: away — the profile's end reads "${until}" (the sheet: 15:40)`);
+  await fonts(o.page, scr, [["title", ".mv-body h1"], ["rows", ".mv-rows dt"]]); await overflowAt(o.page, scr, 390);
+  if (GEOMETRY) await o.page.screenshot({ path: `${SHOTS}/away.png` });
+  await o.page.click('[data-testid="away-return"]'); await o.page.waitForSelector(feedSel, { timeout: 20000 }).catch(() => null);
+  note((await o.page.locator(feedSel).count()) === 1 && stub.calls.includes("DELETE /away") && stub.away.until === null, "walk: away — «Come back» asks DELETE /away and opens the feed");
+  await o.ctx.close();
+  for (const w of [834, 1440]) {
+    const s2 = nodeStub(), o2 = await open(browser, PREVIEW + "/", w, { screen: scr, prepare: s2.prepare });
+    await registerFull(o2.page); s2.away.until = Math.floor(Date.now() / 1000) + 3600;
+    await o2.page.reload(); await o2.page.waitForSelector('[data-screen="away"]', { timeout: 20000 }); await settle(o2.page); await overflowAt(o2.page, scr, w); await o2.ctx.close();
   }
 }
 

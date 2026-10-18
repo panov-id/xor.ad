@@ -99,6 +99,19 @@ export function makeSay(lang: string, dicts: readonly Dicts[]): Say {
   };
 }
 
+export type SayCount = (key: string, n: number, values?: Record<string, string | number>) => string;
+
+/** A line that agrees with its number: `${key}.${form}`, the form the language's own (Intl.PluralRules: one, few,
+ *  many, other ...), {n} filled; a form the dictionaries do not have is the plain key. */
+export function makeSayCount(lang: string, say: Say): SayCount {
+  const rules = new Intl.PluralRules(lang);
+  return (key, n, values) => {
+    const form = `${key}.${rules.select(n)}`;
+    const line = say(form, { n, ...values });
+    return line === form ? say(key, { n, ...values }) : line;
+  };
+}
+
 /** The first letter in capitals, the rest as it is: the dictionaries keep a label in running case ("repeat the PIN"),
  *  a sheet sets it as a label ("Repeat the PIN"). The language's own rules for the capital (Turkish i). */
 export function capital(text: string, lang: string): string {

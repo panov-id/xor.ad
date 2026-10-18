@@ -13,7 +13,10 @@ export type Screen =
   | { at: "restore" }
   | { at: "arrival" }
   | { at: "unlock"; record: Record_ }
-  | { at: "feed" };
+  | { at: "feed" }
+  | { at: "departure" }
+  | { at: "away"; until: number }
+  | { at: "me" };
 
 type At = Screen["at"];
 
@@ -25,6 +28,9 @@ export const ROUTES: Record<At, string> = {
   arrival: "/arrival",
   unlock: "/unlock",
   feed: "/feed",
+  departure: "/move",
+  away: "/away",
+  me: "/me",
 };
 
 // A path names a gate (reload, Back, a typed address); anything else is not one.
@@ -36,6 +42,16 @@ export function gateOf(path: string): Gate | null {
 }
 
 export const pathOf = (s: Screen): string => ROUTES[s.at];
+
+/** A seat's own address (an identity on the page): /move is the departure, /me is Me, /away the away screen; anything else is the feed. */
+export const seatScreen = (path: string, state?: { until?: number } | null): Screen => {
+  const p = path.replace(/\/+$/, "");
+  if (p === ROUTES.departure) return { at: "departure" };
+  if (p === ROUTES.me) return { at: "me" };
+  // The away screen's until rides in its history entry (App.tsx awayCheck); a lapsed one is the feed.
+  if (p === ROUTES.away && typeof state?.until === "number" && state.until > Date.now() / 1000) return { at: "away", until: state.until };
+  return { at: "feed" };
+};
 
 /**
  * The gate's screen for a path (web App.tsx gateScreen): /restore is always itself (the unlock offers it);

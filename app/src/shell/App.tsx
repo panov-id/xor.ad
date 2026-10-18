@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
-import { gateOf, gateScreen, pathOf, type Screen } from "../router";
+import { gateOf, gateScreen, pathOf, type Screen, seatScreen } from "../router";
+import { Arrival } from "../screens/Arrival";
+import { Away } from "../screens/Away";
+import { Departure } from "../screens/Departure";
 import { Feed } from "../screens/Feed";
 import { Gate } from "../screens/Gate";
 import { Loading } from "../screens/Loading";
@@ -8,8 +11,10 @@ import { Locked } from "../screens/Locked";
 import { Register, type Seated } from "../screens/Register";
 import { Splash } from "../screens/Splash";
 import { Unlock } from "../screens/Unlock";
+import { Me } from "../screens/me/Me";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
+import type { Tab } from "./TabBar";
 import { useSkeleton } from "./loading";
 
 // In the dev server ?boot=<ms> makes the boot wait, to look at the loading screen.
@@ -30,6 +35,8 @@ export function App() {
   const [locked, setLocked] = useState(false);
   // The vault's record as the page found it (null: none, or forgotten since): the gates read it.
   const vaulted = useRef<Record_ | null>(null);
+  // An identity is on the page (a seat): Back and a typed address move between its screens (the feed, /move).
+  const held = useRef(false);
   // Waiting rules (MOTION.md): the loading screen shows only if the wait outlasts 300 ms, and then stays 600 ms.
   const loadingShown = useSkeleton(booting);
 
@@ -43,9 +50,11 @@ export function App() {
       const graced = record ? await unlockByGrace(record).catch(() => null) : null;
       if (graced) {
         vaulted.current = null;
+        held.current = true;
         setSeated({ client: graced.client, sealed: graced.wrapSame ? "unlocked" : "unlocked-new-wrap" });
         history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
         setScreen({ at: "feed" });
+        void awayCheck(graced.client);
         return setBooting(false);
       }
       const to = gateScreen(location.pathname, vaulted.current);
@@ -57,7 +66,26 @@ export function App() {
 
   useEffect(() => {
     // An entry of the feed (its open card included) is the feed's own to read (screens/Feed.tsx), not a gate to re-pick.
-    const onPop = () => setScreen((now) => (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed") ? now : gateScreen(location.pathname, vaulted.current)));
+    const onPop = () => {
+      // Seated, Back that lands on a gate (splash, register: entries left from before the seat) does not reopen it:
+      // the screen stays and takes that entry over (an away keeps its until), so a person in never sees the splash again.
+      if (held.current && gateOf(location.pathname)) {
+        setScreen((now) => {
+          const until = (now as { until?: number }).until;
+          history.replaceState({ gate: now.at, i: 0, ...(until === undefined ? {} : { until }) }, "", pathOf(now));
+          return now;
+        });
+        return;
+      }
+      setScreen((now) => {
+      if (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed")) return now;
+      if (!held.current || gateOf(location.pathname)) return gateScreen(location.pathname, vaulted.current);
+      const to = seatScreen(location.pathname, history.state as { until?: number } | null);
+      // A seat's address that opens another screen (an /away whose until lapsed): the entry says where the person is.
+      if (location.pathname.replace(/\/+$/, "") !== pathOf(to)) history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
+      return to;
+      });
+    };
     addEventListener("popstate", onPop);
     return () => removeEventListener("popstate", onPop);
   }, []);
@@ -100,11 +128,54 @@ export function App() {
   // Registered or unlocked: the feed. The gates behind are left: Back does not return to them.
   function seat(who: Seated) {
     vaulted.current = null;
+    held.current = true;
     setSeated(who);
     history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
     setScreen({ at: "feed" });
+    void awayCheck(who.client);
+  }
+  // Seated while a step away is on (the profile says until when; web App.tsx land): the away screen, not the feed.
+  async function awayCheck(client: Client) {
+    const until = (await client.profile().catch(() => null))?.stepped_away_until;
+    if (typeof until === "number" && until > Date.now() / 1000) {
+      history.replaceState({ gate: "away", i: 0, until }, "", pathOf({ at: "away", until }));
+      setScreen({ at: "away", until });
+    }
+  }
+  // Back to the feed from a seat's screen, in place (the away screen's end, the departure's back).
+  function toFeed() {
+    history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
+    setScreen({ at: "feed" });
+  }
+  // Moved away: the node froze this session with the approval; this device forgets the identity and starts over (web App.tsx).
+  function gone() {
+    held.current = false;
+    void forget().then(() => {
+      setSeated(null);
+      history.replaceState({ gate: "splash", i: 0 }, "", pathOf({ at: "splash" }));
+      setScreen({ at: "splash" });
+    });
   }
   const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
+  // The tab bar: the feed and "Me" are seats as the feed is (a reload asks the PIN); one replaces the other in history.
+  const tab = (to: Tab) => {
+    if (to !== "feed" && to !== "me") return;
+    history.replaceState({ gate: to, i: 0 }, "", pathOf({ at: to }));
+    setScreen({ at: to });
+  };
+  // Me's move row: the departure on top of Me, so its back (i: 1) is the history's Back onto /me.
+  const toMove = () => {
+    history.pushState({ gate: "departure", i: 1 }, "", pathOf({ at: "departure" }));
+    setScreen({ at: "departure" });
+  };
+  // The identity closed for good (Me → Start again): nothing of it stays; the splash.
+  const closed = () => {
+    held.current = false;
+    vaulted.current = null;
+    setSeated(null);
+    history.replaceState({ gate: "splash", i: 0 }, "", pathOf({ at: "splash" }));
+    setScreen({ at: "splash" });
+  };
 
   // One line and nothing else while locked: no name, no counts, no rooms.
   if (locked && seated) return <LayerStack base={<Locked client={seated.client} onUnlocked={() => setLocked(false)} />} />;
@@ -116,8 +187,13 @@ export function App() {
       case "splash": return <Splash onStart={() => gate({ at: "register" })} onRestore={() => gate({ at: "restore" })} onArrive={() => gate({ at: "arrival" })} />;
       case "register": return <Register onDone={seat} />;
       case "unlock": return <Unlock record={screen.record} onDone={unlocked} onForget={() => { vaulted.current = null; gate({ at: "splash" }); }} onRestore={() => gate({ at: "restore" })} />;
-      case "restore": case "arrival": return <Gate at={screen.at} onBack={gateBack} />;
-      case "feed": return seated ? <Feed client={seated.client} /> : null;
+      case "restore": return <Gate at={screen.at} onBack={gateBack} />;
+      // Arrived by a move: sealed under a first PIN, seated as after the PIN.
+      case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
+      case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
+      case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
+      case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
+      case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }
   };
   return <LayerStack base={view()} />;

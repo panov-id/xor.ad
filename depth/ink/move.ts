@@ -13,7 +13,7 @@
 import { createElement as h, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import type { Answer } from "../core/client.ts";
-import { readPaperText } from "../core/paper.ts";
+import { claimRefusal, departureAsking, departureStep, endingOf, oneAtATime, seenWords, typedCode } from "../core/move_flow.ts";
 import { Arrival, Departure, type MoveClient, type MoveState } from "../core/transfer_move.ts";
 import type { Say } from "./strings.ts";
 import { pinMismatch } from "./screens.ts";
@@ -34,13 +34,8 @@ function pinRefusal(say: Say, answer: Answer): string | null {
 }
 
 // How a transfer that did not happen is told: one line per reason, and every
-// one of them says the identity stayed where it was.
-const endings: Partial<Record<MoveState, string>> = {
-  rejected: "move.rejected",
-  cancelled: "move.twice",
-  expired: "move.expired",
-  garbled: "move.garbled",
-};
+// one of them says the identity stayed where it was (move_flow.ts MOVE_ENDINGS,
+// shared with the web and the app shell).
 
 // Every `ms`, and never over itself: a tick that finds the last ask still
 // out skips, so a slow node gets one question at a time instead of a pile of
@@ -49,14 +44,9 @@ const endings: Partial<Record<MoveState, string>> = {
 function useEvery(ms: number, fn: () => void | Promise<unknown>, on: boolean): void {
   const saved = useRef(fn);
   saved.current = fn;
-  const out = useRef(false);
   useEffect(() => {
     if (!on) return;
-    const id = setInterval(() => {
-      if (out.current) return;
-      out.current = true;
-      void Promise.resolve(saved.current()).finally(() => (out.current = false));
-    }, ms);
+    const id = setInterval(oneAtATime(() => saved.current()), ms);
     return () => clearInterval(id);
   }, [on, ms]);
 }
@@ -86,15 +76,16 @@ export function MoveOut(
       .then((next) => {
         // Whatever sent an envelope this code does not open is not asked
         // about: the code is killed at once rather than left to run out.
-        if (next === "garbled") void out.reject().catch(() => {});
+        const step = departureStep(next);
+        if (step.kill) void out.reject().catch(() => {});
         // Approved is moved, however this screen learned it — the answer to
         // "it is me" or, when that answer was lost, the node asked again (F2).
-        if (next === "approved") return onMoved();
+        if (step.moved) return onMoved();
         setState(next);
       })
       .catch((e: Error) => onError(e.message));
   };
-  const open = !!out && (state === "waiting" || state === "claimed");
+  const open = !!out && departureAsking(state);
   useEvery(pollMs, ask, open);
   useEvery(1000, () => setLeft((n) => Math.max(0, n - 1)), open);
   // A code whose two minutes ran out here is gone there too; the node says so
@@ -163,7 +154,7 @@ export function MoveOut(
     });
   }
 
-  const ending = endings[state];
+  const ending = endingOf(state);
   if (ending) {
     return h(
       Stack,
@@ -208,7 +199,7 @@ export function MoveConfirm(
   },
 ): ReactElement {
   const [pressed, setPressed] = useState(false);
-  const seconds = Math.max(0, Math.round((now() - seenAt) / 1000));
+  const seen = seenWords(seenAt, now());
   const row = (name: string, value: string) =>
     h(Txt, null, `  ${name.padEnd(12)} ${value}`);
   return h(
@@ -219,7 +210,7 @@ export function MoveConfirm(
       Stack,
       null,
       row(say("move.called"), plain(label, 64) || "—"),
-      row(say("move.when"), seconds < 10 ? say("move.justNow") : say("move.secondsAgo", { n: seconds })),
+      row(say("move.when"), say(seen.key, seen.values)),
       row(say("move.check"), `${check} — ${say("move.checkAsk")}`),
     ),
     h(Txt, null, say("move.leaves")),
@@ -288,7 +279,7 @@ export function MoveIn(
   };
   useEvery(pollMs, ask, !!into && state === "claimed");
 
-  const clean = readPaperText(code);
+  const { clean, complete } = typedCode(code);
   const claim = () => {
     setSending(true);
     setRefused(null);
@@ -297,12 +288,12 @@ export function MoveIn(
         if (claimed instanceof Arrival) return setInto(claimed);
         // 404 is "does not match or has expired", one wording for both, and
         // 409 is the second claim that cancelled it (§8.2).
-        if (claimed.status === 404) return setRefused(say("move.codeBad"));
-        if (claimed.status === 409) return setRefused(say("move.twice"));
-        // 429 is the claim's own limit — this address's allowance or the node's
-        // shared brake (§8.2, claim.miss.*) — said as such, not in the PIN's
-        // words (W12-C2); the code stays in the field for the retry.
-        if (claimed.status === 429) return setRefused(say("restore.wait", { n: String(claimed.retryAfter ?? "?") }));
+        // 409 is the second claim that cancelled it (§8.2); 429 is the claim's
+        // own limit — this address's allowance or the node's shared brake
+        // (§8.2, claim.miss.*) — said as such, not in the PIN's words (W12-C2);
+        // the code stays in the field for the retry. move_flow.ts claimRefusal.
+        const refusal = claimRefusal(claimed);
+        if (refusal) return setRefused(say(refusal.key, refusal.values));
         onError(`the claim was refused: ${claimed.status}`);
       })
       .catch((e: Error) => onError(e.message))
@@ -318,7 +309,7 @@ export function MoveIn(
         fields: [{ key: "code", label: say("move.code"), value: code }],
         onChange: (_key, value) => setCode(value.slice(0, 13)),
         actions: [
-          { key: "go", label: say("reg.next"), ...off(say, [sending, "why.busy"], [clean.length !== 9, "why.fill"]) },
+          { key: "go", label: say("reg.next"), ...off(say, [sending, "why.busy"], [!complete, "why.fill"]) },
           { key: "back", label: say("common.back") },
         ],
         onPick: (key) => (key === "go" ? claim() : onBack()),
@@ -330,7 +321,7 @@ export function MoveIn(
     );
   }
 
-  const ending = endings[state];
+  const ending = endingOf(state);
   return h(
     Stack,
     { gap: 1 },

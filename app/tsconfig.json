@@ -7,6 +7,7 @@
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
@@ -18,7 +19,8 @@
     "paths": {
       "@sdk/*": ["../depth/core/*"],
       "@platform/*": ["../depth/web-platform/*"],
-      "@brand": ["./src/brands/sosed/index.ts"]
+      "@brand": ["./src/brands/sosed/index.ts"],
+      "@cities": ["../web/src/geo/cities.json"]
     }
   },
   "include": ["src"],

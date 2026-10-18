@@ -1,0 +1,87 @@
+/* move and away (sheets mobile_390_w2_departure-*, w2_arrival-*, w2_away): a bar over a sheet, the body in the
+   phone's column, the foot at the bottom. Sizes are tokens (tokens/layout.css, slice 3). */
+.mv { overflow: hidden auto; }
+.mv-bar { flex: none; height: var(--mv-bar-h); width: 100%; max-width: var(--entry-max); margin-inline: auto; display: flex; align-items: center;
+  padding: var(--mv-bar-drop) var(--sp-4) 0 var(--mv-bar-pad); gap: var(--mv-bar-gap);
+  animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
+.mv-back { width: var(--s-touch-min); height: var(--s-touch-min); flex: none; display: grid; place-items: center; border-radius: var(--r-pill); }
+.mv-back .icon { --icon-size: var(--icon-fd); --stroke: 2.2; }
+.mv-title { font-size: var(--fs-mv-bar); font-weight: var(--fw-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mv-brand { padding-inline-start: calc(var(--mv-brand-pad) - var(--mv-bar-pad)); font-size: var(--fs-mv-brand); font-weight: var(--fw-800); }
+
+.mv-sheet { flex: 1; min-height: 0; background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0; display: flex; flex-direction: column;
+  animation: sheet-up var(--d-sheet-in) var(--ease) var(--t-sheet-in-start) both; }
+.mv-form { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.mv-body { width: 100%; max-width: var(--entry-max); margin-inline: auto; flex: 1; min-height: 0; display: flex; flex-direction: column;
+  padding: var(--mv-pad-top) var(--reg-pad) max(var(--reg-foot-bottom), env(safe-area-inset-bottom)); }
+.mv-body > * { animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
+.mv-body h1 { font-size: var(--fs-title); font-weight: var(--fw-700); line-height: var(--lh-tight); }
+.mv-sub { margin-bottom: var(--mv-sub-cells); }
+.mv-foot { margin-top: auto; padding-top: var(--sp-4); display: grid; gap: var(--gate-foot-gap); --from: var(--o-action); animation: rise var(--d-action) var(--ease) var(--t-action-start) both; }
+.mv-foot .cta[aria-disabled="true"] { opacity: var(--o-disabled); }
+.mv-error { margin-top: var(--notice-gap); }
+
+/* the price: a coral box with its flag, the bold line and the words */
+.mv-warn { margin-top: calc(var(--mv-box-top) - var(--mv-pad-top)); display: flex; align-items: flex-start; gap: var(--gap-notice);
+  padding: var(--mv-warn-pad-top) var(--pad-notice-x) var(--mv-warn-pad-bottom); border-radius: var(--r-row); background: var(--c-coral); color: var(--c-ink);
+  font-size: var(--fs-notice); line-height: var(--lh-mv-warn); font-weight: var(--fw-500); }
+.mv-warn .icon { --icon-size: var(--icon-notice); --stroke: 2; margin-top: calc((var(--lh-mv-warn-title) - var(--icon-notice)) / 2); }
+.mv-warn-title { font-size: var(--fs-mv-warn-title); line-height: var(--lh-mv-warn-title); font-weight: var(--fw-700); }
+.mv-pin { margin-top: var(--mv-label-gap); }
+.mv-pin + .mv-pin { margin-top: var(--gap-field); }
+
+/* "confirmed": the lime line with the hand */
+.mv-ok { margin-top: calc(var(--mv-box-top) - var(--mv-pad-top)); min-height: var(--mv-ok-h); display: flex; align-items: center; gap: var(--gap-notice);
+  padding: 0 var(--pad-notice-x) var(--mv-ok-lift); border-radius: var(--r-row); background: var(--c-lime); color: var(--c-ink); font-size: var(--fs-notice); font-weight: var(--fw-600); }
+.mv-ok .icon { --icon-size: var(--icon-notice); --stroke: 2; }
+
+/* characters shown: the code in three columns, the check in four */
+.mv-shown { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: var(--gap-cell); }
+.mv-char { height: var(--h-code-cell); border-radius: var(--r-cell); background: var(--c-panel); display: grid; place-items: center; font-size: var(--fs-cell); font-weight: var(--fw-700); }
+.mv-body > h1 + .mv-shown { margin-top: var(--mv-title-cells); }
+.mv-code-title { font-size: var(--fs-mv-code-title); }
+/* the sheet keeps it on one line in English; a longer language wraps */
+:root[lang="en"] .mv-code-title { white-space: nowrap; letter-spacing: var(--ls-mv-code-title); }
+.mv-code-cells .reg-cells { grid-template-columns: repeat(3, 1fr); }
+
+/* the code's life: the ring with the minutes, the words */
+.mv-life { margin-top: var(--mv-life-gap); display: flex; align-items: center; gap: var(--sp-3); padding-inline-start: var(--mv-life-inset, 0); }
+.mv-ring { position: relative; width: var(--mv-ring); height: var(--mv-ring); flex: none; display: grid; place-items: center; font-size: var(--fs-mv-ring); font-weight: var(--fw-700); }
+.mv-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.mv-ring circle { fill: none; stroke-width: 4; }
+.mv-ring .track { stroke: var(--c-panel2); }
+.mv-ring .arc { stroke: var(--c-yellow); stroke-linecap: round; stroke-dasharray: calc(var(--left) * 100) 100; }
+.mv-life p { font-size: var(--fs-notice); font-weight: var(--fw-600); }
+
+/* who asks: the round mark with the first letter, the name, when */
+.mv-who { min-height: var(--mv-who-h); display: flex; align-items: center; gap: var(--mv-who-gap); padding: 0 var(--mv-who-pad); border-radius: var(--r-row); background: var(--c-panel); }
+.mv-avatar { width: var(--mv-avatar); height: var(--mv-avatar); flex: none; border-radius: var(--r-pill); background: var(--c-avatar-2); color: var(--c-ink); display: grid; place-items: center;
+  font-size: var(--fs-mv-avatar); font-weight: var(--fw-700); }
+.mv-who-name { font-size: var(--fs-mv-who); font-weight: var(--fw-700); }
+.mv-who-when { margin-top: var(--mv-who-line); font-size: var(--fs-mv-when); color: var(--c-muted); }
+.mv-who + .mv-shown { margin-top: var(--mv-check-gap); }
+
+/* the end: a lime circle in the middle, the words under it */
+.mv-center { align-items: center; text-align: center; }
+.mv-center > :not(.mv-foot) { align-self: center; }
+.mv-center .mv-foot { align-self: stretch; }
+.mv-circle { margin-top: calc(var(--mv-circle-top) - var(--mv-pad-top)); width: var(--mv-circle); height: var(--mv-circle); border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: grid; place-items: center; }
+.mv-circle .icon { --icon-size: var(--icon-mv-circle); --stroke: 2.4; }
+.mv-circle-away { margin-top: calc(var(--mv-circle-top-away) - var(--mv-pad-top)); }
+.mv-center h1 { margin-top: var(--mv-circle-title); font-size: var(--fs-mv-done); }
+.mv-away h1 { font-size: var(--fs-title); }
+.mv-note { margin-top: var(--mv-note-gap); padding-inline: var(--mv-note-pad); font-size: var(--fs-body); line-height: var(--lh-mv-note); color: var(--c-muted); }
+
+/* waiting: the ring that turns, the words */
+.mv-wait { align-self: center; margin-top: var(--mv-wait-gap); width: var(--mv-wait); height: var(--mv-wait); border-radius: var(--r-pill);
+  border: var(--mv-wait-stroke) solid var(--c-panel2); border-top-color: var(--c-lilac); animation: spin var(--d-spinner) linear infinite; }
+.mv-waiting { margin-top: var(--mv-waiting-gap); text-align: center; font-size: var(--fs-body); font-weight: var(--fw-600); color: var(--c-muted); }
+
+/* away: until, phrases, talks */
+.mv-center > .mv-rows { align-self: stretch; }
+.mv-rows { margin-top: var(--mv-rows-gap); text-align: start; }
+.mv-rows div { height: var(--mv-row-h); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--mv-row-inset); border-top: var(--hair) solid var(--c-panel2); font-size: var(--fs-notice); }
+.mv-rows dt { color: var(--c-muted); }
+.mv-rows dd { font-weight: var(--fw-700); }
+
+@media (prefers-reduced-motion: reduce) { .mv-wait { animation: none; } }

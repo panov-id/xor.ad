@@ -11,8 +11,10 @@ import { Locked } from "../screens/Locked";
 import { Register, type Seated } from "../screens/Register";
 import { Splash } from "../screens/Splash";
 import { Unlock } from "../screens/Unlock";
+import { Me } from "../screens/me/Me";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
+import type { Tab } from "./TabBar";
 import { useSkeleton } from "./loading";
 
 // In the dev server ?boot=<ms> makes the boot wait, to look at the loading screen.
@@ -66,7 +68,7 @@ export function App() {
     // An entry of the feed (its open card included) is the feed's own to read (screens/Feed.tsx), not a gate to re-pick.
     const onPop = () => setScreen((now) => {
       if (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed")) return now;
-      return held.current && !gateOf(location.pathname) ? seatScreen(location.pathname) : gateScreen(location.pathname, vaulted.current);
+      return held.current && !gateOf(location.pathname) ? seatScreen(location.pathname, history.state as { until?: number } | null) : gateScreen(location.pathname, vaulted.current);
     });
     addEventListener("popstate", onPop);
     return () => removeEventListener("popstate", onPop);
@@ -120,7 +122,7 @@ export function App() {
   async function awayCheck(client: Client) {
     const until = (await client.profile().catch(() => null))?.stepped_away_until;
     if (typeof until === "number" && until > Date.now() / 1000) {
-      history.replaceState({ gate: "away", i: 0 }, "", pathOf({ at: "away", until }));
+      history.replaceState({ gate: "away", i: 0, until }, "", pathOf({ at: "away", until }));
       setScreen({ at: "away", until });
     }
   }
@@ -139,6 +141,25 @@ export function App() {
     });
   }
   const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
+  // The tab bar: the feed and "Me" are seats as the feed is (a reload asks the PIN); one replaces the other in history.
+  const tab = (to: Tab) => {
+    if (to !== "feed" && to !== "me") return;
+    history.replaceState({ gate: to, i: 0 }, "", pathOf({ at: to }));
+    setScreen({ at: to });
+  };
+  // Me's move row: the departure on top of Me, so its back (i: 1) is the history's Back onto /me.
+  const toMove = () => {
+    history.pushState({ gate: "departure", i: 1 }, "", pathOf({ at: "departure" }));
+    setScreen({ at: "departure" });
+  };
+  // The identity closed for good (Me → Start again): nothing of it stays; the splash.
+  const closed = () => {
+    held.current = false;
+    vaulted.current = null;
+    setSeated(null);
+    history.replaceState({ gate: "splash", i: 0 }, "", pathOf({ at: "splash" }));
+    setScreen({ at: "splash" });
+  };
 
   // One line and nothing else while locked: no name, no counts, no rooms.
   if (locked && seated) return <LayerStack base={<Locked client={seated.client} onUnlocked={() => setLocked(false)} />} />;
@@ -153,7 +174,8 @@ export function App() {
       case "restore": return <Gate at={screen.at} onBack={gateBack} />;
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
-      case "feed": return seated ? <Feed client={seated.client} /> : null;
+      case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
+      case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }

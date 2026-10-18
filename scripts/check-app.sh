@@ -27,6 +27,9 @@ vol="app-node-modules-$lock"
 docker volume create "$vol" >/dev/null
 # the volume is created root-owned; hand it to the runner once
 docker run --rm -v "$vol":/m alpine:3 chown "$(id -u):$(id -g)" /m
+depth_vol="depth-node-modules-$(sha1sum "$root/depth/package-lock.json" | cut -c1-12)"   # depth/core's own deps (hash-wasm): a clean checkout has none
+docker volume create "$depth_vol" >/dev/null
+docker run --rm -v "$depth_vol":/m alpine:3 chown "$(id -u):$(id -g)" /m
 
 # depth/core imports hash-wasm from depth/node_modules: a volume keyed by depth's lock (a worktree has no
 # depth/node_modules on the disk, and the host's must not be what makes this green).
@@ -42,6 +45,7 @@ timeout 600 docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e npm_confi
   -w /repo/app "$node_image" sh -c '
     [ -f ../depth/node_modules/.lock-ok ] || { (cd ../depth && npm ci --no-audit --no-fund >/dev/null 2>&1) && touch ../depth/node_modules/.lock-ok; } || { echo "SPOILED: npm ci in depth failed"; exit 3; }
     [ -f node_modules/.lock-ok ] || { npm ci --no-audit --no-fund >/dev/null 2>&1 && touch node_modules/.lock-ok; } || { echo "SPOILED: npm ci failed"; exit 3; }
+    [ -f ../depth/node_modules/.lock-ok ] || { (cd ../depth && npm ci --no-audit --no-fund >/dev/null 2>&1) && touch ../depth/node_modules/.lock-ok; } || { echo "SPOILED: npm ci in depth failed"; exit 3; }
     npx tsc --noEmit -p . || exit 1
     npx vite build --outDir /out/dist --emptyOutDir || exit 1
     if grep -rEl "fonts\.(googleapis|gstatic)" /out/dist; then echo "external font URL in dist"; exit 1; fi

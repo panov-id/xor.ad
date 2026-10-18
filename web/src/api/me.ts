@@ -2,8 +2,7 @@
 // terminal's, through the web's one lookup (locales/say.ts, W13), which also
 // picks the language. Nothing here draws; the screens in screens/Me.tsx do.
 
-import type { Answer, Client } from "../../../depth/core/client.ts";
-import { CursorRefused } from "../../../depth/core/client.ts";
+import type { Answer } from "../../../depth/core/client.ts";
 import { say } from "../locales/say.ts";
 import { refusalText } from "./actions.ts";
 
@@ -43,38 +42,8 @@ export function profileRefusal(answer: Answer<unknown>): string | null {
 }
 
 export { AWAY_MINUTES, type AwaySpan, graphemes } from "../../../depth/core/limits.ts";
-import { AWAY_MINUTES, type AwaySpan } from "../../../depth/core/limits.ts";
-export const AWAY_ORDER: AwaySpan[] = ["short", "hour", "long"];
-
-// What a step away costs, counted on the spot as the terminal counts it:
-// one's live phrases, the likes one gave, and the conversations whose own
-// end comes before the break does.
-export async function awayCounts(client: Client): Promise<{ phrases: number; likes: number; ends: number[] }> {
-  const profile = await client.profile();
-  let likes = 0;
-  let after: string | undefined;
-  for (let page = 0; page < 20; page++) {
-    const got = await client.likes(after).catch((e: Error) => {
-      if (!(e instanceof CursorRefused)) throw e;
-      likes = 0;
-      after = undefined;
-      return client.likes();
-    });
-    likes += got.items.length;
-    if (!got.next) break;
-    after = got.next;
-  }
-  const inbox = await client.inbox();
-  const ends = inbox
-    .filter((r) => r.kind === "chat" && r.state !== "ended")
-    .map((r) => Number(r.chat_expires_at))
-    .filter((n) => Number.isFinite(n));
-  return { phrases: profile.phrases?.length ?? 0, likes, ends };
-}
-
-export async function resetCounts(client: Client): Promise<{ phrases: number; chats: number }> {
-  const [me, inbox] = await Promise.all([client.profile(), client.inbox()]);
-  return { phrases: me.phrases?.length ?? 0, chats: inbox.length };
-}
+// What a step away and a start-again cost, counted on the spot as the terminal counts them: one copy for
+// both faces (depth/core/me.ts, 18.10.2026).
+export { AWAY_ORDER, awayCounts, resetCounts } from "../../../depth/core/me.ts";
 
 export const NAME_MAX = 24;

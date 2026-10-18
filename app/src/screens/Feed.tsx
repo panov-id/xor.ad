@@ -14,7 +14,7 @@ import { Icon } from "../shell/Icon";
 import { flag, map, refresh, undo } from "../shell/icons";
 import { useSkeleton } from "../shell/loading";
 import { Skeleton } from "../shell/Skeleton";
-import { TabBar } from "../shell/TabBar";
+import { type Tab, TabBar } from "../shell/TabBar";
 import { CardScreen, likeLine, Tile } from "./feed-card";
 import {
   cardEntry, cardOf, type FeedCard, type Gone, likeOutcome, type LikeOutcome, mergePage, RADII, radiusWord, toneOf, UNDO_HIDE_MS, visibleCards, widerRadius, withLike, withoutCard,
@@ -25,7 +25,7 @@ const radiusText = (r: Radius): string => {
   return say(w.key, { n: w.n });
 };
 
-export function Feed({ client }: { client: Client }) {
+export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => void }) {
   const place = useRef(storedPlace()).current;
   const [radius, setRadius] = useState<Radius>(1000);
   const [items, setItems] = useState<FeedCard[]>([]);
@@ -192,7 +192,7 @@ export function Feed({ client }: { client: Client }) {
             <button type="button" className="cta cta-quiet" onClick={() => void load(next)} data-testid="more">{say("app.feed.more_cards")}</button>
           )}
         </section>
-        <TabBar />
+        <TabBar active="feed" onSelect={onTab} />
       </main>
       {card && (
         <CardScreen

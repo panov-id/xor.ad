@@ -68,16 +68,19 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 
 .sheet-body { display: grid; gap: var(--sp-4); justify-items: start; }
 
+/* sheet w4_me: the bar 340 x 72 with 24 px aside and 25.4 px under it, four round tabs of 53.7, the current lime */
 .tabbar {
-  position: absolute; left: 50%; bottom: var(--nav-gap-bottom); transform: translateX(-50%);
-  width: calc(100% - 2 * var(--sp-4)); max-width: var(--tabbar-max); height: var(--s-nav-bar);
+  position: absolute; left: 50%; bottom: var(--tabbar-bottom); transform: translateX(-50%);
+  width: calc(100% - 2 * var(--tabbar-side)); max-width: var(--tabbar-max); height: var(--s-nav-bar);
   background: var(--c-nav-bar); border-radius: var(--r-nav-bar);
-  display: flex; align-items: center; justify-content: space-around; padding: 0 var(--nav-pad-x);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--tabbar-pad);
   animation: bar-up var(--d-tabbar) var(--ease) var(--t-tabbar-start) both;
 }
 @keyframes bar-up { from { opacity: 0; transform: translate(-50%, var(--o-tabbar)); } to { opacity: 1; transform: translate(-50%, 0); } }
-.tab { color: var(--c-muted); font-weight: var(--fw-600); padding: 0 var(--sp-3); border-radius: var(--r-pill); }
+.tab { width: var(--tab); height: var(--tab); min-height: 0; border-radius: var(--r-pill); color: var(--c-text); display: grid; place-items: center; }
+.tab .icon { --icon-size: var(--icon-tab); --stroke: 2; }
 .tab[aria-current="page"] { color: var(--c-ink); background: var(--c-lime); }
+.tab[aria-disabled="true"] { cursor: default; }
 
 .skeleton { border-radius: var(--r-card); background: var(--c-panel); position: relative; overflow: hidden; }
 .skeleton-line { height: var(--skeleton-line); border-radius: var(--r-pill); }

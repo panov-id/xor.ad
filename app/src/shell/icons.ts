@@ -32,3 +32,7 @@ export const stopSquare = "M7 6h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H7a1 1 0 0 1-1-
 export const close = "M18 6 6 18 M6 6l12 12";
 export const toStart = "M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4 M8 17l-5-5 5-5 M3 12h12";
 export const hourglass = "M5 22h14 M5 2h14 M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22 M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2";
+// The tab bar's (sheet w4_me): tables, chats, me.
+export const tables = "M6 5h12a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3z M12 5v14";
+export const chat = "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z";
+export const person = "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0z";

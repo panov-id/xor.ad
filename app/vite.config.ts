@@ -62,6 +62,8 @@ const platform = fileURLToPath(new URL("../depth/web-platform", import.meta.url)
 // web/src/locales/<lang>.json ("web.*" keys) and depth/ink/locales/<lang>.json (see src/i18n.ts).
 const webLocales = fileURLToPath(new URL("../web/src/locales", import.meta.url));
 const inkLocales = fileURLToPath(new URL("../depth/ink/locales", import.meta.url));
+// The city list of the place picker (depth/core/place.ts), the web's own file read in place: src/screens/me/cities.ts.
+const cities = fileURLToPath(new URL("../web/src/geo/cities.json", import.meta.url));
 
 // The page's Content-Security-Policy (FX5′, 27.09.2026). A script that runs on
 // the page can do whatever the page can — take the long key it holds after the
@@ -112,7 +114,7 @@ const assetsInlineLimit = (file: string) => (/\.woff2?$/.test(file) ? false : un
 export default defineConfig({
   build: { assetsInlineLimit },
   plugins: [react(), csp, brand],
-  server: { port: 5174, proxy, fs: { allow: [".", core, platform, webLocales, inkLocales] }, allowedHosts: ["host.docker.internal", "app"] },
+  server: { port: 5174, proxy, fs: { allow: [".", core, platform, webLocales, inkLocales, cities] }, allowedHosts: ["host.docker.internal", "app"] },
   preview: {
     port: 4174,
     proxy,
@@ -125,6 +127,7 @@ export default defineConfig({
       { find: /^@platform\//, replacement: `${platform}/` },
       { find: /^@locales\//, replacement: `${webLocales}/` },
       { find: /^@ink-locales\//, replacement: `${inkLocales}/` },
+      { find: /^@cities$/, replacement: cities },
       { find: /^@brand$/, replacement: fileURLToPath(new URL(`./src/brands/${brandName}/index.ts`, import.meta.url)) },
     ],
   },

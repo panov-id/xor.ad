@@ -30,6 +30,7 @@ export const idleMs = (): number => idleMsOf(stand);
 const keep = createKeep({ node: { base: NODE_BASE, key: API_KEY }, graceMs: graceMsOf });
 export const {
   readRecord, registerAndKeep, forget, stampGrace, dropGrace, leavingWithGrace, returningWithGrace, hiddenWithGrace, unlockAfterReload, unlockByGrace,
+  changePinAndReseal,
 } = keep;
 
 // A move in (depth/web-platform/arrive_keep.ts, as the web's vault.ts): the claim, then the first PIN seals the record here.

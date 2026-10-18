@@ -69,3 +69,20 @@ export function distanceWord(m: number): { key: "web.feed.m" | "web.feed.km"; n:
 export function canTakeBack(r: LikedRow, spent: boolean): boolean {
   return r.state === "liked" && !r.offer && !spent;
 }
+
+// ── w3_match, w3_match-waiting: what a match shows (web useMatch.ts) ──
+export interface MatchRow extends OfferRow {
+  phrase: { text: string; mode: string; expires_at?: number };
+  my_phrase?: { text: string; mode: string; expires_at?: number };
+  // I agreed and wait (P10); "gone" since Q9: I agreed and the other said "not now".
+  my_consent?: "waiting" | "none" | "gone";
+}
+export type MatchView = "offer" | "they-agreed" | "declined" | "waiting" | "gone";
+
+// The node's word first (after a reload a match I agreed to waits, W7), then what was done on this screen.
+export function matchView(row: MatchRow, here: { agreed: boolean; declined: boolean; gone?: boolean }): MatchView {
+  const waiting = here.agreed || row.my_consent === "waiting" || row.my_consent === "gone";
+  if (waiting) return (here.gone ?? row.my_consent === "gone") ? "gone" : "waiting";
+  if (here.declined) return "declined";
+  return row.waiting_for_you ? "they-agreed" : "offer";
+}

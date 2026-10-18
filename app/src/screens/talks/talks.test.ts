@@ -1,7 +1,7 @@
 // The talks screens' rules (talks-logic.ts). scripts/run-app-unit-tests.sh, node:test.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { canTakeBack, distanceWord, isFresh, lineOf, metresBetween, ringOf, splitInbox, type LikedRow, type TalkRow } from "./talks-logic.ts";
+import { canTakeBack, distanceWord, isFresh, lineOf, matchView, metresBetween, ringOf, splitInbox, type LikedRow, type MatchRow, type TalkRow } from "./talks-logic.ts";
 
 const talk = (over: Partial<TalkRow> = {}): TalkRow => ({ kind: "chat", id: "c", name: "Nino", age: 27, state: "open", chat_expires_at: 10_000, ...over });
 
@@ -52,4 +52,16 @@ test("a liked card's hand takes the like back only while it is a like: not match
   assert.equal(canTakeBack({ ...liked, state: "matched" }, false), false);
   assert.equal(canTakeBack(liked, true), false);
   assert.equal(canTakeBack({ ...liked, offer: { discount_value: "10%" } }, false), false);
+});
+
+test("a match: offer, or they agreed already; declined here; my yes waits, and is gone once they said not now", () => {
+  const row: MatchRow = { kind: "match", id: "m", name: "Nino", age: 27, waiting_for_you: false, phrase: { text: "Backgammon tonight?", mode: "alone" } };
+  const here = { agreed: false, declined: false };
+  assert.equal(matchView(row, here), "offer");
+  assert.equal(matchView({ ...row, waiting_for_you: true }, here), "they-agreed");
+  assert.equal(matchView(row, { ...here, declined: true }), "declined");
+  assert.equal(matchView(row, { ...here, agreed: true }), "waiting");
+  assert.equal(matchView({ ...row, my_consent: "waiting" }, here), "waiting", "after a reload the node remembers my yes");
+  assert.equal(matchView({ ...row, my_consent: "gone" }, here), "gone");
+  assert.equal(matchView({ ...row, my_consent: "gone" }, { ...here, gone: false }), "waiting", "their undo brings the wait back");
 });

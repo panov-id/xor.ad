@@ -284,3 +284,7 @@ button.tg-dk-card:disabled { cursor: default; }
 .tg-pk-acts .tg-actions { margin-top: 0; flex-wrap: wrap; }
 .tg-pk-acts .tg-set { margin-top: 0; padding-bottom: 0; }
 .tg-actions { margin-top: var(--sp-4); display: flex; justify-content: center; gap: var(--sp-3); }
+
+/* the con by agreement under the board */
+.tg-con { margin-top: var(--sp-3); width: 100%; }
+.tg-con-wait { margin-top: var(--sp-3); font-size: var(--fs-notice); }

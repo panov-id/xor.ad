@@ -20,7 +20,7 @@ import { Screen } from "../../shell/Screen";
 import { initial } from "../me/me-logic";
 import { Board, BoardUnder } from "./boards";
 import { gameName } from "./table-row";
-import { facePair, firstAction, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
+import { conStep, facePair, firstAction, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
 import { toneAt } from "./tables-logic";
 
 type Answer = { status: number; body: unknown };
@@ -91,6 +91,7 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
   const ring = moveRing(view);
   const first = firstAction(view);
   const started = !!board && !board.over && board.turn !== null;
+  const con = conStep(board?.state, view.seat, view.is_playing && started && board!.turn === view.seat);
   const pending = board?.pending as { id: string; by?: number; answers?: Record<string, string> } | null | undefined;
   const answered = !!pending && (pending.by === view.seat || pending.answers?.[String(view.seat)] === "accept");
   const proposed = view.is_playing && !!pending && !answered;
@@ -133,6 +134,13 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
           <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} seats={view.seats.filter((s) => s.role === "playing").map((s) => s.seat).sort((a, b) => a - b)} onMove={onMove} />
         </div>
         <BoardUnder klass={view.class} set={view.set} state={board?.state} seat={view.seat} onMove={onMove} />
+        {/* The con by agreement (checkers, chess, backgammon: the rules are the people's): «the round is mine», or agree to theirs. */}
+        {con.offer && (
+          <button type="button" className="cta cta-quiet tg-con" onClick={() => void act(() => tables.move(tableId, board!.seq, { con: con.offer === "claim" ? "won" : "agree" }))} data-testid={`con-${con.offer}`}>
+            {say(con.offer === "claim" ? "web.table.con_won" : "web.table.con_agree")}
+          </button>
+        )}
+        {con.waiting && <p className="tg-quiet tg-con-wait" data-testid="con-waiting">{say("app.table.con_waiting")}</p>}
         {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
         {proposed && (
           <div className="tg-ask">

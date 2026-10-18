@@ -222,3 +222,17 @@ export function dominoView(f: FreeView, seat: number): DominoView {
   });
   return { line, hand, draw: f.boneyard.count > 0 && hand.every((h) => h.ends.length === 0) };
 }
+
+// ── the con by agreement (relay/node/src/lib/tables_grid.ts playCon; checkers, chess, backgammon — the games whose rules
+// stay with the people): in turn, «the game is mine» ({con: "won"}); the other agrees with {con: "agree"} as their next
+// move, any other move of theirs drops the claim. The node keeps `claim` on the grid's or the dice's state ──
+export type ConStep = { offer: "claim" | "agree" | null; waiting: boolean };
+export function conStep(state: BoardState, seat: number, myTurn: boolean): ConStep {
+  const st = state as { grid?: { claim?: number | null; rules?: string }; dice?: { claim?: number | null } } | null | undefined;
+  const holder = st?.grid && !st.grid.rules ? st.grid : st?.dice ?? null;
+  if (!holder || !("claim" in holder)) return { offer: null, waiting: false };
+  const claim = holder.claim ?? null;
+  if (claim === seat) return { offer: null, waiting: true };
+  if (!myTurn) return { offer: null, waiting: false };
+  return { offer: claim === null ? "claim" : "agree", waiting: false };
+}

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { diceOf, diceStep, dominoView, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { conStep, diceOf, diceStep, dominoView, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -150,4 +150,15 @@ test("dominoes: the line's doubles stand; a bone of mine fits the end a half mat
   assert.deepEqual(dominoView({ ...f, line: [] }, 1).hand[0].ends, ["right"], "the first bone goes anywhere");
   assert.deepEqual(dominoView({ ...f, line: ["5:3", "3:5"] }, 1).hand[1].ends, ["left", "right"], "both ends open on a 5");
   assert.deepEqual(dominoView(f, 2).hand, [], "another's hand is only a count");
+});
+
+test("the con: in turn, claim the game; the other's claim, agree to it; mine stands waiting; not where the node keeps the rules", () => {
+  const grid = (claim: number | null, rules?: string) => ({ grid: { cells: {}, claim, ...(rules ? { rules } : {}) } });
+  assert.deepEqual(conStep(grid(null), 1, true), { offer: "claim", waiting: false });
+  assert.deepEqual(conStep(grid(null), 1, false), { offer: null, waiting: false }, "out of turn nothing");
+  assert.deepEqual(conStep(grid(2), 1, true), { offer: "agree", waiting: false });
+  assert.deepEqual(conStep(grid(1), 1, false), { offer: null, waiting: true }, "my claim waits for theirs");
+  assert.deepEqual(conStep(grid(null, "reversi"), 1, true), { offer: null, waiting: false }, "reversi's end is the node's");
+  assert.deepEqual(conStep({ dice: { rolled: null, claim: null } }, 1, true).offer, "claim", "backgammon too");
+  assert.deepEqual(conStep({ dots: { n: 4 } }, 1, true).offer, null);
 });

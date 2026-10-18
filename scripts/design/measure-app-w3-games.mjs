@@ -181,7 +181,8 @@ POS.t11 = () => {
   c.e5 = { seat: 2, piece: "P" }; c.d4 = { seat: 1, piece: "P" };
   return { cells: c };
 };
-STATE.t11 = (p) => ({ grid: { cells: { ...p.cells }, claim: null } });
+STATE.t11 = (p) => ({ grid: { cells: { ...p.cells }, claim: p.claim ?? null } });
+APPLY.t11 = (p, m) => { if (m.con === "won") p.claim = 1; };
 // w3_table-backgammon: the node's dice 5 and 3; no men (the node keeps no position, relay tables_dice.ts).
 GAMES.t12 = { class: "dice", set: "backgammon" };
 POS.t12 = () => ({ rolled: [5, 3] });
@@ -581,7 +582,15 @@ for (const [nth, set, id] of [[9, "checkers", "t10"], [10, "chess", "t11"]]) LAT
     if (set === "chess") for (const l of S.lines.filter((l) => l.base > 170 && l.base < 520)) { const at = cellAt(l.left - 8, l.base - 25); left(scr, `letter ${at}`, l, await line(page, `[data-testid="sq-${at}"] .tg-man`)); }
   },
   async walk(page, stub) {
-    if (set !== "checkers") return;
+    if (set === "chess") {
+      // the con by agreement (the frame's, for the games whose rules are the people's): claim, then wait for the other's yes
+      await page.click('[data-testid="con-claim"]');
+      const m = await movedBy(stub, id);
+      note(m?.move?.con === "won", `walk: «the round is mine» sends {con: "won"} (${JSON.stringify(m ?? null)})`);
+      await page.locator('[data-testid="con-waiting"]').waitFor({ timeout: 10000 }).catch(() => {});
+      note(await page.locator('[data-testid="con-waiting"]').count() === 1 && await page.locator('[data-testid^="con-"]:is(button)').count() === 0, "walk: then the frame waits for the other's agreement, no button");
+      return;
+    }
     await page.click('[data-testid="sq-d4"]');
     note(await page.locator('[data-testid="sq-d4"] .tg-man[data-picked]').count() === 1, "walk: a tap on my man at d4 picks it (the yellow ring)");
     await page.click('[data-testid="sq-e5"]');

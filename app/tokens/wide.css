@@ -13,6 +13,9 @@
    the search icon, the unread dot on the tabs, the thread "Beside it", "Reply beside", the density line over the title,
    the offer and the table tiles as the sheets draw them. */
 
+/* the breakpoints, for the shell's matchMedia (App.tsx useWide); the @media below name the same numbers (a media query cannot read a token) */
+:root { --bp-tablet: 834px; --bp-desktop: 1440px; }
+
 /* ── tablet and up ── */
 @media (min-width: 834px) {
   :root {
@@ -140,8 +143,10 @@
   .tab-word { display: inline; }
   .tab[aria-current="page"] { background: var(--c-peach); color: var(--c-ink); }
   .rail-say { display: flex; align-items: center; justify-content: center; gap: 14.4px; width: 100%; height: 53.93px; margin-top: 22px; border-radius: 999px;
-    background: var(--c-lime); color: var(--c-ink); font-size: 15.5px; font-weight: 700; cursor: default; }
+    background: var(--c-lime); color: var(--c-ink); font-size: 15.5px; font-weight: 700; }
   .rail-say .icon { --icon-size: 20px; --stroke: 2; }
+  /* the rail's «say something» opens the composer here: the feed's round «say it» over the bar is the phone's and the tablet's */
+  .fd-say { display: none; }
 
   /* the panel */
   .fd-panel, .me-panel { position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom); background: var(--c-sheet); border-radius: var(--r-sheet); overflow: hidden; }

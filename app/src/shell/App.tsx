@@ -42,11 +42,16 @@ async function boot(): Promise<void> {
 // The desktop (1440 and up, tokens/wide.css): the talks' pane stands at the right of the panel of these screens
 // (sosed Dusk desktop_1440_Feed, _Phrase, _Me, _Write); below it is not mounted and reads nothing.
 const PANE_BESIDE = new Set<Screen["at"]>(["feed", "me", "composer"]);
-function useWide(query = "(min-width: 1440px)"): boolean {
-  const [wide, setWide] = useState(() => typeof matchMedia === "function" && matchMedia(query).matches);
+// The breakpoints are the tokens --bp-tablet and --bp-desktop (tokens/wide.css, the same numbers as its @media): read off :root, as Feed reads --fd-cols.
+function minWidthOf(token: string): string {
+  if (typeof getComputedStyle !== "function") return "";
+  return `(min-width: ${getComputedStyle(document.documentElement).getPropertyValue(token).trim()})`;
+}
+function useWide(token = "--bp-desktop"): boolean {
+  const [wide, setWide] = useState(() => typeof matchMedia === "function" && matchMedia(minWidthOf(token)).matches);
   useEffect(() => {
     if (typeof matchMedia !== "function") return;
-    const m = matchMedia(query), on = () => setWide(m.matches);
+    const m = matchMedia(minWidthOf(token)), on = () => setWide(m.matches);
     m.addEventListener("change", on);
     return () => m.removeEventListener("change", on);
   }, []);
@@ -78,7 +83,7 @@ export function App() {
   const loadingShown = useSkeleton(booting);
   const wide = useWide();
   // The tablet and up: the talks' screen opens a talk beside its list (tablet_834_Talks), not over it.
-  const twoPane = useWide("(min-width: 834px)");
+  const twoPane = useWide("--bp-tablet");
   const [beside, setBeside] = useState<InboxChatRow | null>(null);
 
   useEffect(() => {
@@ -223,6 +228,8 @@ export function App() {
   };
   const chatBack = () => ((history.state as { i?: number } | null)?.i ? history.back() : toFeed());
   const tab = (to: Tab) => {
+    // the rail's «say something» (desktop_1440_*): the composer over the screen it is pressed on, with the feed's first circle
+    if (to === "say") return openComposer(1000);
     if (to !== "feed" && to !== "tables" && to !== "chats" && to !== "me") return;
     const at = to === "chats" ? "inbox" : to;
     history.replaceState({ gate: at, i: 0 }, "", pathOf({ at }));

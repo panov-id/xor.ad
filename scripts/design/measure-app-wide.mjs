@@ -220,7 +220,8 @@ export async function wideSheets(h) {
     const scr = `${kind}-write`, S = sheet(dir, file), T = S.lines;
     const o = await sit(kind, w, "walk-wide-" + scr);
     const page = o.page;
-    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]'); await settle(page);
+    // the phone's and the tablet's round «say it»; the desktop's rail «say something» (TabBar onSelect("say"))
+    await page.click(kind === "desktop" ? '[data-testid="rail-say"]' : '[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]'); await settle(page);
     await page.fill('[data-testid="text"]', "Backgammon in the yard tonight?"); await page.click('[data-testid="mode-company"]'); await settle(page);
     textAt(scr, "title", T[p.title], await line(page, ".cp-head h1"));
     if (p.sub !== undefined) textAt(scr, "line under the title", T[p.sub], await line(page, ".cp-head p:not(.cp-where)"));
@@ -262,6 +263,12 @@ export async function wideSheets(h) {
     compare(scr, "say it to the yard", abs(shape(S, p.send)), await one(page, ".cp-send"));
     await overflowAt(page, scr, w);
     if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${scr}.png` });
+    // the way in and back: /write over the feed, the history's Back onto the feed
+    { const into = new URL(page.url()).pathname;
+      await page.goBack(); await page.waitForSelector('[data-screen="feed"]', { timeout: 10000 }).catch(() => null);
+      const back = [await page.locator("main[data-screen]").first().getAttribute("data-screen"), new URL(page.url()).pathname];
+      notes.push({ bad: !(into === "/write" && back.join() === "feed,/feed"), text: `${scr}: the ${kind === "desktop" ? "rail's «say something»" : "round «say it»"} opens ${into}, Back lands on ${back.join(" ")}` });
+      if (kind === "desktop") notes.push({ bad: (await page.locator(".fd-say").first().isVisible().catch(() => false)), text: `${scr}: the feed's round «say it» is not shown beside the rail` }); }
     await o.ctx.close();
   }
 

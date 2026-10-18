@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
-import { type ChatKeys, chatKeysFor } from "@platform/chat/keys.ts";
+import { type ChatKeys, chatKeysFor, type InboxChatRow } from "@platform/chat/keys.ts";
 import { gateOf, gateScreen, pathOf, type Screen, seatScreen } from "../router";
 import { Arrival } from "../screens/Arrival";
+import { Chat } from "../screens/Chat";
 import { Away } from "../screens/Away";
 import { Departure } from "../screens/Departure";
 import { Feed } from "../screens/Feed";
@@ -95,7 +96,7 @@ export function App() {
       setScreen((now) => {
       if (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed")) return now;
       if (!held.current || gateOf(location.pathname)) return gateScreen(location.pathname, vaulted.current);
-      const to = seatScreen(location.pathname, history.state as { until?: number } | null);
+      const to = seatScreen(location.pathname, history.state as Parameters<typeof seatScreen>[1]);
       // A seat's address that opens another screen (an /away whose until lapsed): the entry says where the person is.
       if (location.pathname.replace(/\/+$/, "") !== pathOf(to)) history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
       return to;
@@ -123,7 +124,7 @@ export function App() {
   // The stand's build only: the client in the page's own scope for a test to drive (web does the same).
   useEffect(() => {
     if (import.meta.env.VITE_STAND !== "1") return;
-    (globalThis as unknown as { xor?: unknown }).xor = seated ? { client: seated.client } : undefined;
+    (globalThis as unknown as { xor?: unknown }).xor = seated ? { client: seated.client, openChat } : undefined;
   }, [seated]);
 
   function gate(to: Screen) {
@@ -173,6 +174,14 @@ export function App() {
   }
   const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
   // The tab bar: the feed and "Me" are seats as the feed is (a reload asks the PIN); one replaces the other in history.
+  // A chat opens over the screen it came from (the inbox, later; the stand now): its row rides in the entry, and
+  // its own back is the history's Back (web App.tsx go/back).
+  const openChat = (row: InboxChatRow) => {
+    const was = history.state as { i?: number } | null;
+    history.pushState({ gate: "chat", i: (typeof was?.i === "number" ? was.i : 0) + 1, row }, "", pathOf({ at: "chat", row }));
+    setScreen({ at: "chat", row });
+  };
+  const chatBack = () => ((history.state as { i?: number } | null)?.i ? history.back() : toFeed());
   const tab = (to: Tab) => {
     if (to === "tables") return;
     const at = to === "chats" ? "inbox" : to;
@@ -216,6 +225,7 @@ export function App() {
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
+      case "chat": return seated && chatKeys ? <Chat key={screen.row.id} client={seated.client} keys={chatKeys} row={screen.row} onBack={chatBack} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       // The talks (w3): a match and a talk open over it once their screens are here (onOpenMatch, onOpenChat).
       case "inbox": return seated ? <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={() => {}} /> : null;

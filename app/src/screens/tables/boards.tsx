@@ -1,10 +1,10 @@
 // The boards on the table's panel (sheets w3_table-*), one per game, each drawing its own part of the node's state
 // (relay/node/src/lib/tables_*.ts) through table-logic.ts; a tap is a move only in turn (onMove given), the node
 // refuses the rest. Testids: four, four-col-<a..g>; dots, dot, edge-<id>, box; hangman, gallows, mask, slot, key-<letter>,
-// word-input, word-go; reversi, cell-<a1..h8>.
+// word-input, word-go; reversi, cell-<a1..h8>; squares, sq-<a1..h8>.
 import { useState } from "react";
 import { say } from "../../i18n";
-import { type BoardState, dotsLayout, dotsStateOf, fourColumns, gridOf, hangmanView, reversiCells, wordOf } from "./table-logic";
+import { type BoardState, dotsLayout, dotsStateOf, fourColumns, gridOf, hangmanView, reversiCells, squares, tapSquare, wordOf } from "./table-logic";
 
 type Move = (m: unknown) => void;
 export type BoardProps = { state: BoardState; seat: number; onMove?: Move };
@@ -13,6 +13,7 @@ export type BoardProps = { state: BoardState; seat: number; onMove?: Move };
 export function Board({ klass, set, ...props }: BoardProps & { klass: string; set: string }) {
   if (klass === "grid" && set === "four") return <FourBoard {...props} />;
   if (klass === "grid" && set === "reversi") return <ReversiBoard {...props} />;
+  if (klass === "grid" && (set === "checkers" || set === "chess")) return <SquaresBoard {...props} chess={set === "chess"} />;
   if (klass === "dots") return <DotsBoard {...props} />;
   if (klass === "word") return <HangmanBoard {...props} />;
   return null;
@@ -112,6 +113,31 @@ export function ReversiBoard({ state, seat, onMove }: BoardProps) {
           data-testid={`cell-${c.id}`}>
           {c.stand !== "free" && <span className="tb-piece" data-stand={c.stand} />}
           {c.stand === "free" && c.legal && onMove && <span className="tb-hint" />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Checkers and chess (w3_table-checkers, w3_table-chess): the chequered field, the pieces (a chess piece by its letter);
+// a tap picks a piece of mine (a yellow ring), the next tap on a square not mine is the move ({from, to}).
+export function SquaresBoard({ state, seat, onMove, chess }: BoardProps & { chess: boolean }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  const grid = gridOf(state);
+  if (!grid) return null;
+  const tap = (id: string) => {
+    const next = tapSquare(grid, seat, picked, id);
+    setPicked(next.picked);
+    if (next.move) onMove?.(next.move);
+  };
+  return (
+    <div className="tb-squares" data-chess={chess || undefined} role="group" aria-label={say("web.table.board")} data-testid="squares">
+      {squares(grid, seat).map((q) => (
+        <button key={q.id} type="button" className="tb-sq2" data-tint={q.tint || undefined} disabled={!onMove} onClick={() => tap(q.id)}
+          aria-pressed={picked === q.id || undefined}
+          aria-label={say(q.stand === "mine" ? "web.table.cell_mine" : q.stand === "theirs" ? "web.table.cell_theirs" : "web.table.cell_free", { cell: q.id })}
+          data-testid={`sq-${q.id}`}>
+          {q.stand !== "free" && <span className="tb-man" data-stand={q.stand} data-picked={picked === q.id || undefined}>{q.letter}</span>}
         </button>
       ))}
     </div>

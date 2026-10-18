@@ -158,3 +158,26 @@ export function reversiCells(g: Grid, seat: number): Array<{ id: string; stand: 
   }
   return out;
 }
+
+// ── checkers and chess (relay/node/src/lib/tables_grid.ts playGrid): a move is {from, to}; the node checks that `from`
+// holds a piece of mine and `to` none of mine — whether the move is legal beyond that stays with the people ──
+export type Square = { id: string; tint: boolean; stand: Stand; letter: string };
+// The 64 squares, rank 8 on top; tinted where file and rank differ in parity — the squares checkers men stand on
+// (relay newGrid: a1, c1 …), as the sheets draw them; a chess piece shows its letter (a pawn and a checkers man none).
+export function squares(g: Grid, seat: number): Square[] {
+  const out: Square[] = [];
+  for (let r = 7; r >= 0; r--) for (let f = 0; f < 8; f++) {
+    const id = `${FILES8[f]}${r + 1}`;
+    const p = g.cells[id];
+    out.push({ id, tint: (f + r) % 2 === 0, stand: standOf(g, id, seat), letter: p && p.piece !== "P" && p.piece !== "M" ? p.piece : "" });
+  }
+  return out;
+}
+// A tap on the board: on a piece of mine it picks that piece (again: drops it); with one picked, any other square that
+// is not mine is the move; anything else does nothing.
+export function tapSquare(g: Grid, seat: number, picked: string | null, at: string): { picked: string | null; move?: { from: string; to: string } } {
+  const mine = g.cells[at]?.seat === seat;
+  if (mine) return { picked: picked === at ? null : at };
+  if (picked) return { picked: null, move: { from: picked, to: at } };
+  return { picked: null };
+}

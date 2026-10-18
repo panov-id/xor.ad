@@ -1,5 +1,5 @@
 // Measures the rendered app/ table (the frame, then each game's board) against the Dusk sheets of wave 3 (mobile
-// w3_table-four, w3_table-dots, w3_table-hangman, w3_table-reversi; more games as their boards come), and walks it against a stubbed node: the list's «Watch» opens the
+// w3_table-four, w3_table-dots, w3_table-hangman, w3_table-reversi, w3_table-checkers, w3_table-chess; more games as their boards come), and walks it against a stubbed node: the list's «Watch» opens the
 // table, a column's tap sends the move. Run by scripts/measure-app-w3-games.sh inside the Playwright image, on an
 // internal network: PREVIEW is the built app (with its CSP). Built on measure-app-w4.mjs (its helpers, its report).
 // Expected values are read from the sheets (sheet-geometry.mjs), never typed in; indices are the sheets' drawing order.
@@ -114,7 +114,16 @@ const cellsOf = (m) => Object.fromEntries(Object.entries(m).map(([id, seat]) => 
 // w3_table-dots: 4×4, two boxes mine (seat 1), two Nino's, two loose edges.
 const DOTS = { edges: ["h:1:1", "h:2:1", "v:1:1", "v:1:2", "h:1:2", "h:2:2", "v:1:3", "h:3:1", "v:2:1", "v:2:2", "h:3:3", "h:4:3", "v:3:3", "v:3:4", "h:4:0", "v:0:4"],
   boxes: { "1:1": 1, "1:2": 1, "2:1": 2, "3:3": 2 } };
-const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" }, t4: { class: "grid", set: "reversi" } };
+const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" }, t4: { class: "grid", set: "reversi" }, t5: { class: "grid", set: "checkers" }, t6: { class: "grid", set: "chess" } };
+// w3_table-checkers and w3_table-chess: the sheets' positions (mine seat 1, lime; Nino peach).
+const man = (seat) => ({ seat, piece: "M" });
+const CHECKERS = Object.fromEntries([..."b8 d8 f8 h8 a7 c7 e7 g7 f6 h6".split(" ").map((id) => [id, man(2)]), ..."d4 a3 c3 g3 b2 d2 f2 h2 a1 c1 e1 g1".split(" ").map((id) => [id, man(1)])]);
+const CHESS = (() => {
+  const c = {}, back = "RNBQKBNR";
+  for (let f = 0; f < 8; f++) { const x = "abcdefgh"[f]; c[`${x}8`] = { seat: 2, piece: back[f] }; c[`${x}1`] = { seat: 1, piece: back[f] }; if (x !== "e") c[`${x}7`] = { seat: 2, piece: "P" }; if (x !== "d") c[`${x}2`] = { seat: 1, piece: "P" }; }
+  c.e5 = { seat: 2, piece: "P" }; c.d4 = { seat: 1, piece: "P" };
+  return c;
+})();
 // w3_table-reversi: mine lime, Nino peach (rank 8 on top).
 const REVERSI = { d6: 1, e6: 2, c5: 2, d5: 2, e5: 1, d4: 1, e4: 2, f4: 2, e3: 1, f3: 1 };
 // w3_table-hangman: Nino set the word, I guess; tried q e t a f k (the sheet's spent keys), the mask shows them.
@@ -124,6 +133,8 @@ function tableView(s, id) {
   const state = g.class === "dots" ? { dots: { n: 4, edges: [...s.edges], boxes: { ...DOTS.boxes } } }
     : g.class === "word" ? { word: { ...WORD, guessed: [...s.guessed] } }
     : g.set === "reversi" ? { grid: { cells: cellsOf(s.rev), claim: null, rules: "reversi" } }
+    : g.set === "checkers" ? { grid: { cells: { ...s.checkers }, claim: null } }
+    : g.set === "chess" ? { grid: { cells: { ...CHESS }, claim: null } }
     : { grid: { cells: cellsOf(s.cells), claim: null, rules: "four" } };
   return {
     id, class: g.class, set: g.set, seat: 1, is_playing: true, playing: 2, watching: 0, name: "Evening at the yard", like_count: 0, lines: [],
@@ -133,7 +144,7 @@ function tableView(s, id) {
 }
 function nodeStub() {
   const calls = [], moves = [];
-  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], rev: { ...REVERSI }, due: Math.floor(Date.now() / 1000) + 100 };
+  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], rev: { ...REVERSI }, checkers: { ...CHECKERS }, due: Math.floor(Date.now() / 1000) + 100 };
   const prepare = async (ctx) => {
     await ctx.route("**/*", async (route) => {
       const req = route.request(), u = new URL(req.url());
@@ -156,7 +167,8 @@ function nodeStub() {
         if (m.move?.column) { const col = m.move.column; let r = 1; while (s.cells[`${col}${r}`]) r++; s.cells[`${col}${r}`] = 1; }
         if (m.move?.edge) s.edges.push(m.move.edge);
         if (m.move?.letter) s.guessed.push(m.move.letter);
-        if (m.move?.to) s.rev[m.move.to] = 1;
+        if (m.move?.to && !m.move?.from) s.rev[m.move.to] = 1;
+        if (m.move?.from) { s.checkers[m.move.to] = s.checkers[m.move.from]; delete s.checkers[m.move.from]; }
         s.seq++; s.turn = 2;
         return json(200, { board: tableView(s, t[1]).board });
       }
@@ -355,6 +367,41 @@ await ctx.close();
   note(await o.page.locator('[data-testid="cell-a8"]').isDisabled(), "walk: a cell that turns nothing takes no tap");
   await o.ctx.close();
 }
+// w3_table-checkers and w3_table-chess: the fifth and sixth tables
+for (const [nth, set] of [[4, "checkers"], [5, "chess"]]) {
+  const sq = nodeStub();
+  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: sq.prepare });
+  await registerFull(o.page); await toTable(o.page, nth);
+  await o.page.locator('[data-testid="sq-h1"]').waitFor({ timeout: 20000 });
+  if (want(set)) {
+    const S = sheetOf(set), sh = S.shapes, scr = set;
+    await settle(o.page);
+    await tableFrame(o.page, scr, S);
+    compare(scr, "panel height", [sh[4].h], [(await box(o.page, ".tb-panel"))[3]]);
+    const at = (x, y) => `${"abcdefgh"[Math.round((x - 15.9) / 44.525)]}${8 - Math.round((y - 160) / 44.525)}`;
+    const tints = sh.filter((x) => Math.abs(x.w - 44.6) < 0.3);
+    for (const t of [tints[0], tints[13], tints[31]]) compare(scr, `tint ${at(t.x, t.y)}`, shapeOf(t), await box(o.page, `[data-testid="sq-${at(t.x, t.y)}"]`));
+    const size = set === "chess" ? 33.8 : 32;
+    const men = sh.filter((x) => Math.abs(x.w - size) < 0.3);
+    for (const m of men) { const id = at(m.x - (44.525 - size) / 2, m.y - (44.525 - size) / 2); compare(scr, `piece ${id}`, shapeOf(m), await box(o.page, `[data-testid="sq-${id}"] .tb-man`)); }
+    if (set === "chess") for (const l of S.lines.filter((l) => l.base > 170 && l.base < 520)) {
+      const id = at(l.left - 8, l.base - 25);
+      left(scr, `letter ${id}`, l, await line(o.page, `[data-testid="sq-${id}"] .tb-man`));
+    }
+    await shot(o.page, `table-${set}`);
+  }
+  await overflowAt(o.page, `table-${set}`, 390);
+  if (set === "checkers") {
+    await o.page.click('[data-testid="sq-d4"]');
+    note(await o.page.locator('[data-testid="sq-d4"] .tb-man[data-picked]').count() === 1, "walk: a tap on my man at d4 picks it (the yellow ring)");
+    await o.page.click('[data-testid="sq-e5"]');
+    for (let k = 0; k < 40 && sq.moves.length === 0; k++) await o.page.waitForTimeout(100);
+    note(sq.moves[0]?.move?.from === "d4" && sq.moves[0]?.move?.to === "e5", `walk: then e5 sends {move: {from: "d4", to: "e5"}} (${JSON.stringify(sq.moves[0] ?? null)})`);
+    await o.page.locator('[data-testid="sq-e5"] .tb-man[data-stand="mine"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await o.page.locator('[data-testid="sq-e5"] .tb-man[data-stand="mine"]').count() === 1, "walk: the man stands on e5 after the node's answer");
+  }
+  await o.ctx.close();
+}
 for (const w of [375, 320]) {
   const s2 = nodeStub();
   const o = await open(browser, PREVIEW + "/", w, { screen: "w3g", prepare: s2.prepare });
@@ -368,7 +415,16 @@ for (const w of [375, 320]) {
   await settle(o.page); await overflowAt(o.page, "table-hangman", w);
   await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
   await o.page.locator('[data-testid="table-open"]').nth(3).click(); await o.page.locator('[data-testid="cell-h1"]').waitFor({ timeout: 20000 });
-  await settle(o.page); await overflowAt(o.page, "table-reversi", w); await o.ctx.close();
+  await settle(o.page); await overflowAt(o.page, "table-reversi", w);
+  for (const [nth, set] of [[4, "checkers"], [5, "chess"]]) {
+    await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+    await o.page.locator('[data-testid="table-open"]').nth(5).waitFor({ timeout: 20000 });   // the whole list again, not the first rows
+    await o.page.locator('[data-testid="table-open"]').nth(nth).click();
+    const ok = await o.page.locator('[data-testid="sq-h1"]').waitFor({ timeout: 20000 }).then(() => true, () => false);
+    if (!ok) { await o.page.screenshot({ path: `${SHOTS}/w3_table-${set}-${TAG}-${w}-missing.png` }); note(false, `walk: ${set} at ${w}[${TAG}] did not open (shot w3_table-${set}-${TAG}-${w}-missing.png)`); continue; }
+    await settle(o.page); await overflowAt(o.page, `table-${set}`, w);
+  }
+  await o.ctx.close();
 }
 
 await browser.close();

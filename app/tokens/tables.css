@@ -102,4 +102,7 @@
   --tb-hint: 10.8px;
   --tb-sq-line: 1px;
   --tb-field-r: 2px;
+  --tb-man: 32px;
+  --tb-pick-line: 3px;
+  --tb-pick-gap: 3px;
 }

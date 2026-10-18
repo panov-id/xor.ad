@@ -160,3 +160,16 @@
 .tb-piece[data-stand="mine"] { background: var(--c-lime); }
 .tb-piece[data-stand="theirs"] { background: var(--c-peach); }
 .tb-hint { width: var(--tb-hint); height: var(--tb-hint); border-radius: var(--r-pill); background: var(--c-yellow); }
+
+/* checkers and chess: the chequered field fills the panel; a man (or a chess piece with its letter) centred in its square */
+.tb-panel[data-set="checkers"], .tb-panel[data-set="chess"] { padding: 0; aspect-ratio: 1; overflow: hidden; }
+.tb-squares { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); aspect-ratio: 1; }
+.tb-sq2 { min-height: 0; padding: 0; display: grid; place-items: center; background: none; }
+.tb-sq2[data-tint] { background: var(--c-cell-line); }
+.tb-sq2:disabled { cursor: default; }
+.tb-man { width: var(--tb-man); height: var(--tb-man); border-radius: var(--r-pill); display: grid; place-items: center; box-shadow: inset 0 0 0 var(--tb-cell-line) var(--c-ink);
+  color: var(--c-ink); font-size: var(--fs-tb-key); font-weight: var(--fw-800); line-height: 1; }
+.tb-squares[data-chess] .tb-man { width: var(--tb-piece); height: var(--tb-piece); }
+.tb-man[data-stand="mine"] { background: var(--c-lime); }
+.tb-man[data-stand="theirs"] { background: var(--c-peach); }
+.tb-man[data-picked] { outline: var(--tb-pick-line) solid var(--c-yellow); outline-offset: var(--tb-pick-gap); }

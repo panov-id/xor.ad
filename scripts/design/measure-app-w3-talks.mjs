@@ -106,7 +106,7 @@ async function fonts(page, screen, probes) {
 }
 
 // ── the node, stubbed: the routes the registration, the feed and Me call ──
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|statements|likes|inbox|away|matches)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|statements|likes|inbox|away|matches|chats)(\/|$)/;
 const ACCEPTED = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 // After the registration the node publishes new revisions: the terms changed on 14 Oct (a new hash), privacy and the
 // rules re-dated with the hash this device accepted (w4_legal: one changed, two not).
@@ -123,7 +123,7 @@ function inboxRows(gone = false) {
   const talk = (id, name, age, left, last, more = {}) => ({ kind: "chat", id, name, age, state: "open", chat_expires_at: now + left * 60 - 5, my_span: 60, last_activity_at: last, ...more });
   return [
     offer("m1", "Nino", 27, true, { phrase: { text: "Backgammon tonight?", mode: "alone" }, my_phrase: { text: "Bakery open after ten?", mode: "alone" }, ...(gone ? { my_consent: "gone" } : {}) }), offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false), offer("m4", "Tamar", 33, false),
-    talk("c1", "Nino", 27, 38, at(21, 4), { pending_messages: 1 }), talk("c2", "Levan", 34, 52, at(20, 10)), talk("c3", "Mariam", 29, 12, at(18, 32)),
+    talk("c1", "Nino", 27, 38, at(21, 4), { pending_messages: 1, me: "id-stub", key_epoch: 1, rekey_requested: false, peer: { key_epoch: 1, identity_id: "id-nino", identity_public_key: "pk-nino" } }), talk("c2", "Levan", 34, 52, at(20, 10)), talk("c3", "Mariam", 29, 12, at(18, 32)),
     talk("c4", "Giorgi", 41, 0, at(17, 5), { state: "ended", chat_expires_at: now - 60 }),
   ];
 }
@@ -163,6 +163,7 @@ function nodeStub() {
       if (key === "GET /identities/me") return json(200, { name: "Alex", name_state: "accepted", age: 32, phrases: [{ id: "p1" }, { id: "p2" }], filter_age_min: 25, filter_age_max: 35 });
       if (key === "PATCH /identities/me") { patches.push(body()); return json(200, {}); }
       if (key === "GET /statements") return json(200, { items: !s.restricted ? [] : [{ id: "st-1", restriction: "removed", facts: "Phrase “Selling…”", ground_kind: "contractual", ground_text: "Rules § 4 · ads", automated_used: false, created_at: Date.UTC(2026, 9, 12, 12) / 1000 }] });
+      if (u.pathname.startsWith("/chats/")) return json(503, { error: { code: "unavailable" } });   // no room in the stub; the chat stands on its row
       if (key === "POST /matches/m1/consent") { s.consented = true; return json(200, { state: "waiting" }); }
       if (key === "POST /matches/m1/decline") { s.declined = true; return route.fulfill({ status: 204 }); }
       if (key === "GET /likes") return json(200, { items: likedRows().filter((r) => !s.unliked.includes(r.id)), next: null });
@@ -273,8 +274,15 @@ if (want("inbox")) {
   await shot(page, "inbox");
 }
 await overflowAt(page, "inbox", 390);
+note(await page.locator('[data-testid="open-chat"]').nth(1).isDisabled(), "walk: a talk the node gave without its keys takes no press (chatRowOf null)");
 await fonts(page, "inbox", [["title", ".tk-title"], ["row name", ".tk-name"]]);
 
+// the talk's row opens the chat (App.tsx openChat; the chat screen is the chat branch's), and Back is the inbox again
+await page.locator('[data-testid="open-chat"]').first().click();
+const chatOpened = await page.waitForSelector('[data-screen="chat"]', { timeout: 20000 }).then(() => true, () => false);
+note(chatOpened && new URL(page.url()).pathname === "/chat", `walk: Nino's talk opens the chat at ${new URL(page.url()).pathname}`);
+await page.goBack(); await page.waitForSelector('[data-screen="inbox"]', { timeout: 20000 });
+await page.locator('[data-testid="chat"]').nth(3).waitFor({ timeout: 20000 });
 // w3_likes: the inbox's «Offers» circle
 await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]', { timeout: 20000 });
 await page.locator('[data-testid="liked-card"]').nth(2).waitFor({ timeout: 20000 });

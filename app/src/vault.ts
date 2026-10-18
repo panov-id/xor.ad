@@ -5,8 +5,9 @@
 // depth/web-platform/vault_store.ts (the IndexedDB), vault_keep.ts (the grace bound to this tab) — so an
 // identity made by the web opens here and one made here opens in the web.
 //
-// What is the web's own and not here yet: the PIN's change, a raise by the paper code, a move.
+// What is the web's own and not here yet: the PIN's change, a raise by the paper code.
 import { idleMsOf } from "@platform/idle.ts";
+import { createArrive } from "@platform/arrive_keep.ts";
 import { createKeep } from "@platform/vault_keep.ts";
 import { GRACE_MS } from "@sdk/grace.ts";
 import { API_KEY, NODE_BASE } from "./config";
@@ -30,3 +31,7 @@ const keep = createKeep({ node: { base: NODE_BASE, key: API_KEY }, graceMs: grac
 export const {
   readRecord, registerAndKeep, forget, stampGrace, dropGrace, leavingWithGrace, returningWithGrace, hiddenWithGrace, unlockAfterReload, unlockByGrace,
 } = keep;
+
+// A move in (depth/web-platform/arrive_keep.ts, as the web's vault.ts): the claim, then the first PIN seals the record here.
+export type { Arriving } from "@platform/arrive_keep.ts";
+export const { claimArrival, keepArrived } = createArrive({ node: { base: NODE_BASE, key: API_KEY }, putRecord: keep.putRecord, armGrace: keep.armGrace });

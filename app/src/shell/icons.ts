@@ -26,3 +26,9 @@ export const blockMark = "M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z M15 9l-6 6 M
 export const refresh = "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8 M21 3v5h-5 M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16 M8 16H3v5";
 export const map = "M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z M15 5.764v15 M9 3.236v15";
 export const undo = "M3 7v6h6 M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13";
+/** Lucide-style, for the move and away sheets (w2_departure-*, w2_arrival-*, w2_away): the code's box, stop, close, to the start, the hourglass. */
+export const codeBox = "M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z M7 10h10 M7 14h10";
+export const stopSquare = "M7 6h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z";
+export const close = "M18 6 6 18 M6 6l12 12";
+export const toStart = "M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4 M8 17l-5-5 5-5 M3 12h12";
+export const hourglass = "M5 22h14 M5 2h14 M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22 M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2";

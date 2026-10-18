@@ -4,7 +4,7 @@
 
 import { useRef, useState } from "react";
 import type { Client } from "../../../../depth/core/client.ts";
-import { readPaperText } from "../../../../depth/core/paper.ts";
+import { claimRefusal, typedCode } from "../../../../depth/core/move_flow.ts";
 import type { MoveState } from "../../../../depth/core/transfer_move.ts";
 import { say } from "../../api/me.ts";
 import { browserLabel, ENDINGS, MOVE_POLL_MS, useEvery } from "../../api/transfer.ts";
@@ -19,7 +19,7 @@ export function useArrival({ onDone }: { onDone: (client: Client, longKey: Crypt
   const [into, setInto] = useState<Arriving | null>(null);
   const [state, setState] = useState<MoveState>("claimed");
   const arrived = useRef(false);
-  const clean = readPaperText(code);
+  const { clean } = typedCode(code);
 
   useEvery(MOVE_POLL_MS, () => into?.arrival.state().then((next) => {
     if (next === "approved") arrived.current = true;
@@ -32,10 +32,9 @@ export function useArrival({ onDone }: { onDone: (client: Client, longKey: Crypt
     try {
       const claimed = await claimArrival(clean, browserLabel());
       if ("arrival" in claimed) return setInto(claimed);
-      if (claimed.status === 404) return setError(say("move.codeBad"));
-      if (claimed.status === 409) return setError(say("move.twice"));
-      // The claim's own limit (§8.2, claim.miss.*), not the PIN's words (W12-C2).
-      if (claimed.status === 429) return setError(say("restore.wait", { n: String(claimed.retryAfter ?? "?") }));
+      // 404, 409 and the claim's own limit (§8.2, claim.miss.*), in the core's words (move_flow.ts).
+      const refusal = claimRefusal(claimed);
+      if (refusal) return setError(say(refusal.key, refusal.values));
       setError(`the claim was refused: ${claimed.status}`);
     } catch (e) {
       setError((e as Error).message);

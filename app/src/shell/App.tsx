@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
-import { gateOf, gateScreen, pathOf, type Screen } from "../router";
+import { gateOf, gateScreen, pathOf, type Screen, seatScreen } from "../router";
+import { Arrival } from "../screens/Arrival";
+import { Away } from "../screens/Away";
+import { Departure } from "../screens/Departure";
 import { Feed } from "../screens/Feed";
 import { Gate } from "../screens/Gate";
 import { Loading } from "../screens/Loading";
@@ -30,6 +33,8 @@ export function App() {
   const [locked, setLocked] = useState(false);
   // The vault's record as the page found it (null: none, or forgotten since): the gates read it.
   const vaulted = useRef<Record_ | null>(null);
+  // An identity is on the page (a seat): Back and a typed address move between its screens (the feed, /move).
+  const held = useRef(false);
   // Waiting rules (MOTION.md): the loading screen shows only if the wait outlasts 300 ms, and then stays 600 ms.
   const loadingShown = useSkeleton(booting);
 
@@ -43,9 +48,11 @@ export function App() {
       const graced = record ? await unlockByGrace(record).catch(() => null) : null;
       if (graced) {
         vaulted.current = null;
+        held.current = true;
         setSeated({ client: graced.client, sealed: graced.wrapSame ? "unlocked" : "unlocked-new-wrap" });
         history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
         setScreen({ at: "feed" });
+        void awayCheck(graced.client);
         return setBooting(false);
       }
       const to = gateScreen(location.pathname, vaulted.current);
@@ -57,7 +64,10 @@ export function App() {
 
   useEffect(() => {
     // An entry of the feed (its open card included) is the feed's own to read (screens/Feed.tsx), not a gate to re-pick.
-    const onPop = () => setScreen((now) => (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed") ? now : gateScreen(location.pathname, vaulted.current)));
+    const onPop = () => setScreen((now) => {
+      if (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed")) return now;
+      return held.current && !gateOf(location.pathname) ? seatScreen(location.pathname) : gateScreen(location.pathname, vaulted.current);
+    });
     addEventListener("popstate", onPop);
     return () => removeEventListener("popstate", onPop);
   }, []);
@@ -100,9 +110,33 @@ export function App() {
   // Registered or unlocked: the feed. The gates behind are left: Back does not return to them.
   function seat(who: Seated) {
     vaulted.current = null;
+    held.current = true;
     setSeated(who);
     history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
     setScreen({ at: "feed" });
+    void awayCheck(who.client);
+  }
+  // Seated while a step away is on (the profile says until when; web App.tsx land): the away screen, not the feed.
+  async function awayCheck(client: Client) {
+    const until = (await client.profile().catch(() => null))?.stepped_away_until;
+    if (typeof until === "number" && until > Date.now() / 1000) {
+      history.replaceState({ gate: "away", i: 0 }, "", pathOf({ at: "away", until }));
+      setScreen({ at: "away", until });
+    }
+  }
+  // Back to the feed from a seat's screen, in place (the away screen's end, the departure's back).
+  function toFeed() {
+    history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
+    setScreen({ at: "feed" });
+  }
+  // Moved away: the node froze this session with the approval; this device forgets the identity and starts over (web App.tsx).
+  function gone() {
+    held.current = false;
+    void forget().then(() => {
+      setSeated(null);
+      history.replaceState({ gate: "splash", i: 0 }, "", pathOf({ at: "splash" }));
+      setScreen({ at: "splash" });
+    });
   }
   const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
 
@@ -116,8 +150,12 @@ export function App() {
       case "splash": return <Splash onStart={() => gate({ at: "register" })} onRestore={() => gate({ at: "restore" })} onArrive={() => gate({ at: "arrival" })} />;
       case "register": return <Register onDone={seat} />;
       case "unlock": return <Unlock record={screen.record} onDone={unlocked} onForget={() => { vaulted.current = null; gate({ at: "splash" }); }} onRestore={() => gate({ at: "restore" })} />;
-      case "restore": case "arrival": return <Gate at={screen.at} onBack={gateBack} />;
+      case "restore": return <Gate at={screen.at} onBack={gateBack} />;
+      // Arrived by a move: sealed under a first PIN, seated as after the PIN.
+      case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       case "feed": return seated ? <Feed client={seated.client} /> : null;
+      case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
+      case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }
   };
   return <LayerStack base={view()} />;

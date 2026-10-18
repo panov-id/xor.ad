@@ -6,6 +6,7 @@
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
 import { Departure as Leaving, type MoveState } from "../../../depth/core/transfer_move.ts";
+import { departureAsking, secondsLeft } from "../../../depth/core/move_flow.ts";
 import { pinRefusal, say } from "../api/me.ts";
 import { ENDINGS, MOVE_POLL_MS, useEvery } from "../api/transfer.ts";
 import { Button } from "../ui/Button.tsx";
@@ -28,11 +29,11 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
   const [state, setState] = useState<MoveState>("waiting");
   const [left, setLeft] = useState(0);
 
-  useEvery(MOVE_POLL_MS, () => out?.state().then(setState).catch((e: Error) => setError(e.message)), !!out && (state === "waiting" || state === "claimed") && !busy);
+  useEvery(MOVE_POLL_MS, () => out?.state().then(setState).catch((e: Error) => setError(e.message)), !!out && departureAsking(state) && !busy);
   useEffect(() => {
     if (!out || state !== "waiting") return;
     const end = Date.now() + out.expiresIn * 1000;
-    const tick = () => setLeft(Math.max(0, Math.round((end - Date.now()) / 1000)));
+    const tick = () => setLeft(secondsLeft(end, Date.now()));
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);

@@ -123,7 +123,7 @@ async function fonts(page, screen, probes) {
 }
 
 async function open(browser, url, width, { locale = LOCALE, dsf = 1, asked = true, screen, prepare }) {
-  const h = width === 390 ? 844 : width === 834 ? 1194 : 900;
+  const h = width === 390 ? 844 : width === 834 ? 1194 : width === 1920 ? 1080 : 900;
   const ctx = await browser.newContext({ viewport: { width, height: h }, deviceScaleFactor: dsf, locale, isMobile: width < 768, hasTouch: width < 768, bypassCSP: !!OVERRIDE });
   await ctx.addInitScript((a) => {
     if (a) { try { localStorage.setItem("lang-asked", "1"); } catch {} }

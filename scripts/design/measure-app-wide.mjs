@@ -268,7 +268,7 @@ export async function wideSheets(h) {
   // ── the talks with a talk beside the list (tablet_834_Talks): from the bar's «chats»; the talk's lines are not drawn
   //    here (no keys open them without a node), its frame is: the head, the divider, the chips, the field ──
   async function talks(kind, w, dir, file, p) {
-    const scr = `${kind}-talks`, S = sheet(dir, file), T = S.lines;
+    const scr = p.name ?? `${kind}-talks`, S = sheet(dir, file), T = S.lines;
     const o = await sit(kind, w, "walk-wide-" + scr);
     const page = o.page;
     await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-testid="chat-pane"]', { timeout: 20000 }); await settle(page);
@@ -342,6 +342,8 @@ export async function wideSheets(h) {
   await bothIn("tablet", 834, "tablet", "tablet_834_BothIn", { card: 1, pill: 2, pillWords: 0, faces: [5, 7], hand: 8, title: 1, hint: 2, captions: [4, 6], talk: 3, talkWords: 8, later: 9 });
   await bothIn("desktop", 1440, "desktop", "desktop_1440_BothIn", { card: 54, pill: 55, pillWords: 64, faces: [58, 60], hand: 61, title: 65, hint: 66, captions: [68, 70], talk: 56, talkWords: 72, later: 73,
     behind: "the feed behind the card and the open talk at the right (the sheet draws the card over the screen it came from; here the match is a screen of its own)" });
+  await talks("desktop", 1920, "desktop", "desktop_1920_Talks", { name: "desktop1920-talks", count: 8, title: 9, rail: { active: 1, say: 3 }, offers: 9, faces: [12, 13, 14, 15], sheet: 5,
+    selected: 16, avatars: [17, 18, 19, 20], names: [20, 24, 28, 32], pane: 21, paneAvatar: 22, paneName: 37, ring: 43, chips: [33, 34, 35, 36], field: 37, send: 38 });
   await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sub: 1, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });
   await me("desktop", 1440, "desktop", "desktop_1440_Me");
   await write("desktop", 1440, "desktop", "desktop_1440_Write", { where: 8, title: 9, panel: 6, card: 7, label: 10, lives: 13, going: 15, modes: 8, hears: 19, zones: 11,

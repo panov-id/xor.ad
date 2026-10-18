@@ -212,8 +212,8 @@
   .tk[data-beside] .tk-count { display: block; position: absolute; left: 279px; top: 69.9px; transform: translateY(-80%); margin: 0; z-index: 1;
     font-size: 13px; font-weight: 600; line-height: 1; color: var(--c-muted); }
   .tk[data-beside] .tk-title { left: 279.4px; top: 114.8px; z-index: 1; }
-  .tk[data-beside] .tk-sheet { left: var(--panel-left); right: auto; top: var(--panel-top); bottom: var(--panel-bottom); width: 1166.5px;
-    grid-template-columns: 339.6px 745px; column-gap: 21.9px; padding: 230.7px 30px 22px; overflow: hidden; }
+  .tk[data-beside] .tk-sheet { left: var(--panel-left); right: auto; top: var(--panel-top); bottom: var(--panel-bottom); width: calc(100% - var(--panel-left) - 24px);
+    grid-template-columns: 339.6px minmax(0, 1fr); column-gap: 21.9px; padding: 230.7px 30px 30px; overflow: hidden; } /* 1440: 1166.5 and 745; 1920 (desktop_1920_Talks): 1648 and 1226 */
   .tk[data-beside] .tk-strip { left: 28.8px; top: 124.6px; --tk-offers: 64.3px; --tk-face: 57.9px; --tk-strip-gap: 16px; }
   /* the sheet draws the talk past the panel's foot (its field below the window): here it ends in the panel, the field in sight */
   .ch.ch-pane {

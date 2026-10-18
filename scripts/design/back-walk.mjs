@@ -1,4 +1,5 @@
-// Live check of the feed card's «back» (app/src/screens/Feed.tsx openCard/closeCard/onPop, App.tsx:60 guard).
+// Live check of «back» in app/: the feed card (Feed.tsx openCard/closeCard/onPop, App.tsx popstate guard), Me → Move,
+// and the away screen (router.ts seatScreen: /me, /away with its until).
 // Run by scripts/back-walk.sh (build + preview :4174 + stand dev :5174 in containers, no network out).
 // The node is a stub (same routes as scripts/design/measure-app.mjs nodeStub, trimmed to registration + feed).
 import { chromium } from "@playwright/test";
@@ -7,7 +8,7 @@ const PREVIEW = process.env.PREVIEW_URL ?? "http://localhost:4174";
 // The dev server is the stand build (VITE_STAND=1): it reads the grace from sessionStorage "xor-grace-ms" (app/src/vault.ts).
 const DEV = process.env.DEV_URL ?? "http://localhost:5174";
 const PIN = "483915";
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements)(\/|$)/;
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 const phrase = (n) => ({ id: `ph-${n}`, text: `Walk phrase number ${n}`, mode: "walk", lang: "en", like_count: n });
 const ITEMS = [phrase(1), phrase(2), phrase(3)];
@@ -15,7 +16,8 @@ const ITEMS = [phrase(1), phrase(2), phrase(3)];
 const results = [];
 const check = (ok, text) => { results.push({ ok, text }); console.log(`${ok ? "PASS" : "FAIL"} ${text}`); };
 
-async function open(browser, { base = PREVIEW, graceMs } = {}) {
+// awayIn: seconds from the first profile read to the step away's end (null: no step away).
+async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: "en-US" });
   if (graceMs !== undefined) await ctx.addInitScript((g) => { sessionStorage.setItem("xor-grace-ms", String(g)); }, graceMs);
   await ctx.addInitScript(() => {
@@ -28,7 +30,7 @@ async function open(browser, { base = PREVIEW, graceMs } = {}) {
       return real(a);
     };
   });
-  let share = null;
+  let share = null, until = null;
   await ctx.route("**/*", async (route) => {
     const req = route.request(), u = new URL(req.url());
     if (!["fetch", "xhr"].includes(req.resourceType()) || !NODE_PATH.test(u.pathname)) return route.fallback();
@@ -38,6 +40,12 @@ async function open(browser, { base = PREVIEW, graceMs } = {}) {
     if (key === "POST /identities") { share = JSON.parse(req.postData()).share; return json(200, { identity_id: "id-stub", session_id: "sess-stub" }); }
     if (key === "POST /vault/share") return json(200, { share });
     if (key === "GET /feed") return json(200, { items: ITEMS, next: null });
+    if (key === "GET /identities/me") {
+      if (awayIn !== null && until === null) until = Math.floor(Date.now() / 1000) + awayIn;
+      return json(200, { identity_id: "id-stub", name: "Alex", ...(until ? { stepped_away_until: until } : {}) });
+    }
+    if (key === "GET /statements") return json(200, []);
+    if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
     if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
     if (key === "POST /legal/accept") return json(200, {});
     console.log(`UNEXPECTED ${key}`); return route.abort();
@@ -48,7 +56,7 @@ async function open(browser, { base = PREVIEW, graceMs } = {}) {
   return { ctx, page };
 }
 
-async function registerFull(page) {
+async function registerFull(page, { land = "feed" } = {}) {
   await page.click('[data-testid="start"]');
   await page.waitForSelector('[data-screen="register-1"]');
   await page.fill('[data-testid="name"]', "Alex"); await page.fill('[data-testid="age"]', "32"); await page.check(".reg-check input");
@@ -58,8 +66,8 @@ async function registerFull(page) {
   const gi = page.locator('[data-testid="paper-groups"] input');
   await gi.nth(0).fill("2XWD"); await gi.nth(1).fill("9FTE");
   await page.click('[data-testid="confirm"]');
-  await page.waitForSelector('[data-screen="feed"]', { timeout: 20000 });
-  await page.waitForSelector('[data-testid="cards"] [data-testid="card"]', { timeout: 20000 });
+  await page.waitForSelector(`[data-screen="${land}"]`, { timeout: 20000 });
+  if (land === "feed") await page.waitForSelector('[data-testid="cards"] [data-testid="card"]', { timeout: 20000 });
 }
 
 const tile = (page, n) => page.locator(`[data-testid="card"][data-id="ph-${n}"] .fd-open`);
@@ -139,6 +147,52 @@ try {
       await page.goBack(); await settle(page);
       check((await cardOpen(page)) === 0, `3c-3 Back after the PIN opens no old card (url ${new URL(page.url()).pathname}, state ${await state(page)}, card ${await cardOpen(page)})`);
     }
+    await ctx.close();
+  }
+  // 7. right after the registration, Back from the feed: the gates behind (/ , /register) must not draw the splash over a seated identity
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen").catch(() => "(none)");
+    check(at !== "splash" && at !== "register", `7 Back from the feed after the registration draws no gate (screen ${at}, url ${new URL(page.url()).pathname}, state ${await state(page)})`);
+    await ctx.close();
+  }
+  // 4. Me → Move → Back: Me again, not the feed (App.tsx toMove pushes i: 1; popstate → seatScreen("/me"))
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-me"]'); await page.waitForSelector('[data-screen="me"]');
+    await page.click('[data-testid="me-move"]'); await page.waitForSelector('[data-screen="departure"]');
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "me" && new URL(page.url()).pathname === "/me", `4 Me → Move → Back lands on Me (screen ${at}, url ${new URL(page.url()).pathname}, state ${await state(page)})`);
+    await ctx.close();
+  }
+  // 5. the away screen (until an hour on) → Back: still the away screen
+  {
+    const { ctx, page } = await open(browser, { awayIn: 3600 }); await registerFull(page, { land: "away" });
+    const before = await state(page);
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen").catch(() => "(none)");
+    check(at === "away", `5 /away → Back stays on away while until is ahead (screen ${at}, url ${new URL(page.url()).pathname}, state before ${before}, after ${await state(page)})`);
+    await ctx.close();
+  }
+  // 6. a lapsed until → the feed: 6a the screen's own clock; 6b an /away entry walked onto after the until lapsed (seatScreen)
+  {
+    const { ctx, page } = await open(browser, { awayIn: 8 }); await registerFull(page, { land: "away" });
+    const leftAt = Date.now();
+    await page.waitForSelector('[data-screen="feed"]', { timeout: 20000 }).catch(() => null);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "feed" && new URL(page.url()).pathname === "/feed", `6a until lapsed: the away screen leaves to the feed by itself (screen ${at}, after ${Math.round((Date.now() - leftAt) / 1000)} s)`);
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await open(browser, { awayIn: 3600 }); await registerFull(page, { land: "away" });
+    const entry = JSON.parse(await state(page));
+    // an /away entry whose until is already past, under the current one: Back walks onto it (as after a long sleep)
+    await page.evaluate((e) => { history.replaceState({ ...e, until: Math.floor(Date.now() / 1000) - 60 }, "", "/away"); history.pushState({ gate: "away", i: 1, until: e.until }, "", "/away"); }, entry);
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "feed", `6b Back onto an /away entry with a lapsed until opens the feed (screen ${at}, state ${await state(page)})`);
     await ctx.close();
   }
 } finally {

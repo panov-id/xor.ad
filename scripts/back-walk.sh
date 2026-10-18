@@ -19,6 +19,10 @@ lock="$(sha1sum "$root/app/package-lock.json" | cut -c1-12)"
 vol="app-node-modules-$lock"
 docker volume create "$vol" >/dev/null
 docker run --rm -v "$vol":/m alpine:3 chown "$(id -u):$(id -g)" /m
+# depth/core imports hash-wasm from depth/node_modules: a volume keyed by depth's lock (as measure-app.sh).
+depth_vol="depth-node-modules-$(sha1sum "$root/depth/package-lock.json" | cut -c1-12)"
+docker volume create "$depth_vol" >/dev/null
+docker run --rm -v "$depth_vol":/m alpine:3 chown "$(id -u):$(id -g)" /m
 out="$(mktemp -d)"; chmod 777 "$out"
 net="back-walk-$$"; srv="back-walk-srv-$$"
 cleanup() { docker rm -f "$srv" >/dev/null 2>&1; docker network rm "$net" >/dev/null 2>&1; rm -rf "$out"; }
@@ -26,14 +30,15 @@ trap cleanup EXIT; trap 'exit 130' INT; trap 'exit 143' TERM
 
 echo "== build (vite build) from $root"
 docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e npm_config_cache=/tmp/npm \
-  -v "$root":/repo -v "$vol":/repo/app/node_modules -v "$out":/out -w /repo/app "$node_image" sh -c '
+  -v "$root":/repo -v "$vol":/repo/app/node_modules -v "$depth_vol":/repo/depth/node_modules -v "$out":/out -w /repo/app "$node_image" sh -c '
+    [ -f ../depth/node_modules/.lock-ok ] || { (cd ../depth && npm ci --no-audit --no-fund >/dev/null 2>&1) && touch ../depth/node_modules/.lock-ok; } || { echo "SPOILED: npm ci in depth failed"; exit 3; }
     [ -f node_modules/.lock-ok ] || { npm ci --no-audit --no-fund >/dev/null 2>&1 && touch node_modules/.lock-ok; } || { echo "SPOILED: npm ci failed"; exit 3; }
     npx vite build --outDir /out/dist --emptyOutDir >/dev/null' || { echo "back-walk: SPOILED (build failed)"; exit 2; }
 
 echo "== serve: preview :4174 (the build), dev :5174 (VITE_STAND=1: the grace from sessionStorage); network $net has no way out"
 docker network create --internal "$net" >/dev/null
 docker run -d --name "$srv" --network "$net" --user "$(id -u):$(id -g)" -e HOME=/tmp -e VITE_STAND=1 \
-  -v "$root":/repo -v "$vol":/repo/app/node_modules -v "$out":/out -w /repo/app "$node_image" sh -c '
+  -v "$root":/repo -v "$vol":/repo/app/node_modules -v "$depth_vol":/repo/depth/node_modules -v "$out":/out -w /repo/app "$node_image" sh -c '
     npx vite preview --outDir /out/dist --host 0.0.0.0 --port 4174 & npx vite --host 0.0.0.0 --port 5174; wait' >/dev/null || { echo "back-walk: SPOILED (serve)"; exit 2; }
 
 up=0

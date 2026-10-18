@@ -193,6 +193,12 @@ GAMES.t13 = { class: "free", set: "double-six" };
 POS.t13 = () => ({ line: ["6:6", "6:3", "3:1", "1:5", "5:5"], hand: ["0:6", "4:5", "2:3", "1:2", "3:3"] });
 STATE.t13 = (p) => ({ free: { hands: { "1": [...p.hand], "2": { count: 5 } }, boneyard: { count: 4 }, line: [...p.line] } });
 APPLY.t13 = (p, m) => { if (m.play) { p.hand = p.hand.filter((b) => b !== m.play); if (m.end === "left") p.line.unshift(m.play.split(":").reverse().join(":")); else p.line.push(m.play); } };
+// (declared after t13: the list keeps GAMES' order, and each LATER entry opens its table by its row)
+// t14: checkers with Nino's claim on the round standing and my turn — the con's other half, «agree»
+GAMES.t14 = { class: "grid", set: "checkers" };
+POS.t14 = () => ({ ...POS.t10(), claim: 2 });
+STATE.t14 = (p) => ({ grid: { cells: { ...p.cells }, claim: p.claim } });
+APPLY.t14 = (p, m) => { if (m.con === "agree") p.claim = null; };
 function tableView(s, id) {
   const g = GAMES[id];
   const state = STATE[id] ? STATE[id](s.pos[id])
@@ -636,6 +642,16 @@ LATER.push({
     note(m?.move?.play === "0:6" && m?.move?.end === "left", `walk: 0:6 goes to the left end, its only match (${JSON.stringify(m ?? null)})`);
     await page.locator('[data-testid="line-bone"]').nth(5).waitFor({ timeout: 10000 }).catch(() => {});
     note(await page.locator('[data-testid="line-bone"]').count() === 6, "walk: the line has six bones after the node's answer");
+  },
+});
+
+LATER.push({
+  name: "checkers-agree", nth: 13, ready: '[data-testid="con-agree"]', compare: null,
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="con-claim"]').count() === 0, "walk: with Nino's claim standing, no claim of mine is offered");
+    await page.click('[data-testid="con-agree"]');
+    const m = await movedBy(stub, "t14");
+    note(m?.move?.con === "agree" && m?.seq === 7, `walk: «agree» sends {con: "agree"} on the board's seq (${JSON.stringify(m ?? null)})`);
   },
 });
 

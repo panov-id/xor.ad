@@ -98,4 +98,13 @@
   --fs-tb-key: 13px;
   --tb-keys-bottom: 0px;
   --tb-keys-shift: -2.3px;
+  /* battleship: the other's sea 10×10 on the panel, found ships as bars, my own sea small under it */
+  --tb-sea-pad: 2.99px;
+  --tb-sea-gap: 5.97px;
+  --tb-sea-r: 8px;
+  --tb-sea-mark: 17.81px;
+  --tb-sea-miss: 7px;
+  --tb-own-w: 140px;
+  --tb-own-gap: 2px;
+  --tb-own-r: 2px;
 }

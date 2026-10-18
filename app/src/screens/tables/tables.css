@@ -149,4 +149,27 @@
 .tb-key[data-used] { background: var(--c-cell-line); box-shadow: none; }
 .tb-key:disabled { cursor: default; }
 .tb-set { margin-top: var(--tb-keys-top); width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-2); padding-bottom: var(--tb-keys-bottom); }
+/* battleship: a found ship is one bar (its cells join over the gap), a hit carries a dark dot, a miss a small light one */
+.tb-panel[data-set="battleship"] { padding: var(--tb-sea-pad); }
+.tb-sea { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: var(--tb-sea-gap); }
+.tb-sea.tb-place { display: block; padding: var(--tb-panel-pad); }
+.tb-fleet { display: grid; gap: var(--sp-2); }
+.tb-fleet input { min-width: 0; height: var(--tb-line-h); padding: 0 var(--tb-line-pad); border: 0; border-radius: var(--r-pill); background: var(--c-sheet); color: var(--c-text); font: inherit; }
+.tb-shot { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; min-height: 0; padding: 0; border-radius: var(--tb-sea-r); background: none; }
+.tb-shot:disabled { cursor: default; }
+.tb-shot[data-result="hit"], .tb-shot[data-result="sunk"] { background: var(--c-peach); }
+.tb-mark { width: var(--tb-sea-mark); height: var(--tb-sea-mark); border-radius: var(--r-pill); background: var(--c-ink); pointer-events: none; }
+.tb-shot[data-result="miss"]::after { content: ""; width: var(--tb-sea-miss); height: var(--tb-sea-miss); border-radius: var(--r-pill); background: var(--c-muted); }
+.tb-shot[data-join~="r"] { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.tb-shot[data-join~="l"] { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.tb-shot[data-join~="d"] { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.tb-shot[data-join~="u"] { border-top-left-radius: 0; border-top-right-radius: 0; }
+.tb-shot[data-join~="r"]::before, .tb-shot[data-join~="d"]::before { content: ""; position: absolute; background: var(--c-peach); }
+.tb-shot[data-join~="r"]::before { left: 100%; top: 0; width: var(--tb-sea-gap); height: 100%; }
+.tb-shot[data-join~="d"]::before { top: 100%; left: 0; height: var(--tb-sea-gap); width: 100%; }
+.tb-sheet > .tb-sea-own { width: var(--tb-own-w); margin-top: var(--sp-4); display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: var(--tb-own-gap); }
+.tb-own { aspect-ratio: 1; border-radius: var(--tb-own-r); background: var(--c-board); }
+.tb-own[data-ship] { background: var(--c-lime); }
+.tb-own[data-shot="hit"], .tb-own[data-shot="sunk"] { background: var(--c-yellow); }
+.tb-own[data-shot="miss"] { box-shadow: inset 0 0 0 var(--tb-cell-line) var(--c-muted); }
 .tb-set input { min-width: 0; height: var(--tb-line-h); padding: 0 var(--tb-line-pad); border: 0; border-radius: var(--r-pill); background: var(--c-sheet); color: var(--c-text); font: inherit; }

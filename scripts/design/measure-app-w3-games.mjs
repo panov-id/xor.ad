@@ -117,9 +117,25 @@ const DOTS = { edges: ["h:1:1", "h:2:1", "v:1:1", "v:1:2", "h:1:2", "h:2:2", "v:
 const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" } };
 // w3_table-hangman: Nino set the word, I guess; tried q e t a f k (the sheet's spent keys), the mask shows them.
 const WORD = { setter: 2, set: "en", alphabet: [..."abcdefghijklmnopqrstuvwxyz"], word: null, mask: "ka__e__e__", guessed: ["q", "e", "t", "a", "f", "k"], misses: 3, misses_left: 3 };
+// The games after hangman, one table each in the list (t4, t5, …): GAMES names the class and set, POS the position of the
+// sheet (a copy per stub, moved by APPLY when the node "answers" a move), STATE the node's state of it for seat 1.
+const POS = {};
+const STATE = {};
+const APPLY = {};
+// w3_table-battleship: the shooting phase; my shots found four ships (a hit on each of three, the fourth sunk whole), one miss;
+// my own fleet a1..a4 and more, the other's shots hit a2 and missed b6.
+const ship = (...ids) => ids;
+const SEA_MINE = [ship("a1", "a2", "a3", "a4"), ship("c1", "c2", "c3"), ship("e1", "e2", "e3"), ship("a6", "a7"), ship("c6", "c7"), ship("e6", "e7"), ship("h1"), ship("h3"), ship("h5"), ship("h7")];
+GAMES.t4 = { class: "grid", set: "battleship" };
+POS.t4 = () => ({
+  shots: { "1": { b2: "sunk", c2: "hit", d2: "sunk", e2: "sunk", g5: "sunk", g6: "hit", g7: "sunk", c8: "sunk", d8: "hit", i3: "sunk", i4: "sunk", f9: "miss" }, "2": { a2: "hit", b6: "miss" } },
+});
+STATE.t4 = (p) => ({ sea: { phase: "shoot", fleets: { "1": SEA_MINE, "2": { placed: true } }, shots: p.shots } });
+APPLY.t4 = (p, m) => { if (m.shot) p.shots["1"][m.shot] = "miss"; };
 function tableView(s, id) {
   const g = GAMES[id];
-  const state = g.class === "dots" ? { dots: { n: 4, edges: [...s.edges], boxes: { ...DOTS.boxes } } }
+  const state = STATE[id] ? STATE[id](s.pos[id])
+    : g.class === "dots" ? { dots: { n: 4, edges: [...s.edges], boxes: { ...DOTS.boxes } } }
     : g.class === "word" ? { word: { ...WORD, guessed: [...s.guessed] } }
     : { grid: { cells: cellsOf(s.cells), claim: null, rules: "four" } };
   return {
@@ -130,7 +146,8 @@ function tableView(s, id) {
 }
 function nodeStub() {
   const calls = [], moves = [];
-  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], due: Math.floor(Date.now() / 1000) + 100 };
+  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], due: Math.floor(Date.now() / 1000) + 100,
+    pos: Object.fromEntries(Object.entries(POS).map(([id, make]) => [id, make()])) };
   const prepare = async (ctx) => {
     await ctx.route("**/*", async (route) => {
       const req = route.request(), u = new URL(req.url());
@@ -153,6 +170,7 @@ function nodeStub() {
         if (m.move?.column) { const col = m.move.column; let r = 1; while (s.cells[`${col}${r}`]) r++; s.cells[`${col}${r}`] = 1; }
         if (m.move?.edge) s.edges.push(m.move.edge);
         if (m.move?.letter) s.guessed.push(m.move.letter);
+        if (APPLY[t[1]]) APPLY[t[1]](s.pos[t[1]], m.move ?? {});
         s.seq++; s.turn = 2;
         return json(200, { board: tableView(s, t[1]).board });
       }
@@ -217,7 +235,10 @@ for (let i = 0; ; i++) {
 }
 const sheetOf = (n) => readSheet(`${SHEETS}/w3_table-${n}.svg`);
 async function toTable(page, nth = 0) {
-  await page.click('[data-testid="tab-tables"]'); await page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+  // the first tap can land before the tab bar is wired after the feed's first paint: tap again once before calling it spoiled
+  await page.click('[data-testid="tab-tables"]');
+  await page.waitForSelector('[data-screen="tables"]', { timeout: 8000 }).catch(async () => { await page.click('[data-testid="tab-tables"]'); });
+  await page.waitForSelector('[data-screen="tables"]', { timeout: 20000 }).catch((e) => { console.log(`toTable: no tables screen; page errors: ${csp.join(" | ") || "none"}`); throw e; });
   await page.locator('[data-testid="table-open"]').nth(nth).click(); await page.waitForSelector('[data-screen="table"]', { timeout: 20000 });
   await page.locator(".tb-panel").first().waitFor({ timeout: 20000 });
 }
@@ -319,6 +340,54 @@ await ctx.close();
   note(sh3.moves[0]?.move?.letter === "r" && sh3.moves[0]?.table === "t3", `walk: a tap on R sends {move: {letter: "r"}} (${JSON.stringify(sh3.moves[0] ?? null)})`);
   await o.ctx.close();
 }
+// ── the games after hangman: one open table each (list position `nth`), `ready` says the board stands, `compare` measures it
+// against the sheet (S, scr), `walk` taps a move and reads what the stub got ──
+const LATER = [];
+const movedBy = async (stub, tableId) => { for (let k = 0; k < 40 && stub.moves.length === 0; k++) await new Promise((r) => setTimeout(r, 100)); return stub.moves.find((m) => m.table === tableId); };
+
+const unionBox = async (page, ids) => {   // the box round several elements (a ship is one bar of its cells)
+  const bs = []; for (const id of ids) bs.push(await box(page, `[data-testid="${id}"]`));
+  const x0 = Math.min(...bs.map((b) => b[0])), y0 = Math.min(...bs.map((b) => b[1]));
+  return [x0, y0, Math.max(...bs.map((b) => b[0] + b[2])) - x0, Math.max(...bs.map((b) => b[1] + b[3])) - y0];
+};
+
+LATER.push({
+  name: "battleship", nth: 3, ready: '[data-testid="shot-a1"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tb-panel"))[3]]);
+    const ships = [["b2", "c2", "d2", "e2"], ["g5", "g6", "g7"], ["c8", "d8"], ["i3", "i4"]];
+    for (const [i, ids] of ships.entries()) compare(scr, `ship ${ids[0]}..${ids.at(-1)}`, shapeOf(sh[5 + i]), await unionBox(page, ids.map((c) => `shot-${c}`)));
+    for (const [i, c] of ["c2", "g6", "d8"].entries()) compare(scr, `hit mark ${c}`, shapeOf(sh[9 + i]), await box(page, `[data-testid="shot-${c}"] [data-testid="mark"]`));
+  },
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="sea-own"] [data-ship]').count() === 20 && await page.locator('[data-testid="own-a2"][data-shot="hit"]').count() === 1, "walk: my own sea stands under the panel, 20 ship cells, the other's hit on a2");
+    note(await page.locator('[data-testid="shot-f9"][data-result="miss"]').count() === 1 && await page.locator('[data-testid="shot-h1"]').isEnabled(), "walk: a miss stands, a free cell takes a shot in my turn");
+    await page.click('[data-testid="shot-h1"]');
+    const m = await movedBy(stub, "t4");
+    note(m?.move?.shot === "h1" && m?.seq === 7, `walk: a tap on h1 sends {seq: 7, move: {shot: "h1"}} (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="shot-h1"][data-result="miss"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="shot-h1"][data-result="miss"]').count() === 1 && await page.locator('[data-testid="shot-a1"]').isDisabled(), "walk: h1 stands a miss after the node's answer, no taps with the turn passed");
+  },
+});
+
+for (const g of LATER) {
+  const st = nodeStub();
+  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: st.prepare });
+  await registerFull(o.page); await toTable(o.page, g.nth);
+  await o.page.locator(g.ready).first().waitFor({ timeout: 20000 });
+  if (want(g.name)) {
+    const S = sheetOf(g.name);
+    await settle(o.page);
+    await tableFrame(o.page, g.name, S);
+    await g.compare(o.page, S, g.name);
+    await shot(o.page, `table-${g.name}`);
+  }
+  await overflowAt(o.page, `table-${g.name}`, 390);
+  await g.walk(o.page, st);
+  await o.ctx.close();
+}
+
 for (const w of [375, 320]) {
   const s2 = nodeStub();
   const o = await open(browser, PREVIEW + "/", w, { screen: "w3g", prepare: s2.prepare });
@@ -329,7 +398,13 @@ for (const w of [375, 320]) {
   await settle(o.page); await overflowAt(o.page, "table-dots", w);
   await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
   await o.page.locator('[data-testid="table-open"]').nth(2).click(); await o.page.locator('[data-testid="key-p"]').waitFor({ timeout: 20000 });
-  await settle(o.page); await overflowAt(o.page, "table-hangman", w); await o.ctx.close();
+  await settle(o.page); await overflowAt(o.page, "table-hangman", w);
+  for (const g of LATER) {
+    await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+    await o.page.locator('[data-testid="table-open"]').nth(g.nth).click(); await o.page.locator(g.ready).first().waitFor({ timeout: 20000 });
+    await settle(o.page); await overflowAt(o.page, `table-${g.name}`, w);
+  }
+  await o.ctx.close();
 }
 
 await browser.close();

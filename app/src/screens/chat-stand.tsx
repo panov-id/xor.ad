@@ -1,5 +1,5 @@
 // The stand's build only (VITE_STAND=1): the conversation pane drawn from a view of its own, the sheet's people and
-// lines (w3_chat, w3_chat-over), so the measure (scripts/design/measure-app-w3.mjs) reads the geometry without a
+// lines (w3_chat, w3_chat-over), so the measure (scripts/design/measure-app-w3-chat.mjs) reads the geometry without a
 // node's keys or socket. /stand/chat and /stand/chat-over; the real conversation is e2e's (chat paths).
 import type { ChatView } from "@platform/chat/chat_state.ts";
 import { ChatPane } from "./Chat";

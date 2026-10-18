@@ -2,7 +2,7 @@
 // drawn by the stand's build from views of their own (app/src/screens/chat-stand.tsx: /stand/chat, /stand/chat-over),
 // so no node's keys or socket stand behind them; the conversation itself is e2e's (the chat paths). Expected values are
 // read from the sheets (sheet-geometry.mjs), never typed in; the sheets' canvas is 388 wide in a 390 viewport.
-//   run by scripts/measure-app-w3.sh
+//   run by scripts/measure-app-w3-chat.sh
 import { chromium } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { readSheet } from "./sheet-geometry.mjs";
@@ -174,5 +174,5 @@ for (const n of notes) console.log(`${n.bad ? "DEFECT" : "ok    "} ${n.text}`);
 console.log(csp.length ? `DEFECT console/CSP errors (${csp.length}): ${[...new Set(csp)].slice(0, 8).join(" | ")}` : "ok     console/CSP errors: none");
 const good = rows.filter((r) => r.ok).length;
 const clean = !notes.some((n) => n.bad) && !csp.length;
-console.log(GEOMETRY ? `measure-app-w3: ${good} of ${rows.length} within ${TOL}px; notes ${clean ? "clean" : "DEFECTS"}` : `measure-app-w3[${TAG}]: fonts, overflow, CSP ${clean ? "clean" : "DEFECTS"}`);
+console.log(GEOMETRY ? `measure-app-w3-chat: ${good} of ${rows.length} within ${TOL}px; notes ${clean ? "clean" : "DEFECTS"}` : `measure-app-w3-chat[${TAG}]: fonts, overflow, CSP ${clean ? "clean" : "DEFECTS"}`);
 process.exit(good === rows.length && clean ? 0 : 1);

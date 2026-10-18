@@ -47,7 +47,8 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     if (key === "GET /statements") return json(200, []);
     // the chat (8): the inbox has none to report and the node keeps no wrap — the pane stands on its row alone
     if (key === "GET /inbox") return json(200, { items: [] });
-    if (u.pathname.startsWith("/chats/")) return json(404, { error: "not_found" });
+    // 503, not 404: a ticket's 404 is the chat's end (room.ts), and the walks need it open
+    if (u.pathname.startsWith("/chats/")) return json(503, { error: "unavailable" });
     if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
     if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
     if (key === "POST /legal/accept") return json(200, {});
@@ -193,6 +194,34 @@ try {
     await page.click('[data-testid="chat-back"]'); await settle(page);
     at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
     check(at === "feed" && new URL(page.url()).pathname === "/feed", `8b the chat's own back lands on the feed (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await ctx.close();
+  }
+  // 9. the chat's «…» sheet rides its own entry (Chat.tsx openMenu): 9a Back closes it and leaves the chat open;
+  // 9b the shade closes it the same way, no entry left behind; 9c «End the talk» asks once more, «Cancel» returns to the rows.
+  {
+    const ROW = { kind: "chat", id: "chat-menu", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
+    const depth = () => page.evaluate(() => history.length);
+    const before = await depth();
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.goBack(); await settle(page);
+    let menus = await page.locator('[data-testid="chat-menu"]').count();
+    let at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(menus === 0 && at === "chat" && new URL(page.url()).pathname === "/chat", `9a Back closes the «…» sheet, the chat stays (sheets ${menus}, screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.click('[data-testid="menu-close"]', { position: { x: 20, y: 20 } }); await settle(page);
+    menus = await page.locator('[data-testid="chat-menu"]').count();
+    const sheetLeft = await page.evaluate(() => history.state?.sheet ?? null);
+    check(menus === 0 && sheetLeft === null, `9b the shade closes it and leaves no sheet entry (sheets ${menus}, state.sheet ${sheetLeft}, history ${before}→${await depth()})`);
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.click('[data-testid="end"]');
+    const asks = await page.locator('[data-testid="end-confirm"]').count();
+    await page.click('[data-testid="menu-cancel"]');
+    const rows = await page.locator('[data-testid="end"]').count();
+    check(asks === 1 && rows === 1, `9c «End the talk» asks once more and «Cancel» returns to the rows (confirm ${asks}, rows ${rows})`);
     await ctx.close();
   }
   // 4. Me → Move → Back: Me again, not the feed (App.tsx toMove pushes i: 1; popstate → seatScreen("/me"))

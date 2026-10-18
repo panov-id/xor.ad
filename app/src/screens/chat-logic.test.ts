@@ -1,7 +1,7 @@
 // chat-logic.ts: the conversation screen's clock, header line, ring, chips and sides.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bubblesOf, clockOf, headerLine, QUICK_STICKERS, ringOf } from "./chat-logic.ts";
+import { bubblesOf, clockOf, headerLine, QUICK_STICKERS, ringOf, spanWord } from "./chat-logic.ts";
 
 const NOW = 1_800_000_000;
 
@@ -40,4 +40,11 @@ test("bubblesOf: theirs left, mine right, an extra like and a system line in the
     { id: "4", text: "d", mine: false, at: NOW, extra: { position: 1, direction: "they_liked_yours" } },
   ]);
   assert.deepEqual(b.map((x) => x.side), ["theirs", "mine", "middle", "middle"]);
+});
+
+test("spanWord: minutes under an hour, hours from there (w3_chat-more «1 h»)", () => {
+  assert.deepEqual(spanWord(10), { key: "app.chat.span_min", values: { n: 10 } });
+  assert.deepEqual(spanWord(30), { key: "app.chat.span_min", values: { n: 30 } });
+  assert.deepEqual(spanWord(60), { key: "app.chat.span_h", values: { n: 1 } });
+  assert.deepEqual(spanWord(260), { key: "app.chat.span_h", values: { n: 4 } });
 });

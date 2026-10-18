@@ -158,6 +158,22 @@ if (want("chat")) {
   await ctx.close();
 }
 
+if (want("chat-more")) {
+  const scr = "chat-more", S = await sheet("chat-more"), sh = S.shapes, T = S.lines;
+  const { ctx, page } = await open(browser, `${PREVIEW}/stand/chat-more`, 390, scr);
+  await page.waitForSelector('[data-testid="chat-menu"]'); await settle(page);
+  compare(scr, "sheet left,top", [sh[7].x, sh[7].y], (await box(page, ".chm-sheet")).slice(0, 2));
+  left(scr, "title", T[12], await line(page, ".chm-sheet h2"));
+  const rowsAt = await boxOf(page, ".chm-row"), icons = await boxOf(page, ".chm-icon");
+  [8, 10, 12, 14, 16, 18].forEach((s, i) => compare(scr, `row ${i + 1}`, shapeOf(sh[s]), rowsAt[i] ?? NAN4));
+  [9, 11, 13, 15, 17, 19].forEach((s, i) => compare(scr, `icon ${i + 1}`, shapeOf(sh[s]), icons[i] ?? NAN4));
+  for (const [i, t] of [[0, 13], [1, 15], [2, 16], [3, 17], [4, 18], [5, 19]]) left(scr, `row ${i + 1} words`, T[t], await line(page, ".chm-text", i));
+  right(scr, "fade after value", T[14], await line(page, ".chm-value"));
+  await fonts(page, scr, [["title", ".chm-sheet h2"], ["row", ".chm-text"]]);
+  await overflowAt(page, scr, 390); await shot(page, scr);
+  await ctx.close();
+}
+
 await browser.close();
 
 // ── report ──

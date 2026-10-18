@@ -5,7 +5,8 @@
 // The web's testids: lines, mine, theirs, system, extra-like, send-again, text, send, chat-more, tombstone,
 // show-safety, error, status; new ones: chat-back, chat-ring, starter-chip, quick-<sticker>, quick-game.
 //
-// Not here yet: the «…» sheet (w3_chat-more), the game (w3_chat-game), the rekey prompts, the starters' list.
+// The «…» sheet is chat-menu.tsx (w3_chat-more): its own history entry, so the system Back closes it.
+// Not here yet: the game (w3_chat-game), the rekey prompts, the starters' list.
 import { useEffect, useState, useSyncExternalStore } from "react";
 import type { Client } from "@sdk/client.ts";
 import { stickerOf, stickerText } from "@sdk/sticker.ts";
@@ -16,6 +17,7 @@ import { Icon } from "../shell/Icon";
 import { chevronLeft, ellipsis, lock, send as sendIcon, shield } from "../shell/icons";
 import { Screen } from "../shell/Screen";
 import { bubblesOf, clockOf, headerLine, QUICK_STICKERS, ringOf } from "./chat-logic";
+import { ChatMenu } from "./chat-menu";
 
 export interface ChatActions {
   onBack: () => void;
@@ -75,6 +77,7 @@ export function ChatPane({ view, now, actions }: { view: ChatView; now: number; 
             );
           })}
         </ol>
+        {!over && view.safety && <p className="ch-safety-line" data-testid="safety">{say("app.chat.safety_is", { code: view.safety })}</p>}
         {over ? (
           <section className="ch-over" data-testid="tombstone">
             <span className="ch-over-mark" aria-hidden="true"><Icon d={lock} /></span>
@@ -120,15 +123,39 @@ export function Chat({ client, keys, row, onBack }: { client: Client; keys: Chat
   useEffect(() => {
     if (view.endsAt <= now) session.silenceLapsed();
   }, [now, view.endsAt, session]);
+  // The «…» sheet rides an entry of its own over the chat's (as the feed's open card does): the system Back closes it.
+  const sheetOf = () => (history.state as { sheet?: string } | null)?.sheet === "menu";
+  const [menu, setMenu] = useState(sheetOf);
+  useEffect(() => {
+    const onPop = () => setMenu(sheetOf());
+    addEventListener("popstate", onPop);
+    return () => removeEventListener("popstate", onPop);
+  }, []);
+  const openMenu = () => { history.pushState({ ...(history.state as object), sheet: "menu" }, "", location.href); setMenu(true); };
+  const closeMenu = () => { if (sheetOf()) history.back(); else setMenu(false); };
+  const safety = () => session.setSafety(keys.safetyCodeOf(row.id) ?? say("web.chat.keys_not_open"));
   return (
-    <ChatPane view={view} now={now} actions={{
-      onBack,
-      onSend: (line) => session.send(line),
-      onResend: (id) => void session.resend(id),
-      onMore: () => {},
-      onSafety: () => session.setSafety(keys.safetyCodeOf(row.id) ?? say("web.chat.keys_not_open")),
-      onGame: () => session.setGameOpen(true),
-    }} />
+    <>
+      <ChatPane view={view} now={now} actions={{
+        onBack,
+        onSend: (line) => session.send(line),
+        onResend: (id) => void session.resend(id),
+        onMore: openMenu,
+        onSafety: safety,
+        onGame: () => session.setGameOpen(true),
+      }} />
+      {menu && !view.over && (
+        <ChatMenu span={view.span} busy={view.busy} waitingForPeer={view.waitingForPeer} actions={{
+          onClose: closeMenu,
+          onSpan: (span) => void session.changeSpan(span),
+          onGame: () => { session.setGameOpen(!view.gameOpen); closeMenu(); },
+          onSafety: () => { safety(); closeMenu(); },
+          onRekey: () => { void session.rekey(view.askedByPeer ? "agree" : "ask"); closeMenu(); },
+          onEnd: () => { closeMenu(); void session.endChat(); },
+          onBlock: () => { closeMenu(); void session.block(); },
+        }} />
+      )}
+    </>
   );
 }
 

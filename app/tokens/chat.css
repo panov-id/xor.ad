@@ -53,4 +53,24 @@
   --lh-ch-over-text: 20px;
   --ch-safety-h: 50px;
   --ch-safety-pad: 30px;
+
+  /* the «…» sheet (w3_chat-more) */
+  --chm-top: 370.9px;
+  --chm-shade: rgba(20, 17, 25, .62);
+  --chm-grab-top: 13px;
+  --chm-grab-w: 46px;
+  --chm-grab-h: 5px;
+  --chm-title-x: 22.2px;
+  --fs-chm-title: 18.6px;
+  --chm-title-base: 44.8px;
+  --chm-rows-top: 59.7px;
+  --chm-row-h: 55.7px;
+  --chm-row-gap: 9.95px;
+  --chm-row-pad: 13.9px;
+  --chm-icon: 37.8px;
+  --chm-text-gap: 13px;
+  --fs-chm-row: 15.6px;
+  --fs-chm-value: 14px;
+  --chm-chev-end: 14px;
+  --chm-value-pull: 3.5px;
 }

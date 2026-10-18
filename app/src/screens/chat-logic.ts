@@ -1,6 +1,7 @@
 // The conversation screen's own small rules (sosed Dusk: w3_chat, w3_chat-over, w3_chat-game), apart from the session
 // (depth/web-platform/chat/chat_state.ts) and from React, so the unit tests take them as they are.
 import type { ChatView, Line } from "../../../depth/web-platform/chat/chat_state.ts";
+import type { Span } from "../../../depth/web-platform/chat/span.ts";
 
 /** A line's time, the person's clock: hours and minutes as their language writes them (w3_chat: «21:01»). */
 export function clockOf(atSeconds: number, lang: string, timeZone?: string): string {
@@ -24,6 +25,10 @@ export function ringOf(endsAt: number, spanMinutes: number, nowSeconds: number):
 /** The chips over the field (w3_chat: «Hi!», «Coffee?», «Deal», then the game): three stickers of the set
  * (depth/core/sticker.ts) and the game's own chip. */
 export const QUICK_STICKERS = ["hi", "coffee", "deal"] as const;
+
+/** The span as the row shows it: minutes under an hour, hours from there (w3_chat-more «1 h»). */
+export const spanWord = (span: Span): { key: string; values: { n: number } } =>
+  span < 60 ? { key: "app.chat.span_min", values: { n: span } } : { key: "app.chat.span_h", values: { n: Math.round(span / 60) } };
 
 /** What the list draws: their lines and the system's on the left, mine on the right, an extra like as a card. */
 export type Bubble = { line: Line; side: "theirs" | "mine" | "middle" };

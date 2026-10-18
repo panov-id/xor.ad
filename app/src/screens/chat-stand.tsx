@@ -1,8 +1,9 @@
 // The stand's build only (VITE_STAND=1): the conversation pane drawn from a view of its own, the sheet's people and
 // lines (w3_chat, w3_chat-over), so the measure (scripts/design/measure-app-w3-chat.mjs) reads the geometry without a
-// node's keys or socket. /stand/chat and /stand/chat-over; the real conversation is e2e's (chat paths).
+// node's keys or socket. /stand/chat, /stand/chat-over and /stand/chat-more (the «…» sheet open over it); the real conversation is e2e's (chat paths).
 import type { ChatView } from "@platform/chat/chat_state.ts";
 import { ChatPane } from "./Chat";
+import { ChatMenu } from "./chat-menu";
 
 // 21:01 … 21:05 in the stand's zone (the measure runs the browser in UTC).
 const AT = Date.UTC(2026, 9, 18, 21, 0) / 1000;
@@ -30,6 +31,15 @@ export function standView(over: boolean): ChatView {
 }
 
 const none = () => {};
-export function ChatStand({ over }: { over: boolean }) {
-  return <ChatPane view={standView(over)} now={NOW} actions={{ onBack: none, onSend: async () => false, onResend: none, onMore: none, onSafety: none, onGame: none }} />;
+export function ChatStand({ pane }: { pane: "chat" | "chat-over" | "chat-more" }) {
+  const view = standView(pane === "chat-over");
+  return (
+    <>
+      <ChatPane view={view} now={NOW} actions={{ onBack: none, onSend: async () => false, onResend: none, onMore: none, onSafety: none, onGame: none }} />
+      {pane === "chat-more" && (
+        <ChatMenu span={view.span} busy={false} waitingForPeer={false}
+          actions={{ onClose: none, onSpan: none, onGame: none, onSafety: none, onRekey: none, onEnd: none, onBlock: none }} />
+      )}
+    </>
+  );
 }

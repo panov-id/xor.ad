@@ -193,3 +193,58 @@
   --fd-row-h: 48px;
   --fd-textarea-h: 96px;
 }
+
+/* Slice 3 (move and away): read off mobile_390_w2_departure-start / -code / -claimed / -done, w2_arrival-code /
+   -check / -pin, w2_away (the sheets' 390 px, 1 pt = 1.3333 px). The cells, the sub-line, the foot are the register's. */
+:root {
+  --mv-bar-h: 84.4px;          /* the bar over the sheet: the sheet's top edge */
+  --mv-bar-pad: 11px;          /* the back chevron's 44 px box starts here (its centre at 33) */
+  --mv-bar-gap: 9.4px;         /* the chevron's box to the bar's words */
+  --fs-mv-bar: 17px;
+  --mv-bar-drop: 6.9px;        /* the bar's middle sits this far under the box's: the words' baseline at 51.5 */
+  --mv-brand-pad: 22px;
+  --fs-mv-brand: 22px;
+  --mv-pad-top: 19.7px;        /* the sheet's top to the title's line box */
+  --mv-box-top: 21.9px;        /* the sheet's top to a notice box (the price, "confirmed") */
+  --mv-warn-pad-top: 13px;
+  --mv-warn-pad-bottom: 16px;
+  --fs-mv-warn-title: 15px;
+  --lh-mv-warn-title: 21.9px;
+  --lh-mv-warn: 20px;
+  --mv-label-gap: 12.8px;      /* a box above to the PIN's label */
+  --mv-title-cells: 10px;      /* the title's line box to the code's cells */
+  --mv-sub-cells: 13.3px;      /* the sub-line to the cells under it */
+  --mv-life-gap: 12px;
+  --mv-life-inset: 39px;       /* the ring starts here, the words after it at 113 */
+  --mv-ring: 46px;
+  --fs-mv-ring: 15px;
+  --mv-who-gap: 12px;
+  --mv-who-h: 91.5px;
+  --mv-who-pad: 20px;
+  --mv-avatar: 51.7px;
+  --fs-mv-avatar: 20px;
+  --fs-mv-who: 17px;
+  --fs-mv-when: 12px;
+  --mv-who-line: 4px;
+  --mv-check-gap: 12px;        /* the claimant's card to the check characters */
+  --mv-circle: 109.4px;
+  --icon-mv-circle: 44px;
+  --mv-circle-top: 61.7px;     /* the sheet's top to the done circle */
+  --mv-circle-top-away: 51.7px;
+  --fs-mv-done: 28px;
+  --fs-mv-code-title: 29.2px;  /* "Type this on the new device" in one line */
+  --mv-circle-title: 14.6px;
+  --mv-note-gap: 13.6px;
+  --lh-mv-note: 22.9px;
+  --mv-note-pad: 16px;
+  --mv-ok-h: 52.7px;
+  --mv-ok-lift: 4.2px;
+  --mv-wait: 59.7px;
+  --mv-wait-stroke: 6px;
+  --mv-wait-gap: 12px;
+  --mv-waiting-gap: 15px;
+  --ls-mv-code-title: -0.2px;
+  --mv-rows-gap: 12px;
+  --mv-row-h: 42.8px;
+  --mv-row-inset: 5px;
+}

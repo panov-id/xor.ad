@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import type { Client } from "../../../depth/core/client.ts";
+import { awayClock } from "../../../depth/core/move_flow.ts";
 import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan, awayCounts, graphemes, NAME_MAX, pinRefusal, profileRefusal, resetCounts, say } from "../api/me.ts";
 import { useMe } from "./logic/useMe.ts";
 import { AgeFilter } from "./AgeFilter.tsx";
@@ -410,11 +411,11 @@ export function Away({ client, until, onBack }: { client: Client; until: number;
     const tick = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(tick);
   }, []);
+  // The clock, the minutes left and the end are the core's (depth/core/move_flow.ts awayClock).
+  const { time: at, minutes: left, over } = awayClock(until, now);
   useEffect(() => {
-    if (now >= until) onBack();
+    if (over) onBack();
   }, [now]); // eslint-disable-line react-hooks/exhaustive-deps
-  const at = new Date(until * 1000).toTimeString().slice(0, 5);
-  const left = Math.max(1, Math.ceil((until - now) / 60));
   return (
     <Screen name="away" title={say("away.item")}>
       <p data-testid="away-line">{say("away.line")}</p>

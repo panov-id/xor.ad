@@ -66,6 +66,22 @@
   .me-body > .me-danger { width: auto; height: auto; min-height: 0; padding: 0; margin-top: 19.5px; background: none; justify-self: start; }
   .me-danger .me-chev { display: none; }
   .me-danger .me-row-name { font-size: 15.5px; }
+
+  /* the phrase for the feed (tablet_834_Write): the phone's rhythm, a bigger head, the column 559.5 wide in the middle */
+  :root {
+    --cp-head-h: 219.8px;
+    --cp-back-x: 18px;
+    --cp-back-y: 28px;
+    --cp-title-x: 32.6px;
+    --cp-title-base: 121.9px;
+    --fs-cp-title: 41.6px;
+    --cp-sub-base: 158.9px;
+    --fs-cp-sub: 18.6px;
+    --cp-pad-top: 36px;
+    --cp-col: 559.5px;
+  }
+  /* .cp .cp-sheet: composer.css loads after this file */
+  .cp .cp-sheet { padding-inline: max(var(--ch-side), calc((100% - var(--cp-col)) / 2)); }
 }
 
 /* ── desktop ── */

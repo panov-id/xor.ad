@@ -291,6 +291,8 @@ function nodeStub(opts = {}) {
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
       if (key === "GET /identities/me") return json(200, { identity_id: "id-stub", ...profile, ...(away.until ? { stepped_away_until: away.until } : {}) });
       if (key === "GET /statements") return json(200, { items: [] });
+      // the composer (measure-app-wide.mjs write): the node's limits
+      if (key === "GET /limits") return json(200, { phrase_length: 128, chat_ciphertext_chars: 8000 });
       if (key === "DELETE /away") { away.until = null; return route.fulfill({ status: 204 }); }
       // the arriving device's first PIN: a new share and a new proof (relay vault.ts init); the next /vault/share sets the proof
       if (key === "POST /vault/init") { share = JSON.parse(req.postData()).share; pinAuth = null; left = 10; closed = false; return json(200, {}); }

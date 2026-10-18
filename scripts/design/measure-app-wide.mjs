@@ -215,10 +215,42 @@ export async function wideSheets(h) {
     await o.ctx.close();
   }
 
+  // ── the phrase for the feed (w3_composer's tablet and desktop sheets): from the feed's «say it» ──
+  async function write(kind, w, dir, file, p) {
+    const scr = `${kind}-write`, S = sheet(dir, file), T = S.lines;
+    const o = await sit(kind, w, "walk-wide-" + scr);
+    const page = o.page;
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]'); await settle(page);
+    await page.fill('[data-testid="text"]', "Backgammon in the yard tonight?"); await page.click('[data-testid="mode-company"]'); await settle(page);
+    textAt(scr, "title", T[p.title], await line(page, ".cp-head h1"));
+    textAt(scr, "line under the title", T[p.title + 1], await line(page, ".cp-head p"));
+    compare(scr, "sheet left,top", [shape(S, p.sheet).x, shape(S, p.sheet).y], (await one(page, ".cp-sheet")).slice(0, 2));
+    compare(scr, "card", abs(shape(S, p.card)), await one(page, ".cp-card"));
+    textAt(scr, "card label", T[p.label], await line(page, ".cp-card label"));
+    textAt(scr, "lives", T[p.lives], await line(page, ".cp-card-foot span:first-child"));
+    const left = await line(page, ".cp-card-foot span:last-child"), exp = T[p.lives + 1];
+    compare(scr, "letters left (right edge, baseline)", [exp.right, exp.base], left ? [left[1], left[2]] : [NaN, NaN]);
+    textAt(scr, "how you're going", T[p.going], await line(page, ".cp-sheet h2:nth-of-type(1)"));
+    const modes = await boxOf(page, ".cp-mode");
+    [0, 1, 2].forEach((k) => compare(scr, `mode ${k + 1}`, abs(shape(S, p.modes + k)), modes[k] ?? NAN4));
+    textAt(scr, "who hears it", T[p.hears], await line(page, ".cp-sheet h2:nth-of-type(2)"));
+    const zones = await boxOf(page, ".cp-zone");
+    [0, 1, 2, 3, 4].forEach((k) => compare(scr, `zone ${k + 1}`, abs(shape(S, p.zones + k)), zones[k] ?? NAN4));
+    compare(scr, "live phrases", abs(shape(S, p.live)), await one(page, ".cp-live"));
+    compare(scr, "ring", abs(shape(S, p.ring)), await one(page, ".cp-ring"));
+    textAt(scr, "ring words", T[p.ringWords], await line(page, ".cp-ring span"));
+    textAt(scr, "live words", T[p.liveWords], await line(page, ".cp-live p"));
+    compare(scr, "say it to the yard", abs(shape(S, p.send)), await one(page, ".cp-send"));
+    await overflowAt(page, scr, w);
+    if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${scr}.png` });
+    await o.ctx.close();
+  }
+
   // tile shapes in the sheets' feed order, by the shape's place in the file (readSheet's list)
   await feed("tablet", 834, "tablet", "tablet_834_Feed", { tiles: [6, 20, 10, 24, 12, 27, 16], list: 5, tile: 6, hand: 7, foot: 8, chip: 9, title: [14, 15] });
   await feed("desktop", 1440, "desktop", "desktop_1440_Feed", { tiles: [12, 25, 16, 29, 18, 33, 21], panel: 6, tile: 12, hand: 13, foot: 14, chip: 15, title: [13, 14] });
   await me("tablet", 834, "tablet", "tablet_834_Me");
+  await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });
   await me("desktop", 1440, "desktop", "desktop_1440_Me");
   info("not compared (the sheets draw them, this shell has not the thing): the right pane of the desktop feed and card (Talks, a chat), the quota card and the rail's quota, the chips' counts, the tiles' distance and time, the search icon, the unread dot, the thread \"Beside it\" and \"Reply beside\", the density line, the offer and table tiles as drawn");
 }

@@ -460,8 +460,6 @@ docs/design-system_EN.md -> panel/design/reference-behaviour.svg
 docs/design-system_RU.md -> docs/design-system-app_RU.md
 docs/design-system_RU.md -> panel/design/kit-full.svg
 docs/design-system_RU.md -> panel/design/reference-behaviour.svg
-docs/design/kit_EN.md -> docs/report-2026-10-02-brands.pdf
-docs/design/kit_RU.md -> docs/report-2026-10-02-brands.pdf
 docs/design/themes_EN.md -> docs/design/themes_RU.md
 docs/design/themes_RU.md -> docs/design/themes_EN.md
 docs/dpia_EN.md -> docs/article-30-register_EN.md
@@ -722,12 +720,10 @@ relay/local/README.md -> relay/local/observability/grafana/dashboards/relay-iden
 relay/local/README.md -> relay/local/observability/prometheus.yml
 relay/moderation-bench/README_EN.md -> docs/vendors-dpa_EN.md
 relay/moderation-bench/README_EN.md -> relay/moderation-bench/README_RU.md
-relay/moderation-bench/README_EN.md -> relay/moderation-bench/evaluation.json
 relay/moderation-bench/README_EN.md -> relay/moderation-bench/fetch_resources.py
 relay/moderation-bench/README_EN.md -> relay/moderation-bench/pipeline.py
 relay/moderation-bench/README_RU.md -> docs/vendors-dpa_RU.md
 relay/moderation-bench/README_RU.md -> relay/moderation-bench/README_EN.md
-relay/moderation-bench/README_RU.md -> relay/moderation-bench/evaluation.json
 relay/moderation-bench/README_RU.md -> relay/moderation-bench/fetch_resources.py
 relay/moderation-bench/README_RU.md -> relay/moderation-bench/pipeline.py
 relay/moderator/measure.ts -> relay/node/src/lib/moderator.ts

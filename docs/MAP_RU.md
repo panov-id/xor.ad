@@ -85,6 +85,7 @@ flowchart LR
 - `app/src/shell/icons.ts` → —  ·  ← app/src/screens/Feed.tsx, app/src/screens/Loading.tsx, app/src/screens/Locked.tsx, app/src/screens/Register.tsx, app/src/screens/Splash.tsx, app/src/screens/Unlock.tsx, app/src/screens/feed-card.tsx, app/src/screens/register-parts.tsx, app/src/shell/Icon.tsx
 - `app/src/shell/layers.tsx` → —  ·  ← app/src/screens/feed-card.tsx, app/src/shell/App.tsx
 - `app/src/shell/loading.ts` → —  ·  ← app/src/screens/Feed.tsx, app/src/shell/App.tsx
+- `app/src/shell/motion.test.ts` → —  ·  ← —
 - `app/src/vault.ts` → app/src/config.ts  ·  ← app/src/screens/Register.tsx, app/src/screens/Unlock.tsx, app/src/shell/App.tsx
 - `app/vite.config.ts` → —  ·  ← —
 - `deploy/panel-security-headers.mjs` → —  ·  ← —
@@ -474,6 +475,7 @@ flowchart LR
 - `scripts/check-design-grid.mjs` → —  ·  ← —
 - `scripts/check-design-spacing.mjs` → —  ·  ← —
 - `scripts/check-design-text.mjs` → —  ·  ← —
+- `scripts/design/back-walk.mjs` → —  ·  ← —
 - `scripts/design/capture-redesign.mjs` → —  ·  ← —
 - `scripts/design/check-adaptive.mjs` → —  ·  ← —
 - `scripts/design/compare-web.mjs` → —  ·  ← —
@@ -741,7 +743,7 @@ flowchart LR
 - @eslint/js: 1
 - @platform/idle.ts: 1
 - @platform/vault_keep.ts: 1
-- @playwright/test: 34
+- @playwright/test: 35
 - @refinedev/core: 16
 - @refinedev/devtools: 1
 - @refinedev/kbar: 1
@@ -763,17 +765,17 @@ flowchart LR
 - ink: 3
 - ink-testing-library: 13
 - jsr:@std: 127
-- node:assert: 30
+- node:assert: 31
 - node:async_hooks: 1
 - node:child_process: 3
 - node:crypto: 1
 - node:dns: 1
-- node:fs: 44
+- node:fs: 45
 - node:http: 6
 - node:module: 1
 - node:path: 14
 - node:perf_hooks: 1
-- node:test: 17
+- node:test: 18
 - node:timers: 1
 - node:url: 5
 - npm:pg@8.13.1: 8
@@ -815,8 +817,8 @@ flowchart LR
 - `docs/design-system-app_RU.md` → docs/depth-client_RU.md, docs/design-system_RU.md, panel/design/app-kit.svg, panel/design/empty-nav-mockup.svg, panel/design/kit/components.svg, panel/design/sheets/screen-brands.svg, panel/design/signs-mockup.svg, panel/design/spark-mockup.svg  ·  ← README_RU.md, docs/accessibility-and-i18n_RU.md, docs/design-system_RU.md
 - `docs/design-system_EN.md` → docs/design-system-app_EN.md, panel/design/kit-full.svg, panel/design/reference-behaviour.svg  ·  ← README.md, docs/accessibility-and-i18n_EN.md, docs/design-system-app_EN.md
 - `docs/design-system_RU.md` → docs/design-system-app_RU.md, panel/design/kit-full.svg, panel/design/reference-behaviour.svg  ·  ← README_RU.md, docs/accessibility-and-i18n_RU.md, docs/design-system-app_RU.md
-- `docs/design/kit_EN.md` → docs/report-2026-10-02-brands.pdf  ·  ← —
-- `docs/design/kit_RU.md` → docs/report-2026-10-02-brands.pdf  ·  ← —
+- `docs/design/kit_EN.md` → —  ·  ← —
+- `docs/design/kit_RU.md` → —  ·  ← —
 - `docs/design/themes_EN.md` → docs/design/themes_RU.md  ·  ← docs/design/themes_RU.md
 - `docs/design/themes_RU.md` → docs/design/themes_EN.md  ·  ← docs/design/themes_EN.md
 - `docs/dpia_EN.md` → docs/article-30-register_EN.md, docs/dsa/SPEC_EN.md  ·  ← docs/article-30-register_EN.md
@@ -885,24 +887,11 @@ flowchart LR
 - `relay/SPEC_EN.md` → .github/workflows/relay.yml, docs/protocol_EN.md  ·  ← docs/deployment_EN.md, relay/README.md
 - `relay/SPEC_RU.md` → .github/workflows/relay.yml, docs/protocol_RU.md  ·  ← docs/deployment_RU.md, relay/README_RU.md
 - `relay/local/README.md` → relay/local/observability/alertmanager.yml, relay/local/observability/alerts.yml, relay/local/observability/grafana/dashboards/relay-identity.json, relay/local/observability/prometheus.yml  ·  ← relay/README.md, relay/README_RU.md
-- `relay/moderation-bench/README_EN.md` → docs/vendors-dpa_EN.md, relay/moderation-bench/README_RU.md, relay/moderation-bench/evaluation.json, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_RU.md
-- `relay/moderation-bench/README_RU.md` → docs/vendors-dpa_RU.md, relay/moderation-bench/README_EN.md, relay/moderation-bench/evaluation.json, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_EN.md
+- `relay/moderation-bench/README_EN.md` → docs/vendors-dpa_EN.md, relay/moderation-bench/README_RU.md, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_RU.md
+- `relay/moderation-bench/README_RU.md` → docs/vendors-dpa_RU.md, relay/moderation-bench/README_EN.md, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_EN.md
 - `relay/moderator/README_EN.md` → —  ·  ← —
 - `relay/moderator/README_RU.md` → —  ·  ← —
 - `relay/node/src/access/README.md` → —  ·  ← —
-- `testing/walk-svg/round1/PROMPT.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-1024.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-1440.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-2560.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-375.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-393.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-768.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-1024.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-1440.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-2560.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-375.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-393.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-768.notes.md` → —  ·  ← —
 
 ## ПРОВЕРКА
 - все связи сверены с диском, расхождений нет

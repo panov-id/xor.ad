@@ -6,6 +6,8 @@
 // it asks the PIN when the device keeps an identity, and opens the splash when it keeps none, as the web does).
 import type { Record_ } from "@sdk/enroll.ts";
 import type { MatchRow } from "./screens/talks/talks-logic";
+// The path, not @sdk: node:test (run-app-unit-tests.sh) has no aliases.
+import { codeOfPath } from "../../depth/core/offer_exit.ts";
 
 export type Screen =
   | { at: "loading" }
@@ -23,7 +25,8 @@ export type Screen =
   | { at: "match"; row: MatchRow }
   | { at: "tables" }
   | { at: "new-table" }
-  | { at: "table"; id: string };
+  | { at: "table"; id: string }
+  | { at: "offer"; code: string };
 
 type At = Screen["at"];
 
@@ -44,6 +47,7 @@ export const ROUTES: Record<At, string> = {
   tables: "/tables",
   "new-table": "/tables/new",
   table: "/table",
+  offer: "/o",
 };
 
 // A path names a gate (reload, Back, a typed address); anything else is not one.
@@ -54,12 +58,14 @@ export function gateOf(path: string): Gate | null {
   return GATES[path.replace(/\/+$/, "") || "/"] ?? null;
 }
 
-export const pathOf = (s: Screen): string => ROUTES[s.at];
+export const pathOf = (s: Screen): string => (s.at === "offer" ? `/o/${s.code}` : ROUTES[s.at]);
 
 /** A seat's own address (an identity on the page): /move is the departure, /me is Me, /away the away screen, /inbox, /likes,
  * /match the talks, /tables the tables, /tables/new the wizard; anything else is the feed. */
 export const seatScreen = (path: string, state?: { until?: number; row?: MatchRow; id?: string } | null): Screen => {
   const p = path.replace(/\/+$/, "");
+  const offer = codeOfPath(p);
+  if (offer) return { at: "offer", code: offer };
   if (p === ROUTES.departure) return { at: "departure" };
   if (p === ROUTES.me) return { at: "me" };
   if (p === ROUTES.inbox) return { at: "inbox" };

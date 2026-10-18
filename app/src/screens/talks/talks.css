@@ -64,7 +64,7 @@
 
 /* ── w3_match: the coral card on the night, the pair of faces, the two phrases, two buttons ── */
 .tk-match-screen { background: var(--c-night); overflow-y: auto; }
-.tk-match { width: calc(100% - 2 * var(--mt-side)); max-width: var(--entry-max); margin: var(--mt-top) auto var(--sp-6); padding: var(--mt-pad-top) var(--mt-pad) var(--mt-pad-bottom);
+.tk-match { width: calc(100% - var(--mt-side) - var(--mt-side-end)); max-width: var(--entry-max); margin: var(--mt-top) var(--mt-side-end) var(--sp-6) var(--mt-side); padding: var(--mt-pad-top) var(--mt-pad) var(--mt-pad-bottom);
   border-radius: var(--r-card); background: var(--c-coral); color: var(--c-ink); display: flex; flex-direction: column; align-items: center; text-align: center; }
 .tk-pill { height: var(--mt-pill-h); padding: 0 var(--mt-pill-pad); border-radius: var(--r-pill); background: var(--c-ink); color: var(--c-coral);
   display: grid; place-items: center; font-size: var(--fs-mt-pill); font-weight: var(--fw-700); }
@@ -82,5 +82,5 @@
 .tk-quote blockquote { margin: var(--mt-cap-gap) 0 0; font-size: var(--fs-mt-quote); font-weight: var(--fw-700); line-height: var(--lh-mt-quote); }
 .tk-talk, .tk-later { width: 100%; height: var(--mt-cta-h); border-radius: var(--r-pill); font-size: var(--fs-mt-cta); font-weight: var(--fw-700); }
 .tk-talk { margin-top: var(--mt-cta-top); background: var(--c-ink); color: var(--c-text); }
-.tk-later { margin-top: var(--mt-cta-gap); border: var(--mt-later-line) solid var(--c-ink); background: none; color: var(--c-ink); }
+.tk-later { font-size: var(--fs-mt-later); margin-top: var(--mt-cta-gap); border: var(--mt-later-line) solid var(--c-ink); background: none; color: var(--c-ink); }
 .tk-talk:disabled, .tk-later:disabled { opacity: var(--o-disabled); }

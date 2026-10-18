@@ -2,8 +2,9 @@
 // that met, "Let's talk" and "Not now" — the web's useMatch moves: keys.consent (POST consent with this device's
 // chat key), client.decline and its undo. Once I said yes the screen is the wait (w3_match-waiting, MatchWaiting.tsx).
 // What to show is talks-logic.ts matchView. Testids (the web's): talk, not-now, match-hint, error.
-// The keys come from the chat's own module (depth/web-platform/chat, another wave's), typed here by the four moves used.
-import { useState } from "react";
+// The keys are the seat's (App.tsx chatKeys, depth/web-platform/chat/keys.ts chatKeysFor); my initial from my profile.
+import { useEffect, useState } from "react";
+import type { ChatKeys } from "@platform/chat/keys.ts";
 import type { Client } from "@sdk/client.ts";
 import { failedLine, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
@@ -12,21 +13,17 @@ import { Screen } from "../../shell/Screen";
 import { initial } from "../me/me-logic";
 import { matchView, type MatchRow } from "./talks-logic";
 
-export interface MatchKeys {
-  consent(matchId: string): Promise<{ status: number; body: { state: string; chat_id?: string } }>;
-  queue(matchId: string, text: string): void;
-  queued(matchId: string): readonly string[];
-  dropQueued(matchId: string): void;
-}
 
 // No back button on the sheet: the system Back leaves it, onto the inbox it was opened over.
-export function Match({ client, keys, row, me, onAgreed, onWaiting }: {
-  client: Client; keys: MatchKeys; row: MatchRow; me: string;
+export function Match({ client, keys, row, onAgreed, onWaiting }: {
+  client: Client; keys: ChatKeys; row: MatchRow;
   onAgreed: (chatId: string) => void; onWaiting: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [declined, setDeclined] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [me, setMe] = useState("");
+  useEffect(() => { client.profile().then((p) => setMe(String((p as { name?: string }).name ?? ""))).catch(() => setMe("")); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const view = matchView(row, { agreed: false, declined });
 
   const talk = () => {

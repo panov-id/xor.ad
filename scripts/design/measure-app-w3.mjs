@@ -1,5 +1,5 @@
-// Measures the rendered app/ talks against the Dusk sheets of wave 3 (mobile w3_inbox, w3_likes; w3_match and
-// w3_match-waiting as their screens come), and walks the tab bar to them against a stubbed node. Run by
+// Measures the rendered app/ talks against the Dusk sheets of wave 3 (mobile w3_inbox, w3_likes, w3_match;
+// w3_match-waiting as its screen comes), and walks the tab bar to them against a stubbed node. Run by
 // scripts/measure-app-w3.sh inside the Playwright image, on an internal network: PREVIEW is the built app (with its
 // CSP). Built on measure-app-w4.mjs (its helpers, its node stub, its report). Expected values are read from the
 // sheets (sheet-geometry.mjs), never typed in; indices are the sheets' drawing order.
@@ -106,7 +106,7 @@ async function fonts(page, screen, probes) {
 }
 
 // ── the node, stubbed: the routes the registration, the feed and Me call ──
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|statements|likes|inbox|away)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|statements|likes|inbox|away|matches)(\/|$)/;
 const ACCEPTED = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 // After the registration the node publishes new revisions: the terms changed on 14 Oct (a new hash), privacy and the
 // rules re-dated with the hash this device accepted (w4_legal: one changed, two not).
@@ -119,10 +119,10 @@ const LATER = [
 const at = (h, m) => Date.UTC(2026, 9, 18, h, m) / 1000;
 function inboxRows() {
   const now = Math.floor(Date.now() / 1000);
-  const offer = (id, name, age, fresh) => ({ kind: "match", id, name, age, phrase: { text: "…", mode: "alone" }, waiting_for_you: true, state: "proposed", arrived_since: fresh });
+  const offer = (id, name, age, fresh, more = {}) => ({ kind: "match", id, name, age, phrase: { text: "…", mode: "alone" }, waiting_for_you: false, state: "proposed", arrived_since: fresh, ...more });
   const talk = (id, name, age, left, last, more = {}) => ({ kind: "chat", id, name, age, state: "open", chat_expires_at: now + left * 60 - 5, my_span: 60, last_activity_at: last, ...more });
   return [
-    offer("m1", "Nino", 27, true), offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false), offer("m4", "Tamar", 33, false),
+    offer("m1", "Nino", 27, true, { phrase: { text: "Backgammon tonight?", mode: "alone" }, my_phrase: { text: "Bakery open after ten?", mode: "alone" } }), offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false), offer("m4", "Tamar", 33, false),
     talk("c1", "Nino", 27, 38, at(21, 4), { pending_messages: 1 }), talk("c2", "Levan", 34, 52, at(20, 10)), talk("c3", "Mariam", 29, 12, at(18, 32)),
     talk("c4", "Giorgi", 41, 0, at(17, 5), { state: "ended", chat_expires_at: now - 60 }),
   ];
@@ -163,6 +163,8 @@ function nodeStub() {
       if (key === "GET /identities/me") return json(200, { name: "Alex", name_state: "accepted", age: 32, phrases: [{ id: "p1" }, { id: "p2" }], filter_age_min: 25, filter_age_max: 35 });
       if (key === "PATCH /identities/me") { patches.push(body()); return json(200, {}); }
       if (key === "GET /statements") return json(200, { items: !s.restricted ? [] : [{ id: "st-1", restriction: "removed", facts: "Phrase “Selling…”", ground_kind: "contractual", ground_text: "Rules § 4 · ads", automated_used: false, created_at: Date.UTC(2026, 9, 12, 12) / 1000 }] });
+      if (key === "POST /matches/m1/consent") { s.consented = true; return json(200, { state: "waiting" }); }
+      if (key === "POST /matches/m1/decline") { s.declined = true; return route.fulfill({ status: 204 }); }
       if (key === "GET /likes") return json(200, { items: likedRows().filter((r) => !s.unliked.includes(r.id)), next: null });
       if (req.method() === "DELETE" && /^\/feed\/[^/]+\/like$/.test(u.pathname)) { s.unliked.push(decodeURIComponent(u.pathname.split("/")[2])); return json(200, {}); }
       if (key === "GET /inbox") return json(200, { items: inboxRows(), events: {} });
@@ -298,6 +300,39 @@ const gone = await page.locator('[data-testid="liked-card"]').count().then(async
 note(gone === 2 && stub.s.unliked.includes("p1"), `walk: the hand takes the like back (DELETE /feed/p1/like ${stub.s.unliked.includes("p1") ? "sent" : "never sent"}, ${gone} cards left)`);
 await page.click('[data-testid="likes-back"]'); await page.waitForSelector('[data-screen="inbox"]', { timeout: 20000 });
 note(new URL(page.url()).pathname === "/inbox", `walk: likes' back returns to the inbox at ${new URL(page.url()).pathname}`);
+
+// w3_match: Nino's face in the strip
+await page.locator('[data-testid="open-match"]').first().click(); await page.waitForSelector('[data-screen="match"]', { timeout: 20000 });
+note(new URL(page.url()).pathname === "/match", `walk: a face in the strip opens the match at ${new URL(page.url()).pathname}`);
+if (want("match")) {
+  const S = sheet("match"), sh = S.shapes, L = S.lines, scr = "match";
+  for (let k = 0; k < 50 && !/\S/.test(await page.locator(".tk-big").first().innerText()); k++) await page.waitForTimeout(100); // my initial, from the profile
+  await settle(page);
+  compare(scr, "card", shapeOf(sh[1]), await box(page, ".tk-match"));
+  compare(scr, "pill", shapeOf(sh[2]), await box(page, ".tk-pill"));
+  compare(scr, "face me", shapeOf(sh[5]), await box(page, ".tk-big", 0));
+  compare(scr, "face them", shapeOf(sh[7]), await box(page, ".tk-big", 1));
+  compare(scr, "hand", shapeOf(sh[8]), await box(page, ".tk-hand"));
+  compare(scr, "let's talk", shapeOf(sh[3]), await box(page, ".tk-talk"));
+  left(scr, "pill text", L[0], await line(page, ".tk-pill"));
+  left(scr, "title line 1", L[1], await line(page, ".tk-match-title", 0, 0));
+  left(scr, "title line 2", L[2], await line(page, ".tk-match-title", 0, 1));
+  left(scr, "hint line 1", L[3], await line(page, ".tk-match-hint", 0, 0));
+  left(scr, "hint line 2", L[4], await line(page, ".tk-match-hint", 0, 1));
+  left(scr, "you said", L[5], await line(page, ".tk-quote figcaption", 0));
+  left(scr, "my phrase 1", L[6], await line(page, ".tk-quote blockquote", 0, 0));
+  left(scr, "my phrase 2", L[7], await line(page, ".tk-quote blockquote", 0, 1));
+  left(scr, "they said", L[8], await line(page, ".tk-quote figcaption", 1));
+  left(scr, "their phrase 1", L[9], await line(page, ".tk-quote blockquote", 1, 0));
+  left(scr, "their phrase 2", L[10], await line(page, ".tk-quote blockquote", 1, 1));
+  left(scr, "let's talk label", L[11], await line(page, ".tk-talk"));
+  left(scr, "not now label", L[12], await line(page, ".tk-later"));
+  await shot(page, "match");
+}
+await overflowAt(page, "match", 390);
+await page.click('[data-testid="talk"]');
+for (let k = 0; k < 50 && !stub.s.consented; k++) await page.waitForTimeout(100);
+note(stub.s.consented === true, `walk: «Let's talk» sends the consent (POST /matches/m1/consent ${stub.s.consented ? "sent" : "never sent"})`);
 await ctx.close();
 for (const w of [375, 320]) {
   const s2 = nodeStub();

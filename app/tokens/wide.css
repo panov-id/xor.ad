@@ -97,6 +97,9 @@
   .tk[data-beside] .tk-sheet { position: absolute; left: 0; right: 0; top: 249.8px; bottom: 0; margin: 0; display: grid; grid-template-columns: 299.8px 465.6px;
     column-gap: 19.9px; align-items: start; padding: 24px 24px calc(var(--tabbar-bottom) + var(--s-nav-bar) + 16px); }
   .tk[data-beside] .tk-sheet > * { max-width: none; margin: 0; }
+  /* the strip stands above the sheet's edge: the sheet must not clip it (talks.css scrolls it), the list scrolls itself */
+  .tk[data-beside] .tk-sheet { overflow: visible; }
+  .tk[data-beside] .tk-list { max-height: 100%; overflow-y: auto; }
   .tk[data-beside] .tk-list { --tk-row-h: 71.9px; --tk-row-side: 12px; --tk-rows-top: 0px; }
   .tk[data-beside] .tk-rows { margin-top: 0; display: flex; flex-direction: column; gap: 4px; }
   /* one line under the name, cut as the sheet cuts it («The round oven on Lesel…»); an empty one keeps its place */

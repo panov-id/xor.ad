@@ -135,3 +135,10 @@
 
 /* the language list under the sub-page frame */
 .me-body > .me-langs { padding: 0; animation: none; overflow: visible; }
+/* A long value ends in an ellipsis inside its pair: the grid and the row do not widen past the screen. */
+.me-pairs { grid-template-columns: minmax(0, 1fr); }
+.me-pairs div { min-width: 0; }
+.me-pairs dd { min-width: 0; }
+/* A prose row (Statements: facts, grounds): the label above, the text below it, wrapped, as tall as it needs. */
+.me-pairs div.me-pair--prose { height: auto; flex-direction: column; gap: var(--sp-1); padding-bottom: var(--me-pair-pad-top); }
+.me-pair--prose dd { white-space: normal; overflow: visible; text-overflow: clip; text-align: start; overflow-wrap: anywhere; }

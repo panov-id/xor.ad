@@ -46,7 +46,7 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
       </div>
       <Pairs testid="away-price" rows={[
         [say("app.me.phrases"), rows ? sayCount("app.stepaway.come_down", rows.phrases) : "…"],
-        [say("app.stepaway.in_on_you"), rows ? say("app.stepaway.neighbours", { n: rows.likes }) : "…"],
+        [say("app.stepaway.in_on_you"), rows ? sayCount("app.stepaway.neighbours", rows.likes) : "…"],
         // A talk whose own end comes before the break's ends with it: said beside the ones that wait.
         [say("app.me.talks"), rows ? (rows.end > 0 ? `${sayCount("app.stepaway.wait", rows.wait)} · ${sayCount("app.stepaway.end", rows.end)}` : sayCount("app.stepaway.wait", rows.wait)) : "…"],
       ]} />

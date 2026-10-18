@@ -1,0 +1,117 @@
+/* The talks (sosed Dusk, sheets mobile w3_*): sizes are app/tokens/talks.css, read off the sheets. */
+
+/* ── w3_inbox ── */
+.tk { background: var(--c-night); overflow: hidden; }
+.tk-title, .tk-sub { width: 100%; max-width: var(--entry-max); margin-inline: auto; padding-inline: var(--tk-side); }
+.tk-strip, .tk-rows { padding-inline-start: 0; margin-bottom: 0; }
+.tk-title { margin-top: var(--tk-title-top); font-size: var(--fs-tk-title); font-weight: var(--fw-700); line-height: var(--lh-tight); }
+.tk-sub { margin-top: var(--tk-sub-top); font-size: var(--fs-tk-sub); line-height: var(--lh-tk-sub); font-weight: var(--fw-500); color: var(--c-muted); }
+.tk-sheet { flex: 1; min-height: 0; margin-top: var(--tk-sheet-gap); background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  overflow-y: auto; padding-bottom: calc(var(--s-nav-bar) + var(--tabbar-bottom) + var(--sp-4)); }
+.tk-sheet > * { width: 100%; max-width: var(--entry-max); margin-inline: auto; }
+
+.tk-strip { display: flex; align-items: flex-start; gap: var(--tk-strip-gap); margin-top: var(--tk-strip-top); padding-inline: var(--tk-strip-pad);
+  overflow-x: auto; scrollbar-width: none; list-style: none; }
+.tk-strip > li:first-child { margin-inline-end: calc(var(--tk-strip-first-gap) - var(--tk-strip-gap)); }
+.tk-face { display: flex; flex-direction: column; align-items: center; gap: var(--tk-label-gap); min-height: 0; padding: 0; background: none; }
+.tk-circle { position: relative; width: var(--tk-face); height: var(--tk-face); margin-top: var(--tk-face-top);
+  border-radius: var(--r-pill); display: grid; place-items: center; color: var(--c-ink); font-size: var(--fs-tk-face); font-weight: var(--fw-700); line-height: 1; }
+.tk-face[data-fresh] .tk-circle { box-shadow: 0 0 0 var(--tk-ring-gap) var(--c-night), 0 0 0 var(--tk-ring-out) var(--c-lime); }
+.tk-offers .tk-circle { width: var(--tk-offers); height: var(--tk-offers); margin-top: 0; border: var(--tk-dash) dashed var(--c-lime); color: var(--c-text); }
+.tk-offers .tk-circle .icon { --icon-size: var(--tk-hand); --stroke: 2; }
+.tk-label { font-size: var(--fs-tk-label); font-weight: var(--fw-500); line-height: var(--lh-tight); color: var(--c-text); }
+[data-face="0"] { background: var(--c-avatar-1); }
+[data-face="1"] { background: var(--c-avatar-2); }
+[data-face="2"] { background: var(--c-avatar-3); }
+[data-face="3"] { background: var(--c-avatar-4); }
+
+.tk-quiet { margin-top: var(--tk-rows-top); padding-inline: var(--tk-row-side); color: var(--c-muted); }
+.tk-rows { margin-top: var(--tk-rows-top); list-style: none; }
+.tk-row { width: 100%; height: var(--tk-row-h); min-height: 0; display: flex; align-items: center; gap: var(--tk-trail-gap);
+  padding: 0 var(--tk-row-end) 0 var(--tk-row-side); background: none; text-align: start; color: var(--c-text); }
+.tk-avatar { flex: none; width: var(--tk-avatar); height: var(--tk-avatar); border-radius: var(--r-pill); display: grid; place-items: center;
+  margin-inline-end: calc(var(--tk-row-gap) - var(--tk-trail-gap)); color: var(--c-ink); font-size: var(--fs-tk-avatar); font-weight: var(--fw-700); line-height: 1; }
+/* the time sits on the name's line; the line under them runs beneath it, to the ring (w3_inbox) */
+.tk-who { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--tk-trail-gap); }
+.tk-who .tk-line { grid-column: 1 / -1; }
+.tk-name { font-size: var(--fs-tk-name); font-weight: var(--fw-700); line-height: var(--lh-tight); }
+.tk-line { font-size: var(--fs-tk-line); font-weight: var(--fw-500); line-height: var(--lh-tight); color: var(--c-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tk-time { grid-row: 1; grid-column: 2; align-self: start; margin-top: var(--tk-time-lift); font-size: var(--fs-tk-time); font-weight: var(--fw-500); color: var(--c-muted); }
+.tk-ring { flex: none; width: var(--tk-ring); height: var(--tk-ring); border-radius: var(--r-pill); display: grid; place-items: center;
+  background: radial-gradient(closest-side, var(--c-sheet) calc(100% - var(--tk-ring-stroke)), transparent calc(100% - var(--tk-ring-stroke) + var(--tk-ring-aa))),
+    conic-gradient(var(--c-yellow) calc(var(--share) * 360deg), var(--c-ring-rest) 0);
+  font-size: var(--fs-tk-ring); font-weight: var(--fw-700); }
+.tk-ended { flex: none; font-size: var(--fs-tk-time); font-weight: var(--fw-500); color: var(--c-muted); }
+.tk-dot { flex: none; width: var(--tk-dot); height: var(--tk-dot); border-radius: var(--r-pill); background: var(--c-lime); }
+
+/* ── w3_likes: the sub-page bar (Me's), a lead line, then the feed's tiles on the sheet ── */
+.tk-lead { width: 100%; max-width: var(--entry-max); margin: var(--lk-lead-top) auto 0; padding-inline: var(--lk-side);
+  font-size: var(--fs-lk-lead); font-weight: var(--fw-500); line-height: var(--lh-tight); color: var(--c-muted); }
+.tk-likes { margin-top: var(--lk-sheet-gap); padding: var(--lk-pad-top) var(--me-side-end) var(--sp-6) var(--me-side); }
+.tk-likes > * { max-width: calc(var(--entry-max) - var(--me-side) - var(--me-side-end)); }
+.tk-cards { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--lk-gap); }
+.tk-phrase { cursor: default; }
+.tk-phrase::after { content: none; }
+/* the likes sheet draws the feed's strip a little lower and its chip a little smaller than w1_feed's */
+.tk-cards .fd-card { padding-bottom: var(--lk-card-bottom); }
+.tk-cards .fd-foot { height: var(--lk-foot-h); padding-inline-start: var(--lk-foot-pad); padding-inline-end: var(--lk-mode-end); }
+.tk-cards .fd-mode { height: var(--lk-mode-h); min-width: var(--lk-mode-w); padding-inline: 0; }
+.tk-meta { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--lk-meta-gap); margin-top: var(--lk-meta-top);
+  font-size: var(--fs-lk-meta); font-weight: var(--fw-700); line-height: var(--lh-tight); color: var(--c-ink); }
+.tk-meta .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }
+.tk-more { margin-top: var(--lk-gap); width: 100%; min-height: var(--s-touch-min); border-radius: var(--r-pill); background: var(--c-sheet-2, var(--c-night)); color: var(--c-text); font-weight: var(--fw-700); }
+
+/* ── w3_match: the coral card on the night, the pair of faces, the two phrases, two buttons ── */
+.tk-match-screen { background: var(--c-night); overflow-y: auto; }
+.tk-match { width: calc(100% - var(--mt-side) - var(--mt-side-end)); max-width: var(--entry-max); margin: var(--mt-top) var(--mt-side-end) var(--sp-6) var(--mt-side); padding: var(--mt-pad-top) var(--mt-pad) var(--mt-pad-bottom);
+  border-radius: var(--r-card); background: var(--c-coral); color: var(--c-ink); display: flex; flex-direction: column; align-items: center; text-align: center; }
+.tk-pill { height: var(--mt-pill-h); padding: 0 var(--mt-pill-pad); border-radius: var(--r-pill); background: var(--c-ink); color: var(--c-coral);
+  display: grid; place-items: center; font-size: var(--fs-mt-pill); font-weight: var(--fw-700); }
+.tk-pair { margin-top: var(--mt-pair-top); display: flex; align-items: center; }
+.tk-big { width: var(--mt-face); height: var(--mt-face); border-radius: var(--r-pill); box-shadow: 0 0 0 var(--mt-face-ring) var(--c-coral);
+  display: grid; place-items: center; font-size: var(--fs-mt-face); font-weight: var(--fw-800); }
+.tk-hand { position: relative; z-index: 1; width: var(--mt-hand); height: var(--mt-hand); margin-inline: calc(var(--mt-overlap) * -1); border-radius: var(--r-pill);
+  background: var(--c-ink); color: var(--c-coral); display: grid; place-items: center; }
+.tk-hand .icon { --icon-size: var(--icon-fd); --stroke: 2; }
+.tk-match-title { margin-top: var(--mt-title-top); font-size: var(--fs-mt-title); font-weight: var(--fw-800); line-height: var(--lh-mt-title); }
+.tk-match-hint { margin-top: var(--mt-hint-top); font-size: var(--fs-mt-hint); font-weight: var(--fw-500); line-height: var(--lh-mt-hint); }
+.tk-quotes { margin-top: var(--mt-quotes-top); width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: var(--mt-quotes-gap); text-align: start; }
+.tk-quote { margin: 0; padding: var(--mt-quote-pad); border-radius: var(--r-card); background: var(--c-coral-soft); }
+.tk-quote figcaption { font-size: var(--fs-mt-cap); font-weight: var(--fw-500); }
+.tk-quote blockquote { margin: var(--mt-cap-gap) 0 0; font-size: var(--fs-mt-quote); font-weight: var(--fw-700); line-height: var(--lh-mt-quote); }
+.tk-talk, .tk-later { width: 100%; height: var(--mt-cta-h); border-radius: var(--r-pill); font-size: var(--fs-mt-cta); font-weight: var(--fw-700); }
+.tk-talk { margin-top: var(--mt-cta-top); background: var(--c-ink); color: var(--c-text); }
+.tk-later { font-size: var(--fs-mt-later); margin-top: var(--mt-cta-gap); border: var(--mt-later-line) solid var(--c-ink); background: none; color: var(--c-ink); }
+.tk-talk:disabled, .tk-later:disabled { opacity: var(--o-disabled); }
+
+/* ── w3_match-waiting: who, the note, my queued lines as bubbles, the line to write and "To talks" at the foot ── */
+.tk-wait { margin-top: var(--wt-sheet-gap); display: flex; flex-direction: column; padding: var(--wt-pad-top) var(--me-side-end) 0 var(--me-side); }
+.tk-wait > * { width: 100%; max-width: calc(var(--entry-max) - var(--me-side) - var(--me-side-end)); margin-inline: auto; }
+.tk-wait-who { display: flex; align-items: center; gap: var(--wt-who-gap); }
+.tk-wait-face { flex: none; width: var(--wt-face); height: var(--wt-face); border-radius: var(--r-pill); display: grid; place-items: center;
+  color: var(--c-ink); font-size: var(--fs-wt-face); font-weight: var(--fw-700); }
+.tk-who-text { flex: 1; min-width: 0; display: grid; gap: var(--wt-name-gap); padding-top: var(--wt-who-shift); }
+.tk-wait-name { font-size: var(--fs-wt-name); font-weight: var(--fw-700); line-height: var(--lh-tight); }
+.tk-wait-state { font-size: var(--fs-tk-time); font-weight: var(--fw-500); color: var(--c-muted); line-height: var(--lh-tight); }
+.tk-wait-ring { flex: none; width: var(--tk-ring); height: var(--tk-ring); border-radius: var(--r-pill); border: var(--tk-ring-stroke) solid var(--c-ring-rest); margin-inline-end: var(--wt-ring-end); }
+.tk-wait-note { margin-top: var(--wt-note-top); min-height: var(--wt-note-h); padding: var(--wt-note-pad); border-radius: var(--r-card); background: var(--c-panel);
+  display: flex; align-items: center; gap: var(--wt-note-gap); font-size: var(--fs-tk-line); font-weight: var(--fw-500); line-height: var(--lh-wt-note); }
+.tk-wait-note .icon { flex: none; --icon-size: var(--icon-fd-sm); --stroke: 2; }
+.tk-queue { flex: 1; min-height: 0; overflow-y: auto; list-style: none; padding: 0; margin: var(--wt-queue-top) 0 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+.tk-bubble-row { display: flex; flex-direction: column; align-items: flex-end; gap: var(--wt-time-gap); }
+.tk-bubble { max-width: var(--wt-bubble-max); padding: var(--wt-bubble-pad); border-radius: var(--wt-bubble-r) var(--wt-bubble-r) var(--wt-bubble-tail) var(--wt-bubble-r);
+  background: var(--c-lime); color: var(--c-ink); font-size: var(--fs-wt-bubble); font-weight: var(--fw-700); line-height: var(--lh-tight); overflow-wrap: anywhere; }
+.tk-bubble-time { font-size: var(--fs-wt-time); font-weight: var(--fw-500); color: var(--c-muted); }
+/* minmax(0, 1fr): the field's own width (an input's size) would widen an auto column past the sheet on a narrow phone */
+.tk-wait-foot { flex: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--wt-foot-gap); padding-bottom: max(var(--wt-foot-bottom), env(safe-area-inset-bottom)); }
+.tk-compose { display: flex; gap: var(--wt-send-gap); }
+.tk-compose input { flex: 1; min-width: 0; height: var(--wt-input-h); padding: 0 var(--wt-input-pad); border: 0; border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text);
+  font: inherit; font-size: var(--fs-wt-input); font-weight: var(--fw-500); }
+.tk-compose input::placeholder { color: var(--c-placeholder); }
+.tk-send { flex: none; width: var(--wt-input-h); height: var(--wt-input-h); min-height: 0; border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: grid; place-items: center; }
+.tk-send:disabled { opacity: 1; }
+.tk-send .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }
+.tk-to-talks { height: var(--wt-talks-h); min-height: 0; border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text);
+  display: flex; align-items: center; justify-content: center; gap: var(--wt-talks-gap); font-size: var(--fs-wt-name); font-weight: var(--fw-700); }
+.tk-to-talks .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }

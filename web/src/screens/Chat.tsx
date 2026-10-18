@@ -1,6 +1,6 @@
 // Screen 08 (chat spec §8.6, §8.8, §8.13): the conversation. The keys come
-// from web/src/chat/keys.ts — this device's pair after a consent, the wrap the
-// node kept after a reload; the socket from web/src/chat/room.ts. What the
+// from depth/web-platform/chat/keys.ts — this device's pair after a consent, the wrap the
+// node kept after a reload; the socket from depth/web-platform/chat/room.ts. What the
 // node hands over is ciphertext with the message's id; it opens here with the
 // peer's direction key, and is acknowledged once shown (POST /chats/:id/received).
 // 4003 is the tombstone: "беседа кончилась", nothing to do.
@@ -15,7 +15,7 @@
 
 import { useChat } from "./logic/useChat.ts";
 import type { Client } from "../../../depth/core/client.ts";
-import type { ChatKeys } from "../chat/keys.ts";
+import type { ChatKeys } from "../../../depth/web-platform/chat/keys.ts";
 import { useState } from "react";
 import { ChatActions, ChatMenuButton } from "./ChatActions.tsx";
 import { ChatGame } from "./ChatGame.tsx";

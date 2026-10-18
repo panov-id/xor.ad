@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
+import { type ChatKeys, chatKeysFor } from "@platform/chat/keys.ts";
 import { gateOf, gateScreen, pathOf, type Screen, seatScreen } from "../router";
 import { Arrival } from "../screens/Arrival";
 import { Away } from "../screens/Away";
@@ -12,6 +13,10 @@ import { Register, type Seated } from "../screens/Register";
 import { Splash } from "../screens/Splash";
 import { Unlock } from "../screens/Unlock";
 import { Me } from "../screens/me/Me";
+import { Inbox } from "../screens/talks/Inbox";
+import { Likes } from "../screens/talks/Likes";
+import { Match } from "../screens/talks/Match";
+import type { MatchRow } from "../screens/talks/talks-logic";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
 import type { Tab } from "./TabBar";
@@ -31,6 +36,16 @@ export function App() {
   const [booting, setBooting] = useState(true);
   // The identity the page holds (a registration made it, the PIN or the grace opened it), in memory only: the disk has it sealed.
   const [seated, setSeated] = useState<Seated | null>(null);
+  // The chat keys of the seat (depth/web-platform/chat/keys.ts chatKeysFor): made from the long key the seat
+  // holds, whichever way it was taken (registration, PIN, grace, a move); gone with the seat.
+  const [chatKeys, setChatKeys] = useState<ChatKeys | null>(null);
+  useEffect(() => {
+    setChatKeys(null);
+    if (!seated) return;
+    let live = true;
+    chatKeysFor(seated.client).then((k) => { if (live) setChatKeys(k); }, (e) => console.error(e));
+    return () => { live = false; };
+  }, [seated?.client]); // eslint-disable-line react-hooks/exhaustive-deps
   // Five minutes without input: the core is locked and the face is one line (Locked.tsx).
   const [locked, setLocked] = useState(false);
   // The vault's record as the page found it (null: none, or forgotten since): the gates read it.
@@ -159,14 +174,24 @@ export function App() {
   const unlocked = (client: Client, wrapSame: boolean) => seat({ client, sealed: wrapSame ? "unlocked" : "unlocked-new-wrap" });
   // The tab bar: the feed and "Me" are seats as the feed is (a reload asks the PIN); one replaces the other in history.
   const tab = (to: Tab) => {
-    if (to !== "feed" && to !== "me") return;
-    history.replaceState({ gate: to, i: 0 }, "", pathOf({ at: to }));
-    setScreen({ at: to });
+    if (to === "tables") return;
+    const at = to === "chats" ? "inbox" : to;
+    history.replaceState({ gate: at, i: 0 }, "", pathOf({ at }));
+    setScreen({ at });
   };
   // Me's move row: the departure on top of Me, so its back (i: 1) is the history's Back onto /me.
   const toMove = () => {
     history.pushState({ gate: "departure", i: 1 }, "", pathOf({ at: "departure" }));
     setScreen({ at: "departure" });
+  };
+  // The inbox's «Offers» circle: what I am in on, on top of the inbox (as toMove over Me).
+  const toMatch = (row: MatchRow) => {
+    history.pushState({ gate: "match", i: 1, row }, "", pathOf({ at: "match", row }));
+    setScreen({ at: "match", row });
+  };
+  const toLikes = () => {
+    history.pushState({ gate: "likes", i: 1 }, "", pathOf({ at: "likes" }));
+    setScreen({ at: "likes" });
   };
   // The identity closed for good (Me → Start again): nothing of it stays; the splash.
   const closed = () => {
@@ -192,6 +217,14 @@ export function App() {
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
+      // The talks (w3): a match and a talk open over it once their screens are here (onOpenMatch, onOpenChat).
+      case "inbox": return seated ? <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={() => {}} /> : null;
+      // What I am in on, over the inbox (i: 1): its back is the history's Back onto /inbox; a reload on it, the inbox.
+      // A match over the inbox (i: 1, its row in the entry); "Let's talk" agreed by both goes to the talks (the talk's own screen is the chat wave's), a lone yes is the wait in place.
+      case "match": return seated && chatKeys ? <Match client={seated.client} keys={chatKeys} row={screen.row} onAgreed={() => tab("chats")}
+        // my yes into the entry itself: Forward back onto /match finds the wait, not "Let's talk" again
+        onWaiting={(row) => history.replaceState({ ...(history.state as object | null), row }, "")} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : tab("chats")} onTalks={() => tab("chats")} /> : null;
+      case "likes": return seated ? <Likes client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : tab("chats")} /> : null;
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }

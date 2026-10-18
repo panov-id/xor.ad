@@ -8,7 +8,7 @@ const PREVIEW = process.env.PREVIEW_URL ?? "http://localhost:4174";
 // The dev server is the stand build (VITE_STAND=1): it reads the grace from sessionStorage "xor-grace-ms" (app/src/vault.ts).
 const DEV = process.env.DEV_URL ?? "http://localhost:5174";
 const PIN = "483915";
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|inbox|likes|matches)(\/|$)/;
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 const phrase = (n) => ({ id: `ph-${n}`, text: `Walk phrase number ${n}`, mode: "walk", lang: "en", like_count: n });
 const ITEMS = [phrase(1), phrase(2), phrase(3)];
@@ -45,6 +45,9 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
       return json(200, { identity_id: "id-stub", name: "Alex", ...(until ? { stepped_away_until: until } : {}) });
     }
     if (key === "GET /statements") return json(200, []);
+    if (key === "POST /matches/m1/consent") return json(200, { state: "waiting" });
+    if (key === "GET /likes") return json(200, { items: [{ kind: "phrase", id: "p1", text: "Who has a ladder?", mode: "alone", like_count: 4, state: "liked", liked_at: 0 }], next: null });
+    if (key === "GET /inbox") return json(200, { items: [{ kind: "match", id: "m1", name: "Nino", age: 27, waiting_for_you: false, state: "proposed", phrase: { text: "Backgammon tonight?", mode: "alone" } }, { kind: "chat", id: "c1", name: "Nino", age: 27, state: "open", chat_expires_at: Math.floor(Date.now() / 1000) + 1800 }], events: {} });
     if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
     if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
     if (key === "POST /legal/accept") return json(200, {});
@@ -179,6 +182,65 @@ try {
     await page.goBack(); await settle(page);
     const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
     check(at === "me" && new URL(page.url()).pathname === "/me", `4 Me → Move → Back lands on Me (screen ${at}, url ${new URL(page.url()).pathname}, state ${await state(page)})`);
+    await ctx.close();
+  }
+  // 8. the talks tab (App.tsx tab: replaces the entry, as Me): /inbox, and Back from it draws no gate over the seat
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.locator('[data-testid="chat"]').first().waitFor({ timeout: 10000 });
+    check(new URL(page.url()).pathname === "/inbox", `8a the talks tab opens the inbox at ${new URL(page.url()).pathname}, state ${await state(page)}`);
+    await page.goBack({ timeout: 3000 }).catch(() => null); await settle(page);
+    const url = page.url();
+    const at = url.startsWith("http://localhost") ? await page.locator("main[data-screen]").first().getAttribute("data-screen").catch(() => "(none)") : "(left the app)";
+    check(at !== "splash" && at !== "register", `8b Back from the inbox draws no gate (screen ${at}, url ${url.startsWith("http://localhost") ? new URL(url).pathname : url})`);
+    await ctx.close();
+  }
+  // 9. inbox → «Offers» → what I am in on → Back: the inbox again (App.tsx toLikes pushes i: 1; popstate → seatScreen("/inbox"))
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]');
+    await page.locator('[data-testid="liked-card"]').first().waitFor({ timeout: 10000 });
+    const onLikes = new URL(page.url()).pathname;
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(onLikes === "/likes" && at === "inbox" && new URL(page.url()).pathname === "/inbox", `9 inbox → Offers (${onLikes}) → Back lands on the inbox (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]');
+    await page.click('[data-testid="likes-back"]'); await page.waitForSelector('[data-screen="inbox"]', { timeout: 10000 }).catch(() => null);
+    const at2 = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at2 === "inbox" && new URL(page.url()).pathname === "/inbox", `9b likes' own back button → the inbox (screen ${at2}, url ${new URL(page.url()).pathname})`);
+    await ctx.close();
+  }
+  // 10. inbox → a face → the match → Back: the inbox (App.tsx toMatch pushes i: 1 with the row; popstate → seatScreen("/inbox"))
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.locator('[data-testid="open-match"]').first().click(); await page.waitForSelector('[data-screen="match"]', { timeout: 10000 }).catch(() => null);
+    const onMatch = new URL(page.url()).pathname, rowIn = (await state(page)).includes('"row"');
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(onMatch === "/match" && rowIn && at === "inbox" && new URL(page.url()).pathname === "/inbox", `10 inbox → a face (${onMatch}, row in the entry ${rowIn}) → Back lands on the inbox (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    const again = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(again === "match", `10b Forward brings the match back from its entry (screen ${again}, url ${new URL(page.url()).pathname})`);
+    await ctx.close();
+  }
+  // 11. the match → «Let's talk» (the other has not said yes) → the wait in place → its back and the system Back: the inbox
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.locator('[data-testid="open-match"]').first().click(); await page.waitForSelector('[data-screen="match"]');
+    await page.click('[data-testid="talk"]'); await page.waitForSelector('[data-screen="match-waiting"]', { timeout: 10000 }).catch(() => null);
+    const waitUrl = new URL(page.url()).pathname;
+    await page.click('[data-testid="waiting-back"]').catch(() => null); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(waitUrl === "/match" && at === "inbox" && new URL(page.url()).pathname === "/inbox", `11 match → Let's talk → the wait (${waitUrl}) → its back → the inbox (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    const fwd = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    await page.goBack(); await settle(page);
+    const back = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(fwd === "match-waiting" && back === "inbox", `11b after my yes, Forward onto /match is the wait (screen ${fwd}), then Back: the inbox again (screen ${back})`);
     await ctx.close();
   }
   // 5. the away screen (until an hour on) → Back: still the away screen

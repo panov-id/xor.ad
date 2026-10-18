@@ -339,7 +339,7 @@ const SPANS = [10, 30, 60, 260] as const;
 type Span = (typeof SPANS)[number];
 
 // What this process saw of each conversation (W13-DM; chat spec §8.2, §8.8;
-// the web's chat/away.ts keeps the same): the newest moment a line was read
+// depth/web-platform/chat/away.ts keeps the same): the newest moment a line was read
 // or sent here, or the row's last activity when the room was opened. depth
 // keeps no history on disk, so "last seen" is this process's life; a room
 // never opened here claims nothing. Checked like any number from the node.

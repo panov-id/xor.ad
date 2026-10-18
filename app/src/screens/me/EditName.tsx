@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { Answer, Client } from "@sdk/client.ts";
 import { graphemes } from "@sdk/limits.ts";
 import { ageDigits, lettersLeft, NAME_MAX } from "@sdk/register.ts";
-import { label, say } from "../../i18n";
+import { failedLine, label, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { check } from "../../shell/icons";
 import { Field } from "../register-parts";
@@ -41,7 +41,7 @@ export function EditName({ client, name: was, age: wasAge, onDone, onBack }: { c
       }
       onDone();
     } catch (e) {
-      setRefused((e as Error).message);
+      setRefused(failedLine(e));
     } finally {
       setBusy(false);
     }

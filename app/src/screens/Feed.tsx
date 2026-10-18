@@ -8,7 +8,7 @@
 // the tables between phrases (a table item is skipped), one's own sent phrase over the list.
 import { useEffect, useRef, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
-import { label, say } from "../i18n";
+import { failedLine, label, say } from "../i18n";
 import { storedPlace } from "../place";
 import { Icon } from "../shell/Icon";
 import { flag, map, refresh, undo } from "../shell/icons";
@@ -103,7 +103,7 @@ export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => 
         setGone(null);
         void load();
       })
-      .catch((e: Error) => setUndoError(say("app.feed.act_failed", { message: e.message })));
+      .catch((e: Error) => setUndoError(failedLine(e)));
   }
 
   // The hand and «I'm in»: POST /feed/:id/like; the card in the list takes the like at once (the node's count comes with the next page).

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan } from "@sdk/limits.ts";
 import { awayCounts } from "@sdk/me.ts";
-import { label, say, sayCount } from "../../i18n";
+import { failedLine, label, say, sayCount } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { hourglass } from "./icons";
 import { awayRows } from "./me-logic";
@@ -17,13 +17,13 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
   const [counts, setCounts] = useState<{ phrases: number; likes: number; ends: number[] } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => { awayCounts(client).then(setCounts).catch((e: Error) => setError(e.message)); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { awayCounts(client).then(setCounts).catch((e: Error) => setError(failedLine(e))); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const rows = counts ? awayRows(counts, AWAY_MINUTES[span ?? "short"], Math.floor(Date.now() / 1000)) : null;
   const go = () => {
     if (!span || busy) return;
     setBusy(true);
     setError(null);
-    client.stepAway(span).then(onGone).catch((e: Error) => { setBusy(false); setError(e.message); });
+    client.stepAway(span).then(onGone).catch((e: Error) => { setBusy(false); setError(failedLine(e)); });
   };
   return (
     <SubPage name="step-away" title={label("away.item")} onBack={onBack}

@@ -108,7 +108,12 @@ export function createKeep(config: KeepConfig) {
     const oldShare = await client.request<{ share?: string; error?: { code?: string; attempts_left?: number } }>(
       "POST", "/vault/share", { auth: base64url(before.auth) },
     );
-    if (oldShare.status !== 200 || !oldShare.body?.share) return oldShare as Answer<{ error?: { code?: string; attempts_left?: number } }>;
+    if (oldShare.status !== 200 || !oldShare.body?.share) {
+      // A refused old PIN: what was derived from it goes now, not at the next collection.
+      before.auth.fill(0);
+      before.local.fill(0);
+      return oldShare as Answer<{ error?: { code?: string; attempts_left?: number } }>;
+    }
     const oldKey = await vaultKey(before.local, fromBase64url(oldShare.body.share));
     const longPkcs8 = await unseal(oldKey, record.sealedLong);
     const wrapPkcs8 = await unseal(oldKey, record.sealedWrap);

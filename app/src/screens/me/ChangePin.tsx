@@ -6,7 +6,7 @@ import { useId, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { pinRefusal } from "@sdk/pin_gate.ts";
 import { pinDigits, PIN_LENGTH, pinsDiffer, pinsMatch } from "@sdk/register.ts";
-import { say } from "../../i18n";
+import { failedLine, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { check } from "../../shell/icons";
 import { changePinAndReseal } from "../../vault";
@@ -34,7 +34,7 @@ export function ChangePin({ client, onDone, onBack }: { client: Client; onDone: 
       setRefused(pinLine(pinRefusal({ code: error?.code, status: answer.status, attemptsLeft: error?.attempts_left, retryAfter: answer.retryAfter }), refusedStatus(answer.status)));
       setV({ current: "", next: v.next, again: v.again });
     } catch (e) {
-      setRefused((e as Error).message);
+      setRefused(failedLine(e));
     } finally {
       setBusy(false);
     }

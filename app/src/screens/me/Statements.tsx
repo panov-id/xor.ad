@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import type { Client, Statement } from "@sdk/client.ts";
 import { capital } from "../../i18n-core";
-import { LANG, say } from "../../i18n";
+import { failedLine, LANG, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { flag } from "../../shell/icons";
 import { dayMonth } from "./me-logic";
@@ -15,7 +15,7 @@ export function Statements({ client, onBack }: { client: Client; onBack: () => v
   const [items, setItems] = useState<Statement[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ways, setWays] = useState(false);
-  useEffect(() => { client.statements().then(setItems).catch((e: Error) => setError(e.message)); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { client.statements().then(setItems).catch((e: Error) => setError(failedLine(e))); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <SubPage name="statements" title={say("app.statements.title")} onBack={onBack}>
       {items === null && !error && <p className="me-quiet">…</p>}

@@ -4,8 +4,9 @@
 // request("POST", "/report"), as the web's useCard makes them. The same testids as the web's where it has them:
 // card, offer, text, mode, like, more, hide, notice, block.
 import { type FormEvent, useState } from "react";
+import { Said } from "../shell/failed";
 import type { Client } from "@sdk/client.ts";
-import { label, LANG, say } from "../i18n";
+import { failedLine, label, LANG, say } from "../i18n";
 import { Icon } from "../shell/Icon";
 import { blockMark, chevronLeft, chevronRight, ellipsis, eyeOff, flag, hand } from "../shell/icons";
 import { useLayers } from "../shell/layers";
@@ -129,7 +130,7 @@ function MoreSheet({ client, card, onGone }: { client: Client; card: FeedCard; o
   async function act(run: () => Promise<void>) {
     setBusy(true);
     setError(null);
-    try { await run(); } catch (e) { setError(say("app.feed.act_failed", { message: (e as Error).message })); } finally { setBusy(false); }
+    try { await run(); } catch (e) { setError(failedLine(e)); } finally { setBusy(false); }
   }
   const hide = () => act(async () => { const handle = await client.hide(card.id); close(); onGone("hidden", card.id, handle); });
   const block = () => act(async () => { await client.blockByPhrase(card.id); close(); onGone("blocked", card.id); });
@@ -141,7 +142,7 @@ function MoreSheet({ client, card, onGone }: { client: Client; card: FeedCard; o
         target_kind: card.kind === "offer" ? "offer" : "feed_message", target_id: card.id, reason_text: reason.trim(),
         notifier_name: null, notifier_email: null, bona_fide: true, lang: LANG, source: "app-card",
       }, false);
-      if (answer.status !== 202 || !answer.body?.id) throw new Error(say("web.card.notice_refused", { status: answer.status }));
+      if (answer.status !== 202 || !answer.body?.id) throw new Said(say("web.card.notice_refused", { status: answer.status }));
       setRef(answer.body.id);
       setPanel("noticed");
     });

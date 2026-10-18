@@ -21,7 +21,7 @@ import {
   groupsMatch, layOutGroups, lettersLeft, NAME_MAX, ageDigits, isYoung, pinDigits, pinsDiffer, refusalOf, whyGroups, whyNext, whyPin,
 } from "@sdk/register.ts";
 import { API_KEY, NODE_BASE } from "../config";
-import { label, say } from "../i18n";
+import { failedLine, label, say } from "../i18n";
 import { Icon } from "../shell/Icon";
 import { arrowRight, check, clock } from "../shell/icons";
 import { Screen } from "../shell/Screen";
@@ -111,7 +111,7 @@ export function Register({ onDone }: { onDone: (seated: Seated) => void }) {
       setMade(null);
       onDone({ client: made.client, sealed });
     } catch (e) {
-      setError((e as Error).message);
+      setError(failedLine(e));
     } finally {
       setBusy(false);
     }

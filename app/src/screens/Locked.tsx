@@ -8,7 +8,7 @@ import type { Client } from "@sdk/client.ts";
 import { canOpen, clockText, pinRefusal, secondsLeft, untilOf } from "@sdk/pin_gate.ts";
 import { pinDigits, PIN_LENGTH } from "@sdk/register.ts";
 import { HeldKey } from "@sdk/transfer.ts";
-import { label, say } from "../i18n";
+import { failedLine, label, say } from "../i18n";
 import { Icon } from "../shell/Icon";
 import { flag, key, lock } from "../shell/icons";
 import { Screen } from "../shell/Screen";
@@ -53,7 +53,7 @@ export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () 
       }
       setRefused(pinLine(refusal, `${r.answer.status}`));
     } catch (e) {
-      setRefused((e as Error).message);
+      setRefused(failedLine(e));
     }
     setBusy(false);
     input.current?.focus();

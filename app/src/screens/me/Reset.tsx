@@ -7,7 +7,7 @@ import type { Client } from "@sdk/client.ts";
 import { resetCounts } from "@sdk/me.ts";
 import { pinRefusal } from "@sdk/pin_gate.ts";
 import { pinDigits, PIN_LENGTH } from "@sdk/register.ts";
-import { label, say } from "../../i18n";
+import { failedLine, label, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { clock, flag } from "../../shell/icons";
 import { forget } from "../../vault";
@@ -22,7 +22,7 @@ export function Reset({ client, onClosed, onBack }: { client: Client; onClosed: 
   const [busy, setBusy] = useState(false);
   const [refused, setRefused] = useState<string | null>(null);
   const field = useId();
-  useEffect(() => { resetCounts(client).then(setCounts).catch((e: Error) => setRefused(e.message)); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { resetCounts(client).then(setCounts).catch((e: Error) => setRefused(failedLine(e))); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const ready = pin.length === PIN_LENGTH && counts !== null && !busy;
   async function send() {
     if (!ready) return;
@@ -35,7 +35,7 @@ export function Reset({ client, onClosed, onBack }: { client: Client; onClosed: 
       setRefused(pinLine(pinRefusal({ code: error?.code, status: answer.status, attemptsLeft: error?.attempts_left, retryAfter: answer.retryAfter }), refusedStatus(answer.status)));
       setPin("");
     } catch (e) {
-      setRefused((e as Error).message);
+      setRefused(failedLine(e));
     } finally {
       setBusy(false);
     }

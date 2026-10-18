@@ -11,7 +11,7 @@ import { departureAsking, departureStep, endingOf, initialOf, secondsLeft, seenW
 import { canOpen, pinRefusal } from "@sdk/pin_gate.ts";
 import { pinDigits, PIN_LENGTH } from "@sdk/register.ts";
 import { Departure as Leaving, type MoveState } from "@sdk/transfer_move.ts";
-import { label, say } from "../i18n";
+import { failedLine, label, say } from "../i18n";
 import { Icon } from "../shell/Icon";
 import { check, close, codeBox, flag, stopSquare, toStart } from "../shell/icons";
 import { Screen } from "../shell/Screen";
@@ -40,7 +40,7 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
     const step = departureStep(next);
     if (step.kill) void out.reject().catch(() => undefined);
     setState(next);
-  }).catch((e: Error) => setError(e.message)), !!out && departureAsking(state) && !busy);
+  }).catch((e: Error) => setError(failedLine(e))), !!out && departureAsking(state) && !busy);
 
   useEffect(() => {
     if (!out || state !== "waiting") return;
@@ -62,7 +62,7 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
       if (opened instanceof Leaving) return setOut(opened);
       setError(refusalOf(opened));
     } catch (e) {
-      setError((e as Error).message);
+      setError(failedLine(e));
     } finally {
       setBusy(false);
     }
@@ -83,7 +83,7 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
         setState("rejected");
       }
     } catch (e) {
-      setError((e as Error).message);
+      setError(failedLine(e));
     } finally {
       setBusy(false);
     }

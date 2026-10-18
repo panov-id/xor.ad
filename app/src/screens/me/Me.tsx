@@ -8,7 +8,7 @@
 // hidden and blocked (w4_hidden, w4_blocked); the step-away's own "away" screen (w2_away).
 import { useEffect, useState } from "react";
 import type { Client } from "@sdk/client.ts";
-import { label, LANG, nameOf, say } from "../../i18n";
+import { failedLine, label, LANG, nameOf, say } from "../../i18n";
 import { storedPlace } from "../../place";
 import { Icon } from "../../shell/Icon";
 import { Screen } from "../../shell/Screen";
@@ -28,7 +28,7 @@ import { StepAway } from "./StepAway";
 import { Theme } from "./Theme";
 import { chevronRight } from "../../shell/icons";
 
-export type Sub = "name" | "theme" | "lang" | "filter" | "pin" | "reissue" | "move" | "away" | "place" | "place-qr" | "legal" | "statements" | "reset";
+export type Sub = "name" | "theme" | "lang" | "filter" | "pin" | "reissue" | "away" | "place" | "place-qr" | "legal" | "statements" | "reset";
 type Profile = { name: string; age: number; pending?: string; filter_age_min?: number | null; filter_age_max?: number | null };
 
 export function Me({ client, onTab, onClosed, onMove, open: opened = null }: { client: Client; onTab: (tab: Tab) => void; onClosed: () => void; onMove: () => void; open?: Sub | null }) {
@@ -41,7 +41,7 @@ export function Me({ client, onTab, onClosed, onMove, open: opened = null }: { c
   useEffect(() => {
     client.profile()
       .then((p) => setProfile(p as unknown as Profile))
-      .catch((e: Error) => setError(e.message));
+      .catch((e: Error) => setError(failedLine(e)));
     client.statements().then((s) => setRestrictions(s.length)).catch(() => setRestrictions(0));
   }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
   const done = () => { setSub(null); setRefresh((n) => n + 1); };

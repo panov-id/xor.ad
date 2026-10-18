@@ -5,7 +5,7 @@
 // Testids (the web's): filter-from, filter-to, filter-range; error.
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
-import { say } from "../../i18n";
+import { failedLine, say } from "../../i18n";
 import { profileLine } from "./EditName";
 import { along, filterPatch, filterRange, moveHandle, noTop, type Range } from "./me-logic";
 import { ErrorLine, SubPage } from "./parts";
@@ -23,7 +23,7 @@ export function AgeFilter({ client, age, min, max, onBack }: { client: Client; a
       sent.current = JSON.stringify(patch);
       client.editProfile(patch)
         .then((answer) => setError(answer.status === 200 || answer.status === 202 ? null : profileLine(answer)))
-        .catch((e: Error) => setError(e.message));
+        .catch((e: Error) => setError(failedLine(e)));
     }, SAVE_MS);
     return () => clearTimeout(t);
   }, [r]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -74,46 +74,57 @@ export function createArrive(config: ArriveConfig) {
     // own after the arrival, so it is waited for here, before the record.
     await a.arrival.ackDone;
     if (!a.sessionPkcs8 || !a.wrapPkcs8) throw new Error("the core did not hand the keys over");
+    // A refused first PIN sets nothing on the node: the handed keys stay for the next try with another PIN.
     const set = await client.firstPin(pin);
     if (set.status !== 200 && set.status !== 204) throw new Error(`the first PIN was refused: ${set.status} ${JSON.stringify(set.body)}`);
+    // Past it the PIN is set and a second try cannot set it again: whatever happens next, every secret here
+    // is wiped on the way out — the derived halves, the node's share, the long key's and the handed pkcs8.
     const deviceSalt = client.deviceSalt!;
-    const material = await derivePin(pin, deviceSalt);
-    const given = await client.request<{ share: string }>("POST", "/vault/share", { auth: base64url(material.auth) });
-    material.auth.fill(0);
-    if (given.status !== 200) throw new Error(`the node did not hand back its share: ${given.status}`);
-    const share = fromBase64url(given.body.share);
-    const key = await vaultKey(material.local, share);
-    await config.armGrace(material.local, share);
-    material.local.fill(0);
-    share.fill(0);
-    const longPkcs8 = await held.use(async (k) => new Uint8Array(await crypto.subtle.exportKey("pkcs8", k)));
-    const wrapPrivate = await crypto.subtle.importKey("pkcs8", a.wrapPkcs8 as BufferSource, WRAP_ALGORITHM, true, ["deriveBits"]);
-    const record: Record_ = {
-      id: "me",
-      identityId: client.identityId,
-      sessionId: client.sessionId,
-      longSpki: client.longSpki,
-      deviceSalt,
-      // From the ack (W9); empty only when the node did not say it, and then a
-      // reissue on this device cannot open the key.
-      wrappedLongKey: client.wrappedLongKey ?? new Uint8Array(0),
-      sealedLong: await seal(key, longPkcs8),
-      sealedSession: await seal(key, a.sessionPkcs8),
-      sessionSpki: await sessionSpkiOf(a.sessionPkcs8),
-      sealedWrap: await seal(key, a.wrapPkcs8),
-      wrapSpki: await publicOf(wrapPrivate, WRAP_ALGORITHM),
-      wrapCheck: await checkOf(wrapPrivate),
-      unlockKey: a.unlock.privateKey,
-      unlockSpki: a.unlockSpki,
-      savedAt: Date.now(),
-    };
-    longPkcs8.fill(0);
-    a.sessionPkcs8.fill(0);
-    a.wrapPkcs8.fill(0);
-    a.sessionPkcs8 = null;
-    a.wrapPkcs8 = null;
-    await config.putRecord(record);
-    return { client, longKey: await held.signing() };
+    let material: { auth: Uint8Array; local: Uint8Array } | null = null;
+    let share: Uint8Array | null = null;
+    let longPkcs8: Uint8Array | null = null;
+    const sessionPkcs8 = a.sessionPkcs8;
+    const wrapPkcs8 = a.wrapPkcs8;
+    try {
+      material = await derivePin(pin, deviceSalt);
+      const given = await client.request<{ share: string }>("POST", "/vault/share", { auth: base64url(material.auth) });
+      if (given.status !== 200) throw new Error(`the node did not hand back its share: ${given.status}`);
+      share = fromBase64url(given.body.share);
+      const key = await vaultKey(material.local, share);
+      await config.armGrace(material.local, share);
+      longPkcs8 = await held.use(async (k) => new Uint8Array(await crypto.subtle.exportKey("pkcs8", k)));
+      const wrapPrivate = await crypto.subtle.importKey("pkcs8", wrapPkcs8 as BufferSource, WRAP_ALGORITHM, true, ["deriveBits"]);
+      const record: Record_ = {
+        id: "me",
+        identityId: client.identityId,
+        sessionId: client.sessionId,
+        longSpki: client.longSpki,
+        deviceSalt,
+        // From the ack (W9); empty only when the node did not say it, and then a
+        // reissue on this device cannot open the key.
+        wrappedLongKey: client.wrappedLongKey ?? new Uint8Array(0),
+        sealedLong: await seal(key, longPkcs8),
+        sealedSession: await seal(key, sessionPkcs8),
+        sessionSpki: await sessionSpkiOf(sessionPkcs8),
+        sealedWrap: await seal(key, wrapPkcs8),
+        wrapSpki: await publicOf(wrapPrivate, WRAP_ALGORITHM),
+        wrapCheck: await checkOf(wrapPrivate),
+        unlockKey: a.unlock.privateKey,
+        unlockSpki: a.unlockSpki,
+        savedAt: Date.now(),
+      };
+      await config.putRecord(record);
+      return { client, longKey: await held.signing() };
+    } finally {
+      material?.auth.fill(0);
+      material?.local.fill(0);
+      share?.fill(0);
+      longPkcs8?.fill(0);
+      sessionPkcs8.fill(0);
+      wrapPkcs8.fill(0);
+      a.sessionPkcs8 = null;
+      a.wrapPkcs8 = null;
+    }
   }
 
   return { claimArrival, keepArrived };

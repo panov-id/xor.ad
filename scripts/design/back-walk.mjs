@@ -206,7 +206,8 @@ try {
     await page.evaluate((e) => { history.replaceState({ ...e, until: Math.floor(Date.now() / 1000) - 60 }, "", "/away"); history.pushState({ gate: "away", i: 1, until: e.until }, "", "/away"); }, entry);
     await page.goBack(); await settle(page);
     const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
-    check(at === "feed", `6b Back onto an /away entry with a lapsed until opens the feed (screen ${at}, state ${await state(page)})`);
+    const url = new URL(page.url()).pathname;
+    check(at === "feed" && url === "/feed", `6b Back onto an /away entry with a lapsed until opens the feed, the address too (screen ${at}, url ${url}, state ${await state(page)})`);
     await ctx.close();
   }
 } finally {

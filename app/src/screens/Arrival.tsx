@@ -9,7 +9,7 @@ import type { Client } from "@sdk/client.ts";
 import { arrivalAsking, claimRefusal, deviceLabel, endingOf, MOVE_CODE_LENGTH, newPinReady, typedCode } from "@sdk/move_flow.ts";
 import { pinDigits, PIN_LENGTH } from "@sdk/register.ts";
 import type { MoveState } from "@sdk/transfer_move.ts";
-import { label, say } from "../i18n";
+import { failedLine, label, say } from "../i18n";
 import { Icon } from "../shell/Icon";
 import { arrowRight, check, flag, hand } from "../shell/icons";
 import { Screen } from "../shell/Screen";
@@ -36,7 +36,7 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client) => void; 
   useEffect(() => { const t = setTimeout(() => codeInput.current?.focus(), 0); return () => clearTimeout(t); }, []);
   useEffect(() => { if (state === "approved") { const t = setTimeout(() => pinInput.current?.focus(), 0); return () => clearTimeout(t); } }, [state]);
 
-  useEvery(MOVE_POLL_MS, () => into?.arrival.state().then(setState).catch((e: Error) => setError(e.message)), !!into && arrivalAsking(state));
+  useEvery(MOVE_POLL_MS, () => into?.arrival.state().then(setState).catch((e: Error) => setError(failedLine(e))), !!into && arrivalAsking(state));
 
   async function claim() {
     if (!complete || busy) { codeInput.current?.focus(); return; }
@@ -48,7 +48,7 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client) => void; 
       const refusal = claimRefusal(claimed);
       setError(refusal ? say(refusal.key, refusal.values) : say("app.move.refused", { status: claimed.status }));
     } catch (e) {
-      setError((e as Error).message);
+      setError(failedLine(e));
     } finally {
       setBusy(false);
     }
@@ -62,7 +62,7 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client) => void; 
       const { client } = await keepArrived(into, pin);
       onDone(client);
     } catch (e) {
-      setError((e as Error).message);
+      setError(failedLine(e));
       setBusy(false);
     }
   }

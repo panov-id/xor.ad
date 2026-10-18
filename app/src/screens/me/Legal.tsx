@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { acceptAll, acceptedKey, documentAddress, inLegalOrder, keepAcceptedIn, type LegalRevision, readAcceptedIn, readManifest, toAccept } from "@sdk/legal.ts";
 import { brand } from "@brand";
-import { LANG, say } from "../../i18n";
+import { failedLine, LANG, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { check, clock } from "../../shell/icons";
 import { doc } from "./icons";
@@ -30,7 +30,7 @@ export function Legal({ client, onDone, onBack }: { client: Client; onDone: () =
       setPending(m && client.identityId ? toAccept(m, readAcceptedIn(storage(), key)) : []);
       setAgreed(false);
     } catch (e) {
-      setError((e as Error).message);
+      setError(failedLine(e));
       setManifest(null);
     }
   }
@@ -45,7 +45,7 @@ export function Legal({ client, onDone, onBack }: { client: Client; onDone: () =
       if (stale) { setError(say("web.legal.stale")); await load(); return; }
       onDone();
     } catch (e) {
-      setError((e as Error).message);
+      setError(failedLine(e));
     } finally {
       setBusy(false);
     }

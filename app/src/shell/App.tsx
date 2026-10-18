@@ -79,7 +79,11 @@ export function App() {
       }
       setScreen((now) => {
       if (now.at === "loading" || (now.at === "feed" && (history.state as { gate?: string } | null)?.gate === "feed")) return now;
-      return held.current && !gateOf(location.pathname) ? seatScreen(location.pathname, history.state as { until?: number } | null) : gateScreen(location.pathname, vaulted.current);
+      if (!held.current || gateOf(location.pathname)) return gateScreen(location.pathname, vaulted.current);
+      const to = seatScreen(location.pathname, history.state as { until?: number } | null);
+      // A seat's address that opens another screen (an /away whose until lapsed): the entry says where the person is.
+      if (location.pathname.replace(/\/+$/, "") !== pathOf(to)) history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
+      return to;
       });
     };
     addEventListener("popstate", onPop);

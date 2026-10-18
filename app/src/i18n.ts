@@ -2,6 +2,7 @@
 // (depth/ink/locales), read in place through the @locales / @ink-locales aliases
 // (vite.config.ts), plus the few lines only this shell has (APP below).
 import { byLang, capital, chooseLanguage, chosenLanguage, type Dicts, keepLanguage, languageAsked, languageName, languagesOf, makeSay, makeSayCount, pickLanguage } from "./i18n-core";
+import { makeFailedLine } from "./shell/failed";
 
 const depth = byLang(import.meta.glob("@ink-locales/*.json", { eager: true, import: "default" }));
 const web = byLang(import.meta.glob("@locales/*.json", { eager: true, import: "default" }));
@@ -50,7 +51,6 @@ export const APP: Dicts = {
     "app.feed.row_in": "В деле",
     "app.feed.more_cards": "Показать ещё",
     "app.feed.like_other": "Лайк не принят ({status}).",
-    "app.feed.act_failed": "Не получилось: {message}",
     // move and away (w2_departure-*, w2_arrival-*, w2_away). The sheets are English; this Russian is not off a sheet.
     "app.move.out_title": "Перенос на другое устройство",
     "app.move.undone_title": "Это не отменить",
@@ -79,6 +79,7 @@ export const APP: Dicts = {
     "app.move.repeat_pin": "Повторите ПИН",
     "app.move.done": "Готово",
     "app.move.refused": "Узел отказал ({status}).",
+    "app.failed": "Не получилось. Попробуйте ещё раз.",
     "app.away.title": "Вы отошли",
     "app.away.sub": "Вернётесь в {time}. Фразы сняты, беседы ждут.",
     "app.away.until": "До",
@@ -219,7 +220,6 @@ export const APP: Dicts = {
     "app.feed.row_in": "In",
     "app.feed.more_cards": "Show more",
     "app.feed.like_other": "The like was not accepted ({status}).",
-    "app.feed.act_failed": "Did not work: {message}",
     // move and away: words off the sheets w2_departure-*, w2_arrival-*, w2_away.
     "app.move.out_title": "Move to another device",
     "app.move.undone_title": "This can't be undone",
@@ -229,7 +229,7 @@ export const APP: Dicts = {
     "app.move.type_there": "Type this on the new device",
     "app.move.lives": "Valid {m} min {s} s more · once only",
     "app.move.stop": "Stop",
-    "app.move.asks": "A new device asks to move here",
+    "app.move.asks": "A device asks for you",
     "app.move.asks_sub": "Check that the four characters match the new device.",
     "app.move.yes": "Yes, it's me",
     "app.move.no": "No",
@@ -248,6 +248,7 @@ export const APP: Dicts = {
     "app.move.repeat_pin": "Repeat the PIN",
     "app.move.done": "Done",
     "app.move.refused": "The node refused ({status}).",
+    "app.failed": "That did not work. Try again.",
     "app.away.title": "You stepped away",
     "app.away.sub": "Back at {time}. Your phrases are down, talks are waiting for you.",
     "app.away.until": "Until",
@@ -358,6 +359,8 @@ if (typeof document !== "undefined") document.documentElement.lang = LANG;
 
 export const say = makeSay(LANG, [depth, web, APP]);
 export const sayCount = makeSayCount(LANG, say);
+// A failed call on a screen: one line of the person's language; the error itself to the developer's console.
+export const failedLine = makeFailedLine(say, (e) => console.error(e));
 export const nameOf = (lang: string) => languageName(web, lang);
 export const asked = () => languageAsked(storage());
 /** Keeps the pick from the splash's list; false means the page is reloading in the new language. */

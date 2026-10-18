@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { awayClock } from "@sdk/move_flow.ts";
-import { label, say } from "../i18n";
+import { failedLine, label, say } from "../i18n";
 import { Icon } from "../shell/Icon";
 import { flag, hourglass, undo } from "../shell/icons";
 import { Screen } from "../shell/Screen";
@@ -26,7 +26,7 @@ export function Away({ client, until, onBack }: { client: Client; until: number;
     if (busy) return;
     setBusy(true);
     setError(null);
-    client.comeBack().then(onBack, (e: Error) => { setError(e.message); setBusy(false); });
+    client.comeBack().then(onBack, (e: Error) => { setError(failedLine(e)); setBusy(false); });
   }
 
   return (

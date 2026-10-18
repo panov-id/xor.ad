@@ -14,6 +14,10 @@ step "app-tokens.py --check"
 docker run --rm --user "$(id -u):$(id -g)" -v "$root":/repo:ro -w /repo "$py_image" \
   python3 -I scripts/design/app-tokens.py --check || fail=1
 
+step "app-i18n-keys.py (no key twice in a language, every called key there)"
+docker run --rm --network none --user "$(id -u):$(id -g)" -v "$root":/repo:ro -w /repo "$py_image" \
+  python3 -I scripts/design/app-i18n-keys.py /repo || fail=1
+
 step "no raw px in app/src (sizes live in app/tokens)"
 if grep -rEn '[0-9]px' "$root/app/src" --include='*.css' --include='*.ts' --include='*.tsx'; then
   echo "raw px outside app/tokens: add a token to app/tokens/layout.css"; fail=1

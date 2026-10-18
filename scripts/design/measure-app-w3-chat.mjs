@@ -158,6 +158,25 @@ if (want("chat")) {
   await ctx.close();
 }
 
+if (want("chat-over")) {
+  const scr = "chat-over", S = await sheet("chat-over"), sh = S.shapes, T = S.lines;
+  const { ctx, page } = await open(browser, `${PREVIEW}/stand/chat-over`, 390, scr);
+  await page.waitForSelector('[data-testid="tombstone"]'); await settle(page);
+  left(scr, "ended line", T[2], await line(page, ".ch-line"));
+  compare(scr, "theirs 1", shapeOf(sh[3]), await box(page, ".ch-theirs .ch-bubble", 0));
+  compare(scr, "mine 1", shapeOf(sh[4]), await box(page, ".ch-mine .ch-bubble", 0));
+  compare(scr, "lock mark", shapeOf(sh[5]), await box(page, ".ch-over-mark"));
+  left(scr, "title", T[8], await line(page, ".ch-over h2"));
+  left(scr, "text line 1", T[9], await line(page, ".ch-over p", 0, 0));
+  left(scr, "text line 2", T[10], await line(page, ".ch-over p", 0, 1));
+  compare(scr, "safety button", shapeOf(sh[6]), await box(page, ".ch-safety"));
+  left(scr, "safety words", T[11], await line(page, ".ch-safety span"));
+  note((await page.locator('[data-testid="text"], [data-testid="chat-more"]').count()) === 0, `${scr}: no field and no «…» on an ended chat`);
+  await fonts(page, scr, [["title", ".ch-over h2"], ["text", ".ch-over p"]]);
+  await overflowAt(page, scr, 390); await shot(page, scr);
+  await ctx.close();
+}
+
 if (want("chat-more")) {
   const scr = "chat-more", S = await sheet("chat-more"), sh = S.shapes, T = S.lines;
   const { ctx, page } = await open(browser, `${PREVIEW}/stand/chat-more`, 390, scr);

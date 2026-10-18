@@ -47,12 +47,21 @@
   --fs-ch-field: 16px;
   --ch-foot-bottom: 25.4px;
 
+  --ch-over-top: 25px;
   --ch-over-mark: 95.5px;
-  --fs-ch-over-title: 22px;
-  --fs-ch-over-text: 14px;
-  --lh-ch-over-text: 20px;
-  --ch-safety-h: 50px;
-  --ch-safety-pad: 30px;
+  --ch-over-mark-icon: 34px;
+  --fs-ch-over-title: 23.9px;
+  --ch-over-title-gap: 16.5px;
+  --ch-over-text-gap: 16.6px;
+  --ch-over-text-max: 300px;
+  --fs-ch-over-text: 14.6px;
+  --lh-ch-over-text: 22.9px;
+  --ch-over-button-gap: 12.9px;
+  --ch-safety-h: 49.7px;
+  --ch-safety-pad: 6.2px;
+  --ch-safety-pad-end: 4.5px;
+  --ch-safety-gap: 2.9px;
+  --fs-ch-safety: 15px;
 
   /* the «…» sheet (w3_chat-more) */
   --chm-top: 370.9px;

@@ -224,6 +224,19 @@ try {
     check(asks === 1 && rows === 1, `9c «End the talk» asks once more and «Cancel» returns to the rows (confirm ${asks}, rows ${rows})`);
     await ctx.close();
   }
+  // 10. an ended chat (the row says so): the tombstone, no field, no «…»; its back is the feed
+  {
+    const ROW = { kind: "chat", id: "chat-ended", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "ended",
+      chat_expires_at: Math.floor(Date.now() / 1000), my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-testid="tombstone"]', { timeout: 15000 });
+    const field = await page.locator('[data-testid="text"], [data-testid="chat-more"]').count();
+    await page.click('[data-testid="chat-back"]'); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(field === 0 && at === "feed", `10 an ended chat shows the tombstone without a field or «…», and its back is the feed (field/more ${field}, screen ${at})`);
+    await ctx.close();
+  }
   // 4. Me → Move → Back: Me again, not the feed (App.tsx toMove pushes i: 1; popstate → seatScreen("/me"))
   {
     const { ctx, page } = await open(browser); await registerFull(page);

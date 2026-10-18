@@ -59,15 +59,17 @@
 .ch-send:disabled { cursor: default; }
 .ch-error { margin: 0; font-size: var(--fs-ch-time); color: var(--c-coral); }
 
-.ch-over { flex: none; display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-3);
-  padding: var(--sp-8) var(--sp-8) var(--sp-8); margin-bottom: auto; }
+.ch[data-over] .ch-lines { flex: none; overflow: visible; }
+.ch-over { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--ch-over-top) var(--ch-side) var(--sp-8); }
 .ch-over-mark { width: var(--ch-over-mark); height: var(--ch-over-mark); border-radius: var(--r-pill); background: var(--c-panel);
-  display: grid; place-items: center; }
-.ch-over-mark .icon { --icon-size: var(--icon-fd); --stroke: 2; }
-.ch-over h2 { margin: 0; font-size: var(--fs-ch-over-title); font-weight: var(--fw-700); }
-.ch-over p { margin: 0; font-size: var(--fs-ch-over-text); line-height: var(--lh-ch-over-text); color: var(--c-muted); }
-.ch-safety { height: var(--ch-safety-h); padding-inline: var(--ch-safety-pad); border-radius: var(--r-pill); background: var(--c-panel);
-  display: inline-flex; align-items: center; gap: var(--sp-2); font-weight: var(--fw-700); }
+  display: grid; place-items: center; flex: none; }
+.ch-over-mark .icon { --icon-size: var(--ch-over-mark-icon); --stroke: 2; }
+.ch-over h2 { margin: var(--ch-over-title-gap) 0 0; font-size: var(--fs-ch-over-title); font-weight: var(--fw-700); line-height: 1; }
+.ch-over p { margin: var(--ch-over-text-gap) 0 0; max-width: var(--ch-over-text-max); font-size: var(--fs-ch-over-text); line-height: var(--lh-ch-over-text);
+  font-weight: var(--fw-600); color: var(--c-muted); }
+.ch-safety { margin-top: var(--ch-over-button-gap); height: var(--ch-safety-h); min-height: var(--ch-safety-h); padding-inline: var(--ch-safety-pad) var(--ch-safety-pad-end);
+  border-radius: var(--r-pill); background: var(--c-panel); display: inline-flex; align-items: center; gap: var(--ch-safety-gap);
+  font-size: var(--fs-ch-safety); font-weight: var(--fw-700); }
 .ch-safety .icon { --icon-size: var(--icon-notice); }
 .ch-safety-code { font-variant-numeric: tabular-nums; letter-spacing: 0.08em; color: var(--c-text); }
 

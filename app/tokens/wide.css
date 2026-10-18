@@ -224,3 +224,26 @@
     --tk-row-side: 35.9px; --tk-row-h: 85.9px; --tk-strip-top: 8.5px; --tk-strip-pad: 22.8px; }
   .tk-pane h2 { margin: 0; padding: 26.9px 0 0 24.4px; font-size: 20px; font-weight: 800; line-height: 1.2; }
 }
+
+/* ── desktop, the tables (desktop_1440_Tables; its own block: the talks' pane and the 1920 rules above are wide2's) ──
+   the rail, the panel of 767 as the feed's; the head inside the panel (the yard's line over the title, as desktop_1440_Write),
+   «New table» at the head's right, «Playing now» in two columns of 345.6, «Start a game» six tiles of 226.7 in three.
+   .tb.tb: tables.css loads after this file */
+@media (min-width: 1440px) {
+  .tb.tb { height: 100dvh; min-height: 0; }
+  .tb.tb > .tabbar { display: flex; }
+  .tb.tb .tb-head { position: absolute; left: var(--panel-left); top: var(--panel-top); width: 767px; height: 125.84px; margin: 0; padding: 0 var(--panel-side); z-index: 1;
+    display: flex; flex-direction: column-reverse; justify-content: flex-start; }
+  .tb.tb .tb-head .word { display: none; }
+  .tb.tb .tb-head h1 { margin: 0 0 22px; }
+  .tb.tb .tb-sub { position: absolute; left: 30.3px; top: 45.9px; transform: translateY(-80%); margin: 0; white-space: nowrap;
+    font-size: 13px; font-weight: 600; line-height: 1; color: var(--c-muted); }
+  .tb.tb .tb-new { left: 592.2px; right: auto; top: 49.9px; width: 144.8px; height: 53.9px; }   /* inside the panel (its containing block here) */
+  .tb.tb .tb-sheet { position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom); width: 767px; margin: 0;
+    padding-top: 125.84px; border-radius: var(--r-sheet); }
+  .tb.tb .tb-body { padding: 0 var(--panel-side) var(--sp-6); }
+  .tb.tb .tb-list { margin-top: 22.6px; grid-template-columns: repeat(2, 345.6px); column-gap: 15.9px; }
+  .tb.tb .tb-start { margin-top: 20.4px; }
+  .tb.tb .tb-start ul { margin-top: 24.2px; grid-template-columns: repeat(3, 226.7px); }
+  .tb.tb .tb-game { height: 117.8px; padding: 19px; }
+}

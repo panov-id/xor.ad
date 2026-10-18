@@ -363,6 +363,9 @@ export async function wideSheets(h) {
     names: [12, 16, 20, 24], pane: 17, paneAvatar: 19, paneName: 29, ring: 35, divider: 18, chips: [26, 27, 28, 29], field: 30, send: 31, bar: true });
   await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sub: 1, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });
   await me("desktop", 1440, "desktop", "desktop_1440_Me");
+  // the sheet's rows go down the left column first (8, 11, 14) then the right (17, 20); the app fills by rows
+  await tables("desktop", 1440, "desktop", "desktop_1440_Tables", { newTable: 7, title: 9, sub: 8, playing: 11, rows: [8, 17, 11, 20, 14], face: 9, watch: 10, name: 12, meta: 13,
+    start: 27, tiles: [23, 24, 25, 26, 27, 28], tileWords: [28, null, 29, 30, 31, 32], panel: 6, rail: { active: 2, say: 4 } });
   await write("desktop", 1440, "desktop", "desktop_1440_Write", { where: 8, title: 9, panel: 6, card: 7, label: 10, lives: 13, going: 15, modes: 8, hears: 19, zones: 11,
     live: 16, ring: 39, ringWords: 60, liveWords: 23, send: 17, preview: { title: 25, tile: 18, text: 30 }, rail: { active: 2, say: 4 },
     pane: { box: 22, title: 32, avatars: [33, 35, 36, 37], names: [43, 47, 51, 55] } });

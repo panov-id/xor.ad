@@ -127,3 +127,70 @@ export function hangmanView(w: Word, seat: number, myTurn: boolean): HangmanView
   const used = new Set(w.guessed);
   return { mode, slots, rows: keyRows(w.alphabet).map((r) => r.map((letter) => ({ letter, used: used.has(letter) }))), misses: w.misses };
 }
+
+// ── reversi (relay/node/src/lib/tables_reversi.ts playReversi): 8×8, a move {to} must turn at least one of the other's
+// pieces. The hints are the node's own rule read on this side (its `turned`); the node still decides on the move ──
+const FILES8 = "abcdefgh";
+const DIRS8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+function turns(g: Grid, f: number, r: number, seat: number): number {
+  if (g.cells[`${FILES8[f]}${r + 1}`]) return 0;
+  let n = 0;
+  for (const [df, dr] of DIRS8) {
+    let run = 0, x = f + df, y = r + dr;
+    while (x >= 0 && x < 8 && y >= 0 && y < 8) {
+      const p = g.cells[`${FILES8[x]}${y + 1}`];
+      if (!p) { run = 0; break; }
+      if (p.seat === seat) break;
+      run++; x += df; y += dr;
+    }
+    if (x < 0 || x > 7 || y < 0 || y > 7) run = 0;
+    n += run;
+  }
+  return n;
+}
+// The 64 cells, rank 8 on top and a1 bottom left (as the board is set), each with who stands on it and whether a piece
+// of mine there would turn one of theirs.
+export function reversiCells(g: Grid, seat: number): Array<{ id: string; stand: Stand; legal: boolean }> {
+  const out: Array<{ id: string; stand: Stand; legal: boolean }> = [];
+  for (let r = 7; r >= 0; r--) for (let f = 0; f < 8; f++) {
+    const id = `${FILES8[f]}${r + 1}`;
+    out.push({ id, stand: standOf(g, id, seat), legal: turns(g, f, r, seat) > 0 });
+  }
+  return out;
+}
+
+// ── checkers and chess (relay/node/src/lib/tables_grid.ts playGrid): a move is {from, to}; the node checks that `from`
+// holds a piece of mine and `to` none of mine — whether the move is legal beyond that stays with the people ──
+export type Square = { id: string; tint: boolean; stand: Stand; letter: string };
+// The 64 squares, rank 8 on top; tinted where file and rank differ in parity — the squares checkers men stand on
+// (relay newGrid: a1, c1 …), as the sheets draw them; a chess piece shows its letter (a pawn and a checkers man none).
+export function squares(g: Grid, seat: number): Square[] {
+  const out: Square[] = [];
+  for (let r = 7; r >= 0; r--) for (let f = 0; f < 8; f++) {
+    const id = `${FILES8[f]}${r + 1}`;
+    const p = g.cells[id];
+    out.push({ id, tint: (f + r) % 2 === 0, stand: standOf(g, id, seat), letter: p && p.piece !== "P" && p.piece !== "M" ? p.piece : "" });
+  }
+  return out;
+}
+// A tap on the board: on a piece of mine it picks that piece (again: drops it); with one picked, any other square that
+// is not mine is the move; anything else does nothing.
+export function tapSquare(g: Grid, seat: number, picked: string | null, at: string): { picked: string | null; move?: { from: string; to: string } } {
+  const mine = g.cells[at]?.seat === seat;
+  if (mine) return { picked: picked === at ? null : at };
+  if (picked) return { picked: null, move: { from: picked, to: at } };
+  return { picked: null };
+}
+
+// ── backgammon (relay/node/src/lib/tables_dice.ts): the node rolls; a turn is {roll: true}, then {move} as the people
+// agree — the node keeps no position of the checkers, so the board draws the field and the dice, not the men ──
+export type Dice = { rolled: [number, number] | null; claim: number | null };
+export const diceOf = (state: BoardState): Dice | null => {
+  const d = (state as { dice?: Dice } | null | undefined)?.dice;
+  return d && typeof d === "object" && "rolled" in d ? d : null;
+};
+// A die's pips on its 3×3 (0 top left … 8 bottom right), as dice are drawn.
+const PIPS: Record<number, number[]> = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+export const pipsOf = (face: number): number[] => PIPS[face] ?? [];
+// What the dice ask of me: in my turn, to roll while nothing fell, else to say the move is made; out of turn nothing.
+export const diceStep = (d: Dice, myTurn: boolean): "roll" | "moved" | null => (!myTurn ? null : d.rolled ? "moved" : "roll");

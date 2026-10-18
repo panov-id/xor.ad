@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { diceOf, diceStep, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -92,4 +92,49 @@ test("hangman: the guesser in turn guesses, the setter in turn sets; the mask's 
   assert.equal(hangmanView({ ...w, mask: null }, 2, true).mode, "set", "no word yet: the setter in turn sets it");
   assert.equal(hangmanView({ ...w, mask: null }, 1, true).mode, "wait");
   assert.deepEqual(hangmanView({ ...w, word: "kalle" }, 2, false).slots, ["k", "a", "l", "l", "e"], "the setter sees the word whole");
+});
+
+test("reversi: 64 cells, rank 8 first; a legal cell is one that turns a piece of theirs, as the node's rule", () => {
+  // the opening: mine on d5, e4; theirs on d4, e5 (relay newReversi with me low)
+  const open = { cells: { d5: { seat: 1, piece: "O" }, e4: { seat: 1, piece: "O" }, d4: { seat: 2, piece: "O" }, e5: { seat: 2, piece: "O" } }, rules: "reversi" };
+  const cells = reversiCells(open, 1);
+  assert.equal(cells.length, 64);
+  assert.deepEqual([cells[0].id, cells[63].id], ["a8", "h1"]);
+  assert.deepEqual(cells.filter((c) => c.legal).map((c) => c.id).sort(), ["c4", "d3", "e6", "f5"], "the four opening moves of the first seat");
+  assert.equal(cells.find((c) => c.id === "d5")?.stand, "mine");
+  assert.equal(cells.find((c) => c.id === "d4")?.legal, false, "a taken cell is never a move");
+  // a run of theirs that reaches the edge without mine behind it turns nothing
+  const edge = { cells: { a1: { seat: 2, piece: "O" }, b1: { seat: 2, piece: "O" } }, rules: "reversi" };
+  assert.equal(reversiCells(edge, 1).find((c) => c.id === "c1")?.legal, false);
+});
+
+test("checkers and chess squares: 64, tinted where the men stand (a1, b8 — the node's start), a chess letter, none for a pawn or a man", () => {
+  const g = { cells: { a8: { seat: 2, piece: "R" }, b7: { seat: 2, piece: "P" }, d4: { seat: 1, piece: "M" } } };
+  const sq = squares(g, 1);
+  assert.equal(sq.length, 64);
+  assert.deepEqual([sq[0].id, sq[0].tint, sq[1].id, sq[1].tint], ["a8", false, "b8", true]);
+  assert.equal(sq.find((s) => s.id === "a1")?.tint, true, "a1 is where the node sets the first man");
+  assert.equal(sq.filter((s) => s.tint).length, 32);
+  assert.deepEqual(["a8", "b7", "d4"].map((id) => sq.find((s) => s.id === id)?.letter), ["R", "", ""]);
+  assert.equal(sq.find((s) => s.id === "d4")?.stand, "mine");
+});
+test("a tap: my piece picks it (twice drops it); picked, a square not mine is the move; mine again picks that one", () => {
+  const g = { cells: { d4: { seat: 1, piece: "M" }, c3: { seat: 1, piece: "M" }, e5: { seat: 2, piece: "M" } } };
+  assert.deepEqual(tapSquare(g, 1, null, "d4"), { picked: "d4" });
+  assert.deepEqual(tapSquare(g, 1, "d4", "d4"), { picked: null });
+  assert.deepEqual(tapSquare(g, 1, "d4", "c3"), { picked: "c3" }, "another of mine: picks that one, no move");
+  assert.deepEqual(tapSquare(g, 1, "d4", "e5"), { picked: null, move: { from: "d4", to: "e5" } }, "onto theirs: the move (a take)");
+  assert.deepEqual(tapSquare(g, 1, "d4", "d5"), { picked: null, move: { from: "d4", to: "d5" } });
+  assert.deepEqual(tapSquare(g, 1, null, "e5"), { picked: null }, "nothing picked: theirs does nothing");
+});
+
+test("dice: pips as dice are drawn (5 the corners and the middle, 6 two columns); my turn rolls, then says the move is made", () => {
+  assert.deepEqual(pipsOf(5), [0, 2, 4, 6, 8]);
+  assert.deepEqual(pipsOf(6), [0, 2, 3, 5, 6, 8]);
+  assert.deepEqual([1, 2, 3, 4, 5, 6].map((f) => pipsOf(f).length), [1, 2, 3, 4, 5, 6]);
+  assert.equal(diceStep({ rolled: null, claim: null }, true), "roll");
+  assert.equal(diceStep({ rolled: [5, 3], claim: null }, true), "moved");
+  assert.equal(diceStep({ rolled: [5, 3], claim: null }, false), null);
+  assert.deepEqual(diceOf({ dice: { rolled: [5, 3], claim: null } })?.rolled, [5, 3]);
+  assert.equal(diceOf({ grid: {} }), null);
 });

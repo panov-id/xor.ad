@@ -6,8 +6,9 @@
 // show-safety, error, status; new ones: chat-back, chat-ring, starter-chip, quick-<sticker>, quick-game.
 //
 // The «…» sheet is chat-menu.tsx (w3_chat-more): its own history entry, so the system Back closes it.
-// Not here yet: the game (w3_chat-game), the rekey prompts, the starters' list.
-import { useEffect, useState, useSyncExternalStore } from "react";
+// The game (w3_chat-game) is chat-game.tsx: open, it takes the lines' place and the chips'.
+// Not here yet: the rekey prompts, the starters' list.
+import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 import type { Client } from "@sdk/client.ts";
 import { stickerOf, stickerText } from "@sdk/sticker.ts";
 import { ChatSession, type ChatView } from "@platform/chat/chat_state.ts";
@@ -17,6 +18,7 @@ import { Icon } from "../shell/Icon";
 import { chevronLeft, ellipsis, lock, send as sendIcon, shield } from "../shell/icons";
 import { Screen } from "../shell/Screen";
 import { bubblesOf, clockOf, headerLine, QUICK_STICKERS, ringOf } from "./chat-logic";
+import { ChatGame } from "./chat-game";
 import { ChatMenu } from "./chat-menu";
 
 export interface ChatActions {
@@ -30,7 +32,7 @@ export interface ChatActions {
 
 const initialOf = (name: string): string => [...name.trim()][0]?.toLocaleUpperCase(LANG) ?? "";
 
-export function ChatPane({ view, now, actions }: { view: ChatView; now: number; actions: ChatActions }) {
+export function ChatPane({ view, now, actions, game }: { view: ChatView; now: number; actions: ChatActions; game?: ReactNode }) {
   const [text, setText] = useState("");
   const { row, over } = view;
   const line = headerLine(view, now);
@@ -58,6 +60,7 @@ export function ChatPane({ view, now, actions }: { view: ChatView; now: number; 
         {!over && <button type="button" className="ch-more" aria-label={say("app.chat.more")} onClick={actions.onMore} data-testid="chat-more"><Icon d={ellipsis} /></button>}
       </header>
       <div className="ch-sheet">
+        {game && !over ? <div className="ch-game">{game}</div> : (
         <ol className="ch-lines" data-testid="lines" aria-live="polite">
           {starter && !over && (
             <li className="ch-starter" data-testid="starter-chip">{say("app.chat.started_from", { text: starter.text })}</li>
@@ -77,6 +80,7 @@ export function ChatPane({ view, now, actions }: { view: ChatView; now: number; 
             );
           })}
         </ol>
+        )}
         {!over && view.safety && <p className="ch-safety-line" data-testid="safety">{say("app.chat.safety_is", { code: view.safety })}</p>}
         {over ? (
           <section className="ch-over" data-testid="tombstone">
@@ -88,14 +92,14 @@ export function ChatPane({ view, now, actions }: { view: ChatView; now: number; 
           </section>
         ) : (
           <footer className="ch-foot">
-            <div className="ch-quick">
+            {!game && <div className="ch-quick">
               {QUICK_STICKERS.map((id) => (
                 <button key={id} type="button" className={`ch-chip ch-chip-${id}`} onClick={() => void send(stickerText(id))} disabled={view.keysState !== "open"} data-testid={`quick-${id}`}>
                   {say(`app.chat.quick.${id}`)}
                 </button>
               ))}
               <button type="button" className="ch-chip ch-chip-game" onClick={actions.onGame} data-testid="quick-game">{say("app.chat.quick.game")}</button>
-            </div>
+            </div>}
             <form className="ch-field" onSubmit={(e) => { e.preventDefault(); void send(); }}>
               <input
                 className="ch-input" value={text} onChange={(e) => setText(e.target.value)} placeholder={say("app.chat.placeholder")}
@@ -136,7 +140,7 @@ export function Chat({ client, keys, row, onBack }: { client: Client; keys: Chat
   const safety = () => session.setSafety(keys.safetyCodeOf(row.id) ?? say("web.chat.keys_not_open"));
   return (
     <>
-      <ChatPane view={view} now={now} actions={{
+      <ChatPane view={view} now={now} game={view.gameOpen ? <ChatGame client={client} chatId={row.id} bump={view.gameBump} peer={row.name} onHide={() => session.setGameOpen(false)} /> : undefined} actions={{
         onBack,
         onSend: (line) => session.send(line),
         onResend: (id) => void session.resend(id),

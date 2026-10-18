@@ -1,10 +1,11 @@
-// Measures the rendered app/ talks against the Dusk sheets of wave 3 (mobile w3_inbox; w3_likes, w3_match and
+// Measures the rendered app/ talks against the Dusk sheets of wave 3 (mobile w3_inbox, w3_likes; w3_match and
 // w3_match-waiting as their screens come), and walks the tab bar to them against a stubbed node. Run by
 // scripts/measure-app-w3.sh inside the Playwright image, on an internal network: PREVIEW is the built app (with its
 // CSP). Built on measure-app-w4.mjs (its helpers, its node stub, its report). Expected values are read from the
 // sheets (sheet-geometry.mjs), never typed in; indices are the sheets' drawing order.
 // Not compared: the line under a talk's name by its words (the sheet shows a last line, the app the web's line —
-// the inbox carries no text), the head's search (not drawn), the ring's arc length (a gradient, no box of its own).
+// the inbox carries no text), the head's search (not drawn), the ring's arc length (a gradient, no box of its own); on w3_likes the minutes after the distance (the node gives
+// no phrase start), so the meta line is compared by its left edge only.
 import { chromium } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { readSheet } from "./sheet-geometry.mjs";
@@ -126,9 +127,16 @@ function inboxRows() {
     talk("c4", "Giorgi", 41, 0, at(17, 5), { state: "ended", chat_expires_at: now - 60 }),
   ];
 }
+// w3_likes' phrases, from the stored place (Sololaki 41.689, 44.8): 100 m, 1 km and 300 m north of it.
+const NORTH = (m) => 41.689 + m / 111_195;
+const likedRows = () => [
+  { kind: "phrase", id: "p1", text: "Who has a ladder? The persimmons are ripe.", mode: "alone", lang: "en", lat: NORTH(100), lon: 44.8, like_count: 4, state: "liked", liked_at: at(21, 0) },
+  { kind: "phrase", id: "p2", text: "Lost a grey cat near the bakery — Barsik", mode: "alone", lang: "en", lat: NORTH(1000), lon: 44.8, like_count: 1, state: "liked", liked_at: at(20, 0) },
+  { kind: "phrase", id: "p3", text: "Choir on Thursday, flat 12. Any voice!", mode: "party", lang: "en", lat: NORTH(300), lon: 44.8, like_count: 9, state: "liked", liked_at: at(19, 0) },
+];
 function nodeStub() {
   const calls = [], patches = [], accepts = [];
-  const s = { share: null, pinAuth: null, pinHash: null, docs: ACCEPTED, away: null, closed: false, restricted: false };
+  const s = { share: null, pinAuth: null, pinHash: null, docs: ACCEPTED, away: null, closed: false, restricted: false, unliked: [] };
   const prepare = async (ctx) => {
     await ctx.route("**/*", async (route) => {
       const req = route.request(), u = new URL(req.url());
@@ -155,7 +163,8 @@ function nodeStub() {
       if (key === "GET /identities/me") return json(200, { name: "Alex", name_state: "accepted", age: 32, phrases: [{ id: "p1" }, { id: "p2" }], filter_age_min: 25, filter_age_max: 35 });
       if (key === "PATCH /identities/me") { patches.push(body()); return json(200, {}); }
       if (key === "GET /statements") return json(200, { items: !s.restricted ? [] : [{ id: "st-1", restriction: "removed", facts: "Phrase “Selling…”", ground_kind: "contractual", ground_text: "Rules § 4 · ads", automated_used: false, created_at: Date.UTC(2026, 9, 12, 12) / 1000 }] });
-      if (key === "GET /likes") return json(200, { items: [1, 2, 3, 4, 5].map((n) => ({ id: `l${n}`, text: `liked ${n}`, like_count: 1, state: "liked", liked_at: 0 })), next: null });
+      if (key === "GET /likes") return json(200, { items: likedRows().filter((r) => !s.unliked.includes(r.id)), next: null });
+      if (req.method() === "DELETE" && /^\/feed\/[^/]+\/like$/.test(u.pathname)) { s.unliked.push(decodeURIComponent(u.pathname.split("/")[2])); return json(200, {}); }
       if (key === "GET /inbox") return json(200, { items: inboxRows(), events: {} });
       if (key === "POST /away") { s.away = body().span; return json(200, { until: Math.floor(Date.now() / 1000) + 3600 }); }
       if (key === "POST /identities/close") { s.closed = true; return json(200, {}); }
@@ -257,6 +266,38 @@ if (want("inbox")) {
 }
 await overflowAt(page, "inbox", 390);
 await fonts(page, "inbox", [["title", ".tk-title"], ["row name", ".tk-name"]]);
+
+// w3_likes: the inbox's «Offers» circle
+await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]', { timeout: 20000 });
+await page.locator('[data-testid="liked-card"]').nth(2).waitFor({ timeout: 20000 });
+note(new URL(page.url()).pathname === "/likes" && stub.calls.includes("GET /likes"), `walk: «Offers» opens what I am in on at ${new URL(page.url()).pathname}, reading GET /likes`);
+if (want("likes")) {
+  const S = sheet("likes"), sh = S.shapes, L = S.lines, scr = "likes";
+  await settle(page);
+  compare(scr, "sheet left,top", [sh[1].x, sh[1].y], (await box(page, ".tk-likes")).slice(0, 2));
+  left(scr, "title", L[0], await line(page, ".me-bar h1"));
+  left(scr, "lead", L[1], await line(page, ".tk-lead"));
+  for (let i = 0; i < 3; i++) {
+    const c = `card ${i + 1}`, s0 = 2 + i * 4, t0 = [2, 7, 12][i];
+    compare(scr, c, shapeOf(sh[s0]), await box(page, '[data-testid="liked-card"]', i));
+    compare(scr, `${c} hand`, shapeOf(sh[s0 + 1]), await box(page, '[data-testid="unlike"]', i));
+    compare(scr, `${c} strip`, shapeOf(sh[s0 + 2]), await box(page, ".tk-cards .fd-foot", i));
+    compare(scr, `${c} mode`, shapeOf(sh[s0 + 3]), await box(page, ".tk-cards .fd-mode", i));
+    left(scr, `${c} line 1`, L[t0], await line(page, ".tk-phrase", i, 0));
+    left(scr, `${c} line 2`, L[t0 + 1], await line(page, ".tk-phrase", i, 1));
+    left(scr, `${c} distance`, L[t0 + 2], await line(page, ".tk-meta span", i));
+    left(scr, `${c} in`, L[t0 + 3], await line(page, ".tk-cards .fd-in > span", i));
+  }
+  await shot(page, "likes");
+}
+const words = await page.locator(".tk-meta span").allInnerTexts();
+note(words.join("|") === (RU ? "100 м|1 км|300 м" : "100 m|1 km|300 m"), `walk: the distances from the place are ${words.join(", ")}`);
+await overflowAt(page, "likes", 390);
+await page.locator('[data-testid="unlike"]').first().click();
+const gone = await page.locator('[data-testid="liked-card"]').count().then(async (n) => { for (let k = 0; k < 40 && n !== 2; k++) { await page.waitForTimeout(100); n = await page.locator('[data-testid="liked-card"]').count(); } return n; });
+note(gone === 2 && stub.s.unliked.includes("p1"), `walk: the hand takes the like back (DELETE /feed/p1/like ${stub.s.unliked.includes("p1") ? "sent" : "never sent"}, ${gone} cards left)`);
+await page.click('[data-testid="likes-back"]'); await page.waitForSelector('[data-screen="inbox"]', { timeout: 20000 });
+note(new URL(page.url()).pathname === "/inbox", `walk: likes' back returns to the inbox at ${new URL(page.url()).pathname}`);
 await ctx.close();
 for (const w of [375, 320]) {
   const s2 = nodeStub();

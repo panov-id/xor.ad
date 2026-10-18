@@ -13,6 +13,7 @@ import { Splash } from "../screens/Splash";
 import { Unlock } from "../screens/Unlock";
 import { Me } from "../screens/me/Me";
 import { Inbox } from "../screens/talks/Inbox";
+import { Likes } from "../screens/talks/Likes";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
 import type { Tab } from "./TabBar";
@@ -170,6 +171,11 @@ export function App() {
     history.pushState({ gate: "departure", i: 1 }, "", pathOf({ at: "departure" }));
     setScreen({ at: "departure" });
   };
+  // The inbox's «Offers» circle: what I am in on, on top of the inbox (as toMove over Me).
+  const toLikes = () => {
+    history.pushState({ gate: "likes", i: 1 }, "", pathOf({ at: "likes" }));
+    setScreen({ at: "likes" });
+  };
   // The identity closed for good (Me → Start again): nothing of it stays; the splash.
   const closed = () => {
     held.current = false;
@@ -195,7 +201,9 @@ export function App() {
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       // The talks (w3): a match and a talk open over it once their screens are here (onOpenMatch, onOpenChat).
-      case "inbox": return seated ? <Inbox client={seated.client} onTab={tab} onLikes={() => {}} onOpenMatch={() => {}} onOpenChat={() => {}} /> : null;
+      case "inbox": return seated ? <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={() => {}} onOpenChat={() => {}} /> : null;
+      // What I am in on, over the inbox (i: 1): its back is the history's Back onto /inbox; a reload on it, the inbox.
+      case "likes": return seated ? <Likes client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : tab("chats")} /> : null;
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }

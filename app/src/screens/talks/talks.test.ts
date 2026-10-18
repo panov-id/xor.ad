@@ -1,7 +1,7 @@
 // The talks screens' rules (talks-logic.ts). scripts/run-app-unit-tests.sh, node:test.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isFresh, lineOf, ringOf, splitInbox, type TalkRow } from "./talks-logic.ts";
+import { canTakeBack, distanceWord, isFresh, lineOf, metresBetween, ringOf, splitInbox, type LikedRow, type TalkRow } from "./talks-logic.ts";
 
 const talk = (over: Partial<TalkRow> = {}): TalkRow => ({ kind: "chat", id: "c", name: "Nino", age: 27, state: "open", chat_expires_at: 10_000, ...over });
 
@@ -32,4 +32,24 @@ test("a talk's line: lines waiting for me first (even on an ended talk), then en
   assert.equal(lineOf(talk({ pending_messages: 1, state: "ended" }), say), "waits");
   assert.equal(lineOf(talk({ pending_messages: 0, state: "ended" }), say), "closed");
   assert.equal(lineOf(talk(), say), "open");
+});
+
+test("distance: haversine metres — a degree of latitude is 111.2 km, the same point is 0", () => {
+  assert.equal(Math.round(metresBetween({ lat: 41, lon: 44 }, { lat: 42, lon: 44 }) / 100) / 10, 111.2);
+  assert.equal(metresBetween({ lat: 41.69, lon: 44.8 }, { lat: 41.69, lon: 44.8 }), 0);
+  assert.ok(Math.abs(metresBetween({ lat: 0, lon: 0 }, { lat: 0, lon: 1 }) - 111_195) < 5, "a degree of longitude on the equator");
+});
+test("distance words: tens of metres (never 0), a decimal of km under ten, whole km above", () => {
+  assert.deepEqual(distanceWord(3), { key: "web.feed.m", n: 10 });
+  assert.deepEqual(distanceWord(104), { key: "web.feed.m", n: 100 });
+  assert.deepEqual(distanceWord(996), { key: "web.feed.km", n: 1 });
+  assert.deepEqual(distanceWord(2349), { key: "web.feed.km", n: 2.3 });
+  assert.deepEqual(distanceWord(12_600), { key: "web.feed.km", n: 13 });
+});
+test("a liked card's hand takes the like back only while it is a like: not matched, not spent, not an offer", () => {
+  const liked: LikedRow = { id: "p", text: "", mode: "alone", like_count: 1, state: "liked", liked_at: 0 };
+  assert.equal(canTakeBack(liked, false), true);
+  assert.equal(canTakeBack({ ...liked, state: "matched" }, false), false);
+  assert.equal(canTakeBack(liked, true), false);
+  assert.equal(canTakeBack({ ...liked, offer: { discount_value: "10%" } }, false), false);
 });

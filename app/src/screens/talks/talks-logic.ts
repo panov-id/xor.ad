@@ -41,3 +41,31 @@ export function lineOf(t: TalkRow, say: Say): string {
   if ((t.pending_messages ?? 0) > 0) return say("web.inbox.waits_you");
   return say(t.state === "ended" ? "app.talks.closed" : "app.talks.open");
 }
+
+// ── w3_likes: what I am in on (GET /likes, the node's routes/likes.ts) ──
+export interface LikedRow {
+  id: string; text: string; mode: string; lang?: string; lat?: number; lon?: number; like_count: number;
+  state: "liked" | "matched"; liked_at: number; soon?: boolean; offer?: { discount_value: string };
+}
+
+// Metres between two points on the sphere (haversine; the earth's mean radius).
+export function metresBetween(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  const rad = Math.PI / 180, R = 6_371_000;
+  const dLat = (b.lat - a.lat) * rad, dLon = (b.lon - a.lon) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+// A distance as the feed says one (web.feed.m / web.feed.km): metres to the ten under a kilometre (never 0 — a phrase
+// next door is 10 m), kilometres with one decimal under ten, whole ones above.
+export function distanceWord(m: number): { key: "web.feed.m" | "web.feed.km"; n: number } {
+  if (m < 995) return { key: "web.feed.m", n: Math.max(10, Math.round(m / 10) * 10) };
+  const km = m / 1000;
+  return { key: "web.feed.km", n: km < 9.95 ? Math.round(km * 10) / 10 : Math.round(km) };
+}
+
+// The hand on a liked card takes the like back — not once a match came of it (the node answers `spent`), never on a
+// private author's offer (web Likes.tsx).
+export function canTakeBack(r: LikedRow, spent: boolean): boolean {
+  return r.state === "liked" && !r.offer && !spent;
+}

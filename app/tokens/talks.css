@@ -41,4 +41,19 @@
   --tk-dash: 2.5px;
   --tk-hand: 26px;
   --tk-ring-aa: 0.5px;
+  --lk-side: 22.9px;
+  --lk-lead-top: 15.3px;
+  --fs-lk-lead: 14px;
+  --lk-sheet-gap: 20.7px;
+  --lk-pad-top: 21.9px;
+  --lk-gap: 11.9px;
+  --lk-meta-top: 0.5px;
+  --lk-meta-gap: 13.1px;
+  --fs-lk-meta: 14px;
+  --lk-foot-h: 41.8px;
+  --lk-card-bottom: 14.1px;
+  --lk-foot-pad: 11.1px;
+  --lk-mode-h: 27.9px;
+  --lk-mode-w: 57.7px;
+  --lk-mode-end: 7px;
 }

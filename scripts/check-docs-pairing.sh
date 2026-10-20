@@ -254,6 +254,10 @@ matched_requests = set()
 asymmetric = 0
 for russian in candidates():
     english = russian.with_name(russian.name.replace("_RU.md", "_EN.md"))
+    # README_RU.md pairs with README.md: the readme keeps the name GitHub shows
+    # (project CLAUDE.md names the pairs README.md / README_RU.md).
+    if not english.exists() and russian.name == "README_RU.md":
+        english = russian.with_name("README.md")
     if not english.exists():
         continue
     if requested:

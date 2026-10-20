@@ -969,6 +969,8 @@ flowchart LR
 - `docs/measurements/feed-rules-2026-10-01_RU.md` → —  ·  ← —
 - `docs/measurements/moderator-2026-09-27_EN.md` → —  ·  ← —
 - `docs/measurements/moderator-2026-09-27_RU.md` → —  ·  ← —
+- `docs/newsdesign/ours/README.md` → —  ·  ← —
+- `docs/newsdesign/ours/README_RU.md` → —  ·  ← —
 - `docs/offers/README_EN.md` → docs/chat_EN.md, docs/offers/SPEC_EN.md  ·  ← docs/offers/SPEC_EN.md
 - `docs/offers/README_RU.md` → docs/chat_RU.md, docs/offers/SPEC_RU.md  ·  ← docs/offers/SPEC_RU.md
 - `docs/offers/SPEC_EN.md` → docs/dsa/README_EN.md, docs/offers/README_EN.md  ·  ← docs/article-30-register_EN.md, docs/chat_EN.md, docs/dsa/SPEC_EN.md, docs/legal-review-brief_EN.md, docs/offers/README_EN.md, docs/protocol_EN.md

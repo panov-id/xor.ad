@@ -15,14 +15,19 @@ export function boardSlots(board: string[]): Array<{ card: string | null; at: Pl
   return Array.from({ length: 5 }, (_, i) => ({ card: board[i] ?? null, at: { x: SLOT_X + SLOT_PITCH * i, y: BOARD_Y, ...POKER_CARD, r: 0 } }));
 }
 
+// The sheets w3_table-poker (four) and w3_table-poker-{2,3,5,6} (docs/newsdesign/ours, drawn out of the four by
+// scripts/design/poker-seat-sheets.py): two rows at the sheet's ends, a middle place halfway for five and six.
+// 2 and 3 are the four with seats empty; 5 is the six with the top left empty - a player joining moves nobody.
 const BOTTOM_Y = 207.33, TOP_Y = 15.91;
-const BOTTOM_X: Record<number, number[]> = { 1: [45.76], 2: [45.76, 222.86], 3: [45.76, 134.31, 222.86] };
-const TOP_X: Record<number, number[]> = { 0: [], 1: [232.8], 2: [55.71, 232.8], 3: [55.71, 144.26, 232.8] };
+const BL = { x: 45.76, y: BOTTOM_Y }, BM = { x: 134.31, y: BOTTOM_Y }, BR = { x: 222.86, y: BOTTOM_Y };
+const TL = { x: 55.71, y: TOP_Y }, TM = { x: 144.26, y: TOP_Y }, TR = { x: 232.8, y: TOP_Y };
+const SEATS: Record<number, Array<{ x: number; y: number }>> = {
+  2: [BL, TR], 3: [BL, BR, TR], 4: [BL, BR, TR, TL], 5: [BL, BM, BR, TR, TM], 6: [BL, BM, BR, TR, TM, TL],
+};
 
-/** The chip marks' left, top for n seats (2..6): the bottom row left to right, then the top row right to left. */
+/** The chip marks' left, top for n seats (2..6): the bottom row left to right, then the top row right to left (clockwise). */
 export function seatSlots(n: number): Array<{ x: number; y: number }> {
-  const bottom = Math.min(3, Math.ceil(n / 2)), top = Math.min(3, Math.max(0, n - bottom));
-  return [...BOTTOM_X[bottom].map((x) => ({ x, y: BOTTOM_Y })), ...[...TOP_X[top]].reverse().map((x) => ({ x, y: TOP_Y }))].slice(0, n);
+  return (SEATS[Math.min(6, Math.max(2, n))] ?? SEATS[2]).slice(0, n);
 }
 
 /** The pot's number, centred under the board; y is the bottom of its line box (the sheet's baseline 182.06 stands 2.64 above it). */

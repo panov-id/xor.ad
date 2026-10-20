@@ -198,6 +198,15 @@ APPLY.t13 = (p, m) => { if (m.play) { p.hand = p.hand.filter((b) => b !== m.play
 GAMES.t14 = { class: "grid", set: "checkers" };
 POS.t14 = () => ({ ...POS.t10(), claim: 2 });
 STATE.t14 = (p) => ({ grid: { cells: { ...p.cells }, claim: p.claim } });
+// t15..t18: w3_table-poker-{2,3,5,6} (docs/newsdesign/ours/sosed/mobile, drawn out of the designer's four by
+// scripts/design/poker-seat-sheets.py): the same turn with two, three, five and six at the table, Nino (seat 2) to act -
+// the sheets' frame: my two cards under the panel, no actions.
+const pokerSeats = (n) => {
+  const chips = {}, holes = {}, bets = {};
+  for (let i = 1; i <= n; i++) { chips[i] = [900, 850, 1000, 780, 640, 1200][i - 1]; holes[i] = i === 1 ? ["AS", "KH"] : { count: 2 }; bets[i] = i === 2 ? 2 : 0; }
+  return { poker: { chips, button: 1, hand: 3, street: "turn", board: ["10C", "9H", "7D", "6S"], holes, bets, pot: 6, current: 2, min_raise: 4, folded: [], to_act: 2, last: null } };
+};
+for (const [k, n] of [[15, 2], [16, 3], [17, 5], [18, 6]]) { GAMES[`t${k}`] = { class: "deck", set: "poker" }; POS[`t${k}`] = () => ({}); STATE[`t${k}`] = () => pokerSeats(n); }
 APPLY.t14 = (p, m) => { if (m.con === "agree") p.claim = null; };
 function tableView(s, id) {
   const g = GAMES[id];
@@ -548,6 +557,26 @@ LATER.push({
     await page.click('[data-testid="poker-fold"]');
     for (let k = 0; k < 40 && stub.moves.length < 4; k++) await page.waitForTimeout(100);
     note(JSON.stringify(stub.moves[3]?.move) === '{"fold":true}', `walk: fold sends {fold: true} (${JSON.stringify(stub.moves[3]?.move ?? null)})`);
+  },
+});
+
+// w3_table-poker-{2,3,5,6}: the seats' chip marks where the sheet puts them - its marks run top row left to right, then bottom
+// row left to right; `order` names the app's seat at each (me seat 1 at the bottom left, the rest clockwise: poker-logic seatSlots)
+for (const [n, nth, order] of [[2, 14, [2, 1]], [3, 15, [3, 1, 2]], [5, 16, [5, 4, 1, 2, 3]], [6, 17, [6, 5, 4, 1, 2, 3]]]) LATER.push({
+  name: `poker-${n}`, nth, ready: '[data-testid="board-0"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    compare(scr, "board-0 card", shapeOf(sh[5]), await box(page, '[data-testid="board-0"]'));
+    compare(scr, "board-4 (a back)", shapeOf(sh[13]), await box(page, '[data-testid="board-4"]'));
+    for (const [i, seat] of order.entries()) {
+      compare(scr, `seat ${seat} chips (yellow)`, shapeOf(sh[15 + 2 * i]), await box(page, `[data-testid="pk-seat-${seat}"] .tg-chips-mark i`, 0));
+      compare(scr, `seat ${seat} chips (peach)`, shapeOf(sh[16 + 2 * i]), await box(page, `[data-testid="pk-seat-${seat}"] .tg-chips-mark i`, 1));
+    }
+    note(await page.locator('[data-testid^="pk-seat-"]').count() === n, `walk: ${n} seats drawn`);
+  },
+  async walk(page) {
+    note(await page.locator('[data-testid="hole-AS"]').count() === 1 && await page.locator('[data-testid="poker-call"]').count() === 0, "walk: my two cards under the panel, Nino to act: no actions");
   },
 });
 

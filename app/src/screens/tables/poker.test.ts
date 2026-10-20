@@ -63,4 +63,9 @@ test("the seats: two to six, mine at the bottom left, the rest clockwise, never 
   }
   assert.deepEqual(seatSlots(4), [{ x: 45.76, y: 207.33 }, { x: 222.86, y: 207.33 }, { x: 232.8, y: 15.91 }, { x: 55.71, y: 15.91 }], "the sheet's four corners");
   assert.deepEqual(seatSlots(6).map((p) => p.y), [207.33, 207.33, 207.33, 15.91, 15.91, 15.91], "three to a row");
+  // the sheets w3_table-poker-{2,3,5,6}: 2 and 3 are the four with seats empty, 5 is the six with the top left empty
+  assert.deepEqual(seatSlots(2), [{ x: 45.76, y: 207.33 }, { x: 232.8, y: 15.91 }], "two: bottom left and top right");
+  assert.deepEqual(seatSlots(3), seatSlots(4).slice(0, 3), "three: the four's first three");
+  assert.deepEqual(seatSlots(5), seatSlots(6).slice(0, 5), "five: the six's first five");
+  assert.deepEqual(seatSlots(6).slice(3).map((p) => p.x), [232.8, 144.26, 55.71], "six: the top row right to left, the middle halfway");
 });

@@ -3,7 +3,7 @@
 # in containers: build (as check-app.sh), serve the build on an INTERNAL docker network (no way out), Playwright Chromium from
 # panel-tests-runner:latest at it. Exit 0 all within 2 px and every walk ok, 1 not, 2 spoiled run.
 #
-#   SHEETS=<dir with w3_table-*.svg> scripts/measure-app-w3-games.sh
+#   SHEETS=<dir with w3_table-*.svg> OURS=<dir with w3_table-poker-{2,3,5,6}.svg> scripts/measure-app-w3-games.sh
 #   ONLY=four scripts/measure-app-w3-games.sh                                  # some sheets only
 #   CSS_OVERRIDE=':root{--tb-cell-gap:14px}' scripts/measure-app-w3-games.sh          # positive control: must go red
 #
@@ -21,6 +21,10 @@ vol="app-node-modules-$(sha1sum "$root/app/package-lock.json" | cut -c1-12)"
 depth_vol="depth-node-modules-$(sha1sum "$root/depth/package-lock.json" | cut -c1-12)"   # depth/core's own deps (hash-wasm)
 for v in "$vol" "$depth_vol"; do docker volume create "$v" >/dev/null; docker run --rm -v "$v":/m alpine:3 chown "$(id -u):$(id -g)" /m; done
 out="$(mktemp -d)"; chmod 777 "$out"; mkdir -p "$shots"
+# the sheets the runner reads: the designer's w3_table-*.svg plus ours (w3_table-poker-{2,3,5,6}, docs/newsdesign/ours) in one folder
+ours="${OURS:-$root/docs/newsdesign/ours/sosed/mobile}"
+[ -f "$ours/w3_table-poker-2.svg" ] || { echo "measure-app-w3-games: SPOILED — no w3_table-poker-2.svg in $ours (OURS=)"; exit 2; }
+mkdir -p "$out/sheets"; cp "$sheets"/w3_table-*.svg "$ours"/w3_table-poker-*.svg "$out/sheets/"
 net="measure-w3g-$$"; srv="measure-w3g-srv-$$"
 cleanup() { docker rm -f "$srv" >/dev/null 2>&1; docker network rm "$net" >/dev/null 2>&1; rm -rf "$out"; }
 trap cleanup EXIT; trap 'exit 130' INT; trap 'exit 143' TERM
@@ -41,7 +45,7 @@ docker run -d --name "$srv" --network "$net" --network-alias app --user "$(id -u
 run() {   # $1 locale tag, $2 1 = compare with the sheets (they are English), 0 = fonts, overflow, walks, CSP only
   docker run --rm --network "container:$srv" -u "$(id -u):$(id -g)" -e HOME=/tmp \
     -v "$root/scripts/design/measure-app-w3-games.mjs":/tests/measure-app-w3-games.mjs:ro -v "$root/scripts/design/sheet-geometry.mjs":/tests/sheet-geometry.mjs:ro \
-    -v "$sheets":/sheets:ro -v "$shots":/shots -w /tests \
+    -v "$out/sheets":/sheets:ro -v "$shots":/shots -w /tests \
     -e CSS_OVERRIDE="${CSS_OVERRIDE:-}" -e LANG_TAG="$1" -e GEOMETRY="$2" -e ONLY="${ONLY:-}" \
     --entrypoint node "$runner" measure-app-w3-games.mjs
 }

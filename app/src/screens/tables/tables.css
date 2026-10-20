@@ -291,3 +291,6 @@ button.tg-dk-card:disabled { cursor: default; }
 
 /* a table's board in a talk's game (chat-game.tsx GameBoard, w3_chat-game): on the game's own place, smaller cells, no panel of its own */
 .chg-board .tg-panel { background: none; padding: var(--tg-chat-pad); --tg-cell: var(--tg-chat-cell); --tg-cell-gap: var(--tg-chat-gap); }
+
+/* the wide sheets' heads and «Start a game» (tablet_834_Tables, desktop_1440_Tables): not on the phone's w3_tables */
+.tb-playing, .tb-start { display: none; }

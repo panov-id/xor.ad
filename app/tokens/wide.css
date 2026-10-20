@@ -66,6 +66,77 @@
   .me-body > .me-danger { width: auto; height: auto; min-height: 0; padding: 0; margin-top: 19.5px; background: none; justify-self: start; }
   .me-danger .me-chev { display: none; }
   .me-danger .me-row-name { font-size: 15.5px; }
+
+  /* the phrase for the feed (tablet_834_Write): the phone's rhythm, a bigger head, the column 559.5 wide in the middle */
+  :root {
+    --cp-head-h: 219.8px;
+    --cp-back-x: 18px;
+    --cp-back-y: 28px;
+    --cp-title-x: 32.6px;
+    --cp-title-base: 121.9px;
+    --fs-cp-title: 41.6px;
+    --cp-sub-base: 158.9px;
+    --fs-cp-sub: 18.6px;
+    --cp-pad-top: 36px;
+    --cp-col: 559.5px;
+  }
+  /* .cp .cp-sheet: composer.css loads after this file */
+  .cp .cp-sheet { padding-inline: max(var(--ch-side), calc((100% - var(--cp-col)) / 2)); }
+
+  /* the talks with a talk open beside the list (tablet_834_Talks; Inbox.tsx beside, Chat.tsx frame "pane"): the offers' strip
+     in the head at the right of the title, the sheet in two columns — the list 299.8, the talk 465.6. The sheet draws no bar
+     and no other way out (the brand and the search only): the bar stays (xor-ad-0b 18.10) and the talk ends above it */
+  .tk[data-beside] { position: relative; height: 100dvh; display: flex; flex-direction: column; }
+  .tk[data-beside] .me-head { height: auto; }
+  .tk[data-beside] .tk-title { position: absolute; left: 32.8px; top: 158.9px; transform: translateY(-80%); width: auto; max-width: none; margin: 0; padding: 0;
+    font-size: 40px; line-height: 1; }
+  .tk[data-beside] .tk-sub { display: none; }
+  /* the strip stands in the sheet's frame (the sheet is positioned): its top is the head's 81.5 less the sheet's 249.8 */
+  .tk[data-beside] .tk-strip { position: absolute; left: 432.4px; top: -164px; width: auto; max-width: none; margin: 0; padding: 0;
+    --tk-offers: 66.3px; --tk-face: 60px; --tk-strip-gap: 15.9px; }
+  .tk[data-beside] .tk-sheet { position: absolute; left: 0; right: 0; top: 249.8px; bottom: 0; margin: 0; display: grid; grid-template-columns: 299.8px 465.6px;
+    column-gap: 19.9px; align-items: start; padding: 24px 24px calc(var(--tabbar-bottom) + var(--s-nav-bar) + 16px); }
+  .tk[data-beside] .tk-sheet > * { max-width: none; margin: 0; }
+  .tk[data-beside] .tk-list { --tk-row-h: 71.9px; --tk-row-side: 12px; --tk-rows-top: 0px; }
+  .tk[data-beside] .tk-rows { margin-top: 0; display: flex; flex-direction: column; gap: 4px; }
+  /* one line under the name, cut as the sheet cuts it («The round oven on Lesel…»); an empty one keeps its place */
+  .tk[data-beside] .tk-line { min-height: 1.25em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tk[data-beside] .tk-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* «Nino, 27» on one line beside a long time */
+  .tk-row[aria-current="true"] { background: var(--c-peach); color: var(--c-ink); border-radius: var(--r-row); }
+  .tk-row[aria-current="true"] .tk-line, .tk-row[aria-current="true"] .tk-time { color: #5a4636; }
+  .ch.ch-pane { min-height: 0; height: 100%; align-self: stretch; border-radius: var(--r-card); overflow: hidden;
+    --ch-side: 19.9px; --ch-side-end: 19.9px; --ch-head-h: 79.9px; --ch-avatar-x: 19.9px; --ch-avatar-y: 20px; --ch-avatar: 48px;
+    --ch-who-x: 81.2px; --ch-name-base: 42px; --ch-line-base: 62px; --ch-ring-end: 19.9px; --ch-ring-y: 22px; --ch-ring: 44px; --ch-pad-top: 13px;
+    --ch-foot-bottom: 19.9px; --ch-field-gap: 12px; --ch-chip-pad: 13.5px; }
+  .ch-pane .ch-sheet { background: none; border-radius: 0; border-top: 1px solid var(--c-panel); margin-inline: var(--ch-side); }
+  .ch-pane .ch-lines, .ch-pane .ch-foot { padding-inline: 0; }
+  .ch-pane .ch-more { left: auto; right: calc(var(--ch-ring-end) + var(--ch-ring) + 8px); }
+
+  /* the tables (tablet_834_Tables, the w3 wave's list): «New table» at the head's right, «Playing now» in two columns,
+     «Start a game» six tiles in three; the phone's column grows to the sheet (the rows 380.7, the tiles 249.8).
+     .tb.tb: tables.css loads after this file */
+  .tb.tb { position: relative; }
+  .tb.tb .tb-head { max-width: none; margin: 33px 0 0; padding: 0 32px; height: 196.8px; }
+  .tb.tb .tb-head h1 { margin-top: 24.5px; font-size: 40px; line-height: 1.25; }
+  .tb.tb .tb-sub { margin-top: 8px; font-size: 17px; }
+  .tb.tb .tb-new { position: absolute; right: 32.6px; top: -117.9px; width: 144.9px; height: 54px; margin: 0; }
+  .tb.tb .tb-sheet { margin-top: 0; }
+  .tb.tb .tb-body { max-width: none; padding: 30px 28px calc(var(--s-nav-bar) + var(--tabbar-bottom) + var(--sp-4)); gap: 0; }
+  .tb.tb .tb-playing, .tb.tb .tb-start { display: block; }
+  .tb.tb .tb-playing { font-size: 18.6px; font-weight: 700; line-height: 1.2; }
+  .tb.tb .tb-list { margin-top: 16px; grid-template-columns: repeat(2, 380.7px); column-gap: 16px; row-gap: 16px; }
+  .tb.tb .tb-row { height: 83.9px; padding: 16px; gap: 15.1px; --tb-face: 52px; }
+  .tb.tb .tb-watch { width: 66px; height: 32px; }
+  .tb.tb .tb-row .tb-text { padding-top: 4.4px; }
+  .tb.tb .tb-start { margin-top: 18.7px; }
+  .tb.tb .tb-start h2 { font-size: 18.6px; font-weight: 700; line-height: 1.2; }
+  .tb.tb .tb-start ul { list-style: none; margin: 18.7px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 249.8px); gap: 14px; }
+  .tb.tb .tb-game { --tone: var(--c-lime); width: 100%; height: 149.9px; min-height: 0; padding: 17px; border-radius: var(--r-card); background: var(--tone); color: var(--c-ink);
+    display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; font-size: 18px; font-weight: 700; text-align: start; }
+  .tb.tb .tb-game.tb-yellow { --tone: var(--c-yellow); }
+  .tb.tb .tb-game.tb-peach { --tone: var(--c-peach); }
+  .tb.tb .tb-game.tb-lilac { --tone: var(--c-lilac); }
+  .tb.tb .tb-game .icon { --icon-size: 22px; --stroke: 2; }
 }
 
 /* ── desktop ── */
@@ -128,4 +199,51 @@
   .me-home .me-rows { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
   .me-body > .me-danger { grid-column: 1; grid-row: 2; }
   .me-body > * + * { margin-top: 0; }
+
+  /* the phrase for the feed (desktop_1440_Write): the rail, the panel of 767 as the feed's, the form (379.5) at its left and
+     «how neighbours will see it» (299.6) beside it; .cp.cp: composer.css loads after this file */
+  .cp.cp { position: relative; height: 100dvh; min-height: 0; }
+  .cp.cp::before { content: ""; position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom);
+    width: min(767px, calc(100% - var(--panel-left) - 24px)); background: var(--c-sheet); border-radius: var(--r-sheet); }
+  .cp.cp > .tabbar { display: flex; }
+  .cp.cp .cp-head { position: absolute; left: var(--panel-left); top: var(--panel-top); width: 767px; height: 125.84px; }
+  .cp.cp .cp-back, .cp.cp .cp-head > p:not(.cp-where) { display: none; }
+  .cp.cp .cp-where { display: block; position: absolute; left: 30.3px; top: 45.9px; transform: translateY(-80%); margin: 0; white-space: nowrap;
+    font-size: 13px; font-weight: 600; line-height: 1; color: var(--c-muted); }
+  .cp.cp .cp-head h1 { left: 30.6px; top: 91.8px; font-size: 41.6px; }
+  .cp.cp .cp-sheet { position: absolute; left: 278.6px; top: 149.8px; width: 379.5px; padding: 0; background: none; border-radius: 0; flex: none; }
+  .cp.cp .cp-preview { display: block; position: absolute; left: 686px; top: 149.8px; width: 299.6px; }
+  .cp-preview h2 { margin: 0; font-size: 15.5px; font-weight: 700; line-height: 1; transform: translateY(3px); }
+  .cp-preview-tile { list-style: none; margin: 16.4px 0 0; padding: 0; }
+  .cp-preview-tile .fd-card { height: 163.8px; }
+  .cp-preview p { margin: 12px 0 0; font-size: 13.5px; line-height: 18px; color: var(--c-muted); }
+
+  /* the talks' pane at the right of the panel (TalksPane.tsx) */
+  .tk-pane { position: fixed; left: 1039.6px; top: var(--panel-top); bottom: var(--panel-bottom); width: 375.5px; overflow-y: auto;
+    background: var(--c-sheet); border-radius: var(--r-sheet); padding: 0 0 24px; z-index: 2;
+    --tk-row-side: 35.9px; --tk-row-h: 85.9px; --tk-strip-top: 8.5px; --tk-strip-pad: 22.8px; }
+  .tk-pane h2 { margin: 0; padding: 26.9px 0 0 24.4px; font-size: 20px; font-weight: 800; line-height: 1.2; }
+}
+
+/* ── desktop, the tables (desktop_1440_Tables; its own block: the talks' pane and the 1920 rules above are wide2's) ──
+   the rail, the panel of 767 as the feed's; the head inside the panel (the yard's line over the title, as desktop_1440_Write),
+   «New table» at the head's right, «Playing now» in two columns of 345.6, «Start a game» six tiles of 226.7 in three.
+   .tb.tb: tables.css loads after this file */
+@media (min-width: 1440px) {
+  .tb.tb { height: 100dvh; min-height: 0; }
+  .tb.tb > .tabbar { display: flex; }
+  .tb.tb .tb-head { position: absolute; left: var(--panel-left); top: var(--panel-top); width: 767px; height: 125.84px; margin: 0; padding: 0 var(--panel-side); z-index: 1;
+    display: flex; flex-direction: column-reverse; justify-content: flex-start; }
+  .tb.tb .tb-head .word { display: none; }
+  .tb.tb .tb-head h1 { margin: 0 0 22px; }
+  .tb.tb .tb-sub { position: absolute; left: 30.3px; top: 45.9px; transform: translateY(-80%); margin: 0; white-space: nowrap;
+    font-size: 13px; font-weight: 600; line-height: 1; color: var(--c-muted); }
+  .tb.tb .tb-new { left: 592.2px; right: auto; top: 49.9px; width: 144.8px; height: 53.9px; }   /* inside the panel (its containing block here) */
+  .tb.tb .tb-sheet { position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom); width: 767px; margin: 0;
+    padding-top: 125.84px; border-radius: var(--r-sheet); }
+  .tb.tb .tb-body { padding: 0 var(--panel-side) var(--sp-6); }
+  .tb.tb .tb-list { margin-top: 22.6px; grid-template-columns: repeat(2, 345.6px); column-gap: 15.9px; }
+  .tb.tb .tb-start { margin-top: 20.4px; }
+  .tb.tb .tb-start ul { margin-top: 24.2px; grid-template-columns: repeat(3, 226.7px); }
+  .tb.tb .tb-game { height: 117.8px; padding: 19px; }
 }

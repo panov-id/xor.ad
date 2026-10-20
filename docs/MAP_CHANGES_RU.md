@@ -1,3 +1,26 @@
+## 20.10.2026 16:55 · связей +9 −0
+
+```diff
++ app/src/screens/Composer.tsx -> app/src/screens/feed-card.tsx
++ app/src/screens/Composer.tsx -> app/src/shell/TabBar.tsx
++ app/src/screens/talks/TalksPane.tsx -> app/src/i18n.ts
++ app/src/screens/talks/TalksPane.tsx -> app/src/screens/talks/Inbox.tsx
++ app/src/shell/App.tsx -> app/src/screens/talks/TalksPane.tsx
++ docs/design/kit_EN.md -> docs/report-2026-10-02-brands.pdf
++ docs/design/kit_RU.md -> docs/report-2026-10-02-brands.pdf
++ relay/moderation-bench/README_EN.md -> relay/moderation-bench/evaluation.json
++ relay/moderation-bench/README_RU.md -> relay/moderation-bench/evaluation.json
+```
+
+## 20.10.2026 16:53 · связей +0 −4
+
+```diff
+- docs/design/kit_EN.md -> docs/report-2026-10-02-brands.pdf
+- docs/design/kit_RU.md -> docs/report-2026-10-02-brands.pdf
+- relay/moderation-bench/README_EN.md -> relay/moderation-bench/evaluation.json
+- relay/moderation-bench/README_RU.md -> relay/moderation-bench/evaluation.json
+```
+
 ## 20.10.2026 16:53 · связей +4 −0
 
 ```diff

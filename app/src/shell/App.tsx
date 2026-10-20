@@ -5,6 +5,7 @@ import { gateOf, gateScreen, pathOf, type Screen, seatScreen } from "../router";
 import { Arrival } from "../screens/Arrival";
 import { Chat } from "../screens/Chat";
 import { Composer } from "../screens/Composer";
+import { TalksPane } from "../screens/talks/TalksPane";
 import { Away } from "../screens/Away";
 import { Departure } from "../screens/Departure";
 import { Feed } from "../screens/Feed";
@@ -38,6 +39,20 @@ async function boot(): Promise<void> {
 // The gates before an identity (web/src/App.tsx): a step forward pushes a history entry named by
 // the gate, Back walks them, a reload opens the gate the path names, or the PIN when this device
 // keeps an identity — and no PIN at all within the reload grace (depth/core/grace.ts).
+// The desktop (1440 and up, tokens/wide.css): the talks' pane stands at the right of the panel of these screens
+// (sosed Dusk desktop_1440_Feed, _Phrase, _Me, _Write); below it is not mounted and reads nothing.
+const PANE_BESIDE = new Set<Screen["at"]>(["feed", "me", "composer"]);
+function useWide(query = "(min-width: 1440px)"): boolean {
+  const [wide, setWide] = useState(() => typeof matchMedia === "function" && matchMedia(query).matches);
+  useEffect(() => {
+    if (typeof matchMedia !== "function") return;
+    const m = matchMedia(query), on = () => setWide(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  return wide;
+}
+
 export function App() {
   const [screen, setScreen] = useState<Screen>({ at: "loading" });
   const [booting, setBooting] = useState(true);
@@ -61,6 +76,10 @@ export function App() {
   const held = useRef(false);
   // Waiting rules (MOTION.md): the loading screen shows only if the wait outlasts 300 ms, and then stays 600 ms.
   const loadingShown = useSkeleton(booting);
+  const wide = useWide();
+  // The tablet and up: the talks' screen opens a talk beside its list (tablet_834_Talks), not over it.
+  const twoPane = useWide("(min-width: 834px)");
+  const [beside, setBeside] = useState<InboxChatRow | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -215,9 +234,9 @@ export function App() {
     history.pushState({ gate: "table", i: 1, id }, "", pathOf({ at: "table", id }));
     setScreen({ at: "table", id });
   };
-  const toNewTable = () => {
-    history.pushState({ gate: "new-table", i: 1 }, "", pathOf({ at: "new-table" }));
-    setScreen({ at: "new-table" });
+  const toNewTable = (game?: string) => {
+    history.pushState({ gate: "new-table", i: 1, ...(game ? { game } : {}) }, "", pathOf({ at: "new-table" }));
+    setScreen(game ? { at: "new-table", game } : { at: "new-table" });
   };
   // A table made: the list again, in place of the wizard's entry (the table's own screen, w3_table-*, is not in this shell yet).
   const toTables = () => {
@@ -267,15 +286,19 @@ export function App() {
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       case "feed": return seated ? <Feed client={seated.client} onTab={tab} onCompose={openComposer} /> : null;
+      case "composer": return seated ? <Composer client={seated.client} radius={screen.radius} onSent={chatBack} onBack={chatBack} onTab={tab} /> : null;
       case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /> : null;
       // Back keeps the seat (web TB1); standing up, or a seat lost, is the list again.
       case "table": return seated ? <Table client={seated.client} tableId={screen.id} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} onLeave={toTables} /> : null;
-      case "new-table": return seated ? <NewTable client={seated.client} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} /> : null;
-      case "composer": return seated ? <Composer client={seated.client} radius={screen.radius} onSent={chatBack} onBack={chatBack} /> : null;
+      case "new-table": return seated ? <NewTable client={seated.client} picked={screen.game} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} /> : null;
       case "chat": return seated && chatKeys ? <Chat key={screen.row.id} client={seated.client} keys={chatKeys} row={screen.row} onBack={chatBack} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
       // The talks (w3): a match and a talk open over the inbox — a talk's row is the chat's when the node gave it whole.
-      case "inbox": return seated ? <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={openChat} /> : null;
+      case "inbox": return seated ? (
+        <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={twoPane ? setBeside : openChat}
+          pickFirst={twoPane} selectedId={twoPane ? beside?.id : undefined}
+          beside={twoPane && beside && chatKeys ? <Chat key={beside.id} client={seated.client} keys={chatKeys} row={beside} onBack={() => setBeside(null)} frame="pane" /> : undefined} />
+      ) : null;
       // What I am in on, over the inbox (i: 1): its back is the history's Back onto /inbox; a reload on it, the inbox.
       // A match over the inbox (i: 1, its row in the entry); "Let's talk" agreed by both goes to the talks (the talk's own screen is the chat wave's), a lone yes is the wait in place.
       case "match": return seated && chatKeys ? <Match client={seated.client} keys={chatKeys} row={screen.row} onAgreed={() => tab("chats")}
@@ -287,5 +310,8 @@ export function App() {
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }
   };
-  return <LayerStack base={view()} />;
+  const pane = wide && seated && !loadingShown && PANE_BESIDE.has(screen.at)
+    ? <TalksPane client={seated.client} actions={{ onOpenMatch: toMatch, onOpenChat: openChat, onLikes: toLikes }} />
+    : null;
+  return <LayerStack base={<>{view()}{pane}</>} />;
 }

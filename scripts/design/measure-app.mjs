@@ -237,7 +237,22 @@ if (!WIDE) {
 // The page's calls to the node never leave the browser: every fetch to a node path is answered by this stub
 // (and the network the page sits on has no way out anyway). The stub keeps the share the page sent at
 // POST /identities and hands it back at POST /vault/share, as the node does.
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|inbox|chats)(\/|$)/;
+// The desktop's talks pane (measure-app-wide.mjs; desktop_1440_Write): the sheets' people as measure-app-w3-talks.mjs has them —
+// offers Nino (new), Dato, Ana, Tamar; talks Nino 38, Levan 52, Mariam 12 minutes left, Giorgi's over.
+const INBOX_AT = (h, m) => Date.UTC(2026, 9, 18, h, m) / 1000;
+function inboxRows() {
+  const now = Math.floor(Date.now() / 1000);
+  const offer = (id, name, age, fresh) => ({ kind: "match", id, name, age, phrase: { text: "…", mode: "alone" }, waiting_for_you: false, state: "proposed", arrived_since: fresh });
+  // a talk's keys' half of the row (chatRowOf takes a row whole): epochs and the other's public key
+  const keys = (peer) => ({ me: "id-stub", key_epoch: 1, rekey_requested: false, peer: { key_epoch: 1, identity_id: `id-${peer}`, identity_public_key: `pk-${peer}` } });
+  const talk = (id, name, age, left, last, more = {}) => ({ kind: "chat", id, name, age, state: "open", chat_expires_at: now + left * 60 - 5, my_span: 60, last_activity_at: last, ...keys(name.toLowerCase()), ...more });
+  return [
+    offer("m1", "Nino", 27, true), offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false), offer("m4", "Tamar", 33, false),
+    talk("c1", "Nino", 27, 38, INBOX_AT(21, 4), { pending_messages: 1 }), talk("c2", "Levan", 34, 52, INBOX_AT(20, 10)),
+    talk("c3", "Mariam", 29, 12, INBOX_AT(18, 32)), talk("c4", "Giorgi", 41, 0, INBOX_AT(17, 5), { state: "ended", chat_expires_at: now - 60 }),
+  ];
+}
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 function nodeStub(opts = {}) {
   const calls = []; let share = null, pinAuth = null, left = 10, closed = false, misses = 0, soon = opts.soon ?? 0;
@@ -291,6 +306,11 @@ function nodeStub(opts = {}) {
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
       if (key === "GET /identities/me") return json(200, { identity_id: "id-stub", ...profile, ...(away.until ? { stepped_away_until: away.until } : {}) });
       if (key === "GET /statements") return json(200, { items: [] });
+      if (key === "GET /inbox") return json(200, { items: inboxRows(), events: {} });
+      // the talk beside the list: no wrap kept, no room — 503, not 404 (a ticket's 404 is the talk's end, room.ts)
+      if (u.pathname.startsWith("/chats/")) return json(503, { error: "unavailable" });
+      // the composer (measure-app-wide.mjs write): the node's limits
+      if (key === "GET /limits") return json(200, { phrase_length: 128, chat_ciphertext_chars: 8000 });
       if (key === "DELETE /away") { away.until = null; return route.fulfill({ status: 204 }); }
       // the arriving device's first PIN: a new share and a new proof (relay vault.ts init); the next /vault/share sets the proof
       if (key === "POST /vault/init") { share = JSON.parse(req.postData()).share; pinAuth = null; left = 10; closed = false; return json(200, {}); }

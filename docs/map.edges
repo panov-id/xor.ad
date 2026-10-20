@@ -66,9 +66,11 @@ app/src/screens/Chat.tsx -> app/src/shell/icons.ts
 app/src/screens/Composer.tsx -> app/src/i18n.ts
 app/src/screens/Composer.tsx -> app/src/place.ts
 app/src/screens/Composer.tsx -> app/src/screens/composer-logic.ts
+app/src/screens/Composer.tsx -> app/src/screens/feed-card.tsx
 app/src/screens/Composer.tsx -> app/src/screens/feed-logic.ts
 app/src/screens/Composer.tsx -> app/src/shell/Icon.tsx
 app/src/screens/Composer.tsx -> app/src/shell/Screen.tsx
+app/src/screens/Composer.tsx -> app/src/shell/TabBar.tsx
 app/src/screens/Composer.tsx -> app/src/shell/icons.ts
 app/src/screens/Departure.tsx -> app/src/i18n.ts
 app/src/screens/Departure.tsx -> app/src/screens/move-parts.tsx
@@ -405,6 +407,8 @@ app/src/screens/talks/MatchWaiting.tsx -> app/src/screens/talks/talks-logic.ts
 app/src/screens/talks/MatchWaiting.tsx -> app/src/shell/Icon.tsx
 app/src/screens/talks/MatchWaiting.tsx -> app/src/shell/Screen.tsx
 app/src/screens/talks/MatchWaiting.tsx -> app/src/shell/icons.ts
+app/src/screens/talks/TalksPane.tsx -> app/src/i18n.ts
+app/src/screens/talks/TalksPane.tsx -> app/src/screens/talks/Inbox.tsx
 app/src/screens/talks/talks-logic.ts -> depth/web-platform/chat/keys.ts
 app/src/screens/talks/talks.test.ts -> app/src/screens/talks/talks-logic.ts
 app/src/shell/App.tsx -> app/src/router.ts
@@ -428,6 +432,7 @@ app/src/shell/App.tsx -> app/src/screens/tables/Tables.tsx
 app/src/shell/App.tsx -> app/src/screens/talks/Inbox.tsx
 app/src/shell/App.tsx -> app/src/screens/talks/Likes.tsx
 app/src/shell/App.tsx -> app/src/screens/talks/Match.tsx
+app/src/shell/App.tsx -> app/src/screens/talks/TalksPane.tsx
 app/src/shell/App.tsx -> app/src/screens/talks/talks-logic.ts
 app/src/shell/App.tsx -> app/src/shell/TabBar.tsx
 app/src/shell/App.tsx -> app/src/shell/layers.tsx

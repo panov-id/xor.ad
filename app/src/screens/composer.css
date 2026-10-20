@@ -41,3 +41,6 @@
 .cp-send { margin-top: var(--cp-send-gap); height: var(--cp-send-h); min-height: var(--cp-send-h); border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink);
   font-size: var(--fs-cp-send); font-weight: var(--fw-800); }
 .cp-send:disabled { opacity: var(--o-disabled); cursor: default; }
+
+/* the desktop's own parts (desktop_1440_Write; tokens/wide.css shows them at 1440 and up) */
+.cp-where, .cp-preview, .cp > .tabbar { display: none; }

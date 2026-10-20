@@ -32,7 +32,9 @@ export interface ChatActions {
 
 const initialOf = (name: string): string => [...name.trim()][0]?.toLocaleUpperCase(LANG) ?? "";
 
-export function ChatPane({ view, now, actions, game }: { view: ChatView; now: number; actions: ChatActions; game?: ReactNode }) {
+/** `frame`: a screen of its own (the phone, /chat), or a pane beside the talks' list (the tablet and up: tablet_834_Talks), a
+ * <section> inside the inbox's screen, without its own back. */
+export function ChatPane({ view, now, actions, game, frame = "screen" }: { view: ChatView; now: number; actions: ChatActions; game?: ReactNode; frame?: "screen" | "pane" }) {
   const [text, setText] = useState("");
   const { row, over } = view;
   const line = headerLine(view, now);
@@ -46,9 +48,9 @@ export function ChatPane({ view, now, actions, game }: { view: ChatView; now: nu
   }
 
   return (
-    <Screen name="chat" title={row.name} className="ch" data-over={over ? "1" : undefined} data-keys={view.keysState} data-id={row.id}>
+    <Frame frame={frame} title={row.name} over={over} keys={view.keysState} id={row.id}>
       <header className="ch-head">
-        <button type="button" className="ch-back" aria-label={say("common.back")} onClick={actions.onBack} data-testid="chat-back"><Icon d={chevronLeft} /></button>
+        {frame === "screen" && <button type="button" className="ch-back" aria-label={say("common.back")} onClick={actions.onBack} data-testid="chat-back"><Icon d={chevronLeft} /></button>}
         <span className="ch-avatar" aria-hidden="true">{initialOf(row.name)}</span>
         <div className="ch-who">
           <h1>{`${row.name}, ${view.peerAge}`}</h1>
@@ -111,12 +113,19 @@ export function ChatPane({ view, now, actions, game }: { view: ChatView; now: nu
           </footer>
         )}
       </div>
-    </Screen>
+    </Frame>
   );
 }
 
 /** The conversation held for the screen's life: the session, its clock, and what the pane asks of it. */
-export function Chat({ client, keys, row, onBack }: { client: Client; keys: ChatKeys; row: InboxChatRow; onBack: () => void }) {
+function Frame({ frame, title, over, keys, id, children }: { frame: "screen" | "pane"; title: string; over: boolean; keys: string; id: string; children: ReactNode }) {
+  const data = { "data-over": over ? "1" : undefined, "data-keys": keys, "data-id": id };
+  return frame === "screen"
+    ? <Screen name="chat" title={title} className="ch" {...data}>{children}</Screen>
+    : <section className="ch ch-pane" aria-label={title} data-testid="chat-pane" {...data}>{children}</section>;
+}
+
+export function Chat({ client, keys, row, onBack, frame = "screen" }: { client: Client; keys: ChatKeys; row: InboxChatRow; onBack: () => void; frame?: "screen" | "pane" }) {
   const [session] = useState(() => new ChatSession({ client, keys, row, say }));
   useEffect(() => {
     session.start();
@@ -140,7 +149,7 @@ export function Chat({ client, keys, row, onBack }: { client: Client; keys: Chat
   const safety = () => session.setSafety(keys.safetyCodeOf(row.id) ?? say("web.chat.keys_not_open"));
   return (
     <>
-      <ChatPane view={view} now={now} game={view.gameOpen ? <ChatGame client={client} chatId={row.id} bump={view.gameBump} peer={row.name} onHide={() => session.setGameOpen(false)} /> : undefined} actions={{
+      <ChatPane view={view} now={now} frame={frame} game={view.gameOpen ? <ChatGame client={client} chatId={row.id} bump={view.gameBump} peer={row.name} onHide={() => session.setGameOpen(false)} /> : undefined} actions={{
         onBack,
         onSend: (line) => session.send(line),
         onResend: (id) => void session.resend(id),

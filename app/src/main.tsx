@@ -30,4 +30,6 @@ import { ComposerStand } from "./screens/composer-stand";
 // The stand's build draws a few panes from views of their own for the measure (screens/chat-stand.tsx); a real
 // build has no such path.
 const stand = import.meta.env.VITE_STAND === "1" ? location.pathname.match(/^\/stand\/(chat|chat-over|chat-more|chat-game|composer)$/)?.[1] : undefined;
-createRoot(document.getElementById("root")!).render(stand === "composer" ? <ComposerStand /> : stand ? <ChatStand pane={stand as "chat" | "chat-over" | "chat-more" | "chat-game"} /> : isCabinet(location.hostname, location.pathname) ? <Cabinet /> : <App />);
+createRoot(document.getElementById("root")!).render(stand === "composer" ? <ComposerStand />
+  : stand ? <ChatStand pane={stand as "chat" | "chat-over" | "chat-more" | "chat-game"} />
+  : isCabinet(location.hostname, location.pathname) ? <Cabinet /> : <App />);

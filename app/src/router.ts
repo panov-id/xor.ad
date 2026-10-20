@@ -26,7 +26,7 @@ export type Screen =
   | { at: "likes" }
   | { at: "match"; row: MatchRow }
   | { at: "tables" }
-  | { at: "new-table" }
+  | { at: "new-table"; game?: string }
   | { at: "table"; id: string }
   | { at: "offer"; code: string }
   // A chat travels in history.state only (web router.ts): the row is a structured copy, never in the address.
@@ -71,7 +71,7 @@ export const pathOf = (s: Screen): string => (s.at === "offer" ? `/o/${s.code}` 
 /** A seat's own address (an identity on the page): /move is the departure, /me is Me, /away the away screen, /inbox, /likes,
  * /match the talks, /tables the tables, /tables/new the wizard, /table a table, /chat the chat its entry carries, /write the composer;
  * anything else is the feed. */
-export const seatScreen = (path: string, state?: { until?: number; row?: MatchRow | InboxChatRow; id?: string; radius?: Radius } | null): Screen => {
+export const seatScreen = (path: string, state?: { until?: number; game?: string; row?: MatchRow | InboxChatRow; id?: string; radius?: Radius } | null): Screen => {
   const p = path.replace(/\/+$/, "");
   const offer = codeOfPath(p);
   if (offer) return { at: "offer", code: offer };
@@ -82,7 +82,7 @@ export const seatScreen = (path: string, state?: { until?: number; row?: MatchRo
   // A match rides in its history entry, as the web's (web/src/router.ts): without it (a typed /match) the inbox.
   if (p === ROUTES.match) return state?.row?.kind === "match" ? { at: "match", row: state.row as MatchRow } : { at: "inbox" };
   if (p === ROUTES.tables) return { at: "tables" };
-  if (p === ROUTES["new-table"]) return { at: "new-table" };
+  if (p === ROUTES["new-table"]) return typeof state?.game === "string" ? { at: "new-table", game: state.game } : { at: "new-table" };
   // A table rides in its history entry (its id), as the web's: without one (a typed /table) the list.
   if (p === ROUTES.table) return typeof state?.id === "string" && state.id ? { at: "table", id: state.id } : { at: "tables" };
   // A chat's entry without its row (a typed /chat, a reload: the row is not kept on the disk) is the feed.

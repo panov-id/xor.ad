@@ -1,4 +1,4 @@
-// The tablet (834) and desktop (1440) sheets of the feed, the phrase card and "Me", against the rendered app/: the third part of
+// The tablet (834) and desktop (1440) sheets of the feed, the phrase card, "Me", the talks, the composer and the tables, against the rendered app/: the third part of
 // measure-app.mjs, run by `WIDE=1 scripts/measure-app.sh` (the viewport is the sheet's width: 834 x 1194, 1440 x 900).
 //   tablet/tablet_834_{Feed,Phrase,Me}.svg, desktop/desktop_1440_{Feed,Phrase,Me}.svg
 //
@@ -215,10 +215,159 @@ export async function wideSheets(h) {
     await o.ctx.close();
   }
 
+  // ── the phrase for the feed (w3_composer's tablet and desktop sheets): from the feed's «say it» ──
+  async function write(kind, w, dir, file, p) {
+    const scr = `${kind}-write`, S = sheet(dir, file), T = S.lines;
+    const o = await sit(kind, w, "walk-wide-" + scr);
+    const page = o.page;
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]'); await settle(page);
+    await page.fill('[data-testid="text"]', "Backgammon in the yard tonight?"); await page.click('[data-testid="mode-company"]'); await settle(page);
+    textAt(scr, "title", T[p.title], await line(page, ".cp-head h1"));
+    if (p.sub !== undefined) textAt(scr, "line under the title", T[p.sub], await line(page, ".cp-head p:not(.cp-where)"));
+    if (p.where !== undefined) textAt(scr, "the yard's line", T[p.where], await line(page, ".cp-where"));
+    if (p.sheet !== undefined) compare(scr, "sheet left,top", [shape(S, p.sheet).x, shape(S, p.sheet).y], (await one(page, ".cp-sheet")).slice(0, 2));
+    if (p.panel !== undefined) {
+      const panel = await page.evaluate(() => { const m = document.querySelector(".cp"), r = m.getBoundingClientRect(), cs = getComputedStyle(m, "::before");
+        return [r.left + parseFloat(cs.left), r.top + parseFloat(cs.top), parseFloat(cs.width), parseFloat(cs.height)]; });
+      compare(scr, "panel", abs(shape(S, p.panel)), panel);
+    }
+    if (p.preview) {
+      textAt(scr, "how neighbours will see it", T[p.preview.title], await line(page, ".cp-preview h2"));
+      compare(scr, "preview tile", abs(shape(S, p.preview.tile)), await one(page, ".cp-preview-tile .fd-card"));
+      textAt(scr, "preview words", T[p.preview.text], await line(page, ".cp-preview p"));
+    }
+    if (p.rail) await rail(scr, page, S, ".cp > .tabbar", p.rail);
+    if (p.pane) {
+      compare(scr, "talks pane", abs(shape(S, p.pane.box)), await one(page, ".tk-pane"));
+      textAt(scr, "talks pane title", T[p.pane.title], await line(page, ".tk-pane h2"));
+      const ava = await boxOf(page, ".tk-pane .tk-avatar");
+      p.pane.avatars.forEach((s, k) => compare(scr, `talks pane avatar ${k + 1}`, abs(shape(S, s)), ava[k] ?? NAN4));
+      for (let k = 0; k < p.pane.names.length; k++) textAt(scr, `talks pane name ${k + 1}`, T[p.pane.names[k]], await line(page, `.tk-pane .tk-rows li:nth-child(${k + 1}) .tk-name`));
+    }
+    compare(scr, "card", abs(shape(S, p.card)), await one(page, ".cp-card"));
+    textAt(scr, "card label", T[p.label], await line(page, ".cp-card label"));
+    textAt(scr, "lives", T[p.lives], await line(page, ".cp-card-foot span:first-child"));
+    const left = await line(page, ".cp-card-foot span:last-child"), exp = T[p.lives + 1];
+    compare(scr, "letters left (right edge, baseline)", [exp.right, exp.base], left ? [left[1], left[2]] : [NaN, NaN]);
+    textAt(scr, "how you're going", T[p.going], await line(page, ".cp-sheet h2:nth-of-type(1)"));
+    const modes = await boxOf(page, ".cp-mode");
+    [0, 1, 2].forEach((k) => compare(scr, `mode ${k + 1}`, abs(shape(S, p.modes + k)), modes[k] ?? NAN4));
+    textAt(scr, "who hears it", T[p.hears], await line(page, ".cp-sheet h2:nth-of-type(2)"));
+    const zones = await boxOf(page, ".cp-zone");
+    [0, 1, 2, 3, 4].forEach((k) => compare(scr, `zone ${k + 1}`, abs(shape(S, p.zones + k)), zones[k] ?? NAN4));
+    compare(scr, "live phrases", abs(shape(S, p.live)), await one(page, ".cp-live"));
+    compare(scr, "ring", abs(shape(S, p.ring)), await one(page, ".cp-ring"));
+    textAt(scr, "ring words", T[p.ringWords], await line(page, ".cp-ring span"));
+    textAt(scr, "live words", T[p.liveWords], await line(page, ".cp-live p"));
+    compare(scr, "say it to the yard", abs(shape(S, p.send)), await one(page, ".cp-send"));
+    await overflowAt(page, scr, w);
+    if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${scr}.png` });
+    await o.ctx.close();
+  }
+
+  // ── the talks with a talk beside the list (tablet_834_Talks): from the bar's «chats»; the talk's lines are not drawn
+  //    here (no keys open them without a node), its frame is: the head, the divider, the chips, the field ──
+  async function talks(kind, w, dir, file, p) {
+    const scr = `${kind}-talks`, S = sheet(dir, file), T = S.lines;
+    const o = await sit(kind, w, "walk-wide-" + scr);
+    const page = o.page;
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-testid="chat-pane"]', { timeout: 20000 }); await settle(page);
+    if (p.brand !== undefined) textAt(scr, "brand word", T[p.brand], await line(page, ".tk .me-head .word"));
+    textAt(scr, "title", T[p.title], await line(page, ".tk-title"));
+    compare(scr, "offers' circle", abs(shape(S, p.offers)), await one(page, ".tk-offers .tk-circle"));
+    const faces = await boxOf(page, ".tk-strip .tk-face:not(.tk-offers) .tk-circle");
+    p.faces.forEach((s, k) => compare(scr, `face ${k + 1}`, abs(shape(S, s)), faces[k] ?? NAN4));
+    compare(scr, "sheet left,top", [shape(S, p.sheet).x, shape(S, p.sheet).y], (await one(page, ".tk-sheet")).slice(0, 2));
+    compare(scr, "the open talk's row", abs(shape(S, p.selected)), await one(page, '.tk-row[aria-current="true"]'));
+    const ava = await boxOf(page, ".tk-list .tk-avatar");
+    p.avatars.forEach((s, k) => compare(scr, `row ${k + 1} avatar`, abs(shape(S, s)), ava[k] ?? NAN4));
+    for (let k = 0; k < p.names.length; k++) textAt(scr, `row ${k + 1} name`, T[p.names[k]], await line(page, `.tk-list .tk-rows li:nth-child(${k + 1}) .tk-name`));
+    const paneE = shape(S, p.pane), paneA = await one(page, '[data-testid="chat-pane"]');
+    compare(scr, "the talk (left, top, width)", [paneE.x, paneE.y, paneE.w], paneA.slice(0, 3));
+    if (p.bar) info(`${scr}: the talk ends above the bar (the sheet draws no bar and no other way out; the bar stays, xor-ad-0b 18.10): its height ${paneA[3].toFixed(1)} against the sheet's ${paneE.h.toFixed(1)}, the chips and the field are compared from its bottom`);
+    // from the talk's bottom where the bar shortens it: the gap to the bottom, the left, the width, the height
+    const fromBottom = (name, e, a) => compare(scr, name, [e.x, paneE.y + paneE.h - (e.y + e.h), e.w, e.h], [a[0], paneA[1] + paneA[3] - (a[1] + a[3]), a[2], a[3]]);
+    compare(scr, "the talk's avatar", abs(shape(S, p.paneAvatar)), await one(page, ".ch-pane .ch-avatar"));
+    textAt(scr, "the talk's name", T[p.paneName], await line(page, ".ch-pane .ch-who h1"));
+    textAt(scr, "the talk's fade line", T[p.paneName + 1], await line(page, ".ch-pane .ch-line"));
+    { const r = await one(page, ".ch-pane .ch-ring"), e = shape(S, p.ring); compare(scr, "the talk's ring (right, top, height)", [e.x + e.w, e.y, e.h], [r[0] + r[2], r[1], r[3]]); }
+    { const d = shape(S, p.divider), b = await one(page, ".ch-pane .ch-sheet"); compare(scr, "the talk's divider (left, top, width)", [d.x, d.y, d.w], [b[0], b[1], b[2]]); }
+    const chips = await boxOf(page, ".ch-pane .ch-chip");
+    const at = p.bar ? fromBottom : (name, e, a) => compare(scr, name, abs(e), a);
+    p.chips.forEach((s, k) => at(`chip ${k + 1}`, shape(S, s), chips[k] ?? NAN4));
+    at("the field", shape(S, p.field), await one(page, ".ch-pane .ch-input"));
+    at("send", shape(S, p.send), await one(page, ".ch-pane .ch-send"));
+    info(`${scr}: the talk's lines are not compared (no keys open them on the stand); the rows' lines are the web's (waiting, over, my span), not the last line`);
+    await overflowAt(page, scr, w);
+    if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${scr}.png` });
+    await o.ctx.close();
+  }
+
+
+  // ── the tables (tablet_834_Tables, desktop_1440_Tables): the list's «Playing now» as the sheets' five, «Start a game»'s six,
+  // «New table»; GET /tables answered here over the stub (measure-app.mjs's has no tables) ──
+  const TABLE_CARDS = [
+    { id: "t1", game: "dice", set: "backgammon", playing: 2, free_seats: 0, watching: 3, like_count: 0 },
+    { id: "t2", game: "deck", set: "36", playing: 3, free_seats: 1, watching: 1, like_count: 0 },
+    { id: "t3", game: "grid", set: "chess", playing: 1, free_seats: 1, watching: 0, like_count: 0 },
+    { id: "t4", game: "dots", set: "4x4", playing: 2, free_seats: 0, watching: 5, like_count: 0 },
+    { id: "t5", game: "free", set: "double-six", playing: 2, free_seats: 2, watching: 2, like_count: 0 },
+  ];
+  async function tables(kind, w, dir, file, p) {
+    const scr = `${kind}-tables`, S = sheet(dir, file), T = S.lines, stub = nodeStub();
+    const prepare = async (ctx, page) => {
+      await stub.prepare(ctx, page);
+      await ctx.route(/\/tables(\?|$)/, (route) => route.request().resourceType() === "fetch" || route.request().resourceType() === "xhr"
+        ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: TABLE_CARDS, next: null, mine: [] }) }) : route.fallback());
+      await ctx.addInitScript(() => { try { localStorage.setItem("place.v1", JSON.stringify({ lat: 41.69, lon: 44.8, name: "Sololaki" })); } catch {} });
+    };
+    const o = await open(browser, PREVIEW + "/", w, { screen: "walk-wide-" + scr, prepare });
+    await registerFull(o.page);
+    await o.page.click('[data-testid="tab-tables"]'); await o.page.locator('[data-testid="table-card"]').nth(4).waitFor({ timeout: 20000 });
+    await settle(o.page);
+    const page = o.page, t = '[data-screen="tables"]';
+    compare(scr, "New table", abs(shape(S, p.newTable)), await one(page, `${t} .tb-new`));
+    textAt(scr, "title", T[p.title], await line(page, `${t} .tb-head h1`));
+    textAt(scr, "sub", T[p.sub], await line(page, `${t} .tb-sub`));
+    textAt(scr, "«Playing now»", T[p.playing], await line(page, `${t} .tb-playing`));
+    const rows = await boxOf(page, `${t} [data-testid="tables"] .tb-row`);
+    p.rows.forEach((si, k) => compare(scr, `row ${k + 1}`, abs(shape(S, si)), rows[k] ?? NAN4));
+    compare(scr, "row 1 face", abs(shape(S, p.face)), await one(page, `${t} [data-testid="tables"] .tb-row .tb-face`));
+    compare(scr, "row 1 «Watch»", abs(shape(S, p.watch)), await one(page, `${t} [data-testid="tables"] .tb-row .tb-watch`));
+    textAt(scr, "row 1 name", T[p.name], await line(page, `${t} [data-testid="tables"] .tb-row .tb-name`));
+    textAt(scr, "row 1 counts", T[p.meta], await line(page, `${t} [data-testid="tables"] .tb-row .tb-meta`));
+    textAt(scr, "«Start a game»", T[p.start], await line(page, `${t} .tb-start h2`));
+    const tiles = await boxOf(page, `${t} .tb-game`);
+    p.tiles.forEach((si, k) => compare(scr, `game tile ${k + 1}`, abs(shape(S, si)), tiles[k] ?? NAN4));
+    for (const [k, li] of p.tileWords.entries()) if (li !== null) textAt(scr, `game tile ${k + 1} word`, T[li], await line(page, `${t} .tb-start li:nth-child(${k + 1}) .tb-game span`));
+    if (kind === "tablet") { textAt(scr, "brand word", T[0], await line(page, `${t} .tb-head .word`)); await bar(scr, page, S, p.bar, t); }
+    else { compare(scr, "panel", abs(shape(S, p.panel)), await one(page, `${t} .tb-sheet`)); await rail(scr, page, S, `${t} .tabbar`, p.rail);
+      info(`${scr}: the talks' pane at the right of the panel is wide2's (not drawn here); the sheet runs tile 1's and tile 2's words into one line, so tile 2's word is not compared`); }
+    info(`${scr}: the games' icons in the tiles and the row faces are strokes (not compared); the search in the head is not drawn`);
+    await overflowAt(page, scr, w);
+    if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/${scr}.png` });
+    // «Start a game»'s durak: the wizard opens on its first step with durak picked
+    await page.click('[data-testid="start-durak"]'); await page.waitForSelector('[data-screen="new-table"]', { timeout: 20000 });
+    const picked = await page.locator('[aria-pressed="true"], [aria-checked="true"]').first().textContent().catch(() => "");
+    notes.push({ bad: !/durak|дурак/i.test(picked ?? ""), text: `${scr}: «Start a game» → Durak opens the wizard with durak picked (${(picked ?? "").trim()})` });
+    await o.ctx.close();
+  }
+
   // tile shapes in the sheets' feed order, by the shape's place in the file (readSheet's list)
   await feed("tablet", 834, "tablet", "tablet_834_Feed", { tiles: [6, 20, 10, 24, 12, 27, 16], list: 5, tile: 6, hand: 7, foot: 8, chip: 9, title: [14, 15] });
   await feed("desktop", 1440, "desktop", "desktop_1440_Feed", { tiles: [12, 25, 16, 29, 18, 33, 21], panel: 6, tile: 12, hand: 13, foot: 14, chip: 15, title: [13, 14] });
   await me("tablet", 834, "tablet", "tablet_834_Me");
+  await tables("tablet", 834, "tablet", "tablet_834_Tables", { newTable: 1, title: 1, sub: 2, playing: 4, rows: [3, 12, 6, 15, 9], face: 4, watch: 5, name: 5, meta: 6,
+    start: 20, tiles: [18, 19, 20, 21, 22, 23], tileWords: [21, 22, 23, 24, 25, 26], bar: { bar: 24, tab: 25 } });
+  await talks("tablet", 834, "tablet", "tablet_834_Talks", { brand: 0, title: 1, offers: 4, faces: [7, 8, 9, 10], sheet: 11, selected: 12, avatars: [13, 14, 15, 16],
+    names: [12, 16, 20, 24], pane: 17, paneAvatar: 19, paneName: 29, ring: 35, divider: 18, chips: [26, 27, 28, 29], field: 30, send: 31, bar: true });
+  await write("tablet", 834, "tablet", "tablet_834_Write", { title: 0, sub: 1, sheet: 1, card: 2, label: 2, lives: 4, going: 6, modes: 3, hears: 10, zones: 6, live: 11, ring: 13, ringWords: 16, liveWords: 14, send: 12 });
   await me("desktop", 1440, "desktop", "desktop_1440_Me");
+  // the sheet's rows go down the left column first (8, 11, 14) then the right (17, 20); the app fills by rows
+  await tables("desktop", 1440, "desktop", "desktop_1440_Tables", { newTable: 7, title: 9, sub: 8, playing: 11, rows: [8, 17, 11, 20, 14], face: 9, watch: 10, name: 12, meta: 13,
+    start: 27, tiles: [23, 24, 25, 26, 27, 28], tileWords: [28, null, 29, 30, 31, 32], panel: 6, rail: { active: 2, say: 4 } });
+  await write("desktop", 1440, "desktop", "desktop_1440_Write", { where: 8, title: 9, panel: 6, card: 7, label: 10, lives: 13, going: 15, modes: 8, hears: 19, zones: 11,
+    live: 16, ring: 39, ringWords: 60, liveWords: 23, send: 17, preview: { title: 25, tile: 18, text: 30 }, rail: { active: 2, say: 4 },
+    pane: { box: 22, title: 32, avatars: [33, 35, 36, 37], names: [43, 47, 51, 55] } });
   info("not compared (the sheets draw them, this shell has not the thing): the right pane of the desktop feed and card (Talks, a chat), the quota card and the rail's quota, the chips' counts, the tiles' distance and time, the search icon, the unread dot, the thread \"Beside it\" and \"Reply beside\", the density line, the offer and table tiles as drawn");
 }

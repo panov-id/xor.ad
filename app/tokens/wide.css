@@ -13,6 +13,9 @@
    the search icon, the unread dot on the tabs, the thread "Beside it", "Reply beside", the density line over the title,
    the offer and the table tiles as the sheets draw them. */
 
+/* the breakpoints, for the shell's matchMedia (App.tsx useWide); the @media below name the same numbers (a media query cannot read a token) */
+:root { --bp-tablet: 834px; --bp-desktop: 1440px; }
+
 /* ── tablet and up ── */
 @media (min-width: 834px) {
   :root {
@@ -97,6 +100,9 @@
   .tk[data-beside] .tk-sheet { position: absolute; left: 0; right: 0; top: 249.8px; bottom: 0; margin: 0; display: grid; grid-template-columns: 299.8px 465.6px;
     column-gap: 19.9px; align-items: start; padding: 24px 24px calc(var(--tabbar-bottom) + var(--s-nav-bar) + 16px); }
   .tk[data-beside] .tk-sheet > * { max-width: none; margin: 0; }
+  /* the strip stands above the sheet's edge: the sheet must not clip it (talks.css scrolls it), the list scrolls itself */
+  .tk[data-beside] .tk-sheet { overflow: visible; }
+  .tk[data-beside] .tk-list { max-height: 100%; overflow-y: auto; }
   .tk[data-beside] .tk-list { --tk-row-h: 71.9px; --tk-row-side: 12px; --tk-rows-top: 0px; }
   .tk[data-beside] .tk-rows { margin-top: 0; display: flex; flex-direction: column; gap: 4px; }
   /* one line under the name, cut as the sheet cuts it («The round oven on Lesel…»); an empty one keeps its place */
@@ -137,6 +143,11 @@
   .tb.tb .tb-game.tb-peach { --tone: var(--c-peach); }
   .tb.tb .tb-game.tb-lilac { --tone: var(--c-lilac); }
   .tb.tb .tb-game .icon { --icon-size: 22px; --stroke: 2; }
+
+  /* both in (tablet_834_BothIn): the phone's card, 419.7 wide, in the middle of the window both ways; the sheet's feed behind
+     it is the screen it came from, here the match is a screen of its own (its back is the history's) */
+  .tk-match-screen { display: grid; place-items: center; min-height: 100dvh; background: var(--c-sheet); }
+  .tk-match { width: 419.7px; max-width: none; margin: 0; --mt-cta-gap: 12.2px; } /* the sheet's «not now» stands 2.2 lower under «let's talk» */
 }
 
 /* ── desktop ── */
@@ -158,8 +169,10 @@
   .tab-word { display: inline; }
   .tab[aria-current="page"] { background: var(--c-peach); color: var(--c-ink); }
   .rail-say { display: flex; align-items: center; justify-content: center; gap: 14.4px; width: 100%; height: 53.93px; margin-top: 22px; border-radius: 999px;
-    background: var(--c-lime); color: var(--c-ink); font-size: 15.5px; font-weight: 700; cursor: default; }
+    background: var(--c-lime); color: var(--c-ink); font-size: 15.5px; font-weight: 700; }
   .rail-say .icon { --icon-size: 20px; --stroke: 2; }
+  /* the rail's «say something» opens the composer here: the feed's round «say it» over the bar is the phone's and the tablet's */
+  .fd-say { display: none; }
 
   /* the panel */
   .fd-panel, .me-panel { position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom); background: var(--c-sheet); border-radius: var(--r-sheet); overflow: hidden; }
@@ -223,6 +236,21 @@
     background: var(--c-sheet); border-radius: var(--r-sheet); padding: 0 0 24px; z-index: 2;
     --tk-row-side: 35.9px; --tk-row-h: 85.9px; --tk-strip-top: 8.5px; --tk-strip-pad: 22.8px; }
   .tk-pane h2 { margin: 0; padding: 26.9px 0 0 24.4px; font-size: 20px; font-weight: 800; line-height: 1.2; }
+
+  /* the talks with a talk beside the list (desktop_1440_Talks): the rail, the panel the whole width, the count, the title and the
+     strip at its top, the list (339.6) and the talk (745) side by side; no right pane here */
+  .tk[data-beside] .me-head { display: none; }
+  .tk[data-beside] .tk-count { display: block; position: absolute; left: 279px; top: 69.9px; transform: translateY(-80%); margin: 0; z-index: 1;
+    font-size: 13px; font-weight: 600; line-height: 1; color: var(--c-muted); }
+  .tk[data-beside] .tk-title { left: 279.4px; top: 114.8px; z-index: 1; }
+  .tk[data-beside] .tk-sheet { left: var(--panel-left); right: auto; top: var(--panel-top); bottom: var(--panel-bottom); width: calc(100% - var(--panel-left) - 24px);
+    grid-template-columns: 339.6px minmax(0, 1fr); column-gap: 21.9px; padding: 230.7px 30px 30px; overflow: hidden; } /* 1440: 1166.5 and 745; 1920 (desktop_1920_Talks): 1648 and 1226 */
+  .tk[data-beside] .tk-strip { left: 28.8px; top: 124.6px; --tk-offers: 64.3px; --tk-face: 57.9px; --tk-strip-gap: 16px; }
+  /* the sheet draws the talk past the panel's foot (its field below the window): here it ends in the panel, the field in sight */
+  .ch.ch-pane {
+    --ch-side: 22px; --ch-side-end: 22px; --ch-avatar-x: 22px; --ch-avatar-y: 21.9px; --ch-avatar: 47.9px; --ch-who-x: 83.2px; --ch-name-base: 43.9px;
+    --ch-line-base: 63.9px; --ch-ring-end: 21.9px; --ch-ring-y: 23.9px; --ch-foot-bottom: 22px; --ch-field-gap: 11.9px; --ch-head-h: 80.8px; }
+  .ch-pane .ch-sheet { border-top: 0; }
 }
 
 /* ── desktop, the tables (desktop_1440_Tables; its own block: the talks' pane and the 1920 rules above are wide2's) ──

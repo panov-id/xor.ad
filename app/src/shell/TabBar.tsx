@@ -4,8 +4,9 @@ import { chat, home, person, plus, tables } from "./icons";
 
 // The bar under the feed, the talks, the tables and "Me" (sheet w4_me): four round tabs, the current one lime.
 // On the desktop sheets (desktop_1440_*) the same nav is the rail at the left: the brand word, the four tabs with their
-// words, «say something» (the composer is not in this shell: drawn, aria-disabled). tokens/wide.css shows one or the other.
-export type Tab = "feed" | "tables" | "chats" | "me";
+// words, «say something» (the composer, /write: onSelect("say")). tokens/wide.css shows one or the other.
+// "say" is no tab of its own: the rail's button asks the shell for the composer through the same onSelect.
+export type Tab = "feed" | "tables" | "chats" | "me" | "say";
 const TABS: Array<{ tab: Tab; d: string; key: string }> = [
   { tab: "feed", d: home, key: "app.tab.feed" },
   { tab: "tables", d: tables, key: "app.tab.tables" },
@@ -28,7 +29,9 @@ export function TabBar({ active = "feed", onSelect }: { active?: Tab; onSelect?:
           </button>
         );
       })}
-      <button type="button" className="rail-say" aria-disabled="true" data-testid="rail-say"><Icon d={plus} /><span>{say("app.rail.say")}</span></button>
+      <button type="button" className="rail-say" aria-disabled={onSelect ? undefined : true} data-testid="rail-say" onClick={() => onSelect?.("say")}>
+        <Icon d={plus} /><span>{say("app.rail.say")}</span>
+      </button>
     </nav>
   );
 }

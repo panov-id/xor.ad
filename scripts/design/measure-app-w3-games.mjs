@@ -1,0 +1,711 @@
+// Measures the rendered app/ table (the frame, then each game's board) against the Dusk sheets of wave 3 (mobile
+// w3_table-four, w3_table-dots, w3_table-hangman, then the eight on LATER: battleship, chapayev, durak, poker, reversi,
+// checkers, chess, backgammon, dominoes), and walks it against a stubbed node: the list's «Watch» opens the
+// table, a column's tap sends the move. Run by scripts/measure-app-w3-games.sh inside the Playwright image, on an
+// internal network: PREVIEW is the built app (with its CSP). Built on measure-app-w4.mjs (its helpers, its report).
+// Expected values are read from the sheets (sheet-geometry.mjs), never typed in; indices are the sheets' drawing order.
+// Not compared: the sticker chips' widths (the sheet's fourth chip «Backgammon?» is no sticker of the catalogue —
+// depth/core/sticker.ts — and its first says «Hi!»): their left, top and height only; the yellow mark over a column.
+import { chromium } from "@playwright/test";
+import { mkdirSync } from "node:fs";
+import { readSheet } from "./sheet-geometry.mjs";
+
+const SHEETS = process.env.SHEETS ?? "/sheets";
+const PREVIEW = process.env.PREVIEW_URL ?? "http://localhost:4174";
+const SHOTS = process.env.SHOTS ?? "/shots";
+const TOL = Number(process.env.TOL ?? 2);
+const LOCALE = process.env.LANG_TAG ?? "en-US";
+const GEOMETRY = process.env.GEOMETRY !== "0";
+const TAG = LOCALE.slice(0, 2);
+const RU = TAG === "ru";
+const OVERRIDE = process.env.CSS_OVERRIDE ?? "";
+const ONLY = (process.env.ONLY ?? "").split(",").filter(Boolean);
+const sheet = (n) => readSheet(`${SHEETS}/w3_${n}.svg`);
+
+const rows = [], notes = [], csp = [];
+const NAN4 = [NaN, NaN, NaN, NaN];
+const fmt = (a) => a.map((v) => (Number.isNaN(v) ? "-" : v.toFixed(1))).join(",");
+function compare(screen, name, exp, act) {
+  if (!GEOMETRY) return;
+  const d = exp.map((e, i) => act[i] - e);
+  const ok = d.every((x) => !Number.isNaN(x) && Math.abs(x) <= TOL);
+  rows.push({ screen, name, exp: fmt(exp), act: fmt(act), delta: d.map((x) => (Number.isNaN(x) ? "NaN" : (x >= 0 ? "+" : "") + x.toFixed(1))).join(","), ok });
+}
+const note = (ok, text) => notes.push({ bad: !ok, text });
+const shapeOf = (s) => [s.x, s.y, s.w, s.h];
+// text: the left ink edge and the baseline; a right-aligned value: its right edge and the baseline
+const left = (scr, name, exp, act) => compare(scr, name, [exp.left, exp.base], act ? [act[0], act[2]] : [NaN, NaN]);
+const right = (scr, name, exp, act) => compare(scr, name, [exp.right, exp.base], act ? [act[1], act[2]] : [NaN, NaN]);
+
+async function settle(page) {
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => document.getAnimations().forEach((a) => { try { a.finish(); } catch { a.cancel(); } }));
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(100);
+}
+const boxOf = (page, sel) => page.evaluate((s) => [...document.querySelectorAll(s)].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; }), sel);
+const box = async (page, sel, i = 0) => (await boxOf(page, sel))[i] ?? NAN4;
+const linesOf = (page, sel, nth = 0) => page.evaluate(([s, k]) => {
+  const el = document.querySelectorAll(s)[k]; if (!el) return [];
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const byTop = new Map();
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    if (!n.textContent.trim()) continue;
+    const cs = getComputedStyle(n.parentElement);
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const m = ctx.measureText("Hg");
+    const range = document.createRange(); range.selectNodeContents(n);
+    for (const r of range.getClientRects()) {
+      if (!r.width) continue;
+      const base = r.top + (r.height - (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent)) / 2 + m.fontBoundingBoxAscent;
+      const key = Math.round(base);
+      const L = byTop.get(key);
+      if (L) { L.left = Math.min(L.left, r.left); L.right = Math.max(L.right, r.right); } else byTop.set(key, { left: r.left, right: r.right, base });
+    }
+  }
+  return [...byTop.values()].sort((a, b) => a.base - b.base).map((l) => [l.left, l.right, l.base]);
+}, [sel, nth]);
+const line = async (page, sel, nth = 0, i = 0) => (await linesOf(page, sel, nth))[i];
+
+async function overflowAt(page, screen, w) {
+  const bad = await page.evaluate((vw) => {
+    const out = [];
+    const de = document.documentElement;
+    if (de.scrollWidth > de.clientWidth) out.push(`document scrollWidth ${de.scrollWidth} > clientWidth ${de.clientWidth}`);
+    for (const e of document.querySelectorAll("[data-screen] *")) {
+      const cs = getComputedStyle(e), r = e.getBoundingClientRect();
+      if (e.closest("[aria-hidden='true']") && e.tagName === "path") continue;
+      const tag = `${e.tagName.toLowerCase()}${e.dataset.testid ? `[${e.dataset.testid}]` : typeof e.className === "string" && e.className ? "." + e.className.split(" ")[0] : ""}`;
+      // the sticker chips scroll sideways by design (w3_table-*: four shown of eight): what is past the edge is scrolled to
+      // the chips scroll sideways, and the dominoes' line and hand (a line grows to 28 bones, a hand holds up to seven)
+      const scrolled = [".tg-chips", ".tg-dline", ".tg-hand"].some((c) => e.closest(c) && !e.classList.contains(c.slice(1)));
+      if (r.width && !scrolled && (r.right > vw + 0.5 || r.left < -0.5)) out.push(`${tag} outside the viewport: ${r.left.toFixed(1)}..${r.right.toFixed(1)} of ${vw}`);
+      const clips = cs.overflowX !== "visible" || cs.textOverflow === "ellipsis";
+      if (e.tagName !== "INPUT" && clips && e.scrollWidth > e.clientWidth + 1 && !e.classList.contains("me-body") && !["tg-chips", "tg-dline", "tg-hand"].some((c) => e.classList.contains(c))) out.push(`${tag} clips horizontally: scrollWidth ${e.scrollWidth} > clientWidth ${e.clientWidth}`);
+    }
+    return out;
+  }, w);
+  notes.push({ bad: bad.length > 0, text: `overflow/clipping ${screen}[${TAG}] @${w}: ${bad.length ? bad.slice(0, 6).join("; ") : "none"}` });
+}
+
+async function fonts(page, screen, probes) {
+  const info = await page.evaluate(() => ({ cyr: document.fonts.check("16px Outfit", "Привет"), lat: document.fonts.check("16px Outfit", "Hello") }));
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("DOM.enable"); await cdp.send("CSS.enable");
+  const { root } = await cdp.send("DOM.getDocument", { depth: 0 });
+  const used = [];
+  for (const [label, sel] of probes) {
+    const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector: sel });
+    if (!nodeId) { notes.push({ bad: true, text: `fonts ${screen}[${TAG}] ${label}: ${sel} not found` }); continue; }
+    const { fonts: f } = await cdp.send("CSS.getPlatformFontsForNode", { nodeId });
+    if (f.length === 0 || f.some((x) => !x.isCustomFont)) notes.push({ bad: true, text: `fonts ${screen}[${TAG}] ${label}: rendered with ${f.map((x) => `${x.familyName}${x.isCustomFont ? "" : " (SYSTEM)"}`).join(", ") || "nothing"}` });
+    else used.push(label);
+  }
+  await cdp.detach();
+  notes.push({ bad: (RU && !info.cyr) || !info.lat, text: `fonts ${screen}[${TAG}]: Outfit Latin ${info.lat}, Cyrillic ${info.cyr}; loaded faces on ${used.length} of ${probes.length} probes` });
+}
+
+
+// ── the node, stubbed: registration, the list, one table of four in a row (the sheet's position) ──
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|statements|likes|inbox|away|tables)(\/|$)/;
+const ACCEPTED = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
+// w3_table-four: me (seat 1) lime, Nino (seat 2) peach; columns a..g, rows from the bottom.
+const FOUR = { d4: 2, d3: 1, e3: 2, c2: 1, d2: 2, e2: 1, b1: 1, c1: 2, d1: 1, e1: 1 };
+const cellsOf = (m) => Object.fromEntries(Object.entries(m).map(([id, seat]) => [id, { seat, piece: "O" }]));
+// w3_table-dots: 4×4, two boxes mine (seat 1), two Nino's, two loose edges.
+const DOTS = { edges: ["h:1:1", "h:2:1", "v:1:1", "v:1:2", "h:1:2", "h:2:2", "v:1:3", "h:3:1", "v:2:1", "v:2:2", "h:3:3", "h:4:3", "v:3:3", "v:3:4", "h:4:0", "v:0:4"],
+  boxes: { "1:1": 1, "1:2": 1, "2:1": 2, "3:3": 2 } };
+const GAMES = { t1: { class: "grid", set: "four" }, t2: { class: "dots", set: "4x4" }, t3: { class: "word", set: "en" } };
+// w3_table-hangman: Nino set the word, I guess; tried q e t a f k (the sheet's spent keys), the mask shows them.
+const WORD = { setter: 2, set: "en", alphabet: [..."abcdefghijklmnopqrstuvwxyz"], word: null, mask: "ka__e__e__", guessed: ["q", "e", "t", "a", "f", "k"], misses: 3, misses_left: 3 };
+// The games after hangman, one table each in the list (t4, t5, …): GAMES names the class and set, POS the position of the
+// sheet (a copy per stub, moved by APPLY when the node "answers" a move), STATE the node's state of it for seat 1.
+const POS = {};
+const KEEP = {};
+const STATE = {};
+const APPLY = {};
+// w3_table-battleship: the shooting phase; my shots found four ships (a hit on each of three, the fourth sunk whole), one miss;
+// my own fleet a1..a4 and more, the other's shots hit a2 and missed b6.
+const ship = (...ids) => ids;
+const SEA_MINE = [ship("a1", "a2", "a3", "a4"), ship("c1", "c2", "c3"), ship("e1", "e2", "e3"), ship("a6", "a7"), ship("c6", "c7"), ship("e6", "e7"), ship("h1"), ship("h3"), ship("h5"), ship("h7")];
+GAMES.t4 = { class: "grid", set: "battleship" };
+POS.t4 = () => ({
+  shots: { "1": { b2: "sunk", c2: "hit", d2: "sunk", e2: "sunk", g5: "sunk", g6: "hit", g7: "sunk", c8: "sunk", d8: "hit", i3: "sunk", i4: "sunk", f9: "miss" }, "2": { a2: "hit", b6: "miss" } },
+});
+STATE.t4 = (p) => ({ sea: { phase: "shoot", fleets: { "1": SEA_MINE, "2": { placed: true } }, shots: p.shots } });
+APPLY.t4 = (p, m) => { if (m.shot) p.shots["1"][m.shot] = "miss"; };
+// w3_table-chapayev: eight pieces a side on the two edges (the node deals six; the sheet draws eight), mine (seat 1) at the bottom
+// (y 0), Nino's on y 7; a flick goes by piece, direction and power.
+GAMES.t5 = { class: "physics", set: "chapayev" };
+POS.t5 = () => ({ cells: Object.fromEntries([...Array(8).keys()].flatMap((x) => [[`${x}:0`, 1], [`${x}:7`, 2]])) });
+STATE.t5 = (p) => ({ physics: { cells: { ...p.cells } } });
+APPLY.t5 = (p, m) => { const f = m.flick; if (f) { delete p.cells[f.piece]; const [x, y] = f.piece.split(":").map(Number); p.cells[`${x + f.dir[0] * f.power}:${y + f.dir[1] * f.power}`] = 1; } };
+// w3_table-durak: Nino (seat 2) holds five, the stock fourteen, trump the ten of diamonds; two pairs on the table, both beaten,
+// I attack (so «done» is mine), my six cards are the sheet's fan: 9S 8H 7D 6S 10S QH.
+GAMES.t6 = { class: "deck", set: "36" };
+KEEP.t6 = true;
+POS.t6 = () => ({ hand: ["9S", "8H", "7D", "6S", "10S", "QH"], table: [{ attack: "6H", beat: "10H" }, { attack: "7S", beat: "8S" }] });
+STATE.t6 = (p) => ({ deck: { hands: { "1": [...p.hand], "2": { count: 5 } }, stock: { count: 14 }, played: [], trump: "10D", table: p.table.map((x) => ({ ...x })), attacker: 1, defender: 2 } });
+APPLY.t6 = (p, m) => { if (m.play) { p.hand = p.hand.filter((c) => c !== m.play); p.table.push({ attack: m.play, beat: null }); } };
+// w3_table-poker: four at the table (me seat 1 at the bottom left), the turn dealt (10C 9H 7D 6S, the river a back), a pot of 6,
+// two to call; the seats' chips in the sheet's four corners: seat 2 bottom right, 3 top right, 4 top left.
+// t7 is the sheet (the seat to act is Nino's, so the foot carries only my two cards, as the sheet's frame); t8 is the same table with
+// me to act, for the actions (they stand under the panel and push the stickers down: not the sheet's frame).
+const pokerState = (toAct) => ({ poker: { chips: { "1": 900, "2": 850, "3": 1000, "4": 780 }, button: 1, hand: 3, street: "turn", board: ["10C", "9H", "7D", "6S"],
+  holes: { "1": ["AS", "KH"], "2": { count: 2 }, "3": { count: 2 }, "4": { count: 2 } }, bets: { "1": 0, "2": 2, "3": 0, "4": 0 }, pot: 6, current: 2, min_raise: 4, folded: [], to_act: toAct, last: null } });
+GAMES.t7 = { class: "deck", set: "poker" };
+GAMES.t8 = { class: "deck", set: "poker" };
+KEEP.t8 = true;
+POS.t7 = () => ({});
+POS.t8 = () => ({});
+STATE.t7 = () => pokerState(2);
+STATE.t8 = () => pokerState(1);
+
+// w3_table-reversi … w3_table-dominoes (t9 … t13): the other branch's five, on the same tables.
+GAMES.t9 = { class: "grid", set: "reversi" };
+// w3_table-reversi: mine lime, Nino peach (rank 8 on top).
+POS.t9 = () => ({ cells: { d6: 1, e6: 2, c5: 2, d5: 2, e5: 1, d4: 1, e4: 2, f4: 2, e3: 1, f3: 1 } });
+STATE.t9 = (p) => ({ grid: { cells: cellsOf(p.cells), claim: null, rules: "reversi" } });
+APPLY.t9 = (p, m) => { if (m.to) p.cells[m.to] = 1; };
+// w3_table-checkers and w3_table-chess: the sheets' positions (mine seat 1, lime; Nino peach).
+const man = (seat) => ({ seat, piece: "M" });
+GAMES.t10 = { class: "grid", set: "checkers" };
+POS.t10 = () => ({ cells: Object.fromEntries([..."b8 d8 f8 h8 a7 c7 e7 g7 f6 h6".split(" ").map((id) => [id, man(2)]), ..."d4 a3 c3 g3 b2 d2 f2 h2 a1 c1 e1 g1".split(" ").map((id) => [id, man(1)])]) });
+STATE.t10 = (p) => ({ grid: { cells: { ...p.cells }, claim: null } });
+APPLY.t10 = (p, m) => { if (m.from) { p.cells[m.to] = p.cells[m.from]; delete p.cells[m.from]; } };
+GAMES.t11 = { class: "grid", set: "chess" };
+POS.t11 = () => {
+  const c = {}, back = "RNBQKBNR";
+  for (let f = 0; f < 8; f++) { const x = "abcdefgh"[f]; c[`${x}8`] = { seat: 2, piece: back[f] }; c[`${x}1`] = { seat: 1, piece: back[f] }; if (x !== "e") c[`${x}7`] = { seat: 2, piece: "P" }; if (x !== "d") c[`${x}2`] = { seat: 1, piece: "P" }; }
+  c.e5 = { seat: 2, piece: "P" }; c.d4 = { seat: 1, piece: "P" };
+  return { cells: c };
+};
+STATE.t11 = (p) => ({ grid: { cells: { ...p.cells }, claim: p.claim ?? null } });
+APPLY.t11 = (p, m) => { if (m.con === "won") p.claim = 1; };
+// w3_table-backgammon: the node's dice 5 and 3; no men (the node keeps no position, relay tables_dice.ts).
+GAMES.t12 = { class: "dice", set: "backgammon" };
+POS.t12 = () => ({ rolled: [5, 3] });
+STATE.t12 = (p) => ({ dice: { rolled: p.rolled, claim: null } });
+APPLY.t12 = (p, m) => { if (m.move === true) p.rolled = null; if (m.roll) p.rolled = [2, 2]; };
+// w3_table-dominoes: a line of five (doubles at both ends), my hand of five, Nino's five as a count.
+GAMES.t13 = { class: "free", set: "double-six" };
+POS.t13 = () => ({ line: ["6:6", "6:3", "3:1", "1:5", "5:5"], hand: ["0:6", "4:5", "2:3", "1:2", "3:3"] });
+STATE.t13 = (p) => ({ free: { hands: { "1": [...p.hand], "2": { count: 5 } }, boneyard: { count: 4 }, line: [...p.line] } });
+APPLY.t13 = (p, m) => { if (m.play) { p.hand = p.hand.filter((b) => b !== m.play); if (m.end === "left") p.line.unshift(m.play.split(":").reverse().join(":")); else p.line.push(m.play); } };
+// (declared after t13: the list keeps GAMES' order, and each LATER entry opens its table by its row)
+// t14: checkers with Nino's claim on the round standing and my turn — the con's other half, «agree»
+GAMES.t14 = { class: "grid", set: "checkers" };
+POS.t14 = () => ({ ...POS.t10(), claim: 2 });
+STATE.t14 = (p) => ({ grid: { cells: { ...p.cells }, claim: p.claim } });
+APPLY.t14 = (p, m) => { if (m.con === "agree") p.claim = null; };
+function tableView(s, id) {
+  const g = GAMES[id];
+  const state = STATE[id] ? STATE[id](s.pos[id])
+    : g.class === "dots" ? { dots: { n: 4, edges: [...s.edges], boxes: { ...DOTS.boxes } } }
+    : g.class === "word" ? { word: { ...WORD, guessed: [...s.guessed] } }
+    : { grid: { cells: cellsOf(s.cells), claim: null, rules: "four" } };
+  return {
+    id, class: g.class, set: g.set, seat: 1, is_playing: true, playing: 2, watching: 0, name: "Evening at the yard", like_count: 0, lines: [],
+    seats: [{ seat: 1, name: "Alex", role: "playing" }, { seat: 2, name: "Nino", role: "playing" }],
+    board: { seq: s.seq, state, turn: s.turn, score: {}, expires_at: s.due, pending: null },
+  };
+}
+function nodeStub() {
+  const calls = [], moves = [];
+  const s = { share: null, pinAuth: null, seq: 7, turn: 1, cells: { ...FOUR }, edges: [...DOTS.edges], guessed: [...WORD.guessed], due: Math.floor(Date.now() / 1000) + 100,
+    pos: Object.fromEntries(Object.entries(POS).map(([id, make]) => [id, make()])) };
+  const prepare = async (ctx) => {
+    await ctx.route("**/*", async (route) => {
+      const req = route.request(), u = new URL(req.url());
+      if (!["fetch", "xhr"].includes(req.resourceType()) || !NODE_PATH.test(u.pathname)) return route.fallback();
+      const key = `${req.method()} ${u.pathname}`; calls.push(key);
+      const json = (status, body) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+      const body = () => JSON.parse(req.postData() ?? "{}");
+      if (key === "GET /legal/manifest") return json(200, { documents: ACCEPTED });
+      if (key === "POST /legal/accept") return json(200, {});
+      if (key === "POST /identities") { s.share = body().share; return json(200, { identity_id: "id-stub", session_id: "sess-stub" }); }
+      if (key === "POST /vault/share") { const auth = body().auth; if (s.pinAuth === null) s.pinAuth = auth; return auth === s.pinAuth ? json(200, { share: s.share }) : json(409, { error: { code: "pin_mismatch", attempts_left: 9 } }); }
+      if (key === "GET /identities/me") return json(200, { name: "Alex", name_state: "accepted", age: 32, phrases: [], filter_age_min: 25, filter_age_max: 35 });
+      if (key === "GET /feed") return json(200, { items: [], next: null });
+      if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
+      if (key === "GET /tables") return json(200, { items: Object.entries(GAMES).map(([id, g]) => ({ id, game: g.class, set: g.set, playing: 2, free_seats: 0, watching: 0, like_count: 0, name: "Evening at the yard" })), next: null, mine: [] });
+      const t = /^\/tables\/(t\d+)(\/.*)?$/.exec(u.pathname);
+      if (t && req.method() === "GET" && !t[2]) return json(200, tableView(s, t[1]));
+      if (t && t[2] === "/moves") {
+        const m = body(); moves.push({ ...m, table: t[1] });
+        if (m.move?.column) { const col = m.move.column; let r = 1; while (s.cells[`${col}${r}`]) r++; s.cells[`${col}${r}`] = 1; }
+        if (m.move?.edge) s.edges.push(m.move.edge);
+        if (m.move?.letter) s.guessed.push(m.move.letter);
+        if (APPLY[t[1]]) APPLY[t[1]](s.pos[t[1]], m.move ?? {});
+        s.seq++; s.turn = KEEP[t[1]] ? 1 : 2;   // KEEP: a table where my turn goes on after a move (durak's throw-in, then done)
+        return json(200, { board: tableView(s, t[1]).board });
+      }
+      if (t && t[2] === "/ticket") return json(503, { error: { code: "unavailable" } });   // no room in the stub: the screen reads the view
+      calls.push(`UNEXPECTED ${key}`); return route.abort();
+    });
+  };
+  return { calls, moves, s, prepare };
+}
+
+async function open(browser, url, width, { screen, prepare }) {
+  const h = width === 390 ? 844 : width === 834 ? 1194 : 900;
+  const ctx = await browser.newContext({ viewport: { width, height: h }, deviceScaleFactor: 1, locale: LOCALE, isMobile: width < 768, hasTouch: width < 768, bypassCSP: !!OVERRIDE });
+  await ctx.addInitScript(() => {
+    try { localStorage.setItem("lang-asked", "1"); } catch {}
+    // w4_me: "Sololaki · identity on this device" — a place chosen before (the web's key, the web's shape)
+    try { if (!localStorage.getItem("place.v1")) localStorage.setItem("place.v1", JSON.stringify({ lat: 41.689, lon: 44.8, name: "Sololaki", cc: "GE", source: "point" })); } catch {}
+    document.addEventListener("securitypolicyviolation", (e) => console.error("CSP violation: " + e.violatedDirective + " " + e.blockedURI));
+  });
+  const page = await ctx.newPage();
+  if (prepare) await prepare(ctx, page);
+  page.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) csp.push(`${screen}@${width} console: ${m.text().slice(0, 200)}`); });
+  page.on("pageerror", (e) => csp.push(`${screen}@${width} pageerror: ${String(e).slice(0, 200)}`));
+  await page.goto(url, { waitUntil: "load" });
+  if (OVERRIDE) await page.addStyleTag({ content: OVERRIDE });
+  return { ctx, page };
+}
+
+const PIN = "483915";
+async function registerFull(page) {   // the splash to the feed, the way a person goes (as measure-app.mjs)
+  await page.waitForSelector('[data-testid="start"]'); await page.click('[data-testid="start"]');
+  await page.waitForSelector('[data-screen="register-1"]');
+  await page.fill('[data-testid="name"]', "Alex"); await page.fill('[data-testid="age"]', "32"); await page.check(".reg-check input");
+  await page.click('[data-testid="next"]'); await page.waitForSelector('[data-screen="register-2"]');
+  await page.fill('[data-testid="pin"]', PIN); await page.fill('[data-testid="pin-again"]', PIN);
+  await page.click('[data-testid="register"]'); await page.waitForSelector('[data-screen="register-3"]', { timeout: 90000 });
+  const groups = await page.locator('[data-testid="paper-code"] span').allInnerTexts();
+  const gi = page.locator('[data-testid="paper-groups"] input');
+  await gi.nth(0).fill(groups[1].trim()); await gi.nth(1).fill(groups[3].trim());
+  await page.click('[data-testid="confirm"]');
+  await page.waitForSelector('[data-screen="feed"]', { timeout: 20000 });
+}
+const want = (n) => ONLY.length === 0 || ONLY.includes(n);
+const shot = async (page, n) => { if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/w3_${n}.png` }); };
+const enter = async (page, testid, screenName) => { await page.click(`[data-testid="${testid}"]`); await page.waitForSelector(`[data-screen="${screenName}"]`, { timeout: 20000 }); };
+const leave = async (page, screenName) => { await page.click(`[data-testid="${screenName}-back"]`); await page.waitForSelector('[data-screen="me"]', { timeout: 20000 }); };
+// the frame every sub-page shares: the sheet's top-left, the title
+async function frame(page, scr, S) {
+  compare(scr, "sheet left,top", [S.shapes[1].x, S.shapes[1].y], (await box(page, ".me-sheet")).slice(0, 2));
+  left(scr, "title", S.lines[0], await line(page, ".me-bar h1"));
+}
+const cta = async (page, scr, S, i, t) => { compare(scr, "primary", shapeOf(S.shapes[i]), await box(page, ".me-foot .cta")); left(scr, "primary label", S.lines[t], await line(page, ".me-foot .cta span")); };
+
+
+// ── run ──
+const browser = await chromium.launch();
+mkdirSync(SHOTS, { recursive: true });
+for (let i = 0; ; i++) {
+  try { if ((await fetch(PREVIEW)).ok) break; } catch {}
+  if (i > 120) { console.log(`measure-app-w3-games: SPOILED (${PREVIEW} never answered)`); process.exit(2); }
+  await new Promise((r) => setTimeout(r, 1000));
+}
+const sheetOf = (n) => readSheet(`${SHEETS}/w3_table-${n}.svg`);
+async function toTable(page, nth = 0) {
+  // the first tap can land before the tab bar is wired after the feed's first paint: tap again once before calling it spoiled
+  await page.click('[data-testid="tab-tables"]');
+  await page.waitForSelector('[data-screen="tables"]', { timeout: 8000 }).catch(async () => { await page.click('[data-testid="tab-tables"]'); });
+  await page.waitForSelector('[data-screen="tables"]', { timeout: 20000 }).catch((e) => { console.log(`toTable: no tables screen; page errors: ${csp.join(" | ") || "none"}`); throw e; });
+  await page.locator('[data-testid="table-open"]').nth(nth).click(); await page.waitForSelector('[data-screen="table"]', { timeout: 20000 });
+  await page.locator(".tg-panel").first().waitFor({ timeout: 20000 });
+}
+// the frame every game's sheet shares
+async function tableFrame(page, scr, S) {
+  const sh = S.shapes, L = S.lines;
+  compare(scr, "face left", shapeOf(sh[1]), await box(page, '[data-testid="face-left"]'));
+  compare(scr, "face right", shapeOf(sh[2]), await box(page, '[data-testid="face-right"]'));
+  compare(scr, "sheet left,top", [sh[3].x, sh[3].y], (await box(page, ".tg-sheet")).slice(0, 2));
+  compare(scr, "panel left,top,width", [sh[4].x, sh[4].y, sh[4].w], (await box(page, ".tg-panel")).slice(0, 3));
+  // the bar's and the faces' lines found by where they stand (the sheets draw them in different orders)
+  const near = (x0, x1, b0, b1) => L.find((l) => l.left >= x0 && l.left <= x1 && l.base >= b0 && l.base <= b1);
+  const title = L.filter((l) => l.base < 70 && l.left > 60 && l.left < 70);
+  left(scr, "title line 1", title[0], await line(page, ".tg-bar h1", 0, 0));
+  if (title[1]) left(scr, "title line 2", title[1], await line(page, ".tg-bar h1", 0, 1));
+  left(scr, "face left letter", near(25, 50, 100, 112), await line(page, '[data-testid="face-left"]'));
+  left(scr, "my line", near(60, 80, 100, 112), await line(page, ".tg-me"));
+  left(scr, "face right letter", near(330, 360, 100, 112), await line(page, '[data-testid="face-right"]'));
+  left(scr, "ring minutes", near(280, 310, 100, 112), await line(page, '[data-testid="move-ring"]'));
+  const chips = sh.filter((x) => Math.abs(x.y - 778.8) < 1 && Math.abs(x.h - 39.8) < 1);
+  for (let i = 0; i < 3; i++) { const b = await box(page, ".tg-chip", i); compare(scr, `chip ${i + 1} left,top,height`, [chips[i].x, chips[i].y, chips[i].h], [b[0], b[1], b[3]]); }
+}
+
+const stub = nodeStub();
+const { ctx, page } = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: stub.prepare });
+await registerFull(page);
+await toTable(page);
+note(new URL(page.url()).pathname === "/table" && stub.calls.includes("GET /tables/t1"), `walk: «Watch» opens the table at ${new URL(page.url()).pathname}, reading GET /tables/t1`);
+
+// w3_table-four
+if (want("four")) {
+  const S = sheetOf("four"), sh = S.shapes, scr = "four";
+  await settle(page);
+  await tableFrame(page, scr, S);
+  for (let i = 0; i < 7; i++) compare(scr, `cell a..g 6: ${"abcdefg"[i]}`, shapeOf(sh[5 + i]), await box(page, `[data-testid="four-col-${"abcdefg"[i]}"] .tg-cell`, 0));
+  const last = sh.filter((x) => Math.abs(x.w - 38.6) < 0.5).at(-1);
+  compare(scr, "cell g1", shapeOf(last), await box(page, '[data-testid="four-col-g"] .tg-cell', 5));
+  await shot(page, "table-four");
+}
+await overflowAt(page, "table-four", 390);
+await page.click('[data-testid="four-col-f"]');
+for (let k = 0; k < 40 && stub.moves.length === 0; k++) await page.waitForTimeout(100);
+note(stub.moves.length === 1 && stub.moves[0].move?.column === "f" && stub.moves[0].seq === 7, `walk: a tap on column f sends {seq: 7, move: {column: "f"}} (${JSON.stringify(stub.moves[0] ?? null)})`);
+await page.locator('[data-testid="four-col-f"] .tg-cell[data-stand="mine"]').first().waitFor({ timeout: 10000 }).catch(() => {});
+note(await page.locator('[data-testid="four-col-f"] .tg-cell[data-stand="mine"]').count() === 1, "walk: the piece stands in column f after the node's answer");
+note(await page.locator('[data-testid="four-col-a"]').isDisabled(), "walk: with the turn passed to Nino the columns take no tap");
+await page.click('[data-testid="table-back"]'); await page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+note(new URL(page.url()).pathname === "/tables", `walk: the table's back returns to the list at ${new URL(page.url()).pathname}`);
+await ctx.close();
+
+// w3_table-dots: the second table
+{
+  const sd = nodeStub();
+  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: sd.prepare });
+  await registerFull(o.page); await toTable(o.page, 1);
+  await o.page.locator('[data-testid="dot"]').nth(24).waitFor({ timeout: 20000 });
+  if (want("dots")) {
+    const S = sheetOf("dots"), sh = S.shapes, scr = "dots";
+    await settle(o.page);
+    await tableFrame(o.page, scr, S);
+    compare(scr, "panel height", [sh[4].h], [(await box(o.page, ".tg-panel"))[3]]);
+    const dots = sh.filter((x) => Math.abs(x.w - 9.9) < 0.3 && x.fill === "#f4eefc");
+    for (const i of [0, 4, 12, 20, 24]) compare(scr, `dot ${i}`, shapeOf(dots[i]), await box(o.page, '[data-testid="dot"]', i));
+    await shot(o.page, "table-dots");
+  }
+  note(await o.page.locator('[data-testid="box"][data-stand="mine"]').count() === 2 && await o.page.locator('[data-testid="box"][data-stand="theirs"]').count() === 2, "walk: two boxes stand mine, two Nino's");
+  await overflowAt(o.page, "table-dots", 390);
+  await o.page.click('[data-testid="edge-v:1:4"]');
+  for (let k = 0; k < 40 && sd.moves.length === 0; k++) await o.page.waitForTimeout(100);
+  note(sd.moves[0]?.move?.edge === "v:1:4" && sd.moves[0]?.table === "t2", `walk: a tap on the edge v:1:4 sends {move: {edge}} (${JSON.stringify(sd.moves[0] ?? null)})`);
+  await o.page.locator('[data-testid="edge-v:1:4"][data-taken]').waitFor({ timeout: 10000 }).catch(() => {});
+  note(await o.page.locator('[data-testid="edge-v:1:4"][data-taken]').count() === 1, "walk: the edge stands taken after the node's answer");
+  await o.ctx.close();
+}
+
+// w3_table-hangman: the third table
+{
+  const sh3 = nodeStub();
+  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: sh3.prepare });
+  await registerFull(o.page); await toTable(o.page, 2);
+  await o.page.locator('[data-testid="key-p"]').waitFor({ timeout: 20000 });
+  if (want("hangman")) {
+    const S = sheetOf("hangman"), sh = S.shapes, L = S.lines, scr = "hangman";
+    await settle(o.page);
+    await tableFrame(o.page, scr, S);
+    const keys = sh.filter((x) => Math.abs(x.w - 28.9) < 0.3 && Math.abs(x.h - 33.8) < 0.3);
+    const row1 = keys.filter((x) => Math.abs(x.y - keys[0].y) < 1), row2 = keys.filter((x) => Math.abs(x.y - keys[0].y) >= 1);
+    for (const [i, id] of [[0, "q"], [4, "t"], [9, "p"]]) compare(scr, `key ${id}`, shapeOf(row1[i]), await box(o.page, `[data-testid="key-${id}"]`));
+    for (const [i, id] of [[0, "a"], [8, "l"]]) compare(scr, `key ${id}`, shapeOf(row2[i]), await box(o.page, `[data-testid="key-${id}"]`));
+    left(scr, "first key letter (w)", L.find((l) => l.base > 430 && l.base < 450), await line(o.page, '[data-testid="key-w"]'));
+    left(scr, "word's first letter", L.find((l) => l.base > 375 && l.base < 395), await line(o.page, '[data-testid="slot"]', 0));
+    await shot(o.page, "table-hangman");
+  }
+  const spent = await o.page.locator('.tg-key[data-used]').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")).sort().join(""));
+  note(spent === "aefkqt", `walk: the tried letters are spent keys (${spent})`);
+  await overflowAt(o.page, "table-hangman", 390);
+  await o.page.click('[data-testid="key-r"]');
+  for (let k = 0; k < 40 && sh3.moves.length === 0; k++) await o.page.waitForTimeout(100);
+  note(sh3.moves[0]?.move?.letter === "r" && sh3.moves[0]?.table === "t3", `walk: a tap on R sends {move: {letter: "r"}} (${JSON.stringify(sh3.moves[0] ?? null)})`);
+  await o.ctx.close();
+}
+// ── the games after hangman: one open table each (list position `nth`), `ready` says the board stands, `compare` measures it
+// against the sheet (S, scr), `walk` taps a move and reads what the stub got ──
+const LATER = [];
+const movedBy = async (stub, tableId) => { for (let k = 0; k < 40 && stub.moves.length === 0; k++) await new Promise((r) => setTimeout(r, 100)); return stub.moves.find((m) => m.table === tableId); };
+
+const unionBox = async (page, ids) => {   // the box round several elements (a ship is one bar of its cells)
+  const bs = []; for (const id of ids) bs.push(await box(page, `[data-testid="${id}"]`));
+  const x0 = Math.min(...bs.map((b) => b[0])), y0 = Math.min(...bs.map((b) => b[1]));
+  return [x0, y0, Math.max(...bs.map((b) => b[0] + b[2])) - x0, Math.max(...bs.map((b) => b[1] + b[3])) - y0];
+};
+
+LATER.push({
+  name: "battleship", nth: 3, ready: '[data-testid="shot-a1"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    const ships = [["b2", "c2", "d2", "e2"], ["g5", "g6", "g7"], ["c8", "d8"], ["i3", "i4"]];
+    for (const [i, ids] of ships.entries()) compare(scr, `ship ${ids[0]}..${ids.at(-1)}`, shapeOf(sh[5 + i]), await unionBox(page, ids.map((c) => `shot-${c}`)));
+    for (const [i, c] of ["c2", "g6", "d8"].entries()) compare(scr, `hit mark ${c}`, shapeOf(sh[9 + i]), await box(page, `[data-testid="shot-${c}"] [data-testid="mark"]`));
+  },
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="sea-own"] [data-ship]').count() === 20 && await page.locator('[data-testid="own-a2"][data-shot="hit"]').count() === 1, "walk: my own sea stands under the panel, 20 ship cells, the other's hit on a2");
+    note(await page.locator('[data-testid="shot-f9"][data-result="miss"]').count() === 1 && await page.locator('[data-testid="shot-h1"]').isEnabled(), "walk: a miss stands, a free cell takes a shot in my turn");
+    await page.click('[data-testid="shot-h1"]');
+    const m = await movedBy(stub, "t4");
+    note(m?.move?.shot === "h1" && m?.seq === 7, `walk: a tap on h1 sends {seq: 7, move: {shot: "h1"}} (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="shot-h1"][data-result="miss"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="shot-h1"][data-result="miss"]').count() === 1 && await page.locator('[data-testid="shot-a1"]').isDisabled(), "walk: h1 stands a miss after the node's answer, no taps with the turn passed");
+  },
+});
+
+LATER.push({
+  name: "chapayev", nth: 4, ready: '[data-testid="pc-0:0"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    for (let x = 0; x < 8; x++) {
+      compare(scr, `piece ${x}:7 (Nino)`, shapeOf(sh[5 + x]), await box(page, `[data-testid="pc-${x}:7"] span`));
+      compare(scr, `piece ${x}:0 (mine)`, shapeOf(sh[13 + x]), await box(page, `[data-testid="pc-${x}:0"] span`));
+    }
+    // not compared: the sheet's aim arrow (shapes 21, 22) leans at any angle; the node's flick goes along 8 directions only
+  },
+  async walk(page, stub) {
+    note(await page.locator('.tg-pc[data-stand="mine"]').count() === 8 && await page.locator('.tg-pc[data-stand="theirs"]').count() === 8, "walk: eight pieces a side, mine at the bottom");
+    await page.click('[data-testid="pc-3:0"]');
+    note(await page.locator('[data-testid="pc-3:3"]').isEnabled() && await page.locator('[data-testid="pc-4:2"]').isDisabled() && await page.locator('[data-testid="pc-3:0"][data-picked]').count() === 1, "walk: a taken-up piece offers the cells on its lines (3:3), not 4:2");
+    await page.click('[data-testid="pc-3:3"]');
+    note(await page.locator('[data-testid="aim"]').count() === 1 && stub.moves.length === 0, "walk: the first tap on a target aims (an arrow), nothing is sent");
+    await page.click('[data-testid="pc-3:3"]');
+    const m = await movedBy(stub, "t5");
+    note(JSON.stringify(m?.move) === '{"flick":{"piece":"3:0","dir":[0,1],"power":3}}' && m?.seq === 7, `walk: the same target again flicks (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="pc-3:3"][data-stand="mine"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="pc-3:3"][data-stand="mine"]').count() === 1 && await page.locator('[data-testid="pc-3:0"][data-stand="free"]').count() === 1 && await page.locator('[data-testid="pc-0:0"]').isDisabled(), "walk: the piece stands at 3:3 after the node's answer, no taps with the turn passed");
+  },
+});
+
+const centreOf = (b) => [b[0] + b[2] / 2, b[1] + b[3] / 2];
+const shapeCentre = (s) => [s.x + s.w / 2, s.y + s.h / 2];
+LATER.push({
+  name: "durak", nth: 5, ready: '[data-testid="hand-9S"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    for (let i = 0; i < 5; i++) {
+      compare(scr, `opponent card ${i + 1}`, shapeOf(sh[5 + 2 * i]), await box(page, ".tg-dk-fan .tg-back", i));
+      compare(scr, `opponent card ${i + 1} inner`, shapeOf(sh[6 + 2 * i]), await box(page, ".tg-dk-fan .tg-back span", i));
+    }
+    compare(scr, "stock", shapeOf(sh[15]), await box(page, '[data-testid="stock"]'));
+    compare(scr, "stock inner", shapeOf(sh[16]), await box(page, '[data-testid="stock"] span'));
+    compare(scr, "trump card", shapeOf(sh[17]), await box(page, '[data-testid="trump"]'));
+    compare(scr, "trump suit (centre)", shapeCentre(sh[18]), centreOf(await box(page, '[data-testid="trump"] .tg-suit')));
+    const cards = [["attack-0", 19, 20], ["beat-0", 21, 22], ["attack-1", 23, 24], ["beat-1", 25, 26], ["hand-9S", 27, 28], ["hand-8H", 29, 30], ["hand-7D", 31, 32], ["hand-6S", 33, 34], ["hand-10S", 35, 36], ["hand-QH", 37, 38]];
+    for (const [id, c, m] of cards) {
+      compare(scr, `card ${id}`, shapeOf(sh[c]), await box(page, `[data-testid="${id}"]`));
+      compare(scr, `${id} suit (centre)`, shapeCentre(sh[m]), centreOf(await box(page, `[data-testid="${id}"] .tg-suit`)));
+    }
+    // not compared: the ranks' glyphs (rotated text with the card); the sheet's panel is what the cards stand on
+  },
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="done"]').count() === 1 && await page.locator('[data-testid="take"]').count() === 0, "walk: I attack and all is beaten: «done» is offered, «take» is not");
+    await page.click('[data-testid="done"]');
+    const d = await movedBy(stub, "t6");
+    note(JSON.stringify(d?.move) === '{"done":true}' && d?.seq === 7, `walk: «done» sends {done: true} (${JSON.stringify(d ?? null)})`);
+    await page.locator('[data-testid="hand-9S"]').waitFor({ timeout: 10000 });
+    await page.click('[data-testid="hand-9S"]');
+    for (let k = 0; k < 40 && stub.moves.length < 2; k++) await page.waitForTimeout(100);
+    const m = stub.moves[1];
+    note(JSON.stringify(m?.move) === '{"play":"9S"}' && m?.seq === 8, `walk: a tap on 9S plays it (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="attack-2"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="attack-2"]').count() === 1 && await page.locator('[data-testid="hand-9S"]').count() === 0, "walk: 9S leaves the hand and lies on the table as an attack, unbeaten");
+    note(await page.locator('[data-testid="done"]').count() === 0, "walk: with a card unbeaten on the table «done» is gone");
+  },
+});
+
+const textBox = async (page, sel, nth = 0) => (await line(page, sel, nth)) ?? [NaN, NaN, NaN];   // ink left, right, baseline of the first line
+LATER.push({
+  name: "poker", nth: 6, ready: '[data-testid="board-0"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes, L = S.lines;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    for (const [i, id] of ["board-0", "board-1", "board-2", "board-3"].entries()) {
+      compare(scr, `${id} card`, shapeOf(sh[5 + 2 * i]), await box(page, `[data-testid="${id}"]`));
+      compare(scr, `${id} suit (centre)`, shapeCentre(sh[6 + 2 * i]), centreOf(await box(page, `[data-testid="${id}"] .tg-suit`)));
+    }
+    compare(scr, "board-4 (a back)", shapeOf(sh[13]), await box(page, '[data-testid="board-4"]'));
+    compare(scr, "board-4 inner", shapeOf(sh[14]), await box(page, '[data-testid="board-4"] span'));
+    // the seats' chip marks: the sheet's yellow disc then the peach one, at its top-left, top-right, bottom-left, bottom-right
+    for (const [i, seat] of [4, 3, 1, 2].entries()) {
+      compare(scr, `seat ${seat} chips (yellow)`, shapeOf(sh[15 + 2 * i]), await box(page, `[data-testid="pk-seat-${seat}"] .tg-chips-mark i`, 0));
+      compare(scr, `seat ${seat} chips (peach)`, shapeOf(sh[16 + 2 * i]), await box(page, `[data-testid="pk-seat-${seat}"] .tg-chips-mark i`, 1));
+    }
+    const rank = L.filter((l) => Math.abs(l.base - 266.63) < 0.1);
+    const r0 = await textBox(page, '[data-testid="board-0"] .tg-rank'), r1 = await textBox(page, '[data-testid="board-1"] .tg-rank'), r2 = await textBox(page, '[data-testid="board-2"] .tg-rank'), r3 = await textBox(page, '[data-testid="board-3"] .tg-rank');
+    compare(scr, "rank 10C (left,right,base)", [rank[0].left, rank[0].right, rank[0].base], r0);
+    compare(scr, "rank 9H (left) .. 7D (right)", [rank[1].left, rank[1].right, rank[1].base], [r1[0], r2[1], r2[2]]);
+    compare(scr, "rank 6S (left,right,base)", [rank[2].left, rank[2].right, rank[2].base], r3);
+    const pot = L.find((l) => Math.abs(l.base - 342.04) < 0.1);
+    compare(scr, "pot (left,right,base)", [pot.left, pot.right, pot.base], await textBox(page, '[data-testid="pot"]'));
+    // not compared: the seats' stacks under the chip marks and my two cards under the panel (the sheet draws neither)
+  },
+  async walk(page) {
+    note(await page.locator('[data-testid="hole-AS"]').count() === 1 && await page.locator('[data-testid="hole-KH"]').count() === 1, "walk: my two cards stand under the panel");
+    note(await page.locator('[data-testid="poker-call"]').count() === 0, "walk: it is Nino's turn to act: no actions offered");
+  },
+});
+LATER.push({
+  name: "poker-actions", nth: 7, ready: '[data-testid="poker-call"]', compare: null,
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="poker-check"]').isDisabled() && await page.locator('[data-testid="poker-call"]').isEnabled(), "walk: two to call: check is shut, call is open");
+    await page.click('[data-testid="poker-call"]');
+    const c = await movedBy(stub, "t8");
+    note(JSON.stringify(c?.move) === '{"call":true}' && c?.seq === 7, `walk: call sends {call: true} (${JSON.stringify(c ?? null)})`);
+    await page.fill('[data-testid="raise-input"]', "8"); await page.click('[data-testid="raise-go"]');
+    for (let k = 0; k < 40 && stub.moves.length < 2; k++) await page.waitForTimeout(100);
+    note(JSON.stringify(stub.moves[1]?.move) === '{"raise":8}', `walk: a raise to 8 sends {raise: 8} (${JSON.stringify(stub.moves[1]?.move ?? null)})`);
+    await page.click('[data-testid="poker-allin"]');
+    for (let k = 0; k < 40 && stub.moves.length < 3; k++) await page.waitForTimeout(100);
+    note(JSON.stringify(stub.moves[2]?.move) === '{"allin":true}', `walk: all in sends {allin: true} (${JSON.stringify(stub.moves[2]?.move ?? null)})`);
+    await page.click('[data-testid="poker-fold"]');
+    for (let k = 0; k < 40 && stub.moves.length < 4; k++) await page.waitForTimeout(100);
+    note(JSON.stringify(stub.moves[3]?.move) === '{"fold":true}', `walk: fold sends {fold: true} (${JSON.stringify(stub.moves[3]?.move ?? null)})`);
+  },
+});
+
+
+// ── the other branch's five: reversi, checkers, chess, backgammon, dominoes ──
+const cellAt = (x, y, inset = 0) => `${"abcdefgh"[Math.round((x - 15.9 - inset) / 44.525)]}${8 - Math.round((y - 160 - inset) / 44.525)}`;
+LATER.push({
+  name: "reversi", nth: 8, ready: '[data-testid="cell-h1"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    const hints = await page.locator(".tg-hint").evaluateAll((els) => els.map((e) => e.closest("button").dataset.testid.slice(5)).sort().join(" "));
+    for (const p of sh.filter((x) => Math.abs(x.w - 33.8) < 0.3)) { const id = cellAt(p.x, p.y, 5.35); compare(scr, `piece ${id}`, shapeOf(p), await box(page, `[data-testid="cell-${id}"] .tg-piece`)); }
+    for (const d of sh.filter((x) => Math.abs(x.w - 10.8) < 0.3 && x.y > 150)) {
+      const id = cellAt(d.x - 11.5, d.y - 11.5, 5.35);
+      // A hint is the node's rule (a piece there turns one of theirs); a dot of the sheet on a cell that turns nothing is its slip.
+      if (!hints.split(" ").includes(id)) { notes.push({ bad: false, text: `reversi: the sheet's dot on ${id} is no legal move of this position (legal: ${hints}) — not compared` }); continue; }
+      compare(scr, `hint ${id}`, shapeOf(d), await box(page, `[data-testid="cell-${id}"] .tg-hint`));
+    }
+  },
+  async walk(page, stub) {
+    const first = (await page.locator(".tg-hint").evaluateAll((els) => els.map((e) => e.closest("button").dataset.testid.slice(5)).sort()))[0];
+    await page.click(`[data-testid="cell-${first}"]`);
+    const m = await movedBy(stub, "t9");
+    note(m?.move?.to === first, `walk: a tap on the hint ${first} sends {move: {to}} (${JSON.stringify(m ?? null)})`);
+    note(await page.locator('[data-testid="cell-a8"]').isDisabled(), "walk: a cell that turns nothing takes no tap");
+  },
+});
+for (const [nth, set, id] of [[9, "checkers", "t10"], [10, "chess", "t11"]]) LATER.push({
+  name: set, nth, ready: '[data-testid="sq-h1"]',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    const tints = sh.filter((x) => Math.abs(x.w - 44.6) < 0.3);
+    for (const t of [tints[0], tints[13], tints[31]]) compare(scr, `tint ${cellAt(t.x, t.y)}`, shapeOf(t), await box(page, `[data-testid="sq-${cellAt(t.x, t.y)}"]`));
+    const size = set === "chess" ? 33.8 : 32;
+    for (const m of sh.filter((x) => Math.abs(x.w - size) < 0.3)) { const at = cellAt(m.x - (44.525 - size) / 2, m.y - (44.525 - size) / 2); compare(scr, `piece ${at}`, shapeOf(m), await box(page, `[data-testid="sq-${at}"] .tg-man`)); }
+    if (set === "chess") for (const l of S.lines.filter((l) => l.base > 170 && l.base < 520)) { const at = cellAt(l.left - 8, l.base - 25); left(scr, `letter ${at}`, l, await line(page, `[data-testid="sq-${at}"] .tg-man`)); }
+  },
+  async walk(page, stub) {
+    if (set === "chess") {
+      // the con by agreement (the frame's, for the games whose rules are the people's): claim, then wait for the other's yes
+      await page.click('[data-testid="con-claim"]');
+      const m = await movedBy(stub, id);
+      note(m?.move?.con === "won", `walk: «the round is mine» sends {con: "won"} (${JSON.stringify(m ?? null)})`);
+      await page.locator('[data-testid="con-waiting"]').waitFor({ timeout: 10000 }).catch(() => {});
+      note(await page.locator('[data-testid="con-waiting"]').count() === 1 && await page.locator('[data-testid^="con-"]:is(button)').count() === 0, "walk: then the frame waits for the other's agreement, no button");
+      return;
+    }
+    await page.click('[data-testid="sq-d4"]');
+    note(await page.locator('[data-testid="sq-d4"] .tg-man[data-picked]').count() === 1, "walk: a tap on my man at d4 picks it (the yellow ring)");
+    await page.click('[data-testid="sq-e5"]');
+    const m = await movedBy(stub, id);
+    note(m?.move?.from === "d4" && m?.move?.to === "e5", `walk: then e5 sends {move: {from: "d4", to: "e5"}} (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="sq-e5"] .tg-man[data-stand="mine"]').waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="sq-e5"] .tg-man[data-stand="mine"]').count() === 1, "walk: the man stands on e5 after the node's answer");
+  },
+});
+LATER.push({
+  name: "backgammon", nth: 11, ready: '[data-testid="die"] >> nth=1',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "field", shapeOf(sh[4]), await box(page, ".tg-bg"));
+    compare(scr, "bar", shapeOf(sh.find((x) => Math.abs(x.w - 19.9) < 0.3)), await box(page, ".tg-bg-bar"));
+    const dice = sh.filter((x) => Math.abs(x.w - 29.9) < 0.3);
+    for (let i = 0; i < 2; i++) compare(scr, `die ${i + 1}`, shapeOf(dice[i]), await box(page, '[data-testid="die"]', i));
+    const pips = sh.filter((x) => Math.abs(x.w - 5.2) < 0.3 && x.x < dice[0].x + dice[0].w);
+    for (let i = 0; i < pips.length; i++) compare(scr, `five's pip ${i + 1}`, shapeOf(pips[i]), await box(page, '[data-testid="die"] .tg-pip[data-on]', i));
+  },
+  async walk(page, stub) {
+    await page.click('[data-testid="moved"]');
+    const m = await movedBy(stub, "t12");
+    note(m?.move?.move === true, `walk: «move made» sends {move: {move: true}} (${JSON.stringify(m ?? null)})`);
+  },
+});
+LATER.push({
+  name: "dominoes", nth: 12, ready: '[data-testid="hand-bone"] >> nth=4',
+  async compare(page, S, scr) {
+    const sh = S.shapes;
+    compare(scr, "panel height", [sh[4].h], [(await box(page, ".tg-panel"))[3]]);
+    const standing = sh.filter((x) => Math.abs(x.w - 29.9) < 0.3 && Math.abs(x.h - 59.7) < 0.3);
+    const lying = sh.filter((x) => Math.abs(x.w - 59.7) < 0.3 && Math.abs(x.h - 29.9) < 0.3);
+    const line = [standing[0], ...lying.filter((x) => x.y < 350), standing[1]];
+    for (let i = 0; i < line.length; i++) compare(scr, `line bone ${i + 1}`, shapeOf(line[i]), await box(page, '[data-testid="line-bone"]', i));
+    const hand = lying.filter((x) => x.y >= 350);
+    for (let i = 0; i < hand.length; i++) compare(scr, `hand bone ${i + 1}`, shapeOf(hand[i]), await box(page, '[data-testid="hand-bone"] .tg-bone', i));
+  },
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="hand-bone"]').nth(2).isDisabled(), "walk: 2:3 fits no end and takes no tap");
+    await page.locator('[data-testid="hand-bone"]').first().click();
+    const m = await movedBy(stub, "t13");
+    note(m?.move?.play === "0:6" && m?.move?.end === "left", `walk: 0:6 goes to the left end, its only match (${JSON.stringify(m ?? null)})`);
+    await page.locator('[data-testid="line-bone"]').nth(5).waitFor({ timeout: 10000 }).catch(() => {});
+    note(await page.locator('[data-testid="line-bone"]').count() === 6, "walk: the line has six bones after the node's answer");
+  },
+});
+
+LATER.push({
+  name: "checkers-agree", nth: 13, ready: '[data-testid="con-agree"]', compare: null,
+  async walk(page, stub) {
+    note(await page.locator('[data-testid="con-claim"]').count() === 0, "walk: with Nino's claim standing, no claim of mine is offered");
+    await page.click('[data-testid="con-agree"]');
+    const m = await movedBy(stub, "t14");
+    note(m?.move?.con === "agree" && m?.seq === 7, `walk: «agree» sends {con: "agree"} on the board's seq (${JSON.stringify(m ?? null)})`);
+  },
+});
+
+for (const g of LATER) {
+  const st = nodeStub();
+  const o = await open(browser, PREVIEW + "/", 390, { screen: "w3g", prepare: st.prepare });
+  await registerFull(o.page); await toTable(o.page, g.nth);
+  await o.page.locator(g.ready).first().waitFor({ timeout: 20000 });
+  if (g.compare && want(g.name)) {
+    const S = sheetOf(g.name);
+    await settle(o.page);
+    await tableFrame(o.page, g.name, S);
+    await g.compare(o.page, S, g.name);
+    await shot(o.page, `table-${g.name}`);
+  }
+  await overflowAt(o.page, `table-${g.name}`, 390);
+  await g.walk(o.page, st);
+  await o.ctx.close();
+}
+
+for (const w of [375, 320]) {
+  const s2 = nodeStub();
+  const o = await open(browser, PREVIEW + "/", w, { screen: "w3g", prepare: s2.prepare });
+  await registerFull(o.page); await toTable(o.page); await settle(o.page);
+  await overflowAt(o.page, "table-four", w);
+  await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+  await o.page.locator('[data-testid="table-open"]').nth(1).click(); await o.page.locator('[data-testid="dot"]').nth(24).waitFor({ timeout: 20000 });
+  await settle(o.page); await overflowAt(o.page, "table-dots", w);
+  await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+  await o.page.locator('[data-testid="table-open"]').nth(2).click(); await o.page.locator('[data-testid="key-p"]').waitFor({ timeout: 20000 });
+  await settle(o.page); await overflowAt(o.page, "table-hangman", w);
+  for (const g of LATER) {
+    await o.page.click('[data-testid="table-back"]'); await o.page.waitForSelector('[data-screen="tables"]', { timeout: 20000 });
+    await o.page.locator('[data-testid="table-open"]').nth(g.nth).click(); await o.page.locator(g.ready).first().waitFor({ timeout: 20000 });
+    await settle(o.page); await overflowAt(o.page, `table-${g.name}`, w);
+  }
+  await o.ctx.close();
+}
+
+await browser.close();
+
+// ── report ──
+if (rows.length) {
+  const wN = Math.max(...rows.map((r) => r.name.length)), wE = Math.max(...rows.map((r) => r.exp.length)), wA = Math.max(...rows.map((r) => r.act.length));
+  console.log(`${"screen".padEnd(12)} ${"element".padEnd(wN)}  ${"expected".padEnd(wE)}  ${"actual".padEnd(wA)}  ${"delta".padEnd(20)} ok`);
+  console.log(`(box = left,top,width,height; text = left or right,baseline; px; locale ${LOCALE}; tolerance ${TOL} px)`);
+  for (const r of rows) console.log(`${r.screen.padEnd(12)} ${r.name.padEnd(wN)}  ${r.exp.padEnd(wE)}  ${r.act.padEnd(wA)}  ${r.delta.padEnd(20)} ${r.ok ? "ok" : "NO"}`);
+  const per = {};
+  for (const r of rows) { per[r.screen] ??= [0, 0]; per[r.screen][1]++; if (r.ok) per[r.screen][0]++; }
+  console.log(`per sheet: ${Object.entries(per).map(([s, [g, n]]) => `${s} ${g}/${n}`).join("; ")}`);
+}
+for (const n of notes) console.log(`${n.bad ? "DEFECT" : "ok    "} ${n.text}`);
+console.log(csp.length ? `DEFECT console/CSP errors (${csp.length}): ${[...new Set(csp)].slice(0, 8).join(" | ")}` : "ok     console/CSP errors: none");
+const good = rows.filter((r) => r.ok).length;
+const clean = !notes.some((n) => n.bad) && !csp.length;
+console.log(GEOMETRY ? `measure-app-w3-games: ${good} of ${rows.length} within ${TOL}px; notes ${clean ? "clean" : "DEFECTS"}` : `measure-app-w3-games[${TAG}]: fonts, overflow, walks, CSP ${clean ? "clean" : "DEFECTS"}`);
+process.exit(good === rows.length && clean ? 0 : 1);

@@ -1,0 +1,185 @@
+/* Tables and the new-table wizard (sheets mobile w3_tables, w3_new-table-1..3): sizes read off the sheets (390 px, the canvas
+   388 wide inside it, 1 pt = 1.3333 px); app/src/screens/tables/tables.css uses them. */
+:root {
+  --tb-title-top: 22px;
+  --tb-sub-gap: 4px;
+  --tb-sheet-gap: 20px;
+  --tb-pad-top: 21.9px;
+  --tb-new-h: 49.75px;
+  --fs-tb-new: 15px;
+  --tb-gap: 11.94px;           /* between rows, and the new-table button to the first row */
+  --tb-row-pad: 15.92px;
+  --tb-row-r: 24px;
+  --tb-face: 51.73px;
+  --tb-face-r: 18px;
+  --tb-face-gap: 14px;
+  --icon-tb-face: 22px;
+  --fs-tb-name: 16px;
+  --lh-tb-line: 19.9px;
+  --fs-tb-meta: 13px;
+  --tb-meta-lift: 1.2px;       /* the DOM's baseline of the small line sits above the sheet's */
+  --tb-watch-w: 65.67px;
+  --tb-watch-h: 31.84px;
+  --fs-tb-watch: 13px;
+  --tb-watch-gap: 12px;
+  --tb-mine-gap: 8px;
+  /* the wizard */
+  --nt-steps-lift: -2.6px;     /* the step words start above the bar's lower edge */
+  --nt-sheet-gap: 17.9px;      /* the bars to the sheet's top edge */
+  --nt-pad-top: 19.7px;
+  --fs-nt-title: 26px;
+  --nt-title-gap: 3.4px;
+  --nt-lead-gap: 13.3px;
+  --nt-group-gap: 13.6px;      /* a group's chips to the next label */
+  --nt-grid-top: 9.5px;        /* the title's baseline to the games */
+  --nt-grid-gap: 7.96px;
+  --nt-game-h: 95.51px;
+  --nt-game-r: 22px;
+  --nt-game-pad: 12.9px;
+  --nt-game-face: 34px;
+  --icon-nt-face: 16px;
+  --fs-nt-game: 13.5px;
+  --nt-game-ring: 3px;
+  --nt-hint-gap: 12px;
+  --nt-counter-gap: 6.1px;     /* the name's box to its counter */
+  --nt-face-wash: rgba(255, 255, 255, .55);
+  --tg-bar-end: 12px;
+  --lh-tg-title: 20.9px;
+  --tg-faces-top: 13.4px;
+  --tg-side: 21.9px;
+  --tg-side-end: 23.9px;
+  --tg-face: 39.8px;
+  --tg-face-gap: 8.2px;
+  --fs-tg-face: 15px;
+  --fs-tg-me: 14px;
+  --tg-ring-stroke: 4px;
+  --tg-ring-aa: 0.5px;
+  --fs-tg-ring: 12px;
+  --tg-sheet-gap: 17.9px;
+  --tg-pad-top: 21.9px;
+  --tg-foot-bottom: 25.4px;
+  --tg-panel-pad: 6.2px;
+  --tg-line-h: 44px;
+  --tg-line-pad: 18px;
+  --tg-chips-top: 16px;
+  --tg-chip-gap: 7.8px;
+  --tg-chip-h: 39.8px;
+  --tg-chip-pad: 14px;
+  --fs-tg-chip: 13px;
+  --tg-cell: 38.6px;
+  --tg-cell-gap: 12.2px;
+  --tg-cell-line: 1px;
+  --c-board: #3A3157;
+  --c-cell-line: #4A4070;
+  --c-ring-rest: #3D3557;
+  --tg-dot: 9.9px;
+  --tg-dot-pitch: 59.35px;
+  --tg-dots-inset: 18.5px;
+  --tg-edge-hit: 24px;
+  --tg-edge-line: 4px;
+  --c-box-mine: #6B5878;
+  --c-box-theirs: #5E5A6E;
+  --tg-gallows-w: 147px;
+  --tg-gallows-h: 174.7px;
+  --tg-gallows-top: 14px;
+  --tg-gallows-start: 20.6px;
+  --tg-mask-top: 8px;
+  --tg-slot: 24px;
+  --tg-slot-h: 30px;
+  --tg-slot-gap: 6px;
+  --tg-slot-line: 3px;
+  --fs-tg-slot: 22px;
+  --tg-keys-top: 25.8px;
+  --tg-key-w: 28.9px;
+  --tg-key-h: 33.8px;
+  --tg-key-gap: 3.9px;
+  --tg-key-row-gap: 6px;
+  --tg-key-r: 8px;
+  --fs-tg-key: 13px;
+  --tg-keys-bottom: 0px;
+  --tg-keys-shift: -2.3px;
+  --tg-piece: 33.8px;
+  --tg-hint: 10.8px;
+  --tg-sq-line: 1px;
+  --tg-field-r: 2px;
+  --tg-man: 32px;
+  --tg-pick-line: 3px;
+  --tg-pick-gap: 3px;
+  --tg-bg-h: 277.6px;
+  --tg-bg-pad: 9.9px;
+  --tg-bg-gap: 0px;
+  --tg-bar-w: 19.9px;
+  --tg-point-gap: 30px;
+  --tg-dice-start: 19.8px;
+  --tg-dice-gap: 9.9px;
+  --tg-die: 29.9px;
+  --tg-die-r: 6px;
+  --tg-pip: 5.2px;
+  --tg-pip-pad: 3.5px;
+  --c-point-a: #4A4070;
+  --c-point-b: #5A4E7E;
+  --c-die: #F7F4FB;
+  --c-pip: #121212;
+  --tg-dom-h: 284.5px;
+  --tg-line-top: 97.5px;
+  --tg-line-start: 23.9px;
+  --tg-line-gap: 3.9px;
+  --tg-hand-top: 73.6px;
+  --tg-hand-start: 29.9px;
+  --tg-hand-gap: 5.9px;
+  --tg-bone-long: 59.7px;
+  --tg-bone-short: 29.9px;
+  --tg-bone-r: 5px;
+  --tg-dpip: 5.6px;
+  --tg-dpip-pad: 2.6px;
+  /* battleship: the other's sea 10×10 on the panel, found ships as bars, my own sea small under it */
+  --tg-sea-pad: 2.99px;
+  --tg-sea-gap: 5.97px;
+  --tg-sea-r: 8px;
+  --tg-sea-mark: 17.81px;
+  --tg-sea-miss: 7px;
+  --tg-own-w: 140px;
+  --tg-own-gap: 2px;
+  --tg-own-r: 2px;
+  /* chapayev: 8×8 cells filling the panel, a piece 72% of a cell; the picked piece's ring, a reachable cell's dot, the aim's line */
+  --tg-pc: 32.03px;
+  --tg-pc-ring: 3px;
+  --tg-pc-reach: 8px;
+  --tg-aim-w: 0.14;
+  /* cards (durak, poker): every number but the colours and radii is px of the sheets' 356.18 px panel (unitless), scaled with
+     the panel's width by tables.css; a suit's mark has the ink box the sheet draws for it */
+  --tg-dk-ref: 356.18;
+  --tg-dk-r: 6px;
+  --tg-dk-r2: 4px;
+  --tg-dk-inset: 3.97;
+  --tg-rank-fs: 15.6;
+  --tg-rank-x: 7.5;
+  --tg-rank-y: 6.93;
+  --tg-rank-sx: 0.83;
+  --tg-rank-ls10: -0.1em;
+  --tg-suit-dy: 3.5;
+  --tg-suit-h-w: 12.8;
+  --tg-suit-h-h: 12.85;
+  --tg-suit-d-w: 12.8;
+  --tg-suit-d-h: 16.45;
+  --tg-suit-s-w: 11.4;
+  --tg-suit-s-h: 15.6;
+  --tg-suit-c-w: 12.81;
+  --tg-suit-c-h: 16.47;
+  /* poker's cards (49.75 × 69.64): the suits stand on one line, so each is lifted by its own height */
+  --tg-pk-dy-c: 3.03;
+  --tg-pk-dy-d: 3.03;
+  --tg-pk-dy-s: 3.48;
+  --tg-pk-dy-h: 3.92;
+  --tg-pk-fs: 12;
+  --tg-chip-d: 27.85;
+  --tg-chip-dx: 11.94;
+  --tg-chip-dy: 5.97;
+  --tg-pk-stack-gap: 4;
+  --c-card: #F7F4FB;
+  --c-suit-red: #D93A4B;
+  --c-suit-black: #121212;
+  --tg-chat-cell: 34.4px;
+  --tg-chat-gap: 10.8px;
+  --tg-chat-pad: 5.4px;
+}

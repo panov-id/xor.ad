@@ -8,7 +8,7 @@ const PREVIEW = process.env.PREVIEW_URL ?? "http://localhost:4174";
 // The dev server is the stand build (VITE_STAND=1): it reads the grace from sessionStorage "xor-grace-ms" (app/src/vault.ts).
 const DEV = process.env.DEV_URL ?? "http://localhost:5174";
 const PIN = "483915";
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements|inbox|likes|matches|tables|chats)(\/|$)/;
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 const phrase = (n) => ({ id: `ph-${n}`, text: `Walk phrase number ${n}`, mode: "walk", lang: "en", like_count: n });
 const ITEMS = [phrase(1), phrase(2), phrase(3)];
@@ -17,7 +17,7 @@ const results = [];
 const check = (ok, text) => { results.push({ ok, text }); console.log(`${ok ? "PASS" : "FAIL"} ${text}`); };
 
 // awayIn: seconds from the first profile read to the step away's end (null: no step away).
-async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
+async function open(browser, { base = PREVIEW, graceMs, awayIn = null, game = null } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: "en-US" });
   if (graceMs !== undefined) await ctx.addInitScript((g) => { sessionStorage.setItem("xor-grace-ms", String(g)); }, graceMs);
   await ctx.addInitScript(() => {
@@ -31,6 +31,8 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     };
   });
   let share = null, until = null;
+  const gameMoves = [];   // a talk's game (G): what the board sent to POST /chats/<id>/game/moves
+  const said = [];
   await ctx.route("**/*", async (route) => {
     const req = route.request(), u = new URL(req.url());
     if (!["fetch", "xhr"].includes(req.resourceType()) || !NODE_PATH.test(u.pathname)) return route.fallback();
@@ -40,11 +42,28 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
     if (key === "POST /identities") { share = JSON.parse(req.postData()).share; return json(200, { identity_id: "id-stub", session_id: "sess-stub" }); }
     if (key === "POST /vault/share") return json(200, { share });
     if (key === "GET /feed") return json(200, { items: ITEMS, next: null });
+    // the composer (12): a phrase out at once, the node's limits
+    if (key === "POST /feed") { said.push(JSON.parse(req.postData())); return json(200, { id: "ph-new" }); }
+    if (key === "GET /limits") return json(200, { phrase_length: 128, chat_ciphertext_chars: 8000 });
     if (key === "GET /identities/me") {
       if (awayIn !== null && until === null) until = Math.floor(Date.now() / 1000) + awayIn;
       return json(200, { identity_id: "id-stub", name: "Alex", ...(until ? { stepped_away_until: until } : {}) });
     }
     if (key === "GET /statements") return json(200, []);
+    if (key === "POST /matches/m1/consent") return json(200, { state: "waiting" });
+    if (key === "GET /likes") return json(200, { items: [{ kind: "phrase", id: "p1", text: "Who has a ladder?", mode: "alone", like_count: 4, state: "liked", liked_at: 0 }], next: null });
+    if (key === "GET /inbox") return json(200, { items: [{ kind: "match", id: "m1", name: "Nino", age: 27, waiting_for_you: false, state: "proposed", phrase: { text: "Backgammon tonight?", mode: "alone" } }, { kind: "chat", id: "c1", name: "Nino", age: 27, state: "open", chat_expires_at: Math.floor(Date.now() / 1000) + 1800 }], events: {} });
+    if (key === "GET /tables") return json(200, { items: [{ id: "t1", game: "grid", set: "four", playing: 2, free_seats: 0, watching: 0, like_count: 0 }], next: null, mine: [] });
+    if (key === "GET /tables/t1") return json(200, { id: "t1", class: "grid", set: "four", seat: 1, is_playing: true, playing: 2, watching: 0, like_count: 0, lines: [],
+      seats: [{ seat: 1, name: "Alex", role: "playing" }, { seat: 2, name: "Nino", role: "playing" }],
+      board: { seq: 1, state: { grid: { cells: {}, claim: null, rules: "four" } }, turn: 1, score: {}, expires_at: Math.floor(Date.now() / 1000) + 200, pending: null } });
+    if (key === "POST /tables/t1/ticket") return json(503, { error: { code: "unavailable" } });
+    // the chat (C1-C3): the node keeps no wrap and answers no chat room — the pane stands on its row alone.
+    // 503, not 404: a ticket's 404 is the chat's end (room.ts), and the walks need it open
+    // a talk's game (G): the view the node gives (ChatGames.view), and the move the board sends (ChatGames.move)
+    if (game && key === `GET /chats/chat-walk/game`) return json(200, game);
+    if (game && key === `POST /chats/chat-walk/game/moves`) { const b = JSON.parse(req.postData() ?? "{}"); gameMoves.push(b); return json(200, { ...game, board: { ...game.board, seq: game.board.seq + 1, turn: 2 } }); }
+    if (u.pathname.startsWith("/chats/")) return json(503, { error: "unavailable" });
     if (key === "DELETE /away") { until = null; return route.fulfill({ status: 204 }); }
     if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
     if (key === "POST /legal/accept") return json(200, {});
@@ -53,7 +72,7 @@ async function open(browser, { base = PREVIEW, graceMs, awayIn = null } = {}) {
   const page = await ctx.newPage();
   page.on("pageerror", (e) => console.log(`pageerror: ${e}`));
   await page.goto(base + "/", { waitUntil: "load" });
-  return { ctx, page };
+  return { ctx, page, said, gameMoves };
 }
 
 async function registerFull(page, { land = "feed" } = {}) {
@@ -171,6 +190,135 @@ try {
     check(!seen.some((x) => /:(splash|register)@/.test(x)), `7b four Backs after the registration draw no gate (${seen.join(", ")})`);
     await ctx.close();
   }
+  // G. a talk's game: the table's board in the chat (chat-game.tsx GameBoard → boards.tsx Board); a move goes to ChatGames.move,
+  // POST /chats/<id>/game/moves with the board's seq — four in a row by a column, backgammon by «move made»
+  for (const [name, view, tap, expect] of [
+    ["four", { class: "grid", set: "four", your_seat: 1, pending: null, board: { seq: 9, state: { grid: { cells: { d1: { seat: 2, piece: "O" } }, claim: null, rules: "four" } }, turn: 1, score: {}, expires_at: null } },
+      '[data-testid="four-col-f"]', { seq: 9, move: { column: "f" } }],
+    ["backgammon", { class: "dice", set: "backgammon", your_seat: 1, pending: null, board: { seq: 4, state: { dice: { rolled: [5, 3], claim: null } }, turn: 1, score: {}, expires_at: null } },
+      '[data-testid="moved"]', { seq: 4, move: { move: true } }],
+    ["dots", { class: "dots", set: "4x4", your_seat: 1, pending: null, board: { seq: 3, state: { dots: { n: 4, edges: [], boxes: {} } }, turn: 1, score: {}, expires_at: null } },
+      '[data-testid="edge-h:0:0"]', { seq: 3, move: { edge: "h:0:0" } }],
+    ["hangman", { class: "word", set: "en", your_seat: 1, pending: null, board: { seq: 5, state: { word: { setter: 2, set: "en", alphabet: [..."abcdefghijklmnopqrstuvwxyz"], word: null, mask: "ka__", guessed: ["k", "a"], misses: 0 } }, turn: 1, score: {}, expires_at: null } },
+      '[data-testid="key-r"]', { seq: 5, move: { letter: "r" } }],
+    ["reversi", { class: "grid", set: "reversi", your_seat: 1, pending: null, board: { seq: 2, state: { grid: { cells: { d5: { seat: 1, piece: "O" }, e4: { seat: 1, piece: "O" }, d4: { seat: 2, piece: "O" }, e5: { seat: 2, piece: "O" } }, claim: null, rules: "reversi" } }, turn: 1, score: {}, expires_at: null } },
+      '[data-testid="cell-c4"]', { seq: 2, move: { to: "c4" } }],
+    ["dominoes", { class: "free", set: "double-six", your_seat: 1, pending: null, board: { seq: 6, state: { free: { hands: { "1": ["0:6"], "2": { count: 5 } }, boneyard: { count: 4 }, line: ["6:3"] } }, turn: 1, score: {}, expires_at: null } },
+      '[data-testid="hand-bone"]', { seq: 6, move: { play: "0:6", end: "left" } }],
+  ]) {
+    const ROW = { kind: "chat", id: "chat-walk", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page, gameMoves } = await open(browser, { base: DEV, game: view }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
+    await page.click('[data-testid="quick-game"]');
+    const board = await page.locator(tap).waitFor({ timeout: 15000 }).then(() => true, () => false);
+    const live = board && await page.locator(tap).isEnabled();   // a board without a move (out of turn, or none passed) is shut: said, not hung on
+    if (live) await page.click(tap);
+    for (let k = 0; k < 40 && gameMoves.length === 0; k++) await page.waitForTimeout(100);
+    check(live && JSON.stringify(gameMoves[0]) === JSON.stringify(expect), `G ${name} in a talk: the table's board stands in the game (${board ? (live ? "open" : "shut") : "absent"}), its move goes to ChatGames.move (${JSON.stringify(gameMoves[0] ?? null)})`);
+    await ctx.close();
+  }
+  // C1. a chat over the feed (App.tsx openChat pushes i + 1; its row rides in the entry): C1a Back → the feed, address too;
+  // C1b the chat's own back is the same; C1c Forward onto the chat entry opens it again from the row the entry keeps.
+  {
+    const ROW = { kind: "chat", id: "chat-walk", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    const openIt = async () => { await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 }); };
+    await openIt();
+    check(new URL(page.url()).pathname === "/chat", `C1 the chat opens at /chat (url ${new URL(page.url()).pathname}, state ${await state(page)})`);
+    await page.goBack(); await settle(page);
+    let at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "feed" && new URL(page.url()).pathname === "/feed", `C1a chat → Back lands on the feed (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "chat" && (await page.locator(".ch-who h1").textContent()) === "Nino, 27", `C1c Forward onto the chat entry opens it from its row (screen ${at})`);
+    await page.click('[data-testid="chat-back"]'); await settle(page);
+    at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at === "feed" && new URL(page.url()).pathname === "/feed", `C1b the chat's own back lands on the feed (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await ctx.close();
+  }
+  // C2. the chat's «…» sheet rides its own entry (Chat.tsx openMenu): C2a Back closes it and leaves the chat open;
+  // C2b the shade closes it the same way, no entry left behind; C2c «End the talk» asks once more, «Cancel» returns to the rows.
+  {
+    const ROW = { kind: "chat", id: "chat-menu", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
+    const depth = () => page.evaluate(() => history.length);
+    const before = await depth();
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.goBack(); await settle(page);
+    let menus = await page.locator('[data-testid="chat-menu"]').count();
+    let at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(menus === 0 && at === "chat" && new URL(page.url()).pathname === "/chat", `C2a Back closes the «…» sheet, the chat stays (sheets ${menus}, screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.click('[data-testid="menu-close"]', { position: { x: 20, y: 20 } }); await settle(page);
+    menus = await page.locator('[data-testid="chat-menu"]').count();
+    const sheetLeft = await page.evaluate(() => history.state?.sheet ?? null);
+    check(menus === 0 && sheetLeft === null, `C2b the shade closes it and leaves no sheet entry (sheets ${menus}, state.sheet ${sheetLeft}, history ${before}→${await depth()})`);
+    await page.click('[data-testid="chat-more"]'); await page.waitForSelector('[data-testid="chat-menu"]');
+    await page.click('[data-testid="end"]');
+    const asks = await page.locator('[data-testid="end-confirm"]').count();
+    await page.click('[data-testid="menu-cancel"]');
+    const rows = await page.locator('[data-testid="end"]').count();
+    check(asks === 1 && rows === 1, `C2c «End the talk» asks once more and «Cancel» returns to the rows (confirm ${asks}, rows ${rows})`);
+    await ctx.close();
+  }
+  // C3. an ended chat (the row says so): the tombstone, no field, no «…»; its back is the feed
+  {
+    const ROW = { kind: "chat", id: "chat-ended", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "ended",
+      chat_expires_at: Math.floor(Date.now() / 1000), my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-testid="tombstone"]', { timeout: 15000 });
+    const field = await page.locator('[data-testid="text"], [data-testid="chat-more"]').count();
+    await page.click('[data-testid="chat-back"]'); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(field === 0 && at === "feed", `C3 an ended chat shows the tombstone without a field or «…», and its back is the feed (field/more ${field}, screen ${at})`);
+    await ctx.close();
+  }
+  // G2. the game chip (w3_chat «Backgammon?»): the game takes the lines' place and the chips', with no game yet it
+  // offers one; «Hide the game» gives the lines back
+  {
+    const ROW = { kind: "chat", id: "chat-game", me: "me", key_epoch: 1, rekey_requested: false,
+      peer: { key_epoch: 1, identity_id: "peer", identity_public_key: "pk" }, name: "Nino", age: 27, state: "open",
+      chat_expires_at: Math.floor(Date.now() / 1000) + 3600, my_span: 60 };
+    const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
+    await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
+    await page.click('[data-testid="quick-game"]'); await page.waitForSelector('[data-testid="chat-game"]');
+    const open_ = { chips: await page.locator(".ch-quick").count(), lines: await page.locator('[data-testid="lines"]').count(), propose: await page.locator('[data-testid="game-propose"]').count() };
+    await page.click('[data-testid="game-hide"]'); await settle(page);
+    const shut = { game: await page.locator('[data-testid="chat-game"]').count(), lines: await page.locator('[data-testid="lines"]').count(), chips: await page.locator(".ch-quick").count() };
+    check(open_.chips === 0 && open_.lines === 0 && open_.propose === 1 && shut.game === 0 && shut.lines === 1 && shut.chips === 1,
+      `G2 the game chip opens the game in the lines' place, «Hide the game» gives them back (open ${JSON.stringify(open_)}, hidden ${JSON.stringify(shut)})`);
+    await ctx.close();
+  }
+  // 12. the feed's «say it» opens the composer at /write over the feed: 12a Back → the feed; 12b its own back the same;
+  // 12c a phrase said goes to the node with the feed's circle and lands on the feed
+  {
+    const { ctx, page, said } = await open(browser); await registerFull(page);
+    const at = async () => [await page.locator("main[data-screen]").first().getAttribute("data-screen"), new URL(page.url()).pathname];
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]');
+    const opened = await at();
+    await page.goBack(); await settle(page);
+    const a = await at();
+    check(opened.join() === "composer,/write" && a.join() === "feed,/feed", `12a «say it» opens /write, Back lands on the feed (${opened} → ${a})`);
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]');
+    await page.click('[data-testid="composer-back"]'); await settle(page);
+    const b = await at();
+    check(b.join() === "feed,/feed", `12b the composer's own back lands on the feed (${b})`);
+    await page.click('[data-testid="write"]'); await page.waitForSelector('[data-screen="composer"]');
+    await page.fill('[data-testid="text"]', "Backgammon in the yard tonight?");
+    await page.click('[data-testid="send"]'); await page.waitForSelector('[data-screen="feed"]', { timeout: 15000 }).catch(() => null);
+    const c = await at();
+    check(c.join() === "feed,/feed" && said.length === 1 && said[0].text === "Backgammon in the yard tonight?" && said[0].area_radius === 1000 && said[0].mode === "alone",
+      `12c a phrase said goes out (${JSON.stringify(said[0] ?? null)}) and lands on the feed (${c})`);
+    await ctx.close();
+  }
   // 4. Me → Move → Back: Me again, not the feed (App.tsx toMove pushes i: 1; popstate → seatScreen("/me"))
   {
     const { ctx, page } = await open(browser); await registerFull(page);
@@ -179,6 +327,79 @@ try {
     await page.goBack(); await settle(page);
     const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
     check(at === "me" && new URL(page.url()).pathname === "/me", `4 Me → Move → Back lands on Me (screen ${at}, url ${new URL(page.url()).pathname}, state ${await state(page)})`);
+    await ctx.close();
+  }
+  // 8. the talks tab (App.tsx tab: replaces the entry, as Me): /inbox, and Back from it draws no gate over the seat
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.locator('[data-testid="chat"]').first().waitFor({ timeout: 10000 });
+    check(new URL(page.url()).pathname === "/inbox", `8a the talks tab opens the inbox at ${new URL(page.url()).pathname}, state ${await state(page)}`);
+    await page.goBack({ timeout: 3000 }).catch(() => null); await settle(page);
+    const url = page.url();
+    const at = url.startsWith("http://localhost") ? await page.locator("main[data-screen]").first().getAttribute("data-screen").catch(() => "(none)") : "(left the app)";
+    check(at !== "splash" && at !== "register", `8b Back from the inbox draws no gate (screen ${at}, url ${url.startsWith("http://localhost") ? new URL(url).pathname : url})`);
+    await ctx.close();
+  }
+  // 9. inbox → «Offers» → what I am in on → Back: the inbox again (App.tsx toLikes pushes i: 1; popstate → seatScreen("/inbox"))
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]');
+    await page.locator('[data-testid="liked-card"]').first().waitFor({ timeout: 10000 });
+    const onLikes = new URL(page.url()).pathname;
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(onLikes === "/likes" && at === "inbox" && new URL(page.url()).pathname === "/inbox", `9 inbox → Offers (${onLikes}) → Back lands on the inbox (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]');
+    await page.click('[data-testid="likes-back"]'); await page.waitForSelector('[data-screen="inbox"]', { timeout: 10000 }).catch(() => null);
+    const at2 = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(at2 === "inbox" && new URL(page.url()).pathname === "/inbox", `9b likes' own back button → the inbox (screen ${at2}, url ${new URL(page.url()).pathname})`);
+    await ctx.close();
+  }
+  // 10. inbox → a face → the match → Back: the inbox (App.tsx toMatch pushes i: 1 with the row; popstate → seatScreen("/inbox"))
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.locator('[data-testid="open-match"]').first().click(); await page.waitForSelector('[data-screen="match"]', { timeout: 10000 }).catch(() => null);
+    const onMatch = new URL(page.url()).pathname, rowIn = (await state(page)).includes('"row"');
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(onMatch === "/match" && rowIn && at === "inbox" && new URL(page.url()).pathname === "/inbox", `10 inbox → a face (${onMatch}, row in the entry ${rowIn}) → Back lands on the inbox (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    const again = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(again === "match", `10b Forward brings the match back from its entry (screen ${again}, url ${new URL(page.url()).pathname})`);
+    await ctx.close();
+  }
+  // 11. the match → «Let's talk» (the other has not said yes) → the wait in place → its back and the system Back: the inbox
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
+    await page.locator('[data-testid="open-match"]').first().click(); await page.waitForSelector('[data-screen="match"]');
+    await page.click('[data-testid="talk"]'); await page.waitForSelector('[data-screen="match-waiting"]', { timeout: 10000 }).catch(() => null);
+    const waitUrl = new URL(page.url()).pathname;
+    await page.click('[data-testid="waiting-back"]').catch(() => null); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(waitUrl === "/match" && at === "inbox" && new URL(page.url()).pathname === "/inbox", `11 match → Let's talk → the wait (${waitUrl}) → its back → the inbox (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    const fwd = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    await page.goBack(); await settle(page);
+    const back = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(fwd === "match-waiting" && back === "inbox", `11b after my yes, Forward onto /match is the wait (screen ${fwd}), then Back: the inbox again (screen ${back})`);
+    await ctx.close();
+  }
+  // T1. the tables → a row's «Watch» → the table → Back: the list (App.tsx toTable pushes i: 1 with the id); T1b Forward: the table again
+  {
+    const { ctx, page } = await open(browser); await registerFull(page);
+    await page.click('[data-testid="tab-tables"]'); await page.waitForSelector('[data-screen="tables"]');
+    await page.locator('[data-testid="table-open"]').first().click(); await page.waitForSelector('[data-screen="table"]', { timeout: 10000 }).catch(() => null);
+    const onTable = new URL(page.url()).pathname, idIn = (await state(page)).includes('"id":"t1"');
+    await page.goBack(); await settle(page);
+    const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(onTable === "/table" && idIn && at === "tables" && new URL(page.url()).pathname === "/tables", `T1 tables → Watch (${onTable}, id in the entry ${idIn}) → Back lands on the list (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.goForward(); await settle(page);
+    const again = await page.locator("main[data-screen]").first().getAttribute("data-screen");
+    check(again === "table", `T1b Forward brings the table back from its entry (screen ${again}, url ${new URL(page.url()).pathname})`);
     await ctx.close();
   }
   // 5. the away screen (until an hour on) → Back: still the away screen

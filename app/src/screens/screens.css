@@ -162,17 +162,17 @@
 
 /* ── the list stagger (MOTION.md: items rise from 0.35 s, one every 0.08 s) ──
    --i is the item's place in the column; the screens' own first layers (header, mark) are not counted. */
-.reg-body > *, .gate-body > *, .fd-cards > .fd-card { --delay: calc(var(--t-item-start) + var(--i, 0) * var(--stagger-item)); }
-.reg-body > :nth-child(2), .gate-body > :nth-child(3), .fd-cards > :nth-child(2) { --i: 1; }
-.reg-body > :nth-child(3), .gate-body > :nth-child(4), .fd-cards > :nth-child(3) { --i: 2; }
-.reg-body > :nth-child(4), .gate-body > :nth-child(5), .fd-cards > :nth-child(4) { --i: 3; }
-.reg-body > :nth-child(5), .gate-body > :nth-child(6), .fd-cards > :nth-child(5) { --i: 4; }
-.reg-body > :nth-child(n+6), .gate-body > :nth-child(n+7), .fd-cards > :nth-child(n+6) { --i: 5; }
+.reg-body > *, .gate-body > *, .fd-col >.fd-card { --delay: calc(var(--t-item-start) + var(--i, 0) * var(--stagger-item)); }
+.reg-body > :nth-child(2), .gate-body > :nth-child(3), .fd-col >:nth-child(2) { --i: 1; }
+.reg-body > :nth-child(3), .gate-body > :nth-child(4), .fd-col >:nth-child(3) { --i: 2; }
+.reg-body > :nth-child(4), .gate-body > :nth-child(5), .fd-col >:nth-child(4) { --i: 3; }
+.reg-body > :nth-child(5), .gate-body > :nth-child(6), .fd-col >:nth-child(5) { --i: 4; }
+.reg-body > :nth-child(n+6), .gate-body > :nth-child(n+7), .fd-col >:nth-child(n+6) { --i: 5; }
 .gate-locked > :nth-child(2) { --i: 1; }
 .gate-locked > :nth-child(3) { --i: 2; }
 .gate-locked > :nth-child(4) { --i: 3; }
 .gate-locked > :nth-child(n+5) { --i: 4; }
-.fd-cards > .fd-card:nth-child(n) { animation-delay: var(--delay); }
+.fd-col >.fd-card:nth-child(n) { animation-delay: var(--delay); }
 
 /* ── a button waiting for the server (MOTION.md: the press wave 0.45 s, then a ring turns in place of the word) ──
    aria-busy is the state (the screens set it with the request and drop it with the answer). The wave sits behind the

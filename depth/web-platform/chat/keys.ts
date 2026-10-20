@@ -22,8 +22,8 @@
 // What is not here: the key reissue (§8.13, POST /chats/:id/rekey) — a chat
 // whose epochs differ says so and does not seal under the old keys.
 
-import type { Client } from "../../../depth/core/client.ts";
-import { type Conversation, Ephemeral, safetyCode, unwrapConversation, verifyHalf } from "../../../depth/core/seal.ts";
+import type { Client } from "../../core/client.ts";
+import { type Conversation, Ephemeral, safetyCode, unwrapConversation, verifyHalf } from "../../core/seal.ts";
 
 export interface ChatRow {
   kind: "chat";
@@ -39,6 +39,27 @@ export interface ChatRow {
     ephemeral_public_key?: string;
     ephemeral_signature?: string;
   };
+}
+
+/** A chat as the inbox lists it (relay routes/inbox.ts): what a chat screen opens with, on both faces. */
+export type InboxChatRow = ChatRow & {
+  name: string;
+  age: number;
+  state: "open" | "ended";
+  chat_expires_at: number;
+  my_span: number;
+  opened_since?: boolean;
+  pending_messages?: number;
+  ending_soon?: boolean;
+  last_activity_at?: number;
+};
+
+/** The chat keys of a seated client: the long key's signing half from the copy the seat holds (registration,
+ * unlock, grace and a move all leave one — core unlock.ts openWith, enroll.ts), in memory only. */
+export async function chatKeysFor(client: Client): Promise<ChatKeys> {
+  const held = client.held;
+  if (!held) throw new Error("the client holds no long key");
+  return new ChatKeys(client, await held.signing());
 }
 
 export type Answer<T = Record<string, unknown>> = { status: number; body: T };

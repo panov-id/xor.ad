@@ -11,6 +11,7 @@
 // forwards /o/* to the node, vite.config.ts).
 
 import { useEffect, useState } from "react";
+import { CODE, type ExitState, readExit } from "../../../depth/core/offer_exit.ts";
 import { BRAND } from "../config.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
@@ -20,24 +21,9 @@ import { Actions, LinkButton } from "../ui/Links.tsx";
 import { EmptyState, Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
 
-type Exit = { domain: string; disabled: boolean };
-type State = { at: "loading" } | { at: "ok"; exit: Exit } | { at: "missing" } | { at: "failed" };
-
-export const CODE = /^[A-Za-z0-9_-]{4,64}$/;
-
-export async function readExit(code: string, fetcher: typeof fetch = fetch): Promise<State> {
-  if (!CODE.test(code)) return { at: "missing" };
-  try {
-    const r = await fetcher(`/o/${encodeURIComponent(code)}`, { headers: { accept: "application/json" } });
-    if (r.status === 404) return { at: "missing" };
-    if (r.status !== 200) return { at: "failed" };
-    const body = (await r.json()) as Partial<Exit>;
-    if (typeof body.domain !== "string" || typeof body.disabled !== "boolean") return { at: "failed" };
-    return { at: "ok", exit: { domain: body.domain, disabled: body.disabled } };
-  } catch {
-    return { at: "failed" };
-  }
-}
+// The reading of the exit lives in the core (depth/core/offer_exit.ts), one copy with the app shell.
+type State = ExitState;
+export { CODE, readExit };
 
 // Sheet 17, the exit screen: the storefront one is leaving, the domain whole
 // in the code block, "the author's link, we did not check it", continue or

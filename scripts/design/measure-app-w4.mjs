@@ -215,7 +215,7 @@ const { ctx, page } = await open(browser, PREVIEW + "/", 390, { screen: "w4", pr
 await registerFull(page);
 stub.s.docs = LATER;
 await page.click('[data-testid="tab-me"]'); await page.waitForSelector('[data-screen="me"]', { timeout: 20000 });
-await page.waitForFunction(() => /\d/.test(document.querySelector('[data-testid="me-name-age"]')?.textContent ?? ""), null, { timeout: 20000 });
+await page.locator('[data-testid="me-name-age"]', { hasText: /\d/ }).waitFor({ timeout: 20000 });
 note(new URL(page.url()).pathname === "/me", `walk: the tab bar's «me» opens Me at ${new URL(page.url()).pathname}`);
 
 // w4_me
@@ -411,15 +411,25 @@ if (want("statements")) {
   await page.waitForSelector('[data-testid="statement"]', { timeout: 20000 }); await settle(page);
   await frame(page, scr, S);
   compare(scr, "banner", shapeOf(sh[2]), await box(page, ".me-statement .me-banner"));
-  for (let i = 0; i < 4; i++) compare(scr, `hairline ${i + 1} (x,y,w)`, [sh[3 + i].x, sh[3 + i].y, sh[3 + i].w], (await box(page, ".me-pairs div", i)).slice(0, 3));
-  compare(scr, "appeal", shapeOf(sh[7]), await box(page, '[data-testid="statements-appeal"]'));
+  // The facts and the ground are prose (5ef374bf, parts.tsx Pairs "prose"): the value wraps under its label, so those
+  // rows are taller than the sheet's one-line rows. Of a prose row only the row's top and its label's left edge and
+  // baseline are compared; whatever stands below is expected lower by what the prose rows measured over the sheet's.
+  const rowH = sh[4].y - sh[3].y;
+  const prose = await page.locator(".me-pairs div").evaluateAll((els) => els.map((e) => e.classList.contains("me-pair--prose")));
+  let grown = 0;
+  for (let i = 0; i < 4; i++) {
+    const b = await box(page, ".me-pairs div", i);
+    compare(scr, `hairline ${i + 1} (x,y,w)`, [sh[3 + i].x, sh[3 + i].y + grown, sh[3 + i].w], b.slice(0, 3));
+    const lab = S.lines[3 + 2 * i];
+    left(scr, `label ${i + 1}`, { ...lab, base: lab.base + grown }, await line(page, ".me-pairs dt", i));
+    if (!prose[i]) right(scr, `value ${i + 1}`, { ...S.lines[4 + 2 * i], base: S.lines[4 + 2 * i].base + grown }, await line(page, ".me-pairs dd", i));
+    if (prose[i]) grown += b[3] - rowH;
+  }
+  note(prose.filter(Boolean).length === 2 && prose[0] && prose[1], `statements: the facts and the ground are the prose rows (${prose.join(",")}); rows below expected ${grown.toFixed(1)} px lower`);
+  compare(scr, "appeal", [sh[7].x, sh[7].y + grown, sh[7].w, sh[7].h], await box(page, '[data-testid="statements-appeal"]'));
   left(scr, "banner title", S.lines[1], await line(page, ".me-statement .me-banner strong"));
   left(scr, "banner text", S.lines[2], await line(page, ".me-statement .me-banner p"));
-  for (let i = 0; i < 4; i++) {
-    left(scr, `label ${i + 1}`, S.lines[3 + 2 * i], await line(page, ".me-pairs dt", i));
-    right(scr, `value ${i + 1}`, S.lines[4 + 2 * i], await line(page, ".me-pairs dd", i));
-  }
-  left(scr, "appeal label", S.lines[11], await line(page, '[data-testid="statements-appeal"] span'));
+  left(scr, "appeal label", { ...S.lines[11], base: S.lines[11].base + grown }, await line(page, '[data-testid="statements-appeal"] span'));
   await overflowAt(page, scr, 390); await shot(page, scr);
   await page.click('[data-testid="statements-appeal"]');
   note(await page.locator('[data-testid="statements-ways"]').isVisible(), "walk: Appeal opens the ways to appeal");
@@ -432,7 +442,11 @@ if (want("step-away")) {
   await enter(page, "me-away", "step-away");
   note((await page.getAttribute('[data-testid="away-go"]', "aria-disabled")) === "true", "step-away: nothing chosen at first, Step away shut (§8.2)");
   await page.click('[data-testid="away-hour"]');
-  await page.waitForFunction(() => !document.querySelector('[data-testid="away-price"]')?.textContent?.includes("…"), null, { timeout: 20000 }); await settle(page);
+  // Wait on what the next steps need, by locators (waitForFunction is Playwright's eval, which the page's CSP may refuse):
+  // the hour chosen, «Step away» open, the price counted.
+  await page.locator('[data-testid="away-hour"][aria-checked="true"]').waitFor({ timeout: 20000 });
+  await page.locator('[data-testid="away-go"]:not([aria-disabled])').waitFor({ timeout: 20000 });
+  await page.locator('[data-testid="away-price"]', { hasNotText: "…" }).waitFor({ timeout: 20000 }); await settle(page);
   await frame(page, scr, S);
   for (let i = 0; i < 3; i++) compare(scr, `chip ${i + 1}`, shapeOf(sh[2 + i]), await box(page, ".me-chip", i));
   for (let i = 0; i < 3; i++) compare(scr, `hairline ${i + 1} (x,y,w)`, [sh[5 + i].x, sh[5 + i].y, sh[5 + i].w], (await box(page, ".me-pairs div", i)).slice(0, 3));
@@ -487,7 +501,7 @@ if (want("me-reset")) {
   const S = sheet("me-reset"), sh = S.shapes, scr = "me-reset";
   await page.locator('[data-testid="me-reset"]').scrollIntoViewIfNeeded();
   await enter(page, "me-reset", "reset");
-  await page.waitForFunction(() => !document.querySelector('[data-testid="reset-price"]')?.textContent?.includes("…"), null, { timeout: 20000 });
+  await page.locator('[data-testid="reset-price"]', { hasNotText: "…" }).waitFor({ timeout: 20000 });
   await page.fill('[data-testid="reset-pin"]', "271828"); await page.locator('[data-testid="reset-pin"]').blur(); await settle(page);
   await frame(page, scr, S);
   compare(scr, "coral banner", shapeOf(sh[2]), await box(page, '[data-testid="reset-warning"]'));

@@ -4,14 +4,14 @@
 // and screens/logic/useFeed.ts, in this shell's frame. The same testids: cards, card, loading, error, quiet, more,
 // gone (data-why), hidden-undo, hidden-undo-error; new ones: retry, wider, radius-<m>.
 //
-// Not here yet: the «say it» chip and the composer, the place picker, search/menu in the header, the density line,
+// The «say it» chip opens the composer (Composer.tsx, w3_composer). Not here yet: the place picker, search/menu in the header, the density line,
 // the tables between phrases (a table item is skipped), one's own sent phrase over the list.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
 import { failedLine, label, say } from "../i18n";
 import { storedPlace } from "../place";
 import { Icon } from "../shell/Icon";
-import { flag, map, refresh, undo } from "../shell/icons";
+import { flag, map, pen, refresh, undo } from "../shell/icons";
 import { useSkeleton } from "../shell/loading";
 import { Skeleton } from "../shell/Skeleton";
 import { type Tab, TabBar } from "../shell/TabBar";
@@ -25,7 +25,23 @@ const radiusText = (r: Radius): string => {
   return say(w.key, { n: w.n });
 };
 
-export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => void }) {
+/** How many columns the list has: the CSS says (--fd-cols in tokens/wide.css), the page follows it as the window changes. */
+function useColumns(ref: { current: HTMLElement | null }): number {
+  const [n, setN] = useState(1);
+  useLayoutEffect(() => {
+    const read = () => {
+      if (!ref.current) return;
+      const v = parseInt(getComputedStyle(ref.current).getPropertyValue("--fd-cols"), 10);
+      setN(v >= 1 ? v : 1);
+    };
+    read();
+    addEventListener("resize", read);
+    return () => removeEventListener("resize", read);
+  }, [ref]);
+  return n;
+}
+
+export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (tab: Tab) => void; onCompose?: (radius: Radius) => void }) {
   const place = useRef(storedPlace()).current;
   const [radius, setRadius] = useState<Radius>(1000);
   const [items, setItems] = useState<FeedCard[]>([]);
@@ -38,6 +54,8 @@ export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => 
   const [liking, setLiking] = useState<string | null>(null);
   const [likeNote, setLikeNote] = useState<LikeOutcome | null>(null);
   const skeleton = useSkeleton(state === "loading");
+  const listRef = useRef<HTMLDivElement>(null);
+  const columns = useColumns(listRef);
 
   // The system Back closes an open card, it does not leave the feed: opening pushes an entry, the popstate lands the
   // card from the entry now under it, and the card's own «back» is that same Back (history.back) so the entry goes too.
@@ -134,7 +152,9 @@ export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => 
   return (
     <>
       <main className="screen fd-feed" data-screen="feed" inert={card ? true : undefined}>
+        <div className="fd-panel">
         <header className="fd-head">
+          <span className="fd-brand word" aria-hidden="true">sosed</span>
           <ul className="fd-chips" aria-label={say("web.feed.radius")}>
             {RADII.map((r) => (
               <li key={r}>
@@ -180,11 +200,16 @@ export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => 
             </div>
           )}
 
-          <ul className="fd-cards" data-testid="cards">
-            {cards.map((c, i) => (
-              <Tile key={c.id} card={c} tone={toneOf(c, i)} busy={liking === c.id} onOpen={() => openCard(c.id)} onLike={() => void likeFromTile(c)} />
+          {/* One column on a phone; on the wide sheets the tiles go to the columns by turns (the sheets' masonry), the count is tokens/wide.css's --fd-cols. */}
+          <div className="fd-cards" ref={listRef} data-testid="cards">
+            {Array.from({ length: columns }, (_, col) => (
+              <ul className="fd-col" key={col}>
+                {cards.map((c, i) => i % columns === col && (
+                  <Tile key={c.id} card={c} tone={toneOf(c, i)} busy={liking === c.id} onOpen={() => openCard(c.id)} onLike={() => void likeFromTile(c)} />
+                ))}
+              </ul>
             ))}
-          </ul>
+          </div>
           {state === "loading" && skeleton && (
             <div className="fd-skeletons" data-testid="loading"><Skeleton kind="card" /><Skeleton kind="card" /></div>
           )}
@@ -192,12 +217,20 @@ export function Feed({ client, onTab }: { client: Client; onTab?: (tab: Tab) => 
             <button type="button" className="cta cta-quiet" onClick={() => void load(next)} data-testid="more">{say("app.feed.more_cards")}</button>
           )}
         </section>
+        </div>
+        {/* «Say it» over the bar (w3_composer's way in): the composer opens with the feed's circle, the web's testid. */}
+        {onCompose && (
+          <button type="button" className="fd-say" onClick={() => onCompose(radius)} aria-label={say("app.compose.title")} data-testid="write"><Icon d={pen} /></button>
+        )}
         <TabBar active="feed" onSelect={onTab} />
       </main>
       {card && (
         <CardScreen
           client={client}
           card={card}
+          more={cards.filter((c) => c.id !== card.id).slice(0, 2).map((c) => ({ card: c, tone: toneOf(c, cards.indexOf(c)) }))}
+          onOpenMore={openCard}
+          onTab={onTab}
           tone={toneOf(card, Math.max(0, cards.findIndex((c) => c.id === card.id)))}
           onBack={closeCard}
           onLike={like}

@@ -9,7 +9,8 @@
 import { useState } from "react";
 import type { Client, Radius } from "../../../depth/core/client.ts";
 import { type BoardClass, Tables } from "../../../depth/core/tables.ts";
-import { classWord, setWord, tableRefusal } from "../api/tables.ts";
+import { GAMES, makeTableWords, seatsWord } from "../../../depth/core/new_table.ts";
+import { classWord, tableRefusal } from "../api/tables.ts";
 import { say } from "../locales/say.ts";
 import { Button } from "../ui/Button.tsx";
 import { Card, CardOpen, openerIds } from "../ui/Card.tsx";
@@ -38,34 +39,9 @@ export const CLASSES: Array<{ value: BoardClass; sets: string[]; most: number }>
   { value: "physics", sets: ["chapayev"], most: 4 },
 ];
 
-// The twelve games of step 1, in the sheets' order (scripts/design/adaptive-sheets.py
-// GAMES): each is a class and the sets it offers as variants. Variants are what the
-// node plays — a variant the sheets draw and the node lacks is not offered
-// (GOALS §6 question 9, default «as in the node»).
-export const GAMES: Array<{ id: string; klass: BoardClass; sets: string[]; seats: number[] }> = [
-  { id: "dots", klass: "dots", sets: ["3x3", "2x2", "4x4"], seats: [2] },
-  { id: "checkers", klass: "grid", sets: ["checkers"], seats: [2] },
-  { id: "chess", klass: "grid", sets: ["chess"], seats: [2] },
-  { id: "durak", klass: "deck", sets: ["36", "transfer"], seats: [2, 3, 4, 5, 6] },
-  { id: "hangman", klass: "word", sets: CLASSES.find((c) => c.value === "word")!.sets, seats: [2] },
-  { id: "backgammon", klass: "dice", sets: ["backgammon"], seats: [2] },
-  { id: "dominoes", klass: "free", sets: ["double-six"], seats: [2, 3, 4] },
-  { id: "chapayev", klass: "physics", sets: ["chapayev"], seats: [2, 3, 4] },
-  { id: "reversi", klass: "grid", sets: ["reversi"], seats: [2] },
-  { id: "four", klass: "grid", sets: ["four"], seats: [2] },
-  { id: "battleship", klass: "grid", sets: ["battleship"], seats: [2] },
-  { id: "poker", klass: "deck", sets: ["poker"], seats: [2, 3, 4, 5, 6] },
-];
-
-// A game's name: the words the dictionaries already have — a class's (dots, dominoes,
-// hangman) or a set's (checkers, chess, …) — and two of its own, durak and poker.
-const gameName = (g: { id: string; klass: BoardClass; sets: string[] }) =>
-  g.id === "durak" || g.id === "poker" ? say(`web.game.${g.id}`)
-    : ["dots", "hangman", "dominoes"].includes(g.id) ? classWord(g.klass) : setWord(g.sets[0]);
-const seatsWord = (seats: number[]) => seats.length === 1 ? String(seats[0]) : `${seats[0]}–${seats[seats.length - 1]}`;
-// A variant's word: durak's two rule sets are named by their rules, the rest by their set.
-const variantWord = (game: string, set: string) =>
-  game === "durak" ? say(set === "transfer" ? "web.newTable.perevodnoy" : "web.newTable.podkidnoy") : setWord(set);
+// The twelve games of step 1 (GAMES, in the sheets' order) and what each is called live in depth/core/new_table.ts,
+// shared with the app; the sets each class knows are listed above for check-web-i18n.
+const { gameName, variantWord } = makeTableWords(say);
 
 export function NewTable({ client, at, radius, onMade, onBack }: {
   client: Client;

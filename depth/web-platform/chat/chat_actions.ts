@@ -3,8 +3,8 @@
 // the end by hand (DELETE /chats/:id) and the block (POST /blocks {chat}).
 // Nothing here signs or names a path — the Client does, as for the terminal.
 
-import type { Client } from "../../../depth/core/client.ts";
-import { isSpan, type Span } from "../chat/span.ts";
+import type { Client } from "../../core/client.ts";
+import { isSpan, type Span } from "./span.ts";
 
 export type Outcome = { ok: true } | { ok: false; status: number };
 

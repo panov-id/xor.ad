@@ -68,7 +68,8 @@ export function Me({ client, onTab, onClosed, onMove, open: opened = null }: { c
   const range = profile ? filterRange(profile.age, profile.filter_age_min, profile.filter_age_max) : null;
   return (
     <Screen name="me" title={label("me.title")} className="me">
-      <header className="me-head"><span className="word">sosed</span></header>
+      <div className="me-panel">
+      <header className="me-head"><span className="word">sosed</span><p className="me-title-wide" aria-hidden="true">{label("me.title")}</p></header>
       <div className="me-sheet me-home">
         <div className="me-body">
           <section className="me-hero" aria-label={label("me.name")}>
@@ -91,11 +92,12 @@ export function Me({ client, onTab, onClosed, onMove, open: opened = null }: { c
             <Row text={label("away.item")} testid="me-away" onOpen={() => setSub("away")} />
             <Row text={say("app.place.title")} value={place.chosen ? place.name : undefined} testid="me-place" onOpen={() => setSub("place")} />
             <Row text={label("web.legal.item")} testid="me-legal" onOpen={() => setSub("legal")} />
-            <button type="button" className="me-row me-danger" onClick={() => setSub("reset")} data-testid="me-reset">
-              <span className="me-row-text"><span className="me-row-name">{label("reset.item")}</span></span><Icon d={chevronRight} className="me-chev" />
-            </button>
           </nav>
+          <button type="button" className="me-row me-danger" onClick={() => setSub("reset")} data-testid="me-reset">
+            <span className="me-row-text"><span className="me-row-name">{label("reset.item")}</span></span><Icon d={chevronRight} className="me-chev" />
+          </button>
         </div>
+      </div>
       </div>
       <TabBar active="me" onSelect={onTab} />
     </Screen>

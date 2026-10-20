@@ -11,8 +11,8 @@
 //   4004          this page no longer speaks the node's protocol
 //   1000          one's own close (stop)
 
-import type { Client, Frame } from "../../../depth/core/client.ts";
-import { afterClose, reconnectDelay } from "../../../depth/core/reconnect.ts";
+import type { Client, Frame } from "../../core/client.ts";
+import { afterClose, reconnectDelay } from "../../core/reconnect.ts";
 
 export type RoomEvent =
   | { kind: "connected" }

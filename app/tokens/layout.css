@@ -19,7 +19,7 @@
   --skeleton-card: 150px;
   --tab-dot: 6px;
   --sheet-rise: 620px;
-  --tabbar-max: 420px;
+  --tabbar-max: 379.7px;       /* the tablet sheets' bar (tablet_834_*: 379.7 x 71.95); a phone's is narrower than this anyway */
 }
 @media (min-width: 834px) { :root { --fs-title: 40px; } }
 

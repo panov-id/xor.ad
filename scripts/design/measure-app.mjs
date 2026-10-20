@@ -11,6 +11,7 @@
 import { chromium } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { readSheet } from "./sheet-geometry.mjs";
+import { wideSheets } from "./measure-app-wide.mjs";
 
 const SHEETS = process.env.SHEETS ?? "/sheets";
 // localhost: the registration needs WebCrypto (crypto.subtle), which a browser gives to https and localhost only.
@@ -19,6 +20,7 @@ const DEV = process.env.DEV_URL ?? "http://localhost:5174";
 const SHOTS = process.env.SHOTS ?? "/shots";
 const TOL = Number(process.env.TOL ?? 2);
 const LOCALE = process.env.LANG_TAG ?? "en-US";
+const WIDE = process.env.WIDE === "1";             // 1: only the tablet (834) and desktop (1440) sheets of the feed, the card and "Me" (measure-app-wide.mjs); the viewport is the sheet's width
 const GEOMETRY = process.env.GEOMETRY !== "0";      // 0: the sheets are English, so a run in another language checks fonts and overflow only
 const TAG = LOCALE.slice(0, 2);
 const RU = TAG === "ru";                           // Cyrillic must render with the loaded face: asserted in the ru run (the face loads on use)
@@ -28,6 +30,8 @@ const regSheet = (n) => readSheet(`${SHEETS}/w1_register-${n}.svg`);
 
 const rows = [];       // { screen, name, exp, act, delta, ok }
 const notes = [];      // overflow / font lines
+const PIN = "483915";                                // the registration walk's PIN (registerFull, the wide run's too)
+const feedSel = '[data-screen="feed"]';
 const csp = [];
 const NAN4 = [NaN, NaN, NaN, NaN], NAN3 = [NaN, NaN, NaN];
 const fmt = (a) => a.map((v) => (Number.isNaN(v) ? "-" : v.toFixed(1))).join(",");
@@ -160,7 +164,7 @@ for (const u of [PREVIEW, DEV]) {   // wait for both servers
 }
 
 // splash
-{
+if (!WIDE) {
   const S = sheet("splash"), shapes = S.shapes.slice(1);   // [0] is the background
   const { ctx, page } = await open(browser, PREVIEW + "/", 390, { screen: "splash" });
   await page.waitForSelector('[data-screen="splash"] .hero'); await settle(page);
@@ -188,7 +192,7 @@ for (const u of [PREVIEW, DEV]) {   // wait for both servers
 }
 
 // splash-lang: a fresh device (nothing in localStorage) gets the list first
-{
+if (!WIDE) {
   const S = sheet("splash-lang"), shapes = S.shapes.slice(1);
   const { ctx, page } = await open(browser, PREVIEW + "/", 390, { asked: false, screen: "splash-lang" });
   await page.waitForSelector('[data-state="lang"]'); await settle(page);
@@ -213,7 +217,7 @@ for (const u of [PREVIEW, DEV]) {   // wait for both servers
 }
 
 // loading: the dev server's ?boot=<ms> holds the boot; the screen shows after 300 ms
-{
+if (!WIDE) {
   const S = sheet("loading"), shapes = S.shapes.slice(1);
   const url = DEV + "/?boot=60000";
   const { ctx, page } = await open(browser, url, 390, { screen: "loading" });
@@ -233,12 +237,14 @@ for (const u of [PREVIEW, DEV]) {   // wait for both servers
 // The page's calls to the node never leave the browser: every fetch to a node path is answered by this stub
 // (and the network the page sits on has no way out anyway). The stub keeps the share the page sent at
 // POST /identities and hands it back at POST /vault/share, as the node does.
-const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away)(\/|$)/;
+const NODE_PATH = /^\/(identities|vault|recovery|legal|health|limits|feed|hidden|blocks|report|sessions|away|statements)(\/|$)/;
 const DOCS = ["terms", "privacy", "guidelines"].map((document) => ({ document, revision_date: "2026-01-01", revision_sha256: `sha-${document}`, reaccept: "none" }));
 function nodeStub(opts = {}) {
   const calls = []; let share = null, pinAuth = null, left = 10, closed = false, misses = 0, soon = opts.soon ?? 0;
   // The feed the stub answers: { status, items, next } — a walk changes it between taps; the default is an empty page.
   const feed = { status: 200, items: [], next: null, hidden: new Set() };
+  // What GET /identities/me adds to the identity id (name, age: the "Me" screen reads them).
+  const profile = {};
   // The move's windows by lookup id, as the node keeps them (transfer.ts): the old device's invite, the new one's claim, the reply.
   const moves = new Map();
   // A step away: until when (seconds), or null; GET /identities/me says it.
@@ -283,7 +289,8 @@ function nodeStub(opts = {}) {
       if (key === "POST /hidden") { const id = JSON.parse(req.postData()).feed; feed.hidden.add(id); return json(200, { id: `h-${id}` }); }
       if (req.method() === "DELETE" && u.pathname.startsWith("/hidden/")) { feed.hidden.delete(decodeURIComponent(u.pathname.slice(8)).replace(/^h-/, "")); return route.fulfill({ status: 204 }); }
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
-      if (key === "GET /identities/me") return json(200, { identity_id: "id-stub", ...(away.until ? { stepped_away_until: away.until } : {}) });
+      if (key === "GET /identities/me") return json(200, { identity_id: "id-stub", ...profile, ...(away.until ? { stepped_away_until: away.until } : {}) });
+      if (key === "GET /statements") return json(200, { items: [] });
       if (key === "DELETE /away") { away.until = null; return route.fulfill({ status: 204 }); }
       // the arriving device's first PIN: a new share and a new proof (relay vault.ts init); the next /vault/share sets the proof
       if (key === "POST /vault/init") { share = JSON.parse(req.postData()).share; pinAuth = null; left = 10; closed = false; return json(200, {}); }
@@ -306,7 +313,7 @@ function nodeStub(opts = {}) {
       calls.push(`UNEXPECTED ${key}`); return route.abort();
     });
   };
-  return { calls, prepare, feed, away, moves, state: () => ({ left, closed, misses }) };
+  return { calls, prepare, feed, profile, away, moves, state: () => ({ left, closed, misses }) };
 }
 // Walks the page to a register step; `filled` leaves the first screen as the sheet draws it.
 async function walk(page, step, { name = "Alex", age = "32", pin = "123456", again = pin } = {}) {
@@ -322,6 +329,14 @@ async function walk(page, step, { name = "Alex", age = "32", pin = "123456", aga
 const lineAt = async (page, sel, i = 0) => (await linesOf(page, sel))[i];
 const note = (ok, text) => notes.push({ bad: !ok, text });
 const text = (page, sel) => page.locator(sel).first().innerText().catch(() => "(missing)");
+
+// the tablet and desktop sheets: only these (WIDE=1), their own run
+if (WIDE) {
+  await wideSheets({ browser, SHEETS, PREVIEW, compare, boxOf, linesOf, open, settle, overflowAt, notes, nodeStub, registerFull, NAN4, GEOMETRY, SHOTS });
+  await browser.close();
+  report();
+}
+
 // a shape drawn with transparency (the plate's cells): not in readSheet's list, read the same way
 function shaded(file) {
   const svg = readFileSync(file, "utf8");
@@ -498,13 +513,11 @@ const regWidths = async (browser, scr, step, stub) => {
 // ── unlock and locked: the identity kept on this disk, the PIN after a reload, the lock ──
 // One browser context is one origin's storage: pages of it share IndexedDB (the record) and the stub's state, and a
 // new page is a new tab (its own sessionStorage: no reload grace). The stub plays the node's PIN counter (ten, then closed).
-const PIN = "483915";
 const PREVIEW_SWITCH = process.env.SWITCH_URL ?? "http://localhost:4175";
 const adopt = (page, screen) => {
   page.on("console", (m) => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) csp.push(`${screen} console: ${m.text().slice(0, 200)}`); });
   page.on("pageerror", (e) => csp.push(`${screen} pageerror: ${String(e).slice(0, 200)}`));
 };
-const feedSel = '[data-screen="feed"]';
 async function registerFull(page, pin = PIN) {   // the splash to the feed, the way a person goes
   await walk(page, 3, { pin });
   const gi = page.locator('[data-testid="paper-groups"] input');
@@ -990,6 +1003,7 @@ if (process.env.WEB_BUILT === "1") {
 await browser.close();
 
 // ── report ──
+function report() {
 if (rows.length) {
 const wName = Math.max(...rows.map((r) => r.name.length)), wExp = Math.max(...rows.map((r) => r.exp.length)), wAct = Math.max(...rows.map((r) => r.act.length));
 console.log(`${"screen".padEnd(12)} ${"element".padEnd(wName)}  ${"expected".padEnd(wExp)}  ${"actual".padEnd(wAct)}  ${"delta".padEnd(20)} ok`);
@@ -1003,3 +1017,5 @@ const good = rows.filter((r) => r.ok).length;
 const clean = !notes.some((n) => n.bad) && !csp.length;
 console.log(GEOMETRY ? `measure-app: ${good} of ${rows.length} within ${TOL}px` : `measure-app[${TAG}]: fonts, overflow, CSP ${clean ? "clean" : "DEFECTS"}`);
 process.exit(good === rows.length && !notes.some((n) => n.bad) && !csp.length ? 0 : 1);
+}
+report();

@@ -3,6 +3,8 @@
    wider screens (the sheets have no tablet or desktop "me" yet). */
 
 .me, .me-sub { overflow: hidden; }
+.me-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }   /* the panel of the wide sheets; on a phone only a wrapper */
+.me-title-wide { display: none; }   /* the desktop sheet's "Me" over the settings (tokens/wide.css) */
 
 /* ── the frame of a sub-page: back and title, then the sheet ── */
 .me-bar { flex: none; width: 100%; max-width: var(--entry-max); margin: var(--me-bar-top) auto 0; height: var(--me-bar-h); display: flex; align-items: center; gap: var(--me-bar-gap);
@@ -39,6 +41,7 @@
 .me-edit:disabled { opacity: var(--o-disabled); }
 .me-rows { display: grid; gap: var(--me-rows-gap); }
 .me-home .me-rows { margin-top: var(--me-rows-top); }
+.me-body > .me-danger { margin-top: var(--me-rows-gap); }   /* the last row of the list, set apart in the DOM so the wide sheets can place it */
 
 /* a row that opens something */
 .me-row { width: 100%; height: var(--me-row-h); padding: 0 var(--me-row-pad); border-radius: var(--r-lang-row); background: var(--c-panel); color: var(--c-text);
@@ -135,3 +138,10 @@
 
 /* the language list under the sub-page frame */
 .me-body > .me-langs { padding: 0; animation: none; overflow: visible; }
+/* A long value ends in an ellipsis inside its pair: the grid and the row do not widen past the screen. */
+.me-pairs { grid-template-columns: minmax(0, 1fr); }
+.me-pairs div { min-width: 0; }
+.me-pairs dd { min-width: 0; }
+/* A prose row (Statements: facts, grounds): the label above, the text below it, wrapped, as tall as it needs. */
+.me-pairs div.me-pair--prose { height: auto; flex-direction: column; gap: var(--sp-1); padding-bottom: var(--me-pair-pad-top); }
+.me-pair--prose dd { white-space: normal; overflow: visible; text-overflow: clip; text-align: start; overflow-wrap: anywhere; }

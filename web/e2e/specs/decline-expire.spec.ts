@@ -25,7 +25,7 @@ const DATABASE = process.env.DATABASE_URL ?? "postgres://relay:test@postgres:543
 //   (relay/node/src/lib/scheduled.ts A_MINUTE_MS, SWEEP_CHATS and the match
 //   sweeper alike);
 // - a 4003 that falls on a dropped socket reaches the page only on the next way
-//   in (web/src/chat/room.ts: the ticket answers 404), after a pause that grows
+//   in (depth/web-platform/chat/room.ts: the ticket answers 404), after a pause that grows
 //   to half a minute (depth/core/reconnect.ts CAP_MS);
 // - the job queue and a stand loaded by other runs add their own delay: seen
 //   1.3 min for the whole path, and red at 90 s under load (check-all

@@ -52,6 +52,8 @@ used = set()
 for path in sorted(list(src.rglob("*.ts")) + list(src.rglob("*.tsx"))):
     if locales in path.parents:
         continue
+    if re.search(r"\.test\.tsx?$", path.name):
+        continue  # a test's asserts name words, they are not screens
     raw = path.read_text()
     code = code_only(raw)
     for no, line in enumerate(code.splitlines(), 1):

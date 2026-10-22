@@ -810,13 +810,14 @@ async function main() {
       await until(other, /ваш ход/, 20);
       await ready();
       await type(other, "\t");
-      for (let i = 0; i < 12; i++) await type(other, RIGHT); // the row stops at its end: «взять из колоды»
+      for (let i = 0; i < 12; i++) await type(other, RIGHT); // the row stops at its end: «бито»
+      await type(other, LEFT); // one back: «взять» — the defender takes the table (durak has no draw)
       await type(other, ENTER);
       const stock = (b: Awaited<ReturnType<typeof boardOf>>) => (b.state.deck as { stock: { count: number } }).stock.count;
       const afterDraw = await untilBoard(bySeat[1], id, (b) => stock(b) < stock(afterPlay));
-      assert.equal(stock(afterDraw), stock(afterPlay) - 1, "the draw from the screen did not take a card from the stock");
+      assert.equal(stock(afterDraw), stock(afterPlay) - 1, "the take from the screen did not refill the attacker from the stock");
       other.unmount();
-      out("ok   deck from the table's screen: a card played from one's hand, then one drawn from the stock");
+      out("ok   deck from the table's screen: a card played from one's hand, then the table taken and the stock refilled");
     }
     {
       const { id, bySeat } = await startGame("word");

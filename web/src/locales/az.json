@@ -589,10 +589,10 @@
   "web.newTable.previewHint": "Qonşular masanı lentdə belə görəcək. «Masaya oturun» onu qurur və siz ilk oturursunuz.",
   "web.newTable.players": "oyunçular: {n}",
   "web.newTable.podkidnoy": "podkidnoy",
-  "web.newTable.perevodnoy": "perevodnoy",
+  "web.newTable.perevodnoy": "ötürmə",
   "web.sticker.title": "stikerlər",
   "web.sticker.hi": "salam",
-  "web.sticker.thanks": "sağ ol",
+  "web.sticker.thanks": "sağ olun",
   "web.sticker.deal": "razılaşdıq",
   "web.sticker.wow": "vay",
   "web.sticker.coffee": "qəhvə?",
@@ -601,11 +601,11 @@
   "web.sticker.giveup": "təslim oluram",
   "web.card.match.sosed.kick": "II — uyğun gəldi",
   "web.card.match.sosed.title": "Qarşılıqlı plus — və şəxsidəsiniz",
-  "web.card.match.sosed.text": "Xoşuna gələnə plus qoyursan. İkiniz də plus qoydunuzsa — çat açılır. Tək tərəfli — sükut, heç kim bilməz.",
+  "web.card.match.sosed.text": "Xoşunuza gələnə plus qoyursunuz. İkiniz də plus qoydunuzsa — çat açılır. Tək tərəfli — sükut, heç kim bilməz.",
   "web.card.what_now": "İndi nə",
-  "web.card.like_it": "Bəyəndin?",
-  "web.card.gestures": "sürüşdür → bəyən · ← gizlət · ↓ təfərrüatlar",
+  "web.card.like_it": "Bəyəndiniz?",
+  "web.card.gestures": "sürüşdürün → bəyənin · ← gizlədin · ↓ təfərrüatlar",
   "web.card.match.neighbro.kick": "II — Uyğunluq",
   "web.card.match.neighbro.title": "Qarşılıqlı bəyənmə qapını açır",
-  "web.card.match.neighbro.text": "Şəxsi çat yalnız ikiniz də istəyəndə yaranır. Diqqətin qorunur."
+  "web.card.match.neighbro.text": "Şəxsi çat yalnız ikiniz də istəyəndə yaranır. Diqqətiniz qorunur."
 }

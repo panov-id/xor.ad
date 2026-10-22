@@ -589,7 +589,7 @@
   "web.newTable.previewHint": "Ҳамсояҳо мизро дар навор ҳамин тавр мебинанд. «Ба сари миз нишастан» онро мегузорад ва шумо аввал менишинед.",
   "web.newTable.players": "бозингарон: {n}",
   "web.newTable.podkidnoy": "партофтанӣ",
-  "web.newTable.perevodnoy": "переводной",
+  "web.newTable.perevodnoy": "гузаронӣ",
   "web.sticker.title": "стикерҳо",
   "web.sticker.hi": "салом",
   "web.sticker.thanks": "ташаккур",
@@ -601,11 +601,11 @@
   "web.sticker.giveup": "таслим мешавам",
   "web.card.match.sosed.kick": "II — мувофиқ шуд",
   "web.card.match.sosed.title": "Плюси мутақобила — ва шумо дар личка",
-  "web.card.match.sosed.text": "Ба касе, ки маъқулат шуд, плюс мегузорӣ. Ҳар ду мувофиқ — чат кушода мешавад. Як тарафа — хомӯшӣ, ҳеҷ кас намедонад.",
+  "web.card.match.sosed.text": "Ба касе, ки маъқулатон шуд, плюс мегузоред. Ҳар ду мувофиқ — чат кушода мешавад. Як тарафа — хомӯшӣ, ҳеҷ кас намедонад.",
   "web.card.what_now": "Акнун чӣ",
   "web.card.like_it": "Писанд омад?",
   "web.card.gestures": "кашед → писанд аст · ← пинҳон кардан · ↓ тафсилот",
   "web.card.match.neighbro.kick": "II — Мувофиқат",
   "web.card.match.neighbro.title": "Лайки мутақобила дарро мекушояд",
-  "web.card.match.neighbro.text": "Чати хусусӣ танҳо вақте пайдо мешавад, ки ҳардуятон мехоҳед. Диққати ту ҳифз шудааст."
+  "web.card.match.neighbro.text": "Чати хусусӣ танҳо вақте пайдо мешавад, ки ҳардуятон мехоҳед. Диққати шумо ҳифз шудааст."
 }

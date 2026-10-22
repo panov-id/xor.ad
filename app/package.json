@@ -1,6 +1,6 @@
 {
   "name": "app",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "The new shell of xor.ad, beside web/: sosed Dusk, dark only. Screens move over from web/ one by one.",

@@ -20,7 +20,7 @@ function others(view: TableView, hands: Record<string, Hand>): string {
     .map((s) => `${plain(s.name, 48)}: ${plain(count(hands[String(s.seat)]), 6)}`).join(" · ");
 }
 
-// deck: {hands, stock: {count}, played}; a move is {play: card} or {draw: true}.
+// deck (durak): {hands, stock: {count}, played}; a move is {play: card}, {take: true} or {done: true}.
 function Deck({ say, view, onMove, active }: { say: Say; view: TableView; onMove?: Move; active: boolean }): ReactElement | null {
   const deck = view.board?.state.deck as { hands: Record<string, Hand>; stock: { count: number }; played: string[] } | undefined;
   if (!deck) return null;
@@ -37,9 +37,12 @@ function Deck({ say, view, onMove, active }: { say: Say; view: TableView; onMove
         active,
         actions: [
           ...cards.map((c) => ({ key: `play:${c}`, label: plain(c, 8) })),
-          { key: "draw", label: say("board.draw_deck"), ...off(say, [deck.stock.count === 0, "why.none"]) },
+          // Durak (the node's rules, tables_deck.ts): no draw from the stock —
+          // the defender takes the table, the attacker ends the attack.
+          { key: "take", label: say("board.take") },
+          { key: "done", label: say("board.done") },
         ],
-        onPick: (key) => onMove(key === "draw" ? { draw: true } : { play: key.slice(5) }),
+        onPick: (key) => onMove(key === "take" ? { take: true } : key === "done" ? { done: true } : { play: key.slice(5) }),
       })
       : null,
   );

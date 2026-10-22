@@ -57,16 +57,16 @@
 .b-stickers .stuck-heart {
   position: absolute; right: 18px; bottom: 14px; display: grid; place-items: center;
   width: var(--like-size); height: var(--like-size); border-radius: 50%; background: var(--surface); color: var(--accent-text);
-  border: 4px solid var(--surface); transform: rotate(-8deg); box-shadow: 1px 2px 0 2px var(--shadow);
+  border: 4px solid var(--surface); transform: rotate(-8deg); box-shadow: var(--stickers-pop-shadow) var(--shadow);
 }
 .b-stickers .heart-pad {
   display: flex; align-items: center; justify-content: center; gap: var(--s-6); min-height: 76px; padding: var(--s-2) var(--s-4);
-  border-radius: 14px; background: var(--surface); border: 1.5px dashed var(--surface-2);
+  border-radius: 14px; background: var(--surface); border: var(--stickers-hair-w) dashed var(--surface-2);
 }
 .b-stickers .heart-sticker {
-  width: 64px; height: 64px; min-height: 64px; padding: 0; display: grid; place-items: center;
+  width: var(--stickers-heart-64); height: var(--stickers-heart-64); min-height: var(--stickers-heart-64); padding: 0; display: grid; place-items: center;
   border-radius: 50%; background: var(--surface); color: var(--accent-text);
-  border: 1.5px solid var(--surface-2); box-shadow: 1px 2px 0 2px var(--shadow);
+  border: var(--stickers-hair-w) solid var(--surface-2); box-shadow: var(--stickers-pop-shadow) var(--shadow);
   touch-action: none; cursor: grab;
 }
 .b-stickers .heart-sticker.armed { outline: var(--focus-w) solid var(--focus); outline-offset: 3px; transform: rotate(-8deg); }
@@ -80,7 +80,7 @@
    with the white rim; the code in tag cells 28×56 on the surface. */
 [data-screen="arrival"] .sticker-arrive { display: grid; place-items: center; padding: var(--s-6) 0 var(--s-4); }
 [data-screen="arrival"] .round-sticker {
-  display: grid; place-items: center; width: 112px; height: 112px; border-radius: 50%;
+  display: grid; place-items: center; width: var(--stickers-seal-112); height: var(--stickers-seal-112); border-radius: 50%;
   background: var(--tile-4); color: var(--tile-4-ink); border: var(--card-rim);
   box-shadow: var(--card-shadow); transform: rotate(-6deg);
 }
@@ -112,8 +112,8 @@
 }
 .b-stickers[data-screen="me"] li[data-row="age"] .ui-setting-icon { display: none; }
 .b-stickers[data-screen="me"] .ui-list:is([data-group^="pair"], [data-group="rows"]) { background: var(--surface); box-shadow: var(--cell-shadow); }
-.b-stickers[data-screen="me"] .ui-list[data-group^="pair"] > li + li { border-left: 1px solid var(--surface-2); }
-.b-stickers[data-screen="me"] .ui-list[data-group="rows"] > li + li { border-top: 1px solid var(--surface-2); }
+.b-stickers[data-screen="me"] .ui-list[data-group^="pair"] > li + li { border-left: var(--rule-w) solid var(--surface-2); }
+.b-stickers[data-screen="me"] .ui-list[data-group="rows"] > li + li { border-top: var(--rule-w) solid var(--surface-2); }
 .b-stickers[data-screen="me"] .ui-setting:focus-visible { outline: var(--focus-w) solid var(--focus); outline-offset: calc(-1 * var(--focus-w)); }
 
 /* The bar under 1024 (sheet adaptive-neighbro-me-393, chrome): a sticker capsule 361×64 on the

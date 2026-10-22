@@ -81,6 +81,8 @@ export function moveWords(say: Say, move: unknown, klass?: string): string {
   }
   if (typeof m.play === "string") return say("board.card", { card: text(m.play, 8) });
   if (m.draw === true) return say(klass === "free" ? "board.draw_boneyard" : "board.draw_deck");
+  if (m.take === true) return say("board.take");
+  if (m.done === true && klass === "deck") return say("board.done");
   if (typeof m.word === "string") return say("board.set_word");
   if (typeof m.letter === "string") return `${say("board.letter")}: ${text(m.letter, 4)}`;
   if (typeof m.from === "string" && typeof m.to === "string") return `${text(m.from, 4)} → ${text(m.to, 4)}`;

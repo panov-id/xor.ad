@@ -156,3 +156,7 @@ html:root[data-brand="neighbro"] [data-screen="feed"] .ui-placebar .ui-seg-on { 
   html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-placebar-radius > * { flex: 1 1 auto; min-inline-size: 0; }
   html:root[data-brand] [data-screen="feed"] .ui-placebar .ui-seg { flex: 1 1 0; min-inline-size: 0; padding: 0; }
 }
+
+/* The wrapper of a tab's inner screen that carries the rail alone: no box of its own (adaptive.css
+   adds the rail's padding from 1024). Registered here so the kit vocabulary holds the class. */
+.ui-railed { display: contents; }

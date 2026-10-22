@@ -4,32 +4,32 @@
    conversation, 18A–F of screen-14-15-18; the move, 13 A/B of screen-12-13. */
 /* a header without «назад» keeps the title at x 16, as header-feed does */
 .ui-header-rule:not(:has(.ui-icon)) { padding-left: var(--s-4); }
-.inbox h2,[data-screen="match"] h2, .chat h2 { font-size: 14px; font-weight: 600; color: var(--muted); margin: var(--s-2) 0 0; }
-.inbox .ui-header .ui-button { min-height: var(--control-h); padding: 0 var(--s-3); font-size: 14px; }
+.inbox h2,[data-screen="match"] h2, .chat h2 { font-size: var(--talk-fs-14); font-weight: 600; color: var(--muted); margin: var(--s-2) 0 0; }
+.inbox .ui-header .ui-button { min-height: var(--control-h); padding: 0 var(--s-3); font-size: var(--talk-fs-14); }
 .inbox .ui-card, [data-screen="match"] .ui-card { gap: var(--s-1); }
-.inbox .ui-card strong, [data-screen="match"] .ui-card strong { font-size: 16px; font-weight: 600; }
-.inbox .ui-card p, [data-screen="match"] .ui-card p { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.4; }
-.inbox .ui-card .muted, [data-screen="match"] .ui-card .muted { font-size: 14px; }
+.inbox .ui-card strong, [data-screen="match"] .ui-card strong { font-size: var(--talk-fs-16); font-weight: 600; }
+.inbox .ui-card p, [data-screen="match"] .ui-card p { margin: 0; font-size: var(--talk-fs-20); font-weight: 600; line-height: 1.4; }
+.inbox .ui-card .muted, [data-screen="match"] .ui-card .muted { font-size: var(--talk-fs-14); }
 .inbox .ui-card .ui-button, [data-screen="match"] .ui-card .ui-button, .chat .ui-card .ui-button { align-self: flex-start; margin-top: var(--s-2); }
 .inbox .declined { opacity: 1; background: var(--panel); }
 [data-screen="match"] .ui-actions, .chat .confirm, [data-screen="departure"], [data-screen="arrival"] { display: flex; flex-direction: column; gap: var(--s-3); }
 [data-screen="match"] .ui-actions .ui-button, [data-screen="departure"] > .ui-button, [data-screen="arrival"] > .ui-button, .chat .confirm .ui-button { width: 100%; }
 [data-screen="arrival"] dd[data-testid="arrive-check"] { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 26px; text-align: center; padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); margin: 0; }
-[data-screen="arrival"] dl { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-4); margin: 0; padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); font-size: 14px; }
+[data-screen="arrival"] dl { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-4); margin: 0; padding: var(--s-4); border-radius: var(--r-2); background: var(--panel-2); font-size: var(--talk-fs-14); }
 [data-screen="arrival"] dt { color: var(--muted); }
 [data-screen="arrival"] dd { margin: 0; text-align: right; }
 [data-screen="arrival"] dl { grid-template-columns: 1fr; }
 [data-screen="arrival"] dd[data-testid="arrive-check"] { padding: 0; background: none; }
 .chat footer { display: flex; gap: var(--s-2); margin-top: 0; }
-.chat footer .ui-button { flex: 1; font-size: 14px; }
-.chat > .ui-button[data-testid="end"] { align-self: flex-end; min-height: var(--control-h); border-color: transparent; color: var(--accent-text); font-size: 14px; padding: 0; }
+.chat footer .ui-button { flex: 1; font-size: var(--talk-fs-14); }
+.chat > .ui-button[data-testid="end"] { align-self: flex-end; min-height: var(--control-h); border-color: transparent; color: var(--accent-text); font-size: var(--talk-fs-14); padding: 0; }
 [data-testid="chat-game"] { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3); border-radius: var(--r-2); background: var(--panel); }
-[data-testid="chat-game"] > p { margin: 0; font-size: 14px; font-weight: 600; }
-[data-testid="chat-game"] .ui-button { font-size: 14px; }
+[data-testid="chat-game"] > p { margin: 0; font-size: var(--talk-fs-14); font-weight: 600; }
+[data-testid="chat-game"] .ui-button { font-size: var(--talk-fs-14); }
 /* WD4b: the inbox tabs — components.svg tabs: 14/600, the active one fg with a
    3 px accent underline, the rest muted, a hairline under; the dot is the kit's. */
-.talk-tabs { display: flex; gap: var(--s-4); border-bottom: 1px solid var(--border); }
-.talk-tab { position: relative; min-height: var(--control-h); padding: 0; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 14px; font-weight: 600; border-bottom: 3px solid transparent; }
+.talk-tabs { display: flex; gap: var(--s-4); border-bottom: var(--rule-w) solid var(--border); }
+.talk-tab { position: relative; min-height: var(--control-h); padding: 0; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: var(--talk-fs-14); font-weight: 600; border-bottom: var(--talk-rule-w-3) solid transparent; }
 .talk-tab-on { color: var(--fg); border-bottom-color: var(--accent); }
 .talk-tab .talk-tab-dot { position: absolute; top: 10px; right: -12px; }
 .talk-chats li { list-style: none; }
@@ -38,23 +38,23 @@
    panel-2 with a 4 px accent edge (card-hint), the two buttons at the bottom. */
 [data-screen="match"] [data-part="theirs"] { gap: var(--s-2); }
 [data-screen="match"] [data-part="foot"] { margin-top: auto; }
-[data-screen="match"] [data-part="theirs"] p { font-size: 20px; font-weight: 600; }
+[data-screen="match"] [data-part="theirs"] p { font-size: var(--talk-fs-20); font-weight: 600; }
 [data-screen="match"] [data-part="hint"] { border-left: 4px solid var(--accent); }
 /* N1: sheet 24's lifespan — 3 px on a border-control track (kit `lifespan`),
    mine in accent, theirs in the category colour of its chip. */
-[data-screen="match"] [data-part="mine"] p { font-size: 20px; font-weight: 600; margin: 0; }
+[data-screen="match"] [data-part="mine"] p { font-size: var(--talk-fs-20); font-weight: 600; margin: 0; }
 /* The offer's row in the inbox (WP-2): the same bar, the words under it. */
 .inbox-life { display: flex; flex-direction: column; gap: var(--s-1); }
 /* Sheet 06 B, waiting: the phrases shrink to quotes — 16/400 on panel-2 with a
    3 px accent edge, no name or chip — the queue under them, and the line to
    write at the foot of the screen. */
-[data-screen="match"][data-waiting="yes"] [data-part="mine"], [data-screen="match"][data-waiting="yes"] [data-part="theirs"] { background: var(--panel-2); border-left: 3px solid var(--accent); padding: var(--s-2) var(--s-3); gap: var(--s-1); }
-[data-screen="match"][data-waiting="yes"] [data-part="mine"] p, [data-screen="match"][data-waiting="yes"] [data-part="theirs"] p { font-size: 16px; font-weight: 400; }
+[data-screen="match"][data-waiting="yes"] [data-part="mine"], [data-screen="match"][data-waiting="yes"] [data-part="theirs"] { background: var(--panel-2); border-left: var(--talk-rule-w-3) solid var(--accent); padding: var(--s-2) var(--s-3); gap: var(--s-1); }
+[data-screen="match"][data-waiting="yes"] [data-part="mine"] p, [data-screen="match"][data-waiting="yes"] [data-part="theirs"] p { font-size: var(--talk-fs-16); font-weight: 400; }
 [data-screen="match"][data-waiting="yes"] [data-part="theirs"] > strong, [data-screen="match"][data-waiting="yes"] [data-part="theirs"] .ui-chip { display: none; }
 [data-part="waiting"] { flex: 1; display: flex; flex-direction: column; gap: var(--s-2); }
-[data-part="waiting"] h2 { order: -1; margin: 0; padding: var(--s-2) var(--s-3); border-radius: var(--r-1); background: var(--panel-2); color: var(--fg); font-size: 14px; font-weight: 400; }
+[data-part="waiting"] h2 { order: -1; margin: 0; padding: var(--s-2) var(--s-3); border-radius: var(--r-1); background: var(--panel-2); color: var(--fg); font-size: var(--talk-fs-14); font-weight: 400; }
 [data-part="waiting"] .ui-field { margin-top: auto; }
-[data-screen="match"] [data-part="hint"] p { font-size: 14px; font-weight: 400; color: var(--fg); }
+[data-screen="match"] [data-part="hint"] p { font-size: var(--talk-fs-14); font-weight: 400; color: var(--fg); }
 /* WD13: sheet 06 (the map's match) starts with the header band — no screen
    top — and puts the two buttons right under the cards, not at the foot. */
 .screen[data-screen="match"] { padding-top: 0; }
@@ -68,16 +68,16 @@
 .chat .starters { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-3); border-radius: var(--r-2); background: var(--panel); }
 .chat .starters h2 { margin: 0; }
 .chat .starters ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
-.chat .starters li, .chat .line.extra-like { display: flex; flex-direction: column; gap: 2px; }
-.chat .starter-mark { color: var(--muted); font-size: 13px; font-weight: 600; }
-.chat .starters q, .chat .line.extra-like q { quotes: "«" "»"; font-size: 16px; }
+.chat .starters li, .chat .line.extra-like { display: flex; flex-direction: column; gap: var(--talk-gap-2); }
+.chat .starter-mark { color: var(--muted); font-size: var(--talk-fs-13); font-weight: 600; }
+.chat .starters q, .chat .line.extra-like q { quotes: "«" "»"; font-size: var(--talk-fs-16); }
 .chat .line.extra-like { align-self: center; text-align: center; background: var(--panel-2); }
 
 /* The conversation's handles (W11-A): the span pills, the row of text actions
    and the two confirms share the sets' look; the fades line sits under the status. */
 .chat .chat-actions { display: flex; flex-direction: column; gap: var(--s-2); }
-.chat .chat-actions > p { margin: 0; font-size: 14px; }
-.chat .fades { margin: 0; font-size: 14px; }
+.chat .chat-actions > p { margin: 0; font-size: var(--talk-fs-14); }
+.chat .fades { margin: 0; font-size: var(--talk-fs-14); }
 .chat .fades[data-counting="yes"] { color: var(--err); font-weight: 600; }
 .chat .chat-actions .ui-text { min-height: var(--control-h); }
 
@@ -96,7 +96,7 @@
 [data-screen="table"] .ui-boardpanel-strip > .ui-boardpanel-cell.ui-boardpanel-cell { position: relative; flex: 1 1 0; min-inline-size: 0; min-block-size: 0; font-size: 15px; font-weight: 600; }
 /* The turn cell (English «your turn ⏱ 5 min» was 4 cramped lines): the label and the time are two
    nowrap pieces; when both do not fit in the third they stand as two clean lines, label over time. */
-[data-screen="table"] .ui-boardpanel-turn { flex-wrap: wrap; align-content: center; column-gap: var(--s-1); row-gap: 2px; line-height: 1.2; }
+[data-screen="table"] .ui-boardpanel-turn { flex-wrap: wrap; align-content: center; column-gap: var(--s-1); row-gap: var(--talk-gap-2); line-height: 1.2; }
 /* The label breaks only between words (a long «the game has not started yet» wraps inside the cell); the time never breaks. */
 [data-screen="table"] .ui-boardpanel-turn > span { white-space: normal; overflow-wrap: normal; min-inline-size: 0; text-align: center; }
 .ui-boardpanel-time { display: inline-flex; align-items: center; gap: var(--s-1); white-space: nowrap; }
@@ -108,10 +108,10 @@
   background: var(--surface); border: var(--panel-rim); box-shadow: var(--panel-ring); border-radius: var(--panel-r); }
 /* the sticker said lands on its sender's cell, over its top edge, for 4 s */
 [data-screen="table"] [data-part="landed"] { position: absolute; top: -22px; left: calc(50% + 23px); line-height: 0; pointer-events: none; }
-[data-screen="table"] [data-part="stickers"] { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); column-gap: 14px; padding: 0 6px; min-block-size: 64px; box-sizing: border-box; }
+[data-screen="table"] [data-part="stickers"] { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); column-gap: var(--talk-gap-14); padding: 0 var(--talk-pad-6); min-block-size: var(--talk-strip-h-64); box-sizing: border-box; }
 :root[data-brand="neighbro"] [data-screen="table"] [data-part="stickers"] { padding: 0; }
 [data-screen="table"] [data-part="stickers"] > button { all: unset; display: grid; place-items: center; min-inline-size: 0; cursor: pointer; }
-[data-screen="table"] [data-part="stickers"] > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-1); }
+[data-screen="table"] [data-part="stickers"] > button:focus-visible { outline: var(--talk-ring-w) solid var(--accent); outline-offset: var(--talk-ring-gap); border-radius: var(--r-1); }
 
 /* The table's games with the node's rules (reversi, four in a row, battleship, poker, durak):
    each board section fills the panel and stacks its parts; the action buttons stand in a wrapping
@@ -131,20 +131,20 @@
    them; the line to say a panel of 64 at the foot with the stickers' key (lit while the plate is up) and send
    52 round inside it; the plate of 4×2 over it, tiles 58 with their words; a sent sticker the message itself,
    112, no bubble, its word under. The starters fold under their title. */
-html:root[data-brand] [data-screen="chat"] .ui-lines { gap: 14px; }
+html:root[data-brand] [data-screen="chat"] .ui-lines { gap: var(--talk-gap-14); }
 html:root[data-brand] [data-screen="chat"] .ui-msg:not(.ui-msg-art):not(.ui-msg-system):not(.ui-msg-extra) {
   flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: var(--s-3); row-gap: 0;
-  padding: 14px 18px; font-size: 16px; line-height: 22px; border-radius: var(--panel-r); box-sizing: border-box;
+  padding: 14px 18px; font-size: var(--talk-fs-16); line-height: var(--talk-lh-22); border-radius: var(--panel-r); box-sizing: border-box;
 }
 html:root[data-brand] [data-screen="chat"] .ui-msg-theirs:not(.ui-msg-art) { background: var(--surface); border: 0; }
 :root[data-brand="neighbro"] [data-screen="chat"] .ui-msg:not(.ui-msg-art):not(.ui-msg-system):not(.ui-msg-extra) { box-shadow: var(--card-shadow); }
-html:root[data-brand] [data-screen="chat"] .ui-msg .ui-msg-time { font-size: 13px; line-height: 22px; opacity: 0.75; margin-inline-start: auto; }
-html:root[data-brand] [data-screen="chat"] .ui-msg-art { background: none; border: 0; box-shadow: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); font-size: 13px; font-weight: 600; color: var(--fg-muted); }
+html:root[data-brand] [data-screen="chat"] .ui-msg .ui-msg-time { font-size: var(--talk-fs-13); line-height: var(--talk-lh-22); opacity: 0.75; margin-inline-start: auto; }
+html:root[data-brand] [data-screen="chat"] .ui-msg-art { background: none; border: 0; box-shadow: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); font-size: var(--talk-fs-13); font-weight: 600; color: var(--fg-muted); }
 html:root[data-brand] [data-screen="chat"] .ui-msg-mine.ui-msg-art { align-self: flex-end; }
-html:root[data-brand] [data-screen="chat"] .ui-msg-art .ui-msg-time { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html:root[data-brand] [data-screen="chat"] .ui-msg-art .ui-msg-time { position: absolute; inline-size: var(--rule-w); block-size: var(--rule-w); overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 html:root[data-brand] [data-screen="chat"] [data-part="fades"] {
-  display: flex; align-items: center; gap: var(--s-3); align-self: stretch; margin: 0; min-height: 44px; padding: 0 var(--s-3); box-sizing: border-box;
-  border-radius: var(--panel-r); background: var(--surface-2); color: var(--fg-muted); font-size: 14px; font-weight: 400;
+  display: flex; align-items: center; gap: var(--s-3); align-self: stretch; margin: 0; min-height: var(--control-h); padding: 0 var(--s-3); box-sizing: border-box;
+  border-radius: var(--panel-r); background: var(--surface-2); color: var(--fg-muted); font-size: var(--talk-fs-14); font-weight: 400;
 }
 :root[data-brand="neighbro"] [data-screen="chat"] [data-part="fades"] { background: var(--surface); border: var(--card-rim); box-shadow: var(--card-shadow); }
 html:root[data-brand] [data-screen="chat"] [data-part="fades"][data-counting="yes"] { color: var(--err); font-weight: 600; }
@@ -155,19 +155,19 @@ html:root[data-brand] [data-screen="chat"] .ui-starters[open] > .ui-starters-lis
 /* the line to say: the field, the key and send inside one panel; the band under it masks the lines scrolled away */
 html:root[data-brand] .screen[data-screen="chat"] > .ui-field:has(> .ui-composer.ui-message) { background: linear-gradient(var(--bg), var(--bg)); }
 html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message {
-  gap: var(--s-2); min-height: 64px; padding: 0 6px 0 20px; box-sizing: border-box;
+  gap: var(--s-2); min-height: var(--talk-strip-h-64); padding: 0 var(--talk-pad-6) 0 20px; box-sizing: border-box;
   background: var(--surface); border: var(--panel-rim); box-shadow: var(--panel-ring); border-radius: var(--panel-r);
 }
 :root[data-brand="neighbro"] [data-screen="chat"] .ui-composer.ui-message { border: var(--card-rim); box-shadow: var(--card-shadow); padding: 0 0 0 13px; }
-html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message input { min-height: 52px; padding: 0; border: 0; box-shadow: none; background: none; font-size: 16px; }
-html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message .ui-send { width: 52px; min-height: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); box-shadow: none; }
+html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message input { min-height: var(--talk-send-52); padding: 0; border: 0; box-shadow: none; background: none; font-size: var(--talk-fs-16); }
+html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message .ui-send { width: var(--talk-send-52); min-height: var(--talk-send-52); height: var(--talk-send-52); border-radius: 50%; background: var(--accent); color: var(--accent-ink); box-shadow: none; }
 html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message .ui-button.ui-icon-only[data-testid="stickers-key"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide) {
-  flex: none; width: 52px; min-width: 52px; height: 52px; min-height: 52px; padding: 0; border: 0; border-radius: 50%; background: none; box-shadow: none; color: var(--fg);
+  flex: none; width: var(--talk-send-52); min-width: var(--talk-send-52); height: var(--talk-send-52); min-height: var(--talk-send-52); padding: 0; border: 0; border-radius: 50%; background: none; box-shadow: none; color: var(--fg);
 }
 html:root[data-brand] [data-screen="chat"] .ui-composer.ui-message .ui-button.ui-icon-only[data-testid="stickers-key"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide)[aria-pressed="true"] { background: var(--fg); color: var(--surface); }
 html:root[data-brand="neighbro"] [data-screen="chat"] .ui-composer.ui-message .ui-button.ui-icon-only[data-testid="stickers-key"]:not(.ui-wide):not(.ui-mid):not(.ui-wide-half):not(.ui-send-wide)[aria-pressed="true"] { background: var(--tile-2); color: var(--tile-2-ink); }
 html:root[data-brand] [data-screen="chat"] [data-part="sticker-plate"] {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 20px; padding: 8px 0 12px; min-height: 212px; box-sizing: border-box;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 20px; padding: var(--s-2) 0 var(--s-3); min-height: 212px; box-sizing: border-box;
   background: var(--surface); border: var(--panel-rim); box-shadow: var(--panel-ring); border-radius: var(--panel-r);
 }
 :root[data-brand="neighbro"] [data-screen="chat"] [data-part="sticker-plate"] { border: var(--card-rim); box-shadow: var(--card-shadow); padding: 1px 0 5px; }
@@ -175,7 +175,7 @@ html:root[data-brand] [data-screen="chat"] [data-part="sticker-plate"] > button 
   all: unset; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); min-inline-size: 0; cursor: pointer;
   font-size: 12px; font-weight: 600; line-height: 16px; color: var(--fg); text-align: center;
 }
-html:root[data-brand] [data-screen="chat"] [data-part="sticker-plate"] > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-1); }
+html:root[data-brand] [data-screen="chat"] [data-part="sticker-plate"] > button:focus-visible { outline: var(--talk-ring-w) solid var(--accent); outline-offset: var(--talk-ring-gap); border-radius: var(--r-1); }
 html:root[data-brand] [data-screen="chat"] [data-part="sticker-plate"] > button:disabled { cursor: default; opacity: 0.6; }
 /* the plate stands on the line to say, both at the foot */
 html:root[data-brand] .screen[data-screen="chat"] > [data-part="sticker-plate"] { margin-block-start: auto; }

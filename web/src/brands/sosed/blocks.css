@@ -46,7 +46,7 @@
 .b-blocks .block-scene {
   display: block; inline-size: calc(100% + 2 * var(--s-4)); block-size: var(--card-scene-h); margin: calc(-1 * var(--s-4)) calc(-1 * var(--s-4)) 0;
   object-fit: cover; object-position: center 60%; pointer-events: none;
-  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, var(--ink) 55%, transparent);
 }
 .b-blocks .block-over, .b-blocks .block-count { font-family: "JetBrains Mono", monospace; font-size: var(--overline-fs); font-weight: 500; letter-spacing: var(--overline-ls); text-transform: uppercase; color: var(--fg-muted); }
 .b-blocks .block-count { margin-top: auto; }

@@ -589,7 +589,7 @@
   "web.newTable.previewHint": "Кошуналар үстөлдү лентада ушундай көрөт. «Үстөлгө отуруу» аны коёт, сиз биринчи отурасыз.",
   "web.newTable.players": "оюнчулар: {n}",
   "web.newTable.podkidnoy": "ыргытма",
-  "web.newTable.perevodnoy": "переводной",
+  "web.newTable.perevodnoy": "өткөрмө",
   "web.sticker.title": "стикерлер",
   "web.sticker.hi": "салам",
   "web.sticker.thanks": "рахмат",
@@ -601,11 +601,11 @@
   "web.sticker.giveup": "багынам",
   "web.card.match.sosed.kick": "II — дал келди",
   "web.card.match.sosed.title": "Экөө тең плюс — жашыруун катта",
-  "web.card.match.sosed.text": "Жаккан адамга плюс коёсуң. Экөө тең дал келсе — чат ачылат. Бир жактуу болсо — тынчтык, эч ким билбейт.",
+  "web.card.match.sosed.text": "Жаккан адамга плюс коёсуз. Экөө тең дал келсе — чат ачылат. Бир жактуу болсо — тынчтык, эч ким билбейт.",
   "web.card.what_now": "Эми эмне",
   "web.card.like_it": "Жактыбы?",
-  "web.card.gestures": "сүрүп өткөр → жагат · ← жашыр · ↓ кененирээк",
+  "web.card.gestures": "сүрүп өткөрүңүз → жагат · ← жашырыңыз · ↓ кененирээк",
   "web.card.match.neighbro.kick": "II — Дал келүү",
   "web.card.match.neighbro.title": "Өз ара лайк эшикти ачат",
-  "web.card.match.neighbro.text": "Жеке чат экөөңөр тең каалагандагы гана пайда болот. Көңүлүң корголгон."
+  "web.card.match.neighbro.text": "Жеке чат экөөңүз тең каалагандагы гана пайда болот. Көңүлүңүз корголгон."
 }

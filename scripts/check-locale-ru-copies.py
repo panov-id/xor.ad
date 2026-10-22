@@ -55,7 +55,10 @@ def main():
             for k, v in d.items():
                 v = str(v)
                 if lang not in CYRILLIC:
-                    if CYR.search(v):
+                    # web.set.<lang> reads «word · Endonym»: the language's own name after the
+                    # separator is Cyrillic by design (a language is named in its own script).
+                    shown = v.split(" · ", 1)[0] if re.fullmatch(r"web\.set\.[a-z]{2}", k) and " · " in v else v
+                    if CYR.search(shown):
                         bad.append(f"{lang}: {side} {k} has Cyrillic in a non-Cyrillic language: {v!r}")
                 elif v == ru.get(k) and v != en.get(k) and CYR.search(v):
                     if baseline:

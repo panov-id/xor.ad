@@ -36,6 +36,7 @@ import { MessageInput } from "../ui/MessageInput.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { STICKERS, Sticker } from "../ui/Sticker.tsx";
+import { StickerButton } from "../ui/StickerButton.tsx";
 import { stickerOf, stickerText } from "../chat/sticker.ts";
 import { StatusInline } from "../ui/Status.tsx";
 
@@ -169,10 +170,10 @@ export function Chat({ client, keys, row: given, onBack, brandClass }: { client:
       {!over && plate && (
         <div role="group" aria-label={say("web.sticker.title")} data-part="sticker-plate" data-testid="sticker-plate">
           {STICKERS.map((id) => (
-            <button key={id} type="button" disabled={keysState !== "open"} onClick={() => void send(stickerText(id))} data-testid={`chat-sticker-${id}`}>
+            <StickerButton key={id} disabled={keysState !== "open"} onClick={() => void send(stickerText(id))} data-testid={`chat-sticker-${id}`}>
               <Sticker id={id} size={66} />
               <span>{say(`web.sticker.${id}`)}</span>
-            </button>
+            </StickerButton>
           ))}
         </div>
       )}

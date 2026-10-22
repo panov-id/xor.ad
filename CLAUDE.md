@@ -18,18 +18,18 @@
 
 - Whenever working on any README in this project group (`xor.ad/README.md` / `README_RU.md`, `sosed.place/README.md` / `README_RU.md`, `neighbro.place/README.md` / `README_RU.md`), synchronize across all of them before finishing: keep the EN/RU pair of each file consistent with each other, and keep cross-references and shared facts (architecture, features, links between the three faces) consistent across all three repos.
 
-<!-- global:begin sha=0344813a5a -->
-## Экономия токенов (глобальный блок, правится в ~/.claude/templates/project-rules.md)
+<!-- global:begin sha=ad3e7094e7 -->
+## Saving tokens (global block, edited in ~/.claude/templates/project-rules.md)
 
-- Шумный вывод — только через `digest`: `… 2>&1 | digest <phpunit|phpstan|cs|compose|git|httplog|auto>`.
-  Печатает ≤12 строк, полный текст кладёт в scratchpad и называет путь; подробности — `sed -n` по диапазону.
-  Хук `guard-long-output.py` отказывает прогону тестов, логам и полному diff без `digest`/`tail`/файла.
-- Механический шаг с машинной проверкой — `haiku-runner`; модуль по спецификации — `sonnet-runner`;
-  готовый diff-план — `codex exec` через обёртку (навык `delegate`). Fable — безопасность, миграции, развилка без ответа; решения и ревью — Opus.
-- Прогон дольше минуты — `run_in_background`, читать итог через `digest`, не файл целиком.
-- Команда длиннее 300 символов или из 4+ звеньев без скрипта — `guard-inline-command.py` сохраняет её в
-  `~/.claude/state/inline/` и пускает; повторяемое — в `scripts/` или `~/.claude/scripts/bin/`, разовое — файл в scratchpad.
-- Офлайн-ворота проекта — `.claude/gates.txt` (команда на строку, `watch:` — какие правки
-  их запускают); после хода с правкой `gates-run.py` гонит их фоном, вердикт (rc на ворота)
-  приходит со следующим промптом. Только офлайн-контейнеры — сети в фоне не бывает.
+- Noisy output only through `digest`: `… 2>&1 | digest <phpunit|phpstan|cs|compose|git|httplog|auto>`.
+  It prints at most 12 lines, puts the full text in the scratchpad and names the path; details with `sed -n` over a range.
+  The hook `guard-long-output.py` refuses a test run, logs or a full diff without `digest`, `tail` or a file.
+- A mechanical step with a machine check goes to `haiku-runner`; a module by a spec to `sonnet-runner`;
+  a ready diff plan to `codex exec` through the wrapper (skill `delegate`). Fable: security, migrations, a fork with no answer; decisions and review: Opus.
+- A run longer than a minute: `run_in_background`, read the result through `digest`, not the whole file.
+- A command longer than 300 characters or with 4+ pipes and no script: `guard-inline-command.py` saves it to
+  `~/.claude/state/inline/` and lets it run; a repeatable one goes to `scripts/` or `~/.claude/scripts/bin/`, a one-off to a file in the scratchpad.
+- The project's offline gates are `.claude/gates.txt` (one command per line, `watch:` says which edits
+  start them); after a turn with an edit `gates-run.py` runs them in the background, the verdict (rc per gate)
+  arrives with the next prompt. Offline containers only: there is no network in the background.
 <!-- global:end -->

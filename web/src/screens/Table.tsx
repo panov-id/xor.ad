@@ -23,6 +23,7 @@ import { MoveInput } from "../ui/MoveInput.tsx";
 import { Notice } from "../ui/Notices.tsx";
 import { Screen } from "../ui/Screen.tsx";
 import { STICKERS, Sticker } from "../ui/Sticker.tsx";
+import { StickerButton } from "../ui/StickerButton.tsx";
 import { CellsBoard, DeckBoard, DotsBoard, FreeBoard, PokerBoard, SeaBoard, WordBoard } from "./TableBoards.tsx";
 import "./talk.css";
 
@@ -181,10 +182,10 @@ export function Table({ client, tableId, onLeave, onBack }: { client: Client; ta
       {saying && (
         <div role="group" aria-label={say("web.sticker.title")} data-part="stickers" data-testid="stickers">
           {STICKERS.map((id) => (
-            <button key={id} type="button" aria-label={say(`web.sticker.${id}`)} data-testid={`sticker-${id}`}
+            <StickerButton key={id} aria-label={say(`web.sticker.${id}`)} data-testid={`sticker-${id}`}
               onClick={() => void act(() => tables.say(tableId, { kind: "sticker", sticker: id }))}>
               <Sticker id={id} size={36} />
-            </button>
+            </StickerButton>
           ))}
         </div>
       )}

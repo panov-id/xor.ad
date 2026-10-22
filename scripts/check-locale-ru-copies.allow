@@ -260,3 +260,11 @@ uk	web	web.table.street_flop	same word in uk (table games, 13.10.2026)
 uk	web	web.table.dealer	same word in uk (table games, 13.10.2026)
 uk	web	web.table.allin	same word in uk (table games, 13.10.2026)
 uk	web	web.table.done	same word in uk (table games, 13.10.2026)
+be	depth	sticker.wow	interjection, the same word in be
+uk	depth	sticker.wow	interjection, the same word in uk
+kk	depth	sticker.coffee	loanword used as is in kk
+ky	depth	sticker.coffee	loanword used as is in ky
+kk	depth	sticker.again	loanword (rematch) used as is in kk
+ky	depth	sticker.again	loanword (rematch) used as is in ky
+tg	depth	sticker.again	loanword (rematch) used as is in tg
+uk	depth	sticker.again	real uk word, same as ru

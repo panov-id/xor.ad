@@ -130,6 +130,34 @@
   --splash-margin-22: 22px;   /* splash: margin of entry > p */
 }
 
+/* release 1.0.0: repeated sizes of talk / newTable / stickers.
+   A token is a value that repeats (2+ uses, same meaning) in screens/talk.css, screens/newTable.css,
+   brands/neighbro/stickers.css; one-off literals stay in the files (the px-baseline counts them). */
+:root {
+  --talk-fs-14: 14px;   /* talk: body/meta text size */
+  --talk-fs-16: 16px;   /* talk: card/quote/input text size */
+  --talk-fs-20: 20px;   /* talk: match phrase text size */
+  --talk-fs-13: 13px;   /* talk: starter mark / time / art caption size */
+  --talk-lh-22: 22px;   /* talk: chat message line height */
+  --talk-pad-6: 6px;   /* talk: inline padding of sticker strip / composer */
+  --talk-strip-h-64: 64px;   /* talk: height of sticker strip / composer */
+  --talk-ring-w: 2px;   /* talk: focus ring width */
+  --talk-ring-gap: 2px;   /* talk: focus ring offset */
+  --talk-send-52: 52px;   /* talk: composer input/send/attach control size */
+  --talk-gap-2: 2px;   /* talk: tiny gap of starters / turn */
+  --talk-gap-14: 14px;   /* talk: gap of sticker strip columns / chat lines */
+  --talk-rule-w-3: 3px;   /* talk: accent rule thickness (tab underline, waiting quote) */
+  --new-table-pad-9: 9px;   /* newTable: neighbro card padding */
+  --new-table-bar-h: 56px;   /* newTable: segments / tilefoot bar height */
+  --new-table-fs-14: 14px;   /* newTable: field label size */
+  --new-table-fs-15: 15px;   /* newTable: seats / kind / tilefoot size */
+  --new-table-seg-nudge: 3px;   /* newTable: neighbro segment nudge (used as -v v) */
+  --stickers-pop-shadow: 1px 2px 0 2px;   /* stickers: hard shadow offsets of heart/seal */
+  --stickers-hair-w: 1.5px;   /* stickers: hairline of heart slot / heart sticker */
+  --stickers-heart-64: 64px;   /* stickers: heart sticker size */
+  --stickers-seal-112: 112px;   /* stickers: seal size */
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-1: 0s; }
 }

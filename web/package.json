@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "The web face of xor.ad: screens over the core in depth/core, one code for both storefronts with the brand as a parameter.",

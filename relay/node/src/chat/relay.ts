@@ -40,6 +40,9 @@ interface Room {
   // Lines were held back while its person was away: the next hand-over gives
   // everything that waited, not only the line that woke it.
   held?: boolean;
+  // The chats list's room (db/087_inbox_room.sql), keyed "inbox:<identity>": no queue, no chat, only «the list
+  // changed» frames, and with an `identity` it keeps no seat — it closes with its session.
+  inbox?: boolean;
 }
 
 const rooms = new Map<string, Set<Room>>(); // key: chat id
@@ -113,8 +116,8 @@ async function away(session: string): Promise<boolean> {
 }
 
 async function hand(room: Room, localId: string | null): Promise<void> {
-  // A table's room has no queue: its frames come from table_event.
-  if (room.table) return;
+  // A table's room and the chats list's have no queue: their frames come from table_event and inbox_changed.
+  if (room.table || room.inbox) return;
   if (await away(room.session)) {
     room.held = true;
     return;
@@ -409,6 +412,8 @@ export async function listenForRooms(): Promise<void> {
   await ensureListeningSeatLeft();
   await ensureListeningChatGames();
   await ensureListeningExtraLike();
+  await ensureListeningInbox();
+  await ensureListeningInboxFrame();
 }
 
 // Every room, closed with 1001 "going away": the node is stopping, and a
@@ -436,6 +441,34 @@ onListenLost(() => {
   const closed = closeAllRooms(1012, "the node lost its database feed, reconnect");
   log("warn", "listen connection lost, rooms closed", { closed });
 });
+
+// `NOTIFY inbox_changed` carries an identity (db/087_inbox_room.sql triggers): its chats list's room hears
+// «the list changed» and the client reads GET /inbox again. Nothing of what changed rides on the frame.
+let listeningInbox: Promise<void> | null = null;
+function ensureListeningInbox(): Promise<void> {
+  listeningInbox ??= listen("inbox_changed", (identity) => {
+    for (const room of rooms.get(`inbox:${identity}`) ?? []) frame(room, "inbox", {});
+  });
+  return listeningInbox;
+}
+
+// `NOTIFY inbox_frame` carries "<identity>|<json {type, data}>": a frame for that identity's chats list room and for
+// its table room of the same table, if open — today the «your turn» nudge (routes/tables.ts POST /tables/:id/nudge).
+let listeningInboxFrame: Promise<void> | null = null;
+function ensureListeningInboxFrame(): Promise<void> {
+  listeningInboxFrame ??= listen("inbox_frame", (payload) => {
+    const cut = payload.indexOf("|");
+    if (cut < 0) return;
+    const identity = payload.slice(0, cut);
+    let body: { type?: unknown; data?: { table?: unknown } };
+    try { body = JSON.parse(payload.slice(cut + 1)); } catch { return; }
+    if (typeof body.type !== "string") return;
+    for (const room of rooms.get(`inbox:${identity}`) ?? []) frame(room, body.type, body.data ?? {});
+    const table = typeof body.data?.table === "string" ? body.data.table : null;
+    if (table) for (const room of rooms.get(`table:${table}`) ?? []) if (room.identity === identity) frame(room, body.type, body.data);
+  });
+  return listeningInboxFrame;
+}
 
 // The registry, for a test that has no server to open a room through.
 export function roomsForTest(): Map<string, Set<Room>> {
@@ -474,7 +507,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   // 2026-09-26). The answer is a bad ticket's, so the lock is not told.
   let failed = false;
   const [spent] = token
-    ? await queryOrThrow<{ session: string; chat: string | null; table_id: string | null; identity: string }>(
+    ? await queryOrThrow<{ session: string; chat: string | null; table_id: string | null; inbox: boolean; identity: string }>(
       `DELETE FROM socket_tickets t USING sessions s
         WHERE t.token_hash = $1 AND t.expires_at > now()
           AND s.id = t.session AND s.frozen_at IS NULL
@@ -486,7 +519,7 @@ export async function relayUpgrade(req: Request): Promise<Response> {
           AND (t.table_id IS NULL OR EXISTS (
                 SELECT 1 FROM table_seats ts
                  WHERE ts.table_id = t.table_id AND ts.identity = s.identity AND ts.left_at IS NULL))
-        RETURNING t.session, t.chat, t.table_id, s.identity`,
+        RETURNING t.session, t.chat, t.table_id, t.inbox, s.identity`,
       [await sha256hex(new TextEncoder().encode(token))],
     ).catch(() => { failed = true; return []; })
     : [];
@@ -506,6 +539,8 @@ export async function relayUpgrade(req: Request): Promise<Response> {
   await listenForRooms();
   const room: Room = spent.table_id
     ? { socket, session: spent.session, chat: `table:${spent.table_id}`, seq: 0, table: spent.table_id, identity: spent.identity }
+    : spent.inbox
+    ? { socket, session: spent.session, chat: `inbox:${spent.identity}`, seq: 0, inbox: true, identity: spent.identity }
     : { socket, session: spent.session, chat: spent.chat!, seq: 0 };
   socket.onopen = () => {
     const set = rooms.get(room.chat) ?? new Set();
@@ -522,7 +557,9 @@ export async function relayUpgrade(req: Request): Promise<Response> {
     // only once the room is listed: an end after this is heard, one before is
     // read here. Every ending writes gone_at on a side (sweeper, close, block,
     // leave), and the first end is the end for both.
-    if (!room.table) {
+    // The chats list's room: one «changed» at once, for whatever changed between the ticket and the socket.
+    if (room.inbox) frame(room, "inbox", {});
+    if (!room.table && !room.inbox) {
       queryOrThrow<{ over: boolean }>(
         `SELECT NOT EXISTS (SELECT 1 FROM chats WHERE id = $1)
              OR EXISTS (SELECT 1 FROM chat_participants WHERE chat_id = $1 AND gone_at IS NOT NULL) AS over`,

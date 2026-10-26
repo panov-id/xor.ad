@@ -1,0 +1,11 @@
+/* The new design's icon and chip (app/src/shell/NdIcon.tsx; designer README «Чип значка»). */
+.nd-icon { width: 1em; height: 1em; display: block; }
+.nd-chip {
+  --chip-big: calc(var(--chip-n, 24) * 1px);
+  display: inline-grid; place-items: center;
+  width: calc(var(--chip-big) * 1.45); height: calc(var(--chip-big) * 1.45);
+  border-radius: calc(var(--chip-big) * 0.42);
+  background: var(--chip-bg, var(--accent)); box-shadow: var(--shadow-chip);
+  color: #fff; --ifill: rgba(255, 255, 255, .28);
+}
+.nd-chip > .nd-icon { width: var(--chip-big); height: var(--chip-big); }

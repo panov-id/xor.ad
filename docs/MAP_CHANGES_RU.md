@@ -1,3 +1,19 @@
+## 26.10.2026 15:09 · связей +3 −8
+
+```diff
++ app/src/screens/tables/Tables.tsx -> app/src/screens/move-parts.tsx
++ docs/reviews/CROWD_REPORT_2026-10-25_EN.md -> docs/reviews/PANEL_2026-10-26_solo-crowd_EN.md
++ docs/reviews/CROWD_REPORT_2026-10-25_RU.md -> docs/reviews/PANEL_2026-10-26_solo-crowd_RU.md
+- docs/design/kit_EN.md -> docs/report-2026-10-02-brands.pdf
+- docs/design/kit_RU.md -> docs/report-2026-10-02-brands.pdf
+- docs/reviews/AUDIT_1920_2026-10-25_EN.md -> testing/redesign/2026-10-15/brief/05-handoff_EN.md
+- docs/reviews/AUDIT_1920_2026-10-25_EN.md -> testing/redesign/2026-10-15/brief/assets/icons-1920/sheet.svg
+- docs/reviews/AUDIT_1920_2026-10-25_RU.md -> testing/redesign/2026-10-15/brief/05-handoff_RU.md
+- docs/reviews/AUDIT_1920_2026-10-25_RU.md -> testing/redesign/2026-10-15/brief/assets/icons-1920/sheet.svg
+- relay/moderation-bench/README_EN.md -> relay/moderation-bench/evaluation.json
+- relay/moderation-bench/README_RU.md -> relay/moderation-bench/evaluation.json
+```
+
 ## 25.10.2026 20:58 · связей +127 −1
 
 ```diff

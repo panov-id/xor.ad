@@ -38,7 +38,8 @@
 .me-who h1 { font-size: var(--fs-me-name); font-weight: var(--fw-700); line-height: var(--lh-tight); overflow-wrap: anywhere; }
 .me-who p { margin-top: var(--me-who-gap); font-size: var(--fs-me-who); line-height: var(--lh-me-who); font-weight: var(--fw-500); }
 .me-who p button { padding: 0; font-size: inherit; line-height: inherit; font-weight: inherit; text-align: start; display: inline; min-height: 0; }   /* the place line as drawn, only now it opens Place (tablet up) */
-.me-edit { width: var(--me-edit-w); height: var(--me-edit-h); min-height: 0; border-radius: var(--r-pill); background: var(--c-ink); color: var(--c-peach);
+/* the sheet's width is the floor: «Изменить» is wider than «Edit» and was cut to «Измени» at 320 (crowd run flow-1026-110213) */
+.me-edit { width: auto; min-width: var(--me-edit-w); padding-inline: var(--sp-3); white-space: nowrap; height: var(--me-edit-h); min-height: 0; border-radius: var(--r-pill); background: var(--c-ink); color: var(--c-peach);
   font-size: var(--fs-me-edit); font-weight: var(--fw-700); }
 .me-edit:disabled { opacity: var(--o-disabled); }
 .me-rows { display: grid; gap: var(--me-rows-gap); }
@@ -101,9 +102,12 @@
 .me-theme[aria-checked="true"] { box-shadow: inset 0 0 0 var(--ring) var(--c-lime); }
 .me-theme[aria-disabled="true"] { cursor: default; }
 .me-swatch { height: var(--me-swatch-h); border-radius: var(--r-me-swatch); background: var(--c-night); }
-.me-theme[data-theme="auto"] .me-swatch { background: linear-gradient(90deg, var(--me-paper) 50%, var(--c-night) 50%); }
-.me-theme[data-theme="light"] .me-swatch { background: var(--me-paper); }
-.me-theme[data-theme="dark"] .me-swatch { background: var(--me-black); }
+/* each tile shows its theme's page and accent (themes.css --bg / --accent of that theme) */
+.me-theme[data-theme="auto"] .me-swatch { background: linear-gradient(90deg, #eceef2 50%, #0b0b0d 50%); }
+.me-theme[data-theme="white"] .me-swatch { background: radial-gradient(circle at 75% 70%, #e35e45 18%, transparent 19%), #eceef2; }
+.me-theme[data-theme="sea"] .me-swatch { background: radial-gradient(circle at 75% 70%, #b25034 18%, transparent 19%), #0d4446; }
+.me-theme[data-theme="plum"] .me-swatch { background: radial-gradient(circle at 75% 70%, #ff7a66 18%, transparent 19%), #241327; }
+.me-theme[data-theme="black"] .me-swatch { background: radial-gradient(circle at 75% 70%, #ff7a59 18%, transparent 19%), #0b0b0d; }
 .me-theme-name { margin-top: var(--me-swatch-gap); font-size: var(--fs-body); font-weight: var(--fw-700); line-height: var(--lh-tight); }
 .me-theme-sub { margin: var(--me-theme-sub-gap) 0 var(--me-theme-sub-end); font-size: var(--fs-caption);
   line-height: var(--lh-me-theme-sub); color: var(--c-muted); font-weight: var(--fw-500); }

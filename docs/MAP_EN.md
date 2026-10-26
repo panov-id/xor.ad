@@ -122,7 +122,7 @@ flowchart LR
 - `app/src/screens/me/reissue-logic.ts` → app/src/screens/me/restore-logic.ts, depth/core/register.ts  ·  ← app/src/screens/me/Reissue.tsx, app/src/screens/me/reissue.test.ts
 - `app/src/screens/me/reissue.test.ts` → app/src/screens/me/reissue-logic.ts  ·  ← —
 - `app/src/screens/me/restore-logic.ts` → depth/core/paper_text.ts, depth/core/register.ts  ·  ← app/src/screens/Gate.tsx, app/src/screens/me/Reissue.tsx, app/src/screens/me/lists.test.ts, app/src/screens/me/reissue-logic.ts
-- `app/src/screens/move-parts.tsx` → app/src/i18n.ts, app/src/shell/Icon.tsx, app/src/shell/icons.ts  ·  ← app/src/screens/Arrival.tsx, app/src/screens/Away.tsx, app/src/screens/Departure.tsx
+- `app/src/screens/move-parts.tsx` → app/src/i18n.ts, app/src/shell/Icon.tsx, app/src/shell/icons.ts  ·  ← app/src/screens/Arrival.tsx, app/src/screens/Away.tsx, app/src/screens/Departure.tsx, app/src/screens/tables/Tables.tsx
 - `app/src/screens/move_flow.test.ts` → depth/core/move_flow.ts  ·  ← —
 - `app/src/screens/pin-line.ts` → app/src/i18n.ts  ·  ← app/src/screens/Departure.tsx, app/src/screens/Locked.tsx, app/src/screens/Unlock.tsx, app/src/screens/me/ChangePin.tsx, app/src/screens/me/Reset.tsx
 - `app/src/screens/pin_gate.test.ts` → depth/core/pin_gate.ts  ·  ← —
@@ -132,7 +132,7 @@ flowchart LR
 - `app/src/screens/splash.test.ts` → app/src/i18n-core.ts  ·  ← —
 - `app/src/screens/tables/NewTable.tsx` → app/src/i18n.ts, app/src/place.ts, app/src/screens/feed-logic.ts, app/src/screens/me/parts.tsx, app/src/screens/register-parts.tsx, app/src/screens/tables/icons.ts, app/src/screens/tables/table-row.tsx, app/src/screens/tables/tables-logic.ts, app/src/shell/Icon.tsx, app/src/shell/Screen.tsx, app/src/shell/TabBar.tsx, app/src/shell/icons.ts  ·  ← app/src/shell/App.tsx
 - `app/src/screens/tables/Table.tsx` → app/src/i18n-core.ts, app/src/i18n.ts, app/src/screens/me/me-logic.ts, app/src/screens/tables/boards.tsx, app/src/screens/tables/solo-logic.ts, app/src/screens/tables/solo.tsx, app/src/screens/tables/table-logic.ts, app/src/screens/tables/table-row.tsx, app/src/screens/tables/tables-logic.ts, app/src/shell/Icon.tsx, app/src/shell/Screen.tsx, app/src/shell/TabBar.tsx, app/src/shell/icons.ts, app/src/shell/layers.tsx  ·  ← app/src/shell/App.tsx
-- `app/src/screens/tables/Tables.tsx` → app/src/i18n.ts, app/src/place.ts, app/src/screens/tables/icons.ts, app/src/screens/tables/table-row.tsx, app/src/screens/tables/tables-logic.ts, app/src/shell/Icon.tsx, app/src/shell/Screen.tsx, app/src/shell/Skeleton.tsx, app/src/shell/TabBar.tsx, app/src/shell/icons.ts, app/src/shell/loading.ts  ·  ← app/src/shell/App.tsx
+- `app/src/screens/tables/Tables.tsx` → app/src/i18n.ts, app/src/place.ts, app/src/screens/move-parts.tsx, app/src/screens/tables/icons.ts, app/src/screens/tables/table-row.tsx, app/src/screens/tables/tables-logic.ts, app/src/shell/Icon.tsx, app/src/shell/Screen.tsx, app/src/shell/Skeleton.tsx, app/src/shell/TabBar.tsx, app/src/shell/icons.ts, app/src/shell/loading.ts  ·  ← app/src/shell/App.tsx
 - `app/src/screens/tables/boards-deck.tsx` → app/src/i18n.ts, app/src/screens/tables/boards.tsx, app/src/screens/tables/cards-logic.ts, app/src/screens/tables/cards.tsx, app/src/screens/tables/durak-logic.ts, depth/core/cards.ts, depth/core/tables_deck.ts  ·  ← app/src/screens/tables/boards.tsx
 - `app/src/screens/tables/boards-physics.tsx` → app/src/i18n.ts, app/src/screens/tables/boards.tsx, app/src/screens/tables/chapayev-logic.ts, depth/core/tables_physics.ts  ·  ← app/src/screens/tables/boards.tsx
 - `app/src/screens/tables/boards-poker.tsx` → app/src/i18n.ts, app/src/screens/tables/boards.tsx, app/src/screens/tables/cards-logic.ts, app/src/screens/tables/cards.tsx, app/src/screens/tables/poker-logic.ts, depth/core/tables_poker.ts  ·  ← app/src/screens/tables/boards.tsx
@@ -922,7 +922,7 @@ flowchart LR
 - node:child_process: 3
 - node:crypto: 1
 - node:dns: 1
-- node:fs: 57
+- node:fs: 61
 - node:http: 6
 - node:module: 1
 - node:path: 14
@@ -973,8 +973,8 @@ flowchart LR
 - `docs/design-system-app_RU.md` → docs/depth-client_RU.md, docs/design-system_RU.md, panel/design/app-kit.svg, panel/design/empty-nav-mockup.svg, panel/design/kit/components.svg, panel/design/sheets/screen-brands.svg, panel/design/signs-mockup.svg, panel/design/spark-mockup.svg  ·  ← README_RU.md, docs/accessibility-and-i18n_RU.md, docs/design-system_RU.md
 - `docs/design-system_EN.md` → docs/design-system-app_EN.md, panel/design/kit-full.svg, panel/design/reference-behaviour.svg  ·  ← README.md, docs/accessibility-and-i18n_EN.md, docs/design-system-app_EN.md
 - `docs/design-system_RU.md` → docs/design-system-app_RU.md, panel/design/kit-full.svg, panel/design/reference-behaviour.svg  ·  ← README_RU.md, docs/accessibility-and-i18n_RU.md, docs/design-system-app_RU.md
-- `docs/design/kit_EN.md` → docs/report-2026-10-02-brands.pdf  ·  ← —
-- `docs/design/kit_RU.md` → docs/report-2026-10-02-brands.pdf  ·  ← —
+- `docs/design/kit_EN.md` → —  ·  ← —
+- `docs/design/kit_RU.md` → —  ·  ← —
 - `docs/design/themes_EN.md` → docs/design/themes_RU.md  ·  ← docs/design/themes_RU.md
 - `docs/design/themes_RU.md` → docs/design/themes_EN.md  ·  ← docs/design/themes_EN.md
 - `docs/dpia_EN.md` → docs/article-30-register_EN.md, docs/dsa/SPEC_EN.md  ·  ← docs/article-30-register_EN.md
@@ -1021,14 +1021,14 @@ flowchart LR
 - `docs/review-checklist_RU.md` → .github/workflows/panel.yml, docs/chat_RU.md, relay/ARCHITECTURE_RU.md  ·  ← —
 - `docs/reviews/APP_WALK_2026-10-23_EN.md` → —  ·  ← —
 - `docs/reviews/APP_WALK_2026-10-23_RU.md` → —  ·  ← docs/APP_FIX_PLAN_2026-10-23_EN.md, docs/APP_FIX_PLAN_2026-10-23_RU.md
-- `docs/reviews/AUDIT_1920_2026-10-25_EN.md` → testing/redesign/2026-10-15/brief/05-handoff_EN.md, testing/redesign/2026-10-15/brief/assets/icons-1920/sheet.svg  ·  ← —
-- `docs/reviews/AUDIT_1920_2026-10-25_RU.md` → testing/redesign/2026-10-15/brief/05-handoff_RU.md, testing/redesign/2026-10-15/brief/assets/icons-1920/sheet.svg  ·  ← —
+- `docs/reviews/AUDIT_1920_2026-10-25_EN.md` → —  ·  ← —
+- `docs/reviews/AUDIT_1920_2026-10-25_RU.md` → —  ·  ← —
 - `docs/reviews/CROWD_2026-10-24_EN.md` → docker-compose.web.yml, docs/chat_EN.md  ·  ← docs/reviews/CROWD_REPORT_2026-10-25_EN.md
 - `docs/reviews/CROWD_2026-10-24_RU.md` → docker-compose.web.yml, docs/chat_RU.md  ·  ← docs/reviews/CROWD_REPORT_2026-10-25_RU.md
 - `docs/reviews/CROWD_INTERACTION_PLAN_EN.md` → docs/chat_EN.md, docs/reviews/CROWD_INTERACTION_PLAN_RU.md  ·  ← docs/reviews/CROWD_INTERACTION_PLAN_RU.md
 - `docs/reviews/CROWD_INTERACTION_PLAN_RU.md` → docs/chat_RU.md, docs/reviews/CROWD_INTERACTION_PLAN_EN.md  ·  ← docs/reviews/CROWD_INTERACTION_PLAN_EN.md
-- `docs/reviews/CROWD_REPORT_2026-10-25_EN.md` → docs/reviews/CROWD_2026-10-24_EN.md  ·  ← —
-- `docs/reviews/CROWD_REPORT_2026-10-25_RU.md` → docs/reviews/CROWD_2026-10-24_RU.md  ·  ← —
+- `docs/reviews/CROWD_REPORT_2026-10-25_EN.md` → docs/reviews/CROWD_2026-10-24_EN.md, docs/reviews/PANEL_2026-10-26_solo-crowd_EN.md  ·  ← —
+- `docs/reviews/CROWD_REPORT_2026-10-25_RU.md` → docs/reviews/CROWD_2026-10-24_RU.md, docs/reviews/PANEL_2026-10-26_solo-crowd_RU.md  ·  ← —
 - `docs/reviews/GAPS_2026-10-12_web-vs-promise.md` → —  ·  ← docs/goal-web-whole_EN.md, docs/goal-web-whole_RU.md
 - `docs/reviews/PANEL_2026-10-12_entry-adaptive.md` → —  ·  ← —
 - `docs/reviews/PANEL_2026-10-12_goals.md` → docs/GOALS_RU.md, docs/goal-web-whole_RU.md, panel/design/screen-26-place-qr.svg  ·  ← docs/GOALS_EN.md, docs/GOALS_RU.md
@@ -1037,6 +1037,8 @@ flowchart LR
 - `docs/reviews/PANEL_2026-10-22_app-motion_RU.md` → —  ·  ← —
 - `docs/reviews/PANEL_2026-10-23_wide834-overlap_EN.md` → docs/reviews/PANEL_2026-10-23_wide834-overlap_RU.md  ·  ← docs/reviews/PANEL_2026-10-23_wide834-overlap_RU.md
 - `docs/reviews/PANEL_2026-10-23_wide834-overlap_RU.md` → docs/reviews/PANEL_2026-10-23_wide834-overlap_EN.md  ·  ← docs/reviews/PANEL_2026-10-23_wide834-overlap_EN.md
+- `docs/reviews/PANEL_2026-10-26_solo-crowd_EN.md` → —  ·  ← docs/reviews/CROWD_REPORT_2026-10-25_EN.md
+- `docs/reviews/PANEL_2026-10-26_solo-crowd_RU.md` → —  ·  ← docs/reviews/CROWD_REPORT_2026-10-25_RU.md
 - `docs/reviews/WALK_2026-10-12_newcomer-and-perfectionist.md` → —  ·  ← —
 - `docs/reviews/WALK_2026-10-12_svg-perfectionist.md` → —  ·  ← —
 - `docs/reviews/WIZARD_PLACE_app-patch.md` → —  ·  ← —
@@ -1061,24 +1063,11 @@ flowchart LR
 - `relay/SPEC_EN.md` → .github/workflows/relay.yml, docs/protocol_EN.md  ·  ← docs/deployment_EN.md, relay/README.md
 - `relay/SPEC_RU.md` → .github/workflows/relay.yml, docs/protocol_RU.md  ·  ← docs/deployment_RU.md, relay/README_RU.md
 - `relay/local/README.md` → relay/local/observability/alertmanager.yml, relay/local/observability/alerts.yml, relay/local/observability/grafana/dashboards/relay-identity.json, relay/local/observability/prometheus.yml  ·  ← relay/README.md, relay/README_RU.md
-- `relay/moderation-bench/README_EN.md` → docs/vendors-dpa_EN.md, relay/moderation-bench/README_RU.md, relay/moderation-bench/evaluation.json, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_RU.md
-- `relay/moderation-bench/README_RU.md` → docs/vendors-dpa_RU.md, relay/moderation-bench/README_EN.md, relay/moderation-bench/evaluation.json, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_EN.md
+- `relay/moderation-bench/README_EN.md` → docs/vendors-dpa_EN.md, relay/moderation-bench/README_RU.md, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_RU.md
+- `relay/moderation-bench/README_RU.md` → docs/vendors-dpa_RU.md, relay/moderation-bench/README_EN.md, relay/moderation-bench/fetch_resources.py, relay/moderation-bench/pipeline.py  ·  ← relay/moderation-bench/README_EN.md
 - `relay/moderator/README_EN.md` → —  ·  ← —
 - `relay/moderator/README_RU.md` → —  ·  ← —
 - `relay/node/src/access/README.md` → —  ·  ← —
-- `testing/walk-svg/round1/PROMPT.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-1024.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-1440.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-2560.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-375.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-393.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/neighbro-768.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-1024.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-1440.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-2560.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-375.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-393.notes.md` → —  ·  ← —
-- `testing/walk-svg/round1/sosed-768.notes.md` → —  ·  ← —
 
 ## CHECK
 - every edge checked against the disk, no mismatch

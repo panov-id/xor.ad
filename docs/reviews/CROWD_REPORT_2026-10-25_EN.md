@@ -130,3 +130,44 @@ The live check of the crowd fixes is the 10th run; the 9th started before them.
 - Chloe 412 and Elena 320 «me tour»: after a report the «Report accepted» sheet stayed open and the phrase's Back was under it. The crowd now closes the sheet by a tap on the dim (`app/src/shell/layers.tsx:61`); a test in `crowd-plan.test.mjs` goes red under a break. Live: in the next run.
 - «No chat»: 7 steps for Fotis. By run: Fotis, Chloe, Dmitri, Fotis — cause not found.
 - Elena 320 «edit me»: as in the 8th.
+
+## 11. «No chat»: the cause
+
+In the 8th to 11th runs, in each one person's «chat 1–6» steps fail with «no chat»: Chloe, Dmitri, Fotis, Dmitri.
+For all four the screen before the first chat step is «Chats» (the «chats again» step, journal field `screen`), and
+their «yes» was the first of two: the other side said «yes» later, while they stood on the list. The chat exists on the
+node, but the list `app/src/screens/talks/Inbox.tsx:43-57` reads again only on opening the screen, window focus and
+return to the browser tab; a person standing on «Chats» does not see the new chat. Tables were the same before 2026-10-26.
+
+Whose: the app (the list does not look by itself). The crowd only shows it. Not fixed: the owner's decision — the chats
+list looks once a minute, as tables do (`GET /inbox` has no limit, `relay/node/src/routes/inbox.ts`: a look spends no read bucket), or the node sends an event.
+
+«Edit» at 320: the button is as wide as its label, the sheet's width a floor (`app/src/screens/me/me.css`); a test in
+`me.test.ts` goes red under a break. The overlap measure does not see text cut inside a button.
+
+## 12. Runs of 2026-10-26 evening: the chats list channel and «your turn»
+
+| Run | Steps ok | Games with every move | «No chat» | «Your turn» heard | Nino «me» at 1920 |
+|---|---|---|---|---|---|
+| flow-1026-172028 (a poll a minute) | 429 of 437 | 12 of 12 | 7 | — | failed |
+| flow-1026-190348 (node channel) | 436 of 437 | 12 of 12 | 0 | — | failed |
+| flow-1026-193139 (channel + «your turn») | 448 of 449 | 12 of 12 | 0 | 11 of 12 | failed |
+| flow-1026-202151 (+ themes, `tab()` presses the phrase's rail) | 449 of 449 | 12 of 12 | 0 | 12 of 12 | passed |
+
+Counted by a script from each run's `summary.txt` and `journal.jsonl`.
+
+«No chat» went away when the node channel replaced the poll (owner's decision 26.10.2026 «a node channel at once»): the
+chats list room, an `inbox` frame from database triggers (`relay/node/db/087_inbox_room.sql`, protocol §4.4, chat spec
+§8.12).
+
+«Your turn»: in 11 games of 12 the waiting player nudged and the one to move heard it. In poker there was no button: the
+round had ended by that step — the step says so, it is not a failure.
+
+Elena «edit» at 320 (run flow-1026-163934): the crowd pressed the `h1`, not the button. Fixed in the crowd; ok since 172028.
+
+Nino «me» at 1920, two causes in a row:
+1. 190348: `<html data-vt="close">` held the clicks — a sheet's transition did not end within 10 s. Why the browser did
+   not end it is not found. `app/src/shell/layers.tsx` now cuts a transition after 2 s; 193139 shows no such hold.
+2. 193139: from 1440 an open phrase has its own tab rail over the feed's, and the crowd pressed the first, covered one.
+   Whose: the crowd. `tab()` in `scripts/flow/crowd.mjs` now presses the open phrase's rail; a test in
+   `crowd-plan.test.mjs` goes red when it is broken. Run flow-1026-202151: the step passed; the first run with no failed step.

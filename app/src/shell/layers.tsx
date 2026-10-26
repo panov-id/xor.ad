@@ -18,12 +18,19 @@ const canVT = () =>
   typeof document.startViewTransition === "function" &&
   !matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** Longest a layer's view transition may hold the page; --d-sheet is far below it (MOTION.md). */
+export const VT_GUARD_MS = 2000;
+
 function change(direction: "open" | "close" | "screen-open" | "screen-close", update: () => void) {
   const root = document.documentElement;
   if (!canVT()) { update(); return; }
   root.dataset.vt = direction;
   const t = document.startViewTransition(() => flushSync(update));
-  void t.finished.finally(() => { delete root.dataset.vt; });
+  // A transition the browser never finishes keeps its pseudo-layer over the page and every tap lands on <html> (crowd
+  // flow-1026-190348: Nino, 1920, ten seconds after a sheet closed). Past VT_GUARD_MS it is skipped: the page is
+  // already updated, only the animation is lost. A later transition's mark is not taken away by an earlier one.
+  const guard = setTimeout(() => t.skipTransition(), VT_GUARD_MS);
+  void t.finished.finally(() => { clearTimeout(guard); if (root.dataset.vt === direction) delete root.dataset.vt; });
 }
 
 /**

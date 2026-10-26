@@ -59,6 +59,14 @@ export function firstAction(view: TableView): "start" | "say" | "pass" | "like" 
  * будут играть»): offered to a watcher while no round is under way and their own application is not already open.
  * The web had it (web/src/screens/Table.tsx «apply»); app/ lost it, and no guest could ever become a player.
  */
+/** «Your turn» (design 25.10 B5): a player waiting on another player's move may nudge them; the node refuses one's own
+ *  turn, a watcher and a seat nobody sits in, and keeps the minute (protocol §4.6). */
+export function canNudge(view: TableView): boolean {
+  const b = view.board;
+  if (!view.is_playing || !b || b.over || b.turn === null || b.turn === view.seat) return false;
+  return view.seats.some((s) => s.seat === b.turn);
+}
+
 export function canApply(view: TableView): "apply" | "applied" | null {
   if (view.is_playing) return null;
   const board = view.board;

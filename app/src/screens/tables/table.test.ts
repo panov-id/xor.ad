@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { canApply, conStep, diceOf, movesIn, diceStep, dominoView, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { canApply, canNudge, conStep, diceOf, movesIn, diceStep, dominoView, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -184,4 +184,15 @@ test("a watcher may apply while no round is under way, once; a player never (§6
 test("the watcher's «apply» is shut while its application is on the way", () => {
   const screen = readFileSync(new URL("./Table.tsx", import.meta.url), "utf8");
   assert.match(screen, /disabled=\{applying\} onClick=\{\(\) => \{ setApplying\(true\);[\s\S]*?finally\(\(\) => setApplying\(false\)\)/, "«apply» can be pressed twice");
+});
+
+// Design 25.10 B5 «your turn»: only a player waiting on another player's move sees «nudge» (protocol §4.6).
+test("«nudge» shows only to a player waiting on someone else's move", () => {
+  assert.equal(canNudge(view({}, { turn: 2 })), true, "a player waiting on the other's move cannot nudge");
+  assert.equal(canNudge(view({}, { turn: 1 })), false, "a player is offered to nudge themself");
+  assert.equal(canNudge(view({ is_playing: false, seat: 3 }, { turn: 2 })), false, "a watcher is offered to nudge");
+  assert.equal(canNudge(view({}, { turn: 2, over: true })), false, "a finished round offers a nudge");
+  assert.equal(canNudge(view({}, { turn: null })), false, "a round not started offers a nudge");
+  assert.equal(canNudge(view({}, null)), false, "a table with no board offers a nudge");
+  assert.equal(canNudge(view({ seats: [{ seat: 1, name: "Alex", role: "playing" }] }, { turn: 2 })), false, "a nudge is offered to an empty seat");
 });

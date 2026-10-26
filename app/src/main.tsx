@@ -10,7 +10,14 @@ import "../tokens/tables.css";
 import "../tokens/cabinet.css";
 import "../tokens/chat.css";
 import "../tokens/compose.css";
+import "../tokens/themes.css";
+import "../tokens/nd-icons.css";
 import "./shell/shell.css";
+import { applyTheme } from "./brands/sosed/theme";
+
+// The theme before the first paint; «auto» turns white/black on the hour (owner 2026-10-26).
+applyTheme();
+setInterval(() => applyTheme(), 10 * 60_000);
 import "./screens/screens.css";
 import "./screens/feed.css";
 import "./screens/move.css";

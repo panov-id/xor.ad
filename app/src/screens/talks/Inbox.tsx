@@ -16,7 +16,7 @@ import { Skeleton } from "../../shell/Skeleton";
 import { TabBar, type Tab } from "../../shell/TabBar";
 import { initial } from "../me/me-logic";
 import type { InboxChatRow } from "@platform/chat/keys.ts";
-import { chatRowOf, isFresh, lineOf, ringOf, splitInbox, type MatchRow, type Row, type TalkRow } from "./talks-logic";
+import { chatRowOf, listenInbox, marksSeen, type InboxCause, isFresh, lineOf, ringOf, splitInbox, type MatchRow, type Row, type TalkRow } from "./talks-logic";
 
 const LAST_LOOK = "xor-inbox-last-look";
 const FACES = 4; // the sheet's avatar colours, in turn
@@ -35,26 +35,38 @@ function Ring({ talk }: { talk: TalkRow }) {
   );
 }
 
-/** The inbox page, read on opening and again on coming back to the window. `mark`: this look is the person's own (the
+/** The inbox page, read on opening, on coming back to the window and when the node says it changed. `mark`: this look is the person's own (the
  * talks' screen) and moves the «new» marks' moment; the desktop's right pane reads the same page without moving it. */
 export function useInbox(client: Client, mark: boolean): { rows: Row[] | null; error: string | null } {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    const load = () => {
+    // One read at a time: a signal that comes while a read is out asks for one more after it, not a second at once.
+    let reading = false;
+    let queued: InboxCause | null = null;
+    const load = (cause: InboxCause) => {
+      if (reading) { queued = queued && !marksSeen(cause, true) ? queued : cause; return; }
+      reading = true;
       let since: number | undefined;
       try { since = Number(sessionStorage.getItem(LAST_LOOK) ?? "") || undefined; } catch { /* no storage: all is new */ }
       client.inboxSince(since).then((page) => {
         setRows(page.items as unknown as Row[]);
         setError(null);
-        if (mark) { try { sessionStorage.setItem(LAST_LOOK, String(now())); } catch { /* as above */ } }
-      }).catch((e: Error) => setError(failedLine(e)));
+        if (marksSeen(cause, mark)) { try { sessionStorage.setItem(LAST_LOOK, String(now())); } catch { /* as above */ } }
+      }).catch((e: Error) => setError(failedLine(e))).finally(() => {
+        reading = false;
+        const next = queued;
+        queued = null;
+        if (next) load(next);
+      });
     };
-    load();
-    const again = () => { if (document.visibilityState !== "hidden") load(); };
+    load("open");
+    const again = () => { if (document.visibilityState !== "hidden") load("focus"); };
     window.addEventListener("focus", again);
     document.addEventListener("visibilitychange", again);
-    return () => { window.removeEventListener("focus", again); document.removeEventListener("visibilitychange", again); };
+    // a person standing on the list sees a chat opened meanwhile: the node's channel says «changed» (protocol §4.4)
+    const stop = listenInbox(() => client.openInbox(), () => load("signal"));
+    return () => { window.removeEventListener("focus", again); document.removeEventListener("visibilitychange", again); stop(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return { rows, error };
 }

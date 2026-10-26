@@ -1,0 +1,149 @@
+id,zone,title,widths,status,code
+arrival-1,1-entry,Перенос сюда · 1 · код,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Arrival.tsx
+arrival-2,1-entry,Перенос сюда · 2 · сверка,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Arrival.tsx
+arrival-3,1-entry,Перенос сюда · 3 · новый ПИН,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Arrival.tsx
+forget-confirm,1-entry,Забыть личность · подтверждение,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/Unlock.tsx
+loading,1-entry,Загрузка,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Loading.tsx
+locked,1-entry,Закрыто по бездействию,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Locked.tsx
+register-1,1-entry,Регистрация · 1 · кто ты,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Register.tsx
+register-2,1-entry,Регистрация · 2 · ПИН,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/Register.tsx
+register-2b,1-entry,Регистрация · 2 · ПИН ещё раз (новый),desktop-1440 desktop-1920 mobile-390,new,app/src/screens/Register.tsx
+register-3,1-entry,Регистрация · 3 · бумажный код,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Register.tsx
+restore,1-entry,Восстановление по бумажному коду,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Gate.tsx
+splash,1-entry,Заставка,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Splash.tsx
+splash-lang,1-entry,Язык при первом входе,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Splash.tsx
+unlock,1-entry,Вход по ПИНу,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/Unlock.tsx
+unlock-error,1-entry,Вход по ПИНу · ошибка,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Unlock.tsx
+place,2-intro,Место,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/Place.tsx
+place-qr,2-intro,QR места · вопрос поверх ленты,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/PlaceQr.tsx
+wizard-1,2-intro,Как это работает · 1 из 5,desktop-1440 desktop-1920 mobile-390,new,
+wizard-2,2-intro,Как это работает · 2 из 5,desktop-1440 desktop-1920 mobile-390,new,
+wizard-3,2-intro,Как это работает · 3 из 5,desktop-1440 desktop-1920 mobile-390,new,
+wizard-4,2-intro,Как это работает · 4 из 5,desktop-1440 desktop-1920 mobile-390,new,
+wizard-5,2-intro,Как это работает · 5 · место,desktop-1440 desktop-1920 mobile-390,new,
+block-confirm,3-nearby,Блок · подтверждение,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/feed-menu.tsx
+card,3-nearby,Фраза,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/feed-card.tsx
+card-both,3-nearby,Фраза · вы оба тут,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/feed-card.tsx
+card-in,3-nearby,Фраза · ты тут,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/feed-card.tsx
+card-more,3-nearby,Фраза · меню «…»,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/feed-menu.tsx
+card-need,3-nearby,Фраза · сначала своя фраза,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/feed-card.tsx
+composer,3-nearby,Написать,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Composer.tsx
+composer-offer,3-nearby,Написать · со скидкой,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Composer.tsx
+composer-refused,3-nearby,Написать · лимит часа,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Composer.tsx
+feed,3-nearby,Лента,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/Feed.tsx
+feed-blocked,3-nearby,Лента · автор заблокирован,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Feed.tsx
+feed-empty,3-nearby,Лента · пусто,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Feed.tsx
+feed-error,3-nearby,Лента · нет связи,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Feed.tsx
+feed-hidden,3-nearby,"Лента · скрыто, 5 с на возврат",desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Feed.tsx
+feed-loading,3-nearby,Лента · загрузка,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Feed.tsx
+feed-own,3-nearby,Лента · своя фраза на проверке,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Feed.tsx
+my-marks,3-nearby,Мои отметки,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/talks/Likes.tsx
+my-marks-empty,3-nearby,Мои отметки · пусто,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/talks/Likes.tsx
+notice,3-nearby,Сообщить о нарушении · форма,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/feed-menu.tsx
+notice-sent,3-nearby,Сообщение принято,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/feed-menu.tsx
+offer-card,3-nearby,Предложение заведения,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/feed-card.tsx
+offer-exit,3-nearby,Переход по ссылке заведения,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Offer.tsx
+radius,3-nearby,Радиус и место · листок,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/Feed.tsx
+new-table-1,4-tables,Новый стол · 1 · игра,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/tables/NewTable.tsx
+new-table-2,4-tables,Новый стол · 2 · вариант и места,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/tables/NewTable.tsx
+new-table-3,4-tables,Новый стол · 3 · как увидят соседи,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/tables/NewTable.tsx
+table,4-tables,Стол · партия,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/tables/Table.tsx
+table-giveup-confirm,4-tables,Стол · сдаться · подтверждение,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+table-more,4-tables,Стол · меню «…»,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/tables/Table.tsx
+table-over,4-tables,Стол · партия окончена,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+table-pass-confirm,4-tables,Стол · пас · подтверждение,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+table-solo,4-tables,Свой стол · пока ждём — задачка,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/tables/solo.tsx
+table-solo-guest,4-tables,Свой стол · сосед просится,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/tables/solo.tsx
+table-solo-over,4-tables,Свой стол · задача решена,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/tables/solo.tsx
+table-wait,4-tables,Стол · ждём соперника,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/tables/Table.tsx
+tables,4-tables,Столы,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/tables/Tables.tsx
+tables-empty,4-tables,Столы · пусто,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/tables/Tables.tsx
+tables-full,4-tables,Столы · стол полон,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/tables/Tables.tsx
+tables-mine,4-tables,Столы · мои,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/tables/Tables.tsx
+tables-row-solo,4-tables,Столы · «играет один» — приглашение подсесть,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/tables/table-row.tsx
+chat,5-talks,Беседа,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Chat.tsx
+chat-end-confirm,5-talks,Закончить беседу · подтверждение,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/chat-menu.tsx
+chat-ended,5-talks,Беседа закончилась,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Chat.tsx
+chat-fade,5-talks,Беседа · срок затухания,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/Chat.tsx
+chat-game,5-talks,Беседа · выбрать игру,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/chat-game.tsx
+chat-game-board,5-talks,Беседа · партия,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/chat-game.tsx
+chat-game-offer,5-talks,Беседа · предложение сыграть,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/chat-game.tsx
+chat-keys,5-talks,Беседа · просьба о новых ключах,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Chat.tsx
+chat-more,5-talks,Беседа · меню «…»,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/chat-menu.tsx
+chat-safety,5-talks,Беседа · код безопасности,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Chat.tsx
+inbox,5-talks,Беседы,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/talks/Inbox.tsx
+inbox-empty,5-talks,Беседы · пусто,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/talks/Inbox.tsx
+offer,5-talks,Предложение поговорить,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/talks/Match.tsx
+offer-gone,5-talks,Предложение ушло,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/talks/Match.tsx
+offer-waiting,5-talks,Предложение · ждём ответа,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/talks/MatchWaiting.tsx
+age-filter,6-me,Фильтр по возрасту,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/AgeFilter.tsx
+away,6-me,Ты отошёл,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Away.tsx
+blocked,6-me,Заблокированные,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/Blocked.tsx
+change-pin,6-me,Сменить ПИН,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/me/ChangePin.tsx
+departure-1,6-me,Перенос отсюда · 1 · цена,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Departure.tsx
+departure-2,6-me,Перенос отсюда · 2 · код,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Departure.tsx
+departure-3,6-me,Перенос отсюда · 3 · сверка,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Departure.tsx
+departure-done,6-me,Перенос выполнен,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/Departure.tsx
+edit-age,6-me,Возраст,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/me/EditName.tsx
+edit-name,6-me,Имя,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/EditName.tsx
+hidden,6-me,Скрытые фразы,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/Hidden.tsx
+lang,6-me,Язык,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/me/LangPicker.tsx
+legal,6-me,Документы,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/Legal.tsx
+me,6-me,Я,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/me/Me.tsx
+me-profile,6-me,Профиль и вид,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/me/Me.tsx
+me-restrict,6-me,Я · есть ограничение,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/Me.tsx
+me-security,6-me,Безопасность,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/me/Me.tsx
+me-visibility,6-me,Кого я вижу,desktop-1440 desktop-1920 mobile-390,new,app/src/screens/me/Me.tsx
+reissue-1,6-me,Новый бумажный код · 1 · нынешний,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/Reissue.tsx
+reissue-2,6-me,Новый бумажный код · 2 · новый,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/Reissue.tsx
+reset,6-me,Начать заново,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/Reset.tsx
+statements,6-me,Ограничения,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/Statements.tsx
+step-away,6-me,Отойти,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/me/StepAway.tsx
+theme,6-me,Тема,desktop-1440 desktop-1920 mobile-390,change,app/src/screens/me/Theme.tsx
+cab-expired,7-cabinet,Кабинет · ссылка устарела,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/cabinet/SignIn.tsx
+cab-new-offer,7-cabinet,Кабинет · новое предложение,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/cabinet/Offers.tsx
+cab-offers,7-cabinet,Кабинет · предложения,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/cabinet/Offers.tsx
+cab-preview,7-cabinet,Кабинет · так увидит сосед,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/cabinet/Offers.tsx
+cab-sent,7-cabinet,Кабинет · письмо отправлено,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/cabinet/SignIn.tsx
+cab-sign-in,7-cabinet,Кабинет · вход,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/cabinet/SignIn.tsx
+cab-venues,7-cabinet,Кабинет · заведения,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/cabinet/Venues.tsx
+cab-verify,7-cabinet,Кабинет · проверка конвертом,desktop-1440 desktop-1920 mobile-390,keep,app/src/screens/cabinet/Venues.tsx
+battleship-over,8-games,Морской бой · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+battleship-place,8-games,Морской бой · расстановка флота,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-sea.tsx
+battleship-turn,8-games,Морской бой · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-sea.tsx
+battleship-wait,8-games,Морской бой · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-sea.tsx
+chapayev-over,8-games,Чапаев · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+chapayev-turn,8-games,Чапаев · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-physics.tsx
+chapayev-wait,8-games,Чапаев · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-physics.tsx
+checkers-over,8-games,Шашки · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+checkers-turn,8-games,Шашки · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+checkers-wait,8-games,Шашки · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+chess-over,8-games,Шахматы · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+chess-turn,8-games,Шахматы · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+chess-wait,8-games,Шахматы · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+domino-over,8-games,Домино · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+domino-turn,8-games,Домино · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-deck.tsx
+domino-wait,8-games,Домино · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-deck.tsx
+dots-over,8-games,Точки · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+dots-turn,8-games,Точки · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+dots-wait,8-games,Точки · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+durak-over,8-games,Дурак · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+durak-turn,8-games,Дурак · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/cards.tsx
+durak-wait,8-games,Дурак · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/cards.tsx
+four-over,8-games,4 в ряд · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+four-turn,8-games,4 в ряд · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+four-wait,8-games,4 в ряд · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+hangman-over,8-games,Виселица · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+hangman-turn,8-games,Виселица · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+hangman-wait,8-games,Виселица · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+hangman-word,8-games,Виселица · загадать слово,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+poker-bet,8-games,Покер · рейз,desktop-1920 mobile-390,change,app/src/screens/tables/boards-poker.tsx
+poker-over,8-games,Покер · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+poker-turn,8-games,Покер · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-poker.tsx
+poker-wait,8-games,Покер · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-poker.tsx
+reversi-over,8-games,Реверси · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+reversi-turn,8-games,Реверси · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+reversi-wait,8-games,Реверси · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards.tsx
+tavli-over,8-games,Нарды · конец партии,desktop-1920 mobile-390,new,app/src/screens/tables/Table.tsx
+tavli-turn,8-games,Нарды · твой ход,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-physics.tsx
+tavli-wait,8-games,Нарды · ждём игроков,desktop-1920 mobile-390,keep,app/src/screens/tables/boards-physics.tsx

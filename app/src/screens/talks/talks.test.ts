@@ -1,7 +1,8 @@
 // The talks screens' rules (talks-logic.ts). scripts/run-app-unit-tests.sh, node:test.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { canTakeBack, chatRowOf, distanceWord, goneIn, isFresh, lineOf, matchView, metresBetween, ringOf, splitInbox, type LikedRow, type MatchRow, type TalkRow } from "./talks-logic.ts";
+import { canTakeBack, chatRowOf, INBOX_BACKOFF_MS, type InboxRoom, listenInbox, marksSeen, distanceWord, goneIn, isFresh, lineOf, matchView, metresBetween, ringOf, splitInbox, type LikedRow, type MatchRow, type TalkRow } from "./talks-logic.ts";
 
 const talk = (over: Partial<TalkRow> = {}): TalkRow => ({ kind: "chat", id: "c", name: "Nino", age: 27, state: "open", chat_expires_at: 10_000, ...over });
 
@@ -84,4 +85,72 @@ test("a talk opens a chat only with the node's whole row: the keys' part and my 
   assert.equal(chatRowOf({ ...whole, my_span: undefined }), null);
   assert.equal(chatRowOf({ ...whole, kind: "match" }), null);
   assert.equal(chatRowOf(talk()), null, "the list's few fields are not a chat");
+});
+
+// Owner 2026-10-26 (crowd runs 8-11; «Сразу канал узла»): a person standing on «Chats» never saw the chat the other
+// side opened later. The list keeps the node's room open and reads again on its frames.
+test("the open chats list listens to the node's channel, not a timer", () => {
+  const screen = readFileSync(new URL("./Inbox.tsx", import.meta.url), "utf8");
+  assert.match(screen, /listenInbox\(\(\) => client\.openInbox\(\), \(\) => load\("signal"\)\)/, "Inbox.tsx does not listen to the chats list's room");
+  assert.match(screen, /stop\(\);/, "the chats list's room outlives the screen");
+  assert.doesNotMatch(screen, /setInterval/, "a timer is back on the chats list");
+});
+
+type Fake = { frames: Array<{ type: string }>; close: () => void; room: InboxRoom; closedBy: number[] };
+function fakeRoom(): Fake {
+  let shut: (code: number) => void = () => {};
+  const frames: Array<{ type: string }> = [];
+  const waiting: Array<(f: { type: string }) => void> = [];
+  const closedBy: number[] = [];
+  const room: InboxRoom = {
+    next: () => { const f = frames.shift(); return f ? Promise.resolve(f) : new Promise((r) => waiting.push(r)); },
+    closed: new Promise((r) => (shut = r)),
+    close: () => { closedBy.push(1000); shut(1000); },
+  };
+  return { frames: new Proxy(frames, { get(a, k) { if (k === "push") return (f: { type: string }) => { const w = waiting.shift(); if (w) w(f); else a.push(f); return a.length; }; return Reflect.get(a, k); } }), close: () => shut(1006), room, closedBy };
+}
+const tick = () => new Promise((r) => setTimeout(r, 0));
+
+test("an inbox frame reads the list again; other frames are passed by", async () => {
+  const fake = fakeRoom();
+  let reads = 0;
+  const stop = listenInbox(async () => fake.room, () => { reads++; }, () => new Promise(() => {}));
+  await tick();
+  fake.frames.push({ type: "inbox" });
+  await tick();
+  assert.equal(reads, 1, "an inbox frame did not read the list");
+  fake.frames.push({ type: "name_verdict" });
+  await tick();
+  assert.equal(reads, 1, "a session frame in the list's room read the list");
+  stop();
+  assert.deepEqual(fake.closedBy, [1000], "leaving the screen left the room open");
+});
+
+test("a dropped room is opened again after the backoff, and a refused ticket waits too", async () => {
+  const rooms = [fakeRoom(), fakeRoom()];
+  let opened = 0;
+  const waits: number[] = [];
+  const stop = listenInbox(async () => {
+    const r = rooms[opened++];
+    if (!r) throw new Error("no ticket");
+    return r.room;
+  }, () => {}, (ms) => { waits.push(ms); return waits.length < 6 ? tick() : new Promise(() => {}); });
+  await tick();
+  rooms[0].close();
+  for (let k = 0; k < 5; k++) await tick();
+  assert.equal(opened >= 2, true, "a dropped room was never opened again");
+  assert.equal(waits[0], INBOX_BACKOFF_MS[0], "the room came back with no pause");
+  rooms[1].close();
+  for (let k = 0; k < 10; k++) await tick();
+  assert.equal(waits.length >= 3, true, "a refused ticket was tried again with no pause");
+  assert.equal(waits[2] > waits[1], true, "the pause did not grow");
+  stop();
+});
+
+// Panel 2026-10-26: the list's timer (now the node's signal) marked rows seen, and «new» went out within a minute with nobody looking.
+test("only a person's look marks the chats list seen, never the node's signal", () => {
+  assert.equal(marksSeen("open", true), true, "opening the chats screen no longer marks it seen");
+  assert.equal(marksSeen("focus", true), true, "coming back to the window no longer marks it seen");
+  assert.equal(marksSeen("signal", true), false, "the node's signal marks rows seen: «new» goes out with nobody looking");
+  assert.equal(marksSeen("open", false), false, "the desktop pane (mark off) marks the list seen");
 });

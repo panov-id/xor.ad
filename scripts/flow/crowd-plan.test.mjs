@@ -3,7 +3,7 @@
 //   node --test scripts/flow/crowd-plan.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 
 const here = new URL(".", import.meta.url);
 const crowd = readFileSync(new URL("crowd.mjs", here), "utf8");
@@ -163,4 +163,62 @@ test("a person closes a sheet left open by tapping the dim before leaving the ph
   assert.ok(dim > 0 && dim < back, "tab() presses Back on the phrase under an open sheet");
   const layers = readFileSync(new URL("../../app/src/shell/layers.tsx", here), "utf8");
   assert.match(layers, /className="dim" data-on=\{sheet \? "true" : "false"\} onClick=\{close\}/, "layers.tsx no longer closes a sheet on the dim: look again how the crowd closes it");
+});
+
+// Run flow-1026-131941: at 1920 the phrase keeps the rail, and Back on it timed out for Nino.
+test("Back from the phrase only where the phrase hides the tabs, below the rail's width", () => {
+  const tab = /async function tab\([\s\S]*?\n}\n/.exec(crowd)?.[0] ?? "";
+  const below = Number(/viewportSize\(\)\.width < (\d+) && \(await card\.count\(\)\)/.exec(tab)?.[1]);
+  const wide = readFileSync(new URL("../../app/tokens/wide.css", here), "utf8");
+  const rail = [...wide.matchAll(/@media \(min-width: (\d+)px\) \{[\s\S]*?(?=@media|$)/g)].find((m) => /\.fd-screen > \.tabbar \{ display: flex; \}/.test(m[0]))?.[1];
+  assert.ok(rail, "wide.css no longer shows the rail on the phrase: look again where Back is needed");
+  assert.equal(below, Number(rail), `tab() presses Back below ${below}px, the phrase keeps the rail from ${rail}px`);
+});
+
+// Runs 8-11: one person a run stood on «Chats» and the chat opened later never came; the list now hears the node's
+// channel (owner 2026-10-26). The crowd waits out three tries of a dropped room, not a minute's poll.
+test("a person on «Chats» waits for a chat longer than three tries of the list's room", () => {
+  const conv = /async function converse[\s\S]*?\n}\n/.exec(crowd)?.[0] ?? "";
+  const wait = Number(/\[data-testid="chat"\]'\)\.first\(\)\.waitFor\(\{ timeout: (\d+) \}\)/.exec(conv)?.[1]);
+  const logic = readFileSync(new URL("../../app/src/screens/talks/talks-logic.ts", here), "utf8");
+  const backoff = /INBOX_BACKOFF_MS = \[([\d_, ]+)\]/.exec(logic)?.[1].split(",").map((n) => Number(n.trim().replace(/_/g, ""))) ?? [];
+  assert.ok(backoff.length >= 3, "talks-logic.ts lost INBOX_BACKOFF_MS: look again how the list comes back");
+  const three = backoff[0] + backoff[1] + backoff[2];
+  assert.ok(wait > three, `converse() waits ${wait} ms for a chat, three tries of the list's room take ${three} ms`);
+});
+
+// Run flow-1026-163934: editMe clicked '[data-testid="me-name-age"], [data-testid="me-name"]'; the first is the h1
+// (Me.tsx), which opens nothing, so the name form never came. Every testid the crowd presses must be pressable.
+test("every testid the crowd presses sits on a pressable element in the app", () => {
+  const files = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+    e.isDirectory() ? files(new URL(`${e.name}/`, dir)) : e.name.endsWith(".tsx") ? [readFileSync(new URL(e.name, dir), "utf8")] : []);
+  const app = files(new URL("../../app/src/", here)).join("\n");
+  // every line that presses: pg.click('…'), locator('…').click(), locator(`…`).click() — the literal testids on it, each
+  // alternative of a comma list on its own (the first match is what gets pressed); a testid built from ${…} is not literal
+  // in «[data-testid="chat"] [data-testid="open-chat"]» the pressed one is the last; the first is its container
+  // only the selector of .click('…') itself, or of a locator('…') whose statement goes on to .click( (not a waitFor beside it)
+  const selectors = [...crowd.matchAll(/(\.click|locator)\((['`])((?:(?!\2).)*)\2([^;\n]*)/g)]
+    .filter((m) => m[1] === ".click" || /^\)(\.\w+\([^()]*\))*\.click\(/.test(m[4])).map((m) => m[3]);
+  const pressed = [...new Set(selectors.flatMap((s) => s.split(",").map((alt) => [...alt.matchAll(/data-testid="([a-z0-9-]+)"/g)].at(-1)?.[1]).filter(Boolean)))];
+  // the element a literal data-testid sits on: from its opening «<tag» to the testid, plus the rest of that tag's line
+  const tagOf = (id) => [...app.matchAll(new RegExp(`data-testid="${id}"`, "g"))].map((m) => {
+    const open = [...app.slice(0, m.index).matchAll(/<([a-zA-Z][\w.]*)[\s>]/g)].at(-1);
+    return open ? app.slice(open.index, app.indexOf("\n", m.index)) : "";
+  });
+  const press = (tag) => /^<(button|a|input|select|textarea|label|summary)\b/.test(tag) || /\bon(Click|PointerDown|Change)=/.test(tag);
+  const found = pressed.filter((id) => tagOf(id).length);
+  const dead = found.filter((id) => !tagOf(id).some(press));
+  console.log(`crowd presses ${pressed.length} literal testids; ${found.length} of ${pressed.length} found in app/src; ${found.length - dead.length} of ${found.length} pressable`);
+  // not found are testids the app builds from an expression ({`lang-${l}`}) and the cabinet's, which lives in web/
+  assert.ok(found.length >= pressed.length * 0.7, `only ${found.length} of ${pressed.length} pressed testids are found in app/src: the reader is broken`);
+  assert.deepEqual(dead, [], `the crowd presses testids on elements that open nothing (${found.length - dead.length} of ${found.length} pressable): ${dead.join(", ")}`);
+});
+
+// Run flow-1026-193139: at 1920 the phrase's own rail lay over the feed's, and tab() pressed the covered one.
+test("tab() presses the rail of an open phrase, not the feed's under it", () => {
+  const fn = /async function tab\(p, t, screen\)[\s\S]*?\n}\n/.exec(crowd)?.[0] ?? "";
+  assert.match(fn, /const top = pg\.locator\(`\[data-screen="card"\] \$\{sel\}`\);/, "tab() no longer looks for the phrase's own rail");
+  assert.match(fn, /\(\(await top\.count\(\)\) \? top : pg\.locator\(sel\)\)\.first\(\)\.click/, "tab() presses the first rail whatever lies over it");
+  const wide = readFileSync(new URL("../../app/tokens/wide.css", here), "utf8");
+  assert.match(wide, /\.fd-screen\s*>\s*\.tabbar/, "wide.css no longer gives the phrase a rail: look again whether tab() needs it");
 });

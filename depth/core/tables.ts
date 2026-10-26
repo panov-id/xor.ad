@@ -116,6 +116,10 @@ export class Tables {
   answer(id: string, pid: string, answer: "accept" | "decline" | "counter", next?: { class: BoardClass; set: string }): Promise<Answer<unknown>> {
     return this.client.tableCall("POST", at(id, `/proposals/${encodeURIComponent(pid)}`), { answer, ...next });
   }
+  // «Your turn» (protocol §4.6): to the one whose turn it is, once a minute per table; 204, or 429 with retry-after.
+  nudge(id: string): Promise<Answer<unknown>> {
+    return this.client.tableCall("POST", at(id, "/nudge"));
+  }
   resign(id: string): Promise<Answer<unknown>> {
     return this.client.tableCall("POST", at(id, "/resign"));
   }

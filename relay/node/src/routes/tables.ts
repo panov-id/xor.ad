@@ -599,6 +599,46 @@ async function giveUp(req: Request, tableId: string): Promise<Response> {
   });
 }
 
+// POST /tables/:id/nudge — «your turn» (design 25.10 B5; protocol §4.6): a seated person nudges the one whose turn it
+// is, and the nudge reaches that person's chats list room and table room as a `nudge` frame (chat/relay.ts). One a
+// minute per table (limits.tsv tables.nudge.seconds), kept in tables.nudged_at so every node counts the same minute.
+// Not one's own turn: a nudge to oneself is refused. Who is nudged never leaves the node.
+export const NUDGE_SECONDS = 60; // limits.tsv tables.nudge.seconds
+
+async function nudge(req: Request, tableId: string): Promise<Response> {
+  return await atTable(req, tableId, async (run, _caller, seat) => {
+    if (!seat.playing) return refuse("refused", "only a player nudges", 409);
+    const game = await lockGame(run, tableId);
+    if (!game || game.state.turn === null) return refuse("not_your_turn", "no game is running", 409);
+    const turnSeat = game.state.order[game.state.turn];
+    if (turnSeat === seat.seat_no) return refuse("refused", "it is your own turn", 409);
+    const [present] = await run<{ ok: boolean }>(
+      `SELECT true AS ok FROM table_seats WHERE table_id = $1 AND seat_no = $2 AND left_at IS NULL`, [tableId, turnSeat]);
+    // the turn's seat is empty: nobody to nudge, and the table's minute is not spent on it
+    if (!present) return refuse("refused", "nobody sits in that seat", 409);
+    const [stamped] = await run<{ ok: boolean }>(
+      `UPDATE tables SET nudged_at = now()
+        WHERE id = $1 AND (nudged_at IS NULL OR nudged_at <= now() - interval '${NUDGE_SECONDS} seconds')
+       RETURNING true AS ok`,
+      [tableId],
+    );
+    if (!stamped) {
+      const [left] = await run<{ s: number }>(
+        `SELECT GREATEST(1, ceil(extract(epoch from nudged_at + interval '${NUDGE_SECONDS} seconds' - now())))::int AS s
+           FROM tables WHERE id = $1`,
+        [tableId],
+      );
+      return refuse("rate_limited", "this table was nudged a moment ago", 429, {}, { "retry-after": String(left?.s ?? NUDGE_SECONDS) });
+    }
+    await run(
+      `SELECT pg_notify('inbox_frame', ts.identity::text || '|' || $3)
+         FROM table_seats ts WHERE ts.table_id = $1 AND ts.seat_no = $2 AND ts.left_at IS NULL`,
+      [tableId, turnSeat, JSON.stringify({ type: "nudge", data: { table: tableId, seat: seat.seat_no } })],
+    );
+    return new Response(null, { status: 204, headers: sunsetHeader() });
+  });
+}
+
 // POST /tables/:id/ticket — a one-time ticket for the table's socket (protocol
 // §4.6, §4.4), only from a live seat (SEC-4), thirty seconds (SEC-15). The
 // room it opens carries `line`, `board` and `seat` frames and is closed 4005
@@ -700,6 +740,7 @@ route("POST", "/tables/:id/ticket", (c) => ticket(c.req, c.params.id));
 route("POST", "/tables/:id/like", (c) => like(c.req, c.params.id));
 route("DELETE", "/tables/:id/like", (c) => unlike(c.req, c.params.id));
 route("POST", "/tables/:id/resign", (c) => giveUp(c.req, c.params.id));
+route("POST", "/tables/:id/nudge", (c) => nudge(c.req, c.params.id));
 route("GET", "/tables/:id", (c) => look(c.req, c.params.id));
 route("POST", "/tables/:id/seat", (c) => sit(c.req, c.params.id));
 route("DELETE", "/tables/:id/seat", (c) => stand(c.req, c.params.id));

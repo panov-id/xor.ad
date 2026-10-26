@@ -157,7 +157,9 @@ async function tab(p, t, screen) {
   const dim = pg.locator('.dim[data-on="true"]');
   if (await dim.count()) { await dim.first().click({ position: { x: 10, y: 10 }, timeout: 5000 }).catch(() => {}); await pg.waitForTimeout(400); }
   const card = pg.locator('[data-screen="card"] [data-testid="back"]');
-  if (await card.count()) {
+  // From 1440 the phrase keeps the rail (wide.css .fd-screen > .tabbar): the tab is pressed as it is (run flow-1026-131941:
+  // Nino at 1920 had Back time out)
+  if (pg.viewportSize().width < 1440 && (await card.count())) {
     await card.first().click({ timeout: 5000 }); await pg.waitForSelector('[data-screen="card"]', { state: "detached", timeout: 5000 }).catch(() => {});
   }
   // History Back from a deep screen can step past the app (about:blank), so a screen with no tabs reopens the app:
@@ -179,7 +181,11 @@ async function tab(p, t, screen) {
     await pg.goBack().catch(() => {});
     if (await pg.waitForSelector(`[data-screen="${screen}"]`, { timeout: 5000 }).then(() => true, () => false)) return;
   }
-  await pg.locator(sel).first().click({ timeout: 10000 });
+  // From 1440 an open phrase lies over the feed with a rail of its own, and the feed's rail under it is «visible» too:
+  // the first match is the covered one (run flow-1026-193139: Nino at 1920, «card subtree intercepts pointer events»).
+  // A person presses the rail they see, the phrase's.
+  const top = pg.locator(`[data-screen="card"] ${sel}`);
+  await ((await top.count()) ? top : pg.locator(sel)).first().click({ timeout: 10000 });
   await pg.waitForSelector(`[data-screen="${screen}"]`, { timeout: 20000 });
 }
 
@@ -328,7 +334,9 @@ async function talk(p) {
 async function converse(p, round) {
   const pg = p.page;
   await tab(p, "chats", "inbox");
-  await pg.waitForTimeout(800);
+  // a chat the other side opened after one's own «yes» comes by the node's channel at once (Inbox.tsx listenInbox);
+  // the wait outlives two dropped rooms (talks-logic.ts INBOX_BACKOFF_MS 1 s + 2 s + 5 s)
+  await pg.locator('[data-testid="chat"]').first().waitFor({ timeout: 15000 }).catch(() => {});
   const ids = await pg.locator('[data-testid="chat"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-id")));
   if (!ids.length) throw new Error("no chat to talk in");
   let sent = 0;
@@ -581,6 +589,25 @@ async function soloGuest(p) {
   return "strip shown over the puzzle";
 }
 
+// «Your turn» (design 25.10 B5, protocol §4.6): the player waiting on a move presses «nudge», and the one whose move it
+// is hears it on their own table screen. A round already over offers no nudge, and that is said, not failed.
+async function nudgeAcross(who, g) {
+  let from = null;
+  for (const p of who) if (await p.page.locator('[data-testid="nudge"]').isVisible().catch(() => false)) { from = p; break; }
+  if (!from) return "no nudge offered (the round is over or not running)";
+  const sent = from.page.waitForResponse((x) => x.request().method() === "POST" && new URL(x.url()).pathname.endsWith("/nudge"), { timeout: 10000 });
+  await from.page.click('[data-testid="nudge"]');
+  const status = (await sent).status();
+  if (status !== 204) throw new Error(`the nudge answered ${status}`);
+  await from.page.locator('[data-testid="nudge-said"]').waitFor({ timeout: 5000 });
+  const heard = [];
+  for (const p of who) if (p !== from) {
+    if (await p.page.locator('[data-testid="nudged"]').waitFor({ timeout: 5000 }).then(() => true, () => false)) heard.push(NAMES[p.i]);
+  }
+  if (!heard.length) throw new Error(`${NAMES[from.i]} nudged and nobody at the ${g.game} table heard it`);
+  return `${NAMES[from.i]} nudged, heard by ${heard.join(", ")}`;
+}
+
 async function playGames(people) {
   const at = (i) => people.find((p) => p.i === i && p.alive);
   for (const round of ROUNDS) {
@@ -597,6 +624,7 @@ async function playGames(people) {
       if (solo) await step(who[0], `game-${g.game}-solo-guest`, () => soloGuest(who[0]));
       await step(who[0], `game-${g.game}-ready`, () => ready(who[0], g));
       for (let k = 0; k < 6; k++) for (const p of who) await step(p, `game-${g.game}-move`, () => tryMove(p, g));
+      await step(who[0], `game-${g.game}-nudge`, () => nudgeAcross(who, g));
       for (const p of who) await step(p, `game-${g.game}-talk`, () => tableTalk(p, g));
       if (g.game === "durak") await step(who[0], "game-stickers", () => stickerFlood(who[0], g));
       for (const p of who) await step(p, `game-${g.game}-stand`, () => standUp(p, g));
@@ -850,7 +878,7 @@ async function blockAndLift(p, of) {
 async function editMe(p) {
   const pg = p.page;
   await tab(p, "me", "me");
-  await pg.click('[data-testid="me-name-age"], [data-testid="me-name"]');
+  await pg.click('[data-testid="me-name"]'); // the «Edit» button; the h1 me-name-age above it opens nothing (run flow-1026-163934)
   const name = pg.locator('[data-testid="edit-name"] input, input[data-testid="edit-name"]').first();
   await name.waitFor({ timeout: 10000 });
   await name.fill("Е".repeat(25));

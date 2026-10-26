@@ -854,6 +854,17 @@ export class Client {
     return answer.body.ticket;
   }
 
+  // POST /inbox/ticket — the chats list's room (protocol §4.4): `inbox` frames say «the list changed», nothing more.
+  async inboxTicket(): Promise<string> {
+    const answer = await this.#call<{ ticket: string }>("POST", "/inbox/ticket");
+    if (answer.status !== 200) throw new Error(`no ticket: ${answer.status} ${JSON.stringify(answer.body)}`);
+    return answer.body.ticket;
+  }
+
+  async openInbox(): Promise<Room> {
+    return await this.openRoomWith(await this.inboxTicket());
+  }
+
   async openRoom(chatId: string): Promise<Room> {
     return await this.openRoomWith(await this.ticket(chatId));
   }

@@ -44,3 +44,15 @@ test("reduced motion: no offset or scale is lost by accident (they stay, the tim
   assert.equal(calm["--o-item"], undefined);
   assert.equal(calm["--ease"], undefined);
 });
+
+// Crowd flow-1026-190348: a sheet's view transition never finished on a 1920 screen and its layer took every tap for
+// ten seconds. layers.tsx skips one that outlives VT_GUARD_MS, and the guard sits well above the sheet's own time.
+test("a layer's view transition is skipped when it outlives its guard, which is far above the sheet's time", () => {
+  const layers = readFileSync(new URL("./layers.tsx", import.meta.url), "utf8");
+  assert.match(layers, /setTimeout\(\(\) => t\.skipTransition\(\), VT_GUARD_MS\)/, "layers.tsx no longer skips a stuck view transition");
+  assert.match(layers, /clearTimeout\(guard\)/, "the guard outlives a finished transition");
+  const guard = Number(/VT_GUARD_MS = (\d+)/.exec(layers)?.[1]);
+  const motion = readFileSync(new URL("../../tokens/motion.css", import.meta.url), "utf8");
+  const sheet = Number(/--d-sheet: (\d+)ms/.exec(motion)?.[1]);
+  assert.ok(sheet > 0 && guard >= sheet * 3, `the guard ${guard} ms would cut a sheet of ${sheet} ms`);
+});

@@ -2,6 +2,7 @@
 // AgeFilter): the filter's track and what it sends, the step away's price, the sheets' dates and countries.
 // scripts/run-app-unit-tests.sh, node:test.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { ageBand } from "../../../../depth/core/limits.ts";
 import { along, awayRows, countryName, dayMonth, filterPatch, filterRange, initial, moveHandle, noTop, rangeText, revisionDay } from "./me-logic.ts";
@@ -64,4 +65,14 @@ test("countryName and initial", () => {
   assert.equal(countryName("en", undefined), "");
   assert.equal(initial(" alex"), "A");
   assert.equal(initial(""), "?");
+});
+
+// Crowd run flow-1026-110213: at 320 «Изменить» was cut to «Измени» — the button had the sheet's fixed 55.7 px, sized for
+// «Edit». The overlap measure does not see text cut inside a box, so the rule is checked here: the label sets the width.
+test("«Edit» on Me is as wide as its label in every language, the sheet's width only a floor", () => {
+  const css = readFileSync(new URL("./me.css", import.meta.url), "utf8");
+  const rule = /\.me-edit \{([^}]*)\}/.exec(css)?.[1] ?? "";
+  assert.match(rule, /width: auto/, "«Edit» has a fixed width: a longer word is cut");
+  assert.match(rule, /min-width: var\(--me-edit-w\)/, "«Edit» lost the sheet's width as its floor");
+  assert.match(rule, /white-space: nowrap/, "«Edit» may break into two lines inside the pill");
 });

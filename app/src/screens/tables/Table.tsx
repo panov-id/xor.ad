@@ -23,7 +23,7 @@ import { Board, BoardUnder } from "./boards";
 import { Solo } from "./solo";
 import { soloOf, soloShown } from "./solo-logic";
 import { gameName } from "./table-row";
-import { canApply, conStep, facePair, firstAction, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
+import { canApply, canNudge, conStep, facePair, firstAction, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
 import { toneAt } from "./tables-logic";
 
 type Answer = { status: number; body: unknown };
@@ -45,7 +45,10 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
   const [said, setSaid] = useState("");
   // The puzzle while waiting (§6.2) is open on this device; the node only hears the mark (Tables.solo).
   const [soloOpen, setSoloOpen] = useState(false);
-  const [applying, setApplying] = useState(false);   // one application at a time: a double press sent two, the second 409
+  const [applying, setApplying] = useState(false);
+  // «Your turn» (B5): what my nudge got (sent / wait a minute), and a nudge to me heard in this table's room
+  const [nudge, setNudge] = useState<"sent" | "wait" | null>(null);
+  const [nudged, setNudged] = useState(false);   // one application at a time: a double press sent two, the second 409
   const { open, close } = useLayers();
 
   const load = useCallback(async () => {
@@ -71,6 +74,7 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
         if (event.kind === "connected") return void load();
         if (event.kind === "gone") return onLeave();
         if (event.kind !== "frame") return;
+        if (event.frame.type === "nudge") { setNudged(true); return; }
         setView((v) => (v ? applyFrame(v, event.frame) : v));
         if (frameNeedsView(event.frame)) void load();
       });
@@ -82,6 +86,8 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
   // The puzzle follows the node's mark: back at the table with it on (a reload, a guest gone) it opens where it was; a round
   // started clears the mark on the node (startRound), and the puzzle closes with it instead of coming back after the round.
   useEffect(() => { setSoloOpen(!!view?.solo); }, [view?.solo]);
+  // a move made answers the nudge both ways: the next turn starts with none
+  useEffect(() => { setNudge(null); setNudged(false); }, [view?.board?.turn, view?.board?.seq]);
 
   const act = async (run: () => Promise<Answer>) => {
     setError(null);
@@ -130,6 +136,13 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
   // opened at once; a refused mark (409 game_running, not_playing) takes it back, so the device never plays unmarked
   const setSolo = (on: boolean) => { setSoloOpen(on); void act(async () => { const a = await tables.solo(tableId, on); if (refusalOf(a)) setSoloOpen(!on); return a; }); };
   const onMove = view.is_playing && started && board!.turn === view.seat ? (m: unknown) => void act(() => tables.move(tableId, board!.seq, m)) : undefined;
+  const poke = async () => {
+    try {
+      const sent = await tables.nudge(tableId);
+      setNudge(sent.status === 204 ? "sent" : sent.status === 429 ? "wait" : null);
+      if (sent.status !== 204 && sent.status !== 429) setError(refusalOf(sent));
+    } catch (e) { setError(failedLine(e)); }
+  };
   const line = mine.state === "your-move" ? say("app.table.your_move")
     : mine.state === "their-move" ? say("app.table.their_move", { name: mine.name ?? "" })
     : mine.state === "over" ? say("table.over") : mine.state === "not-started" ? say("table.notStarted") : say("app.table.watching");
@@ -155,7 +168,11 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
         {left && <span className="tg-face" data-face="me" data-testid="face-left" aria-hidden="true">{initial(view.is_playing ? (left.name || "?") : left.name)}</span>}
         <p className="tg-me" data-testid={board?.over ? "over" : "turn"}>
           {mine.who === "you" ? label("table.you") : mine.name}<span aria-hidden="true"> · </span>{line}
+          {nudged && board?.turn === view.seat && !board?.over && <span className="tg-nudged" role="status" data-testid="nudged"> · {say("app.table.nudged")}</span>}
         </p>
+        {canNudge(view) && (nudge
+          ? <span className="tg-nudge-said" role="status" data-testid="nudge-said">{say(nudge === "sent" ? "app.table.nudge_sent" : "app.table.nudge_wait")}</span>
+          : <button type="button" className="tg-nudge" onClick={() => void poke()} data-testid="nudge">{say("app.table.nudge")}</button>)}
         {ring && (
           <span className="tg-ring" style={{ "--share": ring.share } as CSSProperties} role="img" aria-label={say("app.table.minutes", { n: ring.minutes })} data-testid="move-ring">
             <span aria-hidden="true">{ring.minutes}</span>

@@ -108,3 +108,41 @@ export function chatRowOf(row: Row): InboxChatRow | null {
     && !!peer && typeof peer.identity_id === "string" && typeof peer.identity_public_key === "string" && typeof peer.key_epoch === "number";
   return ok ? (row as InboxChatRow) : null;
 }
+
+/** Why the chats list is read: the screen opened, the window came back, or the node's channel said «the list changed».
+ *  Only a person's act marks the list as seen; the signal only reads, or «new» would go out with nobody looking
+ *  (panel 2026-10-26). */
+export type InboxCause = "open" | "focus" | "signal";
+export function marksSeen(cause: InboxCause, mark: boolean): boolean { return mark && cause !== "signal"; }
+
+/** The chats list's room as the list needs it (depth/core/client.ts Room). */
+export type InboxRoom = { next(timeoutMs?: number): Promise<{ type: string }>; closed: Promise<number>; close(): void };
+/** Waits before the next try after a dropped room or a refused ticket; the last one repeats. */
+export const INBOX_BACKOFF_MS = [1_000, 2_000, 5_000, 15_000, 30_000];
+
+/** Keeps the chats list's room open (owner 2026-10-26: «Сразу канал узла», instead of a poll every minute): every
+ *  `inbox` frame calls `changed`, other frames are passed by (session frames reach this room too, panel 2026-10-26); a
+ *  dropped room or a refused ticket is tried again after INBOX_BACKOFF_MS. The first frame of every room is an `inbox`,
+ *  so whatever changed while the room was down is read on reconnect. Returns the stop. */
+export function listenInbox(open: () => Promise<InboxRoom>, changed: () => void,
+  wait: (ms: number) => Promise<unknown> = (ms) => new Promise((r) => setTimeout(r, ms))): () => void {
+  let stopped = false;
+  let room: InboxRoom | null = null;
+  void (async () => {
+    for (let attempt = 0; !stopped;) {
+      try {
+        room = await open();
+        if (stopped) { room.close(); return; }
+        let gone = false;
+        const closed = room.closed.then(() => { gone = true; return null; });
+        while (!stopped && !gone) {
+          const frame = await Promise.race([room.next(25_000).catch(() => null), closed]);
+          if (frame) { attempt = 0; if (frame.type === "inbox") changed(); }
+        }
+      } catch { /* no ticket: tried again below */ }
+      if (stopped) return;
+      await wait(INBOX_BACKOFF_MS[Math.min(attempt++, INBOX_BACKOFF_MS.length - 1)]);
+    }
+  })();
+  return () => { stopped = true; room?.close(); };
+}

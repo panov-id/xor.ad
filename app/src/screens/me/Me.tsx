@@ -14,6 +14,7 @@ import type { Client } from "@sdk/client.ts";
 import { AWAY_ORDER } from "@sdk/limits.ts";
 import { failedLine, label, LANG, nameOf, say } from "../../i18n";
 import { storedPlace } from "../../place";
+import { readChoice } from "../../brands/sosed/theme";
 import { Icon } from "../../shell/Icon";
 import { useMinWidth } from "../../shell/useMinWidth";
 import { Screen } from "../../shell/Screen";
@@ -99,7 +100,7 @@ export function Me({ client, onTab, onClosed, onMove, open: opened = null }: { c
           {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
           <nav className="me-rows" aria-label={label("me.title")}>
             {restrictions > 0 && <Row text={say("statements.count", { n: restrictions })} testid="me-statements" onOpen={() => setSub("statements")} />}
-            <Row text={label("web.theme.item")} value={say("app.theme.dusk")} testid="me-theme" onOpen={() => setSub("theme")} />
+            <Row text={label("web.theme.item")} value={say(`app.theme.${readChoice()}`)} testid="me-theme" onOpen={() => setSub("theme")} />
             <Row text={label("web.lang.item")} value={nameOf(LANG)} testid="me-lang" onOpen={() => setSub("lang")} />
             <Row text={label("web.filter.item")} value={range ? rangeText(range) : "…"} testid="me-filter" onOpen={() => profile && setSub("filter")} />
             <Row text={label("pin.item")} testid="me-pin" onOpen={() => setSub("pin")} />

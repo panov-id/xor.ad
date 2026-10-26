@@ -30,9 +30,11 @@
 
 import { route } from "../lib/router.ts";
 import { json } from "../lib/http.ts";
-import { query } from "../lib/db.ts";
+import { query, transaction } from "../lib/db.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
-import { sunsetHeader } from "../lib/identity_auth.ts";
+import { bytesToBase64url, sha256hex, sunsetHeader } from "../lib/identity_auth.ts";
+import { checkAll, CHAT_MESSAGE_LIMITS } from "../lib/rate_limit.ts";
+import { log } from "../lib/log.ts";
 import { TERM_PASSED } from "../lib/chat_sweeper.ts";
 import { ENDING_SOON, inboxEvents, parseSince } from "../lib/inbox_events.ts";
 
@@ -242,4 +244,31 @@ async function inbox(req: Request): Promise<Response> {
   return json({ items, events, ...(since !== null ? { since } : {}), ...(next ? { next } : {}) }, 200, sunsetHeader());
 }
 
+// POST /inbox/ticket — a one-time ticket for the chats list's room (protocol §4.4, db/087_inbox_room.sql; owner's
+// decision 2026-10-26). The room says only «the list changed»; what changed is read by GET /inbox, signed as ever.
+// Tickets share the chat's budget, as a chat's ticket does: each one is a socket (step 5 panel, 2026-09-21).
+const TICKET_SECONDS = 30; // limits.tsv ticket.lifetime
+
+async function ticket(req: Request): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  const allowed = checkAll(CHAT_MESSAGE_LIMITS, caller.identityId);
+  if (!allowed.allowed) {
+    return refuse("rate_limited", "too many tickets this minute", 429, {}, { "retry-after": String(allowed.retryAfterSeconds) });
+  }
+  const token = bytesToBase64url(crypto.getRandomValues(new Uint8Array(32)));
+  return await transaction<Response>(async (run) => {
+    await run(
+      `INSERT INTO socket_tickets (token_hash, session, inbox, expires_at)
+       VALUES ($1, $2, true, now() + interval '${TICKET_SECONDS} seconds')`,
+      [await sha256hex(new TextEncoder().encode(token)), caller.sessionId],
+    );
+    return json({ ticket: token, expires_in: TICKET_SECONDS }, 200, sunsetHeader());
+  }).catch((error) => {
+    log("error", "inbox ticket failed", { error: String(error) });
+    return refuse("unavailable", "the node cannot write right now", 503);
+  });
+}
+
 route("GET", "/inbox", (c) => inbox(c.req));
+route("POST", "/inbox/ticket", (c) => ticket(c.req));

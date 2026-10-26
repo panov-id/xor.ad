@@ -7,17 +7,18 @@
 //
 // The «…» sheet is chat-menu.tsx (w3_chat-more): its own history entry, so the system Back closes it.
 // The game (w3_chat-game) is chat-game.tsx: open, it takes the lines' place and the chips'.
-// Not here yet: the rekey prompts, the starters' list.
-import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
+// Not here yet: the starters' list.
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Client } from "@sdk/client.ts";
 import { stickerOf, stickerText } from "@sdk/sticker.ts";
 import { ChatSession, type ChatView } from "@platform/chat/chat_state.ts";
 import type { ChatKeys, InboxChatRow } from "@platform/chat/keys.ts";
 import { failedLine, LANG, label, say } from "../i18n";
 import { Icon } from "../shell/Icon";
-import { chevronLeft, ellipsis, lock, send as sendIcon, shield } from "../shell/icons";
+import { chevronLeft, lock, send as sendIcon, shield } from "../shell/icons";
+import { useSkeleton } from "../shell/loading";
 import { Screen } from "../shell/Screen";
-import { bubblesOf, clockOf, headerLine, QUICK_STICKERS, ringOf } from "./chat-logic";
+import { bubblesOf, clockOf, headerLine, popStep, QUICK_STICKERS, ringOf } from "./chat-logic";
 import { ChatGame } from "./chat-game";
 import { ChatMenu } from "./chat-menu";
 
@@ -28,6 +29,8 @@ export interface ChatActions {
   onMore: () => void;
   onSafety: () => void;
   onGame: () => void;
+  /** The keys' reissue, asked or agreed (the stand's chat has none). */
+  onRekey?: () => void;
 }
 
 const initialOf = (name: string): string => [...name.trim()][0]?.toLocaleUpperCase(LANG) ?? "";
@@ -40,6 +43,11 @@ export function ChatPane({ view, now, actions, game, frame = "screen" }: { view:
   const line = headerLine(view, now);
   const ring = ringOf(view.endsAt, view.span, now);
   const starter = view.starters[0];
+  // MOTION.md 02: the talk's first lines pop in one after another (--i = place in that first batch); a line that comes later pops at once.
+  const firstBatch = useRef<number | null>(null);
+  if (firstBatch.current === null && view.lines.length > 0) firstBatch.current = view.lines.length;
+  // «typing» while the room opens, by the waiting rules (not under 300 ms, not under 600 ms once shown)
+  const typing = useSkeleton(view.keysState === "opening" && !over);
 
   async function send(given?: string) {
     const typed = given === undefined;
@@ -59,7 +67,8 @@ export function ChatPane({ view, now, actions, game, frame = "screen" }: { view:
         <span className="ch-ring" role="img" aria-label={say("app.chat.ring", { m: ring.minutes })} data-testid="chat-ring" style={{ "--ch-ring-left": String(ring.left) } as React.CSSProperties}>
           <span>{ring.minutes}</span>
         </span>
-        {!over && <button type="button" className="ch-more" aria-label={say("app.chat.more")} onClick={actions.onMore} data-testid="chat-more"><Icon d={ellipsis} /></button>}
+        {/* w3_chat and w3_chat-more draw no «…»: the menu opens from the avatar and the name (owner 23.10), so the line runs to the ring */}
+        {!over && <button type="button" className="ch-open" aria-label={`${say("app.chat.more")}: ${row.name}`} onClick={actions.onMore} data-testid="chat-more" />}
       </header>
       <div className="ch-sheet">
         {game && !over ? <div className="ch-game">{game}</div> : (
@@ -67,12 +76,12 @@ export function ChatPane({ view, now, actions, game, frame = "screen" }: { view:
           {starter && !over && (
             <li className="ch-starter" data-testid="starter-chip">{say("app.chat.started_from", { text: starter.text })}</li>
           )}
-          {bubblesOf(view.lines).map(({ line: l, side }) => {
+          {bubblesOf(view.lines).map(({ line: l, side }, at) => {
             const sticker = stickerOf(l.text);
             const words = sticker ? say(`web.sticker.${sticker}`) : l.text;
             const testid = l.extra ? "extra-like" : l.system ? "system" : l.mine ? "mine" : "theirs";
             return (
-              <li key={l.id} className={`ch-row ch-${side}`} data-state={l.state}>
+              <li key={l.id} className={`ch-row ch-${side}`} data-state={l.state} style={{ "--i": popStep(at, firstBatch.current) } as CSSProperties}>
                 <p className={sticker ? "ch-bubble ch-sticker" : "ch-bubble"} data-testid={testid}>{words}</p>
                 <span className="ch-time">{clockOf(l.at, LANG)}</span>
                 {l.mine && l.state === "failed" && (
@@ -81,6 +90,11 @@ export function ChatPane({ view, now, actions, game, frame = "screen" }: { view:
               </li>
             );
           })}
+          {typing && (
+            <li className="ch-row ch-theirs ch-typing" data-testid="typing" aria-hidden="true">
+              <p className="ch-bubble"><i /><i /><i /></p>
+            </li>
+          )}
         </ol>
         )}
         {!over && view.safety && <p className="ch-safety-line" data-testid="safety">{say("app.chat.safety_is", { code: view.safety })}</p>}
@@ -102,6 +116,21 @@ export function ChatPane({ view, now, actions, game, frame = "screen" }: { view:
               ))}
               <button type="button" className="ch-chip ch-chip-game" onClick={actions.onGame} data-testid="quick-game">{say("app.chat.quick.game")}</button>
             </div>}
+            {/* Keys that did not open (no pair in this tab, no wrap on the node — a reload before the first open): the
+                reason and the way out, as the web's keys-failed, rekey-asked and rekey-waiting; the field stays off. */}
+            {view.askedByPeer ? (
+              <div className="ch-keys" data-testid="rekey-asked">
+                <p>{say("web.chat.peer_asks")}</p>
+                <button type="button" className="ch-keys-go" disabled={view.busy} onClick={actions.onRekey} data-testid="rekey-agree">{say("web.chat.rekey_agree")}</button>
+              </div>
+            ) : view.waitingForPeer ? (
+              <p className="ch-keys" data-testid="rekey-waiting">{say("web.chat.rekey_waiting")}</p>
+            ) : view.keysState === "failed" && (
+              <div className="ch-keys" role="alert" data-testid="keys-failed">
+                <p>{say("app.chat.keys_failed")}</p>
+                <button type="button" className="ch-keys-go" disabled={view.busy} onClick={actions.onRekey} data-testid="rekey-ask">{say("app.chat.new_keys")}</button>
+              </div>
+            )}
             <form className="ch-field" onSubmit={(e) => { e.preventDefault(); void send(); }}>
               <input
                 className="ch-input" value={text} onChange={(e) => setText(e.target.value)} placeholder={say("app.chat.placeholder")}
@@ -156,6 +185,7 @@ export function Chat({ client, keys, row, onBack, frame = "screen" }: { client: 
         onMore: openMenu,
         onSafety: safety,
         onGame: () => session.setGameOpen(true),
+        onRekey: () => void session.rekey(view.askedByPeer ? "agree" : "ask"),
       }} />
       {menu && !view.over && (
         <ChatMenu span={view.span} busy={view.busy} waitingForPeer={view.waitingForPeer} actions={{

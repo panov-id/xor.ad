@@ -7,6 +7,8 @@
   color: var(--c-text); font-size: var(--fs-caption); font-weight: var(--fw-600); border: var(--hair) solid var(--c-panel); }
 .fd-chip[aria-pressed="true"] { border: calc(var(--hair) * 3) solid var(--c-lime); }
 .fd-head h1 { padding: var(--fd-title-gap) var(--sp-4) 0; font-size: var(--fs-feed-title); font-weight: var(--fw-700); }
+.fd-feed::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: var(--say-clear); background: var(--c-sheet); }   /* the sheet's colour keeps going under the bar and the round button */
+.fd-panel > .fd-list { margin-bottom: var(--say-clear); }   /* the list ends above them, so no card lies under */
 .fd-list { overflow-y: auto; display: flex; flex-direction: column; gap: var(--fd-list-gap); }
 .fd-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }   /* the panel of the wide sheets; on a phone only a wrapper */
 .fd-brand { display: none; }   /* the tablet sheet's wordmark over the title (tokens/wide.css shows it) */
@@ -59,7 +61,7 @@
 /* the card full-screen over the feed */
 .fd-screen { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; background: var(--c-night); animation: rise var(--d-item) var(--ease) both; --from: var(--o-item); }
 .fd-bar { height: var(--h-fd-bar); padding: 0 var(--sp-2); display: grid; grid-template-columns: var(--s-touch-min) 1fr var(--s-touch-min); align-items: center; }
-.fd-bar h1 { text-align: center; font-size: var(--fs-body); font-weight: var(--fw-700); }
+.fd-bar h1 { left: 50%; text-align: center; font-size: var(--fs-body); font-weight: var(--fw-700); }
 .fd-back-word { display: none; }   /* the desktop sheet words its back (tokens/wide.css) */
 .fd-icon-btn { width: var(--s-touch-min); display: grid; place-items: center; border-radius: var(--r-pill); }
 .fd-icon-btn .icon { --icon-size: var(--icon-fd); --stroke: 2; }
@@ -101,3 +103,18 @@
 .fd-say { position: fixed; right: var(--tabbar-side); bottom: calc(var(--tabbar-bottom) + var(--s-nav-bar) + var(--sp-3)); z-index: 5;
   width: var(--s-nav-bar); height: var(--s-nav-bar); border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: grid; place-items: center; }
 .fd-say .icon { --icon-size: var(--icon-fd); --stroke: 2.2; }
+/* the header's two icons (w1_feed: the menu left, the search right; tablet_834_Feed: the search alone at the right of the wordmark) */
+.fd-head { position: relative; }
+.fd-top { display: flex; justify-content: space-between; padding: 0 var(--sp-2); margin-bottom: var(--sp-2); }
+.fd-search-wide { position: absolute; top: var(--sp-5); right: var(--panel-side, var(--sp-6)); z-index: 1; }
+.fd-search { width: 100%; height: var(--fd-menu-h); padding: 0 var(--sp-4); border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text); font-size: var(--fs-body); }
+.fd-density { font-size: var(--fs-caption); color: var(--c-muted); padding: 0 var(--sp-2); }
+/* my own phrase just sent, over the list, with its «take down» */
+.fd-sent { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4); border-radius: var(--r-row); background: var(--c-panel); font-size: var(--fs-notice); }
+.fd-sent p { overflow-wrap: anywhere; }
+.fd-sent-text { font-weight: var(--fw-700); }
+/* «Offer to talk» (w1_card-matched): the card's colour as a note under it, the hand, a title and the words */
+.fd-matched { display: flex; gap: var(--sp-3); align-items: flex-start; padding: var(--sp-4); border-radius: var(--r-row); background: var(--tone, var(--c-lime)); color: var(--c-ink); }
+.fd-matched .icon { --icon-size: var(--icon-fd); --stroke: 2; flex: none; }
+.fd-matched h2 { font-size: var(--fs-body); font-weight: var(--fw-800); }
+.fd-matched p { font-size: var(--fs-notice); font-weight: var(--fw-500); }

@@ -11,7 +11,10 @@ import { failedLine, label, say } from "../../i18n";
 import { storedPlace } from "../../place";
 import { Icon } from "../../shell/Icon";
 import { chevronLeft, hand } from "../../shell/icons";
+import { useSkeleton } from "../../shell/loading";
 import { Screen } from "../../shell/Screen";
+import { Rail } from "../../shell/TabBar";
+import { Skeleton } from "../../shell/Skeleton";
 import { pin } from "../me/icons";
 import { langOf, offerLabel, toneOf, type FeedCard } from "../feed-logic";
 import { canTakeBack, distanceWord, metresBetween, type LikedRow } from "./talks-logic";
@@ -28,6 +31,9 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
   const [spent, setSpent] = useState<Record<string, true>>({});
   const [error, setError] = useState<string | null>(null);
   const place = storedPlace();
+  // an answer that lands while the grey cards stand waits behind them (not under 600 ms once shown)
+  const skeleton = useSkeleton(items === null && !error);
+  const shown = skeleton ? null : items;
   const load = (after?: string) => {
     client.likes(after).then((page) => {
       const got = page.items as unknown as LikedRow[];
@@ -61,9 +67,14 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
       <p className="tk-lead">{say("app.likes.sub")}</p>
       <div className="tk-sheet tk-likes">
         {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
-        {items?.length === 0 && <p className="tk-quiet" data-testid="quiet">{say("web.likes.empty")}</p>}
+        {skeleton && (
+          <div className="tk-skeletons" data-testid="likes-skeleton" aria-hidden="true">
+            {[0, 1].map((i) => <Skeleton key={i} kind="card" />)}
+          </div>
+        )}
+        {shown?.length === 0 && <p className="tk-quiet" data-testid="quiet">{say("web.likes.empty")}</p>}
         <ul className="tk-cards" data-testid="liked">
-          {(items ?? []).map((r, i) => {
+          {(shown ?? []).map((r, i) => {
             const open = canTakeBack(r, !!spent[r.id]);
             const distance = far(r);
             return (
@@ -86,6 +97,7 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
         </ul>
         {next && <button type="button" className="tk-more" onClick={() => load(next)} data-testid="more">{say("liked.more")}</button>}
       </div>
+      <Rail active="chats" />
     </Screen>
   );
 }

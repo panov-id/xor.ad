@@ -1,9 +1,10 @@
 // The table frame's rules (table-logic.ts). scripts/run-app-unit-tests.sh, node:test.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { conStep, diceOf, movesIn, diceStep, dominoView, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { canApply, conStep, diceOf, movesIn, diceStep, dominoView, dotsLayout, facePair, firstAction, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -168,4 +169,19 @@ test("a board in a talk takes a move only in my turn", () => {
   assert.equal(movesIn("mine", go), go);
   assert.equal(movesIn("theirs", go), undefined);
   assert.equal(movesIn("over", go), undefined);
+});
+
+test("a watcher may apply while no round is under way, once; a player never (§6.1, the web's «apply»)", () => {
+  const watcher = { seat: 3, is_playing: false };
+  assert.equal(canApply(view(watcher, null)), "apply", "a watcher at a table with no round has nothing to press");
+  assert.equal(canApply(view(watcher, { over: true })), "apply", "after a round the watcher cannot ask into the next");
+  assert.equal(canApply(view(watcher, { turn: 1 })), null, "an application offered during a round");
+  assert.equal(canApply(view({ ...watcher, lines: [{ id: "l", seat: 3, kind: "application", text: "возьмите", created_at: 1 }] }, null)), "applied");
+  assert.equal(canApply(view({}, null)), null, "a player offered an application");
+});
+
+// Review 26.10: a double press on «apply» sent two applications, the second answered 409 and the person read «failed».
+test("the watcher's «apply» is shut while its application is on the way", () => {
+  const screen = readFileSync(new URL("./Table.tsx", import.meta.url), "utf8");
+  assert.match(screen, /disabled=\{applying\} onClick=\{\(\) => \{ setApplying\(true\);[\s\S]*?finally\(\(\) => setApplying\(false\)\)/, "«apply» can be pressed twice");
 });

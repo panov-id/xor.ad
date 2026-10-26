@@ -20,6 +20,20 @@ export function mergeTables(was: readonly TableCard[], page: readonly TableCard[
   return [...was, ...page.filter((c) => !seen.has(c.id))];
 }
 
+/** How often an open list asks the first page again: a table made by a neighbour shows up without leaving the screen
+ *  (crowd run flow-1026-070519: the list loaded once, on mount, and 7 of 7 guests did not see the new table). Once a
+ *  minute: /tables, /feed and /likes share one read bucket on the node (rate_limit.ts FEED_READ_LIMITS, 300 an hour), and
+ *  an open list must leave most of it to the other screens (review 26.10: every 15 s took 240 of 300). */
+export const TABLES_LOOK_MS = 60_000;
+
+/** The quiet look: with only the first page loaded it replaces the list; with more pages loaded the new tables go on top
+ *  and the rest stays, so the person does not lose what they scrolled to. */
+export function freshTables(was: readonly TableCard[], first: readonly TableCard[], paged: boolean): TableCard[] {
+  if (!paged) return [...first];
+  const seen = new Set(was.map((c) => c.id));
+  return [...first.filter((c) => !seen.has(c.id)), ...was];
+}
+
 /** The tables the person sits at or liked stand above the list; the list leaves them out, so a card is never drawn twice. */
 export const apart = (items: readonly TableCard[], mine: readonly TableCard[]): TableCard[] => {
   const own = new Set(mine.map((c) => c.id));

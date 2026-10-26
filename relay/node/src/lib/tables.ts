@@ -33,6 +33,8 @@ export const IDLE_MINUTES = 60; // table.idle.span
 export const TABLE_CREATE_LIMITS: Limit[] = [{ name: "tables-create", max: 4, windowMs: HOUR }]; // tables.create.hour
 export const SEAT_LIMITS: Limit[] = [{ name: "seat-attempts", max: 30, windowMs: HOUR }]; // seat.attempts.hour
 export const STICKER_LIMITS: Limit[] = [{ name: "table-sticker", max: 6, windowMs: 60_000 }]; // sticker.minute
+// Each mark or unmark of solo play writes the table and notifies its stream (review 2026-10-26): a person toggles rarely.
+export const SOLO_LIMITS: Limit[] = [{ name: "table-solo", max: 6, windowMs: 60_000 }]; // solo.minute
 // A text line (line, application, refusal) costs a model call each (lib/moderator.ts):
 // counted per identity like a chat message, chat.messages.minute (60).
 export const LINE_LIMITS: Limit[] = [{ name: "table-line", max: 60, windowMs: 60_000 }]; // as chat.messages.minute
@@ -179,6 +181,8 @@ export async function startRound(run: Query, tableId: string): Promise<void> {
     `INSERT INTO table_games (table_id, class, state, turn_due, ended_at) VALUES ($1, $2, $3::text::jsonb, $4, $5)`,
     [tableId, table.game, JSON.stringify(state), playable ? new Date(Date.now() + MOVE_WINDOW_MS) : null, playable ? null : new Date()],
   );
+  // A round started: whoever played alone while waiting plays with people now (§6.2).
+  await run(`UPDATE tables SET solo_since = NULL WHERE id = $1`, [tableId]);
   await touch(run, tableId);
   await tableEvent(run, tableId, "board");
   await tableEvent(run, tableId, "seat");
@@ -302,6 +306,12 @@ export async function leaveTable(run: Query, identity: string): Promise<string |
   await run(
     `UPDATE tables SET closed_at = now() WHERE id = $1 AND closed_at IS NULL
         AND NOT EXISTS (SELECT 1 FROM table_seats WHERE table_id = $1 AND left_at IS NULL)`,
+    [seat.table_id],
+  );
+  // Nobody playing is left to play alone (§6.2): the mark goes with the last player.
+  await run(
+    `UPDATE tables SET solo_since = NULL WHERE id = $1 AND solo_since IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM table_seats WHERE table_id = $1 AND left_at IS NULL AND playing_from IS NOT NULL)`,
     [seat.table_id],
   );
   await tableEvent(run, seat.table_id, "seat");

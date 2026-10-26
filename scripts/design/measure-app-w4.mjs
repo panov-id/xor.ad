@@ -151,6 +151,10 @@ function nodeStub() {
       if (key === "POST /away") { s.away = body().span; return json(200, { until: Math.floor(Date.now() / 1000) + 3600 }); }
       if (key === "POST /identities/close") { s.closed = true; return json(200, {}); }
       if (key === "GET /feed") return json(200, { items: [], next: null });
+      if (key === "GET /feed/density") return json(200, { step: "tens" });
+      // w4_hidden, w4_blocked: what I hid and whom I blocked, in the node's shape (relay/node/src/routes/hidden.ts: kind feed | line)
+      if (key === "GET /hidden") return json(200, [{ id: "h-1", kind: "feed", text: "Lost a grey cat near the bakery — Barsik" }, { id: "h-2", kind: "line", text: "Power out on Asatiani again?" }]);
+      if (key === "GET /blocks") return json(200, [{ id: "b-1", since: Math.floor(Date.UTC(2026, 9, 9, 12) / 1000) }]);
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
       calls.push(`UNEXPECTED ${key}`); return route.abort();
     });
@@ -336,9 +340,12 @@ if (want("place")) {
     await overflowAt(page, qscr, 390); await shot(page, qscr);
     await page.click('[data-testid="place-qr-back"]'); await page.waitForSelector('[data-screen="place"]');
   }
-  // walk: a city chosen is kept where the web keeps it, and Me says it (the picker opens empty again after the QR)
+  // walk: a city picked moves the map there, «Here» keeps it where the web keeps it, and Me says it (place-flow.svg;
+  // the picker opens empty again after the QR)
   await page.fill('[data-testid="place-search"]', "Tbil"); await page.waitForSelector('[data-testid="place-city"]', { timeout: 20000 });
-  await page.locator('[data-testid="place-city"]').nth(0).click(); await page.waitForSelector('[data-screen="me"]');
+  await page.locator('[data-testid="place-city"]').nth(0).click();
+  await page.waitForFunction(() => /Tbilisi/.test(document.querySelector('[data-testid="place-near"] p')?.textContent ?? ""), null, { timeout: 10000 });
+  await page.click('[data-testid="place-here"]'); await page.waitForSelector('[data-screen="me"]');
   const kept = await page.evaluate(() => JSON.parse(localStorage.getItem("place.v1") ?? "null"));
   note(kept?.name === "Tbilisi" && kept?.cc === "GE" && (await page.locator(".me-who p").innerText()).includes("Tbilisi"), `walk: a city chosen is kept in place.v1 (${kept?.name}/${kept?.cc}) and Me shows it`);
   await page.evaluate(() => localStorage.setItem("place.v1", JSON.stringify({ lat: 41.689, lon: 44.8, name: "Sololaki", cc: "GE", source: "point" })));

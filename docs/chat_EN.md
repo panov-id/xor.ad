@@ -702,6 +702,43 @@ is asking.
 - The board lives within the chat and **disappears with it** (ephemerality).
 - Sync in real time (see §7).
 
+### 6.2. While you wait: playing alone at your own table (2026-10-25)
+
+**Owner's decision of 2026-10-25.** Words: "maybe we should add a way to play alone? For example some other games on the same boards". The questionnaire pick was "Wait at the table": while your table is empty you solve a puzzle or lay out a solitaire on the same board; neighbours see the table and may sit down, and then an ordinary game starts. Rejected: playing a bot (the product turns into a game hall, and no neighbours come of it), a separate puzzles section (it leads away from meeting people), "do nothing" (in an empty neighbourhood a person has nothing to do).
+
+**Why.** A table is an invitation to the neighbours, and an empty table is now a waiting screen people leave. A solo game keeps the person at the table while the invitation stays in the feed and the list.
+
+**The board decides the solo game.** The solo game is played on the table's own board, with the same pieces or deck; there is no new board art.
+
+| Table game | Solo variant | End |
+|---|---|---|
+| dots | puzzle: close N boxes with K lines | all N closed or the lines run out |
+| checkers | puzzle: "white to play and win" | the win or a wrong move |
+| chess | puzzle: mate in 2 | the mate or a wrong move |
+| reversi | puzzle: a position, flip the most with 1 move | the move made |
+| four (four in a row) | puzzle: win in 2 moves | the row made or the moves run out |
+| battleship | find a fleet the device placed at random in the fewest shots | the fleet sunk |
+| durak (36-card deck) | Klondike solitaire on 36 cards | laid out or no moves |
+| poker (52-card deck) | Klondike solitaire on 52 cards | laid out or no moves |
+| hangman | a word from the table's set dictionary | the word guessed or the figure finished |
+| dominoes | solitaire: lay all the tiles in one chain | the chain made or no moves |
+| chapayev | knock all the pieces off the board in N flicks | no pieces left or the flicks run out |
+| backgammon | **none**: with no opponent the dice check nothing | — |
+
+In all: a solo variant for 11 games of 12; backgammon has none, and a backgammon table waits as it does now.
+
+**Where a solo game lives.** The puzzle, its position and its score live on the device only (`localStorage`, one per table). The puzzles are the app's built-in set, no network: each comes from its number, so "again" replays the same one and "next" takes another. The node knows exactly one thing — the "playing alone" mark (`tables.solo_since`, migration 086): when it was set, and nothing of the puzzle itself.
+
+**What the neighbours see (owner's decision of 2026-10-25: "well, let them see. And when they see there is an application, they will play together").** In the tables list and in the feed a table's row begins with "playing alone": "playing alone · 1 of 2 seated · 0 watching" (`GET /tables`, the card's `solo` field). The player sets the mark: "A puzzle while we wait" sends `POST /tables/:id/solo`, "Put the puzzle away" sends `DELETE`. Only a player at that table may set it, while no round is under way (otherwise 409); someone else's table answers 404, as any table not one's own.
+
+**A neighbour applies.** The neighbour sits down and writes an application, as now (`application`). For the player the puzzle folds into a strip "A neighbour asks to join", with the ordinary "Start the game" below it (`POST /tables/:id/proposals`). Once the round starts the node clears the mark itself (`startRound`); so it does when the last player leaves. When the guest stands up, "Back to the puzzle" opens it where it was.
+
+**Built in code (2026-10-25).** Node: the mark, the route, the clearing; tests `relay/node/test/tables_solo.test.ts`. App: the "playing alone" row for neighbours, the solo board on one's own table, the application strip; solo variants so far for two games of eleven — dots and battleship (`app/src/screens/tables/solo-logic.ts`); the rest wait as before.
+
+**What is not here.** A rating, a score between people, a daily puzzle, hints, a bot. A solo game does not open without one's own table: it is not a section but something to do at the table.
+
+**Open — the owner decides** (questions are collected, no questionnaire): who writes the puzzles (a set from open collections with a licence, or our own); whether a solo game is wanted in a two-person chat while the other has not answered the game proposal.
+
 ## 7. Realtime
 
 - Messages, game-board state and table events arrive through **our own WebSocket** on the relay node (`src/chat/relay.ts`), over the **api proxy** (same-origin, via the gateway). Not Supabase — see §8.1. **A person's actions — a move, an application, a game offer, the hangman word — travel as signed requests, not frames; decided 2026-09-16** (`protocol_EN.md` §4.4, §4.6–4.7). [retired] This said "game requests go through our own WebSocket".
@@ -2738,6 +2775,8 @@ the old K       cannot be recovered by anything
 This does not undo the per-person count, because the count is about history and the key is about transit. The local history sits under the **vault key** (§8.2), not under `K`: Kolya's reads exactly as it read and lives until his own span. Putting `K` out later would be a cost with nothing bought — nothing can be written into the conversation by either side any more, while the key from which intercepted ciphertext could be decrypted would stay derivable for hours. Forward secrecy must fire at the **earliest** of the two moments, not the latest.
 
 **A key that cannot be extracted.** The private halves live in IndexedDB only wrapped under the vault key (§8.2, 2026-09-15); on unlock they are unwrapped into memory as `extractable: false` and forgotten on lock. They can encrypt; their material cannot be exported, not even by our own code: a foreign script running on an unlocked page reads what is open right now but carries no key away. [retired] This said "The pairs are created with `extractable: false` and live in IndexedDB as `CryptoKey` objects".
+
+**The ephemeral pair survives a reload — 2026-10-24.** Between consent and the `chat_key_wraps` wrap the conversation's pair lived only in the tab's memory, and a reload in that gap lost the conversation. Now the web face keeps it in IndexedDB (store `pairs`, `depth/web-platform/vault_store.ts`) only wrapped to the live session's wrap public key (`Ephemeral.generateKept`, domain `xor.eph-keep.v1`, additional data bound to the label (identity, match or chat, epoch) and the public half, `depth/core/seal.ts`). Only a tab holding the identity's wrap private key can unwrap it: one unlocked by the PIN, or reopened within the grace window, where the browser profile alone is enough. The row is erased as soon as the node accepts the wrap (`PUT /chats/:id/keys` → 200), on a refused reissue, on "forget this device", when no key of the identity opens it any more (an unlock with a new wrap key), and after 14 days (`KEPT_DAYS`, `depth/web-platform/chat/keys.ts`). Forward secrecy narrows for that term: while the row lives, whoever holds both the disk and the vault key opens the pair, and within the grace window the disk alone suffices — the same exposure the vault already accepts for the long key. A lock drops the grace in every tab, and after it the PIN is needed again.
 
 **There is one exception — the long-lived key is extractable for the time of a wrap, decided by quorum on 2026-09-26.** The identity's long-lived key has to reach a new device during a transfer (§8.2), and WebCrypto cannot wrap a non-extractable key: `wrapKey` requires `extractable: true`. So the long-lived key lies wrapped, its non-extractable copy does the work, and it becomes extractable only for the time of a wrap — at registration and at a transfer — from the wrapped copy: `unwrapKey` with `extractable: true`, `wrapKey` into the envelope, and that copy is dropped. In `depth`, while there is no volume, the wrapped copy is held by a non-extractable random process key in place of the vault key; the device that receives the identity holds it the same way. [retired] This said "the long-lived key is extractable **always**": against a foreign script on an unlocked page both ways protect the same — it will call the unwrap itself — but "always" disagreed with the paper-code keys of §8.2. Rejected: an extractable key in process memory all the time (0:3). What that buys an attacker is bounded by §8.13 above: they can impersonate the person, but not read the conversations, because the long-lived key takes no part in the encryption. At rest it is wrapped under the vault key like the other private halves, so a foreign script takes it only from an unlocked page; in `depth` the same vault key — the PIN with the node's share — protects the key file (web and `depth` are the same since 2026-09-15, §8.2).
 

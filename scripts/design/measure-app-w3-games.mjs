@@ -77,12 +77,12 @@ async function overflowAt(page, screen, w) {
       const cs = getComputedStyle(e), r = e.getBoundingClientRect();
       if (e.closest("[aria-hidden='true']") && e.tagName === "path") continue;
       const tag = `${e.tagName.toLowerCase()}${e.dataset.testid ? `[${e.dataset.testid}]` : typeof e.className === "string" && e.className ? "." + e.className.split(" ")[0] : ""}`;
-      // the sticker chips scroll sideways by design (w3_table-*: four shown of eight): what is past the edge is scrolled to
-      // the chips scroll sideways, and the dominoes' line and hand (a line grows to 28 bones, a hand holds up to seven)
-      const scrolled = [".tg-chips", ".tg-dline", ".tg-hand"].some((c) => e.closest(c) && !e.classList.contains(c.slice(1)));
+      // the dominoes' line and hand scroll sideways (a line grows to 28 bones, a hand holds up to seven); the sticker chips
+      // do not any more: all eight wrap inside the screen (walk 23.10 rows 38-39)
+      const scrolled = [".tg-dline", ".tg-hand"].some((c) => e.closest(c) && !e.classList.contains(c.slice(1)));
       if (r.width && !scrolled && (r.right > vw + 0.5 || r.left < -0.5)) out.push(`${tag} outside the viewport: ${r.left.toFixed(1)}..${r.right.toFixed(1)} of ${vw}`);
       const clips = cs.overflowX !== "visible" || cs.textOverflow === "ellipsis";
-      if (e.tagName !== "INPUT" && clips && e.scrollWidth > e.clientWidth + 1 && !e.classList.contains("me-body") && !["tg-chips", "tg-dline", "tg-hand"].some((c) => e.classList.contains(c))) out.push(`${tag} clips horizontally: scrollWidth ${e.scrollWidth} > clientWidth ${e.clientWidth}`);
+      if (e.tagName !== "INPUT" && clips && e.scrollWidth > e.clientWidth + 1 && !e.classList.contains("me-body") && !["tg-dline", "tg-hand"].some((c) => e.classList.contains(c))) out.push(`${tag} clips horizontally: scrollWidth ${e.scrollWidth} > clientWidth ${e.clientWidth}`);
     }
     return out;
   }, w);
@@ -237,6 +237,7 @@ function nodeStub() {
       if (key === "POST /vault/share") { const auth = body().auth; if (s.pinAuth === null) s.pinAuth = auth; return auth === s.pinAuth ? json(200, { share: s.share }) : json(409, { error: { code: "pin_mismatch", attempts_left: 9 } }); }
       if (key === "GET /identities/me") return json(200, { name: "Alex", name_state: "accepted", age: 32, phrases: [], filter_age_min: 25, filter_age_max: 35 });
       if (key === "GET /feed") return json(200, { items: [], next: null });
+      if (key === "GET /inbox") return json(200, { items: [], events: {} });   // the desktop table has the talks pane beside it (834 and up)
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
       if (key === "GET /tables") return json(200, { items: Object.entries(GAMES).map(([id, g]) => ({ id, game: g.class, set: g.set, playing: 2, free_seats: 0, watching: 0, like_count: 0, name: "Evening at the yard" })), next: null, mine: [] });
       const t = /^\/tables\/(t\d+)(\/.*)?$/.exec(u.pathname);
@@ -355,6 +356,15 @@ if (want("four")) {
   await shot(page, "table-four");
 }
 await overflowAt(page, "table-four", 390);
+{ // a column of four in a row is drawn 39 px wide (the sheet) and is tapped on 44 (walk 23.10 row 40)
+  // asked of the browser, not of the style: who takes a tap 2 px inside the 44 px band on each side of the drawn column
+  const hit = await page.evaluate(() => [...document.querySelectorAll('[data-testid^="four-col-"]')].map((e) => {
+    const r = e.getBoundingClientRect(), half = 22 - 2, cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const takes = (x) => { const t = document.elementFromPoint(x, cy); return !!t && (t === e || e.contains(t)); };
+    return takes(cx - half) && takes(cx + half) ? 44 : Math.round(r.width * 10) / 10;
+  }));
+  notes.push({ bad: hit.length !== 7 || hit.some((w) => w < 44), text: `table-four[${TAG}]: column hit widths ${JSON.stringify(hit)} (44 at least, 7 columns)` });
+}
 await page.click('[data-testid="four-col-f"]');
 for (let k = 0; k < 40 && stub.moves.length === 0; k++) await page.waitForTimeout(100);
 note(stub.moves.length === 1 && stub.moves[0].move?.column === "f" && stub.moves[0].seq === 7, `walk: a tap on column f sends {seq: 7, move: {column: "f"}} (${JSON.stringify(stub.moves[0] ?? null)})`);
@@ -701,7 +711,7 @@ for (const g of LATER) {
   await o.ctx.close();
 }
 
-for (const w of [375, 320]) {
+for (const w of [375, 320, 834, 1440, 1920]) {   // the walk 23.10 rows 38-40 named 390 to 1920
   const s2 = nodeStub();
   const o = await open(browser, PREVIEW + "/", w, { screen: "w3g", prepare: s2.prepare });
   await registerFull(o.page); await toTable(o.page); await settle(o.page);

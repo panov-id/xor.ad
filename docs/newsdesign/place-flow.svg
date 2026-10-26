@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1290" height="924" viewBox="0 0 1290 924" font-family="Outfit, sans-serif">
+<rect width="1290" height="924" fill="#0d0b12"/>
+<defs><pattern id="g" width="36" height="36" patternUnits="userSpaceOnUse"><path d="M36 0H0V36" fill="none" stroke="#3A3157" stroke-width="1"/></pattern></defs>
+<!-- Frame 1 -->
+<text x="20" y="44" fill="#C6F27E" font-size="22" font-weight="600">Шаг 1</text>
+<g transform="translate(20,64)">
+<rect width="390" height="844" rx="40" fill="#141119"/>
+<text x="24" y="70" fill="#fff" font-size="28" font-weight="600">Где вы?</text>
+<rect x="16" y="96" width="358" height="88" rx="28" fill="#2B2440"/>
+<text x="40" y="132" fill="#9b93b8" font-size="15">Сейчас</text>
+<text x="40" y="162" fill="#fff" font-size="20">Рим, IT</text>
+<text x="24" y="214" fill="#9b93b8" font-size="13">или, если не выбрано: «не выбрано, лента смотрит вокруг Рима»</text>
+<rect x="16" y="234" width="358" height="56" rx="999" fill="#3A3157"/>
+<text x="40" y="269" fill="#fff" font-size="17">Рим|</text>
+<g font-size="17" fill="#fff">
+<rect x="16" y="306" width="358" height="300" rx="28" fill="#2B2440"/>
+<text x="40" y="346">Rome <tspan fill="#9b93b8">· IT</tspan></text>
+<text x="40" y="404">Romans-sur-Isère <tspan fill="#9b93b8">· FR</tspan></text>
+<text x="40" y="462">Roma <tspan fill="#9b93b8">· AU</tspan></text>
+<text x="40" y="520">Romford <tspan fill="#9b93b8">· GB</tspan></text>
+<text x="40" y="578">Romny <tspan fill="#9b93b8">· UA</tspan></text>
+</g>
+<text x="24" y="640" fill="#9b93b8" font-size="13">Список городов на устройстве, ничего не уходит в сеть</text>
+</g>
+<!-- Frame 2 -->
+<text x="450" y="44" fill="#C6F27E" font-size="22" font-weight="600">Шаг 2</text>
+<g transform="translate(450,64)">
+<rect width="390" height="844" rx="40" fill="#141119"/>
+<text x="24" y="70" fill="#fff" font-size="28" font-weight="600">Рим</text>
+<text x="24" y="98" fill="#9b93b8" font-size="15">Передвиньте точку</text>
+<rect x="16" y="120" width="358" height="440" rx="28" fill="#2B2440"/>
+<rect x="16" y="120" width="358" height="440" rx="28" fill="url(#g)"/>
+<g fill="#9b93b8" font-size="13">
+<circle cx="80" cy="200" r="3"/><text x="88" y="204">Monterotondo</text>
+<circle cx="300" cy="230" r="3"/><text x="250" y="250">Tivoli</text>
+<circle cx="60" cy="380" r="3"/><text x="68" y="384">Fiumicino</text>
+<circle cx="250" cy="420" r="3"/><text x="258" y="424">Frascati</text>
+<circle cx="140" cy="500" r="3"/><text x="148" y="504">Pomezia</text>
+<circle cx="230" cy="380" r="3"/><text x="238" y="372">Ciampino</text>
+</g>
+<circle cx="190" cy="330" r="70" fill="#C6F27E" fill-opacity="0.15" stroke="#C6F27E" stroke-dasharray="6 6"/>
+<circle cx="190" cy="330" r="14" fill="#C6F27E" stroke="#141119" stroke-width="4"/>
+<text x="210" y="320" fill="#fff" font-size="14">Rome</text>
+<text x="24" y="604" fill="#fff" font-size="17">Радиус</text>
+<text x="366" y="604" fill="#C6F27E" font-size="17" text-anchor="end">1 км</text>
+<rect x="24" y="626" width="342" height="8" rx="999" fill="#3A3157"/>
+<rect x="24" y="626" width="171" height="8" rx="999" fill="#C6F27E"/>
+<g fill="#9b93b8" font-size="12" text-anchor="middle"><text x="30" y="660">100 м</text><text x="112" y="660">300 м</text><text x="195" y="660">1 км</text><text x="278" y="660">3 км</text><text x="356" y="660">10 км</text></g>
+<circle cx="195" cy="630" r="14" fill="#fff"/>
+<text x="24" y="700" fill="#9b93b8" font-size="13">Схема: сетка клеток и города из списка</text>
+</g>
+<!-- Frame 3 -->
+<text x="880" y="44" fill="#C6F27E" font-size="22" font-weight="600">Шаг 3</text>
+<g transform="translate(880,64)">
+<rect width="390" height="844" rx="40" fill="#141119"/>
+<text x="24" y="70" fill="#fff" font-size="28" font-weight="600">Рим</text>
+<rect x="16" y="120" width="358" height="440" rx="28" fill="#2B2440"/>
+<rect x="16" y="120" width="358" height="440" rx="28" fill="url(#g)"/>
+<circle cx="210" cy="310" r="70" fill="#C6F27E" fill-opacity="0.15" stroke="#C6F27E" stroke-dasharray="6 6"/>
+<circle cx="210" cy="310" r="14" fill="#C6F27E" stroke="#141119" stroke-width="4"/>
+<rect x="16" y="580" width="358" height="96" rx="28" fill="#3A3157"/>
+<text x="40" y="618" fill="#fff" font-size="18">Около Рима, 1 км</text>
+<text x="40" y="650" fill="#9b93b8" font-size="14">Лента смотрит вокруг этой точки</text>
+<rect x="16" y="740" width="358" height="64" rx="999" fill="#C6F27E"/>
+<text x="195" y="780" fill="#141119" font-size="20" font-weight="600" text-anchor="middle">Здесь</text>
+</g>
+</svg>

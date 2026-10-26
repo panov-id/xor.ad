@@ -4,13 +4,14 @@
 // Every 5 s the inbox is asked whether they said "not now" to my yes (talks-logic.ts goneIn, as web useMatch);
 // then the queue is dropped and the wait says the offer is gone. Testids (the web's): waiting, queued, queued-line,
 // enqueue, to-inbox, tombstone; plus waiting-back.
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import type { ChatKeys } from "@platform/chat/keys.ts";
 import type { Client } from "@sdk/client.ts";
 import { label, LANG, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { arrowRight, chat, chevronLeft } from "../../shell/icons";
 import { Screen } from "../../shell/Screen";
+import { Rail } from "../../shell/TabBar";
 import { eye } from "../me/icons";
 import { initial } from "../me/me-logic";
 import { goneIn, type MatchRow, type Row } from "./talks-logic";
@@ -69,7 +70,7 @@ export function MatchWaiting({ client, keys, row, startGone, onBack, onTalks }: 
           : <p className="tk-wait-note"><Icon d={eye} /><span>{say("app.wait.note", { name: row.name })}</span></p>}
         <ol className="tk-queue" aria-label={say("web.match.waiting")} data-testid="queued">
           {lines.map((l, i) => (
-            <li key={i} className="tk-bubble-row">
+            <li key={i} className="tk-bubble-row" style={{ "--i": l.at === undefined ? i : 0 } as CSSProperties}>
               <p className="tk-bubble">{l.text}</p>
               {l.at !== undefined && <time className="tk-bubble-time">{clock(l.at)}</time>}
             </li>
@@ -85,6 +86,7 @@ export function MatchWaiting({ client, keys, row, startGone, onBack, onTalks }: 
           <button type="button" className="tk-to-talks" onClick={onTalks} data-testid="to-inbox"><Icon d={chat} /><span>{say("app.wait.to_talks")}</span></button>
         </div>
       </div>
+      <Rail active="chats" />
     </Screen>
   );
 }

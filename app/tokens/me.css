@@ -87,3 +87,21 @@
 }
 :root { --me-paper: #F6F5F1; --me-black: #121212; }
 :root { --me-white: #FFFFFF; --me-qr-ink: #121212; }
+/* The place map (docs/newsdesign/place-flow.svg, frames 2 and 3; app/src/screens/me/Place.tsx). */
+:root {
+  --me-map-h: 440px;
+  --me-map-cell: 36px;
+  --fs-me-map-city: 13px;
+  --fs-me-place-now: 17px;
+  --fs-me-place-hint: 15px;
+  --fs-me-radius-step: 12px;
+  --me-radius-track: 8px;
+  --me-radius-thumb: 28px;
+  --me-place-card-pad: 24px;
+  --fs-me-place-near: 18px;
+  --fs-me-place-feed: 14px;
+  --me-map-ring-dash: 6px;
+  --me-map-pin-ring: 4px;
+  --c-me-sea: #1C1828;
+  --c-me-land: #3A3157;
+}

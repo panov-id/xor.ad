@@ -223,6 +223,7 @@ components:
         lon: {type: number}
         area_radius: {type: integer, enum: [100, 300, 1000, 3000, 10000]}
         like_count: {type: integer}
+        solo: {type: boolean, description: "Table only: its player is playing alone while waiting — neighbours may sit down and apply (chat spec §6.2, 2026-10-25).", x-description-ru: "Только у стола: его игрок играет один, пока ждёт, — соседи могут подсесть и подать заявку (спека чата §6.2, 25.10.2026)."}
         soon: {type: boolean, description: "Present and true in the last 65 minutes of a phrase (limits likes.soon.threshold): the word 'disappearing soon' instead of a number — someone else's end never leaves the node as a time (§8.11; 2026-09-23, GET /feed and GET /likes).", x-description-ru: "Есть и равно true в последние 65 минут фразы (limits likes.soon.threshold): слово «скоро исчезнет» вместо числа — чужой срок наружу временем не уходит (§8.11; 23.09.2026, GET /feed и GET /likes)."}
         liked: {type: boolean, description: "Present and true on a phrase the caller liked: it stays in GET /feed since 2026-10-15 (owner: \"let's keep the phrases I liked, otherwise it's unclear where they went\"). Absent otherwise; not sent in GET /likes, where every card is liked (see state).", x-description-ru: "Есть и равно true у фразы, которую лайкнул вызывающий: с 15.10.2026 она остаётся в GET /feed (владелец: «давай оставлять фразы которые лайкнул, а то не понятно куда делись»). Иначе отсутствует; в GET /likes не шлётся, там все карточки лайкнуты (см. state)."}
         lang: {type: string, description: "The feed's language filter reads it, and `und` passes every filter (2026-09-21). Since 2026-10-05 (W17-LG) it is the language of the author's interface, sent as PhraseCreate.lang and kept only if it is one of the faces' seventeen; otherwise, and for every phrase before that, `und`.", x-description-ru: "По нему работает языковой фильтр ленты, и `und` проходит любой фильтр (21.09.2026). С 05.10.2026 (W17-LG) это язык интерфейса автора — он приходит в PhraseCreate.lang и сохраняется, только если это один из семнадцати языков лиц; иначе, как и у всех фраз до того, — `und`."}
@@ -313,6 +314,7 @@ components:
         watching: {type: integer}
         name: {type: [string, "null"]}
         like_count: {type: integer}
+        solo: {type: boolean, description: "Its player is playing alone while waiting — neighbours may sit down and apply (chat spec §6.2, 2026-10-25).", x-description-ru: "Его игрок играет один, пока ждёт, — соседи могут подсесть и подать заявку (спека чата §6.2, 25.10.2026)."}
         lat: {type: number}
         lon: {type: number}
         area_radius: {type: integer}
@@ -361,6 +363,7 @@ components:
         watching: {type: integer}
         name: {type: string, description: "After the queue's verdict; absent while pending or refused (2026-09-17).", x-description-ru: "После вердикта очереди; пусто, пока ждёт или отклонено (17.09.2026)."}
         like_count: {type: integer, description: Public like count (2026-09-17)., x-description-ru: Публичное число лайков (17.09.2026).}
+        solo: {type: boolean, description: "The table's player marked playing alone (POST /tables/{id}/solo); a round starting clears it (chat spec §6.2, 2026-10-25).", x-description-ru: "Игрок стола отметил «играет один» (POST /tables/{id}/solo); начало партии снимает отметку (спека чата §6.2, 25.10.2026)."}
         seats: {type: array, description: "Who sits where — the names the screens write («Аня · 3», «ход: Аня»), the role and the size of a hand, never its tiles (chat spec §6.1).", x-description-ru: "Кто где сидит — имена, которые пишут экраны («Аня · 3», «ход: Аня»), роль и размер руки, но не её фишки (спека чата §6.1).", items: {type: object, properties: {seat: {type: integer}, name: {type: string}, role: {type: string, enum: [playing, watching]}, hand_count: {type: integer}}}}
         board: {$ref: "#/components/schemas/Board"}
         lines: {type: array, items: {$ref: "#/components/schemas/TableLine"}}
@@ -2553,6 +2556,47 @@ paths:
         "401": {$ref: "#/components/responses/Unauthorized"}
         "400": {$ref: "#/components/responses/BadVersion"}
         "429": {$ref: "#/components/responses/RateLimited"}
+        "204": {description: Done., x-description-ru: Сделано.}
+  /tables/{id}/solo:
+    post:
+      tags: [tables]
+      summary: "Mark playing alone while waiting"
+      x-summary-ru: "Отметить «играет один», пока ждёшь"
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
+      security: [{identitySignature: []}]
+      description: "Only a player at this table, with no round under way (otherwise 409 not_playing or game_running); neighbours see `solo` on the card. The node keeps the moment only — the puzzle stays on the device. A round starting or the last player leaving clears it (chat spec §6.2, 2026-10-25)."
+      x-description-ru: "Только играющий за этим столом и без идущей партии (иначе 409 not_playing или game_running); соседи видят `solo` в карточке. Узел хранит только момент — задачка остаётся на устройстве. Начало партии или уход последнего играющего снимают отметку (спека чата §6.2, 25.10.2026)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "409": {$ref: "#/components/responses/ApiError"}
+        "404": {$ref: "#/components/responses/ApiError"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "400": {$ref: "#/components/responses/BadVersion"}
+        "204": {description: Done., x-description-ru: Сделано.}
+    delete:
+      tags: [tables]
+      summary: "Take playing alone off"
+      x-summary-ru: "Снять «играет один»"
+      x-status: built
+      x-source: relay/node/src/routes/tables.ts
+      security: [{identitySignature: []}]
+      description: "Always allowed to anyone seated at the table (chat spec §6.2)."
+      x-description-ru: "Можно всегда любому, кто сидит за столом (спека чата §6.2)."
+      parameters:
+        - {$ref: "#/components/parameters/ProtocolVersion"}
+        - {$ref: "#/components/parameters/IdentitySession"}
+        - {$ref: "#/components/parameters/IdentityTime"}
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        "409": {$ref: "#/components/responses/Conflict"}
+        "404": {$ref: "#/components/responses/ApiError"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "400": {$ref: "#/components/responses/BadVersion"}
         "204": {description: Done., x-description-ru: Сделано.}
   /tables/{id}/ticket:
     post:

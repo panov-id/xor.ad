@@ -11,7 +11,7 @@
   --d-item: 500ms;
   --o-item: 24px;
   --t-item-start: 350ms;
-  --stagger-item: 80ms;
+  --stagger-item: 140ms;
   --d-action: 550ms;
   --o-action: 40px;
   --t-action-start: 450ms;
@@ -43,8 +43,11 @@
   --o-typing: 5px;
   --stagger-typing: 150ms;
   --d-bubble: 350ms;
-  --stagger-bubble: 380ms;
+  --stagger-bubble: 320ms;
   --scale-bubble-from: .85;
+  --typing-dot: 8px;       /* the three dots of the «typing» bubble */
+  --typing-gap: 5px;
+  --skeleton-row: 64px;    /* a talk's row while the inbox loads */
   --d-pulse: 1600ms;
   --scale-pulse: 1.07;
 
@@ -55,6 +58,10 @@
   --d-sheet: 550ms;
   --d-popup: 650ms;
   --scale-popup-peak: 1.03;
+  --scale-popup-from: .82;  /* the match card comes in .82 -> 1.03 -> 1 and goes out to .96 */
+  --scale-popup-out: .96;
+  --t-popup-start: 200ms;   /* the card follows the dim by this long */
+  --d-popup-out: 400ms;
   --scale-under: .93;
 }
 
@@ -89,5 +96,7 @@
     --t-dim-start: 0ms;
     --d-sheet: 0.01ms;
     --d-popup: 0.01ms;
+    --t-popup-start: 0ms;
+    --d-popup-out: 0.01ms;
   }
 }

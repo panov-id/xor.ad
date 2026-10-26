@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
 import { type ChatKeys, chatKeysFor, type InboxChatRow } from "@platform/chat/keys.ts";
-import { gateOf, gateScreen, pathOf, type Screen, seatScreen } from "../router";
+import { gateOf, gateScreen, landing, pathOf, type Screen, seatScreen } from "../router";
 import { Arrival } from "../screens/Arrival";
 import { Chat } from "../screens/Chat";
 import { Composer } from "../screens/Composer";
@@ -9,7 +9,8 @@ import { TalksPane } from "../screens/talks/TalksPane";
 import { Away } from "../screens/Away";
 import { Departure } from "../screens/Departure";
 import { Feed } from "../screens/Feed";
-import { Gate } from "../screens/Gate";
+import { type SentPhrase, sentOf } from "../screens/feed-logic";
+import { Restore } from "../screens/Gate";
 import { Loading } from "../screens/Loading";
 import { Locked } from "../screens/Locked";
 import { Register, type Seated } from "../screens/Register";
@@ -25,10 +26,20 @@ import { Table } from "../screens/tables/Table";
 import { Tables } from "../screens/tables/Tables";
 import { Offer } from "../screens/Offer";
 import { codeOfPath } from "@sdk/offer_exit.ts";
+import { parseQr } from "@sdk/place_qr.ts";
+import { Place } from "../screens/me/Place";
+import { storedPlace } from "../place";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
-import type { Tab } from "./TabBar";
+import { type Tab, TabsContext } from "./TabBar";
 import { useSkeleton } from "./loading";
+import { watchTaps } from "./ripple";
+
+// A place QR (web App.tsx QR, sosed.place 26): `/location#p=…&s=…` read once at load and taken out of the address at
+// once, so the cell stays in no history, tab restore or copied address; anything off the shape is no QR. Once seated,
+// the place screen opens at the QR's point; nothing is kept until «Here».
+const QR = /^\/location\/?$/.test(location.pathname) ? parseQr(location.hash) : null;
+if (/^\/location\/?$/.test(location.pathname)) history.replaceState(null, "", "/");
 
 // In the dev server ?boot=<ms> makes the boot wait, to look at the loading screen.
 async function boot(): Promise<void> {
@@ -40,8 +51,8 @@ async function boot(): Promise<void> {
 // the gate, Back walks them, a reload opens the gate the path names, or the PIN when this device
 // keeps an identity — and no PIN at all within the reload grace (depth/core/grace.ts).
 // The desktop (1440 and up, tokens/wide.css): the talks' pane stands at the right of the panel of these screens
-// (sosed Dusk desktop_1440_Feed, _Phrase, _Me, _Write); below it is not mounted and reads nothing.
-const PANE_BESIDE = new Set<Screen["at"]>(["feed", "me", "composer"]);
+// (sosed Dusk desktop_1440_Feed, _Phrase, _Tables, _Write; "Me" has none: its sheet is one panel); below it is not mounted and reads nothing.
+const PANE_BESIDE = new Set<Screen["at"]>(["feed", "tables", "composer"]);
 // The breakpoints are the tokens --bp-tablet and --bp-desktop (tokens/wide.css, the same numbers as its @media): read off :root, as Feed reads --fd-cols.
 function minWidthOf(token: string): string {
   if (typeof getComputedStyle !== "function") return "";
@@ -59,8 +70,12 @@ function useWide(token = "--bp-desktop"): boolean {
 }
 
 export function App() {
+  useEffect(() => watchTaps(), []);
   const [screen, setScreen] = useState<Screen>({ at: "loading" });
   const [booting, setBooting] = useState(true);
+  // One's own phrase just sent (Composer's answer), shown over the feed until taken down; leaving the feed drops it (web App.tsx leaveFeed).
+  const [sent, setSent] = useState<SentPhrase | null>(null);
+  useEffect(() => { if (screen.at !== "feed" && screen.at !== "composer") setSent(null); }, [screen.at]);
   // The identity the page holds (a registration made it, the PIN or the grace opened it), in memory only: the disk has it sealed.
   const [seated, setSeated] = useState<Seated | null>(null);
   // The chat keys of the seat (depth/web-platform/chat/keys.ts chatKeysFor): made from the long key the seat
@@ -79,6 +94,8 @@ export function App() {
   const vaulted = useRef<Record_ | null>(null);
   // An identity is on the page (a seat): Back and a typed address move between its screens (the feed, /move).
   const held = useRef(false);
+  // the place QR leads once: a later seat (an unlock after a lock) does not open it again
+  const qrUsed = useRef(false);
   // Waiting rules (MOTION.md): the loading screen shows only if the wait outlasts 300 ms, and then stays 600 ms.
   const loadingShown = useSkeleton(booting);
   const wide = useWide();
@@ -92,15 +109,10 @@ export function App() {
       const record = await readRecord().catch(() => undefined);
       vaulted.current = record ?? null;
       // A reload within 30 s of the last input (owner 14.10.2026; grace.ts): the seals open with what this tab
-      // kept, no PIN — the page lands on the feed.
+      // kept, no PIN — the page lands where seat() lands (a place QR opened is the place at its point).
       const graced = record ? await unlockByGrace(record).catch(() => null) : null;
       if (graced) {
-        vaulted.current = null;
-        held.current = true;
-        setSeated({ client: graced.client, sealed: graced.wrapSame ? "unlocked" : "unlocked-new-wrap" });
-        history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
-        setScreen({ at: "feed" });
-        void awayCheck(graced.client);
+        seat({ client: graced.client, sealed: graced.wrapSame ? "unlocked" : "unlocked-new-wrap" });
         return setBooting(false);
       }
       // An offer's link (`/o/<code>`, web App.tsx): its exit screen opens before any unlock; a kept identity stays shut.
@@ -179,13 +191,16 @@ export function App() {
     setScreen(to);
   }
 
-  // Registered or unlocked: the feed. The gates behind are left: Back does not return to them.
+  // Registered or unlocked: the feed. The gates behind are left: Back does not return to them. A place QR opened, or
+  // the first entry with no place on this device (GOALS: a step before the feed, not Rome in silence): the place first.
   function seat(who: Seated) {
     vaulted.current = null;
     held.current = true;
     setSeated(who);
-    history.replaceState({ gate: "feed", i: 0 }, "", pathOf({ at: "feed" }));
-    setScreen({ at: "feed" });
+    const to = landing(qrUsed.current ? null : QR, storedPlace().chosen);
+    if (to.at === "place") qrUsed.current = true;
+    history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
+    setScreen(to);
     void awayCheck(who.client);
   }
   // Seated while a step away is on (the profile says until when; web App.tsx land): the away screen, not the feed.
@@ -289,14 +304,15 @@ export function App() {
       case "splash": return <Splash onStart={() => gate({ at: "register" })} onRestore={() => gate({ at: "restore" })} onArrive={() => gate({ at: "arrival" })} />;
       case "register": return <Register onDone={seat} />;
       case "unlock": return <Unlock record={screen.record} onDone={unlocked} onForget={() => { vaulted.current = null; gate({ at: "splash" }); }} onRestore={() => gate({ at: "restore" })} />;
-      case "restore": return <Gate at={screen.at} onBack={gateBack} />;
+      // A clean device raised by the paper code: sealed under a new PIN, seated as after the PIN.
+      case "restore": return <Restore onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
-      case "feed": return seated ? <Feed client={seated.client} onTab={tab} onCompose={openComposer} /> : null;
-      case "composer": return seated ? <Composer client={seated.client} radius={screen.radius} onSent={chatBack} onBack={chatBack} onTab={tab} /> : null;
+      case "feed": return seated ? <Feed client={seated.client} onTab={tab} onCompose={openComposer} sent={sent} onTakenDown={() => setSent(null)} onLikes={toLikes} onNewTable={() => toNewTable()} onTable={toTable} /> : null;
+      case "composer": return seated ? <Composer client={seated.client} radius={screen.radius} onSent={(result, text) => { setSent(sentOf(result, text)); chatBack(); }} onBack={chatBack} onTab={tab} /> : null;
       case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /> : null;
       // Back keeps the seat (web TB1); standing up, or a seat lost, is the list again.
-      case "table": return seated ? <Table client={seated.client} tableId={screen.id} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} onLeave={toTables} /> : null;
+      case "table": return seated ? <Table key={screen.id} client={seated.client} tableId={screen.id} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} onLeave={toTables} onTable={toTable} /> : null;
       case "new-table": return seated ? <NewTable client={seated.client} picked={screen.game} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} /> : null;
       case "chat": return seated && chatKeys ? <Chat key={screen.row.id} client={seated.client} keys={chatKeys} row={screen.row} onBack={chatBack} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
@@ -314,11 +330,13 @@ export function App() {
       case "likes": return seated ? <Likes client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : tab("chats")} /> : null;
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
       case "offer": return <Offer code={screen.code} client={seated?.client} onBack={leaveOffer} />;
+      // Back from the first place is a choice too: the feed, which says no place is chosen
+      case "place": return seated ? <Place start={screen.start} onChosen={toFeed} onBack={toFeed} onQr={() => tab("me")} /> : null;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }
   };
   const pane = wide && seated && !loadingShown && PANE_BESIDE.has(screen.at)
     ? <TalksPane client={seated.client} actions={{ onOpenMatch: toMatch, onOpenChat: openChat, onLikes: toLikes }} />
     : null;
-  return <LayerStack base={<>{view()}{pane}</>} />;
+  return <TabsContext.Provider value={tab}><LayerStack base={<>{view()}{pane}</>} /></TabsContext.Provider>;
 }

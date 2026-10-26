@@ -32,3 +32,8 @@ testing/walk-svg/
 
 # the project map as a database (scripts/project-map.py): rebuilt from docs/map.edges, not kept
 docs/map.sqlite
+
+# Built or handed-off artefacts, not sources (owner 2026-10-26): map tiles by scripts/geo/build-land.sh, designer packs, posters
+/app/public/geo/
+/docs/newdesing2/
+/output/

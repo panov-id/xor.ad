@@ -15,6 +15,7 @@ import { failedLine, label, say } from "../i18n";
 import { Icon } from "../shell/Icon";
 import { check, close, codeBox, flag, stopSquare, toStart } from "../shell/icons";
 import { Screen } from "../shell/Screen";
+import { Rail } from "../shell/TabBar";
 import { MOVE_POLL_MS, MoveBar, MoveSheet, Shown, useEvery } from "./move-parts";
 import { pinLine } from "./pin-line";
 import { Cells } from "./register-parts";
@@ -175,6 +176,7 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
     <Screen name="departure" title={label("app.move.out_title")} className="mv" data-state={out ? state : "start"}>
       {bar}
       {view}
+      <Rail active="me" />
     </Screen>
   );
 }

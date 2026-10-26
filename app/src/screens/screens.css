@@ -121,6 +121,12 @@
 .reg-cells { position: relative; display: grid; grid-template-columns: repeat(var(--cells), 1fr); gap: var(--gap-cell); }
 .reg-cell { height: var(--h-code-cell); border-radius: var(--r-cell); background: var(--c-panel); display: grid; place-items: center;
   font-size: var(--fs-cell); font-weight: var(--fw-700); color: var(--c-text); }
+/* the paper code of the restore gate: sixteen cells, four rows of four (w4_restore) */
+.restore-code .reg-cells { grid-template-columns: repeat(4, 1fr); }
+/* the steps under a sub-page's back (w4_reissue-1, -2): "step n of 2" and its bars, the register head without its mark */
+.ri-steps { padding-top: 0; }
+.ri-steps + .me-sheet { margin-top: var(--reg-sheet-gap); }
+.me-body > .reg-plate + [role="group"] { margin-top: 0; }   /* the plate's own gap below is the whole gap to the first group (w4_reissue-2) */
 .reg-cells[data-kind="secret"] .reg-cell { height: var(--h-pin-cell); }
 .reg-cell i { width: var(--dot); height: var(--dot); border-radius: var(--r-pill); background: var(--c-text); }
 .reg-cells:focus-within .reg-cell[data-active] { box-shadow: inset 0 0 0 var(--ring) var(--c-lime); }
@@ -198,3 +204,6 @@
   .cta[aria-busy="true"]::before { display: none; }
   .cta[aria-busy="true"]::after { animation: spin-in var(--d-spin-in) var(--ease) var(--t-spin-start) both; }
 }
+
+/* desktop tables: the head lies across the panel (tokens/wide.css) over the new-table button; it holds only words, so clicks go through it */
+.tb.tb .tb-head { pointer-events: none; }

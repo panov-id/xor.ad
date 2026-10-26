@@ -1,7 +1,7 @@
 // chat-logic.ts: the conversation screen's clock, header line, ring, chips and sides.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bubblesOf, clockOf, headerLine, QUICK_STICKERS, ringOf, spanWord } from "./chat-logic.ts";
+import { bubblesOf, clockOf, headerLine, popStep, QUICK_STICKERS, ringOf, spanWord } from "./chat-logic.ts";
 
 const NOW = 1_800_000_000;
 
@@ -47,4 +47,9 @@ test("spanWord: minutes under an hour, hours from there (w3_chat-more «1 h»)",
   assert.deepEqual(spanWord(30), { key: "app.chat.span_min", values: { n: 30 } });
   assert.deepEqual(spanWord(60), { key: "app.chat.span_h", values: { n: 1 } });
   assert.deepEqual(spanWord(260), { key: "app.chat.span_h", values: { n: 4 } });
+});
+
+test("popStep: the first batch pops in turn, a later line at once, nothing before the first batch", () => {
+  assert.deepEqual([0, 1, 2, 3].map((i) => popStep(i, 3)), [0, 1, 2, 0]);
+  assert.equal(popStep(0, null), 0);
 });

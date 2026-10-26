@@ -28,7 +28,7 @@ import { readText } from "../lib/feed_verdict.ts";
 import { judge } from "../lib/moderator.ts";
 import { foldLines, hasInvisible } from "../lib/names.ts";
 import {
-  applyOverdue, bandBetween, blockedEither, boardFor, CLASSES, CONFIRM_WINDOW_MS, emptyState, leaveTable, LINE_LIMITS, lockGame, MOVE_WINDOW_MS, RADII, resign, scoreOf, SEAT_LIMITS, startRound, STICKER_LIMITS, TABLE_CREATE_LIMITS, tableEvent, TICKET_LIMITS, TICKET_SECONDS, touch, type GameState,
+  applyOverdue, bandBetween, blockedEither, boardFor, CLASSES, CONFIRM_WINDOW_MS, emptyState, leaveTable, LINE_LIMITS, lockGame, MOVE_WINDOW_MS, RADII, resign, scoreOf, SEAT_LIMITS, SOLO_LIMITS, startRound, STICKER_LIMITS, TABLE_CREATE_LIMITS, tableEvent, TICKET_LIMITS, TICKET_SECONDS, touch, type GameState,
 } from "../lib/tables.ts";
 
 const UUID = /^[0-9a-fA-F-]{36}$/;
@@ -187,8 +187,8 @@ async function create(req: Request): Promise<Response> {
 
 async function look(req: Request, tableId: string): Promise<Response> {
   return await atTable(req, tableId, async (run, caller, seat) => {
-    const [table] = await run<{ game: string; set: string; seats: number; name: string | null; like_count: number }>(
-      `SELECT game, set, seats, name, like_count FROM tables WHERE id = $1`,
+    const [table] = await run<{ game: string; set: string; seats: number; name: string | null; like_count: number; solo: boolean }>(
+      `SELECT game, set, seats, name, like_count, solo_since IS NOT NULL AS solo FROM tables WHERE id = $1`,
       [tableId],
     );
     const [counts] = await run<{ playing: number; watching: number }>(
@@ -227,6 +227,7 @@ async function look(req: Request, tableId: string): Promise<Response> {
       set: table.set,
       name: table.name,
       like_count: table.like_count,
+      solo: table.solo,
       playing: counts.playing,
       watching: counts.watching,
       seat: seat.seat_no,
@@ -627,6 +628,30 @@ async function ticket(req: Request, tableId: string): Promise<Response> {
 const LIST_PAGE = 30;
 const LIST_RADIUS_CEILING = 25000;
 
+// Playing alone while waiting (§6.2, owner 2026-10-25): the seated person who
+// plays at a table with no round under way marks it, so neighbours see "playing
+// alone" and may sit down and apply; the node keeps the moment only — the
+// puzzle stays on the device. A round under way refuses 409; a round starting
+// clears the mark (startRound). Taking it off is always allowed.
+async function solo(req: Request, tableId: string, on: boolean): Promise<Response> {
+  return await atTable(req, tableId, async (run, caller, seat) => {
+    const allowed = checkAll(SOLO_LIMITS, caller.identityId);
+    if (!allowed.allowed) {
+      return refuse("rate_limited", "too many marks of playing alone this minute", 429, {}, {
+        "retry-after": String(allowed.retryAfterSeconds),
+      });
+    }
+    if (on) {
+      if (!seat.playing) return refuse("not_playing", "only a player plays alone at a table", 409);
+      const running = await lockGame(run, tableId);
+      if (running && running.state.order.length >= 2) return refuse("game_running", "a round is under way", 409);
+    }
+    await run(`UPDATE tables SET solo_since = ${on ? "coalesce(solo_since, now())" : "NULL"} WHERE id = $1`, [tableId]);
+    await tableEvent(run, tableId, "seat");
+    return new Response(null, { status: 204, headers: sunsetHeader() });
+  });
+}
+
 async function list(req: Request): Promise<Response> {
   const caller = await callerOf(req);
   if (caller instanceof Response) return caller;
@@ -678,6 +703,8 @@ route("POST", "/tables/:id/resign", (c) => giveUp(c.req, c.params.id));
 route("GET", "/tables/:id", (c) => look(c.req, c.params.id));
 route("POST", "/tables/:id/seat", (c) => sit(c.req, c.params.id));
 route("DELETE", "/tables/:id/seat", (c) => stand(c.req, c.params.id));
+route("POST", "/tables/:id/solo", (c) => solo(c.req, c.params.id, true));
+route("DELETE", "/tables/:id/solo", (c) => solo(c.req, c.params.id, false));
 route("POST", "/tables/:id/lines", (c) => speak(c.req, c.params.id));
 route("POST", "/tables/:id/moves", (c) => move(c.req, c.params.id));
 route("POST", "/tables/:id/proposals", (c) => propose(c.req, c.params.id));

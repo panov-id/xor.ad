@@ -1,10 +1,11 @@
 // The tables' pure part (tables-logic.ts) and what it stands on (depth/core/new_table.ts, shared with the web's NewTable):
 // the wizard's steps, the body of POST /tables, the counts a card says, the words for a game. scripts/run-app-unit-tests.sh, node:test.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { GAMES, gameOfTable, makeTableWords, nameLeft, refusalCode, seatsWord, tableBody, tableCounts } from "../../../../depth/core/new_table.ts";
 import { pathOf, seatScreen } from "../../router.ts";
-import { apart, back, canNext, mergeTables, nameRefused, next, pick, START_GAMES, startWizard, subParts, toneAt } from "./tables-logic.ts";
+import { apart, back, canNext, freshTables, mergeTables, nameRefused, next, pick, START_GAMES, startWizard, subParts, toneAt } from "./tables-logic.ts";
 
 test("the twelve games, in the sheets' order, each with a variant and a seat the node plays", () => {
   assert.deepEqual(GAMES.map((g) => g.id), ["dots", "checkers", "chess", "durak", "hangman", "backgammon", "dominoes", "chapayev", "reversi", "four", "battleship", "poker"]);
@@ -126,4 +127,13 @@ test("«Start a game»: the wide sheets' six, in their order, each a game the no
   for (const id of START_GAMES) assert.ok(GAMES.some((g) => g.id === id), id);
   const w = pick(startWizard(), "durak");
   assert.deepEqual([w.step, w.draft.game], [1, "durak"]);
+});
+
+// Crowd run flow-1026-070519: the list loaded once, on mount; a guest on the screen never saw the table a neighbour made.
+test("an open list looks again: the first page alone is replaced, after more pages the new tables go on top", () => {
+  const a = { id: "a" } as never, b = { id: "b" } as never, c = { id: "c" } as never, d = { id: "d" } as never;
+  assert.deepEqual(freshTables([a, b], [c, a], false), [c, a], "with one page the look replaces the list");
+  assert.deepEqual(freshTables([a, b, d], [c, a], true), [c, a, b, d], "after more pages the scrolled tables are lost or doubled");
+  const screen = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
+  assert.match(screen, /useEvery\(TABLES_LOOK_MS,[\s\S]*?freshTables\(/, "Tables.tsx loads the list once and never looks again");
 });

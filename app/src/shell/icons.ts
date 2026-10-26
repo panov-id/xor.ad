@@ -50,3 +50,6 @@ export const crowd = "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M13 7a4 4 0 1 1-
 export const smile = "M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z M8 14s1.5 2 4 2 4-2 4-2 M9 9h.01 M15 9h.01";
 /** Lucide-style, the feed's «say it» (w3_composer's way in). */
 export const pen = "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z";
+/** The feed header's two icons (w1_feed): the menu (three lines, the lower shorter) and the search (lens and handle). */
+export const menu = "M4 6h16 M4 12h12 M4 18h8";
+export const search = "M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z M21 21l-4.34-4.34";

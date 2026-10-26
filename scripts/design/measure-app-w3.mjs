@@ -140,6 +140,7 @@ function nodeStub() {
       }
       if (key === "GET /identities/me") return json(200, { name: "Alex", name_state: "accepted", age: 32, phrases: [], filter_age_min: 25, filter_age_max: 35 });
       if (key === "GET /feed") return json(200, { items: [], next: null });
+      if (key === "GET /feed/density") return json(200, { step: "tens" });
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
       if (key === "GET /tables") {
         lists.push(u.search);

@@ -27,9 +27,11 @@ export async function withSkeleton<T>(work: Promise<T>, show: (on: boolean) => v
 export function useSkeleton(pending: boolean): boolean {
   const [visible, setVisible] = useState(false);
   const shownAt = useRef(0);
+  // Stamped after the commit, not in the timer: the hold counts from the skeleton being on screen.
+  useEffect(() => { if (visible) shownAt.current = performance.now(); }, [visible]);
   useEffect(() => {
     if (pending) {
-      const id = setTimeout(() => { shownAt.current = performance.now(); setVisible(true); }, NO_SHOW_MS);
+      const id = setTimeout(() => setVisible(true), NO_SHOW_MS);
       return () => clearTimeout(id);
     }
     if (!visible) return;

@@ -35,11 +35,13 @@ export interface TableCard {
   lat: number;
   lon: number;
   area_radius: number;
+  /** Its seated person is playing alone while waiting (§6.2): sit down and apply. */
+  solo: boolean;
 }
 
 interface TableRow {
   id: string; game: string; set: string; seats: number; name: string | null; like_count: number;
-  lat: number; lon: number; area_radius: number; playing: number; watching: number;
+  lat: number; lon: number; area_radius: number; playing: number; watching: number; solo: boolean;
   created_cursor: string;
 }
 
@@ -47,7 +49,7 @@ interface TableRow {
 // GET /tables alike, so the two cannot drift apart. $1 is the viewer, $2..$5
 // the box; `extra` adds conditions after these, `tail` the order and the limit.
 function visibleTables(extra: string, tail: string): string {
-  return `SELECT t.id, t.game, t.set, t.seats, t.name, t.like_count, t.lat, t.lon, t.area_radius,
+  return `SELECT t.id, t.game, t.set, t.seats, t.name, t.like_count, t.lat, t.lon, t.area_radius, t.solo_since IS NOT NULL AS solo,
             count(*) FILTER (WHERE s.playing_from IS NOT NULL)::int AS playing,
             count(*) FILTER (WHERE s.playing_from IS NULL)::int AS watching,
             (extract(epoch from t.created_at) * 1000000)::bigint::text AS created_cursor
@@ -90,6 +92,7 @@ function plainCard(row: Omit<TableRow, "created_cursor">): TableCard {
     lat: published.lat,
     lon: published.lon,
     area_radius: row.area_radius,
+    solo: row.solo,
   };
 }
 
@@ -208,7 +211,7 @@ export interface MyTableCard extends TableCard {
 
 export async function myTables(viewer: string): Promise<MyTableCard[] | null> {
   const rows = await query<Omit<TableRow, "created_cursor"> & { seated: boolean; liked: boolean }>(
-    `SELECT t.id, t.game, t.set, t.seats, t.name, t.like_count, t.lat, t.lon, t.area_radius,
+    `SELECT t.id, t.game, t.set, t.seats, t.name, t.like_count, t.lat, t.lon, t.area_radius, t.solo_since IS NOT NULL AS solo,
             (SELECT count(*) FROM table_seats s WHERE s.table_id = t.id AND s.left_at IS NULL AND s.playing_from IS NOT NULL)::int AS playing,
             (SELECT count(*) FROM table_seats s WHERE s.table_id = t.id AND s.left_at IS NULL AND s.playing_from IS NULL)::int AS watching,
             EXISTS (SELECT 1 FROM table_seats m WHERE m.table_id = t.id AND m.identity = $1 AND m.left_at IS NULL) AS seated,

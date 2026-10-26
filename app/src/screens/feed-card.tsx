@@ -3,15 +3,15 @@
 // (w1_card-more: hide, notice, block the author). The calls are the SDK's: client.like / hide / blockByPhrase /
 // request("POST", "/report"), as the web's useCard makes them. The same testids as the web's where it has them:
 // card, offer, text, mode, like, more, hide, notice, block.
-import { type FormEvent, useState } from "react";
+import { type CSSProperties, type FormEvent, useEffect, useState } from "react";
 import { Said } from "../shell/failed";
 import type { Client } from "@sdk/client.ts";
 import { failedLine, label, LANG, say } from "../i18n";
 import { Icon } from "../shell/Icon";
-import { blockMark, chevronLeft, chevronRight, ellipsis, eyeOff, flag, hand } from "../shell/icons";
+import { blockMark, chat, chevronLeft, chevronRight, ellipsis, eyeOff, flag, hand } from "../shell/icons";
 import { useLayers } from "../shell/layers";
 import { type Tab, TabBar } from "../shell/TabBar";
-import { type FeedCard, langOf, type LikeOutcome, offerLabel, type Tone } from "./feed-logic";
+import { type FeedCard, langOf, type LikeOutcome, offerLabel, peerName, type Tone } from "./feed-logic";
 
 const modeWord = (mode: string): string => {
   const key = `web.mode.${mode}`;
@@ -51,9 +51,10 @@ function Foot({ card }: { card: FeedCard }) {
 }
 
 /** A tile of the list: the whole tile opens the card, the hand likes at once. */
-export function Tile({ card, tone, busy, onOpen, onLike, testid = "card" }: { card: FeedCard; tone: Tone; busy: boolean; onOpen: () => void; onLike: () => void; testid?: string }) {
+export function Tile({ card, tone, busy, onOpen, onLike, testid = "card", place }: { card: FeedCard; tone: Tone; busy: boolean; onOpen: () => void; onLike: () => void; testid?: string; place?: number }) {
+  // `place`: the tile's number among the tiles of its column, for the entrance stagger (a table between them takes no step, MOTION.md rule 2).
   return (
-    <li className={`fd-card fd-${tone}`} data-testid={testid} data-id={card.id}>
+    <li className={`fd-card fd-${tone}`} data-testid={testid} data-id={card.id} style={place === undefined ? undefined : ({ "--i": Math.min(place, 5) } as CSSProperties)}>
       {card.offer && <span className="fd-offer" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>}
       <button type="button" className="fd-open" onClick={onOpen} lang={langOf(card.lang)}>{card.text}</button>
       <button type="button" className="fd-hand" aria-label={say("web.card.like")} aria-pressed={card.liked === true} disabled={busy || card.liked === true}
@@ -66,7 +67,7 @@ export function Tile({ card, tone, busy, onOpen, onLike, testid = "card" }: { ca
 }
 
 /** The card full-screen over the feed: back, the phrase large, three rows, «I'm in». */
-export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, onBack, onGone, onLike }: {
+export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, onTalk, onBack, onGone, onLike }: {
   client: Client;
   card: FeedCard;
   tone: Tone;
@@ -74,6 +75,8 @@ export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, o
   more?: Array<{ card: FeedCard; tone: Tone }>;
   onOpenMore?: (id: string) => void;
   onTab?: (tab: Tab) => void;
+  /** «Talk» of the matched card (w1_card-matched): the offer to talk waits in Talks. */
+  onTalk?: () => void;
   onBack: () => void;
   onGone: (why: "hidden" | "blocked", id: string, handle?: string) => void;
   onLike: (card: FeedCard) => Promise<LikeOutcome>;
@@ -84,6 +87,15 @@ export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, o
   const lit = card.liked === true || (outcome !== null && outcome.state !== "refused");
   const language = languageIn(card.lang);
   const line = likeLine(outcome);
+  // Both in (w1_card-matched): the note names the one who is in too; the like's answer holds the match's id, the inbox holds its name.
+  const matched = outcome?.state === "matched";
+  const [peer, setPeer] = useState<string | null>(null);
+  useEffect(() => {
+    if (outcome?.state !== "matched") return;
+    let live = true;
+    client.inbox().then((rows) => { if (live) setPeer(peerName(rows, outcome.matchId)); }).catch(() => {});
+    return () => { live = false; };
+  }, [outcome, client]);
   async function like() {
     setBusy(true);
     try { setOutcome(await onLike(card)); } finally { setBusy(false); }
@@ -106,19 +118,29 @@ export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, o
           <Foot card={lit && !card.liked ? { ...card, like_count: card.like_count + 1, liked: true } : card} />
         </article>
         <footer className="fd-foot-bar">
-          <button type="button" className="cta cta-primary" disabled={busy || lit} aria-disabled={busy || lit} onClick={() => void like()} data-testid="like" data-lit={lit ? "" : undefined}>
-            <Icon d={hand} /><span>{say("app.feed.im_in")}</span>
-          </button>
+          {matched
+            ? <button type="button" className="cta cta-primary" onClick={onTalk} data-testid="talk"><Icon d={chat} /><span>{label("web.match.talk")}</span></button>
+            : (
+              <button type="button" className="cta cta-primary" disabled={busy || lit} aria-disabled={busy || lit} onClick={() => void like()} data-testid="like" data-lit={lit ? "" : undefined}>
+                <Icon d={hand} /><span>{say("app.feed.im_in")}</span>
+              </button>
+            )}
         </footer>
         </div>
         <div className="fd-side">
+        {matched && (
+          <section className={`fd-matched fd-${tone}`} data-testid="matched" role="status">
+            <Icon d={hand} />
+            <div><h2>{say("app.card.matched_title")}</h2><p>{peer ? say("app.card.matched_body", { name: peer }) : say("app.card.matched_body_anon")}</p></div>
+          </section>
+        )}
         {card.offer?.conditions && <p className="fd-note" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
         <dl className="fd-rows">
           <div><dt>{say("app.feed.row_going")}</dt><dd>{modeWord(card.mode)}</dd></div>
           {language && <div><dt>{say("app.feed.row_lang")}</dt><dd lang={langOf(card.lang)}>{language}</dd></div>}
           <div><dt>{say("app.feed.row_in")}</dt><dd>{card.like_count + (lit && !card.liked ? 1 : 0)}{card.soon ? say("web.card.soon") : ""}</dd></div>
         </dl>
-        {line && <p className="fd-note" role="status" data-testid="like-line" data-state={outcome?.state}>{line}</p>}
+        {line && !matched && <p className="fd-note" role="status" data-testid="like-line" data-state={outcome?.state}>{line}</p>}
         </div>
         {more.length > 0 && (
           <section className="fd-more" aria-labelledby="fd-more-h">

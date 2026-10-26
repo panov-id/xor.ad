@@ -102,6 +102,52 @@ export class Ephemeral {
     return new Ephemeral(pair, base64url(spki));
   }
 
+  // A pair a page keeps across a reload between consent and the chat's first
+  // open (§8.13; before that open the node holds no wrap of the chat's keys, so
+  // a pair lost with the tab was a chat that never opened). The private half
+  // is born extractable only to be wrapped — wrapKey, under the live session's
+  // wrap key, as a key wrap is made (KEEP_DOMAIN, AAD bound to `label` and the
+  // half) — and the working copy is unwrapped from that same box non-extractable;
+  // the extractable one is dropped here. No byte of the key reaches this code,
+  // and the box opens only with the session's wrap private half, i.e. after the
+  // PIN: a disk without it holds nothing usable (SEC-2).
+  static async generateKept(wrapPublicSpki: string, label: string): Promise<{ eph: Ephemeral; kept: string }> {
+    const pair = await crypto.subtle.generateKey(ECDH, true, ["deriveKey"]) as CryptoKeyPair;
+    const spki = base64url(new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey)));
+    const fresh = await crypto.subtle.generateKey(ECDH, false, ["deriveKey"]) as CryptoKeyPair;
+    const freshSpki = new Uint8Array(await crypto.subtle.exportKey("spki", fresh.publicKey));
+    if (freshSpki.length !== SPKI_P256_BYTES) throw new Error("an ECDH P-256 SPKI that is not 91 bytes");
+    const w = await wrapKeyFor(fresh.privateKey, fromBase64url(wrapPublicSpki), label, KEEP_DOMAIN);
+    const params = { name: "AES-GCM", iv: crypto.getRandomValues(new Uint8Array(NONCE_BYTES)), additionalData: keepAad(label, spki) } as AesGcmParams;
+    const box = new Uint8Array(await crypto.subtle.wrapKey("pkcs8", pair.privateKey, w, params));
+    const privateKey = await crypto.subtle.unwrapKey("pkcs8", box as BufferSource, w, params, ECDH, false, ["deriveKey"]);
+    const kept = new Uint8Array(SPKI_P256_BYTES + NONCE_BYTES + box.length);
+    kept.set(freshSpki, 0);
+    kept.set(params.iv as Uint8Array, SPKI_P256_BYTES);
+    kept.set(box, SPKI_P256_BYTES + NONCE_BYTES);
+    return { eph: new Ephemeral({ privateKey, publicKey: pair.publicKey }, spki), kept: base64url(kept) };
+  }
+
+  // The way back after a reload: the kept box under the session's wrap private
+  // half, for the same label and half. Throws on another session's key, another
+  // label or half, or a box that is not one — the AES-GCM tag does not verify.
+  static async restore(kept: string, publicSpki: string, wrapPrivate: CryptoKey, label: string): Promise<Ephemeral> {
+    const bytes = fromBase64url(kept);
+    if (bytes.length <= SPKI_P256_BYTES + NONCE_BYTES + 16) throw new Error("not a kept pair");
+    try {
+      const w = await wrapKeyFor(wrapPrivate, bytes.subarray(0, SPKI_P256_BYTES), label, KEEP_DOMAIN);
+      const privateKey = await crypto.subtle.unwrapKey(
+        "pkcs8", bytes.subarray(SPKI_P256_BYTES + NONCE_BYTES) as BufferSource, w,
+        { name: "AES-GCM", iv: bytes.subarray(SPKI_P256_BYTES, SPKI_P256_BYTES + NONCE_BYTES), additionalData: keepAad(label, publicSpki) } as AesGcmParams,
+        ECDH, false, ["deriveKey"],
+      );
+      const publicKey = await crypto.subtle.importKey("spki", fromBase64url(publicSpki) as BufferSource, ECDH, true, []);
+      return new Ephemeral({ privateKey, publicKey }, publicSpki);
+    } catch {
+      throw new Error("the kept pair does not open: not this session's key, label or half");
+    }
+  }
+
   // The half as consent publishes it: the SPKI and its signature by the long
   // key over the bound bytes for this match.
   async publish(longKey: CryptoKey, binding: string | Binding): Promise<EphemeralHalf> {
@@ -201,6 +247,9 @@ const SPKI_P256_BYTES = 91;
 // tag fails — which is the whole promise: the node stores bytes it cannot
 // read, and only the device that wrapped can unwrap.
 export const WRAP_DOMAIN = "xor.wrap.v1";
+/** The domain of a kept ephemeral pair (Ephemeral.generateKept): its own HKDF info and AAD, never a chat key wrap's. */
+export const KEEP_DOMAIN = "xor.eph-keep.v1";
+const keepAad = (label: string, spki: string): Uint8Array => new TextEncoder().encode(`${KEEP_DOMAIN}\n${label}\n${spki}\n`);
 const WRAP_BYTES = SPKI_P256_BYTES + 2 * (NONCE_BYTES + KEY_BOX_BYTES);
 const wrapAad = (chatId: string, epoch: number, info: string): Uint8Array =>
   new TextEncoder().encode(`${WRAP_DOMAIN}\n${chatId}\n${epoch}\n${info}\n`);
@@ -209,7 +258,7 @@ const wrapAad = (chatId: string, epoch: number, info: string): Uint8Array =>
 // where the private half allows it (the fresh pair here); the device's wrap
 // half is made with deriveBits only (client.ts, registration), so on that side
 // the shared secret is bytes for the length of one importKey and zeroed.
-async function wrapKeyFor(ownPrivate: CryptoKey, otherPublicSpki: Uint8Array, chatId: string): Promise<CryptoKey> {
+async function wrapKeyFor(ownPrivate: CryptoKey, otherPublicSpki: Uint8Array, chatId: string, info = WRAP_DOMAIN): Promise<CryptoKey> {
   const other = await crypto.subtle.importKey("spki", otherPublicSpki as BufferSource, ECDH, false, []);
   const ecdh = { name: "ECDH", public: other };
   let ikm: CryptoKey;
@@ -224,7 +273,7 @@ async function wrapKeyFor(ownPrivate: CryptoKey, otherPublicSpki: Uint8Array, ch
     }
   }
   return await crypto.subtle.deriveKey(
-    { name: "HKDF", hash: "SHA-256", salt: new TextEncoder().encode(chatId), info: new TextEncoder().encode(WRAP_DOMAIN) },
+    { name: "HKDF", hash: "SHA-256", salt: new TextEncoder().encode(chatId), info: new TextEncoder().encode(info) },
     ikm, { name: "AES-GCM", length: 256 }, false, ["wrapKey", "unwrapKey"],
   );
 }

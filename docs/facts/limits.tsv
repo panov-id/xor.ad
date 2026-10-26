@@ -110,6 +110,7 @@ tables.create.hour	4	за час	постановок столов в час н�
 seat.attempts.hour	30	за час	попыток подсесть в час на личность (16.09.2026, SEC-2)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 blocks.hour	20	за час	блокировок в час на личность (16.09.2026, SEC-1)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 hidden.hour	60	за час	скрытий в час на личность (16.09.2026, OPS-13)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
+solo.minute	6	в минуту	отметок «играю один» за столом в минуту на личность (26.10.2026, ревью)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 sticker.minute	6	в минуту	стикеров за столом в минуту на личность (16.09.2026, SEC-5)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 profile.patch.day	10	в сутки	правок профиля в сутки на личность (16.09.2026, OPS-13)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	
 reissue.day	3	в сутки	перевыпусков бумажного кода в сутки на личность (16.09.2026, OPS-13)	узел	xor.ad/docs/protocol_RU.md,xor.ad/docs/protocol_EN.md	

@@ -5,10 +5,11 @@
 // depth/web-platform/vault_store.ts (the IndexedDB), vault_keep.ts (the grace bound to this tab) — so an
 // identity made by the web opens here and one made here opens in the web.
 //
-// What is the web's own and not here yet: the PIN's change, a raise by the paper code.
+// The PIN's change, the raise by the paper code and the reissue keep through this same keep.
 import { idleMsOf } from "@platform/idle.ts";
 import { createArrive } from "@platform/arrive_keep.ts";
 import { createKeep } from "@platform/vault_keep.ts";
+import type { Client } from "@sdk/client.ts";
 import { GRACE_MS } from "@sdk/grace.ts";
 import { API_KEY, NODE_BASE } from "./config";
 
@@ -32,7 +33,19 @@ export const {
   readRecord, registerAndKeep, forget, stampGrace, dropGrace, leavingWithGrace, returningWithGrace, hiddenWithGrace, unlockAfterReload, unlockByGrace,
   changePinAndReseal,
 } = keep;
+// The paper-code raise (screens/Gate.tsx Restore) keeps through this same keep, so its grace is the one lock and dropGrace clear.
+export const { putRecord, armGrace } = keep;
 
 // A move in (depth/web-platform/arrive_keep.ts, as the web's vault.ts): the claim, then the first PIN seals the record here.
 export type { Arriving } from "@platform/arrive_keep.ts";
 export const { claimArrival, keepArrived } = createArrive({ node: { base: NODE_BASE, key: API_KEY }, putRecord: keep.putRecord, armGrace: keep.armGrace });
+
+// After a reissue of the paper code (screens/me/Reissue.tsx): the long key under the new code, as the core now holds
+// it (recovery.ts reissue → holdWrappedLongKey), into the record — a later reissue opens it from here after a reload.
+// The web's own (web/src/vault.ts rememberWrappedLongKey), the same three lines.
+export async function rememberWrappedLongKey(client: Client): Promise<void> {
+  const record = await keep.readRecord();
+  const wrapped = client.wrappedLongKey;
+  if (!record || !wrapped) return;
+  await keep.putRecord({ ...record, wrappedLongKey: wrapped, savedAt: Date.now() });
+}

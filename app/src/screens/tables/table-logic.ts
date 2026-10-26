@@ -2,7 +2,7 @@
 // and what the foot offers first — the web's Table.tsx rules, moved out of the screen. The game's rules are the
 // node's (relay/node/src/lib/tables_*.ts); depth/core/tables.ts turnOf says whose turn and how long.
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { type TableSeat, type TableView, turnOf } from "../../../../depth/core/tables.ts";
+import { openApplications, type TableSeat, type TableView, turnOf } from "../../../../depth/core/tables.ts";
 
 // The node's term for a move (docs/facts/limits.tsv table.move.window: 5 minutes, then an automatic pass).
 export const MOVE_SECONDS = 5 * 60;
@@ -52,6 +52,18 @@ export function firstAction(view: TableView): "start" | "say" | "pass" | "like" 
   if (view.is_playing && started) return "say";
   if (turnOf(view).mine && started) return "pass";
   return "like";
+}
+
+/**
+ * A watcher asks into the next round (§6.1: an application; owner 25.10.2026 «когда увидит что есть заявка, то уже вместе
+ * будут играть»): offered to a watcher while no round is under way and their own application is not already open.
+ * The web had it (web/src/screens/Table.tsx «apply»); app/ lost it, and no guest could ever become a player.
+ */
+export function canApply(view: TableView): "apply" | "applied" | null {
+  if (view.is_playing) return null;
+  const board = view.board;
+  if (board && !board.over && board.turn !== null) return null;
+  return openApplications(view).some((l) => l.seat === view.seat) ? "applied" : "apply";
 }
 
 // ── four in a row (relay/node/src/lib/tables_reversi.ts playFour): 7 columns a..g, 6 rows, a piece falls ──

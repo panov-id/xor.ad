@@ -442,6 +442,7 @@ session is a cookie `__Host-adv` on its own origin `adv.<storefront>` (2026-09-1
 | blocks | 20 an hour per identity | the node |
 | hidings | 60 an hour per identity | the node |
 | stickers at a table | 6 a minute per identity | the node |
+| marks of playing alone | 6 a minute per identity | the node |
 | tickets for a table's socket | 60 a minute per identity | the node |
 | seats at a table by class | grid, dots, dice, word — 2; dominoes, physics — 4; deck — 6 | the node (`POST /tables`), `CHECK (seats BETWEEN 2 AND 6)` in the database |
 | a turn at a table | 5 minutes, then an automatic pass; 3 passes in a row make a spectator | the node (`table.move.window`, `table.pass.limit`) |

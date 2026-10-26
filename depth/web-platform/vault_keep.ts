@@ -16,7 +16,7 @@ import { base64url } from "../core/sign.ts";
 import { type Record_, registerIdentity } from "../core/enroll.ts";
 import * as grace from "../core/grace.ts";
 import { type NodeAt, type Opened, openWith, unlockWithPin } from "../core/unlock.ts";
-import { deleteRecord, graceKeys, putRecord, readRecord } from "./vault_store.ts";
+import { deleteRecord, graceKeys, pairKeys, putRecord, readRecord } from "./vault_store.ts";
 
 export interface KeepConfig {
   node: NodeAt;
@@ -48,6 +48,8 @@ export function createKeep(config: KeepConfig) {
   // Forgetting the identity drops the grace with it: nothing of the vault key stays in any tab.
   const forget = async (): Promise<undefined> => {
     await dropGrace();
+    // and the chats' kept pairs: the next identity on this device inherits none (chat/keys.ts)
+    await pairKeys.clear().catch(() => undefined);
     return await deleteRecord();
   };
 

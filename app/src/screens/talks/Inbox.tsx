@@ -10,7 +10,9 @@ import type { Client } from "@sdk/client.ts";
 import { failedLine, label, LANG, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { hand } from "../../shell/icons";
+import { useSkeleton } from "../../shell/loading";
 import { Screen } from "../../shell/Screen";
+import { Skeleton } from "../../shell/Skeleton";
 import { TabBar, type Tab } from "../../shell/TabBar";
 import { initial } from "../me/me-logic";
 import type { InboxChatRow } from "@platform/chat/keys.ts";
@@ -60,8 +62,12 @@ export function useInbox(client: Client, mark: boolean): { rows: Row[] | null; e
 export interface TalksActions { onOpenMatch: (row: MatchRow) => void; onOpenChat: (row: InboxChatRow) => void; onLikes: () => void }
 
 /** The strip of offers and the rows of talks: the talks' screen and the desktop's right pane draw the same list. */
-export function TalksList({ rows, error, actions, selectedId }: { rows: Row[] | null; error: string | null; actions: TalksActions; selectedId?: string }) {
+export function TalksList({ rows: asked, error, actions, selectedId }: { rows: Row[] | null; error: string | null; actions: TalksActions; selectedId?: string }) {
   const { onOpenMatch, onOpenChat, onLikes } = actions;
+  // MOTION.md: while the page is asked for, grey rows with the shimmer (not under 300 ms, not under 600 ms once shown): an answer that
+  // lands while they stand waits behind them
+  const skeleton = useSkeleton(asked === null && !error);
+  const rows = skeleton ? null : asked;
   const { offers, talks } = splitInbox(rows ?? []);
   return (
     <>
@@ -84,6 +90,11 @@ export function TalksList({ rows, error, actions, selectedId }: { rows: Row[] | 
       </ul>
       {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
       {rows?.length === 0 && <p className="tk-quiet" data-testid="quiet">{say("web.inbox.empty")}</p>}
+      {skeleton && (
+        <div className="tk-skeletons" data-testid="inbox-skeleton" aria-hidden="true">
+          {[0, 1, 2].map((i) => <Skeleton key={i} kind="row" />)}
+        </div>
+      )}
       <ul className="tk-rows" aria-label={label("web.inbox.chats")} data-testid="chats">
         {talks.map((c, i) => (
           <li key={c.id} data-testid="chat" data-id={c.id} data-state={c.state}>

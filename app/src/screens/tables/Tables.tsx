@@ -18,7 +18,8 @@ import { Screen } from "../../shell/Screen";
 import { Skeleton } from "../../shell/Skeleton";
 import { type Tab, TabBar } from "../../shell/TabBar";
 import { die, plus } from "./icons";
-import { apart, mergeTables, START_GAMES, TABLES_RADIUS, toneAt } from "./tables-logic";
+import { useEvery } from "../move-parts";
+import { apart, freshTables, mergeTables, START_GAMES, TABLES_LOOK_MS, TABLES_RADIUS, toneAt } from "./tables-logic";
 import { gameName, lineOf, TableRow } from "./table-row";
 
 export function Tables({ client, onTab, onNewTable, onTable }: { client: Client; onTab: (tab: Tab) => void; onNewTable: (game?: string) => void; onTable?: (id: string) => void }) {
@@ -28,6 +29,7 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
   const [next, setNext] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const live = useRef(true);
+  const paged = useRef(false);   // a page after the cursor is drawn: the quiet look keeps it
   const skeleton = useSkeleton(state === "loading");
   async function load(after?: string) {
     setState("loading");
@@ -35,6 +37,7 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
       const page = await client.tables({ lat: place.lat, lon: place.lon, radius: TABLES_RADIUS, after });
       if (!live.current) return;
       setItems((was) => mergeTables(was, page.items as TableCard[], after));
+      paged.current = !!after;
       if (!after) setMine((page.mine ?? []) as TableCard[]);
       setNext(page.next ?? null);
       setState("ready");
@@ -48,6 +51,12 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
     void load();
     return () => { live.current = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // the quiet look while the list is open and seen: no skeleton, a failed look keeps what is drawn
+  useEvery(TABLES_LOOK_MS, () => document.hidden ? undefined : client.tables({ lat: place.lat, lon: place.lon, radius: TABLES_RADIUS }).then((page) => {
+    if (!live.current) return;
+    setItems((was) => freshTables(was, page.items as TableCard[], paged.current));
+    setMine((page.mine ?? []) as TableCard[]);
+  }).catch(() => {}), state === "ready");
 
   const list = apart(items, mine);
   const title = label("web.tables.title");

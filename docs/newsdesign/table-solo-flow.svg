@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1740" height="924" viewBox="0 0 1740 924" font-family="Outfit, sans-serif">
+<!-- Playing alone while waiting (chat spec §6.2, owner 2026-10-25): own empty table → puzzle → the neighbour sees «играет один» → an application → a game together. Code: app/src/screens/tables/solo.tsx, Table.tsx, table-row.tsx; node POST/DELETE /tables/:id/solo. -->
+<rect width="1740" height="924" fill="#0d0b12"/>
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#C6F27E"/></marker>
+</defs>
+<!-- Frame 1: one's own empty table -->
+<text x="20" y="44" fill="#C6F27E" font-size="22" font-weight="600">Шаг 1 · свой стол, пусто</text>
+<g transform="translate(20,64)">
+<rect width="390" height="844" rx="40" fill="#141119"/>
+<text x="24" y="70" fill="#fff" font-size="26" font-weight="600">Точки</text>
+<text x="24" y="104" fill="#9b93b8" font-size="16">Вы · партия ещё не началась</text>
+<rect x="16" y="130" width="358" height="358" rx="28" fill="#2B2440"/>
+<g fill="#fff"><circle cx="85" cy="200" r="5"/><circle cx="165" cy="200" r="5"/><circle cx="245" cy="200" r="5"/><circle cx="325" cy="200" r="5"/>
+<circle cx="85" cy="280" r="5"/><circle cx="165" cy="280" r="5"/><circle cx="245" cy="280" r="5"/><circle cx="325" cy="280" r="5"/>
+<circle cx="85" cy="360" r="5"/><circle cx="165" cy="360" r="5"/><circle cx="245" cy="360" r="5"/><circle cx="325" cy="360" r="5"/>
+<circle cx="85" cy="440" r="5"/><circle cx="165" cy="440" r="5"/><circle cx="245" cy="440" r="5"/><circle cx="325" cy="440" r="5"/></g>
+<rect x="16" y="512" width="358" height="56" rx="28" fill="#3A3157"/>
+<text x="195" y="547" fill="#fff" font-size="17" text-anchor="middle">Пока ждём — задачка</text>
+<text x="24" y="600" fill="#9b93b8" font-size="13">Кнопка есть, если игра умеет одиночный вариант</text>
+<text x="24" y="620" fill="#9b93b8" font-size="13">(сейчас точки и морской бой; у нард нет вовсе)</text>
+<text x="24" y="660" fill="#9b93b8" font-size="13">Нажатие: POST /tables/:id/solo — узел ставит отметку</text>
+</g>
+<path d="M418 480H442" stroke="#C6F27E" stroke-width="3" marker-end="url(#a)"/>
+<!-- Frame 2: the puzzle -->
+<text x="450" y="44" fill="#C6F27E" font-size="22" font-weight="600">Шаг 2 · задачка на том же поле</text>
+<g transform="translate(450,64)">
+<rect width="390" height="844" rx="40" fill="#141119"/>
+<text x="24" y="70" fill="#fff" font-size="26" font-weight="600">Точки</text>
+<text x="24" y="104" fill="#9b93b8" font-size="16">Ждём соседа · пока задачка</text>
+<text x="24" y="134" fill="#fff" font-size="17">Закройте 2 кл. за 3 линии · осталось: 1</text>
+<rect x="16" y="150" width="358" height="358" rx="28" fill="#2B2440"/>
+<g stroke-width="6" stroke-linecap="round">
+<path d="M85 220H165M165 220H245M85 220V300M245 220V300M85 380H165" stroke="#9b93b8"/>
+<path d="M85 300H165M165 300V380" stroke="#C6F27E"/>
+</g>
+<g fill="#fff"><circle cx="85" cy="220" r="5"/><circle cx="165" cy="220" r="5"/><circle cx="245" cy="220" r="5"/><circle cx="325" cy="220" r="5"/>
+<circle cx="85" cy="300" r="5"/><circle cx="165" cy="300" r="5"/><circle cx="245" cy="300" r="5"/><circle cx="325" cy="300" r="5"/>
+<circle cx="85" cy="380" r="5"/><circle cx="165" cy="380" r="5"/><circle cx="245" cy="380" r="5"/><circle cx="325" cy="380" r="5"/>
+<circle cx="85" cy="460" r="5"/><circle cx="165" cy="460" r="5"/><circle cx="245" cy="460" r="5"/><circle cx="325" cy="460" r="5"/></g>
+<g font-size="15" fill="#fff" text-anchor="middle">
+<rect x="16" y="530" width="112" height="48" rx="24" fill="#3A3157"/><text x="72" y="560">Заново</text>
+<rect x="139" y="530" width="112" height="48" rx="24" fill="#3A3157"/><text x="195" y="560">Следующая</text>
+<rect x="262" y="530" width="112" height="48" rx="24" fill="#3A3157"/><text x="318" y="560">Убрать</text>
+</g>
+<text x="24" y="620" fill="#9b93b8" font-size="13">Задачка, позиция и счёт — только на устройстве</text>
+<text x="24" y="640" fill="#9b93b8" font-size="13">Узел знает лишь отметку «играет один»</text>
+</g>
+<path d="M848 480H872" stroke="#C6F27E" stroke-width="3" marker-end="url(#a)"/>
+<!-- Frame 3: a neighbour's list -->
+<text x="880" y="44" fill="#C6F27E" font-size="22" font-weight="600">Шаг 3 · сосед видит</text>
+<g transform="translate(880,64)">
+<rect width="390" height="844" rx="40" fill="#141119"/>
+<text x="24" y="70" fill="#fff" font-size="26" font-weight="600">Столы</text>
+<rect x="16" y="100" width="358" height="96" rx="28" fill="#2B2440"/>
+<rect x="32" y="120" width="56" height="56" rx="16" fill="#C6F27E"/>
+<text x="104" y="144" fill="#fff" font-size="18">Точки</text>
+<text x="104" y="172" fill="#C6F27E" font-size="14">играет один <tspan fill="#9b93b8">· 1 из 2 сидит · 0 смотрят</tspan></text>
+<rect x="16" y="212" width="358" height="96" rx="28" fill="#2B2440"/>
+<rect x="32" y="232" width="56" height="56" rx="16" fill="#F7A68B"/>
+<text x="104" y="256" fill="#fff" font-size="18">Дурак</text>
+<text x="104" y="284" fill="#9b93b8" font-size="14">2 из 4 сидят · 1 смотрит</text>
+<text x="24" y="350" fill="#9b93b8" font-size="13">GET /tables: у карточки поле solo</text>
+<text x="24" y="370" fill="#9b93b8" font-size="13">Сосед открывает стол, садится и пишет заявку</text>
+<rect x="16" y="400" width="358" height="56" rx="28" fill="#3A3157"/>
+<text x="195" y="435" fill="#fff" font-size="17" text-anchor="middle">Возьмите в партию</text>
+</g>
+<path d="M1278 480H1302" stroke="#C6F27E" stroke-width="3" marker-end="url(#a)"/>
+<!-- Frame 4: the application folds the puzzle -->
+<text x="1310" y="44" fill="#C6F27E" font-size="22" font-weight="600">Шаг 4 · играем вместе</text>
+<g transform="translate(1310,64)">
+<rect width="390" height="844" rx="40" fill="#141119"/>
+<text x="24" y="70" fill="#fff" font-size="26" font-weight="600">Точки</text>
+<rect x="16" y="100" width="358" height="72" rx="28" fill="#2B2440"/>
+<text x="40" y="144" fill="#fff" font-size="17">Сосед просится за стол</text>
+<rect x="16" y="190" width="358" height="56" rx="28" fill="#C6F27E"/>
+<text x="195" y="225" fill="#141119" font-size="17" font-weight="600" text-anchor="middle">Начать партию</text>
+<text x="24" y="290" fill="#9b93b8" font-size="13">Партия началась — узел снимает отметку сам</text>
+<text x="24" y="310" fill="#9b93b8" font-size="13">Ушёл последний играющий — тоже</text>
+<text x="24" y="350" fill="#9b93b8" font-size="13">Гость встал — «Вернуться к задачке»</text>
+<text x="24" y="370" fill="#9b93b8" font-size="13">открывает её с того же места</text>
+</g>
+</svg>

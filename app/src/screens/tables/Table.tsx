@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import type { Client } from "@sdk/client.ts";
 import { gameOfTable } from "@sdk/new_table.ts";
-import { applyFrame, frameNeedsView, type TableView, Tables } from "@sdk/tables.ts";
+import { applyFrame, frameNeedsView, openApplications, type TableView, Tables } from "@sdk/tables.ts";
 import { connectTable } from "@platform/table_room.ts";
 import { capital } from "../../i18n-core";
 import { failedLine, label, LANG, say } from "../../i18n";
@@ -17,10 +17,13 @@ import { Icon } from "../../shell/Icon";
 import { chevronLeft, chevronRight, ellipsis } from "../../shell/icons";
 import { useLayers } from "../../shell/layers";
 import { Screen } from "../../shell/Screen";
+import { Rail } from "../../shell/TabBar";
 import { initial } from "../me/me-logic";
 import { Board, BoardUnder } from "./boards";
+import { Solo } from "./solo";
+import { soloOf, soloShown } from "./solo-logic";
 import { gameName } from "./table-row";
-import { conStep, facePair, firstAction, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
+import { canApply, conStep, facePair, firstAction, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
 import { toneAt } from "./tables-logic";
 
 type Answer = { status: number; body: unknown };
@@ -32,12 +35,17 @@ const chipWord = (id: string): string => {
 };
 const refusalOf = (a: Answer): string | null => (a.status < 400 ? null : say("app.failed"));
 
-export function Table({ client, tableId, onBack, onLeave }: { client: Client; tableId: string; onBack: () => void; onLeave: () => void }) {
+export function Table({ client, tableId, onBack, onLeave, onTable }: { client: Client; tableId: string; onBack: () => void; onLeave: () => void; onTable?: (id: string) => void }) {
   const [tables] = useState(() => new Tables(client));
   const [view, setView] = useState<TableView | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Seated at another table (Back keeps the seat; the node: 409 already_seated with that table): the reason and the way there.
+  const [elsewhere, setElsewhere] = useState<string | null>(null);
   const [, tick] = useState(0);
   const [said, setSaid] = useState("");
+  // The puzzle while waiting (§6.2) is open on this device; the node only hears the mark (Tables.solo).
+  const [soloOpen, setSoloOpen] = useState(false);
+  const [applying, setApplying] = useState(false);   // one application at a time: a double press sent two, the second 409
   const { open, close } = useLayers();
 
   const load = useCallback(async () => {
@@ -48,18 +56,32 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
   }, [tables, tableId]);
 
   // The room: the view once, each frame laid on it; a frame that changes who plays reads the table whole again.
+  // A seat first (the web's enterTable, web/src/App.tsx:363): the node answers a table only to a live seat (SEC-4), so
+  // a table opened from the feed or the list sits the person down — the node keeps a seat already held at this table
+  // (200) and refuses a full or closed one, or a seat at another table (the sheet's failed line).
   useEffect(() => {
-    void load();
-    const room = connectTable(client, tableId, (event) => {
-      if (event.kind === "connected") return void load();
-      if (event.kind === "gone") return onLeave();
-      if (event.kind !== "frame") return;
-      setView((v) => (v ? applyFrame(v, event.frame) : v));
-      if (frameNeedsView(event.frame)) void load();
-    });
+    let live = true, room: { stop: () => void } | null = null;
+    void tables.sit(tableId).then((sat) => {
+      if (!live) return;
+      const other = (sat.body as { error?: { code?: string; table?: string } } | undefined)?.error;
+      if (sat.status === 409 && other?.code === "already_seated" && other.table) return setElsewhere(other.table);
+      if (sat.status < 200 || sat.status >= 300) return setError(refusalOf(sat));
+      void load();
+      room = connectTable(client, tableId, (event) => {
+        if (event.kind === "connected") return void load();
+        if (event.kind === "gone") return onLeave();
+        if (event.kind !== "frame") return;
+        setView((v) => (v ? applyFrame(v, event.frame) : v));
+        if (frameNeedsView(event.frame)) void load();
+      });
+    }).catch((e) => { if (live) setError(failedLine(e)); });
     const clock = setInterval(() => tick((n) => n + 1), 1000);
-    return () => { room.stop(); clearInterval(clock); };
+    return () => { live = false; room?.stop(); clearInterval(clock); };
   }, [load]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The puzzle follows the node's mark: back at the table with it on (a reload, a guest gone) it opens where it was; a round
+  // started clears the mark on the node (startRound), and the puzzle closes with it instead of coming back after the round.
+  useEffect(() => { setSoloOpen(!!view?.solo); }, [view?.solo]);
 
   const act = async (run: () => Promise<Answer>) => {
     setError(null);
@@ -80,7 +102,13 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
     return (
       <Screen name="table" title={title} className="me-sub tg-table">
         {bar()}
-        <div className="tg-sheet">{error ? <p className="me-error" role="alert" data-testid="error">{error}</p> : <p className="tg-quiet">…</p>}</div>
+        <div className="tg-sheet">{elsewhere ? (
+          <div className="tg-elsewhere" data-testid="seated-elsewhere">
+            <p>{say("app.table.elsewhere")}</p>
+            {onTable && <button type="button" className="cta cta-primary" onClick={() => onTable(elsewhere)} data-testid="to-my-table">{say("app.table.to_mine")}</button>}
+          </div>
+        ) : error ? <p className="me-error" role="alert" data-testid="error">{error}</p> : <p className="tg-quiet">…</p>}</div>
+        <Rail active="tables" />
       </Screen>
     );
   }
@@ -95,6 +123,12 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
   const pending = board?.pending as { id: string; by?: number; answers?: Record<string, string> } | null | undefined;
   const answered = !!pending && (pending.by === view.seat || pending.answers?.[String(view.seat)] === "accept");
   const proposed = view.is_playing && !!pending && !answered;
+  // Playing alone (§6.2): on one's own table with nobody else playing; a neighbour's application folds it into a strip.
+  const soloKind = soloOf(game?.id);
+  const soloHere = !!soloKind && soloShown(view);
+  const asks = openApplications(view).length > 0;
+  // opened at once; a refused mark (409 game_running, not_playing) takes it back, so the device never plays unmarked
+  const setSolo = (on: boolean) => { setSoloOpen(on); void act(async () => { const a = await tables.solo(tableId, on); if (refusalOf(a)) setSoloOpen(!on); return a; }); };
   const onMove = view.is_playing && started && board!.turn === view.seat ? (m: unknown) => void act(() => tables.move(tableId, board!.seq, m)) : undefined;
   const line = mine.state === "your-move" ? say("app.table.your_move")
     : mine.state === "their-move" ? say("app.table.their_move", { name: mine.name ?? "" })
@@ -130,9 +164,18 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
         {right && <span className="tg-face" data-face="them" data-testid="face-right" aria-label={right.name}>{initial(right.name)}</span>}
       </div>
       <div className="tg-sheet">
-        <div className="tg-panel" data-class={view.class} data-set={view.set}>
+        {soloHere && soloOpen && !asks && <Solo tableId={tableId} kind={soloKind!} onClose={() => setSolo(false)} />}
+        {soloHere && soloOpen && asks && (
+          <div className="solo-strip" data-testid="solo-guest">
+            <p>{say("app.solo.guest")}</p>
+          </div>
+        )}
+        {soloHere && !soloOpen && (
+          <button type="button" className="cta cta-quiet solo-open" onClick={() => setSolo(true)} data-testid="solo-open">{say(view.solo ? "app.solo.back" : "app.solo.open")}</button>
+        )}
+        {!(soloHere && soloOpen && !asks) && <div className="tg-panel" data-class={view.class} data-set={view.set}>
           <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} seats={view.seats.filter((s) => s.role === "playing").map((s) => s.seat).sort((a, b) => a - b)} onMove={onMove} />
-        </div>
+        </div>}
         <BoardUnder klass={view.class} set={view.set} state={board?.state} seat={view.seat} onMove={onMove} />
         {/* The con by agreement (checkers, chess, backgammon: the rules are the people's): «the round is mine», or agree to theirs. */}
         {con.offer && (
@@ -153,6 +196,13 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
             {say(!board || board.over ? "web.game.rematch" : "web.table.start")}
           </button>
         )}
+        {/* A watcher asks into the next round (§6.1); the host sees it over the puzzle (§6.2) and starts the game. */}
+        {canApply(view) === "apply" && (
+          <button type="button" className="cta cta-primary tg-start" disabled={applying} onClick={() => { setApplying(true); void act(() => tables.say(tableId, { kind: "application", text: say("app.table.apply") })).finally(() => setApplying(false)); }} data-testid="apply">
+            {say("app.table.apply")}
+          </button>
+        )}
+        {canApply(view) === "applied" && <p className="tg-quiet tg-con-wait" data-testid="applied">{say("app.table.applied")}</p>}
         {/* Words at the table for the players (owner 14.10.2026: «вернуть текст игрокам»), above the stickers. */}
         {view.is_playing && (
           <form className="tg-line" onSubmit={(e) => { e.preventDefault(); const text = said.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setSaid("")); }}>
@@ -167,6 +217,7 @@ export function Table({ client, tableId, onBack, onLeave }: { client: Client; ta
           ))}
         </div>
       </div>
+      <Rail active="tables" />
     </Screen>
   );
 }

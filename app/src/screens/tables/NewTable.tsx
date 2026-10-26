@@ -18,6 +18,7 @@ import { storedPlace } from "../../place";
 import { Icon } from "../../shell/Icon";
 import { arrowRight, chevronLeft } from "../../shell/icons";
 import { Screen } from "../../shell/Screen";
+import { Rail } from "../../shell/TabBar";
 import { ErrorLine, refusedStatus } from "../me/parts";
 import { Field } from "../register-parts";
 import { radiusWord } from "../feed-logic";
@@ -141,6 +142,7 @@ export function NewTable({ client, onMade, onBack, picked }: { client: Client; o
           </button>
         </div>
       </div>
+      <Rail active="tables" />
     </Screen>
   );
 }

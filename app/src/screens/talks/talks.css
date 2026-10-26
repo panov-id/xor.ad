@@ -26,6 +26,7 @@
 [data-face="3"] { background: var(--c-avatar-4); }
 
 .tk-quiet { margin-top: var(--tk-rows-top); padding-inline: var(--tk-row-side); color: var(--c-muted); }
+.tk-skeletons { margin-top: var(--tk-rows-top); padding-inline: var(--tk-row-side); display: grid; gap: var(--lk-gap); }
 .tk-rows { margin-top: var(--tk-rows-top); list-style: none; }
 .tk-row { width: 100%; height: var(--tk-row-h); min-height: 0; display: flex; align-items: center; gap: var(--tk-trail-gap);
   padding: 0 var(--tk-row-end) 0 var(--tk-row-side); background: none; text-align: start; color: var(--c-text); }
@@ -64,6 +65,11 @@
 
 /* ── w3_match: the coral card on the night, the pair of faces, the two phrases, two buttons ── */
 .tk-match-screen { background: var(--c-night); overflow-y: auto; }
+/* MOTION.md 04: the card comes in .82 -> 1.03 -> 1 (the dim is the layer's), and goes out to .96, fading */
+.tk-match { animation: match-in var(--d-popup) var(--ease) var(--t-popup-start) both; }
+.tk-match[data-leaving] { animation: match-out var(--d-popup-out) var(--ease) both; }
+@keyframes match-in { 0% { opacity: 0; transform: scale(var(--scale-popup-from)); } 60% { opacity: 1; transform: scale(var(--scale-popup-peak)); } 100% { opacity: 1; transform: none; } }
+@keyframes match-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(var(--scale-popup-out)); } }
 .tk-match { width: calc(100% - var(--mt-side) - var(--mt-side-end)); max-width: var(--entry-max); margin: var(--mt-top) var(--mt-side-end) var(--sp-6) var(--mt-side); padding: var(--mt-pad-top) var(--mt-pad) var(--mt-pad-bottom);
   border-radius: var(--r-card); background: var(--c-coral); color: var(--c-ink); display: flex; flex-direction: column; align-items: center; text-align: center; }
 .tk-pill { height: var(--mt-pill-h); padding: 0 var(--mt-pill-pad); border-radius: var(--r-pill); background: var(--c-ink); color: var(--c-coral);
@@ -94,12 +100,19 @@
 .tk-who-text { flex: 1; min-width: 0; display: grid; gap: var(--wt-name-gap); padding-top: var(--wt-who-shift); }
 .tk-wait-name { font-size: var(--fs-wt-name); font-weight: var(--fw-700); line-height: var(--lh-tight); }
 .tk-wait-state { font-size: var(--fs-tk-time); font-weight: var(--fw-500); color: var(--c-muted); line-height: var(--lh-tight); }
-.tk-wait-ring { flex: none; width: var(--tk-ring); height: var(--tk-ring); border-radius: var(--r-pill); border: var(--tk-ring-stroke) solid var(--c-ring-rest); margin-inline-end: var(--wt-ring-end); }
+.tk-wait-ring { flex: none; width: var(--tk-ring); height: var(--tk-ring); border-radius: var(--r-pill); margin-inline-end: var(--wt-ring-end);
+  /* MOTION.md: the indicator, an arc of 28 % turning once in 0.9 s, linear; yellow on #4A4070 */
+  background: conic-gradient(var(--c-yellow) 0 var(--spinner-arc), var(--c-cell-line) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--tk-ring-stroke)), #000 calc(100% - var(--tk-ring-stroke) + var(--hair)));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--tk-ring-stroke)), #000 calc(100% - var(--tk-ring-stroke) + var(--hair)));
+  animation: spin var(--d-spinner) linear infinite; }
+@media (prefers-reduced-motion: reduce) { .tk-wait-ring { animation: none; } }
 .tk-wait-note { margin-top: var(--wt-note-top); min-height: var(--wt-note-h); padding: var(--wt-note-pad); border-radius: var(--r-card); background: var(--c-panel);
   display: flex; align-items: center; gap: var(--wt-note-gap); font-size: var(--fs-tk-line); font-weight: var(--fw-500); line-height: var(--lh-wt-note); }
 .tk-wait-note .icon { flex: none; --icon-size: var(--icon-fd-sm); --stroke: 2; }
 .tk-queue { flex: 1; min-height: 0; overflow-y: auto; list-style: none; padding: 0; margin: var(--wt-queue-top) 0 0; display: flex; flex-direction: column; gap: var(--sp-3); }
-.tk-bubble-row { display: flex; flex-direction: column; align-items: flex-end; gap: var(--wt-time-gap); }
+.tk-bubble-row { animation: bubble-pop var(--d-bubble) var(--ease) calc(var(--i, 0) * var(--stagger-bubble)) both; transform-origin: bottom right; display: flex; flex-direction: column; align-items: flex-end; gap: var(--wt-time-gap); }
+@media (prefers-reduced-motion: reduce) { .tk-bubble-row { animation: none; } }
 .tk-bubble { max-width: var(--wt-bubble-max); padding: var(--wt-bubble-pad); border-radius: var(--wt-bubble-r) var(--wt-bubble-r) var(--wt-bubble-tail) var(--wt-bubble-r);
   background: var(--c-lime); color: var(--c-ink); font-size: var(--fs-wt-bubble); font-weight: var(--fw-700); line-height: var(--lh-tight); overflow-wrap: anywhere; }
 .tk-bubble-time { font-size: var(--fs-wt-time); font-weight: var(--fw-500); color: var(--c-muted); }

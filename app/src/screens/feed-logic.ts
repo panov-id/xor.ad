@@ -20,6 +20,13 @@ export interface FeedCard {
   soon?: boolean;
   /** The viewer's own like, kept in the feed: marked, not hidden (owner 15.10.2026). */
   liked?: boolean;
+  /** A table between the phrases (kind "table"): what GET /feed delivers of it (web Feed.tsx, tables/TableCard). */
+  name?: string | null;
+  game?: string;
+  set?: string;
+  playing?: number;
+  watching?: number;
+  free_seats?: number;
 }
 
 /** What left the feed on the card: hidden (with the handle that brings it back), or its author blocked. */
@@ -98,4 +105,63 @@ export function withoutCard(state: unknown): unknown {
   if (!cardOf(state)) return state;
   const { card: _card, ...rest } = state as { card: string };
   return rest;
+}
+
+// ── the header's search, the tables between phrases, the density line, my own sent phrase, the matched card ──
+
+/** Whether a phrase (or a table by its name) holds what was typed in the header's search: trimmed, case dropped, an empty query holds all. */
+export function matchesQuery(card: FeedCard, query: string): boolean {
+  const q = query.trim().toLocaleLowerCase();
+  if (q === "") return true;
+  return (card.kind === "table" ? card.name ?? "" : card.text).toLocaleLowerCase().includes(q);
+}
+
+/** One drawn item of the list: a phrase with its tile colour, or a table (tone null: the table's own face). */
+export type FeedRow = { card: FeedCard; tone: Tone | null };
+
+/**
+ * What the list draws, in the node's order: phrases and the tables between them. The tone counts phrases only, so a table
+ * between two phrases does not shift the colours (w1_feed: lime, yellow, peach); the card that left is gone; the search holds.
+ */
+export function feedRows(items: readonly FeedCard[], gone: Gone | null, query = ""): FeedRow[] {
+  const rows: FeedRow[] = [];
+  let phrases = 0;
+  for (const card of items) {
+    if (card.id === gone?.id || !matchesQuery(card, query)) continue;
+    if (card.kind === "table") { rows.push({ card, tone: null }); continue; }
+    rows.push({ card, tone: toneOf(card, phrases) });
+    phrases += 1;
+  }
+  return rows;
+}
+
+/** The steps of GET /feed/density, from nobody to hundreds; never a number (§8.3). */
+export const STEPS = ["none", "few", "about_ten", "tens", "hundreds"] as const;
+export type Step = (typeof STEPS)[number];
+
+/** The step the node answered; null for a refusal (the caller keeps the last step it had) or a word that is no step. */
+export function stepOf(status: number, body: unknown): Step | null {
+  const step = (body as { step?: unknown } | null)?.step;
+  return status === 200 && typeof step === "string" && (STEPS as readonly string[]).includes(step) ? (step as Step) : null;
+}
+
+/** The dictionary key of a step's words (web.nearby.*). */
+export const stepKey = (step: Step): string => `web.nearby.${step}`;
+
+/** One's own phrase just sent, with the node's verdict: out in the feed, or read first (checking) (web Feed.tsx `sent`). */
+export type SentPhrase = { state: "published" | "checking"; text: string; id?: string };
+
+/** The sent phrase from what the composer returned; the id is kept only while the node gave one (no id, no way to take it down). */
+export function sentOf(sent: { state: string; id?: string }, text: string): SentPhrase {
+  return { state: sent.state === "published" ? "published" : "checking", text, ...(sent.id ? { id: sent.id } : {}) };
+}
+
+/** The answer to DELETE /feed/:id: 204 is down, anything else is a refusal with the node's number. */
+export const takedownVerdict = (status: number): { ok: true } | { ok: false; status: number } => (status === 204 ? { ok: true } : { ok: false, status });
+
+/** The name of the one who is in on my phrase too: the match's row in the inbox, by the id the like answered with; null while unknown. */
+export function peerName(rows: ReadonlyArray<Record<string, unknown>>, matchId: string | undefined): string | null {
+  if (!matchId) return null;
+  const row = rows.find((r) => r.id === matchId && r.kind === "match");
+  return typeof row?.name === "string" && row.name.trim() !== "" ? row.name : null;
 }

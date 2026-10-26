@@ -20,15 +20,15 @@ test("MOTION.md numbers, token by token", () => {
     "--ease": "cubic-bezier(.22, .9, .24, 1)",
     "--d-header": "450ms", "--o-header": px(12),
     "--t-sheet-in-start": "120ms", "--o-sheet-in": px(620),
-    "--d-item": "500ms", "--o-item": px(24), "--t-item-start": "350ms", "--stagger-item": "80ms",
+    "--d-item": "500ms", "--o-item": px(24), "--t-item-start": "350ms", "--stagger-item": "140ms",
     "--d-action": "550ms", "--o-action": px(40), "--t-action-start": "450ms",
     "--d-tabbar": "550ms", "--o-tabbar": px(130), "--t-tabbar-start": "300ms",
     "--d-shimmer": "1300ms", "--stagger-arrive": "120ms",
     "--d-press": "450ms", "--d-spinner": "900ms", "--spinner-arc": "28%",
     "--d-typing": "900ms", "--o-typing": px(5), "--stagger-typing": "150ms",
-    "--d-bubble": "350ms", "--stagger-bubble": "380ms", "--scale-bubble-from": ".85",
+    "--d-bubble": "350ms", "--stagger-bubble": "320ms", "--scale-bubble-from": ".85",
     "--d-pulse": "1600ms", "--scale-pulse": "1.07",
-    "--scale-popup-peak": "1.03",
+    "--scale-popup-peak": "1.03", "--scale-popup-from": ".82", "--scale-popup-out": ".96", "--d-popup-out": "400ms",
   };
   for (const [k, v] of Object.entries(want)) assert.equal(root[k], v, `${k}`);
 });

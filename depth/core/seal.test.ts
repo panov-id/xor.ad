@@ -133,3 +133,39 @@ Deno.test("openAndWrap still refuses a half nobody signed", async () => {
     Error, "not signed",
   );
 });
+
+// A pair kept across a reload (Ephemeral.generateKept / restore, §8.13): the restored pair opens the chat the
+// other side opens, and the kept box opens under nothing but the session's wrap private half, label and half.
+Deno.test("a kept pair restored under the session's wrap key opens the same conversation", async () => {
+  const aLong = await generateSigningKey();
+  const bLong = await generateSigningKey();
+  const aWrap = await wrapPair();
+  const label = `${LOW}\nmatch:${MATCH}\n0`;
+  const { eph: kept, kept: box } = await Ephemeral.generateKept(await spkiOf(aWrap.publicKey), label);
+  const aHalf = await kept.publish(aLong.privateKey, MATCH);
+  const bEph = await Ephemeral.generate();
+  const bHalf = await bEph.publish(bLong.privateKey, MATCH);
+  // the tab reloads: only the box and the published half are left
+  const restored = await Ephemeral.restore(box, aHalf.ephemeral_public_key, aWrap.privateKey, label);
+  const a = await restored.open(bHalf, bLong.publicSpki, MATCH, CHAT, LOW, HIGH);
+  const b = await bEph.open(aHalf, aLong.publicSpki, MATCH, CHAT, HIGH, LOW);
+  const id = crypto.randomUUID();
+  assertEquals(await b.open(await a.seal("снова здесь", id), id), "снова здесь");
+  // the working copy is not extractable, before and after the reload
+  await assertRejects(() => crypto.subtle.exportKey("pkcs8", (restored as unknown as { pair: CryptoKeyPair }).pair.privateKey));
+  await assertRejects(() => crypto.subtle.exportKey("pkcs8", (kept as unknown as { pair: CryptoKeyPair }).pair.privateKey));
+});
+
+Deno.test("a kept pair does not open under another session's key, label or half", async () => {
+  const aWrap = await wrapPair();
+  const label = `${LOW}\nmatch:${MATCH}\n0`;
+  const { eph, kept } = await Ephemeral.generateKept(await spkiOf(aWrap.publicKey), label);
+  const stranger = await wrapPair();
+  const other = await Ephemeral.generate();
+  await assertRejects(() => Ephemeral.restore(kept, eph.publicSpki, stranger.privateKey, label), Error, "does not open");
+  await assertRejects(() => Ephemeral.restore(kept, eph.publicSpki, aWrap.privateKey, `${HIGH}\nmatch:${MATCH}\n0`), Error, "does not open");
+  await assertRejects(() => Ephemeral.restore(kept, eph.publicSpki, aWrap.privateKey, `${LOW}\nmatch:${MATCH}\n1`), Error, "does not open");
+  await assertRejects(() => Ephemeral.restore(kept, other.publicSpki, aWrap.privateKey, label), Error, "does not open");
+  await assertRejects(() => Ephemeral.restore("AAAA", eph.publicSpki, aWrap.privateKey, label), Error, "not a kept pair");
+  await Ephemeral.restore(kept, eph.publicSpki, aWrap.privateKey, label);
+});

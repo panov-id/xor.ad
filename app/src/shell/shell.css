@@ -48,6 +48,26 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 :root[data-vt="close"]::view-transition-new(base) { animation: unlayer var(--d-sheet) var(--ease) both; }
 :root[data-vt="close"]::view-transition-old(base) { animation: none; }
 
+/* Screens that open as a layer (layers.tsx ScreenLayer): chat, «write», a match. The over screen is named "screen-over",
+   the one under it (and every other screen) "screen-under"; slide up the full height, the old one scales and dims. */
+.layer-screen { position: absolute; inset: 0; view-transition-name: screen-under; }
+.layer-screen[data-role="over"] { view-transition-name: screen-over; background: var(--c-night); }
+.dim-screen { position: absolute; inset: 0; background: var(--dim); pointer-events: none; view-transition-name: screen-dim; }
+@keyframes screen-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes screen-down { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+::view-transition-group(screen-under) { z-index: 0; }
+::view-transition-group(screen-dim) { z-index: 1; }
+::view-transition-group(screen-over) { z-index: 2; }
+:root[data-vt^="screen"]::view-transition-old(screen-under), :root[data-vt^="screen"]::view-transition-new(screen-under) { transform-origin: 50% 100%; }
+:root[data-vt="screen-open"]::view-transition-old(screen-under) { animation: under var(--d-sheet) var(--ease) both; }
+:root[data-vt="screen-open"]::view-transition-new(screen-over) { animation: screen-up var(--d-sheet) var(--ease) both; }
+:root[data-vt="screen-open"]::view-transition-new(screen-dim) { animation: fade-in var(--d-sheet) var(--ease) both; }
+:root[data-vt="screen-close"]::view-transition-old(screen-over) { animation: screen-down var(--d-sheet) var(--ease) both; }
+:root[data-vt="screen-close"]::view-transition-new(screen-under) { animation: unlayer var(--d-sheet) var(--ease) both; }
+:root[data-vt="screen-close"]::view-transition-old(screen-dim) { animation: fade-out var(--d-sheet) var(--ease) both; }
+
 .screen { position: relative; height: 100%; display: flex; flex-direction: column; }
 .screen-head { padding: var(--sp-8) var(--sp-6) var(--sp-4); animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
 .screen-head h1 { font-size: var(--fs-title); font-weight: var(--fw-800); }
@@ -81,6 +101,7 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 .tab .icon { --icon-size: var(--icon-tab); --stroke: 2; }
 .tab[aria-current="page"] { color: var(--c-ink); background: var(--c-lime); }
 .tab[aria-disabled="true"] { cursor: default; }
+.tabbar[data-rail-only] { display: none; }   /* a screen without the bar on the phone: only the desktop shows its rail (tokens/wide.css) */
 .rail-brand, .tab-word, .rail-say { display: none; }   /* the desktop rail's parts (tokens/wide.css) */
 
 .skeleton { border-radius: var(--r-card); background: var(--c-panel); position: relative; overflow: hidden; }
@@ -93,6 +114,17 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   animation: shimmer var(--d-shimmer) linear infinite;
 }
 @keyframes shimmer { to { transform: translateX(100%); } }
+.skeleton-row { height: var(--skeleton-row); }
+
+/* The tap wave (shell/ripple.ts): a circle at the touch point, .3 -> 1.2 and out in --d-press; `press` is screens.css's. */
+.tap-ripple { position: fixed; z-index: 100; width: var(--press-d); height: var(--press-d); margin: calc(var(--press-d) / -2) 0 0 calc(var(--press-d) / -2);
+  border-radius: var(--r-pill); background: var(--press); pointer-events: none; animation: press var(--d-press) var(--ease) both; }
+
+/* Standing still: no wave, the shimmer stops. */
+@media (prefers-reduced-motion: reduce) {
+  .tap-ripple { display: none; }
+  .skeleton::after { animation: none; }
+}
 
 /* Icons (shell/Icon.tsx): the box is --icon-size, the stroke --stroke, in 24-grid units. */
 .icon { width: var(--icon-size, var(--icon-tile)); height: var(--icon-size, var(--icon-tile)); flex: none;

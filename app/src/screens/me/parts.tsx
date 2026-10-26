@@ -6,18 +6,22 @@ import { label, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { chevronLeft, chevronRight } from "../../shell/icons";
 import { Screen } from "../../shell/Screen";
+import { Rail } from "../../shell/TabBar";
 
-export function SubPage({ name, title, onBack, foot, children }: { name: string; title: string; onBack: () => void; foot?: ReactNode; children: ReactNode }) {
+/** `head` is what stands between the bar and the sheet on the night (reissue's "step n of 2" and its bars); `backTestid` the web's name for the back. */
+export function SubPage({ name, title, onBack, foot, head, backTestid, children }: { name: string; title: string; onBack: () => void; foot?: ReactNode; head?: ReactNode; backTestid?: string; children: ReactNode }) {
   return (
     <Screen name={name} title={title} className="me-sub">
       <header className="me-bar">
-        <button type="button" className="me-back" aria-label={label("common.back")} onClick={onBack} data-testid={`${name}-back`}><Icon d={chevronLeft} /></button>
+        <button type="button" className="me-back" aria-label={label("common.back")} onClick={onBack} data-testid={backTestid ?? `${name}-back`}><Icon d={chevronLeft} /></button>
         <h1>{title}</h1>
       </header>
+      {head}
       <div className="me-sheet">
         <div className="me-body">{children}</div>
         {foot && <div className="me-foot">{foot}</div>}
       </div>
+      <Rail active="me" />
     </Screen>
   );
 }

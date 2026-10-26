@@ -11,6 +11,7 @@ import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useGetIdentity } from "@refinedev/core";
 import { api } from "../../providers/api";
 import type { PanelIdentity } from "../../providers/auth";
+import { showsBrandSwitcher } from "./switcher";
 import { Badge } from "../badge";
 import { type Column, DataTable } from "../data-table";
 import { EmptyState } from "../states";
@@ -128,8 +129,7 @@ export const LogExplorer = ({
   // here rather than by calling /admin/brands and reading the 403: a refusal is
   // a poor way to learn something the identity already says.
   const { data: identity } = useGetIdentity<PanelIdentity>();
-  const isPlatform = identity?.brand === null;
-  const showSwitcher = isPlatform && !singleScope;
+  const showSwitcher = showsBrandSwitcher(identity, singleScope);
 
   useEffect(() => {
     if (!showSwitcher) return;

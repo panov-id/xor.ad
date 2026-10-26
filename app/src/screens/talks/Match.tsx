@@ -3,17 +3,21 @@
 // chat key), client.decline and its undo. Once I said yes (here, or the node remembers it) the screen is the wait (w3_match-waiting, MatchWaiting.tsx).
 // What to show is talks-logic.ts matchView. Testids (the web's): talk, not-now, match-hint, error.
 // The keys are the seat's (App.tsx chatKeys, depth/web-platform/chat/keys.ts chatKeysFor); my initial from my profile.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChatKeys } from "@platform/chat/keys.ts";
 import type { Client } from "@sdk/client.ts";
 import { failedLine, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { hand } from "../../shell/icons";
 import { Screen } from "../../shell/Screen";
+import { Rail } from "../../shell/TabBar";
 import { initial } from "../me/me-logic";
+import { matchExit } from "./match-exit";
 import { MatchWaiting } from "./MatchWaiting";
 import { matchView, type MatchRow } from "./talks-logic";
 
+
+const EXIT_FALLBACK_MS = 1500;
 
 // No back button on the sheet: the system Back leaves it, onto the inbox it was opened over.
 export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onTalks }: {
@@ -25,6 +29,12 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onTalks 
   const [declined, setDeclined] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [me, setMe] = useState("");
+  // MOTION.md 04: the card goes out (.96, fades) before the screen turns into the wait or the chat; `after` runs when the exit has played.
+  const [leaving, setLeaving] = useState(false);
+  const exit = useRef(matchExit(EXIT_FALLBACK_MS)).current;
+  useEffect(() => exit.dispose, [exit]);
+  const leave = (go: () => void) => { setLeaving(true); exit.leave(go); };
+  const left = exit.left;
   useEffect(() => { client.profile().then((p) => setMe(String((p as { name?: string }).name ?? ""))).catch(() => setMe("")); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const view = matchView(row, { agreed, declined });
 
@@ -32,8 +42,8 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onTalks 
     setBusy(true); setError(null);
     keys.consent(row.id).then((answer) => {
       if (answer.status !== 200) throw new Error(`consent: ${answer.status}`);
-      if (answer.body.state === "agreed" && answer.body.chat_id) onAgreed(answer.body.chat_id);
-      else { setAgreed(true); onWaiting({ ...row, my_consent: "waiting" }); }
+      const chat = answer.body.state === "agreed" ? answer.body.chat_id : undefined;
+      leave(() => { if (chat) onAgreed(chat); else { setAgreed(true); onWaiting({ ...row, my_consent: "waiting" }); } });
     }).catch((e: Error) => setError(failedLine(e))).finally(() => setBusy(false));
   };
   const notNow = () => {
@@ -49,7 +59,7 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onTalks 
   const title = say("app.match.both", { name: row.name });
   return (
     <Screen name="match" title={title} className="tk-match-screen" data-id={row.id} data-view={view}>
-      <section className="tk-match">
+      <section className="tk-match" data-leaving={leaving ? "" : undefined} onAnimationEnd={(e) => { if (e.target === e.currentTarget && leaving) left(); }}>
         <span className="tk-pill">{say("app.match.pill")}</span>
         <div className="tk-pair" aria-hidden="true">
           <span className="tk-big" data-face="1">{initial(me)}</span>
@@ -63,9 +73,10 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onTalks 
           <figure className="tk-quote"><figcaption>{say("app.match.they_said", { name: row.name })}</figcaption><blockquote>{row.phrase.text}</blockquote></figure>
         </div>
         {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
-        <button type="button" className="tk-talk" disabled={busy || declined} onClick={talk} data-testid="talk">{say("app.match.talk")}</button>
-        <button type="button" className="tk-later" disabled={busy} onClick={notNow} data-testid="not-now">{say(declined ? "inbox.undo" : "app.match.not_now")}</button>
+        <button type="button" className="tk-talk" disabled={busy || declined || leaving} onClick={talk} data-testid="talk">{say("app.match.talk")}</button>
+        <button type="button" className="tk-later" disabled={busy || leaving} onClick={notNow} data-testid="not-now">{say(declined ? "inbox.undo" : "app.match.not_now")}</button>
       </section>
+      <Rail active="chats" />
     </Screen>
   );
 }

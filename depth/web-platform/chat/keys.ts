@@ -21,9 +21,24 @@
 //
 // What is not here: the key reissue (§8.13, POST /chats/:id/rekey) — a chat
 // whose epochs differ says so and does not seal under the old keys.
+//
+// Between consent and the chat's first open the node holds no wrap, so a pair
+// lost with the tab was a chat that never opened (crowd run, 24.10.2026). The
+// pair is kept on this device's disk (vault_store.ts "pairs") wrapped under the
+// session's wrap key (seal.ts Ephemeral.generateKept — the box opens only after
+// the PIN), read back when memory has none, and dropped once the node kept the
+// chat's wrap; a forgotten identity clears the store (vault_keep.ts forget),
+// rows older than KEPT_DAYS are pruned. Where there is no IndexedDB (the
+// terminal, tests) the pairs stay in memory as before.
 
 import type { Client } from "../../core/client.ts";
 import { type Conversation, Ephemeral, safetyCode, unwrapConversation, verifyHalf } from "../../core/seal.ts";
+import { pairKeys, type PairRow } from "../vault_store.ts";
+
+/** How long a kept pair may wait for its chat's first open. */
+export const KEPT_DAYS = 14;
+type PairStore = Pick<typeof pairKeys, "getOrPut" | "get" | "put" | "drop" | "prune">;
+const defaultStore = (): PairStore | null => (typeof indexedDB === "undefined" ? null : pairKeys);
 
 export interface ChatRow {
   kind: "chat";
@@ -74,6 +89,8 @@ export class ChatKeys {
   // Whether the node kept this session's wrap of the chat's keys at the epoch
   // (PUT /chats/:id/keys), or refused and why: what a reload will find.
   #kept = new Map<string, { epoch: number; refused?: string }>();
+  // The public halves of the rows this tab wrote itself: a refusal drops only those, not a row another tab kept.
+  #ownKept = new Set<string>();
 
   keptOnNode(chatId: string): { epoch: number; refused?: string } | null {
     return this.#kept.get(chatId) ?? null;
@@ -82,12 +99,68 @@ export class ChatKeys {
   // `signing`: the long key's signing half — the Client keeps its own private;
   // the face gets one from client.held.signing() at registration, or from the
   // tab's record after a reload (tab_session.ts).
-  constructor(private readonly client: Client, private readonly signing: CryptoKey) {}
+  constructor(private readonly client: Client, private readonly signing: CryptoKey, private readonly store: PairStore | null = defaultStore()) {
+    void this.store?.prune(Date.now() - KEPT_DAYS * 86_400_000).catch(() => undefined);
+  }
+
+  // The disk's names for a pair: by match until the chat exists (consent), by chat at its epoch (a reissue).
+  #keptId(at: { match: string } | { chat: string }, epoch: number): string {
+    return `${this.client.identityId}|${"match" in at ? `match:${at.match}` : `chat:${at.chat}`}|${epoch}`;
+  }
+
+  // A fresh pair, kept on the disk when it can be (a store, a session wrap key, an identity); a pair another tab
+  // kept first under the same name is the one used, so both tabs publish one half.
+  async #freshPair(at: { match: string } | { chat: string }, epoch: number): Promise<Ephemeral> {
+    const wrapPublic = this.client.wrapPublicSpki, wrapPrivate = this.client.wrapPrivate;
+    if (!this.store || !wrapPublic || !wrapPrivate || !this.client.identityId) return await Ephemeral.generate();
+    const id = this.#keptId(at, epoch);
+    try {
+      const made = await Ephemeral.generateKept(wrapPublic, id);
+      const row = await this.store.getOrPut(id, () => ({ kept: made.kept, spki: made.eph.publicSpki, epoch, at: Date.now() }));
+      if (row.kept === made.kept) return this.#ownKept.add(made.eph.publicSpki), made.eph;
+      try {
+        return await Ephemeral.restore(row.kept, row.spki, wrapPrivate, id);
+      } catch {
+        // A row this session cannot open (left by an earlier session on this device): replaced, so the new pair is kept.
+        await this.store.put(id, { kept: made.kept, spki: made.eph.publicSpki, epoch, at: Date.now() });
+        this.#ownKept.add(made.eph.publicSpki);
+        return made.eph;
+      }
+    } catch {
+      return await Ephemeral.generate();
+    }
+  }
+
+  // The kept pair after a reload, when memory has none: by the chat at its epoch, else by its match (epoch 0).
+  async #keptPair(row: ChatRow): Promise<{ eph: Ephemeral; epoch: number } | undefined> {
+    const wrapPrivate = this.client.wrapPrivate;
+    if (!this.store || !wrapPrivate || !this.client.identityId) return undefined;
+    // The epoch comes from the name looked up (sealed into the label), not from the row's own unsealed field.
+    const ids = [this.#keptId({ chat: row.id }, row.key_epoch), ...(row.match_id && row.key_epoch === 0 ? [this.#keptId({ match: row.match_id }, 0)] : [])];
+    for (const id of ids) {
+      const got: PairRow | undefined = await this.store.get(id).catch(() => undefined);
+      if (!got) continue;
+      try {
+        return { eph: await Ephemeral.restore(got.kept, got.spki, wrapPrivate, id), epoch: row.key_epoch };
+      } catch {
+        // Wrapped to a wrap key this identity no longer holds (an unlock with a new wrap): it opens for nobody, so it goes.
+        await this.store.drop(id).catch(() => undefined);
+      }
+    }
+    return undefined;
+  }
+
+  // The node kept the chat's wrap: the pair on the disk is not needed any more.
+  async #dropKept(row: ChatRow): Promise<void> {
+    if (!this.store || !this.client.identityId) return;
+    const ids = [this.#keptId({ chat: row.id }, row.key_epoch), ...(row.match_id ? [this.#keptId({ match: row.match_id }, 0)] : [])];
+    for (const id of ids) await this.store.drop(id).catch(() => undefined);
+  }
 
   // POST /matches/:id/consent with this side's half. "waiting" until the other
   // side agrees; "agreed" with the chat_id once both have.
   async consent(matchId: string): Promise<Answer<{ state: string; chat_id?: string }>> {
-    const held = this.#pairs.get(matchId) ?? { eph: await Ephemeral.generate(), epoch: 0 };
+    const held = this.#pairs.get(matchId) ?? { eph: await this.#freshPair({ match: matchId }, 0), epoch: 0 };
     this.#pairs.set(matchId, held);
     const answer = await this.client.request<{ state: string; chat_id?: string }>(
       "POST", `/matches/${encodeURIComponent(matchId)}/consent`, await held.eph.publish(this.signing, matchId),
@@ -120,7 +193,7 @@ export class ChatKeys {
         ? "the other side asked for new keys: agree before writing"
         : "the other side has not answered the key reissue yet");
     }
-    const held = this.#pairs.get(row.id) ?? (row.match_id ? this.#pairs.get(row.match_id) : undefined);
+    const held = this.#pairs.get(row.id) ?? (row.match_id ? this.#pairs.get(row.match_id) : undefined) ?? await this.#keptPair(row);
     // A pair of another epoch is not this chat's pair any more (a reissue went
     // past it): the wrap the node kept, if any, is what opens the chat.
     const eph = held && held.epoch === row.key_epoch ? held.eph : undefined;
@@ -147,6 +220,7 @@ export class ChatKeys {
       );
       if (kept.status === 200) {
         this.#kept.set(row.id, { epoch: row.key_epoch });
+        await this.#dropKept(row);
       } else {
         // The screen says it (Chat.tsx): a reload of this tab loses the
         // conversation, because the node holds no wrap to open it from.
@@ -242,7 +316,7 @@ export class ChatKeys {
   }
 
   async #publishAt(chatId: string, epoch: number): Promise<Answer<{ state: string; epoch: number }>> {
-    const eph = await Ephemeral.generate();
+    const eph = await this.#freshPair({ chat: chatId }, epoch);
     const answer = await this.client.request<{ state: string; epoch: number }>(
       "POST", `/chats/${encodeURIComponent(chatId)}/rekey`,
       { epoch, ...(await eph.publish(this.signing, { chat: chatId, epoch })) },
@@ -250,6 +324,8 @@ export class ChatKeys {
     if (answer.status === 200) {
       this.#pairs.set(chatId, { eph, epoch });
       this.#open.delete(chatId);
+    } else if (this.#ownKept.has(eph.publicSpki)) {
+      await this.store?.drop(this.#keptId({ chat: chatId }, epoch)).catch(() => undefined);
     }
     return answer;
   }

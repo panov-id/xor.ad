@@ -47,6 +47,8 @@ export interface TableView {
   // author on the screen; the table lives on without a name (§6.1).
   name_refused?: boolean;
   like_count?: number;
+  /** The player marked playing alone while waiting (§6.2); a round starting clears it. */
+  solo?: boolean;
   seats: TableSeat[];
   // null once the game is over and none has started again (G1b).
   board: Board | null;
@@ -80,6 +82,10 @@ export class Tables {
   }
   stand(id: string): Promise<Answer<unknown>> {
     return this.client.tableCall("DELETE", at(id, "/seat"));
+  }
+  /** Playing alone while waiting (§6.2): on shows neighbours "playing alone"; the puzzle itself stays here. */
+  solo(id: string, on: boolean): Promise<Answer<unknown>> {
+    return this.client.tableCall(on ? "POST" : "DELETE", at(id, "/solo"));
   }
   like(id: string): Promise<Answer<unknown>> {
     return this.client.tableCall("POST", at(id, "/like"));

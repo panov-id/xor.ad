@@ -34,3 +34,7 @@ export const spanWord = (span: Span): { key: string; values: { n: number } } =>
 export type Bubble = { line: Line; side: "theirs" | "mine" | "middle" };
 export const bubblesOf = (lines: Line[]): Bubble[] =>
   lines.map((line) => ({ line, side: line.extra || line.system ? "middle" : line.mine ? "mine" : "theirs" }));
+
+/** MOTION.md 02: the lines that stood when the talk first showed any pop in turn (their place in that batch is the stagger
+ * step); a line that comes later pops at once. `first` is how many lines that first batch had (null: none yet). */
+export const popStep = (at: number, first: number | null): number => (first !== null && at < first ? at : 0);

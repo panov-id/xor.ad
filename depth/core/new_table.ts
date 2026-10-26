@@ -57,6 +57,8 @@ export interface TableCard {
   watching?: number;
   free_seats?: number;
   like_count?: number;
+  /** Its player plays alone while waiting (chat spec §6.2): sit down and apply. */
+  solo?: boolean;
   /** `mine` only: the person sits here / liked it. */
   seated?: boolean;
   liked?: boolean;

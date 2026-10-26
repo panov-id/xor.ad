@@ -5,6 +5,7 @@ import { type Game, gameOfTable, makeTableWords, type TableCard, tableCounts } f
 import { label, say, sayCount } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { die } from "./icons";
+import { withSolo } from "./solo-logic";
 import { subParts, type Tone } from "./tables-logic";
 
 const words = makeTableWords(say);
@@ -29,7 +30,7 @@ export function lineOf(card: TableCard): { title: string; meta: string } {
   const c = tableCounts(card);
   return {
     title: card.name || (game ? label(gameName(game)) : label("table.title")),
-    meta: metaOf(game, card.set, !!card.name, countsLine(c.seated, c.seats, c.watching)),
+    meta: withSolo(metaOf(game, card.set, !!card.name, countsLine(c.seated, c.seats, c.watching)), card.solo, say("app.tables.solo")),
   };
 }
 

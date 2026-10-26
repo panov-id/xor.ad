@@ -15,10 +15,15 @@
 
 /* the breakpoints, for the shell's matchMedia (App.tsx useWide); the @media below name the same numbers (a media query cannot read a token) */
 :root { --bp-tablet: 834px; --bp-desktop: 1440px; }
+/* what the screens leave free under their scroll area for the floating bar (and the feed's round «say it» over it): the area ends above them,
+   so a row never lies under the bar. The desktop has the rail at the left and no round button: 0 there (the block below). */
+:root { --bar-clear: calc(var(--tabbar-bottom) + var(--s-nav-bar)); --say-clear: calc(var(--bar-clear) + var(--sp-3) * 2 + var(--s-nav-bar)); }
 
 /* ── tablet and up ── */
 @media (min-width: 834px) {
   :root {
+    --bar-clear: 0px;               /* the tablet sheets draw the list and the Me sheet down to the window's foot, under the bar (WIDE 407/407 before 6a) */
+    --say-clear: 0px;
     --fd-cols: 2;
     --fd-list-gap: 16px;
     --wide-side: 31.97px;           /* the card screen's and the feed head's side */
@@ -66,9 +71,9 @@
   .me-home .me-rows { margin-top: 56.96px; grid-template-columns: 1fr 1fr; gap: 9.98px; }
   .me-home .me-row { height: 55.96px; padding: 0 16px; }
   .me-home .me-row-name { white-space: normal; overflow: visible; text-overflow: clip; }   /* a longer word wraps in the narrower row, not cut */
-  .me-body > .me-danger { width: auto; height: auto; min-height: 0; padding: 0; margin-top: 19.5px; background: none; justify-self: start; }
+  .me-body > .me-danger { width: auto; height: auto; min-height: 44px; padding: 12.5px 0; margin-top: 7px; margin-bottom: -12.5px; background: none; justify-self: start; }   /* the text sits where the sheet draws it; the hit area is 44 high */
   .me-danger .me-chev { display: none; }
-  .me-danger .me-row-name { font-size: 15.5px; }
+  .me-danger .me-row-name { font-size: 15.5px; white-space: nowrap; }   /* one line: the wrapping row-name rule above shrank it to 80 px at 1440 */
 
   /* the phrase for the feed (tablet_834_Write): the phone's rhythm, a bigger head, the column 559.5 wide in the middle */
   :root {
@@ -116,7 +121,6 @@
     --ch-foot-bottom: 19.9px; --ch-field-gap: 12px; --ch-chip-pad: 13.5px; }
   .ch-pane .ch-sheet { background: none; border-radius: 0; border-top: 1px solid var(--c-panel); margin-inline: var(--ch-side); }
   .ch-pane .ch-lines, .ch-pane .ch-foot { padding-inline: 0; }
-  .ch-pane .ch-more { left: auto; right: calc(var(--ch-ring-end) + var(--ch-ring) + 8px); }
 
   /* the tables (tablet_834_Tables, the w3 wave's list): «New table» at the head's right, «Playing now» in two columns,
      «Start a game» six tiles in three; the phone's column grows to the sheet (the rows 380.7, the tiles 249.8).
@@ -158,6 +162,13 @@
     --panel-top: 23.97px;
     --panel-bottom: 25.1px;
     --panel-side: 29.96px;
+    --bar-clear: 0px;
+    --say-clear: 0px;
+    /* the talks' pane stands at the window's right (375.5 wide, 24.9 from the edge) and the feed's panel ends 24 left of it: 767 at 1440 (desktop_1440_Feed),
+       1247 at 1920 (desktop_1920_Feed: panel x 248.6 to 1495.6, pane at 1519.6) */
+    --pane-w: 375.5px;
+    --pane-right: 24.9px;
+    --panel-w: calc(100% - var(--panel-left) - var(--pane-w) - var(--pane-right) - var(--sp-6));
   }
   /* the rail: the bar of the phone, stood up at the left */
   .tabbar { position: absolute; left: 0; top: 0; bottom: 0; transform: none; width: 224.65px; max-width: none; height: auto; background: none; border-radius: 0;
@@ -171,13 +182,26 @@
   .rail-say { display: flex; align-items: center; justify-content: center; gap: 14.4px; width: 100%; height: 53.93px; margin-top: 22px; border-radius: 999px;
     background: var(--c-lime); color: var(--c-ink); font-size: 15.5px; font-weight: 700; }
   .rail-say .icon { --icon-size: 20px; --stroke: 2; }
+  .tabbar[data-rail-only] { display: flex; }   /* the screens that hide the bar on the phone and the tablet keep the rail (Rail in TabBar.tsx) */
   /* the rail's «say something» opens the composer here: the feed's round «say it» over the bar is the phone's and the tablet's */
   .fd-say { display: none; }
 
   /* the panel */
   .fd-panel, .me-panel { position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom); background: var(--c-sheet); border-radius: var(--r-sheet); overflow: hidden; }
-  .fd-panel { width: min(767px, calc(100% - var(--panel-left) - 24px)); }
-  .me-panel { right: 24.9px; }
+  .fd-panel { width: var(--panel-w); }
+  .me-panel { right: var(--sp-6); width: auto; }   /* "Me" is one panel to the window's edge, 24 px aside (desktop_1440_Me: x 249 to 1415), no talks' pane */
+
+  /* the screens that open from another one — the sub-pages of "Me", the likes, a match's wait, a table, the new table, the departure: the rail at the left
+     (Rail in TabBar.tsx) and one panel as "Me"'s, 24 px aside. No sheet draws them; the bar and the sheet lie inside the panel, the column at its left
+     under the title (desktop_1440_Me puts the title at x 279). The panel is the screen's ::before, behind the bar and the sheet */
+  .screen.me-sub, .screen.nt, .screen.mv { box-sizing: border-box; isolation: isolate; padding: var(--panel-top) var(--sp-6) var(--panel-bottom) var(--panel-left); }
+  .screen.me-sub::before, .screen.nt::before, .screen.mv::before { content: ""; position: absolute; z-index: -1; left: var(--panel-left); right: var(--sp-6);
+    top: var(--panel-top); bottom: var(--panel-bottom); background: var(--c-sheet); border-radius: var(--r-sheet); }
+  .screen.me-sub .me-sheet, .screen.me-sub .tk-sheet, .screen.me-sub .tg-sheet, .screen.nt .nt-sheet, .screen.mv .mv-sheet { margin-top: 0; background: none; border-radius: 0; animation: none; }
+  .screen.me-sub .me-bar, .screen.nt .mv-bar, .screen.mv .mv-bar { max-width: none; margin: 0; height: 96px; padding: 24px var(--panel-side) 0 calc(var(--panel-side) - var(--me-bar-pad)); }
+  .screen.me-sub .me-bar h1, .screen.nt .mv-title, .screen.mv .mv-title { font-size: var(--fs-title); }
+  .screen.me-sub .me-body, .screen.me-sub .me-foot, .screen.nt .nt-body, .screen.nt .nt-foot, .screen.mv .mv-body {
+    max-width: calc(var(--entry-max) + 2 * var(--panel-side)); margin-inline: 0; padding-inline: var(--panel-side); }
 
   /* feed */
   .fd-head { height: 125.84px; padding: 0 var(--panel-side); grid-template-areas: "title chips"; align-items: end; animation: none; }
@@ -189,11 +213,12 @@
   .sheet-content.fd-list { background: none; border-radius: 0; padding: 0 var(--panel-side) var(--sp-6); animation: none; }
 
   /* the card screen */
-  .fd-bar { height: 125.84px; padding: 0 var(--panel-side); grid-template-columns: 1fr auto; align-items: end; }
+  .fd-bar { height: 125.84px; padding: 0 var(--panel-side); grid-template-columns: 1fr auto auto; align-items: end; }
   .fd-bar h1 { position: static; width: auto; height: auto; clip-path: none; font-size: 40px; font-weight: 700; text-align: start; grid-column: 1; grid-row: 1; line-height: 1.25; margin-bottom: 22px; white-space: normal; }
   .fd-bar .fd-icon-btn[data-testid="back"] { grid-column: 2; grid-row: 1; width: auto; gap: 6px; padding: 0 0 0 8px; display: flex; align-items: center; font-size: 15.5px; font-weight: 600; }
   .fd-back-word { display: inline; }
-  .fd-bar .fd-icon-btn[data-testid="more-menu"] { display: none; }
+  /* «…» stays on the desktop: report, hide and block the author have no other way in (owner 2026-10-26, crowd run flow-1026-125809) */
+  .fd-bar .fd-icon-btn[data-testid="more-menu"] { grid-column: 3; grid-row: 1; }
   .fd-body { background: none; border-radius: 0; padding: 0 var(--panel-side) var(--sp-6); grid-template-columns: 341.56px minmax(0, 1fr); grid-template-areas: "left side"; }
   .fd-big { padding: 22px 22px 13.98px; column-gap: 24px; }
   .fd-more { display: none; }
@@ -207,17 +232,20 @@
   .me-title-wide { display: block; margin-top: 54px; font-size: 40px; font-weight: 700; line-height: 1.25; }
   .me-sheet.me-home::before { display: none; }
   .me-sheet.me-home { background: none; }
-  .me-home .me-body { display: grid; grid-template-columns: 470.39px minmax(0, 1fr); column-gap: 23.97px; align-content: start; padding: 0 var(--panel-side) var(--sp-6); }
+  .me-home .me-body { display: grid; grid-template-columns: 470.39px minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: 23.97px; align-content: start; padding: 0 var(--panel-side) var(--sp-6); }
   .me-body > .me-hero { grid-column: 1; grid-row: 1; }
-  .me-home .me-rows { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
-  .me-body > .me-danger { grid-column: 1; grid-row: 2; }
+  .me-home .me-rows { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; align-content: start; }   /* the rows keep their height; the spare room is not shared among them */
+  .me-body > .me-danger { grid-column: 1; grid-row: 2; align-self: start; }
   .me-body > * + * { margin-top: 0; }
+
+  /* a match over the screen it came from (desktop_1440_BothIn): the rail stays out of the dim, which covers the content area only */
+  .dim-screen { left: 224.65px; }
 
   /* the phrase for the feed (desktop_1440_Write): the rail, the panel of 767 as the feed's, the form (379.5) at its left and
      «how neighbours will see it» (299.6) beside it; .cp.cp: composer.css loads after this file */
   .cp.cp { position: relative; height: 100dvh; min-height: 0; }
   .cp.cp::before { content: ""; position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom);
-    width: min(767px, calc(100% - var(--panel-left) - 24px)); background: var(--c-sheet); border-radius: var(--r-sheet); }
+    width: var(--panel-w); background: var(--c-sheet); border-radius: var(--r-sheet); }
   .cp.cp > .tabbar { display: flex; }
   .cp.cp .cp-head { position: absolute; left: var(--panel-left); top: var(--panel-top); width: 767px; height: 125.84px; }
   .cp.cp .cp-back, .cp.cp .cp-head > p:not(.cp-where) { display: none; }
@@ -232,7 +260,7 @@
   .cp-preview p { margin: 12px 0 0; font-size: 13.5px; line-height: 18px; color: var(--c-muted); }
 
   /* the talks' pane at the right of the panel (TalksPane.tsx) */
-  .tk-pane { position: fixed; left: 1039.6px; top: var(--panel-top); bottom: var(--panel-bottom); width: 375.5px; overflow-y: auto;
+  .tk-pane { position: fixed; left: calc(100% - var(--pane-w) - var(--pane-right)); top: var(--panel-top); bottom: var(--panel-bottom); width: var(--pane-w); overflow-y: auto;
     background: var(--c-sheet); border-radius: var(--r-sheet); padding: 0 0 24px; z-index: 2;
     --tk-row-side: 35.9px; --tk-row-h: 85.9px; --tk-strip-top: 8.5px; --tk-strip-pad: 22.8px; }
   .tk-pane h2 { margin: 0; padding: 26.9px 0 0 24.4px; font-size: 20px; font-weight: 800; line-height: 1.2; }
@@ -260,18 +288,40 @@
 @media (min-width: 1440px) {
   .tb.tb { height: 100dvh; min-height: 0; }
   .tb.tb > .tabbar { display: flex; }
-  .tb.tb .tb-head { position: absolute; left: var(--panel-left); top: var(--panel-top); width: 767px; height: 125.84px; margin: 0; padding: 0 var(--panel-side); z-index: 1;
+  .tb.tb .tb-head { position: absolute; left: var(--panel-left); top: var(--panel-top); width: var(--panel-w); height: 125.84px; margin: 0; padding: 0 var(--panel-side); z-index: 1;
     display: flex; flex-direction: column-reverse; justify-content: flex-start; }
   .tb.tb .tb-head .word { display: none; }
   .tb.tb .tb-head h1 { margin: 0 0 22px; }
   .tb.tb .tb-sub { position: absolute; left: 30.3px; top: 45.9px; transform: translateY(-80%); margin: 0; white-space: nowrap;
     font-size: 13px; font-weight: 600; line-height: 1; color: var(--c-muted); }
-  .tb.tb .tb-new { left: 592.2px; right: auto; top: 49.9px; width: 144.8px; height: 53.9px; }   /* inside the panel (its containing block here) */
-  .tb.tb .tb-sheet { position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom); width: 767px; margin: 0;
+  .tb.tb .tb-new { left: auto; right: var(--panel-side); top: 49.9px; width: 144.8px; height: 53.9px; }   /* inside the panel (its containing block here) */
+  .tb.tb .tb-sheet { position: absolute; left: var(--panel-left); top: var(--panel-top); bottom: var(--panel-bottom); width: var(--panel-w); margin: 0;
     padding-top: 125.84px; border-radius: var(--r-sheet); }
   .tb.tb .tb-body { padding: 0 var(--panel-side) var(--sp-6); }
-  .tb.tb .tb-list { margin-top: 22.6px; grid-template-columns: repeat(2, 345.6px); column-gap: 15.9px; }
+  .tb.tb .tb-list { margin-top: 22.6px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); column-gap: 15.9px; }   /* 2 columns of 345.6 at 1440, more at 1920 */
   .tb.tb .tb-start { margin-top: 20.4px; }
-  .tb.tb .tb-start ul { margin-top: 24.2px; grid-template-columns: repeat(3, 226.7px); }
+  .tb.tb .tb-start ul { margin-top: 24.2px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }   /* 3 tiles of 226.7 at 1440, more at 1920 */
   .tb.tb .tb-game { height: 117.8px; padding: 19px; }
+}
+
+/* ── desktop, the screens that open from another (see the block above for the panel): the likes, the wait after a yes, a table, the departure ── */
+@media (min-width: 1440px) {
+  /* the likes: the cards in as many columns as the panel holds */
+  .screen.me-sub .tk-lead { max-width: none; margin: 0; padding-inline: var(--panel-side); }
+  .screen.me-sub .tk-likes { margin-top: var(--sp-4); padding: var(--sp-4) var(--panel-side) var(--sp-6); }
+  .screen.me-sub .tk-likes > * { max-width: none; margin-inline: 0; }
+  .screen.me-sub .tk-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--s-wide-card, 340px), 1fr)); gap: var(--sp-4); }
+  /* the wait after a yes and a table: the column keeps its phone width at the panel's left */
+  .screen.me-sub .tk-wait, .screen.me-sub .tg-sheet { padding-inline: var(--panel-side); }
+  .screen.me-sub .tk-wait > *, .screen.me-sub .tg-sheet > * { margin-inline: 0; }
+  .screen.me-sub .tg-faces { max-width: none; margin: 0; padding-inline: var(--panel-side); }
+  /* the departure: the foot follows the words, not the window's foot (the phone's sheet pins it to the bottom: a hole of 660 px at 1440) */
+  .screen.mv .mv-form, .screen.mv .mv-sheet { flex: none; }
+  .screen.mv .mv-body { flex: none; }
+  .screen.mv .mv-foot { margin-top: var(--sp-6); }
+}
+
+/* ── 1920 (desktop_1920_Feed): the list in three columns of 385 in the panel of 1247 ── */
+@media (min-width: 1920px) {
+  :root { --fd-cols: 3; }
 }

@@ -301,6 +301,7 @@ function nodeStub(opts = {}) {
         left = 10; return json(200, { share });
       }
       if (key === "GET /feed") return json(feed.status, feed.status === 200 ? { items: feed.items.filter((c) => !feed.hidden.has(c.id)), next: feed.next } : { error: { code: "boom" } });
+      if (key === "GET /feed/density") return json(200, { step: "tens" });
       if (key === "POST /hidden") { const id = JSON.parse(req.postData()).feed; feed.hidden.add(id); return json(200, { id: `h-${id}` }); }
       if (req.method() === "DELETE" && u.pathname.startsWith("/hidden/")) { feed.hidden.delete(decodeURIComponent(u.pathname.slice(8)).replace(/^h-/, "")); return route.fulfill({ status: 204 }); }
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
@@ -568,7 +569,7 @@ const shut = (page, testid) => page.getAttribute(`[data-testid="${testid}"]`, "a
   const o = await open(browser, PREVIEW + "/", 390, { screen: "walk-keep", prepare: stub.prepare });
   await registerFull(o.page);
   const disk = await stored(o.page);
-  note(!!disk && disk.version === 2 && disk.stores.join() === "grace,identity" && disk.fields?.join() === ["deviceSalt", "id", "identityId", "longSpki", "savedAt", "sealedLong", "sealedWrap", "sessionId", "unlockKey", "unlockSpki", "wrapCheck", "wrapSpki", "wrappedLongKey"].sort().join() && disk.unlockKeyExtractable === false,
+  note(!!disk && disk.version === 3 && disk.stores.join() === "grace,identity,pairs" && disk.fields?.join() === ["deviceSalt", "id", "identityId", "longSpki", "savedAt", "sealedLong", "sealedWrap", "sessionId", "unlockKey", "unlockSpki", "wrapCheck", "wrapSpki", "wrappedLongKey"].sort().join() && disk.unlockKeyExtractable === false,
     `walk: after registration the disk holds IndexedDB "xor-vault" v${disk?.version}, stores ${disk?.stores}, record fields ${disk?.fields}, unlock key extractable=${disk?.unlockKeyExtractable} (the web's scheme)`);
   const before = shares(stub);
   await o.page.reload(); await o.page.waitForSelector(`${feedSel}, [data-screen="unlock"]`, { timeout: 20000 });

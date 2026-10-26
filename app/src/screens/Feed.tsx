@@ -4,21 +4,28 @@
 // and screens/logic/useFeed.ts, in this shell's frame. The same testids: cards, card, loading, error, quiet, more,
 // gone (data-why), hidden-undo, hidden-undo-error; new ones: retry, wider, radius-<m>.
 //
-// The «say it» chip opens the composer (Composer.tsx, w3_composer). Not here yet: the place picker, search/menu in the header, the density line,
-// the tables between phrases (a table item is skipped), one's own sent phrase over the list.
+// The «say it» chip opens the composer (Composer.tsx, w3_composer). The header has the sheet's two icons: the search (a filter over
+// the phrases already loaded, no node call) and the menu (feed-menu.tsx); under the title the density step (client.density, never a
+// number); a table the node puts between the phrases is a row that opens it (tablet_834_Feed); one's own phrase just sent stands over
+// the list with its «take down» (client.takeDown). Not here yet: the place picker (docs/newsdesign/place-flow.svg waits for the owner);
+// the sheet's numbers in the radius chips (the node gives a step, never a count) and the distance and age on the tile (the feed has none).
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
 import { failedLine, label, say } from "../i18n";
 import { storedPlace } from "../place";
 import { Icon } from "../shell/Icon";
-import { flag, map, pen, refresh, undo } from "../shell/icons";
+import { close as closeIcon, flag, map, menu, pen, refresh, search, undo } from "../shell/icons";
+import { useLayers } from "../shell/layers";
 import { useSkeleton } from "../shell/loading";
 import { Skeleton } from "../shell/Skeleton";
 import { type Tab, TabBar } from "../shell/TabBar";
+import { useMinWidth } from "../shell/useMinWidth";
 import { CardScreen, likeLine, Tile } from "./feed-card";
+import { FeedMenu } from "./feed-menu";
 import {
-  cardEntry, cardOf, type FeedCard, type Gone, likeOutcome, type LikeOutcome, mergePage, RADII, radiusWord, toneOf, UNDO_HIDE_MS, visibleCards, widerRadius, withLike, withoutCard,
+  cardEntry, cardOf, feedRows, type FeedCard, type Gone, likeOutcome, type LikeOutcome, mergePage, RADII, radiusWord, type SentPhrase, type Step, stepKey, stepOf, takedownVerdict, UNDO_HIDE_MS, widerRadius, withLike, withoutCard,
 } from "./feed-logic";
+import { lineOf, TableRow } from "./tables/table-row";
 
 const radiusText = (r: Radius): string => {
   const w = radiusWord(r);
@@ -41,7 +48,20 @@ function useColumns(ref: { current: HTMLElement | null }): number {
   return n;
 }
 
-export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (tab: Tab) => void; onCompose?: (radius: Radius) => void }) {
+export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLikes, onNewTable, onTable }: {
+  client: Client; onTab?: (tab: Tab) => void; onCompose?: (radius: Radius) => void;
+  /** One's own phrase just sent (Composer's answer), shown over the list until it is taken down or the feed is left. */
+  sent?: SentPhrase | null; onTakenDown?: () => void;
+  /** The menu's ways out: the likes I gave, a new table; a table row opens its table. */
+  onLikes?: () => void; onNewTable?: () => void; onTable?: (id: string) => void;
+}) {
+  const { open: openSheet } = useLayers();
+  const wide = useMinWidth("--bp-tablet");
+  const [searching, setSearching] = useState(false);
+  const [query, setQuery] = useState("");
+  const [step, setStep] = useState<Step | null>(null);
+  const [takingDown, setTakingDown] = useState(false);
+  const [takedownRefused, setTakedownRefused] = useState<number | null>(null);
   const place = useRef(storedPlace()).current;
   const [radius, setRadius] = useState<Radius>(1000);
   const [items, setItems] = useState<FeedCard[]>([]);
@@ -103,6 +123,25 @@ export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (ta
     return () => { generation.current += 1; };
   }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // The step under the circle (GET /feed/density): one word, never the number; a refusal keeps the step it had.
+  useEffect(() => {
+    let live = true;
+    client.density({ lat: place.lat, lon: place.lon, radius })
+      .then((answer) => { const s = stepOf(answer.status, answer.body); if (live && s) setStep(s); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // My own phrase comes down (DELETE /feed/:id, web useFeed takeDown): a refusal is said under the line with the node's number.
+  async function takeDown() {
+    if (!sent?.id) return;
+    setTakingDown(true);
+    setTakedownRefused(null);
+    const verdict = takedownVerdict(await client.takeDown(sent.id).then((a) => a.status, () => 0));
+    setTakingDown(false);
+    if (verdict.ok) onTakenDown?.(); else setTakedownRefused(verdict.status);
+  }
+
   // «hidden · return» stands UNDO_HIDE_MS after a phrase was hidden (owner 14.10.2026), then goes; the phrase stays
   // hidden — «Me → hidden → return» still brings it back.
   useEffect(() => {
@@ -143,9 +182,14 @@ export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (ta
     setLikeNote(outcome.state === "liked" ? null : outcome);
   }
 
-  const cards = visibleCards(items, gone);
+  const rows = feedRows(items, gone, query);
+  const phrases = rows.filter((r) => r.tone !== null);
   const widerTo = widerRadius(radius);
   const card = opened ? items.find((c) => c.id === opened) ?? null : null;
+  const searchBtn = (
+    <button type="button" className="fd-icon-btn" aria-label={say(searching ? "app.feed.search_close" : "app.feed.search")} aria-pressed={searching} data-testid="feed-search-open"
+      onClick={() => { if (searching) setQuery(""); setSearching(!searching); }}><Icon d={search} /></button>
+  );
   const title = say("app.feed.title", { place: place.chosen ? place.name : say("web.place.none") });
   const note = likeLine(likeNote);
 
@@ -154,6 +198,16 @@ export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (ta
       <main className="screen fd-feed" data-screen="feed" inert={card ? true : undefined}>
         <div className="fd-panel">
         <header className="fd-head">
+          {/* The sheet's icons: the menu left, the search right on a phone; on the wide sheets (tablet_834_Feed) the search alone, the wordmark under it. */}
+          {wide
+            ? <div className="fd-search-wide">{searchBtn}</div>
+            : (
+              <div className="fd-top">
+                <button type="button" className="fd-icon-btn" aria-label={say("app.feed.menu")} data-testid="feed-menu"
+                  onClick={() => openSheet("feed-menu", <FeedMenu onLikes={onLikes} onNewTable={onNewTable} />)}><Icon d={menu} /></button>
+                {searchBtn}
+              </div>
+            )}
           <span className="fd-brand word" aria-hidden="true">sosed</span>
           <ul className="fd-chips" aria-label={say("web.feed.radius")}>
             {RADII.map((r) => (
@@ -167,6 +221,20 @@ export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (ta
           <h1>{title}</h1>
         </header>
         <section className="sheet-content fd-list">
+          {searching && (
+            <input type="search" className="fd-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={say("app.feed.search")} aria-label={say("app.feed.search")}
+              autoFocus data-testid="feed-search" />
+          )}
+          {step && <p className="fd-density" role="status" data-testid="nearby" data-step={step}>{say(stepKey(step))}</p>}
+          {sent && (
+            <div className="fd-sent" data-testid="sent" data-state={sent.state}>
+              <p>{say(sent.state === "published" ? "web.feed.sent_out" : "web.feed.sent_held")}<span className="fd-sent-text">«{sent.text}»</span></p>
+              {sent.id && (
+                <button type="button" className="fd-icon-btn" aria-label={say("feed.takedown")} disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown"><Icon d={closeIcon} /></button>
+              )}
+            </div>
+          )}
+          {sent && takedownRefused !== null && <p className="fd-line fd-line-error" role="alert" data-testid="takedown-refused">{say("feed.takedownRefused", { status: takedownRefused })}</p>}
           {gone?.why === "hidden" && undoing && (
             <div className="fd-undo" data-testid="gone" data-why="hidden">
               <span>{say("app.feed.hidden_gone")}</span>
@@ -187,7 +255,8 @@ export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (ta
             </div>
           )}
 
-          {state === "ready" && cards.length === 0 && (
+          {state === "ready" && rows.length === 0 && query.trim() !== "" && <p className="fd-hint" data-testid="search-none">{say("app.feed.search_none")}</p>}
+          {state === "ready" && rows.length === 0 && query.trim() === "" && (
             <div className="fd-empty" data-testid="quiet">
               <span className="fd-empty-icon" aria-hidden="true"><Icon d={map} /></span>
               <h2>{say("web.feed.empty")}</h2>
@@ -202,15 +271,19 @@ export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (ta
 
           {/* One column on a phone; on the wide sheets the tiles go to the columns by turns (the sheets' masonry), the count is tokens/wide.css's --fd-cols. */}
           <div className="fd-cards" ref={listRef} data-testid="cards">
-            {Array.from({ length: columns }, (_, col) => (
-              <ul className="fd-col" key={col}>
-                {cards.map((c, i) => i % columns === col && (
-                  <Tile key={c.id} card={c} tone={toneOf(c, i)} busy={liking === c.id} onOpen={() => openCard(c.id)} onLike={() => void likeFromTile(c)} />
-                ))}
-              </ul>
-            ))}
+            {Array.from({ length: columns }, (_, col) => {
+              let tiles = 0;   // the tiles of this column so far: the stagger counts them, not the tables between them
+              return (
+                <ul className="fd-col" key={col}>
+                  {rows.map(({ card: c, tone }, i) => i % columns === col && (tone === null
+                    ? <TableRow key={c.id} id={c.id} tone="lime" title={lineOf(c).title} meta={lineOf(c).meta} testid="table-card" onWatch={onTable && (() => onTable(c.id))} />
+                    : <Tile key={c.id} card={c} tone={tone} place={tiles++} busy={liking === c.id} onOpen={() => openCard(c.id)} onLike={() => void likeFromTile(c)} />
+                  ))}
+                </ul>
+              );
+            })}
           </div>
-          {state === "loading" && skeleton && (
+          {skeleton && (
             <div className="fd-skeletons" data-testid="loading"><Skeleton kind="card" /><Skeleton kind="card" /></div>
           )}
           {next && state === "ready" && (
@@ -228,10 +301,11 @@ export function Feed({ client, onTab, onCompose }: { client: Client; onTab?: (ta
         <CardScreen
           client={client}
           card={card}
-          more={cards.filter((c) => c.id !== card.id).slice(0, 2).map((c) => ({ card: c, tone: toneOf(c, cards.indexOf(c)) }))}
+          more={phrases.filter((r) => r.card.id !== card.id).slice(0, 2).map((r) => ({ card: r.card, tone: r.tone! }))}
           onOpenMore={openCard}
           onTab={onTab}
-          tone={toneOf(card, Math.max(0, cards.findIndex((c) => c.id === card.id)))}
+          tone={phrases.find((r) => r.card.id === card.id)?.tone ?? "lime"}
+          onTalk={() => onTab?.("chats")}
           onBack={closeCard}
           onLike={like}
           onGone={(why, id, handle) => { closeCard(); setOpened(null); setLikeNote(null); setGone({ why, id, handle }); }}

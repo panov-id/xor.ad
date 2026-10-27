@@ -94,8 +94,7 @@ async function step(p, name, fn) {
   // the tab locks after pin.lock.idle while others take their turns (screen «locked» in run flow-1025-182252): the PIN
   if (await p.page.locator('[data-screen="locked"]').count().catch(() => 0)) {
     p.locks = (p.locks ?? 0) + 1;
-    await p.page.locator('[data-screen="locked"] input').first().fill(PIN).catch(() => {});
-    await p.page.click('[data-testid="lock-go"]').catch(() => {});
+    await p.page.locator('[data-screen="locked"] input').first().fill(PIN).catch(() => {});   // the sixth digit asks (Locked.tsx)
     await p.page.waitForSelector('[data-screen="locked"]', { state: "detached", timeout: 15000 }).catch(() => {});
   }
   // the note keeps the first line for the summary; the journal keeps Playwright's whole call log (run flow-1026-070519:
@@ -111,6 +110,15 @@ async function step(p, name, fn) {
   line({ who: NAMES[p.i], town: TOWNS[p.i][1], device: DEVICES[p.i % DEVICES.length].join(" "), step: name, ok, ms, screen, note, anim, node: p.nodeErrors, console: p.consoleErrors, reloads: p.reloads, shot, error });
   if (SLOW) await p.page.waitForTimeout(2000);
   return ok;
+}
+
+// Shot pairs (scripts/design/proto-pairs.mjs): the first person (iPhone 14, 390x844, light: theme sea) shoots each
+// prototype state it reaches under that screen's id (docs/newdesign/proto/index.json), into OUT/pairs/<id>.png.
+async function pairShot(p, id) {
+  if (p.i !== 0) return;
+  mkdirSync(`${OUT}/pairs`, { recursive: true });
+  await p.page.waitForTimeout(500); // past the entry motion
+  await p.page.screenshot({ path: `${OUT}/pairs/${id}.png` }).catch(() => {});
 }
 
 async function person(browser, i) {
@@ -147,8 +155,20 @@ async function person(browser, i) {
 }
 
 // A tab, from wherever the person stands: a screen with no tabs (the match's wait, a chat) is left by Back first.
+// A chat screen keeps no history (chat_state.ts starts at lines: []): a line the other side sent while this tab sat on
+// the chat is drawn and acked there, and gone once the screen closes. So whatever «theirs» shows is heard before leaving.
+async function harvest(p) {
+  const pg = p.page, open = pg.locator('[data-screen="chat"][data-id]');
+  if (!(await open.count().catch(() => 0))) return;
+  const id = await open.first().getAttribute("data-id").catch(() => null);
+  if (!id) return;
+  const theirs = (await pg.locator('[data-testid="theirs"]:visible').allInnerTexts().catch(() => [])).filter((x) => x.startsWith(RUN));
+  (p.heard[id] ??= new Set()); for (const x of theirs) p.heard[id].add(x);
+}
+
 async function tab(p, t, screen) {
   const pg = p.page, sel = `[data-testid="tab-${t}"]:visible`;
+  await harvest(p);
   // The phrase opens full-screen over the feed and has no tab bar on a phone (feed.css .fd-screen, by the sheet w1_card):
   // the bar under it is still «visible» to Playwright, and the like button took 5 of 5 presses (run flow-1026-081126).
   // A person presses Back first.
@@ -170,7 +190,7 @@ async function tab(p, t, screen) {
     await pg.goto(BASE + "/");
     const at = await pg.waitForSelector(`${sel}, [data-testid="unlock-pin"]`, { timeout: 20000 });
     if ((await at.getAttribute("data-testid")) === "unlock-pin") {
-      p.reloads.push("PIN typed"); await at.fill(PIN); await pg.click('[data-testid="unlock"]'); await pg.waitForSelector(sel, { timeout: 30000 }); }
+      p.reloads.push("PIN typed"); await at.fill(PIN); await pg.waitForSelector(sel, { timeout: 30000 }); }   // the sixth digit asks (Unlock.tsx)
   }
   // The rail ignores a press on the tab already current (TabBar.tsx: tab !== active), so a sub-screen of that tab (the
   // match's wait at 1440) is left by history Back first; noted, it is the app's, not the person's.
@@ -198,9 +218,10 @@ async function register(p) {
     if (await pg.waitForSelector('[data-testid="start"]', { timeout: 15000 }).then(() => true, () => false)) break;
     if (k === 2) throw new Error("the app did not load in three tries");
   }
+  await pairShot(p, "splash");
   await pg.click('[data-testid="start"]');
-  await pg.waitForSelector('[data-screen="register-1"]');
-  await pg.fill('[data-testid="name"]', NAMES[p.i]); await pg.check(".reg-check input");
+  await pg.waitForSelector('[data-screen="register-1"]'); await pairShot(p, "register-1");
+  await pg.fill('[data-testid="name"]', NAMES[p.i]); await pg.check('[data-testid="consent"]');
   // The first person tries 12 first: the floor is 13 (Register.tsx), the form must say so and not go on.
   if (p.i === 0) {
     await pg.fill('[data-testid="age"]', "12");
@@ -209,13 +230,19 @@ async function register(p) {
     p.limits.push({ limit: "age 13", hit: !!young && !goes, note: `age 12: hint ${young ? "shown" : "not shown"}, «next» ${goes ? "enabled" : "disabled"}` });
   }
   await pg.fill('[data-testid="age"]', String(AGES[p.i]));
-  await pg.click('[data-testid="next"]'); await pg.waitForSelector('[data-screen="register-2"]');
-  await pg.fill('[data-testid="pin"]', PIN); await pg.fill('[data-testid="pin-again"]', PIN);
-  await pg.click('[data-testid="register"]'); await pg.waitForSelector('[data-screen="register-3"]', { timeout: 120000 });
+  await pg.click('[data-testid="next"]'); await pg.waitForSelector('[data-screen="register-2"]'); await pairShot(p, "register-2");
+  // the PIN, then its repeat on a screen of its own (Register.tsx, pin-flow.ts): the sixth digit moves on, the repeat creates
+  await pg.fill('[data-testid="pin"]', PIN); await pg.waitForSelector('[data-screen="register-2b"]'); await pairShot(p, "register-2b");
+  await pg.fill('[data-testid="pin-again"]', PIN); await pg.waitForSelector('[data-screen="register-3"]', { timeout: 120000 });
+  await pairShot(p, "register-3");
   const code = await pg.evaluate(() => sessionStorage.getItem("crowd-code"));
   const gi = pg.locator('[data-testid="paper-groups"] input');
   await gi.nth(0).fill(code.slice(4, 8)); await gi.nth(1).fill(code.slice(12, 16));
   await pg.click('[data-testid="confirm"]');
+  // a fresh registration: «how it works» first (Intro.tsx), four cards; the even people read them through, the odd skip
+  await pg.waitForSelector('[data-screen="intro"]', { timeout: 30000 });
+  if (p.i % 2 === 0) for (let k = 0; k < 4; k++) await pg.click('[data-testid="intro-next"]');
+  else await pg.click('[data-testid="intro-close"]');
   // no place on a new device: the place screen comes before the feed (App.tsx landing); the person picks it there
   const at = await pg.waitForSelector('[data-screen="feed"], [data-screen="place"]', { timeout: 30000 });
   p.firstPlace = (await at.getAttribute("data-screen")) === "place";
@@ -240,6 +267,7 @@ async function place(p) {
   if (bottom - top < 60) throw new Error(`the map is off screen (${Math.round(top)}..${Math.round(bottom)} of ${vh})`);
   await pg.mouse.move(cx, cy); await pg.mouse.down(); await pg.mouse.move(cx + d, cy + d, { steps: 6 }); await pg.mouse.up();
   const near = await pg.locator('[data-testid="place-near"] p').first().innerText();
+  await pairShot(p, "place");
   // from the first-entry step «Here» leads to the feed, from Me back to Me
   await pg.click('[data-testid="place-here"]'); await pg.waitForSelector('[data-screen="me"], [data-screen="feed"]');
   const kept = await pg.evaluate(() => JSON.parse(localStorage.getItem("place.v1") ?? "null"));
@@ -251,8 +279,10 @@ async function place(p) {
 async function sayPhrase(p) {
   const pg = p.page;
   await tab(p, "feed", "feed");
+  await pairShot(p, "feed");
   // the feed's pen on phones and tablets, the rail's «say something» from 1024 on (TabBar.tsx)
   await pg.locator('[data-testid="write"]:visible, [data-testid="rail-say"]:visible').first().click(); await pg.waitForSelector('[data-testid="text"]');
+  await pairShot(p, "composer");
   p.phrase = say(p, `${["кто на кофе у моря?", "ищу партнёра на шахматы", "собака ищет друга", "кто знает хорошего мастера?", "вечером гуляю у набережной"][p.i % 5]} (${TOWNS[p.i][1]})`);
   await pg.fill('[data-testid="text"]', p.phrase);
   const sent = pg.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/feed", { timeout: 20000 });
@@ -260,6 +290,7 @@ async function sayPhrase(p) {
   const r = await sent;
   if (r.status() >= 300) throw new Error(`POST /feed ${r.status()}`);
   await pg.waitForSelector('[data-screen="feed"]', { timeout: 20000 });
+  await pairShot(p, "feed-own");
   return p.phrase;
 }
 
@@ -267,7 +298,7 @@ async function seen(p) {
   const pg = p.page;
   await tab(p, "tables", "tables"); await tab(p, "feed", "feed");
   await pg.waitForTimeout(1500);
-  p.seen = await pg.locator('[data-testid="card"] .fd-open').allInnerTexts();
+  p.seen = await pg.locator('[data-testid="card"] [data-testid="card-open"]').allInnerTexts();
   return `${p.seen.length} cards: ${p.seen.filter((t) => t.startsWith(RUN)).map((t) => t.split(":")[0].slice(RUN.length + 1)).join(", ")}`;
 }
 
@@ -277,10 +308,11 @@ async function like(p) {
   const n = await cards.count();
   let done = 0;
   for (let k = 0; k < n && done < 3; k++) {
-    const text = await cards.nth(k).locator(".fd-open").innerText();
+    const text = await cards.nth(k).locator('[data-testid="card-open"]').innerText();
     if (!text.startsWith(RUN) || text === p.phrase) continue;
-    await cards.nth(k).locator(".fd-open").click();
+    await cards.nth(k).locator('[data-testid="card-open"]').click();
     await pg.waitForSelector('[data-screen="card"]', { timeout: 10000 });
+    if (done === 0) await pairShot(p, "card");
     const btn = pg.locator('[data-screen="card"] [data-testid="like"]');
     if (await btn.count()) { await btn.first().click(); done++; await pg.waitForTimeout(400); }
     await pg.click('[data-screen="card"] [data-testid="back"]').catch(async () => { await pg.goBack(); });
@@ -363,6 +395,7 @@ async function converse(p, round) {
     (p.said[id] ??= []).push(text);
     sent++;
     await pg.waitForTimeout(500);
+    await harvest(p);
   }
   return `round ${round}: ${sent} of ${ids.length} chats, heard ${Object.values(p.heard).reduce((a, s) => a + s.size, 0)} lines so far`;
 }
@@ -816,7 +849,7 @@ async function openCard(p, of) {
   const pg = p.page;
   await tab(p, "feed", "feed");
   await pg.waitForTimeout(1200);
-  const card = pg.locator('[data-testid="card"] .fd-open').filter({ hasText: `${RUN} ${NAMES[of]}:` }).first();
+  const card = pg.locator('[data-testid="card"] [data-testid="card-open"]').filter({ hasText: `${RUN} ${NAMES[of]}:` }).first();
   if (!(await card.count())) throw new Error(`${NAMES[of]}'s phrase is not in ${NAMES[p.i]}'s feed`);
   await card.click();
   await pg.waitForSelector('[data-screen="card"]', { timeout: 10000 });
@@ -849,7 +882,7 @@ async function hideAndRestore(p, of) {
   await cardMenu(p, "hide");
   await pg.waitForTimeout(1200);
   await tab(p, "feed", "feed");
-  const still = await pg.locator('[data-testid="card"] .fd-open').filter({ hasText: `${RUN} ${NAMES[of]}:` }).count();
+  const still = await pg.locator('[data-testid="card"] [data-testid="card-open"]').filter({ hasText: `${RUN} ${NAMES[of]}:` }).count();
   if (still) throw new Error(`hidden, yet ${NAMES[of]}'s phrase is still in the feed`);
   await tab(p, "me", "me");
   await pg.locator('[data-testid="me-hidden"]').scrollIntoViewIfNeeded(); await pg.click('[data-testid="me-hidden"]');

@@ -23,7 +23,7 @@ export function SeaBoard({ state, seat, onMove }: BoardProps) {
             <form className="tg-fleet" onSubmit={(e) => { e.preventDefault(); const parsed = parseFleet(text); setBad(parsed === null); if (parsed) onMove?.({ fleet: parsed }); }}>
               <p className="tb-quiet" data-testid="fleet-hint">{say("web.table.fleet_hint", { example: FLEET_EXAMPLE })}</p>
               <input value={text} maxLength={200} disabled={!onMove} onChange={(e) => setText(e.target.value)} aria-label={say("web.table.fleet")} placeholder={FLEET_EXAMPLE} data-testid="sea-fleet-input" />
-              {bad && <p className="me-error" role="alert" data-testid="fleet-bad">{say("web.table.fleet_bad")}</p>}
+              {bad && <p className="k-note k-error" role="alert" data-testid="fleet-bad">{say("web.table.fleet_bad")}</p>}
               <button type="submit" className="cta cta-primary" disabled={!onMove || !text.trim()} data-testid="sea-fleet-go">{say("web.table.fleet_set")}</button>
             </form>
           )}

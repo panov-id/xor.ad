@@ -11,7 +11,10 @@ import { Icon } from "../shell/Icon";
 import { blockMark, chat, chevronLeft, chevronRight, ellipsis, eyeOff, flag, hand } from "../shell/icons";
 import { useLayers } from "../shell/layers";
 import { type Tab, TabBar } from "../shell/TabBar";
-import { type FeedCard, langOf, type LikeOutcome, offerLabel, peerName, type Tone } from "./feed-logic";
+import { NdIcon } from "../shell/NdIcon";
+import { lineOf } from "./tables/table-row";
+import { gameOfTable } from "@sdk/new_table.ts";
+import { type FeedCard, langOf, type LikeOutcome, offerLabel, peerName, textSize, type Tone } from "./feed-logic";
 
 const modeWord = (mode: string): string => {
   const key = `web.mode.${mode}`;
@@ -38,30 +41,44 @@ export function likeLine(o: LikeOutcome | null): string | null {
   return say("app.feed.like_other", { status: o.status });
 }
 
-function Foot({ card }: { card: FeedCard }) {
+
+/** The mode's mark in the tile's corner (feed.html: the badge, the colour by the tile's tone). */
+const MODE_ICON: Record<string, string> = { alone: "alone", company: "friends", friends: "friends", party: "party" };
+const TONE_COLOUR: Record<Tone, string> = { lime: "3", yellow: "6", peach: "2", coral: "1" };
+
+/** A phrase tile of the prototype (feed.html article): the author's circle and the in-count, the mode's badge, the words,
+ * and at the foot the mode word and «I'm in». The whole tile opens the card; the round button likes at once. */
+export function Tile({ card, tone, busy, onOpen, onLike, testid = "card" }: { card: FeedCard; tone: Tone; busy: boolean; onOpen: () => void; onLike: () => void; testid?: string }) {
+  const offer = card.offer;
   return (
-    <div className="fd-foot">
-      <span className="fd-in">
-        <Icon d={hand} />
-        <span>{say("app.feed.in_n", { n: card.like_count })}{card.liked ? ` · ${say("app.feed.you_too")}` : ""}</span>
-      </span>
-      <span className="fd-mode" data-testid="mode">{modeWord(card.mode)}</span>
-    </div>
+    <li className="k-tile" data-testid={testid} data-id={card.id} data-accent={offer ? "" : undefined}>
+      <div className="k-row k-tile-head">
+        <span className="k-ava" aria-hidden="true"><NdIcon name="me" /></span>
+        <span className="k-meta">{say("app.feed.in_n", { n: card.like_count })}</span>
+      </div>
+      {offer
+        ? <span className="k-badge-white k-corner" data-testid="offer"><NdIcon name="offer" /><span className="k-offer">{offerLabel(offer.discount_value)}</span></span>
+        : <span className="k-badge" data-c={TONE_COLOUR[tone]} aria-hidden="true"><NdIcon name={MODE_ICON[card.mode] ?? "phrase"} /></span>}
+      <button type="button" className="k-words" data-testid="card-open" onClick={onOpen} lang={langOf(card.lang)} data-size={textSize(card.text)}>{card.text}</button>
+      <div className="k-foot">
+        <span className="k-meta" data-testid="mode">{modeWord(card.mode)}{card.liked ? ` · ${say("app.feed.you_too")}` : ""}</span>
+        <button type="button" className="k-round" aria-label={say("web.card.like")} aria-pressed={card.liked === true} disabled={busy || card.liked === true}
+          onClick={onLike} data-testid="tile-like" data-lit={card.liked ? "" : undefined}><NdIcon name={card.liked ? "imin" : "imin-off"} /></button>
+      </div>
+    </li>
   );
 }
 
-/** A tile of the list: the whole tile opens the card, the hand likes at once. */
-export function Tile({ card, tone, busy, onOpen, onLike, testid = "card", place }: { card: FeedCard; tone: Tone; busy: boolean; onOpen: () => void; onLike: () => void; testid?: string; place?: number }) {
-  // `place`: the tile's number among the tiles of its column, for the entrance stagger (a table between them takes no step, MOTION.md rule 2).
+/** A table between the phrases (feed.html: the short tile with the game's badge and the free seats' count). */
+export function TableTile({ card, onOpen }: { card: FeedCard; onOpen?: () => void }) {
+  const line = lineOf(card as never);
+  const game = gameOfTable(card.game ?? "", card.set);
   return (
-    <li className={`fd-card fd-${tone}`} data-testid={testid} data-id={card.id} style={place === undefined ? undefined : ({ "--i": Math.min(place, 5) } as CSSProperties)}>
-      {card.offer && <span className="fd-offer" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>}
-      <button type="button" className="fd-open" onClick={onOpen} lang={langOf(card.lang)}>{card.text}</button>
-      <button type="button" className="fd-hand" aria-label={say("web.card.like")} aria-pressed={card.liked === true} disabled={busy || card.liked === true}
-        onClick={onLike} data-testid="tile-like" data-lit={card.liked ? "" : undefined}>
-        <Icon d={hand} />
-      </button>
-      <Foot card={card} />
+    <li className="k-tile k-tile-short" data-testid="table-card" data-id={card.id}>
+      <span className="k-badge" data-c="2" aria-hidden="true"><NdIcon name={game ? `g-${game.id}` : "tables"} /></span>
+      {typeof card.free_seats === "number" && card.free_seats > 0 && <span className="k-count">{card.free_seats}</span>}
+      <button type="button" className="k-words" onClick={onOpen} disabled={!onOpen}>{line.title}</button>
+      <span className="k-meta">{line.meta}</span>
     </li>
   );
 }
@@ -100,59 +117,50 @@ export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, o
     setBusy(true);
     try { setOutcome(await onLike(card)); } finally { setBusy(false); }
   }
+  const count = card.like_count + (lit && !card.liked ? 1 : 0);
+  // the prototype's card (docs/newdesign/proto/card.html, card-in): the bar with back and «…», the phrase's panel, three
+  // facts as tiles, and the action panel at the foot
   return (
-    <main className="fd-screen" data-screen="card" data-id={card.id}>
-      <div className="fd-panel">
-      <header className="fd-bar">
-        <button type="button" className="fd-icon-btn" aria-label={say("common.back")} onClick={onBack} data-testid="back"><Icon d={chevronLeft} /><span className="fd-back-word" aria-hidden="true">{say("common.back")}</span></button>
-        <h1>{label("web.card.phrase")}</h1>
-        <button type="button" className="fd-icon-btn" aria-label={say("web.card.more")} data-testid="more-menu"
-          onClick={() => open("card-more", <MoreSheet client={client} card={card} onGone={onGone} />)}><Icon d={ellipsis} /></button>
-      </header>
-      <section className="fd-body">
-        <div className="fd-left">
-        <article className={`fd-card fd-big fd-${tone}`} data-id={card.id}>
-          {card.offer && <span className="fd-offer" data-testid="offer">{offerLabel(card.offer.discount_value)}</span>}
-          <p className="fd-text" data-testid="text" lang={langOf(card.lang)}>{card.text}</p>
-          <span className="fd-hand fd-hand-static" data-lit={lit ? "" : undefined} aria-hidden="true"><Icon d={hand} /></span>
-          <Foot card={lit && !card.liked ? { ...card, like_count: card.like_count + 1, liked: true } : card} />
-        </article>
-        <footer className="fd-foot-bar">
+    <main className="k-screen k-over" data-screen="card" data-id={card.id}>
+      <div className="k-col">
+        <header className="k-row k-bar">
+          <button type="button" className="k-bar-btn" aria-label={say("common.back")} onClick={onBack} data-testid="back"><NdIcon name="back" /></button>
+          <h1 className="k-bar-title">{label("web.card.phrase")}</h1>
+          <button type="button" className="k-bar-btn" aria-label={say("web.card.more")} data-testid="more-menu"
+            onClick={() => open("card-more", <MoreSheet client={client} card={card} onGone={onGone} />)}><NdIcon name="more" /></button>
+        </header>
+        <section className="k-panel k-card" data-tone={tone}>
+          <div className="k-row">
+            <span className="k-ava k-ava-big" aria-hidden="true"><NdIcon name="me" /></span>
+            <div className="k-stack"><span className="k-sub">{modeWord(card.mode)}</span>{language && <span className="k-sub" lang={langOf(card.lang)}>{language}</span>}</div>
+          </div>
+          {card.offer
+            ? <span className="k-badge-white k-corner" data-testid="offer"><NdIcon name="offer" /><span className="k-offer">{offerLabel(card.offer.discount_value)}</span></span>
+            : <span className="k-badge k-badge-card" data-c="2" aria-hidden="true"><NdIcon name={MODE_ICON[card.mode] ?? "phrase"} /></span>}
+          <p className="k-card-text" data-testid="text" lang={langOf(card.lang)} data-size={textSize(card.text)}>{card.text}</p>
+          {card.offer?.conditions && <p className="k-sub" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
+          {matched && <p className="k-note" data-testid="matched" role="status"><NdIcon name="both" /><span><b>{say("app.card.matched_title")}</b> {peer ? say("app.card.matched_body", { name: peer }) : say("app.card.matched_body_anon")}</span></p>}
+          {line && !matched && <p className="k-note" role="status" data-testid="like-line" data-state={outcome?.state}>{line}</p>}
+        </section>
+        <div className="k-facts">
+          <div className="k-fact"><span className="k-badge" data-c="5"><NdIcon name={MODE_ICON[card.mode] ?? "alone"} /></span><span>{modeWord(card.mode)}</span></div>
+          <div className="k-fact"><span className="k-badge" data-c="2"><NdIcon name="talks" /></span><span>{language ?? "—"}</span></div>
+          <div className="k-fact" data-on={lit ? "" : undefined}><span className="k-badge" data-c="3"><NdIcon name={lit ? "imin" : "imin-off"} /></span><span>{say("app.feed.in_n", { n: count })}{card.soon ? say("web.card.soon") : ""}</span></div>
+        </div>
+        <section className="k-panel k-actions">
           {matched
-            ? <button type="button" className="cta cta-primary" onClick={onTalk} data-testid="talk"><Icon d={chat} /><span>{label("web.match.talk")}</span></button>
-            : (
-              <button type="button" className="cta cta-primary" disabled={busy || lit} aria-disabled={busy || lit} onClick={() => void like()} data-testid="like" data-lit={lit ? "" : undefined}>
-                <Icon d={hand} /><span>{say("app.feed.im_in")}</span>
-              </button>
-            )}
-        </footer>
-        </div>
-        <div className="fd-side">
-        {matched && (
-          <section className={`fd-matched fd-${tone}`} data-testid="matched" role="status">
-            <Icon d={hand} />
-            <div><h2>{say("app.card.matched_title")}</h2><p>{peer ? say("app.card.matched_body", { name: peer }) : say("app.card.matched_body_anon")}</p></div>
-          </section>
-        )}
-        {card.offer?.conditions && <p className="fd-note" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
-        <dl className="fd-rows">
-          <div><dt>{say("app.feed.row_going")}</dt><dd>{modeWord(card.mode)}</dd></div>
-          {language && <div><dt>{say("app.feed.row_lang")}</dt><dd lang={langOf(card.lang)}>{language}</dd></div>}
-          <div><dt>{say("app.feed.row_in")}</dt><dd>{card.like_count + (lit && !card.liked ? 1 : 0)}{card.soon ? say("web.card.soon") : ""}</dd></div>
-        </dl>
-        {line && !matched && <p className="fd-note" role="status" data-testid="like-line" data-state={outcome?.state}>{line}</p>}
-        </div>
+            ? <button type="button" className="k-cta" onClick={onTalk} data-testid="talk"><NdIcon name="talks" /><span>{label("web.match.talk")}</span></button>
+            : lit
+              ? <button type="button" className="k-cta" data-outline="" disabled aria-disabled="true" data-testid="like" data-lit=""><NdIcon name="imin" /><span>{say("app.feed.you_too")}</span></button>
+              : <button type="button" className="k-cta" disabled={busy} aria-disabled={busy} onClick={() => void like()} data-testid="like"><NdIcon name="imin" /><span>{say("app.feed.im_in")}</span></button>}
+        </section>
         {more.length > 0 && (
-          <section className="fd-more" aria-labelledby="fd-more-h">
-            <h2 id="fd-more-h">{say("app.feed.more_nearby")}</h2>
-            <ul className="fd-col">
-              {more.map((m) => <Tile key={m.card.id} card={m.card} tone={m.tone} busy={false} testid="card-near" onOpen={() => onOpenMore?.(m.card.id)} onLike={() => onOpenMore?.(m.card.id)} />)}
-            </ul>
+          <section className="k-more-near" aria-label={say("app.feed.more_nearby")}>
+            <ul className="k-grid2"><li><ul>{more.map((m) => <Tile key={m.card.id} card={m.card} tone={m.tone} busy={false} testid="card-near" onOpen={() => onOpenMore?.(m.card.id)} onLike={() => onOpenMore?.(m.card.id)} />)}</ul></li></ul>
           </section>
         )}
-      </section>
       </div>
-      <TabBar active="feed" onSelect={onTab} />
+      <TabBar active="feed" onSelect={onTab} railOnly />
     </main>
   );
 }
@@ -191,42 +199,41 @@ function MoreSheet({ client, card, onGone }: { client: Client; card: FeedCard; o
   }
 
   return (
-    <div className="fd-sheet" data-testid="card-more" data-panel={panel}>
-      <span className="fd-grab" aria-hidden="true" />
-      <h2>{label("web.card.phrase")}</h2>
+    <div className="k-stack" data-testid="card-more" data-panel={panel}>
+      <h2 className="k-sheet-title">{label("web.card.phrase")}</h2>
       {panel === "menu" && (
-        <ul className="fd-menu">
-          <li><button type="button" disabled={busy} onClick={() => void hide()} data-testid="hide"><Icon d={eyeOff} /><span>{say("app.feed.hide")}</span><Icon d={chevronRight} /></button></li>
-          <li><button type="button" disabled={busy} onClick={() => setPanel("notice")} data-testid="notice"><Icon d={flag} /><span>{say("web.card.notice")}</span><Icon d={chevronRight} /></button></li>
-          <li><button type="button" disabled={busy} className="fd-danger" onClick={() => setPanel("block")} data-testid="block"><Icon d={blockMark} /><span>{say("app.feed.block_author")}</span><Icon d={chevronRight} /></button></li>
+        <ul className="k-picks">
+          <li><button type="button" className="k-pick k-pick-tall" disabled={busy} onClick={() => void hide()} data-testid="hide"><span className="k-badge k-badge-35" data-c="6"><NdIcon name="hide" /></span><span>{say("app.feed.hide")}</span></button></li>
+          <li><button type="button" className="k-pick k-pick-tall" disabled={busy} onClick={() => setPanel("notice")} data-testid="notice"><span className="k-badge k-badge-35" data-c="3"><NdIcon name="flag" /></span><span>{say("web.card.notice")}</span></button></li>
+          <li><button type="button" className="k-pick k-pick-tall" data-danger="" disabled={busy} onClick={() => setPanel("block")} data-testid="block"><span className="k-badge k-badge-35" data-c="5"><NdIcon name="block" /></span><span>{say("app.feed.block_author")}</span></button></li>
         </ul>
       )}
       {panel === "block" && (
-        <div className="fd-ask">
+        <div className="k-stack">
           <p>{say("web.card.block_warning")}</p>
-          <div className="fd-ask-row">
-            <button type="button" className="cta cta-quiet" disabled={busy} onClick={() => setPanel("menu")} data-testid="block-no">{say("web.card.block_no")}</button>
-            <button type="button" className="cta cta-danger" disabled={busy} onClick={() => void block()} data-testid="block-yes">{say("web.card.block_yes")}</button>
+          <div className="k-two">
+            <button type="button" className="k-btn" disabled={busy} onClick={() => setPanel("menu")} data-testid="block-no">{say("web.card.block_no")}</button>
+            <button type="button" className="k-btn" data-danger="" disabled={busy} onClick={() => void block()} data-testid="block-yes">{say("web.card.block_yes")}</button>
           </div>
         </div>
       )}
       {panel === "notice" && (
-        <form className="fd-ask" onSubmit={(e) => void notice(e)}>
-          <textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder={say("web.card.notice_reason")} aria-label={say("web.card.notice_reason")} rows={3} data-testid="notice-reason" />
-          <label className="fd-check"><input type="checkbox" checked={bona} onChange={(e) => setBona(e.target.checked)} data-testid="notice-bona" /><span>{say("web.card.notice_bona")}</span></label>
-          <div className="fd-ask-row">
-            <button type="button" className="cta cta-quiet" disabled={busy} onClick={() => setPanel("menu")}>{say("web.card.cancel")}</button>
-            <button type="submit" className="cta cta-primary" disabled={busy || !bona || reason.trim() === ""} data-testid="notice-send">{say("web.card.notice_send")}</button>
+        <form className="k-stack" onSubmit={(e) => void notice(e)}>
+          <textarea className="k-field" value={reason} onChange={(e) => setReason(e.target.value)} placeholder={say("web.card.notice_reason")} aria-label={say("web.card.notice_reason")} rows={3} data-testid="notice-reason" />
+          <label className="k-check"><input type="checkbox" checked={bona} onChange={(e) => setBona(e.target.checked)} data-testid="notice-bona" /><span>{say("web.card.notice_bona")}</span></label>
+          <div className="k-two">
+            <button type="button" className="k-btn" disabled={busy} onClick={() => setPanel("menu")}>{say("web.card.cancel")}</button>
+            <button type="submit" className="k-btn" data-primary="" disabled={busy || !bona || reason.trim() === ""} data-testid="notice-send">{say("web.card.notice_send")}</button>
           </div>
         </form>
       )}
       {panel === "noticed" && (
-        <div className="fd-ask">
+        <div className="k-stack">
           <p data-testid="noticed">{say("web.card.notice_sent", { ref })}</p>
-          <button type="button" className="cta cta-quiet" onClick={close}>{say("common.back")}</button>
+          <button type="button" className="k-btn" onClick={close}>{say("common.back")}</button>
         </div>
       )}
-      {error && <p className="fd-sheet-error" role="alert" data-testid="error">{error}</p>}
+      {error && <p className="k-note" data-tone="error" role="alert" data-testid="error">{error}</p>}
     </div>
   );
 }

@@ -1,7 +1,9 @@
-// w1_register-1..3 (sosed Dusk, mobile_390_w1_register-*): the web's registration
+// The prototype's register-1..3 (docs/newdesign/proto/register-*.html): the web's registration
 // (web/src/screens/Register.tsx) in the new design. Three steps, as the web has them:
 //   1 · who you are: a name up to 24 graphemes, an age from 13, the consent to the three documents;
-//   2 · the PIN twice (an easy one warns and does not stop);
+//   2 · the PIN, then 2b · the same PIN again on its own screen, each on the PIN's own pad (pin-flow.ts; sheets
+//       register-2 and register-2b): the sixth digit moves on by itself, a repeat that differs goes back and says so,
+//       an easy PIN warns on the repeat and does not stop;
 //   3 · the paper code, shown once, the second and fourth groups typed back.
 // Every rule is the SDK's (depth/core/register.ts, shared with the web), the registration itself too
 // (enroll.ts registerIdentity, openSealed); this file is the words, the screen and the order of calls.
@@ -18,15 +20,14 @@ import { acceptAll, acceptedKey, documentAddress, inLegalOrder, keepAcceptedIn, 
 import { newPaperCode, paperGroups } from "@sdk/paper.ts";
 import { obviousPin } from "@sdk/pin.ts";
 import {
-  groupsMatch, layOutGroups, lettersLeft, NAME_MAX, ageDigits, isYoung, pinDigits, pinsDiffer, refusalOf, whyGroups, whyNext, whyPin,
+  groupsMatch, layOutGroups, lettersLeft, NAME_MAX, ageDigits, isYoung, pinDigits, refusalOf, whyGroups, whyNext, whyPin,
 } from "@sdk/register.ts";
 import { API_KEY, NODE_BASE } from "../config";
 import { failedLine, label, say } from "../i18n";
-import { Icon } from "../shell/Icon";
-import { arrowRight, check, clock } from "../shell/icons";
-import { Screen } from "../shell/Screen";
+import { NdIcon } from "../shell/NdIcon";
 import { registerAndKeep } from "../vault";
-import { CODE_CELLS, Cells, CodePlate, Field, PIN_CELLS, StepHead } from "./register-parts";
+import { CODE_CELLS, Cells, CodePlate, Field, PIN_CELLS, PinPad, StepHead } from "./register-parts";
+import { afterDigits, pressed as padPressed, type PinStage } from "./pin-flow";
 
 const storage = (): Storage | null => { try { return localStorage; } catch { return null; } };
 
@@ -49,6 +50,8 @@ export type Seated = { client: Client; sealed: "ok" | "failed" | "unlocked" | "u
 
 export function Register({ onDone }: { onDone: (seated: Seated) => void }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [stage, setStage] = useState<PinStage>("pin");
+  const [mismatch, setMismatch] = useState(false);
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [consent, setConsent] = useState(false);
@@ -76,8 +79,19 @@ export function Register({ onDone }: { onDone: (seated: Seated) => void }) {
   const nextWhy = whyNext({ name, age, consent });
   const reasonNext = nextWhy ? say(`web.register.why_${nextWhy}`) : null;
   const pinWhy = whyPin(pin, pinAgain);
-  const reasonPin = pinWhy ? say(`web.register.why_${pinWhy}`) : null;
   const reasonGroups = whyGroups(second, fourth, true) ? say("web.register.why_groups") : null;
+
+  // The sixth digit moves on: to the repeat, or, repeated, to the creation; a repeat that differs starts over.
+  useEffect(() => {
+    if (step !== 2 || busy) return;
+    const move = afterDigits({ stage, pin, again: pinAgain, mismatch });
+    if (move.stage === stage && !move.create) return;
+    const t = setTimeout(() => {
+      setStage(move.stage); setPin(move.pin); setPinAgain(move.again); setMismatch(move.mismatch);
+      if (move.create) void register();
+    }, move.create ? 0 : 180);
+    return () => clearTimeout(t);
+  }, [step, stage, pin, pinAgain]);
 
   async function register() {
     if (busy || pinWhy) return;
@@ -121,94 +135,108 @@ export function Register({ onDone }: { onDone: (seated: Seated) => void }) {
   const sub = step === 1 ? say("app.reg.sub1") : step === 2 ? say("app.reg.pin_sub") : say("app.reg.paper_sub");
   const ordered = revisions ? inLegalOrder(revisions) : [];
 
-  // The foot: the reason the primary is shut (read by a screen reader at once, drawn after a press on the
-  // closed primary: the sheets show none), then the primary. `aria-disabled`, never `disabled`: it keeps its focus.
+  // The foot (the prototype's action panel): the reason the primary is shut (read by a screen reader at once, drawn after a
+  // press on the closed primary), then the primary, quiet on the tile while shut. `aria-disabled`, never `disabled`: it keeps its focus.
   const foot = (reason: string | null, pending: boolean, button: { testid: string; word: string; icon: string; onClick: () => void }) => (
-    <div className="reg-foot" onClickCapture={(e) => { if ((e.target as Element).closest('[aria-disabled="true"]')) setPressed((n) => n + 1); }}>
-      {reason && <p key={pressed} id={why} className={pressed > 0 ? "reg-reason" : "reg-reason sr-only"} data-pressed={pressed > 0 ? "yes" : undefined} role={pressed > 0 ? "alert" : undefined}>{reason}</p>}
-      <button type="button" className="cta cta-primary" aria-disabled={reason || pending ? true : undefined} aria-describedby={reason ? why : undefined}
+    <section className="k-panel k-actions" onClickCapture={(e) => { if ((e.target as Element).closest('[aria-disabled="true"]')) setPressed((n) => n + 1); }}>
+      {reason && <p key={pressed} id={why} className={pressed > 0 ? "k-note" : "k-note sr-only"} data-pressed={pressed > 0 ? "yes" : undefined} role={pressed > 0 ? "alert" : undefined}>{reason}</p>}
+      <button type="button" className="k-cta" data-quiet={reason ? "" : undefined} aria-disabled={reason || pending ? true : undefined} aria-describedby={reason ? why : undefined}
         aria-busy={pending || undefined} onClick={button.onClick} data-testid={button.testid}>
-        <Icon d={button.icon} /><span>{pending ? say("web.register.waiting") : button.word}</span>
+        <NdIcon name={button.icon} /><span>{pending ? say("web.register.waiting") : button.word}</span>
       </button>
-    </div>
+    </section>
   );
 
+  // the prototype's register-1..3: the bar with the title and the step dots, the panel, the action panel
   return (
-    <Screen name={`register-${step}`} title={title} className="reg">
-      <StepHead n={step} of={3} />
-      <div className="reg-sheet">
-       <div className="reg-body" key={step}>
-        <h1>{title}</h1>
-        <p className="reg-sub">{sub}</p>
-        {step === 1 && (
-          <>
-            <Field text={say("app.reg.name")} value={name} onChange={setName} maxLength={64} testid="name"
-              under={<p className="reg-counter" data-testid="register-left">{say("app.reg.left", { n: lettersLeft(name), max: NAME_MAX })}</p>} />
-            <Field text={say("app.reg.age")} kind="number" value={age} onChange={(v) => setAge(ageDigits(v))} testid="age" invalid={young}
-              under={<p className="reg-hint" data-state={young ? "young" : undefined} data-testid="register-age-min">{say("web.register.age_min")}</p>} />
-            <div className="reg-consent">
-              <label className="reg-check">
-                <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-                <span className="reg-box" aria-hidden="true"><Icon d={check} /></span>
-                <span>{say("web.register.consent")}</span>
-              </label>
-              {ordered.length > 0 && (
-                <ul className="reg-docs" data-testid="legal-links">
-                  {ordered.map((r) => (
-                    <li key={r.document}>
-                      <a href={documentAddress(brand.host, r.document)} target="_blank" rel="noopener noreferrer" data-testid={`legal-link-${r.document}`}
-                        aria-label={`${say(`web.legal.${r.document}`)} ${say("web.ui.newTab")}`}>
-                        <span aria-hidden="true">{say(`web.legal.short.${r.document}`)}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            {foot(reasonNext, false, { testid: "next", word: say("app.reg.next_pin"), icon: arrowRight, onClick: () => { if (!reasonNext) setStep(2); } })}
-          </>
+    <main className="k-screen" data-screen={step === 2 && stage === "again" ? "register-2b" : `register-${step}`}>
+      <div className="k-col">
+        <StepHead n={step} of={3} title={title} />
+        <section className="k-panel k-grow k-reg" key={step === 2 ? `2${stage}` : step}>
+          <p className="k-sub">{sub}</p>
+          {step === 1 && (
+            <>
+              <div className="k-ava-hero" aria-hidden="true"><NdIcon name="me" /></div>
+              <Field text={say("app.reg.name")} value={name} onChange={setName} maxLength={64} testid="name"
+                side={<span className="k-meta" data-testid="register-left">{say("app.reg.left", { n: lettersLeft(name), max: NAME_MAX })}</span>} />
+              <div className="k-stepper">
+                <button type="button" aria-label={say("app.reg.age_less")} onClick={() => setAge(ageDigits(String(Math.max(0, (Number(age) || 14) - 1))))} data-testid="age-less"><NdIcon name="back" /></button>
+                <Field text={say("app.reg.age")} kind="number" icon="clock" value={age} onChange={(v) => setAge(ageDigits(v))} testid="age" invalid={young} />
+                <button type="button" aria-label={say("app.reg.age_more")} onClick={() => setAge(ageDigits(String((Number(age) || 12) + 1)))} data-testid="age-more"><NdIcon name="chev" /></button>
+              </div>
+              <p className="k-sub" data-state={young ? "young" : undefined} data-testid="register-age-min">{say("web.register.age_min")}</p>
+              <div className="k-reg-foot">
+                {ordered.length > 0 && (
+                  <ul className="k-docs" data-testid="legal-links">
+                    {ordered.map((r, i) => (
+                      <li key={r.document}>
+                        <a className="k-fact" href={documentAddress(brand.host, r.document)} target="_blank" rel="noopener noreferrer" data-testid={`legal-link-${r.document}`}
+                          aria-label={`${say(`web.legal.${r.document}`)} ${say("web.ui.newTab")}`}>
+                          <span className="k-badge" data-c={["1", "4", "3"][i % 3]}><NdIcon name={["doc", "eye", "phrase"][i % 3]} /></span>
+                          <span aria-hidden="true">{say(`web.legal.short.${r.document}`)}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <label className="k-check k-consent">
+                  <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="consent" />
+                  <span className="k-box" aria-hidden="true"><NdIcon name="check" /></span>
+                  <span>{say("web.register.consent")}</span>
+                </label>
+              </div>
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <PinStep stage={stage} pin={pin} again={pinAgain} mismatch={mismatch} busy={busy}
+                onKey={(k) => { if (stage === "pin") { setPin((p) => padPressed(p, k)); setMismatch(false); } else setPinAgain((p) => padPressed(p, k)); }}
+                setPin={(v) => { setPin(v); setMismatch(false); }} setAgain={setPinAgain} />
+              {error && <div data-testid="error"><p className="k-note" data-tone="error" role="alert">{error}</p></div>}
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <CodePlate groups={groups} />
+              <GroupsStep typed={typed} setTyped={setTyped} />
+              {error && <div data-testid="error"><p className="k-note" data-tone="error" role="alert">{error}</p></div>}
+            </>
+          )}
+        </section>
+        {step === 1 && foot(reasonNext, false, { testid: "next", word: say("app.reg.next_pin"), icon: "chev", onClick: () => { if (!reasonNext) setStep(2); } })}
+        {/* the node refused or was away with both PINs typed: the pad takes no seventh digit, so the same PINs go again */}
+        {step === 2 && error && !busy && stage === "again" && pinAgain.length === PIN_CELLS && (
+          <section className="k-panel k-actions"><button type="button" className="k-cta" onClick={() => void register()} data-testid="register-retry"><NdIcon name="refresh" /><span>{say("app.feed.retry")}</span></button></section>
         )}
-        {step === 2 && (
-          <>
-            <PinStep pin={pin} again={pinAgain} setPin={setPin} setAgain={setPinAgain} />
-            {error && <div data-testid="error"><p className="reg-error" role="alert">{error}</p></div>}
-            {foot(reasonPin, busy, { testid: "register", word: say("app.reg.create"), icon: arrowRight, onClick: register })}
-          </>
-        )}
-        {step === 3 && (
-          <>
-            <CodePlate groups={groups} />
-            <GroupsStep typed={typed} setTyped={setTyped} />
-            {error && <div data-testid="error"><p className="reg-error" role="alert">{error}</p></div>}
-            {foot(reasonGroups, busy, { testid: "confirm", word: label("web.register.done"), icon: check, onClick: confirm })}
-          </>
-        )}
-       </div>
+        {step === 3 && foot(reasonGroups, busy, { testid: "confirm", word: label("web.register.done"), icon: "check", onClick: confirm })}
       </div>
-    </Screen>
+    </main>
   );
 }
 
-function PinStep({ pin, again, setPin, setAgain }: { pin: string; again: string; setPin: (v: string) => void; setAgain: (v: string) => void }) {
-  const first = useId(), second = useId(), differ = useId();
-  const differs = pinsDiffer(pin, again);
+function PinStep({ stage, pin, again, mismatch, busy, onKey, setPin, setAgain }: {
+  stage: PinStage; pin: string; again: string; mismatch: boolean; busy: boolean; onKey: (k: string) => void;
+  setPin: (v: string) => void; setAgain: (v: string) => void;
+}) {
+  const field = useId(), said = useId();
+  const first = stage === "pin";
+  const value = first ? pin : again, set = first ? setPin : setAgain;
+  // register-2 / 2b: the pin mark, six dots over the one real input, the notice tile, the pad at the foot
   return (
     <>
-      <div className="reg-field">
-        <label htmlFor={first}>{say("reg.pin")}</label>
-        <Cells id={first} text={say("web.ui.pinName")} value={pin} size={PIN_CELLS} secret onChange={(v) => setPin(pinDigits(v))}
-          onPaste={(e) => { e.preventDefault(); setPin(pinDigits(e.clipboardData.getData("text"))); }} testid="pin" />
+      <NdIcon name="pin" className="k-big-icon k-mid" />
+      <div className="k-pin" data-stage={stage}>
+        <label htmlFor={field} className="k-sub">{first ? say("reg.pin") : label("web.register.pin_again")}</label>
+        <Cells id={field} text={first ? say("web.ui.pinName") : say("web.register.pin_again")} value={value} size={PIN_CELLS} secret
+          onChange={(v) => set(pinDigits(v))} onPaste={(e) => { e.preventDefault(); set(pinDigits(e.clipboardData.getData("text"))); }}
+          testid={first ? "pin" : "pin-again"} describedBy={mismatch ? said : undefined} invalid={mismatch || undefined} />
       </div>
-      <div className="reg-field">
-        <label htmlFor={second}>{label("web.register.pin_again")}</label>
-        <Cells id={second} text={say("web.register.pin_again")} value={again} size={PIN_CELLS} secret onChange={(v) => setAgain(pinDigits(v))}
-          onPaste={(e) => { e.preventDefault(); setAgain(pinDigits(e.clipboardData.getData("text"))); }} testid="pin-again"
-          describedBy={differs ? differ : undefined} invalid={differs} />
-        {differs && <p id={differ} className="reg-error">{say("reg.pinMismatch")}</p>}
-      </div>
-      {pin.length === PIN_CELLS && obviousPin(pin) && (
-        <p className="reg-notice" role="status"><Icon d={clock} /><span>{say("app.reg.easy_pin")}</span></p>
+      {mismatch && first && <p id={said} className="k-note" data-tone="error" role="alert" data-testid="pin-mismatch"><NdIcon name="alert" /><span>{say("reg.pinMismatch")}</span></p>}
+      {!first && pin.length === PIN_CELLS && obviousPin(pin) && (
+        <p className="k-note" role="status"><NdIcon name="alert" /><span>{say("app.reg.easy_pin")}</span></p>
       )}
+      {busy && <p className="k-sub" role="status" data-testid="register-busy">{say("web.register.waiting")}</p>}
+      <PinPad onKey={onKey} disabled={busy} />
     </>
   );
 }
@@ -224,16 +252,20 @@ function GroupsStep({ typed, setTyped }: { typed: string[]; setTyped: (v: string
     if (focus !== null) inputs.current[focus]?.focus();
   };
   return (
-    <div role="group" aria-label={say("web.register.confirm")} data-testid="paper-groups">
+    <div className="k-stack" role="group" aria-label={say("web.register.confirm")} data-testid="paper-groups">
+      <hr className="k-rule" />
+      <p className="k-row"><NdIcon name="pen" /><span className="k-sub">{say("web.register.confirm")}</span></p>
+      <div className="k-type-row">
       {PLACES.map((place, i) => (
-        <div className="reg-field" key={place}>
-          <label htmlFor={ids[i]}>{say("app.reg.type_group", { n: place })}</label>
+        <div className="k-type" key={place}>
+          <label htmlFor={ids[i]} className="k-meta">{say("app.reg.type_group", { n: place })}</label>
           <Cells id={ids[i]} text={say("app.reg.type_group", { n: place })} value={typed[i] ?? ""} size={CODE_CELLS} onChange={(v) => write(i, v)}
             onPaste={(e) => { e.preventDefault(); write(i, e.clipboardData.getData("text")); }}
             onKeyDown={(e) => { if (e.key === "Backspace" && (typed[i] ?? "") === "" && i > 0) { e.preventDefault(); inputs.current[i - 1]?.focus(); } }}
             inputRef={(node) => { inputs.current[i] = node; }} />
         </div>
       ))}
+      </div>
     </div>
   );
 }

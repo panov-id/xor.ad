@@ -127,8 +127,8 @@ export function Restore({ onDone, onBack }: { onDone: (client: Client) => void; 
           <Icon d={key} /><span>{say("app.restore.open")}</span>
         </button>
       }>
-      <h2 className="me-title">{say("app.restore.title")}</h2>
-      <p className="me-lead">{say("app.restore.sub")}</p>
+      <h2 className="k-title k-title-big">{say("app.restore.title")}</h2>
+      <p className="k-sub">{say("app.restore.sub")}</p>
       <div className="reg-field restore-code">
         <Cells id={codeField} text={say("restore.code")} value={code} size={CODE_LENGTH} onChange={typeCode}
           onPaste={(e) => { e.preventDefault(); typeCode(e.clipboardData.getData("text")); }} testid="restore-code" />

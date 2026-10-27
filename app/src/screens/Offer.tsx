@@ -39,7 +39,7 @@ export function Offer({ code, client, onBack }: { code: string; client?: Client;
     const words = state.at === "missing" ? [say("web.offer.noSuch"), say("web.offer.checkCode")] : state.at === "failed" ? [say("web.offer.failed"), say("web.offer.later")] : null;
     return (
       <SubPage name="offer" title={title} onBack={onBack}>
-        {words ? <><h2 className="me-title">{words[0]}</h2><p className="me-quiet" data-testid={state.at}>{words[1]}</p></> : <p className="me-quiet" role="status" data-testid="loading">…</p>}
+        {words ? <><h2 className="k-title k-title-big">{words[0]}</h2><p className="k-sub" data-testid={state.at}>{words[1]}</p></> : <p className="k-sub" role="status" data-testid="loading">…</p>}
       </SubPage>
     );
   }
@@ -59,8 +59,8 @@ export function Offer({ code, client, onBack }: { code: string; client?: Client;
       {client && report !== "sent" && !disabled && (
         <button type="button" className="cb-report" aria-disabled={report === "sending" || undefined} onClick={() => void reportLink()} data-testid="report">{say("app.offer.report")}</button>
       )}
-      {report === "sent" && <p className="me-quiet" role="status" data-testid="reported">{label("web.offer.reported")}</p>}
-      {report === "failed" && <p className="me-error" role="alert" data-testid="report-failed">{say("web.offer.later")}</p>}
+      {report === "sent" && <p className="k-sub" role="status" data-testid="reported">{label("web.offer.reported")}</p>}
+      {report === "failed" && <p className="k-note k-error" role="alert" data-testid="report-failed">{say("web.offer.later")}</p>}
     </SubPage>
   );
 }

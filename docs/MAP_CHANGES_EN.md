@@ -1,3 +1,45 @@
+## 26.10.2026 21:04 · edges +37 −0
+
+```diff
++ app/src/brands/sosed/theme.test.ts -> app/src/brands/sosed/theme.ts
++ app/src/main.tsx -> app/src/brands/sosed/theme.ts
++ app/src/main.tsx -> app/tokens/nd-icons.css
++ app/src/main.tsx -> app/tokens/themes.css
++ app/src/screens/me/Me.tsx -> app/src/brands/sosed/theme.ts
++ app/src/screens/me/Theme.tsx -> app/src/brands/sosed/theme.ts
++ app/src/shell/nd-icons.test.ts -> app/src/shell/nd-icons.gen.ts
++ depth/core/inbox_room.test.ts -> depth/core/client.ts
++ depth/core/inbox_room.test.ts -> depth/core/paper.ts
++ docs/NEWDESIGN_PLAN_EN.md -> docs/NEWDESIGN_PLAN_RU.md
++ docs/NEWDESIGN_PLAN_EN.md -> docs/newdesign/flow-map.svg
++ docs/NEWDESIGN_PLAN_RU.md -> docs/NEWDESIGN_PLAN_EN.md
++ docs/NEWDESIGN_PLAN_RU.md -> docs/newdesign/flow-map.svg
++ relay/node/src/routes/inbox.ts -> relay/node/src/lib/log.ts
++ relay/node/src/routes/inbox.ts -> relay/node/src/lib/rate_limit.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/chat/relay.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/lib/db.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/lib/identity_auth.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/lib/rate_limit.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/lib/router.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/routes/chats.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/routes/feed.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/routes/identity.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/routes/inbox.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/routes/likes.ts
++ relay/node/test/inbox_room.test.ts -> relay/node/src/routes/matches.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/chat/relay.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/lib/db.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/lib/identity_auth.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/lib/router.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/routes/away.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/routes/blocks.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/routes/feed.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/routes/hidden.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/routes/identity.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/routes/inbox.ts
++ relay/node/test/your_turn.test.ts -> relay/node/src/routes/tables.ts
+```
+
 ## 26.10.2026 15:09 · edges +3 −8
 
 ```diff

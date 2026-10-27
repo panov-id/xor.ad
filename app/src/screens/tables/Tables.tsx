@@ -14,6 +14,7 @@ import { storedPlace } from "../../place";
 import { Icon } from "../../shell/Icon";
 import { flag, map, refresh } from "../../shell/icons";
 import { useSkeleton } from "../../shell/loading";
+import { NdIcon } from "../../shell/NdIcon";
 import { Screen } from "../../shell/Screen";
 import { Skeleton } from "../../shell/Skeleton";
 import { type Tab, TabBar } from "../../shell/TabBar";
@@ -72,12 +73,10 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
           <button type="button" className="cta cta-primary tb-new" onClick={() => onNewTable()} data-testid="new-table"><Icon d={plus} /><span>{label("web.newTable.title")}</span></button>
 
           {state === "failed" && (
-            <div className="fd-fail" data-testid="error">
-              <div className="fd-banner" role="alert">
-                <Icon d={flag} />
-                <div><strong>{say("app.feed.err_title")}</strong><p>{say("app.tables.err_body")}</p></div>
-              </div>
-              <button type="button" className="cta cta-quiet" onClick={() => void load()} data-testid="retry"><Icon d={refresh} /><span>{say("app.feed.retry")}</span></button>
+            <div className="k-empty" data-testid="error">
+              <NdIcon name="wifi-off" className="k-empty-mark" />
+              <h2 role="alert">{say("app.feed.err_title")}</h2><p>{say("app.tables.err_body")}</p>
+              <button type="button" className="k-btn" onClick={() => void load()} data-testid="retry"><NdIcon name="refresh" /><span>{say("app.feed.retry")}</span></button>
             </div>
           )}
 
@@ -98,8 +97,8 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
           )}
 
           {state === "ready" && list.length === 0 && mine.length === 0 && (
-            <div className="fd-empty" data-testid="quiet">
-              <span className="fd-empty-icon" aria-hidden="true"><Icon d={map} /></span>
+            <div className="k-empty" data-testid="quiet">
+              <NdIcon name="tables" className="k-empty-mark" />
               <h2>{say("web.tables.empty")}</h2>
               <p>{say("web.tables.empty_hint")}</p>
             </div>
@@ -113,7 +112,7 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
               return <TableRow key={card.id} id={card.id} tone={toneAt(i)} title={line.title} meta={line.meta} testid="table-card" onWatch={onTable && (() => onTable(card.id))} />;
             })}
           </ul>
-          {state === "loading" && skeleton && <div className="fd-skeletons" data-testid="loading"><Skeleton kind="card" /><Skeleton kind="card" /></div>}
+          {state === "loading" && skeleton && <div className="k-stack" data-testid="loading"><div className="k-tile k-ghost" /><div className="k-tile k-ghost" /></div>}
           {/* «Start a game» (the wide sheets only): six games, a tap opens the wizard with the game picked */}
           <section className="tb-start" aria-labelledby="tables-start" data-testid="tables-start">
             <h2 id="tables-start">{say("app.tables.start")}</h2>

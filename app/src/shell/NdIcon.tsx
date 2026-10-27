@@ -3,8 +3,19 @@
 // icon's own accent behind it (--acc-N, the same on every screen), the icon white with a 28 % white fill.
 import type { CSSProperties } from "react";
 import { ND_ICONS } from "./nd-icons.gen";
+import { PROTO_ICONS } from "./proto-icons.gen";
 
 export function NdIcon({ name, className }: { name: string; className?: string }) {
+  // the prototype's shape first (proto-icons.gen.ts: the screens are the source of truth); the archive's icons/svg only
+  // for a name no screen of the prototype draws
+  const proto = PROTO_ICONS[name];
+  if (proto !== undefined) {
+    return (
+      <svg className={className ? `nd-icon ${className}` : "nd-icon"} viewBox="0 0 48 48" fill="none" stroke="currentColor"
+        strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" data-icon={name}
+        dangerouslySetInnerHTML={{ __html: proto }} />
+    );
+  }
   const icon = ND_ICONS[name];
   if (!icon) return null;
   return (

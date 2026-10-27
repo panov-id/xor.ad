@@ -97,8 +97,8 @@ export function Reissue({ client, onDone, onBack }: { client: Client; onDone: ()
       }>
       {step === 1 ? (
         <>
-          <h2 className="me-title">{say("app.reissue.current_title")}</h2>
-          <p className="me-lead">{say("app.reissue.current_sub")}</p>
+          <h2 className="k-title k-title-big">{say("app.reissue.current_title")}</h2>
+          <p className="k-sub">{say("app.reissue.current_sub")}</p>
           <div className="reg-field restore-code">
             <Cells id={codeField} text={say("restore.code")} value={current} size={CODE_LENGTH} onChange={(v) => setCurrent(codeChars(v))}
               onPaste={(e) => { e.preventDefault(); setCurrent(codeChars(e.clipboardData.getData("text"))); }}

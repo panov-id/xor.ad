@@ -62,9 +62,9 @@ export function NewTable({ client, onMade, onBack, picked }: { client: Client; o
   const named = w.draft.name.trim();
   return (
     <Screen name="new-table" title={title} className="nt" data-step={String(w.step)}>
-      <header className="mv-bar">
-        <button type="button" className="mv-back" aria-label={label("common.back")} onClick={goBack} data-testid="new-table-back"><Icon d={chevronLeft} /></button>
-        <h1 className="mv-title">{title}</h1>
+      <header className="k-row k-bar">
+        <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={goBack} data-testid="new-table-back"><Icon d={chevronLeft} /></button>
+        <h1 className="k-bar-title">{title}</h1>
       </header>
       <div className="nt-steps" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={w.step} aria-valuetext={words} aria-label={words} data-testid="new-table-step" data-step={String(w.step)}>
         <p className="reg-step" aria-hidden="true">{words}</p>
@@ -97,9 +97,9 @@ export function NewTable({ client, onMade, onBack, picked }: { client: Client; o
               <p className="nt-lead">{say("app.nt.how_lead")}</p>
               <div className="reg-field">
                 <label id="nt-variant">{label("web.newTable.variant")}</label>
-                <div className="me-chips" role="radiogroup" aria-labelledby="nt-variant" data-testid="new-table-set">
+                <div className="k-chips" role="radiogroup" aria-labelledby="nt-variant" data-testid="new-table-set">
                   {game.sets.map((s) => (
-                    <button key={s} type="button" role="radio" aria-checked={w.draft.set === s} className="me-chip" lang={game.klass === "word" ? s : undefined}
+                    <button key={s} type="button" role="radio" aria-checked={w.draft.set === s} className="k-pick-chip" lang={game.klass === "word" ? s : undefined}
                       onClick={() => setW({ ...w, draft: { ...w.draft, set: s } })} data-testid={`new-table-set-${s}`}>
                       {label(variantWord(game.id, s))}
                     </button>
@@ -108,9 +108,9 @@ export function NewTable({ client, onMade, onBack, picked }: { client: Client; o
               </div>
               <div className="reg-field">
                 <label id="nt-seats">{label("web.newTable.seats")}</label>
-                <div className="me-chips" role="radiogroup" aria-labelledby="nt-seats" data-testid="new-table-seats">
+                <div className="k-chips" role="radiogroup" aria-labelledby="nt-seats" data-testid="new-table-seats">
                   {game.seats.map((n) => (
-                    <button key={n} type="button" role="radio" aria-checked={w.draft.seats === n} className="me-chip"
+                    <button key={n} type="button" role="radio" aria-checked={w.draft.seats === n} className="k-pick-chip"
                       onClick={() => setW({ ...w, draft: { ...w.draft, seats: n } })} data-testid={`new-table-seats-${n}`}>
                       {sayCount("app.nt.seats", n)}
                     </button>
@@ -119,7 +119,7 @@ export function NewTable({ client, onMade, onBack, picked }: { client: Client; o
               </div>
               <Field text={say("app.nt.name")} value={w.draft.name} maxLength={TABLE_NAME_MAX} autoComplete="off" testid="new-table-name"
                 onChange={(v) => setW({ ...w, draft: { ...w.draft, name: graphemes(v, TABLE_NAME_MAX) } })}
-                under={<p className="reg-counter" data-testid="new-table-left">{say("app.reg.left", { n: nameLeft(w.draft.name), max: TABLE_NAME_MAX })}</p>} />
+                under={<p className="k-meta" data-testid="new-table-left">{say("app.reg.left", { n: nameLeft(w.draft.name), max: TABLE_NAME_MAX })}</p>} />
               <ErrorLine text={error} />
             </>
           )}

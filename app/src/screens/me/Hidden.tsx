@@ -30,8 +30,8 @@ export function Hidden({ client, onBack }: { client: Client; onBack: () => void 
           {rows.map((row) => <Row key={row.id} text={row.text} value={label("web.feed.hidden_undo")} testid="hidden-restore" onOpen={() => bringBack(row.id)} />)}
         </div>
       )}
-      {rows?.length === 0 && !error && <p className="me-quiet" data-testid="hidden-empty">{label("hidden.empty")}</p>}
-      {rows && rows.length > 0 && <p className="me-quiet" data-testid="hidden-hint">{say("app.hidden.hint")}</p>}
+      {rows?.length === 0 && !error && <p className="k-sub" data-testid="hidden-empty">{label("hidden.empty")}</p>}
+      {rows && rows.length > 0 && <p className="k-sub" data-testid="hidden-hint">{say("app.hidden.hint")}</p>}
       <ErrorLine text={error} />
     </SubPage>
   );

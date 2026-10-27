@@ -20,26 +20,23 @@ import { useSkeleton } from "../shell/loading";
 import { Skeleton } from "../shell/Skeleton";
 import { type Tab, TabBar } from "../shell/TabBar";
 import { useMinWidth } from "../shell/useMinWidth";
-import { CardScreen, likeLine, Tile } from "./feed-card";
-import { FeedMenu } from "./feed-menu";
+import { CardScreen, likeLine, TableTile, Tile } from "./feed-card";
+import { Scene } from "../shell/Scene";
+import { RADIUS_ICON, radiusText, RadiusSheet } from "./feed-radius";
+import { NdIcon } from "../shell/NdIcon";
 import {
   cardEntry, cardOf, feedRows, type FeedCard, type Gone, likeOutcome, type LikeOutcome, mergePage, RADII, radiusWord, type SentPhrase, type Step, stepKey, stepOf, takedownVerdict, UNDO_HIDE_MS, widerRadius, withLike, withoutCard,
 } from "./feed-logic";
 import { lineOf, TableRow } from "./tables/table-row";
 
-const radiusText = (r: Radius): string => {
-  const w = radiusWord(r);
-  return say(w.key, { n: w.n });
-};
-
 /** How many columns the list has: the CSS says (--fd-cols in tokens/wide.css), the page follows it as the window changes. */
 function useColumns(ref: { current: HTMLElement | null }): number {
-  const [n, setN] = useState(1);
+  const [n, setN] = useState(2);
   useLayoutEffect(() => {
     const read = () => {
       if (!ref.current) return;
       const v = parseInt(getComputedStyle(ref.current).getPropertyValue("--fd-cols"), 10);
-      setN(v >= 1 ? v : 1);
+      setN(v >= 1 ? v : 2);   // the prototype's two columns unless the wide layout says more
     };
     read();
     addEventListener("resize", read);
@@ -48,17 +45,15 @@ function useColumns(ref: { current: HTMLElement | null }): number {
   return n;
 }
 
-export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLikes, onNewTable, onTable }: {
+export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLikes, onTable, onPlace }: {
   client: Client; onTab?: (tab: Tab) => void; onCompose?: (radius: Radius) => void;
   /** One's own phrase just sent (Composer's answer), shown over the list until it is taken down or the feed is left. */
   sent?: SentPhrase | null; onTakenDown?: () => void;
   /** The menu's ways out: the likes I gave, a new table; a table row opens its table. */
-  onLikes?: () => void; onNewTable?: () => void; onTable?: (id: string) => void;
+  onLikes?: () => void; onNewTable?: () => void; onTable?: (id: string) => void; onPlace?: () => void;
 }) {
-  const { open: openSheet } = useLayers();
+  const { open: openSheet, close: closeSheet } = useLayers();
   const wide = useMinWidth("--bp-tablet");
-  const [searching, setSearching] = useState(false);
-  const [query, setQuery] = useState("");
   const [step, setStep] = useState<Step | null>(null);
   const [takingDown, setTakingDown] = useState(false);
   const [takedownRefused, setTakedownRefused] = useState<number | null>(null);
@@ -182,120 +177,92 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
     setLikeNote(outcome.state === "liked" ? null : outcome);
   }
 
-  const rows = feedRows(items, gone, query);
+  const rows = feedRows(items, gone, "");   // the prototype's feed has no search
   const phrases = rows.filter((r) => r.tone !== null);
   const widerTo = widerRadius(radius);
   const card = opened ? items.find((c) => c.id === opened) ?? null : null;
-  const searchBtn = (
-    <button type="button" className="fd-icon-btn" aria-label={say(searching ? "app.feed.search_close" : "app.feed.search")} aria-pressed={searching} data-testid="feed-search-open"
-      onClick={() => { if (searching) setQuery(""); setSearching(!searching); }}><Icon d={search} /></button>
-  );
   const title = say("app.feed.title", { place: place.chosen ? place.name : say("web.place.none") });
   const note = likeLine(likeNote);
 
   return (
     <>
-      <main className="screen fd-feed" data-screen="feed" inert={card ? true : undefined}>
-        <div className="fd-panel">
-        <header className="fd-head">
-          {/* The sheet's icons: the menu left, the search right on a phone; on the wide sheets (tablet_834_Feed) the search alone, the wordmark under it. */}
-          {wide
-            ? <div className="fd-search-wide">{searchBtn}</div>
-            : (
-              <div className="fd-top">
-                <button type="button" className="fd-icon-btn" aria-label={say("app.feed.menu")} data-testid="feed-menu"
-                  onClick={() => openSheet("feed-menu", <FeedMenu onLikes={onLikes} onNewTable={onNewTable} />)}><Icon d={menu} /></button>
-                {searchBtn}
+      {/* the prototype's feed (docs/newdesign/proto/feed.html and its states): the scene with the place panel over it, the
+          phrases / marks switch, the list panel cut round «write», the bottom bar */}
+      <main className="k-screen" data-screen="feed" inert={card ? true : undefined}>
+        <div className="k-col">
+          <Scene>
+            <section className="k-panel">
+              <div className="k-row">
+                <NdIcon name="place" className="k-pin" />
+                <div className="k-stack">
+                  <h1 className="k-title">{title}</h1>
+                  {step ? <p className="k-sub" role="status" data-testid="nearby" data-step={step}>{say(stepKey(step))}</p> : <p className="k-sub">{radiusText(radius)}</p>}
+                </div>
+                <button type="button" className="k-chip" aria-label={`${say("web.feed.radius")}: ${radiusText(radius)}`} data-testid="radius-open"
+                  onClick={() => openSheet("radius", <RadiusSheet radius={radius} onPick={(r) => { setLikeNote(null); setRadius(r); closeSheet(); }} onPlace={onPlace && (() => { closeSheet(); onPlace(); })} />)}>
+                  <NdIcon name={RADIUS_ICON[radius]} /><NdIcon name="down" className="k-caret" />
+                </button>
+              </div>
+            </section>
+          </Scene>
+          <div className="k-seg" role="tablist">
+            <button type="button" role="tab" aria-selected="true" aria-label={say("app.feed.phrases")} data-testid="seg-feed"><NdIcon name="phrase" /></button>
+            <button type="button" role="tab" aria-selected="false" aria-label={say("liked.title")} onClick={onLikes} data-testid="seg-likes"><NdIcon name="imin" /></button>
+          </div>
+          <section className="k-body" data-fab={onCompose ? "" : undefined}>
+            {sent && (
+              <div className="k-note" data-testid="sent" data-state={sent.state}>
+                <NdIcon name="hourglass" />
+                <span>{say(sent.state === "published" ? "web.feed.sent_out" : "web.feed.sent_held")} «{sent.text}»</span>
+                {sent.id && <button type="button" className="k-icon-btn" aria-label={say("feed.takedown")} disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown"><NdIcon name="close" /></button>}
               </div>
             )}
-          <span className="fd-brand word" aria-hidden="true">sosed</span>
-          <ul className="fd-chips" aria-label={say("web.feed.radius")}>
-            {RADII.map((r) => (
-              <li key={r}>
-                <button type="button" className="fd-chip" aria-pressed={r === radius} onClick={() => { setLikeNote(null); setRadius(r); }} data-testid={`radius-${r}`}>
-                  {radiusText(r)}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <h1>{title}</h1>
-        </header>
-        <section className="sheet-content fd-list">
-          {searching && (
-            <input type="search" className="fd-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={say("app.feed.search")} aria-label={say("app.feed.search")}
-              autoFocus data-testid="feed-search" />
-          )}
-          {step && <p className="fd-density" role="status" data-testid="nearby" data-step={step}>{say(stepKey(step))}</p>}
-          {sent && (
-            <div className="fd-sent" data-testid="sent" data-state={sent.state}>
-              <p>{say(sent.state === "published" ? "web.feed.sent_out" : "web.feed.sent_held")}<span className="fd-sent-text">«{sent.text}»</span></p>
-              {sent.id && (
-                <button type="button" className="fd-icon-btn" aria-label={say("feed.takedown")} disabled={takingDown} onClick={() => void takeDown()} data-testid="takedown"><Icon d={closeIcon} /></button>
-              )}
-            </div>
-          )}
-          {sent && takedownRefused !== null && <p className="fd-line fd-line-error" role="alert" data-testid="takedown-refused">{say("feed.takedownRefused", { status: takedownRefused })}</p>}
-          {gone?.why === "hidden" && undoing && (
-            <div className="fd-undo" data-testid="gone" data-why="hidden">
-              <span>{say("app.feed.hidden_gone")}</span>
-              <button type="button" className="fd-return" onClick={bringBack} data-testid="hidden-undo"><Icon d={undo} /><span>{say("web.feed.hidden_undo")}</span></button>
-            </div>
-          )}
-          {undoError && <p className="fd-line fd-line-error" role="alert" data-testid="hidden-undo-error">{undoError}</p>}
-          {gone?.why === "blocked" && <p className="fd-hint" data-testid="gone" data-why="blocked">{say("web.feed.blocked")}</p>}
-          {note && <p className="fd-line" role="status" data-testid="like-note">{note}</p>}
-
-          {state === "failed" && (
-            <div className="fd-fail" data-testid="error">
-              <div className="fd-banner" role="alert">
-                <Icon d={flag} />
-                <div><strong>{say("app.feed.err_title")}</strong><p>{say("app.feed.err_body")}</p></div>
+            {sent && takedownRefused !== null && <p className="k-note" data-tone="error" role="alert" data-testid="takedown-refused">{say("feed.takedownRefused", { status: takedownRefused })}</p>}
+            {gone?.why === "hidden" && undoing && (
+              <div className="k-note" data-testid="gone" data-why="hidden">
+                <NdIcon name="hide" /><span>{say("app.feed.hidden_gone")}</span>
+                <button type="button" className="k-btn" onClick={bringBack} data-testid="hidden-undo"><span>{say("web.feed.hidden_undo")}</span></button>
               </div>
-              <button type="button" className="cta cta-quiet" onClick={() => void load()} data-testid="retry"><Icon d={refresh} /><span>{say("app.feed.retry")}</span></button>
-            </div>
-          )}
-
-          {state === "ready" && rows.length === 0 && query.trim() !== "" && <p className="fd-hint" data-testid="search-none">{say("app.feed.search_none")}</p>}
-          {state === "ready" && rows.length === 0 && query.trim() === "" && (
-            <div className="fd-empty" data-testid="quiet">
-              <span className="fd-empty-icon" aria-hidden="true"><Icon d={map} /></span>
-              <h2>{say("web.feed.empty")}</h2>
-              <p>{say("app.feed.empty_hint")}</p>
-              {widerTo && (
-                <button type="button" className="fd-wider" onClick={() => setRadius(widerTo)} data-testid="wider">
-                  <Icon d={map} /><span>{label("web.feed.wider", { radius: radiusText(widerTo) })}</span>
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* One column on a phone; on the wide sheets the tiles go to the columns by turns (the sheets' masonry), the count is tokens/wide.css's --fd-cols. */}
-          <div className="fd-cards" ref={listRef} data-testid="cards">
-            {Array.from({ length: columns }, (_, col) => {
-              let tiles = 0;   // the tiles of this column so far: the stagger counts them, not the tables between them
-              return (
-                <ul className="fd-col" key={col}>
+            )}
+            {undoError && <p className="k-note" data-tone="error" role="alert" data-testid="hidden-undo-error">{undoError}</p>}
+            {gone?.why === "blocked" && <p className="k-note" data-testid="gone" data-why="blocked"><NdIcon name="block" /><span>{say("web.feed.blocked")}</span></p>}
+            {note && <p className="k-note" role="status" data-testid="like-note">{note}</p>}
+            {state === "failed" && (
+              <div className="k-empty" data-testid="error">
+                <NdIcon name="wifi-off" className="k-empty-mark" />
+                <h2 role="alert">{say("app.feed.err_title")}</h2><p>{say("app.feed.err_body")}</p>
+                <button type="button" className="k-btn" onClick={() => void load()} data-testid="retry"><NdIcon name="refresh" /><span>{say("app.feed.retry")}</span></button>
+              </div>
+            )}
+            {state === "ready" && rows.length === 0 && (
+              <div className="k-empty" data-testid="quiet">
+                <NdIcon name="empty" className="k-empty-mark" />
+                <h2>{say("web.feed.empty")}</h2><p>{say("app.feed.empty_hint")}</p>
+                {widerTo && (
+                  <button type="button" className="k-btn" onClick={() => setRadius(widerTo)} data-testid="wider">
+                    <NdIcon name={RADIUS_ICON[widerTo]} /><span>{label("web.feed.wider", { radius: radiusText(widerTo) })}</span>
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="k-grid2" ref={listRef} data-testid="cards">
+              {Array.from({ length: columns }, (_, col) => (
+                <ul key={col}>
                   {rows.map(({ card: c, tone }, i) => i % columns === col && (tone === null
-                    ? <TableRow key={c.id} id={c.id} tone="lime" title={lineOf(c).title} meta={lineOf(c).meta} testid="table-card" onWatch={onTable && (() => onTable(c.id))} />
-                    : <Tile key={c.id} card={c} tone={tone} place={tiles++} busy={liking === c.id} onOpen={() => openCard(c.id)} onLike={() => void likeFromTile(c)} />
+                    ? <TableTile key={c.id} card={c} onOpen={onTable && (() => onTable(c.id))} />
+                    : <Tile key={c.id} card={c} tone={tone} busy={liking === c.id} onOpen={() => openCard(c.id)} onLike={() => void likeFromTile(c)} />
                   ))}
                 </ul>
-              );
-            })}
-          </div>
-          {skeleton && (
-            <div className="fd-skeletons" data-testid="loading"><Skeleton kind="card" /><Skeleton kind="card" /></div>
-          )}
-          {next && state === "ready" && (
-            <button type="button" className="cta cta-quiet" onClick={() => void load(next)} data-testid="more">{say("app.feed.more_cards")}</button>
-          )}
-        </section>
+              ))}
+            </div>
+            {skeleton && <div className="k-grid2" data-testid="loading"><ul><li className="k-tile k-ghost" /></ul><ul><li className="k-tile k-ghost" /></ul></div>}
+            {next && state === "ready" && <button type="button" className="k-btn" onClick={() => void load(next)} data-testid="more">{say("app.feed.more_cards")}</button>}
+          </section>
+          <TabBar active="feed" onSelect={onTab} />
         </div>
-        {/* «Say it» over the bar (w3_composer's way in): the composer opens with the feed's circle, the web's testid. */}
         {onCompose && (
-          <button type="button" className="fd-say" onClick={() => onCompose(radius)} aria-label={say("app.compose.title")} data-testid="write"><Icon d={pen} /></button>
+          <button type="button" className="k-fab" onClick={() => onCompose(radius)} aria-label={say("app.compose.title")} data-testid="write"><NdIcon name="write" /></button>
         )}
-        <TabBar active="feed" onSelect={onTab} />
       </main>
       {card && (
         <CardScreen

@@ -55,9 +55,7 @@
 .tk-phrase { cursor: default; }
 .tk-phrase::after { content: none; }
 /* the likes sheet draws the feed's strip a little lower and its chip a little smaller than w1_feed's */
-.tk-cards .fd-card { padding-bottom: var(--lk-card-bottom); }
-.tk-cards .fd-foot { height: var(--lk-foot-h); padding-inline-start: var(--lk-foot-pad); padding-inline-end: var(--lk-mode-end); }
-.tk-cards .fd-mode { height: var(--lk-mode-h); min-width: var(--lk-mode-w); padding-inline: 0; }
+
 .tk-meta { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--lk-meta-gap); margin-top: var(--lk-meta-top);
   font-size: var(--fs-lk-meta); font-weight: var(--fw-700); line-height: var(--lh-tight); color: var(--c-ink); }
 .tk-meta .icon { --icon-size: var(--icon-fd-sm); --stroke: 2; }

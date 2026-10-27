@@ -1,28 +1,27 @@
-// The frame every screen that opens from "Me" shares (sheets w4_me-edit-name … w4_age-filter): the back and the
-// title on the night, the sheet under them, a primary at its foot; and the pieces they are built of — a row
-// that opens something, the label/value pairs between hairlines, a coloured banner.
+// The frame every screen that opens from "Me" shares, as the prototype draws its sub-screens (forget-confirm.html,
+// restore.html, me-*.html): the bar with back and the title in its pill, the panel, the action panel at the foot; and
+// the pieces they are built of — a row that opens something, label/value pairs, a note.
 import type { ReactNode } from "react";
 import { label, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
-import { chevronLeft, chevronRight } from "../../shell/icons";
-import { Screen } from "../../shell/Screen";
+import { NdIcon } from "../../shell/NdIcon";
 import { Rail } from "../../shell/TabBar";
 
-/** `head` is what stands between the bar and the sheet on the night (reissue's "step n of 2" and its bars); `backTestid` the web's name for the back. */
+/** `head` stands between the bar and the panel (reissue's "step n of 2"); `backTestid` the web's name for the back. */
 export function SubPage({ name, title, onBack, foot, head, backTestid, children }: { name: string; title: string; onBack: () => void; foot?: ReactNode; head?: ReactNode; backTestid?: string; children: ReactNode }) {
   return (
-    <Screen name={name} title={title} className="me-sub">
-      <header className="me-bar">
-        <button type="button" className="me-back" aria-label={label("common.back")} onClick={onBack} data-testid={backTestid ?? `${name}-back`}><Icon d={chevronLeft} /></button>
-        <h1>{title}</h1>
-      </header>
-      {head}
-      <div className="me-sheet">
-        <div className="me-body">{children}</div>
-        {foot && <div className="me-foot">{foot}</div>}
+    <main className="k-screen" data-screen={name}>
+      <div className="k-col">
+        <header className="k-row k-bar">
+          <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={onBack} data-testid={backTestid ?? `${name}-back`}><NdIcon name="back" /></button>
+          <h1 className="k-bar-title">{title}</h1>
+        </header>
+        {head}
+        <section className="k-panel k-grow k-reg">{children}</section>
+        {foot && <section className="k-panel k-actions k-stack">{foot}</section>}
       </div>
       <Rail active="me" />
-    </Screen>
+    </main>
   );
 }
 
@@ -32,22 +31,22 @@ export function Row({ text, value, sub, icon, onOpen, testid, href }: {
 }) {
   const inner = (
     <>
-      {icon && <span className="me-row-icon" aria-hidden="true"><Icon d={icon} /></span>}
-      <span className="me-row-text"><span className="me-row-name">{text}</span>{sub && <span className="me-row-sub">{sub}</span>}</span>
-      {value && <span className="me-row-value">{value}</span>}
-      <Icon d={chevronRight} className="me-chev" />
+      {icon && <span className="k-badge k-badge-row" data-c="1" aria-hidden="true"><Icon d={icon} /></span>}
+      <span className="k-stack k-row-text"><span className="k-row-name">{text}</span>{sub && <span className="k-meta">{sub}</span>}</span>
+      {value && <span className="k-meta k-row-value">{value}</span>}
+      <NdIcon name="chev" className="k-chev" />
     </>
   );
-  if (href) return <a className="me-row" data-icon={icon ? "yes" : undefined} href={href} target="_blank" rel="noopener noreferrer" data-testid={testid}>{inner}</a>;
-  return <button type="button" className="me-row" data-icon={icon ? "yes" : undefined} onClick={onOpen} data-testid={testid}>{inner}</button>;
+  if (href) return <a className="k-link-row" data-icon={icon ? "yes" : undefined} href={href} target="_blank" rel="noopener noreferrer" data-testid={testid}>{inner}</a>;
+  return <button type="button" className="k-link-row" data-icon={icon ? "yes" : undefined} onClick={onOpen} data-testid={testid}>{inner}</button>;
 }
 
 /** Label and value between hairlines (w4_me-reset, w4_statements, w4_step-away). A "prose" row is free text from the
  *  node (a statement's facts and grounds): it wraps and grows, read whole, never cut to one line. */
 export function Pairs({ rows, testid }: { rows: Array<[string, string] | [string, string, "prose"]>; testid?: string }) {
   return (
-    <dl className="me-pairs" data-testid={testid}>
-      {rows.map(([k, v, kind]) => <div key={k} className={kind === "prose" ? "me-pair--prose" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
+    <dl className="k-pairs" data-testid={testid}>
+      {rows.map(([k, v, kind]) => <div key={k} data-prose={kind === "prose" ? "" : undefined}><dt>{k}</dt><dd>{v}</dd></div>)}
     </dl>
   );
 }
@@ -55,7 +54,7 @@ export function Pairs({ rows, testid }: { rows: Array<[string, string] | [string
 /** A coloured banner: coral for what cannot be undone or was decided, yellow for what to know. */
 export function Banner({ tone, icon, title, text, testid }: { tone: "coral" | "yellow"; icon: string; title?: string; text: string; testid?: string }) {
   return (
-    <div className={`me-banner me-${tone}`} data-testid={testid}>
+    <div className="k-note" data-tone={tone === "coral" ? "error" : undefined} data-testid={testid}>
       <Icon d={icon} />
       <div>{title && <strong>{title}</strong>}<p>{text}</p></div>
     </div>
@@ -63,7 +62,7 @@ export function Banner({ tone, icon, title, text, testid }: { tone: "coral" | "y
 }
 
 /** The error line under a form (the node's refusal in words). */
-export const ErrorLine = ({ text }: { text: string | null }) => (text ? <p className="me-error" role="alert" data-testid="error">{text}</p> : null);
+export const ErrorLine = ({ text }: { text: string | null }) => (text ? <p className="k-note" data-tone="error" role="alert" data-testid="error">{text}</p> : null);
 
 /** The node's refusal with no words of its own: its status. */
 export const refusedStatus = (status: number): string => say("web.refused.status", { status });

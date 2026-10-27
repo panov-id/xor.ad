@@ -30,23 +30,25 @@ export function Away({ client, until, onBack }: { client: Client; until: number;
   }
 
   return (
-    <Screen name="away" title={label("app.away.title")} className="mv">
+    <Screen name="away" title={label("app.away.title")} className="k-screen">
+      <div className="k-col">
       <MoveBar />
-      <MoveSheet className="mv-center mv-away" foot={
+      <MoveSheet className="k-centre-col" foot={
         <button type="button" className="cta cta-primary" aria-disabled={busy || undefined} aria-busy={busy || undefined} onClick={back} data-testid="away-return">
           <Icon d={undo} /><span>{say("app.away.back")}</span>
         </button>
       }>
-        <span className="mv-circle mv-circle-away"><Icon d={hourglass} /></span>
+        <span className="k-mark-110"><Icon d={hourglass} /></span>
         <h1>{say("app.away.title")}</h1>
-        <p className="mv-note" data-testid="away-line">{say("app.away.sub", { time: clock.time })}</p>
-        <dl className="mv-rows">
+        <p className="k-note" data-testid="away-line">{say("app.away.sub", { time: clock.time })}</p>
+        <dl className="k-pairs">
           <div><dt>{say("app.away.until")}</dt><dd data-testid="away-until">{clock.time}</dd></div>
           <div><dt>{say("app.away.phrases")}</dt><dd>{say("app.away.phrases_down")}</dd></div>
           <div><dt>{say("app.away.talks")}</dt><dd>{say("app.away.talks_wait")}</dd></div>
         </dl>
-        {error && <div data-testid="error"><p className="gate-error mv-error" role="alert"><Icon d={flag} /><span>{error}</span></p></div>}
+        {error && <div data-testid="error"><p className="k-note k-error" role="alert"><Icon d={flag} /><span>{error}</span></p></div>}
       </MoveSheet>
+      </div>
     </Screen>
   );
 }

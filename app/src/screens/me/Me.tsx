@@ -97,7 +97,7 @@ export function Me({ client, onTab, onClosed, onMove, open: opened = null }: { c
             </div>
             <button type="button" className="me-edit" disabled={!profile} onClick={() => setSub("name")} data-testid="me-name">{say("app.me.edit")}</button>
           </section>
-          {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
+          {error && <p className="k-note k-error" role="alert" data-testid="error">{error}</p>}
           <nav className="me-rows" aria-label={label("me.title")}>
             {restrictions > 0 && <Row text={say("statements.count", { n: restrictions })} testid="me-statements" onOpen={() => setSub("statements")} />}
             <Row text={label("web.theme.item")} value={say(`app.theme.${readChoice()}`)} testid="me-theme" onOpen={() => setSub("theme")} />

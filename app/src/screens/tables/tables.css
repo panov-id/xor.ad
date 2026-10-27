@@ -50,7 +50,6 @@
 .nt-foot { width: 100%; max-width: var(--entry-max); margin-inline: auto; display: grid;
   padding: var(--me-foot-top) var(--me-side-end) max(var(--reg-foot-bottom), env(safe-area-inset-bottom)) var(--me-side);
   --from: var(--o-action); animation: rise var(--d-action) var(--ease) var(--t-action-start) both; }
-.nt-foot .cta[aria-disabled="true"] { opacity: var(--o-disabled); }
 
 /* step 1: the games */
 .nt-games { list-style: none; padding: 0; margin-top: var(--nt-grid-top); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--nt-grid-gap); }

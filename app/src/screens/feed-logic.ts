@@ -56,6 +56,14 @@ export function mergePage(was: readonly FeedCard[], page: readonly FeedCard[], a
 }
 
 /** The tile's colour, in the sheets' order (w1_feed: lime, yellow, peach); an offer is coral. */
+/** The phrase's size by its length in graphemes (owner 2026-10-26, NEWDESIGN_PLAN §5): up to 40 large, 41–100 middle,
+ * longer as before. Graphemes, so a Georgian word or an emoji family counts as a person sees it. */
+export type TextSize = "l" | "m" | "s";
+export function textSize(text: string): TextSize {
+  const n = typeof Intl !== "undefined" && "Segmenter" in Intl ? [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text)].length : [...text].length;
+  return n <= 40 ? "l" : n <= 100 ? "m" : "s";
+}
+
 export type Tone = "lime" | "yellow" | "peach" | "coral";
 const TONES: Tone[] = ["lime", "yellow", "peach"];
 export const toneOf = (card: FeedCard, index: number): Tone => (card.offer || card.kind === "offer" ? "coral" : TONES[index % TONES.length]);

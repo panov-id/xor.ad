@@ -1,0 +1,1247 @@
+{
+ "zones": {
+  "1": "Вход",
+  "2": "Знакомство",
+  "3": "Рядом",
+  "4": "Столы",
+  "5": "Беседы",
+  "6": "Я",
+  "7": "Кабинет заведения",
+  "8": "Игры"
+ },
+ "screens": [
+  {
+   "id": "splash-lang",
+   "zone": "1",
+   "title": "Язык при первом входе",
+   "en": [
+    "language",
+    "17",
+    "English",
+    "Ελληνικά",
+    "Русский",
+    "Українська",
+    "Türkçe",
+    "Deutsch",
+    "Français",
+    "Español",
+    "Italiano",
+    "Polski",
+    "Română",
+    "Български",
+    "continue"
+   ]
+  },
+  {
+   "id": "splash",
+   "zone": "1",
+   "title": "Заставка",
+   "en": [
+    "hoy!",
+    "Old Town",
+    "What your",
+    "neighbours say.",
+    "Short phrases from people nearby.",
+    "start",
+    "paper code",
+    "move here"
+   ]
+  },
+  {
+   "id": "register-1",
+   "zone": "1",
+   "title": "Регистрация · 1 · кто ты",
+   "en": []
+  },
+  {
+   "id": "register-2",
+   "zone": "1",
+   "title": "Регистрация · 2 · ПИН",
+   "en": []
+  },
+  {
+   "id": "register-2b",
+   "zone": "1",
+   "title": "Регистрация · 2 · ПИН ещё раз (новый)",
+   "en": []
+  },
+  {
+   "id": "register-3",
+   "zone": "1",
+   "title": "Регистрация · 3 · бумажный код",
+   "en": []
+  },
+  {
+   "id": "unlock",
+   "zone": "1",
+   "title": "Вход по ПИНу",
+   "en": []
+  },
+  {
+   "id": "unlock-error",
+   "zone": "1",
+   "title": "Вход по ПИНу · ошибка",
+   "en": []
+  },
+  {
+   "id": "forget-confirm",
+   "zone": "1",
+   "title": "Забыть личность · подтверждение",
+   "en": []
+  },
+  {
+   "id": "locked",
+   "zone": "1",
+   "title": "Закрыто по бездействию",
+   "en": []
+  },
+  {
+   "id": "restore",
+   "zone": "1",
+   "title": "Восстановление по бумажному коду",
+   "en": []
+  },
+  {
+   "id": "arrival-1",
+   "zone": "1",
+   "title": "Перенос сюда · 1 · код",
+   "en": []
+  },
+  {
+   "id": "arrival-2",
+   "zone": "1",
+   "title": "Перенос сюда · 2 · сверка",
+   "en": []
+  },
+  {
+   "id": "arrival-3",
+   "zone": "1",
+   "title": "Перенос сюда · 3 · новый ПИН",
+   "en": []
+  },
+  {
+   "id": "loading",
+   "zone": "1",
+   "title": "Загрузка",
+   "en": []
+  },
+  {
+   "id": "wizard-1",
+   "zone": "2",
+   "title": "Как это работает · 1 из 5",
+   "en": [
+    "say it",
+    "Write a short phrase.",
+    "People in your circle see it.",
+    "It fades in 4 h 20 min.",
+    "next"
+   ]
+  },
+  {
+   "id": "wizard-2",
+   "zone": "2",
+   "title": "Как это работает · 2 из 5",
+   "en": [
+    "I'm here too",
+    "Tap it under a phrase",
+    "you share: a window lights up",
+    "on the author's building.",
+    "next"
+   ]
+  },
+  {
+   "id": "wizard-3",
+   "zone": "2",
+   "title": "Как это работает · 3 из 5",
+   "en": [
+    "tables",
+    "Open a table, a neighbour sits",
+    "down. Twelve games, or play",
+    "solo while you wait.",
+    "next"
+   ]
+  },
+  {
+   "id": "wizard-4",
+   "zone": "2",
+   "title": "Как это работает · 4 из 5",
+   "en": [
+    "safety",
+    "No phone, no email.",
+    "Hide, block or report anyone",
+    "in one tap.",
+    "next"
+   ]
+  },
+  {
+   "id": "wizard-5",
+   "zone": "2",
+   "title": "Как это работает · 5 · место",
+   "en": [
+    "your place",
+    "Pick a point on the map",
+    "or skip it for now.",
+    "Old Town",
+    null,
+    null,
+    null,
+    null,
+    null,
+    "start"
+   ]
+  },
+  {
+   "id": "place",
+   "zone": "2",
+   "title": "Место",
+   "en": []
+  },
+  {
+   "id": "place-qr",
+   "zone": "2",
+   "title": "QR места · вопрос поверх ленты",
+   "en": []
+  },
+  {
+   "id": "feed",
+   "zone": "3",
+   "title": "Лента",
+   "en": [
+    "Old Town",
+    "1 km · 214 nearby",
+    "Eleni · 34",
+    "Anyone up for a",
+    "swim at Dasoudi",
+    "tomorrow at 7?",
+    "Bring goggles.",
+    "tables nearby",
+    "4 open",
+    "4",
+    "−20% koulouri",
+    "until 12:00",
+    "Nikos · 29",
+    "Lost a grey cat",
+    "near the Molos.",
+    "Answers to Mitsos."
+   ]
+  },
+  {
+   "id": "feed-own",
+   "zone": "3",
+   "title": "Лента · своя фраза на проверке",
+   "en": [
+    "Old Town",
+    "1 km · 214 nearby",
+    "Your phrase is waiting",
+    "for a quick check",
+    "Eleni · 34",
+    "Anyone up for a",
+    "swim at Dasoudi",
+    "tomorrow at 7?",
+    "Bring goggles.",
+    "tables nearby",
+    "4 open",
+    "4",
+    "−20% koulouri",
+    "until 12:00",
+    "Nikos · 29",
+    "Lost a grey cat",
+    "near the Molos.",
+    "Answers to Mitsos."
+   ]
+  },
+  {
+   "id": "feed-loading",
+   "zone": "3",
+   "title": "Лента · загрузка",
+   "en": []
+  },
+  {
+   "id": "feed-empty",
+   "zone": "3",
+   "title": "Лента · пусто",
+   "en": []
+  },
+  {
+   "id": "feed-error",
+   "zone": "3",
+   "title": "Лента · нет связи",
+   "en": []
+  },
+  {
+   "id": "feed-hidden",
+   "zone": "3",
+   "title": "Лента · скрыто, 5 с на возврат",
+   "en": []
+  },
+  {
+   "id": "feed-blocked",
+   "zone": "3",
+   "title": "Лента · автор заблокирован",
+   "en": []
+  },
+  {
+   "id": "radius",
+   "zone": "3",
+   "title": "Радиус и место · листок",
+   "en": [
+    "Old Town",
+    "1 km · 214 nearby",
+    "Eleni · 34",
+    "Anyone up for a",
+    "swim at Dasoudi",
+    "tomorrow at 7?",
+    "Bring goggles.",
+    "tables nearby",
+    "4 open",
+    "4",
+    "−20% koulouri",
+    "until 12:00",
+    "Nikos · 29",
+    "Lost a grey cat",
+    "near the Molos.",
+    "Answers to Mitsos.",
+    "how far",
+    "100 m",
+    "300 m",
+    "1 km",
+    "3 km",
+    "10 km",
+    "my place"
+   ]
+  },
+  {
+   "id": "my-marks",
+   "zone": "3",
+   "title": "Мои отметки",
+   "en": [
+    "my marks",
+    "2 phrases",
+    "Eleni · 34",
+    "Anyone up for a",
+    "swim at Dasoudi",
+    "tomorrow at 7?",
+    "Nikos · 29",
+    "Lost a grey cat",
+    "near the Molos.",
+    "Answers to Mitsos."
+   ]
+  },
+  {
+   "id": "my-marks-empty",
+   "zone": "3",
+   "title": "Мои отметки · пусто",
+   "en": []
+  },
+  {
+   "id": "card",
+   "zone": "3",
+   "title": "Фраза",
+   "en": [
+    "phrase",
+    "Eleni · 34",
+    "350 m · 12 min",
+    "Anyone up for a swim",
+    "at Dasoudi tomorrow",
+    "at 7? Bring goggles,",
+    "I'll bring coffee.",
+    "fades in 3 h 12 min",
+    "of 4 h 20",
+    "300 m",
+    "on my own",
+    "I'm here too",
+    "I'm here too"
+   ]
+  },
+  {
+   "id": "card-in",
+   "zone": "3",
+   "title": "Фраза · ты тут",
+   "en": [
+    "phrase",
+    "Eleni · 34",
+    "350 m · 12 min",
+    "Anyone up for a swim",
+    "at Dasoudi tomorrow",
+    "at 7? Bring goggles,",
+    "I'll bring coffee.",
+    "fades in 3 h 12 min",
+    "of 4 h 20",
+    "300 m",
+    "on my own",
+    "you're here",
+    "take back"
+   ]
+  },
+  {
+   "id": "card-both",
+   "zone": "3",
+   "title": "Фраза · вы оба тут",
+   "en": [
+    "phrase",
+    "Eleni · 34",
+    "350 m · 12 min",
+    "Anyone up for a swim",
+    "at Dasoudi tomorrow",
+    "at 7? Bring goggles,",
+    "I'll bring coffee.",
+    "fades in 3 h 12 min",
+    "of 4 h 20",
+    "300 m",
+    "on my own",
+    "both here",
+    "to the offer"
+   ]
+  },
+  {
+   "id": "card-need",
+   "zone": "3",
+   "title": "Фраза · сначала своя фраза",
+   "en": []
+  },
+  {
+   "id": "card-more",
+   "zone": "3",
+   "title": "Фраза · меню «…»",
+   "en": [
+    "phrase",
+    "Anyone up for a swim",
+    "at Dasoudi tomorrow",
+    "at 7? Bring goggles,",
+    "phrase",
+    "hide",
+    "report",
+    "block"
+   ]
+  },
+  {
+   "id": "block-confirm",
+   "zone": "3",
+   "title": "Блок · подтверждение",
+   "en": []
+  },
+  {
+   "id": "notice",
+   "zone": "3",
+   "title": "Сообщить о нарушении · форма",
+   "en": []
+  },
+  {
+   "id": "notice-sent",
+   "zone": "3",
+   "title": "Сообщение принято",
+   "en": []
+  },
+  {
+   "id": "composer",
+   "zone": "3",
+   "title": "Написать",
+   "en": [
+    "write",
+    "Who's up for tavli",
+    "on the seafront",
+    "tonight?",
+    "34 / 140",
+    "send"
+   ]
+  },
+  {
+   "id": "composer-refused",
+   "zone": "3",
+   "title": "Написать · лимит часа",
+   "en": []
+  },
+  {
+   "id": "composer-offer",
+   "zone": "3",
+   "title": "Написать · со скидкой",
+   "en": []
+  },
+  {
+   "id": "offer-card",
+   "zone": "3",
+   "title": "Предложение заведения",
+   "en": [
+    "offer",
+    "−20%",
+    "Kafeneio Lemesos",
+    "Saripolou 12",
+    "Koulouri and Greek coffee",
+    "for 3.20, until noon.",
+    "until 12:00",
+    "180 m",
+    "open link"
+   ]
+  },
+  {
+   "id": "offer-exit",
+   "zone": "3",
+   "title": "Переход по ссылке заведения",
+   "en": []
+  },
+  {
+   "id": "tables",
+   "zone": "4",
+   "title": "Столы",
+   "en": [
+    "tables",
+    "12 open",
+    "tavli · 1 of 2",
+    "chess · 1 of 2",
+    "durak · 3 of 4",
+    "dominoes · 1 of 2"
+   ]
+  },
+  {
+   "id": "tables-mine",
+   "zone": "4",
+   "title": "Столы · мои",
+   "en": []
+  },
+  {
+   "id": "tables-full",
+   "zone": "4",
+   "title": "Столы · стол полон",
+   "en": []
+  },
+  {
+   "id": "tables-empty",
+   "zone": "4",
+   "title": "Столы · пусто",
+   "en": []
+  },
+  {
+   "id": "new-table-1",
+   "zone": "4",
+   "title": "Новый стол · 1 · игра",
+   "en": [
+    "new table"
+   ]
+  },
+  {
+   "id": "new-table-2",
+   "zone": "4",
+   "title": "Новый стол · 2 · вариант и места",
+   "en": []
+  },
+  {
+   "id": "new-table-3",
+   "zone": "4",
+   "title": "Новый стол · 3 · как увидят соседи",
+   "en": []
+  },
+  {
+   "id": "table",
+   "zone": "4",
+   "title": "Стол · партия",
+   "en": []
+  },
+  {
+   "id": "table-wait",
+   "zone": "4",
+   "title": "Стол · ждём соперника",
+   "en": []
+  },
+  {
+   "id": "table-more",
+   "zone": "4",
+   "title": "Стол · меню «…»",
+   "en": [
+    "durak",
+    "you",
+    "2:41",
+    "Nikos",
+    "—",
+    "table",
+    "pass",
+    "resign",
+    "time",
+    "watch",
+    "stand up"
+   ]
+  },
+  {
+   "id": "table-pass-confirm",
+   "zone": "4",
+   "title": "Стол · пас · подтверждение",
+   "en": [
+    "pass?",
+    "Pass this turn?",
+    "The turn goes to Nikos.",
+    "You can't take it back.",
+    null
+   ]
+  },
+  {
+   "id": "table-giveup-confirm",
+   "zone": "4",
+   "title": "Стол · сдаться · подтверждение",
+   "en": [
+    "resign?",
+    "Resign this game?",
+    "Nikos wins this one.",
+    "The table stays open,",
+    "a rematch is one tap away."
+   ]
+  },
+  {
+   "id": "table-over",
+   "zone": "4",
+   "title": "Стол · партия окончена",
+   "en": []
+  },
+  {
+   "id": "table-solo",
+   "zone": "4",
+   "title": "Свой стол · пока ждём — задачка",
+   "en": []
+  },
+  {
+   "id": "table-solo-over",
+   "zone": "4",
+   "title": "Свой стол · задача решена",
+   "en": []
+  },
+  {
+   "id": "tables-row-solo",
+   "zone": "4",
+   "title": "Столы · «играет один» — приглашение подсесть",
+   "en": []
+  },
+  {
+   "id": "table-solo-guest",
+   "zone": "4",
+   "title": "Свой стол · сосед просится",
+   "en": []
+  },
+  {
+   "id": "inbox",
+   "zone": "5",
+   "title": "Беседы",
+   "en": [
+    "talks",
+    "3 active",
+    "Eleni",
+    "Nikos",
+    "Maria",
+    "Eleni, 34",
+    "see you at 7 then",
+    "Nikos, 29",
+    "your move ;)",
+    "Maria, 41",
+    "thanks for the keys!"
+   ]
+  },
+  {
+   "id": "inbox-empty",
+   "zone": "5",
+   "title": "Беседы · пусто",
+   "en": []
+  },
+  {
+   "id": "offer",
+   "zone": "5",
+   "title": "Предложение поговорить",
+   "en": [
+    "offer to talk",
+    "You're both here",
+    "Eleni, 34",
+    "12 min",
+    "Anyone up for a swim at",
+    "Dasoudi tomorrow at 7?",
+    "talk"
+   ]
+  },
+  {
+   "id": "offer-waiting",
+   "zone": "5",
+   "title": "Предложение · ждём ответа",
+   "en": []
+  },
+  {
+   "id": "offer-gone",
+   "zone": "5",
+   "title": "Предложение ушло",
+   "en": []
+  },
+  {
+   "id": "chat",
+   "zone": "5",
+   "title": "Беседа",
+   "en": [
+    "Eleni, 34",
+    "started from: swim at Dasoudi",
+    "Hi! I'm in for tomorrow.",
+    "Do you know the spot?",
+    "Yes, by the blue kiosk.",
+    "Perfect, 7:00?",
+    "7:00 works.",
+    "I'll bring coffee.",
+    "message"
+   ]
+  },
+  {
+   "id": "chat-more",
+   "zone": "5",
+   "title": "Беседа · меню «…»",
+   "en": []
+  },
+  {
+   "id": "chat-fade",
+   "zone": "5",
+   "title": "Беседа · срок затухания",
+   "en": []
+  },
+  {
+   "id": "chat-game",
+   "zone": "5",
+   "title": "Беседа · выбрать игру",
+   "en": []
+  },
+  {
+   "id": "chat-game-offer",
+   "zone": "5",
+   "title": "Беседа · предложение сыграть",
+   "en": []
+  },
+  {
+   "id": "chat-game-board",
+   "zone": "5",
+   "title": "Беседа · партия",
+   "en": []
+  },
+  {
+   "id": "chat-safety",
+   "zone": "5",
+   "title": "Беседа · код безопасности",
+   "en": []
+  },
+  {
+   "id": "chat-keys",
+   "zone": "5",
+   "title": "Беседа · просьба о новых ключах",
+   "en": []
+  },
+  {
+   "id": "chat-end-confirm",
+   "zone": "5",
+   "title": "Закончить беседу · подтверждение",
+   "en": []
+  },
+  {
+   "id": "chat-ended",
+   "zone": "5",
+   "title": "Беседа закончилась",
+   "en": []
+  },
+  {
+   "id": "me",
+   "zone": "6",
+   "title": "Я",
+   "en": [
+    "Eleni",
+    "34 · Old Town",
+    "profile",
+    "name, age",
+    "visibility",
+    "who sees me",
+    "safety",
+    "PIN, paper code",
+    "1",
+    "step away",
+    "pause",
+    "documents",
+    "statements"
+   ]
+  },
+  {
+   "id": "me-restrict",
+   "zone": "6",
+   "title": "Я · есть ограничение",
+   "en": []
+  },
+  {
+   "id": "me-profile",
+   "zone": "6",
+   "title": "Профиль и вид",
+   "en": [
+    "profile",
+    "name",
+    "Eleni",
+    "age",
+    "34",
+    "theme",
+    "Sea",
+    "language",
+    "English"
+   ]
+  },
+  {
+   "id": "edit-name",
+   "zone": "6",
+   "title": "Имя",
+   "en": []
+  },
+  {
+   "id": "edit-age",
+   "zone": "6",
+   "title": "Возраст",
+   "en": []
+  },
+  {
+   "id": "theme",
+   "zone": "6",
+   "title": "Тема",
+   "en": [
+    "theme",
+    "auto",
+    "White",
+    "Black",
+    "Sea",
+    "Plum",
+    null
+   ]
+  },
+  {
+   "id": "lang",
+   "zone": "6",
+   "title": "Язык",
+   "en": []
+  },
+  {
+   "id": "me-visibility",
+   "zone": "6",
+   "title": "Кого я вижу",
+   "en": []
+  },
+  {
+   "id": "age-filter",
+   "zone": "6",
+   "title": "Фильтр по возрасту",
+   "en": []
+  },
+  {
+   "id": "hidden",
+   "zone": "6",
+   "title": "Скрытые фразы",
+   "en": []
+  },
+  {
+   "id": "blocked",
+   "zone": "6",
+   "title": "Заблокированные",
+   "en": []
+  },
+  {
+   "id": "me-security",
+   "zone": "6",
+   "title": "Безопасность",
+   "en": [
+    "safety",
+    "PIN",
+    "change",
+    "paper code",
+    "reissue",
+    "move",
+    "to another device",
+    "start again",
+    "erase everything"
+   ]
+  },
+  {
+   "id": "change-pin",
+   "zone": "6",
+   "title": "Сменить ПИН",
+   "en": []
+  },
+  {
+   "id": "reissue-1",
+   "zone": "6",
+   "title": "Новый бумажный код · 1 · нынешний",
+   "en": []
+  },
+  {
+   "id": "reissue-2",
+   "zone": "6",
+   "title": "Новый бумажный код · 2 · новый",
+   "en": []
+  },
+  {
+   "id": "departure-1",
+   "zone": "6",
+   "title": "Перенос отсюда · 1 · цена",
+   "en": []
+  },
+  {
+   "id": "departure-2",
+   "zone": "6",
+   "title": "Перенос отсюда · 2 · код",
+   "en": []
+  },
+  {
+   "id": "departure-3",
+   "zone": "6",
+   "title": "Перенос отсюда · 3 · сверка",
+   "en": []
+  },
+  {
+   "id": "departure-done",
+   "zone": "6",
+   "title": "Перенос выполнен",
+   "en": []
+  },
+  {
+   "id": "step-away",
+   "zone": "6",
+   "title": "Отойти",
+   "en": [
+    "step away",
+    "1 h",
+    "1 day",
+    "1 week",
+    "Your phrases stay,",
+    "talks pause, come back",
+    "with your PIN.",
+    "step away"
+   ]
+  },
+  {
+   "id": "away",
+   "zone": "6",
+   "title": "Ты отошёл",
+   "en": []
+  },
+  {
+   "id": "legal",
+   "zone": "6",
+   "title": "Документы",
+   "en": []
+  },
+  {
+   "id": "statements",
+   "zone": "6",
+   "title": "Ограничения",
+   "en": []
+  },
+  {
+   "id": "reset",
+   "zone": "6",
+   "title": "Начать заново",
+   "en": []
+  },
+  {
+   "id": "cab-sign-in",
+   "zone": "7",
+   "title": "Кабинет · вход",
+   "en": []
+  },
+  {
+   "id": "cab-sent",
+   "zone": "7",
+   "title": "Кабинет · письмо отправлено",
+   "en": []
+  },
+  {
+   "id": "cab-expired",
+   "zone": "7",
+   "title": "Кабинет · ссылка устарела",
+   "en": []
+  },
+  {
+   "id": "cab-venues",
+   "zone": "7",
+   "title": "Кабинет · заведения",
+   "en": []
+  },
+  {
+   "id": "cab-verify",
+   "zone": "7",
+   "title": "Кабинет · проверка конвертом",
+   "en": []
+  },
+  {
+   "id": "cab-new-offer",
+   "zone": "7",
+   "title": "Кабинет · новое предложение",
+   "en": []
+  },
+  {
+   "id": "cab-preview",
+   "zone": "7",
+   "title": "Кабинет · так увидит сосед",
+   "en": []
+  },
+  {
+   "id": "cab-offers",
+   "zone": "7",
+   "title": "Кабинет · предложения",
+   "en": []
+  },
+  {
+   "id": "dots-wait",
+   "zone": "8",
+   "title": "Точки · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "dots-turn",
+   "zone": "8",
+   "title": "Точки · твой ход",
+   "en": []
+  },
+  {
+   "id": "dots-over",
+   "zone": "8",
+   "title": "Точки · конец партии",
+   "en": []
+  },
+  {
+   "id": "checkers-wait",
+   "zone": "8",
+   "title": "Шашки · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "checkers-turn",
+   "zone": "8",
+   "title": "Шашки · твой ход",
+   "en": []
+  },
+  {
+   "id": "checkers-over",
+   "zone": "8",
+   "title": "Шашки · конец партии",
+   "en": []
+  },
+  {
+   "id": "chess-wait",
+   "zone": "8",
+   "title": "Шахматы · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "chess-turn",
+   "zone": "8",
+   "title": "Шахматы · твой ход",
+   "en": [
+    "chess",
+    null,
+    "you",
+    "4:12",
+    "Nikos",
+    "3:50",
+    "your move",
+    "I won",
+    "agree"
+   ]
+  },
+  {
+   "id": "chess-over",
+   "zone": "8",
+   "title": "Шахматы · конец партии",
+   "en": []
+  },
+  {
+   "id": "durak-wait",
+   "zone": "8",
+   "title": "Дурак · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "durak-turn",
+   "zone": "8",
+   "title": "Дурак · твой ход",
+   "en": [
+    "durak",
+    null,
+    "you",
+    "Nikos",
+    "Maria",
+    "Andreas",
+    "your move · attack"
+   ]
+  },
+  {
+   "id": "durak-over",
+   "zone": "8",
+   "title": "Дурак · конец партии",
+   "en": []
+  },
+  {
+   "id": "hangman-wait",
+   "zone": "8",
+   "title": "Виселица · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "hangman-turn",
+   "zone": "8",
+   "title": "Виселица · твой ход",
+   "en": []
+  },
+  {
+   "id": "hangman-over",
+   "zone": "8",
+   "title": "Виселица · конец партии",
+   "en": []
+  },
+  {
+   "id": "hangman-word",
+   "zone": "8",
+   "title": "Виселица · загадать слово",
+   "en": []
+  },
+  {
+   "id": "tavli-wait",
+   "zone": "8",
+   "title": "Нарды · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "tavli-turn",
+   "zone": "8",
+   "title": "Нарды · твой ход",
+   "en": [
+    "tavli",
+    null,
+    "you",
+    "4:12",
+    "Nikos",
+    "3:50",
+    "your move"
+   ]
+  },
+  {
+   "id": "tavli-over",
+   "zone": "8",
+   "title": "Нарды · конец партии",
+   "en": []
+  },
+  {
+   "id": "domino-wait",
+   "zone": "8",
+   "title": "Домино · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "domino-turn",
+   "zone": "8",
+   "title": "Домино · твой ход",
+   "en": []
+  },
+  {
+   "id": "domino-over",
+   "zone": "8",
+   "title": "Домино · конец партии",
+   "en": []
+  },
+  {
+   "id": "chapayev-wait",
+   "zone": "8",
+   "title": "Чапаев · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "chapayev-turn",
+   "zone": "8",
+   "title": "Чапаев · твой ход",
+   "en": []
+  },
+  {
+   "id": "chapayev-over",
+   "zone": "8",
+   "title": "Чапаев · конец партии",
+   "en": []
+  },
+  {
+   "id": "reversi-wait",
+   "zone": "8",
+   "title": "Реверси · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "reversi-turn",
+   "zone": "8",
+   "title": "Реверси · твой ход",
+   "en": []
+  },
+  {
+   "id": "reversi-over",
+   "zone": "8",
+   "title": "Реверси · конец партии",
+   "en": []
+  },
+  {
+   "id": "four-wait",
+   "zone": "8",
+   "title": "4 в ряд · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "four-turn",
+   "zone": "8",
+   "title": "4 в ряд · твой ход",
+   "en": []
+  },
+  {
+   "id": "four-over",
+   "zone": "8",
+   "title": "4 в ряд · конец партии",
+   "en": []
+  },
+  {
+   "id": "battleship-wait",
+   "zone": "8",
+   "title": "Морской бой · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "battleship-turn",
+   "zone": "8",
+   "title": "Морской бой · твой ход",
+   "en": []
+  },
+  {
+   "id": "battleship-over",
+   "zone": "8",
+   "title": "Морской бой · конец партии",
+   "en": []
+  },
+  {
+   "id": "battleship-place",
+   "zone": "8",
+   "title": "Морской бой · расстановка флота",
+   "en": []
+  },
+  {
+   "id": "poker-wait",
+   "zone": "8",
+   "title": "Покер · ждём игроков",
+   "en": []
+  },
+  {
+   "id": "poker-turn",
+   "zone": "8",
+   "title": "Покер · твой ход",
+   "en": []
+  },
+  {
+   "id": "poker-over",
+   "zone": "8",
+   "title": "Покер · конец партии",
+   "en": []
+  },
+  {
+   "id": "poker-bet",
+   "zone": "8",
+   "title": "Покер · рейз",
+   "en": []
+  }
+ ],
+ "icons": {
+  "imin": "<path d=\"M8 14H40V34H20L12 41V34H8Z\" fill=\"var(--ifill,none)\"/><path d=\"M32 14V6M28 7L36 4\"/><rect x=\"13\" y=\"19\" width=\"8\" height=\"6\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\" opacity=\"1\"/><rect x=\"25\" y=\"19\" width=\"8\" height=\"6\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\" opacity=\"1\"/><rect x=\"13\" y=\"27\" width=\"8\" height=\"6\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\" opacity=\"0.3\"/><rect x=\"25\" y=\"27\" width=\"8\" height=\"6\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\" opacity=\"0.3\"/>",
+  "imin-off": "<path d=\"M8 14H40V34H20L12 41V34H8Z\" fill=\"var(--ifill,none)\"/><path d=\"M32 14V6M28 7L36 4\"/><rect x=\"13\" y=\"19\" width=\"8\" height=\"6\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\" opacity=\"0.3\"/><rect x=\"25\" y=\"19\" width=\"8\" height=\"6\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\" opacity=\"0.3\"/><rect x=\"13\" y=\"27\" width=\"8\" height=\"6\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\" opacity=\"0.3\"/><rect x=\"25\" y=\"27\" width=\"8\" height=\"6\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\" opacity=\"0.3\"/>",
+  "both": "<path d=\"M4 16H21V31H12L7 36V31H4Z\" fill=\"var(--ifill,none)\"/><path d=\"M27 16H44V31H41V36L36 31H27Z\" fill=\"var(--ifill,none)\"/><rect x=\"9\" y=\"21\" width=\"7\" height=\"5\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\"/><rect x=\"32\" y=\"21\" width=\"7\" height=\"5\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\"/><circle cx=\"24\" cy=\"23.5\" r=\"2.4\" fill=\"currentColor\" stroke=\"none\"/>",
+  "nearby": "<circle cx=\"24\" cy=\"24\" r=\"6\" fill=\"var(--ifill,none)\"/><path d=\"M24 6A18 18 0 0 1 42 24M6 24A18 18 0 0 1 24 6\"/><path d=\"M42 24A18 18 0 0 1 24 42M24 42A18 18 0 0 1 6 24\"/>"
+ }
+}

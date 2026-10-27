@@ -1,24 +1,23 @@
-// w2_loading (sosed Dusk, mobile_390_w2_loading): the web's loading frame (web/src/App.tsx
-// view() "loading": the tagline as the title, a `loading` hint) in the new design — the long wait
-// is a ring that turns all the time (MOTION.md: yellow arc 28% on panel2, one turn in 0.9 s).
+// The prototype's loading (docs/newdesign/proto/loading.html): one panel, the brand's mark and a turning ring in its middle.
 import { brand } from "@brand";
 import { say } from "../i18n";
-import { Icon } from "../shell/Icon";
-import { home } from "../shell/icons";
-import { Screen } from "../shell/Screen";
+import { Logo } from "../shell/Scene";
 
 export function Loading() {
   return (
-    <Screen name="loading" title={say("web.splash.tagline")} className="loading">
-      <h1 className="sr-only">{brand.host}</h1>
-      <div className="col loading-body">
-        <div className="circle" aria-hidden="true"><Icon d={home} /></div>
-        <svg className="ring" viewBox="0 0 72 72" aria-hidden="true" focusable="false">
-          <circle className="track" cx="36" cy="36" r="33" />
-          <circle className="arc" cx="36" cy="36" r="33" pathLength="100" />
-        </svg>
-        <p data-testid="loading">{say("app.loading.opening")}</p>
+    <main className="k-screen" data-screen="loading">
+      <div className="k-col">
+        <section className="k-panel k-grow">
+          <div className="k-centre">
+            <Logo size={84} label={brand.host} />
+            <svg className="k-spin" width="40" height="40" aria-hidden="true">
+              <circle cx="20" cy="20" r="16" fill="none" stroke="var(--tile-strong)" strokeWidth="5" />
+              <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" strokeWidth="5" strokeLinecap="round" strokeDasharray="30.2 100.5" transform="rotate(-90 20 20)" />
+            </svg>
+            <p className="k-sub" data-testid="loading">{say("app.loading.opening")}</p>
+          </div>
+        </section>
       </div>
-    </Screen>
+    </main>
   );
 }

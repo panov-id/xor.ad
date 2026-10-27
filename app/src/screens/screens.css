@@ -2,14 +2,9 @@
    Sizes are tokens (tokens/layout.css, each read off the sheets); the sheet is 390 wide and is kept
    as a centred column on wider screens: the sheets have no tablet or desktop splash. */
 .col { position: relative; width: 100%; max-width: var(--entry-max); margin-inline: auto; flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.splash, .loading, .stub { overflow: hidden auto; }
 
 /* ── splash ── */
-.poster { position: absolute; top: 0; left: 50%; width: var(--stage-w); height: 100%; transform: translateX(-50%); pointer-events: none; }
-.hero { position: absolute; top: var(--splash-hero-top); left: 50%; width: var(--circle-hero); height: var(--circle-hero); margin-left: calc(var(--circle-hero) / -2);
-  border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: grid; place-items: center;
-  animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
-.hero .icon { --icon-size: var(--icon-hero); }
+
 .tile { position: absolute; width: var(--tile); height: var(--tile); border-radius: var(--r-tile); background: var(--c-panel); color: var(--c-text);
   display: grid; place-items: center;
   animation: tile-in var(--d-tile) var(--ease) var(--t-tile-start) both, pulse var(--d-pulse) ease-in-out infinite; }
@@ -18,38 +13,21 @@
 @keyframes pulse { 50% { transform: scale(var(--scale-pulse)); } }
 @keyframes pulse-scale { 50% { scale: var(--scale-pulse); } }   /* `scale`, not `transform`: it rides on top of the entry's rise */
 
-.entry { z-index: 1; padding: 0 var(--sp-4) max(var(--nav-gap-bottom), env(safe-area-inset-bottom)); }
 .copy { margin-top: var(--splash-copy-top); animation: rise var(--d-item) var(--ease) var(--t-copy-start) both; }
 .copy h1 { max-width: var(--hero-text-w); font-size: var(--fs-hero); font-weight: var(--fw-700); line-height: var(--lh-hero); }
 .copy p { margin-top: var(--splash-sub-gap); font-size: var(--fs-body); color: var(--c-muted); }
-.ways { margin-top: auto; padding-top: var(--sp-6); display: grid; gap: var(--gap-cta); --from: var(--o-action);
-  animation: rise var(--d-action) var(--ease) var(--t-action-start) both; }
-.cta { width: 100%; height: var(--s-cta); border-radius: var(--r-pill); display: flex; align-items: center; justify-content: center; gap: var(--gap-cta);
-  font-size: var(--fs-cta); font-weight: var(--fw-700); }
-.cta .icon { --icon-size: var(--icon-cta); }
-.cta-primary { background: var(--c-lime); color: var(--c-ink); }
-.cta-quiet { background: var(--c-panel); color: var(--c-text); font-weight: var(--fw-600); }
+
 .link { justify-self: center; margin-bottom: var(--arrive-lift); min-height: var(--s-touch-min); padding: 0 var(--sp-3); font-size: var(--fs-body); font-weight: var(--fw-500); color: var(--c-text);
   text-decoration: underline; text-decoration-thickness: var(--hair); text-underline-offset: var(--underline-offset); }
 
 /* ── splash-lang ── */
-.splash-lang { padding-top: var(--lang-top); }
-.lang-head { display: flex; align-items: center; gap: var(--sp-3); padding: 0 var(--lang-side); animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
+
 .mark { width: var(--mark); height: var(--mark); border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: grid; place-items: center; }
 .mark .icon { --icon-size: var(--mark-icon); }
 .word { font-size: var(--fs-brand); font-weight: var(--fw-800); }
-.lang-copy { padding: var(--sp-4) var(--sp-4) 0; animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
-.lang-copy h1 { font-size: var(--fs-title); font-weight: var(--fw-700); line-height: var(--lh-tight); }
-.lang-copy p { margin-top: var(--lang-sub-gap); font-size: var(--fs-body); color: var(--c-muted); }
-.lang-list { list-style: none; padding: var(--lang-list-top) var(--sp-4) calc(var(--sp-6) + env(safe-area-inset-bottom)); flex: 1; min-height: 0; overflow-y: auto;
-  display: grid; align-content: start; gap: var(--sp-2); animation: rise var(--d-item) var(--ease) var(--t-copy-start) both; }
-.lang-list button { width: 100%; height: var(--s-lang-row); border-radius: var(--r-lang-row); background: var(--c-panel); color: var(--c-text);
-  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--lang-pad-end) 0 var(--lang-pad-start);
-  font-size: var(--fs-body); font-weight: var(--fw-600); text-align: start; }
-.lang-list .icon { --icon-size: var(--lang-check); --stroke: 1.9; }
 
 /* ── loading ── */
-.loading-body { align-items: center; padding-top: var(--loading-top); animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
+
 .circle { width: var(--circle-loading); height: var(--circle-loading); border-radius: var(--r-pill); background: var(--c-lime); color: var(--c-ink); display: grid; place-items: center; }
 .circle .icon { --icon-size: var(--icon-loading); }
 .ring { margin-top: var(--gap-ring); width: var(--spinner); height: var(--spinner); animation: spin var(--d-spinner) linear infinite; }
@@ -57,11 +35,8 @@
 .ring .track { stroke: var(--c-panel2); }
 .ring .arc { stroke: var(--c-yellow); stroke-linecap: round; stroke-dasharray: 28 72; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.loading-body p { margin-top: var(--gap-loading-text); font-size: var(--fs-body); color: var(--c-muted); }
 
 /* ── the gates' stand-ins ── */
-.stub .col { padding: var(--sp-8) var(--sp-4); gap: var(--sp-4); align-items: flex-start; animation: rise var(--d-item) var(--ease) var(--t-item-start) both; }
-.stub h1 { font-size: var(--fs-title); font-weight: var(--fw-700); }
 
 /* Standing still: the loops stop (MOTION.md: under "reduce motion" everything stands). */
 @media (prefers-reduced-motion: reduce) {
@@ -71,24 +46,16 @@
 /* ── register-1..3 (sheets mobile_390_w1_register-*) ── */
 .reg { overflow: hidden auto; }
 .reg-head { width: 100%; max-width: var(--entry-max); margin-inline: auto; padding: var(--reg-head-top) var(--reg-side) 0; animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
-.reg-mark { width: var(--reg-mark); height: var(--reg-mark); border-radius: var(--r-reg-mark); background: var(--c-lime); color: var(--c-ink); display: grid; place-items: center; }
-.reg-mark .icon { --icon-size: var(--reg-mark-icon); }
+
 .reg-step { margin-top: var(--reg-step-gap); height: var(--lh-label); font-size: var(--fs-label); line-height: var(--lh-label); font-weight: var(--fw-600); color: var(--c-muted); }
 .reg-bars { margin-top: var(--reg-bars-gap); display: flex; gap: var(--gap-bar); }
 .reg-bars span { flex: 1; height: var(--h-bar); border-radius: var(--r-pill); background: var(--c-panel); }
 .reg-bars span[data-done] { background: var(--c-lime); }
 
-.reg-sheet { flex: 1; min-height: 0; margin-top: var(--reg-sheet-gap); background: var(--c-sheet); border-radius: var(--r-sheet) var(--r-sheet) 0 0;
-  animation: sheet-up var(--d-sheet-in) var(--ease) var(--t-sheet-in-start) both; display: flex; flex-direction: column; }
-.reg-body { width: 100%; max-width: var(--entry-max); margin-inline: auto; flex: 1; min-height: 0; display: flex; flex-direction: column;
-  padding: var(--reg-pad-top) var(--reg-pad) max(var(--reg-foot-bottom), env(safe-area-inset-bottom)); }
-.reg-body > * { animation: rise var(--d-item) var(--ease) var(--delay) both; }
-.reg-body > .reg-foot { --from: var(--o-action); animation: rise var(--d-action) var(--ease) var(--t-action-start) both; }
-.reg-body h1 { font-size: var(--fs-title); font-weight: var(--fw-700); line-height: var(--lh-tight); }
 .reg-sub { max-width: var(--reg-sub-w); margin: var(--reg-title-gap) 0 var(--reg-sub-gap); font-size: var(--fs-body); line-height: var(--lh-sub); color: var(--c-muted); }
 
-.reg-field + .reg-field, .reg-body > .reg-field + .reg-field { margin-top: var(--gap-field); }
-.reg-body > div[role="group"] > .reg-field:not(:first-child) { margin-top: var(--gap-field); }
+.reg-field + .reg-field{ margin-top: var(--gap-field); }
+
 .reg-field label { display: block; height: var(--lh-label); padding-inline: var(--reg-label-inset); margin-bottom: var(--gap-label);
   font-size: var(--fs-field-label); line-height: var(--lh-label); font-weight: var(--fw-600); }
 .reg-input { width: 100%; height: var(--s-field); border-radius: var(--r-field); background: var(--c-panel); color: var(--c-text); border: 0;
@@ -99,7 +66,6 @@
 .reg-hint { padding-inline-start: var(--reg-label-inset); }
 .reg-hint[data-state="young"] { color: var(--c-coral); }
 
-.reg-consent { margin-top: var(--gap-consent); }
 .reg-check { position: relative; display: flex; align-items: center; gap: var(--gap-check); min-height: var(--box); font-size: var(--fs-body); font-weight: var(--fw-500); }
 .reg-check input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .reg-box { width: var(--box); height: var(--box); flex: none; border-radius: var(--r-box); background: var(--c-panel); color: var(--c-ink); display: grid; place-items: center; }
@@ -107,34 +73,17 @@
 .reg-check input:checked + .reg-box { background: var(--c-lime); }
 .reg-check input:checked + .reg-box .icon { opacity: 1; }
 .reg-check input:focus-visible + .reg-box { outline: var(--ring) solid var(--c-text); outline-offset: var(--ring); }
-.reg-docs { list-style: none; padding: 0; margin: var(--gap-chips) 0 0 calc(var(--box) + var(--gap-check)); display: flex; flex-wrap: wrap; gap: var(--gap-chip); }
-.reg-docs a { display: flex; align-items: center; height: var(--h-chip); padding: 0 var(--pad-chip); border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text);
-  font-size: var(--fs-label); font-weight: var(--fw-600); text-decoration: none; text-transform: capitalize; }
 
-.reg-foot { margin-top: auto; padding-top: var(--sp-4); display: grid; }
-.reg-foot .cta[aria-disabled="true"] { opacity: var(--o-disabled); }
-.reg-reason { font-size: var(--fs-label); line-height: var(--lh-counter); color: var(--c-muted); margin-bottom: var(--gap-reason); text-align: center; }
-.reg-reason[data-pressed] { color: var(--c-coral); }
 .reg-error { margin-top: var(--gap-counter); font-size: var(--fs-label); line-height: var(--lh-counter); color: var(--c-coral); font-weight: var(--fw-600); padding-inline: var(--reg-label-inset); }
 
 /* the PIN's six cells and a code group's four: drawn cells over one real, transparent input */
-.reg-cells { position: relative; display: grid; grid-template-columns: repeat(var(--cells), 1fr); gap: var(--gap-cell); }
-.reg-cell { height: var(--h-code-cell); border-radius: var(--r-cell); background: var(--c-panel); display: grid; place-items: center;
-  font-size: var(--fs-cell); font-weight: var(--fw-700); color: var(--c-text); }
+
 /* the paper code of the restore gate: sixteen cells, four rows of four (w4_restore) */
-.restore-code .reg-cells { grid-template-columns: repeat(4, 1fr); }
+
 /* the steps under a sub-page's back (w4_reissue-1, -2): "step n of 2" and its bars, the register head without its mark */
 .ri-steps { padding-top: 0; }
 .ri-steps + .me-sheet { margin-top: var(--reg-sheet-gap); }
 .me-body > .reg-plate + [role="group"] { margin-top: 0; }   /* the plate's own gap below is the whole gap to the first group (w4_reissue-2) */
-.reg-cells[data-kind="secret"] .reg-cell { height: var(--h-pin-cell); }
-.reg-cell i { width: var(--dot); height: var(--dot); border-radius: var(--r-pill); background: var(--c-text); }
-.reg-cells:focus-within .reg-cell[data-active] { box-shadow: inset 0 0 0 var(--ring) var(--c-lime); }
-.reg-cells input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; font-size: var(--fs-input); caret-color: transparent; }
-
-.reg-notice { margin-top: var(--notice-gap); display: flex; align-items: flex-start; gap: var(--gap-notice); padding: var(--pad-notice) var(--pad-notice-x);
-  border-radius: var(--r-row); background: var(--c-yellow); color: var(--c-ink); font-size: var(--fs-notice); line-height: var(--lh-notice); font-weight: var(--fw-500); }
-.reg-notice .icon { --icon-size: var(--icon-notice); --stroke: 2; margin-top: calc((var(--lh-notice) - var(--icon-notice)) / 2); }
 
 .reg-plate { margin-top: var(--plate-gap); padding: var(--plate-pad-top) var(--plate-pad) var(--plate-pad); border-radius: var(--r-plate); background: var(--c-lime); color: var(--c-ink); margin-bottom: var(--gap-field); }
 .reg-plate-head { display: flex; align-items: center; gap: var(--gap-plate-head); height: var(--lh-counter); font-size: var(--fs-field-label); font-weight: var(--fw-700); }
@@ -146,64 +95,24 @@
 
 /* ── unlock, locked (sheets mobile_390_w2_unlock, w2_locked) ── */
 .gate { overflow: hidden auto; }
-.gate-body { width: 100%; max-width: var(--entry-max); margin-inline: auto; flex: 1; min-height: 0; display: flex; flex-direction: column;
-  padding: var(--reg-head-top) var(--reg-pad) max(var(--reg-foot-bottom), env(safe-area-inset-bottom)); }
-.gate-body > * { animation: rise var(--d-item) var(--ease) var(--delay) both; }
-.gate-body > .reg-mark { margin-inline-start: var(--reg-label-inset); animation: rise var(--d-header) var(--ease) both; --from: calc(var(--o-header) * -1); }
-.gate-body h1 { margin-top: var(--gate-title-gap); font-size: var(--fs-title); font-weight: var(--fw-700); line-height: var(--lh-tight); }
+
 .gate-error { margin-top: var(--notice-gap); min-height: var(--h-gate-error); display: flex; align-items: center; gap: var(--gap-notice); padding: 0 var(--pad-notice-x);
   border-radius: var(--r-row); background: var(--c-coral); color: var(--c-ink); font-size: var(--fs-notice); line-height: var(--lh-notice); font-weight: var(--fw-600); }
 .gate-error .icon { --icon-size: var(--icon-notice); --stroke: 2; }
-.gate-forget { margin: var(--sp-4) 0 0; font-size: var(--fs-label); color: var(--c-muted); }
-.gate-foot { margin-top: auto; padding-top: var(--sp-4); display: grid; gap: var(--gate-foot-gap); --from: var(--o-action); animation: rise var(--d-action) var(--ease) var(--t-action-start) both; }
-.gate-foot .cta[aria-disabled="true"] { opacity: var(--o-disabled); }
-.gate-timer { margin-top: var(--gap-timer); text-align: center; font-size: var(--fs-timer); font-weight: var(--fw-700); font-variant-numeric: tabular-nums; color: var(--c-muted); }
 
 /* locked: the lock, the title and the sub-line stand in the middle, the cells below */
-.gate-locked { padding-top: calc(var(--reg-head-top) + var(--lock-top)); }
-.lock-circle { animation: rise var(--d-item) var(--ease) var(--delay) both, pulse-scale var(--d-pulse) ease-in-out infinite; align-self: center; width: var(--circle-lock); height: var(--circle-lock); border-radius: var(--r-pill); background: var(--c-panel); color: var(--c-text); display: grid; place-items: center; }
-.lock-circle .icon { --icon-size: var(--icon-lock); }
-.gate-locked h1 { margin-top: var(--lock-title-gap); font-size: var(--fs-lock-title); text-align: center; }
-.gate-locked .reg-sub { margin: var(--lock-sub-gap) auto var(--reg-sub-gap); text-align: center; }
 
 /* ── the list stagger (MOTION.md: items rise from 0.35 s, one every 0.08 s) ──
    --i is the item's place in the column; the screens' own first layers (header, mark) are not counted. */
-.reg-body > *, .gate-body > *, .fd-col >.fd-card { --delay: calc(var(--t-item-start) + var(--i, 0) * var(--stagger-item)); }
-.reg-body > :nth-child(2), .gate-body > :nth-child(3), .fd-col >:nth-child(2) { --i: 1; }
-.reg-body > :nth-child(3), .gate-body > :nth-child(4), .fd-col >:nth-child(3) { --i: 2; }
-.reg-body > :nth-child(4), .gate-body > :nth-child(5), .fd-col >:nth-child(4) { --i: 3; }
-.reg-body > :nth-child(5), .gate-body > :nth-child(6), .fd-col >:nth-child(5) { --i: 4; }
-.reg-body > :nth-child(n+6), .gate-body > :nth-child(n+7), .fd-col >:nth-child(n+6) { --i: 5; }
-.gate-locked > :nth-child(2) { --i: 1; }
-.gate-locked > :nth-child(3) { --i: 2; }
-.gate-locked > :nth-child(4) { --i: 3; }
-.gate-locked > :nth-child(n+5) { --i: 4; }
-.fd-col >.fd-card:nth-child(n) { animation-delay: var(--delay); }
 
 /* ── a button waiting for the server (MOTION.md: the press wave 0.45 s, then a ring turns in place of the word) ──
    aria-busy is the state (the screens set it with the request and drop it with the answer). The wave sits behind the
    button (z-index -1 in the parent's stacking context) so only its halo shows. */
-.cta[aria-busy="true"] { position: relative; }
-.cta[aria-busy="true"][aria-disabled="true"] { opacity: 1; }
-.cta[aria-busy="true"] > * { animation: spin-in var(--d-spin-in) var(--ease) var(--t-spin-start) reverse both; }
-.cta[aria-busy="true"]::before { content: ""; position: absolute; z-index: -1; left: 50%; top: 50%; width: var(--press-d); height: var(--press-d);
-  margin: calc(var(--press-d) / -2) 0 0 calc(var(--press-d) / -2); border-radius: var(--r-pill); background: var(--press); pointer-events: none;
-  animation: press var(--d-press) var(--ease) both; }
-.cta[aria-busy="true"]::after { content: ""; position: absolute; left: 50%; top: 50%; width: var(--spin-d); height: var(--spin-d);
-  margin: calc(var(--spin-d) / -2) 0 0 calc(var(--spin-d) / -2); border-radius: var(--r-pill);
-  background: conic-gradient(var(--c-ink) 0 var(--spinner-arc), var(--spin-track) 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--spin-w)), #000 calc(100% - var(--spin-w) + var(--hair)));
-  mask: radial-gradient(farthest-side, transparent calc(100% - var(--spin-w)), #000 calc(100% - var(--spin-w) + var(--hair)));
-  animation: spin-in var(--d-spin-in) var(--ease) var(--t-spin-start) both, spin var(--d-spinner) linear var(--t-spin-start) infinite; }
+
 @keyframes press { 0% { transform: scale(var(--scale-press-from)); opacity: 0; } 11% { transform: scale(var(--scale-press-hit)); opacity: 1; } 100% { transform: scale(var(--scale-press-to)); opacity: 0; } }
 @keyframes spin-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* Standing still: no wave, the ring stays as it is, the lock does not breathe. */
-@media (prefers-reduced-motion: reduce) {
-  .lock-circle { animation: rise var(--d-item) var(--ease) var(--delay) both; }
-  .cta[aria-busy="true"]::before { display: none; }
-  .cta[aria-busy="true"]::after { animation: spin-in var(--d-spin-in) var(--ease) var(--t-spin-start) both; }
-}
 
 /* desktop tables: the head lies across the panel (tokens/wide.css) over the new-table button; it holds only words, so clicks go through it */
 .tb.tb .tb-head { pointer-events: none; }

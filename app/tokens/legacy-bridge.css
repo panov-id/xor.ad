@@ -1,0 +1,39 @@
+/* LEGACY: the old screens' names over the new tokens. Deleted with the last old screen (NEWDESIGN_PLAN §7: nothing old stays). */
+
+/* The shell's own names (app/tokens/sosed.gen.css, --c-*) read the theme's (NEWDESIGN_PLAN §3.2). They stay aliases while
+   any file still uses them; app/src/brands/sosed/theme.test.ts checks every --c-* in use has one. */
+:root[data-theme] {
+  --c-night: var(--bg);
+  --c-nav-bar: var(--theirs);
+  --c-sheet: var(--panel-solid);
+  --c-sheet-2: var(--bg); /* talks.css .tk-more falls back to the page itself */
+  --c-panel: var(--tile);
+  --c-panel2: var(--tile-strong);
+  --c-text: var(--text);
+  --c-muted: var(--text-muted);
+  --c-ink: var(--on-accent);
+  --c-lime: var(--accent);
+  --c-accent: var(--accent);
+  --c-peach: var(--accent-soft);
+  --c-coral: var(--acc-1);
+  --c-lilac: var(--acc-3);
+  --c-yellow: var(--acc-6);
+  --c-avatar-1: var(--acc-1);
+  --c-avatar-2: var(--acc-2);
+  --c-avatar-3: var(--acc-3);
+  --c-avatar-4: var(--acc-4);
+  --c-avatar-5: var(--acc-5);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-0: 0s; --dur-1: 0s; --dur-2: 0s; --dur-3: 0s; --dur-4: 0s; --dur-ambient: 0s; }
+}
+
+/* The light themes put light text on their accents (--on-accent), so the old tones that carry --c-ink take the designer's
+   accents a light text reads on (contrast >= 3 for the bold tile text; the pale --accent-soft does not). */
+:root[data-theme="white"] { --c-peach: var(--acc-5); --c-lilac: var(--acc-4); --c-coral: var(--accent); --me-danger: #c43d2a; }
+:root[data-theme="sea"] { --c-peach: var(--acc-5); --c-coral: var(--acc-2); --me-danger: #9e2f1f; }
+
+/* Sea's text is set for its honey panels, while the screens still write straight on the page (NEWDESIGN_PLAN §7 step 3
+   puts them on panels). Until then the page itself is the panel, and the teal stays on the bars. */
+:root[data-theme="sea"] { --c-night: var(--panel-solid); --c-sheet-2: var(--panel-solid); }
+

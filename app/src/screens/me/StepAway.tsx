@@ -32,13 +32,13 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
           <Icon d={hourglass} /><span>{label("away.go")}</span>
         </button>
       }>
-      <h2 className="me-title">{say("app.stepaway.title")}</h2>
-      <p className="me-lead">{say("app.stepaway.sub")}</p>
+      <h2 className="k-title k-title-big">{say("app.stepaway.title")}</h2>
+      <p className="k-sub">{say("app.stepaway.sub")}</p>
       <div className="reg-field">
         <label id="away-for">{say("app.stepaway.for")}</label>
-        <div className="me-chips" role="radiogroup" aria-labelledby="away-for">
+        <div className="k-chips" role="radiogroup" aria-labelledby="away-for">
           {AWAY_ORDER.map((s) => (
-            <button key={s} type="button" role="radio" aria-checked={span === s} className="me-chip" onClick={() => setSpan(s)} data-testid={`away-${s}`}>
+            <button key={s} type="button" role="radio" aria-checked={span === s} className="k-pick-chip" onClick={() => setSpan(s)} data-testid={`away-${s}`}>
               {say(`app.stepaway.${s}`)}
             </button>
           ))}

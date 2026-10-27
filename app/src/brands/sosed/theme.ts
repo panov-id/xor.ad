@@ -1,41 +1,62 @@
-// sosed's theme on <html> (owner 2026-10-26: four themes, white, sea, plum and black, and «auto»: white by day, black by
-// night). The choice is kept on this device under the web's key `theme:sosed` (web/src/theme.ts), so a choice made
-// there carries over; the web's old ids read as the nearest new one. Free of React, so node:test runs it.
-export const THEMES = ["white", "sea", "plum", "black"] as const;
+// sosed's theme on <html> (owner 2026-10-26): four themes, sea, plum, white and black, each to pick for good, and two that
+// follow the device's own light or dark (prefers-color-scheme), never the clock: «colour» (sea / plum, the default) and
+// «classic» (white / black). The choice is kept on this device under the web's key `theme:sosed` (web/src/theme.ts); an
+// id an older build kept there reads as the nearest new one and is written back once. Free of React, so node:test runs it.
+export const THEMES = ["sea", "plum", "white", "black"] as const;
 export type ThemeId = (typeof THEMES)[number];
-export type Choice = ThemeId | "auto";
+export const FOLLOWS = { colour: ["sea", "plum"], classic: ["white", "black"] } as const satisfies Record<string, readonly [ThemeId, ThemeId]>;
+export type Choice = ThemeId | keyof typeof FOLLOWS;
+export const DEFAULT_CHOICE: Choice = "colour";
 
 export const STORAGE_KEY = "theme:sosed";
-/** The web's and the old shell's ids (light, dark, Dusk) and what each is now (NEWDESIGN_PLAN §3.4). */
-export const OLD_IDS: Record<string, Choice> = { light: "white", dark: "black", dusk: "plum", auto: "auto" };
+/** Ids older builds kept (the web's light / dark / auto, the old shell's Dusk) and what each is now. */
+export const OLD_IDS: Record<string, Choice> = { light: "white", dark: "black", dusk: "plum", auto: "colour" };
+
+const known = (v: string): v is Choice => (THEMES as readonly string[]).includes(v) || Object.hasOwn(FOLLOWS, v);   // own keys only: «toString» in the storage is not a theme
 
 export function readChoice(storage: Pick<Storage, "getItem"> | null = safeStorage()): Choice {
   let value: string | null = null;
   try { value = storage?.getItem(STORAGE_KEY) ?? null; } catch { value = null; }
-  if (!value) return "auto";
-  if ((THEMES as readonly string[]).includes(value)) return value as ThemeId;
-  return OLD_IDS[value] ?? "auto";
+  if (!value) return DEFAULT_CHOICE;
+  if (known(value)) return value;
+  return Object.hasOwn(OLD_IDS, value) ? OLD_IDS[value] : DEFAULT_CHOICE;
 }
 
 export function saveChoice(choice: Choice, storage: Pick<Storage, "setItem" | "removeItem"> | null = safeStorage()): void {
   try {
-    if (choice === "auto") storage?.removeItem(STORAGE_KEY);
+    if (choice === DEFAULT_CHOICE) storage?.removeItem(STORAGE_KEY);
     else storage?.setItem(STORAGE_KEY, choice);
   } catch { /* kept for this page only */ }
 }
 
-/** Night is 21–5 on the device's clock, as the web's sky (web/src/ui/phase.ts). */
-export function resolveTheme(choice: Choice, hour: number): ThemeId {
-  if (choice !== "auto") return choice;
-  return hour >= 5 && hour < 21 ? "white" : "black";
+/** `dark`: the device says it is in dark mode. */
+export function resolveTheme(choice: Choice, dark: boolean): ThemeId {
+  if (Object.hasOwn(FOLLOWS, choice)) return FOLLOWS[choice as keyof typeof FOLLOWS][dark ? 1 : 0];
+  return choice as ThemeId;
 }
 
-export function applyTheme(doc: Document = document, storage = safeStorage(), now = new Date()): ThemeId {
+export function deviceIsDark(): boolean {
+  try { return typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches; } catch { return false; }
+}
+
+export function applyTheme(doc: Document = document, storage = safeStorage(), dark = deviceIsDark()): ThemeId {
+  let kept: string | null = null;
+  try { kept = storage?.getItem(STORAGE_KEY) ?? null; } catch { kept = null; }
   const choice = readChoice(storage);
-  const id = resolveTheme(choice, now.getHours());
+  if (kept && !known(kept)) saveChoice(choice, storage);
+  const id = resolveTheme(choice, dark);
   doc.documentElement.dataset.theme = id;
   doc.documentElement.dataset.themeChoice = choice;
   return id;
+}
+
+/** Turns the theme when the device switches between light and dark; returns the unsubscribe. */
+export function followDevice(apply: () => void = () => void applyTheme()): () => void {
+  try {
+    const q = matchMedia("(prefers-color-scheme: dark)");
+    q.addEventListener("change", apply);
+    return () => q.removeEventListener("change", apply);
+  } catch { return () => {}; }
 }
 
 function safeStorage(): Storage | null {

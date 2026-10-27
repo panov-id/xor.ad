@@ -1,67 +1,62 @@
-// w2_splash and w2_splash-lang (sosed Dusk, mobile_390_*): the web's Splash (web/src/screens/Splash.tsx)
-// in the new design. Same flow: the language list first, once per device (the page's own language
-// ticked, one tap keeps it); then the tagline, what it is not, and the ways in. Same testids:
-// start, restore, arrive; lang, lang-<code>.
+// The prototype's splash (docs/newdesign/proto/splash.html, splash-lang.html). The language list first, once per device
+// (the page's own language ticked; a tap keeps one, «continue» keeps the ticked); then the yard with the brand's glass card,
+// the tagline, what it is not, and the ways in: start, the paper code, moving here. Testids: start, restore, arrive;
+// lang, lang-<code>, lang-go.
 import { useState } from "react";
 import { brand } from "@brand";
 import { asked, keep, LANG, LANGUAGES, listed, nameOf, say } from "../i18n";
-import { Icon } from "../shell/Icon";
-import { arrowRight, check, home, key, tileIcons } from "../shell/icons";
-import { Screen } from "../shell/Screen";
+import { NdIcon } from "../shell/NdIcon";
+import { Logo, Scene } from "../shell/Scene";
 
 export function Splash({ onStart, onRestore, onArrive }: { onStart: () => void; onRestore: () => void; onArrive: () => void }) {
   const [passed, setPassed] = useState(asked);
   if (!passed) {
     return (
-      <Screen name="splash" title={say("web.lang.title")} className="splash splash-lang" data-state="lang">
-        <div className="col">
-          <header className="lang-head" aria-hidden="true">
-            <span className="mark"><Icon d={home} /></span>
-            <span className="word">{brand.name}</span>
-          </header>
-          <div className="lang-copy">
-            <h1>{say("web.lang.title")}</h1>
-            <p>{say("app.lang.hint", { n: LANGUAGES.length })}</p>
-          </div>
-          <ul className="lang-list" data-testid="lang">
-            {listed().map((lang) => (
-              <li key={lang}>
-                <button type="button" lang={lang} aria-current={lang === LANG ? "true" : undefined} data-testid={`lang-${lang}`}
-                  onClick={() => { if (keep(lang)) setPassed(true); }}>
-                  <span>{nameOf(lang)}</span>
-                  {lang === LANG ? <Icon d={check} /> : null}
-                </button>
-              </li>
-            ))}
-          </ul>
+      <main className="k-screen" data-screen="splash" data-state="lang">
+        <div className="k-col">
+          <section className="k-panel k-head">
+            <div className="k-row">
+              <Logo size={52} />
+              <div className="k-stack"><h1 className="k-title">{say("web.lang.title")}</h1><p className="k-sub">{say("app.lang.hint", { n: LANGUAGES.length })}</p></div>
+            </div>
+          </section>
+          <section className="k-panel k-grow k-pad8">
+            <ul className="k-langs" data-testid="lang">
+              {listed().map((lang) => (
+                <li key={lang}>
+                  <button type="button" className="k-fact k-fact-btn" lang={lang} aria-current={lang === LANG ? "true" : undefined} data-on={lang === LANG ? "" : undefined}
+                    data-testid={`lang-${lang}`} onClick={() => { if (keep(lang)) setPassed(true); }}>
+                    <span className="k-badge" data-c="1"><NdIcon name="lang" /></span><span>{nameOf(lang)}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="k-panel k-actions">
+            <button type="button" className="k-cta" onClick={() => { if (keep(LANG)) setPassed(true); }} data-testid="lang-go"><NdIcon name="chev" /><span>{say("web.offer.continue")}</span></button>
+          </section>
         </div>
-      </Screen>
+      </main>
     );
   }
   return (
-    <Screen name="splash" title={say("web.splash.tagline")} className="splash">
-      <div className="poster" aria-hidden="true">
-        <div className="hero"><Icon d={home} /></div>
-        {tileIcons.map((d, i) => (
-          <div key={i} className="tile" style={{ left: `var(--tile-${i + 1}-x)`, top: `var(--tile-${i + 1}-y)` }}><Icon d={d} /></div>
-        ))}
+    <main className="k-screen" data-screen="splash">
+      <div className="k-col">
+        <section className="k-panel k-grow k-splash">
+          <Scene kind="splash">
+            <div className="k-glass"><Logo size={44} /><div className="k-stack"><b>{brand.name}</b><span className="k-sub">{brand.host}</span></div></div>
+          </Scene>
+          <div className="k-stack"><h1 className="k-title k-title-big">{say("web.splash.tagline")}</h1></div>
+          <p className="k-sub">{say("web.splash.vanishes")}</p>
+        </section>
+        <section className="k-panel k-actions k-stack">
+          <button type="button" className="k-cta" onClick={onStart} data-testid="start"><NdIcon name="chev" /><span>{say("web.splash.start")}</span></button>
+          <div className="k-two">
+            <button type="button" className="k-way" onClick={onRestore} data-testid="restore"><span className="k-badge" data-c="1"><NdIcon name="paper" /></span><span>{say("web.splash.haveCode")}</span></button>
+            <button type="button" className="k-way" onClick={onArrive} data-testid="arrive"><span className="k-badge" data-c="3"><NdIcon name="move" /></span><span>{say("web.splash.arrive")}</span></button>
+          </div>
+        </section>
       </div>
-      <div className="col entry">
-        <div className="copy">
-          <h1>{say("web.splash.tagline")}</h1>
-          <p>{say("web.splash.vanishes")}</p>
-        </div>
-        <div className="ways">
-          <button type="button" className="cta cta-primary" onClick={onStart} data-testid="start">
-            <Icon d={arrowRight} /><span>{say("web.splash.start")}</span>
-          </button>
-          <button type="button" className="cta cta-quiet" onClick={onRestore} data-testid="restore">
-            <Icon d={key} /><span>{say("web.splash.haveCode")}</span>
-          </button>
-          {/* «arrive» is not one of the two ways in: a quiet link under them (web, owner 12.10.2026) */}
-          <button type="button" className="link" onClick={onArrive} data-testid="arrive">{say("web.splash.arrive")}</button>
-        </div>
-      </div>
-    </Screen>
+    </main>
   );
 }

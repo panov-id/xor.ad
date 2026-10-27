@@ -4,25 +4,21 @@
 // (depth/web-platform/phrase.ts, the web's composer says the same); the phrase's life is the core's
 // (depth/core/life.ts PHRASE_LIFE_SECONDS). The web's testids: text, send, refused, counter; new ones:
 // composer-back, mode-<mode>, zone-<m>, live-left.
-//
-// The desktop (desktop_1440_Write) adds the rail, the yard's line over the title and «how neighbours will see it» beside the form
-// (the feed's own tile); below 1440 they are not shown (tokens/wide.css). Not here yet: the neighbour's offer (discount and conditions).
+// The look is the prototype's (composer.html); its offer switch is not here yet (the neighbour's offer has no app path).
 import { useEffect, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
 import { PHRASE_LIFE_SECONDS } from "@sdk/life.ts";
 import { createPhrase, type Mode, type Sent } from "@platform/phrase.ts";
 import { failedLine, LANG, label, say } from "../i18n";
 import { storedPlace } from "../place";
-import { Icon } from "../shell/Icon";
-import { chevronLeft, crowd, person, smile } from "../shell/icons";
-import { Screen } from "../shell/Screen";
+import { NdIcon } from "../shell/NdIcon";
 import { type Tab, TabBar } from "../shell/TabBar";
-import { Tile } from "./feed-card";
+import { RADIUS_ICON } from "./feed-radius";
 import { canSay, lettersLeft, liveLeft } from "./composer-logic";
-import { RADII, radiusWord } from "./feed-logic";
+import { RADII, radiusWord, textSize } from "./feed-logic";
 
 const phrase = createPhrase({ say, lang: LANG });
-const MODES: Array<{ value: Mode; icon: string }> = [{ value: "alone", icon: person }, { value: "company", icon: crowd }, { value: "party", icon: smile }];
+const MODES: Array<{ value: Mode; icon: string; c: string }> = [{ value: "alone", icon: "alone", c: "5" }, { value: "company", icon: "friends", c: "6" }, { value: "party", icon: "party", c: "1" }];
 const life = (): { h: number; m: number } => ({ h: Math.floor(PHRASE_LIFE_SECONDS / 3600), m: Math.floor((PHRASE_LIFE_SECONDS % 3600) / 60) });
 
 export interface ComposerState {
@@ -38,65 +34,62 @@ export interface ComposerActions {
 export function ComposerPane({ state, actions }: { state: ComposerState; actions: ComposerActions }) {
   const { h, m } = life();
   const left = state.live?.left ?? 1;
+  const letters = lettersLeft(state.text, state.limit);
+  // the prototype's composer (docs/newdesign/proto/composer.html, composer-refused): the bar with close and the title,
+  // the phrase's panel (text, live dots, letters ring), the settings panel (three modes, five circles), the send panel
   return (
-    <Screen name="composer" title={label("app.compose.title")} className="cp">
-      <header className="cp-head">
-        <button type="button" className="cp-back" aria-label={say("common.back")} onClick={actions.onBack} data-testid="composer-back"><Icon d={chevronLeft} /></button>
-        {state.place && <p className="cp-where">{say("app.compose.where", { place: state.place })}</p>}
-        <h1>{label("app.compose.title")}</h1>
-        <p>{say("app.compose.sub", { h, m })}</p>
-      </header>
-      <aside className="cp-preview" aria-label={say("app.compose.preview")}>
-        <h2>{say("app.compose.preview")}</h2>
-        <ul className="cp-preview-tile">
-          <Tile card={{ id: "preview", text: state.text.trim() || say("app.compose.your_phrase"), mode: state.mode, lang: LANG, like_count: 0 }}
-            tone="lime" busy onOpen={() => {}} onLike={() => {}} testid="preview" />
-        </ul>
-        <p>{say("app.compose.preview_text", { zone: say(radiusWord(state.zone).key, { n: radiusWord(state.zone).n }), h, m })}</p>
-      </aside>
-      <form className="cp-sheet" onSubmit={(e) => { e.preventDefault(); actions.onSend(); }}>
-        <div className="cp-card">
-          <label htmlFor="cp-text">{say("app.compose.your_phrase")}</label>
-          <textarea id="cp-text" value={state.text} onChange={(e) => actions.onText(e.target.value)} rows={2} data-testid="text" />
-          <div className="cp-card-foot">
-            <span>{say("app.compose.lives", { h, m })}</span>
-            <span data-testid="counter">{say("app.compose.letters_left", { n: lettersLeft(state.text, state.limit) })}</span>
+    <main className="k-screen k-over" data-screen="composer">
+      <form className="k-col" onSubmit={(e) => { e.preventDefault(); actions.onSend(); }}>
+        <header className="k-row k-bar">
+          <button type="button" className="k-bar-btn" aria-label={say("common.back")} onClick={actions.onBack} data-testid="composer-back"><NdIcon name="close" /></button>
+          <h1 className="k-bar-title">{label("app.compose.title")}</h1>
+        </header>
+        <section className="k-panel k-card k-write">
+          <label htmlFor="cp-text" className="k-sub">{state.place ? say("app.compose.where", { place: state.place }) : say("app.compose.sub", { h, m })}</label>
+          <textarea id="cp-text" className="k-card-text k-write-text" value={state.text} onChange={(e) => actions.onText(e.target.value)}
+            placeholder={say("app.compose.your_phrase")} rows={3} data-testid="text" data-size={textSize(state.text)} />
+          <div className="k-write-foot">
+            {state.live
+              ? <span className="k-dots" data-testid="live-left" title={state.live.left > 0 ? say("app.compose.live_left", { n: state.live.left }) : say("app.compose.live_none", { n: state.live.of })}>
+                  {Array.from({ length: state.live.of }, (_, k) => <span key={k} data-on={k < state.live!.left ? "" : undefined} />)}
+                  <span className="k-meta">{`${state.live.left}/${state.live.of}`}</span>
+                </span>
+              : <span />}
+            <span className="k-ring" data-testid="counter" style={{ "--k-ring": String(Math.max(0, letters) / state.limit) } as React.CSSProperties}
+              aria-label={say("app.compose.letters_left", { n: letters })}><span>{letters}</span></span>
           </div>
-        </div>
-        <h2 id="cp-mode">{say("app.compose.going")}</h2>
-        <div className="cp-modes" role="radiogroup" aria-labelledby="cp-mode">
-          {MODES.map(({ value, icon }) => (
-            <button key={value} type="button" role="radio" aria-checked={state.mode === value} className="cp-mode" onClick={() => actions.onMode(value)} data-testid={`mode-${value}`}>
-              <Icon d={icon} /><span>{say(`app.compose.mode.${value}`)}</span>
-            </button>
-          ))}
-        </div>
-        <h2 id="cp-zone">{say("app.compose.hears")}</h2>
-        <div className="cp-zones" role="radiogroup" aria-labelledby="cp-zone">
-          {RADII.map((r) => {
-            const w = radiusWord(r);
-            return (
-              <button key={r} type="button" role="radio" aria-checked={state.zone === r} className="cp-zone" onClick={() => actions.onZone(r)} data-testid={`zone-${r}`}>
-                {say(w.key, { n: w.n })}
-              </button>
-            );
-          })}
-        </div>
-        {state.live && (
-          <div className="cp-live" data-testid="live-left">
-            <span className="cp-ring" style={{ "--cp-ring-left": String(state.live.left / state.live.of) } as React.CSSProperties}>
-              <span>{`${state.live.left}/${state.live.of}`}</span>
-            </span>
-            <p>{state.live.left > 0 ? say("app.compose.live_left", { n: state.live.left }) : say("app.compose.live_none", { n: state.live.of })}</p>
-          </div>
-        )}
-        {state.refused && <p className="cp-refused" role="alert" data-testid="refused">{state.refused}</p>}
-        <button type="submit" className="cp-send" aria-busy={state.busy || undefined} disabled={state.busy || !canSay(state.text, state.limit, left)} data-testid="send">
-          {say("app.compose.send")}
-        </button>
+        </section>
+        {state.refused
+          ? <section className="k-panel k-settings"><p className="k-note" role="alert" data-testid="refused"><NdIcon name="hourglass" /><span>{state.refused}</span></p></section>
+          : (
+            <section className="k-panel k-settings">
+              <div className="k-facts" role="radiogroup" aria-label={say("app.compose.going")}>
+                {MODES.map(({ value, icon, c }) => (
+                  <button key={value} type="button" role="radio" aria-checked={state.mode === value} className="k-fact k-fact-btn" data-on={state.mode === value ? "" : undefined}
+                    onClick={() => actions.onMode(value)} data-testid={`mode-${value}`}>
+                    <span className="k-badge" data-c={c}><NdIcon name={icon} /></span><span>{say(`app.compose.mode.${value}`)}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="k-circles" role="radiogroup" aria-label={say("app.compose.hears")}>
+                {RADII.map((r) => {
+                  const w = radiusWord(r);
+                  return (
+                    <button key={r} type="button" role="radio" aria-checked={state.zone === r} aria-label={say(w.key, { n: w.n })} data-on={state.zone === r ? "" : undefined}
+                      onClick={() => actions.onZone(r)} data-testid={`zone-${r}`}><NdIcon name={RADIUS_ICON[r]} /></button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        <section className="k-panel k-actions">
+          <button type="submit" className="k-cta" aria-busy={state.busy || undefined} disabled={state.busy || !canSay(state.text, state.limit, left)} data-testid="send">
+            <NdIcon name="send" /><span>{say("app.compose.send")}</span>
+          </button>
+        </section>
       </form>
-      <TabBar active="feed" onSelect={actions.onTab} />
-    </Screen>
+      <TabBar active="feed" onSelect={actions.onTab} railOnly />
+    </main>
   );
 }
 

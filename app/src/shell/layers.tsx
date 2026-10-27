@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { layerOf } from "../router";
 
@@ -61,6 +61,13 @@ export function LayerStack({ base }: { base: ReactNode }) {
   const [sheet, setSheet] = useState<Sheet>(null);
   const open = useCallback((id: string, node: ReactNode) => change("open", () => setSheet({ id, node })), []);
   const close = useCallback(() => change("close", () => setSheet(null)), []);
+  // a modal sheet closes on Escape too, as on a tap on the dim
+  useEffect(() => {
+    if (!sheet) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [sheet, close]);
   return (
     <Ctx.Provider value={{ sheet, open, close }}>
       <div className="layers">

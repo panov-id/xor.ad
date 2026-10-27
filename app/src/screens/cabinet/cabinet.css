@@ -26,8 +26,7 @@
 .cb-title + .cb-venue, .cb-title + .cb-offer, .cb-title + .cb-done { margin-top: var(--cb-card-top); }
 .cb-foot { width: 100%; max-width: var(--entry-max); margin-inline: auto; display: grid; padding: var(--me-foot-top) var(--me-side-end) max(var(--reg-foot-bottom), env(safe-area-inset-bottom)) var(--me-side);
   --from: var(--o-action); animation: rise var(--d-action) var(--ease) var(--t-action-start) both; }
-.cb-foot .cta[aria-disabled="true"] { opacity: var(--o-disabled); }
-a.cta { text-decoration: none; }
+
 .reg-input::placeholder { color: var(--c-muted); opacity: .7; }
 .cb-hint { margin-top: var(--cb-line-gap); font-size: var(--fs-cb-hint); line-height: var(--lh-counter); color: var(--c-muted); font-weight: var(--fw-500); }
 .reg-field + .cb-hint { margin-top: var(--cb-hint-gap); }

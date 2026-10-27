@@ -1,57 +1,4 @@
-/* sosed's four themes (owner 2026-10-26: white, sea, plum, black + auto), from the designer's archives
-   docs/newdesing2/sosed-<theme>-2026-10-25.zip elements/tokens.css, block for block. app/src/brands/sosed/theme.ts puts
-   data-theme on <html>. */
-:root[data-theme="white"] {
-  --bg: #eceef2;
-  --panel: linear-gradient(160deg,#ffffff,#f6f7f9);
-  --panel-solid: #ffffff;
-  --tile: #f1f2f5;
-  --tile-strong: #cdd1da;
-  --accent: #e35e45;
-  --accent-soft: #fff0eb;
-  --on-accent: #ffffff;
-  --text: #1d1e22;
-  --text-muted: #6a6d75;
-  --outline: #c4c7cf;
-  --bar-strong: #9a9ea8;
-  --bar: #d9dce2;
-  --bar-soft: #e9ebef;
-  --danger-bg: #ffe6df;
-  --theirs: #2b2d33;
-  --grid: #cfd2d9;
-  --status: #1d1e22;
-  --dim: rgba(30,32,40,.45);
-  --primary: linear-gradient(135deg,#e36d4c,#f0524a);
-  --acc-1: #ff5a4a;
-  --acc-2: #f59e0b;
-  --acc-3: #10b981;
-  --acc-4: #3b82f6;
-  --acc-5: #8b5cf6;
-  --acc-6: #ec4899;
-  --r-panel: 28px;
-  --r-tile: 20px;
-  --r-inner: 16px;
-  --r-pill: 999px;
-  --gap: 8px;
-  --shadow-panel: inset 1.5px 1.5px 0 rgba(255,255,255,.55), inset -1px -1px 0 rgba(40,50,80,.10), 4px 6px 10px -3px rgba(40,50,80,0.28), 12px 17px 30px -12px rgba(40,50,80,0.4);
-  --shadow-tile: inset 2px 2px 0 rgba(255,255,255,.55), inset -1.5px -1.5px 0 rgba(40,50,80,.10), 3px 4px 6px -2px rgba(40,50,80,0.22), 10px 14px 24px -10px rgba(40,50,80,0.38);
-  --shadow-acc: inset 1.5px 1.5px 0 rgba(255,255,255,.35), inset -2px -2px 0 rgba(0,0,0,.08), 2px 3px 5px -1px rgba(40,50,80,0.28), 5px 7px 12px -5px rgba(40,50,80,0.3);
-  --shadow-chip: inset 1px 1px 0 rgba(255,255,255,.35), 3px 5px 8px -2px rgba(40,50,80,0.35), 9px 13px 20px -8px rgba(40,50,80,0.35);
-  --shadow-badge-ring: 0 0 0 3px var(--panel-solid);
-  --relief-panel: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 42%, rgba(40,50,80,0.06) 100%), linear-gradient(160deg,#ffffff,#f6f7f9);
-  --relief-tile: linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 42%, rgba(40,50,80,0.07) 100%), linear-gradient(#f1f2f5,#f1f2f5);
-  --relief-acc: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,0.1) 100%), linear-gradient(#e35e45,#e35e45);
-  --dur-0: 90ms;
-  --dur-1: 160ms;
-  --dur-2: 240ms;
-  --dur-3: 360ms;
-  --dur-4: 520ms;
-  --dur-ambient: 16s;
-  --ease-out: cubic-bezier(.2,.8,.2,1);
-  --ease-in: cubic-bezier(.4,0,1,1);
-  --ease-in-out: cubic-bezier(.65,0,.35,1);
-  --ease-spring: cubic-bezier(.34,1.56,.64,1);
-}
+/* the four themes, verbatim from the archives' elements/tokens.css (scripts/design/proto-extract.py; app/tokens/themes.css is this file) */
 :root[data-theme="sea"] {
   --bg: #0d4446;
   --panel: linear-gradient(160deg,#f7d384,#efb357);
@@ -205,31 +152,62 @@
   --ease-in-out: cubic-bezier(.65,0,.35,1);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
 }
-
-/* The shell's own names (app/tokens/sosed.gen.css, --c-*) read the theme's (NEWDESIGN_PLAN §3.2). They stay aliases while
-   any file still uses them; app/src/brands/sosed/theme.test.ts checks every --c-* in use has one. */
-:root[data-theme] {
-  --c-night: var(--bg);
-  --c-nav-bar: var(--theirs);
-  --c-sheet: var(--panel-solid);
-  --c-sheet-2: var(--bg); /* talks.css .tk-more falls back to the page itself */
-  --c-panel: var(--tile);
-  --c-panel2: var(--tile-strong);
-  --c-text: var(--text);
-  --c-muted: var(--text-muted);
-  --c-ink: var(--on-accent);
-  --c-lime: var(--accent);
-  --c-accent: var(--accent);
-  --c-peach: var(--accent-soft);
-  --c-coral: var(--acc-1);
-  --c-lilac: var(--acc-3);
-  --c-yellow: var(--acc-6);
-  --c-avatar-1: var(--acc-1);
-  --c-avatar-2: var(--acc-2);
-  --c-avatar-3: var(--acc-3);
-  --c-avatar-4: var(--acc-4);
-  --c-avatar-5: var(--acc-5);
+:root[data-theme="white"] {
+  --bg: #eceef2;
+  --panel: linear-gradient(160deg,#ffffff,#f6f7f9);
+  --panel-solid: #ffffff;
+  --tile: #f1f2f5;
+  --tile-strong: #cdd1da;
+  --accent: #e35e45;
+  --accent-soft: #fff0eb;
+  --on-accent: #ffffff;
+  --text: #1d1e22;
+  --text-muted: #6a6d75;
+  --outline: #c4c7cf;
+  --bar-strong: #9a9ea8;
+  --bar: #d9dce2;
+  --bar-soft: #e9ebef;
+  --danger-bg: #ffe6df;
+  --theirs: #2b2d33;
+  --grid: #cfd2d9;
+  --status: #1d1e22;
+  --dim: rgba(30,32,40,.45);
+  --primary: linear-gradient(135deg,#e36d4c,#f0524a);
+  --acc-1: #ff5a4a;
+  --acc-2: #f59e0b;
+  --acc-3: #10b981;
+  --acc-4: #3b82f6;
+  --acc-5: #8b5cf6;
+  --acc-6: #ec4899;
+  --r-panel: 28px;
+  --r-tile: 20px;
+  --r-inner: 16px;
+  --r-pill: 999px;
+  --gap: 8px;
+  --shadow-panel: inset 1.5px 1.5px 0 rgba(255,255,255,.55), inset -1px -1px 0 rgba(40,50,80,.10), 4px 6px 10px -3px rgba(40,50,80,0.28), 12px 17px 30px -12px rgba(40,50,80,0.4);
+  --shadow-tile: inset 2px 2px 0 rgba(255,255,255,.55), inset -1.5px -1.5px 0 rgba(40,50,80,.10), 3px 4px 6px -2px rgba(40,50,80,0.22), 10px 14px 24px -10px rgba(40,50,80,0.38);
+  --shadow-acc: inset 1.5px 1.5px 0 rgba(255,255,255,.35), inset -2px -2px 0 rgba(0,0,0,.08), 2px 3px 5px -1px rgba(40,50,80,0.28), 5px 7px 12px -5px rgba(40,50,80,0.3);
+  --shadow-chip: inset 1px 1px 0 rgba(255,255,255,.35), 3px 5px 8px -2px rgba(40,50,80,0.35), 9px 13px 20px -8px rgba(40,50,80,0.35);
+  --shadow-badge-ring: 0 0 0 3px var(--panel-solid);
+  --relief-panel: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 42%, rgba(40,50,80,0.06) 100%), linear-gradient(160deg,#ffffff,#f6f7f9);
+  --relief-tile: linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 42%, rgba(40,50,80,0.07) 100%), linear-gradient(#f1f2f5,#f1f2f5);
+  --relief-acc: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,0.1) 100%), linear-gradient(#e35e45,#e35e45);
+  --dur-0: 90ms;
+  --dur-1: 160ms;
+  --dur-2: 240ms;
+  --dur-3: 360ms;
+  --dur-4: 520ms;
+  --dur-ambient: 16s;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+  --ease-in: cubic-bezier(.4,0,1,1);
+  --ease-in-out: cubic-bezier(.65,0,.35,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
 }
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-0: 0s; --dur-1: 0s; --dur-2: 0s; --dur-3: 0s; --dur-4: 0s; --dur-ambient: 0s; }
 }
+/* theme colours of the screens with no token in the archive (proto-extract.py) */
+:root[data-theme="sea"] { --pc-1: rgba(255,255,255,.55); --pc-2: rgba(70,35,5,.10); --pc-3: rgba(70,35,5,0.22); --pc-4: rgba(70,35,5,0.38); --pc-5: rgba(70,35,5,0.35); --pc-6: #ffd6c8; --pc-7: #ffffff; --pc-8: rgba(255,255,255,.28); --pc-9: #ffffff; --pc-10: rgba(255,255,255,.55); --pc-11: #7fd1c3; --pc-12: #c9efe2; --pc-13: #1f6f6e; --pc-14: #154f50; --pc-15: #2e8a84; --pc-16: #fff1c9; --pc-17: #f39a3c; --pc-18: #ee6a45; --pc-19: #5cc2b0; --pc-20: #ffffff; --pc-21: rgba(255,255,255,.28); --pc-22: #1d1e22; --pc-23: rgba(0,0,0,.12); --pc-24: #ffb59f; --pc-25: #e7b06a; --pc-26: #ffffff; --pc-27: rgba(255,255,255,.28); --pc-28: #f89c80; --pc-29: #7fb3ae; --pc-30: #e9c48c; --pc-31: #e6b066; }
+:root[data-theme="plum"] { --pc-1: rgba(255,255,255,.10); --pc-2: rgba(8,0,14,.10); --pc-3: rgba(8,0,14,0.22); --pc-4: rgba(8,0,14,0.38); --pc-5: rgba(8,0,14,0.35); --pc-6: #b8483a; --pc-7: #1d1e22; --pc-8: rgba(0,0,0,.12); --pc-9: #1d0f12; --pc-10: rgba(0,0,0,.35); --pc-11: #ffb38a; --pc-12: #f07a7a; --pc-13: #8a3a62; --pc-14: #5a2850; --pc-15: #b0476a; --pc-16: #ffe0b8; --pc-17: #a14fd1; --pc-18: #ff6b6b; --pc-19: #ffb38a; --pc-20: #ffffff; --pc-21: rgba(255,255,255,.28); --pc-22: #ffffff; --pc-23: rgba(255,255,255,.28); --pc-24: #ffb3a6; --pc-25: #6a4472; --pc-26: #1d1e22; --pc-27: rgba(0,0,0,.12); --pc-28: #ff9a88; --pc-29: #c19ac6; --pc-30: #e8c9e6; --pc-31: #6c4372; }
+:root[data-theme="black"] { --pc-1: rgba(255,255,255,.10); --pc-2: rgba(0,0,0,.10); --pc-3: rgba(0,0,0,0.22); --pc-4: rgba(0,0,0,0.38); --pc-5: rgba(0,0,0,0.35); --pc-6: #ffd2c4; --pc-7: #1d1e22; --pc-8: rgba(0,0,0,.12); --pc-9: #1a0f0b; --pc-10: rgba(0,0,0,.35); --pc-11: #151a3d; --pc-12: #43306b; --pc-13: #2a2d57; --pc-14: #15172f; --pc-15: #343a6e; --pc-16: #ffe9b0; --pc-17: #ffb020; --pc-18: #ff6b5b; --pc-19: #a46bff; --pc-20: #1d1e22; --pc-21: rgba(0,0,0,.12); --pc-22: #ffffff; --pc-23: rgba(255,255,255,.28); --pc-24: #ffb39f; --pc-25: #3a3a41; --pc-26: #ffffff; --pc-27: rgba(255,255,255,.28); --pc-28: #ff9a80; --pc-29: #8e8e98; --pc-30: #d8d8de; --pc-31: #2e2e34; }
+:root[data-theme="white"] { --pc-1: rgba(255,255,255,.55); --pc-2: rgba(40,50,80,.10); --pc-3: rgba(40,50,80,0.22); --pc-4: rgba(40,50,80,0.38); --pc-5: rgba(40,50,80,0.35); --pc-6: #ffd2c4; --pc-7: #ffffff; --pc-8: rgba(255,255,255,.28); --pc-9: #ffffff; --pc-10: rgba(255,255,255,.55); --pc-11: #9fd8ff; --pc-12: #e6f6ff; --pc-13: #86cf93; --pc-14: #3f8f5b; --pc-15: #5fb277; --pc-16: #ffd36b; --pc-17: #ff8a5c; --pc-18: #ffcd3c; --pc-19: #ff6fa5; --pc-20: #1d1e22; --pc-21: rgba(0,0,0,.12); --pc-22: #ffffff; --pc-23: rgba(255,255,255,.28); --pc-24: #ffb39f; --pc-25: #dcdfe5; --pc-26: #ffffff; --pc-27: rgba(255,255,255,.28); --pc-28: #ffa08a; --pc-29: #9a9ea8; --pc-30: #ffffff; --pc-31: #dfe2e8; }

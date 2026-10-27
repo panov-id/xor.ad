@@ -5,18 +5,15 @@
 // unlike, spent, quiet, more, error; plus likes-back.
 // Not as the sheet: no minutes left beside the distance — the node does not give a phrase's start (routes/likes.ts,
 // the owner's decision of 24.09.2026), as the feed's tiles have none.
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { failedLine, label, say } from "../../i18n";
 import { storedPlace } from "../../place";
-import { Icon } from "../../shell/Icon";
-import { chevronLeft, hand } from "../../shell/icons";
+import { NdIcon } from "../../shell/NdIcon";
+import { Scene } from "../../shell/Scene";
 import { useSkeleton } from "../../shell/loading";
-import { Screen } from "../../shell/Screen";
-import { Rail } from "../../shell/TabBar";
-import { Skeleton } from "../../shell/Skeleton";
-import { pin } from "../me/icons";
-import { langOf, offerLabel, toneOf, type FeedCard } from "../feed-logic";
+import { TabBar, TabsContext } from "../../shell/TabBar";
+import { langOf, offerLabel, textSize } from "../feed-logic";
 import { canTakeBack, distanceWord, metresBetween, type LikedRow } from "./talks-logic";
 
 const modeWord = (mode: string): string => {
@@ -58,46 +55,63 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
   };
 
   const title = say("app.likes.title");
+  // the prototype's my-marks (docs/newdesign/proto/my-marks.html, my-marks-empty): the feed's frame with the switch on
+  // «marks», the marked phrases as the feed's tiles, the bottom bar
   return (
-    <Screen name="likes" title={title} className="me-sub tk">
-      <header className="me-bar">
-        <button type="button" className="me-back" aria-label={label("common.back")} onClick={onBack} data-testid="likes-back"><Icon d={chevronLeft} /></button>
-        <h1>{title}</h1>
-      </header>
-      <p className="tk-lead">{say("app.likes.sub")}</p>
-      <div className="tk-sheet tk-likes">
-        {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
-        {skeleton && (
-          <div className="tk-skeletons" data-testid="likes-skeleton" aria-hidden="true">
-            {[0, 1].map((i) => <Skeleton key={i} kind="card" />)}
+    <main className="k-screen" data-screen="likes">
+      <div className="k-col">
+        <Scene>
+          <section className="k-panel">
+            <div className="k-row">
+              <NdIcon name="imin" className="k-pin" />
+              <div className="k-stack"><h1 className="k-title">{title}</h1><p className="k-sub">{say("app.likes.sub")}</p></div>
+            </div>
+          </section>
+        </Scene>
+        <div className="k-seg" role="tablist">
+          <button type="button" role="tab" aria-selected="false" aria-label={say("app.feed.phrases")} onClick={onBack} data-testid="likes-back"><NdIcon name="phrase" /></button>
+          <button type="button" role="tab" aria-selected="true" aria-label={title}><NdIcon name="imin" /></button>
+        </div>
+        <section className="k-body">
+          {error && <p className="k-note" data-tone="error" role="alert" data-testid="error">{error}</p>}
+          {skeleton && <div className="k-grid2" data-testid="likes-skeleton" aria-hidden="true"><ul><li className="k-tile k-ghost" /></ul><ul><li className="k-tile k-ghost" /></ul></div>}
+          {shown?.length === 0 && (
+            <div className="k-empty" data-testid="quiet"><NdIcon name="imin-off" className="k-empty-mark" /><h2>{say("web.likes.empty")}</h2></div>
+          )}
+          <div className="k-grid2" data-testid="liked">
+            {[0, 1].map((col) => (
+              <ul key={col}>
+                {(shown ?? []).map((r, i) => {
+                  if (i % 2 !== col) return null;
+                  const open = canTakeBack(r, !!spent[r.id]);
+                  const distance = far(r);
+                  return (
+                    <li key={r.id} className="k-tile" data-testid="liked-card" data-id={r.id} data-accent={r.offer ? "" : undefined}>
+                      <div className="k-row k-tile-head">
+                        <span className="k-ava" aria-hidden="true"><NdIcon name="me" /></span>
+                        <span className="k-meta">{say("app.feed.in_n", { n: r.like_count })}</span>
+                      </div>
+                      {r.offer
+                        ? <span className="k-badge-white k-corner"><NdIcon name="offer" /><span className="k-offer">{offerLabel(r.offer.discount_value)}</span></span>
+                        : <span className="k-badge" data-c={String((i % 6) + 1)} aria-hidden="true"><NdIcon name={r.mode === "friends" || r.mode === "party" ? r.mode : "alone"} /></span>}
+                      <p className="k-words" lang={langOf(r.lang)} data-size={textSize(r.text)}>{r.text}</p>
+                      {distance && <span className="k-meta"><NdIcon name="place" className="k-inline" /> {distance}</span>}
+                      {spent[r.id] && <span className="k-meta" data-testid="spent">{say("web.likes.spent")}</span>}
+                      <div className="k-foot">
+                        <span className="k-meta">{modeWord(r.mode)}</span>
+                        <button type="button" className="k-round" aria-pressed="true" data-lit="" aria-label={say("web.likes.unlike")} disabled={!open}
+                          onClick={() => takeBack(r)} data-testid="unlike"><NdIcon name="imin" /></button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ))}
           </div>
-        )}
-        {shown?.length === 0 && <p className="tk-quiet" data-testid="quiet">{say("web.likes.empty")}</p>}
-        <ul className="tk-cards" data-testid="liked">
-          {(shown ?? []).map((r, i) => {
-            const open = canTakeBack(r, !!spent[r.id]);
-            const distance = far(r);
-            return (
-              <li key={r.id} className={`fd-card fd-${toneOf(r as unknown as FeedCard, i)}`} data-testid="liked-card" data-id={r.id}>
-                {r.offer && <span className="fd-offer">{offerLabel(r.offer.discount_value)}</span>}
-                <p className="fd-open tk-phrase" lang={langOf(r.lang)}>{r.text}</p>
-                <button type="button" className="fd-hand" data-lit="" aria-pressed="true" aria-label={say("web.likes.unlike")} disabled={!open}
-                  onClick={() => takeBack(r)} data-testid="unlike">
-                  <Icon d={hand} />
-                </button>
-                {distance && <p className="tk-meta"><Icon d={pin} /><span>{distance}</span></p>}
-                {spent[r.id] && <p className="tk-meta" data-testid="spent">{say("web.likes.spent")}</p>}
-                <div className="fd-foot">
-                  <span className="fd-in"><Icon d={hand} /><span>{say("app.feed.in_n", { n: r.like_count })} · {say("app.feed.you_too")}</span></span>
-                  <span className="fd-mode">{modeWord(r.mode)}</span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-        {next && <button type="button" className="tk-more" onClick={() => load(next)} data-testid="more">{say("liked.more")}</button>}
+          {next && <button type="button" className="k-btn" onClick={() => load(next)} data-testid="more">{say("liked.more")}</button>}
+        </section>
+        <TabBar active="feed" onSelect={useContext(TabsContext)} />
       </div>
-      <Rail active="chats" />
-    </Screen>
+    </main>
   );
 }

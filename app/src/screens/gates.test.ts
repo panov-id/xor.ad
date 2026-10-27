@@ -35,6 +35,9 @@ test("gateScreen with a record: the PIN on every path but /restore; one does not
 test("landing: no place chosen is the place screen, not the feed of Rome; a place QR opens the place at its point", () => {
   assert.deepEqual(landing(null, false), { at: "place" });
   assert.deepEqual(landing(null, true), { at: "feed" });
+  // a fresh registration: «how it works» first, whatever the place; a QR still wins (NEWDESIGN_PLAN §7 step 6)
+  assert.deepEqual(landing(null, false, true), { at: "intro" });
+  assert.deepEqual(landing(null, true, true), { at: "intro" });
   const qr = parseQr(new URL(qrLink("https://sosed.place", { lat: 34.6786, lon: 33.0413 }, 2)).hash)!;
   assert.ok(qr, "the link the place QR draws reads back");
   assert.equal(qr.s, 2);
@@ -48,4 +51,8 @@ test("pathOf: the splash and loading share \"/\" as in the web; the gates keep t
   assert.equal(pathOf({ at: "splash" }), "/");
   assert.equal(pathOf({ at: "register" }), "/register");
   assert.equal(pathOf({ at: "unlock", record }), "/unlock");
+});
+
+test("/intro typed by hand is the feed: «how it works» comes only after a registration (panel 26.10 #5)", () => {
+  assert.deepEqual(seatScreen("/intro"), { at: "feed" });
 });

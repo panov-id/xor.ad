@@ -16,6 +16,7 @@ import { failedLine, label, LANG, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { chevronLeft, chevronRight, ellipsis } from "../../shell/icons";
 import { useLayers } from "../../shell/layers";
+import { NdIcon } from "../../shell/NdIcon";
 import { Screen } from "../../shell/Screen";
 import { Rail } from "../../shell/TabBar";
 import { initial } from "../me/me-logic";
@@ -113,7 +114,7 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
             <p>{say("app.table.elsewhere")}</p>
             {onTable && <button type="button" className="cta cta-primary" onClick={() => onTable(elsewhere)} data-testid="to-my-table">{say("app.table.to_mine")}</button>}
           </div>
-        ) : error ? <p className="me-error" role="alert" data-testid="error">{error}</p> : <p className="tg-quiet">…</p>}</div>
+        ) : error ? <p className="k-note k-error" role="alert" data-testid="error">{error}</p> : <p className="tg-quiet">…</p>}</div>
         <Rail active="tables" />
       </Screen>
     );
@@ -148,15 +149,14 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
     : mine.state === "over" ? say("table.over") : mine.state === "not-started" ? say("table.notStarted") : say("app.table.watching");
 
   const menu = () => open("table-more", (
-    <div className="fd-sheet" data-testid="table-menu">
-      <span className="fd-grab" aria-hidden="true" />
-      <h2>{title}</h2>
-      <p className="tg-open" role="note">{say("table.open")}</p>
-      <ul className="fd-menu">
-        {first !== "start" && onMove && <li><button type="button" onClick={() => { close(); void act(() => tables.pass(tableId, board!.seq)); }} data-testid="pass"><span>{say("table.pass")}</span><Icon d={chevronRight} /></button></li>}
-        {view.is_playing && started && <li><button type="button" onClick={() => { close(); void act(() => tables.resign(tableId)); }} data-testid="resign"><span>{say("table.resign")}</span><Icon d={chevronRight} /></button></li>}
-        <li><button type="button" onClick={() => { close(); void act(() => tables.like(tableId)); }} data-testid="like"><span>{say("table.like")}</span><Icon d={chevronRight} /></button></li>
-        <li><button type="button" className="fd-danger" onClick={() => { close(); void act(async () => { const a = await tables.stand(tableId); if (a.status < 400) onLeave(); return a; }); }} data-testid="table-stand"><span>{say("table.stand")}</span><Icon d={chevronRight} /></button></li>
+    <div className="k-stack" data-testid="table-menu">
+      <h2 className="k-sheet-title">{title}</h2>
+      <p className="k-sub" role="note">{say("table.open")}</p>
+      <ul className="k-picks">
+        {first !== "start" && onMove && <li><button type="button" className="k-pick k-pick-tall" onClick={() => { close(); void act(() => tables.pass(tableId, board!.seq)); }} data-testid="pass"><span className="k-badge k-badge-35" data-c="6"><NdIcon name="skip" /></span><span>{say("table.pass")}</span></button></li>}
+        {view.is_playing && started && <li><button type="button" className="k-pick k-pick-tall" onClick={() => { close(); void act(() => tables.resign(tableId)); }} data-testid="resign"><span className="k-badge k-badge-35" data-c="3"><NdIcon name="giveup" /></span><span>{say("table.resign")}</span></button></li>}
+        <li><button type="button" className="k-pick k-pick-tall" onClick={() => { close(); void act(() => tables.like(tableId)); }} data-testid="like"><span className="k-badge k-badge-35" data-c="2"><NdIcon name="good" /></span><span>{say("table.like")}</span></button></li>
+        <li><button type="button" className="k-pick k-pick-tall" data-danger="" onClick={() => { close(); void act(async () => { const a = await tables.stand(tableId); if (a.status < 400) onLeave(); return a; }); }} data-testid="table-stand"><span className="k-badge k-badge-35" data-c="5"><NdIcon name="door" /></span><span>{say("table.stand")}</span></button></li>
       </ul>
     </div>
   ));
@@ -201,7 +201,7 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
           </button>
         )}
         {con.waiting && <p className="tg-quiet tg-con-wait" data-testid="con-waiting">{say("app.table.con_waiting")}</p>}
-        {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
+        {error && <p className="k-note k-error" role="alert" data-testid="error">{error}</p>}
         {proposed && (
           <div className="tg-ask">
             <button type="button" className="cta cta-primary" onClick={() => void act(() => tables.answer(tableId, pending!.id, "accept"))} data-testid="accept-game">{say("web.table.accept")}</button>

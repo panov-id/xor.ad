@@ -148,7 +148,7 @@ export function Place({ onChosen, onBack, onQr, start }: { onChosen: (p: PlaceT)
       foot={<button type="button" className="cta cta-primary" onClick={() => void here()} data-testid="place-here">{say("app.place.here")}</button>}>
       <Field text={say("app.place.city")} value={q} onChange={setQ} testid="place-search" autoComplete="off" />
       {found.length > 0 && (
-        <ul className="me-list" data-testid="place-found">
+        <ul className="k-stack" data-testid="place-found">
           {found.map((p) => (
             <li key={`${p.name}-${p.cc}-${p.lat}`}>
               <Row icon={pin} text={p.name} value={countryName(LANG, p.cc)} onOpen={() => go(p)} testid="place-city" />

@@ -6,6 +6,8 @@ import { Arrival } from "../screens/Arrival";
 import { Chat } from "../screens/Chat";
 import { Composer } from "../screens/Composer";
 import { TalksPane } from "../screens/talks/TalksPane";
+import { EmptyPane } from "./EmptyPane";
+import { Intro } from "../screens/Intro";
 import { Away } from "../screens/Away";
 import { Departure } from "../screens/Departure";
 import { Feed } from "../screens/Feed";
@@ -193,11 +195,11 @@ export function App() {
 
   // Registered or unlocked: the feed. The gates behind are left: Back does not return to them. A place QR opened, or
   // the first entry with no place on this device (GOALS: a step before the feed, not Rome in silence): the place first.
-  function seat(who: Seated) {
+  function seat(who: Seated, fresh = false) {
     vaulted.current = null;
     held.current = true;
     setSeated(who);
-    const to = landing(qrUsed.current ? null : QR, storedPlace().chosen);
+    const to = landing(qrUsed.current ? null : QR, storedPlace().chosen, fresh);
     if (to.at === "place") qrUsed.current = true;
     history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
     setScreen(to);
@@ -302,13 +304,13 @@ export function App() {
     switch (screen.at) {
       case "loading": return null; // the wait is under 300 ms: nothing is drawn
       case "splash": return <Splash onStart={() => gate({ at: "register" })} onRestore={() => gate({ at: "restore" })} onArrive={() => gate({ at: "arrival" })} />;
-      case "register": return <Register onDone={seat} />;
+      case "register": return <Register onDone={(who) => seat(who, true)} />;
       case "unlock": return <Unlock record={screen.record} onDone={unlocked} onForget={() => { vaulted.current = null; gate({ at: "splash" }); }} onRestore={() => gate({ at: "restore" })} />;
       // A clean device raised by the paper code: sealed under a new PIN, seated as after the PIN.
       case "restore": return <Restore onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
-      case "feed": return seated ? <Feed client={seated.client} onTab={tab} onCompose={openComposer} sent={sent} onTakenDown={() => setSent(null)} onLikes={toLikes} onNewTable={() => toNewTable()} onTable={toTable} /> : null;
+      case "feed": return seated ? <Feed client={seated.client} onTab={tab} onCompose={openComposer} sent={sent} onTakenDown={() => setSent(null)} onLikes={toLikes} onNewTable={() => toNewTable()} onTable={toTable} onPlace={() => { history.pushState({ gate: "place", i: 1 }, "", pathOf({ at: "place" })); setScreen({ at: "place" }); }} /> : null;
       case "composer": return seated ? <Composer client={seated.client} radius={screen.radius} onSent={(result, text) => { setSent(sentOf(result, text)); chatBack(); }} onBack={chatBack} onTab={tab} /> : null;
       case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /> : null;
       // Back keeps the seat (web TB1); standing up, or a seat lost, is the list again.
@@ -331,12 +333,15 @@ export function App() {
       case "departure": return seated ? <Departure client={seated.client} onBack={() => (history.state as { i?: number } | null)?.i ? history.back() : toFeed()} onGone={gone} /> : null;
       case "offer": return <Offer code={screen.code} client={seated?.client} onBack={leaveOffer} />;
       // Back from the first place is a choice too: the feed, which says no place is chosen
+      // «How it works» once after a registration; its end and its close lead to the place, as wizard-5 is the place
+      case "intro": return seated ? <Intro onDone={() => { history.replaceState({ gate: "place", i: 0 }, "", pathOf({ at: "place" })); setScreen({ at: "place" }); }} /> : null;
       case "place": return seated ? <Place start={screen.start} onChosen={toFeed} onBack={toFeed} onQr={() => tab("me")} /> : null;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }
   };
-  const pane = wide && seated && !loadingShown && PANE_BESIDE.has(screen.at)
-    ? <TalksPane client={seated.client} actions={{ onOpenMatch: toMatch, onOpenChat: openChat, onLikes: toLikes }} />
-    : null;
+  // the tables' right pane holds what opens from the list; with nothing open, it says so (desktop-1920 tables.svg)
+  const pane = !(wide && seated && !loadingShown && PANE_BESIDE.has(screen.at)) ? null
+    : screen.at === "tables" ? <EmptyPane icon="tables" hint="app.pane.tables_hint" />
+    : <TalksPane client={seated.client} actions={{ onOpenMatch: toMatch, onOpenChat: openChat, onLikes: toLikes }} />;
   return <TabsContext.Provider value={tab}><LayerStack base={<>{view()}{pane}</>} /></TabsContext.Provider>;
 }

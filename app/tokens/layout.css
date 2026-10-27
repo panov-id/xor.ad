@@ -175,6 +175,8 @@
   --fd-card-gap: 12px;
   --fd-list-gap: 12px;
   --fs-tile: 20px;
+  --fs-tile-l: 26px;   /* a tile's phrase up to 40 graphemes (NEWDESIGN_PLAN §5) */
+  --fs-tile-m: 22px;   /* 41–100 */
   --fd-hand: 48px;             /* the hand's circle on a tile */
   --fd-foot-h: 44px;           /* the white strip at a tile's foot */
   --fd-foot-pad: 14px;
@@ -191,6 +193,8 @@
   --icon-fd-empty: 40px;
   --fd-empty-top: 64px;
   --fs-card-text: 26px;
+  --fs-card-text-l: 34px;   /* a phrase up to 40 graphemes (NEWDESIGN_PLAN §5) */
+  --fs-card-text-m: 30px;   /* 41–100 */
   --fd-row-h: 48px;
   --fd-textarea-h: 96px;
   /* the tab bar (sheet w4_me: bar 23.9,747 340.3x71.6, lime tab 53.7 at 294.5) */

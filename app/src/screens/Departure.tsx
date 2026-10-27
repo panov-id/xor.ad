@@ -91,40 +91,40 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
   }
 
   const ending = endingOf(state);
-  const errorBox = error && <div data-testid="error"><p className="gate-error mv-error" role="alert"><Icon d={flag} /><span>{error}</span></p></div>;
+  const errorBox = error && <div data-testid="error"><p className="k-note k-error" role="alert"><Icon d={flag} /><span>{error}</span></p></div>;
   const bar = <MoveBar title={say("app.move.out_title")} onBack={state === "approved" ? undefined : onBack} />;
   const view = (() => {
     if (state === "approved") {
       return (
-        <MoveSheet className="mv-center" foot={<button type="button" className="cta cta-primary" onClick={onGone} data-testid="move-exit"><Icon d={toStart} /><span>{say("app.move.to_start")}</span></button>}>
-          <span className="mv-circle"><Icon d={check} /></span>
+        <MoveSheet className="k-centre-col" foot={<button type="button" className="cta cta-primary" onClick={onGone} data-testid="move-exit"><Icon d={toStart} /><span>{say("app.move.to_start")}</span></button>}>
+          <span className="k-mark-110"><Icon d={check} /></span>
           <h1>{say("app.move.done_title")}</h1>
-          <p className="mv-note" data-testid="move-done">{say("app.move.done_body")}</p>
+          <p className="k-note" data-testid="move-done">{say("app.move.done_body")}</p>
         </MoveSheet>
       );
     }
     if (ending) {
       return (
         <MoveSheet foot={<button type="button" className="cta cta-quiet" onClick={onBack} data-testid="move-back-end"><span>{say("common.back")}</span></button>}>
-          <p className="mv-note" data-testid="move-ending">{say(ending)}</p>
+          <p className="k-note" data-testid="move-ending">{say(ending)}</p>
           {errorBox}
         </MoveSheet>
       );
     }
     if (!out) {
       return (
-        <form className="mv-form" onSubmit={(e: FormEvent) => { e.preventDefault(); void open(); }}>
+        <form className="k-form" onSubmit={(e: FormEvent) => { e.preventDefault(); void open(); }}>
           <MoveSheet foot={
             <button type="submit" className="cta cta-primary" aria-disabled={!canOpen(pin, busy) || undefined} aria-busy={busy || undefined} data-testid="move-go">
               <Icon d={codeBox} /><span>{say("app.move.get_code")}</span>
             </button>
           }>
             {/* What cannot be undone is said on the screen, before the PIN (§8.2). */}
-            <div className="mv-warn" data-testid="move-price">
+            <div className="k-note k-error" data-testid="move-price">
               <Icon d={flag} />
-              <div><p className="mv-warn-title">{say("app.move.undone_title")}</p><p>{say("app.move.undone_body")}</p></div>
+              <div><p className="k-row-name">{say("app.move.undone_title")}</p><p>{say("app.move.undone_body")}</p></div>
             </div>
-            <div className="reg-field mv-pin">
+            <div className="reg-field k-pin">
               <label htmlFor={field}>{say("app.move.current_pin")}</label>
               <Cells id={field} text={say("web.ui.pinName")} value={pin} size={PIN_LENGTH} secret onChange={(v) => setPin(pinDigits(v))}
                 onPaste={(e) => { e.preventDefault(); setPin(pinDigits(e.clipboardData.getData("text"))); }} inputRef={(n) => { input.current = n; }} testid="move-pin" />
@@ -144,10 +144,10 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
           </>
         }>
           <h1>{say("app.move.asks")}</h1>
-          <p className="reg-sub mv-sub">{say("app.move.asks_sub")}</p>
-          <div className="mv-who">
-            <span className="mv-avatar" aria-hidden="true">{initialOf(out.claimant.label)}</span>
-            <div><p className="mv-who-name" data-testid="move-label">{out.claimant.label}</p><p className="mv-who-when">{say(seen.key, seen.values)}</p></div>
+          <p className="k-sub">{say("app.move.asks_sub")}</p>
+          <div className="k-row">
+            <span className="k-ava k-ava-big" aria-hidden="true">{initialOf(out.claimant.label)}</span>
+            <div><p className="k-row-name" data-testid="move-label">{out.claimant.label}</p><p className="k-meta">{say(seen.key, seen.values)}</p></div>
           </div>
           <Shown chars={[...out.check]} columns={4} testid="move-check" />
           {errorBox}
@@ -159,11 +159,10 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
     const share = out.expiresIn > 0 ? 1 - left / out.expiresIn : 0;
     return (
       <MoveSheet foot={<button type="button" className="cta cta-quiet" aria-disabled={busy || undefined} onClick={() => void decide(false)} data-testid="move-stop"><Icon d={stopSquare} /><span>{say("app.move.stop")}</span></button>}>
-        <h1 className="mv-code-title">{say("app.move.type_there")}</h1>
+        <h1 className="k-title k-title-big">{say("app.move.type_there")}</h1>
         <Shown chars={[...out.groups.join("")]} columns={3} testid="move-code" />
-        <div className="mv-life">
-          <span className="mv-ring" style={{ ["--left" as string]: share }} aria-hidden="true">
-            <svg viewBox="0 0 44 44"><circle className="track" cx="22" cy="22" r="20" /><circle className="arc" cx="22" cy="22" r="20" pathLength="100" /></svg>
+        <div className="k-row">
+          <span className="k-ring" style={{ ["--left" as string]: share }} aria-hidden="true">
             <span>{Math.ceil(left / 60)}</span>
           </span>
           <p data-testid="move-life">{say("app.move.lives", { m: minutes, s: seconds })}</p>
@@ -173,10 +172,12 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
     );
   })();
   return (
-    <Screen name="departure" title={label("app.move.out_title")} className="mv" data-state={out ? state : "start"}>
+    <Screen name="departure" title={label("app.move.out_title")} className="k-screen" data-state={out ? state : "start"}>
+      <div className="k-col">
       {bar}
       {view}
       <Rail active="me" />
+      </div>
     </Screen>
   );
 }

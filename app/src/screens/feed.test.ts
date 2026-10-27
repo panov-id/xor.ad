@@ -138,7 +138,10 @@ test("no width hides the phrase's «…»: report, hide and block have no other 
   const dir = new URL("../../tokens/", import.meta.url), files = readdirSync(dir).filter((f) => f.endsWith(".css"));
   assert.ok(files.length >= 10, `only ${files.length} token stylesheets found`);
   const css = files.map((f) => readFileSync(new URL(f, dir), "utf8")).join("\n");
-  const rules = [...css.matchAll(/([^{}]*more-menu[^{}]*)\{([^}]*)\}/g)];
-  assert.ok(rules.length > 0, "no rule names more-menu: look again where the phrase's «…» is laid out");
+  // the «…» is the prototype's bar button (feed-card.tsx: k-bar-btn, data-testid more-menu)
+  const card = readFileSync(new URL("./feed-card.tsx", import.meta.url), "utf8");
+  assert.match(card, /className="k-bar-btn"[^>]*data-testid="more-menu"/, "the «…» is no longer the bar's button: look again where it is laid out");
+  const rules = [...css.matchAll(/([^{}]*(?:more-menu|k-bar-btn)[^{}]*)\{([^}]*)\}/g)];
+  assert.ok(rules.length > 0, "no rule lays out the bar's buttons");
   for (const [, sel, body] of rules) assert.doesNotMatch(body, /display:\s*none|visibility:\s*hidden/, `${sel.trim()} hides the «…»`);
 });

@@ -30,8 +30,8 @@ export function AgeFilter({ client, age, min, max, onBack }: { client: Client; a
   const top = noTop(r) ? say("web.filter.noLimit") : String(r.to);
   return (
     <SubPage name="age-filter" title={say("web.filter.title")} onBack={onBack}>
-      <h2 className="me-title">{say("app.filter.title")}</h2>
-      <p className="me-lead" data-testid="filter-range">{noTop(r) ? say("app.filter.band_open", { from: r.from }) : say("app.filter.band", { from: r.from, to: r.to })}</p>
+      <h2 className="k-title k-title-big">{say("app.filter.title")}</h2>
+      <p className="k-sub" data-testid="filter-range">{noTop(r) ? say("app.filter.band_open", { from: r.from }) : say("app.filter.band", { from: r.from, to: r.to })}</p>
       <div className="me-filter" style={{ ["--a" as string]: along(r, r.from), ["--b" as string]: along(r, r.to) }}>
         <p className="me-ends" aria-hidden="true"><span>{r.from}</span><span>{noTop(r) ? "∞" : r.to}</span></p>
         <div className="me-track">
@@ -43,7 +43,7 @@ export function AgeFilter({ client, age, min, max, onBack }: { client: Client; a
           <input type="range" min={r.min} max={r.max} step={1} value={r.to} aria-label={say("app.filter.to")} aria-valuetext={top}
             onChange={(e) => setR((was) => moveHandle(was, "to", Number(e.target.value)))} data-testid="filter-to" />
         </div>
-        {r.open && <p className="me-quiet me-filter-note">{say("app.filter.open_note", { n: r.min })}</p>}
+        {r.open && <p className="k-sub me-filter-note">{say("app.filter.open_note", { n: r.min })}</p>}
       </div>
       <ErrorLine text={error} />
     </SubPage>

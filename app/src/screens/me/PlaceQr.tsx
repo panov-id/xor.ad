@@ -43,8 +43,8 @@ export function PlaceQr({ place, onBack }: { place: Place; onBack: () => void })
           <path d={code.d} />
         </svg>
       </div>
-      <p className="me-quiet me-qr-what">{say("app.qr.what")}</p>
-      <p role="status" className="me-quiet" data-testid="qr-said">{said}</p>
+      <p className="k-sub me-qr-what">{say("app.qr.what")}</p>
+      <p role="status" className="k-sub" data-testid="qr-said">{said}</p>
     </SubPage>
   );
 }

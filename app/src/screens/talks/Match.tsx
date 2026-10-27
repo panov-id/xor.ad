@@ -72,7 +72,7 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onTalks 
           {row.my_phrase && <figure className="tk-quote"><figcaption>{say("app.match.you_said")}</figcaption><blockquote>{row.my_phrase.text}</blockquote></figure>}
           <figure className="tk-quote"><figcaption>{say("app.match.they_said", { name: row.name })}</figcaption><blockquote>{row.phrase.text}</blockquote></figure>
         </div>
-        {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
+        {error && <p className="k-note k-error" role="alert" data-testid="error">{error}</p>}
         <button type="button" className="tk-talk" disabled={busy || declined || leaving} onClick={talk} data-testid="talk">{say("app.match.talk")}</button>
         <button type="button" className="tk-later" disabled={busy || leaving} onClick={notNow} data-testid="not-now">{say(declined ? "inbox.undo" : "app.match.not_now")}</button>
       </section>

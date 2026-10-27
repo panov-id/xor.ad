@@ -53,7 +53,7 @@ export function ChangePin({ client, onDone, onBack }: { client: Client; onDone: 
             onChange={(x) => setV((was) => ({ ...was, [which]: pinDigits(x) }))} testid={testid} />
         </div>
       ))}
-      {pinsDiffer(v.next, v.again) && <p className="me-error" data-testid="pin-differ">{say("reg.pinMismatch")}</p>}
+      {pinsDiffer(v.next, v.again) && <p className="k-note k-error" data-testid="pin-differ">{say("reg.pinMismatch")}</p>}
       <ErrorLine text={refused} />
     </SubPage>
   );

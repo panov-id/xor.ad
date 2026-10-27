@@ -68,19 +68,19 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client) => void; 
   }
 
   const ending = endingOf(state);
-  const errorBox = error && <div data-testid="error"><p className="gate-error mv-error" role="alert"><Icon d={flag} /><span>{error}</span></p></div>;
+  const errorBox = error && <div data-testid="error"><p className="k-note k-error" role="alert"><Icon d={flag} /><span>{error}</span></p></div>;
   const view = (() => {
     if (!into) {
       return (
-        <form className="mv-form" onSubmit={(e: FormEvent) => { e.preventDefault(); void claim(); }}>
+        <form className="k-form" onSubmit={(e: FormEvent) => { e.preventDefault(); void claim(); }}>
           <MoveSheet foot={
             <button type="submit" className="cta cta-primary" aria-disabled={!complete || busy || undefined} aria-busy={busy || undefined} data-testid="arrive-go">
               <Icon d={arrowRight} /><span>{busy ? say("move.deriving") : say("app.move.next")}</span>
             </button>
           }>
             <h1>{say("app.move.code_title")}</h1>
-            <p className="reg-sub mv-sub">{say("app.move.code_sub")}</p>
-            <div className="mv-code-cells">
+            <p className="k-sub">{say("app.move.code_sub")}</p>
+            <div className="k-code-cells">
               <Cells id={codeField} text={say("move.code")} value={codeChars(code)} size={MOVE_CODE_LENGTH} onChange={(v) => setCode(codeChars(v))}
                 onPaste={(e) => { e.preventDefault(); setCode(codeChars(e.clipboardData.getData("text"))); }} inputRef={(n) => { codeInput.current = n; }} testid="arrive-code" />
             </div>
@@ -92,7 +92,7 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client) => void; 
     if (ending) {
       return (
         <MoveSheet foot={<button type="button" className="cta cta-quiet" onClick={onBack} data-testid="arrive-back"><span>{say("common.back")}</span></button>}>
-          <p className="mv-note" data-testid="move-ending">{say(ending)}</p>
+          <p className="k-note" data-testid="move-ending">{say(ending)}</p>
           {errorBox}
         </MoveSheet>
       );
@@ -100,21 +100,21 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client) => void; 
     if (state === "approved") {
       const differ = pin.length === PIN_LENGTH && again.length === PIN_LENGTH && pin !== again;
       return (
-        <form className="mv-form" onSubmit={(e: FormEvent) => { e.preventDefault(); void keep(); }}>
+        <form className="k-form" onSubmit={(e: FormEvent) => { e.preventDefault(); void keep(); }}>
           <MoveSheet foot={
             <button type="submit" className="cta cta-primary" aria-disabled={!newPinReady(pin, again) || busy || undefined} aria-busy={busy || undefined} data-testid="arrive-keep">
               <Icon d={check} /><span>{say("app.move.done")}</span>
             </button>
           }>
-            <p className="mv-ok"><Icon d={hand} /><span>{say("app.move.confirmed")}</span></p>
-            <div className="reg-field mv-pin">
+            <p className="k-note"><Icon d={hand} /><span>{say("app.move.confirmed")}</span></p>
+            <div className="reg-field k-pin">
               <label htmlFor={pinField}>{say("app.move.new_pin")}</label>
               <Cells id={pinField} text={say("app.move.new_pin")} value={pin} size={PIN_LENGTH} secret onChange={(v) => setPin(pinDigits(v))} inputRef={(n) => { pinInput.current = n; }} testid="arrive-pin" />
             </div>
-            <div className="reg-field mv-pin">
+            <div className="reg-field k-pin">
               <label htmlFor={againField}>{say("app.move.repeat_pin")}</label>
               <Cells id={againField} text={say("app.move.repeat_pin")} value={again} size={PIN_LENGTH} secret onChange={(v) => setAgain(pinDigits(v))} invalid={differ} testid="arrive-pin-again" />
-              {differ && <p className="reg-error">{say("reg.pinMismatch")}</p>}
+              {differ && <p className="k-note k-error">{say("reg.pinMismatch")}</p>}
             </div>
             {errorBox}
           </MoveSheet>
@@ -124,18 +124,20 @@ export function Arrival({ onDone, onBack }: { onDone: (client: Client) => void; 
     return (
       <MoveSheet>
         <h1>{say("app.move.check_title")}</h1>
-        <p className="reg-sub mv-sub">{say("app.move.check_sub")}</p>
+        <p className="k-sub">{say("app.move.check_sub")}</p>
         <Shown chars={[...into.arrival.check]} columns={4} testid="arrive-check" />
-        <span className="mv-wait" aria-hidden="true" />
-        <p className="mv-waiting" role="status">{say("app.move.waiting")}</p>
+        <span className="k-wait" aria-hidden="true" />
+        <p className="k-sub" role="status">{say("app.move.waiting")}</p>
         {errorBox}
       </MoveSheet>
     );
   })();
   return (
-    <Screen name="arrival" title={label("app.move.in_title")} className="mv" data-state={!into ? "code" : state}>
+    <Screen name="arrival" title={label("app.move.in_title")} className="k-screen" data-state={!into ? "code" : state}>
+      <div className="k-col">
       <MoveBar title={say("app.move.in_title")} onBack={state === "approved" ? undefined : onBack} />
       {view}
+      </div>
     </Screen>
   );
 }

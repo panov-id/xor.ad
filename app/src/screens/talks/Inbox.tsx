@@ -100,7 +100,7 @@ export function TalksList({ rows: asked, error, actions, selectedId }: { rows: R
           </li>
         ))}
       </ul>
-      {error && <p className="me-error" role="alert" data-testid="error">{error}</p>}
+      {error && <p className="k-note k-error" role="alert" data-testid="error">{error}</p>}
       {rows?.length === 0 && <p className="tk-quiet" data-testid="quiet">{say("web.inbox.empty")}</p>}
       {skeleton && (
         <div className="tk-skeletons" data-testid="inbox-skeleton" aria-hidden="true">

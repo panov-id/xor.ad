@@ -157,14 +157,14 @@ export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => vo
       }>
       {rows !== null && rows.length === 0 && <p className="cb-sub" data-testid="offer-no-venue">{say("web.cabinet.noVenue")}</p>}
       {rows !== null && rows.length > 1 && (
-        <div className="me-chips" role="radiogroup" aria-label={label("web.cabinet.field.venue")} data-testid="offer-venue">
-          {rows.map((v) => <button key={v.id} type="button" role="radio" aria-checked={v.id === venue} className="me-chip" onClick={() => setVenue(v.id)}>{v.name}</button>)}
+        <div className="k-chips" role="radiogroup" aria-label={label("web.cabinet.field.venue")} data-testid="offer-venue">
+          {rows.map((v) => <button key={v.id} type="button" role="radio" aria-checked={v.id === venue} className="k-pick-chip" onClick={() => setVenue(v.id)}>{v.name}</button>)}
         </div>
       )}
       {rows !== null && rows.length > 0 && (
         <>
           <Field text={label("web.cabinet.field.text")} value={text} onChange={setText} maxLength={OFFER_TEXT_MAX} testid="offer-text" autoComplete="off"
-            under={<p className="reg-counter" data-testid="offer-left">{sayCount("app.cabinet.left", textLeft(text))}</p>} />
+            under={<p className="k-meta" data-testid="offer-left">{sayCount("app.cabinet.left", textLeft(text))}</p>} />
           <Field text={label("web.cabinet.field.discount")} value={discount} onChange={setDiscount} maxLength={32} testid="offer-discount" autoComplete="off" />
           <DayField text={label("web.cabinet.field.discountTo")} value={day} min={dayAhead(0)} max={dayAhead(DISCOUNT_MAX_DAYS)} onChange={setDay} testid="offer-until" />
           <p className="cb-hint" data-state={problem ?? undefined} data-testid="offer-lives">
@@ -173,9 +173,9 @@ export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => vo
           <button type="button" className="cb-more" aria-expanded={more} onClick={() => setMore(!more)} data-testid="offer-more">{say("app.cabinet.more")}</button>
           {more && (
             <>
-              <Field text={label("web.cabinet.field.terms")} value={conditions} onChange={setConditions} maxLength={128} testid="offer-conditions" autoComplete="off" under={<p className="reg-hint">{say("web.cabinet.termsEmpty")}</p>} />
+              <Field text={label("web.cabinet.field.terms")} value={conditions} onChange={setConditions} maxLength={128} testid="offer-conditions" autoComplete="off" under={<p className="k-sub">{say("web.cabinet.termsEmpty")}</p>} />
               <Field text={label("web.cabinet.field.promo")} value={promo} onChange={setPromo} maxLength={64} testid="offer-promo" autoComplete="off" />
-              <Field text={label("web.cabinet.field.url")} value={url} onChange={setUrl} testid="offer-url" autoComplete="off" under={<p className="reg-hint">{say("web.cabinet.noShorteners")}</p>} />
+              <Field text={label("web.cabinet.field.url")} value={url} onChange={setUrl} testid="offer-url" autoComplete="off" under={<p className="k-sub">{say("web.cabinet.noShorteners")}</p>} />
             </>
           )}
         </>

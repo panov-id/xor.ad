@@ -56,7 +56,7 @@
 .me-row-sub { margin-top: var(--me-sub-gap); font-size: var(--fs-me-sub); line-height: var(--lh-tight); color: var(--c-muted); font-weight: var(--fw-500); }
 .me-row-value { flex: none; margin-inline-start: var(--sp-3); font-size: var(--fs-me-value); line-height: var(--lh-tight); color: var(--c-muted); font-weight: var(--fw-500); }
 .me-chev { --icon-size: var(--me-chev); --stroke: 2; margin-inline-start: var(--me-value-gap); color: var(--c-muted); }
-.me-danger .me-row-name { color: #F28172; }   /* the sheet's coral, lighter: #F0705F on the row's #3a3157 is 4.09:1, this is 4.64 (WCAG 4.5) */
+.me-danger .me-row-name { color: var(--me-danger, #F28172); }   /* the sheet's coral, lighter: #F0705F on the row's #3a3157 is 4.09:1, this is 4.64 (WCAG 4.5); the light themes set their own (themes.css) */
 .me-list { list-style: none; padding: 0; display: grid; gap: var(--me-list-gap); }
 
 /* label and value between hairlines */
@@ -103,7 +103,9 @@
 .me-theme[aria-disabled="true"] { cursor: default; }
 .me-swatch { height: var(--me-swatch-h); border-radius: var(--r-me-swatch); background: var(--c-night); }
 /* each tile shows its theme's page and accent (themes.css --bg / --accent of that theme) */
-.me-theme[data-theme="auto"] .me-swatch { background: linear-gradient(90deg, #eceef2 50%, #0b0b0d 50%); }
+.me-theme[data-theme="colour"] .me-swatch { background: linear-gradient(90deg, #0d4446 50%, #241327 50%); }
+.me-theme[data-theme="classic"] .me-swatch { background: linear-gradient(90deg, #eceef2 50%, #0b0b0d 50%); }
+.me-theme-head { margin: var(--me-kept-gap) 0 var(--me-swatch-gap); font-size: var(--fs-caption); font-weight: var(--fw-700); color: var(--c-muted); }
 .me-theme[data-theme="white"] .me-swatch { background: radial-gradient(circle at 75% 70%, #e35e45 18%, transparent 19%), #eceef2; }
 .me-theme[data-theme="sea"] .me-swatch { background: radial-gradient(circle at 75% 70%, #b25034 18%, transparent 19%), #0d4446; }
 .me-theme[data-theme="plum"] .me-swatch { background: radial-gradient(circle at 75% 70%, #ff7a66 18%, transparent 19%), #241327; }
@@ -156,7 +158,7 @@
 /* the place map (place-flow.svg frames 2 and 3) */
 .me-place-now { font-size: var(--fs-me-place-now); font-weight: var(--fw-500); line-height: var(--lh-tight); }
 .me-body > .me-place-hint { margin-top: var(--sp-2); font-size: var(--fs-me-place-hint); color: var(--c-muted); line-height: var(--lh-tight); }
-.me-map { height: var(--me-map-h); border-radius: var(--r-card); overflow: hidden; touch-action: none; cursor: grab; user-select: none;
+.me-map { flex: none; height: var(--me-map-h); border-radius: var(--r-card); overflow: hidden; touch-action: none; cursor: grab; user-select: none;
   background: linear-gradient(var(--c-panel) var(--hair), transparent 0) 0 0 / var(--me-map-cell) var(--me-map-cell),
     linear-gradient(90deg, var(--c-panel) var(--hair), transparent 0) 0 0 / var(--me-map-cell) var(--me-map-cell), var(--c-me-sea); }
 .me-map:active { cursor: grabbing; }

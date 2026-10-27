@@ -60,9 +60,9 @@ export function EditName({ client, name: was, age: wasAge, onDone, onBack }: { c
         </button>
       }>
       <Field text={say("app.reg.name")} value={name} onChange={(v) => setName(graphemes(v, NAME_MAX))} testid="edit-name"
-        under={<p className="reg-counter" data-testid="edit-left">{say("app.reg.left", { n: lettersLeft(name), max: NAME_MAX })}</p>} />
+        under={<p className="k-meta" data-testid="edit-left">{say("app.reg.left", { n: lettersLeft(name), max: NAME_MAX })}</p>} />
       <Field text={say("app.reg.age")} kind="number" value={age} onChange={(v) => { setAge(ageDigits(v)); setAsking(false); }} testid="edit-age" />
-      <p className="me-note"><Icon d={eye} /><span>{say("app.me.name_checked")}</span></p>
+      <p className="k-note"><Icon d={eye} /><span>{say("app.me.name_checked")}</span></p>
       <ErrorLine text={refused} />
     </SubPage>
   );

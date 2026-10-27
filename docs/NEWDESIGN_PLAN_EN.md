@@ -12,6 +12,7 @@ Source: the owner's archives in `docs/newdesing2/`: skeleton (`sosed-skeleton-20
 | Themes | 4 new (White, Sea, Plum, Black) + auto (White by day, Black by night); today's light/dark/auto go |
 | Style | The new mockups win: relief, shadows with light from top left, colour icon chips. 15.10 «paper landing cards, big caps» is cancelled for sosed |
 | Phrase card text | 3 sizes by phrase length, steps in tokens, card height in the feed unchanged |
+| Source of truth (26.10 evening) | The prototype's markup: `prototype/index.html` in the `docs/newdesing2` archives, 148 screens. `scripts/design/proto-extract.py` extracts it to `docs/newdesign/proto/`, the themes to `app/tokens/themes.css`, icons and pictures to `app/src/shell/proto-*.gen.ts`; `proto-extract.test.py` catches drift. Screens are built from the pieces of `app/tokens/kit.css` on that markup. Old styles are not mixed with new ones; they are deleted |
 | Wave 1 | Look + mechanics that need no node; node items B1–B13 are wave 2 after checking `relay/node` |
 
 ## 1. What the archives hold (checked by reading the zips 26.10)

@@ -60,9 +60,9 @@ export function Legal({ client, onDone, onBack }: { client: Client; onDone: () =
         </button>
       ) : undefined}>
       {first && <Banner tone="yellow" icon={clock} text={say(`app.legal.changed_${first.document}`, { date: day(first) })} testid="legal-changed" />}
-      {manifest === undefined && <p className="me-quiet">…</p>}
+      {manifest === undefined && <p className="k-sub">…</p>}
       {manifest && (
-        <ul className="me-list">
+        <ul className="k-stack">
           {inLegalOrder(manifest).map((r) => {
             const changed = pending.some((p) => p.document === r.document);
             return (
@@ -80,7 +80,7 @@ export function Legal({ client, onDone, onBack }: { client: Client; onDone: () =
           <span className="reg-box" aria-hidden="true"><Icon d={check} /></span>
           <span>{say("app.legal.agree")}</span>
         </label>
-      ) : manifest && <p className="me-quiet" data-testid="legal-all">{say("web.legal.accepted")}</p>}
+      ) : manifest && <p className="k-sub" data-testid="legal-all">{say("web.legal.accepted")}</p>}
       <ErrorLine text={error} />
     </SubPage>
   );

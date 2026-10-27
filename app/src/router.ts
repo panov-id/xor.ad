@@ -32,6 +32,8 @@ export type Screen =
   // the place as its own screen: the first entry with no place (GOALS: a step before the feed, not Rome in silence),
   // and a place QR opened (`/location#p=…&s=…`, start = the QR's point and step)
   | { at: "place"; start?: { lat: number; lon: number; s: number } }
+  // «How it works» (sheets wizard-1…4, NEWDESIGN_PLAN §7 step 6): once, after a fresh registration, before the place
+  | { at: "intro" }
   // A chat travels in history.state only (web router.ts): the row is a structured copy, never in the address.
   | { at: "chat"; row: InboxChatRow }
   // The phrase for the feed (web /write), with the feed's circle it opened from.
@@ -58,6 +60,7 @@ export const ROUTES: Record<At, string> = {
   table: "/table",
   offer: "/o",
   place: "/place",
+  intro: "/intro",
   chat: "/chat",
   composer: "/write",
 };
@@ -72,10 +75,11 @@ export function gateOf(path: string): Gate | null {
 
 export const pathOf = (s: Screen): string => (s.at === "offer" ? `/o/${s.code}` : ROUTES[s.at]);
 
-/** Where a seat lands (App.tsx seat): an unused place QR opens the place at its point; else, with no place chosen on
+/** Where a seat lands (App.tsx seat): an unused place QR opens the place at its point; a fresh registration «how it
+ * works» (then the place); else, with no place chosen on
  * this device, the place screen first (GOALS: a step before the feed, not Rome in silence); else the feed. */
-export const landing = (qr: { lat: number; lon: number; s: number } | null, chosen: boolean): Screen =>
-  qr ? { at: "place", start: qr } : chosen ? { at: "feed" } : { at: "place" };
+export const landing = (qr: { lat: number; lon: number; s: number } | null, chosen: boolean, fresh = false): Screen =>
+  qr ? { at: "place", start: qr } : fresh ? { at: "intro" } : chosen ? { at: "feed" } : { at: "place" };
 
 /** A seat's own address (an identity on the page): /move is the departure, /me is Me, /away the away screen, /inbox, /likes,
  * /match the talks, /tables the tables, /tables/new the wizard, /table a table, /chat the chat its entry carries, /write the composer;

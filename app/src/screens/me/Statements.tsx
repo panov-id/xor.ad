@@ -18,7 +18,7 @@ export function Statements({ client, onBack }: { client: Client; onBack: () => v
   useEffect(() => { client.statements().then(setItems).catch((e: Error) => setError(failedLine(e))); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <SubPage name="statements" title={say("app.statements.title")} onBack={onBack}>
-      {items === null && !error && <p className="me-quiet">…</p>}
+      {items === null && !error && <p className="k-sub">…</p>}
       {items?.map((s) => (
         <section key={s.id} className="me-statement" data-testid="statement">
           <Banner tone="coral" icon={flag} title={say("app.statements.head", { date: dayMonth(LANG, new Date(s.created_at * 1000)) })}
@@ -36,7 +36,7 @@ export function Statements({ client, onBack }: { client: Client; onBack: () => v
           <button type="button" className="cta cta-quiet me-appeal" aria-expanded={ways} onClick={() => setWays((w) => !w)} data-testid="statements-appeal">
             <Icon d={flag} /><span>{say("app.statements.appeal")}</span>
           </button>
-          {ways && <p className="me-quiet" data-testid="statements-ways">{capital(say("statements.appeal"), LANG)}.</p>}
+          {ways && <p className="k-sub" data-testid="statements-ways">{capital(say("statements.appeal"), LANG)}.</p>}
         </>
       )}
       <ErrorLine text={error} />

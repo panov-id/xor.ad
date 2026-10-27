@@ -1,0 +1,315 @@
+/* The new design's parts, each one the prototype's inline style as a class (docs/newdesign/proto/*.html, cut by
+   scripts/design/proto-extract.py). A class names the node it came from; sizes, radii and colours are the prototype's.
+   Nothing here reads the old vocabulary (--c-*, --sp-*, --fs-*): only the archive's tokens (themes.css). */
+
+/* the page: the phone frame without its status bar (the device draws its own) */
+.k-screen { height: 100dvh; overflow: hidden; position: relative; background: var(--bg); font-family: 'Golos Text', sans-serif; color: var(--text); display: flex; flex-direction: column; }
+.k-col { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; padding: 8px; }
+
+/* the scene band (feed.html: 150 tall, radius 28) with a panel laid over its foot */
+.k-scene { position: relative; border-radius: 28px; overflow: hidden; height: 150px; flex: none; }
+.k-scene > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.k-scene-over { position: absolute; left: 8px; right: 8px; bottom: 8px; }
+
+/* panels */
+.k-panel { position: relative; background: var(--panel); border-radius: 28px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.k-body { position: relative; background: var(--panel); border-radius: 28px; padding: 8px; display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 0; overflow: hidden auto; }
+/* the list panel is cut round the «write» button (feed.html: a 38px hole 42px from the corner) */
+.k-body[data-fab] { -webkit-mask: radial-gradient(circle at calc(100% - 42px) calc(100% - 42px), transparent 38px, #000 38.6px);
+  mask: radial-gradient(circle at calc(100% - 42px) calc(100% - 42px), transparent 38px, #000 38.6px); }
+.k-row { display: flex; align-items: center; justify-content: flex-start; gap: 12px; }
+.k-stack { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+/* the place line: its name and the density step in the bars' places */
+.k-title { font-size: 16px; font-weight: 700; line-height: 1.2; color: var(--text); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.k-sub { font-size: 13px; line-height: 1.2; color: var(--text-muted); margin: 0; }
+
+/* the round-ended chip with an icon and a caret (feed.html: the radius) */
+.k-chip { margin-left: auto; display: flex; align-items: center; gap: 6px; height: 48px; padding: 0 10px 0 12px; border-radius: 24px; background: var(--tile); border: 0; color: var(--accent); flex: none; }
+
+/* the two-way switch (feed.html: phrases / marks) */
+.k-seg { display: flex; gap: 4px; padding: 4px; border-radius: 30px; background: var(--panel); }
+.k-seg > * { flex: 1; height: 44px; border-radius: 22px; display: grid; place-items: center; border: 0; background: transparent; color: var(--text-muted); }
+.k-seg > [aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+
+/* two columns of tiles (feed.html) */
+.k-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; grid-auto-rows: min-content; list-style: none; margin: 0; padding: 0; }
+.k-grid2 > * { display: flex; flex-direction: column; gap: 8px; list-style: none; margin: 0; padding: 0; min-width: 0; }
+
+/* the phrase tile (feed.html article): the author's circle, the mode's badge, the words, the foot with «I'm in» */
+.k-tile { position: relative; border-radius: 20px; background: var(--tile); padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;
+  box-shadow: inset 2px 2px 0 var(--pc-1), inset -1.5px -1.5px 0 var(--pc-2), 3px 4px 6px -2px var(--pc-3), 10px 14px 24px -10px var(--pc-4); }
+.k-tile[data-accent] { background: var(--accent); color: var(--on-accent); }
+.k-ava { width: 30px; height: 30px; border-radius: 50%; background: var(--tile-strong); display: grid; place-items: center; flex: none; color: var(--accent); --ifill: var(--bar-soft); }
+.k-badge { position: absolute; right: 12px; top: 12px; width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center;
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.35), 3px 5px 8px -2px var(--pc-5), 9px 13px 20px -8px var(--pc-5); color: #fff; }
+.k-badge[data-c="1"] { background: var(--acc-1); } .k-badge[data-c="2"] { background: var(--acc-2); } .k-badge[data-c="3"] { background: var(--acc-3); }
+.k-badge[data-c="4"] { background: var(--acc-4); } .k-badge[data-c="5"] { background: var(--acc-5); } .k-badge[data-c="6"] { background: var(--acc-6); }
+.k-badge-white { width: 36px; height: 36px; border-radius: 10px; background: #ffffff; display: grid; place-items: center; color: var(--acc-3);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.35), 3px 5px 8px -2px var(--pc-5), 9px 13px 20px -8px var(--pc-5); }
+.k-count { position: absolute; right: 10px; top: 10px; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px; background: var(--accent); color: var(--on-accent);
+  display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.k-words { margin: 0; padding: 0; border: 0; background: none; color: inherit; text-align: left; font: inherit; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere;
+  font-size: 15px; padding-right: 36px; min-height: 0; }
+.k-words[data-size="l"] { font-size: 19px; } .k-words[data-size="m"] { font-size: 17px; }
+.k-words::after { content: ""; position: absolute; inset: 0; }   /* the whole tile opens the phrase */
+.k-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.k-meta { font-size: 13px; color: var(--text-muted); }
+.k-round { position: relative; z-index: 1; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--tile-strong); color: var(--accent); display: grid; place-items: center; flex: none; }
+.k-round[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+
+/* the bottom bar (feed.html nav) and the «write» button over it */
+.k-nav { display: flex; gap: 4px; padding: 8px; border-radius: 32px; background: var(--panel); flex: none; }
+.k-nav > * { flex: 1; height: 60px; border-radius: 26px; display: grid; place-items: center; border: 0; background: transparent; color: var(--text-muted); --ifill: none; }
+.k-nav > [aria-current="page"] { background: var(--accent); color: var(--on-accent); --ifill: var(--tile-strong); }
+.k-fab { position: absolute; right: 18px; bottom: 102px; width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; z-index: 4; --ifill: var(--pc-24); }
+
+/* lines inside a list panel: a notice, an error, an empty state */
+.k-note { margin: 0; padding: 12px 14px; border-radius: 20px; background: var(--tile); font-size: 14px; line-height: 1.35; display: flex; align-items: center; gap: 10px; }
+.k-note[data-tone="error"] { background: var(--danger-bg); }
+.k-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 24px; }
+.k-empty h2 { margin: 0; font-size: 18px; font-weight: 700; } .k-empty p { margin: 0; color: var(--text-muted); font-size: 14px; }
+.k-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 18px; border-radius: 24px; border: 1.5px solid var(--outline); background: transparent; color: var(--text); font: inherit; font-weight: 600; }
+.k-btn[data-primary] { border: 0; background: var(--primary); color: var(--on-accent); }
+.k-icon-btn { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--tile-strong); color: var(--accent); display: grid; place-items: center; flex: none; }
+
+/* the feed's own bits (feed.html) */
+.k-grid2 { grid-template-columns: repeat(var(--fd-cols, 2), minmax(0, 1fr)); }
+.k-tile-short { min-height: 120px; justify-content: space-between; }
+.k-tile-head { gap: 8px; padding-right: 36px; }
+.k-corner { position: absolute; right: 12px; top: 12px; width: auto; min-width: 36px; padding: 0 8px; gap: 4px; display: flex; align-items: center; }
+.k-offer { font-size: 13px; font-weight: 800; color: var(--acc-3); }
+.k-ghost { min-height: 200px; opacity: .5; }
+.k-row > .k-pin { width: 30px; height: 30px; flex: none; color: var(--accent); --ifill: var(--tile-strong); }
+.k-caret { width: 16px; height: 16px; color: var(--text-muted); }
+.k-chip .nd-icon:first-child { width: 28px; height: 28px; --ifill: var(--tile-strong); }
+.k-seg .nd-icon { width: 26px; height: 26px; }
+.k-badge .nd-icon { width: 20px; height: 20px; } .k-badge-white .nd-icon { width: 22px; height: 22px; }
+.k-ava .nd-icon { width: 16px; height: 16px; }
+.k-round .nd-icon { width: 28px; height: 28px; }
+.k-fab .nd-icon { width: 32px; height: 32px; }
+.k-empty-mark { width: 82px; height: 82px; padding: 16px; border-radius: 50%; background: var(--acc-3); color: #fff; box-sizing: border-box; }
+.k-note .nd-icon { width: 22px; height: 22px; flex: none; color: var(--accent); }
+.k-btn .nd-icon { width: 22px; height: 22px; }
+.k-icon-btn .nd-icon { width: 20px; height: 20px; }
+/* the bar on a screen not yet in the new layout floats at its foot */
+.tabbar:not(.k-col > .tabbar) { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 3; }
+.k-nav .tab { flex: 1; height: 60px; min-height: 0; border-radius: 26px; display: grid; place-items: center; border: 0; background: transparent; color: var(--text-muted); --ifill: none; }
+.k-nav .tab[aria-current="page"] { background: var(--accent); color: var(--on-accent); --ifill: var(--tile-strong); }
+.k-nav .tab-nd { width: 30px; height: 30px; }
+
+/* the bottom sheet (radius.html: over the dim, 8 from the edges, radius 32, a grab bar on top) */
+.layer-sheet { position: absolute; left: 8px; right: 8px; bottom: 8px; background: var(--panel); border-radius: 32px; padding: 10px 12px 12px;
+  display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 0 1px var(--pc-25); color: var(--text); font-family: 'Golos Text', sans-serif;
+  animation: sheet-up var(--d-sheet) var(--ease) both; view-transition-name: sheet; }
+.layer-sheet::before { content: ""; width: 40px; height: 5px; border-radius: 3px; background: var(--tile-strong); align-self: center; flex: none; }
+.k-sheet-title { margin: 0; padding: 0 6px; font-size: 15px; font-weight: 700; }
+.k-picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; list-style: none; margin: 0; padding: 0; }
+/* a pick tile (radius.html: 104 tall, the badge over its word, the chosen one in the accent with a white badge) */
+.k-pick { position: relative; width: 100%; height: 104px; min-height: 0; border: 0; border-radius: 20px; background: var(--tile); padding: 14px; color: var(--text);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; font: inherit; font-size: 13px; font-weight: 600;
+  box-shadow: inset 2px 2px 0 var(--pc-1), inset -1.5px -1.5px 0 var(--pc-2), 3px 4px 6px -2px var(--pc-3), 10px 14px 24px -10px var(--pc-4); }
+.k-pick[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.k-pick .k-badge { position: static; }
+.k-pick[aria-pressed="true"] .k-badge { background: #ffffff; color: var(--accent); }
+
+/* a screen's top bar (card.html: back and «…» round 52, the title in a pill between) */
+.k-bar { gap: 8px; flex: none; }
+.k-bar-btn { width: 52px; height: 52px; flex: none; border: 0; border-radius: 50%; background: var(--panel); color: var(--text); display: grid; place-items: center; padding: 0; min-height: 0; }
+.k-bar-btn .nd-icon { width: 26px; height: 26px; }
+.k-bar-title { flex: 1; min-width: 0; height: 52px; margin: 0; border-radius: 26px; background: var(--panel); display: flex; align-items: center; gap: 10px; padding: 0 20px;
+  font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the phrase's panel (card.html: padding 20, gap 22, the author's circle 48, the badge in the corner) */
+.k-card { padding: 20px; gap: 22px; flex: 1; min-height: 0; overflow: auto; }
+.k-ava-big { width: 48px; height: 48px; } .k-ava-big .nd-icon { width: 24px; height: 24px; }
+.k-badge-card { right: 18px; top: 18px; }
+.k-card-text { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.k-card-text[data-size="l"] { font-size: 30px; } .k-card-text[data-size="m"] { font-size: 26px; }
+/* three facts (card.html: tiles 92 tall, a 29px badge over the word; the in-count lit when one is in) */
+.k-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; flex: none; }
+.k-fact { position: relative; height: 92px; border-radius: 20px; background: var(--tile); padding: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  font-size: 13px; font-weight: 600; text-align: center; box-shadow: inset 2px 2px 0 var(--pc-1), inset -1.5px -1.5px 0 var(--pc-2), 3px 4px 6px -2px var(--pc-3), 10px 14px 24px -10px var(--pc-4); }
+.k-fact .k-badge { position: static; width: 29px; height: 29px; border-radius: 8px; }
+.k-fact[data-on] { background: var(--accent); color: var(--on-accent); } .k-fact[data-on] .k-badge { background: #ffffff; color: var(--accent); }
+/* the action panel (card.html: radius 32, padding 8, the button 60 tall in the primary gradient; card-in: outlined) */
+.k-actions { border-radius: 32px; padding: 8px; flex: none; }
+.k-cta { flex: 1 1 auto; height: 60px; border: 0; border-radius: 30px; background: var(--primary); color: var(--on-accent); box-shadow: 0 10px 22px rgba(0,0,0,.18);
+  display: flex; align-items: center; justify-content: center; gap: 10px; font: inherit; font-size: 16px; font-weight: 700; width: 100%; }
+.k-cta[data-outline] { background: transparent; color: var(--text); box-shadow: inset 0 0 0 2px var(--outline); }
+.k-cta .nd-icon { width: 28px; height: 28px; }
+/* card-more: the picks 112 tall with a 35px badge; block on the danger ground */
+.k-pick-tall { height: 112px; }
+.k-badge-35 { width: 35px; height: 35px; border-radius: 10px; }
+.k-pick[data-danger] { background: var(--danger-bg); }
+.k-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.k-btn[data-danger] { border: 0; background: var(--danger-bg); color: var(--text); }
+.k-check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.k-field { width: 100%; box-sizing: border-box; border: 0; border-radius: 20px; background: var(--tile); color: var(--text); padding: 14px; font: inherit; font-size: 15px; resize: vertical; }
+.k-more-near { display: none; }   /* «more nearby» is the wide layout's */
+/* a screen opened over another (the card over the feed) */
+.k-over { position: absolute; inset: 0; z-index: 5; }
+.k-inline { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; }
+
+/* composer.html: the phrase's panel grows, the text is the card's; the foot holds the live dots and the letters ring */
+.k-write { gap: 14px; }
+.k-write-text { flex: 1; min-height: 0; width: 100%; border: 0; background: transparent; color: var(--text); font-family: inherit; resize: none; padding: 0; outline: none; }
+.k-write-text::placeholder { color: var(--text-muted); }
+.k-write-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+.k-dots { display: flex; align-items: center; gap: 6px; }
+.k-dots > span:not(.k-meta) { width: 12px; height: 12px; border-radius: 50%; background: var(--tile-strong); }
+.k-dots > span[data-on] { background: var(--accent); }
+.k-ring { --k-ring: 1; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700;
+  background: conic-gradient(var(--accent) calc(var(--k-ring) * 360deg), var(--tile-strong) 0); }
+.k-ring > span { width: 36px; height: 36px; border-radius: 50%; background: var(--panel); display: grid; place-items: center; }
+/* the settings panel: the modes as fact tiles 86 tall, the five circles 64 tall */
+.k-settings { padding: 8px; gap: 8px; border-radius: 28px; flex: none; }
+.k-fact-btn { height: 86px; border: 0; color: var(--text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.k-fact-btn .k-badge { width: 32px; height: 32px; border-radius: 9px; }
+.k-circles { display: flex; gap: 6px; }
+.k-circles > button { flex: 1; height: 64px; border: 0; border-radius: 18px; background: var(--tile); color: var(--accent); display: grid; place-items: center; padding: 0; min-height: 0; }
+.k-circles > button[data-on] { background: var(--accent); color: var(--on-accent); }
+.k-circles .nd-icon { width: 28px; height: 28px; }
+
+/* entry (splash.html, splash-lang.html, loading.html) */
+.k-grow { flex: 1; min-height: 0; }
+.k-pad8 { padding: 8px; }
+.k-head { padding: 14px; flex: none; }
+.k-centre { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.k-spin { animation: k-spin .9s linear infinite; }
+@keyframes k-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .k-spin { animation: none; } }
+.k-splash { padding: 16px; gap: 14px; }
+.k-scene[data-kind="splash"] { flex: 1; min-height: 0; height: auto; border-radius: 22px; }
+.k-scene[data-kind="splash"] .k-scene-over { left: 14px; right: auto; bottom: 14px; }
+.k-glass { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 20px;
+  background: rgba(255,255,255,.09); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+.k-title-big { font-size: 26px; line-height: 1.2; white-space: normal; overflow: visible; text-overflow: clip; }
+.k-way { position: relative; flex: 1; height: 96px; border: 0; border-radius: 20px; background: var(--tile); padding: 14px; color: var(--text); font: inherit; font-size: 13px; font-weight: 600;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; text-align: left; }
+.k-way .k-badge { position: static; width: 30px; height: 30px; border-radius: 9px; }
+.k-langs { list-style: none; margin: 0; padding: 0; height: 100%; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: minmax(86px, 1fr); gap: 8px; overflow: auto; }
+.k-langs .k-fact-btn { width: 100%; height: 100%; }
+
+/* register (register-1..3.html) and every field of the app (register-parts.tsx Field, Cells, PinPad) */
+.k-bar-title .k-bar-word { margin: 0; font-size: 16px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.k-steps { margin-left: auto; display: flex; gap: 5px; flex: none; }
+.k-steps > span { width: 8px; height: 8px; border-radius: 4px; background: var(--tile-strong); }
+.k-steps > span[data-done] { width: 22px; background: var(--accent); }
+.k-reg { padding: 16px; gap: 12px; overflow: auto; }
+.k-ava-hero { align-self: center; width: 96px; height: 96px; border-radius: 50%; background: var(--tile); color: var(--accent); display: grid; place-items: center; flex: none; margin: 8px 0; }
+.k-ava-hero .nd-icon { width: 44px; height: 44px; }
+.k-field-wrap { display: flex; flex-direction: column; gap: 6px; }
+.k-pill { height: 60px; border-radius: 16px; background: var(--tile); color: var(--accent); display: flex; align-items: center; gap: 10px; padding: 0 16px; }
+.k-pill:focus-within { box-shadow: inset 0 0 0 2px var(--accent); }
+.k-pill[data-invalid] { box-shadow: inset 0 0 0 2px var(--acc-5); }
+.k-pill input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 17px; font-weight: 600; outline: none; padding: 0; }
+.k-pill .nd-icon { width: 24px; height: 24px; flex: none; }
+.k-pill .k-meta { flex: none; }
+.k-reg-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+.k-docs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.k-docs .k-fact { height: 84px; color: var(--text); text-decoration: none; }
+.k-consent { align-items: center; gap: 12px; padding: 4px; cursor: pointer; }
+.k-consent input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.k-box { width: 30px; height: 30px; flex: none; border-radius: 9px; box-shadow: inset 0 0 0 2.5px var(--outline); display: grid; place-items: center; color: transparent; }
+.k-consent input:checked + .k-box { background: var(--accent); box-shadow: none; color: var(--on-accent); }
+.k-consent input:focus-visible + .k-box { outline: 2px solid var(--accent); outline-offset: 2px; }
+.k-cta[data-quiet] { background: var(--tile); color: var(--text); box-shadow: none; }
+.k-cta[aria-disabled="true"] { cursor: default; }
+/* the cells over one real input: the PIN's six dots (register-2: 18 round, the typed ones on the accent), a code's tiles */
+.k-cells { position: relative; display: grid; grid-template-columns: repeat(var(--cells), 1fr); gap: 6px; }
+.k-cell { height: 58px; border-radius: 16px; background: var(--tile); display: grid; place-items: center; font-size: 20px; font-weight: 700; color: var(--text); }
+.k-cells:focus-within .k-cell[data-active] { box-shadow: inset 0 0 0 2px var(--accent); }
+.k-cells input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; font-size: 16px; caret-color: transparent; }
+.k-cells[data-kind="secret"] { display: flex; justify-content: center; gap: 14px; padding: 6px 0; }
+.k-cells[data-kind="secret"] .k-cell { width: 18px; height: 18px; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 2.5px var(--outline); }
+.k-cells[data-kind="secret"] .k-cell[data-filled] { background: var(--accent); box-shadow: none; }
+.k-cells[data-kind="secret"] .k-cell i { display: none; }
+.k-cells[data-kind="secret"]:focus-within .k-cell[data-active]:not([data-filled]) { box-shadow: inset 0 0 0 2.5px var(--accent); }
+.k-pin { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.nd-icon.k-big-icon { width: 44px; height: 44px; color: var(--accent); flex: none; }
+.k-mid { align-self: center; }
+.k-pad { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.k-key { height: 58px; min-height: 0; border: 0; border-radius: 18px; background: var(--tile); color: var(--text); font: inherit; font-size: 24px; font-weight: 700; display: grid; place-items: center; }
+.k-key:active { transform: scale(.96); }
+.k-key[aria-disabled="true"] { opacity: .5; cursor: default; }
+.k-key .nd-icon { width: 24px; height: 24px; }
+/* register-3: the paper code on four tiles 66 tall, a rule, the two groups typed back on tiles 58 tall */
+.k-plate { gap: 14px; }
+.k-groups { margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.k-groups > span { height: 66px; border-radius: 16px; background: var(--tile); display: grid; place-items: center; font-size: 18px; font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+.k-rule { height: 2px; border: 0; background: var(--tile-strong); margin: 6px 0; }
+.k-type-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.k-type { display: flex; flex-direction: column; gap: 4px; }
+.k-type .k-cells { gap: 0; height: 58px; border-radius: 16px; background: var(--tile); padding: 0 10px; }
+.k-type .k-cell { height: 58px; background: transparent; border-radius: 0; font-size: 18px; letter-spacing: .04em; }
+.k-type .k-cell:not([data-filled])::after { content: ""; width: 8px; height: 3px; border-radius: 2px; background: var(--tile-strong); }
+.k-type .k-cells:focus-within { box-shadow: inset 0 0 0 2px var(--accent); }
+.k-type .k-cells:focus-within .k-cell[data-active] { box-shadow: none; }
+/* register-1: the age between «less» and «more», the clock and the years in the pill between */
+.k-stepper { display: flex; align-items: center; gap: 8px; }
+.k-stepper > button { width: 64px; height: 64px; flex: none; border: 0; border-radius: 50%; background: var(--tile); color: var(--accent); display: grid; place-items: center; padding: 0; min-height: 0; }
+.k-stepper > button .nd-icon { width: 26px; height: 26px; }
+.k-stepper .k-field-wrap { flex: 1; min-width: 0; }
+.k-stepper .k-pill { height: 64px; border-radius: 32px; justify-content: center; }
+.k-stepper .k-pill input { flex: 0 1 4ch; text-align: center; }
+
+/* unlock, locked, forget-confirm */
+.k-way-72 { height: 72px; }
+.k-centre-col { align-items: center; justify-content: center; text-align: center; }
+.k-centre-text { align-items: center; text-align: center; }
+.k-mark-110 { width: 110px; height: 110px; border-radius: 50%; background: var(--acc-3); color: #ffffff; display: grid; place-items: center; box-shadow: 0 12px 26px rgba(0,0,0,.2); }
+.k-mark-110 .nd-icon { width: 50px; height: 50px; }
+.k-price { max-width: 280px; font-size: 15px; line-height: 1.45; }
+
+/* every button of the app named cta (the prototype's: 60 tall, a pill, the primary gradient; quiet on the tile; danger on its ground) */
+.cta { width: 100%; height: 60px; border: 0; border-radius: 30px; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 20px;
+  font: inherit; font-size: 16px; font-weight: 700; text-decoration: none; cursor: pointer; background: var(--tile); color: var(--text); }
+.cta .icon, .cta .nd-icon { width: 24px; height: 24px; --icon-size: 24px; flex: none; }
+.cta-primary { background: var(--primary); color: var(--on-accent); box-shadow: 0 10px 22px rgba(0,0,0,.18); }
+.cta-quiet { background: var(--tile); color: var(--text); }
+.cta-danger { background: var(--danger-bg); color: var(--text); }
+.cta[aria-disabled="true"], .cta:disabled, .k-cta:disabled { opacity: .5; cursor: default; }
+.cta[aria-busy="true"], .k-cta[aria-busy="true"] { opacity: .75; cursor: progress; }
+
+/* the Me pieces (me/parts.tsx): a row that opens something on the tile, the label/value pairs, a note's title */
+.k-link-row { width: 100%; min-height: 64px; border: 0; border-radius: 20px; background: var(--tile); color: var(--text); display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.k-badge-row { position: static; width: 36px; height: 36px; border-radius: 10px; flex: none; }
+.k-badge-row .icon { --icon-size: 20px; width: 20px; height: 20px; }
+.k-row-text { flex: 1; min-width: 0; gap: 2px; }
+.k-row-name { font-size: 15px; font-weight: 700; }
+.k-row-value { flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nd-icon.k-chev { width: 20px; height: 20px; color: var(--text-muted); flex: none; }
+.k-pairs { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.k-pairs > div { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--tile); }
+.k-pairs > div[data-prose] { flex-direction: column; }
+.k-pairs dt { font-size: 13px; color: var(--text-muted); } .k-pairs dd { margin: 0; font-size: 14px; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.k-pairs > div[data-prose] dd { text-align: left; font-weight: 500; white-space: pre-wrap; }
+.k-note strong { display: block; margin-bottom: 2px; } .k-note p { margin: 0; }
+
+.k-error { background: var(--danger-bg); }
+/* a row of choice chips (me-chips before): pills on the tile, the picked one on the accent */
+.k-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.k-pick-chip { height: 44px; padding: 0 16px; border: 0; border-radius: 22px; background: var(--tile); color: var(--text); font: inherit; font-size: 14px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.k-pick-chip[aria-checked="true"], .k-pick-chip[aria-pressed="true"], .k-pick-chip[data-on] { background: var(--accent); color: var(--on-accent); }
+
+/* wizard-1…4: the yard fills the panel, the card's icon in a round panel 120 in its middle */
+.k-intro { gap: 16px; }
+.k-intro .k-scene[data-kind] .k-scene-over { inset: 0; display: grid; place-items: center; }
+.k-intro-mark { width: 120px; height: 120px; border-radius: 50%; background: var(--panel); color: var(--accent); display: grid; place-items: center; }
+.k-intro-mark .nd-icon { width: 64px; height: 64px; }
+ol.k-steps { list-style: none; margin: 0 0 0 auto; padding: 0; }
+ol.k-steps > li { width: 8px; height: 8px; border-radius: 4px; background: var(--tile-strong); }
+ol.k-steps > li[data-done] { width: 22px; background: var(--accent); }
+
+/* move and away (arrival-1…3): a form keeps the column, the code on tiles 72 tall, the shown characters 96 tall, the wait */
+.k-form { display: contents; }
+.k-code-cells .k-cells { grid-template-columns: repeat(3, 1fr); }
+.k-code-cells .k-cell { height: 72px; font-size: 20px; letter-spacing: .05em; }
+.k-shown { margin: 0; display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 8px; }
+.k-shown > span { height: 96px; border-radius: 20px; background: var(--tile); display: grid; place-items: center; font-size: 30px; font-weight: 800; }
+.k-wait { align-self: center; margin-top: auto; width: 40px; height: 40px; border-radius: 50%; border: 5px solid var(--tile-strong); border-top-color: var(--accent); animation: k-spin .9s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .k-wait { animation: none; } }
+.k-reg > h1 { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.25; }
+.k-ring[style*="--left"] { --k-ring: var(--left); }

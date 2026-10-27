@@ -6,6 +6,15 @@ Checked against the tree on 13.10 with grep/git/ls. Anything not run is marked N
 
 ## 0. THE GOAL — single (owner's word, 12.10 evening)
 
+**26.10.2026, goal «sosed = prototype» (owner's word: «form the goal… in the new session loop until you reach it»).**
+1. Phone: 148 screens built on the prototype's markup (`docs/newdesign/proto/`) from the pieces of `app/tokens/kit.css`.
+2. Desktop 1440 and 1920: from the SVG sheets of the `docs/newdesing2` archives; tablet 834: the phone layout with the rail.
+3. New Me pages (profile, visibility, security, restriction banner): first discuss with the owner what they do.
+4. Nothing old: `main.tsx` imports only fonts, `themes.css`, `kit.css`, motion.
+5. Scripts `css-drop-class.py`, `css-unused.py`, `class-rename.py` stay, each with a test red under a break.
+6. Done by machine only: crowd all steps ok, unit all, `check-app` green, `proto-extract.test.py` 8 of 8, shots beside the prototype 148 of 148, wide beside the SVG, review-panel 0 critical and important.
+7. Not in it: neighbro, push, deploy. The node only as far as the Me pages need; commits local per milestone (owner 26.10, questionnaire). Item 3 closed by the answer «как в прототипе + код узла + карта проекта + ну как обычно»; plan `docs/PLAN_SOSED_PROTO_EN.md`.
+
 **16.10.2026, the main goal (owner's word): «the main goal is a working app in the new design».**
 The web face of both brands works on the stand in the new design: the 15.10 decisions, the concept
 `testing/redesign/2026-10-15/brief/concept/`, own fonts if the owner accepts them. The goal below

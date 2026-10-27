@@ -32,8 +32,8 @@ export function Blocked({ client, onBack }: { client: Client; onBack: () => void
           {rows.map((row) => <Row key={row.id} text={say("app.blocked.since", { date: sinceDay(LANG, row.since) })} value={label("blocked.lift")} testid="blocked-lift" onOpen={() => lift(row.id)} />)}
         </div>
       )}
-      {rows?.length === 0 && !error && <p className="me-quiet" data-testid="blocked-empty">{say("app.blocked.none")}</p>}
-      {rows && rows.length > 0 && <p className="me-note" data-testid="blocked-note"><Icon d={eye} /><span>{say("app.blocked.note")}</span></p>}
+      {rows?.length === 0 && !error && <p className="k-sub" data-testid="blocked-empty">{say("app.blocked.none")}</p>}
+      {rows && rows.length > 0 && <p className="k-note" data-testid="blocked-note"><Icon d={eye} /><span>{say("app.blocked.note")}</span></p>}
       <ErrorLine text={error} />
     </SubPage>
   );

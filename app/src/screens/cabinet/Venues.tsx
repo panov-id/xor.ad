@@ -132,9 +132,9 @@ export function AddVenue({ strip, onDone }: { strip: ReactNode; onDone: () => vo
       <Field text={say("app.cabinet.name")} value={name} onChange={setName} testid="venue-name-input" autoComplete="off" />
       <Field text={say("app.cabinet.address")} value={address} onChange={setAddress} testid="venue-address" autoComplete="street-address" />
       <Field text={say("app.cabinet.point")} value={point} onChange={setPoint} testid="venue-point" autoComplete="off" />
-      <div className="me-chips" role="radiogroup" aria-label={say("app.cabinet.radius")}>
+      <div className="k-chips" role="radiogroup" aria-label={say("app.cabinet.radius")}>
         {RADII.map((r) => (
-          <button key={r} type="button" role="radio" aria-checked={r === radius} className="me-chip" onClick={() => setRadius(r)} data-testid={`venue-radius-${r}`}>{say("app.cabinet.metres", { m: r })}</button>
+          <button key={r} type="button" role="radio" aria-checked={r === radius} className="k-pick-chip" onClick={() => setRadius(r)} data-testid={`venue-radius-${r}`}>{say("app.cabinet.metres", { m: r })}</button>
         ))}
       </div>
       <p className="cb-hint">{say("web.cabinet.unverifiedNote")}</p>

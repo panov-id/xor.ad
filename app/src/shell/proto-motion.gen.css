@@ -1,0 +1,20 @@
+/* The prototype's keyframes, verbatim (scripts/design/proto-extract.py). Do not edit by hand; app/tokens/motion.css
+   says which element runs which. */
+@keyframes hintp { 50% { outline-color: transparent } }
+@keyframes selpop { 0% { transform: scale(.94) } 100% { transform: scale(1) } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px) scale(.98) } }
+@keyframes sheetup { from { transform: translateY(105%) } }
+@keyframes sheetdown { to { transform: translateY(105%) } }
+@keyframes fadein { from { opacity: 0 } }
+@keyframes fadeout { to { opacity: 0 } }
+@keyframes tabpop { 0% { transform: scale(.82) } }
+@keyframes drift { to { transform: translateX(46px) } }
+@keyframes twinkle { 0%, 70% { opacity: 1 } 72%, 80% { opacity: .35 } 82% { opacity: 1 } }
+@keyframes float { from { transform: translateY(-5px) } to { transform: translateY(5px) rotate(-2deg) } }
+@keyframes badge { 0%, 70%, 100% { transform: scale(1) } 80% { transform: scale(1.18) } }
+@keyframes bothp { 40% { transform: scale(1.35) rotate(-8deg) } }
+@keyframes dotpop { 0% { transform: scale(.4) } }
+:root[data-theme="sea"] { --sh: 70,35,5; }
+:root[data-theme="plum"] { --sh: 8,0,14; }
+:root[data-theme="black"] { --sh: 0,0,0; }
+:root[data-theme="white"] { --sh: 40,50,80; }

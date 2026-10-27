@@ -6,7 +6,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { me, openSession, tokenFromLink } from "@sdk/cabinet.ts";
 import { Offers, NewOffer } from "./Offers";
-import { Strip } from "./parts";
+import { Strip, type Tabs } from "./parts";
 import { Expired, Sent, SignIn } from "./SignIn";
 import { AddVenue, Venues } from "./Venues";
 
@@ -30,11 +30,12 @@ export function Cabinet() {
   }, []);
 
   const inside = view === "venues" || view === "add-venue" || view === "offers" || view === "new-offer";
-  const strip: ReactNode = <Strip onHome={inside ? () => setView("venues") : undefined} current={view === "venues"} />;
+  const tabs: Tabs | undefined = inside ? { active: view === "offers" || view === "new-offer" ? "offers" : "venues", onVenues: () => setView("venues"), onOffers: () => setView("offers") } : undefined;
+  const strip: ReactNode = <Strip onHome={inside ? () => setView("venues") : undefined} current={view === "venues"} tabs={tabs} />;
   switch (view) {
-    case "loading": return <main className="screen cb" data-screen="cabinet-loading">{strip}</main>;
+    case "loading": return <main className="k-screen" data-screen="cabinet-loading"><div className="k-col">{strip}</div></main>;
     case "sign-in": return <SignIn strip={strip} onSent={() => setView("sent")} />;
-    case "sent": return <Sent strip={strip} />;
+    case "sent": return <Sent strip={strip} onAgain={() => setView("sign-in")} />;
     case "expired": return <Expired strip={strip} onAgain={() => setView("sign-in")} />;
     case "venues": return <Venues strip={strip} onAdd={() => setView("add-venue")} onOffers={() => setView("offers")} />;
     case "add-venue": return <AddVenue strip={strip} onDone={() => setView("venues")} />;

@@ -7,10 +7,9 @@ import type { Client } from "@sdk/client.ts";
 import { AWAY_MINUTES, AWAY_ORDER, type AwaySpan } from "@sdk/limits.ts";
 import { awayCounts } from "@sdk/me.ts";
 import { failedLine, label, say, sayCount } from "../../i18n";
-import { Icon } from "../../shell/Icon";
-import { hourglass } from "./icons";
+import { NdIcon } from "../../shell/NdIcon";
 import { awayRows } from "./me-logic";
-import { ErrorLine, Pairs, SubPage } from "./parts";
+import { ErrorLine, SubPage } from "./parts";
 
 export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (until: number) => void; onBack: () => void }) {
   const [span, setSpan] = useState<AwaySpan | null>(null);
@@ -26,30 +25,27 @@ export function StepAway({ client, onGone, onBack }: { client: Client; onGone: (
     client.stepAway(span).then(onGone).catch((e: Error) => { setBusy(false); setError(failedLine(e)); });
   };
   return (
-    <SubPage name="step-away" title={label("away.item")} onBack={onBack}
+    <SubPage name="step-away" title={label("away.item")} onBack={onBack} panelClass="k-me-panel"
       foot={
         <button type="button" className="cta cta-primary" aria-disabled={span && !busy ? undefined : true} aria-busy={busy || undefined} onClick={go} data-testid="away-go">
-          <Icon d={hourglass} /><span>{label("away.go")}</span>
+          <NdIcon name="door" /><span>{label("away.go")}</span>
         </button>
       }>
-      <h2 className="k-title k-title-big">{say("app.stepaway.title")}</h2>
-      <p className="k-sub">{say("app.stepaway.sub")}</p>
-      <div className="reg-field">
-        <label id="away-for">{say("app.stepaway.for")}</label>
-        <div className="k-chips" role="radiogroup" aria-labelledby="away-for">
-          {AWAY_ORDER.map((s) => (
-            <button key={s} type="button" role="radio" aria-checked={span === s} className="k-pick-chip" onClick={() => setSpan(s)} data-testid={`away-${s}`}>
-              {say(`app.stepaway.${s}`)}
-            </button>
-          ))}
-        </div>
+      <h2 className="k-sr">{say("app.stepaway.title")}</h2>
+      <p className="k-sr">{say("app.stepaway.sub")}</p>
+      <div className="k-me-three k-me-spans" role="radiogroup" aria-label={say("app.stepaway.for")}>
+        {AWAY_ORDER.map((s) => (
+          <button key={s} type="button" role="radio" aria-checked={span === s} className="k-me-span" onClick={() => setSpan(s)} data-testid={`away-${s}`}>
+            <span className="k-badge" data-c="5" aria-hidden="true"><NdIcon name="clock" /></span><span className="k-row-name">{say(`app.stepaway.${s}`)}</span>
+          </button>
+        ))}
       </div>
-      <Pairs testid="away-price" rows={[
-        [say("app.me.phrases"), rows ? sayCount("app.stepaway.come_down", rows.phrases) : "…"],
-        [say("app.stepaway.in_on_you"), rows ? sayCount("app.stepaway.neighbours", rows.likes) : "…"],
-        // A talk whose own end comes before the break's ends with it: said beside the ones that wait.
-        [say("app.me.talks"), rows ? (rows.end > 0 ? `${sayCount("app.stepaway.wait", rows.wait)} · ${sayCount("app.stepaway.end", rows.end)}` : sayCount("app.stepaway.wait", rows.wait)) : "…"],
-      ]} />
+      <dl className="k-me-costs" data-testid="away-price">
+        <div><NdIcon name="phrase" /><dt className="k-sr">{say("app.me.phrases")}</dt><dd>{rows ? sayCount("app.stepaway.come_down", rows.phrases) : "…"}</dd></div>
+        <div><NdIcon name="imin" /><dt>{say("app.stepaway.in_on_you")}</dt><dd>{rows ? sayCount("app.stepaway.neighbours", rows.likes) : "…"}</dd></div>
+        {/* A talk whose own end comes before the break's ends with it: said beside the ones that wait. */}
+        <div><NdIcon name="talks" /><dt className="k-sr">{say("app.me.talks")}</dt><dd>{rows ? (rows.end > 0 ? `${sayCount("app.stepaway.wait", rows.wait)} · ${sayCount("app.stepaway.end", rows.end)}` : sayCount("app.stepaway.wait", rows.wait)) : "…"}</dd></div>
+      </dl>
       <ErrorLine text={error} />
     </SubPage>
   );

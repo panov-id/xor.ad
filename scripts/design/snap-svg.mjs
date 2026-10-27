@@ -17,6 +17,7 @@ import { DEV, nodeStub, openPage, settle, register, confirmPaper, feedSel } from
 const OUT = process.env.OUT ?? "/out";
 const WIDTHS = (process.env.WIDTHS ?? "390").split(",").map(Number);
 const T = { timeout: 8000 };
+const HUB = { theme: "profile", lang: "profile", filter: "visibility", hidden: "visibility", blocked: "visibility", pin: "security", reissue: "security", reset: "security" };   // the Me row inside the hub that holds it (Hubs.tsx); the rest sit on Me itself
 const SUBS = ["name", "theme", "lang", "filter", "pin", "reissue", "away", "place", "legal", "statements", "hidden", "blocked", "reset"];
 
 // ── in the page ──
@@ -187,14 +188,15 @@ async function walk(browser, w) {
   await scene(page, "table", w, async () => { await page.locator('[data-testid="table-open"]').first().click(T); await wait(page, '[data-screen="table"]'); }, async () => { await back(page, '[data-testid="table-back"]'); await wait(page, '[data-screen="tables"]').catch(() => {}); });
   await scene(page, "new-table", w, async () => { await click(page, '[data-testid="new-table"]'); await wait(page, '[data-screen="new-table"]'); }, async () => { await back(page, '[data-testid="new-table-back"]'); });
   await home(page, "me", '[data-testid="tab-me"]');
-  await scene(page, "me", w, async () => { await tab(page, "me"); await wait(page, '[data-screen="me"] .me-hero'); });
+  await scene(page, "me", w, async () => { await tab(page, "me"); await wait(page, '[data-screen="me"] .k-me-head'); });
   for (const sub of SUBS) {
     const row = sub === "name" ? "me-name" : `me-${sub}`;
     if (!want("me-" + sub)) continue;
-    await home(page, "me", `[data-screen="me"] [data-testid="${row}"]`);
-    await scene(page, "me-" + sub, w, async () => { await click(page, `[data-testid="${row}"]`); await page.waitForTimeout(350); if (sub !== "name" && await page.locator(`[data-screen="me"] [data-testid="${row}"]`).count()) throw new Error("the row still shows: no subpage opened"); });
+    const hub = HUB[sub] ? `me-hub-${HUB[sub]}` : null;
+    await home(page, "me", `[data-screen="me"] [data-testid="${hub ?? row}"]`);
+    await scene(page, "me-" + sub, w, async () => { if (hub) { await click(page, `[data-testid="${hub}"]`); await page.waitForTimeout(350); } await click(page, `[data-testid="${row}"]`); await page.waitForTimeout(350); if (sub !== "name" && await page.locator(`[data-screen="me"] [data-testid="${row}"]`).count()) throw new Error("the row still shows: no subpage opened"); });
   }
-  if (want("departure")) { await home(page, "me", '[data-screen="me"] [data-testid="me-move"]'); await scene(page, "departure", w, async () => { await click(page, '[data-testid="me-move"]'); await wait(page, '[data-screen="departure"]'); }); }
+  if (want("departure")) { await home(page, "me", '[data-screen="me"] [data-testid="me-hub-security"]'); await scene(page, "departure", w, async () => { await click(page, '[data-testid="me-hub-security"]'); await page.waitForTimeout(350); await click(page, '[data-testid="me-move"]'); await wait(page, '[data-screen="departure"]'); }); }
   await o.ctx.close();
   if (!(all || wanted.some((n) => n.startsWith("cabinet")))) return;
   const cs = nodeStub({ signedIn: false });

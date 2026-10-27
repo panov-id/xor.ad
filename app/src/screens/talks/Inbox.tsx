@@ -8,30 +8,27 @@
 import { type ReactNode, useEffect, useState, type CSSProperties } from "react";
 import type { Client } from "@sdk/client.ts";
 import { failedLine, label, LANG, say } from "../../i18n";
-import { Icon } from "../../shell/Icon";
-import { hand } from "../../shell/icons";
+import { NdIcon } from "../../shell/NdIcon";
 import { useSkeleton } from "../../shell/loading";
 import { Screen } from "../../shell/Screen";
-import { Skeleton } from "../../shell/Skeleton";
 import { TabBar, type Tab } from "../../shell/TabBar";
-import { initial } from "../me/me-logic";
 import type { InboxChatRow } from "@platform/chat/keys.ts";
 import { chatRowOf, listenInbox, marksSeen, type InboxCause, isFresh, lineOf, ringOf, splitInbox, type MatchRow, type Row, type TalkRow } from "./talks-logic";
 
 const LAST_LOOK = "xor-inbox-last-look";
-const FACES = 4; // the sheet's avatar colours, in turn
 const now = () => Math.floor(Date.now() / 1000);
 // 24 hours, as the sheets write it («21:04») and as a talk's own lines do (screens/chat-logic.ts clockOf)
 const clock = (s?: number) => (s === undefined ? "" : new Date(s * 1000).toLocaleTimeString(LANG, { hour: "2-digit", minute: "2-digit", hour12: false }));
 
+// inbox.html: the ring 40 round, 5 thick, r 16 (a circle's length 100.5): the share left on the accent over the track
 function Ring({ talk }: { talk: TalkRow }) {
   const ring = ringOf(talk, now());
-  if (!ring) return <span className="tk-ended">{say("app.talks.ended")}</span>;
+  if (!ring) return <span className="k-meta">{say("app.talks.ended")}</span>;
   return (
-    <span className="tk-ring" style={{ "--share": ring.share } as CSSProperties} role="img"
-      aria-label={say("app.talks.minutes", { n: ring.minutes })} data-testid="chat-ring">
-      <span aria-hidden="true">{ring.minutes}</span>
-    </span>
+    <svg className="k-tk-ring" width="40" height="40" role="img" aria-label={say("app.talks.minutes", { n: ring.minutes })} data-testid="chat-ring">
+      <circle cx="20" cy="20" r="16" fill="none" stroke="var(--tile-strong)" strokeWidth="5" />
+      <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(ring.share * 100.5).toFixed(1)} 100.5`} transform="rotate(-90 20 20)" />
+    </svg>
   );
 }
 
@@ -83,46 +80,55 @@ export function TalksList({ rows: asked, error, actions, selectedId }: { rows: R
   const { offers, talks } = splitInbox(rows ?? []);
   return (
     <>
-      <ul className="tk-strip" aria-label={label("web.inbox.offers")} data-testid="matches">
-        <li>
-          <button type="button" className="tk-face tk-offers" onClick={onLikes} data-testid="open-likes">
-            <span className="tk-circle"><Icon d={hand} /></span>
-            <span className="tk-label">{say("app.talks.offers")}</span>
-          </button>
-        </li>
-        {offers.map((m, i) => (
-          <li key={m.id} data-testid="match" data-id={m.id}>
-            <button type="button" className="tk-face" data-fresh={isFresh(m) || undefined} onClick={() => onOpenMatch(m as MatchRow)}
-              aria-label={`${m.name}, ${m.age}`} data-testid="open-match">
-              <span className="tk-circle" data-face={i % FACES}>{initial(m.name)}</span>
-              <span className="tk-label" aria-hidden="true">{m.name}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-      {error && <p className="k-note k-error" role="alert" data-testid="error">{error}</p>}
-      {rows?.length === 0 && <p className="tk-quiet" data-testid="quiet">{say("web.inbox.empty")}</p>}
-      {skeleton && (
-        <div className="tk-skeletons" data-testid="inbox-skeleton" aria-hidden="true">
-          {[0, 1, 2].map((i) => <Skeleton key={i} kind="row" />)}
-        </div>
+      {offers.length > 0 && (
+        <section className="k-panel">
+          <ul className="k-tk-strip" aria-label={label("web.inbox.offers")} data-testid="matches">
+            {offers.map((m) => (
+              <li key={m.id} data-testid="match" data-id={m.id}>
+                <button type="button" className="k-tk-face" data-fresh={isFresh(m) || undefined} onClick={() => onOpenMatch(m as MatchRow)}
+                  aria-label={`${m.name}, ${m.age}`} data-testid="open-match">
+                  <span className="k-tk-circle"><NdIcon name="me" /><span className="k-tk-both"><NdIcon name="both" /></span></span>
+                  <span className="k-meta" aria-hidden="true">{m.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
-      <ul className="tk-rows" aria-label={label("web.inbox.chats")} data-testid="chats">
-        {talks.map((c, i) => (
-          <li key={c.id} data-testid="chat" data-id={c.id} data-state={c.state}>
-            <button type="button" className="tk-row" aria-current={c.id === selectedId ? "true" : undefined} disabled={!chatRowOf(c)} onClick={() => { const row = chatRowOf(c); if (row) onOpenChat(row); }} data-testid="open-chat">
-              <span className="tk-avatar" data-face={i % FACES} aria-hidden="true">{initial(c.name)}</span>
-              <span className="tk-who">
-                <span className="tk-name">{c.name}, {c.age}</span>
-                <span className="tk-time">{clock(c.last_activity_at)}</span>
-                <span className="tk-line">{lineOf(c, say)}</span>
-              </span>
-              <Ring talk={c} />
-              {isFresh(c) && <span className="tk-dot" role="img" aria-label={say("web.ui.new")} />}
-            </button>
-          </li>
-        ))}
-      </ul>
+      {offers.length === 0 && <ul hidden data-testid="matches" aria-label={label("web.inbox.offers")} />}
+      {rows?.length === 0 && !error ? (
+        <section className="k-panel k-grow k-tk-empty" data-testid="quiet">
+          <span className="k-tk-hero" data-tone="4"><NdIcon name="both" /></span>
+          <h2>{say("web.inbox.empty")}</h2>
+          <p>{say("app.talks.sub")}</p>
+        </section>
+      ) : (
+        <section className="k-body k-pad8">
+          {error && <p className="k-note" data-tone="error" role="alert" data-testid="error">{error}</p>}
+          {skeleton && (
+            <div className="k-tk-rows" data-testid="inbox-skeleton" aria-hidden="true">
+              {[0, 1, 2].map((i) => <div key={i} className="k-tk-row k-ghost" />)}
+            </div>
+          )}
+          <ul className="k-tk-rows" aria-label={label("web.inbox.chats")} data-testid="chats">
+            {talks.map((c) => (
+              <li key={c.id} data-testid="chat" data-id={c.id} data-state={c.state}>
+                <button type="button" className="k-tk-row" aria-current={c.id === selectedId ? "true" : undefined} disabled={!chatRowOf(c)} onClick={() => { const row = chatRowOf(c); if (row) onOpenChat(row); }} data-testid="open-chat">
+                  <span className="k-tk-ava" aria-hidden="true"><NdIcon name="me" /></span>
+                  <span className="k-stack k-tk-who">
+                    <span className="k-row-name">{c.name}, {c.age}</span>
+                    <span className="k-meta k-tk-line">{clock(c.last_activity_at)} · {lineOf(c, say)}</span>
+                  </span>
+                  <span className="k-tk-trail">
+                    <Ring talk={c} />
+                    {isFresh(c) && <span className="k-tk-dot" role="img" aria-label={say("web.ui.new")} />}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }
@@ -141,17 +147,21 @@ export function Inbox({ client, onTab, onOpenMatch, onOpenChat, onLikes, beside,
   }, [pickFirst, selectedId, rows]); // eslint-disable-line react-hooks/exhaustive-deps
   const title = say("app.talks.title");
   return (
-    <Screen name="inbox" title={title} className="tk" data-beside={beside ? "" : undefined}>
-      <header className="me-head"><span className="word">sosed</span></header>
-      {/* the desktop's line over the title (desktop_1440_Talks «4 talks · 3 new offers»): counted off the inbox's rows */}
-      {rows && <p className="tk-count">{say("app.talks.count", { talks: splitInbox(rows).talks.length, offers: splitInbox(rows).offers.filter(isFresh).length })}</p>}
-      <h1 className="tk-title">{title}</h1>
-      <p className="tk-sub">{say("app.talks.sub")}</p>
-      <div className="tk-sheet">
-        <div className="tk-list"><TalksList rows={rows} error={error} actions={{ onOpenMatch, onOpenChat, onLikes }} selectedId={selectedId} /></div>
+    <Screen name="inbox" title={title} className="k-screen" data-beside={beside ? "" : undefined}>
+      <div className="k-col">
+        <section className="k-panel">
+          <div className="k-row">
+            <NdIcon name="talks" className="k-pin k-tk-head-ico" />
+            <div className="k-stack"><h1 className="k-title">{title}</h1><p className="k-sub">{say("app.talks.sub")}</p></div>
+            <button type="button" className="k-icon-btn k-tk-offers" aria-label={say("app.talks.offers")} onClick={onLikes} data-testid="open-likes"><NdIcon name="imin" /></button>
+          </div>
+          {/* the desktop's line over the title (desktop_1440_Talks «4 talks · 3 new offers»): counted off the inbox's rows */}
+          {rows && <p className="tk-count">{say("app.talks.count", { talks: splitInbox(rows).talks.length, offers: splitInbox(rows).offers.filter(isFresh).length })}</p>}
+        </section>
+        <TalksList rows={rows} error={error} actions={{ onOpenMatch, onOpenChat, onLikes }} selectedId={selectedId} />
         {beside}
+        <TabBar active="chats" onSelect={onTab} />
       </div>
-      <TabBar active="chats" onSelect={onTab} />
     </Screen>
   );
 }

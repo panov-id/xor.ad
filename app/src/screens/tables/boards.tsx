@@ -4,6 +4,8 @@
 // word-input, word-go; reversi, cell-<a1..h8>; squares, sq-<a1..h8>; backgammon, die, roll, moved; dominoes, line-bone, hand-bone, end-left, end-right, draw.
 import { useState } from "react";
 import { say } from "../../i18n";
+import { NdIcon } from "../../shell/NdIcon";
+import { InFoot } from "./foot-slot";
 import { DurakBoard, DurakUnder } from "./boards-deck";
 import { ChapayevBoard } from "./boards-physics";
 import { PokerBoard, PokerUnder } from "./boards-poker";
@@ -40,15 +42,29 @@ export function BoardUnder({ klass, set, ...props }: BoardProps & { klass: strin
 export function FourBoard({ state, seat, onMove }: BoardProps) {
   const grid = gridOf(state);
   if (!grid) return null;
+  const cols = fourColumns(grid, seat);
   return (
+    <>
+    {onMove && (
+      // four-turn: a row of 7 drop tiles in the foot, one per column; a full column's tile goes out
+      <InFoot>
+        <div className="k-tb-drops" role="group" aria-label={say("web.table.columns")}>
+          {cols.map((c) => (
+            <button key={c.column} type="button" className="k-tb-key" disabled={!c.open} onClick={() => onMove({ column: c.column })}
+              aria-label={say("web.table.column", { col: c.column })} data-testid={`four-drop-${c.column}`}><NdIcon name="down" /></button>
+          ))}
+        </div>
+      </InFoot>
+    )}
     <div className="tg-four" role="group" aria-label={say("web.table.columns")} data-testid="four">
-      {fourColumns(grid, seat).map((c) => (
+      {cols.map((c) => (
         <button key={c.column} type="button" className="tg-col" disabled={!onMove || !c.open} onClick={() => onMove?.({ column: c.column })}
           aria-label={say("web.table.column", { col: c.column })} data-testid={`four-col-${c.column}`}>
           {c.cells.map((s, i) => <span key={i} className="tg-cell" data-stand={s} />)}
         </button>
       ))}
     </div>
+    </>
   );
 }
 
@@ -96,10 +112,10 @@ export function HangmanBoard({ state, seat, onMove }: BoardProps) {
       </p>
       {h.mode === "set"
         ? (
-          <form className="tg-set" onSubmit={(e) => { e.preventDefault(); const v = word.trim(); if (v) { onMove?.({ word: v }); setWord(""); } }}>
+          <InFoot><form className="tg-set" onSubmit={(e) => { e.preventDefault(); const v = word.trim(); if (v) { onMove?.({ word: v }); setWord(""); } }}>
             <input value={word} maxLength={24} onChange={(e) => setWord(e.target.value)} aria-label={say("web.table.set_word")} placeholder={say("web.table.set_word")} data-testid="word-input" />
-            <button type="submit" className="cta cta-primary" disabled={!word.trim()} data-testid="word-go">{say("web.table.set")}</button>
-          </form>
+            <button type="submit" className="k-cta" disabled={!word.trim()} data-testid="word-go">{say("web.table.set")}</button>
+          </form></InFoot>
         )
         : (
           <div className="tg-keys" role="group" aria-label={say("web.table.letter")}>
@@ -187,11 +203,11 @@ export function BackgammonBoard({ state, onMove }: BoardProps) {
           </span>
         )}
       </div>
-      {step && (
-        <button type="button" className="cta cta-primary tg-dice-step" onClick={() => onMove?.(step === "roll" ? { roll: true } : { move: true })} data-testid={step}>
-          {say(step === "roll" ? "web.table.roll" : "web.table.moved")}
+      {step && (<InFoot>
+        <button type="button" className="k-tb-key" data-main="" aria-label={say(step === "roll" ? "web.table.roll" : "web.table.moved")} onClick={() => onMove?.(step === "roll" ? { roll: true } : { move: true })} data-testid={step}>
+          <NdIcon name={step === "roll" ? "dice" : "check"} />
         </button>
-      )}
+      </InFoot>)}
     </div>
   );
 }
@@ -225,13 +241,13 @@ export function DominoesBoard({ state, seat, onMove }: BoardProps) {
           </button>
         ))}
       </div>
-      {ask && (
-        <div className="tg-ends">
-          <button type="button" className="cta cta-quiet" onClick={() => { onMove?.({ play: ask, end: "left" }); setAsk(null); }} data-testid="end-left">{say("app.table.to_left")}</button>
-          <button type="button" className="cta cta-quiet" onClick={() => { onMove?.({ play: ask, end: "right" }); setAsk(null); }} data-testid="end-right">{say("app.table.to_right")}</button>
+      {ask && (<InFoot>
+        <div className="k-row tg-ends">
+          <button type="button" className="k-tb-key" aria-label={say("app.table.to_left")} onClick={() => { onMove?.({ play: ask, end: "left" }); setAsk(null); }} data-testid="end-left"><NdIcon name="back" /></button>
+          <button type="button" className="k-tb-key" data-main="" aria-label={say("app.table.to_right")} onClick={() => { onMove?.({ play: ask, end: "right" }); setAsk(null); }} data-testid="end-right"><NdIcon name="chev" /></button>
         </div>
-      )}
-      {onMove && v.draw && <button type="button" className="cta cta-primary tg-draw" onClick={() => onMove({ draw: true })} data-testid="draw">{say("app.table.draw")}</button>}
+      </InFoot>)}
+      {onMove && v.draw && <InFoot><button type="button" className="k-tb-key" aria-label={say("app.table.draw")} onClick={() => onMove({ draw: true })} data-testid="draw"><NdIcon name="box" /></button></InFoot>}
     </div>
   );
 }

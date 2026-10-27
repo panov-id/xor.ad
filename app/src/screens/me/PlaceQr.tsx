@@ -37,13 +37,13 @@ export function PlaceQr({ place, onBack }: { place: Place; onBack: () => void })
   return (
     <SubPage name="place-qr" title={say("web.qr.title")} onBack={onBack}
       foot={<button type="button" className="cta cta-primary" onClick={() => void share()} data-testid="qr-share"><Icon d={linkIcon} /><span>{say("app.qr.share")}</span></button>}>
-      <div className="me-qr-card">
-        <svg className="me-qr" data-testid="qr-code" data-link={link} viewBox={`0 0 ${code.size} ${code.size}`} role="img"
+      <div className="k-qr-card">
+        <svg className="k-qr" data-testid="qr-code" data-link={link} viewBox={`0 0 ${code.size} ${code.size}`} role="img"
           aria-label={say("web.qr.code", { where: place.name })} shapeRendering="crispEdges">
           <path d={code.d} />
         </svg>
       </div>
-      <p className="k-sub me-qr-what">{say("app.qr.what")}</p>
+      <p className="k-sub">{say("app.qr.what")}</p>
       <p role="status" className="k-sub" data-testid="qr-said">{said}</p>
     </SubPage>
   );

@@ -5,6 +5,8 @@
 import { useState } from "react";
 import { pokerOf, pokerView } from "../../../../depth/core/tables_poker.ts";
 import { label, say } from "../../i18n";
+import { NdIcon } from "../../shell/NdIcon";
+import { InFoot } from "./foot-slot";
 import type { BoardProps } from "./boards";
 import { CardBack, CardFace } from "./cards";
 import { type Placed } from "./cards-logic";
@@ -41,11 +43,14 @@ const holeAt = (i: number, n: number): Placed => ({ x: 178.09 + (i - (n - 1) / 2
 
 // Under the panel: my two cards, and when it is my turn the actions.
 export function PokerUnder({ state, seat, onMove }: BoardProps) {
-  const [raise, setRaise] = useState("");
+  // poker-bet: the raise is its own step behind «+» — a slider from the least raise to all my chips, «×» and «raise»
+  const [raise, setRaise] = useState<number | null>(null);
   const p = pokerOf(state as Record<string, unknown> | null);
   if (!p) return null;
   const v = pokerView(p, seat, !!onMove);
   const hole = v.hole;
+  const me = v.seats.find((s) => s.mine);
+  const most = me ? me.chips + me.bet : v.minRaise;
   return (
     <>
       {hole && hole.length > 0 && (
@@ -55,20 +60,32 @@ export function PokerUnder({ state, seat, onMove }: BoardProps) {
           </div>
         </div>
       )}
-      {v.acts && onMove && (
+      {v.acts && onMove && (<InFoot>
         <div className="tg-pk-acts" role="group" aria-label={say("web.table.actions")}>
-          <div className="tg-actions">
-            <button type="button" className="cta cta-quiet" onClick={() => onMove({ fold: true })} data-testid="poker-fold">{say("web.table.fold")}</button>
-            <button type="button" className="cta cta-primary" disabled={v.owe > 0} onClick={() => onMove({ check: true })} data-testid="poker-check">{say("web.table.check")}</button>
-            <button type="button" className="cta cta-primary" disabled={v.owe <= 0} onClick={() => onMove({ call: true })} data-testid="poker-call">{say("web.table.call", { owe: v.toCall })}</button>
-            <button type="button" className="cta cta-quiet" onClick={() => onMove({ allin: true })} data-testid="poker-allin">{say("web.table.allin")}</button>
-          </div>
-          <form className="tg-set tb-raise" onSubmit={(e) => { e.preventDefault(); if (raise) { onMove({ raise: Number(raise) }); setRaise(""); } }}>
-            <input value={raise} inputMode="numeric" maxLength={6} onChange={(e) => setRaise(e.target.value.replace(/\D/g, "").slice(0, 6))} aria-label={say("web.table.raise_to", { min: v.minRaise })} placeholder={say("web.table.raise_to", { min: v.minRaise })} data-testid="raise-input" />
-            <button type="submit" className="cta cta-primary" disabled={!raise} data-testid="raise-go">{say("web.table.raise_go")}</button>
-          </form>
+          {raise === null
+            ? (
+              <div className="k-row tg-actions">
+                <button type="button" className="k-tb-key" aria-label={say("web.table.fold")} onClick={() => onMove({ fold: true })} data-testid="poker-fold"><NdIcon name="close" /></button>
+                <button type="button" className="k-tb-key" disabled={v.owe > 0} aria-label={say("web.table.check")} onClick={() => onMove({ check: true })} data-testid="poker-check"><NdIcon name="check" /></button>
+                <button type="button" className="k-tb-key" disabled={v.owe <= 0} aria-label={say("web.table.call", { owe: v.toCall })} onClick={() => onMove({ call: true })} data-testid="poker-call"><NdIcon name="deal" /></button>
+                <button type="button" className="k-tb-key" aria-label={say("web.table.allin")} onClick={() => onMove({ allin: true })} data-testid="poker-allin"><NdIcon name="wow" /></button>
+                <button type="button" className="k-tb-key" data-main="" disabled={most < v.minRaise} aria-label={say("web.table.raise_legend")} onClick={() => setRaise(v.minRaise)} data-testid="raise-open"><NdIcon name="plus" /></button>
+              </div>
+            )
+            : (
+              <form className="tg-pk-bet" onSubmit={(e) => { e.preventDefault(); onMove({ raise }); setRaise(null); }}>
+                <label className="tg-pk-slide">
+                  <input type="range" min={v.minRaise} max={most} step={1} value={raise} onChange={(e) => setRaise(Number(e.target.value))} aria-label={say("web.table.raise_to", { min: v.minRaise })} data-testid="raise-input" />
+                  <output data-testid="raise-value">{raise}</output>
+                </label>
+                <div className="k-row">
+                  <button type="button" className="k-tb-key" aria-label={say("web.offer.cancel")} onClick={() => setRaise(null)} data-testid="raise-close"><NdIcon name="close" /></button>
+                  <button type="submit" className="k-cta" aria-label={say("web.table.raise_go")} data-testid="raise-go"><NdIcon name="plus" /><span>{say("web.table.raise_go")} {raise}</span></button>
+                </div>
+              </form>
+            )}
         </div>
-      )}
+      </InFoot>)}
     </>
   );
 }

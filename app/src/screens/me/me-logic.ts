@@ -56,3 +56,12 @@ export function awayRows(counts: { phrases: number; likes: number; ends: number[
 
 /** The first letter of a name for the avatar. */
 export const initial = (name: string): string => [...name.trim()][0]?.toLocaleUpperCase() ?? "?";
+
+/** Where Back and Done lead from a Me sub-page: the hub that holds its tile (name and age sit in the profile hub, panel 27.10). */
+export function meParent(s: string | null): string | null {
+  if (s === "name" || s === "theme" || s === "lang") return "hub-profile";
+  if (s === "filter" || s === "hidden" || s === "blocked") return "hub-visibility";
+  if (s === "pin" || s === "reissue" || s === "reset") return "hub-security";
+  if (s === "place-qr") return "place";
+  return null;
+}

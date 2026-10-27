@@ -12,8 +12,9 @@ import { type City, nameOf, parsePoint, type Place as PlaceT, searchCities, stor
 import { LANG, say } from "../../i18n";
 import { storedPlace } from "../../place";
 import { RADII, radiusWord } from "../feed-logic";
+import { NdIcon } from "../../shell/NdIcon";
 import { Field } from "../register-parts";
-import { pin, qr } from "./icons";
+import { pin } from "./icons";
 import { countryName } from "./me-logic";
 import { type At, citiesOn, dragged, pinched, pxPerM, type Tile, tilePath, tilesFor, toView } from "./place-map";
 import { ErrorLine, Row, SubPage } from "./parts";
@@ -85,21 +86,21 @@ function PlaceMap({ at, radius, onMove, onRadius }: { at: At; radius: Radius; on
   const wheel = (e: WheelEvent) => { if (e.deltaY) onRadius(pinched(radius, e.deltaY < 0 ? 3 : 1 / 3)); };
   const ring = Math.min(size.w, size.h) / 2 / 1.6;
   return (
-    <div ref={box} className="me-map" data-testid="place-map" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={wheel}
+    <div ref={box} className="k-map" data-testid="place-map" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={wheel}
       role="img" aria-label={say("app.place.map")}>
       <svg width={size.w} height={size.h} viewBox={`0 0 ${size.w} ${size.h}`} aria-hidden="true">
-        {land.map(({ key, t }) => <path key={key} className="me-map-land" fillRule="evenodd" d={tilePath(key, t, at, s, size.w, size.h)} />)}
+        {land.map(({ key, t }) => <path key={key} className="k-map-land" fillRule="evenodd" d={tilePath(key, t, at, s, size.w, size.h)} />)}
         {citiesOn(cities, at, radius, size.w, size.h).map((c) => {
           // a label clear of the pin (the centre city sits under it) and inside the view (the right third reads leftwards)
           const under = Math.hypot(c.x - size.w / 2, c.y - size.h / 2) < 20, left = c.x > size.w * 0.6;
           const dx = under ? 22 : 8;
           return (
-            <g key={`${c.name}-${c.x}`} className="me-map-city"><circle cx={c.x} cy={c.y} r={3} />
+            <g key={`${c.name}-${c.x}`} className="k-map-city"><circle cx={c.x} cy={c.y} r={3} />
               <text x={left ? c.x - dx : c.x + dx} y={c.y + 4} textAnchor={left ? "end" : "start"}>{c.name}</text></g>
           );
         })}
-        <circle className="me-map-ring" cx={size.w / 2} cy={size.h / 2} r={ring} />
-        <circle className="me-map-pin" cx={size.w / 2} cy={size.h / 2} r={14} />
+        <circle className="k-map-ring" cx={size.w / 2} cy={size.h / 2} r={ring} />
+        <circle className="k-map-pin" cx={size.w / 2} cy={size.h / 2} r={14} />
       </svg>
     </div>
   );
@@ -143,39 +144,66 @@ export function Place({ onChosen, onBack, onQr, start }: { onChosen: (p: PlaceT)
     onChosen(p);
   }
   const step = RADII.indexOf(radius);
+  const [view, setView] = useState<"main" | "map">("main");
+  const [coords, setCoords] = useState(false);
+  const hereBtn = <button type="button" className="cta cta-primary" onClick={() => void here()} data-testid="place-here"><NdIcon name="check" /><span>{say("app.place.here")}</span></button>;
+  const nowLine = start ? say("web.qr.ask", { where: near?.name ?? "…" }) : now.chosen ? say("app.place.now", { place: now.name }) : say("app.place.unset", { place: ROME });
+  const nearLine = near ? say("app.place.near", { city: near.name, radius: radiusText(radius) }) : " ";
+  if (view === "map") {
+    // the map itself (drag, pinch, the radius): opens from the big tile of the prototype's place.html
+    return (
+      <SubPage name="place" title={say("app.place.title")} onBack={() => setView("main")} foot={hereBtn}>
+        <p className="k-sub">{say("app.place.drag")}</p>
+        <PlaceMap at={at} radius={radius} onMove={(c) => { setNamed(null); setAt(c); }} onRadius={setRadius} />
+        <label className="k-radius">
+          <span className="k-radius-head"><span>{say("app.place.radius")}</span><b>{radiusText(radius)}</b></span>
+          <input type="range" min={0} max={RADII.length - 1} step={1} value={step} onChange={(e) => setRadius(RADII[Number(e.target.value)])}
+            aria-valuetext={radiusText(radius)} data-testid="place-radius" />
+          <span className="k-radius-steps" aria-hidden="true">{RADII.map((r) => <span key={r}>{radiusText(r)}</span>)}</span>
+        </label>
+        <div className="k-note k-stack" data-testid="place-near">
+          <p>{nearLine}</p>
+          <p className="k-meta">{say("app.place.feed")}</p>
+        </div>
+      </SubPage>
+    );
+  }
+  // the prototype's place.html: the search pill, the big tile of where I am and how far (opens the map), the two half tiles (QR, a point), Save at the foot
   return (
-    <SubPage name="place" title={say("app.place.title")} onBack={onBack}
-      foot={<button type="button" className="cta cta-primary" onClick={() => void here()} data-testid="place-here">{say("app.place.here")}</button>}>
-      <Field text={say("app.place.city")} value={q} onChange={setQ} testid="place-search" autoComplete="off" />
-      {found.length > 0 && (
-        <ul className="k-stack" data-testid="place-found">
-          {found.map((p) => (
-            <li key={`${p.name}-${p.cc}-${p.lat}`}>
-              <Row icon={pin} text={p.name} value={countryName(LANG, p.cc)} onOpen={() => go(p)} testid="place-city" />
-            </li>
-          ))}
-        </ul>
-      )}
-      <form className="me-point" onSubmit={(e) => void fromPoint(e)}>
-        <Field text={say("app.place.point")} value={point} onChange={setPoint} testid="place-point" autoComplete="off" />
-      </form>
-      <ErrorLine text={error} />
-      <Row icon={qr} text={say("app.place.qr")} onOpen={onQr} testid="place-qr" />
-      <p className="me-place-now" data-testid="place-now">
-        {/* opened by a place QR: the web's question (web.qr.ask), not «not chosen, Rome» over the QR's point */}
-        {start ? say("web.qr.ask", { where: near?.name ?? "…" }) : now.chosen ? say("app.place.now", { place: now.name }) : say("app.place.unset", { place: ROME })}
-      </p>
-      <p className="me-place-hint">{say("app.place.drag")}</p>
-      <PlaceMap at={at} radius={radius} onMove={(c) => { setNamed(null); setAt(c); }} onRadius={setRadius} />
-      <label className="me-radius">
-        <span className="me-radius-head"><span>{say("app.place.radius")}</span><b>{radiusText(radius)}</b></span>
-        <input type="range" min={0} max={RADII.length - 1} step={1} value={step} onChange={(e) => setRadius(RADII[Number(e.target.value)])}
-          aria-valuetext={radiusText(radius)} data-testid="place-radius" />
-        <span className="me-radius-steps" aria-hidden="true">{RADII.map((r) => <span key={r}>{radiusText(r)}</span>)}</span>
-      </label>
-      <div className="me-place-card" data-testid="place-near">
-        <p>{near ? say("app.place.near", { city: near.name, radius: radiusText(radius) }) : " "}</p>
-        <p>{say("app.place.feed")}</p>
+    <SubPage name="place" title={say("app.place.title")} onBack={onBack} bare footActions foot={hereBtn}>
+      <div className="k-me-place">
+        <Field text={say("app.place.city")} value={q} onChange={setQ} testid="place-search" autoComplete="off" icon="search" />
+        {found.length > 0 && (
+          <ul className="k-stack" data-testid="place-found">
+            {found.map((p) => (
+              <li key={`${p.name}-${p.cc}-${p.lat}`}>
+                <Row icon={pin} text={p.name} value={countryName(LANG, p.cc)} onOpen={() => go(p)} testid="place-city" />
+              </li>
+            ))}
+          </ul>
+        )}
+        {coords && (
+          <form onSubmit={(e) => void fromPoint(e)}>
+            <Field text={say("app.place.point")} value={point} onChange={setPoint} testid="place-point" autoComplete="off" icon="coords" />
+          </form>
+        )}
+        <ErrorLine text={error} />
+        <p className="k-sr" data-testid="place-now">{nowLine}</p>
+        <div className="k-sr" data-testid="place-near"><p>{nearLine}</p></div>
+        <div className="k-hub k-me-place-grid" data-hub="place">
+          <button type="button" className="k-hub-tile" data-wide="" data-accent="" onClick={() => setView("map")} data-testid="place-map-open">
+            <span className="k-badge k-badge-white" aria-hidden="true"><NdIcon name="place" /></span>
+            <span className="k-stack"><span className="k-row-name">{near?.name ?? (now.chosen ? now.name : ROME)}</span><span className="k-meta">{radiusText(radius)}</span></span>
+          </button>
+          <button type="button" className="k-hub-tile" data-small="" onClick={onQr} data-testid="place-qr">
+            <span className="k-badge" data-c="1" aria-hidden="true"><NdIcon name="qr" /></span>
+            <span className="k-stack"><span className="k-row-name">{say("app.place.qr")}</span></span>
+          </button>
+          <button type="button" className="k-hub-tile" data-small="" aria-expanded={coords} onClick={() => setCoords((c) => !c)} data-testid="place-coords">
+            <span className="k-badge" data-c="2" aria-hidden="true"><NdIcon name="coords" /></span>
+            <span className="k-stack"><span className="k-row-name">{say("app.place.point")}</span></span>
+          </button>
+        </div>
       </div>
     </SubPage>
   );

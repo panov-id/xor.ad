@@ -13,21 +13,20 @@ import { applyFrame, frameNeedsView, openApplications, type TableView, Tables } 
 import { connectTable } from "@platform/table_room.ts";
 import { capital } from "../../i18n-core";
 import { failedLine, label, LANG, say } from "../../i18n";
-import { Icon } from "../../shell/Icon";
-import { chevronLeft, chevronRight, ellipsis } from "../../shell/icons";
 import { useLayers } from "../../shell/layers";
 import { NdIcon } from "../../shell/NdIcon";
 import { Screen } from "../../shell/Screen";
 import { Rail } from "../../shell/TabBar";
-import { initial } from "../me/me-logic";
 import { Board, BoardUnder } from "./boards";
+import { FootSlot } from "./foot-slot";
 import { Solo } from "./solo";
 import { soloOf, soloShown } from "./solo-logic";
-import { gameName } from "./table-row";
-import { canApply, canNudge, conStep, facePair, firstAction, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
-import { toneAt } from "./tables-logic";
+import { gameIcon, gameName } from "./table-row";
+import { canApply, canNudge, conStep, facePair, firstAction, footOf, overBanner, meLine, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic";
 
 type Answer = { status: number; body: unknown };
+// the icon each sticker of the node's set is drawn with (table.html: the strip of icon chips)
+const CHIP_ICON: Record<string, string> = { hi: "wave", thanks: "thanks", deal: "deal", wow: "wow", coffee: "coffee", move: "move", again: "rematch", giveup: "giveup" };
 // A chip says the app's own word where the sheet has one (app.table.sticker.hi «Hi!»), else the catalogue's, capitalised.
 const chipWord = (id: string): string => {
   const own = `app.table.sticker.${id}`;
@@ -47,6 +46,8 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
   // The puzzle while waiting (§6.2) is open on this device; the node only hears the mark (Tables.solo).
   const [soloOpen, setSoloOpen] = useState(false);
   const [applying, setApplying] = useState(false);
+  // the foot's slot where a board portals its turn buttons (foot-slot.tsx)
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
   // «Your turn» (B5): what my nudge got (sent / wait a minute), and a nudge to me heard in this table's room
   const [nudge, setNudge] = useState<"sent" | "wait" | null>(null);
   const [nudged, setNudged] = useState(false);   // one application at a time: a double press sent two, the second 409
@@ -99,23 +100,25 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
   const game = view ? gameOfTable(view.class, view.set) : undefined;
   const title = view ? tableTitle(game ? label(gameName(game)) : label("table.title"), view.name) : label("table.title");
   const bar = (more?: ReactNode) => (
-    <header className="me-bar tg-bar">
-      <button type="button" className="me-back" aria-label={label("common.back")} onClick={onBack} data-testid="table-back"><Icon d={chevronLeft} /></button>
-      <h1>{title}</h1>
+    <header className="k-row k-bar">
+      <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={onBack} data-testid="table-back"><NdIcon name="back" /></button>
+      <h1 className="k-bar-title">{game && <NdIcon name={gameIcon(game.id)} className="k-tb-bar-ico" />}<span>{title}</span></h1>
       {more}
     </header>
   );
   if (!view) {
     return (
-      <Screen name="table" title={title} className="me-sub tg-table">
-        {bar()}
-        <div className="tg-sheet">{elsewhere ? (
-          <div className="tg-elsewhere" data-testid="seated-elsewhere">
-            <p>{say("app.table.elsewhere")}</p>
-            {onTable && <button type="button" className="cta cta-primary" onClick={() => onTable(elsewhere)} data-testid="to-my-table">{say("app.table.to_mine")}</button>}
-          </div>
-        ) : error ? <p className="k-note k-error" role="alert" data-testid="error">{error}</p> : <p className="tg-quiet">…</p>}</div>
-        <Rail active="tables" />
+      <Screen name="table" title={title} className="k-screen">
+        <div className="k-col">
+          {bar()}
+          <section className="k-panel k-grow">{elsewhere ? (
+            <div className="k-tb-empty" data-testid="seated-elsewhere">
+              <p>{say("app.table.elsewhere")}</p>
+              {onTable && <button type="button" className="k-cta" onClick={() => onTable(elsewhere)} data-testid="to-my-table">{say("app.table.to_mine")}</button>}
+            </div>
+          ) : error ? <p className="k-note" data-tone="error" role="alert" data-testid="error">{error}</p> : <p className="k-sub" aria-busy="true">…</p>}</section>
+          <Rail active="tables" />
+        </div>
       </Screen>
     );
   }
@@ -134,6 +137,8 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
   const soloKind = soloOf(game?.id);
   const soloHere = !!soloKind && soloShown(view);
   const asks = openApplications(view).length > 0;
+  const ask = openApplications(view)[0];
+  const guest = ask ? { seat: ask.seat, name: view.seats.find((x) => x.seat === ask.seat)?.name ?? "?" } : null;
   // opened at once; a refused mark (409 game_running, not_playing) takes it back, so the device never plays unmarked
   const setSolo = (on: boolean) => { setSoloOpen(on); void act(async () => { const a = await tables.solo(tableId, on); if (refusalOf(a)) setSoloOpen(!on); return a; }); };
   const onMove = view.is_playing && started && board!.turn === view.seat ? (m: unknown) => void act(() => tables.move(tableId, board!.seq, m)) : undefined;
@@ -148,6 +153,9 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
     : mine.state === "their-move" ? say("app.table.their_move", { name: mine.name ?? "" })
     : mine.state === "over" ? say("table.over") : mine.state === "not-started" ? say("table.notStarted") : say("app.table.watching");
 
+  const banner = overBanner(view);
+  const foot = footOf({ proposed, first, con: !!con.offer, apply: canApply(view) === "apply" });
+  const stand = () => void act(async () => { const a = await tables.stand(tableId); if (a.status < 400) onLeave(); return a; });
   const menu = () => open("table-more", (
     <div className="k-stack" data-testid="table-menu">
       <h2 className="k-sheet-title">{title}</h2>
@@ -156,85 +164,126 @@ export function Table({ client, tableId, onBack, onLeave, onTable }: { client: C
         {first !== "start" && onMove && <li><button type="button" className="k-pick k-pick-tall" onClick={() => { close(); void act(() => tables.pass(tableId, board!.seq)); }} data-testid="pass"><span className="k-badge k-badge-35" data-c="6"><NdIcon name="skip" /></span><span>{say("table.pass")}</span></button></li>}
         {view.is_playing && started && <li><button type="button" className="k-pick k-pick-tall" onClick={() => { close(); void act(() => tables.resign(tableId)); }} data-testid="resign"><span className="k-badge k-badge-35" data-c="3"><NdIcon name="giveup" /></span><span>{say("table.resign")}</span></button></li>}
         <li><button type="button" className="k-pick k-pick-tall" onClick={() => { close(); void act(() => tables.like(tableId)); }} data-testid="like"><span className="k-badge k-badge-35" data-c="2"><NdIcon name="good" /></span><span>{say("table.like")}</span></button></li>
-        <li><button type="button" className="k-pick k-pick-tall" data-danger="" onClick={() => { close(); void act(async () => { const a = await tables.stand(tableId); if (a.status < 400) onLeave(); return a; }); }} data-testid="table-stand"><span className="k-badge k-badge-35" data-c="5"><NdIcon name="door" /></span><span>{say("table.stand")}</span></button></li>
+        <li><button type="button" className="k-pick k-pick-tall" data-danger="" onClick={() => { close(); stand(); }} data-testid="table-stand"><span className="k-badge k-badge-35" data-c="5"><NdIcon name="door" /></span><span>{say("table.stand")}</span></button></li>
       </ul>
     </div>
   ));
 
   return (
-    <Screen name="table" title={title} className="me-sub tg-table" data-testid="table" data-id={tableId}>
-      {bar(<button type="button" className="me-back tg-more" aria-label={say("web.chat.more")} aria-haspopup="dialog" onClick={menu} data-testid="table-more"><Icon d={ellipsis} /></button>)}
-      <div className="tg-faces">
-        {left && <span className="tg-face" data-face="me" data-testid="face-left" aria-hidden="true">{initial(view.is_playing ? (left.name || "?") : left.name)}</span>}
-        <p className="tg-me" data-testid={board?.over ? "over" : "turn"}>
-          {mine.who === "you" ? label("table.you") : mine.name}<span aria-hidden="true"> · </span>{line}
-          {nudged && board?.turn === view.seat && !board?.over && <span className="tg-nudged" role="status" data-testid="nudged"> · {say("app.table.nudged")}</span>}
-        </p>
-        {canNudge(view) && (nudge
-          ? <span className="tg-nudge-said" role="status" data-testid="nudge-said">{say(nudge === "sent" ? "app.table.nudge_sent" : "app.table.nudge_wait")}</span>
-          : <button type="button" className="tg-nudge" onClick={() => void poke()} data-testid="nudge">{say("app.table.nudge")}</button>)}
-        {ring && (
-          <span className="tg-ring" style={{ "--share": ring.share } as CSSProperties} role="img" aria-label={say("app.table.minutes", { n: ring.minutes })} data-testid="move-ring">
-            <span aria-hidden="true">{ring.minutes}</span>
-          </span>
+    <Screen name="table" title={title} className="k-screen" data-testid="table" data-id={tableId}>
+      <FootSlot.Provider value={slot}>
+      <div className="k-col">
+        {bar(<button type="button" className="k-bar-btn" aria-label={say("web.chat.more")} aria-haspopup="dialog" onClick={menu} data-testid="table-more"><NdIcon name="more" /></button>)}
+        {soloHere && guest && (
+          // table-solo-guest: the neighbour who asks, in place of the players — «×» refuses, the wide pill starts a round with them
+          <section className="k-panel k-pad8 k-tb-guest" data-testid="solo-guest">
+            <div className="k-row">
+              <span className="k-gp-ava" aria-hidden="true"><NdIcon name="me" /></span>
+              <span className="k-stack"><b>{guest.name}</b><span>{say("app.solo.guest")}</span></span>
+            </div>
+            <div className="k-row">
+              <button type="button" className="k-tb-key" aria-label={say("web.table.decline")} onClick={() => void act(() => tables.refuse(tableId, guest.seat, say("web.table.decline")))} data-testid="guest-refuse"><NdIcon name="close" /></button>
+              <button type="button" className="k-cta" onClick={() => void act(() => tables.propose(tableId, "rematch"))} data-testid="guest-start"><NdIcon name="rematch" /><span>{say("web.table.start")}</span></button>
+            </div>
+          </section>
         )}
-        {right && <span className="tg-face" data-face="them" data-testid="face-right" aria-label={right.name}>{initial(right.name)}</span>}
-      </div>
-      <div className="tg-sheet">
-        {soloHere && soloOpen && !asks && <Solo tableId={tableId} kind={soloKind!} onClose={() => setSolo(false)} />}
-        {soloHere && soloOpen && asks && (
-          <div className="solo-strip" data-testid="solo-guest">
-            <p>{say("app.solo.guest")}</p>
+        {!(soloHere && guest) && <section className="k-panel k-pad8 k-gp-players">
+          <div className="k-row">
+            {left && <div className="k-gp-chip" data-mine="" data-testid="face-left"><span className="k-gp-ava" aria-hidden="true"><NdIcon name="me" /></span><span className="k-stack"><b>{left.name || "?"}</b></span></div>}
+            {right && <div className="k-gp-chip" data-testid="face-right" aria-label={right.name}><span className="k-gp-ava" aria-hidden="true"><NdIcon name="me" /></span><span className="k-stack"><b>{right.name}</b></span></div>}
           </div>
-        )}
-        {soloHere && !soloOpen && (
-          <button type="button" className="cta cta-quiet solo-open" onClick={() => setSolo(true)} data-testid="solo-open">{say(view.solo ? "app.solo.back" : "app.solo.open")}</button>
-        )}
-        {!(soloHere && soloOpen && !asks) && <div className="tg-panel" data-class={view.class} data-set={view.set}>
-          <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} seats={view.seats.filter((s) => s.role === "playing").map((s) => s.seat).sort((a, b) => a - b)} onMove={onMove} />
-        </div>}
-        <BoardUnder klass={view.class} set={view.set} state={board?.state} seat={view.seat} onMove={onMove} />
-        {/* The con by agreement (checkers, chess, backgammon: the rules are the people's): «the round is mine», or agree to theirs. */}
-        {con.offer && (
-          <button type="button" className="cta cta-quiet tg-con" onClick={() => void act(() => tables.move(tableId, board!.seq, { con: con.offer === "claim" ? "won" : "agree" }))} data-testid={`con-${con.offer}`}>
-            {say(con.offer === "claim" ? "web.table.con_won" : "web.table.con_agree")}
-          </button>
-        )}
-        {con.waiting && <p className="tg-quiet tg-con-wait" data-testid="con-waiting">{say("app.table.con_waiting")}</p>}
-        {error && <p className="k-note k-error" role="alert" data-testid="error">{error}</p>}
-        {proposed && (
-          <div className="tg-ask">
-            <button type="button" className="cta cta-primary" onClick={() => void act(() => tables.answer(tableId, pending!.id, "accept"))} data-testid="accept-game">{say("web.table.accept")}</button>
-            <button type="button" className="cta cta-quiet" onClick={() => void act(() => tables.answer(tableId, pending!.id, "decline"))} data-testid="decline-game">{say("web.table.decline")}</button>
+        </section>}
+        <section className="k-panel k-pad8 k-tb-turn">
+          <div className="k-row">
+            <NdIcon name="clock" className="k-pin k-tb-turn-ico" />
+            <p className="k-tb-me" data-testid={board?.over ? "over" : "turn"}>
+              {mine.who === "you" ? label("table.you") : mine.name}<span aria-hidden="true"> · </span>{line}
+              {nudged && board?.turn === view.seat && !board?.over && <span className="tg-nudged" role="status" data-testid="nudged"> · {say("app.table.nudged")}</span>}
+            </p>
+            {canNudge(view) && (nudge
+              ? <span className="tg-nudge-said" role="status" data-testid="nudge-said">{say(nudge === "sent" ? "app.table.nudge_sent" : "app.table.nudge_wait")}</span>
+              : <button type="button" className="tg-nudge" onClick={() => void poke()} data-testid="nudge">{say("app.table.nudge")}</button>)}
+            {ring && (
+              <span className="k-ring" style={{ "--k-ring": ring.share } as CSSProperties} role="img" aria-label={say("app.table.minutes", { n: ring.minutes })} data-testid="move-ring">
+                <span aria-hidden="true">{ring.minutes}</span>
+              </span>
+            )}
           </div>
-        )}
-        {!proposed && first === "start" && (
-          <button type="button" className="cta cta-primary tg-start" onClick={() => void act(() => tables.propose(tableId, "rematch"))} data-testid="start-game">
-            {say(!board || board.over ? "web.game.rematch" : "web.table.start")}
-          </button>
-        )}
-        {/* A watcher asks into the next round (§6.1); the host sees it over the puzzle (§6.2) and starts the game. */}
-        {canApply(view) === "apply" && (
-          <button type="button" className="cta cta-primary tg-start" disabled={applying} onClick={() => { setApplying(true); void act(() => tables.say(tableId, { kind: "application", text: say("app.table.apply") })).finally(() => setApplying(false)); }} data-testid="apply">
-            {say("app.table.apply")}
-          </button>
-        )}
-        {canApply(view) === "applied" && <p className="tg-quiet tg-con-wait" data-testid="applied">{say("app.table.applied")}</p>}
-        {/* Words at the table for the players (owner 14.10.2026: «вернуть текст игрокам»), above the stickers. */}
-        {view.is_playing && (
-          <form className="tg-line" onSubmit={(e) => { e.preventDefault(); const text = said.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setSaid("")); }}>
-            <input value={said} maxLength={128} onChange={(e) => setSaid(e.target.value)} placeholder={say("app.table.message")} aria-label={say("web.table.line")} data-testid="line-input" />
-          </form>
-        )}
-        <div className="tg-chips" role="group" aria-label={say("web.sticker.title")} data-testid="stickers">
-          {STICKER_CHIPS.map((id, i) => (
-            <button key={id} type="button" className="tg-chip" data-tone={toneAt(i)} onClick={() => void act(() => tables.say(tableId, { kind: "sticker", sticker: id }))} data-testid={`sticker-${id}`}>
-              {chipWord(id)}
-            </button>
-          ))}
-        </div>
+        </section>
+        <section className="k-panel k-pad8 k-grow k-gp-board k-tb-board">
+          {banner && (
+            <div className="k-tb-won" role="status" data-testid="over-banner">
+              <NdIcon name="wow" />
+              <span className="k-stack"><b>{say("table.over")}</b><span>{banner.names}</span></span>
+              <span className="k-tb-won-score" aria-label={banner.chips.map((c) => c.n).join(" : ")}>{banner.chips.map((c) => <span key={c.seat}>{c.n}</span>)}</span>
+            </div>
+          )}
+          {soloHere && soloOpen && !asks && <Solo tableId={tableId} kind={soloKind!} onClose={() => setSolo(false)} />}
+          {/* table-solo-guest: the puzzle stays under the guest's card, pale and out of reach until the guest is answered */}
+          {soloHere && soloOpen && asks && <div className="k-tb-dim" inert data-testid="solo-dim"><Solo tableId={tableId} kind={soloKind!} onClose={() => setSolo(false)} /></div>}
+          {soloHere && !soloOpen && (
+            <button type="button" className="k-btn solo-open" onClick={() => setSolo(true)} data-testid="solo-open">{say(view.solo ? "app.solo.back" : "app.solo.open")}</button>
+          )}
+          {!(soloHere && soloOpen) && <div className="tg-panel" data-class={view.class} data-set={view.set}>
+            <Board klass={view.class} set={view.set} state={board?.state} seat={view.seat} seats={view.seats.filter((s) => s.role === "playing").map((s) => s.seat).sort((a, b) => a - b)} onMove={onMove} />
+          </div>}
+          <BoardUnder klass={view.class} set={view.set} state={board?.state} seat={view.seat} onMove={onMove} />
+          {con.waiting && <p className="k-sub tg-con-wait" data-testid="con-waiting">{say("app.table.con_waiting")}</p>}
+          {canApply(view) === "applied" && <p className="k-sub tg-con-wait" data-testid="applied">{say("app.table.applied")}</p>}
+          {error && <p className="k-note" data-tone="error" role="alert" data-testid="error">{error}</p>}
+        </section>
+        {/* The foot by the table's state (owner 27.10.2026, «Прототип + ввод»): *-wait «Stand · Start», *-over «Stand · Another
+            round», a proposal «Decline · Accept», the con «… · the round is mine / agree», else the sticker strip (table.html);
+            the players' input row (owner 14.10.2026: «вернуть текст игрокам») stays above it whenever the person plays. */}
+        <section className="k-panel k-pad8 k-tb-foot" data-foot={foot}>
+          {view.is_playing && (
+            <form className="k-row" onSubmit={(e) => { e.preventDefault(); const text = said.trim(); if (text) void act(() => tables.say(tableId, { kind: "line", text })).then(() => setSaid("")); }}>
+              <input className="k-tk-input" value={said} maxLength={128} onChange={(e) => setSaid(e.target.value)} placeholder={say("app.table.message")} aria-label={say("web.table.line")} data-testid="line-input" />
+              <button type="submit" className="k-tk-send" aria-label={say("app.chat.send")} disabled={!said.trim()} data-testid="line-send"><NdIcon name="send" /></button>
+            </form>
+          )}
+          {/* the game's own turn buttons (roll, take, bets, ends) land here; the stickers step aside while it has any */}
+          <div className="k-tb-acts" ref={setSlot} data-testid="foot-game" />
+          {foot === "ask" ? (
+            <div className="k-row">
+              <button type="button" className="k-cta" data-outline="" onClick={() => void act(() => tables.answer(tableId, pending!.id, "decline"))} data-testid="decline-game">{say("web.table.decline")}</button>
+              <button type="button" className="k-cta" onClick={() => void act(() => tables.answer(tableId, pending!.id, "accept"))} data-testid="accept-game"><NdIcon name="check" /><span>{say("web.table.accept")}</span></button>
+            </div>
+          ) : foot === "start" ? (
+            <div className="k-row">
+              <button type="button" className="k-tk-round" aria-label={say("table.stand")} onClick={stand} data-testid="foot-stand"><NdIcon name="door" /></button>
+              <button type="button" className="k-cta" onClick={() => void act(() => tables.propose(tableId, "rematch"))} data-testid="start-game">
+                <NdIcon name="rematch" /><span>{say(!board || board.over ? "web.game.rematch" : "web.table.start")}</span>
+              </button>
+            </div>
+          ) : foot === "con" ? (
+            // The con by agreement (checkers, chess, backgammon: the rules are the people's): «the round is mine», or agree to theirs.
+            <div className="k-row">
+              <button type="button" className="k-tk-round" aria-label={say("web.chat.more")} aria-haspopup="dialog" onClick={menu} data-testid="foot-more"><NdIcon name="more" /></button>
+              <button type="button" className="k-cta" data-outline={con.offer === "claim" ? "" : undefined} onClick={() => void act(() => tables.move(tableId, board!.seq, { con: con.offer === "claim" ? "won" : "agree" }))} data-testid={`con-${con.offer}`}>
+                <NdIcon name={con.offer === "claim" ? "wow" : "check"} /><span>{say(con.offer === "claim" ? "web.table.con_won" : "web.table.con_agree")}</span>
+              </button>
+            </div>
+          ) : foot === "apply" ? (
+            // A watcher asks into the next round (§6.1); the host sees it over the puzzle (§6.2) and starts the game.
+            <div className="k-row">
+              <button type="button" className="k-cta" disabled={applying} onClick={() => { setApplying(true); void act(() => tables.say(tableId, { kind: "application", text: say("app.table.apply") })).finally(() => setApplying(false)); }} data-testid="apply">
+                <NdIcon name="plus" /><span>{say("app.table.apply")}</span>
+              </button>
+            </div>
+          ) : (
+            <div className="k-ch-quick" role="group" aria-label={say("web.sticker.title")} data-testid="stickers">
+              {STICKER_CHIPS.map((id) => (
+                <button key={id} type="button" className="k-ch-chip" aria-label={chipWord(id)} onClick={() => void act(() => tables.say(tableId, { kind: "sticker", sticker: id }))} data-testid={`sticker-${id}`}>
+                  <NdIcon name={CHIP_ICON[id] ?? "good"} />
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+        <Rail active="tables" />
       </div>
-      <Rail active="tables" />
+      </FootSlot.Provider>
     </Screen>
   );
 }

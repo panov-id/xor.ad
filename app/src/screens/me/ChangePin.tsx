@@ -11,7 +11,9 @@ import { Icon } from "../../shell/Icon";
 import { check } from "../../shell/icons";
 import { changePinAndReseal } from "../../vault";
 import { pinLine } from "../pin-line";
-import { Cells } from "../register-parts";
+import { NdIcon } from "../../shell/NdIcon";
+import { pressed } from "../pin-flow";
+import { Cells, PinPad } from "../register-parts";
 import { ErrorLine, refusedStatus, SubPage } from "./parts";
 
 type Which = "current" | "next" | "again";
@@ -39,22 +41,30 @@ export function ChangePin({ client, onDone, onBack }: { client: Client; onDone: 
       setBusy(false);
     }
   }
+  // the prototype's change-pin.html: one PIN at a time (the step dots in the bar), the key's mark, six dots, the pad; the three
+  // fields stay in the page (the active one is the dots, the others are read by a screen reader and still typeable)
+  const active: Which = v.current.length < PIN_LENGTH ? "current" : v.next.length < PIN_LENGTH ? "next" : "again";
+  const at = ROWS.findIndex(([which]) => which === active);
+  const press = (k: string) => setV((was) => ({ ...was, [active]: pressed(was[active], k) }));
   return (
-    <SubPage name="change-pin" title={say("app.pin.title")} onBack={onBack}
+    <SubPage name="change-pin" title={say("app.pin.title")} onBack={onBack} panelClass="k-me-pin"
+      steps={{ n: at + 1, of: ROWS.length, words: say(ROWS[at]![1]) }}
       foot={
         <button type="button" className="cta cta-primary" aria-disabled={ready ? undefined : true} aria-busy={busy || undefined} onClick={() => void send()} data-testid="pin-go">
           <Icon d={check} /><span>{busy ? say("web.unlock.asking") : say("app.pin.save")}</span>
         </button>
       }>
+      <NdIcon name="pin" className="k-big-icon k-mid" />
       {ROWS.map(([which, key, testid]) => (
-        <div className="reg-field me-pin-row" key={which}>
-          <label htmlFor={ids[which]}>{say(key)}</label>
+        <div className={which === active ? "k-field-wrap k-me-dots" : "k-field-wrap k-sr"} key={which}>
+          <label htmlFor={ids[which]} className={which === active ? "k-sub k-mid" : undefined}>{say(key)}</label>
           <Cells id={ids[which]} text={say(key)} value={v[which]} size={PIN_LENGTH} secret invalid={which === "again" && pinsDiffer(v.next, v.again)}
             onChange={(x) => setV((was) => ({ ...was, [which]: pinDigits(x) }))} testid={testid} />
         </div>
       ))}
       {pinsDiffer(v.next, v.again) && <p className="k-note k-error" data-testid="pin-differ">{say("reg.pinMismatch")}</p>}
       <ErrorLine text={refused} />
+      <PinPad onKey={press} disabled={busy} />
     </SubPage>
   );
 }

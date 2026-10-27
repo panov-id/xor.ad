@@ -290,9 +290,9 @@ try {
     const { ctx, page } = await open(browser, { base: DEV }); await registerFull(page);
     await page.evaluate((row) => globalThis.xor.openChat(row), ROW); await page.waitForSelector('[data-screen="chat"]', { timeout: 15000 });
     await page.click('[data-testid="quick-game"]'); await page.waitForSelector('[data-testid="chat-game"]');
-    const open_ = { chips: await page.locator(".ch-quick").count(), lines: await page.locator('[data-testid="lines"]').count(), propose: await page.locator('[data-testid="game-propose"]').count() };
+    const open_ = { chips: await page.locator(".k-ch-quick").count(), lines: await page.locator('[data-testid="lines"]').count(), propose: await page.locator('[data-testid="game-propose"]').count() };
     await page.click('[data-testid="game-hide"]'); await settle(page);
-    const shut = { game: await page.locator('[data-testid="chat-game"]').count(), lines: await page.locator('[data-testid="lines"]').count(), chips: await page.locator(".ch-quick").count() };
+    const shut = { game: await page.locator('[data-testid="chat-game"]').count(), lines: await page.locator('[data-testid="lines"]').count(), chips: await page.locator(".k-ch-quick").count() };
     check(open_.chips === 0 && open_.lines === 0 && open_.propose === 1 && shut.game === 0 && shut.lines === 1 && shut.chips === 1,
       `G2 the game chip opens the game in the lines' place, «Hide the game» gives them back (open ${JSON.stringify(open_)}, hidden ${JSON.stringify(shut)})`);
     await ctx.close();
@@ -323,6 +323,7 @@ try {
   {
     const { ctx, page } = await open(browser); await registerFull(page);
     await page.click('[data-testid="tab-me"]'); await page.waitForSelector('[data-screen="me"]');
+    await page.click('[data-testid="me-hub-security"]'); await page.waitForSelector('[data-testid="me-move"]');
     await page.click('[data-testid="me-move"]'); await page.waitForSelector('[data-screen="departure"]');
     await page.goBack(); await settle(page);
     const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");

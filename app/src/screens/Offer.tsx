@@ -8,8 +8,7 @@ import { useEffect, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { type ExitState, readExit } from "@sdk/offer_exit.ts";
 import { label, say } from "../i18n";
-import { Icon } from "../shell/Icon";
-import { logIn } from "./cabinet/icons";
+import { NdIcon } from "../shell/NdIcon";
 import { SubPage } from "./me/parts";
 
 type Report = "idle" | "sending" | "sent" | "failed";
@@ -47,17 +46,20 @@ export function Offer({ code, client, onBack }: { code: string; client?: Client;
   return (
     <SubPage name="offer" title={title} onBack={onBack}
       foot={disabled ? undefined : (
-        <a className="cta cta-primary" href={`/o/${encodeURIComponent(code)}/go`} rel="nofollow noopener noreferrer" data-testid="go">
-          <Icon d={logIn} /><span>{say("app.offer.open")}</span>
+        <a className="k-cta" href={`/o/${encodeURIComponent(code)}/go`} rel="nofollow noopener noreferrer" data-testid="go">
+          <NdIcon name="chev" /><span>{say("app.offer.open")}</span>
         </a>
       )}>
-      <h2 className="cb-going">{say("app.offer.going_to")}</h2>
-      <div className="cb-domain" data-testid="exit" data-disabled={disabled}>
-        <strong data-testid="domain">{domain}</strong>
-        <p>{disabled ? say("web.offer.disabled") : say("app.offer.own_site")}</p>
+      <div className="k-centre k-centre-text">
+        <span className="k-mark-110" aria-hidden="true"><NdIcon name="link" /></span>
+        <h2 className="k-title k-title-big">{say("app.offer.going_to")}</h2>
+      </div>
+      <div className="k-tile" data-accent="" data-testid="exit" data-disabled={disabled}>
+        <strong className="k-card-text" data-testid="domain">{domain}</strong>
+        <p className="k-meta">{disabled ? say("web.offer.disabled") : say("app.offer.own_site")}</p>
       </div>
       {client && report !== "sent" && !disabled && (
-        <button type="button" className="cb-report" aria-disabled={report === "sending" || undefined} onClick={() => void reportLink()} data-testid="report">{say("app.offer.report")}</button>
+        <button type="button" className="k-btn" aria-disabled={report === "sending" || undefined} onClick={() => void reportLink()} data-testid="report"><NdIcon name="flag" /><span>{say("app.offer.report")}</span></button>
       )}
       {report === "sent" && <p className="k-sub" role="status" data-testid="reported">{label("web.offer.reported")}</p>}
       {report === "failed" && <p className="k-note k-error" role="alert" data-testid="report-failed">{say("web.offer.later")}</p>}

@@ -317,6 +317,7 @@ const click = async (page, sel) => {
 };
 const wait = (page, sel) => page.waitForSelector(sel, T);
 // back to a tab's home: the row/marker `ready` is on the page; else a back button, else the tab, up to 5 tries
+const HUB = { theme: "profile", lang: "profile", filter: "visibility", hidden: "visibility", blocked: "visibility", pin: "security", reissue: "security", reset: "security" };   // the Me row inside the hub that holds it (Hubs.tsx); the rest sit on Me itself
 const home = async (page, t, ready) => {
   for (let k = 0; k < 5; k++) {
     if (await page.locator(ready).first().isVisible().catch(() => false)) return;
@@ -397,11 +398,12 @@ async function walkWidth(browser, w) {
     if (await at(page, "new-table", w, async () => { await click(page, '[data-testid="new-table"]'); await wait(page, '[data-screen="new-table"]'); })) { await page.click('[data-testid="new-table-back"]', T).catch(() => page.goBack()); await page.waitForTimeout(400); }
     // me and its subpages
     await home(page, "me", '[data-testid="tab-me"]');
-    await at(page, "me", w, async () => { await tab(page, "me"); await wait(page, '[data-screen="me"] .me-hero'); });
+    await at(page, "me", w, async () => { await tab(page, "me"); await wait(page, '[data-screen="me"] .k-me-head'); });
     for (const sub of ["name", "theme", "lang", "filter", "pin", "reissue", "away", "place", "legal", "statements", "hidden", "blocked", "reset"]) {
       const name = sub === "name" ? "me-name" : `me-${sub}`;
-      await home(page, "me", `[data-screen="me"] [data-testid="${name}"]`);
-      const ok = await at(page, `me/${sub}`, w, async () => { await click(page, `[data-testid="${name}"]`); await page.waitForTimeout(350); if (await page.locator('[data-screen="me"] [data-testid="' + name + '"]').count() && sub !== "name") throw new Error("the row still shows: no subpage opened"); });
+      const hub = HUB[sub] ? `me-hub-${HUB[sub]}` : null;
+      await home(page, "me", `[data-screen="me"] [data-testid="${hub ?? name}"]`);
+      const ok = await at(page, `me/${sub}`, w, async () => { if (hub) { await click(page, `[data-testid="${hub}"]`); await page.waitForTimeout(350); } await click(page, `[data-testid="${name}"]`); await page.waitForTimeout(350); if (await page.locator('[data-screen="me"] [data-testid="' + name + '"]').count() && sub !== "name") throw new Error("the row still shows: no subpage opened"); });
       if (ok && sub === "reissue") {
         // w4_reissue-1 and -2: the current code typed (the stub's fixed code, checked on the device), then the new code's plate and its two groups typed back
         await at(page, "me/reissue-1 (code typed)", w, async () => { await page.fill('[data-testid="reissue-current"]', "K7QM2XWDPE4R9FTE"); await page.waitForTimeout(150); });
@@ -412,8 +414,8 @@ async function walkWidth(browser, w) {
         await at(page, "place (qr)", w, async () => { await page.getByTestId("place-qr-open").click(T).catch(async () => { await page.getByRole("button", { name: /QR/i }).first().click(T); }); await page.waitForTimeout(400); });
       }
     }
-    await home(page, "me", '[data-screen="me"] [data-testid="me-move"]');
-    await at(page, "departure (move)", w, async () => { await click(page, '[data-testid="me-move"]'); await wait(page, '[data-screen="departure"]'); });
+    await home(page, "me", '[data-screen="me"] [data-testid="me-hub-security"]');
+    await at(page, "departure (move)", w, async () => { await click(page, '[data-testid="me-hub-security"]'); await page.waitForTimeout(350); await click(page, '[data-testid="me-move"]'); await wait(page, '[data-screen="departure"]'); });
   }
   navScope = false;
   if (o.errors.length) log(`NOTE @${w}: page errors: ${o.errors.slice(0, 3).join(" | ")}`);

@@ -15,16 +15,14 @@ import { Tables } from "@sdk/tables.ts";
 import { graphemes } from "@sdk/limits.ts";
 import { failedLine, label, say, sayCount } from "../../i18n";
 import { storedPlace } from "../../place";
-import { Icon } from "../../shell/Icon";
-import { arrowRight, chevronLeft } from "../../shell/icons";
+import { NdIcon } from "../../shell/NdIcon";
 import { Screen } from "../../shell/Screen";
 import { Rail } from "../../shell/TabBar";
 import { ErrorLine, refusedStatus } from "../me/parts";
 import { Field } from "../register-parts";
 import { radiusWord } from "../feed-logic";
-import { die, seat } from "./icons";
-import { countsLine, gameName, metaOf, TableRow, variantWord } from "./table-row";
-import { back, canNext, nameRefused, next, pick, startWizard, TABLES_RADIUS, toneAt, type Wizard } from "./tables-logic";
+import { countsLine, gameIcon, gameName, gameTint, TableTile, variantWord } from "./table-row";
+import { back, canNext, nameRefused, next, pick, startWizard, TABLES_RADIUS, type Wizard } from "./tables-logic";
 
 // `picked`: a game chosen already (the wide tables' «Start a game»), the wizard opens on its first step with it chosen.
 export function NewTable({ client, onMade, onBack, picked }: { client: Client; onMade: (id: string) => void; onBack: () => void; picked?: string }) {
@@ -60,89 +58,90 @@ export function NewTable({ client, onMade, onBack, picked }: { client: Client; o
   const shut = w.step === 3 ? busy : !canNext(w);
   const radius = radiusWord(TABLES_RADIUS);
   const named = w.draft.name.trim();
+  // seats: the stepper (new-table-2) over the node's counts; the counts themselves stay as buttons for a reader and a script
+  const at = game ? Math.max(0, game.seats.indexOf(w.draft.seats ?? game.seats[0])) : 0;
+  const setSeats = (n: number) => setW({ ...w, draft: { ...w.draft, seats: n } });
   return (
-    <Screen name="new-table" title={title} className="nt" data-step={String(w.step)}>
-      <header className="k-row k-bar">
-        <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={goBack} data-testid="new-table-back"><Icon d={chevronLeft} /></button>
-        <h1 className="k-bar-title">{title}</h1>
-      </header>
-      <div className="nt-steps" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={w.step} aria-valuetext={words} aria-label={words} data-testid="new-table-step" data-step={String(w.step)}>
-        <p className="reg-step" aria-hidden="true">{words}</p>
-        <div className="reg-bars" aria-hidden="true">
-          {[1, 2, 3].map((n) => <span key={n} data-done={n <= w.step ? "yes" : undefined} />)}
-        </div>
-      </div>
-      <div className="nt-sheet">
-        <div className="nt-body">
-          {w.step === 1 && (
-            <>
-              <h2 className="nt-title">{say("app.nt.pick")}</h2>
-              <ul className="nt-games" role="radiogroup" aria-label={say("app.nt.pick")} data-testid="new-table-games">
-                {GAMES.map((g, i) => (
-                  <li key={g.id}>
-                    <button type="button" role="radio" aria-checked={w.draft.game === g.id} className={`nt-game tb-${toneAt(i)}`} onClick={() => setW(pick(w, g.id))}
-                      aria-label={`${label(gameName(g))}, ${say("web.newTable.players", { n: seatsWord(g.seats) })}`} data-testid={`new-table-game-${g.id}`}>
-                      <span className="nt-face" aria-hidden="true"><Icon d={die} /></span>
-                      <span className="nt-game-name">{label(gameName(g))}</span>
+    <Screen name="new-table" title={title} className="k-screen" data-step={String(w.step)}>
+      <div className="k-col">
+        <header className="k-row k-bar">
+          <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={goBack} data-testid="new-table-back"><NdIcon name="back" /></button>
+          <div className="k-bar-title" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={w.step} aria-valuetext={words} aria-label={words} data-testid="new-table-step" data-step={String(w.step)}>
+            <h1 className="k-bar-word">{title}</h1>
+            <span className="k-steps" aria-hidden="true">{[1, 2, 3].map((n) => <span key={n} data-done={n <= w.step ? "yes" : undefined} />)}</span>
+          </div>
+        </header>
+        {w.step === 1 && (
+          <section className="k-body k-pad8">
+            <ul className="k-grid2 k-tb-picks" role="radiogroup" aria-label={say("app.nt.pick")} data-testid="new-table-games">
+              {GAMES.map((g) => (
+                <li key={g.id}>
+                  <button type="button" role="radio" aria-checked={w.draft.game === g.id} className="k-pick k-tb-pick" aria-pressed={w.draft.game === g.id} onClick={() => setW(pick(w, g.id))}
+                    aria-label={`${label(gameName(g))}, ${say("web.newTable.players", { n: seatsWord(g.seats) })}`} data-testid={`new-table-game-${g.id}`}>
+                    <span className="k-badge k-tb-badge" data-c={gameTint(g.id)}><NdIcon name={gameIcon(g.id)} /></span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {w.step === 2 && game && (
+          <section className="k-panel k-grow k-reg">
+            <div className="k-row"><NdIcon name={gameIcon(game.id)} className="k-pin" /><h2 className="k-title">{label(gameName(game))}</h2></div>
+            <div role="radiogroup" aria-labelledby="nt-variant" data-testid="new-table-set">
+              <p id="nt-variant" hidden>{label("web.newTable.variant")}</p>
+              <ul className="k-grid2 k-tb-sets">
+                {game.sets.map((st) => (
+                  <li key={st}>
+                    <button type="button" role="radio" aria-checked={w.draft.set === st} aria-pressed={w.draft.set === st} className="k-pick k-tb-set" lang={game.klass === "word" ? st : undefined}
+                      onClick={() => setW({ ...w, draft: { ...w.draft, set: st } })} data-testid={`new-table-set-${st}`}>
+                      <span className="k-badge k-tb-badge-s" data-c={gameTint(game.id)}><NdIcon name={gameIcon(game.id)} /></span>
+                      <span>{label(variantWord(game.id, st))}</span>
                     </button>
                   </li>
                 ))}
               </ul>
-            </>
-          )}
-
-          {w.step === 2 && game && (
-            <>
-              <h2 className="nt-title">{label(gameName(game))}</h2>
-              <p className="nt-lead">{say("app.nt.how_lead")}</p>
-              <div className="reg-field">
-                <label id="nt-variant">{label("web.newTable.variant")}</label>
-                <div className="k-chips" role="radiogroup" aria-labelledby="nt-variant" data-testid="new-table-set">
-                  {game.sets.map((s) => (
-                    <button key={s} type="button" role="radio" aria-checked={w.draft.set === s} className="k-pick-chip" lang={game.klass === "word" ? s : undefined}
-                      onClick={() => setW({ ...w, draft: { ...w.draft, set: s } })} data-testid={`new-table-set-${s}`}>
-                      {label(variantWord(game.id, s))}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="reg-field">
-                <label id="nt-seats">{label("web.newTable.seats")}</label>
-                <div className="k-chips" role="radiogroup" aria-labelledby="nt-seats" data-testid="new-table-seats">
-                  {game.seats.map((n) => (
-                    <button key={n} type="button" role="radio" aria-checked={w.draft.seats === n} className="k-pick-chip"
-                      onClick={() => setW({ ...w, draft: { ...w.draft, seats: n } })} data-testid={`new-table-seats-${n}`}>
-                      {sayCount("app.nt.seats", n)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <Field text={say("app.nt.name")} value={w.draft.name} maxLength={TABLE_NAME_MAX} autoComplete="off" testid="new-table-name"
+            </div>
+            <div className="k-row" data-testid="new-table-seats-row"><NdIcon name="party" className="k-pin k-tb-seats-ico" /><span className="k-meta" id="nt-seats">{label("web.newTable.seats")}</span></div>
+            <div className="k-stepper" role="radiogroup" aria-labelledby="nt-seats" data-testid="new-table-seats">
+              <button type="button" aria-label={say("app.nt.fewer")} disabled={at <= 0} onClick={() => setSeats(game.seats[at - 1])} data-testid="new-table-seats-less"><NdIcon name="back" /></button>
+              <div className="k-pill k-tb-count" aria-live="polite"><span>{sayCount("app.nt.seats", w.draft.seats ?? game.seats[0])}</span></div>
+              <button type="button" aria-label={say("app.nt.more")} disabled={at >= game.seats.length - 1} onClick={() => setSeats(game.seats[at + 1])} data-testid="new-table-seats-more"><NdIcon name="chev" /></button>
+              {game.seats.map((n) => (
+                <button key={n} type="button" role="radio" aria-checked={w.draft.seats === n} className="k-tb-sr" tabIndex={-1} aria-label={sayCount("app.nt.seats", n)} onClick={() => setSeats(n)} data-testid={`new-table-seats-${n}`} />
+              ))}
+            </div>
+            {/* new-table-2: the name is the bare pill with the pen; the label stays for the reader, the count sits at the right as on register-1. */}
+            <div className="k-tb-name">
+              <Field text={say("app.nt.name")} placeholder={say("app.nt.name")} value={w.draft.name} maxLength={TABLE_NAME_MAX} autoComplete="off" testid="new-table-name" icon="pen"
                 onChange={(v) => setW({ ...w, draft: { ...w.draft, name: graphemes(v, TABLE_NAME_MAX) } })}
-                under={<p className="k-meta" data-testid="new-table-left">{say("app.reg.left", { n: nameLeft(w.draft.name), max: TABLE_NAME_MAX })}</p>} />
-              <ErrorLine text={error} />
-            </>
-          )}
+                side={<span className="k-meta" data-testid="new-table-left">{say("app.reg.left", { n: nameLeft(w.draft.name), max: TABLE_NAME_MAX })}</span>} />
+            </div>
+            <ErrorLine text={error} />
+          </section>
+        )}
 
-          {w.step === 3 && game && w.draft.set && (
-            <>
-              <h2 className="nt-title">{say("app.nt.see")}</h2>
-              <ul className="tb-list nt-see" data-testid="new-table-preview">
-                <TableRow tone="lime" preview title={named || label(gameName(game))}
-                  meta={metaOf(game, w.draft.set, !!named, countsLine(1, w.draft.seats ?? 2, 0))} />
-              </ul>
-              <p className="nt-hint">{say("app.nt.hint", { radius: say(radius.key, { n: radius.n }) })}</p>
-              <ErrorLine text={error} />
-            </>
-          )}
-        </div>
-        <div className="nt-foot">
-          <button type="button" className="cta cta-primary" aria-disabled={shut ? true : undefined} aria-busy={busy || undefined} onClick={go} data-testid={w.step === 3 ? "new-table-go" : "new-table-next"}>
-            <Icon d={w.step === 3 ? seat : arrowRight} /><span>{w.step === 1 ? label("web.newTable.next") : w.step === 2 ? say("app.nt.preview") : label("web.newTable.sit")}</span>
-          </button>
-        </div>
+        {w.step === 3 && game && w.draft.set && (
+          <section className="k-panel k-grow k-reg">
+            <div className="k-row"><NdIcon name="eye" className="k-pin" /><h2 className="k-sub">{say("app.nt.see")}</h2></div>
+            <ul className="k-tb-see" data-testid="new-table-preview">
+              <TableTile preview card={{ game: game.klass, set: w.draft.set, playing: 1, free_seats: (w.draft.seats ?? 2) - 1, watching: 0 }} title={named || label(gameName(game))} />
+            </ul>
+            <p className="k-note" role="status"><NdIcon name="nearby" /><span>{say("app.nt.hint", { radius: say(radius.key, { n: radius.n }) })}</span></p>
+            <ErrorLine text={error} />
+          </section>
+        )}
+        <section className="k-panel k-actions">
+          <div className="k-row">
+            {w.step > 1 && <button type="button" className="k-tk-round" aria-label={label("common.back")} onClick={goBack}><NdIcon name="back" /></button>}
+            <button type="button" className="k-cta" aria-disabled={shut ? true : undefined} aria-busy={busy || undefined} onClick={go} data-testid={w.step === 3 ? "new-table-go" : "new-table-next"}>
+              <NdIcon name={w.step === 3 ? "check" : "chev"} /><span>{w.step === 1 ? label("web.newTable.next") : w.step === 2 ? say("app.nt.preview") : label("web.newTable.sit")}</span>
+            </button>
+          </div>
+        </section>
+        <Rail active="tables" />
       </div>
-      <Rail active="tables" />
     </Screen>
   );
 }

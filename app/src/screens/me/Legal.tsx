@@ -8,11 +8,9 @@ import type { Client } from "@sdk/client.ts";
 import { acceptAll, acceptedKey, documentAddress, inLegalOrder, keepAcceptedIn, type LegalRevision, readAcceptedIn, readManifest, toAccept } from "@sdk/legal.ts";
 import { brand } from "@brand";
 import { failedLine, LANG, say } from "../../i18n";
-import { Icon } from "../../shell/Icon";
-import { check, clock } from "../../shell/icons";
-import { doc } from "./icons";
+import { NdIcon } from "../../shell/NdIcon";
 import { dayMonth, revisionDay } from "./me-logic";
-import { Banner, ErrorLine, Row, SubPage } from "./parts";
+import { ErrorLine, SubPage } from "./parts";
 
 const storage = (): Storage | null => { try { return localStorage; } catch { return null; } };
 
@@ -52,35 +50,41 @@ export function Legal({ client, onDone, onBack }: { client: Client; onDone: () =
   }
   const day = (r: LegalRevision) => dayMonth(LANG, revisionDay(r.revision_date));
   const first = inLegalOrder(pending)[0];
+  // the prototype's legal.html: the documents as tiles (two halves and a whole), the consent on its own panel, Accept at the foot
+  const SLOTS: Array<[string, 1 | 3 | 4]> = [["doc", 1], ["eye", 4], ["phrase", 3]];
   return (
-    <SubPage name="legal" title={say("web.legal.title")} onBack={onBack}
+    <SubPage name="legal" title={say("web.legal.title")} onBack={onBack} bare footActions
+      mid={pending.length > 0 ? (
+        <label className="k-check k-consent">
+          <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} data-testid="legal-agree" />
+          <span className="k-box" aria-hidden="true"><NdIcon name="check" /></span>
+          <span>{say("app.legal.agree")}</span>
+        </label>
+      ) : manifest ? <p className="k-sub k-me-plain" data-testid="legal-all">{say("web.legal.accepted")}</p> : undefined}
       foot={pending.length > 0 ? (
-        <button type="button" className="cta cta-primary" aria-disabled={agreed && !busy ? undefined : true} aria-busy={busy || undefined} onClick={() => void accept()} data-testid="legal-accept">
-          <Icon d={check} /><span>{say("app.legal.accept")}</span>
+        <button type="button" className={agreed && !busy ? "cta cta-primary" : "cta cta-quiet"} aria-disabled={agreed && !busy ? undefined : true} aria-busy={busy || undefined} onClick={() => void accept()} data-testid="legal-accept">
+          <NdIcon name="check" /><span>{say("app.legal.accept")}</span>
         </button>
       ) : undefined}>
-      {first && <Banner tone="yellow" icon={clock} text={say(`app.legal.changed_${first.document}`, { date: day(first) })} testid="legal-changed" />}
-      {manifest === undefined && <p className="k-sub">…</p>}
+      {first && <p className="k-sr" role="status" data-testid="legal-changed">{say(`app.legal.changed_${first.document}`, { date: day(first) })}</p>}
+      {manifest === undefined && <p className="k-sub k-me-plain">…</p>}
       {manifest && (
-        <ul className="k-stack">
-          {inLegalOrder(manifest).map((r) => {
+        <ul className="k-hub" data-hub="legal">
+          {inLegalOrder(manifest).map((r, i) => {
             const changed = pending.some((p) => p.document === r.document);
+            const [icon, c] = SLOTS[i % SLOTS.length]!;
             return (
-              <li key={r.document} data-testid={`legal-doc-${r.document}`} data-changed={changed ? "yes" : "no"}>
-                <Row icon={doc} text={say(`app.legal.${r.document}`)} sub={changed ? say("app.legal.changed") : undefined} value={day(r)}
-                  href={documentAddress(brand.host, r.document)} testid={`legal-link-${r.document}`} />
+              <li key={r.document} data-testid={`legal-doc-${r.document}`} data-changed={changed ? "yes" : "no"} className="k-hub-li" data-wide={i === 2 ? "" : undefined}>
+                <a className="k-hub-tile" data-small="" data-wide={i === 2 ? "" : undefined} href={documentAddress(brand.host, r.document)} target="_blank" rel="noopener noreferrer" data-testid={`legal-link-${r.document}`}>
+                  <span className="k-badge" data-c={c} aria-hidden="true"><NdIcon name={icon} /></span>
+                  <span className="k-stack"><span className="k-row-name">{say(`app.legal.${r.document}`)}</span><span className="k-meta">{changed ? `${say("app.legal.changed")} · ${day(r)}` : day(r)}</span></span>
+                  {changed && <span className="k-count" aria-hidden="true">!</span>}
+                </a>
               </li>
             );
           })}
         </ul>
       )}
-      {pending.length > 0 ? (
-        <label className="reg-check me-agree">
-          <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} data-testid="legal-agree" />
-          <span className="reg-box" aria-hidden="true"><Icon d={check} /></span>
-          <span>{say("app.legal.agree")}</span>
-        </label>
-      ) : manifest && <p className="k-sub" data-testid="legal-all">{say("web.legal.accepted")}</p>}
       <ErrorLine text={error} />
     </SubPage>
   );

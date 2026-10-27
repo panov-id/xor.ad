@@ -5,11 +5,9 @@
 import { useState } from "react";
 import { signIn, signUp } from "@sdk/cabinet.ts";
 import { say } from "../../i18n";
-import { Icon } from "../../shell/Icon";
+import { NdIcon } from "../../shell/NdIcon";
 import { Field } from "../register-parts";
-import { link } from "../me/icons";
 import { ErrorLine } from "../me/parts";
-import { mail } from "./icons";
 import { Frame } from "./parts";
 import type { ReactNode } from "react";
 
@@ -37,23 +35,26 @@ export function SignIn({ strip, onSent }: { strip: ReactNode; onSent: () => void
   return (
     <Frame name="cabinet-sign-in" title={say("app.cabinet.sign_title")} strip={strip}
       foot={
-        <button type="button" className="cta cta-primary" aria-disabled={ready ? undefined : true} aria-busy={busy || undefined} onClick={() => void go()} data-testid="adv-send">
-          <Icon d={link} /><span>{say("app.cabinet.get_link")}</span>
+        <button type="button" className="k-cta" aria-disabled={ready ? undefined : true} aria-busy={busy || undefined} onClick={() => void go()} data-testid="adv-send">
+          <NdIcon name="link" /><span>{say("app.cabinet.get_link")}</span>
         </button>
       }>
-      <p className="cb-sub">{say("app.cabinet.sign_sub")}</p>
-      <Field kind="email" text={say("app.cabinet.email")} value={email} onChange={setEmail} testid="adv-email" />
-      <Field text={say("app.cabinet.contact")} value={contact} onChange={setContact} testid="adv-contact" autoComplete="off" placeholder={say("app.cabinet.contact_hint")} />
+      <p className="k-sub">{say("app.cabinet.sign_sub")}</p>
+      <Field kind="email" icon="send" text={say("app.cabinet.email")} value={email} onChange={setEmail} testid="adv-email" />
+      <Field icon="talks" text={say("app.cabinet.contact")} value={contact} onChange={setContact} testid="adv-contact" autoComplete="off" placeholder={say("app.cabinet.contact_hint")} />
       <ErrorLine text={refused} />
     </Frame>
   );
 }
 
-export function Sent({ strip }: { strip: ReactNode }) {
+export function Sent({ strip, onAgain }: { strip: ReactNode; onAgain: () => void }) {
   return (
-    <Frame name="cabinet-sent" title={say("app.cabinet.sent_title")} strip={strip}>
-      <div className="cb-circle" aria-hidden="true"><Icon d={mail} /></div>
-      <p className="cb-sub cb-sent" data-testid="adv-sent">{say("app.cabinet.sent_note")}</p>
+    <Frame name="cabinet-sent" title={say("app.cabinet.sent_title")} strip={strip}
+      foot={<button type="button" className="k-cta" data-outline="" onClick={onAgain}><NdIcon name="refresh" /><span>{say("app.cabinet.ask_again")}</span></button>}>
+      <div className="k-centre k-centre-text">
+        <span className="k-mark-110" aria-hidden="true"><NdIcon name="send" /></span>
+        <p className="k-sub" data-testid="adv-sent">{say("app.cabinet.sent_note")}</p>
+      </div>
     </Frame>
   );
 }
@@ -61,8 +62,11 @@ export function Sent({ strip }: { strip: ReactNode }) {
 export function Expired({ strip, onAgain }: { strip: ReactNode; onAgain: () => void }) {
   return (
     <Frame name="cabinet-expired" title={say("app.cabinet.expired_title")} strip={strip}
-      foot={<button type="button" className="cta cta-primary" onClick={onAgain} data-testid="adv-again"><Icon d={link} /><span>{say("app.cabinet.ask_again")}</span></button>}>
-      <p className="cb-sub" data-testid="adv-expired">{say("app.cabinet.expired_note")}</p>
+      foot={<button type="button" className="k-cta" onClick={onAgain} data-testid="adv-again"><NdIcon name="link" /><span>{say("app.cabinet.ask_again")}</span></button>}>
+      <div className="k-centre k-centre-text">
+        <span className="k-mark-110" aria-hidden="true"><NdIcon name="hourglass" /></span>
+        <p className="k-sub" data-testid="adv-expired">{say("app.cabinet.expired_note")}</p>
+      </div>
     </Frame>
   );
 }

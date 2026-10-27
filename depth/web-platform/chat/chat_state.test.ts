@@ -14,7 +14,7 @@ const row = (over: Partial<InboxChatRow> = {}): InboxChatRow => ({
   name: "Борис", age: 31, state: "open", chat_expires_at: NOW + 60, my_span: 10, ...over,
 });
 
-function stand(opts: { sayAnswer?: { status: number; body: { accepted?: boolean } }; readFails?: boolean; inboxRow?: InboxChatRow } = {}) {
+function stand(opts: { sayAnswer?: { status: number; body: { accepted?: boolean } }; readFails?: boolean; readWait?: Promise<void>; inboxRow?: InboxChatRow } = {}) {
   let room: ((e: RoomEvent) => void) | null = null;
   const received: string[] = [];
   const said: Array<{ text: string; localId?: string }> = [];
@@ -27,7 +27,7 @@ function stand(opts: { sayAnswer?: { status: number; body: { accepted?: boolean 
     open: async () => ({}),
     flush: async () => [],
     keptOnNode: () => ({ epoch: 1 }),
-    read: async (_r: unknown, ciphertext: string) => { if (opts.readFails) throw new Error("bad seal"); return `opened:${ciphertext}`; },
+    read: async (_r: unknown, ciphertext: string) => { await opts.readWait; if (opts.readFails) throw new Error("bad seal"); return `opened:${ciphertext}`; },
     say: async (_r: unknown, text: string, localId?: string) => {
       said.push({ text, localId });
       return { localId: localId ?? `local-${++n}`, answer: opts.sayAnswer ?? { status: 202, body: { accepted: true } } };
@@ -67,6 +67,16 @@ Deno.test("ChatSession: their line opens, is marked received and takes the away 
   assertEquals(received, ["m1"]);
   assertEquals(v.peerAway, false);
   session.stop();
+});
+
+Deno.test("ChatSession: a line opened after the screen closed is not marked received, the node keeps it", async () => {
+  let open!: () => void;
+  const { session, emit, received, settle } = stand({ readWait: new Promise<void>((r) => { open = r; }) });
+  session.start(); await settle();
+  emit({ kind: "message", id: "m9", ciphertext: "c9", createdAt: NOW });
+  session.stop();
+  open(); await settle(); await settle();
+  assertEquals(received, [], "a line nobody saw was acked, so the node dropped it");
 });
 
 Deno.test("ChatSession: a line that does not open shows as failed with the face's words", async () => {

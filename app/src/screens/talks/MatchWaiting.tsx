@@ -8,12 +8,9 @@ import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import type { ChatKeys } from "@platform/chat/keys.ts";
 import type { Client } from "@sdk/client.ts";
 import { label, LANG, say } from "../../i18n";
-import { Icon } from "../../shell/Icon";
-import { arrowRight, chat, chevronLeft } from "../../shell/icons";
+import { NdIcon } from "../../shell/NdIcon";
 import { Screen } from "../../shell/Screen";
 import { Rail } from "../../shell/TabBar";
-import { eye } from "../me/icons";
-import { initial } from "../me/me-logic";
 import { goneIn, type MatchRow, type Row } from "./talks-logic";
 
 const LOOK_MS = 5000;
@@ -50,43 +47,47 @@ export function MatchWaiting({ client, keys, row, startGone, onBack, onTalks }: 
   };
 
   const title = say("app.wait.title");
+  // offer-waiting.html / offer-gone.html: the bar, the panel (the hourglass or the fade in its circle, who, the note, my queued lines as bubbles), the foot
   return (
-    <Screen name="match-waiting" title={title} className="me-sub tk" data-id={row.id} data-gone={gone ? "yes" : "no"}>
-      <header className="me-bar">
-        <button type="button" className="me-back" aria-label={label("common.back")} onClick={onBack} data-testid="waiting-back"><Icon d={chevronLeft} /></button>
-        <h1>{title}</h1>
-      </header>
-      <div className="tk-sheet tk-wait" data-testid="waiting">
-        <div className="tk-wait-who">
-          <span className="tk-wait-face" data-face="0" aria-hidden="true">{initial(row.name)}</span>
-          <span className="tk-who-text">
-            <strong className="tk-wait-name">{row.name}, {row.age}</strong>
-            <span className="tk-wait-state">{say(gone ? "web.match.gone" : "app.wait.state")}</span>
-          </span>
-          <span className="tk-wait-ring" aria-hidden="true" />
-        </div>
-        {gone
-          ? <p className="tk-wait-note" data-testid="tombstone">{say("web.match.gone")}</p>
-          : <p className="tk-wait-note"><Icon d={eye} /><span>{say("app.wait.note", { name: row.name })}</span></p>}
-        <ol className="tk-queue" aria-label={say("web.match.waiting")} data-testid="queued">
-          {lines.map((l, i) => (
-            <li key={i} className="tk-bubble-row" style={{ "--i": l.at === undefined ? i : 0 } as CSSProperties}>
-              <p className="tk-bubble">{l.text}</p>
-              {l.at !== undefined && <time className="tk-bubble-time">{clock(l.at)}</time>}
-            </li>
-          ))}
-        </ol>
-        <div className="tk-wait-foot">
-          {!gone && (
-            <form className="tk-compose" onSubmit={send}>
-              <input value={line} onChange={(e) => setLine(e.target.value)} placeholder={say("app.wait.message")} aria-label={say("web.match.line_label")} data-testid="queued-line" />
-              <button type="submit" className="tk-send" aria-label={say("web.match.enqueue")} disabled={!line.trim()} data-testid="enqueue"><Icon d={arrowRight} /></button>
+    <Screen name="match-waiting" title={title} className="k-screen" data-id={row.id} data-gone={gone ? "yes" : "no"}>
+      <div className="k-col">
+        <header className="k-row k-bar">
+          <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={onBack} data-testid="waiting-back"><NdIcon name="back" /></button>
+          <h1 className="k-bar-title">{title}</h1>
+        </header>
+        <section className="k-panel k-grow k-tk-wait" data-testid="waiting">
+          <div className="k-tk-mid-box">
+            <span className="k-tk-hero" data-tone={gone ? "5" : "2"} data-ring={gone ? undefined : ""}><NdIcon name={gone ? "fade" : "hourglass"} /></span>
+            <div className="k-tk-words">
+              <p className="k-title">{row.name}, {row.age}</p>
+              <p className="k-sub">{say(gone ? "web.match.gone" : "app.wait.state")}</p>
+            </div>
+            {gone
+              ? <p className="k-note" data-testid="tombstone">{say("web.match.gone")}</p>
+              : <p className="k-note"><NdIcon name="eye" /><span>{say("app.wait.note", { name: row.name })}</span></p>}
+          </div>
+          <ol className="k-tk-queue" aria-label={say("web.match.waiting")} data-testid="queued">
+            {lines.map((l, i) => (
+              <li key={i} className="k-tk-bubble-row" style={{ "--i": l.at === undefined ? i : 0 } as CSSProperties}>
+                <p className="k-tk-bubble">{l.text}</p>
+                {l.at !== undefined && <time className="k-meta">{clock(l.at)}</time>}
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section className="k-panel k-actions">
+          {gone ? (
+            <button type="button" className="k-cta" onClick={onTalks} data-testid="to-inbox"><NdIcon name="talks" /><span>{say("app.wait.to_talks")}</span></button>
+          ) : (
+            <form className="k-row" onSubmit={send}>
+              <button type="button" className="k-tk-round k-tk-round-52" aria-label={say("app.wait.to_talks")} onClick={onTalks} data-testid="to-inbox"><NdIcon name="talks" /></button>
+              <input className="k-tk-input" value={line} onChange={(e) => setLine(e.target.value)} placeholder={say("app.wait.message")} aria-label={say("web.match.line_label")} data-testid="queued-line" />
+              <button type="submit" className="k-tk-send" aria-label={say("web.match.enqueue")} disabled={!line.trim()} data-testid="enqueue"><NdIcon name="send" /></button>
             </form>
           )}
-          <button type="button" className="tk-to-talks" onClick={onTalks} data-testid="to-inbox"><Icon d={chat} /><span>{say("app.wait.to_talks")}</span></button>
-        </div>
+        </section>
+        <Rail active="chats" />
       </div>
-      <Rail active="chats" />
     </Screen>
   );
 }

@@ -17,10 +17,11 @@ const RUN = Date.now().toString(36).slice(-5);
 mkdirSync(`${OUT}/shots`, { recursive: true });
 mkdirSync(`${OUT}/video`, { recursive: true });
 
-// Six in Limassol (within a few hundred metres), two in Nicosia, two in Tbilisi: who sees whom is the check.
+// All ten in Limassol, a few hundred metres apart (owner 14.10 and 25.10.2026: «в одной точке - Лимассол Кипр», «выбирай
+// лимассол, чтобы я тож мог подглянуть как на локальном стенде»): who sees whom is checked by the age bands.
 const TOWNS = [
   ["Limas", "Limassol"], ["Limas", "Limassol"], ["Limas", "Limassol"], ["Limas", "Limassol"], ["Limas", "Limassol"], ["Limas", "Limassol"],
-  ["Nicos", "Nicosia"], ["Nicos", "Nicosia"], ["Tbil", "Tbilisi"], ["Tbil", "Tbilisi"],
+  ["Limas", "Limassol"], ["Limas", "Limassol"], ["Limas", "Limassol"], ["Limas", "Limassol"],
 ];
 const NAMES = ["Anna", "Boris", "Chloe", "Dmitri", "Elena", "Fotis", "Giorgos", "Hana", "Irakli", "Nino"];
 // Ages (docs/reviews/CROWD_INTERACTION_PLAN_RU.md §2; owner 25.10: «по возрасту были кто-то меньше 21»): five under 21,
@@ -259,7 +260,8 @@ async function place(p) {
   await pg.fill('[data-testid="place-search"]', TOWNS[p.i][0]);
   await pg.waitForSelector('[data-testid="place-city"]', { timeout: 20000 });
   await pg.locator('[data-testid="place-city"]').nth(0).click();
-  // a small drag of the map: a few hundred metres apart inside the town
+  // a small drag of the map: a few hundred metres apart inside the town; the map is its own view behind the big tile
+  await pg.click('[data-testid="place-map-open"]');
   await pg.locator('[data-testid="place-map"]').scrollIntoViewIfNeeded();
   const map = await pg.locator('[data-testid="place-map"]').boundingBox();
   const vh = pg.viewportSize().height, top = Math.max(map.y, 0), bottom = Math.min(map.y + map.height, vh);
@@ -485,11 +487,11 @@ async function tryMove(p, g) {
     // only the hangman's form has word-go; poker's raise form is a .tg-set too (run flow-1026-081126: 30 s waits)
     const word = pg.locator('[data-screen="table"] form.tg-set:has([data-testid="word-go"]) input');
     if (await word.count()) { await word.fill("сосед"); await pg.click('[data-testid="word-go"]'); await pg.waitForTimeout(1200); }
-    // battleship first places the fleet: the placeholder is a valid fleet (boards-sea.tsx FLEET_EXAMPLE)
-    const fleet = pg.locator('[data-testid="sea-fleet-input"]:enabled');
-    if (await fleet.count()) { await fleet.fill(await fleet.getAttribute("placeholder")); await pg.click('[data-testid="sea-fleet-go"]'); await pg.waitForTimeout(1200); }
-    // chapayev is three taps, not a drag: one's own piece, a reachable cell to aim, the same cell to flick
-    // (boards-physics.tsx tap); random taps almost never hit the aim twice (runs 6-8: 3, 0 and 1 moves of 2 players)
+    // battleship-place: the app deals the fleet (owner 27.10.2026, boards-sea.tsx), the crowd only sends it
+    const fleet = pg.locator('[data-testid="sea-fleet-go"]:enabled');
+    if (await fleet.count()) { await fleet.click(); await pg.waitForTimeout(1200); }
+    // chapayev is three taps, not a drag: one's own piece, a reachable cell to aim, then the foot's «flick» tile
+    // (boards-physics.tsx flick-go); random taps almost never hit the aim twice (runs 6-8: 3, 0 and 1 moves of 2 players)
     const mine = pg.locator('[data-testid="chapayev"] .tg-pc[data-stand="mine"]:enabled');
     for (let k = 0; k < 4 && answer === null && (await mine.count()); k++) {
       await mine.nth(Math.floor(Math.random() * (await mine.count()))).click({ timeout: 3000 }).catch(() => {});
@@ -497,15 +499,16 @@ async function tryMove(p, g) {
       const n = await reach.count();
       if (!n) continue;
       const cell = reach.nth(Math.floor(Math.random() * n));
-      await cell.click({ timeout: 3000 }).catch(() => {}); await cell.click({ timeout: 3000 }).catch(() => {});
+      await cell.click({ timeout: 3000 }).catch(() => {}); await pg.click('[data-testid="flick-go"]:enabled', { timeout: 3000 }).catch(() => {});
       await pg.waitForTimeout(900);
     }
     // a refused card (durak: it does not beat, 409) is not the end of the try: pick another until one is taken
     for (let k = 0; k < 10 && answer !== 200; k++) {
       if (answer !== null) { g.refused.push(`${NAMES[p.i]}: moves ${answer} ${why}`); answer = null; why = ""; }
       // the board's own buttons and those under it (BoardUnder in Table.tsx: poker's bets, durak's take and done) —
-      // run flow-1026-102624: poker 0 moves of 3 players, every try 30 s, and durak's defender never took
-      const btns = pg.locator('[data-screen="table"] .tg-panel button:enabled, [data-screen="table"] .tg-actions button:enabled');
+      // run flow-1026-102624: poker 0 moves of 3 players, every try 30 s, and durak's defender never took. The turn
+      // buttons (roll, ends, the pile, take, bets) live in the table foot's slot .k-tb-acts since 27.10 (foot-slot.tsx).
+      const btns = pg.locator('[data-screen="table"] .tg-panel button:enabled, [data-screen="table"] .tg-actions button:enabled, [data-screen="table"] .k-tb-acts button:enabled');
       const n = await btns.count();
       if (!n) {
         const canvas = pg.locator('[data-screen="table"] .tg-panel canvas, [data-screen="table"] .tg-panel svg').first();
@@ -885,7 +888,7 @@ async function hideAndRestore(p, of) {
   const still = await pg.locator('[data-testid="card"] [data-testid="card-open"]').filter({ hasText: `${RUN} ${NAMES[of]}:` }).count();
   if (still) throw new Error(`hidden, yet ${NAMES[of]}'s phrase is still in the feed`);
   await tab(p, "me", "me");
-  await pg.locator('[data-testid="me-hidden"]').scrollIntoViewIfNeeded(); await pg.click('[data-testid="me-hidden"]');
+  await pg.click('[data-testid="me-hub-visibility"]'); await pg.click('[data-testid="me-hidden"]');
   const restore = pg.locator('[data-testid="hidden-restore"]').first();
   if (!(await restore.waitFor({ timeout: 10000 }).then(() => true, () => false))) throw new Error("nothing on the «hidden» screen");
   await restore.click(); await pg.waitForTimeout(1000);
@@ -900,7 +903,7 @@ async function blockAndLift(p, of) {
   await pg.waitForTimeout(1500);
   await tab(p, "chats", "inbox");
   await tab(p, "me", "me");
-  await pg.locator('[data-testid="me-blocked"]').scrollIntoViewIfNeeded(); await pg.click('[data-testid="me-blocked"]');
+  await pg.click('[data-testid="me-hub-visibility"]'); await pg.click('[data-testid="me-blocked"]');
   const lift = pg.locator('[data-testid="blocked-lift"]').first();
   if (!(await lift.waitFor({ timeout: 10000 }).then(() => true, () => false))) throw new Error("nothing on the «blocked» screen");
   await lift.click(); await pg.waitForTimeout(1000);

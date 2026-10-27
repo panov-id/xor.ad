@@ -1,16 +1,18 @@
 // Battleship (sheet w3_table-battleship): the other's sea on the panel — a hundred cells, a hit is a peach cell with a dark
 // dot, a sunk ship peach, a miss a small light dot; a tap on a free cell in my turn is the shot ({shot}). Before the shots
-// each seat places the whole fleet at once, typed as ships of cells ({fleet}); my own sea stands under the panel.
-// Testids: sea, shot-<id>, sea-fleet-input, sea-fleet-go; sea-own, own-<id>.
+// each seat places the whole fleet at once, dealt by the app and shuffled at will ({fleet}); my own sea stands under the panel.
+// Testids: sea, shot-<id>, fleet-grid, sea-shuffle, sea-fleet-go; sea-own, own-<id>.
 import { useState } from "react";
-import { FLEET_EXAMPLE, parseFleet, seaOf, seaView } from "../../../../depth/core/tables_sea.ts";
+import { seaOf, seaView } from "../../../../depth/core/tables_sea.ts";
 import { say } from "../../i18n";
+import { NdIcon } from "../../shell/NdIcon";
 import type { BoardProps } from "./boards";
+import { InFoot } from "./foot-slot";
 import { canShoot, ownCells, shotCells } from "./sea-logic";
+import { fleetGrid, randomFleet } from "./sea-place";
 
 export function SeaBoard({ state, seat, onMove }: BoardProps) {
-  const [text, setText] = useState("");
-  const [bad, setBad] = useState(false);
+  const [fleet, setFleet] = useState(() => randomFleet());
   const sea = seaOf(state as Record<string, unknown> | null);
   const v = sea && seaView(sea, seat, !!onMove);
   if (!v) return null;
@@ -20,12 +22,18 @@ export function SeaBoard({ state, seat, onMove }: BoardProps) {
         {v.ships
           ? <p className="tb-quiet" data-testid="fleet-waiting">{say("web.table.fleet_waiting")}</p>
           : (
-            <form className="tg-fleet" onSubmit={(e) => { e.preventDefault(); const parsed = parseFleet(text); setBad(parsed === null); if (parsed) onMove?.({ fleet: parsed }); }}>
-              <p className="tb-quiet" data-testid="fleet-hint">{say("web.table.fleet_hint", { example: FLEET_EXAMPLE })}</p>
-              <input value={text} maxLength={200} disabled={!onMove} onChange={(e) => setText(e.target.value)} aria-label={say("web.table.fleet")} placeholder={FLEET_EXAMPLE} data-testid="sea-fleet-input" />
-              {bad && <p className="k-note k-error" role="alert" data-testid="fleet-bad">{say("web.table.fleet_bad")}</p>}
-              <button type="submit" className="cta cta-primary" disabled={!onMove || !text.trim()} data-testid="sea-fleet-go">{say("web.table.fleet_set")}</button>
-            </form>
+            // battleship-place (owner 27.10.2026): the app places the fleet on the grid, «shuffle» deals another, «Fleet ready» sends it
+            <>
+              <div className="tg-fleet-grid" role="img" aria-label={say("web.table.fleet")} data-testid="fleet-grid">
+                {fleetGrid(fleet).map((c) => <span key={c.id} data-ship={c.ship ?? undefined} data-l={c.join.l || undefined} data-r={c.join.r || undefined} data-u={c.join.u || undefined} data-d={c.join.d || undefined} />)}
+              </div>
+              <InFoot>
+                <div className="k-row tg-fleet-acts">
+                  <button type="button" className="k-tb-key" disabled={!onMove} aria-label={say("app.sea.shuffle")} onClick={() => setFleet(randomFleet())} data-testid="sea-shuffle"><NdIcon name="rematch" /></button>
+                  <button type="button" className="k-cta" disabled={!onMove} onClick={() => onMove?.({ fleet })} data-testid="sea-fleet-go"><NdIcon name="check" /><span>{say("web.table.fleet_set")}</span></button>
+                </div>
+              </InFoot>
+            </>
           )}
       </div>
     );

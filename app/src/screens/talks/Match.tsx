@@ -6,12 +6,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { ChatKeys } from "@platform/chat/keys.ts";
 import type { Client } from "@sdk/client.ts";
-import { failedLine, say } from "../../i18n";
-import { Icon } from "../../shell/Icon";
-import { hand } from "../../shell/icons";
+import { failedLine, label, say } from "../../i18n";
+import { NdIcon } from "../../shell/NdIcon";
 import { Screen } from "../../shell/Screen";
 import { Rail } from "../../shell/TabBar";
-import { initial } from "../me/me-logic";
 import { matchExit } from "./match-exit";
 import { MatchWaiting } from "./MatchWaiting";
 import { matchView, type MatchRow } from "./talks-logic";
@@ -57,26 +55,36 @@ export function Match({ client, keys, row, onAgreed, onWaiting, onBack, onTalks 
 
   if (view === "waiting" || view === "gone") return <MatchWaiting client={client} keys={keys} row={row} startGone={view === "gone"} onBack={onBack} onTalks={onTalks} />;
   const title = say("app.match.both", { name: row.name });
+  // offer.html: the bar (back, the title in its pill), the panel (the pair with the mark between, the words, the two phrases as tiles), the foot («not now» round, «talk» wide)
   return (
-    <Screen name="match" title={title} className="tk-match-screen" data-id={row.id} data-view={view}>
-      <section className="tk-match" data-leaving={leaving ? "" : undefined} onAnimationEnd={(e) => { if (e.target === e.currentTarget && leaving) left(); }}>
-        <span className="tk-pill">{say("app.match.pill")}</span>
-        <div className="tk-pair" aria-hidden="true">
-          <span className="tk-big" data-face="1">{initial(me)}</span>
-          <span className="tk-hand"><Icon d={hand} /></span>
-          <span className="tk-big" data-face="0">{initial(row.name)}</span>
-        </div>
-        <h1 className="tk-match-title">{title}</h1>
-        <p className="tk-match-hint" data-testid="match-hint">{say(view === "they-agreed" ? "web.match.agreed" : "app.match.hint")}</p>
-        <div className="tk-quotes">
-          {row.my_phrase && <figure className="tk-quote"><figcaption>{say("app.match.you_said")}</figcaption><blockquote>{row.my_phrase.text}</blockquote></figure>}
-          <figure className="tk-quote"><figcaption>{say("app.match.they_said", { name: row.name })}</figcaption><blockquote>{row.phrase.text}</blockquote></figure>
-        </div>
-        {error && <p className="k-note k-error" role="alert" data-testid="error">{error}</p>}
-        <button type="button" className="tk-talk" disabled={busy || declined || leaving} onClick={talk} data-testid="talk">{say("app.match.talk")}</button>
-        <button type="button" className="tk-later" disabled={busy || leaving} onClick={notNow} data-testid="not-now">{say(declined ? "inbox.undo" : "app.match.not_now")}</button>
-      </section>
-      <Rail active="chats" />
+    <Screen name="match" title={title} className="k-screen" data-id={row.id} data-view={view}>
+      <div className="k-col">
+        <header className="k-row k-bar">
+          <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={onBack} data-testid="match-back"><NdIcon name="back" /></button>
+          <h1 className="k-bar-title">{title}</h1>
+        </header>
+        <section className="k-panel k-grow k-tk-offer" data-leaving={leaving ? "" : undefined} onAnimationEnd={(e) => { if (e.target === e.currentTarget && leaving) left(); }}>
+          <div className="k-tk-pair" aria-hidden="true">
+            <span className="k-tk-big"><NdIcon name="me" /></span>
+            <span className="k-tk-mid"><NdIcon name="both" /></span>
+            <span className="k-tk-big" data-peer=""><NdIcon name="me" /></span>
+          </div>
+          <div className="k-tk-words">
+            <p className="k-title">{say("app.match.pill")}</p>
+            <p className="k-sub" data-testid="match-hint">{say(view === "they-agreed" ? "web.match.agreed" : "app.match.hint")}</p>
+          </div>
+          {row.my_phrase && <article className="k-tile k-tk-quote"><div className="k-row"><span className="k-ava" aria-hidden="true"><NdIcon name="me" /></span><span className="k-meta">{say("app.match.you_said")}</span></div><p>{row.my_phrase.text}</p></article>}
+          <article className="k-tile k-tk-quote"><div className="k-row"><span className="k-ava" aria-hidden="true"><NdIcon name="me" /></span><span className="k-meta">{say("app.match.they_said", { name: row.name })}</span></div><p>{row.phrase.text}</p></article>
+          {error && <p className="k-note" data-tone="error" role="alert" data-testid="error">{error}</p>}
+        </section>
+        <section className="k-panel k-actions">
+          <div className="k-row">
+            <button type="button" className="k-tk-round" aria-label={say(declined ? "inbox.undo" : "app.match.not_now")} aria-pressed={declined} disabled={busy || leaving} onClick={notNow} data-testid="not-now"><NdIcon name={declined ? "refresh" : "clock"} /></button>
+            <button type="button" className="k-cta" disabled={busy || declined || leaving} onClick={talk} data-testid="talk"><NdIcon name="talks" /><span>{say("app.match.talk")}</span></button>
+          </div>
+        </section>
+        <Rail active="chats" />
+      </div>
     </Screen>
   );
 }

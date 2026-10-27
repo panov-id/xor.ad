@@ -22,23 +22,22 @@ export function Theme({ onBack }: { onBack: () => void }) {
   const pick = (id: Choice) => { saveChoice(id); applyTheme(); setChosen(id); };
   return (
     <SubPage name="theme" title={say("web.theme.title")} onBack={onBack}>
-      <div role="radiogroup" aria-label={say("web.theme.title")}>
-        <p className="me-theme-head">{say("app.theme.follow")}</p>
-        <div className="me-themes">{FOLLOW.map(tile)}</div>
-        <p className="me-theme-head">{say("app.theme.fixed")}</p>
-        <div className="me-themes">{FIXED.map(tile)}</div>
+      <div role="radiogroup" aria-label={say("web.theme.title")} className="k-stack">
+        <p className="k-group-head">{say("app.theme.follow")}</p>
+        <div className="k-themes">{FOLLOW.map(tile)}</div>
+        <p className="k-group-head">{say("app.theme.fixed")}</p>
+        <div className="k-themes">{FIXED.map(tile)}</div>
       </div>
-      <p className="k-sub me-kept">{say("app.theme.kept")}</p>
+      <p className="k-sub">{say("app.theme.kept")}</p>
     </SubPage>
   );
 
   function tile(t: { id: Choice; name: string; sub?: string }) {
     return (
-      <button key={t.id} type="button" role="radio" aria-checked={t.id === chosen} className="me-theme" data-theme={t.id}
+      <button key={t.id} type="button" role="radio" aria-checked={t.id === chosen} className="k-hub-tile"
         onClick={() => pick(t.id)} data-testid={`theme-${t.id}`}>
-        <span className="me-swatch" aria-hidden="true" />
-        <span className="me-theme-name">{say(t.name)}</span>
-        {t.sub && <span className="me-theme-sub">{say(t.sub)}</span>}
+        <span className="k-badge k-swatch" data-theme={t.id} aria-hidden="true" />
+        <span className="k-stack"><span className="k-row-name">{say(t.name)}</span>{t.sub && <span className="k-meta">{say(t.sub)}</span>}</span>
       </button>
     );
   }

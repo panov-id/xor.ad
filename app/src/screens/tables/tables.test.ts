@@ -137,3 +137,20 @@ test("an open list looks again: the first page alone is replaced, after more pag
   const screen = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
   assert.match(screen, /useEvery\(TABLES_LOOK_MS,[\s\S]*?freshTables\(/, "Tables.tsx loads the list once and never looks again");
 });
+
+// tables.html: four tiles fill the list panel two by two, so even one or two tables keep the half-height tile, not a full-height one.
+test("the tables list keeps the prototype's two tile rows: .k-tb-grid has two template rows in kit.css", () => {
+  const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
+  const rule = /\.k-tb-grid \{([^}]*)\}/.exec(css)?.[1] ?? "";
+  assert.match(rule, /grid-template-rows: repeat\(2, /, ".k-tb-grid lost its two rows: a lone table stretches over the whole panel");
+});
+
+// new-table-2: the name is the bare pill (pen, words inside, count at the right); the label is hidden for the eye, kept for the reader.
+test("the new table's name field is new-table-2's bare pill: hidden label, placeholder, count at the right", () => {
+  const src = readFileSync(new URL("./NewTable.tsx", import.meta.url), "utf8");
+  const field = /<div className="k-tb-name">([\s\S]*?)<\/div>/.exec(src)?.[1] ?? "";
+  assert.match(field, /placeholder=\{say\("app\.nt\.name"\)\}/, "NewTable.tsx: the name pill has no words inside");
+  assert.match(field, /side=\{<span className="k-meta" data-testid="new-table-left">/, "NewTable.tsx: the count left the pill's right side");
+  const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
+  assert.match(css, /\.k-tb-name > \.k-field-wrap > label \{[^}]*clip: rect\(0 0 0 0\)/, "kit.css: the name's label shows above the pill again");
+});

@@ -18,7 +18,7 @@
 
 - Whenever working on any README in this project group (`xor.ad/README.md` / `README_RU.md`, `sosed.place/README.md` / `README_RU.md`, `neighbro.place/README.md` / `README_RU.md`), synchronize across all of them before finishing: keep the EN/RU pair of each file consistent with each other, and keep cross-references and shared facts (architecture, features, links between the three faces) consistent across all three repos.
 
-<!-- global:begin sha=ad3e7094e7 -->
+<!-- global:begin sha=4bd04a0840 -->
 ## Saving tokens (global block, edited in ~/.claude/templates/project-rules.md)
 
 - Noisy output only through `digest`: `… 2>&1 | digest <phpunit|phpstan|cs|compose|git|httplog|auto>`.
@@ -27,6 +27,8 @@
 - A mechanical step with a machine check goes to `haiku-runner`; a module by a spec to `sonnet-runner`;
   a ready diff plan to `codex exec` through the wrapper (skill `delegate`). Fable: security, migrations, a fork with no answer; decisions and review: Opus.
 - A run longer than a minute: `run_in_background`, read the result through `digest`, not the whole file.
+- Check only what was touched (owner 27.10.2026): the tests next to the changed files (`git diff --name-only`),
+  shots of the changed screens, the flow leg through them; the build/type gate stays whole; the full suite once before a commit.
 - A command longer than 300 characters or with 4+ pipes and no script: `guard-inline-command.py` saves it to
   `~/.claude/state/inline/` and lets it run; a repeatable one goes to `scripts/` or `~/.claude/scripts/bin/`, a one-off to a file in the scratchpad.
 - The project's offline gates are `.claude/gates.txt` (one command per line, `watch:` says which edits

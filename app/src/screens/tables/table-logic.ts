@@ -67,6 +67,28 @@ export function canNudge(view: TableView): boolean {
   return view.seats.some((s) => s.seat === b.turn);
 }
 
+/** The foot of the table by its state (owner 27.10.2026, «Прототип + ввод»): a proposal to answer, the start or the next
+ *  round (*-wait, *-over), the con by agreement, a watcher's application, else the sticker strip (table.html). */
+export type Foot = "ask" | "start" | "con" | "apply" | "stickers";
+export function footOf(at: { proposed: boolean; first: ReturnType<typeof firstAction>; con: boolean; apply: boolean }): Foot {
+  if (at.proposed) return "ask";
+  if (at.first === "start") return "start";
+  if (at.con) return "con";
+  if (at.apply) return "apply";
+  return "stickers";
+}
+
+/** *-over sheets: the accent banner over the board (crown, the round's end, the players' score chips). The node gives the
+ *  score by seat and `over`, not a winner, so the banner says what it knows: the players and their points. */
+export function overBanner(view: TableView): { names: string; chips: Array<{ seat: number; n: number }> } | null {
+  const board = view.board;
+  if (!board?.over) return null;
+  const playing = view.seats.filter((s) => s.role === "playing").sort((a, b) => a.seat - b.seat);
+  // a game that keeps no score (hangman, chess) sends {}: no chips rather than a false «0 : 0»
+  const scored = Object.keys(board.score ?? {}).length > 0;
+  return { names: playing.map((s) => s.name).join(" · "), chips: scored ? playing.map((s) => ({ seat: s.seat, n: board.score[String(s.seat)] ?? 0 })) : [] };
+}
+
 export function canApply(view: TableView): "apply" | "applied" | null {
   if (view.is_playing) return null;
   const board = view.board;

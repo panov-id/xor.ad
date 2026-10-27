@@ -5,6 +5,8 @@
 import { cardParts } from "../../../../depth/core/cards.ts";
 import { deckOf, durakActions, isDurak } from "../../../../depth/core/tables_deck.ts";
 import { say } from "../../i18n";
+import { NdIcon } from "../../shell/NdIcon";
+import { InFoot } from "./foot-slot";
 import type { BoardProps } from "./boards";
 import { CardBack, CardFace, SuitMark } from "./cards";
 import { placedVars } from "./cards-logic";
@@ -56,10 +58,10 @@ export function DurakUnder({ state, seat, onMove }: BoardProps) {
   const a = durakActions(d, seat, true);
   if (!a.take && !a.transfer && !a.done) return null;
   return (
-    <div className="tg-actions" data-testid="durak-actions">
-      {a.take && <button type="button" className="cta cta-quiet" onClick={() => onMove({ take: true })} data-testid="take">{say("web.table.take")}</button>}
-      {a.transfer && <button type="button" className="cta cta-quiet" onClick={() => onMove({ transfer: a.transfer })} data-testid="transfer">{say("web.table.transfer")}</button>}
-      {a.done && <button type="button" className="cta cta-primary" onClick={() => onMove({ done: true })} data-testid="done">{say("web.table.done")}</button>}
-    </div>
+    <InFoot><div className="k-row tg-actions" data-testid="durak-actions">
+      {a.take && <button type="button" className="k-tb-key" aria-label={say("web.table.take")} onClick={() => onMove({ take: true })} data-testid="take"><NdIcon name="down" /></button>}
+      {a.transfer && <button type="button" className="k-tb-key" aria-label={say("web.table.transfer")} onClick={() => onMove({ transfer: a.transfer })} data-testid="transfer"><NdIcon name="chev" /></button>}
+      {a.done && <button type="button" className="k-tb-key" data-main="" aria-label={say("web.table.done")} onClick={() => onMove({ done: true })} data-testid="done"><NdIcon name="check" /></button>}
+    </div></InFoot>
   );
 }

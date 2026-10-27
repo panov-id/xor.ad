@@ -10,38 +10,39 @@ import {
   type Refusal, refusalMessage, textLeft, type Venue, venues,
 } from "@sdk/cabinet.ts";
 import { label, say, sayCount, LANG } from "../../i18n";
-import { Icon } from "../../shell/Icon";
-import { tag } from "../../shell/icons";
+import { NdIcon } from "../../shell/NdIcon";
 import { Field } from "../register-parts";
-import { eye } from "../me/icons";
 import { ErrorLine } from "../me/parts";
 import { DayField, Frame } from "./parts";
-import { plus } from "./icons";
 import { momentIn } from "@sdk/cabinet.ts";
 
 const notTaken = (status: number) => say("web.cabinet.notTaken", { status });
 
 function LiveOffer({ face, testid }: { face: OfferFace; testid?: string }) {
   return (
-    <article className="cb-offer" data-testid={testid} data-status="active">
-      <div className="cb-offer-top">
-        <span className="cb-offer-tag"><Icon d={tag} /><span>{face.venue ? say("app.cabinet.offer_tag", { venue: face.venue }) : say("app.cabinet.offer")}</span></span>
-        <span className="cb-pill">{say("app.cabinet.until", { time: face.until })}</span>
+    <article className="k-tile" data-accent="" data-testid={testid} data-status="active">
+      <div className="k-row">
+        <span className="k-badge-white" aria-hidden="true"><NdIcon name="offer" /></span>
+        <div className="k-stack k-row-text">
+          <b className="k-row-name">{face.venue ? say("app.cabinet.offer_tag", { venue: face.venue }) : say("app.cabinet.offer")}</b>
+          <span className="k-meta">{say("app.cabinet.until", { time: face.until })}</span>
+        </div>
       </div>
-      <p className="cb-offer-big">{face.big}</p>
-      <p className="cb-offer-text">{face.text}</p>
+      <p className="k-card-text" data-size="l">{face.big}</p>
+      <p className="k-card-text">{face.text}</p>
     </article>
   );
 }
 
 function DoneOffer({ face }: { face: OfferFace }) {
   return (
-    <article className="cb-done" data-testid="adv-offer" data-status="expired">
-      <div className="cb-done-top">
-        <h2>{`${face.big} ${face.text}`}</h2>
-        <span className="cb-done-state">{label("web.cabinet.offerExpired")}</span>
+    <article className="k-tile" data-testid="adv-offer" data-status="expired">
+      <div className="k-row">
+        <span className="k-badge k-badge-row" data-c="3" aria-hidden="true"><NdIcon name="offer" /></span>
+        <h2 className="k-row-name k-row-text">{`${face.big} ${face.text}`}</h2>
+        <span className="k-state">{label("web.cabinet.offerExpired")}</span>
       </div>
-      <dl className="cb-stats">
+      <dl className="k-pairs">
         <div><dt>{say("app.cabinet.visits")}</dt><dd data-testid="adv-offer-visits">{face.visits}</dd></div>
         <div><dt>{say("app.cabinet.complaints")}</dt><dd data-bad={face.many ? "yes" : undefined} data-testid="adv-offer-complaints">{face.complaints}</dd></div>
       </dl>
@@ -59,9 +60,9 @@ export function Offers({ strip, onNew }: { strip: ReactNode; onNew: () => void }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <Frame name="cabinet-offers" title={say("app.cabinet.offers_title")} strip={strip}
-      foot={<button type="button" className="cta cta-primary" onClick={onNew} data-testid="offer-new"><Icon d={plus} /><span>{say("app.cabinet.new_offer")}</span></button>}>
+      foot={<button type="button" className="k-cta" onClick={onNew} data-testid="offer-new"><NdIcon name="plus" /><span>{say("app.cabinet.new_offer")}</span></button>}>
       <ErrorLine text={error} />
-      {rows?.length === 0 && <p className="cb-sub" data-testid="offers-empty">{say("app.cabinet.no_offers")}</p>}
+      {rows?.length === 0 && <p className="k-sub" data-testid="offers-empty">{say("app.cabinet.no_offers")}</p>}
       {rows?.map((o) => {
         const face = offerFace(o, names);
         return face.live ? <LiveOffer key={o.id} face={face} testid="adv-offer" /> : <DoneOffer key={o.id} face={face} />;
@@ -120,11 +121,11 @@ export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => vo
   if (stage === "published" && done) {
     return (
       <Frame name="cabinet-published" title={say("web.cabinet.published")} strip={strip}
-        foot={<button type="button" className="cta cta-primary" onClick={onList} data-testid="offer-to-list"><Icon d={tag} /><span>{say("app.cabinet.my_offers")}</span></button>}>
-        <p className="cb-sub" data-testid="offer-published">{say("web.cabinet.publishedNote")}</p>
-        {done.external_url && <p className="cb-hint" data-testid="offer-published-link">{say("web.cabinet.link", { link: done.link.replace(/^https:\/\//, "") })}</p>}
-        <p className="cb-hint">{say("web.cabinet.cardLives", { until: momentIn(LANG, done.discount_until) })}</p>
-        <p className="cb-hint">{say("web.cabinet.noEdit")}</p>
+        foot={<button type="button" className="k-cta" onClick={onList} data-testid="offer-to-list"><NdIcon name="offer" /><span>{say("app.cabinet.my_offers")}</span></button>}>
+        <p className="k-sub" data-testid="offer-published">{say("web.cabinet.publishedNote")}</p>
+        {done.external_url && <p className="k-meta" data-testid="offer-published-link">{say("web.cabinet.link", { link: done.link.replace(/^https:\/\//, "") })}</p>}
+        <p className="k-meta">{say("web.cabinet.cardLives", { until: momentIn(LANG, done.discount_until) })}</p>
+        <p className="k-meta">{say("web.cabinet.noEdit")}</p>
       </Frame>
     );
   }
@@ -135,15 +136,15 @@ export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => vo
     return (
       <Frame name="cabinet-preview" title={say("web.cabinet.previewTitle")} strip={strip}
         foot={
-          <button type="button" className="cta cta-primary" aria-disabled={busy || undefined} aria-busy={busy || undefined} onClick={() => void go()} data-testid="offer-publish">
-            <Icon d={plus} /><span>{label("web.cabinet.publish")}</span>
+          <button type="button" className="k-cta" aria-disabled={busy || undefined} aria-busy={busy || undefined} onClick={() => void go()} data-testid="offer-publish">
+            <NdIcon name="send" /><span>{label("web.cabinet.publish")}</span>
           </button>
         }>
         <LiveOffer face={face} testid="offer-preview-card" />
-        {conditions.trim() && <p className="cb-hint">{label("web.cabinet.field.terms")}: {conditions.trim()}</p>}
-        <p className="cb-hint">{say("web.cabinet.publishNote")}</p>
+        {conditions.trim() && <p className="k-meta">{label("web.cabinet.field.terms")}: {conditions.trim()}</p>}
+        <p className="k-meta">{say("web.cabinet.publishNote")}</p>
         {refused && <ErrorLine text={say("web.cabinet.refused", { reason: refused })} />}
-        <button type="button" className="cb-btn cb-btn-quiet" onClick={() => setStage("form")} data-testid="offer-to-form"><span>{label("web.cabinet.toForm")}</span></button>
+        <button type="button" className="k-btn" onClick={() => setStage("form")} data-testid="offer-to-form"><span>{label("web.cabinet.toForm")}</span></button>
       </Frame>
     );
   }
@@ -151,11 +152,11 @@ export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => vo
   return (
     <Frame name="cabinet-new-offer" title={say("app.cabinet.new_offer")} strip={strip}
       foot={
-        <button type="button" className="cta cta-primary" aria-disabled={ready ? undefined : true} onClick={() => ready && (setRefused(null), setStage("preview"))} data-testid="offer-preview">
-          <Icon d={eye} /><span>{say("app.cabinet.preview")}</span>
+        <button type="button" className="k-cta" aria-disabled={ready ? undefined : true} onClick={() => ready && (setRefused(null), setStage("preview"))} data-testid="offer-preview">
+          <NdIcon name="eye" /><span>{say("app.cabinet.preview")}</span>
         </button>
       }>
-      {rows !== null && rows.length === 0 && <p className="cb-sub" data-testid="offer-no-venue">{say("web.cabinet.noVenue")}</p>}
+      {rows !== null && rows.length === 0 && <p className="k-sub" data-testid="offer-no-venue">{say("web.cabinet.noVenue")}</p>}
       {rows !== null && rows.length > 1 && (
         <div className="k-chips" role="radiogroup" aria-label={label("web.cabinet.field.venue")} data-testid="offer-venue">
           {rows.map((v) => <button key={v.id} type="button" role="radio" aria-checked={v.id === venue} className="k-pick-chip" onClick={() => setVenue(v.id)}>{v.name}</button>)}
@@ -163,19 +164,19 @@ export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => vo
       )}
       {rows !== null && rows.length > 0 && (
         <>
-          <Field text={label("web.cabinet.field.text")} value={text} onChange={setText} maxLength={OFFER_TEXT_MAX} testid="offer-text" autoComplete="off"
+          <Field icon="offer" text={label("web.cabinet.field.text")} value={text} onChange={setText} maxLength={OFFER_TEXT_MAX} testid="offer-text" autoComplete="off"
             under={<p className="k-meta" data-testid="offer-left">{sayCount("app.cabinet.left", textLeft(text))}</p>} />
-          <Field text={label("web.cabinet.field.discount")} value={discount} onChange={setDiscount} maxLength={32} testid="offer-discount" autoComplete="off" />
+          <Field icon="offer" text={label("web.cabinet.field.discount")} value={discount} onChange={setDiscount} maxLength={32} testid="offer-discount" autoComplete="off" />
           <DayField text={label("web.cabinet.field.discountTo")} value={day} min={dayAhead(0)} max={dayAhead(DISCOUNT_MAX_DAYS)} onChange={setDay} testid="offer-until" />
-          <p className="cb-hint" data-state={problem ?? undefined} data-testid="offer-lives">
+          <p className="k-meta" data-state={problem ?? undefined} data-testid="offer-lives">
             {problem === "past" ? say("app.cabinet.day_past") : problem === "far" ? label("web.cabinet.within90") : say("app.cabinet.lives")}
           </p>
-          <button type="button" className="cb-more" aria-expanded={more} onClick={() => setMore(!more)} data-testid="offer-more">{say("app.cabinet.more")}</button>
+          <button type="button" className="k-btn" aria-expanded={more} onClick={() => setMore(!more)} data-testid="offer-more">{say("app.cabinet.more")}</button>
           {more && (
             <>
-              <Field text={label("web.cabinet.field.terms")} value={conditions} onChange={setConditions} maxLength={128} testid="offer-conditions" autoComplete="off" under={<p className="k-sub">{say("web.cabinet.termsEmpty")}</p>} />
-              <Field text={label("web.cabinet.field.promo")} value={promo} onChange={setPromo} maxLength={64} testid="offer-promo" autoComplete="off" />
-              <Field text={label("web.cabinet.field.url")} value={url} onChange={setUrl} testid="offer-url" autoComplete="off" under={<p className="k-sub">{say("web.cabinet.noShorteners")}</p>} />
+              <Field icon="paper" text={label("web.cabinet.field.terms")} value={conditions} onChange={setConditions} maxLength={128} testid="offer-conditions" autoComplete="off" under={<p className="k-sub">{say("web.cabinet.termsEmpty")}</p>} />
+              <Field icon="offer" text={label("web.cabinet.field.promo")} value={promo} onChange={setPromo} maxLength={64} testid="offer-promo" autoComplete="off" />
+              <Field icon="link" text={label("web.cabinet.field.url")} value={url} onChange={setUrl} testid="offer-url" autoComplete="off" under={<p className="k-sub">{say("web.cabinet.noShorteners")}</p>} />
             </>
           )}
         </>

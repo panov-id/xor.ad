@@ -6,21 +6,22 @@
 // show-safety, error, status; new ones: chat-back, chat-ring, starter-chip, quick-<sticker>, quick-game.
 //
 // The «…» sheet is chat-menu.tsx (w3_chat-more): its own history entry, so the system Back closes it.
-// The game (w3_chat-game) is chat-game.tsx: open, it takes the lines' place and the chips'.
+// The game (chat-game, chat-game-offer, chat-game-board) is chat-game.tsx: its screens open over the conversation, drawn
+// into the frame's overlay (OverlayCtx), a proposal is a card under the lines. The safety code (chat-safety) is a screen
+// of its own over the conversation too; its back returns here.
 // Not here yet: the starters' list.
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { type CSSProperties, Fragment, type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Client } from "@sdk/client.ts";
 import { stickerOf, stickerText } from "@sdk/sticker.ts";
 import { ChatSession, type ChatView } from "@platform/chat/chat_state.ts";
 import type { ChatKeys, InboxChatRow } from "@platform/chat/keys.ts";
 import { failedLine, LANG, label, say } from "../i18n";
-import { Icon } from "../shell/Icon";
-import { chevronLeft, lock, send as sendIcon, shield } from "../shell/icons";
+import { NdIcon } from "../shell/NdIcon";
 import { useSkeleton } from "../shell/loading";
 import { Screen } from "../shell/Screen";
-import { bubblesOf, clockOf, headerLine, popStep, QUICK_STICKERS, ringOf } from "./chat-logic";
+import { bubblesOf, clockOf, headerLine, popStep, ringOf } from "./chat-logic";
 import { ChatGame } from "./chat-game";
-import { ChatMenu } from "./chat-menu";
+import { ChatMenu, OverlayCtx } from "./chat-menu";
 
 export interface ChatActions {
   onBack: () => void;
@@ -31,9 +32,35 @@ export interface ChatActions {
   onGame: () => void;
   /** The keys' reissue, asked or agreed (the stand's chat has none). */
   onRekey?: () => void;
+  /** Back from the safety code's screen (the stand's chat has none). */
+  onSafetyBack?: () => void;
 }
 
-const initialOf = (name: string): string => [...name.trim()][0]?.toLocaleUpperCase(LANG) ?? "";
+/** chat-safety: the shield, the code in tiles (the node's code is five groups of four digits), and what it is for. The
+ * web's testids: safety (holding the code in a <code>), new: safety-back. */
+function SafetyScreen({ code, onBack }: { code: string; onBack?: () => void }) {
+  const groups = /^\d{4}( \d{4})*$/.test(code) ? code.split(" ") : null;
+  return (
+    <div className="k-col k-ch-full" data-screen="chat-safety">
+      <header className="k-row k-bar">
+        <button type="button" className="k-bar-btn" aria-label={say("common.back")} onClick={onBack} data-testid="safety-back"><NdIcon name="back" /></button>
+        <h1 className="k-bar-title">{label("app.chat.safety")}</h1>
+      </header>
+      <section className="k-panel k-grow k-sf">
+        <div className="k-sf-shield" aria-hidden="true"><NdIcon name="shield" /></div>
+        <div data-testid="safety">
+          {groups ? (
+            <code className="k-sf-grid">{groups.map((g, i) => <Fragment key={i}><span className="k-sf-tile">{g}</span>{" "}</Fragment>)}</code>
+          ) : <code className="k-sf-text">{code}</code>}
+        </div>
+        <div className="k-note k-chm-note" role="status"><NdIcon name="eye" /><p>{say("app.chat.safety_note")}</p></div>
+      </section>
+    </div>
+  );
+}
+
+// chat.html: the sticker strip (the prototype draws twelve; the SDK's set has these five that open a talk, and the game) and the icon each is drawn with
+const STRIP: ReadonlyArray<{ id: string; icon: string }> = [{ id: "hi", icon: "wave" }, { id: "thanks", icon: "thanks" }, { id: "deal", icon: "deal" }, { id: "wow", icon: "wow" }, { id: "coffee", icon: "coffee" }];
 
 /** `frame`: a screen of its own (the phone, /chat), or a pane beside the talks' list (the tablet and up: tablet_834_Talks), a
  * <section> inside the inbox's screen, without its own back. */
@@ -55,103 +82,120 @@ export function ChatPane({ view, now, actions, game, frame = "screen" }: { view:
     if (went && typed) setText("");
   }
 
-  return (
-    <Frame frame={frame} title={row.name} over={over} keys={view.keysState} id={row.id}>
-      <header className="ch-head">
-        {frame === "screen" && <button type="button" className="ch-back" aria-label={say("common.back")} onClick={actions.onBack} data-testid="chat-back"><Icon d={chevronLeft} /></button>}
-        <span className="ch-avatar" aria-hidden="true">{initialOf(row.name)}</span>
-        <div className="ch-who">
+  const keysBlock = view.askedByPeer ? (
+    <div className="k-tile k-ch-keys" data-testid="rekey-asked">
+      <div className="k-row"><NdIcon name="keys" /><p>{say("web.chat.peer_asks")}</p></div>
+      <button type="button" className="k-cta" disabled={view.busy} onClick={actions.onRekey} data-testid="rekey-agree"><NdIcon name="check" /><span>{say("web.chat.rekey_agree")}</span></button>
+    </div>
+  ) : view.waitingForPeer ? (
+    <div className="k-tile k-ch-keys"><div className="k-row"><NdIcon name="keys" /><p data-testid="rekey-waiting">{say("web.chat.rekey_waiting")}</p></div></div>
+  ) : view.keysState === "failed" ? (
+    <div className="k-tile k-ch-keys" role="alert" data-testid="keys-failed">
+      <div className="k-row"><NdIcon name="keys" /><p>{say("app.chat.keys_failed")}</p></div>
+      <button type="button" className="k-cta" disabled={view.busy} onClick={actions.onRekey} data-testid="rekey-ask"><NdIcon name="refresh" /><span>{say("app.chat.new_keys")}</span></button>
+    </div>
+  ) : null;
+
+  // the bar: back, the person's pill (face, name and what is left, the ring), «…»; `own` is the conversation's (its testids), the game's screen draws it again
+  const bar = (onBack: () => void, backLabel: string, own: boolean): ReactNode => (
+    <header className="k-row k-bar">
+      {(frame === "screen" || !own) && <button type="button" className="k-bar-btn" aria-label={backLabel} onClick={onBack} data-testid={own ? "chat-back" : undefined}><NdIcon name="back" /></button>}
+      <div className="k-bar-title k-ch-who">
+        <span className="k-ch-ava" aria-hidden="true"><NdIcon name="me" /></span>
+        <div className="k-stack k-ch-name">
           <h1>{`${row.name}, ${view.peerAge}`}</h1>
-          <p className={over ? "ch-line ch-line-over" : "ch-line"}>{say(line.key, line.values)}</p>
+          <p className={over ? "k-meta k-ch-line k-ch-line-over" : "k-meta k-ch-line"}>{say(line.key, line.values)}</p>
         </div>
-        <span className="ch-ring" role="img" aria-label={say("app.chat.ring", { m: ring.minutes })} data-testid="chat-ring" style={{ "--ch-ring-left": String(ring.left) } as React.CSSProperties}>
-          <span>{ring.minutes}</span>
-        </span>
-        {/* w3_chat and w3_chat-more draw no «…»: the menu opens from the avatar and the name (owner 23.10), so the line runs to the ring */}
-        {!over && <button type="button" className="ch-open" aria-label={`${say("app.chat.more")}: ${row.name}`} onClick={actions.onMore} data-testid="chat-more" />}
-      </header>
-      <div className="ch-sheet">
-        {game && !over ? <div className="ch-game">{game}</div> : (
-        <ol className="ch-lines" data-testid="lines" aria-live="polite">
-          {starter && !over && (
-            <li className="ch-starter" data-testid="starter-chip">{say("app.chat.started_from", { text: starter.text })}</li>
-          )}
-          {bubblesOf(view.lines).map(({ line: l, side }, at) => {
-            const sticker = stickerOf(l.text);
-            const words = sticker ? say(`web.sticker.${sticker}`) : l.text;
-            const testid = l.extra ? "extra-like" : l.system ? "system" : l.mine ? "mine" : "theirs";
-            return (
-              <li key={l.id} className={`ch-row ch-${side}`} data-state={l.state} style={{ "--i": popStep(at, firstBatch.current) } as CSSProperties}>
-                <p className={sticker ? "ch-bubble ch-sticker" : "ch-bubble"} data-testid={testid}>{words}</p>
-                <span className="ch-time">{clockOf(l.at, LANG)}</span>
-                {l.mine && l.state === "failed" && (
-                  <button type="button" className="ch-again" onClick={() => actions.onResend(l.id)} data-testid="send-again">{say("web.chat.send_again")}</button>
-                )}
-              </li>
-            );
-          })}
-          {typing && (
-            <li className="ch-row ch-theirs ch-typing" data-testid="typing" aria-hidden="true">
-              <p className="ch-bubble"><i /><i /><i /></p>
-            </li>
-          )}
-        </ol>
-        )}
-        {!over && view.safety && <p className="ch-safety-line" data-testid="safety">{say("app.chat.safety_is", { code: view.safety })}</p>}
-        {over ? (
-          <section className="ch-over" data-testid="tombstone">
-            <span className="ch-over-mark" aria-hidden="true"><Icon d={lock} /></span>
+        <svg className="k-tk-ring" width="40" height="40" role="img" aria-label={say("app.chat.ring", { m: ring.minutes })} data-testid={own ? "chat-ring" : undefined}>
+          <circle cx="20" cy="20" r="16" fill="none" stroke="var(--tile-strong)" strokeWidth="5" />
+          <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(Math.max(0, Math.min(1, Number(ring.left))) * 100.5).toFixed(1)} 100.5`} transform="rotate(-90 20 20)" />
+        </svg>
+      </div>
+      {!over && <button type="button" className="k-bar-btn" aria-label={`${say("app.chat.more")}: ${row.name}`} onClick={actions.onMore} data-testid={own ? "chat-more" : undefined}><NdIcon name="more" /></button>}
+    </header>
+  );
+  const [overEl, setOverEl] = useState<HTMLElement | null>(null);
+
+  return (
+    <OverlayCtx.Provider value={{ el: overEl, bar }}>
+    <Frame frame={frame} title={row.name} over={over} keys={view.keysState} id={row.id}
+      overlay={<div className="k-ch-over" ref={setOverEl}>{view.safety !== null && <SafetyScreen code={view.safety} onBack={actions.onSafetyBack} />}</div>}>
+      {bar(actions.onBack, say("common.back"), true)}
+      {over ? (
+        <>
+          <section className="k-panel k-grow k-tk-empty" data-testid="tombstone">
+            <span className="k-tk-hero" data-tone="5" aria-hidden="true"><NdIcon name="fade" /></span>
             <h2>{label(view.blocked ? "app.chat.blocked_title" : "app.chat.over_title")}</h2>
             <p>{say("app.chat.over_text")}</p>
-            <button type="button" className="ch-safety" onClick={actions.onSafety} data-testid="show-safety"><Icon d={shield} /><span>{say("app.chat.safety")}</span></button>
-            {view.safety && <p className="ch-safety-code" data-testid="safety">{view.safety}</p>}
           </section>
-        ) : (
-          <footer className="ch-foot">
-            {!game && <div className="ch-quick">
-              {QUICK_STICKERS.map((id) => (
-                <button key={id} type="button" className={`ch-chip ch-chip-${id}`} onClick={() => void send(stickerText(id))} disabled={view.keysState !== "open"} data-testid={`quick-${id}`}>
-                  {say(`app.chat.quick.${id}`)}
+          <section className="k-panel k-actions">
+            <div className="k-row">
+              <button type="button" className="k-tk-round" aria-label={say("app.chat.safety")} onClick={actions.onSafety} data-testid="show-safety"><NdIcon name="shield" /></button>
+              <button type="button" className="k-cta" onClick={actions.onBack} data-testid="chat-to-talks"><NdIcon name="talks" /><span>{say("app.wait.to_talks")}</span></button>
+            </div>
+          </section>
+        </>
+      ) : (
+        <>
+          <section className="k-body k-pad8 k-ch-lines" data-game={game ? "" : undefined}>
+            <ol className="k-ch-list" data-testid="lines" aria-live="polite">
+              {starter && (
+                <li className="k-note k-ch-starter" data-testid="starter-chip"><NdIcon name="phrase" /><span>{say("app.chat.started_from", { text: starter.text })}</span></li>
+              )}
+              {bubblesOf(view.lines).map(({ line: l, side }, at) => {
+                const sticker = stickerOf(l.text);
+                const words = sticker ? say(`web.sticker.${sticker}`) : l.text;
+                const testid = l.extra ? "extra-like" : l.system ? "system" : l.mine ? "mine" : "theirs";
+                return (
+                  <li key={l.id} className={`k-ch-row k-ch-${side}`} data-state={l.state} style={{ "--i": popStep(at, firstBatch.current) } as CSSProperties}>
+                    <p className={sticker ? "k-ch-bubble k-ch-sticker" : "k-ch-bubble"} data-testid={testid}>{words}</p>
+                    <span className="k-meta k-ch-time">{clockOf(l.at, LANG)}</span>
+                    {l.mine && l.state === "failed" && (
+                      <button type="button" className="k-ch-again" onClick={() => actions.onResend(l.id)} data-testid="send-again">{say("web.chat.send_again")}</button>
+                    )}
+                  </li>
+                );
+              })}
+              {typing && (
+                <li className="k-ch-row k-ch-theirs k-ch-typing" data-testid="typing" aria-hidden="true">
+                  <p className="k-ch-bubble"><i /><i /><i /></p>
+                </li>
+              )}
+            </ol>
+            {game}
+            {keysBlock}
+          </section>
+          <section className="k-panel k-pad8 k-ch-foot">
+            <div className="k-ch-quick" role="list">
+              {STRIP.map(({ id, icon }) => (
+                <button key={id} type="button" role="listitem" className="k-ch-chip" aria-label={say(`web.sticker.${id}`)} onClick={() => void send(stickerText(id))} disabled={view.keysState !== "open"} data-testid={`quick-${id}`}>
+                  <NdIcon name={icon} />
                 </button>
               ))}
-              <button type="button" className="ch-chip ch-chip-game" onClick={actions.onGame} data-testid="quick-game">{say("app.chat.quick.game")}</button>
-            </div>}
-            {/* Keys that did not open (no pair in this tab, no wrap on the node — a reload before the first open): the
-                reason and the way out, as the web's keys-failed, rekey-asked and rekey-waiting; the field stays off. */}
-            {view.askedByPeer ? (
-              <div className="ch-keys" data-testid="rekey-asked">
-                <p>{say("web.chat.peer_asks")}</p>
-                <button type="button" className="ch-keys-go" disabled={view.busy} onClick={actions.onRekey} data-testid="rekey-agree">{say("web.chat.rekey_agree")}</button>
-              </div>
-            ) : view.waitingForPeer ? (
-              <p className="ch-keys" data-testid="rekey-waiting">{say("web.chat.rekey_waiting")}</p>
-            ) : view.keysState === "failed" && (
-              <div className="ch-keys" role="alert" data-testid="keys-failed">
-                <p>{say("app.chat.keys_failed")}</p>
-                <button type="button" className="ch-keys-go" disabled={view.busy} onClick={actions.onRekey} data-testid="rekey-ask">{say("app.chat.new_keys")}</button>
-              </div>
-            )}
-            <form className="ch-field" onSubmit={(e) => { e.preventDefault(); void send(); }}>
+              <button type="button" role="listitem" className="k-ch-chip" aria-label={say("app.chat.quick.game")} onClick={actions.onGame} data-testid="quick-game"><NdIcon name="dice" /></button>
+            </div>
+            <form className="k-row" onSubmit={(e) => { e.preventDefault(); void send(); }}>
               <input
-                className="ch-input" value={text} onChange={(e) => setText(e.target.value)} placeholder={say("app.chat.placeholder")}
+                className="k-tk-input" value={text} onChange={(e) => setText(e.target.value)} placeholder={say("app.chat.placeholder")}
                 aria-label={say("app.chat.placeholder")} disabled={view.keysState !== "open"} data-testid="text"
               />
-              <button type="submit" className="ch-send" aria-label={say("app.chat.send")} disabled={view.keysState !== "open" || !text.trim()} data-testid="send"><Icon d={sendIcon} /></button>
+              <button type="submit" className="k-tk-send" aria-label={say("app.chat.send")} disabled={view.keysState !== "open" || !text.trim()} data-testid="send"><NdIcon name="send" /></button>
             </form>
-            {view.error && <p className="ch-error" role="alert" data-testid="error">{failedLine(new Error(view.error))}</p>}
-          </footer>
-        )}
-      </div>
+            {view.error && <p className="k-note" data-tone="error" role="alert" data-testid="error">{failedLine(new Error(view.error))}</p>}
+          </section>
+        </>
+      )}
     </Frame>
+    </OverlayCtx.Provider>
   );
 }
 
 /** The conversation held for the screen's life: the session, its clock, and what the pane asks of it. */
-function Frame({ frame, title, over, keys, id, children }: { frame: "screen" | "pane"; title: string; over: boolean; keys: string; id: string; children: ReactNode }) {
+function Frame({ frame, title, over, keys, id, overlay, children }: { frame: "screen" | "pane"; title: string; over: boolean; keys: string; id: string; overlay: ReactNode; children: ReactNode }) {
   const data = { "data-over": over ? "1" : undefined, "data-keys": keys, "data-id": id };
   return frame === "screen"
-    ? <Screen name="chat" title={title} className="ch" {...data}>{children}</Screen>
-    : <section className="ch ch-pane" aria-label={title} data-testid="chat-pane" {...data}>{children}</section>;
+    ? <Screen name="chat" title={title} className="k-screen" {...data}><div className="k-col">{children}</div>{overlay}</Screen>
+    : <section className="ch ch-pane k-ch-pane" aria-label={title} data-testid="chat-pane" {...data}><div className="k-col">{children}</div>{overlay}</section>;
 }
 
 export function Chat({ client, keys, row, onBack, frame = "screen" }: { client: Client; keys: ChatKeys; row: InboxChatRow; onBack: () => void; frame?: "screen" | "pane" }) {
@@ -186,6 +230,7 @@ export function Chat({ client, keys, row, onBack, frame = "screen" }: { client: 
         onSafety: safety,
         onGame: () => session.setGameOpen(true),
         onRekey: () => void session.rekey(view.askedByPeer ? "agree" : "ask"),
+        onSafetyBack: () => session.setSafety(null),
       }} />
       {menu && !view.over && (
         <ChatMenu span={view.span} busy={view.busy} waitingForPeer={view.waitingForPeer} actions={{

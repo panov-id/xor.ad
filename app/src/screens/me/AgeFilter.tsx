@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { failedLine, say } from "../../i18n";
+import { NdIcon } from "../../shell/NdIcon";
 import { profileLine } from "./EditName";
 import { along, filterPatch, filterRange, moveHandle, noTop, type Range } from "./me-logic";
 import { ErrorLine, SubPage } from "./parts";
@@ -28,22 +29,39 @@ export function AgeFilter({ client, age, min, max, onBack }: { client: Client; a
     return () => clearTimeout(t);
   }, [r]); // eslint-disable-line react-hooks/exhaustive-deps
   const top = noTop(r) ? say("web.filter.noLimit") : String(r.to);
+  function saveNow() {
+    const patch = filterPatch(r);
+    if (JSON.stringify(patch) === sent.current) return;
+    sent.current = JSON.stringify(patch);
+    client.editProfile(patch)
+      .then((answer) => setError(answer.status === 200 || answer.status === 202 ? null : profileLine(answer)))
+      .catch((e: Error) => setError(failedLine(e)));
+  }
+  // the prototype's age-filter.html: the mark and the band big, the track, the note card; the Save at the foot sends at once
   return (
-    <SubPage name="age-filter" title={say("web.filter.title")} onBack={onBack}>
-      <h2 className="k-title k-title-big">{say("app.filter.title")}</h2>
-      <p className="k-sub" data-testid="filter-range">{noTop(r) ? say("app.filter.band_open", { from: r.from }) : say("app.filter.band", { from: r.from, to: r.to })}</p>
-      <div className="me-filter" style={{ ["--a" as string]: along(r, r.from), ["--b" as string]: along(r, r.to) }}>
-        <p className="me-ends" aria-hidden="true"><span>{r.from}</span><span>{noTop(r) ? "∞" : r.to}</span></p>
-        <div className="me-track">
-          <span className="me-fill" aria-hidden="true" />
-          <span className="me-knob" data-k="a" aria-hidden="true" />
-          <span className="me-knob" data-k="b" aria-hidden="true" />
+    <SubPage name="age-filter" title={say("web.filter.title")} onBack={onBack} panelClass="k-me-panel"
+      foot={<button type="button" className="cta cta-primary" onClick={saveNow} data-testid="filter-save"><NdIcon name="check" /><span>{say("app.filter.save")}</span></button>}>
+      <h2 className="k-sr">{say("app.filter.title")}</h2>
+      <div className="k-row k-me-hero">
+        <NdIcon name="alone" className="k-big-icon k-48" />
+        <span className="k-me-value" aria-hidden="true">{r.from}{" – "}{noTop(r) ? "∞" : r.to}</span>
+      </div>
+      <div className="k-range" style={{ ["--a" as string]: along(r, r.from), ["--b" as string]: along(r, r.to) }}>
+        <div className="k-track">
+          <span className="k-track-fill" aria-hidden="true" />
+          <span className="k-knob" data-k="a" aria-hidden="true" />
+          <span className="k-knob" data-k="b" aria-hidden="true" />
           <input type="range" min={r.min} max={r.max} step={1} value={r.from} aria-label={say("app.filter.from")} aria-valuetext={String(r.from)}
             onChange={(e) => setR((was) => moveHandle(was, "from", Number(e.target.value)))} data-testid="filter-from" />
           <input type="range" min={r.min} max={r.max} step={1} value={r.to} aria-label={say("app.filter.to")} aria-valuetext={top}
             onChange={(e) => setR((was) => moveHandle(was, "to", Number(e.target.value)))} data-testid="filter-to" />
         </div>
-        {r.open && <p className="k-sub me-filter-note">{say("app.filter.open_note", { n: r.min })}</p>}
+      </div>
+      <div className="k-note k-me-note" role="status"><NdIcon name="info" />
+        <div className="k-stack k-gap7">
+          <span data-testid="filter-range">{noTop(r) ? say("app.filter.band_open", { from: r.from }) : say("app.filter.band", { from: r.from, to: r.to })}</span>
+          {r.open && <span>{say("app.filter.open_note", { n: r.min })}</span>}
+        </div>
       </div>
       <ErrorLine text={error} />
     </SubPage>

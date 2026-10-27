@@ -7,18 +7,23 @@ import { Icon } from "../../shell/Icon";
 import { NdIcon } from "../../shell/NdIcon";
 import { Rail } from "../../shell/TabBar";
 
-/** `head` stands between the bar and the panel (reissue's "step n of 2"); `backTestid` the web's name for the back. */
-export function SubPage({ name, title, onBack, foot, head, backTestid, children }: { name: string; title: string; onBack: () => void; foot?: ReactNode; head?: ReactNode; backTestid?: string; children: ReactNode }) {
+/** `bare` is a panel of tiles (the hubs: me-profile, me-visibility, me-security); `steps` puts the step dots in the title's pill (reissue-1, -2: n of of); `backTestid` the web's name for the back. */
+export function SubPage({ name, title, onBack, foot, steps, backTestid, bare, panelClass, mid, footActions, children }: { name: string; title: string; onBack: () => void; foot?: ReactNode; steps?: { n: number; of: number; words: string }; backTestid?: string; bare?: boolean; panelClass?: string; mid?: ReactNode; footActions?: boolean; children: ReactNode }) {
   return (
     <main className="k-screen" data-screen={name}>
       <div className="k-col">
         <header className="k-row k-bar">
           <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={onBack} data-testid={backTestid ?? `${name}-back`}><NdIcon name="back" /></button>
-          <h1 className="k-bar-title">{title}</h1>
+          {steps ? (
+            <div className="k-bar-title" role="progressbar" aria-valuemin={1} aria-valuemax={steps.of} aria-valuenow={steps.n} aria-valuetext={steps.words} aria-label={steps.words} data-testid="steps">
+              <h1 className="k-bar-word">{title}</h1>
+              <span className="k-steps" aria-hidden="true">{Array.from({ length: steps.of }, (_, i) => <span key={i} data-done={i < steps.n ? "yes" : undefined} />)}</span>
+            </div>
+          ) : <h1 className="k-bar-title">{title}</h1>}
         </header>
-        {head}
-        <section className="k-panel k-grow k-reg">{children}</section>
-        {foot && <section className="k-panel k-actions k-stack">{foot}</section>}
+        <section className={bare ? "k-panel k-grow k-pad8" : panelClass ? `k-panel k-grow k-reg ${panelClass}` : "k-panel k-grow k-reg"}>{children}</section>
+        {mid && <section className="k-panel k-foot-bare">{mid}</section>}
+        {foot && <section className={bare && !footActions ? "k-panel k-foot-bare" : "k-panel k-actions k-stack"} data-foot="">{foot}</section>}
       </div>
       <Rail active="me" />
     </main>
@@ -39,6 +44,29 @@ export function Row({ text, value, sub, icon, onOpen, testid, href }: {
   );
   if (href) return <a className="k-link-row" data-icon={icon ? "yes" : undefined} href={href} target="_blank" rel="noopener noreferrer" data-testid={testid}>{inner}</a>;
   return <button type="button" className="k-link-row" data-icon={icon ? "yes" : undefined} onClick={onOpen} data-testid={testid}>{inner}</button>;
+}
+
+/** A tile of the hub (me.html): the round-cornered badge over the name and what it holds now; `count` is the corner's number. */
+export function Tile({ icon, c, text, value, count, danger, wide, small, testid, onOpen }: {
+  icon: string; c: 1 | 2 | 3 | 4 | 5 | 6; text: string; value?: string; count?: string; danger?: boolean; wide?: boolean; small?: boolean; testid: string; onOpen: () => void;
+}) {
+  return (
+    <button type="button" className="k-hub-tile" data-danger={danger ? "" : undefined} data-wide={wide ? "" : undefined} data-small={small ? "" : undefined} onClick={onOpen} data-testid={testid}>
+      <span className="k-badge" data-c={c} aria-hidden="true"><NdIcon name={icon} /></span>
+      <span className="k-stack"><span className="k-row-name">{text}</span>{value && <span className="k-meta">{value}</span>}</span>
+      {count !== undefined && <span className="k-count">{count}</span>}
+    </button>
+  );
+}
+
+/** The bar under the tiles of the safety hub (me-security): the outlined square with the trash, the words; not a tile. */
+export function DangerBar({ text, testid, onOpen }: { text: string; testid: string; onOpen: () => void }) {
+  return (
+    <button type="button" className="k-danger-bar" onClick={onOpen} data-testid={testid}>
+      <span className="k-danger-icon" aria-hidden="true"><NdIcon name="trash" /></span>
+      <span className="k-row-name">{text}</span>
+    </button>
+  );
 }
 
 /** Label and value between hairlines (w4_me-reset, w4_statements, w4_step-away). A "prose" row is free text from the

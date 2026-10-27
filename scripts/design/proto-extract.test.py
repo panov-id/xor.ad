@@ -24,8 +24,8 @@ def check(name, ok, why):
 
 
 with tempfile.TemporaryDirectory() as tmp:
-    out, shell = Path(tmp, "proto"), Path(tmp, "shell")
-    run = subprocess.run([sys.executable, "-I", str(ROOT / "scripts/design/proto-extract.py"), str(ROOT / "docs/newdesing2"), str(out), str(shell)],
+    out, shell, tokens = Path(tmp, "proto"), Path(tmp, "shell"), Path(tmp, "tokens")
+    run = subprocess.run([sys.executable, "-I", str(ROOT / "scripts/design/proto-extract.py"), str(ROOT / "docs/newdesing2"), str(out), str(shell), str(tokens)],
                          capture_output=True, text=True, cwd=ROOT)
     check("the extract runs clean", run.returncode == 0, run.stdout[-400:] + run.stderr[-400:])
     said = re.search(r"(\d+) of (\d+) screens, (\d+) broken", run.stdout)
@@ -39,9 +39,10 @@ with tempfile.TemporaryDirectory() as tmp:
           f"only fresh {cmp.left_only[:3]}, only held {cmp.right_only[:3]}, differ {cmp.diff_files[:3]}")
     check("app/tokens/themes.css is the extract's tokens.css", (ROOT / "app/tokens/themes.css").read_text() == (out / "tokens.css").read_text(),
           "themes.css drifted from the archives")
-    for gen in ["proto-icons.gen.ts", "proto-art.gen.ts", "proto-motion.gen.css"]:
+    for gen in ["proto-icons.gen.ts", "proto-art.gen.ts"]:
         check(f"app/src/shell/{gen} is the extract's", (ROOT / "app/src/shell" / gen).read_text() == (shell / gen).read_text(), f"{gen} drifted")
-    motion = (shell / "proto-motion.gen.css").read_text()
+    check("app/tokens/proto-motion.gen.css is the extract's", (ROOT / "app/tokens/proto-motion.gen.css").read_text() == (tokens / "proto-motion.gen.css").read_text(), "proto-motion.gen.css drifted")
+    motion = (tokens / "proto-motion.gen.css").read_text()
     names = re.findall(r"@keyframes ([a-zA-Z-]+)", motion)
     check("the prototype's 14 keyframes, each once", len(names) == 14 and len(set(names)) == 14, names)
     check("the press shadow --sh for each of the four themes", all(f':root[data-theme="{th}"] {{ --sh:' in motion for th in ("sea", "plum", "black", "white")), motion[-300:])

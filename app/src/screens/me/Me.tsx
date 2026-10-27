@@ -11,11 +11,9 @@
 // the step-away's own "away" screen (w2_away).
 import { useEffect, useState } from "react";
 import type { Client } from "@sdk/client.ts";
-import { AWAY_ORDER } from "@sdk/limits.ts";
-import { failedLine, label, LANG, nameOf, say } from "../../i18n";
+import { failedLine, label, say } from "../../i18n";
 import { storedPlace } from "../../place";
-import { readChoice } from "../../brands/sosed/theme";
-import { Icon } from "../../shell/Icon";
+import { NdIcon } from "../../shell/NdIcon";
 import { useMinWidth } from "../../shell/useMinWidth";
 import { Screen } from "../../shell/Screen";
 import { TabBar, type Tab } from "../../shell/TabBar";
@@ -24,10 +22,11 @@ import { Blocked } from "./Blocked";
 import { ChangePin } from "./ChangePin";
 import { EditName } from "./EditName";
 import { Hidden } from "./Hidden";
+import { awayValue, HubPage, hubSub, hubTitle } from "./Hubs";
 import { LangPicker } from "./LangPicker";
 import { Legal } from "./Legal";
-import { filterRange, initial, rangeText } from "./me-logic";
-import { Row } from "./parts";
+import { filterRange, rangeText, meParent } from "./me-logic";
+import { Tile } from "./parts";
 import { Place } from "./Place";
 import { PlaceQr } from "./PlaceQr";
 import { Reissue } from "./Reissue";
@@ -35,9 +34,8 @@ import { Reset } from "./Reset";
 import { Statements } from "./Statements";
 import { StepAway } from "./StepAway";
 import { Theme } from "./Theme";
-import { chevronRight } from "../../shell/icons";
 
-export type Sub = "name" | "theme" | "lang" | "filter" | "pin" | "reissue" | "away" | "place" | "place-qr" | "legal" | "statements" | "hidden" | "blocked" | "reset";
+export type Sub = "hub-profile" | "hub-visibility" | "hub-security" | "name" | "theme" | "lang" | "filter" | "pin" | "reissue" | "away" | "place" | "place-qr" | "legal" | "statements" | "hidden" | "blocked" | "reset";
 type Profile = { name: string; age: number; pending?: string; filter_age_min?: number | null; filter_age_max?: number | null };
 
 export function Me({ client, onTab, onClosed, onMove, open: opened = null }: { client: Client; onTab: (tab: Tab) => void; onClosed: () => void; onMove: () => void; open?: Sub | null }) {
@@ -59,15 +57,19 @@ export function Me({ client, onTab, onClosed, onMove, open: opened = null }: { c
     client.blocks().then((rows) => setBlocked(rows.length)).catch(() => setBlocked(null));
     client.statements().then((s) => setRestrictions(s.length)).catch(() => setRestrictions(0));
   }, [refresh]); // eslint-disable-line react-hooks/exhaustive-deps
-  const done = () => { setSub(null); setRefresh((n) => n + 1); };
-  const home = () => setSub(null);
+  // a screen that a hub opened goes back to its hub; the hubs and the rest go back to Me
+  const done = () => { setSub(meParent(sub) as Sub | null); setRefresh((n) => n + 1); };
+  const home = () => setSub(meParent(sub) as Sub | null);
+  const range = profile ? filterRange(profile.age, profile.filter_age_min, profile.filter_age_max) : null;
 
   switch (sub) {
     case "name": return profile ? <EditName client={client} name={profile.pending ?? profile.name} age={profile.age} onDone={done} onBack={home} /> : null;
     case "pin": return <ChangePin client={client} onDone={done} onBack={home} />;
     case "reset": return <Reset client={client} onClosed={onClosed} onBack={home} />;
     case "place": return <Place onChosen={done} onBack={home} onQr={() => setSub("place-qr")} />;
-    case "place-qr": return <PlaceQr place={place} onBack={() => setSub("place")} />;
+    case "place-qr": return <PlaceQr place={place} onBack={home} />;
+    case "hub-profile": case "hub-visibility": case "hub-security":
+      return <HubPage hub={sub.slice(4) as "profile" | "visibility" | "security"} name={profile ? profile.pending ?? profile.name : null} age={profile ? profile.age : null} range={range} hidden={hidden} blocked={blocked} onGo={setSub} onMove={onMove} onBack={() => setSub(null)} />;
     case "theme": return <Theme onBack={home} />;
     case "lang": return <LangPicker onBack={home} />;
     case "legal": return <Legal client={client} onDone={done} onBack={home} />;
@@ -79,46 +81,42 @@ export function Me({ client, onTab, onClosed, onMove, open: opened = null }: { c
     case "reissue": return <Reissue client={client} onDone={done} onBack={home} />;
   }
 
-  const range = profile ? filterRange(profile.age, profile.filter_age_min, profile.filter_age_max) : null;
   return (
-    <Screen name="me" title={label("me.title")} className="me">
-      <div className="me-panel">
-      <header className="me-head"><span className="word">sosed</span><p className="me-title-wide" aria-hidden="true">{label("me.title")}</p></header>
-      <div className="me-sheet me-home">
-        <div className="me-body">
-          <section className="me-hero" aria-label={label("me.name")}>
-            <span className="me-avatar" aria-hidden="true">{profile ? initial(profile.name) : ""}</span>
-            <div className="me-who">
+    <Screen name="me" title={label("me.title")} className="k-screen">
+      <div className="k-col">
+        <section className="k-panel" aria-label={label("me.name")}>
+          <div className="k-row k-me-head">
+            <span className="k-ava-me" aria-hidden="true"><NdIcon name="me" /></span>
+            <div className="k-stack k-who">
               <h1 data-testid="me-name-age">{profile ? `${profile.pending ?? profile.name}, ${profile.age}` : "…"}</h1>
               {/* from the tablet up the place opens from this line: tablet_834_Me draws no place row, so the list keeps the sheet's ten */}
-              <p>{wide
+              <p className="k-meta">{wide
                 ? <button type="button" onClick={() => setSub("place")} data-testid="me-place">{place.chosen ? say("app.me.on_device_at", { place: place.name }) : say("app.me.on_device")}</button>
                 : place.chosen ? say("app.me.on_device_at", { place: place.name }) : say("app.me.on_device")}</p>
             </div>
-            <button type="button" className="me-edit" disabled={!profile} onClick={() => setSub("name")} data-testid="me-name">{say("app.me.edit")}</button>
+            <button type="button" className="k-edit" aria-label={say("app.me.edit")} disabled={!profile} onClick={() => setSub("name")} data-testid="me-name"><NdIcon name="pen" /></button>
+          </div>
+        </section>
+        {error && <section className="k-panel"><p className="k-note" data-tone="error" role="alert" data-testid="error">{error}</p></section>}
+        {restrictions > 0 && (
+          <section className="k-panel k-pad8">
+            <button type="button" className="k-note" role="status" onClick={() => setSub("statements")} data-testid="me-statements">
+              <NdIcon name="flag" /><span>{say("statements.count", { n: restrictions })}</span><NdIcon name="chev" className="k-chev" />
+            </button>
           </section>
-          {error && <p className="k-note k-error" role="alert" data-testid="error">{error}</p>}
-          <nav className="me-rows" aria-label={label("me.title")}>
-            {restrictions > 0 && <Row text={say("statements.count", { n: restrictions })} testid="me-statements" onOpen={() => setSub("statements")} />}
-            <Row text={label("web.theme.item")} value={say(`app.theme.${readChoice()}`)} testid="me-theme" onOpen={() => setSub("theme")} />
-            <Row text={label("web.lang.item")} value={nameOf(LANG)} testid="me-lang" onOpen={() => setSub("lang")} />
-            <Row text={label("web.filter.item")} value={range ? rangeText(range) : "…"} testid="me-filter" onOpen={() => profile && setSub("filter")} />
-            <Row text={label("pin.item")} testid="me-pin" onOpen={() => setSub("pin")} />
-            <Row text={label("reissue.item")} testid="me-reissue" onOpen={() => setSub("reissue")} />
-            <Row text={label("move.item")} testid="me-move" onOpen={onMove} />
-            <Row text={label("away.item")} value={wide ? AWAY_ORDER.map((s) => say(`app.stepaway.${s}`)).join(" · ") : undefined} testid="me-away" onOpen={() => setSub("away")} />
-            <Row text={label("app.me.hidden")} value={hidden === null ? undefined : String(hidden)} testid="me-hidden" onOpen={() => setSub("hidden")} />
-            <Row text={label("app.me.blocked")} value={blocked === null ? undefined : String(blocked)} testid="me-blocked" onOpen={() => setSub("blocked")} />
-            <Row text={label("web.legal.item")} testid="me-legal" onOpen={() => setSub("legal")} />
-            {!wide && <Row text={say("app.place.title")} value={place.chosen ? place.name : undefined} testid="me-place" onOpen={() => setSub("place")} />}
+        )}
+        <section className="k-panel k-grow k-pad8">
+          <nav className="k-hub" aria-label={label("me.title")}>
+            <Tile icon="me" c={1} text={hubTitle("profile")} value={hubSub("profile")} testid="me-hub-profile" onOpen={() => setSub("hub-profile")} />
+            <Tile icon="eye" c={4} text={hubTitle("visibility")} value={hubSub("visibility")} testid="me-hub-visibility" onOpen={() => setSub("hub-visibility")} />
+            <Tile icon="shield" c={5} text={hubTitle("security")} value={hubSub("security")} testid="me-hub-security" onOpen={() => setSub("hub-security")} />
+            <Tile icon="door" c={2} text={label("away.item")} value={wide ? awayValue() : undefined} testid="me-away" onOpen={() => setSub("away")} />
+            <Tile icon="doc" c={1} text={label("web.legal.item")} testid="me-legal" onOpen={() => setSub("legal")} />
+            {!wide && <Tile icon="place" c={6} text={say("app.place.title")} value={place.chosen ? place.name : undefined} testid="me-place" onOpen={() => setSub("place")} />}
           </nav>
-          <button type="button" className="me-row me-danger" onClick={() => setSub("reset")} data-testid="me-reset">
-            <span className="me-row-text"><span className="me-row-name">{label("reset.item")}</span></span><Icon d={chevronRight} className="me-chev" />
-          </button>
-        </div>
+        </section>
+        <TabBar active="me" onSelect={onTab} />
       </div>
-      </div>
-      <TabBar active="me" onSelect={onTab} />
     </Screen>
   );
 }

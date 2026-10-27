@@ -6,11 +6,10 @@
 import { type ReactNode, useEffect, useId, useState } from "react";
 import { addVenue, bareCode, CODE_LENGTH, codeReady, orderEnvelope, placeFrom, RADII, refusalMessage, type Refusal, type Venue, venues, venueState, venueStep, verify } from "@sdk/cabinet.ts";
 import { say, sayCount } from "../../i18n";
-import { Icon } from "../../shell/Icon";
-import { check, tag } from "../../shell/icons";
+import { NdIcon } from "../../shell/NdIcon";
+import { plus, tag } from "../../shell/icons";
 import { Cells, Field } from "../register-parts";
 import { ErrorLine, Row } from "../me/parts";
-import { mail, plus } from "./icons";
 import { Frame } from "./parts";
 
 const notTaken = (status: number) => say("web.cabinet.notTaken", { status });
@@ -59,28 +58,31 @@ function VenueCard({ venue, onChanged }: { venue: Venue; onChanged: () => void }
     }
   }
   return (
-    <section className="cb-venue" data-testid="venue" data-status={state}>
-      <div className="cb-card">
-        <div className="cb-card-top">
-          <h2 data-testid="venue-name">{venue.name}</h2>
-          <span className="cb-chip" data-state={state} data-testid="venue-status">{say(`app.cabinet.status.${state}`)}</span>
+    <section className="k-stack" data-testid="venue" data-status={state}>
+      <div className="k-tile">
+        <div className="k-row">
+          <span className="k-badge k-badge-row" data-c="4" aria-hidden="true"><NdIcon name="store" /></span>
+          <div className="k-stack k-row-text">
+            <h2 className="k-row-name" data-testid="venue-name">{venue.name}</h2>
+            <p className="k-meta" data-testid="venue-line">{venueLine(venue)}</p>
+          </div>
+          <span className="k-state" data-state={state} data-testid="venue-status">{say(`app.cabinet.status.${state}`)}</span>
         </div>
-        <p className="cb-card-line" data-testid="venue-line">{venueLine(venue)}</p>
         {step === "code" && (
-          <div className="cb-code">
-            <label htmlFor={id}>{say("app.cabinet.code_label")}</label>
+          <div className="k-field-wrap">
+            <label htmlFor={id} className="k-sub">{say("app.cabinet.code_label")}</label>
             <Cells id={id} text={say("app.cabinet.code_label")} value={code} size={CODE_LENGTH} onChange={(v) => setCode(bareCode(v))} testid="venue-code" invalid={wrong !== null} />
           </div>
         )}
       </div>
       {step === "code" && (
-        <button type="button" className="cb-btn" aria-disabled={codeReady(code) && !busy ? undefined : true} onClick={() => void confirm()} data-testid="venue-verify">
-          <Icon d={check} /><span>{say("app.cabinet.confirm")}</span>
+        <button type="button" className="k-btn" data-primary="" aria-disabled={codeReady(code) && !busy ? undefined : true} onClick={() => void confirm()} data-testid="venue-verify">
+          <NdIcon name="check" /><span>{say("app.cabinet.confirm")}</span>
         </button>
       )}
       {step === "order" && (
-        <button type="button" className="cb-btn" aria-disabled={busy || undefined} onClick={() => void order()} data-testid="venue-envelope">
-          <Icon d={mail} /><span>{say("app.cabinet.order")}</span>
+        <button type="button" className="k-btn" data-primary="" aria-disabled={busy || undefined} onClick={() => void order()} data-testid="venue-envelope">
+          <NdIcon name="send" /><span>{say("app.cabinet.order")}</span>
         </button>
       )}
       <ErrorLine text={wrong} />
@@ -128,16 +130,16 @@ export function AddVenue({ strip, onDone }: { strip: ReactNode; onDone: () => vo
   }
   return (
     <Frame name="cabinet-add-venue" title={say("app.cabinet.add_venue")} strip={strip}
-      foot={<button type="button" className="cta cta-primary" aria-disabled={ready ? undefined : true} aria-busy={busy || undefined} onClick={() => void go()} data-testid="venue-add"><Icon d={plus} /><span>{say("app.cabinet.add")}</span></button>}>
-      <Field text={say("app.cabinet.name")} value={name} onChange={setName} testid="venue-name-input" autoComplete="off" />
-      <Field text={say("app.cabinet.address")} value={address} onChange={setAddress} testid="venue-address" autoComplete="street-address" />
-      <Field text={say("app.cabinet.point")} value={point} onChange={setPoint} testid="venue-point" autoComplete="off" />
+      foot={<button type="button" className="k-cta" aria-disabled={ready ? undefined : true} aria-busy={busy || undefined} onClick={() => void go()} data-testid="venue-add"><NdIcon name="plus" /><span>{say("app.cabinet.add")}</span></button>}>
+      <Field icon="store" text={say("app.cabinet.name")} value={name} onChange={setName} testid="venue-name-input" autoComplete="off" />
+      <Field icon="place" text={say("app.cabinet.address")} value={address} onChange={setAddress} testid="venue-address" autoComplete="street-address" />
+      <Field icon="place" text={say("app.cabinet.point")} value={point} onChange={setPoint} testid="venue-point" autoComplete="off" />
       <div className="k-chips" role="radiogroup" aria-label={say("app.cabinet.radius")}>
         {RADII.map((r) => (
           <button key={r} type="button" role="radio" aria-checked={r === radius} className="k-pick-chip" onClick={() => setRadius(r)} data-testid={`venue-radius-${r}`}>{say("app.cabinet.metres", { m: r })}</button>
         ))}
       </div>
-      <p className="cb-hint">{say("web.cabinet.unverifiedNote")}</p>
+      <p className="k-meta">{say("web.cabinet.unverifiedNote")}</p>
       <ErrorLine text={refused} />
     </Frame>
   );

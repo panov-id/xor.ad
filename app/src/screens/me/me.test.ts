@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { ageBand } from "../../../../depth/core/limits.ts";
-import { along, awayRows, countryName, dayMonth, filterPatch, filterRange, initial, moveHandle, noTop, rangeText, revisionDay } from "./me-logic.ts";
+import { along, awayRows, countryName, dayMonth, filterPatch, filterRange, initial, meParent, moveHandle, noTop, rangeText, revisionDay } from "./me-logic.ts";
 
 test("ageBand: ±2 from 13 up to 20, an open top from 21 with the bottom at most 21", () => {
   assert.deepEqual(ageBand(13), { low: 13, high: 15 });
@@ -67,12 +67,26 @@ test("countryName and initial", () => {
   assert.equal(initial(""), "?");
 });
 
-// Crowd run flow-1026-110213: at 320 «Изменить» was cut to «Измени» — the button had the sheet's fixed 55.7 px, sized for
-// «Edit». The overlap measure does not see text cut inside a box, so the rule is checked here: the label sets the width.
-test("«Edit» on Me is as wide as its label in every language, the sheet's width only a floor", () => {
-  const css = readFileSync(new URL("./me.css", import.meta.url), "utf8");
-  const rule = /\.me-edit \{([^}]*)\}/.exec(css)?.[1] ?? "";
-  assert.match(rule, /width: auto/, "«Edit» has a fixed width: a longer word is cut");
-  assert.match(rule, /min-width: var\(--me-edit-w\)/, "«Edit» lost the sheet's width as its floor");
-  assert.match(rule, /white-space: nowrap/, "«Edit» may break into two lines inside the pill");
+// Crowd run flow-1026-110213: at 320 «Изменить» was cut to «Измени» (a fixed-width text button). The prototype's «edit» is a
+// round pen button with an aria-label (me.html), so no word can be cut; the rule is kept in kit.css as .k-edit and checked here.
+test("«Edit» on Me is the prototype's round pen button: .k-edit in kit.css is 48 round, and Me.tsx labels it", () => {
+  const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
+  const rule = /\.k-edit \{([^}]*)\}/.exec(css)?.[1] ?? "";
+  assert.match(rule, /width: 48[p]x; height: 48[p]x/, ".k-edit lost the prototype's 48 circle");
+  assert.match(rule, /border-radius: 50%/, ".k-edit is no longer round");
+  const me = readFileSync(new URL("./Me.tsx", import.meta.url), "utf8");
+  assert.match(me, /className="k-edit" aria-label=\{say\("app\.me\.edit"\)\}/, "Me.tsx: the pen button has no label");
+});
+
+test("meParent: Back from a sub-page lands on the hub that holds its tile", () => {
+  const want: Record<string, string | null> = { name: "hub-profile", theme: "hub-profile", lang: "hub-profile", filter: "hub-visibility",
+    hidden: "hub-visibility", blocked: "hub-visibility", pin: "hub-security", reissue: "hub-security", reset: "hub-security",
+    "place-qr": "place", away: null, legal: null, statements: null, place: null };
+  for (const [sub, hub] of Object.entries(want)) assert.equal(meParent(sub), hub, `Back from ${sub} goes to ${meParent(sub)}, not ${hub}`);
+});
+
+test("Reset: six digits typed before the counts came are sent when the counts come", () => {
+  const src = readFileSync(new URL("./Reset.tsx", import.meta.url), "utf8");
+  assert.ok(/useEffect\(\(\) => \{ if \(counts !== null && pin\.length === PIN_LENGTH && !busy\) void send\(pin\); \}, \[counts\]\)/.test(src),
+    "Reset.tsx: no effect on [counts] that sends a full PIN — six digits typed early are never sent");
 });

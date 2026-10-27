@@ -6,7 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { failedLine, label, say } from "../../i18n";
 import { type HiddenRow, lifted, titled, without } from "./lists-logic";
-import { ErrorLine, refusedStatus, Row, SubPage } from "./parts";
+import { NdIcon } from "../../shell/NdIcon";
+import { textSize } from "../feed-logic";
+import { ErrorLine, refusedStatus, SubPage } from "./parts";
+
+const KIND_ICON: Record<string, string> = { alone: "alone", company: "friends", friends: "friends", party: "party" };
+const KIND_COLOUR: Record<string, number> = { alone: 1, company: 2, friends: 2, party: 5 };
 
 export function Hidden({ client, onBack }: { client: Client; onBack: () => void }) {
   const [rows, setRows] = useState<HiddenRow[] | null>(null);
@@ -23,15 +28,25 @@ export function Hidden({ client, onBack }: { client: Client; onBack: () => void 
       .finally(() => { sending.current = false; });
   }
   const title = rows ? say("app.hidden.title", { n: rows.length }) : titled(label("web.feed.hidden"), rows);
+  // the prototype's hidden.html: two columns of the phrases' tiles (the author's circle, the mode's badge, the words), «Return» as the round button at the foot
   return (
-    <SubPage name="hidden" title={title} onBack={onBack}>
+    <SubPage name="hidden" title={title} onBack={onBack} bare>
       {rows && rows.length > 0 && (
-        <div className="me-rows" data-testid="hidden-list">
-          {rows.map((row) => <Row key={row.id} text={row.text} value={label("web.feed.hidden_undo")} testid="hidden-restore" onOpen={() => bringBack(row.id)} />)}
+        <div className="k-me-cards" data-testid="hidden-list">
+          {rows.map((row) => (
+            <article className="k-tile k-me-card" key={row.id}>
+              <span className="k-ava" aria-hidden="true"><NdIcon name="me" /></span>
+              <span className="k-badge" data-c={KIND_COLOUR[row.kind] ?? 2} aria-hidden="true"><NdIcon name={KIND_ICON[row.kind] ?? "phrase"} /></span>
+              <p className="k-words k-me-words" data-size={textSize(row.text)}>{row.text}</p>
+              <div className="k-foot k-me-foot">
+                <button type="button" className="k-round" aria-label={label("web.feed.hidden_undo")} title={label("web.feed.hidden_undo")} onClick={() => bringBack(row.id)} data-testid="hidden-restore"><NdIcon name="refresh" /></button>
+              </div>
+            </article>
+          ))}
         </div>
       )}
-      {rows?.length === 0 && !error && <p className="k-sub" data-testid="hidden-empty">{label("hidden.empty")}</p>}
-      {rows && rows.length > 0 && <p className="k-sub" data-testid="hidden-hint">{say("app.hidden.hint")}</p>}
+      {rows?.length === 0 && !error && <p className="k-sub k-me-plain" data-testid="hidden-empty">{label("hidden.empty")}</p>}
+      {rows && rows.length > 0 && <p className="k-sub k-me-plain" data-testid="hidden-hint">{say("app.hidden.hint")}</p>}
       <ErrorLine text={error} />
     </SubPage>
   );

@@ -109,9 +109,9 @@ test("a failed step keeps Playwright's whole message in the journal", () => {
 test("a move try fits the board: the word only by word-go, a fleet first, another card after a refusal", () => {
   const move = /async function tryMove[\s\S]*?\n}\n/.exec(crowd)?.[0] ?? "";
   assert.match(move, /form\.tg-set:has\(\[data-testid="word-go"\]\) input/, "tryMove() fills any .tg-set input with the word");
-  assert.match(move, /sea-fleet-input[\s\S]*?getAttribute\("placeholder"\)[\s\S]*?sea-fleet-go/, "tryMove() does not place the battleship fleet");
+  assert.match(move, /locator\('\[data-testid="sea-fleet-go"\]:enabled'\)[\s\S]*?await fleet\.click\(\)/, "tryMove() does not send the dealt battleship fleet");
   assert.match(move, /answer !== 200; k\+\+/, "tryMove() stops at the first refused move");
-  assert.match(move, /tg-pc\[data-stand="mine"\][\s\S]*?tg-pc\[data-reach\][\s\S]*?cell\.click[^;]*;\s*await cell\.click/, "tryMove() does not tap chapayev's piece, its aim and the aim again");
+  assert.match(move, /tg-pc\[data-stand="mine"\][\s\S]*?tg-pc\[data-reach\][\s\S]*?cell\.click[^;]*;\s*await pg\.click\('\[data-testid="flick-go"\]:enabled'/, "tryMove() does not tap chapayev's piece, its aim and then the foot's flick tile");
   const phys = readFileSync(new URL("../../app/src/screens/tables/boards-physics.tsx", here), "utf8");
   assert.match(phys, /if \(aim !== id\) return setAim\(id\);\s*onMove\(\{ flick \}\)/, "chapayev no longer flicks on the second tap at the aim: look again how the crowd moves");
   assert.match(move, /\.tg-actions button:enabled/, "tryMove() presses only the board, not the buttons under it (poker's bets, durak's take)");
@@ -120,7 +120,7 @@ test("a move try fits the board: the word only by word-go, a fleet first, anothe
   assert.match(move, /why = j\?\.error\?\.code/, "a refused move is journalled without the node's reason");
   assert.match(move, /moves \$\{answer\} \$\{why\}/, "the reason is read but not written to the journal");
   const sea = readFileSync(new URL("../../app/src/screens/tables/boards-sea.tsx", here), "utf8");
-  assert.match(sea, /placeholder=\{FLEET_EXAMPLE\}[\s\S]*data-testid="sea-fleet-input"/, "boards-sea.tsx no longer shows a valid fleet as the placeholder");
+  assert.match(sea, /useState\(\(\) => randomFleet\(\)\)[\s\S]*onMove\?\.\(\{ fleet \}\)\} data-testid="sea-fleet-go"/, "boards-sea.tsx no longer deals the fleet that «Fleet ready» sends: the crowd's press would send nothing");
 });
 
 // Review 26.10 (security lens): /tables, /feed and /likes share one read bucket on the node; a look every 15 s took 240 of 300.
@@ -221,4 +221,69 @@ test("tab() presses the rail of an open phrase, not the feed's under it", () => 
   assert.match(fn, /\(\(await top\.count\(\)\) \? top : pg\.locator\(sel\)\)\.first\(\)\.click/, "tab() presses the first rail whatever lies over it");
   const wide = readFileSync(new URL("../../app/tokens/wide.css", here), "utf8");
   assert.match(wide, /\.fd-screen\s*>\s*\.tabbar/, "wide.css no longer gives the phrase a rail: look again whether tab() needs it");
+});
+
+test("a Me row the crowd clicks is reached through its hub (app/src/screens/me/Hubs.tsx)", () => {
+  const hubs = readFileSync(new URL("../../app/src/screens/me/Hubs.tsx", here), "utf8");
+  const inHub = new Map();
+  for (const m of hubs.matchAll(/hub === "([a-z]+)" && \(([\s\S]*?)(?=hub === "|<\/nav>)/g))
+    for (const t of m[2].matchAll(/testid="([a-z-]+)"/g)) inHub.set(t[1], m[1]);
+  assert.ok(inHub.size >= 9, `Hubs.tsx gave ${inHub.size} rows: the parse no longer finds the hubs`);
+  const lines = crowd.split("\n"), bad = [];
+  let clicked = 0;
+  lines.forEach((line, i) => {
+    for (const c of line.matchAll(/click\('\[data-testid="([a-z-]+)"\]'\)/g)) {
+      const hub = inHub.get(c[1]);
+      if (!hub) continue;
+      clicked++;
+      const before = lines.slice(Math.max(0, i - 2), i).join("\n") + line.slice(0, c.index);
+      if (!before.includes(`data-testid="me-hub-${hub}"`)) bad.push(`crowd.mjs:${i + 1} ${c[1]} without me-hub-${hub}`);
+    }
+  });
+  assert.ok(clicked > 0, "the crowd clicks no hub row: the parse no longer finds the clicks");
+  assert.deepEqual(bad, [], `${clicked - bad.length} of ${clicked} hub rows reached through the hub`);
+});
+
+test("the crowd opens the place map before dragging it (Place.tsx: the map is behind place-map-open)", () => {
+  const place = readFileSync(new URL("../../app/src/screens/me/Place.tsx", here), "utf8");
+  assert.match(place, /data-testid="place-map-open"|testid="place-map-open"/, "Place.tsx has no place-map-open: look again how the map opens");
+  const open = crowd.indexOf(`click('[data-testid="place-map-open"]')`), drag = crowd.indexOf(`locator('[data-testid="place-map"]')`);
+  assert.ok(drag > 0, "the crowd no longer drags the map");
+  assert.ok(open > 0 && open < drag, "the crowd drags place-map without opening it first");
+});
+
+// The game turn buttons moved into the table foot's slot (app/src/screens/tables/foot-slot.tsx, Table.tsx .k-tb-acts):
+// the crowd's button locator must reach that slot, read from Table.tsx, or backgammon and dominoes make no move.
+test("the crowd's turn-button locator reaches the table foot's slot", () => {
+  const table = readFileSync(new URL("../../app/src/screens/tables/Table.tsx", here), "utf8");
+  const slot = /className="([^"]+)" ref=\{setSlot\}/.exec(table)?.[1];
+  assert.ok(slot, "Table.tsx: no foot slot found");
+  const loc = /const btns = pg\.locator\('([^']+)'\);/.exec(crowd)?.[1] ?? "";
+  assert.ok(loc.includes(`.${slot} button:enabled`), `crowd.mjs: the move buttons' locator misses .${slot} (the table foot's slot)`);
+});
+
+// chapayev: the crowd flicks with the foot's tile, the one boards-physics.tsx draws (read from the board's source)
+test("crowd flicks chapayev with the board's flick tile", () => {
+  const board = readFileSync(new URL("../../app/src/screens/tables/boards-physics.tsx", import.meta.url), "utf8");
+  const id = board.match(/data-testid="(flick-[a-z]+)"[^>]*>\s*<NdIcon/)?.[1];
+  assert.ok(id, "boards-physics.tsx has no flick tile");
+  const crowd = readFileSync(new URL("./crowd.mjs", import.meta.url), "utf8");
+  assert.ok(crowd.includes(`[data-testid="${id}"]`), `crowd.mjs never presses ${id}: chapayev moves stay unplayed`);
+});
+
+// 27.10 crowd: on 1440 and 1920 the empty right pane covered «New table» of the kit's tables list; the list must end before it
+test("the tables list ends before the right pane on wide screens", () => {
+  const wide = readFileSync(new URL("../../app/tokens/wide.css", import.meta.url), "utf8");
+  const tables = readFileSync(new URL("../../app/src/screens/tables/Tables.tsx", import.meta.url), "utf8");
+  assert.match(tables, /<Screen name="tables"[^>]*className="k-screen"/, "Tables.tsx is no longer the k-screen «tables»: look again what the pane covers");
+  assert.match(wide, /\.screen\.k-screen\[data-screen="tables"\] \{[^}]*padding-right: calc\(100% - var\(--panel-left\) - var\(--panel-w\)\)/, "wide.css: the tables list runs under the right pane, «New table» cannot be pressed");
+});
+
+// owner 14.10 and 25.10.2026: the crowd lives in Limassol only, so the owner can look in on the local stand
+test("the crowd lives in Limassol only", () => {
+  const towns = /const TOWNS = \[([\s\S]*?)\n\];/.exec(crowd)?.[1] ?? "";
+  const names = [...towns.matchAll(/\["[^"]+", "([^"]+)"\]/g)].map((m) => m[1]);
+  assert.equal(names.length, 10, `TOWNS has ${names.length} people, not 10`);
+  const other = names.filter((n) => n !== "Limassol");
+  assert.deepEqual(other, [], `the crowd lives outside Limassol: ${other.join(", ")} (${10 - other.length} of 10 in Limassol)`);
 });

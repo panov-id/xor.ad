@@ -8,9 +8,10 @@ where every colour that changes with the theme is the token whose four values ma
 index.json (id, zone, title, english words). A theme colour with no token in the archive (the scene's, the shadows') gets one of its own, --pc-<n>, defined per theme
 at the end of tokens.css, so no screen keeps a theme's literal colour.
 
-Usage: proto-extract.py [archives] [out dir] [app shell dir]
+Usage: proto-extract.py [archives] [out dir] [app shell dir] [app tokens dir]
   archives: docs/newdesing2 (the four sosed-<theme>-*.zip) by default, or a folder of the four unpacked archives;
-  out: docs/newdesign/proto; app shell dir: app/src/shell (proto-icons.gen.ts, proto-art.gen.ts, proto-motion.gen.css).
+  out: docs/newdesign/proto; app shell dir: app/src/shell (proto-icons.gen.ts, proto-art.gen.ts);
+  app tokens dir: app/tokens (proto-motion.gen.css: keyframes carry px, and raw px live only in app/tokens).
 """
 import json, re, sys, zipfile
 from pathlib import Path
@@ -44,6 +45,7 @@ def norm(c: str) -> str:
 def main() -> int:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else "docs/newdesing2"); out = Path(sys.argv[2] if len(sys.argv) > 2 else "docs/newdesign/proto"); out.mkdir(parents=True, exist_ok=True)
     shell = Path(sys.argv[3] if len(sys.argv) > 3 else "app/src/shell"); shell.mkdir(parents=True, exist_ok=True)
+    tokens = Path(sys.argv[4] if len(sys.argv) > 4 else "app/tokens"); tokens.mkdir(parents=True, exist_ok=True)
     data = {th: load(root, th) for th in THEMES}
     toks = {th: token_values(data[th]["tokens"], th) for th in THEMES}
     by_tuple = {}
@@ -104,7 +106,7 @@ def main() -> int:
     sh = re.findall(r"--sh:\s*([0-9]+,\s*[0-9]+,\s*[0-9]+)", data["plum"]["html"])
     if len(sh) != len(THEMES): broken.append(f"--sh: {len(sh)} values for {len(THEMES)} themes")
     press_shadow = "".join(f':root[data-theme="{th}"] {{ --sh: {v}; }}\n' for th, v in zip(THEMES, sh))
-    app_motion = shell / "proto-motion.gen.css"
+    app_motion = tokens / "proto-motion.gen.css"
     app_motion.write_text("/* The prototype's keyframes, verbatim (scripts/design/proto-extract.py). Do not edit by hand; app/tokens/motion.css\n"
                           "   says which element runs which. */\n" + "\n".join(frames["plum"]) + "\n" + press_shadow)
     print(f"proto-extract: {len(frames['plum'])} keyframes -> {app_motion}")

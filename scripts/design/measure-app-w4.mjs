@@ -196,8 +196,19 @@ async function registerFull(page) {   // the splash to the feed, the way a perso
 }
 const want = (n) => ONLY.length === 0 || ONLY.includes(n);
 const shot = async (page, n) => { if (GEOMETRY) await page.screenshot({ path: `${SHOTS}/w4_${n}.png` }); };
-const enter = async (page, testid, screenName) => { await page.click(`[data-testid="${testid}"]`); await page.waitForSelector(`[data-screen="${screenName}"]`, { timeout: 20000 }); };
-const leave = async (page, screenName) => { await page.click(`[data-testid="${screenName}-back"]`); await page.waitForSelector('[data-screen="me"]', { timeout: 20000 }); };
+// Me rows that sit inside a hub (app/src/screens/me/Hubs.tsx): enter clicks the hub first, leave goes back through it
+const HUB = { "me-theme": "profile", "me-lang": "profile", "me-filter": "visibility", "me-hidden": "visibility", "me-blocked": "visibility", "me-pin": "security", "me-reissue": "security", "me-move": "security", "me-reset": "security" };
+let inHub = null;
+const enter = async (page, testid, screenName) => {
+  inHub = HUB[testid] ?? null;
+  if (inHub) { await page.click(`[data-testid="me-hub-${inHub}"]`); await page.waitForSelector(`[data-screen="me-${inHub}"]`, { timeout: 20000 }); }
+  await page.click(`[data-testid="${testid}"]`); await page.waitForSelector(`[data-screen="${screenName}"]`, { timeout: 20000 });
+};
+const leave = async (page, screenName) => {
+  await page.click(`[data-testid="${screenName}-back"]`);
+  if (inHub) { await page.waitForSelector(`[data-screen="me-${inHub}"]`, { timeout: 20000 }); await page.click(`[data-testid="me-${inHub}-back"]`); inHub = null; }
+  await page.waitForSelector('[data-screen="me"]', { timeout: 20000 });
+};
 // the frame every sub-page shares: the sheet's top-left, the title
 async function frame(page, scr, S) {
   compare(scr, "sheet left,top", [S.shapes[1].x, S.shapes[1].y], (await box(page, ".me-sheet")).slice(0, 2));
@@ -362,12 +373,12 @@ if (want("theme")) {
   compare(scr, "light tile", shapeOf(sh[6]), await box(page, '[data-testid="theme-light"]'));
   compare(scr, "light swatch", shapeOf(sh[7]), await box(page, '[data-testid="theme-light"] .me-swatch'));
   compare(scr, "dark tile", shapeOf(sh[8]), await box(page, '[data-testid="theme-dark"]'));
-  left(scr, "auto", S.lines[1], await line(page, '[data-testid="theme-auto"] .me-theme-name'));
-  left(scr, "auto sub", S.lines[2], await line(page, '[data-testid="theme-auto"] .me-theme-sub'));
-  left(scr, "dusk", S.lines[3], await line(page, '[data-testid="theme-dusk"] .me-theme-name'));
-  left(scr, "dusk sub", S.lines[4], await line(page, '[data-testid="theme-dusk"] .me-theme-sub'));
-  left(scr, "light", S.lines[5], await line(page, '[data-testid="theme-light"] .me-theme-name'));
-  left(scr, "dark", S.lines[6], await line(page, '[data-testid="theme-dark"] .me-theme-name'));
+  left(scr, "auto", S.lines[1], await line(page, '[data-testid="theme-auto"] .k-row-name'));
+  left(scr, "auto sub", S.lines[2], await line(page, '[data-testid="theme-auto"] .k-meta'));
+  left(scr, "dusk", S.lines[3], await line(page, '[data-testid="theme-dusk"] .k-row-name'));
+  left(scr, "dusk sub", S.lines[4], await line(page, '[data-testid="theme-dusk"] .k-meta'));
+  left(scr, "light", S.lines[5], await line(page, '[data-testid="theme-light"] .k-row-name'));
+  left(scr, "dark", S.lines[6], await line(page, '[data-testid="theme-dark"] .k-row-name'));
   left(scr, "kept", S.lines[7], await line(page, ".me-kept"));
   note((await page.getAttribute('[data-testid="theme-dusk"]', "aria-checked")) === "true", "theme: Dusk is the chosen tile");
   await overflowAt(page, scr, 390); await shot(page, scr);
@@ -480,7 +491,7 @@ if (want("age-filter")) {
   const S = sheet("age-filter"), sh = S.shapes, scr = "age-filter";
   await enter(page, "me-filter", "age-filter"); await settle(page);
   await frame(page, scr, S);
-  compare(scr, "card", shapeOf(sh[2]), await box(page, ".me-filter"));
+  compare(scr, "card", shapeOf(sh[2]), await box(page, ".k-range"));
   const tr = await box(page, ".me-track");
   compare(scr, "track", shapeOf(sh[3]), [tr[0], tr[1] + (tr[3] - sh[3].h) / 2, tr[2], sh[3].h]);
   compare(scr, "fill", shapeOf(sh[4]), await box(page, ".me-fill"));
@@ -493,7 +504,7 @@ if (want("age-filter")) {
   left(scr, "lead", S.lines[2], await line(page, ".me-lead"));
   left(scr, "from", S.lines[3], await line(page, ".me-ends span", 0));
   right(scr, "to", S.lines[4], await line(page, ".me-ends span", 1));
-  left(scr, "note", S.lines[5], await line(page, ".me-filter-note"));
+  left(scr, "note", S.lines[5], await line(page, ".k-note span"));
   await fonts(page, scr, [["title", ".me-title"], ["ends", ".me-ends span"]]);
   await overflowAt(page, scr, 390); await shot(page, scr);
   // walk: a handle moved by the keyboard; once it rests the pair goes to the node

@@ -1,10 +1,12 @@
 // Chapayev (sheet w3_table-chapayev): the 8×8 on the bare panel, my pieces lime at my edge. A tap on a piece of mine takes it
-// up, a tap on a cell along a row, a column or a diagonal aims at it (an arrow from the piece), the same cell again flicks
-// ({flick: {piece, dir, power}}); the node knows where the piece ends. Testids: chapayev, pc-<x:y>, aim.
+// up, a tap on a cell along a row, a column or a diagonal aims at it (an arrow from the piece), the same cell again or the foot's «flick» tile
+// flicks ({flick: {piece, dir, power}}); the node knows where the piece ends. Testids: chapayev, pc-<x:y>, aim.
 import { useState } from "react";
-import { flickTo, physicsOf } from "../../../../depth/core/tables_physics.ts";
+import { FLICK_MAX, flickTo, physicsOf } from "../../../../depth/core/tables_physics.ts";
+import { NdIcon } from "../../shell/NdIcon";
 import { say } from "../../i18n";
 import type { BoardProps } from "./boards";
+import { InFoot } from "./foot-slot";
 import { aimLine, chapayevCells, seatIndex } from "./chapayev-logic";
 
 export function ChapayevBoard({ state, seat, seats, onMove }: BoardProps) {
@@ -24,7 +26,22 @@ export function ChapayevBoard({ state, seat, seats, onMove }: BoardProps) {
     setPiece(null); setAim(null);
   };
   const line = piece && aim ? aimLine(piece, aim, n) : null;
+  const flick = piece && aim ? flickTo(piece, aim) : null;
+  const fire = () => { if (!flick || !onMove) return; onMove({ flick }); setPiece(null); setAim(null); };
   return (
+    <>
+    {onMove && (
+      // chapayev-turn: the foot holds the power bar (the aim's distance of FLICK_MAX) and the «flick» tile
+      <InFoot>
+        <div className="k-tb-flick">
+          <span className="k-tb-power" role="meter" aria-label={say("web.table.power")} aria-valuemin={0} aria-valuemax={FLICK_MAX} aria-valuenow={flick?.power ?? 0}
+            data-testid="flick-power">
+            {Array.from({ length: FLICK_MAX }, (_, i) => <span key={i} style={{ "--i": i } as React.CSSProperties} data-on={i < (flick?.power ?? 0) || undefined} />)}
+          </span>
+          <button type="button" className="k-cta" disabled={!flick} onClick={fire} data-testid="flick-go"><NdIcon name="chev" /><span>{say("web.table.flick")}</span></button>
+        </div>
+      </InFoot>
+    )}
     <div className="tg-chapayev" role="group" aria-label={say("web.table.board")} data-testid="chapayev">
       {chapayevCells(p, seat, n).map((c) => (
         <button key={c.id} type="button" className="tg-pc" data-stand={c.stand} data-picked={c.id === piece || undefined} data-aim={c.id === aim || undefined}
@@ -40,5 +57,6 @@ export function ChapayevBoard({ state, seat, seats, onMove }: BoardProps) {
         </svg>
       )}
     </div>
+    </>
   );
 }

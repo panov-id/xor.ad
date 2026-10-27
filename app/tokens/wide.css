@@ -83,8 +83,6 @@
     --ch-side: 19.9px; --ch-side-end: 19.9px; --ch-head-h: 79.9px; --ch-avatar-x: 19.9px; --ch-avatar-y: 20px; --ch-avatar: 48px;
     --ch-who-x: 81.2px; --ch-name-base: 42px; --ch-line-base: 62px; --ch-ring-end: 19.9px; --ch-ring-y: 22px; --ch-ring: 44px; --ch-pad-top: 13px;
     --ch-foot-bottom: 19.9px; --ch-field-gap: 12px; --ch-chip-pad: 13.5px; }
-  .ch-pane .ch-sheet { background: none; border-radius: 0; border-top: 1px solid var(--c-panel); margin-inline: var(--ch-side); }
-  .ch-pane .ch-lines, .ch-pane .ch-foot { padding-inline: 0; }
 
   /* the tables (tablet_834_Tables, the w3 wave's list): «New table» at the head's right, «Playing now» in two columns,
      «Start a game» six tiles in three; the phone's column grows to the sheet (the rows 380.7, the tiles 249.8).
@@ -242,7 +240,6 @@
   .ch.ch-pane {
     --ch-side: 22px; --ch-side-end: 22px; --ch-avatar-x: 22px; --ch-avatar-y: 21.9px; --ch-avatar: 47.9px; --ch-who-x: 83.2px; --ch-name-base: 43.9px;
     --ch-line-base: 63.9px; --ch-ring-end: 21.9px; --ch-ring-y: 23.9px; --ch-foot-bottom: 22px; --ch-field-gap: 11.9px; --ch-head-h: 80.8px; }
-  .ch-pane .ch-sheet { border-top: 0; }
 }
 
 /* ── desktop, the tables (desktop_1440_Tables; its own block: the talks' pane and the 1920 rules above are wide2's) ──
@@ -250,6 +247,9 @@
    «New table» at the head's right, «Playing now» in two columns of 345.6, «Start a game» six tiles of 226.7 in three.
    .tb.tb: tables.css loads after this file */
 @media (min-width: 1440px) {
+  /* the kit's tables list (Tables.tsx, k-screen) ends where the right pane begins: the empty pane (EmptyPane.tsx) is fixed
+     over the right side, and «New table» at the head's right lay under it — a click hit the pane (crowd 27.10, 1440 and 1920) */
+  .screen.k-screen[data-screen="tables"] { box-sizing: border-box; padding-right: calc(100% - var(--panel-left) - var(--panel-w)); }
   .tb.tb { height: 100dvh; min-height: 0; }
   .tb.tb > .tabbar { display: flex; }
   .tb.tb .tb-head { position: absolute; left: var(--panel-left); top: var(--panel-top); width: var(--panel-w); height: 125.84px; margin: 0; padding: 0 var(--panel-side); z-index: 1;

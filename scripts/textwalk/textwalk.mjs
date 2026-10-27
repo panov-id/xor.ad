@@ -143,6 +143,10 @@ async function look(p, step) {
   console.log("  layout: " + s.layout);
 }
 const t = (p, id) => p.getByTestId(id);
+// Me keeps its tiles in three hubs (Hubs.tsx): open the hub first when the tile is not on screen
+const HUB = { "me-filter": "me-hub-visibility", "me-hidden": "me-hub-visibility", "me-blocked": "me-hub-visibility",
+  "me-theme": "me-hub-profile", "me-reissue": "me-hub-security", "me-move": "me-hub-security", "me-pin": "me-hub-security" };
+const meTile = async (p, id) => { await p.locator(`[data-testid="${id}"], [data-testid="${HUB[id]}"]`).first().waitFor(); if (!(await t(p, id).isVisible())) await t(p, HUB[id]).click(); return t(p, id); };
 const step = async (name, fn) => { try { await fn(); } catch (e) { console.log(`\n!! STEP FAILED: ${name}: ${String(e).split("\n")[0]}`); } };
 
 const anya = await phone("Аня", "ru-RU", false);
@@ -288,16 +292,16 @@ await step("me", async () => {
 });
 await step("age filter", async () => {
   // F20 (age-filter.spec.ts): the handles inside the band, saved, opened again on what was saved, then the open edge back.
-  await t(anya, "tab-me").click(); await t(anya, "me-filter").click(); await anya.locator('[data-screen="age-filter"]').waitFor(); await look(anya, "возрастной фильтр, как есть");
+  await t(anya, "tab-me").click(); await (await meTile(anya, "me-filter")).click(); await anya.locator('[data-screen="age-filter"]').waitFor(); await look(anya, "возрастной фильтр, как есть");
   await t(anya, "filter-from").fill("30"); await t(anya, "filter-to").fill("40"); await look(anya, "фильтр 30 — 40");
   await t(anya, "filter-save").click(); await anya.locator('[data-screen="me"]').waitFor({ timeout: 15000 });
-  await t(anya, "me-filter").click(); await look(anya, "фильтр открыт заново");
+  await (await meTile(anya, "me-filter")).click(); await look(anya, "фильтр открыт заново");
   await t(anya, "filter-to").fill("99"); await look(anya, "правый край без ограничения");
   await t(anya, "filter-save").click(); await anya.locator('[data-screen="me"]').waitFor({ timeout: 15000 });
 });
 await step("theme", async () => {
   // F20 (theme.spec.ts): the choice of a theme from «я», one picked, then back to auto.
-  await t(anya, "me-theme").click(); await anya.locator('[data-screen="theme"]').waitFor(); await look(anya, "темы");
+  await (await meTile(anya, "me-theme")).click(); await anya.locator('[data-screen="theme"]').waitFor(); await look(anya, "темы");
   await t(anya, "theme-violet").click(); await look(anya, "тема violet");
   await t(anya, "theme-auto").click(); await look(anya, "тема auto");
   await t(anya, "back").click(); await anya.locator('[data-screen="me"]').waitFor();
@@ -308,7 +312,7 @@ await step("hidden phrase", async () => {
   const card = t(anya, "card").filter({ hasText: `иду к мосту с собакой ${tag}` }); await card.first().waitFor({ timeout: 30000 });
   await card.first().click(); await look(anya, "карточка перед скрытием");
   await t(anya, "hide").click();
-  await t(anya, "tab-me").click(); await anya.locator('[data-screen="me"]').waitFor(); await t(anya, "me-hidden").click();
+  await t(anya, "tab-me").click(); await anya.locator('[data-screen="me"]').waitFor(); await (await meTile(anya, "me-hidden")).click();
   await t(anya, "hidden-row").first().waitFor({ timeout: 15000 }); await look(anya, "скрытое, одна фраза");
   await t(anya, "hidden-restore").click(); await t(anya, "hidden-empty").waitFor({ timeout: 15000 }); await look(anya, "скрытое, пусто");
   await t(anya, "back").click();
@@ -368,7 +372,7 @@ await step("end and block", async () => {
   await t(anya, "tombstone").waitFor({ timeout: 15000 }); await look(anya, "после блока: Аня");
   await t(boris, "nav-inbox").click(); await boris.waitForTimeout(2500); await look(boris, "после блока: Борис");
   await t(anya, "back").click(); await t(anya, "tab-me").click(); await anya.locator('[data-screen="me"]').waitFor();
-  await t(anya, "me-blocked").click(); await t(anya, "blocked-row").first().waitFor({ timeout: 15000 }); await look(anya, "заблокированные");
+  await (await meTile(anya, "me-blocked")).click(); await t(anya, "blocked-list").waitFor({ timeout: 15000 }); await look(anya, "заблокированные");
   await t(anya, "blocked-lift").click(); await anya.waitForTimeout(1000); await look(anya, "после снятия блока");
   await t(anya, "back").click();
 });
@@ -391,7 +395,7 @@ await step("restore on a new device", async () => {
 });
 await step("reissue paper code", async () => {
   // F18 (reissue.spec.ts): the current code checked, the new one shown and typed back. Reset (wipes the identity) is not walked.
-  await t(anya, "tab-me").click(); await anya.locator('[data-screen="me"]').waitFor(); await t(anya, "me-reissue").click();
+  await t(anya, "tab-me").click(); await anya.locator('[data-screen="me"]').waitFor(); await (await meTile(anya, "me-reissue")).click();
   await anya.locator('[data-screen="reissue-1"]').waitFor(); await look(anya, "новый бумажный код, шаг 1");
   await t(anya, "reissue-current").locator("input").first().fill("0000 0000 0000 0000"); await t(anya, "reissue-next").click();
   await t(anya, "error").waitFor({ timeout: 30000 }).catch(() => {}); await look(anya, "неверный текущий код");
@@ -405,7 +409,7 @@ await step("reissue paper code", async () => {
 await step("move to another device", async () => {
   // F17 (transfer.spec.ts): Boris leaves the old device and arrives on a new one; his old device lets go at the end.
   await t(boris, "nav-feed").click().catch(() => {}); await t(boris, "tab-me").click(); await boris.locator('[data-screen="me"]').waitFor();
-  await t(boris, "me-move").click(); await boris.locator('[data-screen="departure"]').waitFor(); await look(boris, "уход со старого устройства");
+  await (await meTile(boris, "me-move")).click(); await boris.locator('[data-screen="departure"]').waitFor(); await look(boris, "уход со старого устройства");
   await t(boris, "move-pin").fill(PIN); await t(boris, "move-go").click();
   const mv = (await t(boris, "move-code").locator("code").textContent({ timeout: 30000 })).trim(); await look(boris, "код переезда");
   const fresh = await phone("Борис, новое устройство");

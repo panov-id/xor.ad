@@ -8,20 +8,17 @@
 // drawn and shut (aria-disabled) until `onTable` is given — nothing opens from it.
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
-import { gameById, type TableCard } from "@sdk/new_table.ts";
+import { GAMES, gameById, gameOfTable, type TableCard } from "@sdk/new_table.ts";
 import { label, say } from "../../i18n";
 import { storedPlace } from "../../place";
-import { Icon } from "../../shell/Icon";
-import { flag, map, refresh } from "../../shell/icons";
 import { useSkeleton } from "../../shell/loading";
 import { NdIcon } from "../../shell/NdIcon";
 import { Screen } from "../../shell/Screen";
 import { Skeleton } from "../../shell/Skeleton";
 import { type Tab, TabBar } from "../../shell/TabBar";
-import { die, plus } from "./icons";
 import { useEvery } from "../move-parts";
-import { apart, freshTables, mergeTables, START_GAMES, TABLES_LOOK_MS, TABLES_RADIUS, toneAt } from "./tables-logic";
-import { gameName, lineOf, TableRow } from "./table-row";
+import { apart, freshTables, mergeTables, START_GAMES, TABLES_LOOK_MS, TABLES_RADIUS } from "./tables-logic";
+import { gameIcon, gameName, lineOf, TableTile } from "./table-row";
 
 export function Tables({ client, onTab, onNewTable, onTable }: { client: Client; onTab: (tab: Tab) => void; onNewTable: (game?: string) => void; onTable?: (id: string) => void }) {
   const place = useRef(storedPlace()).current;
@@ -29,6 +26,8 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
   const [mine, setMine] = useState<TableCard[]>([]);
   const [next, setNext] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
+  const [tab, setTab] = useState<"all" | "mine">("all");   // the list first; the person's own tables (tables-mine) are the second tab
+  const [filter, setFilter] = useState<string | null>(null);   // a game of the strip: only its tables
   const live = useRef(true);
   const paged = useRef(false);   // a page after the cursor is drawn: the quiet look keeps it
   const skeleton = useSkeleton(state === "loading");
@@ -59,77 +58,80 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
     setMine((page.mine ?? []) as TableCard[]);
   }).catch(() => {}), state === "ready");
 
-  const list = apart(items, mine);
+  const ofGame = (c: TableCard) => !filter || gameOfTable(c.game, c.set)?.id === filter;
+  const list = apart(items, mine).filter(ofGame);
+  const own = mine.filter(ofGame);
+  const showMine = mine.length > 0 && tab === "mine";
   const title = label("web.tables.title");
+  const nothing = state === "ready" && items.length === 0 && mine.length === 0;
   return (
-    <Screen name="tables" title={title} className="tb">
-      <header className="tb-head">
-        <span className="word">sosed</span>
-        <h1>{title}</h1>
-        <p className="tb-sub">{say("app.tables.sub")}</p>
-      </header>
-      <div className="tb-sheet">
-        <div className="tb-body">
-          <button type="button" className="cta cta-primary tb-new" onClick={() => onNewTable()} data-testid="new-table"><Icon d={plus} /><span>{label("web.newTable.title")}</span></button>
-
-          {state === "failed" && (
-            <div className="k-empty" data-testid="error">
-              <NdIcon name="wifi-off" className="k-empty-mark" />
-              <h2 role="alert">{say("app.feed.err_title")}</h2><p>{say("app.tables.err_body")}</p>
-              <button type="button" className="k-btn" onClick={() => void load()} data-testid="retry"><NdIcon name="refresh" /><span>{say("app.feed.retry")}</span></button>
-            </div>
-          )}
-
-          {mine.length > 0 && (
-            <section className="tb-mine" aria-labelledby="tables-mine" data-testid="tables-mine">
-              <h2 id="tables-mine">{label("web.tables.mine")}</h2>
-              <ul className="tb-list">
-                {mine.map((card, i) => {
-                  const line = lineOf(card);
-                  return (
-                    <TableRow key={card.id} id={card.id} tone={toneAt(i)} title={line.title} testid="table-mine"
-                      meta={[line.meta, card.seated && say("web.tables.seated"), card.liked && say("web.tables.liked")].filter(Boolean).join(" · ")}
-                      onWatch={onTable && (() => onTable(card.id))} />
-                  );
-                })}
-              </ul>
-            </section>
-          )}
-
-          {state === "ready" && list.length === 0 && mine.length === 0 && (
-            <div className="k-empty" data-testid="quiet">
-              <NdIcon name="tables" className="k-empty-mark" />
+    <Screen name="tables" title={title} className="k-screen">
+      <div className="k-col">
+        <section className="k-panel">
+          <div className="k-row">
+            <NdIcon name="tables" className="k-pin" />
+            <div className="k-stack"><h1 className="k-title">{title}</h1><p className="k-sub">{say("app.tables.sub")}</p></div>
+            <button type="button" className="k-tb-add" aria-label={label("web.newTable.title")} onClick={() => onNewTable()} data-testid="new-table"><NdIcon name="plus" /></button>
+          </div>
+        </section>
+        <div className="k-tb-games" role="group" aria-label={say("app.tables.games")}>
+          {GAMES.map((g) => (
+            <button key={g.id} type="button" className="k-tb-game" aria-pressed={filter === g.id} aria-label={label(gameName(g))}
+              onClick={() => setFilter(filter === g.id ? null : g.id)} data-testid={`filter-${g.id}`}><NdIcon name={gameIcon(g.id)} /></button>
+          ))}
+        </div>
+        {mine.length > 0 && (
+          <div className="k-seg" role="tablist">
+            <button type="button" role="tab" aria-selected={tab === "all"} aria-label={say("app.tables.all")} onClick={() => setTab("all")} data-testid="tables-tab-all"><NdIcon name="nearby" /></button>
+            <button type="button" role="tab" aria-selected={tab === "mine"} aria-label={label("web.tables.mine")} onClick={() => setTab("mine")} data-testid="tables-tab-mine"><NdIcon name="me" /></button>
+          </div>
+        )}
+        {nothing ? (
+          <section className="k-body" data-testid="quiet">
+            <div className="k-tb-empty">
+              <span className="k-tb-hero"><NdIcon name="tables" /></span>
               <h2>{say("web.tables.empty")}</h2>
               <p>{say("web.tables.empty_hint")}</p>
+              <button type="button" className="k-cta" data-outline="" data-fit="" onClick={() => onNewTable()} data-testid="new-table-empty"><NdIcon name="plus" /><span>{label("web.newTable.title")}</span></button>
             </div>
-          )}
-
-          {/* «Playing now» names the list on the wide sheets (tablet_834_Tables, desktop_1440_Tables); the phone's sheet has no such head */}
-          {list.length > 0 && <h2 className="tb-playing" data-testid="tables-playing">{say("app.tables.playing")}</h2>}
-          <ul className="tb-list" data-testid="tables">
-            {list.map((card, i) => {
-              const line = lineOf(card);
-              return <TableRow key={card.id} id={card.id} tone={toneAt(i)} title={line.title} meta={line.meta} testid="table-card" onWatch={onTable && (() => onTable(card.id))} />;
-            })}
-          </ul>
-          {state === "loading" && skeleton && <div className="k-stack" data-testid="loading"><div className="k-tile k-ghost" /><div className="k-tile k-ghost" /></div>}
-          {/* «Start a game» (the wide sheets only): six games, a tap opens the wizard with the game picked */}
-          <section className="tb-start" aria-labelledby="tables-start" data-testid="tables-start">
-            <h2 id="tables-start">{say("app.tables.start")}</h2>
-            <ul>
-              {START_GAMES.map((id, i) => (
-                <li key={id}>
-                  <button type="button" className={`tb-game tb-${toneAt(i)}`} onClick={() => onNewTable(id)} data-testid={`start-${id}`}>
-                    <Icon d={die} /><span>{label(gameName(gameById(id)!))}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
           </section>
-          {next && state === "ready" && <button type="button" className="cta cta-quiet" onClick={() => void load(next)} data-testid="more">{say("app.feed.more_cards")}</button>}
-        </div>
+        ) : (
+          <section className="k-body">
+            {state === "failed" && (
+              <div className="k-note" data-tone="error" data-testid="error">
+                <NdIcon name="wifi-off" /><span role="alert">{say("app.tables.err_body")}</span>
+                <button type="button" className="k-btn" onClick={() => void load()} data-testid="retry"><NdIcon name="refresh" /><span>{say("app.feed.retry")}</span></button>
+              </div>
+            )}
+            {mine.length > 0 && (
+              <ul className="k-grid2 k-tb-grid" hidden={!showMine} aria-label={label("web.tables.mine")} data-testid="tables-mine">
+                {own.map((card) => {
+                  const line = lineOf(card);
+                  return <TableTile key={card.id} id={card.id} card={card} title={line.title} testid="table-mine" mine={!!card.seated} onOpen={onTable && (() => onTable(card.id))} />;
+                })}
+              </ul>
+            )}
+            {list.length > 0 && <h2 hidden data-testid="tables-playing">{say("app.tables.playing")}</h2>}
+            {(
+              <ul className="k-grid2 k-tb-grid" hidden={showMine} data-testid="tables">
+                {list.map((card) => <TableTile key={card.id} id={card.id} card={card} title={lineOf(card).title} testid="table-card" onOpen={onTable && (() => onTable(card.id))} />)}
+              </ul>
+            )}
+            {state === "loading" && skeleton && <div className="k-grid2" data-testid="loading"><div className="k-tile k-ghost" /><div className="k-tile k-ghost" /></div>}
+            {next && state === "ready" && !showMine && <button type="button" className="k-btn" onClick={() => void load(next)} data-testid="more">{say("app.feed.more_cards")}</button>}
+          </section>
+        )}
+        {/* «Start a game» (the wide sheets only; hidden on the phone): six games, a tap opens the wizard with the game picked */}
+        <section className="tb-start" aria-labelledby="tables-start" data-testid="tables-start">
+          <h2 id="tables-start">{say("app.tables.start")}</h2>
+          <ul>
+            {START_GAMES.map((id) => (
+              <li key={id}><button type="button" onClick={() => onNewTable(id)} data-testid={`start-${id}`}><NdIcon name={gameIcon(id)} /><span>{label(gameName(gameById(id)!))}</span></button></li>
+            ))}
+          </ul>
+        </section>
+        <TabBar active="tables" onSelect={onTab} />
       </div>
-      <TabBar active="tables" onSelect={onTab} />
     </Screen>
   );
 }

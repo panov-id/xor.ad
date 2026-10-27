@@ -104,7 +104,7 @@ async function overflowAt(page, screen, w) {
       const tag = `${e.tagName.toLowerCase()}${e.dataset.testid ? `[${e.dataset.testid}]` : typeof e.className === "string" && e.className ? "." + e.className.split(" ")[0] : ""}`;
       if (r.width && (r.right > vw + 0.5 || r.left < -0.5)) out.push(`${tag} outside the viewport: ${r.left.toFixed(1)}..${r.right.toFixed(1)} of ${vw}`);
       const clips = cs.overflowX !== "visible" || cs.textOverflow === "ellipsis";
-      if (e.tagName !== "INPUT" && clips && e.scrollWidth > e.clientWidth + 1 && !e.classList.contains("me-body") && !e.classList.contains("cb-body")) out.push(`${tag} clips horizontally: scrollWidth ${e.scrollWidth} > clientWidth ${e.clientWidth}`);
+      if (e.tagName !== "INPUT" && clips && e.scrollWidth > e.clientWidth + 1 && !e.classList.contains("me-body") && !e.classList.contains("k-reg")) out.push(`${tag} clips horizontally: scrollWidth ${e.scrollWidth} > clientWidth ${e.clientWidth}`);
     }
     return out;
   }, w);
@@ -219,11 +219,11 @@ const shot = async (page, n) => { if (GEOMETRY) await page.screenshot({ path: `$
 const gotoCabinet = async (page, path = "/adv") => { await page.goto(PREVIEW + path, { waitUntil: "load" }); if (OVERRIDE) await page.addStyleTag({ content: OVERRIDE }); };
 // the strip every cabinet sheet shares: the mark, its word, the address, the title
 async function strip(page, scr, S, title = 2) {
-  compare(scr, "mark", shapeOf(S.shapes[1]), await box(page, ".cb-mark"));
-  left(scr, "home word", S.lines[0], await line(page, ".cb-home")); wide(scr, "home word", S.lines[0], await line(page, ".cb-home"));
+  compare(scr, "mark", shapeOf(S.shapes[1]), await box(page, ".k-logo"));
+  left(scr, "home word", S.lines[0], await line(page, ".k-row-name")); wide(scr, "home word", S.lines[0], await line(page, ".k-row-name"));
   // the address is mono and right-aligned: its right edge (the sheet's glyph run: first glyph + 15 advances) and baseline; the left edge is the font's
-  right(scr, "address", { right: S.addressRight, base: S.lines[1].base }, await line(page, ".cb-address"));
-  left(scr, "title", S.lines[title], await line(page, ".cb-title")); wide(scr, "title", S.lines[title], await line(page, ".cb-title"));
+  right(scr, "address", { right: S.addressRight, base: S.lines[1].base }, await line(page, ".k-address"));
+  left(scr, "title", S.lines[title], await line(page, ".k-reg > h1")); wide(scr, "title", S.lines[title], await line(page, ".k-reg > h1"));
 }
 const lineBoth = async (page, scr, name, exp, sel, nth = 0, i = 0) => { const a = await line(page, sel, nth, i); left(scr, name, exp, a); wide(scr, name, exp, a); };
 const lineBothR = async (page, scr, name, exp, sel, nth = 0, i = 0) => { const a = await line(page, sel, nth, i); right(scr, name, exp, a); wide(scr, name, exp, a); };
@@ -248,15 +248,15 @@ if (want("cabinet-sign-in")) {
   const S = sheet("cabinet-sign-in"), sh = S.shapes, scr = "sign-in";
   await settle(page);
   await strip(page, scr, S);
-  compare(scr, "email field", shapeOf(sh[2]), await box(page, ".cb-body .reg-input", 0));
-  compare(scr, "contact field", shapeOf(sh[3]), await box(page, ".cb-body .reg-input", 1));
-  compare(scr, "primary", shapeOf(sh[4]), await box(page, ".cb-foot .cta"));
-  await lineBoth(page, scr, "sub", S.lines[3], ".cb-sub");
-  await lineBoth(page, scr, "email label", S.lines[4], ".cb-body .reg-field label", 0);
-  await lineBoth(page, scr, "contact label", S.lines[6], ".cb-body .reg-field label", 1);
-  await lineBoth(page, scr, "primary label", S.lines[8], ".cb-foot .cta span");
+  compare(scr, "email field", shapeOf(sh[2]), await box(page, ".k-reg .k-pill", 0));
+  compare(scr, "contact field", shapeOf(sh[3]), await box(page, ".k-reg .k-pill", 1));
+  compare(scr, "primary", shapeOf(sh[4]), await box(page, ".k-actions .k-cta"));
+  await lineBoth(page, scr, "sub", S.lines[3], ".k-reg .k-sub");
+  await lineBoth(page, scr, "email label", S.lines[4], ".k-reg .k-field-wrap label", 0);
+  await lineBoth(page, scr, "contact label", S.lines[6], ".k-reg .k-field-wrap label", 1);
+  await lineBoth(page, scr, "primary label", S.lines[8], ".k-actions .k-cta span");
   note((await page.getAttribute('[data-testid="adv-send"]', "aria-disabled")) !== "true", "sign-in: Get the link opens once the email has an @");
-  await fonts(page, scr, [["title", ".cb-title"], ["home", ".cb-home"], ["label", ".cb-body .reg-field label"], ["primary", ".cb-foot .cta span"]]);
+  await fonts(page, scr, [["title", ".k-reg > h1"], ["home", ".k-row-name"], ["label", ".k-reg .k-field-wrap label"], ["primary", ".k-actions .k-cta span"]]);
   await overflowAt(page, scr, 390); await shot(page, scr);
 }
 // walk: the email goes to the node (no contact: sign-in), and the sent screen opens
@@ -269,9 +269,9 @@ if (want("cabinet-sent")) {
   const S = sheet("cabinet-sent"), scr = "sent";
   await settle(page);
   await strip(page, scr, S);
-  compare(scr, "circle", shapeOf(S.shapes[2]), await box(page, ".cb-circle"));
-  await lineBoth(page, scr, "note", S.lines[3], ".cb-sent");
-  await fonts(page, scr, [["title", ".cb-title"], ["note", ".cb-sent"]]);
+  compare(scr, "circle", shapeOf(S.shapes[2]), await box(page, ".k-mark-110"));
+  await lineBoth(page, scr, "note", S.lines[3], "[data-testid="adv-sent"]");
+  await fonts(page, scr, [["title", ".k-reg > h1"], ["note", "[data-testid="adv-sent"]"]]);
   await overflowAt(page, scr, 390); await shot(page, scr);
 }
 // walk: a link that is spent (a mangled or old token) says it expired and offers a new one
@@ -292,35 +292,35 @@ if (want("cabinet-venues")) {
   const S = sheet("cabinet-venues"), sh = S.shapes, scr = "venues";
   await settle(page);
   await strip(page, scr, S);
-  compare(scr, "card", shapeOf(sh[2]), await box(page, ".cb-card"));
-  compare(scr, "chip", shapeOf(sh[3]), await box(page, ".cb-chip"));
+  compare(scr, "card", shapeOf(sh[2]), await box(page, ".k-tile"));
+  compare(scr, "chip", shapeOf(sh[3]), await box(page, ".k-state"));
   const cells = [Math.min(...sh.slice(4, 12).map((c) => c.x)), Math.min(...sh.slice(4, 12).map((c) => c.y))];
   const cx1 = Math.max(...sh.slice(4, 12).map((c) => c.x + c.w)), cy1 = Math.max(...sh.slice(4, 12).map((c) => c.y + c.h));
-  compare(scr, "code cells (one block)", [cells[0], cells[1], cx1 - cells[0], cy1 - cells[1]], await union(page, ".cb-code .reg-cell"));
-  compare(scr, "confirm", shapeOf(sh[12]), await box(page, ".cb-btn"));
-  compare(scr, "add row", shapeOf(sh[13]), await box(page, ".cb-body .me-row", 0));
-  compare(scr, "add row icon", shapeOf(sh[14]), await box(page, ".cb-body .me-row .me-row-icon", 0));
-  await lineBoth(page, scr, "venue name", S.lines[3], ".cb-card-top h2");
-  await lineBoth(page, scr, "chip label", S.lines[4], ".cb-chip");
-  await lineBoth(page, scr, "address line", S.lines[5], ".cb-card-line");
-  await lineBoth(page, scr, "code label", S.lines[6], ".cb-code label");
-  await lineBoth(page, scr, "confirm label", S.lines[8], ".cb-btn span");
-  await lineBoth(page, scr, "add row label", S.lines[9], ".cb-body .me-row .me-row-name", 0);
+  compare(scr, "code cells (one block)", [cells[0], cells[1], cx1 - cells[0], cy1 - cells[1]], await union(page, ".k-tile .k-cell"));
+  compare(scr, "confirm", shapeOf(sh[12]), await box(page, ".k-btn"));
+  compare(scr, "add row", shapeOf(sh[13]), await box(page, ".k-reg .k-link-row", 0));
+  compare(scr, "add row icon", shapeOf(sh[14]), await box(page, ".k-reg .k-link-row .k-badge", 0));
+  await lineBoth(page, scr, "venue name", S.lines[3], "[data-testid="venue-name"]");
+  await lineBoth(page, scr, "chip label", S.lines[4], ".k-state");
+  await lineBoth(page, scr, "address line", S.lines[5], "[data-testid="venue-line"]");
+  await lineBoth(page, scr, "code label", S.lines[6], ".k-tile label");
+  await lineBoth(page, scr, "confirm label", S.lines[8], ".k-btn span");
+  await lineBoth(page, scr, "add row label", S.lines[9], ".k-reg .k-link-row .k-row-name", 0);
   note((await page.getAttribute('[data-testid="venue-verify"]', "aria-disabled")) === "true", "venues: Confirm the code stays shut while the code has 4 of 12");
-  await fonts(page, scr, [["title", ".cb-title"], ["venue", ".cb-card-top h2"], ["chip", ".cb-chip"], ["row", ".me-row-name"]]);
+  await fonts(page, scr, [["title", ".k-reg > h1"], ["venue", "[data-testid="venue-name"]"], ["chip", ".k-state"], ["row", ".k-row-name"]]);
   await overflowAt(page, scr, 390); await shot(page, scr);
 }
 // walk: a wrong code says how many tries are left; the right one (typed with a dash and spaces, as the paper has it) is sent bare
 await page.fill('[data-testid="venue-code"]', "AAAAAAAAAAAA");
 await page.click('[data-testid="venue-verify"]');
-await page.waitForSelector(".cb-venue .me-error", { timeout: 20000 });
-const wrongText = await page.locator(".cb-venue .me-error").innerText();
+await page.waitForSelector("[data-testid="error"]", { timeout: 20000 });
+const wrongText = await page.locator("[data-testid="error"]").innerText();
 note(/4/.test(wrongText), `walk: a wrong code (422) says the tries left: "${wrongText}"`);
 await page.fill('[data-testid="venue-code"]', "abcdef-ghjklm");
 note((await page.locator('[data-testid="venue-code"]').inputValue()) === RIGHT_CODE, "walk: the field keeps capitals without the dash");
 await page.click('[data-testid="venue-verify"]');
 await page.waitForSelector('[data-status="verified"]', { timeout: 20000 });
-note(stub.bodies["POST /adv/venues/v1/verify"] === RIGHT_CODE && (await page.locator(".cb-chip").innerText()).length > 0, `walk: the right code is sent as ${stub.bodies["POST /adv/venues/v1/verify"]}; the card turns "${await page.locator(".cb-chip").innerText()}"`);
+note(stub.bodies["POST /adv/venues/v1/verify"] === RIGHT_CODE && (await page.locator(".k-state").innerText()).length > 0, `walk: the right code is sent as ${stub.bodies["POST /adv/venues/v1/verify"]}; the card turns "${await page.locator(".k-state").innerText()}"`);
 
 // w4_cabinet-offers (the venue the sheet names; a live offer and an expired one)
 stub.s.venues = [{ id: "v2", name: "Khinkali Bar", address: "5 Rustaveli Ave", verification_status: "verified", verified_at: longAgo(), envelope_expires_at: null, place: { lat: 41.7, lon: 44.79, area_radius: 1000 } }];
@@ -338,24 +338,24 @@ if (want("cabinet-offers")) {
   const S = sheet("cabinet-offers"), sh = S.shapes, scr = "offers";
   await settle(page);
   await strip(page, scr, S);
-  compare(scr, "live card", shapeOf(sh[2]), await box(page, ".cb-offer"));
-  compare(scr, "until pill", shapeOf(sh[3]), await box(page, ".cb-pill"));
-  compare(scr, "expired card", shapeOf(sh[4]), await box(page, ".cb-done"));
-  compare(scr, "expired chip", shapeOf(sh[5]), await box(page, ".cb-done-state"));
-  for (let i = 0; i < 2; i++) compare(scr, `hairline ${i + 1} (x,y,w)`, [sh[6 + i].x, sh[6 + i].y, sh[6 + i].w], (await box(page, ".cb-stats div", i)).slice(0, 3));
-  await lineBoth(page, scr, "tag", S.lines[3], ".cb-offer-tag span:last-child");
-  await lineBoth(page, scr, "pill label", S.lines[4], ".cb-pill");
-  await lineBoth(page, scr, "discount", S.lines[5], ".cb-offer-big");
-  await lineBoth(page, scr, "offer text", S.lines[6], ".cb-offer-text");
-  await lineBoth(page, scr, "expired title", S.lines[7], ".cb-done-top h2");
-  await lineBothR(page, scr, "expired state", S.lines[8], ".cb-done-state");
-  await lineBoth(page, scr, "visits", S.lines[9], ".cb-stats dt", 0);
-  await lineBothR(page, scr, "visits value", S.lines[10], ".cb-stats dd", 0);
-  await lineBoth(page, scr, "complaints", S.lines[11], ".cb-stats dt", 1);
-  await lineBothR(page, scr, "complaints value", S.lines[12], ".cb-stats dd", 1);
-  note((await page.locator(".cb-offer-tag span:last-child").innerText()).includes("Khinkali Bar") || RU, "offers: the live card names its venue (the venue list gives the name)");
+  compare(scr, "live card", shapeOf(sh[2]), await box(page, ".k-tile[data-accent]"));
+  compare(scr, "until pill", shapeOf(sh[3]), await box(page, ".k-tile[data-accent] .k-meta"));
+  compare(scr, "expired card", shapeOf(sh[4]), await box(page, "[data-status="expired"]"));
+  compare(scr, "expired chip", shapeOf(sh[5]), await box(page, "[data-status="expired"] .k-state"));
+  for (let i = 0; i < 2; i++) compare(scr, `hairline ${i + 1} (x,y,w)`, [sh[6 + i].x, sh[6 + i].y, sh[6 + i].w], (await box(page, ".k-pairs > div", i)).slice(0, 3));
+  await lineBoth(page, scr, "tag", S.lines[3], ".k-tile[data-accent] .k-row-name");
+  await lineBoth(page, scr, "pill label", S.lines[4], ".k-tile[data-accent] .k-meta");
+  await lineBoth(page, scr, "discount", S.lines[5], ".k-tile[data-accent] .k-card-text[data-size="l"]");
+  await lineBoth(page, scr, "offer text", S.lines[6], ".k-tile[data-accent] .k-card-text:not([data-size])");
+  await lineBoth(page, scr, "expired title", S.lines[7], "[data-status="expired"] h2");
+  await lineBothR(page, scr, "expired state", S.lines[8], "[data-status="expired"] .k-state");
+  await lineBoth(page, scr, "visits", S.lines[9], ".k-pairs dt", 0);
+  await lineBothR(page, scr, "visits value", S.lines[10], ".k-pairs dd", 0);
+  await lineBoth(page, scr, "complaints", S.lines[11], ".k-pairs dt", 1);
+  await lineBothR(page, scr, "complaints value", S.lines[12], ".k-pairs dd", 1);
+  note((await page.locator(".k-tile[data-accent] .k-row-name").innerText()).includes("Khinkali Bar") || RU, "offers: the live card names its venue (the venue list gives the name)");
   note((await page.locator('[data-testid="adv-offer"]').first().getAttribute("data-status")) === "active", "offers: the live offer comes first, the expired one after");
-  await fonts(page, scr, [["title", ".cb-title"], ["discount", ".cb-offer-big"], ["expired", ".cb-done-top h2"], ["stat", ".cb-stats dt"]]);
+  await fonts(page, scr, [["title", ".k-reg > h1"], ["discount", ".k-tile[data-accent] .k-card-text[data-size="l"]"], ["expired", "[data-status="expired"] h2"], ["stat", ".k-pairs dt"]]);
   await overflowAt(page, scr, 390); await shot(page, scr);
 }
 
@@ -371,27 +371,27 @@ if (want("cabinet-new-offer")) {
   const S = sheet("cabinet-new-offer"), sh = S.shapes, scr = "new-offer";
   await settle(page);
   await strip(page, scr, S);
-  compare(scr, "text field", shapeOf(sh[2]), await box(page, ".cb-body .reg-input", 0));
-  compare(scr, "discount field", shapeOf(sh[3]), await box(page, ".cb-body .reg-input", 1));
-  compare(scr, "day field", shapeOf(sh[4]), await box(page, ".cb-body .reg-input", 2));
-  compare(scr, "primary", shapeOf(sh[5]), await box(page, ".cb-foot .cta"));
-  await lineBoth(page, scr, "text label", S.lines[3], ".cb-body .reg-field label", 0);
+  compare(scr, "text field", shapeOf(sh[2]), await box(page, ".k-reg .k-pill", 0));
+  compare(scr, "discount field", shapeOf(sh[3]), await box(page, ".k-reg .k-pill", 1));
+  compare(scr, "day field", shapeOf(sh[4]), await box(page, ".k-reg .k-pill", 2));
+  compare(scr, "primary", shapeOf(sh[5]), await box(page, ".k-actions .k-cta"));
+  await lineBoth(page, scr, "text label", S.lines[3], ".k-reg .k-field-wrap label", 0);
   await lineBothR(page, scr, "counter", S.lines[5], '[data-testid="offer-left"]');
-  await lineBoth(page, scr, "discount label", S.lines[6], ".cb-body .reg-field label", 1);
-  await lineBoth(page, scr, "day label", S.lines[8], ".cb-body .reg-field label", 2);
-  await lineBoth(page, scr, "day", S.lines[9], ".cb-day-box .reg-input");
+  await lineBoth(page, scr, "discount label", S.lines[6], ".k-reg .k-field-wrap label", 1);
+  await lineBoth(page, scr, "day label", S.lines[8], ".k-reg .k-field-wrap label", 2);
+  await lineBoth(page, scr, "day", S.lines[9], ".k-pill-day");
   await lineBoth(page, scr, "lives note", S.lines[10], '[data-testid="offer-lives"]');
-  await lineBoth(page, scr, "primary label", S.lines[11], ".cb-foot .cta span");
+  await lineBoth(page, scr, "primary label", S.lines[11], ".k-actions .k-cta span");
   const counter = await page.locator('[data-testid="offer-left"]').innerText();
   note(/110/.test(counter), `new-offer: 18 of 128 letters used, the counter says "${counter}"`);
   note((await page.getAttribute('[data-testid="offer-preview"]', "aria-disabled")) !== "true", "new-offer: Preview opens with a text, a discount and a day");
-  await fonts(page, scr, [["title", ".cb-title"], ["label", ".cb-body .reg-field label"], ["hint", ".cb-hint"]]);
+  await fonts(page, scr, [["title", ".k-reg > h1"], ["label", ".k-reg .k-field-wrap label"], ["hint", ".k-meta"]]);
   await overflowAt(page, scr, 390); await shot(page, scr);
 }
 // walk: the last look, then publishing sends the form as the node takes it: 23:00 of the chosen day
 await page.click('[data-testid="offer-preview"]');
 await page.waitForSelector('[data-screen="cabinet-preview"]', { timeout: 20000 });
-note(await page.locator('[data-testid="offer-preview-card"]').count() === 1 && (await page.locator(".cb-offer-big").innerText()) === "−20%", `walk: Preview shows the card as the feed draws it ("${await page.locator(".cb-offer-big").innerText()}")`);
+note(await page.locator('[data-testid="offer-preview-card"]').count() === 1 && (await page.locator(".k-tile[data-accent] .k-card-text[data-size="l"]").innerText()) === "−20%", `walk: Preview shows the card as the feed draws it ("${await page.locator(".k-tile[data-accent] .k-card-text[data-size="l"]").innerText()}")`);
 await page.click('[data-testid="offer-publish"]');
 await page.waitForSelector('[data-screen="cabinet-published"]', { timeout: 20000 });
 const sent = stub.bodies["POST /adv/offers"];
@@ -416,18 +416,18 @@ if (want("offer")) {
   const S = sheet("offer"), sh = S.shapes, scr = "offer";
   await settle(p2);
   compare(scr, "sheet left,top", [sh[1].x, sh[1].y], (await box(p2, ".me-sheet")).slice(0, 2));
-  compare(scr, "lime card", shapeOf(sh[2]), await box(p2, ".cb-domain"));
-  const rep = await box(p2, ".cb-report");
+  compare(scr, "lime card", shapeOf(sh[2]), await box(p2, "[data-testid="exit"]"));
+  const rep = await box(p2, "[data-testid="report"]");
   compare(scr, "report link (x,width)", [sh[3].x, sh[3].w], [rep[0], rep[2]], 3);
   compare(scr, "primary", shapeOf(sh[4]), await box(p2, ".me-foot .cta"));
-  await lineBoth(p2, scr, "title", S.lines[0], ".me-bar h1");
-  await lineBoth(p2, scr, "going to", S.lines[1], ".cb-going");
-  await lineBoth(p2, scr, "domain", S.lines[2], ".cb-domain strong");
-  await lineBoth(p2, scr, "own site", S.lines[3], ".cb-domain p");
-  await lineBoth(p2, scr, "report label", S.lines[4], ".cb-report");
-  await lineBoth(p2, scr, "primary label", S.lines[5], ".me-foot .cta span");
+  await lineBoth(p2, scr, "title", S.lines[0], ".k-reg > h1");
+  await lineBoth(p2, scr, "going to", S.lines[1], ".k-centre h2");
+  await lineBoth(p2, scr, "domain", S.lines[2], "[data-testid="domain"]");
+  await lineBoth(p2, scr, "own site", S.lines[3], "[data-testid="exit"] .k-meta");
+  await lineBoth(p2, scr, "report label", S.lines[4], "[data-testid="report"]");
+  await lineBoth(p2, scr, "primary label", S.lines[5], ".k-actions .k-cta span");
   note((await p2.getAttribute('[data-testid="go"]', "href")) === "/o/abc123/go", "offer: Open the site is the node's redirect, /o/abc123/go");
-  await fonts(p2, scr, [["title", ".me-bar h1"], ["domain", ".cb-domain strong"], ["primary", ".me-foot .cta span"]]);
+  await fonts(p2, scr, [["title", ".k-reg > h1"], ["domain", "[data-testid="domain"]"], ["primary", ".k-actions .k-cta span"]]);
   await overflowAt(p2, scr, 390); await shot(p2, scr);
   // walk: the report is signed and counted once; the line then says it was received
   await p2.click('[data-testid="report"]'); await p2.waitForSelector('[data-testid="reported"]', { timeout: 20000 });

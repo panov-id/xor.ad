@@ -230,6 +230,8 @@ export class ChatSession {
             peerAway: false,
             missed: missedSince(id, s.row.last_activity_at) ? s.missed : false,
           }));
+          // a line opened after the screen closed was never drawn: no ack, so the node keeps it for the next open
+          if (!this.#alive) return;
           await this.#d.client.received(id, [event.id]);
         } catch (e) {
           const text = this.#d.say("web.chat.not_opened", { message: (e as Error).message });

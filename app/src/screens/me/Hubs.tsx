@@ -7,7 +7,7 @@ import { rangeText, type Range } from "./me-logic";
 import { DangerBar, SubPage, Tile } from "./parts";
 
 export type Hub = "profile" | "visibility" | "security";
-export type Go = (sub: "name" | "theme" | "lang" | "filter" | "hidden" | "blocked" | "pin" | "reissue" | "reset") => void;
+export type Go = (sub: "name" | "age" | "theme" | "lang" | "filter" | "hidden" | "blocked" | "pin" | "reissue" | "reset") => void;
 
 /** The title of a hub and of its tile on Me (the prototype's: profile, visibility, safety), and the line under it on Me. */
 export const hubTitle = (hub: Hub): string => say(`app.me.hub_${hub}`);
@@ -23,7 +23,7 @@ export function HubPage({ hub, name, age, range, hidden, blocked, onGo, onMove, 
         {hub === "profile" && (
           <>
             <Tile icon="me" c={1} text={label("me.name")} value={name ?? "…"} testid="me-name-tile" onOpen={() => onGo("name")} />
-            <Tile icon="clock" c={5} text={label("app.reg.age")} value={age === null ? "…" : String(age)} testid="me-age-tile" onOpen={() => onGo("name")} />
+            <Tile icon="clock" c={5} text={label("app.reg.age")} value={age === null ? "…" : String(age)} testid="me-age-tile" onOpen={() => onGo("age")} />
             <Tile icon="theme" c={1} text={label("web.theme.item")} value={say(`app.theme.${readChoice()}`)} testid="me-theme" onOpen={() => onGo("theme")} />
             <Tile icon="lang" c={4} text={label("web.lang.item")} value={nameOf(LANG)} testid="me-lang" onOpen={() => onGo("lang")} />
           </>

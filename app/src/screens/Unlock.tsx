@@ -7,18 +7,17 @@
 // screen of its own with the price and two buttons (forget-cancel, forget-sure), never a second tap on the same spot.
 // The sheet greets by name ("Welcome back, Alex"); the record keeps none (the web's Locked draws no name either:
 // nothing of the person on a screen before the PIN), so the greeting is the words alone.
-import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import type { Record_ } from "@sdk/enroll.ts";
 import { canOpen, pinRefusal } from "@sdk/pin_gate.ts";
-import { pinDigits, PIN_LENGTH } from "@sdk/register.ts";
-import { label, say } from "../i18n";
+import { PIN_LENGTH } from "@sdk/register.ts";
+import { brand } from "@brand";
+import { say } from "../i18n";
 import { NdIcon } from "../shell/NdIcon";
-import { Logo } from "../shell/Scene";
 import { forget, unlockAfterReload } from "../vault";
 import { pinLine } from "./pin-line";
-import { Cells, PinPad } from "./register-parts";
-import { pressed as padPressed } from "./pin-flow";
+import { PinDoor } from "./pin-door";
 
 export function Unlock({ record, onDone, onForget, onRestore }: {
   record: Record_; onDone: (client: Client, wrapSame: boolean) => void; onForget: () => void; onRestore: () => void;
@@ -29,6 +28,9 @@ export function Unlock({ record, onDone, onForget, onRestore }: {
   // Entry closed until the paper code: the node refuses every PIN, so the button says so by not going.
   const [closed, setClosed] = useState(false);
   const [sure, setSure] = useState(false);
+  // the misses seen on this screen (the dots ring and shake on each) and the attempts the node says are left
+  const [refusals, setRefusals] = useState(0);
+  const [left, setLeft] = useState<number | null>(null);
   const forgetting = useRef(false);   // «wipe it» runs once, however fast the taps
   const input = useRef<HTMLInputElement | null>(null);
   const field = useId();
@@ -46,11 +48,14 @@ export function Unlock({ record, onDone, onForget, onRestore }: {
       if (r.ok) { setPin(""); return onDone(r.opened.client, r.opened.wrapSame); }
       const refusal = pinRefusal({ code: r.code, attemptsLeft: r.attemptsLeft, retryAfter: r.retryAfter });
       setClosed(refusal.kind === "locked");
-      setError(pinLine(refusal, say("web.vault.pinWrong")));
+      setRefusals((n) => n + 1);
+      if (refusal.kind === "mismatch" && refusal.left !== undefined) setLeft(refusal.left);
+      setError(refusal.kind === "mismatch" && refusal.left !== undefined ? say("app.unlock.wrong", { n: refusal.left }) : pinLine(refusal, say("web.vault.pinWrong")));
     } catch {
       // The node gave its share and the seal on the disk did not open with it (WebCrypto's error has no words):
       // only the paper code gets back, as the web says.
       setError(say("pin.locked"));
+      setRefusals((n) => n + 1);
     }
     setPin("");
     setBusy(false);
@@ -59,56 +64,40 @@ export function Unlock({ record, onDone, onForget, onRestore }: {
 
   if (sure) return <ForgetConfirm onCancel={() => setSure(false)} onForget={async () => { if (forgetting.current) return; forgetting.current = true; await forget(); onForget(); }} />;
 
-  // the prototype's unlock (docs/newdesign/proto/unlock.html, unlock-error): the head panel with the mark, the PIN's panel
-  // (the key, six dots, the pad), and the two ways out on tiles: the paper code, forget this device
+  // docs/newdesign4 06/07: the line says the refusal in the accent; from the third miss «Forgot it? Use your paper code»;
+  // the «⋯» on the card and «Not you? Forget this device» lead to 08 (SCREENS_spec §9)
+  const line = error ?? say("app.unlock.enter");
   return (
-    <main className="k-screen" data-screen="unlock">
-      <form className="k-col" onSubmit={(e: FormEvent) => { e.preventDefault(); void unlock(); }}>
-        <section className="k-panel k-head">
-          <div className="k-row"><Logo size={52} /><div className="k-stack"><h1 className="k-title">{say("app.unlock.title")}</h1><p className="k-sub">{say("app.unlock.sub")}</p></div></div>
-        </section>
-        <section className="k-panel k-grow k-reg">
-          <NdIcon name="key" className="k-big-icon k-mid" />
-          <div className="k-pin" data-stage="unlock">
-            <label htmlFor={field} className="k-sub">{say("reg.pin")}</label>
-            <Cells id={field} text={say("web.ui.pinName")} value={pin} size={PIN_LENGTH} secret onChange={(v) => setPin(pinDigits(v))}
-              onPaste={(e) => { e.preventDefault(); setPin(pinDigits(e.clipboardData.getData("text"))); }} inputRef={(n) => { input.current = n; }} testid="unlock-pin" />
-          </div>
-          {error && <div data-testid="error"><p className="k-note" data-tone="error" role="alert"><NdIcon name="alert" /><span>{error}</span></p></div>}
-          {busy && <p className="k-sub k-mid" role="status" data-testid="unlock-busy">{say("web.unlock.asking")}</p>}
-          <PinPad onKey={(k) => setPin((p) => padPressed(p, k))} disabled={busy || closed} />
-        </section>
-        <section className="k-panel k-actions">
-          <div className="k-two">
-            <button type="button" className="k-way k-way-72" onClick={onRestore} data-testid="unlock-restore"><span className="k-badge" data-c="1"><NdIcon name="paper" /></span><span>{say("app.unlock.paper")}</span></button>
-            <button type="button" className="k-way k-way-72" onClick={() => setSure(true)} data-testid="forget"><span className="k-badge" data-c="3"><NdIcon name="device" /></span><span>{say("web.unlock.forget")}</span></button>
-          </div>
-        </section>
-      </form>
-    </main>
+      <PinDoor screen="unlock" line={line} tone={error ? "error" : undefined} pin={pin} setPin={setPin} inputRef={(n) => { input.current = n; }} field={field}
+        testid="unlock-pin" disabled={busy || closed} onPaper={onRestore} refusals={refusals}
+        more={<button type="button" className="nd-more" aria-label={say("app.unlock.more")} onClick={() => setSure(true)} data-testid="forget"><span aria-hidden="true">⋯</span></button>}
+        under={<>
+          {left !== null && left <= 5 && <span className="nd-tries" aria-hidden="true">{[0, 1, 2, 3, 4].map((i) => <i key={i} data-on={i >= 5 - left ? "" : undefined} />)}</span>}
+          {busy && <p className="nd-sub" role="status" data-testid="unlock-busy">{say("web.unlock.asking")}</p>}
+          {refusals >= 3 && <p className="nd-have" data-testid="unlock-forgot">{say("app.unlock.forgot")} <button type="button" className="nd-link" onClick={onRestore}>{say("app.unlock.use_paper")}</button></p>}
+          {(closed || refusals >= 5) && <p className="nd-have"><button type="button" className="nd-link" onClick={() => setSure(true)} data-testid="not-you">{say("app.unlock.not_you")}</button></p>}
+        </>} />
   );
 }
 
-/** Forgetting the identity on this device is not undone but by the paper code (the prototype's forget-confirm.html): the bar
- *  with back, the device's mark in its circle and the price, both answers outlined at the foot. */
+/** docs/newdesign4 08 forget-confirm (SCREENS_spec §9, the one layout of every confirmation): back, the device's mark in its
+ *  ring, two lines of title, two of what it means, the quiet price over the buttons, «Cancel» a tile and «Forget» outlined
+ *  in the accent with the bin: a dangerous act is never filled. The identity on the node is not touched. */
 function ForgetConfirm({ onCancel, onForget }: { onCancel: () => void; onForget: () => void }) {
   return (
-    <main className="k-screen" data-screen="forget-confirm">
-      <div className="k-col">
-        <header className="k-row k-bar">
-          <button type="button" className="k-bar-btn" aria-label={say("common.back")} onClick={onCancel}><NdIcon name="back" /></button>
-          <h1 className="k-bar-title">{say("web.unlock.forget")}</h1>
-        </header>
-        <section className="k-panel k-grow k-reg k-centre-col">
-          <span className="k-mark-110" aria-hidden="true"><NdIcon name="device" /></span>
-          <p className="k-sub k-price">{say("app.unlock.forget_price")}</p>
-        </section>
-        <section className="k-panel k-actions">
-          <div className="k-two">
-            <button type="button" className="k-cta" data-outline="" onClick={onCancel} data-testid="forget-cancel"><NdIcon name="close" /><span>{say("app.unlock.forget_keep")}</span></button>
-            <button type="button" className="k-cta" data-outline="" onClick={onForget} data-testid="forget-sure"><NdIcon name="trash" /><span>{say("app.unlock.forget_sure")}</span></button>
-          </div>
-        </section>
+    <main className="k-screen nd-screen" data-screen="forget-confirm">
+      <div className="nd-col nd-confirm">
+        <header className="nd-head"><button type="button" className="nd-back" aria-label={say("app.reg.back")} onClick={onCancel}><NdIcon name="back" /></button></header>
+        <div className="nd-grow nd-confirm-mid">
+          <span className="nd-ring-mark" aria-hidden="true"><NdIcon name="device" /></span>
+          <h1 className="nd-h1">{say("app.forget.title_1", { name: brand.name })}<br />{say("app.forget.title_2")}</h1>
+          <p className="nd-sub">{say("app.forget.sub_1", { name: brand.name })}<br />{say("app.forget.sub_2")}</p>
+        </div>
+        <p className="nd-have">{say("app.forget.price_1")}<br />{say("app.forget.price_2")}</p>
+        <div className="nd-btnrow">
+          <button type="button" className="nd-tile-btn" onClick={onCancel} data-testid="forget-cancel">{say("app.forget.cancel")}</button>
+          <button type="button" className="nd-danger" onClick={onForget} data-testid="forget-sure"><NdIcon name="trash" />{say("app.forget.sure")}</button>
+        </div>
       </div>
     </main>
   );

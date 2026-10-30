@@ -9,6 +9,7 @@ import { NdIcon } from "../../shell/NdIcon";
 import { Field } from "../register-parts";
 import { ErrorLine } from "../me/parts";
 import { Frame } from "./parts";
+import { EntryScene } from "../../shell/EntryScene";
 import type { ReactNode } from "react";
 
 export function SignIn({ strip, onSent }: { strip: ReactNode; onSent: () => void }) {
@@ -34,6 +35,7 @@ export function SignIn({ strip, onSent }: { strip: ReactNode; onSent: () => void
   }
   return (
     <Frame name="cabinet-sign-in" title={say("app.cabinet.sign_title")} strip={strip}
+      scene={<EntryScene icon="store" title={say("app.cabinet.sign_title")} text={say("app.cabinet.sign_sub")} />}
       foot={
         <button type="button" className="k-cta" aria-disabled={ready ? undefined : true} aria-busy={busy || undefined} onClick={() => void go()} data-testid="adv-send">
           <NdIcon name="link" /><span>{say("app.cabinet.get_link")}</span>
@@ -50,6 +52,7 @@ export function SignIn({ strip, onSent }: { strip: ReactNode; onSent: () => void
 export function Sent({ strip, onAgain }: { strip: ReactNode; onAgain: () => void }) {
   return (
     <Frame name="cabinet-sent" title={say("app.cabinet.sent_title")} strip={strip}
+      scene={<EntryScene icon="send" title={say("app.cabinet.sent_title")} text={say("app.cabinet.sent_note")} />}
       foot={<button type="button" className="k-cta" data-outline="" onClick={onAgain}><NdIcon name="refresh" /><span>{say("app.cabinet.ask_again")}</span></button>}>
       <div className="k-centre k-centre-text">
         <span className="k-mark-110" aria-hidden="true"><NdIcon name="send" /></span>
@@ -62,6 +65,7 @@ export function Sent({ strip, onAgain }: { strip: ReactNode; onAgain: () => void
 export function Expired({ strip, onAgain }: { strip: ReactNode; onAgain: () => void }) {
   return (
     <Frame name="cabinet-expired" title={say("app.cabinet.expired_title")} strip={strip}
+      scene={<EntryScene icon="hourglass" title={say("app.cabinet.expired_title")} text={say("app.cabinet.expired_note")} />}
       foot={<button type="button" className="k-cta" onClick={onAgain} data-testid="adv-again"><NdIcon name="link" /><span>{say("app.cabinet.ask_again")}</span></button>}>
       <div className="k-centre k-centre-text">
         <span className="k-mark-110" aria-hidden="true"><NdIcon name="hourglass" /></span>

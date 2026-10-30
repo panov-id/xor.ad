@@ -59,6 +59,21 @@ function Over({ children }: { children: ReactNode }) {
   return host?.el ? createPortal(children, host.el) : <>{children}</>;
 }
 
+/** The board's screen: at the desktop into the talks' middle column (`[data-slot="game-stage"]`, Inbox; desktop-1440
+ *  5-talks/chat-game-board: the board in the middle, the talk at the right), elsewhere over the conversation. */
+function Stage({ children }: { children: ReactNode }) {
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    // the slot is the board's only where the width's tokens say so (wide.css: --stage: on at --bp-desktop)
+    const el = document.querySelector<HTMLElement>('[data-slot="game-stage"]');
+    if (!el || getComputedStyle(el).getPropertyValue("--stage").trim() !== "on") return;
+    el.dataset.on = "";
+    setSlot(el);
+    return () => { delete el.dataset.on; };
+  }, []);
+  return slot ? createPortal(children, slot) : <Over>{children}</Over>;
+}
+
 export function ChatGamePane({ chatId, view, stage, peer, me, busy, error, actions }:
   { chatId: string; view: ChatGameView | null; stage: GameStage; peer: string; me: string; busy: boolean; error: string | null; actions: GameActions }) {
   const host = useContext(OverlayCtx);
@@ -127,7 +142,7 @@ export function ChatGamePane({ chatId, view, stage, peer, me, busy, error, actio
   const theirsUp = stage.at === "playing" && stage.turn === "theirs";
   const turnWord = stage.at === "over" ? say("app.game.over") : stage.turn ? say(stage.turn === "mine" ? "app.game.your_move" : "app.game.their_move") : null;
   return (
-    <Over>
+    <Stage>
       <div className="k-col k-ch-full" data-testid="chat-game" data-stage={stage.at}>
         {host ? host.bar(actions.onHide, say("app.game.to_chat"), false) : (
           <header className="k-row k-bar">
@@ -180,7 +195,7 @@ export function ChatGamePane({ chatId, view, stage, peer, me, busy, error, actio
           </div>
         )}
       </div>
-    </Over>
+    </Stage>
   );
 }
 

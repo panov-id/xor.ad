@@ -29,6 +29,11 @@ const NAMES = ["Anna", "Boris", "Chloe", "Dmitri", "Elena", "Fotis", "Giorgos", 
 const AGES = [14, 16, 19, 20, 21, 34, 17, 19, 22, 28];
 const band = (a) => (a <= 20 ? [Math.max(13, a - 2), a + 2] : [Math.min(21, a - 2), Infinity]);
 const inBand = (a, b) => b >= band(a)[0] && b <= band(a)[1];
+// Five fixed pairs who may meet (mayMeet): each marks the partner's phrase first, so every person has a mutual mark and a
+// chat. Before (run flow-1029-121316) each marked the first three of the feed: Elena's phrase sat 4th-5th for the ones she
+// marked, no mark was mutual, and her six converse steps had no chat.
+const PAIRS = [["Anna", "Boris"], ["Chloe", "Giorgos"], ["Dmitri", "Hana"], ["Elena", "Fotis"], ["Irakli", "Nino"]];
+const partnerOf = (name) => PAIRS.flatMap(([x, y]) => (x === name ? [y] : y === name ? [x] : []))[0];
 const mayMeet = (i, j) => TOWNS[i][1] === TOWNS[j][1] && inBand(AGES[i], AGES[j]) && inBand(AGES[j], AGES[i]);
 // Each person on their own device (owner 24.10: «разное разрешение разных девайсов»): phones, tablets, laptops, a desktop.
 const DEVICES = [
@@ -115,6 +120,7 @@ async function step(p, name, fn) {
 
 // Shot pairs (scripts/design/proto-pairs.mjs): the first person (iPhone 14, 390x844, light: theme sea) shoots each
 // prototype state it reaches under that screen's id (docs/newdesign/proto/index.json), into OUT/pairs/<id>.png.
+// A5 (owner 28.10): the step's (i) open, shot, closed again — the first person only, as pairShot.
 async function pairShot(p, id) {
   if (p.i !== 0) return;
   mkdirSync(`${OUT}/pairs`, { recursive: true });
@@ -196,7 +202,17 @@ async function tab(p, t, screen) {
   // The rail ignores a press on the tab already current (TabBar.tsx: tab !== active), so a sub-screen of that tab (the
   // match's wait at 1440) is left by history Back first; noted, it is the app's, not the person's.
   if ((await pg.locator(`${sel}[aria-current="page"]`).count()) && !(await pg.locator(`[data-screen="${screen}"]`).count())) {
-    await pg.locator(sel).first().click({ timeout: 10000 });
+    await pg.locator(sel).first().click({ timeout: 10000 }).catch(async (e) => {
+      // what lies at the tab's centre, outermost last (run flow-1028-114907: Nino at 1920, a layer-screen took the click)
+      const at = await pg.locator(sel).first().evaluate((b) => {
+        const r = b.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+        return document.elementsFromPoint(x, y).slice(0, 6).map((el) => {
+          const cs = getComputedStyle(el);
+          return `${el.tagName.toLowerCase()}.${[...el.classList].join(".")}${el.dataset.screen ? `[screen=${el.dataset.screen}]` : ""} z=${cs.zIndex} pos=${cs.position} pe=${cs.pointerEvents}`;
+        }).join(" > ") + ` @${Math.round(x)},${Math.round(y)} url=${location.pathname}`;
+      }).catch(() => "");
+      throw new Error(`${e.message.split("\n")[0]} | at the tab: ${at}`);
+    });
     if (await pg.waitForSelector(`[data-screen="${screen}"]`, { timeout: 5000 }).then(() => true, () => false)) return;
     p.reloads.push(`the current tab «${t}» did nothing: Back`);
     await pg.goBack().catch(() => {});
@@ -205,8 +221,22 @@ async function tab(p, t, screen) {
   // From 1440 an open phrase lies over the feed with a rail of its own, and the feed's rail under it is «visible» too:
   // the first match is the covered one (run flow-1026-193139: Nino at 1920, «card subtree intercepts pointer events»).
   // A person presses the rail they see, the phrase's.
-  const top = pg.locator(`[data-screen="card"] ${sel}`);
-  await ((await top.count()) ? top : pg.locator(sel)).first().click({ timeout: 10000 });
+  // At 1920 the phrase's own rail lay under the layer instead (run flow-1028-122411: «layer-screen intercepts pointer events»),
+  // so the tab pressed is the one on top at its own centre, whichever rail holds it.
+  const all = pg.locator(sel), n = await all.count();
+  let pick = 0;
+  for (let k = 0; k < n; k++) {
+    if (await all.nth(k).evaluate((b) => { const r = b.getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!el && b.contains(el); }).catch(() => false)) { pick = k; break; }
+  }
+  await all.nth(pick).click({ timeout: 10000 }).catch(async (e) => {
+    const at = await all.nth(pick).evaluate((b) => {
+      const r = b.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+      const desc = (el) => { const cs = getComputedStyle(el); return `${el.tagName.toLowerCase()}.${[...el.classList].join(".")}${el.dataset.screen ? `[screen=${el.dataset.screen}]` : ""}${el.dataset.role ? `[role=${el.dataset.role}]` : ""} z=${cs.zIndex} pos=${cs.position} op=${cs.opacity} vis=${cs.visibility} pe=${cs.pointerEvents}`; };
+      const up = []; for (let el = b; el && up.length < 8; el = el.parentElement) up.push(desc(el));
+      return `hit: ${document.elementsFromPoint(x, y).slice(0, 5).map(desc).join(" > ")} || tab's parents: ${up.join(" < ")} || ${document.querySelectorAll(".layer-screen").length} layer-screen @${Math.round(x)},${Math.round(y)} ${location.pathname}`;
+    }).catch((x) => `probe failed: ${x}`);
+    throw new Error(`${e.message.split("\n")[0]} | ${n} tabs | ${at}`);
+  });
   await pg.waitForSelector(`[data-screen="${screen}"]`, { timeout: 20000 });
 }
 
@@ -237,22 +267,27 @@ async function register(p) {
   await pg.fill('[data-testid="pin-again"]', PIN); await pg.waitForSelector('[data-screen="register-3"]', { timeout: 120000 });
   await pairShot(p, "register-3");
   const code = await pg.evaluate(() => sessionStorage.getItem("crowd-code"));
+  // docs/newdesign4 05 → 05a: «I wrote it down», then two groups of the four, a new pair each time (data-pair="1,4")
+  await pg.click('[data-testid="wrote"]'); await pg.waitForSelector('[data-screen="register-3-check"]'); await pairShot(p, "register-3-check");
+  const pair = (await pg.locator('[data-testid="paper-groups"]').getAttribute("data-pair")).split(",").map(Number);
   const gi = pg.locator('[data-testid="paper-groups"] input');
-  await gi.nth(0).fill(code.slice(4, 8)); await gi.nth(1).fill(code.slice(12, 16));
+  for (const [i, g] of pair.entries()) await gi.nth(i).fill(code.slice((g - 1) * 4, g * 4));
   await pg.click('[data-testid="confirm"]');
   // a fresh registration: «how it works» first (Intro.tsx), four cards; the even people read them through, the odd skip
   await pg.waitForSelector('[data-screen="intro"]', { timeout: 30000 });
   if (p.i % 2 === 0) for (let k = 0; k < 4; k++) await pg.click('[data-testid="intro-next"]');
   else await pg.click('[data-testid="intro-close"]');
   // no place on a new device: the place screen comes before the feed (App.tsx landing); the person picks it there
-  const at = await pg.waitForSelector('[data-screen="feed"], [data-screen="place"]', { timeout: 30000 });
-  p.firstPlace = (await at.getAttribute("data-screen")) === "place";
+  // the place is the intro's fifth card now (wizard-5, Place.tsx in its wizard mode: data-testid="intro-place")
+  const at = await pg.waitForSelector('[data-screen="feed"], [data-screen="place"], [data-testid="intro-place"]', { timeout: 30000 });
+  p.firstPlace = (await at.getAttribute("data-screen")) !== "feed";
   if (!p.firstPlace) throw new Error("a new identity with no place landed on the feed, not on the place step");
 }
 
 async function place(p) {
   const pg = p.page;
-  if (!(await pg.locator('[data-screen="place"]').count())) {
+  const wizard = (await pg.locator('[data-testid="intro-place"]').count()) > 0;
+  if (!wizard && !(await pg.locator('[data-screen="place"]').count())) {
     await tab(p, "me", "me");
     await pg.locator('[data-testid="me-place"]').scrollIntoViewIfNeeded();
     await pg.click('[data-testid="me-place"]'); await pg.waitForSelector('[data-screen="place"]');
@@ -260,6 +295,15 @@ async function place(p) {
   await pg.fill('[data-testid="place-search"]', TOWNS[p.i][0]);
   await pg.waitForSelector('[data-testid="place-city"]', { timeout: 20000 });
   await pg.locator('[data-testid="place-city"]').nth(0).click();
+  // the wizard card has no map: the picked city is the point
+  if (wizard) {
+    await pairShot(p, "place");
+    await pg.click('[data-testid="place-here"]'); await pg.waitForSelector('[data-screen="feed"]');
+    const kept = await pg.evaluate(() => JSON.parse(localStorage.getItem("place.v1") ?? "null"));
+    if (!kept) throw new Error("no place kept");
+    p.place = kept;
+    return `wizard → ${kept.name} ${kept.lat.toFixed(4)},${kept.lon.toFixed(4)}`;
+  }
   // a small drag of the map: a few hundred metres apart inside the town; the map is its own view behind the big tile
   await pg.click('[data-testid="place-map-open"]');
   await pg.locator('[data-testid="place-map"]').scrollIntoViewIfNeeded();
@@ -281,6 +325,16 @@ async function place(p) {
 async function sayPhrase(p) {
   const pg = p.page;
   await tab(p, "feed", "feed");
+  // A5 card-need: no phrase of one's own yet, so the card offers «Write a phrase» in place of «I'm in»
+  if (p.i === 0 && (await pg.locator('[data-testid="card-open"]').count())) {
+    await pg.locator('[data-testid="card-open"]').first().click();
+    await pg.waitForSelector('[data-screen="card"]', { timeout: 10000 });
+    await pg.waitForTimeout(1500);
+    p.need = (await pg.locator('[data-screen="card"] [data-testid="need-say"]').count()) > 0;
+    await pairShot(p, "card-need");
+    await pg.click('[data-screen="card"] [data-testid="back"]').catch(async () => { await pg.goBack(); });
+    await pg.waitForSelector('[data-screen="feed"]', { timeout: 10000 });
+  }
   await pairShot(p, "feed");
   // the feed's pen on phones and tablets, the rail's «say something» from 1024 on (TabBar.tsx)
   await pg.locator('[data-testid="write"]:visible, [data-testid="rail-say"]:visible').first().click(); await pg.waitForSelector('[data-testid="text"]');
@@ -290,6 +344,8 @@ async function sayPhrase(p) {
   const sent = pg.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/feed", { timeout: 20000 });
   await pg.click('[data-testid="send"]');
   const r = await sent;
+  // 422 is the moderator's «no» (relay/node/src/routes/feed.ts refuse): named apart, the converse steps after it fail for it
+  if (r.status() === 422) throw new Error(`POST /feed 422: the moderator refused the phrase «${(await r.json().catch(() => ({})))?.error?.message ?? "?"}», no chat can come of it`);
   if (r.status() >= 300) throw new Error(`POST /feed ${r.status()}`);
   await pg.waitForSelector('[data-screen="feed"]', { timeout: 20000 });
   await pairShot(p, "feed-own");
@@ -309,19 +365,25 @@ async function like(p) {
   const cards = pg.locator('[data-testid="card"]');
   const n = await cards.count();
   let done = 0;
-  for (let k = 0; k < n && done < 3; k++) {
-    const text = await cards.nth(k).locator('[data-testid="card-open"]').innerText();
+  // the partner's card first, then the feed's order
+  const texts = await cards.locator('[data-testid="card-open"]').allInnerTexts();
+  const mate = texts.findIndex((t) => t.startsWith(`${RUN} ${partnerOf(NAMES[p.i])}:`));
+  const order = [...(mate >= 0 ? [mate] : []), ...texts.keys()].filter((k, at, all) => all.indexOf(k) === at);
+  if (mate < 0) p.notes = [...(p.notes ?? []), `partner ${partnerOf(NAMES[p.i])}'s phrase not in the feed`];
+  for (const k of order) {
+    if (done >= 3) break;
+    const text = texts[k];
     if (!text.startsWith(RUN) || text === p.phrase) continue;
     await cards.nth(k).locator('[data-testid="card-open"]').click();
     await pg.waitForSelector('[data-screen="card"]', { timeout: 10000 });
     if (done === 0) await pairShot(p, "card");
     const btn = pg.locator('[data-screen="card"] [data-testid="like"]');
-    if (await btn.count()) { await btn.first().click(); done++; await pg.waitForTimeout(400); }
+    if (await btn.count()) { await btn.first().click(); done++; await pg.waitForTimeout(400); if (done === 1) await pairShot(p, "card-in"); }
     await pg.click('[data-screen="card"] [data-testid="back"]').catch(async () => { await pg.goBack(); });
     await pg.waitForSelector('[data-screen="feed"]', { timeout: 10000 });
   }
   p.liked = done;
-  return `liked ${done}`;
+  return `liked ${done}${mate >= 0 ? `, partner ${partnerOf(NAMES[p.i])} first` : `, partner ${partnerOf(NAMES[p.i])} not in the feed`}`;
 }
 
 async function talk(p) {
@@ -329,19 +391,24 @@ async function talk(p) {
   await tab(p, "chats", "inbox");
   await pg.waitForTimeout(1200);
   let talks = 0;
-  for (let k = 0; k < 2; k++) {
+  // offers in order: one already answered (its wait) is stepped over, not the end of the list (run flow-1028-125842: Anna's yes
+  // stood unanswered while the other one met their answered offer first and stopped)
+  for (let k = 0, at0 = 0; k < 2; k++) {
     const offer = pg.locator('[data-testid="open-match"]');
-    if (!(await offer.count())) break;
-    await offer.first().click();
-    // An offer already answered opens the waiting screen (no «talk» there): back to the inbox, it waits for the other one.
-    const at = await pg.waitForSelector('[data-testid="talk"], [data-screen="match-waiting"]', { timeout: 10000 });
-    if ((await at.getAttribute("data-testid")) !== "talk") { await tab(p, "chats", "inbox"); break; }
+    if ((await offer.count()) <= at0) break;
+    await offer.nth(at0).click();
+    // An offer already answered opens the waiting screen (no «talk» there; at 1440+ it is the right pane, TalkFrame data-pane): back to the inbox, it waits for the other one.
+    const at = await pg.waitForSelector('[data-testid="talk"], [data-screen="match-waiting"], [data-pane="match-waiting"]', { timeout: 10000 });
+    if ((await at.getAttribute("data-testid")) !== "talk") { await tab(p, "chats", "inbox"); at0++; k--; if (at0 > 4) break; continue; }
     await pg.click('[data-testid="talk"]');
     await pg.waitForTimeout(1200);
     talks++;
     if (!(await pg.locator('[data-screen="inbox"]').count())) await tab(p, "chats", "inbox");
     await pg.waitForTimeout(800);
   }
+  // the chats list comes over the node channel after the screen: wait for a row before counting (run us3tv: Elena's
+  // talk-again counted 0 while her shot showed two chats). None at all stays 0 after 10 s, as before.
+  await pg.locator('[data-testid="open-chat"]').first().waitFor({ timeout: 10000 }).catch(() => {});
   const chats = await pg.locator('[data-testid="open-chat"]').count();
   if (chats) {
     await pg.locator('[data-testid="open-chat"]').first().click();
@@ -434,6 +501,15 @@ async function makeGame(p, g) {
   return `${g.game} for ${g.players.length}: table ${g.id.slice(0, 8)}`;
 }
 
+// The list keeps one's own and seated tables behind the «mine» tab (Tables.tsx tables-tab-mine; «all» hides tables-mine):
+// a table the person made or sits at is opened from there when the open tab does not show it (run flow-1028-090050:
+// 17 ready/stand steps waited 10 s on a hidden tile).
+async function openListed(pg, id) {
+  const tile = pg.locator(`[data-id="${id}"] [data-testid="table-open"]`);
+  if (!(await tile.isVisible())) await pg.click('[data-testid="tables-tab-mine"]');
+  await tile.click({ timeout: 10000 });
+}
+
 async function sitAt(p, g) {
   const pg = p.page;
   if (!g.id) throw new Error(`no ${g.game} table to sit at`);
@@ -459,7 +535,7 @@ async function ready(p, g) {
   // the wizard leaves the maker on the list (shot 00-Anna-16, run flow-1025-182252): the maker opens the own table
   if (!(await pg.locator('[data-screen="table"]').count())) {
     await tab(p, "tables", "tables");
-    await pg.locator(`[data-id="${g.id}"] [data-testid="table-open"]`).click({ timeout: 10000 });
+    await openListed(pg, g.id);
     await pg.waitForSelector('[data-screen="table"]', { timeout: 15000 });
     g.notes.push(`${NAMES[p.i]} had to open the table again`);
   }
@@ -542,8 +618,10 @@ async function tableTalk(p, g) {
 
 // Stickers past sticker.minute (6 a minute): the seventh in the same minute must be refused.
 async function stickerFlood(p, g) {
-  const pg = p.page, st = pg.locator('[data-testid^="sticker-"]');
-  if (!(await st.count())) return "no stickers";
+  // only the strip on screen: on phones the con foot and a game's turn buttons put it aside (kit.css TAB16, Table.tsx foot),
+  // run flow-1028-102239: Chloe at 412 waited 30 s on a hidden chip
+  const pg = p.page, st = pg.locator('[data-testid^="sticker-"]:visible');
+  if (!(await st.count())) return `no sticker strip on screen at ${pg.viewportSize().width} (the foot holds the game's buttons)`;
   const codes = [];
   const watch = (r) => { if (r.request().method() === "POST" && new URL(r.url()).pathname === `/tables/${g.id}/lines`) codes.push(r.status()); };
   pg.on("response", watch);
@@ -561,7 +639,7 @@ async function standUp(p, g) {
   // «no stand up» 24 times of 25, everyone kept the seat).
   if (!(await pg.locator('[data-screen="table"]').count())) {
     await tab(p, "tables", "tables");
-    await pg.locator(`[data-id="${g.id}"] [data-testid="table-open"]`).click({ timeout: 10000 });
+    await openListed(pg, g.id);
     await pg.waitForSelector('[data-screen="table"]', { timeout: 15000 });
   }
   await pg.click('[data-testid="table-more"]');
@@ -593,7 +671,7 @@ async function soloOpen(p, g) {
   const pg = p.page;
   if (!(await pg.locator('[data-screen="table"]').count())) {
     await tab(p, "tables", "tables");
-    await pg.locator(`[data-id="${g.id}"] [data-testid="table-open"]`).click({ timeout: 10000 });
+    await openListed(pg, g.id);
     await pg.waitForSelector('[data-screen="table"]', { timeout: 15000 });
   }
   await pg.waitForSelector('[data-testid="solo-open"]', { timeout: 15000 });
@@ -937,6 +1015,10 @@ async function editMe(p) {
 async function tour(p) {
   const pg = p.page;
   await tab(p, "me", "me");
+  // «Me» at every width of the crowd, for the sheets of docs/newdesign3 (square hub tiles, 28.10)
+  mkdirSync(`${OUT}/pairs`, { recursive: true });
+  await pg.waitForTimeout(500);
+  await pg.screenshot({ path: `${OUT}/pairs/me-${pg.viewportSize().width}.png` }).catch(() => {});
   for (const sub of ["me-place"]) {
     await pg.locator(`[data-testid="${sub}"]`).scrollIntoViewIfNeeded(); await pg.click(`[data-testid="${sub}"]`);
     await pg.waitForTimeout(900); await pg.goBack().catch(() => {}); await pg.waitForTimeout(600);
@@ -944,7 +1026,18 @@ async function tour(p) {
   return "me and place";
 }
 
+// ONLY=feed,talk runs just those blocks (register and place always run: every later block stands on them); empty runs all.
+const ONLY = new Set((process.env.ONLY ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+export const BLOCK = (name) => name === "register" || name === "place" ? "base"
+  : /^(say|feed-seen|like|hide|phrase-|refusals|notice)/.test(name) ? "feed"
+  : /^(talk|converse|block)/.test(name) ? "talk"
+  : /^(game|table)/.test(name) ? "games"
+  : /^(edit-me|me-tour)/.test(name) ? "me" : "other";
+// a chat needs a like first, so «talk» brings the feed with it
+const wanted = (name) => ONLY.size === 0 || BLOCK(name) === "base" || ONLY.has(BLOCK(name)) || (BLOCK(name) === "feed" && ONLY.has("talk"));
+
 async function phase(people, name, fn, only = () => true, batch = people.length) {
+  if (!wanted(name)) return;
   const list = people.filter((p) => p.alive && only(p));
   for (let k = 0; k < list.length; k += batch) await Promise.all(list.slice(k, k + batch).map(async (p) => { const ok = await step(p, name, () => fn(p)); if (!ok && name === "register") p.alive = false; }));
 }
@@ -962,7 +1055,7 @@ try {
   await phase(people, "talk-again", talk);   // a like that came back after the first round
   for (let r = 1; r <= 6; r++) await phase(people, `converse-${r}`, (p) => converse(p, r));
   await phase(people, "converse-read", (p) => converse(p, "read"));   // the last round's lines, read
-  await playGames(people);
+  if (wanted("games")) await playGames(people);
   await phase(people, "table-flood", tableFlood, (p) => p.i === 9);
   // the feed: notices (DSA art. 16), hide, limits, the model's refusals; block last, it ends chats
   await phase(people, "notice", (p) => notice(p, p.i === 9 ? 8 : 3), (p) => [2, 4, 9].includes(p.i));
@@ -971,7 +1064,7 @@ try {
   await phase(people, "phrase-long", phraseTooLong, (p) => p.i === 6);
   await phase(people, "refusals", refusals, (p) => p.i === 7);
   await phase(people, "edit-me", editMe, (p) => p.i === 4);
-  await venuePath(browser, people).catch((e) => vstep("venue path", false, String(e).split("\n")[0].slice(0, 200)));
+  if (ONLY.size === 0 || ONLY.has("cabinet")) await venuePath(browser, people).catch((e) => vstep("venue path", false, String(e).split("\n")[0].slice(0, 200)));
   await phase(people, "block", (p) => blockAndLift(p, 0), (p) => p.i === 1);
   await phase(people, "me-tour", tour);
 } finally {
@@ -1004,7 +1097,8 @@ for (const id of new Set(people.flatMap((p) => Object.keys(p.said).concat(Object
   chats.push({ id, who: two.map((p) => NAMES[p.i]).join("–"), ab: `${got(a, b)}/${a?.said[id]?.length ?? 0}`, ba: `${got(b, a)}/${b?.said[id]?.length ?? 0}`,
     ok: two.length === 2 && got(a, b) >= 3 && got(b, a) >= 3 });
 }
-const silent = people.filter((p) => !chats.some((c) => c.ok && c.who.split("–").includes(NAMES[p.i])));
+// «no real chat» counts only when the talk block ran
+const silent = !wanted("talk") ? [] : people.filter((p) => !chats.some((c) => c.ok && c.who.split("–").includes(NAMES[p.i])));
 const limits = people.flatMap((p) => p.limits.map((l) => ({ who: NAMES[p.i], ...l })));
 const sum = [
   `crowd run ${RUN}: ${journal.length - bad.length} of ${journal.length} steps ok; ${people.length} people; SLOW=${SLOW ? 1 : 0}`,

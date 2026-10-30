@@ -6,6 +6,9 @@ import { SEA_FILES } from "../../../../depth/core/tables_sea.ts";
 export const FLEET_SIZES: readonly number[] = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1];
 const N = 10;
 
+/** The fleet's ship sizes, each once, biggest first: the chips of the battleship-place strip (4, 3, 2, 1). */
+export const fleetSizes = (): number[] => [...new Set(FLEET_SIZES)].sort((a, b) => b - a);
+
 /** A fleet by the node's rules; `rand` is Math.random unless a test pins it. Big ships first, so a dead end is rare. */
 export function randomFleet(rand: () => number = Math.random): string[][] {
   for (;;) {

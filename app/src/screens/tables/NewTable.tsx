@@ -8,7 +8,8 @@
 //
 // Not compared with the sheet: Backgammon's «Short» (the node plays one backgammon) and «2 + watchers» (watchers need no
 // seat: the node lets anyone watch) — a variant or seats the node cannot play are not offered (GOALS §6 question 9).
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
+import { InPane } from "../me/parts";
 import type { Client } from "@sdk/client.ts";
 import { GAMES, gameById, nameLeft, refusalCode, seatsWord, TABLE_NAME_MAX, tableBody } from "@sdk/new_table.ts";
 import { Tables } from "@sdk/tables.ts";
@@ -23,9 +24,11 @@ import { Field } from "../register-parts";
 import { radiusWord } from "../feed-logic";
 import { countsLine, gameIcon, gameName, gameTint, TableTile, variantWord } from "./table-row";
 import { back, canNext, nameRefused, next, pick, startWizard, TABLES_RADIUS, type Wizard } from "./tables-logic";
+import { fullUntil, TABLES_FULL_KEY } from "./table-logic";
 
 // `picked`: a game chosen already (the wide tables' «Start a game»), the wizard opens on its first step with it chosen.
 export function NewTable({ client, onMade, onBack, picked }: { client: Client; onMade: (id: string) => void; onBack: () => void; picked?: string }) {
+  const pane = useContext(InPane);   // beside the tables list (desktop-1440 new-table-*.svg): the list's rail stands
   const place = useRef(storedPlace()).current;
   const [w, setW] = useState<Wizard>(() => (picked ? pick(startWizard(), picked) : startWizard()));
   const [busy, setBusy] = useState(false);
@@ -46,6 +49,8 @@ export function NewTable({ client, onMade, onBack, picked }: { client: Client; o
     try {
       const made = await new Tables(client).create(body);
       if (made.status === 201) return onMade(made.body.id);
+      // tables-full: the list says it on top until the hour is out
+      if (made.status === 429) try { localStorage.setItem(TABLES_FULL_KEY, String(fullUntil(Date.now()))); } catch { /* the note is a courtesy */ }
       if (refusalCode(made) === "name_refused") { setW(nameRefused(w)); setError(say("app.nt.refused_name")); } else setError(refusedStatus(made.status));
     } catch (e) {
       setError(failedLine(e));
@@ -140,7 +145,7 @@ export function NewTable({ client, onMade, onBack, picked }: { client: Client; o
             </button>
           </div>
         </section>
-        <Rail active="tables" />
+        {!pane && <Rail active="tables" />}
       </div>
     </Screen>
   );

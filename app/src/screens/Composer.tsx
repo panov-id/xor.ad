@@ -13,7 +13,8 @@ import { failedLine, LANG, label, say } from "../i18n";
 import { storedPlace } from "../place";
 import { NdIcon } from "../shell/NdIcon";
 import { type Tab, TabBar } from "../shell/TabBar";
-import { RADIUS_ICON } from "./feed-radius";
+import { useMinWidth } from "../shell/useMinWidth";
+import { RADIUS_ICON, radiusText } from "./feed-radius";
 import { canSay, lettersLeft, liveLeft } from "./composer-logic";
 import { RADII, radiusWord, textSize } from "./feed-logic";
 
@@ -29,23 +30,27 @@ export interface ComposerState {
 export interface ComposerActions {
   onText: (text: string) => void; onMode: (mode: Mode) => void; onZone: (zone: Radius) => void; onSend: () => void; onBack: () => void;
   onTab?: (tab: Tab) => void;
+  /** The «where» row: the place screen (App.tsx, the feed's own onPlace). */
+  onPlace?: () => void;
 }
 
 export function ComposerPane({ state, actions }: { state: ComposerState; actions: ComposerActions }) {
   const { h, m } = life();
   const left = state.live?.left ?? 1;
   const letters = lettersLeft(state.text, state.limit);
+  // desktop 3-nearby composer.svg: at the desktop the composer stands in the right pane beside the feed (wide.css .k-card-pane)
+  const desk = useMinWidth("--bp-desktop");
   // the prototype's composer (docs/newdesign/proto/composer.html, composer-refused): the bar with close and the title,
   // the phrase's panel (text, live dots, letters ring), the settings panel (three modes, five circles), the send panel
   return (
-    <main className="k-screen k-over" data-screen="composer">
+    <main className={desk ? "k-screen k-card-pane" : "k-screen k-over"} data-screen="composer">
       <form className="k-col" onSubmit={(e) => { e.preventDefault(); actions.onSend(); }}>
         <header className="k-row k-bar">
           <button type="button" className="k-bar-btn" aria-label={say("common.back")} onClick={actions.onBack} data-testid="composer-back"><NdIcon name="close" /></button>
           <h1 className="k-bar-title">{label("app.compose.title")}</h1>
         </header>
         <section className="k-panel k-card k-write">
-          <label htmlFor="cp-text" className="k-sub">{state.place ? say("app.compose.where", { place: state.place }) : say("app.compose.sub", { h, m })}</label>
+          <label htmlFor="cp-text" className="k-sub">{say("app.compose.sub", { h, m })}</label>
           <textarea id="cp-text" className="k-card-text k-write-text" value={state.text} onChange={(e) => actions.onText(e.target.value)}
             placeholder={say("app.compose.your_phrase")} rows={3} data-testid="text" data-size={textSize(state.text)} />
           <div className="k-write-foot">
@@ -63,6 +68,12 @@ export function ComposerPane({ state, actions }: { state: ComposerState; actions
           ? <section className="k-panel k-settings"><p className="k-note" role="alert" data-testid="refused"><NdIcon name="hourglass" /><span>{state.refused}</span></p></section>
           : (
             <section className="k-panel k-settings">
+              {/* newdesign3 composer.html .row: the place and the circle, «where · tap to change» opens the place screen */}
+              <button type="button" className="k-row k-where" onClick={actions.onPlace} disabled={!actions.onPlace} data-testid="composer-where">
+                <span className="k-badge" data-c="2"><NdIcon name="place" /></span>
+                <span className="k-stack"><span className="k-title">{`${state.place || say("web.place.none")} · ${radiusText(state.zone)}`}</span><span className="k-meta">{say("app.compose.where_change")}</span></span>
+                <NdIcon name="chev" />
+              </button>
               <div className="k-facts" role="radiogroup" aria-label={say("app.compose.going")}>
                 {MODES.map(({ value, icon, c }) => (
                   <button key={value} type="button" role="radio" aria-checked={state.mode === value} className="k-fact k-fact-btn" data-on={state.mode === value ? "" : undefined}
@@ -94,8 +105,8 @@ export function ComposerPane({ state, actions }: { state: ComposerState; actions
 }
 
 /** The composer held for the screen: the node's limit, one's own live phrases, the send. */
-export function Composer({ client, radius, onSent, onBack, onTab }:
-  { client: Client; radius: Radius; onSent: (sent: Exclude<Sent, { state: "refused" }>, text: string) => void; onBack: () => void; onTab?: (tab: Tab) => void }) {
+export function Composer({ client, radius, onSent, onBack, onTab, onPlace }:
+  { client: Client; radius: Radius; onSent: (sent: Exclude<Sent, { state: "refused" }>, text: string) => void; onBack: () => void; onTab?: (tab: Tab) => void; onPlace?: () => void }) {
   const [text, setText] = useState("");
   const [mode, setMode] = useState<Mode>("alone");
   const [zone, setZone] = useState<Radius>(radius);
@@ -124,7 +135,7 @@ export function Composer({ client, radius, onSent, onBack, onTab }:
   }
   return (
     <ComposerPane state={{ text, mode, zone, limit, live, busy, refused, place: storedPlace().name }} actions={{
-      onText: (t) => setText(t), onMode: setMode, onZone: setZone, onSend: () => void send(), onBack, onTab,
+      onText: (t) => setText(t), onMode: setMode, onZone: setZone, onSend: () => void send(), onBack, onTab, onPlace,
     }} />
   );
 }

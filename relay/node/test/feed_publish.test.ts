@@ -5092,3 +5092,207 @@ test({ name: "a block behind a tenth miss that locked the share is not written (
   assertEquals(row.blocks, 0, "the block was written for a session whose PIN was locked");
   assertEquals(row.match, 1, "the block's delete of the match stayed, though it was refused");
 });
+
+// ---- lost and found (owner, 30.10.2026; db/089) -----------------------------
+//
+// A feed row has a kind: a phrase as before, a lost that lives three days and
+// takes a slot of its own, a found the author makes out of a lost. Every test
+// here carries "lost" or "found" in its name, so `--filter lost` runs the set.
+
+const lost = (over: Record<string, unknown> = {}) => phrase({ text: "потерял ключи у реки, синий брелок", kind: "lost", ...over });
+const send = (who: { pair: CryptoKeyPair; session_id: string }, body: unknown) =>
+  signedCall(who.pair.privateKey, who.session_id, "POST", "/feed", body);
+const rowOf = async (id: string) => {
+  const [row] = await database.queryOrThrow<
+    { kind: string; extend_count: number; visible_at: Date | null; expires_at: Date | null }
+  >(`SELECT kind, extend_count, visible_at, expires_at FROM feed_messages WHERE id = $1`, [id]);
+  return row;
+};
+const DAY = 24 * 60 * 60;
+
+// Sanitisers off: a CHECK violation drops the pool's connection, and the
+// wrapper puts the pool back as the setup left it (W16-SF4).
+test({
+  name: "db/089: a row is a phrase unless it says otherwise, and a kind nobody named is refused (lost)",
+  sanitizeOps: false,
+  sanitizeResources: false,
+}, async () => {
+  const me = await author();
+  const plain = await waitingPhrase(me.identity_id);
+  assertEquals((await rowOf(plain)).kind, "phrase", "a row that named no kind is not a phrase");
+  assertEquals((await rowOf(plain)).extend_count, 0);
+  let refused = "";
+  try {
+    await database.queryOrThrow(`UPDATE feed_messages SET kind = 'wanted' WHERE id = $1`, [plain]);
+  } catch (error) {
+    refused = String(error);
+  }
+  assert(refused.includes("feed_kind"), `a kind outside the list was written: ${refused || "no error"}`);
+  refused = "";
+  try {
+    await database.queryOrThrow(`UPDATE feed_messages SET extend_count = 4 WHERE id = $1`, [plain]);
+  } catch (error) {
+    refused = String(error);
+  }
+  assert(refused.includes("feed_extend_count"), `a fourth extension was written: ${refused || "no error"}`);
+});
+
+test("a lost is sent as one, lives three days from the verdict, and a phrase still lives four hours twenty", async () => {
+  const me = await author();
+  const sent = await send(me, lost());
+  assertEquals(sent.status, 200, JSON.stringify(sent.body));
+  const answer = sent.body as { id: string; kind: string; visible_at: number; expires_at: number };
+  assertEquals(answer.kind, "lost");
+  assertEquals(answer.expires_at - answer.visible_at, 3 * DAY, "a lost's term is not three days");
+  assertEquals((await rowOf(answer.id)).kind, "lost");
+
+  const plain = await send(me, phrase());
+  assertEquals(plain.status, 200, JSON.stringify(plain.body));
+  const p = plain.body as { kind: string; visible_at: number; expires_at: number };
+  assertEquals(p.kind, "phrase");
+  assertEquals(p.expires_at - p.visible_at, (4 * 60 + 20) * 60, "a phrase's term moved");
+});
+
+test("a send naming 'found' or any other kind is refused: a found is made, not sent (lost)", async () => {
+  const me = await author();
+  for (const kind of ["found", "wanted", 7]) {
+    const sent = await send(me, lost({ kind }));
+    assertEquals(sent.status, 400, `kind ${JSON.stringify(kind)}: ${JSON.stringify(sent.body)}`);
+    assertEquals((sent.body as { error: { code: string } }).error.code, "invalid_body");
+  }
+  const [n] = await database.queryOrThrow<{ n: number }>(
+    `SELECT count(*)::int AS n FROM feed_messages WHERE author_identity = $1`, [me.identity_id]);
+  assertEquals(n.n, 0, "a refused kind left a row");
+});
+
+test("one live lost per identity, on a slot of its own beside the four phrases", async () => {
+  const me = await author();
+  const first = await send(me, lost());
+  assertEquals(first.status, 200, JSON.stringify(first.body));
+  const second = await send(me, lost({ text: "и ещё зонт" }));
+  assertEquals(second.status, 409, `a second lost was taken: ${JSON.stringify(second.body)}`);
+  assertEquals((second.body as { error: { message: string; live_lost: number } }).error.live_lost, limits.LIVE_LOST_MAX);
+  assertEquals((second.body as { error: { message: string } }).error.message, "one lost notice at a time");
+
+  // The lost does not take one of the four: four phrases still go up beside it.
+  for (let i = 0; i < limits.LIVE_MAX; i++) {
+    await database.queryOrThrow(`UPDATE identity_stats SET published_at_recent = '{}' WHERE identity = $1`, [me.identity_id]);
+    const sent = await send(me, phrase({ text: `живая ${i}` }));
+    assertEquals(sent.status, 200, `phrase ${i} beside a lost: ${JSON.stringify(sent.body)}`);
+  }
+  await database.queryOrThrow(`UPDATE identity_stats SET published_at_recent = '{}' WHERE identity = $1`, [me.identity_id]);
+  const fifth = await send(me, phrase({ text: "пятая" }));
+  assertEquals(fifth.status, 409, JSON.stringify(fifth.body));
+  // And the four phrases are what the refusal counts — not five with the lost.
+  assertEquals((fifth.body as { error: { live: number } }).error.live, limits.LIVE_MAX, "the lost was counted among the four");
+  // Nor do four phrases stop a lost: its slot was freed by the term running out.
+  await database.queryOrThrow(
+    `UPDATE feed_messages SET expires_at = now() - interval '1 minute' WHERE author_identity = $1 AND kind = 'lost'`,
+    [me.identity_id],
+  );
+  const again = await send(me, lost({ text: "теперь зонт" }));
+  assertEquals(again.status, 200, `four phrases held the lost slot: ${JSON.stringify(again.body)}`);
+});
+
+test("a lost is delivered as a phrase card with a notice, and takes a like", async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const sent = await send(a, lost());
+  assertEquals(sent.status, 200, JSON.stringify(sent.body));
+  const id = (sent.body as { id: string }).id;
+
+  const page = await signedCall(b.pair.privateKey, b.session_id, "GET", "/feed?lat=41.9&lon=12.5&radius=1000");
+  assertEquals(page.status, 200, JSON.stringify(page.body));
+  const card = (page.body as { items: Array<{ id: string; kind: string; notice?: string }> }).items.find((c) => c.id === id);
+  assert(card, "the lost was not delivered");
+  assertEquals(card.kind, "phrase", "the card type changed: a face that switches on it would drop the lost");
+  assertEquals(card.notice, "lost");
+
+  // §8.4 unchanged for a lost: the liker needs a live row of their own, and
+  // their own lost is one (LIVE_PHRASE is kind-blind on purpose, feed_limits.ts).
+  const noOwn = await like(b, id);
+  assertEquals(noOwn.status, 409, `a like with nothing of one's own was taken: ${JSON.stringify(noOwn.body)}`);
+  assertEquals((await send(b, lost({ text: "а я потерял перчатку" }))).status, 200);
+  const liked = await like(b, id);
+  assertEquals(liked.status, 200, `a lost did not take a like: ${JSON.stringify(liked.body)}`);
+  assertEquals(await likeCount(id), 1);
+  reset();
+});
+
+test("a lost is extended by its author three days at a time, three times, and the fourth is refused", async () => {
+  const me = await author();
+  const sent = await send(me, lost());
+  assertEquals(sent.status, 200, JSON.stringify(sent.body));
+  const { id, expires_at: start } = sent.body as { id: string; expires_at: number };
+  const extend = () => signedCall(me.pair.privateKey, me.session_id, "POST", `/feed/${id}/extend`);
+  for (let n = 1; n <= verdict.EXTEND_MAX; n++) {
+    const done = await extend();
+    assertEquals(done.status, 200, `extension ${n}: ${JSON.stringify(done.body)}`);
+    const body = done.body as { expires_at: number; extend_count: number };
+    assertEquals(body.extend_count, n);
+    assertEquals(body.expires_at - start, n * 3 * DAY, `extension ${n} did not add three days to the term`);
+  }
+  const fourth = await extend();
+  assertEquals(fourth.status, 409, `a fourth extension was taken: ${JSON.stringify(fourth.body)}`);
+  assertEquals((fourth.body as { error: { extend_count: number } }).error.extend_count, verdict.EXTEND_MAX);
+  const row = await rowOf(id);
+  assertEquals(row.extend_count, verdict.EXTEND_MAX);
+  assertEquals(Math.floor(row.expires_at!.getTime() / 1000) - start, verdict.EXTEND_MAX * 3 * DAY, "the row's term is not the answer's");
+});
+
+test("a lost is extended or found only by its author, and a phrase is neither: no such phrase", async () => {
+  const a = await author();
+  const b = await author();
+  const sent = await send(a, lost());
+  assertEquals(sent.status, 200, JSON.stringify(sent.body));
+  const theirs = (sent.body as { id: string }).id;
+  const plain = await send(a, phrase());
+  assertEquals(plain.status, 200, JSON.stringify(plain.body));
+  const mine = (plain.body as { id: string }).id;
+
+  for (const [who, id, what] of [
+    [b, theirs, "extend"], [b, theirs, "found"], [a, mine, "extend"], [a, mine, "found"],
+    [a, crypto.randomUUID(), "extend"], [a, "not-an-id", "found"],
+  ] as const) {
+    const answer = await signedCall(who.pair.privateKey, who.session_id, "POST", `/feed/${id}/${what}`);
+    assertEquals(answer.status, 404, `${what} by ${who === a ? "the author" : "a stranger"} on ${id === mine ? "a phrase" : "a lost"}: ${JSON.stringify(answer.body)}`);
+    assertEquals((answer.body as { error: { message: string } }).error.message, "no such phrase");
+  }
+  const untouched = await rowOf(theirs);
+  assertEquals(untouched.kind, "lost");
+  assertEquals(untouched.extend_count, 0);
+  assertEquals((await rowOf(mine)).kind, "phrase");
+});
+
+test("a lost marked found stays one more day as a found, keeps the lost slot, and is not found twice", async () => {
+  const me = await author();
+  const sent = await send(me, lost());
+  assertEquals(sent.status, 200, JSON.stringify(sent.body));
+  const id = (sent.body as { id: string }).id;
+  const before = Math.floor(Date.now() / 1000);
+  const done = await signedCall(me.pair.privateKey, me.session_id, "POST", `/feed/${id}/found`);
+  assertEquals(done.status, 200, JSON.stringify(done.body));
+  const body = done.body as { id: string; kind: string; expires_at: number };
+  assertEquals(body.kind, "found");
+  assert(body.expires_at - before >= DAY - 5 && body.expires_at - before <= DAY + 5, `a found's term is not one day from now: ${body.expires_at - before}s`);
+  const row = await rowOf(id);
+  assertEquals(row.kind, "found");
+  assertEquals(Math.floor(row.expires_at!.getTime() / 1000), body.expires_at);
+
+  // Found is not lost: a second found, or an extension, has nothing to act on.
+  assertEquals((await signedCall(me.pair.privateKey, me.session_id, "POST", `/feed/${id}/found`)).status, 404);
+  assertEquals((await signedCall(me.pair.privateKey, me.session_id, "POST", `/feed/${id}/extend`)).status, 404);
+  // And the found keeps the lost slot for its day: otherwise lost → found →
+  // lost … would keep a found per hour in the feed beside the four phrases
+  // (review panel 30.10.2026, security lens).
+  const next = await send(me, lost({ text: "теперь зонт" }));
+  assertEquals(next.status, 409, `a found freed the lost slot: ${JSON.stringify(next.body)}`);
+  // The found still reaches the feed, marked.
+  const other = await author();
+  const page = await signedCall(other.pair.privateKey, other.session_id, "GET", "/feed?lat=41.9&lon=12.5&radius=1000");
+  const card = (page.body as { items: Array<{ id: string; notice?: string }> }).items.find((c) => c.id === id);
+  assert(card, "the found was not delivered");
+  assertEquals(card.notice, "found");
+});

@@ -296,13 +296,14 @@ if (want("me-pin")) {
   compare(scr, "caret ring (repeat, 4th)", shapeOf(sh[33]), ring ?? NAN4);
   await cta(page, scr, S, 36, 4);
   for (let i = 0; i < 3; i++) left(scr, `label ${i + 1}`, S.lines[1 + i], await line(page, ".me-body .reg-field label", i));
-  note((await page.getAttribute('[data-testid="pin-go"]', "aria-disabled")) === "true", "me-pin: Save the PIN stays shut while the repeat has 3 of 6");
+  // change-pin.svg (TAB14): no Save button; three of six digits of the repeat send nothing
+  note((await page.locator('[data-testid="pin-go"]').count()) === 0 && !stub.calls.includes("POST /vault/pin"), "me-pin: no Save button, and the repeat at 3 of 6 sends nothing");
   await fonts(page, scr, [["title", ".me-bar h1"], ["label", ".me-body .reg-field label"]]);
   await overflowAt(page, scr, 390); await shot(page, scr);
   // walk: the PIN changed and the vault sealed again under it (POST /vault/pin, then the new share)
-  await page.fill('[data-testid="pin-again"]', "271828"); await page.click('[data-testid="pin-go"]');
+  await page.fill('[data-testid="pin-again"]', "271828");   // the sixth digit of the repeat saves
   await page.waitForSelector('[data-screen="me"]', { timeout: 60000 }).catch(() => null);
-  note(stub.calls.includes("POST /vault/pin") && (await page.locator('[data-screen="me"]').count()) === 1, `walk: Save the PIN calls POST /vault/pin and returns to Me (calls: ${stub.calls.filter((c) => c.includes("vault")).join(", ")})`);
+  note(stub.calls.includes("POST /vault/pin") && (await page.locator('[data-screen="me"]').count()) === 1, `walk: the sixth digit calls POST /vault/pin and returns to Me (calls: ${stub.calls.filter((c) => c.includes("vault")).join(", ")})`);
 }
 
 // w4_place

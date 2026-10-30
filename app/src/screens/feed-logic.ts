@@ -27,6 +27,15 @@ export interface FeedCard {
   playing?: number;
   watching?: number;
   free_seats?: number;
+  /** The node found nothing in the asked circle and took this card from a wider one (relay routes/feed.ts:576). */
+  farther_than_asked?: boolean;
+}
+
+/** The circle the node really used, when it grew the asked one because that was empty (relay routes/feed.ts:620,
+ * radius_used); null when it kept the asked one. The screen must say so, or far phrases pass for near ones. */
+export function widenedTo(asked: Radius, page: { radius_used?: unknown }): number | null {
+  const used = page.radius_used;
+  return typeof used === "number" && used > asked ? used : null;
 }
 
 /** What left the feed on the card: hidden (with the handle that brings it back), or its author blocked. */
@@ -39,7 +48,7 @@ export function widerRadius(r: Radius): Radius | null {
 }
 
 /** A radius as a dictionary key and its number: metres under a kilometre, kilometres from it (web.feed.m / web.feed.km). */
-export function radiusWord(r: Radius): { key: "web.feed.m" | "web.feed.km"; n: number } {
+export function radiusWord(r: number): { key: "web.feed.m" | "web.feed.km"; n: number } {
   return r >= 1000 ? { key: "web.feed.km", n: r / 1000 } : { key: "web.feed.m", n: r };
 }
 
@@ -89,6 +98,16 @@ export function likeOutcome(status: number, body: unknown): LikeOutcome {
 /** The card with the like it just got counted in (the node's count comes with the next page). */
 export function withLike(card: FeedCard): FeedCard {
   return card.liked ? card : { ...card, liked: true, like_count: card.like_count + 1 };
+}
+
+/** The like taken back (card-in «Take back», DELETE /feed/:id/like answered «unliked»): the count one less, never below none. */
+export function withoutLike(card: FeedCard): FeedCard {
+  return card.liked ? { ...card, liked: false, like_count: Math.max(card.like_count - 1, 0) } : card;
+}
+
+/** card-need: one's own phrase is live while its end is ahead (a phrase waiting for the queue has no end yet, takes no slot). */
+export function ownLive(phrases: Array<{ expires_at?: number }> | undefined, nowMs: number): boolean {
+  return (phrases ?? []).some((f) => f.expires_at !== undefined && f.expires_at * 1000 > nowMs);
 }
 
 /** The language of a card as a person reads it; "und" (the node could not tell) is no word. */

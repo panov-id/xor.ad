@@ -6,6 +6,12 @@ Checked against the tree on 13.10 with grep/git/ls. Anything not run is marked N
 
 ## 0. THE GOAL — single (owner's word, 12.10 evening)
 
+**30.10.2026, goal «sosed = newdesign4» (owner's word: «make it like there 100%… the layout is already there… MAIN THING don't lose the goal!»). Replaces the goal «sosed = prototype» below.**
+1. Source: `docs/newdesign4/sosed-design-2026-10-29.zip` — 268 screens (`screens.csv`), layout `screens/*.html`, texts `SCREENS_spec.md`.
+2. Widths 390 / 820 / 1440; 4 themes × day/night: Limestone, Amber, Marble, Chalk (`limestone`, `amber`, `marble`, `chalk`); 8 gem accents: Carnelian (default), Coral, Citrine, Peridot, Turquoise, Lapis, Amethyst, Tourmaline; «When»: by sun / day / night.
+3. Node and database change where a screen needs data.
+4. Done by machine: inventory 268 of 268 (`scripts/nd4-inventory.py`), shots next to the archive PNG at three widths, unit, `check-app`, e2e, crowd green, review-panel 0 critical and important.
+
 **26.10.2026, goal «sosed = prototype» (owner's word: «form the goal… in the new session loop until you reach it»).**
 1. Phone: 148 screens built on the prototype's markup (`docs/newdesign/proto/`) from the pieces of `app/tokens/kit.css`.
 2. Desktop 1440 and 1920: from the SVG sheets of the `docs/newdesing2` archives; tablet 834: the phone layout with the rail.
@@ -66,6 +72,7 @@ Goals G2–G7 below are parts of this one; G7 (`docs/goal-web-whole_EN.md`) is i
 | G6 | 12.10 | mem/goal-beautiful-every-width.md:11 | Every screen beautiful at 6 widths × 2 brands; perfectionist rounds to 0 critical/defect. | active; part of G7 (condition 4) | round 1: VERIFIED 12 files `testing/walk-svg/round1/*.notes.md`; round 2 stopped (mem/session-handoff.md:21) |
 | G7 | 12.10 | docs/goal-web-whole_EN.md:15 | Every promised flow is on screen, walked by a newcomer, beautiful at 6 widths in both brands. | accepted by the owner 12.10; work plan of §0 goal | §0 of this document |
 | G8 | 10.10 | mem/owner-decisions-2026-10-10b.md:12 | P18: real GET /tables, model proofreads translations, delete only merged worktrees. | P18 done; rest NOT VERIFIED | VERIFIED: `relay/node/src/routes/tables.ts:608` |
+| G9 | 30.10 | owner's word 30.10 ("no point checking before") | At rollout: a daily check of the dependencies of xor.ad and the PHP of sunset-residents/services/api (osv-scanner, trivy in Docker, a compose schedule), and updating what it finds. | waits for rollout | — |
 | — | 03.10 | docs/roadmap_RU.md:1 | Roadmap "state as of 03.10". | stale as a goal source | date in title |
 
 ## 2. Hierarchy

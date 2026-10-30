@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { cardParts, isRed } from "../../../../depth/core/cards.ts";
 import { type DeckState, deckOf, durakActions, isDurak } from "../../../../depth/core/tables_deck.ts";
-import { durakView, handFan, handShift, oppFan, pairSlots, panelHeight } from "./durak-logic.ts";
+import { type Placed } from "./cards-logic.ts";
+import { durakView, handFan, handShift, oppFan, pairSlots, panelHeight, stockAt, stockCountAt, trumpAt } from "./durak-logic.ts";
 
 const deck = (over: Partial<DeckState> = {}): DeckState => ({
   hands: { "1": ["9S", "8H", "7D", "6S", "10S", "QH"], "2": { count: 5 } }, stock: { count: 14 }, played: [], trump: "10D",
@@ -60,43 +61,59 @@ test("the view: the others' hand sizes in seat order, my cards, the pairs, the s
   assert.deepEqual(durakView(deck({ hands: { "1": { count: 6 }, "2": { count: 5 } } }), 3).hand, [], "a watcher holds nothing");
 });
 
-test("the opponent's fan: 25.87 apart from the left, 5° more a card, about the middle; it narrows when long", () => {
-  const f = oppFan(5);
-  assert.deepEqual(f.map((c) => c.r), [-10, -5, 0, 5, 10]);
-  near(f[1].x - f[0].x, 25.87);
-  near(f[0].x, 62.68);
-  assert.equal(f[0].y, 47.94);
-  const long = oppFan(18);
-  assert.ok(long[17].x <= 225 + 0.001, "ends before the stock");
-  near(oppFan(1)[0].r, 0);
+// The prototype durak-turn draws the table as a 120 x 110 picture; these are its card boxes (x, y, w, h and the pivot of a
+// turn, the middle of the bottom edge), read off docs/newdesign/proto/durak-turn.html, in px of the 356.18 panel.
+const U = 356.18 / 120;
+/** Undo a turn about the bottom middle: the pivot the prototype names for a card centred at c, in its units. */
+const pivotOf = (c: Placed) => ({ x: c.x / U - (c.h / U / 2) * Math.sin((c.r * Math.PI) / 180), y: c.y / U + (c.h / U / 2) * Math.cos((c.r * Math.PI) / 180) });
+
+test("the opponents' fans: one row along the top, up to four upright backs 4 apart, the fans 30 apart", () => {
+  const fans = [0, 1, 2].map((i) => oppFan(5, i, 3));
+  fans.forEach((f) => assert.equal(f.length, 4, "four backs shown, the count rides on data-count"));
+  near(fans[0][0].x, 26 * U); // the prototype's first back: rect x=21 w=10
+  near(fans[1][0].x - fans[0][0].x, 30 * U);
+  near(fans[0][1].x - fans[0][0].x, 4 * U);
+  fans.flat().forEach((c) => { near(c.y, 10 * U); near(c.w, 10 * U); near(c.h, 14 * U); assert.equal(c.r, 0); });
+  assert.equal(oppFan(2, 0, 3).length, 2, "a short hand shows what it has");
   assert.equal(oppFan(0).length, 0);
-  near(oppFan(2, 1)[0].y, 47.94 + 70, 0.001);
+  const five = [0, 1, 2, 3, 4].map((i) => oppFan(6, i, 5)).flat();
+  assert.ok(five.every((c) => c.x - c.w / 2 >= 0 && c.x + c.w / 2 <= 356.18), "five opponents still fit the panel");
 });
 
-test("my hand: six cards touching, angles 18.08 12.82 7.59 either side, the outer ones lower; a longer hand narrows", () => {
+test("the stock on the left, the trump a quarter turn under it, the count pill below", () => {
+  const s = stockAt(), t = trumpAt(), n = stockCountAt();
+  near(s.x, 17 * U); near(s.y, 48 * U); // rect x=10 y=38 14 x 20
+  assert.equal(t.r, 90);
+  const p = pivotOf(t);
+  near(p.x, 13, 0.01); near(p.y, 60, 0.01); // rotate(90 13 60)
+  near(n.x, 15 * U); near(n.y, 67 * U); near(n.w, 18 * U);
+});
+
+test("my hand: six cards 14 apart, turned -12.5 to 12.5 about their bottom middles at y 102; a long hand fits", () => {
   const h = handFan(6);
-  [-18.08, -12.82, -7.59, 7.59, 12.82, 18.08].forEach((r, i) => near(h[i].r, r, 0.03));
-  near(h[0].y, 274.0, 0.1);
-  near(h[2].y, 266.0, 0.1);
-  near(h[3].x - h[2].x, 49.8);
-  assert.ok(h[0].r < 0 && h[5].r > 0, "left cards lean left, right cards right");
-  const wide = handFan(12);
-  assert.ok(wide[11].x + 49.5 / 2 <= 356.18, "twelve cards fit the panel");
-  near(wide[1].x - wide[0].x, 300 / 12);
+  [-12.5, -7.5, -2.5, 2.5, 7.5, 12.5].forEach((r, i) => {
+    near(h[i].r, r, 0.001);
+    const p = pivotOf(h[i]);
+    near(p.x, 25.5 + 14 * i, 0.01); near(p.y, 102, 0.01);
+  });
+  near(h[0].w, 15 * U); near(h[0].h, 22 * U);
+  const wide = handFan(14);
+  assert.ok(wide.every((c) => c.x - c.w / 2 >= 0 && c.x + c.w / 2 <= 356.18), "fourteen cards fit the panel");
   assert.deepEqual(handFan(1).map((c) => c.r), [0]);
   assert.equal(handFan(0).length, 0);
 });
 
-test("the pairs: three to a row, the beating card down right and turned more; a second row lower, and the panel with it", () => {
-  const slots = pairSlots([{ attack: "6H", beat: "10H" }, { attack: "7S", beat: null }, { attack: "8S", beat: null }, { attack: "9S", beat: null }], 1);
-  near(slots[1].attack.x - slots[0].attack.x, 109.45);
-  near(slots[0].beat!.x - slots[0].attack.x, 13.95);
+test("the pairs: 26 apart, three to a row, the beating card turned 12 over the attack; a second row grows the panel", () => {
+  const slots = pairSlots([{ attack: "6H", beat: "10H" }, { attack: "7S", beat: null }, { attack: "8S", beat: null }, { attack: "9S", beat: null }]);
+  near(slots[0].attack.x, 41 * U); near(slots[0].attack.y, 40 * U); // rect x=34 y=30
+  near(slots[1].attack.x - slots[0].attack.x, 26 * U);
+  const b = pivotOf(slots[0].beat!);
+  near(slots[0].beat!.r, 12); near(b.x, 46, 0.01); near(b.y, 56, 0.01); // rotate(12 46 56)
   assert.equal(slots[1].beat, null, "unbeaten: one card");
-  near(slots[3].attack.y - slots[0].attack.y, 106);
   assert.equal(slots[3].attack.x, slots[0].attack.x, "the fourth begins the second row");
-  near(panelHeight(2, 1), 320.36);
-  near(panelHeight(4, 1), 320.36 + 106);
-  near(panelHeight(0, 1), 320.36, 0.001);
-  near(panelHeight(3, 2), 320.36 + 70);
-  near(handShift(4, 1), 106);
+  near(slots[3].attack.y - slots[0].attack.y, 26 * U);
+  near(panelHeight(2), 110 * U);
+  near(panelHeight(4), 136 * U);
+  near(handShift(4), 26 * U);
+  near(handShift(1), 0, 0.001);
 });

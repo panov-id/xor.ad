@@ -289,3 +289,287 @@
   :root { --nd-gap: 16px; --pane-w: 680px; }   /* from 1920 the gap and the pane stay as the 1920 sheets draw them */
   :root { --fd-cols: 3; }
 }
+
+/* ── desktop, the kit's frame (R-TAB6-1, desktop-1440 sheets 5-talks/inbox.svg and 6-me/me.svg): every k-screen keeps the rail
+   at the left (.tabbar above), its column from --panel-left as wide as --panel-w, the right pane's place left free; the padding
+   sits on the screen, not the column, so the rail stays placed against the screen ── */
+@media (min-width: 1440px) {
+  .screen.k-screen { box-sizing: border-box; padding: var(--panel-top) calc(100% - var(--panel-left) - var(--panel-w)) var(--panel-bottom) var(--panel-left); }
+  .screen.k-screen > .k-col { padding: 0; gap: var(--nd-gap); }
+  /* a talk opened beside the talks' list stands in the right pane (5-talks/chat.svg) */
+  .k-ch-pane, .k-me-pane { position: fixed; left: calc(100% - var(--pane-w) - var(--pane-right)); top: var(--panel-top); bottom: var(--panel-bottom); width: var(--pane-w);
+    display: flex; flex-direction: column; z-index: 2; }
+  .k-ch-pane > .k-col, .k-me-pane > .k-screen > .k-col { flex: 1; min-height: 0; padding: 0; gap: var(--nd-gap); }
+  .k-me-pane > .k-screen { display: flex; flex-direction: column; height: 100%; padding: 0; }
+  /* newdesign3 .wide .grid3 (28.10): Me's squares are 6 across, not the 3 x 2 of desktop me.svg */
+  main[data-screen="me"] > .k-col .k-hub { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: auto; }
+  /* newdesign3: square hub tiles 6 in a row at the wide widths */
+  /* .wide .grid3 is 6 across, but 3 in the detail column (.wide .col--detail .grid3): the right pane keeps 3 */
+  :is(.k-hub[data-hub], [data-screen="me"] .k-hub) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .k-me-pane .k-hub[data-hub] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* newdesign3 .wide .uhead: the head is 96 tall at the desk */
+  .k-uhead-lead, .k-uhead-btn { width: 96px; height: 96px; border-radius: var(--r-panel); }
+  .k-uhead-lead .nd-icon { width: 44px; height: 44px; }
+  .k-uhead-btn .nd-icon { width: 36px; height: 36px; }
+  .k-uhead-title { height: 96px; border-radius: var(--r-panel); }
+  .k-uhead-title > h1 { font-size: 22px; }
+  .k-uhead-title > .k-meta { font-size: 14px; }
+  /* R-TAB5-5, the two-column frame without the rail (Away.tsx SplitFrame; 6-me/away.svg, departure-done.svg) */
+  .screen.k-screen.k-split { padding: var(--panel-top) var(--nd-gap) var(--panel-bottom); display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: var(--nd-gap); }
+  .k-split-main { display: flex; flex-direction: column; gap: var(--nd-gap); min-height: 0; }
+  .k-split-card { position: relative; flex: 1; display: grid; place-items: center; border-radius: 20px; background: var(--tile); clip-path: polygon(40px 0, 100% 0, 100% calc(100% - 40px), calc(100% - 40px) 100%, 0 100%, 0 40px); }
+  .k-split-mark { width: 100px; height: 100px; border-radius: 50%; display: grid; place-items: center; background: var(--tile-strong); }
+  .k-split-mark .icon { width: 48px; height: 48px; }
+  .k-split-card > .k-bar { position: absolute; left: var(--nd-gap); bottom: var(--nd-gap); width: auto; }
+  .k-split-words { padding: 0 var(--nd-gap) var(--nd-gap); }
+  .k-split-side { display: flex; flex-direction: column; gap: var(--nd-gap); min-height: 0; }
+  .k-split-info { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--nd-gap); }
+  .k-split-small { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--tile-strong); }
+  .k-split-foot { flex: none; padding: 6px; }
+  .k-ch-pane .k-ch-list { flex: 0 1 auto; }
+  .k-ch-pane .k-chm { position: absolute; border-radius: inherit; overflow: hidden; }
+  /* a talk's board takes the middle column, the talk stays in the pane (5-talks/chat-game-board.svg; chat-game.tsx Stage reads --stage) */
+  .k-ch-stage { --stage: on; display: none; }
+  .k-ch-stage[data-on] { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; }
+  .k-ch-stage[data-on] > .k-ch-full { position: absolute; inset: 0; }
+  .k-col:has(> .k-ch-stage[data-on]) > :not(.k-ch-stage, .k-ch-pane, nav) { display: none; }
+  /* R-TAB6-2, the talks (5-talks/inbox.svg): the talks in two columns */
+  .k-screen[data-screen="inbox"] .k-tk-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+}
+
+/* ── desktop, the entry frame (TAB7, desktop-1440/1-entry and 2-intro sheets): the scene card on the left 1.8 parts, the screen's
+   own column (bar, panel, action panel) on the right; no rail, the person is not in yet (restore, place of the intro drew it over the
+   screen). Place opened from Me stays in Me's pane (.k-me-pane) and keeps that frame ── */
+@media (min-width: 1440px) {
+  :is(main[data-screen="arrival"],
+      main[data-screen="intro"], main[data-screen="place"], main[data-screen="cabinet-sign-in"], main[data-screen="cabinet-sent"],
+      main[data-screen="cabinet-expired"]):not(.k-me-pane *) {
+    box-sizing: border-box; height: 100dvh; padding: var(--panel-top) var(--nd-gap) var(--panel-bottom);
+    display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: var(--nd-gap);
+  }
+  :is(main[data-screen="arrival"],
+      main[data-screen="intro"], main[data-screen="place"], main[data-screen="cabinet-sign-in"], main[data-screen="cabinet-sent"],
+      main[data-screen="cabinet-expired"]):not(.k-me-pane *) {
+    & > .k-entry-scene { grid-column: 1; grid-row: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--nd-gap); box-sizing: border-box; padding: 12px 12px 18px; border-radius: 28px; background: var(--panel); }
+    & > .k-entry-scene .k-entry-card { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; border-radius: 20px; background: var(--tile);
+      clip-path: polygon(40px 0, 100% 0, 100% calc(100% - 40px), calc(100% - 40px) 100%, 0 100%, 0 40px); }
+    & > .k-entry-scene .k-split-mark { width: 200px; height: 200px; border-radius: 50%; display: grid; place-items: center; background: var(--tile-strong); }
+    & > .k-entry-scene .k-split-mark .nd-icon, & > .k-entry-scene .k-split-mark .k-logo { width: 96px; height: 96px; }
+    & > .k-entry-scene .k-glass { position: absolute; left: var(--nd-gap); bottom: var(--nd-gap); }
+    & > .k-entry-scene .k-entry-words { padding: 0 var(--nd-gap); display: flex; flex-direction: column; gap: 8px; }
+    & > .k-entry-scene .k-entry-words .k-title { margin: 0; }
+    & > .k-col { grid-column: 2; grid-row: 1; width: auto; max-width: none; margin: 0; padding: 0; min-height: 0; gap: var(--nd-gap); }
+    & > .tabbar { display: none; }
+  }
+}
+
+/* restore at 1440 and up (sheet restore): the paper code's pad, three rows of eleven */
+@media (min-width: 1440px) {
+  .k-code-pad { display: grid; grid-template-columns: repeat(11, 1fr); gap: 6px; margin-top: auto; }
+}
+
+/* ── desktop, a table (desktop-1440 4-tables/table.svg): the board in the middle, the players, the talk and the foot in the pane's column ── */
+@media (min-width: 1440px) {
+  .screen.k-screen[data-screen="table"] { padding-right: var(--pane-right); }
+  .screen.k-screen[data-screen="table"] > .k-col { display: grid; grid-template-columns: minmax(0, 1fr) var(--pane-w);
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto; gap: var(--nd-gap); height: 100%; }
+  .screen[data-screen="table"] > .k-col > * { grid-column: 1; }
+  .screen[data-screen="table"] > .k-col > .k-bar { grid-column: 1 / -1; grid-row: 1; }
+  .screen[data-screen="table"] > .k-col > .k-tb-board { grid-row: 2 / -1; }
+  /* a game's under-panel (BoardUnder: the fleet strip, the poker bet, the durak row) stands in the pane's column between
+     the talk and the foot (battleship-place.svg, R-TAB16-2); the board keeps the whole middle */
+  .screen.k-screen[data-screen="table"] > .k-col:has(> .k-tb-talk + :not(.k-tb-foot)) { grid-template-rows: auto auto auto minmax(0, 1fr) auto auto; }
+  .screen[data-screen="table"] > .k-col > .k-tb-talk + :not(.k-tb-foot) { grid-column: 2; grid-row: 5; }
+  .screen[data-screen="table"] > .k-col:has(> .k-tb-talk + :not(.k-tb-foot)) > .k-tb-foot { grid-row: 6; }
+  .screen[data-screen="table"] > .k-col > .k-gp-players, .screen[data-screen="table"] > .k-col > .k-tb-guest { grid-column: 2; grid-row: 2; }
+  .screen[data-screen="table"] > .k-col > .k-tb-talk { display: flex; flex-direction: column; grid-column: 2; grid-row: 4; min-height: 0; }
+  .screen[data-screen="table"] > .k-col > .k-tb-foot { grid-column: 2; grid-row: 5; }
+  /* the round's status under the players (*-turn sheets, R-TAB16-3) */
+  .screen[data-screen="table"] > .k-col > .k-tb-status { display: block; grid-column: 2; grid-row: 3; }
+  /* the board fits the panel's height (the square boards: checkers, chess, reversi, dots), the over banner above it */
+  .screen[data-screen="table"] .k-tb-board { overflow: hidden; }
+  .screen[data-screen="table"] .k-tb-board .tg-panel:is([data-class="dots"], [data-set="reversi"], [data-set="checkers"], [data-set="chess"], [data-set="battleship"]) { flex: 1 1 0; min-height: 0; width: auto; max-width: 100%; align-self: center; }
+  .screen[data-screen="table"] .k-tb-board .tg-panel[data-set="battleship"] { aspect-ratio: 1; }
+}
+
+@media (min-width: 1440px) {
+  .screen[data-screen="tables"] .k-tb-games[hidden] { display: flex; }
+  .screen[data-screen="tables"] .k-tb-grid[hidden] { display: grid; }
+  .screen[data-screen="tables"] .k-tb-label { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 13px; font-weight: 700; color: var(--text-muted); }
+  .screen[data-screen="tables"] .k-tb-label .nd-icon { width: 16px; height: 16px; }
+  .screen[data-screen="tables"] .k-tb-grid { --fd-cols: 4; flex: none; grid-template-rows: none; grid-auto-rows: 132px; }
+  .screen[data-screen="tables"] .k-tb-grid[data-testid="tables-mine"] { --fd-cols: 2; grid-auto-rows: 52px; }
+  /* a mine card as a row (the sheet's 2-wide cards): the face, then the name over the seats */
+  .screen[data-screen="tables"] .k-tb-grid[data-testid="tables-mine"] .k-tb-tile { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; padding: 8px 14px; }
+  .screen[data-screen="tables"] .k-tb-grid[data-testid="tables-mine"] .k-tb-face.nd-icon { width: 32px; height: 32px; }
+  .screen[data-screen="tables"] .k-tb-grid[data-testid="tables-mine"] .k-tb-info { gap: 4px; }
+  .screen[data-screen="tables"] [data-testid="mine-add"] { display: none; }   /* the sheet's «New table» is the head's pill */
+}
+
+/* ── desktop, the feed (desktop-1440 3-nearby/feed.svg, TAB10 requests/xor-ad-09.md) ── */
+@media (min-width: 1440px) {
+  [data-screen="feed"] > .k-col { padding: 13px 505px 13px 137px; gap: 9px; }
+  [data-screen="feed"] .k-panel { height: 78px; box-sizing: border-box; justify-content: center; }
+  [data-screen="feed"] .k-seg { height: 51px; box-sizing: border-box; }
+  /* the rail's «Say» writes at 1440: no round «write», no cut for it */
+  [data-screen="feed"] .k-body[data-fab] { -webkit-mask: none; mask: none; }
+  [data-screen="feed"] .k-fab { display: none; }
+  [data-screen="feed"] [data-testid="cards"] { --fd-cols: 4; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+}
+
+/* the SplitFrame mark on away / departure-done at 1920 (R-TAB14-MARK, m1920-away.jpg) */
+@media (min-width: 1920px) {
+  .k-split-mark { width: 200px; height: 200px; }
+  .k-split-mark .icon { width: 96px; height: 96px; }
+}
+
+/* newdesign3 desktop-1920-feed.html .uhead__chips (plan A item 4): the five radii are a 96 pill of 88 squares, the current one
+   in the accent, at 1920 only; at 1440 the head keeps the round place button, which opens the radius sheet */
+@media (min-width: 1920px) {
+  [data-screen="feed"] [data-testid="radius-open"] { display: none; }
+  [data-screen="feed"] .k-uhead > .k-radii { display: flex; flex: none; gap: 4px; padding: 4px; height: 96px; box-sizing: border-box; border-radius: var(--r-panel); background: var(--relief-panel); box-shadow: var(--shadow-panel); }
+  [data-screen="feed"] .k-radii > .k-round { width: 88px; height: 88px; border-radius: 26px; }
+  [data-screen="feed"] .k-radii > .k-round .nd-icon { width: 36px; height: 36px; }
+  [data-screen="feed"] .k-radii > .k-round[aria-pressed="true"] { background: var(--relief-acc); color: var(--on-accent); box-shadow: var(--shadow-acc); }
+}
+@media (min-width: 1440px) {
+  /* feed-loading.svg: the ghosts stand in two columns across the list at every wide width (TAB18) */
+  [data-screen="feed"] [data-testid="loading"] { --fd-cols: 2; gap: 9px; }
+  /* 6-me/away.svg, departure-done.svg: the pane's icon in a ring (R-TAB14-MARK-2) */
+  .k-split-small { box-shadow: 0 0 0 4px var(--tile), 0 0 0 6px var(--tile-strong); }
+  .k-split-small .icon { width: 32px; height: 32px; }
+}
+/* desktop-1920/3-nearby/feed.svg: the feed between the rail (16-128) and the wider talks pane (from 1224) (TAB18) */
+@media (min-width: 1920px) {
+  [data-screen="feed"] > .k-col { padding: 16px 712px 16px 144px; gap: 11px; }
+  [data-screen="feed"] .k-panel { height: 80px; }
+  [data-screen="feed"] .k-seg { height: 48px; }
+  [data-screen="feed"] .nd-icon.k-empty-mark { width: 110px; height: 110px; padding: 22px; }
+  .k-split-small { width: 96px; height: 96px; }
+  .k-split-small .icon { width: 44px; height: 44px; }
+}
+
+/* desktop-1440/1920 3-nearby/my-marks.svg: the likes stand in the feed's frame, two columns, the talks pane at the right (TAB20) */
+@media (min-width: 1440px) {
+  [data-screen="likes"] > .k-col { padding: 13px 505px 13px 137px; gap: 9px; }
+  [data-screen="likes"] .k-scene { height: auto; overflow: visible; border-radius: 0; }
+  [data-screen="likes"] .k-scene > svg { display: none; }
+  [data-screen="likes"] .k-scene-over { position: static; }
+  [data-screen="likes"] .k-panel { height: 78px; box-sizing: border-box; justify-content: center; }
+  [data-screen="likes"] .k-seg { height: 51px; box-sizing: border-box; }
+  [data-screen="likes"] .k-body[data-fab] { -webkit-mask: none; mask: none; }
+  [data-screen="likes"] .k-grid2 { --fd-cols: 2; gap: 9px; }
+}
+@media (min-width: 1920px) {
+  [data-screen="likes"] > .k-col { padding: 16px 712px 16px 144px; gap: 11px; }
+  [data-screen="likes"] .k-panel { height: 80px; }
+  [data-screen="likes"] .k-seg { height: 48px; }
+  [data-screen="likes"] .nd-icon.k-empty-mark { width: 110px; height: 110px; padding: 22px; }
+}
+
+/* place-qr at 1440+: the question sheet and its dim lie over the feed column only (R-TAB17-3, m1920-place-qr) */
+@media (min-width: 1440px) {
+  .k-chm[data-testid="place-qr-ask"] { left: var(--panel-left); right: calc(var(--pane-w) + var(--pane-right) + var(--nd-gap)); top: var(--panel-top); bottom: var(--panel-bottom); border-radius: var(--r-panel); overflow: hidden; }
+}
+/* R-TAB19-1: the cabinet at 1440+ (7-cabinet cab-venues.svg, cab-offers.svg): a grid of cards on the left, the chosen card's detail in the pane */
+@media (min-width: 1440px) {
+  .screen.k-screen:is([data-screen="cabinet-venues"], [data-screen="cabinet-offers"]) { padding-left: var(--pane-right); }
+  main:is([data-screen="cabinet-venues"], [data-screen="cabinet-offers"]) .k-reg { display: flex; flex-direction: column; }
+  .k-cab-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); grid-auto-rows: minmax(280px, 1fr); gap: var(--nd-gap); }
+  .k-cab-card { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: var(--nd-gap); padding: 16px; border: 0; border-radius: 20px; background: var(--tile); color: inherit; text-align: left; font: inherit; }
+  .k-cab-card[aria-pressed="true"] { background: var(--tile-strong); }
+  .k-cab-card[data-add] { align-items: center; justify-content: center; }
+  .k-cab-pane { position: fixed; right: var(--pane-right); top: var(--panel-top); bottom: var(--panel-bottom); width: var(--pane-w); overflow: auto; display: flex; flex-direction: column; gap: var(--nd-gap); }
+}
+
+/* table-solo at 1440+: the open puzzle's hint fills the right column above the foot (R-TAB11-6, desktop-1440 table-solo.svg) */
+@media (min-width: 1440px) {
+  .screen[data-screen="table"] > .k-col > [data-testid="solo-pane"] { grid-row: 2 / 5; align-self: stretch; margin: 0; justify-content: center; }
+}
+/* table-solo-guest at 1440+: under the guest card the hint takes the rest of the column (R-TAB11-7) */
+@media (min-width: 1440px) {
+  .screen[data-screen="table"] > .k-col:has(> .k-tb-guest) > [data-testid="solo-pane"] { grid-row: 3 / -1; }
+}
+/* the likes stand in the feed body at 1440+: two columns there too (TAB20, my-marks.svg) */
+@media (min-width: 1440px) { [data-screen="feed"] [data-testid="liked"] { --fd-cols: 2; gap: 9px; } }
+/* the cabinet pane's foot in one row (R-TAB19-2, cab-preview) */
+@media (min-width: 1440px) {
+  .k-cab-pane .k-actions.k-row { flex-direction: row; align-items: center; }
+  .k-cab-pane .k-actions.k-row > .k-cta { flex: 1; }
+}
+/* R-TAB21-1: the feed's card at 1440+ (3-nearby card.svg): in the right pane, the feed stays */
+@media (min-width: 1440px) {
+  .k-screen.k-card-pane { position: fixed; z-index: 5; right: var(--pane-right); top: var(--panel-top); bottom: var(--panel-bottom); left: auto; width: var(--pane-w); height: auto; padding: 0; background: none; }
+  .k-screen.k-card-pane > .k-col { height: 100%; min-height: 0; padding: 0; gap: var(--nd-gap); }
+  .k-screen.k-card-pane .tabbar { display: none; }
+}
+/* radius.svg at 1440/1920: the radius/place sheet stands inside the feed column, not across the screen (TAB10) */
+@media (min-width: 1440px) { .layer-sheet:has([data-testid="radius-sheet"]) { left: 144px; right: 511px; } }
+@media (min-width: 1920px) { .layer-sheet:has([data-testid="radius-sheet"]) { left: 151px; right: 719px; } }
+/* R-TAB21-2: the card's sheets at 1440+ (3-nearby card-more, block-confirm, notice, notice-sent .svg): inside the card's pane, the page keeps its size and is not dimmed */
+@media (min-width: 1440px) {
+  .layers:has(.k-card-pane) .layer-base[data-under="true"] { transform: none; }
+  .layers:has(.k-card-pane) .dim { background: transparent; }   /* not dimmed, but a click outside still closes (R-TAB21-3) */
+  .layers:has(.k-card-pane) .layer-sheet { left: auto; right: var(--pane-right); bottom: var(--panel-bottom); width: var(--pane-w); box-sizing: border-box; }
+}
+/* R-TAB21-4: an offer's card at 1440+: the link beside «I'm in», the exit page over the talks pane (offer-card.svg, offer-exit.svg) */
+@media (min-width: 1440px) {
+  .k-card-pane .k-actions.k-row { flex-direction: row; align-items: center; }
+  .k-card-pane .k-actions.k-row > .k-cta { flex: 1; }
+  .k-me-pane:has(> [data-screen="offer"]) { z-index: 5; }
+}
+/* TAB22 table.svg at 1440/1920: the four-in-a-row board (7x6) fills the column's height; other boards keep their cells */
+@media (min-width: 1440px) { [data-screen="table"] .k-tb-board:has(.tg-four) { --tg-cell: 88px; --tg-cell-gap: 9px; } }
+@media (min-width: 1920px) { [data-screen="table"] .k-tb-board:has(.tg-four) { --tg-cell: 120px; --tg-cell-gap: 12px; } }
+/* R-TAB19-3 cab-offers.svg at 1440+: the offer's link row in the pane, icon beside the address */
+@media (min-width: 1440px) {
+  .k-cab-pane > .k-panel.k-row { flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; }
+}
+@media (min-width: 1440px) {
+  /* desktop-1440/1920 5-talks/chat-game-board.svg: one head across the board and the talk — the board's head reaches over the talk's pane, the talk's own head keeps its place empty */
+  .k-ch-stage[data-on] > [data-testid="chat-game"] > .k-bar { position: relative; z-index: 3; width: calc(100% + var(--sp-2) + var(--nd-gap) + var(--pane-w)); }
+  .k-screen:has(.k-ch-stage[data-on]) .k-ch-pane > .k-col > .k-bar { visibility: hidden; margin-top: var(--panel-top); }
+}
+/* TAB16: at desk the strip stands under the game's action row (8-games *-turn) */
+@media (min-width: 1440px) {
+  .k-tb-acts:not(:empty) ~ .k-ch-quick, .k-tb-foot[data-foot="con"] > .k-ch-quick { display: flex; }
+}
+/* TAB16: at desk backgammon and hangman fill the column (desktop-1920 8-games tavli-turn, hangman-turn); scoped per board */
+@media (min-width: 1440px) {
+  [data-screen="table"] .k-tb-board:has(.tg-bg) { --tg-bg-h: 700px; }
+  [data-screen="table"] .k-tb-board:has(.tg-hangman) .tg-hang-row .tg-gallows { width: 330px; height: 440px; }
+}
+@media (min-width: 1920px) {
+  [data-screen="table"] .k-tb-board:has(.tg-bg) { --tg-bg-h: 960px; }
+  [data-screen="table"] .k-tb-board:has(.tg-hangman) .tg-hang-row .tg-gallows { width: 450px; height: 600px; }
+}
+/* TAB16: at desk dominoes grow to the column and chapayev fits inside it (desktop-1920 8-games domino-turn, chapayev-turn) */
+@media (min-width: 1440px) {
+  [data-screen="table"] .k-tb-board:has(.tg-dominoes) { --tg-dom-h: 700px; --tg-bone-long: 113px; --tg-bone-short: 57px; }
+  [data-screen="table"] .k-tb-board:has(.tg-chapayev) .tg-chapayev { width: min(100%, 700px); margin-inline: auto; }
+}
+@media (min-width: 1920px) {
+  [data-screen="table"] .k-tb-board:has(.tg-dominoes) { --tg-dom-h: 960px; --tg-bone-long: 155px; --tg-bone-short: 77px; }
+  [data-screen="table"] .k-tb-board:has(.tg-chapayev) .tg-chapayev { width: min(100%, 960px); margin-inline: auto; }
+}
+/* TAB16: at desk the hangman mask grows with the gallows (desktop-1920 8-games hangman-turn) */
+@media (min-width: 1440px) {
+  [data-screen="table"] .k-tb-board:has(.tg-hangman) { --tg-slot: 58px; --tg-slot-h: 70px; --tg-slot-gap: 10px; --tg-slot-line: 6px; --fs-tg-slot: 46px; }
+}
+@media (min-width: 1920px) {
+  [data-screen="table"] .k-tb-board:has(.tg-hangman) { --tg-slot: 80px; --tg-slot-h: 96px; --tg-slot-gap: 14px; --tg-slot-line: 8px; --fs-tg-slot: 64px; }
+}
+
+/* TAB16: on a short window the boards never pass the column (1440x800, 1920x1000): the fixed heights become caps */
+@media (min-width: 1440px) {
+  [data-screen="table"] .k-tb-board:has(.tg-bg) { --tg-bg-h: min(700px, 100dvh - 104px); }
+  [data-screen="table"] .k-tb-board:has(.tg-dominoes) { --tg-dom-h: min(700px, 100dvh - 104px); }
+  [data-screen="table"] .k-tb-board:has(.tg-chapayev) .tg-chapayev { width: min(100%, 700px, 100dvh - 104px); }
+  [data-screen="table"] .k-tb-board:has(.tg-pk) .tg-pk { width: min(100%, 100dvh - 200px); margin-inline: auto; }
+}
+@media (min-width: 1920px) {
+  [data-screen="table"] .k-tb-board:has(.tg-bg) { --tg-bg-h: min(960px, 100dvh - 120px); }
+  [data-screen="table"] .k-tb-board:has(.tg-dominoes) { --tg-dom-h: min(960px, 100dvh - 120px); }
+  [data-screen="table"] .k-tb-board:has(.tg-chapayev) .tg-chapayev { width: min(100%, 960px, 100dvh - 120px); }
+  [data-screen="table"] .k-tb-board:has(.tg-pk) .tg-pk { width: min(100%, 100dvh - 220px); }
+}

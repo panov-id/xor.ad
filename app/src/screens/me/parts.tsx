@@ -1,14 +1,18 @@
 // The frame every screen that opens from "Me" shares, as the prototype draws its sub-screens (forget-confirm.html,
 // restore.html, me-*.html): the bar with back and the title in its pill, the panel, the action panel at the foot; and
 // the pieces they are built of — a row that opens something, label/value pairs, a note.
-import type { ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import { label, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { NdIcon } from "../../shell/NdIcon";
 import { Rail } from "../../shell/TabBar";
 
+// desktop_1440 6-me: a sub-page inside Me's right pane; Me already stands beside the rail, so the pane draws none
+export const InPane = createContext(false);
+
 /** `bare` is a panel of tiles (the hubs: me-profile, me-visibility, me-security); `steps` puts the step dots in the title's pill (reissue-1, -2: n of of); `backTestid` the web's name for the back. */
 export function SubPage({ name, title, onBack, foot, steps, backTestid, bare, panelClass, mid, footActions, children }: { name: string; title: string; onBack: () => void; foot?: ReactNode; steps?: { n: number; of: number; words: string }; backTestid?: string; bare?: boolean; panelClass?: string; mid?: ReactNode; footActions?: boolean; children: ReactNode }) {
+  const pane = useContext(InPane);
   return (
     <main className="k-screen" data-screen={name}>
       <div className="k-col">
@@ -25,7 +29,7 @@ export function SubPage({ name, title, onBack, foot, steps, backTestid, bare, pa
         {mid && <section className="k-panel k-foot-bare">{mid}</section>}
         {foot && <section className={bare && !footActions ? "k-panel k-foot-bare" : "k-panel k-actions k-stack"} data-foot="">{foot}</section>}
       </div>
-      <Rail active="me" />
+      {!pane && <Rail active="me" />}
     </main>
   );
 }

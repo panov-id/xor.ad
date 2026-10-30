@@ -10,6 +10,28 @@ import {
 } from "../../../../depth/core/cabinet.ts";
 import { codeOfPath, readExit } from "../../../../depth/core/offer_exit.ts";
 import { makeSay, makeSayCount } from "../../i18n-core.ts";
+
+// desktop 7-cabinet cab-new-offer.svg (TAB19): at 1440+ the new offer's form stands in the offers' pane, the grid stays on the left
+test("cabinet at 1440: the new offer's form is the offers' pane", () => {
+  const src = readFileSync(new URL("./Offers.tsx", import.meta.url), "utf8");
+  assert.match(src, /export function Offers\(\{ strip, onNew, pane \}/, "Offers takes no pane");
+  assert.match(src, /if \(desk\) return <Offers strip=\{strip\} onNew=\{\(\) => undefined\} pane=\{/, "NewOffer at desk is not the offers' pane");
+  // cab-verify.svg: the chosen venue's card stands in a panel that fills the pane
+  assert.match(readFileSync(new URL("./Venues.tsx", import.meta.url), "utf8"), /<section className="k-panel k-grow k-reg"><VenueCard /, "the venue's card in the pane has no panel");
+  // cab-preview.svg: the preview too, with back and Publish under it
+  assert.equal(src.match(/if \(desk\) return <Offers strip=\{strip\} onNew=\{\(\) => undefined\} pane=\{/g)?.length, 2, "the preview at desk is not the offers' pane");
+});
+
+// desktop 7-cabinet cab-venues.svg, cab-offers.svg (TAB19): at 1440+ the cards stand in a grid on the left, the chosen one's detail in a pane on the right
+test("cabinet at 1440: venues and offers are a card grid with a chosen card and a detail pane", () => {
+  for (const f of ["Venues.tsx", "Offers.tsx"]) {
+    const src = readFileSync(new URL(`./${f}`, import.meta.url), "utf8");
+    assert.match(src, /const desk = useMinWidth\("--bp-desktop"\);/, `${f}: no desktop branch`);
+    assert.match(src, /<div className="k-cab-grid" data-testid="cab-grid">/, `${f}: no card grid`);
+    assert.match(src, /aria-pressed=\{[^}]*chosen[^}]*\}/, `${f}: a card does not show it is the chosen one`);
+    assert.match(src, /<aside className="k-cab-pane" data-testid="cab-pane">/, `${f}: no detail pane`);
+  }
+});
 import { pathOf, seatScreen } from "../../router.ts";
 
 test("the envelope's code: capitals, no dash or spaces, twelve at most — what the node takes bare", () => {
@@ -165,4 +187,10 @@ test("the cabinet's counts: the letters left and the tries left take the form th
   assert.deepEqual([0, 1, 4].map((n) => en("app.cabinet.tries", n)), ["0 tries left.", "1 try left.", "4 tries left."]);
   // English falls back to the Russian word for a key it lacks (say's rule), so every plain key of the cabinet and the forms English uses must be written in English
   for (const key of Object.keys(app.ru)) if (!/\.(few|many)$/.test(key)) assert.ok(key in app.en, `${key} has no English line`);
+});
+
+// desktop cab-offers.svg (cabinet item «link icon»): the chosen offer's own link shows in the pane under its card, with the link icon
+test("cabinet at the desktop: the chosen offer's link stands in the pane", () => {
+  const src = readFileSync(new URL("./Offers.tsx", import.meta.url), "utf8");
+  assert.match(src, /shown\?\.external_url && <p className="k-panel k-row k-reg" data-testid="offer-url"><NdIcon name="link" \/>/, "no link row in the offer's pane");
 });

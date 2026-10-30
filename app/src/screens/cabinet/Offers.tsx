@@ -11,6 +11,7 @@ import {
 } from "@sdk/cabinet.ts";
 import { label, say, sayCount, LANG } from "../../i18n";
 import { NdIcon } from "../../shell/NdIcon";
+import { useMinWidth } from "../../shell/useMinWidth";
 import { Field } from "../register-parts";
 import { ErrorLine } from "../me/parts";
 import { DayField, Frame } from "./parts";
@@ -50,7 +51,7 @@ function DoneOffer({ face }: { face: OfferFace }) {
   );
 }
 
-export function Offers({ strip, onNew }: { strip: ReactNode; onNew: () => void }) {
+export function Offers({ strip, onNew, pane }: { strip: ReactNode; onNew: () => void; pane?: ReactNode }) {
   const [rows, setRows] = useState<Offer[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [names, setNames] = useState<ReadonlyMap<string, string>>(new Map());
@@ -58,6 +59,33 @@ export function Offers({ strip, onNew }: { strip: ReactNode; onNew: () => void }
     void offers().then((a) => (a.status === 200 ? setRows(inOrder(a.body!.items)) : setError(notTaken(a.status)))).catch(() => setError(notTaken(0)));
     void venues().then((a) => { if (a.status === 200) setNames(new Map(a.body!.items.map((v) => [v.id, v.name]))); }).catch(() => undefined);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // desktop cab-offers.svg: the offers as a grid of cards with «new» last, the chosen one's card in the pane
+  const desk = useMinWidth("--bp-desktop");
+  const [pick, setPick] = useState<string | null>(null);
+  // with a pane given (the new offer's form) no card is chosen
+  const shown = pane ? null : rows?.find((o) => o.id === pick) ?? rows?.[0] ?? null;
+  if (desk) return (
+    <Frame name="cabinet-offers" title={say("app.cabinet.offers_title")} strip={strip}>
+      <ErrorLine text={error} />
+      <div className="k-cab-grid" data-testid="cab-grid">
+        {rows?.map((o) => {
+          const face = offerFace(o, names);
+          const chosen = o === shown;
+          return (
+            <button key={o.id} type="button" className="k-cab-card" aria-pressed={chosen} onClick={() => setPick(o.id)} data-testid="offer-tile" data-status={face.live ? "active" : "expired"}>
+              <NdIcon name="offer" /><span className="k-stack"><b>{face.big}</b><span className="k-meta">{face.text}</span></span>
+            </button>
+          );
+        })}
+        <button type="button" className="k-cab-card" data-add="" onClick={onNew} data-testid="offer-new"><NdIcon name="plus" /><span>{say("app.cabinet.new_offer")}</span></button>
+      </div>
+      <aside className="k-cab-pane" data-testid="cab-pane">
+        {pane}
+        {shown && (() => { const face = offerFace(shown, names); return face.live ? <LiveOffer face={face} testid="adv-offer" /> : <DoneOffer face={face} />; })()}
+        {shown?.external_url && <p className="k-panel k-row k-reg" data-testid="offer-url"><NdIcon name="link" /><span className="k-meta">{shown.external_url}</span></p>}
+      </aside>
+    </Frame>
+  );
   return (
     <Frame name="cabinet-offers" title={say("app.cabinet.offers_title")} strip={strip}
       foot={<button type="button" className="k-cta" onClick={onNew} data-testid="offer-new"><NdIcon name="plus" /><span>{say("app.cabinet.new_offer")}</span></button>}>
@@ -74,6 +102,7 @@ export function Offers({ strip, onNew }: { strip: ReactNode; onNew: () => void }
 type Stage = "form" | "preview" | "published";
 
 export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => void }) {
+  const desk = useMinWidth("--bp-desktop");
   const [rows, setRows] = useState<Venue[] | null>(null);
   const [venue, setVenue] = useState("");
   const [text, setText] = useState("");
@@ -133,13 +162,26 @@ export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => vo
   if (stage === "preview" && end) {
     const at = rows?.find((v) => v.id === venue);
     const face: OfferFace = { live: true, big: discountLabel(discount), text: text.trim(), venue: at?.name ?? "", until: clock(end.toISOString()), visits: 0, complaints: 0, many: false };
+    const publishBtn = (
+      <button type="button" className="k-cta" aria-disabled={busy || undefined} aria-busy={busy || undefined} onClick={() => void go()} data-testid="offer-publish">
+        <NdIcon name="send" /><span>{label("web.cabinet.publish")}</span>
+      </button>
+    );
+    // desktop cab-preview.svg: the card in the pane, back and Publish under it
+    if (desk) return <Offers strip={strip} onNew={() => undefined} pane={<>
+      <section className="k-panel k-grow k-reg">
+        <h1>{say("web.cabinet.previewTitle")}</h1>
+        <LiveOffer face={face} testid="offer-preview-card" />
+        <p className="k-meta">{say("web.cabinet.publishNote")}</p>
+        {refused && <ErrorLine text={say("web.cabinet.refused", { reason: refused })} />}
+      </section>
+      <section className="k-panel k-actions k-row">
+        <button type="button" className="k-round" aria-label={label("web.cabinet.toForm")} onClick={() => setStage("form")} data-testid="offer-to-form"><NdIcon name="back" /></button>
+        {publishBtn}
+      </section>
+    </>} />;
     return (
-      <Frame name="cabinet-preview" title={say("web.cabinet.previewTitle")} strip={strip}
-        foot={
-          <button type="button" className="k-cta" aria-disabled={busy || undefined} aria-busy={busy || undefined} onClick={() => void go()} data-testid="offer-publish">
-            <NdIcon name="send" /><span>{label("web.cabinet.publish")}</span>
-          </button>
-        }>
+      <Frame name="cabinet-preview" title={say("web.cabinet.previewTitle")} strip={strip} foot={publishBtn}>
         <LiveOffer face={face} testid="offer-preview-card" />
         {conditions.trim() && <p className="k-meta">{label("web.cabinet.field.terms")}: {conditions.trim()}</p>}
         <p className="k-meta">{say("web.cabinet.publishNote")}</p>
@@ -149,13 +191,13 @@ export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => vo
     );
   }
 
-  return (
-    <Frame name="cabinet-new-offer" title={say("app.cabinet.new_offer")} strip={strip}
-      foot={
-        <button type="button" className="k-cta" aria-disabled={ready ? undefined : true} onClick={() => ready && (setRefused(null), setStage("preview"))} data-testid="offer-preview">
-          <NdIcon name="eye" /><span>{say("app.cabinet.preview")}</span>
-        </button>
-      }>
+  const previewBtn = (
+    <button type="button" className="k-cta" aria-disabled={ready ? undefined : true} onClick={() => ready && (setRefused(null), setStage("preview"))} data-testid="offer-preview">
+      <NdIcon name="eye" /><span>{say("app.cabinet.preview")}</span>
+    </button>
+  );
+  const form = (
+    <>
       {rows !== null && rows.length === 0 && <p className="k-sub" data-testid="offer-no-venue">{say("web.cabinet.noVenue")}</p>}
       {rows !== null && rows.length > 1 && (
         <div className="k-chips" role="radiogroup" aria-label={label("web.cabinet.field.venue")} data-testid="offer-venue">
@@ -181,6 +223,9 @@ export function NewOffer({ strip, onList }: { strip: ReactNode; onList: () => vo
           )}
         </>
       )}
-    </Frame>
+    </>
   );
+  // desktop cab-new-offer.svg: the offers' grid stays, the form and Preview are the pane
+  if (desk) return <Offers strip={strip} onNew={() => undefined} pane={<><section className="k-panel k-grow k-reg">{form}</section><section className="k-panel k-actions k-stack">{previewBtn}</section></>} />;
+  return <Frame name="cabinet-new-offer" title={say("app.cabinet.new_offer")} strip={strip} foot={previewBtn}>{form}</Frame>;
 }

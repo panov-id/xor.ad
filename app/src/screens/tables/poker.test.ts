@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { type Poker, pokerOf, pokerView } from "../../../../depth/core/tables_poker.ts";
-import { boardSlots, seatSlots } from "./poker-logic.ts";
+import { boardSlots, FELT, holeSlots, POT_AT, seatSlots } from "./poker-logic.ts";
 
 const poker = (over: Partial<Poker> = {}): Poker => ({
   chips: { "1": 900, "2": 850, "3": 1000 }, button: 2, hand: 3, street: "flop", board: ["10C", "9H", "7D"],
@@ -44,28 +44,47 @@ test("the actions: only the seat the node names, in my turn; a call costs what i
   assert.equal(owing.minRaise, 12);
 });
 
-test("the board: five slots 59.7 apart, the dealt cards face up and the rest backs", () => {
+// The prototype poker-turn draws the table as a 120 x 120 picture; these are its boxes, read off
+// docs/newdesign/proto/poker-turn.html, in px of the 356.18 panel.
+const U = 356.18 / 120;
+
+test("the board: five slots 13.5 apart on the felt, the dealt cards and null for the rest", () => {
   const b = boardSlots(["10C", "9H", "7D"]);
   assert.equal(b.length, 5);
   assert.deepEqual(b.map((s) => s.card), ["10C", "9H", "7D", null, null]);
-  near(b[1].at.x - b[0].at.x, 59.7);
-  near(b[0].at.x - b[0].at.w / 2, 35.81);
+  near(b[0].at.x - b[0].at.w / 2, 27 * U); // rect x=27 y=42 12 x 17
+  near(b[0].at.y - b[0].at.h / 2, 42 * U);
+  near(b[1].at.x - b[0].at.x, 13.5 * U);
+  near(b[0].at.w, 12 * U); near(b[0].at.h, 17 * U);
   assert.equal(boardSlots([]).every((s) => s.card === null), true);
   assert.equal(boardSlots(["AS", "KS", "QS", "JS", "10S"]).every((s) => s.card !== null), true);
+  near(FELT.x, 60 * U); near(FELT.w, 100 * U); near(FELT.h, 62 * U); // rect x=10 y=22 100 x 62
+  near(POT_AT.x - POT_AT.w / 2, 66 * U); near(POT_AT.y - POT_AT.h / 2, 63 * U); // the pot pill
 });
 
-test("the seats: two to six, mine at the bottom left, the rest clockwise, never two on one place", () => {
+test("the seats: mine at the bottom, the prototype's four left, top, right; two to six, never two on one place", () => {
+  const four = seatSlots(4).map((s) => ({ x: s.avatar.x / U, y: s.avatar.y / U }));
+  [[60, 96], [14, 50], [60, 12], [106, 50]].forEach(([x, y], i) => { near(four[i].x, x, 0.001); near(four[i].y, y, 0.001); });
   for (const n of [2, 3, 4, 5, 6]) {
     const s = seatSlots(n);
     assert.equal(s.length, n);
-    assert.equal(new Set(s.map((p) => `${p.x}:${p.y}`)).size, n, `${n} seats, ${n} places`);
-    assert.deepEqual(s[0], { x: 45.76, y: 207.33 }, "mine");
+    assert.equal(new Set(s.map((p) => `${p.avatar.x}:${p.avatar.y}`)).size, n, `${n} seats, ${n} places`);
+    near(s[0].avatar.y, 96 * U, 0.001);
+    s.flatMap((p) => [p.avatar, ...p.backs, p.stack]).forEach((c) => assert.ok(c.x - c.w / 2 >= 0 && c.x + c.w / 2 <= 356.18, `${n} seats fit the panel`));
   }
-  assert.deepEqual(seatSlots(4), [{ x: 45.76, y: 207.33 }, { x: 222.86, y: 207.33 }, { x: 232.8, y: 15.91 }, { x: 55.71, y: 15.91 }], "the sheet's four corners");
-  assert.deepEqual(seatSlots(6).map((p) => p.y), [207.33, 207.33, 207.33, 15.91, 15.91, 15.91], "three to a row");
-  // the sheets w3_table-poker-{2,3,5,6}: 2 and 3 are the four with seats empty, 5 is the six with the top left empty
-  assert.deepEqual(seatSlots(2), [{ x: 45.76, y: 207.33 }, { x: 232.8, y: 15.91 }], "two: bottom left and top right");
-  assert.deepEqual(seatSlots(3), seatSlots(4).slice(0, 3), "three: the four's first three");
-  assert.deepEqual(seatSlots(5), seatSlots(6).slice(0, 5), "five: the six's first five");
-  assert.deepEqual(seatSlots(6).slice(3).map((p) => p.x), [232.8, 144.26, 55.71], "six: the top row right to left, the middle halfway");
+  const top = seatSlots(4)[2], left = seatSlots(4)[1];
+  near(top.backs[0].x - top.backs[0].w / 2, 53 * U); near(top.backs[0].y - top.backs[0].h / 2, 19 * U); // rect x=53 y=19 7 x 10
+  near(top.backs[1].x - top.backs[1].w / 2, 59 * U);
+  near(top.stack.y - top.stack.h / 2, -2 * U); // on the top row the pill rides above the avatar
+  near(left.stack.y - left.stack.h / 2, 59 * U); // elsewhere under it, over the backs
+});
+
+test("my two cards: under my avatar, turned -6 and 6 about their bottom middles at 52.5 and 66.5, y 118", () => {
+  const h = holeSlots(2);
+  [[52.5, -6], [66.5, 6]].forEach(([px, r], i) => {
+    near(h[i].r, r, 0.001);
+    const t = (h[i].r * Math.PI) / 180;
+    near(h[i].x / U - (h[i].h / U / 2) * Math.sin(t), px, 0.01);
+    near(h[i].y / U + (h[i].h / U / 2) * Math.cos(t), 118, 0.01);
+  });
 });

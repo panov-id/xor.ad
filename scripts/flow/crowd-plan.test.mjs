@@ -116,11 +116,11 @@ test("a move try fits the board: the word only by word-go, a fleet first, anothe
   assert.match(phys, /if \(aim !== id\) return setAim\(id\);\s*onMove\(\{ flick \}\)/, "chapayev no longer flicks on the second tap at the aim: look again how the crowd moves");
   assert.match(move, /\.tg-actions button:enabled/, "tryMove() presses only the board, not the buttons under it (poker's bets, durak's take)");
   const table = readFileSync(new URL("../../app/src/screens/tables/Table.tsx", here), "utf8");
-  assert.match(table, /<\/div>\}\s*<BoardUnder/, "Table.tsx moved BoardUnder: look again where the crowd finds the bets");
+  assert.match(table, /<\/section>\}[\s\S]{0,400}?<BoardUnder/, "Table.tsx moved BoardUnder: look again where the crowd finds the bets");
   assert.match(move, /why = j\?\.error\?\.code/, "a refused move is journalled without the node's reason");
   assert.match(move, /moves \$\{answer\} \$\{why\}/, "the reason is read but not written to the journal");
   const sea = readFileSync(new URL("../../app/src/screens/tables/boards-sea.tsx", here), "utf8");
-  assert.match(sea, /useState\(\(\) => randomFleet\(\)\)[\s\S]*onMove\?\.\(\{ fleet \}\)\} data-testid="sea-fleet-go"/, "boards-sea.tsx no longer deals the fleet that «Fleet ready» sends: the crowd's press would send nothing");
+  assert.match(sea, /placingStore\(randomFleet\)[\s\S]*onMove\?\.\(\{ fleet \}\)\} data-testid="sea-fleet-go"/, "boards-sea.tsx no longer deals the fleet that «Fleet ready» sends: the crowd's press would send nothing");
 });
 
 // Review 26.10 (security lens): /tables, /feed and /likes share one read bucket on the node; a look every 15 s took 240 of 300.
@@ -170,7 +170,7 @@ test("Back from the phrase only where the phrase hides the tabs, below the rail'
   const tab = /async function tab\([\s\S]*?\n}\n/.exec(crowd)?.[0] ?? "";
   const below = Number(/viewportSize\(\)\.width < (\d+) && \(await card\.count\(\)\)/.exec(tab)?.[1]);
   const wide = readFileSync(new URL("../../app/tokens/wide.css", here), "utf8");
-  const rail = [...wide.matchAll(/@media \(min-width: (\d+)px\) \{[\s\S]*?(?=@media|$)/g)].find((m) => /\.fd-screen > \.tabbar \{ display: flex; \}/.test(m[0]))?.[1];
+  const rail = [...wide.matchAll(/@media \(min-width: (\d+)px\) \{[\s\S]*?(?=@media|$)/g)].find((m) => /\.tabbar\[data-rail-only\] \{ display: flex; \}/.test(m[0]))?.[1];
   assert.ok(rail, "wide.css no longer shows the rail on the phrase: look again where Back is needed");
   assert.equal(below, Number(rail), `tab() presses Back below ${below}px, the phrase keeps the rail from ${rail}px`);
 });
@@ -217,10 +217,11 @@ test("every testid the crowd presses sits on a pressable element in the app", ()
 // Run flow-1026-193139: at 1920 the phrase's own rail lay over the feed's, and tab() pressed the covered one.
 test("tab() presses the rail of an open phrase, not the feed's under it", () => {
   const fn = /async function tab\(p, t, screen\)[\s\S]*?\n}\n/.exec(crowd)?.[0] ?? "";
-  assert.match(fn, /const top = pg\.locator\(`\[data-screen="card"\] \$\{sel\}`\);/, "tab() no longer looks for the phrase's own rail");
-  assert.match(fn, /\(\(await top\.count\(\)\) \? top : pg\.locator\(sel\)\)\.first\(\)\.click/, "tab() presses the first rail whatever lies over it");
+  // Run flow-1028-122411: the phrase's rail could lie under the layer too, so tab() presses the tab on top at its centre.
+  assert.match(fn, /document\.elementFromPoint\(r\.left \+ r\.width \/ 2, r\.top \+ r\.height \/ 2\); return !!el && b\.contains\(el\)/, "tab() no longer picks the tab that lies on top");
+  assert.match(fn, /await all\.nth\(pick\)\.click/, "tab() presses the first rail whatever lies over it");
   const wide = readFileSync(new URL("../../app/tokens/wide.css", here), "utf8");
-  assert.match(wide, /\.fd-screen\s*>\s*\.tabbar/, "wide.css no longer gives the phrase a rail: look again whether tab() needs it");
+  assert.match(wide, /\.tabbar\[data-rail-only\]/, "wide.css no longer gives the phrase a rail: look again whether tab() needs it");
 });
 
 test("a Me row the crowd clicks is reached through its hub (app/src/screens/me/Hubs.tsx)", () => {
@@ -286,4 +287,14 @@ test("the crowd lives in Limassol only", () => {
   assert.equal(names.length, 10, `TOWNS has ${names.length} people, not 10`);
   const other = names.filter((n) => n !== "Limassol");
   assert.deepEqual(other, [], `the crowd lives outside Limassol: ${other.join(", ")} (${10 - other.length} of 10 in Limassol)`);
+});
+
+test("the like pairs: everyone in exactly one pair, and the two may meet", () => {
+  const NAMES = pick("NAMES"), PAIRS = pick("PAIRS");
+  const all = PAIRS.flat();
+  assert.deepEqual([...all].sort(), [...NAMES].sort(), `PAIRS cover ${new Set(all).size} of ${NAMES.length} people, or someone is in two pairs`);
+  for (const [x, y] of PAIRS) {
+    const [i, j] = [NAMES.indexOf(x), NAMES.indexOf(y)];
+    assert.ok(TOWNS[i] === TOWNS[j] && inBand(AGES[i], AGES[j]) && inBand(AGES[j], AGES[i]), `${x} (${AGES[i]}) and ${y} (${AGES[j]}) cannot meet`);
+  }
 });

@@ -157,6 +157,18 @@ export async function reasonsFor(
 // docs/facts/limits.tsv, by name.
 export const PHRASE_SPAN = "4 hours 20 minutes"; // feed.phrase.span
 export const QUEUE_WAIT_MINUTES = 10; // moderation.queue.wait
+// Lost and found (owner, 30.10.2026; db/089). Postgres interval literals, as
+// PHRASE_SPAN is: a lost lives three days from the verdict, its author may
+// push the end out by three days at most three times (routes/feed.ts
+// /extend), and a lost closed as found stays one more day.
+export const LOST_SPAN = "3 days";
+export const EXTEND_SPAN = "3 days";
+export const EXTEND_MAX = 3;
+export const FOUND_SPAN = "1 day";
+// The term a verdict gives, by the row's own kind — one expression. A kind
+// added to db/089 without a span here gets a phrase's four hours (the ELSE):
+// add its WHEN here together with the CHECK there.
+const SPAN_BY_KIND = `CASE kind WHEN 'lost' THEN interval '${LOST_SPAN}' ELSE interval '${PHRASE_SPAN}' END`;
 // The arrays are cut to their last moments on write; the lengths are §8.3's.
 const KEEP_PUBLISHED = 4;
 const KEEP_REFUSED = 6;
@@ -289,7 +301,7 @@ export async function publishLocked(run: Run, id: string): Promise<Verdict> {
     }
     const [term] = await run<{ visible_at: Date; expires_at: Date }>(
       `UPDATE feed_messages
-          SET visible_at = now(), expires_at = now() + interval '${PHRASE_SPAN}'
+          SET visible_at = now(), expires_at = now() + ${SPAN_BY_KIND}
         WHERE id = $1 AND visible_at IS NULL
         RETURNING visible_at, expires_at`,
       [id],

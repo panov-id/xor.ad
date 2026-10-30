@@ -18,6 +18,7 @@ import { Skeleton } from "../../shell/Skeleton";
 import { type Tab, TabBar } from "../../shell/TabBar";
 import { useEvery } from "../move-parts";
 import { apart, freshTables, mergeTables, START_GAMES, TABLES_LOOK_MS, TABLES_RADIUS } from "./tables-logic";
+import { fullShown, TABLES_FULL_KEY } from "./table-logic";
 import { gameIcon, gameName, lineOf, TableTile } from "./table-row";
 
 export function Tables({ client, onTab, onNewTable, onTable }: { client: Client; onTab: (tab: Tab) => void; onNewTable: (game?: string) => void; onTable?: (id: string) => void }) {
@@ -28,6 +29,7 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [tab, setTab] = useState<"all" | "mine">("all");   // the list first; the person's own tables (tables-mine) are the second tab
   const [filter, setFilter] = useState<string | null>(null);   // a game of the strip: only its tables
+  const full = useRef((() => { try { return Number(localStorage.getItem(TABLES_FULL_KEY)); } catch { return null; } })()).current;
   const live = useRef(true);
   const paged = useRef(false);   // a page after the cursor is drawn: the quiet look keeps it
   const skeleton = useSkeleton(state === "loading");
@@ -74,12 +76,14 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
             <button type="button" className="k-tb-add" aria-label={label("web.newTable.title")} onClick={() => onNewTable()} data-testid="new-table"><NdIcon name="plus" /></button>
           </div>
         </section>
-        <div className="k-tb-games" role="group" aria-label={say("app.tables.games")}>
+        {/* tables-mine.html: the person's own tables have no game strip, the switch stands in its place; desktop-1440
+            tables-mine.svg keeps the strip (kit: hidden on the phone only) */}
+        {<div className="k-tb-games" role="group" aria-label={say("app.tables.games")} hidden={showMine}>
           {GAMES.map((g) => (
             <button key={g.id} type="button" className="k-tb-game" aria-pressed={filter === g.id} aria-label={label(gameName(g))}
               onClick={() => setFilter(filter === g.id ? null : g.id)} data-testid={`filter-${g.id}`}><NdIcon name={gameIcon(g.id)} /></button>
           ))}
-        </div>
+        </div>}
         {mine.length > 0 && (
           <div className="k-seg" role="tablist">
             <button type="button" role="tab" aria-selected={tab === "all"} aria-label={say("app.tables.all")} onClick={() => setTab("all")} data-testid="tables-tab-all"><NdIcon name="nearby" /></button>
@@ -103,15 +107,27 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
                 <button type="button" className="k-btn" onClick={() => void load()} data-testid="retry"><NdIcon name="refresh" /><span>{say("app.feed.retry")}</span></button>
               </div>
             )}
+            {/* tables-full: the node turned a new table away this hour; the note stays on top until the hour is out */}
+            {fullShown(full, Date.now()) && (
+              <div className="k-note" data-tone="warn" role="status" data-testid="tables-full"><NdIcon name="alert" /><span>{say("app.tables.full")}</span></div>
+            )}
+            {/* desktop-1440 tables.svg: «Mine» and «Nearby» one under the other, each under its small head (kit: the phone hides the heads) */}
+            {mine.length > 0 && <h2 className="k-tb-label"><NdIcon name="me" /><span>{label("web.tables.mine")}</span></h2>}
             {mine.length > 0 && (
               <ul className="k-grid2 k-tb-grid" hidden={!showMine} aria-label={label("web.tables.mine")} data-testid="tables-mine">
                 {own.map((card) => {
                   const line = lineOf(card);
                   return <TableTile key={card.id} id={card.id} card={card} title={line.title} testid="table-mine" mine={!!card.seated} onOpen={onTable && (() => onTable(card.id))} />;
                 })}
+                {/* tables-mine.html: the last tile sets up a new table */}
+                <li data-testid="mine-add">
+                  <button type="button" className="k-tile k-tb-tile k-tb-new" aria-label={label("web.newTable.title")} onClick={() => onNewTable()}>
+                    <span className="k-tb-add"><NdIcon name="plus" /></span>
+                  </button>
+                </li>
               </ul>
             )}
-            {list.length > 0 && <h2 hidden data-testid="tables-playing">{say("app.tables.playing")}</h2>}
+            {list.length > 0 && <h2 className="k-tb-label" data-testid="tables-playing"><NdIcon name="nearby" /><span>{say("app.tables.playing")}</span></h2>}
             {(
               <ul className="k-grid2 k-tb-grid" hidden={showMine} data-testid="tables">
                 {list.map((card) => <TableTile key={card.id} id={card.id} card={card} title={lineOf(card).title} testid="table-card" onOpen={onTable && (() => onTable(card.id))} />)}

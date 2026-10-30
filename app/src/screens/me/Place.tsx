@@ -6,12 +6,13 @@
 // city. The top keeps w4_place's layout; the map's blocks follow it. The radius is shown, not kept: the feed keeps
 // its own chips (the stored shape has no radius). Testids (the web's): place-search, place-city, place-point,
 // place-qr, error; new: place-now, place-map, place-radius, place-near, place-here.
-import { type FormEvent, type PointerEvent as PEvent, useEffect, useRef, useState, type WheelEvent } from "react";
+import { type FormEvent, type PointerEvent as PEvent, type ReactNode, useEffect, useRef, useState, type WheelEvent } from "react";
 import type { Radius } from "@sdk/client.ts";
 import { type City, nameOf, parsePoint, type Place as PlaceT, searchCities, storePlace } from "@sdk/place.ts";
 import { LANG, say } from "../../i18n";
 import { storedPlace } from "../../place";
 import { RADII, radiusWord } from "../feed-logic";
+import { EntryScene } from "../../shell/EntryScene";
 import { NdIcon } from "../../shell/NdIcon";
 import { Field } from "../register-parts";
 import { pin } from "./icons";
@@ -41,6 +42,12 @@ function tile(key: string): Promise<Tile | null> {
   return t;
 }
 let cityList: Promise<City[]> | null = null;
+/** The cities nearest a point (equirectangular: enough to order neighbours). */
+export function nearest(all: City[], at: { lat: number; lon: number }, n: number): PlaceT[] {
+  const k = Math.cos((at.lat * Math.PI) / 180);
+  const d = (c: City) => (c[2] - at.lat) ** 2 + ((c[3] - at.lon) * k) ** 2;
+  return [...all].sort((a, b) => d(a) - d(b)).slice(0, n).map((c) => ({ name: c[0], cc: c[1], lat: c[2], lon: c[3], source: "city" as const }));
+}
 const allCities = () => (cityList ??= import("@cities").then((m) => (m.default as unknown as { cities: City[] }).cities).catch(() => []));
 
 function PlaceMap({ at, radius, onMove, onRadius }: { at: At; radius: Radius; onMove: (c: At) => void; onRadius: (r: Radius) => void }) {
@@ -106,7 +113,7 @@ function PlaceMap({ at, radius, onMove, onRadius }: { at: At; radius: Radius; on
   );
 }
 
-export function Place({ onChosen, onBack, onQr, start }: { onChosen: (p: PlaceT) => void; onBack: () => void; onQr: () => void; start?: { lat: number; lon: number; s: number } }) {
+export function Place({ onChosen, onBack, onQr, start, wizard }: { onChosen: (p: PlaceT) => void; onBack: () => void; onQr: () => void; start?: { lat: number; lon: number; s: number }; wizard?: ReactNode }) {
   // a place QR opened: its point is where the map starts and its step the radius; «Here» still keeps it, nothing moves alone
   const now = useRef(storedPlace()).current;
   const from = start ?? now;
@@ -120,9 +127,11 @@ export function Place({ onChosen, onBack, onQr, start }: { onChosen: (p: PlaceT)
   const [radius, setRadius] = useState<Radius>(start ? (RADII[start.s - 1] ?? 1000) : 1000);
   useEffect(() => {
     let live = true;
-    void searchCities(q, SHOWN).then((list) => { if (live) setFound(list); }).catch(() => { if (live) setFound([]); });
+    // wizard-5 draws two cities before a letter is typed: the nearest to the point
+    const list = wizard && !q.trim() ? allCities().then((all) => nearest(all, from, SHOWN)) : searchCities(q, SHOWN);
+    void list.then((l) => { if (live) setFound(l); }).catch(() => { if (live) setFound([]); });
     return () => { live = false; };
-  }, [q]);
+  }, [q, wizard]);
   useEffect(() => {
     if (named) return setNear({ name: named.name, cc: named.cc ?? "" });
     let live = true;
@@ -149,10 +158,48 @@ export function Place({ onChosen, onBack, onQr, start }: { onChosen: (p: PlaceT)
   const hereBtn = <button type="button" className="cta cta-primary" onClick={() => void here()} data-testid="place-here"><NdIcon name="check" /><span>{say("app.place.here")}</span></button>;
   const nowLine = start ? say("web.qr.ask", { where: near?.name ?? "…" }) : now.chosen ? say("app.place.now", { place: now.name }) : say("app.place.unset", { place: ROME });
   const nearLine = near ? say("app.place.near", { city: near.name, radius: radiusText(radius) }) : " ";
+  if (wizard) {
+    // wizard-5: the place as the intro's fifth step: the intro's bar, the pin with the title and the line, the search,
+    // the found cities as two tiles in a row (the picked one lit), the row for a point from a map, «here» at the foot
+    return (
+      <main className="k-screen" data-screen="intro" data-step="place">
+        <EntryScene title={say("app.place.title")} text={say("app.place.feed")} icon="place" />
+        <div className="k-col">
+          {wizard}
+          <section className="k-panel k-grow k-reg k-intro-place" data-testid="intro-place">
+            <div className="k-row"><NdIcon name="place" /><div className="k-stack"><h2 className="k-title">{say("app.place.title")}</h2><p className="k-sub">{say("app.place.feed")}</p></div></div>
+            <Field text={say("app.place.city")} value={q} onChange={setQ} testid="place-search" autoComplete="off" icon="search" />
+            <div className="k-hub k-intro-cities" data-testid="place-found">
+              {found.map((p, i) => (
+                <button type="button" key={`${p.name}-${p.cc}-${p.lat}`} className="k-hub-tile" data-small="" data-accent={(named ? named.name === p.name && named.cc === p.cc : !q.trim() && i === 0) ? "" : undefined}
+                  onClick={() => go(p)} data-testid="place-city">
+                  <span className="k-badge" aria-hidden="true"><NdIcon name="place" /></span>
+                  <span className="k-stack"><span className="k-row-name">{p.name}</span><span className="k-meta">{countryName(LANG, p.cc)}</span></span>
+                </button>
+              ))}
+            </div>
+            <button type="button" className="k-hub-tile" data-wide="" aria-expanded={coords} onClick={() => setCoords((c) => !c)} data-testid="place-coords">
+              <span className="k-badge" aria-hidden="true"><NdIcon name="coords" /></span>
+              <span className="k-stack"><span className="k-meta">{say("app.place.point")}</span></span>
+            </button>
+            {coords && (
+              <form onSubmit={(e) => void fromPoint(e)}>
+                <Field text={say("app.place.point")} value={point} onChange={setPoint} testid="place-point" autoComplete="off" icon="coords" />
+              </form>
+            )}
+            <ErrorLine text={error} />
+            <p className="k-sr" data-testid="place-now">{nowLine}</p>
+          </section>
+          <section className="k-panel k-actions">{hereBtn}</section>
+        </div>
+      </main>
+    );
+  }
   if (view === "map") {
     // the map itself (drag, pinch, the radius): opens from the big tile of the prototype's place.html
     return (
       <SubPage name="place" title={say("app.place.title")} onBack={() => setView("main")} foot={hereBtn}>
+        <EntryScene portal title={say("app.place.title")} text={say("app.place.feed")} icon="place" />
         <p className="k-sub">{say("app.place.drag")}</p>
         <PlaceMap at={at} radius={radius} onMove={(c) => { setNamed(null); setAt(c); }} onRadius={setRadius} />
         <label className="k-radius">
@@ -171,6 +218,7 @@ export function Place({ onChosen, onBack, onQr, start }: { onChosen: (p: PlaceT)
   // the prototype's place.html: the search pill, the big tile of where I am and how far (opens the map), the two half tiles (QR, a point), Save at the foot
   return (
     <SubPage name="place" title={say("app.place.title")} onBack={onBack} bare footActions foot={hereBtn}>
+      <EntryScene portal title={say("app.place.title")} text={say("app.place.feed")} icon="place" />
       <div className="k-me-place">
         <Field text={say("app.place.city")} value={q} onChange={setQ} testid="place-search" autoComplete="off" icon="search" />
         {found.length > 0 && (

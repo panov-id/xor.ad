@@ -13,6 +13,9 @@ import { Departure } from "../screens/Departure";
 import { Feed } from "../screens/Feed";
 import { type SentPhrase, sentOf } from "../screens/feed-logic";
 import { Restore } from "../screens/Gate";
+import { Update } from "../screens/Update";
+import { useNewVersion } from "./update";
+import { version as appVersion } from "../../package.json";
 import { Loading } from "../screens/Loading";
 import { Locked } from "../screens/Locked";
 import { Register, type Seated } from "../screens/Register";
@@ -31,11 +34,15 @@ import { codeOfPath } from "@sdk/offer_exit.ts";
 import { parseQr } from "@sdk/place_qr.ts";
 import { Place } from "../screens/me/Place";
 import { storedPlace } from "../place";
+import { nameOf, storePlace } from "@sdk/place.ts";
+import { say } from "../i18n";
+import { NdIcon } from "./NdIcon";
 import { dropGrace, forget, hiddenWithGrace, idleMs, leavingWithGrace, readRecord, type Record_, returningWithGrace, stampGrace, unlockByGrace, watchIdle, watchLifecycle } from "../vault";
 import { LayerStack } from "./layers";
 import { type Tab, TabsContext } from "./TabBar";
 import { useSkeleton } from "./loading";
 import { watchTaps } from "./ripple";
+import { InPane } from "../screens/me/parts";
 
 // A place QR (web App.tsx QR, sosed.place 26): `/location#p=…&s=…` read once at load and taken out of the address at
 // once, so the cell stays in no history, tab restore or copied address; anything off the shape is no QR. Once seated,
@@ -54,7 +61,7 @@ async function boot(): Promise<void> {
 // keeps an identity — and no PIN at all within the reload grace (depth/core/grace.ts).
 // The desktop (1440 and up, tokens/wide.css): the talks' pane stands at the right of the panel of these screens
 // (sosed Dusk desktop_1440_Feed, _Phrase, _Tables, _Write; "Me" has none: its sheet is one panel); below it is not mounted and reads nothing.
-const PANE_BESIDE = new Set<Screen["at"]>(["feed", "tables", "composer"]);
+const PANE_BESIDE = new Set<Screen["at"]>(["feed", "likes", "tables", "composer"]);   // likes: desktop-1440/3-nearby/my-marks
 // The breakpoints are the tokens --bp-tablet and --bp-desktop (tokens/wide.css, the same numbers as its @media): read off :root, as Feed reads --fd-cols.
 function minWidthOf(token: string): string {
   if (typeof getComputedStyle !== "function") return "";
@@ -98,12 +105,19 @@ export function App() {
   const held = useRef(false);
   // the place QR leads once: a later seat (an unlock after a lock) does not open it again
   const qrUsed = useRef(false);
+  const [qrAsk, setQrAsk] = useState<{ lat: number; lon: number; s: number } | null>(null);   // place-qr: the question over the feed
+  const [feedKey, setFeedKey] = useState(0);
   // Waiting rules (MOTION.md): the loading screen shows only if the wait outlasts 300 ms, and then stays 600 ms.
   const loadingShown = useSkeleton(booting);
+  const fresh = useNewVersion(appVersion);   // screen 15: a newer build on the server
   const wide = useWide();
+  const toPlace = () => { history.pushState({ gate: "place", i: 1 }, "", pathOf({ at: "place" })); setScreen({ at: "place" }); };
+  const feedOf = (seated: { client: Client }) => <Feed key={feedKey} client={seated.client} onTab={tab} onCompose={openComposer} sent={sent} onTakenDown={() => setSent(null)} onLikes={toLikes} onNewTable={() => toNewTable()} onTable={toTable} onPlace={toPlace} />;
   // The tablet and up: the talks' screen opens a talk beside its list (tablet_834_Talks), not over it.
   const twoPane = useWide("--bp-tablet");
   const [beside, setBeside] = useState<InboxChatRow | null>(null);
+  // desktop-1440 5-talks/offer.svg: at wide a match opens in the right pane beside the talks, as a talk does
+  const [besideMatch, setBesideMatch] = useState<MatchRow | null>(null);
 
   useEffect(() => {
     void (async () => {
@@ -199,8 +213,12 @@ export function App() {
     vaulted.current = null;
     held.current = true;
     setSeated(who);
-    const to = landing(qrUsed.current ? null : QR, storedPlace().chosen, fresh);
-    if (to.at === "place") qrUsed.current = true;
+    // place-qr (the owner, 28.10): a QR opened asks over the feed; it no longer opens the place screen
+    const qr = qrUsed.current ? null : QR;
+    qrUsed.current = qrUsed.current || !!qr;
+    const first = landing(null, storedPlace().chosen, fresh);
+    const to: Screen = qr && first.at === "place" ? { at: "feed" } : first;
+    if (qr) setQrAsk(qr);
     history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
     setScreen(to);
     void awayCheck(who.client);
@@ -274,6 +292,7 @@ export function App() {
   };
   // The inbox's «Offers» circle: what I am in on, on top of the inbox (as toMove over Me).
   const toMatch = (row: MatchRow) => {
+    if (wide) { setBeside(null); setBesideMatch(row); return; }
     history.pushState({ gate: "match", i: 1, row }, "", pathOf({ at: "match", row }));
     setScreen({ at: "match", row });
   };
@@ -303,26 +322,36 @@ export function App() {
     if (loadingShown) return <Loading />;
     switch (screen.at) {
       case "loading": return null; // the wait is under 300 ms: nothing is drawn
-      case "splash": return <Splash onStart={() => gate({ at: "register" })} onRestore={() => gate({ at: "restore" })} onArrive={() => gate({ at: "arrival" })} />;
-      case "register": return <Register onDone={(who) => seat(who, true)} />;
+      case "splash": return <Splash onStart={() => gate({ at: "register" })} />;
+      case "register": return <Register onDone={(who) => seat(who, true)} onRestore={() => gate({ at: "restore" })} onArrive={() => gate({ at: "arrival" })} onBack={gateBack} />;
       case "unlock": return <Unlock record={screen.record} onDone={unlocked} onForget={() => { vaulted.current = null; gate({ at: "splash" }); }} onRestore={() => gate({ at: "restore" })} />;
       // A clean device raised by the paper code: sealed under a new PIN, seated as after the PIN.
-      case "restore": return <Restore onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
+      case "restore": return <Restore onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} onNew={() => gate({ at: "register" })} onArrive={() => gate({ at: "arrival" })} />;
       // Arrived by a move: sealed under a first PIN, seated as after the PIN.
       case "arrival": return <Arrival onDone={(client) => seat({ client, sealed: "ok" })} onBack={gateBack} />;
-      case "feed": return seated ? <Feed client={seated.client} onTab={tab} onCompose={openComposer} sent={sent} onTakenDown={() => setSent(null)} onLikes={toLikes} onNewTable={() => toNewTable()} onTable={toTable} onPlace={() => { history.pushState({ gate: "place", i: 1 }, "", pathOf({ at: "place" })); setScreen({ at: "place" }); }} /> : null;
-      case "composer": return seated ? <Composer client={seated.client} radius={screen.radius} onSent={(result, text) => { setSent(sentOf(result, text)); chatBack(); }} onBack={chatBack} onTab={tab} /> : null;
+      case "feed": return seated ? <>{feedOf(seated)}{qrAsk && <QrAsk at={qrAsk} onLater={() => setQrAsk(null)} onPut={(p) => { storePlace(p); setQrAsk(null); setFeedKey((k) => k + 1); }} />}</> : null;
+      // desktop 3-nearby composer.svg: at the desktop the composer stands in the pane beside the feed
+      case "composer": return seated ? <>{wide && feedOf(seated)}<Composer client={seated.client} radius={screen.radius} onSent={(result, text) => { setSent(sentOf(result, text)); chatBack(); }} onBack={chatBack} onTab={tab} onPlace={toPlace} /></> : null;
       case "tables": return seated ? <Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /> : null;
       // Back keeps the seat (web TB1); standing up, or a seat lost, is the list again.
       case "table": return seated ? <Table key={screen.id} client={seated.client} tableId={screen.id} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} onLeave={toTables} onTable={toTable} /> : null;
-      case "new-table": return seated ? <NewTable client={seated.client} picked={screen.game} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} /> : null;
+      case "new-table": {
+        if (!seated) return null;
+        const wizard = <NewTable client={seated.client} picked={screen.game} onMade={toTables} onBack={() => ((history.state as { i?: number } | null)?.i ? history.back() : toTables())} />;
+        // desktop-1440 new-table-*.svg: the wizard stands in the right pane beside the tables list
+        return wide ? <><Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /><div className="k-me-pane" data-testid="new-table-pane"><InPane.Provider value={true}>{wizard}</InPane.Provider></div></> : wizard;
+      }
       case "chat": return seated && chatKeys ? <Chat key={screen.row.id} client={seated.client} keys={chatKeys} row={screen.row} onBack={chatBack} /> : null;
-      case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} /> : null;
+      case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} onMoved={gone}
+        onAway={(until) => { history.replaceState({ gate: "away", i: 0, until }, "", pathOf({ at: "away", until })); setScreen({ at: "away", until }); }} /> : null;
       // The talks (w3): a match and a talk open over the inbox — a talk's row is the chat's when the node gave it whole.
       case "inbox": return seated ? (
-        <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={twoPane ? setBeside : openChat}
-          pickFirst={twoPane} selectedId={twoPane ? beside?.id : undefined}
-          beside={twoPane && beside && chatKeys ? <Chat key={beside.id} client={seated.client} keys={chatKeys} row={beside} onBack={() => setBeside(null)} frame="pane" /> : undefined} />
+        <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={twoPane ? (row) => { setBesideMatch(null); setBeside(row); } : openChat}
+          pickFirst={twoPane && !wide} selectedId={twoPane ? beside?.id : undefined}
+          beside={wide && besideMatch && chatKeys ? <Match key={besideMatch.id} client={seated.client} keys={chatKeys} row={besideMatch} frame="pane"
+              onAgreed={() => { setBesideMatch(null); tab("chats"); }} onWaiting={setBesideMatch} onBack={() => setBesideMatch(null)} onTalks={() => setBesideMatch(null)} />
+            : twoPane && beside && chatKeys ? <Chat key={beside.id} client={seated.client} keys={chatKeys} row={beside} onBack={() => setBeside(null)} frame="pane" />
+            : wide && !beside && !besideMatch ? <EmptyPane icon="talks" hint="app.pane.talks_hint" /> : undefined} />
       ) : null;
       // What I am in on, over the inbox (i: 1): its back is the history's Back onto /inbox; a reload on it, the inbox.
       // A match over the inbox (i: 1, its row in the entry); "Let's talk" agreed by both goes to the talks (the talk's own screen is the chat wave's), a lone yes is the wait in place.
@@ -334,7 +363,7 @@ export function App() {
       case "offer": return <Offer code={screen.code} client={seated?.client} onBack={leaveOffer} />;
       // Back from the first place is a choice too: the feed, which says no place is chosen
       // «How it works» once after a registration; its end and its close lead to the place, as wizard-5 is the place
-      case "intro": return seated ? <Intro onDone={() => { history.replaceState({ gate: "place", i: 0 }, "", pathOf({ at: "place" })); setScreen({ at: "place" }); }} /> : null;
+      case "intro": return seated ? <Intro onDone={() => { history.replaceState({ gate: "place", i: 0 }, "", pathOf({ at: "place" })); setScreen({ at: "place" }); }} onPlaced={toFeed} onQr={() => tab("me")} /> : null;
       case "place": return seated ? <Place start={screen.start} onChosen={toFeed} onBack={toFeed} onQr={() => tab("me")} /> : null;
       case "away": return seated ? <Away client={seated.client} until={screen.until} onBack={toFeed} /> : null;
     }
@@ -343,5 +372,24 @@ export function App() {
   const pane = !(wide && seated && !loadingShown && PANE_BESIDE.has(screen.at)) ? null
     : screen.at === "tables" ? <EmptyPane icon="tables" hint="app.pane.tables_hint" />
     : <TalksPane client={seated.client} actions={{ onOpenMatch: toMatch, onOpenChat: openChat, onLikes: toLikes }} />;
-  return <TabsContext.Provider value={tab}><LayerStack base={<>{view()}{pane}</>} /></TabsContext.Provider>;
+  return <TabsContext.Provider value={tab}><LayerStack base={<>{view()}{pane}</>} />{fresh.version && <Update version={fresh.version} onLater={fresh.later} />}</TabsContext.Provider>;
+}
+
+// place-qr: the sheet over the feed: the QR's place by its nearest city, «not now» and «put» (web.qr.*)
+function QrAsk({ at, onLater, onPut }: { at: { lat: number; lon: number; s: number }; onLater: () => void; onPut: (p: { lat: number; lon: number; name: string; cc: string; source: "point" }) => void }) {
+  const [near, setNear] = useState<{ name: string; cc: string } | null>(null);
+  useEffect(() => { let live = true; void nameOf(at.lat, at.lon).then((n) => { if (live) setNear(n); }).catch(() => {}); return () => { live = false; }; }, [at]);
+  return (
+    <div className="k-chm" data-testid="place-qr-ask">
+      <button type="button" className="k-chm-dim" aria-label={say("web.qr.later")} onClick={onLater} />
+      <section className="layer-sheet k-chm-sheet" role="dialog" aria-modal="true" aria-labelledby="qr-ask-title">
+        <h2 className="k-sheet-title" id="qr-ask-title">{say("web.qr.title")}</h2>
+        <p className="k-row k-note"><NdIcon name="qr" /><span>{say("web.qr.ask", { where: near?.name ?? "…" })}</span></p>
+        <div className="k-row k-actions">
+          <button type="button" className="k-cta" data-outline="" onClick={onLater} data-testid="place-qr-later"><NdIcon name="clock" /><span>{say("web.qr.later")}</span></button>
+          <button type="button" className="k-cta" disabled={!near} onClick={() => near && onPut({ lat: at.lat, lon: at.lon, ...near, source: "point" })} data-testid="place-qr-yes"><NdIcon name="check" /><span>{say("web.qr.put")}</span></button>
+        </div>
+      </section>
+    </div>
+  );
 }

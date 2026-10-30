@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { afterDigits, pressed } from "./pin-flow.ts";
+import { afterDigits, MISSES_BACK, PAIRS, pickPair, pressed } from "./pin-flow.ts";
 
 test("the PIN's sixth digit opens the repeat; fewer stay", () => {
   assert.equal(afterDigits({ stage: "pin", pin: "48391", again: "", mismatch: false }).stage, "pin");
@@ -11,11 +11,29 @@ test("the PIN's sixth digit opens the repeat; fewer stay", () => {
   assert.equal(m.stage, "again"); assert.equal(m.create, false);
 });
 
-test("the repeat that matches creates; one that differs goes back, both cleared, and says so", () => {
+test("the repeat that matches creates; one that differs is cleared and says so; the third miss goes back to the PIN (SCREENS_spec §4)", () => {
   assert.equal(afterDigits({ stage: "again", pin: "483915", again: "48391", mismatch: false }).create, false);
   assert.equal(afterDigits({ stage: "again", pin: "483915", again: "483915", mismatch: false }).create, true);
-  const back = afterDigits({ stage: "again", pin: "483915", again: "483916", mismatch: false });
-  assert.deepEqual(back, { stage: "pin", pin: "", again: "", mismatch: true, create: false }, "a differing repeat was let through");
+  const once = afterDigits({ stage: "again", pin: "483915", again: "483916", mismatch: false });
+  assert.deepEqual(once, { stage: "again", pin: "483915", again: "", mismatch: true, misses: 1, create: false }, "a differing repeat was let through");
+  const twice = afterDigits({ ...once, again: "111111" });
+  assert.equal(twice.stage, "again"); assert.equal(twice.misses, 2);
+  const third = afterDigits({ ...twice, again: "222222" });
+  assert.deepEqual(third, { stage: "pin", pin: "", again: "", mismatch: true, misses: 0, create: false }, `${MISSES_BACK} misses did not go back`);
+  assert.equal(afterDigits({ stage: "pin", pin: "483915", again: "", mismatch: true, misses: 2 }).misses, 0, "a new PIN keeps the old misses");
+});
+
+test("the paper check asks two of the four groups: 6 pairs, never the last one again", () => {
+  assert.equal(new Set(PAIRS.map((p) => p.join())).size, 6);
+  for (const p of PAIRS) assert.ok(p[0] < p[1] && p[0] >= 0 && p[1] <= 3, `pair ${p}`);
+  const seen = new Set<string>();
+  for (let k = 0; k < 6; k++) for (const last of PAIRS) {
+    const next = pickPair(last, () => k / 6);
+    assert.notDeepEqual(next, last, `pair ${last} asked twice`);
+    seen.add(next.join());
+  }
+  assert.equal(seen.size, 6, `${seen.size} of 6 pairs ever asked`);
+  assert.ok(PAIRS.some((p) => p.join() === pickPair(null, () => 0.99).join()));
 });
 
 test("the pad appends a digit up to six and «back» takes one off", () => {
@@ -45,8 +63,30 @@ test("the PIN screen asks on the sixth digit, has no «enter» button, and «for
 test("the lock screen asks on the sixth digit too and has the pad", () => {
   const l = readFileSync(new URL("./Locked.tsx", import.meta.url), "utf8");
   assert.match(l, /pin\.length === PIN_LENGTH && !busy\) void open\(\)/, "the lock screen waits for a button again");
-  assert.match(l, /<PinPad /);
+  assert.match(l, /<PinDoor screen="locked"/, "the lock screen is not the PIN door of 06");
+  assert.match(readFileSync(new URL("./pin-door.tsx", import.meta.url), "utf8"), /<PinPad /);
   assert.doesNotMatch(l, /data-testid="lock-go"/);
+});
+
+// docs/newdesign4 06–09 (SCREENS_spec §7–10), read from the screens' source.
+test("the PIN door 06–09: the pad's paper key, the ring and shake for a second, tries from the node, «⋯» to forget, forget outlined", () => {
+  const door = readFileSync(new URL("./pin-door.tsx", import.meta.url), "utf8");
+  const u = readFileSync(new URL("./Unlock.tsx", import.meta.url), "utf8");
+  const l = readFileSync(new URL("./Locked.tsx", import.meta.url), "utf8");
+  const parts = readFileSync(new URL("./register-parts.tsx", import.meta.url), "utf8");
+  assert.match(parts, /paper \? <button key="paper"[^\n]*aria-label=\{say\("app\.unlock\.paper"\)\}[^\n]*data-testid="unlock-restore"/, "the pad has no paper code key");
+  assert.match(u, /onPaper=\{onRestore\}/, "the unlock pad's paper key leads nowhere");
+  assert.match(parts, /k === "back" \? <span className="nd-erase" aria-hidden="true">⌫<\/span>/, "the erase key is not the mockup's ⌫");
+  assert.match(door, /setRing\(true\)[\s\S]{0,140}setTimeout\(\(\) => setRing\(false\), 1000\)/, "the refused dots do not ring for a second");
+  assert.match(u, /say\("app\.unlock\.wrong", \{ n: refusal\.left \}\)/, "the refusal does not say the tries left");
+  assert.match(u, /refusals >= 3 && <p[^\n]*data-testid="unlock-forgot"/, "«Forgot it?» does not come after the third miss");
+  assert.match(u, /onClick=\{\(\) => setSure\(true\)\} data-testid="forget"/, "«⋯» does not open forget");
+  assert.match(u, /className="nd-danger" onClick=\{onForget\} data-testid="forget-sure"/, "«Forget» is not outlined");
+  assert.match(l, /say\("app\.locked\.away", \{ n: Math\.max\(1, Math\.round\(idleMs\(\) \/ 60_000\)\) \}\)/, "the lock line does not say this build's own minutes");
+  const i18n = readFileSync(new URL("../i18n.ts", import.meta.url), "utf8");
+  const keys = [...new Set([...u, ...l].length ? [...(u + l + door).matchAll(/say\("(app\.(?:unlock|locked|forget)\.[a-z0-9_]+)"/g)].map((m) => m[1]) : [])];
+  assert.ok(keys.length >= 15, `only ${keys.length} keys`);
+  for (const key of keys) assert.equal(i18n.split(`"${key}":`).length - 1, 2, `${key} is not in both RU and EN`);
 });
 
 test("«how it works»: four cards, each with its icon and words in ru and en, the last leads to the place", async () => {
@@ -83,4 +123,26 @@ test("an icon the prototype draws is drawn in its shape (proto-icons.gen.ts), N 
   const icon = readFileSync(new URL("../shell/NdIcon.tsx", import.meta.url), "utf8");
   assert.match(icon, /const proto = PROTO_ICONS\[name\];\s*if \(proto !== undefined\)/, "NdIcon does not take the prototype's shape first");
   assert.match(PROTO_ICONS.write, /M24 15V27M18 21H30/, "«write» is not the prototype's bubble with a plus");
+});
+
+// docs/newdesign4 screens 02–05a (SCREENS_spec §2–5а), read from the screen's source.
+test("register 02–05a: back and three step dots, the eye on the PIN pad, back on 2b starts the PIN over, the code 2×2 and two groups asked", () => {
+  const reg = readFileSync(new URL("./Register.tsx", import.meta.url), "utf8");
+  const parts = readFileSync(new URL("./register-parts.tsx", import.meta.url), "utf8");
+  for (const id of ["register-1", "register-2", "register-2b", "register-3", "register-3-check"]) assert.match(reg, new RegExp(`"${id}"`), `no screen ${id}`);
+  assert.match(reg, /stage === "again" \? restartPin/, "«back» on 2b does not start the PIN over");
+  assert.match(reg, /const restartPin = \(\) => \{ setPin\(""\); setPinAgain\(""\); setMismatch\(false\); setMisses\(0\); setStage\("pin"\); \}/, "starting over keeps a PIN");
+  assert.match(reg, /\[1, 2, 3\]\.map\(\(n\) => <i key=\{n\} data-done=\{n <= step/, "the step dots are not three");
+  assert.match(reg, /<PinPad [^>]*shown=\{shown\} onEye=/, "the PIN pad has no «show digits»");
+  assert.match(reg, /secret=\{!shown\}/, "«show digits» does not show the digits");
+  assert.match(reg, /visibilitychange[\s\S]{0,120}setShown\(false\)|setShown\(false\)[\s\S]{0,160}visibilitychange/, "«show digits» stays on when the app is hidden");
+  assert.match(parts, /aria-pressed=\{!!shown\}[\s\S]{0,200}data-testid="pad-eye"/, "the eye key has no aria-pressed");
+  assert.match(reg, /readPaperText\(first\) !== groups\[pair\[0\]\] \|\| readPaperText\(second\) !== groups\[pair\[1\]\]/, "the check does not read the asked pair");
+  assert.match(reg, /setPair\(\(p\) => pickPair\(p\)\)/, "«Show the code again» keeps the same pair");
+  assert.match(parts, /className="nd-code-tile" data-group=\{i \+ 1\}/, "the paper code is not four numbered tiles");
+  assert.doesNotMatch(reg, /navigator\.clipboard/, "the paper code step touches the clipboard");
+  const i18n = readFileSync(new URL("../i18n.ts", import.meta.url), "utf8");
+  const keys = [...new Set([...reg.matchAll(/say\("(app\.reg\.[a-z0-9_]+)"/g)].map((m) => m[1]))];
+  assert.ok(keys.length >= 25, `only ${keys.length} app.reg keys`);
+  for (const key of keys) assert.equal(i18n.split(`"${key}":`).length - 1, 2, `${key} is not in both RU and EN`);
 });

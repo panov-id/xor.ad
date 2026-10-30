@@ -8,6 +8,8 @@ import { ageDigits, lettersLeft, NAME_MAX } from "@sdk/register.ts";
 import { failedLine, label, say } from "../../i18n";
 import { Icon } from "../../shell/Icon";
 import { check } from "../../shell/icons";
+import { NdIcon } from "../../shell/NdIcon";
+import { useMinWidth } from "../../shell/useMinWidth";
 import { Field } from "../register-parts";
 import { eye } from "./icons";
 import { ErrorLine, refusedStatus, SubPage } from "./parts";
@@ -21,7 +23,8 @@ export function profileLine(answer: Answer<unknown>): string {
   return refusedStatus(answer.status);
 }
 
-export function EditName({ client, name: was, age: wasAge, onDone, onBack }: { client: Client; name: string; age: number; onDone: () => void; onBack: () => void }) {
+export function EditName({ client, name: was, age: wasAge, noAge, onDone, onBack }: { client: Client; name: string; age: number; noAge?: boolean; onDone: () => void; onBack: () => void }) {
+  const desk = useMinWidth("--bp-desktop");
   const [name, setName] = useState(was);
   const [age, setAge] = useState(String(wasAge));
   const [asking, setAsking] = useState(false);
@@ -59,9 +62,11 @@ export function EditName({ client, name: was, age: wasAge, onDone, onBack }: { c
           <Icon d={check} /><span>{asking ? say("me.band21") : label("me.save")}</span>
         </button>
       }>
+      {desk && <span className="k-mark-110" style={{ alignSelf: "center" }} aria-hidden="true"><NdIcon name="me" /></span>}
       <Field text={say("app.reg.name")} value={name} onChange={(v) => setName(graphemes(v, NAME_MAX))} testid="edit-name"
         under={<p className="k-meta" data-testid="edit-left">{say("app.reg.left", { n: lettersLeft(name), max: NAME_MAX })}</p>} />
-      <Field text={say("app.reg.age")} kind="number" value={age} onChange={(v) => { setAge(ageDigits(v)); setAsking(false); }} testid="edit-age" />
+      {/* edit-name.svg at 1440: the name alone, the age has its own page (EditAge) */}
+      {!noAge && <Field text={say("app.reg.age")} kind="number" value={age} onChange={(v) => { setAge(ageDigits(v)); setAsking(false); }} testid="edit-age" />}
       <p className="k-note"><Icon d={eye} /><span>{say("app.me.name_checked")}</span></p>
       <ErrorLine text={refused} />
     </SubPage>

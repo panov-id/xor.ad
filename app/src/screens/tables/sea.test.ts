@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { parseFleet, type Sea, seaOf, seaView } from "../../../../depth/core/tables_sea.ts";
 import { canShoot, ownCells, shotCells } from "./sea-logic.ts";
+import { placingStore } from "./fleet-store.ts";
 
 const sea = (over: Partial<Sea> = {}): Sea => ({
   phase: "shoot",
@@ -75,4 +76,35 @@ test("my own sea: my ships, and what the other's shots found", () => {
   assert.equal(own.a2.shot, "hit");
   assert.equal(own.b6.shot, "miss");
   assert.equal(own.j10.shot, null);
+});
+
+test("my own sea: a ship is one bar (battleship-turn) — a cell goes on toward its ship's neighbours only, water joins nothing", () => {
+  const own = Object.fromEntries(ownCells(seaView(sea({ fleets: { "1": [["a1", "a2"], ["c1"], ["e5", "f5", "g5"]], "2": { placed: true } } }), 1, false)!).map((c) => [c.id, c]));
+  const none = { l: false, r: false, u: false, d: false };
+  assert.deepEqual(own.a1.join, { ...none, d: true }, "a1 goes down to a2");
+  assert.deepEqual(own.a2.join, { ...none, u: true }, "a2 up to a1");
+  assert.deepEqual(own.c1.join, none, "a one-cell ship is a dot");
+  assert.deepEqual(own.f5.join, { ...none, l: true, r: true }, "the middle of three goes both ways");
+  assert.deepEqual(own.e5.join, { ...none, r: true });
+  assert.deepEqual(own.b1.join, none, "water beside a ship joins nothing");
+});
+
+test("the fleet strip (battleship-place): one chip per ship size, biggest first", async () => {
+  const { fleetSizes } = await import("./sea-place.ts");
+  assert.deepEqual(fleetSizes(), [4, 3, 2, 1]);
+});
+
+test("placing: a new placing deals a new fleet; shuffle reaches every holder; the last to leave ends it", () => {
+  let n = 0;
+  const store = placingStore(() => ++n);
+  const off1 = store.subscribe(() => {});
+  const first = store.get();
+  let told = 0;
+  const off2 = store.subscribe(() => { told++; });
+  assert.equal(store.get(), first, "the second holder of one placing got another fleet");
+  store.set(99);
+  assert.equal(told, 1, "shuffle did not reach the other holder");
+  off1(); off2();
+  store.subscribe(() => {});
+  assert.notEqual(store.get(), 99, "a rematch reuses the fleet the other side already shot at");
 });

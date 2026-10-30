@@ -3,21 +3,21 @@
 // proof opens it (Client.unlock → POST /vault/share); the node counts the attempts, so a refusal says what it says
 // at start-up. Opened, the page goes on where it was. Rules: depth/core/pin_gate.ts.
 // The same testids as the web's: lock-pin, locked-timer, error; the PIN's own pad, the sixth digit asks (no lock-go).
-import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { canOpen, clockText, pinRefusal, secondsLeft, untilOf } from "@sdk/pin_gate.ts";
-import { pinDigits, PIN_LENGTH } from "@sdk/register.ts";
+import { PIN_LENGTH } from "@sdk/register.ts";
 import { HeldKey } from "@sdk/transfer.ts";
 import { failedLine, say } from "../i18n";
-import { NdIcon } from "../shell/NdIcon";
+import { idleMs } from "../vault";
+import { PinDoor } from "./pin-door";
 import { pinLine } from "./pin-line";
-import { Cells, PinPad } from "./register-parts";
-import { pressed as padPressed } from "./pin-flow";
 
 export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () => void }) {
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [refused, setRefused] = useState<string | null>(null);
+  const [refusals, setRefusals] = useState(0);
   // "Too soon" also says in how many seconds; that end is the only one this screen knows.
   const [until, setUntil] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -53,6 +53,7 @@ export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () 
         if (end !== null) { setNow(Date.now()); setUntil(end); }
       }
       setRefused(pinLine(refusal, `${r.answer.status}`));
+      setRefusals((n) => n + 1);
     } catch (e) {
       setRefused(failedLine(e));
     }
@@ -60,24 +61,15 @@ export function Locked({ client, onUnlocked }: { client: Client; onUnlocked: () 
     input.current?.focus();
   }
 
-  // the prototype's locked (docs/newdesign/proto/locked.html): one panel, the lock, two lines, six dots, the pad
+  // docs/newdesign4 09 (SCREENS_spec §10): screen 06 as it is, the line grey with the clock, «Locked after N min away»
+  // (N is this build's own idle time, vault.ts idleMs); a refusal says itself in the accent
+  const line = refused ?? say("app.locked.away", { n: Math.max(1, Math.round(idleMs() / 60_000)) });
   return (
-    <main className="k-screen" data-screen="locked">
-      <form className="k-col" onSubmit={(e: FormEvent) => { e.preventDefault(); void open(); }}>
-        <section className="k-panel k-grow k-reg">
-          <NdIcon name="lock" className="k-big-icon k-mid" />
-          <div className="k-stack k-centre-text"><h1 className="k-title k-title-big">{say("app.locked.title")}</h1><p className="k-sub">{say("app.locked.sub")}</p></div>
-          <div className="k-pin">
-            <label htmlFor={field} className="k-sub">{say("reg.pin")}</label>
-            <Cells id={field} text={say("web.ui.pinName")} value={pin} size={PIN_LENGTH} secret onChange={(v) => setPin(pinDigits(v))}
-              onPaste={(e) => { e.preventDefault(); setPin(pinDigits(e.clipboardData.getData("text"))); }} inputRef={(n) => { input.current = n; }} testid="lock-pin" />
-          </div>
-          {refused && <div data-testid="error"><p className="k-note" data-tone="error" role="alert"><NdIcon name="alert" /><span>{refused}</span></p></div>}
-          {until !== null && <p className="k-title k-mid" role="timer" data-testid="locked-timer">{clockText(secondsLeft(until, now))}</p>}
-          {busy && <p className="k-sub k-mid" role="status" data-testid="locked-busy">{say("web.unlock.asking")}</p>}
-          <PinPad onKey={(k) => setPin((p) => padPressed(p, k))} disabled={busy} />
-        </section>
-      </form>
-    </main>
+    <PinDoor screen="locked" line={line} tone={refused ? "error" : "quiet"} pin={pin} setPin={setPin} inputRef={(n) => { input.current = n; }} field={field}
+      testid="lock-pin" disabled={busy} refusals={refusals}
+      under={<>
+        {until !== null && <p className="nd-h1 nd-mid" role="timer" data-testid="locked-timer">{clockText(secondsLeft(until, now))}</p>}
+        {busy && <p className="nd-sub" role="status" data-testid="locked-busy">{say("web.unlock.asking")}</p>}
+      </>} />
   );
 }

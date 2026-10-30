@@ -21,12 +21,13 @@ export const tableTitle = (game: string, name?: string): string => (name ? `${ga
 
 // The two faces at the top: mine on the left (or, watching, the first player), on the right the one whose turn it is,
 // else the next playing seat after the left one.
-export function facePair(view: TableView): { left: TableSeat | null; right: TableSeat | null } {
+export function facePair(view: TableView): { left: TableSeat | null; right: TableSeat | null; rest: TableSeat[] } {
   const playing = view.seats.filter((s) => s.role === "playing");
   const left = (view.is_playing ? playing.find((s) => s.seat === view.seat) : undefined) ?? playing[0] ?? null;
   const others = playing.filter((s) => s !== left);
   const turn = view.board && !view.board.over ? others.find((s) => s.seat === view.board!.turn) : undefined;
-  return { left, right: turn ?? others[0] ?? null };
+  const right = turn ?? others[0] ?? null;
+  return { left, right, rest: others.filter((s) => s !== right) };
 }
 
 export type MeLine = { who: "you" | "name"; name?: string; state: "your-move" | "their-move" | "not-started" | "over" | "watching" };
@@ -78,6 +79,32 @@ export function footOf(at: { proposed: boolean; first: ReturnType<typeof firstAc
   return "stickers";
 }
 
+/** table.html, table-over.html: the players' input row sits under the strip while the round runs or waits to start;
+ *  a round over has its two buttons only (door, another round), and a watcher never types. */
+export function footInput(view: TableView): boolean {
+  return view.is_playing && !view.board?.over;
+}
+
+/** The confirm screen asks only while its move still stands: a pass on my turn of a running round, giving up while I play
+ *  in one (the node's giveUp checks the seat alone, relay/node/src/routes/tables.ts:587, so the app must not send it late). */
+export function sureStill(what: "pass" | "resign", view: TableView): boolean {
+  const b = view.board;
+  const running = view.is_playing && !!b && !b.over && b.turn !== null;
+  return what === "pass" ? running && b!.turn === view.seat : running;
+}
+
+export type MenuTile = "pass" | "resign" | "nudge" | "like" | "stand";
+/** table-more.html, in its order: «Pass» and «Give up» wide on top, then «Your turn», «Like», «Leave» (the door, last).
+ *  Pass is for the one whose move it is, give up for a player of a running round, the nudge while the other side owes it. */
+export function menuTiles(at: { canPass: boolean; canResign: boolean; canNudge: boolean }): MenuTile[] {
+  const tiles: MenuTile[] = [];
+  if (at.canPass) tiles.push("pass");
+  if (at.canResign) tiles.push("resign");
+  if (at.canNudge) tiles.push("nudge");
+  tiles.push("like", "stand");
+  return tiles;
+}
+
 /** *-over sheets: the accent banner over the board (crown, the round's end, the players' score chips). The node gives the
  *  score by seat and `over`, not a winner, so the banner says what it knows: the players and their points. */
 export function overBanner(view: TableView): { names: string; chips: Array<{ seat: number; n: number }> } | null {
@@ -87,6 +114,15 @@ export function overBanner(view: TableView): { names: string; chips: Array<{ sea
   // a game that keeps no score (hangman, chess) sends {}: no chips rather than a false «0 : 0»
   const scored = Object.keys(board.score ?? {}).length > 0;
   return { names: playing.map((s) => s.name).join(" · "), chips: scored ? playing.map((s) => ({ seat: s.seat, n: board.score[String(s.seat)] ?? 0 })) : [] };
+}
+
+/** desktop-1440 4-tables/table.svg: the talk at the table in the right column — what was said and the stickers, mine at the
+ *  right; moves, applications and refusals stay out (the foot and the guest card speak for them). The last `max`, oldest first. */
+export type TalkLine = { id: string; mine: boolean; name: string; text?: string; sticker?: string };
+export function talkLines(view: TableView, max = 6): TalkLine[] {
+  const nameOf = (seat: number) => view.seats.find((s) => s.seat === seat)?.name ?? "?";
+  return view.lines.filter((l) => l.kind === "line" || l.kind === "sticker").slice(-max)
+    .map((l) => ({ id: l.id, mine: l.seat === view.seat, name: nameOf(l.seat), ...(l.kind === "sticker" ? { sticker: l.sticker } : { text: l.text }) }));
 }
 
 export function canApply(view: TableView): "apply" | "applied" | null {
@@ -148,14 +184,16 @@ export function dotsLayout(dots: { n: number; edges: string[]; boxes: Record<str
 export type Word = { setter: number; set?: string | null; alphabet?: string[] | null; word: string | null; mask: string | null; guessed: string[]; misses: number };
 export const wordOf = (state: BoardState): Word | null => {
   const w = (state as { word?: Word } | null | undefined)?.word;
-  return w && typeof w === "object" && Array.isArray(w.guessed) ? w : null;
+  const text = (v: unknown) => v === null || v === undefined || typeof v === "string";
+  return w && typeof w === "object" && Array.isArray(w.guessed) && text(w.mask) && text(w.word) ? { ...w, word: w.word ?? null, mask: w.mask ?? null } : null;
 };
 const QWERTY = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
 const EN = "abcdefghijklmnopqrstuvwxyz";
 // The keyboard: English as the sheet lays it (QWERTY); any other alphabet in its own order, ten to a row. A set
 // without an alphabet (the old "hangman") takes English letters.
 export function keyRows(alphabet: string[] | null | undefined): string[][] {
-  const letters = alphabet && alphabet.length ? alphabet : [...EN];
+  const own = Array.isArray(alphabet) ? [...new Set(alphabet.filter((l): l is string => typeof l === "string" && l !== ""))] : [];
+  const letters = own.length ? own : [...EN];
   if (letters.join("") === EN) return QWERTY.map((r) => [...r]);
   const rows: string[][] = [];
   for (let i = 0; i < letters.length; i += 10) rows.push(letters.slice(i, i + 10));
@@ -211,7 +249,7 @@ export function squares(g: Grid, seat: number): Square[] {
   for (let r = 7; r >= 0; r--) for (let f = 0; f < 8; f++) {
     const id = `${FILES8[f]}${r + 1}`;
     const p = g.cells[id];
-    out.push({ id, tint: (f + r) % 2 === 0, stand: standOf(g, id, seat), letter: p && p.piece !== "P" && p.piece !== "M" ? p.piece : "" });
+    out.push({ id, tint: (f + r) % 2 === 0, stand: standOf(g, id, seat), letter: p && typeof p.piece === "string" && p.piece !== "P" && p.piece !== "M" ? p.piece : "" });
   }
   return out;
 }
@@ -262,7 +300,7 @@ export function dominoView(f: FreeView, seat: number): DominoView {
     ];
     return { bone, a, b, ends };
   });
-  return { line, hand, draw: f.boneyard.count > 0 && hand.every((h) => h.ends.length === 0) };
+  return { line, hand, draw: (f.boneyard?.count ?? 0) > 0 && hand.every((h) => h.ends.length === 0) };
 }
 
 // ── the con by agreement (relay/node/src/lib/tables_grid.ts playCon; checkers, chess, backgammon — the games whose rules
@@ -281,3 +319,12 @@ export function conStep(state: BoardState, seat: number, myTurn: boolean): ConSt
 
 // A board elsewhere (a talk's game, chat-game.tsx GameBoard): it takes a move only in my turn; out of it, over, nothing.
 export const movesIn = <M>(turn: "mine" | "theirs" | "over", onMove: M): M | undefined => (turn === "mine" ? onMove : undefined);
+
+// desktop-1440 tables-full.svg: after the node turns a new table away for the hour (POST /tables 429 rate_limited), the list
+// says so on top until the hour is out. The mark lives on the device only; the node stays the judge.
+export const TABLES_FULL_KEY = "xor.tables.full";
+export const TABLES_FULL_S = 3600;
+/** The moment (ms) the list may stop saying «no more tables this hour», from a refusal's retry-after (seconds) or the hour. */
+export const fullUntil = (now: number, retryAfter?: number | null): number => now + 1000 * (retryAfter && retryAfter > 0 ? retryAfter : TABLES_FULL_S);
+/** The note shows while its moment is ahead; a broken or missing mark says nothing. */
+export const fullShown = (until: unknown, now: number): boolean => typeof until === "number" && Number.isFinite(until) && until > now;

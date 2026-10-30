@@ -49,6 +49,26 @@
   --ease-in: cubic-bezier(.4,0,1,1);
   --ease-in-out: cubic-bezier(.65,0,.35,1);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --on-primary: #ffffff;
+  --relief-primary: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,0.1) 100%), linear-gradient(135deg,#dd6f45,#e34f3c);
+  --shadow-pressed: inset 3px 4px 8px rgba(70,35,5,.28), inset -1px -1px 0 rgba(255,255,255,.35);
+  --wash: radial-gradient(120% 90% at 0% 0%, rgba(255,250,235,.26) 0%, rgba(255,250,235,0) 55%), linear-gradient(135deg, rgba(0,0,0,0) 55%, rgba(70,35,5,.12) 100%);
+  --sky-1: #7fd1c3;
+  --sky-2: #c9efe2;
+  --hill-1: #1f6f6e;
+  --hill-2: #2e8a84;
+  --hill-3: #154f50;
+  --sun: #fff1c9;
+  --ground: #f2c068;
+  --plant-1: #f39a3c;
+  --plant-2: #ee6a45;
+  --plant-3: #5cc2b0;
+  --acc-1-ink: #ffffff;
+  --acc-2-ink: #ffffff;
+  --acc-3-ink: #ffffff;
+  --acc-4-ink: #1d1e22;
+  --acc-5-ink: #ffffff;
+  --acc-6-ink: #ffffff;
 }
 :root[data-theme="plum"] {
   --bg: #241327;
@@ -100,6 +120,26 @@
   --ease-in: cubic-bezier(.4,0,1,1);
   --ease-in-out: cubic-bezier(.65,0,.35,1);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --on-primary: #1d0f12;
+  --relief-primary: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,0.1) 100%), linear-gradient(135deg,#ff8a6b,#ff5e7e);
+  --shadow-pressed: inset 3px 4px 8px rgba(8,0,14,.28), inset -1px -1px 0 rgba(255,255,255,.35);
+  --wash: radial-gradient(120% 90% at 0% 0%, rgba(255,250,235,.10) 0%, rgba(255,250,235,0) 55%), linear-gradient(135deg, rgba(0,0,0,0) 55%, rgba(8,0,14,.12) 100%);
+  --sky-1: #ffb38a;
+  --sky-2: #f07a7a;
+  --hill-1: #8a3a62;
+  --hill-2: #b0476a;
+  --hill-3: #5a2850;
+  --sun: #ffe0b8;
+  --ground: #432649;
+  --plant-1: #a14fd1;
+  --plant-2: #ff6b6b;
+  --plant-3: #ffb38a;
+  --acc-1-ink: #1d1e22;
+  --acc-2-ink: #ffffff;
+  --acc-3-ink: #ffffff;
+  --acc-4-ink: #ffffff;
+  --acc-5-ink: #1d1e22;
+  --acc-6-ink: #1d1e22;
 }
 :root[data-theme="black"] {
   --bg: #0b0b0d;
@@ -151,6 +191,26 @@
   --ease-in: cubic-bezier(.4,0,1,1);
   --ease-in-out: cubic-bezier(.65,0,.35,1);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --on-primary: #1a0f0b;
+  --relief-primary: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,0.1) 100%), linear-gradient(135deg,#ff8a5c,#ff5a4e);
+  --shadow-pressed: inset 3px 4px 8px rgba(0,0,0,.28), inset -1px -1px 0 rgba(255,255,255,.35);
+  --wash: radial-gradient(120% 90% at 0% 0%, rgba(255,250,235,.10) 0%, rgba(255,250,235,0) 55%), linear-gradient(135deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.12) 100%);
+  --sky-1: #151a3d;
+  --sky-2: #43306b;
+  --hill-1: #2a2d57;
+  --hill-2: #343a6e;
+  --hill-3: #15172f;
+  --sun: #ffe9b0;
+  --ground: #1b1b1e;
+  --plant-1: #ffb020;
+  --plant-2: #ff6b5b;
+  --plant-3: #a46bff;
+  --acc-1-ink: #1d1e22;
+  --acc-2-ink: #1d1e22;
+  --acc-3-ink: #1d1e22;
+  --acc-4-ink: #ffffff;
+  --acc-5-ink: #ffffff;
+  --acc-6-ink: #1d1e22;
 }
 :root[data-theme="white"] {
   --bg: #eceef2;
@@ -202,6 +262,26 @@
   --ease-in: cubic-bezier(.4,0,1,1);
   --ease-in-out: cubic-bezier(.65,0,.35,1);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --on-primary: #ffffff;
+  --relief-primary: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 42%, rgba(0,0,0,0.1) 100%), linear-gradient(135deg,#e36d4c,#f0524a);
+  --shadow-pressed: inset 3px 4px 8px rgba(40,50,80,.28), inset -1px -1px 0 rgba(255,255,255,.35);
+  --wash: radial-gradient(120% 90% at 0% 0%, rgba(255,250,235,.26) 0%, rgba(255,250,235,0) 55%), linear-gradient(135deg, rgba(0,0,0,0) 55%, rgba(40,50,80,.12) 100%);
+  --sky-1: #9fd8ff;
+  --sky-2: #e6f6ff;
+  --hill-1: #86cf93;
+  --hill-2: #5fb277;
+  --hill-3: #3f8f5b;
+  --sun: #ffd36b;
+  --ground: #ffffff;
+  --plant-1: #ff8a5c;
+  --plant-2: #ffcd3c;
+  --plant-3: #ff6fa5;
+  --acc-1-ink: #ffffff;
+  --acc-2-ink: #1d1e22;
+  --acc-3-ink: #1d1e22;
+  --acc-4-ink: #ffffff;
+  --acc-5-ink: #ffffff;
+  --acc-6-ink: #ffffff;
 }
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-0: 0s; --dur-1: 0s; --dur-2: 0s; --dur-3: 0s; --dur-4: 0s; --dur-ambient: 0s; }
@@ -211,3 +291,7 @@
 :root[data-theme="plum"] { --pc-1: rgba(255,255,255,.10); --pc-2: rgba(8,0,14,.10); --pc-3: rgba(8,0,14,0.22); --pc-4: rgba(8,0,14,0.38); --pc-5: rgba(8,0,14,0.35); --pc-6: #b8483a; --pc-7: #1d1e22; --pc-8: rgba(0,0,0,.12); --pc-9: #1d0f12; --pc-10: rgba(0,0,0,.35); --pc-11: #ffb38a; --pc-12: #f07a7a; --pc-13: #8a3a62; --pc-14: #5a2850; --pc-15: #b0476a; --pc-16: #ffe0b8; --pc-17: #a14fd1; --pc-18: #ff6b6b; --pc-19: #ffb38a; --pc-20: #ffffff; --pc-21: rgba(255,255,255,.28); --pc-22: #ffffff; --pc-23: rgba(255,255,255,.28); --pc-24: #ffb3a6; --pc-25: #6a4472; --pc-26: #1d1e22; --pc-27: rgba(0,0,0,.12); --pc-28: #ff9a88; --pc-29: #c19ac6; --pc-30: #e8c9e6; --pc-31: #6c4372; }
 :root[data-theme="black"] { --pc-1: rgba(255,255,255,.10); --pc-2: rgba(0,0,0,.10); --pc-3: rgba(0,0,0,0.22); --pc-4: rgba(0,0,0,0.38); --pc-5: rgba(0,0,0,0.35); --pc-6: #ffd2c4; --pc-7: #1d1e22; --pc-8: rgba(0,0,0,.12); --pc-9: #1a0f0b; --pc-10: rgba(0,0,0,.35); --pc-11: #151a3d; --pc-12: #43306b; --pc-13: #2a2d57; --pc-14: #15172f; --pc-15: #343a6e; --pc-16: #ffe9b0; --pc-17: #ffb020; --pc-18: #ff6b5b; --pc-19: #a46bff; --pc-20: #1d1e22; --pc-21: rgba(0,0,0,.12); --pc-22: #ffffff; --pc-23: rgba(255,255,255,.28); --pc-24: #ffb39f; --pc-25: #3a3a41; --pc-26: #ffffff; --pc-27: rgba(255,255,255,.28); --pc-28: #ff9a80; --pc-29: #8e8e98; --pc-30: #d8d8de; --pc-31: #2e2e34; }
 :root[data-theme="white"] { --pc-1: rgba(255,255,255,.55); --pc-2: rgba(40,50,80,.10); --pc-3: rgba(40,50,80,0.22); --pc-4: rgba(40,50,80,0.38); --pc-5: rgba(40,50,80,0.35); --pc-6: #ffd2c4; --pc-7: #ffffff; --pc-8: rgba(255,255,255,.28); --pc-9: #ffffff; --pc-10: rgba(255,255,255,.55); --pc-11: #9fd8ff; --pc-12: #e6f6ff; --pc-13: #86cf93; --pc-14: #3f8f5b; --pc-15: #5fb277; --pc-16: #ffd36b; --pc-17: #ff8a5c; --pc-18: #ffcd3c; --pc-19: #ff6fa5; --pc-20: #1d1e22; --pc-21: rgba(0,0,0,.12); --pc-22: #ffffff; --pc-23: rgba(255,255,255,.28); --pc-24: #ffb39f; --pc-25: #dcdfe5; --pc-26: #ffffff; --pc-27: rgba(255,255,255,.28); --pc-28: #ffa08a; --pc-29: #9a9ea8; --pc-30: #ffffff; --pc-31: #dfe2e8; }
+:root { /* frontend kit */
+  --font: 'Golos Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --gap-wide: 16px;
+}

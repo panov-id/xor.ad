@@ -5,7 +5,7 @@
 // transfer_move.ts; the screen's rules: depth/core/move_flow.ts (the same as the web's and the terminal's).
 // The same testids as the web's: move-pin, move-go, move-code, move-label, move-check, move-yes, move-no,
 // move-stop, move-ending, move-done, move-exit, error.
-import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { type FormEvent, useContext, useEffect, useId, useRef, useState } from "react";
 import type { Answer, Client } from "@sdk/client.ts";
 import { departureAsking, departureStep, endingOf, initialOf, secondsLeft, seenWords } from "@sdk/move_flow.ts";
 import { canOpen, pinRefusal } from "@sdk/pin_gate.ts";
@@ -16,6 +16,12 @@ import { Icon } from "../shell/Icon";
 import { check, close, codeBox, flag, stopSquare, toStart } from "../shell/icons";
 import { Screen } from "../shell/Screen";
 import { Rail } from "../shell/TabBar";
+import { SplitFrame } from "./Away";
+import { InPane } from "./me/parts";
+import { PinPad } from "./register-parts";
+import { pressed as padPressed } from "./pin-flow";
+import { NdIcon } from "../shell/NdIcon";
+import { useMinWidth } from "../shell/useMinWidth";
 import { MOVE_POLL_MS, MoveBar, MoveSheet, Shown, useEvery } from "./move-parts";
 import { pinLine } from "./pin-line";
 import { Cells } from "./register-parts";
@@ -26,7 +32,21 @@ const refusalOf = (a: Answer) => {
     say("app.move.refused", { status: a.status }));
 };
 
-export function Departure({ client, onBack, onGone }: { client: Client; onBack: () => void; onGone: () => void }) {
+// desktop_1440 6-me departure-done.svg: the move is over, the frame of away.svg (no rail, Me gone): the big check,
+// the brand, the words; the small check and the way to the start under it.
+export function DepartureDone({ onGone }: { onGone: () => void }) {
+  return (
+    <SplitFrame name="departure" title={label("app.move.out_title")} mark={<Icon d={check} />} small={<Icon d={check} />}
+      words={<><h1>{say("app.move.done_title")}</h1><p className="k-note" data-testid="move-done">{say("app.move.done_body")}</p></>}
+      facts={null} foot={<button type="button" className="cta cta-primary" onClick={onGone} data-testid="move-exit"><Icon d={toStart} /><span>{say("app.move.to_start")}</span></button>} />
+  );
+}
+
+// desktop_1440 6-me departure-1..3: in Me's right pane (no second rail); once approved, Me hands the whole screen to
+// DepartureDone (onApproved), as the sheet drops Me and the rail.
+export function Departure({ client, onBack, onGone, onApproved }: { client: Client; onBack: () => void; onGone: () => void; onApproved?: () => void }) {
+  const pane = useContext(InPane);
+  const desk = useMinWidth("--bp-desktop");
   const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,11 +110,15 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
     }
   }
 
+  // departure-1 in the pane: the pad, no button; the sixth digit asks for the code by itself (as unlock.svg)
+  useEffect(() => { if (pane && !out && canOpen(pin, busy)) void open(); }, [pin]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (state === "approved") onApproved?.(); }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
   const ending = endingOf(state);
   const errorBox = error && <div data-testid="error"><p className="k-note k-error" role="alert"><Icon d={flag} /><span>{error}</span></p></div>;
   const bar = <MoveBar title={say("app.move.out_title")} onBack={state === "approved" ? undefined : onBack} />;
   const view = (() => {
     if (state === "approved") {
+      if (desk) return null;
       return (
         <MoveSheet className="k-centre-col" foot={<button type="button" className="cta cta-primary" onClick={onGone} data-testid="move-exit"><Icon d={toStart} /><span>{say("app.move.to_start")}</span></button>}>
           <span className="k-mark-110"><Icon d={check} /></span>
@@ -114,11 +138,18 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
     if (!out) {
       return (
         <form className="k-form" onSubmit={(e: FormEvent) => { e.preventDefault(); void open(); }}>
-          <MoveSheet foot={
+          <MoveSheet foot={pane ? undefined :
             <button type="submit" className="cta cta-primary" aria-disabled={!canOpen(pin, busy) || undefined} aria-busy={busy || undefined} data-testid="move-go">
               <Icon d={codeBox} /><span>{say("app.move.get_code")}</span>
             </button>
           }>
+            {pane && <NdIcon name="move" className="k-big-icon k-mid" />}
+            {/* departure-1.svg (owner 28.10): what moves to the new device, three tiles */}
+            {pane && <ul className="k-hub" data-hub="move" data-testid="move-what">
+              <li className="k-hub-li"><span className="k-hub-tile" data-small=""><span className="k-badge" data-c="1" aria-hidden="true"><NdIcon name="phrase" /></span><span className="k-row-name">{say("app.move.what_phrases")}</span></span></li>
+              <li className="k-hub-li"><span className="k-hub-tile" data-small=""><span className="k-badge" data-c="4" aria-hidden="true"><NdIcon name="talks" /></span><span className="k-row-name">{say("app.move.what_talks")}</span></span></li>
+              <li className="k-hub-li"><span className="k-hub-tile" data-small=""><span className="k-badge" data-c="5" aria-hidden="true"><NdIcon name="tables" /></span><span className="k-row-name">{say("app.move.what_tables")}</span></span></li>
+            </ul>}
             {/* What cannot be undone is said on the screen, before the PIN (§8.2). */}
             <div className="k-note k-error" data-testid="move-price">
               <Icon d={flag} />
@@ -130,6 +161,7 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
                 onPaste={(e) => { e.preventDefault(); setPin(pinDigits(e.clipboardData.getData("text"))); }} inputRef={(n) => { input.current = n; }} testid="move-pin" />
             </div>
             {errorBox}
+            {pane && <PinPad onKey={(k) => setPin((p) => padPressed(p, k))} disabled={busy} />}
           </MoveSheet>
         </form>
       );
@@ -138,7 +170,13 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
       const seen = seenWords(out.seenAt, Date.now());
       return (
         <MoveSheet foot={
-          <>
+          // departure-3.svg in the pane: a round ✕ and a wide ✓ in one row
+          pane ? (
+            <div className="k-row">
+              <button type="button" className="k-icon-btn" aria-label={say("app.move.no")} aria-disabled={busy || undefined} onClick={() => void decide(false)} data-testid="move-no"><Icon d={close} /></button>
+              <button type="button" className="cta cta-primary" style={{ flex: 1 }} aria-disabled={busy || undefined} onClick={() => void decide(true)} data-testid="move-yes"><Icon d={check} /><span>{say("app.move.yes")}</span></button>
+            </div>
+          ) : <>
             <button type="button" className="cta cta-primary" aria-disabled={busy || undefined} onClick={() => void decide(true)} data-testid="move-yes"><Icon d={check} /><span>{say("app.move.yes")}</span></button>
             <button type="button" className="cta cta-quiet" aria-disabled={busy || undefined} onClick={() => void decide(false)} data-testid="move-no"><Icon d={close} /><span>{say("app.move.no")}</span></button>
           </>
@@ -159,24 +197,29 @@ export function Departure({ client, onBack, onGone }: { client: Client; onBack: 
     const share = out.expiresIn > 0 ? 1 - left / out.expiresIn : 0;
     return (
       <MoveSheet foot={<button type="button" className="cta cta-quiet" aria-disabled={busy || undefined} onClick={() => void decide(false)} data-testid="move-stop"><Icon d={stopSquare} /><span>{say("app.move.stop")}</span></button>}>
-        <h1 className="k-title k-title-big">{say("app.move.type_there")}</h1>
-        <Shown chars={[...out.groups.join("")]} columns={3} testid="move-code" />
-        <div className="k-row">
+        {/* departure-2.svg in the pane: the device and the words on top, the code's three groups in a row, the ring below */}
+        {pane ? (
+          <div className="k-row"><NdIcon name="device" /><div><h1 className="k-row-name">{say("app.move.type_there")}</h1>
+            <p className="k-meta" data-testid="move-life">{say("app.move.lives", { m: minutes, s: seconds })}</p></div></div>
+        ) : <h1 className="k-title k-title-big">{say("app.move.type_there")}</h1>}
+        {pane ? <Shown chars={out.groups} columns={3} testid="move-code" /> : <Shown chars={[...out.groups.join("")]} columns={3} testid="move-code" />}
+        <div className={pane ? "k-row k-mid" : "k-row"} style={pane ? { marginTop: "auto" } : undefined}>
           <span className="k-ring" style={{ ["--left" as string]: share }} aria-hidden="true">
             <span>{Math.ceil(left / 60)}</span>
           </span>
-          <p data-testid="move-life">{say("app.move.lives", { m: minutes, s: seconds })}</p>
+          {!pane && <p data-testid="move-life">{say("app.move.lives", { m: minutes, s: seconds })}</p>}
         </div>
         {errorBox}
       </MoveSheet>
     );
   })();
+  if (state === "approved" && desk) return pane ? null : <DepartureDone onGone={onGone} />;
   return (
     <Screen name="departure" title={label("app.move.out_title")} className="k-screen" data-state={out ? state : "start"}>
       <div className="k-col">
       {bar}
       {view}
-      <Rail active="me" />
+      {!pane && <Rail active="me" />}
       </div>
     </Screen>
   );

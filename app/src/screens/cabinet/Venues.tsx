@@ -7,6 +7,7 @@ import { type ReactNode, useEffect, useId, useState } from "react";
 import { addVenue, bareCode, CODE_LENGTH, codeReady, orderEnvelope, placeFrom, RADII, refusalMessage, type Refusal, type Venue, venues, venueState, venueStep, verify } from "@sdk/cabinet.ts";
 import { say, sayCount } from "../../i18n";
 import { NdIcon } from "../../shell/NdIcon";
+import { useMinWidth } from "../../shell/useMinWidth";
 import { plus, tag } from "../../shell/icons";
 import { Cells, Field } from "../register-parts";
 import { ErrorLine, Row } from "../me/parts";
@@ -93,8 +94,31 @@ function VenueCard({ venue, onChanged }: { venue: Venue; onChanged: () => void }
 export function Venues({ strip, onAdd, onOffers }: { strip: ReactNode; onAdd: () => void; onOffers: () => void }) {
   const [rows, setRows] = useState<Venue[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // desktop cab-venues.svg: the venues as a grid of cards with «add» last, the chosen one's card in the pane
+  const desk = useMinWidth("--bp-desktop");
+  const [pick, setPick] = useState<string | null>(null);
   const load = () => venues().then((a) => (a.status === 200 ? setRows(a.body!.items) : setError(notTaken(a.status)))).catch(() => setError(notTaken(0)));
   useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const shown = rows?.find((v) => v.id === pick) ?? rows?.[0] ?? null;
+  if (desk) return (
+    <Frame name="cabinet-venues" title={say("app.cabinet.venues_title")} strip={strip}>
+      <div className="k-cab-grid" data-testid="cab-grid">
+        {rows?.map((v) => {
+          const chosen = v === shown;
+          return (
+            <button key={v.id} type="button" className="k-cab-card" aria-pressed={chosen} onClick={() => setPick(v.id)} data-testid="venue-tile" data-status={venueState(v.verification_status)}>
+              <NdIcon name="store" /><span className="k-stack"><b>{v.name}</b><span className="k-meta">{venueLine(v)}</span></span>
+            </button>
+          );
+        })}
+        <button type="button" className="k-cab-card" data-add="" onClick={onAdd} data-testid="venue-add-open"><NdIcon name="plus" /><span>{say("app.cabinet.add_venue")}</span></button>
+      </div>
+      <ErrorLine text={error} />
+      <aside className="k-cab-pane" data-testid="cab-pane">
+        {shown && <section className="k-panel k-grow k-reg"><VenueCard key={shown.id} venue={shown} onChanged={() => void load()} /></section>}
+      </aside>
+    </Frame>
+  );
   return (
     <Frame name="cabinet-venues" title={say("app.cabinet.venues_title")} strip={strip}>
       {rows?.map((v) => <VenueCard key={v.id} venue={v} onChanged={() => void load()} />)}

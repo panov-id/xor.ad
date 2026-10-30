@@ -3,6 +3,8 @@
 // list. Testids: solo, solo-line, solo-again, solo-next, solo-close, solo-edge-<edge>, solo-cell-<n>.
 import { useEffect, useState } from "react";
 import { say } from "../../i18n";
+import { InFoot } from "./foot-slot";
+import { NdIcon } from "../../shell/NdIcon";
 import {
   allEdges, DOTS_N, dotsPuzzle, dotsStatus, drawLine, FLEET, isShip, keepSolo, loadSolo, SEA_N, seaPuzzle, seaStatus, shoot, type SoloSave,
 } from "./solo-logic";
@@ -56,16 +58,20 @@ export function Solo({ tableId, kind, onClose }: { tableId: string; kind: "dots"
     );
   }
 
+  // table-solo.html: a head row (hourglass, the waiting words over the line, the game chip that puts the puzzle away),
+  // the field, then a round «again» and the wide «next» pill
   return (
     <div className="solo" data-testid="solo" data-kind={kind} data-over={over ? (solved ? "solved" : "failed") : undefined}>
-      <p className="tg-quiet">{say("app.solo.waiting")}</p>
-      <p className="solo-line" data-testid="solo-line">{over ? say(solved ? "app.solo.solved" : "app.solo.failed") : line}</p>
-      {field}
-      <div className="solo-actions">
-        <button type="button" className="cta cta-quiet" onClick={() => restart(save.seed)} data-testid="solo-again">{say("app.solo.again")}</button>
-        <button type="button" className="cta cta-quiet" onClick={() => restart(save.seed + 1)} data-testid="solo-next">{say("app.solo.next")}</button>
-        <button type="button" className="cta cta-quiet" onClick={onClose} data-testid="solo-close">{say("app.solo.close")}</button>
+      <div className="k-row solo-head">
+        <span className="k-tb-key" aria-hidden="true"><NdIcon name="hourglass" /></span>
+        <span className="k-stack k-grow"><b>{say("app.solo.waiting")}</b><span className="solo-line" data-testid="solo-line">{over ? say(solved ? "app.solo.solved" : "app.solo.failed") : line}</span></span>
+        <button type="button" className="k-chip" aria-label={say("app.solo.close")} onClick={onClose} data-testid="solo-close"><NdIcon name={kind === "dots" ? "g-dots" : "g-battleship"} /><span>{say("app.solo.close")}</span></button>
       </div>
+      <div className="solo-field">{field}</div>
+      <InFoot><div className="k-row solo-foot">
+        <button type="button" className="k-tb-key" aria-label={say("app.solo.again")} onClick={() => restart(save.seed)} data-testid="solo-again"><NdIcon name="refresh" /></button>
+        <button type="button" className="k-cta" onClick={() => restart(save.seed + 1)} data-testid="solo-next"><NdIcon name="chev" /><span>{say("app.solo.next")}</span></button>
+      </div></InFoot>
     </div>
   );
 }

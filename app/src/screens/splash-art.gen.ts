@@ -1,0 +1,17 @@
+// The splash's twelve floating icons, taken from docs/newdesign4 screen 01 (kypros-phone.html and kypros-tablet.html, span.fl):
+// place in % on the phone and the laptop (x, y; the same in both) and on the tablet (tx, ty), tilt in degrees, the drift's
+// phase d, accent or muted stroke, the SVG body on a 48×48 box. Data, not code: regenerate by hand from the mockup.
+export const FLOATS: { x: number; y: number; tx: number; ty: number; r: number; d: number; acc: boolean; svg: string }[] = [
+  { x: 13.0, y: 10.0, tx: 13.0, ty: 10.0, r: -12, d: 0, acc: true, svg: "<path d=\"M8 9H40V31H22L13 39V31H8Z\" fill=\"var(--ifill,none)\"/><path d=\"M15 18H33M15 24H26\"/>" },
+  { x: 74.0, y: 10.0, tx: 87.0, ty: 10.0, r: 1, d: 1, acc: false, svg: "<path d=\"M14 26V13A3 3 0 0 1 20 13V24V9A3 3 0 0 1 26 9V24V11A3 3 0 0 1 32 11V26V17A3 3 0 0 1 38 17V30A13 13 0 0 1 25 43A13 13 0 0 1 12 33L7 25A3 3 0 0 1 12 22Z\" fill=\"var(--ifill,none)\"/>" },
+  { x: 16.0, y: 27.0, tx: 13.0, ty: 30.0, r: -10, d: 2, acc: false, svg: "<rect x=\"5\" y=\"8\" width=\"38\" height=\"32\" rx=\"4\" fill=\"var(--ifill,none)\"/><path d=\"M24 8V40\"/><path d=\"M9 10L12 22L15 10ZM17 10L20 22L23 10ZM25 38L28 26L31 38ZM33 38L36 26L39 38Z\" fill=\"currentColor\" stroke=\"none\"/>" },
+  { x: 80.0, y: 25.0, tx: 87.0, ty: 30.0, r: 3, d: 3, acc: true, svg: "<path d=\"M8 17H34V28A10 10 0 0 1 24 38H18A10 10 0 0 1 8 28Z\" fill=\"var(--ifill,none)\"/><path d=\"M34 20H38A5 5 0 0 1 38 30H33\"/><path d=\"M15 6C13 9 17 10 15 13M24 6C22 9 26 10 24 13\"/>" },
+  { x: 13.0, y: 46.0, tx: 13.0, ty: 50.0, r: -8, d: 4, acc: false, svg: "<path d=\"M7 10H33V28H17L9 35V28H7Z\" fill=\"var(--ifill,none)\"/><path d=\"M33 17H41V34H39V40L32 34H22V28\"/>" },
+  { x: 84.0, y: 44.0, tx: 87.0, ty: 50.0, r: 5, d: 5, acc: false, svg: "<circle cx=\"24\" cy=\"24\" r=\"9\" fill=\"var(--ifill,none)\"/><path d=\"M24 4V9M24 39V44M4 24H9M39 24H44M10 10L13 13M35 35L38 38M10 38L13 35M35 13L38 10\"/>" },
+  { x: 13.0, y: 63.0, tx: 13.0, ty: 70.0, r: -6, d: 6, acc: true, svg: "<path d=\"M14 42H34L31 34H17Z\" fill=\"var(--ifill,none)\"/><path d=\"M18 34C18 26 20 22 17 18A7 7 0 1 1 31 18C28 22 30 26 30 34Z\" fill=\"var(--ifill,none)\"/>" },
+  { x: 82.0, y: 61.0, tx: 87.0, ty: 70.0, r: 7, d: 7, acc: false, svg: "<path d=\"M24 43C24 43 9 29 9 19A15 15 0 0 1 39 19C39 29 24 43 24 43Z\" fill=\"var(--ifill,none)\"/><circle cx=\"24\" cy=\"19\" r=\"5\"/>" },
+  { x: 30.0, y: 10.0, tx: 28.0, ty: 10.0, r: -4, d: 8, acc: false, svg: "<path d=\"M6 13L22 9L28 35L12 39Z\" fill=\"var(--ifill,none)\"/><path d=\"M20 9H38V37H20Z\" fill=\"var(--ifill,none)\"/><circle cx=\"29\" cy=\"23\" r=\"4\" fill=\"currentColor\" stroke=\"none\"/>" },
+  { x: 56.0, y: 10.0, tx: 72.0, ty: 10.0, r: 9, d: 9, acc: true, svg: "<path d=\"M14 26V13A3 3 0 0 1 20 13V24V9A3 3 0 0 1 26 9V24V11A3 3 0 0 1 32 11V26V17A3 3 0 0 1 38 17V30A13 13 0 0 1 25 43A13 13 0 0 1 12 33L7 25A3 3 0 0 1 12 22Z\" fill=\"var(--ifill,none)\"/>" },
+  { x: 36.0, y: 70.0, tx: 18.0, ty: 88.0, r: -2, d: 10, acc: false, svg: "<path d=\"M6 26C6 15 15 11 24 11S42 15 42 26C42 34 38 37 24 37S6 34 6 26Z\" fill=\"var(--ifill,none)\"/><path d=\"M16 20L19 28M24 18L26 28M32 20L30 28\"/>" },
+  { x: 60.0, y: 69.0, tx: 82.0, ty: 88.0, r: 11, d: 11, acc: false, svg: "<circle cx=\"24\" cy=\"24\" r=\"17\" fill=\"var(--ifill,none)\"/><path d=\"M24 15L31 20L28 29H20L17 20Z\"/><path d=\"M24 7V15M41 21L31 20M35 37L28 29M13 37L20 29M7 21L17 20\"/>" },
+];

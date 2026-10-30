@@ -1,0 +1,232 @@
+/* Screens rebuilt from docs/newdesign4 (owner 2026-10-30): the mockup's inline styles as classes over the theme tokens
+   (app/tokens/nd4-themes.gen.css). Numbers are the mockup's (kypros-phone.html); colours are tokens, never hex. */
+.nd-screen { font-family: 'Golos Text', system-ui, sans-serif; }
+.nd-col { position: absolute; left: 14px; right: 14px; top: 52px; bottom: 22px; display: flex; flex-direction: column; gap: 14px; }
+.nd-panel { position: relative; border-radius: var(--r-panel, 24px); background: var(--panel); box-shadow: var(--shadow-panel);
+  -webkit-backdrop-filter: var(--panel-filter, none); backdrop-filter: var(--panel-filter, none); color: var(--text); border: 0; }
+.nd-grow { flex: 1; min-height: 0; }
+.nd-welcome { display: none; }
+.nd-welcome .nd-h1 { font-size: 30px; margin: 0; }
+.nd-welcome .nd-tagline { margin: 6px 0 0; line-height: 1.45; }
+.nd-pad { padding: 24px 20px; overflow: auto; }
+.nd-h1 { margin: 0 0 14px; font: 600 24px/1.2 var(--font-head, 'Source Serif 4', serif); color: var(--text); }
+.nd-btnrow { display: flex; gap: 10px; align-items: stretch; }
+.nd-cta { height: 58px; border: 0; border-radius: 22px; flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 10px;
+  font: 600 17px 'Golos Text', sans-serif; color: var(--on-accent);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 88%, #fff), var(--accent) 55%, color-mix(in srgb, var(--accent) 90%, #000));
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,.3), 0 14px 26px -12px color-mix(in srgb, var(--accent) 80%, transparent);
+  cursor: pointer; transition: transform .2s; }
+.nd-cta:active, .nd-lang-btn:active, .nd-round:active { transform: scale(.96); }
+.nd-dim { opacity: .6; }
+
+/* 01 splash-lang */
+.nd-splash { padding: 34px 20px 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; overflow: hidden; }
+.nd-splash-name { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.nd-wordmark { margin: 0; font: 600 46px/1.22 var(--font-head, 'Source Serif 4', serif); letter-spacing: -.005em; color: var(--text); }
+.nd-tagline { font: 500 15px/1.25 'Golos Text', sans-serif; color: var(--text-muted); }
+.nd-legal { position: absolute; left: 0; right: 0; bottom: 26px; display: flex; justify-content: center; gap: 6px; font: 500 12.5px 'Golos Text', sans-serif; color: var(--text-muted); z-index: 3; }
+.nd-legal a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.nd-round { position: absolute; left: 50%; margin-left: -22px; bottom: 56px; z-index: 3; width: 44px; height: 44px; border-radius: 50%; border: 0; padding: 0;
+  display: grid; place-items: center; color: var(--text); cursor: pointer;
+  background: color-mix(in srgb, var(--panel-solid, #fff) 70%, transparent); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.5), 0 6px 18px -8px rgba(60,45,25,.35); }
+.nd-round svg { width: 20px; height: 20px; }
+.nd-lang-btn { height: 58px; padding: 0 18px; border-radius: 22px; display: flex; align-items: center; gap: 8px; flex: none; font: 600 15px 'Golos Text', sans-serif; cursor: pointer; }
+.nd-lang-btn svg { width: 22px; height: 22px; }
+.nd-lang-btn svg:last-child { width: 16px; height: 16px; color: var(--text-muted); }
+.nd-fl { position: absolute; left: var(--x); top: var(--y); width: 44px; height: 44px; margin: -22px 0 0 -22px; display: grid; place-items: center; opacity: .55; cursor: pointer; touch-action: none;
+  transform: translate(var(--px, 0px), var(--py, 0px)); transition: transform .5s cubic-bezier(.2,.8,.2,1), opacity .3s; }
+.nd-fl:hover { opacity: .9; }
+.nd-fl > svg { --ifill: none; animation: nd-fldrift 7s ease-in-out infinite alternate; animation-delay: calc(var(--d, 0) * -0.7s); }
+.nd-fl.hop > svg { animation: nd-flhop .6s cubic-bezier(.3,1.6,.5,1); }
+@keyframes nd-fldrift { 0% { transform: translate(0,0) rotate(var(--r)); } 50% { transform: translate(5px,-7px) rotate(calc(var(--r) * -1)); } 100% { transform: translate(-4px,4px) rotate(var(--r)); } }
+@keyframes nd-flhop { 0% { transform: scale(1); } 40% { transform: translateY(-14px) scale(1.25) rotate(20deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+.rise { animation: rise .7s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--d, 0) * 80ms + 150ms); }
+@media (prefers-reduced-motion: reduce) { .nd-fl > svg, .nd-fl.hop > svg, .rise { animation: none; } }
+
+/* 02 register-1: «Already have sosed? Paper code · Move from another device» */
+.nd-have { text-align: center; }
+.nd-link { border: 0; background: none; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+/* 01 on the tablet (kypros-tablet.html): the name card 360 px high on top, the form panel under it with «Welcome» and the row */
+@media (min-width: 768px) {
+  .nd-split { left: 16px; right: 16px; top: 62px; bottom: 16px; gap: 16px; }
+  .nd-split > .nd-splash { flex: none; height: 360px; padding: 40px 30px 120px; }
+  .nd-split .nd-fl { left: var(--tx); top: var(--ty); }
+  .nd-split .nd-wordmark { font-size: 54px; }
+  .nd-split .nd-tagline { font-size: 16px; }
+  .nd-split .nd-mark { width: 80px; height: 80px; }
+  .nd-split .nd-round { bottom: 58px; }
+  .nd-form { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; padding: 28px 14px 24px; border-radius: var(--r-panel, 24px);
+    background: var(--panel); box-shadow: var(--shadow-panel); -webkit-backdrop-filter: var(--panel-filter, none); backdrop-filter: var(--panel-filter, none); }
+  .nd-welcome { display: block; padding: 4px 4px 0; }
+  .nd-form .nd-btnrow { margin-top: auto; }
+  .nd-form .nd-welcome .nd-tagline { font-size: 15px; }
+}
+/* 01 on the laptop (kypros-laptop.html): the name card fills the left, the form panel 480 px on the right */
+@media (min-width: 1280px) {
+  .nd-split { inset: 16px; flex-direction: row; }
+  .nd-split > .nd-splash { flex: 1; min-width: 0; height: auto; }
+  .nd-split .nd-fl { left: var(--x); top: var(--y); }
+  .nd-split .nd-wordmark { font-size: 72px; }
+  .nd-split > .nd-splash .nd-tagline { font-size: 18px; }
+  .nd-split .nd-mark { width: 110px; height: 110px; }
+  .nd-form { width: 480px; flex: none; }
+}
+
+/* 02–05 register-1, -2, -2b, -3, -3-check (kypros-phone.html): no panel on a phone, the steps stand on the background;
+   on a tablet and a laptop the name card of 01 stands by them and the steps are the form panel (.nd-form above). */
+.nd-reg-split > .nd-splash { display: none; }
+.nd-reg { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; overflow: auto; }
+.nd-head { display: flex; align-items: center; justify-content: space-between; min-height: 48px; flex: none; }
+.nd-back, .nd-back-gap { width: 46px; height: 46px; flex: none; }
+.nd-back { border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; color: var(--text); cursor: pointer;
+  background: color-mix(in srgb, var(--panel-solid, #fff) 70%, transparent); -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 6px 18px -8px rgba(60,45,25,.35); }
+.nd-back svg { width: 20px; height: 20px; }
+.nd-dots { display: flex; gap: 5px; }
+.nd-dots i { width: 8px; height: 6px; border-radius: 3px; background: var(--text-muted); opacity: .35; transition: width .3s, background .3s; }
+.nd-dots i[data-done] { background: var(--accent); opacity: 1; }
+.nd-dots i[data-now] { width: 22px; }
+.nd-title { padding: 6px 4px 0; flex: none; }
+.nd-reg .nd-h1 { margin: 0; font-size: 30px; letter-spacing: -.005em; }
+.nd-sub { margin: 6px 0 0; font: 500 14px/1.4 'Golos Text', sans-serif; color: var(--text-muted); }
+.nd-label { margin: 6px 4px -8px; font: 600 12.5px 'Golos Text', sans-serif; color: var(--text); }
+.nd-field { position: relative; display: flex; align-items: center; height: 58px; border-radius: 18px; background: var(--panel); box-shadow: var(--shadow-panel); flex: none; }
+.nd-field:focus-within { box-shadow: inset 0 0 0 1.5px var(--accent), var(--shadow-panel); }
+.nd-field input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; padding: 0 16px; font: 500 16px 'Golos Text', sans-serif; color: var(--text); outline: none; }
+.nd-count { padding-right: 16px; font: 500 12.5px 'Golos Text', sans-serif; color: var(--text-muted); }
+.nd-stepper { display: flex; gap: 10px; align-items: stretch; flex: none; }
+.nd-step { width: 58px; height: 58px; flex: none; border: 0; border-radius: 18px; display: grid; place-items: center; color: var(--text); background: var(--panel); box-shadow: var(--shadow-panel); cursor: pointer; }
+.nd-step:last-child svg { transform: none; }
+.nd-step[aria-disabled="true"] { opacity: .4; cursor: default; }
+.nd-step svg { width: 20px; height: 20px; }
+.nd-age { flex: 1; min-width: 0; height: 58px; border: 0; border-radius: 18px; text-align: center; font: 500 22px var(--font-head, 'Source Serif 4', serif); color: var(--text);
+  background: var(--panel); box-shadow: var(--shadow-panel); outline: none; }
+.nd-age:focus { box-shadow: inset 0 0 0 1.5px var(--accent), var(--shadow-panel); }
+.nd-age[aria-invalid] { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.nd-check { display: flex; align-items: center; gap: 12px; padding: 4px; font: 500 13.5px/1.4 'Golos Text', sans-serif; color: var(--text); cursor: pointer; flex: none; }
+.nd-check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.nd-box { width: 24px; height: 24px; flex: none; border-radius: 7px; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px var(--text-muted); color: transparent; }
+.nd-box svg { width: 16px; height: 16px; }
+.nd-check input:checked + .nd-box { background: var(--accent); box-shadow: none; color: var(--on-accent); }
+.nd-check input:focus-visible + .nd-box { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nd-check .nd-link { color: var(--text); }
+.nd-have { margin: 0; text-align: center; font: 500 13px/1.6 'Golos Text', sans-serif; color: var(--text-muted); flex: none; }
+.nd-have .nd-link { color: var(--text-muted); }
+.nd-note { margin: 0; padding: 0 4px; font: 500 13px/1.4 'Golos Text', sans-serif; color: var(--accent); }
+.nd-foot { display: flex; flex-direction: column; gap: 8px; flex: none; }
+.nd-foot .nd-cta { flex: none; width: 100%; }
+.nd-cta svg { width: 20px; height: 20px; }
+.nd-cta[data-quiet] { background: none; color: var(--text-muted); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text-muted) 55%, transparent); }
+.nd-tile { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 18px; background: var(--panel); box-shadow: var(--shadow-panel);
+  font: 500 13.5px/1.4 'Golos Text', sans-serif; color: var(--text); flex: none; }
+.nd-tile > svg { width: 22px; height: 22px; flex: none; color: var(--accent); }
+.nd-quiet { color: var(--text-muted); }
+.nd-accent { color: var(--accent); }
+/* the PIN's six places: a filled dot in the accent, an empty ring; shown, the digit in the serif */
+.nd-pin { margin: 22px 0 8px; flex: none; }
+.nd-pin .k-cells { display: flex; justify-content: center; gap: 10px; position: relative; border: 0; background: none; box-shadow: none; padding: 0; }
+.nd-pin .k-cell { width: 26px; height: 30px; display: grid; place-items: center; border: 0; background: none; box-shadow: none; padding: 0;
+  font: 500 24px var(--font-head, 'Source Serif 4', serif); color: var(--accent); }
+.nd-pin .k-cell > i { display: block; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); }
+.nd-pin .k-cell:empty::before { content: ""; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--text-muted); opacity: .55; }
+.nd-pin .k-cells input { position: absolute; inset: 0; opacity: 0; width: 100%; }
+.nd-pin[data-shake] .k-cells, .nd-groups[data-shake] { animation: nd-shake .4s; }
+@keyframes nd-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.nd-reg .k-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; flex: none; }
+.nd-reg .k-key { position: relative; height: 62px; border: 0; border-radius: 20px; display: grid; place-items: center; background: var(--panel); box-shadow: var(--shadow-panel);
+  font: 500 24px var(--font-head, 'Source Serif 4', serif); color: var(--text); cursor: pointer; }
+.nd-reg .k-key svg { width: 22px; height: 22px; }
+.nd-reg .k-key[data-on] { background: var(--accent); color: var(--on-accent); }
+.nd-slash { position: absolute; width: 26px; height: 2px; border-radius: 1px; background: currentColor; transform: rotate(-45deg); }
+/* 05 the paper code: four tiles 2×2, the group's number small, the group large in the serif */
+.nd-code { margin: 10px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: none; }
+.nd-code-tile { height: 76px; border-radius: 18px; background: var(--panel); box-shadow: var(--shadow-panel); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 16px;
+  font: 600 26px var(--font-head, 'Source Serif 4', serif); letter-spacing: .14em; color: var(--text); white-space: pre; }
+.nd-code-tile::before { content: attr(data-group); font: 600 11px 'Golos Text', sans-serif; letter-spacing: 0; color: var(--text-muted); margin-bottom: 2px; }
+/* 05a the check: four places in a row, the two asked are fields, the other two closed and dim */
+.nd-groups { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; flex: none; }
+.nd-group { height: 76px; border-radius: 16px; background: var(--panel); box-shadow: var(--shadow-panel); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; }
+.nd-group small { font: 600 11px 'Golos Text', sans-serif; color: var(--text-muted); }
+.nd-group b { font: 600 18px var(--font-head, 'Source Serif 4', serif); letter-spacing: .1em; color: var(--text-muted); }
+.nd-group[data-closed] { opacity: .45; }
+.nd-group input { width: 100%; min-width: 0; border: 0; background: none; text-align: center; padding: 0; outline: none; text-transform: uppercase;
+  font: 600 18px var(--font-head, 'Source Serif 4', serif); letter-spacing: .1em; color: var(--text); }
+.nd-group:focus-within { box-shadow: inset 0 0 0 1.5px var(--accent), var(--shadow-panel); }
+.nd-group:has(input[aria-invalid]) { box-shadow: inset 0 0 0 1.5px var(--accent); }
+@media (prefers-reduced-motion: reduce) { .nd-pin[data-shake] .k-cells, .nd-groups[data-shake] { animation: none; } }
+@media (min-width: 768px) {
+  .nd-reg-split > .nd-splash { display: flex; }
+  .nd-reg { padding: 18px 16px 18px; }
+}
+
+/* 06 unlock, 07 unlock-error, 09 locked (pin-door.tsx): on a phone the card holds the line and the dots, the pad under
+   it on the background; from 768 (--nd-bp-split, read by useMinWidth) the card aside and the form panel */
+:root { --nd-bp-split: 768px; }
+.nd-door .nd-reg { flex: none; gap: 10px; }
+.nd-door > .nd-splash { padding-bottom: 104px; }
+.nd-door .nd-splash-name .nd-pin { margin: 8px 0 0; }
+.nd-pinline { margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font: 500 15px/1.3 'Golos Text', sans-serif; color: var(--text-muted); }
+.nd-title .nd-pinline { justify-content: flex-start; margin-top: 6px; font-size: 14px; }
+.nd-pinline[data-tone="error"] { color: var(--accent); font-weight: 600; }
+.nd-pinline svg { width: 16px; height: 16px; }
+.nd-pin[data-ring] .k-cell:empty::before { box-shadow: inset 0 0 0 2px var(--accent); opacity: 1; }
+.nd-tries { display: flex; gap: 4px; justify-content: center; }
+.nd-tries i { width: 10px; height: 4px; border-radius: 2px; background: var(--text-muted); opacity: .35; }
+.nd-tries i[data-on] { background: var(--accent); opacity: 1; }
+.nd-mid { text-align: center; }
+.nd-more { position: absolute; top: 12px; right: 12px; z-index: 4; width: 40px; height: 40px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center;
+  font: 600 18px 'Golos Text', sans-serif; color: var(--text-muted); background: none; cursor: pointer; }
+.nd-door .k-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (min-width: 768px) {
+  .nd-door .nd-reg { flex: 1; }
+  .nd-door > .nd-splash { padding-bottom: 120px; }
+}
+/* 08 forget-confirm: the one layout of every confirmation */
+.nd-confirm { gap: 16px; }
+.nd-confirm-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 14px; }
+.nd-confirm-mid .nd-h1 { margin: 6px 0 0; font-size: 30px; }
+.nd-confirm-mid .nd-sub { margin: 0; font-size: 15px; }
+.nd-ring-mark { width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; color: var(--accent);
+  background: var(--panel); box-shadow: inset 0 0 0 1.5px var(--accent), var(--shadow-panel); }
+.nd-ring-mark svg { width: 44px; height: 44px; }
+.nd-tile-btn, .nd-danger { flex: 1; min-width: 0; height: 58px; border: 0; border-radius: 22px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  font: 600 17px 'Golos Text', sans-serif; cursor: pointer; }
+.nd-tile-btn { color: var(--text); background: var(--panel); box-shadow: var(--shadow-panel); }
+.nd-danger { color: var(--accent); background: none; box-shadow: inset 0 0 0 1.5px var(--accent); }
+.nd-danger svg { width: 20px; height: 20px; }
+@media (min-width: 768px) { .nd-confirm { left: 50%; right: auto; width: 480px; margin-left: -240px; } }
+.nd-erase { font: 400 24px/1 "Golos Text", sans-serif; }
+/* 11 restore: the four groups 2×2, the group's small number over its four signs, «Continue» its own height */
+.nd-restore-code { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.nd-restore-code .nd-group { height: 84px; }
+.nd-restore-code .nd-group::before { content: attr(data-group); font: 600 11px 'Golos Text', sans-serif; color: var(--text-muted); }
+.nd-restore-code .nd-group input { font: 600 26px var(--font-head, 'Source Serif 4', serif); letter-spacing: .14em; }
+.nd-restore-code .nd-group:not([data-on]):not(:focus-within) { background: none; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text-muted) 40%, transparent); }
+main[data-screen="restore"] .nd-cta { flex: none; width: 100%; }
+
+/* 14 loading: a thin bar with a stripe running across it (kypros-phone.html .kwait) */
+.nd-loading { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px; }
+.nd-bar { display: block; width: 140px; height: 3px; border-radius: 2px; background: var(--tile-strong); overflow: hidden; }
+.nd-bar > i { display: block; width: 40%; height: 100%; border-radius: 2px; background: var(--accent); animation: nd-wait 1.6s ease-in-out infinite; }
+@keyframes nd-wait { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+@media (prefers-reduced-motion: reduce) { .nd-bar > i { animation: none; } }
+
+/* 15 update: over every screen, the mark in a round tile in the middle, «Later» and «Update» at the foot */
+.nd-update { position: fixed; inset: 0; z-index: 50; background: var(--bg); }
+.nd-update .nd-col { max-width: 560px; margin: 0 auto; }
+.nd-update .nd-cta[data-tile] { background: var(--panel); color: var(--text); box-shadow: var(--shadow-panel); height: 56px; font-size: 16px; }
+.nd-update-mid { margin: auto 0; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 0 10px; }
+.nd-update-mid .nd-h1 { margin: 0; font-size: 28px; }
+.nd-update-mark { width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center; color: var(--accent);
+  background: var(--panel); box-shadow: inset 0 0 0 1.5px var(--tile-strong), 0 14px 28px -16px rgba(80,60,30,.4); }
+.nd-update-mark .nd-icon { width: 51px; height: 51px; stroke-width: 1.44; }
+/* 15 update on the laptop (laptop-kypros 015): the mark, the words and the two buttons as one block in the middle; the tablet
+   keeps the buttons at the foot as the phone does */
+@media (min-width: 1280px) {
+  .nd-update .nd-col { justify-content: center; max-width: 420px; }
+  .nd-update .nd-head { position: absolute; top: 0; left: 0; }
+  .nd-update-mid { margin: 0 0 20px; }
+}

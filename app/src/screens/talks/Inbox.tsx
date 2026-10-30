@@ -159,6 +159,8 @@ export function Inbox({ client, onTab, onOpenMatch, onOpenChat, onLikes, beside,
           {rows && <p className="tk-count">{say("app.talks.count", { talks: splitInbox(rows).talks.length, offers: splitInbox(rows).offers.filter(isFresh).length })}</p>}
         </section>
         <TalksList rows={rows} error={error} actions={{ onOpenMatch, onOpenChat, onLikes }} selectedId={selectedId} />
+        {/* the desktop: a talk's board takes the middle column (chat-game.tsx Stage), the talk stays in its pane */}
+        {beside && <section className="k-ch-stage" data-slot="game-stage" data-testid="game-stage" />}
         {beside}
         <TabBar active="chats" onSelect={onTab} />
       </div>

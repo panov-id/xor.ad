@@ -918,13 +918,12 @@ const shut = (page, testid) => page.getAttribute(`[data-testid="${testid}"]`, "a
     boxes(scr, "dot", [3, 5, 7, 9, 11, 13, 15, 17].map((i) => sh[i]), dots);
     const ring = await B.page.evaluate(() => { const a = document.querySelector(".reg-cells:focus-within .reg-cell[data-active]"); if (!a) return null; const r = a.getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; });
     compare(scr, "caret ring (repeat, 3rd cell)", shapeOf(sh[19]), ring ?? NAN4);
-    compare(scr, "done button", shapeOf(sh[23]), (await boxOf(B.page, '[data-testid="arrive-keep"]'))[0] ?? NAN4);
     await textRows(scr, B.page, [["bar title", T[0], ".mv-title"], ["confirmed words", T[1], ".mv-ok span"], ["new PIN label", T[2], ".mv-body > .mv-pin:nth-child(2) label"],
-      ["repeat label", T[3], ".mv-body > .mv-pin:nth-child(3) label"], ["done label", T[4], '[data-testid="arrive-keep"] span']]);
+      ["repeat label", T[3], ".mv-body > .mv-pin:nth-child(3) label"]]);   // arrival-3 has no «done»: sh[23] and T[4] are the old sheet's
     await fonts(B.page, scr, [["confirmed", ".mv-ok span"], ["label", ".mv-pin label"]]); await overflowAt(B.page, scr, 390);
     await shotOf(B.page, scr);
   }
-  await B.page.fill('[data-testid="arrive-pin-again"]', PIN); await B.page.click('[data-testid="arrive-keep"]');
+  await B.page.fill('[data-testid="arrive-pin-again"]', PIN);   // a matching repeat keeps the PIN by itself
   await B.page.waitForSelector(feedSel, { timeout: 60000 }).catch(() => null);
   const diskB = await stored(B.page);
   note((await B.page.locator(feedSel).count()) === 1 && stub.calls.includes("POST /vault/init") && stub.calls.some((c) => /^POST \/sessions\/.+\/ack$/.test(c)) && diskB?.fields?.includes("sealedLong") && diskB?.fields?.includes("sessionSpki"),

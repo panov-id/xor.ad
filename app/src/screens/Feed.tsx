@@ -9,7 +9,7 @@
 // number); a table the node puts between the phrases is a row that opens it (tablet_834_Feed); one's own phrase just sent stands over
 // the list with its «take down» (client.takeDown). Not here yet: the place picker (docs/newsdesign/place-flow.svg waits for the owner);
 // the sheet's numbers in the radius chips (the node gives a step, never a count) and the distance and age on the tile (the feed has none).
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
 import { failedLine, label, say } from "../i18n";
 import { storedPlace } from "../place";
@@ -20,12 +20,12 @@ import { useSkeleton } from "../shell/loading";
 import { Skeleton } from "../shell/Skeleton";
 import { type Tab, TabBar } from "../shell/TabBar";
 import { useMinWidth } from "../shell/useMinWidth";
+import { LikesBody } from "./talks/Likes";
 import { CardScreen, likeLine, TableTile, Tile } from "./feed-card";
-import { Scene } from "../shell/Scene";
 import { RADIUS_ICON, radiusText, RadiusSheet } from "./feed-radius";
 import { NdIcon } from "../shell/NdIcon";
 import {
-  cardEntry, cardOf, feedRows, type FeedCard, type Gone, likeOutcome, type LikeOutcome, mergePage, RADII, radiusWord, type SentPhrase, type Step, stepKey, stepOf, takedownVerdict, UNDO_HIDE_MS, widerRadius, withLike, withoutCard,
+  cardEntry, cardOf, feedRows, type FeedCard, type Gone, likeOutcome, type LikeOutcome, mergePage, RADII, radiusWord, type SentPhrase, type Step, stepKey, stepOf, takedownVerdict, UNDO_HIDE_MS, widenedTo, widerRadius, withLike, withoutCard, withoutLike, ownLive,
 } from "./feed-logic";
 import { lineOf, TableRow } from "./tables/table-row";
 
@@ -45,7 +45,29 @@ function useColumns(ref: { current: HTMLElement | null }): number {
   return n;
 }
 
-export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLikes, onTable, onPlace }: {
+/** The loading masonry's heights, px (desktop-1440/3-nearby/feed-loading.svg); the second column swaps the first two. */
+const GHOSTS = [220, 130, 160];
+
+/** The head's «more» (owner, 28.10): likes I gave, a new table, the place. Testids: feed-menu, menu-likes, menu-table, menu-place. */
+function FeedMenu({ onLikes, onNewTable, onPlace }: { onLikes?: () => void; onNewTable?: () => void; onPlace?: () => void }) {
+  const items = [
+    { id: "menu-likes", icon: "imin", text: say("app.likes.title"), go: onLikes },
+    { id: "menu-table", icon: "tables", text: say("app.tables.start"), go: onNewTable },
+    { id: "menu-place", icon: "place", text: say("app.feed.place"), go: onPlace },
+  ];
+  return (
+    <div className="k-stack" data-testid="feed-menu">
+      <h2 className="k-sheet-title">{say("app.feed.menu")}</h2>
+      <ul className="k-picks">
+        {items.map((m) => m.go && (
+          <li key={m.id}><button type="button" className="k-pick" onClick={m.go} data-testid={m.id}><span className="k-badge" data-c="2"><NdIcon name={m.icon} /></span><span>{m.text}</span></button></li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLikes, onNewTable, onTable, onPlace }: {
   client: Client; onTab?: (tab: Tab) => void; onCompose?: (radius: Radius) => void;
   /** One's own phrase just sent (Composer's answer), shown over the list until it is taken down or the feed is left. */
   sent?: SentPhrase | null; onTakenDown?: () => void;
@@ -54,11 +76,17 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
 }) {
   const { open: openSheet, close: closeSheet } = useLayers();
   const wide = useMinWidth("--bp-tablet");
+  // my-marks at 1440/1920: the desktop shows the likes in the feed's body under the feed's head; the phone opens the likes screen
+  const desk = useMinWidth("--bp-desktop");
+  const [likesOn, setLikesTab] = useState(false);
+  const likesTab = desk && likesOn; // a window shrunk under the desktop drops back to the feed
   const [step, setStep] = useState<Step | null>(null);
   const [takingDown, setTakingDown] = useState(false);
   const [takedownRefused, setTakedownRefused] = useState<number | null>(null);
   const place = useRef(storedPlace()).current;
   const [radius, setRadius] = useState<Radius>(1000);
+  // the phone's radius chip and, at 1440+, a second press on the pressed round radius (radius.svg) open the same sheet
+  const radiusSheet = () => openSheet("radius", <RadiusSheet radius={radius} onPick={(r) => { setLikeNote(null); setRadius(r); closeSheet(); }} onPlace={onPlace && (() => { closeSheet(); onPlace(); })} />);
   const [items, setItems] = useState<FeedCard[]>([]);
   const [next, setNext] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
@@ -66,8 +94,15 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
   const [undoing, setUndoing] = useState(false);
   const [undoError, setUndoError] = useState<string | null>(null);
   const [opened, setOpened] = useState<string | null>(null);
+  // card-need (owner 28.10): a like needs a live phrase of one's own (routes/likes.ts, 409). The profile's phrases with an
+  // end still ahead are the live ones (routes/identity.ts: one waiting for the queue has none), so the card says «say yours
+  // first» before the press; a 409 on a like asks the profile again.
+  const [needPhrase, setNeedPhrase] = useState(false);
+  const checkOwn = () => client.profile().then((p) => setNeedPhrase(!ownLive(p?.phrases, Date.now()))).catch(() => {});
+  useEffect(() => { void checkOwn(); }, [client, sent]);
   const [liking, setLiking] = useState<string | null>(null);
   const [likeNote, setLikeNote] = useState<LikeOutcome | null>(null);
+  const [query, setQuery] = useState<string | null>(null);   // null: the search is closed
   const skeleton = useSkeleton(state === "loading");
   const listRef = useRef<HTMLDivElement>(null);
   const columns = useColumns(listRef);
@@ -98,6 +133,7 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
   // A page asked before the radius changed is stale: its answer would mix the old circle into the new one (web
   // useFeed, D2). Every radius starts a generation; only an answer of the current one is drawn.
   const generation = useRef(0);
+  const [widened, setWidened] = useState<number | null>(null);
   async function load(after?: string) {
     const mine = generation.current;
     setState("loading");
@@ -105,6 +141,7 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
       const page = await client.feed({ lat: place.lat, lon: place.lon, radius, after });
       if (mine !== generation.current) return;
       setItems((was) => mergePage(was, page.items as FeedCard[], after));
+      if (!after) setWidened(widenedTo(radius, page as { radius_used?: unknown }));
       setNext(page.next ?? null);
       setState("ready");
     } catch {
@@ -164,10 +201,25 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
     try {
       const answer = await client.like(card.id);
       const outcome = likeOutcome(answer.status, answer.body);
+      if (outcome.state === "refused" && outcome.status === 409) void checkOwn();
       if (outcome.state !== "refused") setItems((was) => was.map((c) => (c.id === card.id ? withLike(c) : c)));
       return outcome;
     } catch {
       return { state: "refused", cause: "other", status: 0 };
+    } finally {
+      setLiking(null);
+    }
+  }
+  // card-in «Take back» (owner 28.10): DELETE /feed/:id/like; «unliked» lowers the card at once, «spent» (a match came of it) keeps it.
+  async function unlike(card: FeedCard): Promise<boolean> {
+    setLiking(card.id);
+    try {
+      const answer = await client.unlike(card.id);
+      const taken = answer.status === 200 && answer.body?.state === "unliked";
+      if (taken) setItems((was) => was.map((c) => (c.id === card.id ? withoutLike(c) : c)));
+      return taken;
+    } catch {
+      return false;
     } finally {
       setLiking(null);
     }
@@ -177,39 +229,55 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
     setLikeNote(outcome.state === "liked" ? null : outcome);
   }
 
-  const rows = feedRows(items, gone, "");   // the prototype's feed has no search
+  const rows = feedRows(items, gone, query ?? "");
+  const searching = !!query?.trim();
   const phrases = rows.filter((r) => r.tone !== null);
   const widerTo = widerRadius(radius);
   const card = opened ? items.find((c) => c.id === opened) ?? null : null;
-  const title = say("app.feed.title", { place: place.chosen ? place.name : say("web.place.none") });
+  const placeName = place.chosen ? place.name : say("web.place.none");
   const note = likeLine(likeNote);
 
   return (
     <>
       {/* the prototype's feed (docs/newdesign/proto/feed.html and its states): the scene with the place panel over it, the
           phrases / marks switch, the list panel cut round «write», the bottom bar */}
-      <main className="k-screen" data-screen="feed" inert={card ? true : undefined}>
+      {/* a phrase over the feed shuts it (the phone); at the desk it stands in the right pane and the rail stays live
+          (crowd flow-1028-223505: Nino at 1920 could not press «Me» with a phrase open) */}
+      <main className="k-screen" data-screen="feed" inert={card && !desk ? true : undefined}>
         <div className="k-col">
-          <Scene>
-            <section className="k-panel">
-              <div className="k-row">
-                <NdIcon name="place" className="k-pin" />
-                <div className="k-stack">
-                  <h1 className="k-title">{title}</h1>
-                  {step ? <p className="k-sub" role="status" data-testid="nearby" data-step={step}>{say(stepKey(step))}</p> : <p className="k-sub">{radiusText(radius)}</p>}
-                </div>
-                <button type="button" className="k-chip" aria-label={`${say("web.feed.radius")}: ${radiusText(radius)}`} data-testid="radius-open"
-                  onClick={() => openSheet("radius", <RadiusSheet radius={radius} onPick={(r) => { setLikeNote(null); setRadius(r); closeSheet(); }} onPlace={onPlace && (() => { closeSheet(); onPlace(); })} />)}>
-                  <NdIcon name={RADIUS_ICON[radius]} /><NdIcon name="down" className="k-caret" />
-                </button>
+          {/* newdesign3 .uhead (frontend/screens/feed.html, plan A item 3): the «nearby» lead, the title pill «nearby» over
+              «place · km», the round place button (it opens the radius sheet, whose last row is the place). The kit's «· people»
+              is not drawn: the node gives a step, never a count. Search and menu stay round; the five radii show at 1920 only. */}
+          <header className="k-uhead" data-testid="feed-head">
+            <span className="k-uhead-lead" aria-hidden="true"><NdIcon name="nearby" /></span>
+            {query === null ? (
+              <div className="k-uhead-title">
+                <h1>{say("app.feed.head")}</h1>
+                {step ? <p className="k-meta" role="status" data-testid="nearby" data-step={step}>{say(stepKey(step))}</p> : <p className="k-meta" data-testid="feed-where">{`${placeName} · ${radiusText(radius)}`}</p>}
               </div>
-            </section>
-          </Scene>
+            ) : (
+              // the open search takes the title's place: the head stays one row at every width
+              <div className="k-uhead-title k-row k-search">
+                <input type="search" className="k-field" autoFocus value={query} onChange={(e) => setQuery(e.target.value)} aria-label={say("app.feed.search")} placeholder={say("app.feed.search")} data-testid="search" />
+                <button type="button" className="k-icon-btn" aria-label={say("app.feed.search_close")} onClick={() => setQuery(null)} data-testid="search-close"><NdIcon name="close" /></button>
+              </div>
+            )}
+            <div className="k-radii" role="group" aria-label={say("web.feed.radius")}>
+              {RADII.map((r) => (
+                <button key={r} type="button" className="k-round" aria-pressed={r === radius} aria-label={radiusText(r)}
+                  onClick={() => (r === radius ? radiusSheet() : (setLikeNote(null), setRadius(r)))} data-testid={`radius-chip-${r}`}><NdIcon name={RADIUS_ICON[r]} /></button>
+              ))}
+            </div>
+            <button type="button" className="k-uhead-btn" aria-label={say("app.feed.place_radius", { r: radiusText(radius) })} data-testid="radius-open" onClick={radiusSheet}><NdIcon name="place" /></button>
+            <button type="button" className="k-uhead-btn" aria-label={say("app.feed.search")} aria-expanded={query !== null} onClick={() => setQuery(query === null ? "" : null)} data-testid="search-open"><NdIcon name="search" /></button>
+            <button type="button" className="k-uhead-btn" aria-label={say("app.feed.menu")} onClick={() => openSheet("menu", <FeedMenu onLikes={onLikes && (() => { closeSheet(); onLikes(); })} onNewTable={onNewTable && (() => { closeSheet(); onNewTable(); })} onPlace={onPlace && (() => { closeSheet(); onPlace(); })} />)} data-testid="feed-more"><NdIcon name="more" /></button>
+          </header>
           <div className="k-seg" role="tablist">
-            <button type="button" role="tab" aria-selected="true" aria-label={say("app.feed.phrases")} data-testid="seg-feed"><NdIcon name="phrase" /></button>
-            <button type="button" role="tab" aria-selected="false" aria-label={say("liked.title")} onClick={onLikes} data-testid="seg-likes"><NdIcon name="imin" /></button>
+            <button type="button" role="tab" aria-selected={!likesTab} aria-label={say("app.feed.phrases")} onClick={() => setLikesTab(false)} data-testid="seg-feed"><NdIcon name="phrase" /></button>
+            <button type="button" role="tab" aria-selected={likesTab} aria-label={say("app.likes.title")} onClick={() => (desk ? setLikesTab(true) : onLikes?.())} data-testid="seg-likes"><NdIcon name="imin" /></button>
           </div>
           <section className="k-body" data-fab={onCompose ? "" : undefined}>
+            {likesTab ? <LikesBody client={client} hint /> : <>
             {sent && (
               <div className="k-note" data-testid="sent" data-state={sent.state}>
                 <NdIcon name="hourglass" />
@@ -218,12 +286,6 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
               </div>
             )}
             {sent && takedownRefused !== null && <p className="k-note" data-tone="error" role="alert" data-testid="takedown-refused">{say("feed.takedownRefused", { status: takedownRefused })}</p>}
-            {gone?.why === "hidden" && undoing && (
-              <div className="k-note" data-testid="gone" data-why="hidden">
-                <NdIcon name="hide" /><span>{say("app.feed.hidden_gone")}</span>
-                <button type="button" className="k-btn" onClick={bringBack} data-testid="hidden-undo"><span>{say("web.feed.hidden_undo")}</span></button>
-              </div>
-            )}
             {undoError && <p className="k-note" data-tone="error" role="alert" data-testid="hidden-undo-error">{undoError}</p>}
             {gone?.why === "blocked" && <p className="k-note" data-testid="gone" data-why="blocked"><NdIcon name="block" /><span>{say("web.feed.blocked")}</span></p>}
             {note && <p className="k-note" role="status" data-testid="like-note">{note}</p>}
@@ -234,7 +296,11 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
                 <button type="button" className="k-btn" onClick={() => void load()} data-testid="retry"><NdIcon name="refresh" /><span>{say("app.feed.retry")}</span></button>
               </div>
             )}
-            {state === "ready" && rows.length === 0 && (
+            {state === "ready" && widened !== null && rows.length > 0 && (() => { const w = radiusWord(widened); return (
+              <p className="k-note" role="status" data-testid="feed-widened" data-radius={widened}>{say("app.feed.widened", { r: say(w.key, { n: w.n }) })}</p>
+            ); })()}
+            {state === "ready" && searching && rows.length === 0 && <p className="k-sub" role="status" data-testid="search-none">{say("app.feed.search_none")}</p>}
+            {state === "ready" && !searching && rows.length === 0 && (
               <div className="k-empty" data-testid="quiet">
                 <NdIcon name="empty" className="k-empty-mark" />
                 <h2>{say("web.feed.empty")}</h2><p>{say("app.feed.empty_hint")}</p>
@@ -255,12 +321,22 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
                 </ul>
               ))}
             </div>
-            {skeleton && <div className="k-grid2" data-testid="loading"><ul><li className="k-tile k-ghost" /></ul><ul><li className="k-tile k-ghost" /></ul></div>}
+            {skeleton && <div className="k-grid2" data-testid="loading">
+              {[0, 1].map((col) => <ul key={col}>{GHOSTS.map((_, i) => <li key={i} className="k-tile k-ghost" style={{ minHeight: GHOSTS[col ? [1, 0, 2][i] : i] }} />)}</ul>)}
+            </div>}
             {next && state === "ready" && <button type="button" className="k-btn" onClick={() => void load(next)} data-testid="more">{say("app.feed.more_cards")}</button>}
+            {gone?.why === "hidden" && undoing && (
+              <div className="k-undo" data-testid="gone" data-why="hidden">
+                <NdIcon name="hide" /><span>{say("app.feed.hidden_gone")}</span>
+                <button type="button" className="k-undo-btn" onClick={bringBack} aria-label={say("web.feed.hidden_undo")} data-testid="hidden-undo"><NdIcon name="refresh" /></button>
+                <span className="k-undo-ring" style={{ "--undo-ms": `${UNDO_HIDE_MS}ms` } as CSSProperties} aria-hidden="true" />
+              </div>
+            )}
+            </>}
           </section>
           <TabBar active="feed" onSelect={onTab} />
         </div>
-        {onCompose && (
+        {onCompose && !likesTab && (
           <button type="button" className="k-fab" onClick={() => onCompose(radius)} aria-label={say("app.compose.title")} data-testid="write"><NdIcon name="write" /></button>
         )}
       </main>
@@ -275,6 +351,9 @@ export function Feed({ client, onTab, onCompose, sent = null, onTakenDown, onLik
           onTalk={() => onTab?.("chats")}
           onBack={closeCard}
           onLike={like}
+          onUnlike={unlike}
+          needPhrase={needPhrase}
+          onSay={onCompose ? () => onCompose(radius) : undefined}
           onGone={(why, id, handle) => { closeCard(); setOpened(null); setLikeNote(null); setGone({ why, id, handle }); }}
         />
       )}

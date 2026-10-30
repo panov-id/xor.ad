@@ -2,6 +2,7 @@
 // (relay/node/src/lib/tables_*.ts) through table-logic.ts; a tap is a move only in turn (onMove given), the node
 // refuses the rest. Testids: four, four-col-<a..g>; dots, dot, edge-<id>, box; hangman, gallows, mask, slot, key-<letter>,
 // word-input, word-go; reversi, cell-<a1..h8>; squares, sq-<a1..h8>; backgammon, die, roll, moved; dominoes, line-bone, hand-bone, end-left, end-right, draw.
+import { missedLetters, pieceShape, yardBars } from "./boards-logic";
 import { useState } from "react";
 import { say } from "../../i18n";
 import { NdIcon } from "../../shell/NdIcon";
@@ -101,15 +102,23 @@ export function HangmanBoard({ state, seat, onMove }: BoardProps) {
   const w = wordOf(state);
   if (!w) return null;
   const h = hangmanView(w, seat, !!onMove);
+  // the prototype keeps the missed letters beside the gallows, crossed out
+  const missed = missedLetters(w.guessed, h.slots);
   return (
     <div className="tg-hangman" data-testid="hangman" data-mode={h.mode}>
-      <svg className="tg-gallows" viewBox="0 0 120 160" role="img" aria-label={say("web.table.guessed", { letters: w.guessed.join(" ") || "—", misses: h.misses })} data-testid="gallows">
+      <div className="tg-hang-row">
+      <svg className="tg-gallows" viewBox="0 0 120 160" role="img" aria-label={say("web.table.guessed", { letters: (Array.isArray(w.guessed) ? w.guessed.filter((l) => typeof l === "string") : []).join(" ") || "—", misses: h.misses })} data-testid="gallows">
         {GALLOWS.filter(Boolean).map((d) => <path key={d} d={d} />)}
         {MAN.slice(0, h.misses).map((d) => <path key={d} d={d} />)}
       </svg>
-      <p className="tg-mask" data-testid="mask" aria-label={h.slots.map((c) => c ?? "_").join(" ")}>
-        {h.slots.map((c, i) => <span key={i} className="tg-slot" data-testid="slot">{c ?? ""}</span>)}
-      </p>
+      <div className="tg-hang-side">
+        <p className="tg-misses" data-testid="misses">{missed.map((l) => <span key={l} className="tg-miss">{l}</span>)}</p>
+        <p className="tg-mask" data-testid="mask" aria-label={h.slots.map((c) => c ?? "_").join(" ")}>
+          {/* hangman-word: while I set the word, a slot per letter typed so far, hidden as the guesser will see them */}
+          {(h.mode === "set" ? [...word.trim()].map(() => null) : h.slots).map((c, i) => <span key={i} className="tg-slot" data-testid="slot">{c ?? ""}</span>)}
+        </p>
+      </div>
+      </div>
       {h.mode === "set"
         ? (
           <InFoot><form className="tg-set" onSubmit={(e) => { e.preventDefault(); const v = word.trim(); if (v) { onMove?.({ word: v }); setWord(""); } }}>
@@ -117,8 +126,9 @@ export function HangmanBoard({ state, seat, onMove }: BoardProps) {
             <button type="submit" className="k-cta" disabled={!word.trim()} data-testid="word-go">{say("web.table.set")}</button>
           </form></InFoot>
         )
-        : (
-          <div className="tg-keys" role="group" aria-label={say("web.table.letter")}>
+        : h.mode === "guess" && (
+          // hangman-turn: the keyboard stands in the foot, as the prototype has it; out of turn there is none
+          <InFoot><div className="tg-keys" data-hang="" role="group" aria-label={say("web.table.letter")}>
             {h.rows.map((row, r) => (
               <div key={r} className="tg-key-row">
                 {row.map((k) => (
@@ -127,7 +137,7 @@ export function HangmanBoard({ state, seat, onMove }: BoardProps) {
                 ))}
               </div>
             ))}
-          </div>
+          </div></InFoot>
         )}
     </div>
   );
@@ -152,7 +162,27 @@ export function ReversiBoard({ state, seat, onMove }: BoardProps) {
   );
 }
 
-// Checkers and chess (w3_table-checkers, w3_table-chess): the chequered field, the pieces (a chess piece by its letter);
+// A chess piece as the prototype draws it (docs/newdesign/proto/chess-*.html): a cell of 12, a foot, then the body by
+// the piece's letter ("" is a pawn); mine in the accent, theirs in their tone.
+const CHESS_FOOT = "M2.4 10.4H9.6L8.6 8.6H3.4Z";
+export const CHESS_BODY: Record<string, string> = {
+  K: "M3.4 8.6L3.6 4.4H8.4L8.6 8.6Z M6 4.4V1.4 M4.7 2.6H7.3",
+  Q: "M3.2 8.6L2.6 3.4L4.6 5.4L6 2.2L7.4 5.4L9.4 3.4L8.8 8.6Z",
+  R: "M3.6 2.8H8.4V8.6H3.6Z",
+  B: "M6 2C9 4.4 8 7.4 7.6 8.6H4.4C4 7.4 3 4.4 6 2Z",
+  N: "M3.8 8.6L4.2 4.4L6.8 2.4L8.6 5.4L6.4 6L8 8.6Z",
+  "": "M8 5.2A2 2 0 1 1 4 5.2A2 2 0 1 1 8 5.2Z",
+};
+function ChessPiece({ letter, stand }: { letter: string; stand: string }) {
+  const tone = stand === "mine" ? "var(--accent)" : "var(--theirs)";
+  return (
+    <svg className="tg-chess" viewBox="0 0 12 12" aria-hidden="true" fill={tone} stroke={tone} strokeWidth={0.5} data-piece={letter || "P"}>
+      <path d={CHESS_FOOT} /><path d={pieceShape(CHESS_BODY, letter)} />
+    </svg>
+  );
+}
+
+// Checkers and chess (w3_table-checkers, w3_table-chess): the chequered field, the pieces (a chess piece drawn by its letter);
 // a tap picks a piece of mine (a yellow ring), the next tap on a square not mine is the move ({from, to}).
 export function SquaresBoard({ state, seat, onMove, chess }: BoardProps & { chess: boolean }) {
   const [picked, setPicked] = useState<string | null>(null);
@@ -170,7 +200,7 @@ export function SquaresBoard({ state, seat, onMove, chess }: BoardProps & { ches
           aria-pressed={picked === q.id || undefined}
           aria-label={say(q.stand === "mine" ? "web.table.cell_mine" : q.stand === "theirs" ? "web.table.cell_theirs" : "web.table.cell_free", { cell: q.id })}
           data-testid={`sq-${q.id}`}>
-          {q.stand !== "free" && <span className="tg-man" data-stand={q.stand} data-picked={picked === q.id || undefined}>{q.letter}</span>}
+          {q.stand !== "free" && <span className="tg-man" data-stand={q.stand} data-picked={picked === q.id || undefined}>{chess ? <ChessPiece letter={q.letter} stand={q.stand} /> : q.letter}</span>}
         </button>
       ))}
     </div>
@@ -230,6 +260,10 @@ export function DominoesBoard({ state, seat, onMove }: BoardProps) {
   };
   return (
     <div className="tg-dominoes" data-testid="dominoes">
+      {/* the boneyard as the prototype shows it: a small upright bar per bone left, top right (at most 7) */}
+      <span className="tg-yard" role="img" aria-label={say("app.table.draw")} data-count={typeof f.boneyard?.count === "number" ? f.boneyard.count : 0} data-testid="boneyard">
+        {Array.from({ length: yardBars(f.boneyard) }, (_, i) => <span key={i} className="tg-yard-bone" />)}
+      </span>
       <div className="tg-dline" role="list" aria-label={say("web.table.board")}>
         {v.line.map((l, i) => <span key={i} role="listitem" aria-label={l.bone}><Bone a={l.a} b={l.b} standing={l.double} testid="line-bone" /></span>)}
       </div>

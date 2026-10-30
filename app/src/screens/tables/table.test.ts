@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import type { TableView } from "../../../../depth/core/tables.ts";
 import { STICKER_IDS } from "../../../../depth/core/sticker.ts";
-import { canApply, canNudge, conStep, diceOf, movesIn, diceStep, dominoView, dotsLayout, facePair, firstAction, footOf, overBanner, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle } from "./table-logic.ts";
+import { canApply, canNudge, conStep, diceOf, footInput, menuTiles, sureStill, movesIn, diceStep, dominoView, dotsLayout, facePair, firstAction, footOf, overBanner, fourColumns, hangmanView, keyRows, pipsOf, reversiCells, squares, tapSquare, meLine, MOVE_SECONDS, moveRing, STICKER_CHIPS, tableTitle, talkLines } from "./table-logic.ts";
 
 const NOW = 1_800_000_000_000;
 const view = (over: Partial<TableView> = {}, board: Partial<NonNullable<TableView["board"]>> | null = {}): TableView => ({
@@ -199,10 +199,12 @@ test("«nudge» shows only to a player waiting on someone else's move", () => {
 });
 
 // The foot (owner 27.10.2026, «Прототип + ввод»): the players' input row with its round send button above the state's actions.
-test("the table foot: the input row with its send button sits above the state's actions", () => {
+test("the table foot: the input row with its send button sits under the stickers and the state's actions (table.html)", () => {
   const src = readFileSync(new URL("./Table.tsx", import.meta.url), "utf8");
   const foot = src.slice(src.indexOf('className="k-panel k-pad8 k-tb-foot"'));
-  assert.ok(foot.indexOf('data-testid="line-input"') >= 0 && foot.indexOf('data-testid="line-input"') < foot.indexOf('{foot === "ask"'), "Table.tsx: the input row left its place above the foot's actions");
+  // the strip is one element (const stickers) the feet place as {stickers}
+  assert.ok(foot.indexOf("{stickers}") >= 0 && foot.indexOf('data-testid="line-input"') > foot.lastIndexOf("{stickers}"), "Table.tsx: the input row is not under the sticker strip");
+  assert.ok(foot.indexOf('&& footInput(view) && (') >= 0, "Table.tsx: the input row is not gated by footInput");
   assert.match(foot, /className="k-tk-input"[^\n]*data-testid="line-input"/, "Table.tsx: the table input is not the kit's round input");
   assert.match(foot, /type="submit" className="k-tk-send"[^\n]*data-testid="line-send"/, "Table.tsx: the input row lost its send button");
 });
@@ -244,8 +246,8 @@ test("every game turn button sits in <InFoot>, and the table foot keeps the slot
 // hangman-turn: the keyboard is a tile panel, 8 keys to a row, the rows flattened into one grid.
 test("hangman keyboard: 8 tiles to a row, rows flattened", () => {
   const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
-  assert.match(css, /\.tg-hangman \.tg-keys \{[^}]*grid-template-columns: repeat\(8, minmax\(0, 1fr\)\)/, "kit.css: the hangman keys are not 8 to a row");
-  assert.match(css, /\.tg-hangman \.tg-key-row \{ display: contents; \}/, "kit.css: the key rows still break the grid");
+  assert.match(css, /\.tg-keys\[data-hang\] \{[^}]*grid-template-columns: repeat\(8, minmax\(0, 1fr\)\)/, "kit.css: the hangman keys are not 8 to a row");
+  assert.match(css, /\.tg-keys\[data-hang\] \.tg-key-row \{ display: contents; \}/, "kit.css: the key rows still break the grid");
 });
 
 // four-turn: the foot holds 7 drop tiles, one per column, in <InFoot>, laid out 7 to a row.
@@ -271,7 +273,7 @@ test("chapayev: power bar and flick tile in the foot", () => {
 // chapayev-turn: the board is checkered; the cells come row by row, so the strong ones are 16n+2,4,6,8 and 16n+9,11,13,15.
 test("chapayev board is checkered", () => {
   const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
-  const rule = css.match(/\.tg-chapayev > \.tg-pc:is\(([^{]*)\) \{ background: var\(--tile-strong\); \}/)?.[1] ?? "";
+  const rule = css.match(/\.tg-chapayev > \.tg-pc:is\(([^{]*)\) \{ background: var\(--pc-31, var\(--tile-strong\)\); \}/)?.[1] ?? "";
   const got = [...rule.matchAll(/16n\+(\d+)/g)].map((m) => Number(m[1]));
   assert.deepEqual(got, [2, 4, 6, 8, 9, 11, 13, 15], "kit.css: the chapayev cells are not checkered");
 });
@@ -283,7 +285,11 @@ test("poker: the raise is its own step behind «+», with a slider", () => {
   assert.ok(turn, "boards-poker.tsx: no turn row / bet step switch on raise === null");
   assert.ok(!turn[1].includes("raise-input"), "poker-turn shows the raise field without «+»");
   assert.ok(turn[1].includes('data-testid="raise-open"'), "poker-turn has no «+» to open the bet");
-  assert.match(turn[2], /type="range"[^\n]*data-testid="raise-input"/, "poker-bet: the raise is not a slider");
+  assert.match(src, /type="range"[^\n]*data-testid="raise-input"/, "poker-bet: the raise is not a slider");
+  // poker-bet.svg at 1920: the slider is its own panel above the foot (the under-panel), the ✕ and «raise» stay in the foot
+  const foot = /<InFoot>([^]*?)<\/InFoot>/.exec(src)?.[1] ?? "";
+  assert.doesNotMatch(foot, /tg-pk-slide/, "poker-bet: the slider is still inside the foot");
+  assert.match(src, /<div className="k-panel k-pad8 tg-pk-slide-panel"[^>]*>\s*(?:\{\/\*[^]*?\*\/\}\s*)?<label className="tg-pk-slide">/, "poker-bet: no slider panel");
   assert.ok(turn[2].includes('data-testid="raise-close"') && turn[2].includes('data-testid="raise-go"'), "poker-bet lost «×» or «raise»");
 });
 
@@ -294,9 +300,9 @@ test("solo guest card: refuse and start, in place of the players", () => {
   const card = screen.match(/<section className="k-panel k-pad8 k-tb-guest" data-testid="solo-guest">([\s\S]*?)<\/section>/)?.[1] ?? "";
   assert.match(card, /tables\.refuse\(tableId, guest\.seat,[^\n]*data-testid="guest-refuse"/, "the guest card has no «×» refusing the guest's seat");
   assert.match(card, /tables\.propose\(tableId, "rematch"\)[^\n]*data-testid="guest-start"/, "the guest card has no start pill");
-  assert.match(screen, /\{!\(soloHere && guest\) && <section className="k-panel k-pad8 k-gp-players">/, "the players still show beside the guest card");
-  assert.match(screen, /\{soloHere && soloOpen && asks && <div className="k-tb-dim" inert data-testid="solo-dim"><Solo /, "under the guest card the puzzle is gone, not pale");
-  assert.match(screen, /\{!\(soloHere && soloOpen\) && <div className="tg-panel"/, "an empty board shows under the guest card");
+  assert.match(screen, /\{!\(soloHere && \(guest \|\| soloOpen\)\) && <section className="k-panel k-pad8 k-gp-players">/, "the players still show beside the guest card");
+  assert.match(screen, /\{soloHere && soloOpen && asks && <div className="k-tb-dim" inert data-testid="solo-dim"><FootSlot\.Provider value=\{null\}><Solo /, "under the guest card the puzzle is gone, not pale");
+  assert.match(screen, /\{!soloHere && <div className="tg-panel"/, "an empty board shows under the guest card (table-wait: an empty own table draws no board)");
   const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
   for (const host of [".tg-pk-bet", ".k-tb-guest"]) assert.match(css, new RegExp(`${host.replace(".", "\\.")} > \\.k-row > \\.k-tb-key \\{ flex: none; width: 60[p]x; border-radius: 30[p]x; \\}`), `kit.css: «×» in ${host} is not a round 60 tile`);
 });
@@ -372,4 +378,116 @@ test("overBanner: the *-over banner shows the playing seats' score, and only whe
   assert.match(screen, /\{banner && \(\s*<div className="k-tb-won" role="status" data-testid="over-banner">/, "Table.tsx draws no *-over banner");
   const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
   assert.match(css, /\.k-tb-won-score > span \{[^}]*background: var\(--pc-6\); color: var\(--accent\);/, "kit.css: the score digits melt into their light chip");
+});
+
+test("the foot's input row: a player types while the round runs or waits; over, or watching, it is gone (table-over.html)", () => {
+  assert.equal(footInput(view()), true, "my move");
+  assert.equal(footInput(view({}, { turn: 2 })), true, "their move");
+  assert.equal(footInput(view({}, null)), true, "before the first round");
+  assert.equal(footInput(view({}, { over: true })), false, "the round over shows door and another round only");
+  assert.equal(footInput(view({ is_playing: false })), false, "a watcher");
+});
+
+test("the «…» menu's tiles in table-more.html's order: pass, give up, your turn, like, the door last", () => {
+  assert.deepEqual(menuTiles({ canPass: true, canResign: true, canNudge: false }), ["pass", "resign", "like", "stand"]);
+  assert.deepEqual(menuTiles({ canPass: false, canResign: true, canNudge: true }), ["resign", "nudge", "like", "stand"]);
+  assert.deepEqual(menuTiles({ canPass: false, canResign: false, canNudge: false }), ["like", "stand"], "a watcher likes or leaves");
+});
+
+test("the pass and give-up confirm asks only while the move still stands; late, it closes and sends nothing", () => {
+  assert.equal(sureStill("pass", view()), true, "my turn");
+  assert.equal(sureStill("pass", view({}, { turn: 2 })), false, "the turn passed while asking");
+  assert.equal(sureStill("resign", view({}, { turn: 2 })), true, "giving up on their turn");
+  assert.equal(sureStill("resign", view({}, { over: true })), false, "the round ended while asking: no late resign");
+  assert.equal(sureStill("pass", view({}, null)), false, "the board went");
+  assert.equal(sureStill("resign", view({ is_playing: false })), false, "stood up meanwhile");
+});
+
+test("the talk at the table (desktop-1440 table.svg): said lines and stickers, mine at the right, the last six", () => {
+  const at = (id: string, seat: number, kind: TableView["lines"][number]["kind"], more = {}) => ({ id, seat, kind, created_at: 1, ...more });
+  const lines = [at("a", 2, "line", { text: "hi" }), at("m", 1, "move"), at("p", 3, "application", { text: "me too" }), at("s", 1, "sticker", { sticker: "wow" }), at("r", 1, "refusal", { text: "no" })];
+  assert.deepEqual(talkLines(view({ lines })), [
+    { id: "a", mine: false, name: "Nino", text: "hi" },
+    { id: "s", mine: true, name: "Alex", sticker: "wow" },
+  ], "moves, applications and refusals stay out");
+  const many = Array.from({ length: 9 }, (_, i) => at(`l${i}`, 2, "line", { text: String(i) }));
+  assert.deepEqual(talkLines(view({ lines: many })).map((l) => l.text), ["3", "4", "5", "6", "7", "8"], "the last six, oldest first");
+  assert.deepEqual(talkLines(view({ lines: [at("x", 9, "line", { text: "?" })] }))[0].name, "?", "a seat gone from the table");
+});
+
+// desktop-1440 tables-full.svg: the limit note on top of the list, from the node's 429 until the hour is out.
+// desktop-1920 8-games *-turn sheets (coordinator 28.10, R-TAB16-2 item 2): under the players a round-status row — the clock,
+// the line of the move, the ring of its minutes
+test("the round-status row under the players: clock, line, ring", () => {
+  const src = readFileSync(new URL("./Table.tsx", import.meta.url), "utf8");
+  const row = /<section className="k-panel k-pad8 k-tb-status" data-testid="round-status">([^]*?)<\/section>/.exec(src)?.[1] ?? "";
+  assert.match(row, /<NdIcon name="clock" \/>/, "round-status: no clock");
+  assert.match(row, /\{line\}/, "round-status: no line of the move");
+  assert.match(row, /data-testid="status-ring"/, "round-status: no ring");
+  assert.ok(src.indexOf("k-tb-status") > src.indexOf("k-gp-players") && src.indexOf("k-tb-status") < src.indexOf("k-tb-board"), "round-status is not between the players and the board");
+});
+
+// durak-turn and poker-bet at 1920 draw a chip per playing seat: the pair first, then the rest in seat order
+test("facePair: the seats beyond the pair are the rest, in seat order; Table.tsx draws a chip for each", () => {
+  const seats = [1, 2, 3, 4].map((seat) => ({ seat, name: `p${seat}`, role: "playing" }));
+  const view = { seats, seat: 3, is_playing: true, board: { turn: 1, over: false } } as unknown as TableView;
+  const f = facePair(view);
+  assert.deepEqual([f.left?.seat, f.right?.seat, f.rest.map((s) => s.seat)], [3, 1, [2, 4]]);
+  assert.match(readFileSync(new URL("./Table.tsx", import.meta.url), "utf8"), /\{desk && rest\.map\(\(s\) => <div className="k-gp-chip" key=\{s\.seat\} data-testid=\{`face-\$\{s\.seat\}`\}/, "Table.tsx: no chip for the other seats");
+});
+
+test("the tables-full note: shown while the refusal's hour runs, gone after, silent on a broken mark", async () => {
+  const { fullUntil, fullShown, TABLES_FULL_S } = await import("./table-logic.ts");
+  const now = 1_000_000;
+  assert.equal(fullUntil(now, 120), now + 120_000, "retry-after is seconds from the refusal");
+  assert.equal(fullUntil(now, null), now + TABLES_FULL_S * 1000, "without retry-after the note keeps the hour");
+  assert.ok(fullShown(fullUntil(now), now + 1), "the note is gone right after the refusal");
+  assert.ok(!fullShown(now, now), "the note outlives its hour");
+  assert.ok(!fullShown("x", now) && !fullShown(null, now), "a broken mark shows the note");
+  const list = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
+  assert.match(list, /fullShown\([\s\S]*?data-testid="tables-full"/, "Tables.tsx: the list never says it is full");
+  const nt = readFileSync(new URL("./NewTable.tsx", import.meta.url), "utf8");
+  assert.match(nt, /made\.status === 429[\s\S]*?TABLES_FULL_KEY/, "NewTable.tsx: a 429 leaves no mark for the list");
+});
+
+// table-solo.html / desktop-1440 table-solo.svg: the puzzle is a head row (hourglass tile, the waiting words over the line,
+// the game chip that puts it away), the field, and a foot of a round «again» and a wide «next» pill; table-wait shows the
+// hourglass card in the board's place, the puzzle a small link under it.
+test("the solo puzzle and the wait follow table-solo / table-wait: head row, field, round again + wide next", () => {
+  const src = readFileSync(new URL("./solo.tsx", import.meta.url), "utf8");
+  assert.match(src, /className="k-row solo-head"[\s\S]*?<NdIcon name="hourglass" \/>[\s\S]*?data-testid="solo-close"/, "solo.tsx: no head row with the hourglass and the game chip");
+  assert.match(src, /className="k-tb-key"[^\n]*data-testid="solo-again"[\s\S]*?<NdIcon name="refresh" \/>/, "solo.tsx: «again» is not the round refresh key");
+  assert.match(src, /className="k-cta"[^\n]*data-testid="solo-next"[\s\S]*?<NdIcon name="chev" \/>/, "solo.tsx: «next» is not the wide pill with the chevron");
+  assert.doesNotMatch(src, /cta cta-quiet/, "solo.tsx: the old quiet text buttons are back");
+  const table = readFileSync(new URL("./Table.tsx", import.meta.url), "utf8");
+  assert.match(table, /data-testid="solo-wait"[\s\S]*?<NdIcon name="hourglass" \/>[\s\S]*?data-testid="solo-open"/, "Table.tsx: the wait has no hourglass card over the puzzle's link");
+});
+
+// desktop-1440 table-solo.svg: with the puzzle open the right pane is the hint over the puzzle's own foot; the players,
+// the talk, the table's foot rows and the input step aside. The foot goes through the table foot's slot (InFoot).
+test("the open puzzle's right pane: the hint, and the puzzle's foot in the table foot", () => {
+  const screen = readFileSync(new URL("./Table.tsx", import.meta.url), "utf8");
+  const solo = readFileSync(new URL("./solo.tsx", import.meta.url), "utf8");
+  assert.match(screen, /\{!\(soloHere && \(guest \|\| soloOpen\)\) && <section className="k-panel k-pad8 k-gp-players">/, "Table.tsx: the players stay beside the open puzzle");
+  assert.match(screen, /\{soloHere && \(soloOpen \|\| guest\) \? \(\s*<section className="k-panel k-tb-talk k-tb-empty" data-testid="solo-pane">\s*<span className="k-tb-hero"><NdIcon name=\{guest \? "hourglass" : "tables"\} \/>/, "Table.tsx: no hint pane in the talk's place");
+  assert.match(screen, /\{soloHere && soloOpen && !guest \? null : foot === "ask"/, "Table.tsx: the table's foot rows stay under the open puzzle");
+  assert.match(screen, /\{!\(soloHere && soloOpen && !guest\) && footInput\(view\)/, "Table.tsx: the input stays under the open puzzle");
+  assert.match(screen, /\{!\(soloHere && \(soloOpen \|\| guest\)\) && <section className="k-panel k-pad8 k-tb-status"/, "Table.tsx: the round status stays over the open puzzle's hint");
+  assert.match(solo, /<InFoot><div className="k-row solo-foot">[\s\S]*?<\/div><\/InFoot>/, "solo.tsx: the puzzle's foot is not sent to the table foot");
+});
+
+// desktop-1440 table-solo-guest.svg: the guest card over the hourglass hint, and no foot under them.
+test("the guest asking in: the guest card, the hourglass hint, no foot", () => {
+  const screen = readFileSync(new URL("./Table.tsx", import.meta.url), "utf8");
+  assert.match(screen, /\{!\(soloHere && guest\) && <section className="k-panel k-pad8 k-tb-foot"/, "Table.tsx: the table foot stays under the guest card");
+});
+
+test("at 1440+ the game foot keeps the sticker strip under the action row at desk (8-games *-turn sheets)", () => {
+  const src = readFileSync(new URL("./Table.tsx", import.meta.url), "utf8");
+  assert.match(src, /const stickers = \(/, "Table.tsx: the sticker strip is not one element the feet can share");
+  assert.match(src, /foot === "con" \? \([\s\S]*?\{stickers\}[\s\S]*?\) : foot === "apply"/, "Table.tsx: the con foot has no sticker strip under its row");
+  const kit = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
+  assert.match(kit, /\.k-tb-foot\[data-foot="con"\] > \.k-ch-quick \{ display: none; \}/, "kit.css: the con foot's strip shows on phones too");
+  const wide = readFileSync(new URL("../../../tokens/wide.css", import.meta.url), "utf8");
+  assert.match(wide, /@media \(min-width: 1440p[x]\) \{\s*\.k-tb-acts:not\(:empty\) ~ \.k-ch-quick, \.k-tb-foot\[data-foot="con"\] > \.k-ch-quick \{ display: flex; \}\s*\}/, "wide.css: at desk the strip still steps aside for the game's buttons");
 });

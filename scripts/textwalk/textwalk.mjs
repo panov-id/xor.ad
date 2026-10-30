@@ -419,7 +419,7 @@ await step("move to another device", async () => {
   await t(boris, "move-check").waitFor({ timeout: 30000 }); await look(boris, "старое устройство видит запрос");
   await t(boris, "move-yes").click(); await t(boris, "move-done").waitFor({ timeout: 30000 }); await look(boris, "старое устройство отпустило");
   await t(fresh, "arrive-pin").waitFor({ timeout: 30000 }); await look(fresh, "приезд, новый ПИН");
-  await t(fresh, "arrive-pin").fill("864209"); await t(fresh, "arrive-pin-again").fill("864209"); await t(fresh, "arrive-keep").click();
+  await t(fresh, "arrive-pin").fill("864209"); await t(fresh, "arrive-pin-again").fill("864209");   // a matching repeat keeps the PIN by itself
   await fresh.locator('[data-screen="feed"]').waitFor({ timeout: 45000 }); await look(fresh, "лента на новом устройстве");
 });
 await step("english", async () => {

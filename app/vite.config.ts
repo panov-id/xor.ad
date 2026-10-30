@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import pkg from "./package.json" with { type: "json" };
 
 // The node the page talks to. The core (depth/core/client.ts) calls the node
 // by absolute path — /identities, /feed — so the page cannot put its calls
@@ -108,12 +109,22 @@ const brand = {
     .replace("<title>sosed.place</title>", `<title>${brandName}.place</title>`),
 };
 
+// /version.json beside the built page (docs/newdesign4 screen 15, src/shell/update.ts): the version of package.json, so
+// an open tab learns a newer build is out.
+const version = {
+  name: "xor-version",
+  apply: "build" as const,
+  generateBundle(this: { emitFile: (f: { type: "asset"; fileName: string; source: string }) => void }) {
+    this.emitFile({ type: "asset", fileName: "version.json", source: JSON.stringify({ version: pkg.version }) + "\n" });
+  },
+};
+
 // A font is never inlined: font-src 'self' refuses data: URLs.
 const assetsInlineLimit = (file: string) => (/\.woff2?$/.test(file) ? false : undefined);
 
 export default defineConfig({
   build: { assetsInlineLimit },
-  plugins: [react(), csp, brand],
+  plugins: [react(), csp, brand, version],
   server: { port: 5174, proxy, fs: { allow: [".", core, platform, webLocales, inkLocales, cities] }, allowedHosts: ["host.docker.internal", "app"] },
   preview: {
     port: 4174,

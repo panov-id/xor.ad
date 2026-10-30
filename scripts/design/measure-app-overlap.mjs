@@ -11,6 +11,41 @@
 import { chromium } from "@playwright/test";
 import { writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+// R-TAB6-6: open chat keys in the shell stub (scripts/design/measure-app-overlap.mjs). The node's side of depth/core/seal.ts
+// wrapDirectionKeys: two fresh AES-256 direction keys wrapped under the session's wrap_pub (POST /identities), so the app's own
+// unwrapConversation opens the talk; and a real P-256 long key for the peers, so safetyCode has a point to read.
+const b64u = (b) => Buffer.from(b).toString("base64url");
+const ECDH = { name: "ECDH", namedCurve: "P-256" };
+export const PEER_SPKI = b64u(await crypto.subtle.exportKey("spki", (await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"])).publicKey));
+const TALK_KEYS = new Map();   // chat id → [low→high, high→low], the last wrap's (R-TAB6-7)
+export async function wrapFor(wrapPub, chatId, epoch) {
+  const fresh = await crypto.subtle.generateKey(ECDH, false, ["deriveKey"]);
+  const freshSpki = new Uint8Array(await crypto.subtle.exportKey("spki", fresh.publicKey));
+  const other = await crypto.subtle.importKey("spki", Buffer.from(wrapPub, "base64url"), ECDH, false, []);
+  const ikm = await crypto.subtle.deriveKey({ name: "ECDH", public: other }, fresh.privateKey, { name: "HKDF" }, false, ["deriveKey"]);
+  const enc = new TextEncoder();
+  const w = await crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt: enc.encode(chatId), info: enc.encode("xor.wrap.v1") }, ikm, { name: "AES-GCM", length: 256 }, false, ["wrapKey"]);
+  const parts = [freshSpki];
+  const dir = [];
+  for (const info of ["low→high", "high→low"]) {
+    const key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const box = new Uint8Array(await crypto.subtle.wrapKey("raw", key, w, { name: "AES-GCM", iv, additionalData: enc.encode(`xor.wrap.v1\n${chatId}\n${epoch}\n${info}\n`) }));
+    parts.push(iv, box);
+    dir.push(key);
+  }
+  TALK_KEYS.set(chatId, dir);
+  return b64u(Buffer.concat(parts));
+}
+// A line from the peer as depth/core/seal.ts Conversation.seal makes it: nonce ‖ AES-GCM(text, aad = the line's id), under the
+// peer's direction key (direction(peer, me): ids sorted, §8.13)
+export async function sealFrom(chatId, peer, me, text, id) {
+  const [lowHigh, highLow] = TALK_KEYS.get(chatId);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const box = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: new TextEncoder().encode(id) }, peer < me ? lowHigh : highLow, new TextEncoder().encode(text)));
+  return b64u(Buffer.concat([iv, box]));
+}
+const TALK_LINES = ["Backgammon tonight?", "The board is at mine, by the window", "Bring the dice, mine are lost"];
 
 export const DEV = process.env.DEV_URL ?? "http://localhost:5174";
 const OUT = process.env.OUT ?? "/out/measure-overlap.txt";
@@ -27,7 +62,7 @@ const tonight = () => { const d = new Date(); d.setHours(23, 0, 0, 0); return d.
 function inboxRows() {
   const now = Math.floor(Date.now() / 1000), at = (h, m) => Math.floor(Date.UTC(2026, 9, 18, h, m) / 1000);
   const offer = (id, name, age, fresh) => ({ kind: "match", id, name, age, phrase: { text: "…", mode: "alone" }, waiting_for_you: false, state: "proposed", arrived_since: fresh });
-  const keys = (peer) => ({ me: "id-stub", key_epoch: 1, rekey_requested: false, peer: { key_epoch: 1, identity_id: `id-${peer}`, identity_public_key: `pk-${peer}` } });
+  const keys = (peer) => ({ me: "id-stub", key_epoch: 1, rekey_requested: false, peer: { key_epoch: 1, identity_id: `id-${peer}`, identity_public_key: PEER_SPKI } });
   const talk = (id, name, age, left, last, more = {}) => ({ kind: "chat", id, name, age, state: "open", chat_expires_at: now + left * 60 - 5, my_span: 60, last_activity_at: last, ...keys(name.toLowerCase()), ...more });
   return [
     { ...offer("m1", "Nino", 27, true), phrase: { text: "Backgammon tonight?", mode: "alone" }, my_phrase: { text: "Bakery open after ten?", mode: "alone" } }, offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false),
@@ -44,7 +79,10 @@ export const CARDS = [
   { id: "w-choir", text: "Choir on Thursday, flat 12. Any voice!", mode: "party", lang: "en", like_count: 9 },
 ];
 const tableView = (id) => ({
-  id, class: "grid", set: "four", seat: 1, is_playing: true, playing: 2, watching: 0, name: "Evening at the yard", like_count: 0, lines: [],
+  id, class: "grid", set: "four", seat: 1, is_playing: true, playing: 2, watching: 0, name: "Evening at the yard", like_count: 0, lines: [ // R-TAB16-2 item 3: the talk at the table shows on the 1440+ sheets
+    { id: "l1", seat: 2, kind: "line", text: "Good evening! Ready?", created_at: 1 },
+    { id: "l2", seat: 1, kind: "line", text: "Ready, your move", created_at: 2 },
+    { id: "l3", seat: 2, kind: "sticker", sticker: "hi", created_at: 3 }],
   seats: [{ seat: 1, name: "Alex", role: "playing" }, { seat: 2, name: "Nino", role: "playing" }],
   board: { seq: 7, state: { grid: { cells: Object.fromEntries(Object.entries(FOUR).map(([c, seat]) => [c, { seat, piece: "O" }])), claim: null, rules: "four" } }, turn: 1, score: {}, expires_at: Math.floor(Date.now() / 1000) + 100, pending: null },
 });
@@ -60,6 +98,17 @@ export function nodeStub(opts = {}) {
       const real = crypto.getRandomValues.bind(crypto); let used = false;
       crypto.getRandomValues = (a) => { if (!used && a instanceof Uint8Array && a.length === 16) { used = true; for (let i = 0; i < 16; i++) a[i] = alphabet.indexOf(want[i]); return a; } return real(a); };
       try { localStorage.setItem("place.v1", JSON.stringify({ lat: 41.69, lon: 44.8, name: "Sololaki" })); } catch {}
+    });
+    // R-TAB6-7: the talk's room (client.openRoomWith, ws /chat): the peer's lines, sealed, for the chat whose ticket was asked last
+    await ctx.routeWebSocket(/\/chat(\?|$)/, async (ws) => {
+      const chat = s.roomChat, row = inboxRows().find((r) => r.id === chat);
+      for (let i = 0; i < 50 && !TALK_KEYS.has(chat); i++) await new Promise((r) => setTimeout(r, 100));   // the wrap is asked beside the ticket
+      if (!row || !TALK_KEYS.has(chat)) return;
+      let seq = 0;
+      for (const [n, text] of TALK_LINES.entries()) {
+        const id = `${chat}-l${n}`;
+        ws.send(JSON.stringify({ type: "message", seq: ++seq, data: { id, ciphertext: await sealFrom(chat, row.peer.identity_id, row.me, text, id), created_at: Math.floor(Date.now() / 1000) - 600 + n * 60 } }));
+      }
     });
     await ctx.route("**/*", async (route) => {
       const req = route.request(), u = new URL(req.url());
@@ -78,7 +127,7 @@ export function nodeStub(opts = {}) {
       }
       if (key === "GET /legal/manifest") return json(200, { documents: DOCS });
       if (key === "POST /legal/accept") return json(200, {});
-      if (key === "POST /identities") { s.share = body().share; s.pinAuth = null; return json(200, { identity_id: "id-stub", session_id: "sess-stub" }); }
+      if (key === "POST /identities") { s.share = body().share; s.wrapPub = body().wrap_pub; s.pinAuth = null; return json(200, { identity_id: "id-stub", session_id: "sess-stub" }); }
       if (key === "POST /vault/share") { const auth = body().auth; if (s.pinAuth === null) { s.pinAuth = auth; return json(200, { share: s.share }); } return auth === s.pinAuth ? json(200, { share: s.share }) : json(409, { error: { code: "pin_mismatch", attempts_left: 9 } }); }
       if (key === "GET /feed") { if (s.feedDelay) await new Promise((r) => setTimeout(r, s.feedDelay)); return json(200, { items: CARDS, next: null }); }
       if (key === "POST /feed") return json(200, { state: "published", id: "w-new" });
@@ -88,15 +137,47 @@ export function nodeStub(opts = {}) {
       if (/^POST \/feed\/[^/]+\/like$/.test(key)) return json(200, s.likeMatched ? { state: "matched", match_id: "m1" } : {});
       if (key === "POST /hidden") return json(200, { id: "h-1" });
       // w4_hidden, w4_blocked: what I hid and whom I blocked; a return or a lift answers 204 as the node does (SEC-14)
-      if (key === "GET /hidden") return json(200, [{ id: "h-1", kind: "phrase", text: "Lost a grey cat near the bakery — Barsik" }, { id: "h-2", kind: "phrase", text: "Power out on Asatiani again?" }]);
+      if (key === "GET /hidden") return json(200, [{ id: "h-1", kind: "phrase", text: "Lost a grey cat near the bakery — Barsik" }, { id: "h-2", kind: "phrase", text: "Power out on Asatiani again?" }, { id: "h-3", kind: "phrase", text: "Who walks a dog at six?" }, { id: "h-4", kind: "phrase", text: "Free chairs by the entrance" }]);
       if (key === "GET /blocks") return json(200, [{ id: "b-1", since: Math.floor(Date.UTC(2026, 9, 9, 12) / 1000) }]);
       if (/^DELETE \/(hidden|blocks)\/[^/]+$/.test(key)) return route.fulfill({ status: 204 });
       if (key === "POST /recovery/confirm") return route.fulfill({ status: 204 });
+      // step away (client.stepAway): the node answers the moment it ends (R-TAB5-3, away at 1440)
+      // R-TAB8-2: the move as the relay node keeps it (transfer.ts): invite -> waiting; a claim from the other device
+      // (its own page on this stub) leaves its sealed envelope -> claimed; approve -> approved; reject -> rejected
+      if (key === "POST /sessions/invite") { s.move = { id: body().lookup_id, state: "waiting", envelope: null }; return json(200, { expires_in: 120 }); }
+      if (key === "POST /sessions/claim") { const b = body(); if (!s.move || s.move.id !== b.lookup_id) return json(404, { error: { code: "not_found" } }); s.move.state = "claimed"; s.move.envelope = b.envelope; return json(200, {}); }
+      if (req.method() === "GET" && /^\/sessions\/[^/]+$/.test(u.pathname)) return s.move ? json(200, { state: s.move.state, ...(s.move.envelope ? { claim_envelope: s.move.envelope } : {}) }) : json(404, { error: { code: "not_found" } });
+      if (/^\/sessions\/[^/]+\/approve$/.test(u.pathname)) { if (s.move) s.move.state = "approved"; return json(200, { state: "approved" }); }
+      if (/^\/sessions\/[^/]+\/reject$/.test(u.pathname)) { if (s.move) s.move.state = "rejected"; return json(200, {}); }
+      if (key === "DELETE /away") return route.fulfill({ status: 204 });
+      if (key === "POST /away") return json(200, { until: Math.floor(Date.now() / 1000) + 3600 });
       if (key === "GET /identities/me") return json(200, { identity_id: "id-stub", name: "Alex", name_state: "accepted", age: 32, phrases: [], filter_age_min: 25, filter_age_max: 35 });
       if (key === "GET /statements") return json(200, { items: [{ id: "st1", restriction: "hidden", facts: "Your phrase was hidden because it names a person.", ground_kind: "contractual", ground_text: "Community guidelines, section 3", automated_used: false, created_at: Math.floor(Date.now() / 1000) - 3600 }] });
       if (key === "GET /inbox") return json(200, { items: inboxRows(), events: {} });
       if (key === "GET /likes") return json(200, { items: [{ id: "w-bg", text: "Backgammon in the yard tonight?", like_count: 12, state: "liked", liked_at: Math.floor(Date.now() / 1000) - 600 }, { id: "w-cat", text: "Lost a grey cat near the bakery — Barsik", like_count: 1, state: "matched", liked_at: Math.floor(Date.now() / 1000) - 7200 }], next: null });
       if (key === "GET /limits") return json(200, { phrase_length: 128, chat_ciphertext_chars: 8000 });
+      // R-TAB6-6: a talk's keys open (the wrap is made under this session's wrap_pub, as the peer's device would); the rest of /chats stays down
+      const ck = /^\/chats\/([^/]+)\/keys$/.exec(u.pathname);
+      if (ck && req.method() === "GET" && ck[1] === "c2") return json(404, { error: { code: "no_wrap" } });   // Levan: this device holds no keys (chat-keys)
+      if (ck && req.method() === "GET" && s.wrapPub) return json(200, { epoch: 1, current_epoch: 1, wrapped_key: await wrapFor(s.wrapPub, decodeURIComponent(ck[1]), 1) });
+      if (ck && req.method() === "PUT") return json(200, {});
+      const cx = /^\/chats\/([^/]+)\/(ticket|messages|received)$/.exec(u.pathname);
+      if (cx && req.method() === "POST" && cx[2] === "ticket") { s.roomChat = decodeURIComponent(cx[1]); return json(200, { ticket: `t-${s.roomChat}` }); }
+      if (cx && req.method() === "POST" && cx[2] === "messages") return json(202, { local_id: body().local_id ?? "l-1", accepted: true });   // the node takes a line with 202 (keys.ts flush)
+      if (cx && req.method() === "POST" && cx[2] === "received") return route.fulfill({ status: 204 });
+      // R-TAB6-8: a chat's game (depth/core/chat_games.ts). Mariam (c3) has a four-in-a-row board under way, my turn (the sheet's
+      // w3_chat-game position); elsewhere none until proposed, then my proposal waits for the peer
+      const gm = /^\/chats\/([^/]+)\/game(\/answer)?$/.exec(u.pathname);
+      if (gm) {
+        const chat = decodeURIComponent(gm[1]);
+        s.games ??= { c3: { class: "grid", set: "four", your_seat: 2, pending: null, board: { seq: 9, turn: 2, score: {}, expires_at: null,
+          state: { grid: { claim: null, rules: "four", cells: Object.fromEntries(Object.entries({ d4: 1, d3: 2, e3: 1, c2: 2, d2: 1, e2: 2, b1: 2, c1: 1, d1: 2, e1: 2 }).map(([id, seat]) => [id, { seat, piece: "O" }])) } } } },
+          c1: { class: "grid", set: "chess", your_seat: 2, board: null, pending: { id: "p-c1", kind: "game", class: "grid", set: "chess", mine: false } } };   // Nino offers chess (chat-game-offer)
+        if (gm[2]) { const b = body(); if (b.answer === "decline") delete s.games[chat]; return route.fulfill({ status: 204 }); }   // the peer's offer answered
+        if (req.method() === "POST") { const b = body(); s.games[chat] = { class: b.class, set: b.set, your_seat: 1, board: null, pending: { id: `p-${chat}`, kind: "game", class: b.class, set: b.set, mine: true } }; return route.fulfill({ status: 204 }); }
+        if (req.method() === "DELETE") { delete s.games[chat]; return route.fulfill({ status: 204 }); }
+        return s.games[chat] ? json(200, s.games[chat]) : json(404, { error: { code: "no_game" } });
+      }
       if (u.pathname.startsWith("/chats/")) return json(503, { error: "unavailable" });
       if (/^POST \/matches\/[^/]+\/consent$/.test(key)) return json(200, { state: "waiting" });
       if (key === "GET /tables") return json(200, { items: [1, 2, 3].map((n) => ({ id: `t${n}`, game: "grid", set: "four", playing: 2, free_seats: n === 3 ? 1 : 0, watching: n - 1, like_count: n, name: ["Evening at the yard", "Four in a row", "Late game"][n - 1] })), next: null, mine: [{ id: "t1", game: "grid", set: "four", playing: 2, free_seats: 0, watching: 0, like_count: 0, name: "Evening at the yard" }] });

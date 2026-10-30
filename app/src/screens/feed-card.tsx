@@ -12,6 +12,9 @@ import { blockMark, chat, chevronLeft, chevronRight, ellipsis, eyeOff, flag, han
 import { useLayers } from "../shell/layers";
 import { type Tab, TabBar } from "../shell/TabBar";
 import { NdIcon } from "../shell/NdIcon";
+import { useMinWidth } from "../shell/useMinWidth";
+import { Offer } from "./Offer";
+import { InPane } from "./me/parts";
 import { lineOf } from "./tables/table-row";
 import { gameOfTable } from "@sdk/new_table.ts";
 import { type FeedCard, langOf, type LikeOutcome, offerLabel, peerName, textSize, type Tone } from "./feed-logic";
@@ -61,7 +64,7 @@ export function Tile({ card, tone, busy, onOpen, onLike, testid = "card" }: { ca
         : <span className="k-badge" data-c={TONE_COLOUR[tone]} aria-hidden="true"><NdIcon name={MODE_ICON[card.mode] ?? "phrase"} /></span>}
       <button type="button" className="k-words" data-testid="card-open" onClick={onOpen} lang={langOf(card.lang)} data-size={textSize(card.text)}>{card.text}</button>
       <div className="k-foot">
-        <span className="k-meta" data-testid="mode">{modeWord(card.mode)}{card.liked ? ` · ${say("app.feed.you_too")}` : ""}</span>
+        <span className="k-meta" data-testid="mode">{modeWord(card.mode)}{card.liked ? ` · ${say("app.feed.you_too")}` : ""}{card.farther_than_asked ? ` · ${say("app.feed.farther")}` : ""}</span>
         <button type="button" className="k-round" aria-label={say("web.card.like")} aria-pressed={card.liked === true} disabled={busy || card.liked === true}
           onClick={onLike} data-testid="tile-like" data-lit={card.liked ? "" : undefined}><NdIcon name={card.liked ? "imin" : "imin-off"} /></button>
       </div>
@@ -84,7 +87,7 @@ export function TableTile({ card, onOpen }: { card: FeedCard; onOpen?: () => voi
 }
 
 /** The card full-screen over the feed: back, the phrase large, three rows, «I'm in». */
-export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, onTalk, onBack, onGone, onLike }: {
+export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, onTalk, onBack, onGone, onLike, onUnlike, needPhrase = false, onSay }: {
   client: Client;
   card: FeedCard;
   tone: Tone;
@@ -97,7 +100,17 @@ export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, o
   onBack: () => void;
   onGone: (why: "hidden" | "blocked", id: string, handle?: string) => void;
   onLike: (card: FeedCard) => Promise<LikeOutcome>;
+  /** card-in «Take back»: true once the node took the like back. */
+  onUnlike?: (card: FeedCard) => Promise<boolean>;
+  /** card-need: no live phrase of one's own, so «I'm in» would be refused; the card offers to say one first. */
+  needPhrase?: boolean;
+  onSay?: () => void;
 }) {
+  // desktop 3-nearby card.svg: in the feed's right pane, the feed stays
+  const desk = useMinWidth("--bp-desktop");
+  // offer-exit.svg: the offer's own link opens its exit (Offer.tsx) in place of the card; the code as the web reads it (web useCard.ts)
+  const [exit, setExit] = useState<string | null>(null);
+  const link = card.offer?.redirect && !card.offer.redirect_disabled ? card.offer.redirect.split("/o/").pop()?.split("/")[0] ?? null : null;
   const { open } = useLayers();
   const [outcome, setOutcome] = useState<LikeOutcome | null>(null);
   const [busy, setBusy] = useState(false);
@@ -117,11 +130,23 @@ export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, o
     setBusy(true);
     try { setOutcome(await onLike(card)); } finally { setBusy(false); }
   }
+  async function unlike() {
+    if (!onUnlike) return;
+    setBusy(true);
+    try { if (await onUnlike(card)) setOutcome(null); } finally { setBusy(false); }
+  }
+  // card-need: not liked, not matched, and no phrase of one's own alive
+  const need = needPhrase && !lit && !matched && !card.offer;
   const count = card.like_count + (lit && !card.liked ? 1 : 0);
   // the prototype's card (docs/newdesign/proto/card.html, card-in): the bar with back and «…», the phrase's panel, three
   // facts as tiles, and the action panel at the foot
+  if (exit) {
+    const page = <Offer code={exit} client={client} onBack={() => setExit(null)} />;
+    // at the desktop the exit stands in the card's pane, as Me's sub-pages do (offer-exit.svg)
+    return desk ? <div className="k-me-pane" data-testid="offer-pane"><InPane.Provider value={true}>{page}</InPane.Provider></div> : page;
+  }
   return (
-    <main className="k-screen k-over" data-screen="card" data-id={card.id}>
+    <main className={desk ? "k-screen k-card-pane" : "k-screen k-over"} data-screen="card" data-id={card.id}>
       <div className="k-col">
         <header className="k-row k-bar">
           <button type="button" className="k-bar-btn" aria-label={say("common.back")} onClick={onBack} data-testid="back"><NdIcon name="back" /></button>
@@ -138,8 +163,10 @@ export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, o
             ? <span className="k-badge-white k-corner" data-testid="offer"><NdIcon name="offer" /><span className="k-offer">{offerLabel(card.offer.discount_value)}</span></span>
             : <span className="k-badge k-badge-card" data-c="2" aria-hidden="true"><NdIcon name={MODE_ICON[card.mode] ?? "phrase"} /></span>}
           <p className="k-card-text" data-testid="text" lang={langOf(card.lang)} data-size={textSize(card.text)}>{card.text}</p>
+          {card.offer?.venue_name && <span className="k-chip" data-testid="offer-venue">{card.offer.venue_name}</span>}
           {card.offer?.conditions && <p className="k-sub" data-testid="conditions">{say("web.card.conditions", { conditions: card.offer.conditions })}</p>}
           {matched && <p className="k-note" data-testid="matched" role="status"><NdIcon name="both" /><span><b>{say("app.card.matched_title")}</b> {peer ? say("app.card.matched_body", { name: peer }) : say("app.card.matched_body_anon")}</span></p>}
+          {need && <p className="k-note" role="status" data-testid="need-phrase"><NdIcon name="phrase" /><span>{say("app.card.need")}</span></p>}
           {line && !matched && <p className="k-note" role="status" data-testid="like-line" data-state={outcome?.state}>{line}</p>}
         </section>
         <div className="k-facts">
@@ -147,11 +174,18 @@ export function CardScreen({ client, card, tone, more = [], onOpenMore, onTab, o
           <div className="k-fact"><span className="k-badge" data-c="2"><NdIcon name="talks" /></span><span>{language ?? "—"}</span></div>
           <div className="k-fact" data-on={lit ? "" : undefined}><span className="k-badge" data-c="3"><NdIcon name={lit ? "imin" : "imin-off"} /></span><span>{say("app.feed.in_n", { n: count })}{card.soon ? say("web.card.soon") : ""}</span></div>
         </div>
-        <section className="k-panel k-actions">
+        <section className={link ? "k-panel k-actions k-row" : "k-panel k-actions"}>
+          {link && <button type="button" className="k-bar-btn" aria-label={say("app.offer.leaving")} onClick={() => setExit(link)} data-testid="offer-link"><NdIcon name="link" /></button>}
           {matched
             ? <button type="button" className="k-cta" onClick={onTalk} data-testid="talk"><NdIcon name="talks" /><span>{label("web.match.talk")}</span></button>
             : lit
-              ? <button type="button" className="k-cta" data-outline="" disabled aria-disabled="true" data-testid="like" data-lit=""><NdIcon name="imin" /><span>{say("app.feed.you_too")}</span></button>
+              // card-in: «you're here» as an outline pill and the round «Take back» beside it
+              ? <div className="k-row k-take">
+                  <button type="button" className="k-cta" data-outline="" disabled aria-disabled="true" data-testid="like" data-lit=""><NdIcon name="imin" /><span>{say("app.feed.you_too")}</span></button>
+                  {onUnlike && <button type="button" className="k-round" aria-label={say("app.card.take_back")} disabled={busy} onClick={() => void unlike()} data-testid="unlike"><NdIcon name="close" /></button>}
+                </div>
+              : need && onSay
+                ? <button type="button" className="k-cta" onClick={onSay} data-testid="need-say"><NdIcon name="write" /><span>{say("app.card.need_say")}</span></button>
               : <button type="button" className="k-cta" disabled={busy} aria-disabled={busy} onClick={() => void like()} data-testid="like"><NdIcon name="imin" /><span>{say("app.feed.im_in")}</span></button>}
         </section>
         {more.length > 0 && (

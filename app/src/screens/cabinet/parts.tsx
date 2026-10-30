@@ -43,9 +43,10 @@ export function Strip({ onHome, current, path, tabs }: { onHome?: () => void; cu
 }
 
 /** One cabinet screen: the header panel, then the title and what the screen holds, then the primary on the action panel. */
-export function Frame({ name, title, strip, foot, children }: { name: string; title: string; strip: ReactNode; foot?: ReactNode; children: ReactNode }) {
+export function Frame({ name, title, strip, foot, scene, children }: { name: string; title: string; strip: ReactNode; foot?: ReactNode; scene?: ReactNode; children: ReactNode }) {
   return (
     <Screen name={name} title={title} className="k-screen">
+      {scene}
       <div className="k-col">
         {strip}
         <section className="k-panel k-grow k-reg">

@@ -154,3 +154,30 @@ test("only a person's look marks the chats list seen, never the node's signal", 
   assert.equal(marksSeen("signal", true), false, "the node's signal marks rows seen: «new» goes out with nobody looking");
   assert.equal(marksSeen("open", false), false, "the desktop pane (mark off) marks the list seen");
 });
+
+test("offer: one quote card, theirs (offer.svg at 390, 1440 and 1920 draws a single phrase)", () => {
+  const screen = readFileSync(new URL("./Match.tsx", import.meta.url), "utf8");
+  assert.equal(screen.match(/k-tk-quote/g)?.length ?? 0, 1, "the offer shows more than one phrase card");
+  assert.doesNotMatch(screen, /my_phrase/, "my own phrase is back on the offer");
+});
+
+test("offer.html: the phrase card has the mode's badge, the hour's ring and a round «talk» at its foot", () => {
+  const screen = readFileSync(new URL("./Match.tsx", import.meta.url), "utf8");
+  const card = screen.slice(screen.indexOf('<article className="k-tile k-tk-quote"'), screen.indexOf("</article>"));
+  assert.match(card, /className="k-badge"[^>]*data-testid="match-mode"/, "Match.tsx: the phrase card has no mode badge in its corner");
+  assert.match(card, /<svg className="k-tk-ring"[^>]*data-testid="match-ring"/, "Match.tsx: the phrase card has no time ring");
+  assert.match(card, /className="k-round"[^>]*onClick=\{talk\}[^>]*data-testid="match-talk"/, "Match.tsx: the phrase card has no round «talk» at its foot");
+});
+
+// desktop-1440 and desktop-1920 5-talks chat.svg (TAB23): the chat in the pane has the round back left of the person's pill; back empties the pane
+test("the chat's bar has its back in the pane too", () => {
+  const src = readFileSync(new URL("../Chat.tsx", import.meta.url), "utf8");
+  assert.match(src, /\n {6}<button type="button" className="k-bar-btn" aria-label=\{backLabel\} onClick=\{onBack\} data-testid=\{own \? "chat-back" : undefined\}>/, "the chat in the pane has no back");
+});
+
+// desktop-1440/1920 5-talks/chat-game-board.svg (R-TAB23-1): one head across the board and the talk — the board's head reaches over the talk's pane, the talk's own head is hidden while the board is up
+test("the board's head spans the board and the talk at desk", () => {
+  const css = readFileSync(new URL("../../../tokens/wide.css", import.meta.url), "utf8");
+  assert.match(css, /\.k-ch-stage\[data-on\] > \[data-testid="chat-game"\] > \.k-bar \{[^}]*width: calc\(100% \+ var\(--sp-2\) \+ var\(--nd-gap\) \+ var\(--pane-w\)\)/, "the board's head does not reach over the talk");
+  assert.match(css, /\.k-screen:has\(\.k-ch-stage\[data-on\]\) \.k-ch-pane > \.k-col > \.k-bar \{ visibility: hidden;/, "the talk keeps its own head beside the board");
+});

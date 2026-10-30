@@ -7,6 +7,7 @@
 #   scripts/flow/crowd.sh
 #   SLOW=1 scripts/flow/crowd.sh          ~2 s between steps, to watch from your own browser
 #   PEOPLE=4 scripts/flow/crowd.sh        fewer people
+#   ONLY=feed,talk scripts/flow/crowd.sh  just those blocks (feed talk games me cabinet); register and place always
 #   PANEL_ONLY=1 scripts/flow/crowd.sh    the panel walk alone (panel-summary.txt)
 set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -22,7 +23,7 @@ if [ "${PANEL_ONLY:-0}" != 1 ]; then
   # Chromium drops a page's modules on every such change (net::ERR_NETWORK_CHANGED, a blank screen). There the app is
   # the same localhost:5174 and nothing else moves.
   docker run --rm --network "container:${APP_CONTAINER:-xor-local-app}" -u "$(id -u):$(id -g)" -e HOME=/tmp -e APP_URL="$app" -e OUT=/out \
-    -e SLOW="${SLOW:-0}" -e PEOPLE="${PEOPLE:-10}" \
+    -e SLOW="${SLOW:-0}" -e PEOPLE="${PEOPLE:-10}" -e ONLY="${ONLY:-}" \
     -v "$out":/out -v "$root/scripts/flow/crowd.mjs":/tests/crowd.mjs:ro -w /tests --entrypoint node panel-tests-runner:latest /tests/crowd.mjs
   rc=$?
   echo "crowd: $out/summary.txt"

@@ -2,7 +2,7 @@
 // platform's changePinAndReseal (depth/web-platform/vault_keep.ts): the old PIN proved, the PIN changed, the vault
 // sealed again under the new one, so the next reload opens with it. Testids: pin-current, pin-next, pin-again,
 // pin-go, error (the web's).
-import { useId, useState } from "react";
+import { useId, useState, useEffect } from "react";
 import type { Client } from "@sdk/client.ts";
 import { pinRefusal } from "@sdk/pin_gate.ts";
 import { pinDigits, PIN_LENGTH, pinsDiffer, pinsMatch } from "@sdk/register.ts";
@@ -45,15 +45,12 @@ export function ChangePin({ client, onDone, onBack }: { client: Client; onDone: 
   // fields stay in the page (the active one is the dots, the others are read by a screen reader and still typeable)
   const active: Which = v.current.length < PIN_LENGTH ? "current" : v.next.length < PIN_LENGTH ? "next" : "again";
   const at = ROWS.findIndex(([which]) => which === active);
+  // change-pin.svg: no Save button, the sixth digit of the repeat saves
+  useEffect(() => { if (ready) void send(); }, [v.again]);
   const press = (k: string) => setV((was) => ({ ...was, [active]: pressed(was[active], k) }));
   return (
     <SubPage name="change-pin" title={say("app.pin.title")} onBack={onBack} panelClass="k-me-pin"
-      steps={{ n: at + 1, of: ROWS.length, words: say(ROWS[at]![1]) }}
-      foot={
-        <button type="button" className="cta cta-primary" aria-disabled={ready ? undefined : true} aria-busy={busy || undefined} onClick={() => void send()} data-testid="pin-go">
-          <Icon d={check} /><span>{busy ? say("web.unlock.asking") : say("app.pin.save")}</span>
-        </button>
-      }>
+      steps={{ n: at + 1, of: ROWS.length, words: say(ROWS[at]![1]) }}>
       <NdIcon name="pin" className="k-big-icon k-mid" />
       {ROWS.map(([which, key, testid]) => (
         <div className={which === active ? "k-field-wrap k-me-dots" : "k-field-wrap k-sr"} key={which}>

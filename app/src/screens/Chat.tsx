@@ -64,7 +64,8 @@ const STRIP: ReadonlyArray<{ id: string; icon: string }> = [{ id: "hi", icon: "w
 
 /** `frame`: a screen of its own (the phone, /chat), or a pane beside the talks' list (the tablet and up: tablet_834_Talks), a
  * <section> inside the inbox's screen, without its own back. */
-export function ChatPane({ view, now, actions, game, frame = "screen" }: { view: ChatView; now: number; actions: ChatActions; game?: ReactNode; frame?: "screen" | "pane" }) {
+/** `menu`: the «…» sheet, drawn in the frame's overlay so a pane keeps it inside (desktop-1440 5-talks/chat-more.svg). */
+export function ChatPane({ view, now, actions, game, menu, frame = "screen" }: { view: ChatView; now: number; actions: ChatActions; game?: ReactNode; menu?: ReactNode; frame?: "screen" | "pane" }) {
   const [text, setText] = useState("");
   const { row, over } = view;
   const line = headerLine(view, now);
@@ -99,7 +100,7 @@ export function ChatPane({ view, now, actions, game, frame = "screen" }: { view:
   // the bar: back, the person's pill (face, name and what is left, the ring), «…»; `own` is the conversation's (its testids), the game's screen draws it again
   const bar = (onBack: () => void, backLabel: string, own: boolean): ReactNode => (
     <header className="k-row k-bar">
-      {(frame === "screen" || !own) && <button type="button" className="k-bar-btn" aria-label={backLabel} onClick={onBack} data-testid={own ? "chat-back" : undefined}><NdIcon name="back" /></button>}
+      <button type="button" className="k-bar-btn" aria-label={backLabel} onClick={onBack} data-testid={own ? "chat-back" : undefined}><NdIcon name="back" /></button>
       <div className="k-bar-title k-ch-who">
         <span className="k-ch-ava" aria-hidden="true"><NdIcon name="me" /></span>
         <div className="k-stack k-ch-name">
@@ -119,7 +120,7 @@ export function ChatPane({ view, now, actions, game, frame = "screen" }: { view:
   return (
     <OverlayCtx.Provider value={{ el: overEl, bar }}>
     <Frame frame={frame} title={row.name} over={over} keys={view.keysState} id={row.id}
-      overlay={<div className="k-ch-over" ref={setOverEl}>{view.safety !== null && <SafetyScreen code={view.safety} onBack={actions.onSafetyBack} />}</div>}>
+      overlay={<div className="k-ch-over" ref={setOverEl}>{view.safety !== null && <SafetyScreen code={view.safety} onBack={actions.onSafetyBack} />}{menu}</div>}>
       {bar(actions.onBack, say("common.back"), true)}
       {over ? (
         <>
@@ -222,17 +223,7 @@ export function Chat({ client, keys, row, onBack, frame = "screen" }: { client: 
   const safety = () => session.setSafety(keys.safetyCodeOf(row.id) ?? say("web.chat.keys_not_open"));
   return (
     <>
-      <ChatPane view={view} now={now} frame={frame} game={view.gameOpen ? <ChatGame client={client} chatId={row.id} bump={view.gameBump} peer={row.name} onHide={() => session.setGameOpen(false)} /> : undefined} actions={{
-        onBack,
-        onSend: (line) => session.send(line),
-        onResend: (id) => void session.resend(id),
-        onMore: openMenu,
-        onSafety: safety,
-        onGame: () => session.setGameOpen(true),
-        onRekey: () => void session.rekey(view.askedByPeer ? "agree" : "ask"),
-        onSafetyBack: () => session.setSafety(null),
-      }} />
-      {menu && !view.over && (
+      <ChatPane view={view} now={now} frame={frame} menu={menu && !view.over ? (
         <ChatMenu span={view.span} busy={view.busy} waitingForPeer={view.waitingForPeer} actions={{
           onClose: closeMenu,
           onSpan: (span) => void session.changeSpan(span),
@@ -242,7 +233,16 @@ export function Chat({ client, keys, row, onBack, frame = "screen" }: { client: 
           onEnd: () => { closeMenu(); void session.endChat(); },
           onBlock: () => { closeMenu(); void session.block(); },
         }} />
-      )}
+      ) : undefined} game={view.gameOpen ? <ChatGame client={client} chatId={row.id} bump={view.gameBump} peer={row.name} onHide={() => session.setGameOpen(false)} /> : undefined} actions={{
+        onBack,
+        onSend: (line) => session.send(line),
+        onResend: (id) => void session.resend(id),
+        onMore: openMenu,
+        onSafety: safety,
+        onGame: () => session.setGameOpen(true),
+        onRekey: () => void session.rekey(view.askedByPeer ? "agree" : "ask"),
+        onSafetyBack: () => session.setSafety(null),
+      }} />
     </>
   );
 }

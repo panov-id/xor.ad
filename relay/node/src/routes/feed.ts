@@ -25,9 +25,17 @@ import { callerOf, refuse } from "../lib/identity_guard.ts";
 import { legalGate } from "../lib/legal.ts";
 import { checkAll, FEED_DENSITY_LIMITS, FEED_READ_LIMITS } from "../lib/rate_limit.ts";
 import { sunsetHeader } from "../lib/identity_auth.ts";
-import { livePhraseOf, refusalFor } from "../lib/feed_limits.ts";
+import { LIVE_LOST, livePhraseOf, refusalFor, type SendKind } from "../lib/feed_limits.ts";
 import { judge } from "../lib/moderator.ts";
-import { publishPhrase, reasonsFor, refusePhrase, type RuleReason } from "../lib/feed_verdict.ts";
+import {
+  EXTEND_MAX,
+  EXTEND_SPAN,
+  FOUND_SPAN,
+  publishPhrase,
+  reasonsFor,
+  refusePhrase,
+  type RuleReason,
+} from "../lib/feed_verdict.ts";
 import { band, boundingBox, metresBetween, quantise } from "../lib/feed_geo.ts";
 import { brandByKey } from "../lib/brand_registry.ts";
 import { query } from "../lib/db.ts";
@@ -41,6 +49,10 @@ const TEXT_MAX_GRAPHEMES = 128;
 const TEXT_MAX_BYTES = 2048;
 const RADII = [100, 300, 1000, 3000, 10000];
 const MODES = ["alone", "company", "party"];
+// What a send may be (db/089): a phrase, or a lost. A 'found' is made from a
+// live lost by its author (POST /feed/:id/found), and a send naming it is
+// refused like any kind nobody named.
+const SEND_KINDS: readonly SendKind[] = ["phrase", "lost"];
 
 const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 const countGraphemes = (text: string): number => [...graphemes.segment(text)].length;
@@ -54,6 +66,7 @@ interface FeedBody {
   discount_value?: unknown;
   conditions?: unknown;
   lang?: unknown;
+  kind?: unknown;
 }
 
 // The languages a face speaks (depth/ink/strings.ts LANGUAGES, web/src/locales):
@@ -113,6 +126,12 @@ async function publish(req: Request): Promise<Response> {
   }
   const discount = typeof body.discount_value === "string" ? body.discount_value.slice(0, 200) : null;
   const conditions = typeof body.conditions === "string" ? body.conditions.slice(0, 500) : null;
+  // Absent means a phrase, as every send before db/089 was. Anything else
+  // must be one of SEND_KINDS — 'found' included in "anything else".
+  if (body.kind !== undefined && (typeof body.kind !== "string" || !SEND_KINDS.includes(body.kind as SendKind))) {
+    return refuse("invalid_body", `kind must be one of ${SEND_KINDS.join(", ")}`, 400);
+  }
+  const kind: SendKind = body.kind === undefined ? "phrase" : body.kind as SendKind;
 
   const id = crypto.randomUUID();
   const published = quantise({ lat: body.lat, lon: body.lon }, body.area_radius);
@@ -124,7 +143,7 @@ async function publish(req: Request): Promise<Response> {
     // The row is locked before anything is read, because the moments are
     // written at the verdict and two parallel sends otherwise both pass the
     // ceiling before either verdict lands (§8.3, review panel 2026-09-14).
-    const refusal = await refusalFor(run, caller.identityId);
+    const refusal = await refusalFor(run, caller.identityId, new Date(), kind);
     // After the counters row's lock refusalFor took: a close or a time away
     // that held it has committed by now (lib/take_down.ts).
     const gone = await stillHere(run, caller.identityId, caller.sessionId);
@@ -153,6 +172,10 @@ async function publish(req: Request): Promise<Response> {
           }, { "retry-after": String(seconds(refusal.nextSlot)) });
         case "live":
           return refuse("refused", "four live phrases already", 409, { live: refusal.live });
+        case "lost":
+          // The one lost slot (db/089): mark the first one found, or wait
+          // for its term, before the next.
+          return refuse("refused", "one lost notice at a time", 409, { live_lost: refusal.live });
       }
     }
 
@@ -168,8 +191,8 @@ async function publish(req: Request): Promise<Response> {
       // anything the answer did not already carry (db/027).
       `INSERT INTO feed_messages
          (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
-          lat_published, lon_published, discount_value, conditions)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+          lat_published, lon_published, discount_value, conditions, kind)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
         id,
         caller.brand ?? "unattributed",
@@ -184,6 +207,7 @@ async function publish(req: Request): Promise<Response> {
         published.lon,
         discount,
         conditions,
+        kind,
       ],
     );
     ruleReasons = await reasonsFor(run, {
@@ -230,6 +254,7 @@ async function publish(req: Request): Promise<Response> {
     return json({
       id,
       state: "published",
+      kind,
       visible_at: Math.floor(done.visibleAt.getTime() / 1000),
       expires_at: Math.floor(done.expiresAt.getTime() / 1000),
     }, 200, sunsetHeader());
@@ -269,6 +294,7 @@ interface FeedRow {
   soon: boolean;
   liked: boolean;
   author_age: number;
+  kind: "phrase" | "lost" | "found";
 }
 
 // GET /feed — the circles that intersect, and nothing else about anybody.
@@ -477,7 +503,7 @@ async function deliver(req: Request, url: URL): Promise<Response> {
         "box(point($3::float8, $1::float8), point($4::float8, $2::float8))";
     const found = await query<FeedRow>(
       `SELECT f.id, f.text, f.mode, f.lang, f.lat_published, f.lon_published,
-              f.area_radius, f.like_count,
+              f.area_radius, f.like_count, f.kind,
               (extract(epoch from f.visible_at) * 1000000)::bigint::text
                 AS visible_at_cursor,
               f.discount_value, f.conditions, f.visible_at, a.age AS author_age,
@@ -564,6 +590,11 @@ async function deliver(req: Request, url: URL): Promise<Response> {
       // No created_at: the span is fixed, so another person's start to the second
       // is their end to the second (§8.11; the owner's decision of 2026-09-24).
       ...(row.discount_value ? { offer: { discount_value: row.discount_value, conditions: row.conditions } } : {}),
+      // A lost or a found (db/089), only when it is one. The card's `kind`
+      // above stays "phrase": the faces switch on "offer" and "table" and
+      // show everything else as a phrase, so a lost reaches a face that has
+      // not heard of it as a phrase rather than as nothing.
+      ...(row.kind !== "phrase" ? { notice: row.kind } : {}),
       // The last 65 minutes as a word, never as a number: another person's
       // remaining time does not leave the node (§8.11; limits.tsv
       // likes.soon.threshold; flag and not a time — owner, 23.09.2026).
@@ -791,7 +822,85 @@ async function density(req: Request, url: URL): Promise<Response> {
   return json({ step: densityStep(Number(counted[0]?.n ?? 0)) }, 200, sunsetHeader());
 }
 
+// POST /feed/:id/extend — the author pushes a lost's end out by EXTEND_SPAN,
+// at most EXTEND_MAX times (owner, 30.10.2026; db/089). Only a lost, only
+// live, only one's own: anybody else's, or an id that is not one, answers as a
+// phrase that never existed, as the take-down does — a distinguishable
+// refusal would let a stranger probe which ids are real and which are lost.
+// One UPDATE holds every condition, so two taps cannot both count.
+async function extend(req: Request, id: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!/^[0-9a-fA-F-]{36}$/.test(id)) return refuse("not_found", "no such phrase", 404);
+
+  const rows = await query<{ expires_at: Date; extend_count: number; extended: boolean }>(
+    `WITH done AS (
+       UPDATE feed_messages
+          SET expires_at = expires_at + interval '${EXTEND_SPAN}', extend_count = extend_count + 1
+        WHERE id = $1 AND author_identity = $2 AND ${LIVE_LOST} AND extend_count < ${EXTEND_MAX}
+        RETURNING expires_at, extend_count
+     )
+     SELECT expires_at, extend_count, true AS extended FROM done
+     UNION ALL
+     SELECT expires_at, extend_count, false AS extended FROM feed_messages
+      WHERE id = $1 AND author_identity = $2 AND ${LIVE_LOST} AND NOT EXISTS (SELECT 1 FROM done)`,
+    [id, caller.identityId],
+  );
+  if (rows === null) return refuse("unavailable", "the node cannot write right now", 503);
+  const [row] = rows;
+  if (!row) {
+    inc("relay_feed_total", { result: "extend_missed" });
+    return refuse("not_found", "no such phrase", 404);
+  }
+  if (!row.extended) {
+    // One's own live lost, and the three extensions are spent.
+    inc("relay_feed_total", { result: "extend_spent" });
+    return refuse("refused", `a lost notice is extended at most ${EXTEND_MAX} times`, 409, {
+      extend_count: row.extend_count,
+    });
+  }
+  inc("relay_feed_total", { result: "extended" });
+  return json({
+    id,
+    kind: "lost",
+    expires_at: Math.floor(row.expires_at.getTime() / 1000),
+    extend_count: row.extend_count,
+  }, 200, sunsetHeader());
+}
+
+// POST /feed/:id/found — the author closes a lost: the row becomes a found
+// and stays FOUND_SPAN more, so the neighbours who were looking stop (owner,
+// 30.10.2026; db/089). A found keeps the lost slot for its day
+// (LOST_SLOT), so the next loss waits for it. The same answers as /extend: only a live lost
+// of one's own is found; everything else is "no such phrase".
+async function found(req: Request, id: string): Promise<Response> {
+  const caller = await callerOf(req);
+  if (caller instanceof Response) return caller;
+  if (!/^[0-9a-fA-F-]{36}$/.test(id)) return refuse("not_found", "no such phrase", 404);
+
+  const rows = await query<{ expires_at: Date }>(
+    `UPDATE feed_messages
+        SET kind = 'found', expires_at = now() + interval '${FOUND_SPAN}'
+      WHERE id = $1 AND author_identity = $2 AND ${LIVE_LOST}
+      RETURNING expires_at`,
+    [id, caller.identityId],
+  );
+  if (rows === null) return refuse("unavailable", "the node cannot write right now", 503);
+  if (rows.length === 0) {
+    inc("relay_feed_total", { result: "found_missed" });
+    return refuse("not_found", "no such phrase", 404);
+  }
+  inc("relay_feed_total", { result: "found" });
+  return json({
+    id,
+    kind: "found",
+    expires_at: Math.floor(rows[0].expires_at.getTime() / 1000),
+  }, 200, sunsetHeader());
+}
+
 route("DELETE", "/feed/:id", (c) => takeDown(c.req, c.params.id));
+route("POST", "/feed/:id/extend", (c) => extend(c.req, c.params.id));
+route("POST", "/feed/:id/found", (c) => found(c.req, c.params.id));
 route("GET", "/feed/density", (c) => density(c.req, c.url));
 
 route("POST", "/feed", (c) => publish(c.req));

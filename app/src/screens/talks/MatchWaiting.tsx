@@ -9,15 +9,14 @@ import type { ChatKeys } from "@platform/chat/keys.ts";
 import type { Client } from "@sdk/client.ts";
 import { label, LANG, say } from "../../i18n";
 import { NdIcon } from "../../shell/NdIcon";
-import { Screen } from "../../shell/Screen";
-import { Rail } from "../../shell/TabBar";
+import { TalkFrame } from "./Match";
 import { goneIn, type MatchRow, type Row } from "./talks-logic";
 
 const LOOK_MS = 5000;
 const clock = (ms: number) => new Date(ms).toLocaleTimeString(LANG, { hour: "2-digit", minute: "2-digit" });
 
-export function MatchWaiting({ client, keys, row, startGone, onBack, onTalks }: {
-  client: Client; keys: ChatKeys; row: MatchRow; startGone: boolean; onBack: () => void; onTalks: () => void;
+export function MatchWaiting({ client, keys, row, startGone, onBack, onTalks, frame = "screen" }: {
+  client: Client; keys: ChatKeys; row: MatchRow; startGone: boolean; onBack: () => void; onTalks: () => void; frame?: "screen" | "pane";
 }) {
   const [gone, setGone] = useState(startGone);
   const [lines, setLines] = useState<Array<{ text: string; at?: number }>>(() => keys.queued(row.id).map((text) => ({ text })));
@@ -49,8 +48,7 @@ export function MatchWaiting({ client, keys, row, startGone, onBack, onTalks }: 
   const title = say("app.wait.title");
   // offer-waiting.html / offer-gone.html: the bar, the panel (the hourglass or the fade in its circle, who, the note, my queued lines as bubbles), the foot
   return (
-    <Screen name="match-waiting" title={title} className="k-screen" data-id={row.id} data-gone={gone ? "yes" : "no"}>
-      <div className="k-col">
+    <TalkFrame frame={frame} name="match-waiting" title={title} data={{ "data-id": row.id, "data-gone": gone ? "yes" : "no" }}>
         <header className="k-row k-bar">
           <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={onBack} data-testid="waiting-back"><NdIcon name="back" /></button>
           <h1 className="k-bar-title">{title}</h1>
@@ -86,8 +84,6 @@ export function MatchWaiting({ client, keys, row, startGone, onBack, onTalks }: 
             </form>
           )}
         </section>
-        <Rail active="chats" />
-      </div>
-    </Screen>
+    </TalkFrame>
   );
 }

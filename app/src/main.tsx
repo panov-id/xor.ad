@@ -1,20 +1,23 @@
 import { createRoot } from "react-dom/client";
 import { isCabinet } from "@sdk/cabinet.ts";
 import "../tokens/fonts.css";
+import "../tokens/nd4-fonts.gen.css";
 import "../tokens/sosed.gen.css";
 import "../tokens/motion.css";
 import "../tokens/layout.css";
 import "../tokens/me.css";
 import "../tokens/themes.css";
 import "../tokens/legacy-bridge.css";
+import "../tokens/nd4-themes.gen.css";
 import "../tokens/kit.css";
+import "../tokens/nd4.css";
 import "../tokens/nd-icons.css";
 import "./shell/shell.css";
-import { applyTheme, followDevice } from "./brands/sosed/theme";
+import { applyTheme, followSun } from "./brands/sosed/theme";
 
-// The theme before the first paint; «auto» turns white/black on the hour (owner 2026-10-26).
+// The look before the first paint; «by the sun» turns day and night at the place's sunrise and sunset (owner 2026-10-30).
 applyTheme();
-followDevice();
+followSun();
 import "./screens/screens.css";
 import "./screens/me/me.css";
 import "../tokens/wide.css";

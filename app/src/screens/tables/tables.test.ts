@@ -145,6 +145,23 @@ test("the tables list keeps the prototype's two tile rows: .k-tb-grid has two te
   assert.match(rule, /grid-template-rows: repeat\(2, /, ".k-tb-grid lost its two rows: a lone table stretches over the whole panel");
 });
 
+// desktop-1440 tables-mine.svg: the strip stays on «Mine» at 1440, so the list renders it always and hides it by attribute
+// (the phone's kit rule hides it); «Mine» and «Nearby» each get a head the wide layout shows.
+test("the game strip is always rendered, hidden on «Mine»; both lists carry a .k-tb-label head", () => {
+  const src = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
+  assert.match(src, /<div className="k-tb-games"[^>]*hidden=\{showMine\}>/, "Tables.tsx: the strip is left out on «Mine» instead of hidden: the 1440 sheet loses it");
+  assert.doesNotMatch(src, /!showMine && <div className="k-tb-games"/, "Tables.tsx: the strip is still conditional");
+  assert.equal((src.match(/<h2 className="k-tb-label"/g) ?? []).length, 2, "Tables.tsx: «Mine» and «Nearby» each need their head");
+});
+
+// desktop-1440 new-table-*.svg: on a wide screen the wizard stands in the right pane beside the list, under InPane, without its own rail.
+test("the wide new-table wizard sits in the pane beside the tables list and drops its rail there", () => {
+  const app = readFileSync(new URL("../../shell/App.tsx", import.meta.url), "utf8");
+  assert.match(app, /wide \? <><Tables [^>]*\/><div className="k-me-pane"[^>]*><InPane\.Provider value=\{true\}>\{wizard\}/, "App.tsx: the wide wizard is full in the middle, not in the pane beside the list");
+  const nt = readFileSync(new URL("./NewTable.tsx", import.meta.url), "utf8");
+  assert.match(nt, /\{!pane && <Rail active="tables" \/>\}/, "NewTable.tsx: the wizard in the pane draws a second rail");
+});
+
 // new-table-2: the name is the bare pill (pen, words inside, count at the right); the label is hidden for the eye, kept for the reader.
 test("the new table's name field is new-table-2's bare pill: hidden label, placeholder, count at the right", () => {
   const src = readFileSync(new URL("./NewTable.tsx", import.meta.url), "utf8");
@@ -153,4 +170,21 @@ test("the new table's name field is new-table-2's bare pill: hidden label, place
   assert.match(field, /side=\{<span className="k-meta" data-testid="new-table-left">/, "NewTable.tsx: the count left the pill's right side");
   const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
   assert.match(css, /\.k-tb-name > \.k-field-wrap > label \{[^}]*clip: rect\(0 0 0 0\)/, "kit.css: the name's label shows above the pill again");
+});
+
+// tables-mine.html: the person's own tables have the switch and no game strip; their last tile sets up a new table.
+test("tables-mine: the game strip is drawn only off the mine tab, the mine grid ends with the add tile", () => {
+  const src = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
+  assert.match(src, /<div className="k-tb-games"[^>]*hidden=\{showMine\}/, "Tables.tsx: the game strip is not hidden on the mine tab (the phone has none there)");
+  const grid = /data-testid="tables-mine">([\s\S]*?)<\/ul>/.exec(src)?.[1] ?? "";
+  assert.match(grid, /data-testid="mine-add">[\s\S]*onClick=\{\(\) => onNewTable\(\)\}/, "Tables.tsx: the mine grid lost its add tile");
+});
+
+// table.svg at 1440/1920: the board fills the column's height; only four in a row (.tg-four, 7x6) grows its cells,
+// the other boards keep theirs (a fixed cell on every board overflows battleship 10x10 and backgammon)
+test("at 1440/1920 the four-in-a-row board grows its cells to the column, other boards keep theirs", () => {
+  const wide = readFileSync(new URL("../../../tokens/wide.css", import.meta.url), "utf8");
+  const four = [...wide.matchAll(/\[data-screen="table"\] \.k-tb-board:has\(\.tg-four\) \{[^}]*--tg-cell: (\d+)p[x]/g)].map((m) => Number(m[1]));
+  assert.deepEqual(four, [88, 120], "wide.css: the four-in-a-row board keeps the phone's 39 cell in a 980 high column");
+  assert.doesNotMatch(wide, /\.k-tb-board \{[^}]*--tg-cell:/, "wide.css: a cell size on every board overflows the larger grids");
 });

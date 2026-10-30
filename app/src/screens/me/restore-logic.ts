@@ -2,7 +2,7 @@
 // when "Open" opens, and how the node's answer is said. No React, no node, no crypto — tested in lists.test.ts.
 // The path, not @sdk: node:test (run-app-unit-tests.sh) has no aliases.
 import { readPaperText } from "../../../../depth/core/paper_text.ts";
-import { PIN_LENGTH } from "../../../../depth/core/register.ts";
+import { CODE_GROUP, PIN_LENGTH } from "../../../../depth/core/register.ts";
 
 export const CODE_LENGTH = 16;
 export { PIN_LENGTH };
@@ -32,4 +32,14 @@ export async function zeroAfter<T>(held: () => (Uint8Array | null | undefined)[]
   } finally {
     for (const b of held()) b?.fill(0);
   }
+}
+
+/** The four fields of the paper code (docs/newdesign4 §11): what is typed into field `at` fills it and runs on into the
+ *  next ones, so a paste of the whole code lays itself out; a field holds CODE_GROUP characters. */
+export function spread(groups: readonly string[], at: number, typed: string): string[] {
+  const next = [...groups];
+  let rest = codeChars(typed);
+  next[at] = rest.slice(0, CODE_GROUP); rest = rest.slice(CODE_GROUP);
+  for (let i = at + 1; i < next.length && rest; i++) { next[i] = rest.slice(0, CODE_GROUP); rest = rest.slice(CODE_GROUP); }
+  return next;
 }

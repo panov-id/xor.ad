@@ -23,6 +23,33 @@ const modeWord = (mode: string): string => {
 };
 
 export function Likes({ client, onBack }: { client: Client; onBack: () => void }) {
+  const title = say("app.likes.title");
+  // the prototype's my-marks (docs/newdesign/proto/my-marks.html, my-marks-empty): the feed's frame with the switch on
+  // «marks», the marked phrases as the feed's tiles, the bottom bar
+  return (
+    <main className="k-screen" data-screen="likes">
+      <div className="k-col">
+        <Scene>
+          <section className="k-panel">
+            <div className="k-row">
+              <NdIcon name="imin" className="k-pin" />
+              <div className="k-stack"><h1 className="k-title">{title}</h1><p className="k-sub">{say("app.likes.sub")}</p></div>
+            </div>
+          </section>
+        </Scene>
+        <div className="k-seg" role="tablist">
+          <button type="button" role="tab" aria-selected="false" aria-label={say("app.feed.phrases")} onClick={onBack} data-testid="likes-back"><NdIcon name="phrase" /></button>
+          <button type="button" role="tab" aria-selected="true" aria-label={title}><NdIcon name="imin" /></button>
+        </div>
+        <section className="k-body"><LikesBody client={client} /></section>
+        <TabBar active="feed" onSelect={useContext(TabsContext)} />
+      </div>
+    </main>
+  );
+}
+
+/** The likes list itself: the phone's likes screen holds it, and the desktop feed shows it under its own head (my-marks at 1440/1920). */
+export function LikesBody({ client, hint = false }: { client: Client; hint?: boolean }) {
   const [items, setItems] = useState<LikedRow[] | null>(null);
   const [next, setNext] = useState<string | null>(null);
   const [spent, setSpent] = useState<Record<string, true>>({});
@@ -54,29 +81,12 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
     return say(d.key, { n: d.n });
   };
 
-  const title = say("app.likes.title");
-  // the prototype's my-marks (docs/newdesign/proto/my-marks.html, my-marks-empty): the feed's frame with the switch on
-  // «marks», the marked phrases as the feed's tiles, the bottom bar
   return (
-    <main className="k-screen" data-screen="likes">
-      <div className="k-col">
-        <Scene>
-          <section className="k-panel">
-            <div className="k-row">
-              <NdIcon name="imin" className="k-pin" />
-              <div className="k-stack"><h1 className="k-title">{title}</h1><p className="k-sub">{say("app.likes.sub")}</p></div>
-            </div>
-          </section>
-        </Scene>
-        <div className="k-seg" role="tablist">
-          <button type="button" role="tab" aria-selected="false" aria-label={say("app.feed.phrases")} onClick={onBack} data-testid="likes-back"><NdIcon name="phrase" /></button>
-          <button type="button" role="tab" aria-selected="true" aria-label={title}><NdIcon name="imin" /></button>
-        </div>
-        <section className="k-body">
+        <>
           {error && <p className="k-note" data-tone="error" role="alert" data-testid="error">{error}</p>}
           {skeleton && <div className="k-grid2" data-testid="likes-skeleton" aria-hidden="true"><ul><li className="k-tile k-ghost" /></ul><ul><li className="k-tile k-ghost" /></ul></div>}
           {shown?.length === 0 && (
-            <div className="k-empty" data-testid="quiet"><NdIcon name="imin-off" className="k-empty-mark" /><h2>{say("web.likes.empty")}</h2></div>
+            <div className="k-empty" data-testid="quiet"><NdIcon name="imin-off" className="k-empty-mark" /><h2>{say("web.likes.empty")}</h2>{hint && <p>{say("app.likes.sub")}</p>}</div>
           )}
           <div className="k-grid2" data-testid="liked">
             {[0, 1].map((col) => (
@@ -109,9 +119,6 @@ export function Likes({ client, onBack }: { client: Client; onBack: () => void }
             ))}
           </div>
           {next && <button type="button" className="k-btn" onClick={() => load(next)} data-testid="more">{say("liked.more")}</button>}
-        </section>
-        <TabBar active="feed" onSelect={useContext(TabsContext)} />
-      </div>
-    </main>
+        </>
   );
 }

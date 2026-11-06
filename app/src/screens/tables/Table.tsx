@@ -14,6 +14,7 @@ import { connectTable } from "@platform/table_room.ts";
 import { capital } from "../../i18n-core";
 import { failedLine, label, LANG, say } from "../../i18n";
 import { useLayers } from "../../shell/layers";
+import { ConfirmDanger, ConfirmPlain } from "../../nd4/screens/confirm.gen";
 import { NdIcon } from "../../shell/NdIcon";
 import { Screen } from "../../shell/Screen";
 import { Rail } from "../../shell/TabBar";
@@ -362,17 +363,11 @@ function SureMove({ what, onCancel, onSure }: { what: "pass" | "resign"; onCance
           <button type="button" className="k-bar-btn" aria-label={label("common.back")} onClick={onCancel} data-testid="sure-back"><NdIcon name="back" /></button>
           <h1 className="k-bar-title">{capital(say(pass ? "table.pass" : "table.resign"), LANG)}</h1>
         </header>
-        <section className="k-panel k-grow k-reg k-centre-col">
-          <span className="k-mark-110" style={{ background: pass ? "var(--acc-4)" : "var(--acc-6)" }} aria-hidden="true"><NdIcon name={pass ? "skip" : "giveup"} /></span>
-          <h2 className="k-sheet-title">{say(pass ? "app.table.pass_sure" : "app.table.giveup_sure")}</h2>
-          <p className="k-sub k-price">{say(pass ? "app.table.pass_price" : "app.table.giveup_price")}</p>
-        </section>
-        <section className="k-panel k-actions">
-          <div className="k-two">
-            <button type="button" className="k-cta" data-outline="" aria-label={say("app.table.sure_cancel")} onClick={onCancel} data-testid="sure-cancel"><NdIcon name="close" /></button>
-            <button type="button" className="k-cta" data-outline="" data-strong="" aria-label={say("app.table.sure_ok")} onClick={onSure} data-testid="sure-ok"><NdIcon name="check" /></button>
-          </div>
-        </section>
+        {pass
+          ? <ConfirmPlain id="sure-body" mark={<NdIcon name="skip" />} title={say("app.table.pass_sure")} lead={say("app.table.pass_price")} price={null}
+              cancelId="sure-cancel" cancelText={say("app.table.sure_cancel")} onCancel={onCancel} okId="sure-ok" okText={say("app.table.sure_ok")} okMark={<NdIcon name="check" />} onOk={onSure} />
+          : <ConfirmDanger id="sure-body" mark={<NdIcon name="giveup" />} title={say("app.table.giveup_sure")} lead={say("app.table.giveup_price")} price={null}
+              cancelId="sure-cancel" cancelText={say("app.table.sure_cancel")} onCancel={onCancel} okId="sure-ok" okText={say("app.table.sure_ok")} okMark={<NdIcon name="check" />} onOk={onSure} />}
       </div>
       <Rail active="tables" />
     </main>

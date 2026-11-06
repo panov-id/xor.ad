@@ -25,4 +25,4 @@ docker run --rm --network none -u "$(id -u):$(id -g)" -e HOME=/tmp -v "$root":/r
 # The newdesign4 generators' own tests that need only the standard library: the inventory (283 screens of the kit) and
 # the theme tokens. nd4-compare (Pillow) and nd4-fonts (fontTools) need packages this image lacks and are not run here.
 docker run --rm --network none -u "$(id -u):$(id -g)" -v "$root":/r:ro -w /r python:3.13-alpine \
-  sh -c 'python3 -I scripts/nd4-inventory.test.py && python3 -I scripts/design/nd4-tokens.test.py'
+  sh -c 'python3 -I scripts/nd4-inventory.test.py && python3 -I scripts/design/nd4-tokens.test.py && python3 -I scripts/geo/build-villages.test.py && python3 -I scripts/design/nd4-extract.test.py && python3 -I scripts/design/nd4-map.test.py'

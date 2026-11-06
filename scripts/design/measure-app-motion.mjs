@@ -6,7 +6,7 @@
 // Run by scripts/measure-app-overlap.sh; the helpers are measure-app-overlap.mjs's.
 import { chromium } from "@playwright/test";
 import { writeFileSync } from "node:fs";
-import { nodeStub, openPage, register, confirmPaper, DEV, feedSel } from "./measure-app-overlap.mjs";
+import { nodeStub, openPage, register, confirmPaper, fillPaper, passIntro, DEV, feedSel } from "./measure-app-overlap.mjs";
 
 const OUT = process.env.OUT_MOTION ?? "/out/measure-motion.txt";
 const W = Number(process.env.MOTION_WIDTH ?? 390);
@@ -199,11 +199,11 @@ async function main() {
 
   // 1. feed loading: the node holds GET /feed for 2.5 s, so the skeletons stand; then the cards arrive
   await page.evaluate(() => window.__mot.reset());
-  const gi = page.locator('[data-testid="paper-groups"] input');
-  await gi.nth(0).fill("2XWD"); await gi.nth(1).fill("9FTE");
-  await page.evaluate(() => window.__mot.reset());
+  await fillPaper(page);
   await page.click('[data-testid="confirm"]');
-  await page.waitForSelector(feedSel, { timeout: 20000 });
+  await page.waitForSelector('[data-screen="intro"]', { timeout: 30000 });
+  await page.evaluate(() => window.__mot.reset());
+  await passIntro(page);
   await page.waitForTimeout(1200);
   const during = await dom(page);
   await page.waitForSelector('[data-testid="cards"] [data-testid="card"]', { timeout: 20000 });
@@ -230,8 +230,8 @@ async function main() {
   // shipped style sheet's. (The real flow's own pop is scene 4's queued line.)
   const injected = await page.evaluate(() => {
     const ol = document.querySelector('ol[data-testid="lines"]'); if (!ol) return 0;
-    ["theirs", "mine", "theirs", "mine"].forEach((side, i) => { const li = document.createElement("li"); li.className = `ch-row ch-${side}`; li.style.setProperty("--i", String(i)); li.innerHTML = '<p class="ch-bubble">line</p>'; ol.appendChild(li); });
-    return ol.querySelectorAll(".ch-row").length;
+    ["theirs", "mine", "theirs", "mine"].forEach((side, i) => { const li = document.createElement("li"); li.className = `k-ch-row k-ch-${side}`; li.style.setProperty("--i", String(i)); li.innerHTML = '<p class="k-ch-bubble">line</p>'; ol.appendChild(li); });
+    return ol.querySelectorAll(".k-ch-row").length;
   });
   log(`   chat lines put in by hand into ol[lines]: ${injected} rows now`);
   await page.waitForTimeout(1800);
@@ -276,19 +276,19 @@ async function main() {
   hold.inbox = 2000;
   await page.evaluate(() => window.__mot.reset());
   await page.click('[data-testid="tab-chats"]');
-  await page.waitForSelector('[data-testid="open-likes"]', { timeout: 15000 });
+  await page.waitForSelector('[data-screen="inbox"]', { timeout: 15000 });
   await page.waitForTimeout(2600);
   results.inbox = await report(page, "5a inbox held 2000 ms", 2600);
   log(`   inbox screen at the end: error line ${JSON.stringify(await page.locator('[data-screen="inbox"] [data-testid="error"]').allInnerTexts())}, rows ${await page.locator('[data-testid="chat"]').count()}, offers ${await page.locator('[data-testid="match"]').count()}`);
   hold.inbox = 0; hold.likes = 100;
   await page.evaluate(() => window.__mot.reset());
-  await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]', { timeout: 10000 });
+  await page.click('[data-testid="tab-feed"]'); await page.waitForSelector(feedSel); await page.click('[data-testid="feed-more"]'); await page.click('[data-testid="menu-likes"]'); await page.waitForSelector('[data-screen="likes"]', { timeout: 10000 });
   await page.waitForTimeout(1500);
   results.likesFast = await report(page, "5b likes answered in 100 ms", 1500);
-  await page.goBack().catch(() => {}); await page.waitForSelector('[data-testid="open-likes"]'); await page.waitForTimeout(800);
+  await page.goBack().catch(() => {}); await page.waitForSelector(feedSel); await page.waitForTimeout(800);
   hold.likes = 450;
   await page.evaluate(() => window.__mot.reset());
-  await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]', { timeout: 10000 });
+  await page.click('[data-testid="feed-more"]'); await page.click('[data-testid="menu-likes"]'); await page.waitForSelector('[data-screen="likes"]', { timeout: 10000 });
   await page.waitForTimeout(2000);
   results.likesSlow = await report(page, "5c likes answered in 450 ms", 2000);
 

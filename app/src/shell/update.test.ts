@@ -17,16 +17,18 @@ test("update 15: only a higher dotted version is newer", () => {
   assert.equal(newer("<html>", "1.0.0"), false, "a page in place of the json is not a version");
 });
 
-test("update 15: App lays the screen over the rest", () => {
+test("update 15: App lays the screen over the rest, a fixed dialog over everything", () => {
   assert.match(read("./App.tsx"), /\{fresh\.version && <Update version=\{fresh\.version\} onLater=\{fresh\.later\} \/>\}/);
-  const screen = read("../screens/Update.tsx");
-  assert.match(screen, /data-testid="update-later"[\s\S]{0,200}onClick=\{\(\) => location\.reload\(\)\} data-testid="update-go"/);
+  const css = read("../../tokens/nd4-kit.css");
+  assert.match(css, /main\.nd-screen\[data-bare\]\[role="dialog"\] \{ position: fixed; inset: 0; z-index: 50;/, "the update is not over everything");
 });
 
-test("update 15: × and «Later» put it off, the laptop holds it as one block in the middle", () => {
+test("update 15: × and «Later» put it off, «Update» reloads", () => {
   const screen = read("../screens/Update.tsx");
-  assert.match(screen, /onClick=\{onLater\} data-testid="update-close"/, "the × does not put the update off");
-  assert.match(screen, /className="nd-cta" data-tile="" onClick=\{onLater\}/, "«Later» is not the tile button");
-  const css = read("../../tokens/nd4.css");
-  assert.match(css, /@media \(min-width: 1280p[x]\) \{\s*\.nd-update \.nd-col \{ justify-content: center/, "the laptop does not centre the block");
+  assert.match(screen, /onLater=\{onLater\}/, "× and «Later» do not put the update off");
+  assert.match(screen, /onGo=\{\(\) => location\.reload\(\)\}/, "«Update» does not reload");
+  const gen = read("../nd4/screens/update.gen.tsx");
+  assert.match(gen, /onClick=\{p\.onLater\}[^>]*data-testid="update-close"/, "the × is not «Later»");
+  assert.match(gen, /onClick=\{p\.onLater\} data-testid="update-later"/);
+  assert.match(gen, /onClick=\{p\.onGo\} data-testid="update-go"/);
 });

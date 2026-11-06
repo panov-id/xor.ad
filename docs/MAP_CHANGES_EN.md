@@ -1,3 +1,365 @@
+## 04.11.2026 13:49 · edges +9 −2
+
+```diff
++ app/src/screens/Chat.tsx -> app/src/nd4/screens/chat-parts.gen.tsx
++ app/src/screens/Chat.tsx -> app/src/nd4/screens/safety.gen.tsx
++ app/src/screens/chat-menu.tsx -> app/src/nd4/screens/chat-parts.gen.tsx
++ app/src/screens/talks/Inbox.tsx -> app/src/nd4/screens/talks-empty.gen.tsx
++ app/src/screens/talks/Inbox.tsx -> app/src/nd4/screens/talks-list.gen.tsx
++ app/src/screens/talks/Inbox.tsx -> app/src/shell/Tour.tsx
++ app/src/screens/talks/Inbox.tsx -> app/src/shell/tour-logic.ts
++ app/src/screens/talks/Match.tsx -> app/src/nd4/screens/match-offer.gen.tsx
++ app/src/screens/talks/Match.tsx -> app/src/screens/feed-logic.ts
+- app/src/screens/talks/Inbox.tsx -> app/src/shell/NdIcon.tsx
+- app/src/screens/talks/Match.tsx -> app/src/shell/NdIcon.tsx
+```
+
+## 03.11.2026 13:42 · edges +10 −0
+
+```diff
++ app/src/screens/Chat.tsx -> app/src/shell/Tour.tsx
++ app/src/screens/Chat.tsx -> app/src/shell/tour-logic.ts
++ app/src/screens/Unlock.tsx -> app/src/nd4/screens/confirm.gen.tsx
++ app/src/screens/chat-menu.tsx -> app/src/nd4/screens/confirm.gen.tsx
++ app/src/screens/tables/Table.tsx -> app/src/nd4/screens/confirm.gen.tsx
++ app/src/shell/Tour.tsx -> app/src/i18n.ts
++ app/src/shell/Tour.tsx -> app/src/shell/tour-logic.ts
++ app/src/shell/tour.test.ts -> app/src/shell/tour-logic.ts
++ docs/reviews/PANEL_2026-11-03_tree_EN.md -> docs/reviews/PANEL_2026-11-03_tree_RU.md
++ docs/reviews/PANEL_2026-11-03_tree_RU.md -> docs/reviews/PANEL_2026-11-03_tree_EN.md
+```
+
+## 03.11.2026 12:26 · edges +78 −0
+
+```diff
++ app/src/nd4/nav-phone.gen.tsx -> app/src/nd4/nav-laptop.gen.tsx
++ app/src/nd4/nav-tablet.gen.tsx -> app/src/nd4/nav-laptop.gen.tsx
++ app/src/screens/Chat.tsx -> app/src/nd4/chat-tablet.gen.tsx
++ app/src/screens/Chat.tsx -> app/src/nd4/screens/chat-ended-laptop.gen.tsx
++ app/src/screens/Chat.tsx -> app/src/nd4/screens/chat-ended-tablet.gen.tsx
++ app/src/screens/Chat.tsx -> app/src/nd4/screens/chat-ended.gen.tsx
++ app/src/screens/Feed.tsx -> app/src/nd4/screens/ad.gen.tsx
++ app/src/screens/Feed.tsx -> app/src/nd4/screens/feed-head.gen.tsx
++ app/src/screens/Feed.tsx -> app/src/nd4/screens/feed-hidden.gen.tsx
++ app/src/screens/Feed.tsx -> app/src/nd4/screens/feed-loading-laptop.gen.tsx
++ app/src/screens/Feed.tsx -> app/src/nd4/screens/feed-loading-tablet.gen.tsx
++ app/src/screens/Feed.tsx -> app/src/nd4/screens/feed-loading.gen.tsx
++ app/src/screens/Feed.tsx -> app/src/nd4/screens/feed-states.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-1-laptop.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-1-tablet.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-1.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-2-laptop.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-2-tablet.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-2.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-3-laptop.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-3-tablet.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-3.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-4-laptop.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-4-tablet.gen.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/screens/wizard-4.gen.tsx
++ app/src/screens/Loading.tsx -> app/src/nd4/screens/loading-laptop.gen.tsx
++ app/src/screens/Loading.tsx -> app/src/nd4/screens/loading-tablet.gen.tsx
++ app/src/screens/Loading.tsx -> app/src/nd4/screens/loading.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/feed-tile.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/my-phrase-laptop.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/my-phrase-tablet.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/my-phrase.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/phrase-faded-laptop.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/phrase-faded-tablet.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/phrase-faded.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/phrase-rejected-laptop.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/phrase-rejected-tablet.gen.tsx
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/screens/phrase-rejected.gen.tsx
++ app/src/screens/Offer.tsx -> app/src/nd4/screens/offer-exit-laptop.gen.tsx
++ app/src/screens/Offer.tsx -> app/src/nd4/screens/offer-exit-tablet.gen.tsx
++ app/src/screens/Offer.tsx -> app/src/nd4/screens/offer-exit.gen.tsx
++ app/src/screens/Splash.tsx -> app/src/screens/splash-art.gen.ts
++ app/src/screens/Update.tsx -> app/src/nd4/screens/update-laptop.gen.tsx
++ app/src/screens/Update.tsx -> app/src/nd4/screens/update-tablet.gen.tsx
++ app/src/screens/Update.tsx -> app/src/nd4/screens/update.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/card-both.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/card-in.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/card-more.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/card-need.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/feed-own-laptop.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/feed-own-tablet.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/feed-own.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/feed-tile-laptop.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/feed-tile-tablet.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/feed-tile.gen.tsx
++ app/src/screens/feed-card.tsx -> app/src/nd4/screens/offer-card.gen.tsx
++ app/src/screens/me/Place.tsx -> app/src/nd4/screens/place-laptop.gen.tsx
++ app/src/screens/me/Place.tsx -> app/src/nd4/screens/place-map-laptop.gen.tsx
++ app/src/screens/me/Place.tsx -> app/src/nd4/screens/place-map-tablet.gen.tsx
++ app/src/screens/me/Place.tsx -> app/src/nd4/screens/place-map.gen.tsx
++ app/src/screens/me/Place.tsx -> app/src/nd4/screens/place-row-laptop.gen.tsx
++ app/src/screens/me/Place.tsx -> app/src/nd4/screens/place-row-tablet.gen.tsx
++ app/src/screens/me/Place.tsx -> app/src/nd4/screens/place-row.gen.tsx
++ app/src/screens/me/Place.tsx -> app/src/nd4/screens/place-tablet.gen.tsx
++ app/src/screens/me/Place.tsx -> app/src/nd4/screens/place.gen.tsx
++ app/src/screens/tables/Tables.tsx -> app/src/nd4/screens/tables-head.gen.tsx
++ app/src/screens/tables/table-row.tsx -> app/src/nd4/screens/table-nearby.gen.tsx
++ app/src/screens/talks/Likes.tsx -> app/src/nd4/screens/ad.gen.tsx
++ app/src/screens/talks/Likes.tsx -> app/src/nd4/screens/feed-tile.gen.tsx
++ app/src/screens/talks/Likes.tsx -> app/src/nd4/screens/my-marks-empty.gen.tsx
++ app/src/screens/talks/Likes.tsx -> app/src/nd4/screens/my-marks.gen.tsx
++ app/src/shell/EmptyPane.tsx -> app/src/nd4/screens/empty-panel.gen.tsx
++ app/src/shell/NdIcon.tsx -> app/src/shell/nd-icons.gen.ts
++ app/src/shell/NdIcon.tsx -> app/src/shell/proto-icons.gen.ts
++ app/src/shell/Scene.tsx -> app/src/shell/proto-art.gen.ts
++ app/src/shell/TabBar.tsx -> app/src/nd4/nav-laptop.gen.tsx
++ app/src/shell/TabBar.tsx -> app/src/nd4/nav-phone.gen.tsx
++ app/src/shell/TabBar.tsx -> app/src/nd4/nav-tablet.gen.tsx
+```
+
+## 03.11.2026 08:28 · edges +1 −0
+
+```diff
++ app/src/screens/Chat.tsx -> app/src/shell/TabBar.tsx
+```
+
+## 02.11.2026 21:15 · edges +5 −0
+
+```diff
++ relay/node/src/lib/pin_attempts.ts -> relay/node/src/lib/vault_share.ts
++ relay/node/src/lib/vault_share.ts -> relay/node/src/lib/db.ts
++ relay/node/src/main.ts -> relay/node/src/lib/db.ts
++ relay/node/src/main.ts -> relay/node/src/lib/vault_share.ts
++ relay/node/test/pin_limit_rollback.test.ts -> relay/node/src/lib/vault_share.ts
+```
+
+## 02.11.2026 16:01 · edges +13 −9
+
+```diff
++ app/src/screens/Chat.tsx -> app/src/shell/ads.ts
++ app/src/screens/Feed.tsx -> app/src/shell/ads-logic.ts
++ app/src/screens/Feed.tsx -> app/src/shell/ads.ts
++ app/src/screens/MyPhrase.tsx -> app/src/shell/ads.ts
++ app/src/screens/talks/Likes.tsx -> app/src/shell/ads.ts
++ app/src/shell/ads.test.ts -> app/src/shell/ads-logic.ts
++ app/src/shell/ads.ts -> app/src/i18n.ts
++ app/src/shell/ads.ts -> app/src/shell/ads-logic.ts
++ depth/core/seal_attack.test.ts -> depth/core/seal.ts
++ depth/core/seal_attack.test.ts -> depth/core/sign.ts
++ docs/reviews/crypto-attack-2026-11-02_EN.md -> docs/reviews/crypto-attack-2026-11-02_RU.md
++ docs/reviews/crypto-attack-2026-11-02_RU.md -> docs/reviews/crypto-attack-2026-11-02_EN.md
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/hash.ts
+- scripts/design/measure-app-w3-chat.mjs -> scripts/design/sheet-geometry.mjs
+- scripts/design/measure-app-w3-games.mjs -> scripts/design/sheet-geometry.mjs
+- scripts/design/measure-app-w3-talks.mjs -> scripts/design/sheet-geometry.mjs
+- scripts/design/measure-app-w3.mjs -> scripts/design/sheet-geometry.mjs
+- scripts/design/measure-app-w4-cabinet.mjs -> scripts/design/sheet-geometry.mjs
+- scripts/design/measure-app-w4.mjs -> scripts/design/sheet-geometry.mjs
+- scripts/design/measure-app-wide.mjs -> scripts/design/sheet-geometry.mjs
+- scripts/design/measure-app.mjs -> scripts/design/measure-app-wide.mjs
+- scripts/design/measure-app.mjs -> scripts/design/sheet-geometry.mjs
+```
+
+## 02.11.2026 11:44 · edges +81 −9
+
+```diff
++ app/src/main.tsx -> app/tokens/nd4-kit.css
++ app/src/nd4/drawing.ts -> app/src/shell/useMinWidth.ts
++ app/src/nd4/texts.ts -> app/src/i18n.ts
++ app/src/nd4/texts.ts -> app/src/nd4/texts/wizard-1.en.json
++ app/src/nd4/texts.ts -> app/src/nd4/texts/wizard-1.ru.json
++ app/src/nd4/texts.ts -> app/src/nd4/texts/wizard-2.en.json
++ app/src/nd4/texts.ts -> app/src/nd4/texts/wizard-2.ru.json
++ app/src/nd4/texts.ts -> app/src/nd4/texts/wizard-3.en.json
++ app/src/nd4/texts.ts -> app/src/nd4/texts/wizard-3.ru.json
++ app/src/nd4/texts.ts -> app/src/nd4/texts/wizard-4.en.json
++ app/src/nd4/texts.ts -> app/src/nd4/texts/wizard-4.ru.json
++ app/src/screens/Chat.tsx -> app/src/nd4/drawing.ts
++ app/src/screens/Composer.tsx -> app/src/screens/MyPhrase.tsx
++ app/src/screens/Feed.tsx -> app/src/nd4/drawing.ts
++ app/src/screens/Feed.tsx -> app/src/screens/MyPhrase.tsx
++ app/src/screens/Intro.tsx -> app/src/nd4/drawing.ts
++ app/src/screens/Intro.tsx -> app/src/nd4/texts.ts
++ app/src/screens/Loading.tsx -> app/src/nd4/drawing.ts
++ app/src/screens/MyPhrase.tsx -> app/src/i18n.ts
++ app/src/screens/MyPhrase.tsx -> app/src/nd4/drawing.ts
++ app/src/screens/MyPhrase.tsx -> app/src/screens/feed-logic.ts
++ app/src/screens/MyPhrase.tsx -> app/src/shell/TabBar.tsx
++ app/src/screens/Offer.tsx -> app/src/nd4/drawing.ts
++ app/src/screens/Update.tsx -> app/src/nd4/drawing.ts
++ app/src/screens/feed-card.tsx -> app/src/nd4/drawing.ts
++ app/src/screens/feed-card.tsx -> app/src/place.ts
++ app/src/screens/feed-card.tsx -> app/src/screens/talks/talks-logic.ts
++ app/src/screens/feed-tile.test.ts -> app/src/screens/feed-logic.ts
++ app/src/screens/me/Place.tsx -> app/src/shell/TabBar.tsx
++ app/src/screens/me/Place.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/me/cities.ts -> app/src/screens/me/place-map.ts
++ app/src/screens/me/cities.ts -> app/src/screens/me/villages-cy.json
++ app/src/screens/me/place-map.test.ts -> app/src/screens/feed-logic.ts
++ app/src/screens/tables/Tables.tsx -> app/src/screens/feed-radius.tsx
++ app/src/screens/talks/Likes.tsx -> app/src/screens/feed-card.tsx
++ app/src/shell/TabBar.tsx -> app/src/shell/useMinWidth.ts
++ docs/design/kit_EN.md -> docs/report-2026-10-02-brands.pdf
++ docs/design/kit_RU.md -> docs/report-2026-10-02-brands.pdf
++ docs/newdesign4/BACKEND_GAPS_EN.md -> docs/newdesign4/BACKEND_GAPS_RU.md
++ docs/newdesign4/BACKEND_GAPS_RU.md -> docs/newdesign4/BACKEND_GAPS_EN.md
++ docs/newdesign4/BRIEF_REWORK_EN.md -> docs/newdesign4/BRIEF_REWORK_RU.md
++ docs/newdesign4/BRIEF_REWORK_RU.md -> docs/newdesign4/BRIEF_REWORK_EN.md
++ docs/newdesign4/LOST_SPOTS_EN.md -> docs/newdesign4/kit/sosed-design-2026-10-29/SCREENS_spec.md
++ docs/newdesign4/LOST_SPOTS_RU.md -> docs/newdesign4/kit/sosed-design-2026-10-29/SCREENS_spec.md
++ docs/newdesign4/kit/sosed-design-2026-10-29/README.md -> docs/newdesign4/kit/sosed-design-2026-10-29/HELP_tours.md
++ docs/newdesign4/kit/sosed-design-2026-10-29/README.md -> docs/newdesign4/kit/sosed-design-2026-10-29/README_design.md
++ docs/newdesign4/kit/sosed-design-2026-10-29/README.md -> docs/newdesign4/kit/sosed-design-2026-10-29/RULES_full.md
++ docs/newdesign4/kit/sosed-design-2026-10-29/README.md -> docs/newdesign4/kit/sosed-design-2026-10-29/SCREENS_spec.md
++ docs/newdesign4/kit/sosed-design-2026-10-29/README_design.md -> docs/newdesign4/kit/sosed-design-2026-10-29/SCREENS_spec.md
++ docs/newdesign4/kit/sosed-design-2026-10-29/SCREENS_spec.md -> docs/newdesign4/kit/sosed-design-2026-10-29/RULES_full.md
++ docs/reviews/AUDIT_1920_2026-10-25_EN.md -> testing/redesign/2026-10-15/brief/05-handoff_EN.md
++ docs/reviews/AUDIT_1920_2026-10-25_EN.md -> testing/redesign/2026-10-15/brief/assets/icons-1920/sheet.svg
++ docs/reviews/AUDIT_1920_2026-10-25_RU.md -> testing/redesign/2026-10-15/brief/05-handoff_RU.md
++ docs/reviews/AUDIT_1920_2026-10-25_RU.md -> testing/redesign/2026-10-15/brief/assets/icons-1920/sheet.svg
++ relay/moderation-bench/README_EN.md -> relay/moderation-bench/evaluation.json
++ relay/moderation-bench/README_RU.md -> relay/moderation-bench/evaluation.json
++ relay/node/src/dispatch.ts -> relay/node/src/routes/lost.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/client_ip.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/db.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/feed_limits.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/feed_verdict.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/http.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/identity_auth.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/identity_guard.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/log.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/metrics.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/moderator.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/names.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/rate_limit.ts
++ relay/node/src/routes/lost.ts -> relay/node/src/lib/router.ts
++ relay/node/test/lost.test.ts -> relay/node/src/lib/db.ts
++ relay/node/test/lost.test.ts -> relay/node/src/lib/identity_auth.ts
++ relay/node/test/lost.test.ts -> relay/node/src/lib/rate_limit.ts
++ relay/node/test/lost.test.ts -> relay/node/src/lib/router.ts
++ relay/node/test/lost.test.ts -> relay/node/src/routes/feed.ts
++ relay/node/test/lost.test.ts -> relay/node/src/routes/identity.ts
++ relay/node/test/lost.test.ts -> relay/node/src/routes/lost.ts
++ relay/node/test/lost_unit.test.ts -> relay/node/src/lib/router.ts
++ relay/node/test/lost_unit.test.ts -> relay/node/src/routes/lost.ts
++ relay/node/test/lost_unit.test.ts -> relay/node/src/routes/offer_complaints.ts
++ relay/node/test/lost_unit.test.ts -> relay/node/test/support/config_env.ts
+- app/src/screens/Intro.tsx -> app/src/shell/EntryScene.tsx
+- app/src/screens/Intro.tsx -> app/src/shell/Scene.tsx
+- app/src/screens/Loading.tsx -> app/src/screens/Splash.tsx
+- app/src/screens/Offer.tsx -> app/src/shell/NdIcon.tsx
+- app/src/screens/Update.tsx -> app/src/shell/NdIcon.tsx
+- app/src/screens/talks/Likes.tsx -> app/src/shell/NdIcon.tsx
+- app/src/screens/talks/Likes.tsx -> app/src/shell/Scene.tsx
+- app/src/shell/EmptyPane.tsx -> app/src/shell/NdIcon.tsx
+- app/src/shell/TabBar.tsx -> app/src/shell/NdIcon.tsx
+```
+
+## 30.10.2026 22:24 · edges +90 −15
+
+```diff
++ app/src/main.tsx -> app/tokens/nd4-fonts.gen.css
++ app/src/main.tsx -> app/tokens/nd4-themes.gen.css
++ app/src/main.tsx -> app/tokens/nd4.css
++ app/src/screens/Arrival.tsx -> app/src/screens/pin-flow.ts
++ app/src/screens/Arrival.tsx -> app/src/shell/EntryScene.tsx
++ app/src/screens/Arrival.tsx -> app/src/shell/NdIcon.tsx
++ app/src/screens/Away.tsx -> app/src/shell/NdIcon.tsx
++ app/src/screens/Away.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/Composer.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/Departure.tsx -> app/src/screens/Away.tsx
++ app/src/screens/Departure.tsx -> app/src/screens/me/parts.tsx
++ app/src/screens/Departure.tsx -> app/src/screens/pin-flow.ts
++ app/src/screens/Departure.tsx -> app/src/shell/NdIcon.tsx
++ app/src/screens/Departure.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/Feed.tsx -> app/src/screens/talks/Likes.tsx
++ app/src/screens/Gate.tsx -> app/src/screens/Register.tsx
++ app/src/screens/Gate.tsx -> app/src/screens/Splash.tsx
++ app/src/screens/Gate.tsx -> app/src/screens/pin-flow.ts
++ app/src/screens/Gate.tsx -> app/src/shell/NdIcon.tsx
++ app/src/screens/Gate.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/Intro.tsx -> app/src/screens/me/Place.tsx
++ app/src/screens/Intro.tsx -> app/src/shell/EntryScene.tsx
++ app/src/screens/Loading.tsx -> app/src/screens/Splash.tsx
++ app/src/screens/Locked.tsx -> app/src/screens/pin-door.tsx
++ app/src/screens/Locked.tsx -> app/src/vault.ts
++ app/src/screens/Register.tsx -> app/src/screens/Splash.tsx
++ app/src/screens/Splash.tsx -> app/package.json
++ app/src/screens/Splash.tsx -> app/src/screens/splash-logic.ts
++ app/src/screens/Unlock.tsx -> app/src/screens/pin-door.tsx
++ app/src/screens/Update.tsx -> app/src/i18n.ts
++ app/src/screens/Update.tsx -> app/src/shell/NdIcon.tsx
++ app/src/screens/cabinet/Offers.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/cabinet/SignIn.tsx -> app/src/shell/EntryScene.tsx
++ app/src/screens/cabinet/Venues.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/feed-card.tsx -> app/src/screens/Offer.tsx
++ app/src/screens/feed-card.tsx -> app/src/screens/me/parts.tsx
++ app/src/screens/feed-card.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/me/EditAge.tsx -> app/src/i18n.ts
++ app/src/screens/me/EditAge.tsx -> app/src/screens/me/EditName.tsx
++ app/src/screens/me/EditAge.tsx -> app/src/screens/me/parts.tsx
++ app/src/screens/me/EditAge.tsx -> app/src/screens/register-parts.tsx
++ app/src/screens/me/EditAge.tsx -> app/src/shell/Icon.tsx
++ app/src/screens/me/EditAge.tsx -> app/src/shell/NdIcon.tsx
++ app/src/screens/me/EditAge.tsx -> app/src/shell/icons.ts
++ app/src/screens/me/EditName.tsx -> app/src/shell/NdIcon.tsx
++ app/src/screens/me/EditName.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/me/Me.tsx -> app/src/screens/Departure.tsx
++ app/src/screens/me/Me.tsx -> app/src/screens/me/EditAge.tsx
++ app/src/screens/me/Place.tsx -> app/src/shell/EntryScene.tsx
++ app/src/screens/pin-door.tsx -> app/src/i18n.ts
++ app/src/screens/pin-door.tsx -> app/src/screens/Splash.tsx
++ app/src/screens/pin-door.tsx -> app/src/screens/pin-flow.ts
++ app/src/screens/pin-door.tsx -> app/src/screens/register-parts.tsx
++ app/src/screens/pin-door.tsx -> app/src/shell/NdIcon.tsx
++ app/src/screens/pin-door.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/restore-look.test.ts -> app/src/screens/me/restore-logic.ts
++ app/src/screens/splash-float.test.ts -> app/src/screens/splash-art.gen.ts
++ app/src/screens/splash-float.test.ts -> app/src/screens/splash-logic.ts
++ app/src/screens/tables/NewTable.tsx -> app/src/screens/tables/table-logic.ts
++ app/src/screens/tables/Table.tsx -> app/src/shell/useMinWidth.ts
++ app/src/screens/tables/Tables.tsx -> app/src/screens/tables/table-logic.ts
++ app/src/screens/tables/boards-sea.tsx -> app/src/screens/tables/fleet-store.ts
++ app/src/screens/tables/boards.test.ts -> app/src/screens/tables/boards-logic.ts
++ app/src/screens/tables/boards.test.ts -> app/src/screens/tables/table-logic.ts
++ app/src/screens/tables/boards.tsx -> app/src/screens/tables/boards-logic.ts
++ app/src/screens/tables/durak.test.ts -> app/src/screens/tables/cards-logic.ts
++ app/src/screens/tables/sea.test.ts -> app/src/screens/tables/fleet-store.ts
++ app/src/screens/tables/sea.test.ts -> app/src/screens/tables/sea-place.ts
++ app/src/screens/tables/solo.tsx -> app/src/screens/tables/foot-slot.tsx
++ app/src/screens/tables/solo.tsx -> app/src/shell/NdIcon.tsx
++ app/src/screens/talks/MatchWaiting.tsx -> app/src/screens/talks/Match.tsx
++ app/src/shell/App.tsx -> app/package.json
++ app/src/shell/App.tsx -> app/src/i18n.ts
++ app/src/shell/App.tsx -> app/src/screens/Update.tsx
++ app/src/shell/App.tsx -> app/src/screens/me/parts.tsx
++ app/src/shell/App.tsx -> app/src/shell/NdIcon.tsx
++ app/src/shell/App.tsx -> app/src/shell/update.ts
++ app/src/shell/EntryScene.tsx -> app/src/screens/me/parts.tsx
++ app/src/shell/EntryScene.tsx -> app/src/shell/NdIcon.tsx
++ app/src/shell/EntryScene.tsx -> app/src/shell/Scene.tsx
++ app/src/shell/EntryScene.tsx -> app/src/shell/useMinWidth.ts
++ app/src/shell/update.test.ts -> app/src/shell/update-logic.ts
++ app/src/shell/update.ts -> app/src/shell/update-logic.ts
++ app/vite.config.ts -> app/package.json
++ docs/MAP_LAYER_BRIEF_EN.md -> docs/MAP_LAYER_BRIEF_RU.md
++ docs/MAP_LAYER_BRIEF_EN.md -> docs/newsdesign/place-flow.svg
++ docs/MAP_LAYER_BRIEF_RU.md -> docs/MAP_LAYER_BRIEF_EN.md
++ docs/MAP_LAYER_BRIEF_RU.md -> docs/newsdesign/place-flow.svg
++ scripts/design/stub-keys.test.ts -> depth/core/seal.ts
++ scripts/design/stub-keys.test.ts -> scripts/design/measure-app-overlap.mjs
+- app/src/screens/Feed.tsx -> app/src/shell/Scene.tsx
+- app/src/screens/Gate.tsx -> app/src/screens/me/parts.tsx
+- app/src/screens/Gate.tsx -> app/src/screens/register-parts.tsx
+- app/src/screens/Gate.tsx -> app/src/shell/Icon.tsx
+- app/src/screens/Gate.tsx -> app/src/shell/icons.ts
+- app/src/screens/Loading.tsx -> app/src/shell/Scene.tsx
+- app/src/screens/Locked.tsx -> app/src/screens/pin-flow.ts
+- app/src/screens/Locked.tsx -> app/src/screens/register-parts.tsx
+- app/src/screens/Locked.tsx -> app/src/shell/NdIcon.tsx
+- app/src/screens/Splash.tsx -> app/src/shell/Scene.tsx
+- app/src/screens/Unlock.tsx -> app/src/screens/pin-flow.ts
+- app/src/screens/Unlock.tsx -> app/src/screens/register-parts.tsx
+- app/src/screens/Unlock.tsx -> app/src/shell/Scene.tsx
+- app/src/screens/talks/MatchWaiting.tsx -> app/src/shell/Screen.tsx
+- app/src/screens/talks/MatchWaiting.tsx -> app/src/shell/TabBar.tsx
+```
+
 ## 27.10.2026 20:52 · edges +50 −67
 
 ```diff

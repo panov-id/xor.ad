@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { placeOf } from "../place.ts";
-import { cardEntry, cardOf, feedRows, matchesQuery, peerName, sentOf, stepKey, stepOf, STEPS, takedownVerdict, withoutCard, type FeedCard, type Gone, likeOutcome, mergePage, offerLabel, RADII, radiusWord, toneOf, UNDO_HIDE_MS, visibleCards, widenedTo, widerRadius, withLike, withoutLike, ownLive } from "./feed-logic.ts";
+import { offerReportUrl } from "./feed-logic.ts";
+import { ownFade, ownFaded, ownLeft, cardEntry, cardOf, feedRows, matchesQuery, peerName, sentOf, stepKey, stepOf, STEPS, takedownVerdict, withoutCard, type FeedCard, type Gone, likeOutcome, matchOf, mergePage, offerLabel, RADII, radiusWord, toneOf, UNDO_HIDE_MS, visibleCards, widenedTo, widerRadius, withLike, withoutLike, ownLive } from "./feed-logic.ts";
 
 const c = (id: string, extra: Partial<FeedCard> = {}): FeedCard => ({ id, text: `t${id}`, mode: "alone", lang: "und", like_count: 0, ...extra });
 
@@ -53,6 +54,14 @@ test("likeOutcome: 200 liked, 200 matched with the match, 409 stepped_away, 429 
   assert.deepEqual(likeOutcome(409, { error: { code: "no_phrase" } }), { state: "refused", cause: "other", status: 409 });
   assert.deepEqual(likeOutcome(429, undefined), { state: "refused", cause: "rapid", status: 429 });
   assert.deepEqual(likeOutcome(500, "boom"), { state: "refused", cause: "other", status: 500 });
+});
+
+test("matchOf: a feed row's match_id opens the card as matched, as a like's answer would; no id, no outcome", () => {
+  assert.deepEqual(matchOf(c("1", { match_id: "m1" })), { state: "matched", matchId: "m1" });
+  assert.equal(matchOf(c("1")), null);
+  assert.equal(matchOf({ match_id: "" }), null);
+  const card = readFileSync(new URL("./feed-card.tsx", import.meta.url), "utf8");
+  assert.match(card, /useState<LikeOutcome \| null>\(\(\) => matchOf\(card\)\)/, "feed-card.tsx: the card does not open on the row's match");
 });
 
 test("withLike: the card takes one like once, and a liked one stays as it was", () => {
@@ -138,9 +147,11 @@ test("no width hides the phrase's «…»: report, hide and block have no other 
   const dir = new URL("../../tokens/", import.meta.url), files = readdirSync(dir).filter((f) => f.endsWith(".css"));
   assert.ok(files.length >= 10, `only ${files.length} token stylesheets found`);
   const css = files.map((f) => readFileSync(new URL(f, dir), "utf8")).join("\n");
-  // the «…» is the prototype's bar button (feed-card.tsx: k-bar-btn, data-testid more-menu)
+  // the «…» is the archive's head of the card (nd4/screens/card-in.gen.tsx, data-testid more-menu), and every card draws that head
   const card = readFileSync(new URL("./feed-card.tsx", import.meta.url), "utf8");
-  assert.match(card, /className="k-bar-btn"[^>]*data-testid="more-menu"/, "the «…» is no longer the bar's button: look again where it is laid out");
+  const gen = readFileSync(new URL("../nd4/screens/card-in.gen.tsx", import.meta.url), "utf8");
+  assert.match(gen, /data-testid="more-menu"/, "the «…» is gone from the card's head");
+  assert.match(card, /<CardHead [^>]*onMore=\{openMore\}/, "the card does not draw the head with the «…»");
   const rules = [...css.matchAll(/([^{}]*(?:more-menu|k-bar-btn)[^{}]*)\{([^}]*)\}/g)];
   assert.ok(rules.length > 0, "no rule lays out the bar's buttons");
   for (const [, sel, body] of rules) assert.doesNotMatch(body, /display:\s*none|visibility:\s*hidden/, `${sel.trim()} hides the «…»`);
@@ -157,54 +168,37 @@ test("the feed at 1440 is the sheet's middle panel: four columns, no yard pictur
   // newdesign3 (plan A item 3) took the yard picture out of the feed at every width, so no CSS has to hide it at 1440
   assert.doesNotMatch(readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8"), /<Scene\b/, "Feed.tsx: the yard picture is back over the feed");
   assert.match(wide, /\[data-screen="feed"\] \.k-body\[data-fab\] \{[^}]*mask: none/, "wide.css: the list panel at 1440 is cut for a round «write» it does not have");
-  assert.match(wide, /\[data-screen="feed"\] > \.k-col \{[^}]*padding: 13p[x] 505p[x] 13p[x] 137p[x]/, "wide.css: the feed at 1440 left its place between the rail and the talks pane");
+  assert.match(wide, /\[data-screen="feed"\] > \.k-col \{[^}]*padding: 13p[x] 505p[x] 13p[x] var\(--panel-left\)/, "wide.css: the feed at 1440 left its place between the rail and the talks pane");
 });
 
-// The quiet and error marks are an 82 px circle round the icon (kit.css). nd-icons.css loads after kit.css and gives every
-// .nd-icon 1em, so a lone .k-empty-mark lost: the circle shrank to its padding, the icon to nothing (TAB10 shot feed-empty).
-test("the feed's quiet and error mark keeps its 82 px circle over the icons' own 1em", () => {
-  const kit = readFileSync(new URL("../../tokens/kit.css", import.meta.url), "utf8");
+// The quiet and error states are the archive's blocks (screens 41, 42), generated; the old k-empty markup must not come back.
+test("the feed's quiet and error states are the archive's blocks", () => {
   const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
-  assert.match(feed, /<NdIcon name="empty" className="k-empty-mark"/, "Feed.tsx: the quiet state no longer draws its mark as an NdIcon: look again at what sizes it");
-  assert.match(kit, /\.nd-icon\.k-empty-mark \{[^}]*width: 82p[x]/, "kit.css: .k-empty-mark loses to .nd-icon { width: 1em } from nd-icons.css: write it as .nd-icon.k-empty-mark");
+  assert.match(feed, /<FeedQuiet /, "Feed.tsx: the quiet state is not the generated block of screen 41");
+  assert.match(feed, /<FeedOffline /, "Feed.tsx: the error state is not the generated block of screen 42");
+  assert.doesNotMatch(feed, /k-empty/, "Feed.tsx: hand markup k-empty is back next to the archive's blocks");
 });
 
 // desktop-1440/3-nearby/feed-loading.svg: the loading feed is the cards' masonry in ghost, three tiles a column of
 // unequal heights, not one tile a column.
-test("the loading feed is six ghost tiles of unequal heights, three to a column", () => {
+test("the loading feed is the archive's ghost tiles (screen 40), drawn at every width", () => {
   const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
-  const loading = feed.match(/data-testid="loading"[\s\S]*?<\/div>/)?.[0] ?? "";
-  assert.ok(loading, "Feed.tsx: no loading block");
-  const ghosts = feed.match(/GHOSTS = \[([^\]]*)\]/)?.[1].split(",").map((s) => s.trim()).filter(Boolean) ?? [];
-  assert.equal(ghosts.length, 3, "Feed.tsx: the loading column is not three ghost heights (GHOSTS)");
-  assert.ok(new Set(ghosts).size > 1, "Feed.tsx: the ghost tiles are all one height, the sheet's are not");
-  assert.match(loading, /GHOSTS/, "Feed.tsx: the loading block does not draw the GHOSTS");
+  assert.match(feed, /skeleton && <Ghosts \/>/, "Feed.tsx does not draw the ghosts while loading");
+  for (const name of ["feed-loading", "feed-loading-tablet", "feed-loading-laptop"]) {
+    const gen = readFileSync(new URL(`../nd4/screens/${name}.gen.tsx`, import.meta.url), "utf8");
+    assert.match(gen, /data-testid="loading"/, `${name}: no loading handle`);
+    assert.ok((gen.match(/className="tile"/g) ?? []).length >= 4, `${name}: fewer than 4 ghost tiles`);
+  }
 });
 
-// feed-hidden (proto at 390 and desktop-1440/3-nearby/feed-hidden.svg): «hidden» is a bar at the list panel's foot, not
-// a note over the cards: the crossed eye, the words, «return» as a round arrow and a ring that runs out with the undo time.
-test("the hidden row is the foot bar: eye, words, a round «return» and the undo ring", () => {
+// feed-hidden (archive screen 46): the toast comes from the archive by script; it stands outside the scrolling list.
+test("the hidden toast is the archive's, fed with the undo time, outside the scroller", () => {
   const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
-  const bar = feed.match(/<div className="k-undo"[\s\S]*?<\/div>/)?.[0] ?? "";
-  assert.ok(bar, "Feed.tsx: the hidden row is not the k-undo foot bar");
-  assert.match(bar, /data-why="hidden"/, "Feed.tsx: the foot bar lost its gone/hidden mark");
-  assert.match(bar, /data-testid="hidden-undo"[^>]*>\s*<NdIcon name="refresh"/, "Feed.tsx: «return» is not the round arrow");
-  assert.match(bar, /aria-label=\{say\("web\.feed\.hidden_undo"\)\}/, "Feed.tsx: the round «return» has no name to read aloud");
-  assert.match(bar, /className="k-undo-ring"[^>]*UNDO_HIDE_MS/, "Feed.tsx: the undo ring does not run on UNDO_HIDE_MS");
-  const cards = feed.indexOf('data-testid="cards"'), at = feed.indexOf('className="k-undo"');
-  assert.ok(cards > 0 && at > cards, "Feed.tsx: the foot bar stands above the cards, the sheet puts it under them");
-});
-
-// desktop-1440/3-nearby/feed.svg: the head carries the five radii as round chips (r100 … r10k, the current one pressed)
-// in place of the phone's one chip that opens the radius sheet; which one shows is the width's (CSS).
-test("the feed head has a round chip for every radius, the current one pressed", () => {
-  const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
-  const group = feed.match(/<div className="k-radii"[\s\S]*?<\/div>/)?.[0] ?? "";
-  assert.ok(group, "Feed.tsx: the head has no k-radii group");
-  assert.match(group, /RADII\.map/, "Feed.tsx: the radii chips are not drawn from RADII, a new radius would miss its chip");
-  assert.match(group, /aria-pressed=\{r === radius\}/, "Feed.tsx: the current radius chip is not pressed");
-  assert.match(group, /RADIUS_ICON\[r\]/, "Feed.tsx: a radius chip lost its radius icon");
-  assert.match(group, /aria-label=/, "Feed.tsx: a radius chip has no name to read aloud");
+  const at = feed.indexOf("<FeedHidden "), close = feed.indexOf("</section>");
+  assert.ok(at > close && close > 0, "Feed.tsx: the toast scrolls with the list");
+  assert.match(feed.slice(at, feed.indexOf("/>", at)), /onUndo=\{bringBack\}[^]*UNDO_HIDE_MS/, "Feed.tsx: the toast lost its undo or its time");
+  const wide = readFileSync(new URL("../../tokens/wide.css", import.meta.url), "utf8");
+  assert.equal(wide.match(/\.k-col > \.ktoast \{ left: calc\(var\(--panel-left\)/g)?.length, 2, "wide.css: at 1440 or 1920 the toast spans the window, not the feed's column");
 });
 
 // desktop-1920/3-nearby/feed.svg: at 1920 the talks pane is wider; the feed keeps between the rail and it (TAB18).
@@ -213,7 +207,7 @@ test("the feed at 1920 stands between the rail and the wider talks pane", () => 
   const at = css.search(/@media \(min-width: 1920p[x]\)/);
   assert.ok(at >= 0, "wide.css: no 1920 block");
   const wide = css.slice(at);
-  assert.match(wide, /\[data-screen="feed"\] > \.k-col \{[^}]*padding: 16p[x] 712p[x] 16p[x] 144p[x]/, "wide.css: the feed at 1920 runs under the talks pane: its 1920 place is missing");
+  assert.match(wide, /\[data-screen="feed"\] > \.k-col \{[^}]*padding: 16p[x] 712p[x] 16p[x] var\(--panel-left\)/, "wide.css: the feed at 1920 runs under the talks pane: its 1920 place is missing");
   assert.match(wide, /\[data-screen="feed"\] \.nd-icon\.k-empty-mark \{[^}]*width: 110p[x]/, "wide.css: the empty and error mark stays 82 at 1920, the sheet draws it 110");
 });
 
@@ -261,31 +255,39 @@ test("at the desktop the likes tab turns the feed's body to the likes under the 
   const likes = readFileSync(new URL("./talks/Likes.tsx", import.meta.url), "utf8");
   assert.match(likes, /export function LikesBody\(/, "Likes.tsx: the likes list is not its own part, the feed cannot show it");
   assert.match(src, /useMinWidth\("--bp-desktop"\)/, "Feed.tsx: the feed does not know the desktop");
-  assert.match(src, /desk \? setLikesTab\(true\) : onLikes\?\.\(\)[^\n]*data-testid="seg-likes"/, "Feed.tsx: the likes tab does not turn the body at the desktop and open the screen on the phone");
+  assert.match(src, /onLiked=\{\(\) => \(desk \? setLikesTab\(!likesOn\) : onLikes\?\.\(\)\)\}/, "Feed.tsx: the likes tab does not turn the body at the desktop and open the screen on the phone");
   assert.match(src, /const likesTab = desk && likesOn/, "Feed.tsx: a window shrunk under the desktop keeps the likes under the feed's head");
   assert.match(src, /onCompose && !likesTab &&/, "Feed.tsx: the «say» button stands over the likes");
-  assert.match(src, /aria-selected=\{likesTab\}/, "Feed.tsx: the switch does not show the likes tab pressed");
-  assert.match(src, /likesTab \? <LikesBody client=\{client\} hint/, "Feed.tsx: the feed's body never turns to the likes, or loses the empty hint");
-  // my-marks-empty.svg at 1440: under «nothing yet» two lines say what the tab holds (the phone has them in its head)
-  assert.match(likes, /data-testid="quiet"[^\n]*\{hint && <p>\{say\("app\.likes\.sub"\)\}<\/p>\}/, "Likes.tsx: the empty likes in the feed say nothing of what the tab holds");
+  assert.match(src, /likedOn=\{likesTab\}/, "Feed.tsx: the switch does not show the likes tab pressed");
+  assert.match(src, /likesTab \? <LikesBody client=\{client\} onGo=\{\(\) => setLikesTab\(false\)\}/, "Feed.tsx: the feed's body never turns to the likes, or the empty likes do not lead back to the feed");
+  // archive 49, 50: the generated tile and empty middle are the ones drawn, the old tile's classes are gone
+  assert.match(likes, /<MyMarksEmpty [^\n]*onGo=\{onGo\}/, "Likes.tsx: the empty likes are not the archive's screen 50");
+  assert.match(likes, /<MyMarksTile /, "Likes.tsx: the likes' tile is not the archive's screen 49");
+  assert.doesNotMatch(likes, /className="k-tile"|k-seg|k-panel/, "Likes.tsx: the old look is still drawn");
+  // the toast of 46 stands over the round «write» at the phone's and the tablet's width: the button rises
+  const kit = readFileSync(new URL("../../tokens/kit.css", import.meta.url), "utf8");
+  assert.match(kit, /\[data-screen="feed"\]:has\(\.ktoast\) \.k-fab \{ bottom: 176p[x]/, "kit.css: the hidden toast covers the round «write»");
   const wide = readFileSync(new URL("../../tokens/wide.css", import.meta.url), "utf8");
   assert.match(wide, /\[data-screen="feed"\] \[data-testid="liked"\] \{[^}]*--fd-cols: 2/, "wide.css: the likes in the feed split into the root's 3 columns at 1920");
 });
 
-// radius.svg at 1440/1920: a second press on the pressed round radius opens the radius/place sheet (owner.md, 28.10)
-test("at 1440+ a second press on the current radius opens the radius sheet", () => {
-  const src = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
-  assert.match(src, /const radiusSheet = \(\) => openSheet\("radius"/, "Feed.tsx: the radius sheet has no one opener for the chip and the round buttons");
-  assert.match(src, /onClick=\{\(\) => \(r === radius \? radiusSheet\(\) : \(setLikeNote\(null\), setRadius\(r\)\)\)\}[^\n]*data-testid=\{`radius-chip-/, "Feed.tsx: a press on the current round radius does nothing");
-});
-
-// feed-own (desktop-1440/3-nearby/feed-own.svg): the sent strip's «take down» cross stands at the strip's right end,
-// not right after the words.
-test("the sent strip's cross stands at the strip's right end", () => {
-  const kit = readFileSync(new URL("../../tokens/kit.css", import.meta.url), "utf8");
+// newdesign4 36 feed-own, 37 my-phrase, 41 feed-empty: the generated screens are the ones drawn, the strip is gone
+test("own phrase: the generated tile and screen are wired; the quiet screen hides «write»", () => {
   const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
-  assert.match(feed, /data-testid="sent"[\s\S]*?className="k-icon-btn"[^\n]*data-testid="takedown"/, "Feed.tsx: the sent strip's cross is no longer a k-icon-btn in the strip");
-  assert.match(kit, /\.k-note > \.k-icon-btn \{[^}]*margin-left: auto/, "kit.css: the sent strip's cross sits right after the words: push it to the end");
+  const my = readFileSync(new URL("./MyPhrase.tsx", import.meta.url), "utf8");
+  assert.match(feed, /<OwnTile /, "Feed.tsx: the checking tile (36) is not drawn");
+  assert.match(feed, /<MyPhrase /, "Feed.tsx: one's own phrase (37) does not open");
+  assert.doesNotMatch(feed, /className="k-note" data-testid="sent"/, "Feed.tsx: the old sent strip is back");
+  assert.match(feed, /!likesTab && !quiet && \(/, "Feed.tsx: «write» stands on the quiet screen (spec 26)");
+  for (const w of ["my-phrase.gen", "my-phrase-tablet.gen", "my-phrase-laptop.gen"]) assert.ok(my.includes(w), `MyPhrase.tsx: ${w} not used`);
+});
+test("ownLeft and ownFade: minutes rounded up, nothing while checked or past the end, the fill capped", () => {
+  assert.deepEqual(ownLeft(3600 + 8400, 3600_000), { h: 2, m: 20, left: 140 });
+  assert.deepEqual(ownLeft(61, 0), { h: 0, m: 2, left: 2 });
+  assert.equal(ownLeft(undefined, 0), null);
+  assert.equal(ownLeft(10, 10_000), null);
+  assert.equal(ownFade(130), "50%");
+  assert.equal(ownFade(999), "100%");
 });
 
 // desktop 3-nearby card.svg (TAB21): at 1440+ the card opens in the right pane and the feed stays beside it
@@ -296,11 +298,28 @@ test("feed at 1440: the card opens in the pane, not over the feed", () => {
 });
 
 // desktop 3-nearby offer-card.svg, offer-exit.svg (TAB21): an offer's card carries its venue and a round link button that opens the exit (Offer.tsx) in the card
+test("feed: a venue's card shows its promo code, and its menu opens the report page with the offer", () => {
+  const src = readFileSync(new URL("./feed-card.tsx", import.meta.url), "utf8");
+  assert.match(src, /venueOffer && offer\.promo_code \? say\("app\.card\.promo"/, "the promo code a venue gave is not on the card");
+  assert.match(src, /window\.open\(reportUrl/, "a venue's menu does not open the report page");
+  assert.equal(offerReportUrl("a b", "sosed.place/o/x"), "https://sosed.place/report.html?kind=offer&id=a%20b");
+  assert.equal(offerReportUrl("a", "http://127.0.0.1:1/o/x"), "http://127.0.0.1:1/report.html?kind=offer&id=a");
+  assert.equal(offerReportUrl("a"), null, "with no storefront the row stays as it was");
+});
+
 test("feed: an offer's card has the venue chip and the link to its exit", () => {
   const src = readFileSync(new URL("./feed-card.tsx", import.meta.url), "utf8");
-  assert.match(src, /data-testid="offer-venue"/, "no venue chip on an offer's card");
+  const gen = readFileSync(new URL("../nd4/screens/offer-card.gen.tsx", import.meta.url), "utf8");
+  assert.match(gen, /data-testid="offer-venue"/, "no venue on an offer's card");
+  assert.match(src, /<OfferPanel venue=\{venueOffer \? offer\.venue_name/, "the card does not give the panel its venue");
+  assert.match(readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8"), /<CardScreen\s+key=\{card\.id\}/, "at 1440 the next tile keeps the last card's outcome");
+  assert.match(src, /onClick=\{isVenue \? onOpen : onLike\}/, "a venue offer's tile likes an id that is no feed message");
+  assert.match(src, /const venueOffer = card\.kind === "offer" && !!offer;/, "a neighbour's phrase with a discount is taken for a venue's offer");
+  assert.match(src, /\{venueOffer \? onSay && <OfferHand /, "a neighbour's discount phrase lost «I'm in», and with it the match");
   assert.match(src, /card\.offer\?\.redirect && !card\.offer\.redirect_disabled/, "the link button does not hang on the offer's redirect");
-  assert.match(src, /data-testid="offer-link"/, "no link button on an offer's card");
+  assert.match(gen, /data-testid="offer-link"/, "no link button on an offer's card");
+  assert.match(src, /<OfferFoot [^>]*onLink=\{link \? \(\) => setExit\(link\) : undefined\}/, "the link button does not open the exit");
+  assert.match(src, /onLike=\{onSay\} \/>/, "screen 62's hand does not open composing");
   assert.match(src, /<Offer code=\{exit\} client=\{client\} onBack=\{\(\) => setExit\(null\)\} \/>/, "the link does not open the exit in the card");
   assert.match(src, /desk \? <div className="k-me-pane" data-testid="offer-pane"><InPane\.Provider value=\{true\}>\{page\}/, "at the desktop the exit is not in the pane");
 });
@@ -326,37 +345,23 @@ test("feed at 1440: a phrase in the right pane leaves the feed and its rail live
   assert.match(card, /const desk = useMinWidth\("--bp-desktop"\)/, "feed-card.tsx: the pane no longer opens at the desk width the feed tests");
 });
 
-// newdesign3 feed.html (plan A item 3): the feed's head is the kit's .uhead — the «nearby» lead, the title pill with
-// «place · km» under it, the round place button that opens the radius sheet; search and menu are round head buttons too.
-test("the feed's head is .k-uhead: nearby lead, «place · km» line, round place button", () => {
+// newdesign4 screen 283: the head row is the archive's (generated, one file for the three widths); the app gives it data.
+test("the feed's head is the archive's row of screen 283, with the app's search and menu in its slot", () => {
   const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
-  const head = /<header className="k-uhead" data-testid="feed-head">([\s\S]*?)<\/header>/.exec(feed)?.[1] ?? "";
-  assert.ok(head, "Feed.tsx: no .k-uhead head");
-  assert.match(head, /k-uhead-lead[^>]*><NdIcon name="nearby"/, "the head lost its «nearby» lead");
-  assert.match(head, /data-testid="feed-where">\{`\$\{placeName\} · \$\{radiusText\(radius\)\}`\}/, "the head's line is not «place · km»");
-  assert.match(head, /className="k-uhead-btn"[^>]*data-testid="radius-open" onClick=\{radiusSheet\}><NdIcon name="place"/, "no round place button opening the radius sheet");
-  for (const id of ["search-open", "feed-more"]) assert.match(head, new RegExp(`className="k-uhead-btn"[^\\n]*data-testid="${id}"`), `${id} is not a round head button`);
+  const gen = readFileSync(new URL("../nd4/screens/feed-head.gen.tsx", import.meta.url), "utf8");
+  assert.match(gen, /^\/\/ generated from .*screen 283/, "feed-head.gen.tsx is not generated from screen 283");
+  const head = /<header data-testid="feed-head">([\s\S]*?)<\/header>/.exec(feed)?.[1] ?? "";
+  assert.match(head, /<FeedHead name=\{placeName\} sub=\{`· \$\{radiusText\(radius\)\}`\}[^\n]*onPlace=\{radiusSheet\}/, "the head does not show «place · km» or does not open the radius sheet");
+  for (const id of ["search-open", "feed-more"]) assert.match(head, new RegExp(`data-testid="${id}"`), `${id} is lost from the head`);
+  assert.doesNotMatch(feed, /k-uhead-lead|k-seg|k-radii/, "the old head's parts are back");
 });
 
-// The open search takes the head (TAB10): with .k-uhead the rule that steps the round buttons aside must name .k-uhead,
-// not the old .k-row, or at 390 the field is squeezed between six circles.
-test("while searching, the feed's head hides the radii, place, search and menu buttons", () => {
-  const css = readFileSync(new URL("../../tokens/kit.css", import.meta.url), "utf8");
-  const rule = /\.k-uhead:has\(> \.k-search\) > :is\(([^)]*)\) \{ display: none; \}/.exec(css)?.[1] ?? "";
-  for (const want of [".k-radii", "radius-open", "search-open", "feed-more"]) assert.ok(rule.includes(want), `kit.css: the open search does not hide ${want}`);
-});
-
-// newdesign3 desktop-1920-feed.html (plan A item 4): the five radii show at 1920 only, as the head's 96 pill of 88 squares
-// with the current one in the accent; at 1440 they stay hidden (kit.css .k-radii none) and the round place button stays.
-test("the feed's desktop head: five radii in a 96 pill at 1920 only, the place button at 1440", () => {
+// The laptop's nav is the archive's 232 px: a fixed left padding from the old 112 px rail hid the first column under it (shot 01.11).
+test("the feed's column starts past the rail at every wide width", () => {
   const wide = readFileSync(new URL("../../tokens/wide.css", import.meta.url), "utf8");
-  const blocks = (w: number) => wide.split(new RegExp(`@media \\(min-width: ${w}px\\) \\{`)).slice(1).map((b) => b.split(/\n\}\n/)[0]).join("\n");
-  const at1920 = blocks(1920), at1440 = blocks(1440);
-  assert.match(at1920, /\.k-uhead > \.k-radii \{ display: flex;[^}]*height: 96[p]x/, "wide.css: no 96 radius pill at 1920");
-  assert.match(at1920, /\.k-radii > \.k-round \{ width: 88[p]x; height: 88[p]x/, "wide.css: the radius squares are not 88 at 1920");
-  assert.match(at1920, /\.k-round\[aria-pressed="true"\] \{ background: var\(--relief-acc\)/, "wide.css: the current radius is not in the accent");
-  assert.match(at1920, /\[data-testid="radius-open"\] \{ display: none/, "wide.css: the place button stays beside the radii at 1920");
-  assert.doesNotMatch(at1440, /\.k-radii \{ display: flex|\[data-testid="radius-open"\] \{ display: none/, "wide.css: at 1440 the radii show or the place button hides");
+  const rules = wide.match(/\[data-screen="feed"\] > \.k-col \{ padding: [^;]*;/g) ?? [];
+  assert.ok(rules.length >= 2, `wide.css: expected the feed's column rules, found ${rules.length}`);
+  for (const r of rules) assert.match(r, /var\(--panel-left\);$/, `wide.css: the feed's left edge is not --panel-left: ${r}`);
 });
 
 // card-in «Take back» (owner 28.10): the like goes back through DELETE /feed/:id/like, the card loses it at once.
@@ -370,12 +375,25 @@ test("withoutLike: a liked card gives its like back once, never below none; an u
 
 test("the card's «you're here» has the round «Take back» calling unlike, wired from the feed", () => {
   const card = readFileSync(new URL("./feed-card.tsx", import.meta.url), "utf8");
-  assert.match(card, /className="k-round" aria-label=\{say\("app\.card\.take_back"\)\}[^>]*onClick=\{\(\) => void unlike\(\)\}[^>]*data-testid="unlike"><NdIcon name="close" \/>/, "feed-card.tsx: no round ✕ «Take back» by «you're here»");
+  assert.match(card, /<CardHandLit label=\{say\("app\.card\.take_back"\)\} off=\{busy \|\| !onUnlike\} onUnlike=\{\(\) => void unlike\(\)\} \/>/, "feed-card.tsx: no «Take back» by «you're here»");
   const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
   assert.match(feed, /client\.unlike\(card\.id\)[\s\S]*?state === "unliked"[\s\S]*?withoutLike\(c\)/, "Feed.tsx does not take the like back through client.unlike");
   assert.match(feed, /onUnlike=\{unlike\}/, "Feed.tsx does not give the card its «Take back»");
   const i18n = readFileSync(new URL("../i18n.ts", import.meta.url), "utf8");
   assert.equal(i18n.split('"app.card.take_back":').length - 1, 2, "app.card.take_back is not in both RU and EN");
+});
+
+test("a phrase's card draws the archive's 51 and 52: the hand takes the like back, the talk opens from the both-liked foot", () => {
+  const card = readFileSync(new URL("./feed-card.tsx", import.meta.url), "utf8");
+  assert.match(card, /<CardHandLit label=\{say\("app\.card\.take_back"\)\} off=\{busy \|\| !onUnlike\} onUnlike=\{\(\) => void unlike\(\)\} \/>/, "the lit hand does not take the like back");
+  assert.match(card, /<CardHand label=\{say\("app\.feed\.im_in"\)\}.*: \(\) => void like\(\)\} \/>/, "the hand does not like");
+  assert.match(card, /<CardBothTalk talkText=\{label\("web\.match\.talk"\)\} onTalk=\{onTalk\} \/>/, "the both-liked foot does not open the talk");
+  assert.match(card, /<RailTablet active="feed" \/>\{body\}/, "the tablet's card lost the rail");
+  assert.match(card, /onLike=\{need && onSay \? \(\) => open\("card-need", <NeedSheet onSay=\{onSay\} \/>\)/, "card-need: the hand does not open the sheet");
+  assert.match(card, /sayText=\{say\("app\.card\.need_say"\)\}\s*onSay=\{\(\) => \{ close\(\); onSay\(\); \}\}/, "card-need does not offer to write");
+  assert.doesNotMatch(card, /!card\.offer \? phrase/, "an offer's card went back to the kit's drawing");
+  const i18n = readFileSync(new URL("../i18n.ts", import.meta.url), "utf8");
+  assert.equal(i18n.split('"app.card.both":').length - 1, 2, "app.card.both is not in both RU and EN");
 });
 
 // card-need (owner 28.10): the node refuses a like without a live phrase of one's own (relay routes/likes.ts, 409);
@@ -388,16 +406,15 @@ test("ownLive: a phrase with its end ahead counts, an ended one or one waiting f
   assert.equal(ownLive([{}, { expires_at: now / 1000 + 60 }], now), true, "a live phrase was not seen");
 });
 
-test("card-need: the card says «say yours first» and offers «Write a phrase» in place of «I'm in»", () => {
+test("card-need: the hand opens the sheet that says «say yours first» and offers «Write a phrase»", () => {
   const card = readFileSync(new URL("./feed-card.tsx", import.meta.url), "utf8");
-  assert.match(card, /const need = needPhrase && !lit && !matched && !card\.offer;/, "feed-card.tsx: card-need is not drawn from needPhrase");
-  assert.match(card, /data-testid="need-phrase"><NdIcon name="phrase" \/><span>\{say\("app\.card\.need"\)\}/, "feed-card.tsx: no «say yours first» note");
-  assert.match(card, /need && onSay\s*\? <button type="button" className="k-cta" onClick=\{onSay\} data-testid="need-say"><NdIcon name="write" \/>/, "feed-card.tsx: «I'm in» is not replaced by «Write a phrase»");
+  assert.match(card, /const need = needPhrase && !lit && !matched && card\.kind !== "offer";/, "feed-card.tsx: card-need is not drawn from needPhrase");
+  assert.match(card, /title=\{say\("app\.card\.need_title"\)\} text=\{say\("app\.card\.need"\)\}/, "feed-card.tsx: no «say yours first» sheet");
   const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
   assert.match(feed, /setNeedPhrase\(!ownLive\(p\?\.phrases, Date\.now\(\)\)\)/, "Feed.tsx does not ask the profile for a live phrase");
   assert.match(feed, /needPhrase=\{needPhrase\}\s*onSay=/, "Feed.tsx does not give the card card-need");
   const i18n = readFileSync(new URL("../i18n.ts", import.meta.url), "utf8");
-  for (const key of ["app.card.need", "app.card.need_say"]) assert.equal(i18n.split(`"${key}":`).length - 1, 2, `${key} is not in both RU and EN`);
+  for (const key of ["app.card.need", "app.card.need_say", "app.card.need_title", "app.card.need_later", "app.card.more_hide", "app.card.more_hide_sub", "app.card.more_notice_sub", "app.card.more_block_sub"]) assert.equal(i18n.split(`"${key}":`).length - 1, 2, `${key} is not in both RU and EN`);
 });
 
 test("widenedTo: the node's grown circle is said, the asked one is not (relay routes/feed.ts:620)", () => {
@@ -409,10 +426,29 @@ test("widenedTo: the node's grown circle is said, the asked one is not (relay ro
 
 test("widened feed: the screen says the wider circle on the first page, the card marks a far phrase", () => {
   const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
-  assert.match(feed, /if \(!after\) setWidened\(widenedTo\(radius, page/, "Feed.tsx does not read radius_used from the first page");
+  assert.match(feed, /if \(!after\) \{ const w = widenedTo\(radius, page.*?setWidened\(w\); noteWidened\(radius, w\);/, "Feed.tsx does not read radius_used from the first page, or does not hand it to the place map (screen 29)");
   assert.match(feed, /data-testid="feed-widened"[^>]*>\{say\("app\.feed\.widened"/, "Feed.tsx does not say the wider circle");
   const card = readFileSync(new URL("./feed-card.tsx", import.meta.url), "utf8");
   assert.match(card, /card\.farther_than_asked \? ` · \$\{say\("app\.feed\.farther"\)\}`/, "feed-card.tsx does not mark a far phrase");
   const i18n = readFileSync(new URL("../i18n.ts", import.meta.url), "utf8");
   for (const key of ["app.feed.widened", "app.feed.farther"]) assert.equal(i18n.split(`"${key}":`).length - 1, 2, `${key} is not in both RU and EN`);
+});
+
+// The panel's round cut for the write button showed on the 390 shot; the archive has no such cut.
+test("the feed's panel is not cut under the write button", () => {
+  const feed = readFileSync(new URL("./Feed.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(feed, /data-fab/, "Feed.tsx: the panel is cut for the round button again; the archive draws no cut");
+});
+
+// Screen 283: tiles sit on the page, no panel; search and menu match the row's 44 px round button at every width.
+test("the feed has no panel round its tiles and 44 px search and menu", () => {
+  const kit = readFileSync(new URL("../../tokens/kit.css", import.meta.url), "utf8");
+  assert.match(kit, /main\[data-screen="feed"\] \.k-body \{[^}]*background: none/, "kit.css: the feed's panel is back round the tiles");
+  assert.match(kit, /main\[data-screen="feed"\] \.k-uhead-btn \{[^}]*width: 44p[x]/, "kit.css: the feed's search and menu left the row's 44 px");
+});
+
+test("ownFaded: only past a known end; a phrase still checked has none", () => {
+  assert.equal(ownFaded(undefined, 5000), false);
+  assert.equal(ownFaded(6, 5000), false);
+  assert.equal(ownFaded(5, 5000), true);
 });

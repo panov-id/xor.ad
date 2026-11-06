@@ -63,15 +63,20 @@ export function tilePath(key: string, t: Tile, c: At, scale: number, w: number, 
   }).join("");
 }
 
-/** The cities on the view, the biggest first (the list is sorted by population), at most LABELS. */
-export function citiesOn(all: City[], c: At, radius: Radius, w: number, h: number): { name: string; x: number; y: number }[] {
+/** The cities and villages together, the biggest first; a name both hold at the same point stays once. */
+export function mergePlaces(cities: City[], villages: City[]): City[] {
+  const seen = new Set(cities.map((p) => `${p[0]}|${p[2]}|${p[3]}`));
+  return [...cities, ...villages.filter((p) => !seen.has(`${p[0]}|${p[2]}|${p[3]}`))].sort((a, b) => b[4] - a[4]);
+}
+
+/** Every place on the view as a point, the biggest first (the list is sorted by population); the first LABELS carry their name. */
+export function citiesOn(all: City[], c: At, radius: Radius, w: number, h: number): { name: string; x: number; y: number; label: boolean }[] {
   const s = pxPerM(radius, w, h);
-  const out: { name: string; x: number; y: number }[] = [];
+  const out: { name: string; x: number; y: number; label: boolean }[] = [];
   for (const city of all) {
     const [x, y] = toView({ lat: city[2], lon: city[3] }, c, s, w, h);
     if (x < 0 || y < 0 || x > w || y > h) continue;
-    out.push({ name: city[0], x, y });
-    if (out.length === LABELS) break;
+    out.push({ name: city[0], x, y, label: out.length < LABELS });
   }
   return out;
 }
@@ -81,4 +86,37 @@ export function pinched(radius: Radius, ratio: number): Radius {
   if (!(ratio > 0) || !Number.isFinite(ratio)) return radius;
   const want = Math.log(radius / ratio);
   return RADII.reduce((b, r) => (Math.abs(Math.log(r) - want) < Math.abs(Math.log(b) - want) ? r : b), radius);
+}
+
+/** Metres between two points (equirectangular: enough at the map's scale). */
+export function metres(a: At, b: At): number {
+  const k = Math.cos((((a.lat + b.lat) / 2) * Math.PI) / 180);
+  return Math.hypot((a.lat - b.lat) * M_PER_DEG, (a.lon - b.lon) * M_PER_DEG * k);
+}
+
+/** Is the point inside the land of these tiles (even-odd over every ring: a lake is a hole). */
+export function onLand(p: At, land: { key: string; t: Tile }[]): boolean {
+  let inside = false;
+  for (const { key, t } of land) {
+    const [y0, x0] = key.split("_").map(Number);
+    const x = (p.lon - x0) * 1000, y = (p.lat - y0) * 1000;
+    for (const ring of t.r) {
+      for (let i = 0, j = ring.length - 2; i + 1 < ring.length; j = i, i += 2) {
+        const [xi, yi, xj, yj] = [ring[i], ring[i + 1], ring[j], ring[j + 1]];
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+      }
+    }
+  }
+  return inside;
+}
+
+/** How far a city may be and still name the place (docs/newdesign4 screen 27 «3 km around you»): the circle, at least 10 km. */
+export const CITY_NEAR_M = 10_000;
+
+/** Which line goes under the radius (docs/newdesign4 screens 23, 26, 27): over the sea (26) only when every tile of the
+ * view came back and the pin is off all land; «around you» (27) when no city is near; otherwise «near» — also when
+ * the land failed to load (28): not knowing is not the sea. */
+export function nearKind(sea: boolean | null, cityM: number | null, radius: Radius): "near" | "sea" | "none" {
+  if (cityM === null || cityM > Math.max(radius, CITY_NEAR_M)) return "none";
+  return sea === true ? "sea" : "near";
 }

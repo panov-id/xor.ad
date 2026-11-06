@@ -5,10 +5,13 @@
 
 /* ── splash ── */
 
-.tile { position: absolute; width: var(--tile); height: var(--tile); border-radius: var(--r-tile); background: var(--c-panel); color: var(--c-text);
+/* the old splash's tile; the archive names its phrase tile `tile` too (docs/newdesign4 screen 283, nd4/screens/feed-tile*.gen.tsx,
+   an <article>) and the wizard's: neither may take this one's absolute box and centring (2026-11-01). No screen draws the old
+   splash's .tile any more: it waits for the owner's word to go (rule 39). */
+.tile:not(article, .scr .tile) { position: absolute; width: var(--tile); height: var(--tile); border-radius: var(--r-tile); background: var(--c-panel); color: var(--c-text);
   display: grid; place-items: center;
   animation: tile-in var(--d-tile) var(--ease) var(--t-tile-start) both, pulse var(--d-pulse) ease-in-out infinite; }
-.tile .icon { --stroke: 1.9; }
+.tile:not(article, .scr .tile) .icon { --stroke: 1.9; }
 @keyframes tile-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pulse { 50% { transform: scale(var(--scale-pulse)); } }
 @keyframes pulse-scale { 50% { scale: var(--scale-pulse); } }   /* `scale`, not `transform`: it rides on top of the entry's rise */

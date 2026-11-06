@@ -15,11 +15,16 @@ export interface FeedCard {
   mode: string;
   lang: string;
   like_count: number;
+  /** The phrase's centre as published, rounded to the grid of its radius (relay routes/feed.ts: lat_published). */
+  lat?: number;
+  lon?: number;
   kind?: string;
-  offer?: { discount_value: string; conditions?: string | null; venue_name?: string; redirect?: string; redirect_disabled?: boolean };
+  offer?: { discount_value: string; conditions?: string | null; venue_name?: string; promo_code?: string; redirect?: string; redirect_disabled?: boolean };
   soon?: boolean;
   /** The viewer's own like, kept in the feed: marked, not hidden (owner 15.10.2026). */
   liked?: boolean;
+  /** The live match the viewer is in out of this card, by id (relay routes/feed.ts match_id, owner 02.11.2026): screen 52 after a reload. */
+  match_id?: string;
   /** A table between the phrases (kind "table"): what GET /feed delivers of it (web Feed.tsx, tables/TableCard). */
   name?: string | null;
   game?: string;
@@ -37,6 +42,13 @@ export function widenedTo(asked: Radius, page: { radius_used?: unknown }): numbe
   const used = page.radius_used;
   return typeof used === "number" && used > asked ? used : null;
 }
+
+/** The last circle the feed grew to, kept for the place screen's map (docs/newdesign4 screen 29: «Quiet within 1 km —
+ * the feed shows 25 km for now»): the asked radius and what the node used, or null when it kept the asked one. */
+let lastWidened: { asked: number; used: number } | null = null;
+export function noteWidened(asked: number, used: number | null): void { lastWidened = used === null ? null : { asked, used }; }
+/** The circle the feed grew to, when the map's radius is the one the feed asked with; null otherwise. */
+export function widenedFor(asked: number): number | null { return lastWidened && lastWidened.asked === asked ? lastWidened.used : null; }
 
 /** What left the feed on the card: hidden (with the handle that brings it back), or its author blocked. */
 export type Gone = { why: "hidden" | "blocked"; id: string; handle?: string };
@@ -73,9 +85,30 @@ export function textSize(text: string): TextSize {
   return n <= 40 ? "l" : n <= 100 ? "m" : "s";
 }
 
+/** The tile's words of screen 283 (nd4/screens/feed-tile.gen.tsx): the distance from the viewer's place to the
+ * phrase's published centre, the serif's size by the length, and the fade bar. The node never sends another
+ * person's remaining time, only `soon` in the last 65 minutes (§8.11, owner 23.09.2026): the bar is full until then
+ * and short after. A card with no point says no distance. The sizes are the archive's (FEED_TILE_FS). */
+export function tileFade(card: FeedCard): string { return card.soon ? "15%" : "100%"; }
+// Owner 06.11.2026: no chosen place, no distance — the fallback point would give a made-up number.
+export function tileMetres(card: FeedCard, at: { lat: number; lon: number; chosen?: boolean } | null): number | null {
+  if (!at || at.chosen === false || typeof card.lat !== "number" || typeof card.lon !== "number") return null;
+  const rad = Math.PI / 180, R = 6_371_000;
+  const dLat = (card.lat - at.lat) * rad, dLon = (card.lon - at.lon) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(at.lat * rad) * Math.cos(card.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
 export type Tone = "lime" | "yellow" | "peach" | "coral";
 const TONES: Tone[] = ["lime", "yellow", "peach"];
 export const toneOf = (card: FeedCard, index: number): Tone => (card.offer || card.kind === "offer" ? "coral" : TONES[index % TONES.length]);
+
+/** The landing's report page for a venue's offer: the storefront is the one the node gave in the offer's link. E-mail and code live on that page. */
+export const offerReportUrl = (id: string, redirect?: string): string | null => {
+  const host = redirect?.split("/o/")[0];
+  if (!host) return null;
+  return `${/^https?:\/\//.test(host) ? host : `https://${host}`}/report.html?kind=offer&id=${encodeURIComponent(id)}`;
+};
 
 /** The discount as the card writes it: the author's free text, any leading minus dropped, ours added (web ui/offer.ts). */
 export const offerLabel = (discount: string): string => "−" + discount.trim().replace(/^[-−–—‒﹣－]+\s*/u, "");
@@ -85,6 +118,11 @@ export type LikeOutcome =
   | { state: "liked" }
   | { state: "matched"; matchId?: string }
   | { state: "refused"; cause: "stepped_away" | "rapid" | "other"; status: number };
+
+/** The card's match as the feed row delivers it: the same outcome a like's answer gives, so the card opens on card-both after a reload (screen 52). */
+export function matchOf(card: { match_id?: string }): LikeOutcome | null {
+  return typeof card.match_id === "string" && card.match_id !== "" ? { state: "matched", matchId: card.match_id } : null;
+}
 
 export function likeOutcome(status: number, body: unknown): LikeOutcome {
   const b = (body ?? {}) as { state?: string; match_id?: string; error?: { code?: string } };
@@ -182,6 +220,19 @@ export type SentPhrase = { state: "published" | "checking"; text: string; id?: s
 export function sentOf(sent: { state: string; id?: string }, text: string): SentPhrase {
   return { state: sent.state === "published" ? "published" : "checking", text, ...(sent.id ? { id: sent.id } : {}) };
 }
+
+/** feed.phrase.span of the node (relay/node/src/lib/feed_verdict.ts PHRASE_SPAN, 4 h 20 min), in minutes: the whole length of one's own fade line. */
+export const PHRASE_SPAN_MIN = 260;
+/** What is left of one's own phrase, rounded up to a minute; null with no end yet (still checked) or past it. Only the author's own end is ever shown (§8.11). */
+export function ownLeft(expiresAt: number | undefined, nowMs: number): { h: number; m: number; left: number } | null {
+  if (expiresAt === undefined || expiresAt * 1000 <= nowMs) return null;
+  const left = Math.ceil((expiresAt * 1000 - nowMs) / 60000);
+  return { h: Math.floor(left / 60), m: left % 60, left };
+}
+/** One's own published phrase past its end (screen 39); a phrase still checked has no end and has not faded. */
+export const ownFaded = (expiresAt: number | undefined, nowMs: number): boolean => expiresAt !== undefined && expiresAt * 1000 <= nowMs;
+/** The fade line's fill for that many minutes left. */
+export const ownFade = (left: number): string => `${Math.min(100, Math.round((left / PHRASE_SPAN_MIN) * 100))}%`;
 
 /** The answer to DELETE /feed/:id: 204 is down, anything else is a refusal with the node's number. */
 export const takedownVerdict = (status: number): { ok: true } | { ok: false; status: number } => (status === 204 ? { ok: true } : { ok: false, status });

@@ -99,7 +99,7 @@ export interface Profile {
   name_pending?: string;
   name_state: "accepted" | "pending" | "rejected";
   age: number;
-  phrases?: Array<{ id: string; expires_at?: number }>;
+  phrases?: Array<{ id: string; expires_at?: number; kind?: string }>;
   stepped_away_until?: number;
 }
 

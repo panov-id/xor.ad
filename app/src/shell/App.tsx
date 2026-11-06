@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { Line } from "@platform/chat/chat_state.ts";
 import type { Client, Radius } from "@sdk/client.ts";
 import { type ChatKeys, chatKeysFor, type InboxChatRow } from "@platform/chat/keys.ts";
 import { gateOf, gateScreen, landing, pathOf, type Screen, seatScreen } from "../router";
@@ -43,12 +44,14 @@ import { type Tab, TabsContext } from "./TabBar";
 import { useSkeleton } from "./loading";
 import { watchTaps } from "./ripple";
 import { InPane } from "../screens/me/parts";
+import { startTelegram, telegramBack, youngInTelegram } from "./telegram";
 
 // A place QR (web App.tsx QR, sosed.place 26): `/location#p=…&s=…` read once at load and taken out of the address at
 // once, so the cell stays in no history, tab restore or copied address; anything off the shape is no QR. Once seated,
 // the place screen opens at the QR's point; nothing is kept until «Here».
 const QR = /^\/location\/?$/.test(location.pathname) ? parseQr(location.hash) : null;
 if (/^\/location\/?$/.test(location.pathname)) history.replaceState(null, "", "/");
+startTelegram();
 
 // In the dev server ?boot=<ms> makes the boot wait, to look at the loading screen.
 async function boot(): Promise<void> {
@@ -97,6 +100,8 @@ export function App() {
     chatKeysFor(seated.client).then((k) => { if (live) setChatKeys(k); }, (e) => console.error(e));
     return () => { live = false; };
   }, [seated?.client]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Read lines by chat, for coming back to a talk: until the tab closes or the seat goes, never on disk (owner 03.11.2026).
+  const heldLines = useMemo(() => new Map<string, Line[]>(), [seated?.client]); // eslint-disable-line react-hooks/exhaustive-deps
   // Five minutes without input: the core is locked and the face is one line (Locked.tsx).
   const [locked, setLocked] = useState(false);
   // The vault's record as the page found it (null: none, or forgotten since): the gates read it.
@@ -113,11 +118,22 @@ export function App() {
   const wide = useWide();
   const toPlace = () => { history.pushState({ gate: "place", i: 1 }, "", pathOf({ at: "place" })); setScreen({ at: "place" }); };
   const feedOf = (seated: { client: Client }) => <Feed key={feedKey} client={seated.client} onTab={tab} onCompose={openComposer} sent={sent} onTakenDown={() => setSent(null)} onLikes={toLikes} onNewTable={() => toNewTable()} onTable={toTable} onPlace={toPlace} />;
-  // The tablet and up: the talks' screen opens a talk beside its list (tablet_834_Talks), not over it.
-  const twoPane = useWide("--bp-tablet");
+  // The desktop: the talks' screen opens a talk beside its list (archive README_design.md §13, laptop). On a tablet the
+  // list and the talk each take the whole area (png/tablet-kypros-day/108-inbox, 113-chat; owner /go 03.11.2026).
   const [beside, setBeside] = useState<InboxChatRow | null>(null);
   // desktop-1440 5-talks/offer.svg: at wide a match opens in the right pane beside the talks, as a talk does
   const [besideMatch, setBesideMatch] = useState<MatchRow | null>(null);
+  // The talks opened in the pane stay mounted while the inbox is open, so a hidden one keeps its room and its unseen lines;
+  // leaving the inbox unmounts them, and heldLines above carries what they had read.
+  const [openTalks, setOpenTalks] = useState<InboxChatRow[]>([]);
+  const talks = beside && !openTalks.some((r) => r.id === beside.id) ? [...openTalks, beside] : openTalks;
+  useEffect(() => { setOpenTalks(talks); }, [beside?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (screen.at !== "inbox" || !seated) setOpenTalks(beside && seated ? [beside] : []); }, [screen.at, seated?.client]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The seat went (moved away, or closed): the next person in this tab must not open the last one's talk (panel 05.11).
+  const [tgYoung, setTgYoung] = useState(false);
+  const dropPane = () => { setBeside(null); setBesideMatch(null); setOpenTalks([]); };
+  useEffect(() => { telegramBack((history.state?.i ?? 0) > 0); }, [screen]);
+  const closeBeside = (id: string) => { setBeside((b) => (b?.id === id ? null : b)); setOpenTalks((all) => all.filter((r) => r.id !== id)); };
 
   useEffect(() => {
     void (async () => {
@@ -222,6 +238,8 @@ export function App() {
     history.replaceState({ gate: to.at, i: 0 }, "", pathOf(to));
     setScreen(to);
     void awayCheck(who.client);
+    // a person under 18 restored by the code into Telegram stops here; the identity stays for a browser
+    void who.client.profile().then((p) => { if (typeof p?.age === "number" && youngInTelegram(p.age)) setTgYoung(true); }).catch(() => {});
   }
   // Seated while a step away is on (the profile says until when; web App.tsx land): the away screen, not the feed.
   async function awayCheck(client: Client) {
@@ -240,6 +258,7 @@ export function App() {
   function gone() {
     held.current = false;
     void forget().then(() => {
+      dropPane();
       setSeated(null);
       history.replaceState({ gate: "splash", i: 0 }, "", pathOf({ at: "splash" }));
       setScreen({ at: "splash" });
@@ -292,7 +311,8 @@ export function App() {
   };
   // The inbox's «Offers» circle: what I am in on, on top of the inbox (as toMove over Me).
   const toMatch = (row: MatchRow) => {
-    if (wide) { setBeside(null); setBesideMatch(row); return; }
+    // from the side pane of another screen the inbox is not mounted, and only the inbox draws besideMatch: go there too
+    if (wide) { setBeside(null); setBesideMatch(row); if (screen.at !== "inbox") tab("chats"); return; }
     history.pushState({ gate: "match", i: 1, row }, "", pathOf({ at: "match", row }));
     setScreen({ at: "match", row });
   };
@@ -310,11 +330,13 @@ export function App() {
   const closed = () => {
     held.current = false;
     vaulted.current = null;
+    dropPane();
     setSeated(null);
     history.replaceState({ gate: "splash", i: 0 }, "", pathOf({ at: "splash" }));
     setScreen({ at: "splash" });
   };
 
+  if (tgYoung) return <LayerStack base={<main className="k-screen nd-screen" data-screen="telegram-young"><p className="k-sub" role="alert" data-testid="telegram-young">{say("app.telegram.young_entry")}</p></main>} />;
   // One line and nothing else while locked: no name, no counts, no rooms.
   if (locked && seated) return <LayerStack base={<Locked client={seated.client} onUnlocked={() => setLocked(false)} />} />;
 
@@ -341,17 +363,19 @@ export function App() {
         // desktop-1440 new-table-*.svg: the wizard stands in the right pane beside the tables list
         return wide ? <><Tables client={seated.client} onTab={tab} onNewTable={toNewTable} onTable={toTable} /><div className="k-me-pane" data-testid="new-table-pane"><InPane.Provider value={true}>{wizard}</InPane.Provider></div></> : wizard;
       }
-      case "chat": return seated && chatKeys ? <Chat key={screen.row.id} client={seated.client} keys={chatKeys} row={screen.row} onBack={chatBack} /> : null;
+      case "chat": return seated && chatKeys ? <Chat key={screen.row.id} client={seated.client} keys={chatKeys} row={screen.row} held={heldLines} onBack={chatBack} /> : null;
       case "me": return seated ? <Me client={seated.client} onTab={tab} onClosed={closed} onMove={toMove} onMoved={gone}
         onAway={(until) => { history.replaceState({ gate: "away", i: 0, until }, "", pathOf({ at: "away", until })); setScreen({ at: "away", until }); }} /> : null;
       // The talks (w3): a match and a talk open over the inbox — a talk's row is the chat's when the node gave it whole.
       case "inbox": return seated ? (
-        <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={twoPane ? (row) => { setBesideMatch(null); setBeside(row); } : openChat}
-          pickFirst={twoPane && !wide} selectedId={twoPane ? beside?.id : undefined}
-          beside={wide && besideMatch && chatKeys ? <Match key={besideMatch.id} client={seated.client} keys={chatKeys} row={besideMatch} frame="pane"
-              onAgreed={() => { setBesideMatch(null); tab("chats"); }} onWaiting={setBesideMatch} onBack={() => setBesideMatch(null)} onTalks={() => setBesideMatch(null)} />
-            : twoPane && beside && chatKeys ? <Chat key={beside.id} client={seated.client} keys={chatKeys} row={beside} onBack={() => setBeside(null)} frame="pane" />
-            : wide && !beside && !besideMatch ? <EmptyPane icon="talks" hint="app.pane.talks_hint" /> : undefined} />
+        <Inbox client={seated.client} onTab={tab} onLikes={toLikes} onOpenMatch={toMatch} onOpenChat={wide ? (row) => { setBesideMatch(null); setBeside(row); } : openChat}
+          selectedId={wide ? beside?.id : undefined}
+          beside={!wide ? undefined : <>
+            {chatKeys && talks.map((r) => <Chat key={r.id} client={seated.client} keys={chatKeys} row={r} held={heldLines} hidden={!!besideMatch || r.id !== beside?.id} onBack={() => closeBeside(r.id)} frame="pane" />)}
+            {besideMatch && chatKeys && <Match key={besideMatch.id} client={seated.client} keys={chatKeys} row={besideMatch} frame="pane"
+              onAgreed={() => { setBesideMatch(null); tab("chats"); }} onWaiting={setBesideMatch} onBack={() => setBesideMatch(null)} onTalks={() => setBesideMatch(null)} />}
+            {!beside && !besideMatch && <EmptyPane hint="app.pane.talks_hint" />}
+          </>} />
       ) : null;
       // What I am in on, over the inbox (i: 1): its back is the history's Back onto /inbox; a reload on it, the inbox.
       // A match over the inbox (i: 1, its row in the entry); "Let's talk" agreed by both goes to the talks (the talk's own screen is the chat wave's), a lone yes is the wait in place.
@@ -370,7 +394,7 @@ export function App() {
   };
   // the tables' right pane holds what opens from the list; with nothing open, it says so (desktop-1920 tables.svg)
   const pane = !(wide && seated && !loadingShown && PANE_BESIDE.has(screen.at)) ? null
-    : screen.at === "tables" ? <EmptyPane icon="tables" hint="app.pane.tables_hint" />
+    : screen.at === "tables" ? <EmptyPane hint="app.pane.tables_hint" />
     : <TalksPane client={seated.client} actions={{ onOpenMatch: toMatch, onOpenChat: openChat, onLikes: toLikes }} />;
   return <TabsContext.Provider value={tab}><LayerStack base={<>{view()}{pane}</>} />{fresh.version && <Update version={fresh.version} onLater={fresh.later} />}</TabsContext.Provider>;
 }

@@ -164,7 +164,7 @@ identity.
 | Route | What it does | Origin |
 |---|---|---|
 | `POST /feed` | publishes a phrase; since 2026-09-26 the first tier of §8.3 — rules (a link, a contact, a phrase the author already has up) — reads it in the request: a clean phrase is published in the same transaction and answers **200** `published`, a flagged one waits for the model's verdict — **202** `checking`, `visible_at` empty until the verdict; `FEED_VERDICT=queue` turns the rules off and everything waits for the model's verdict | **built** (`routes/feed.ts`, `lib/feed_verdict.ts`; checked against the code 2026-09-26), was: spec |
-| `GET /feed` | delivery by intersecting circles (a phrase in its last 65 minutes carries `soon` instead of its end, 2026-09-23), with the language, mode and age filters; a phrase the viewer liked stays in it with the flag `liked: true` (only when the like exists; the owner's decision of 2026-10-15, [retired] 2026-09-17: "what you liked is not in the feed"), and `GET /likes` is unchanged; hidden and blocked things are still not served | **built** (`routes/feed.ts`; checked against the code 2026-09-24), was: spec (named in the test map) |
+| `GET /feed` | delivery by intersecting circles (a phrase in its last 65 minutes carries `soon` instead of its end, 2026-09-23), with the language, mode and age filters; a phrase the viewer liked stays in it with the flag `liked: true` (only when the like exists; the owner's decision of 2026-10-15, [retired] 2026-09-17: "what you liked is not in the feed"), and `GET /likes` is unchanged; a card the viewer has a live match out of carries `match_id` — the id `POST /feed/:id/like` answered with, for the match's two people only (screen 52 after a reload, owner 2026-11-02); hidden and blocked things are still not served | **built** (`routes/feed.ts`; checked against the code 2026-09-24), was: spec (named in the test map) |
 | `DELETE /feed/:id` | withdraws your own phrase; the slot is freed, the hourly ceiling is not | **built** (`routes/feed.ts`; checked against the code 2026-09-24), was: spec (agreed 2026-09-17) (§8.3) |
 | `GET /feed/density` | the density band under the radius handle: `nobody here yet` … `hundreds`, on release; since 2026-09-26 it counts people with a live phrase, not phrases — three people with four phrases each read "few" | **built** (`routes/feed.ts`; checked against the code 2026-09-26), was: spec (agreed 2026-09-17) (§8.3, screen 3) |
 
@@ -529,6 +529,8 @@ this list like the other two: since 2026-09-15 they need the checkbox too (§8.2
   the place.
 
 ## 8. Open
+
+**The stored proof and rollback (owner 05.11.2026).** The node keeps `auth_hash` under an HMAC (`k1:`) only with `PIN_PROOF_KEYED=1`; off by default. While it is off, new proofs stay plain, no row is rekeyed, and a rollback to the previous tag accepts the right PIN. Rows of both forms are always read. Turn it on once a rollback to a tag without `k1:` is no longer needed: after that such a rollback refuses the right PIN.
 
 The list is deliberately short: this is what cannot be derived from the spec, and
 it has to be settled before the first line of step 1.

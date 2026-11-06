@@ -65,7 +65,9 @@ function inboxRows() {
   const keys = (peer) => ({ me: "id-stub", key_epoch: 1, rekey_requested: false, peer: { key_epoch: 1, identity_id: `id-${peer}`, identity_public_key: PEER_SPKI } });
   const talk = (id, name, age, left, last, more = {}) => ({ kind: "chat", id, name, age, state: "open", chat_expires_at: now + left * 60 - 5, my_span: 60, last_activity_at: last, ...keys(name.toLowerCase()), ...more });
   return [
-    { ...offer("m1", "Nino", 27, true), phrase: { text: "Backgammon tonight?", mode: "alone" }, my_phrase: { text: "Bakery open after ten?", mode: "alone" } }, offer("m2", "Dato", 30, false), offer("m3", "Ana", 25, false),
+    // lat/lon: the phrase's published centre (inbox.ts their_lat), a few hundred metres from Sololaki, so screens 110/111 say a distance
+    { ...offer("m1", "Nino", 27, true), phrase: { text: "Backgammon tonight?", mode: "alone", lat: 41.692, lon: 44.803 }, my_phrase: { text: "Bakery open after ten?", mode: "alone" } }, offer("m2", "Dato", 30, false),
+    { ...offer("m3", "Ana", 25, false), phrase: { text: "Tea at the corner?", mode: "alone", lat: 41.693, lon: 44.8 }, my_consent: "waiting" },   // screen 111: my yes, waiting for hers
     talk("c1", "Nino", 27, 38, at(21, 4), { pending_messages: 1 }), talk("c2", "Levan", 34, 52, at(20, 10)), talk("c3", "Mariam", 29, 12, at(18, 32)),
     talk("c4", "Giorgi", 41, 0, at(17, 5), { state: "ended", chat_expires_at: now - 60 }),
   ];
@@ -211,16 +213,37 @@ export async function register(page) {
   await page.goto(DEV + "/", { waitUntil: "load" });
   await page.waitForSelector('[data-testid="start"]'); await page.click('[data-testid="start"]');
   await page.waitForSelector('[data-screen="register-1"]');
-  await page.fill('[data-testid="name"]', "Alex"); await page.fill('[data-testid="age"]', "32"); await page.check(".reg-check input");
+  await page.fill('[data-testid="name"]', "Alex"); await page.fill('[data-testid="age"]', "32"); await page.check('[data-testid="consent"]');
   await page.click('[data-testid="next"]'); await page.waitForSelector('[data-screen="register-2"]');
-  await page.fill('[data-testid="pin"]', PIN); await page.fill('[data-testid="pin-again"]', PIN);
-  await page.click('[data-testid="register"]'); await page.waitForSelector('[data-screen="register-3"]', { timeout: 90000 });
+  // the sixth digit moves on, the repeat creates (Register.tsx, pin-flow.ts); same path as scripts/flow/crowd.mjs
+  await page.fill('[data-testid="pin"]', PIN); await page.waitForSelector('[data-screen="register-2b"]');
+  await page.fill('[data-testid="pin-again"]', PIN); await page.waitForSelector('[data-screen="register-3"]', { timeout: 90000 });
+}
+// «I wrote it down», then the two groups the screen asks for (data-pair="1,4"); the code is the one the init script forces
+export async function fillPaper(page) {
+  const code = "K7QM2XWDPE4R9FTE";
+  await page.click('[data-testid="wrote"]'); await page.waitForSelector('[data-screen="register-3-check"]');
+  const pair = (await page.locator('[data-testid="paper-groups"]').getAttribute("data-pair")).split(",").map(Number);
+  const gi = page.locator('[data-testid="paper-groups"] input');
+  for (const [i, g] of pair.entries()) await gi.nth(i).fill(code.slice((g - 1) * 4, g * 4));
+}
+// a fresh registration shows «how it works» first (Intro.tsx); closing it leads on
+export async function passIntro(page) {
+  await page.waitForSelector('[data-screen="intro"]', { timeout: 30000 });
+  await page.click('[data-testid="intro-close"]');
+  // no place on a new device: the wizard's place card comes before the feed (same path as scripts/flow/crowd.mjs)
+  await page.waitForSelector('[data-testid="intro-place"], [data-screen="place"]', { timeout: 20000 }).catch(async (e) => {
+    throw new Error(`no place step after the intro; on screen: ${await page.evaluate(() => [...document.querySelectorAll("[data-screen],[data-testid]")].slice(0, 12).map((n) => n.getAttribute("data-screen") ?? n.getAttribute("data-testid")).join(",") + " | " + document.body.innerText.slice(0, 200))}`);
+  });
+  await page.fill('[data-testid="place-search"]', "Limassol");
+  await page.locator('[data-testid="place-city"]').first().click({ timeout: 20000 });
+  await page.click('[data-testid="place-here"]');
+  await page.waitForSelector(feedSel, { timeout: 20000 });
 }
 export async function confirmPaper(page) {
-  const gi = page.locator('[data-testid="paper-groups"] input');
-  await gi.nth(0).fill("2XWD"); await gi.nth(1).fill("9FTE");
+  await fillPaper(page);
   await page.click('[data-testid="confirm"]');
-  await page.waitForSelector(feedSel, { timeout: 20000 });
+  await passIntro(page);
 }
 
 // ── the measure, in the page ──
@@ -463,8 +486,9 @@ async function walkWidth(browser, w) {
     });
     if (comp) {
       // sent: the feed again with the phrase over the list and its «take down»; taken down, the line goes
-      if (await at(page, "feed (my phrase sent)", w, async () => { await click(page, '[data-testid="send"]'); await wait(page, '[data-testid="sent"]'); await wait(page, '[data-testid="takedown"]'); })) {
-        await click(page, '[data-testid="takedown"]'); await page.waitForSelector('[data-testid="sent"]', { state: "detached", timeout: 8000 }).catch(() => { unreachable.push(`takedown @${w}: the sent line stayed`); log(`UNREACHABLE takedown @${w}: the sent line stayed`); });
+      if (await at(page, "feed (my phrase sent)", w, async () => { await click(page, '[data-testid="send"]'); await wait(page, '[data-testid="sent"]'); })) {
+        // newdesign4 37: «delete» is on one's own phrase's screen, the tile opens it
+        await click(page, '[data-testid="sent"]'); await wait(page, '[data-testid="takedown"]'); await click(page, '[data-testid="takedown"]'); await page.waitForSelector('[data-testid="sent"]', { state: "detached", timeout: 8000 }).catch(() => { unreachable.push(`takedown @${w}: the sent line stayed`); log(`UNREACHABLE takedown @${w}: the sent line stayed`); });
       } else { await page.click('[data-testid="composer-back"]', T).catch(() => page.goBack()); await wait(page, feedSel).catch(() => {}); }
     }
     // talks: the inbox (at 1440 and up with the pane beside it), a chat, a match, likes
@@ -472,7 +496,7 @@ async function walkWidth(browser, w) {
     if (await at(page, "chat", w, async () => { await page.locator('[data-testid="open-chat"]').first().click(T); await wait(page, '[data-screen="chat"], [data-testid="chat-pane"]'); })) { await page.goBack().catch(() => {}); await page.waitForTimeout(400); }
     await tab(page, "chats").catch(() => {});
     if (await at(page, "match", w, async () => { await page.locator('[data-testid="open-match"]').first().click(T); await wait(page, '[data-screen="match"]'); })) { await page.goBack().catch(() => {}); await page.waitForTimeout(400); }
-    if (await at(page, "likes", w, async () => { await tab(page, "chats").catch(() => {}); await click(page, '[data-testid="open-likes"]'); await wait(page, '[data-screen="likes"]'); })) { await page.goBack().catch(() => {}); await page.waitForTimeout(400); }
+    if (await at(page, "likes", w, async () => { await tab(page, "feed").catch(() => {}); await click(page, '[data-testid="feed-more"]'); await click(page, '[data-testid="menu-likes"]'); await wait(page, '[data-screen="likes"]'); })) { await page.goBack().catch(() => {}); await page.waitForTimeout(400); }
     // tables
     await at(page, "tables", w, async () => { await tab(page, "tables"); await wait(page, '[data-screen="tables"]'); await wait(page, '[data-testid="tables"]'); });
     if (await at(page, "table", w, async () => { await page.locator('[data-testid="table-open"]').first().click(T); await wait(page, '[data-screen="table"]'); })) { await page.click('[data-testid="table-back"]', T).catch(() => page.goBack()); await wait(page, '[data-screen="tables"]').catch(() => {}); }

@@ -8,7 +8,10 @@ import { useEffect, useState } from "react";
 import type { Client } from "@sdk/client.ts";
 import { type ExitState, readExit } from "@sdk/offer_exit.ts";
 import { label, say } from "../i18n";
-import { NdIcon } from "../shell/NdIcon";
+import { useDrawing } from "../nd4/drawing";
+import { OfferExitScreen } from "../nd4/screens/offer-exit.gen";
+import { OfferExitScreenLaptop } from "../nd4/screens/offer-exit-laptop.gen";
+import { OfferExitScreenTablet } from "../nd4/screens/offer-exit-tablet.gen";
 import { SubPage } from "./me/parts";
 
 type Report = "idle" | "sending" | "sent" | "failed";
@@ -16,6 +19,8 @@ type Report = "idle" | "sending" | "sent" | "failed";
 export function Offer({ code, client, onBack }: { code: string; client?: Client; onBack: () => void }) {
   const [state, setState] = useState<ExitState>({ at: "loading" });
   const [report, setReport] = useState<Report>("idle");
+  const wide = useDrawing();
+  const Screen = wide === "laptop" ? OfferExitScreenLaptop : wide === "tablet" ? OfferExitScreenTablet : OfferExitScreen;
   useEffect(() => {
     let live = true;
     void readExit(code).then((s) => { if (live) setState(s); });
@@ -43,26 +48,16 @@ export function Offer({ code, client, onBack }: { code: string; client?: Client;
     );
   }
   const { domain, disabled } = state.exit;
+  // docs/newdesign4 screen 63: the archive's markup (nd4/screens/offer-exit*.gen.tsx); the line and the report's answer are the app's
+  const reportable = !!client && report !== "sent" && !disabled;
   return (
-    <SubPage name="offer" title={title} onBack={onBack}
-      foot={disabled ? undefined : (
-        <a className="k-cta" href={`/o/${encodeURIComponent(code)}/go`} rel="nofollow noopener noreferrer" data-testid="go">
-          <NdIcon name="chev" /><span>{say("app.offer.open")}</span>
-        </a>
-      )}>
-      <div className="k-centre k-centre-text">
-        <span className="k-mark-110" aria-hidden="true"><NdIcon name="link" /></span>
-        <h2 className="k-title k-title-big">{say("app.offer.going_to")}</h2>
-      </div>
-      <div className="k-tile" data-accent="" data-testid="exit" data-disabled={disabled}>
-        <strong className="k-card-text" data-testid="domain">{domain}</strong>
-        <p className="k-meta">{disabled ? say("web.offer.disabled") : say("app.offer.own_site")}</p>
-      </div>
-      {client && report !== "sent" && !disabled && (
-        <button type="button" className="k-btn" aria-disabled={report === "sending" || undefined} onClick={() => void reportLink()} data-testid="report"><NdIcon name="flag" /><span>{say("app.offer.report")}</span></button>
-      )}
-      {report === "sent" && <p className="k-sub" role="status" data-testid="reported">{label("web.offer.reported")}</p>}
-      {report === "failed" && <p className="k-note k-error" role="alert" data-testid="report-failed">{say("web.offer.later")}</p>}
-    </SubPage>
+    <main className="k-screen nd-screen" data-screen="offer" data-width={wide}>
+      <Screen backLabel={label("common.back")} backId="offer-back" onBack={onBack} title={title} opening={say("app.offer.going_to")} domain={domain} disabled={disabled}
+        line={disabled ? say("web.offer.disabled") : say("app.offer.own_site")}
+        note={report === "sent" ? label("web.offer.reported") : report === "failed" ? say("web.offer.later") : undefined}
+        noteId={report === "sent" ? "reported" : "report-failed"} noteRole={report === "sent" ? "status" : "alert"}
+        reportLabel={say("app.offer.report")} onReport={reportable ? () => void reportLink() : undefined}
+        goHref={disabled ? undefined : `/o/${encodeURIComponent(code)}/go`} goText={say("app.offer.open")} />
+    </main>
   );
 }

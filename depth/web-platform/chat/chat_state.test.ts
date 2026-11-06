@@ -3,7 +3,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import type { Client } from "../../core/client.ts";
-import { ChatSession } from "./chat_state.ts";
+import { ChatSession, type Line } from "./chat_state.ts";
 import type { ChatKeys, InboxChatRow } from "./keys.ts";
 import type { RoomEvent } from "./room.ts";
 
@@ -44,6 +44,61 @@ function stand(opts: { sayAnswer?: { status: number; body: { accepted?: boolean 
   return { session, emit: (e: RoomEvent) => room?.(e), received, said, settle, roomOpen: () => room !== null };
 }
 
+// Leaving a talk and coming back (owner 03.11.2026): the node does not send acked lines again, so the next session starts from what the last one held.
+function standWith(lines: Line[]) {
+  let room: ((e: RoomEvent) => void) | null = null;
+  const received: string[] = [];
+  const said: Array<string | undefined> = [];
+  let opened = false;
+  const client = { inbox: async () => [row()], received: async (_: string, ids: string[]) => { received.push(...ids); } } as unknown as Client;
+  const keys = {
+    open: async () => { await new Promise((r) => setTimeout(r, 5)); opened = true; return {}; }, flush: async () => [], keptOnNode: () => ({ epoch: 1 }),
+    read: async () => { throw new Error("nonce seen"); },
+    say: async (_r: unknown, _t: string, localId?: string) => { said.push(opened ? localId : "sealed before the keys opened"); return { localId: localId ?? "x", answer: { status: 202, body: { accepted: true } } }; },
+  } as unknown as ChatKeys;
+  const session = new ChatSession({ client, keys, row: row(), say: (k) => k, lines, connect: (_c, _i, on) => { room = on; return { stop: () => { room = null; } }; }, nowSeconds: () => NOW });
+  return { session, received, said, emit: (e: RoomEvent) => room?.(e), settle: () => new Promise((r) => setTimeout(r, 0)) };
+}
+const theirs: Line = { id: "m1", text: "привет", mine: false, at: NOW };
+
+Deno.test("ChatSession: a read line survives leaving and returning, and a repeat delivery is acked, not an error", async () => {
+  const first = standWith([theirs]);
+  first.session.start(); await first.settle();
+  const held = first.session.heldLines();
+  first.session.stop();
+  const back = standWith(held);
+  back.session.start(); await new Promise((r) => setTimeout(r, 15));
+  assertEquals(back.session.view().lines.map((l) => l.text), ["привет"]);
+  back.emit({ kind: "message", id: "m1", ciphertext: "c", createdAt: NOW } as RoomEvent);
+  await back.settle(); await back.settle();
+  assertEquals(back.session.view().lines.length, 1);
+  assertEquals(back.session.view().lines[0].state, undefined);
+  assertEquals(back.received, ["m1"]);
+  back.session.stop();
+});
+
+Deno.test("ChatSession: a held line delivered again to a hidden talk waits for showing before the ack", async () => {
+  const s = standWith([theirs]);
+  s.session.setHidden(true);
+  s.session.start(); await s.settle();
+  s.emit({ kind: "message", id: "m1", ciphertext: "c", createdAt: NOW } as RoomEvent);
+  await s.settle(); await s.settle();
+  assertEquals(s.received, []);
+  s.session.setHidden(false);
+  assertEquals(s.received, ["m1"]);
+  s.session.stop();
+});
+
+Deno.test("ChatSession: their line that failed to open is not held; one's own unsent line goes again with its id", async () => {
+  const s = standWith([{ ...theirs, state: "failed" }, { id: "local-9", text: "моё", mine: true, at: NOW, state: "failed" }]);
+  assertEquals(s.session.heldLines().map((l) => l.id), ["local-9"]);
+  s.session.start();
+  await new Promise((r) => setTimeout(r, 30));
+  assertEquals(s.said, ["local-9"]);
+  assertEquals(s.session.view().lines.find((l) => l.id === "local-9")?.state, "sent");
+  s.session.stop();
+});
+
 Deno.test("ChatSession: the keys open on start, and the status says so", async () => {
   const { session, settle } = stand();
   assertEquals(session.view().keysState, "opening");
@@ -66,6 +121,50 @@ Deno.test("ChatSession: their line opens, is marked received and takes the away 
   assertEquals(v.lines.map((l) => [l.id, l.text, l.mine]), [["m1", "opened:c1", false]]);
   assertEquals(received, ["m1"]);
   assertEquals(v.peerAway, false);
+  session.stop();
+});
+
+Deno.test("ChatSession: a hidden talk holds its ack until shown; closed first, the node keeps the line", async () => {
+  const shown = stand();
+  shown.session.start(); await shown.settle();
+  shown.session.setHidden(true);
+  shown.emit({ kind: "message", id: "m1", ciphertext: "c1", createdAt: NOW });
+  await shown.settle(); await shown.settle();
+  assertEquals(shown.received, []);
+  shown.session.setHidden(false);
+  assertEquals(shown.received, ["m1"]);
+  shown.session.stop();
+  const closed = stand();
+  closed.session.start(); await closed.settle();
+  closed.session.setHidden(true);
+  closed.emit({ kind: "message", id: "m2", ciphertext: "c2", createdAt: NOW });
+  await closed.settle(); await closed.settle();
+  closed.session.stop();
+  assertEquals(closed.received, []);
+});
+
+Deno.test("ChatSession: a replay of a line already shown is acked and draws no error and no second line", async () => {
+  let fail = false;
+  const { session, emit, received, settle } = stand({ get readFails() { return fail; } });
+  session.start(); await settle();
+  emit({ kind: "message", id: "m1", ciphertext: "c1", createdAt: NOW });
+  await settle(); await settle();
+  fail = true;   // the seal refuses the nonce it has seen
+  emit({ kind: "message", id: "m1", ciphertext: "c1", createdAt: NOW });
+  await settle(); await settle();
+  assertEquals(session.view().lines.map((l) => [l.id, l.text, l.state]), [["m1", "opened:c1", undefined]]);
+  assertEquals(received, ["m1", "m1"]);
+  session.stop();
+});
+
+Deno.test("ChatSession: the same unreadable line twice is one failed line, so the list has no duplicate key", async () => {
+  const { session, emit, received, settle } = stand({ readFails: true });
+  session.start(); await settle();
+  emit({ kind: "message", id: "m1", ciphertext: "c1", createdAt: NOW });
+  emit({ kind: "message", id: "m1", ciphertext: "c1", createdAt: NOW });
+  await settle(); await settle();
+  assertEquals(session.view().lines.map((l) => [l.id, l.state]), [["m1", "failed"]]);
+  assertEquals(received, []);
   session.stop();
 });
 

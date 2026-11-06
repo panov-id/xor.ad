@@ -4,10 +4,29 @@
 import { useState } from "react";
 import type { Place as PlaceT } from "@sdk/place.ts";
 import { say } from "../i18n";
-import { EntryScene } from "../shell/EntryScene";
 import { NdIcon } from "../shell/NdIcon";
-import { Scene } from "../shell/Scene";
 import { Place } from "./me/Place";
+import { useDrawing } from "../nd4/drawing";
+import { words } from "../nd4/texts";
+import { Wizard1Screen } from "../nd4/screens/wizard-1.gen";
+import { Wizard1ScreenLaptop } from "../nd4/screens/wizard-1-laptop.gen";
+import { Wizard1ScreenTablet } from "../nd4/screens/wizard-1-tablet.gen";
+import { Wizard2Screen } from "../nd4/screens/wizard-2.gen";
+import { Wizard2ScreenLaptop } from "../nd4/screens/wizard-2-laptop.gen";
+import { Wizard2ScreenTablet } from "../nd4/screens/wizard-2-tablet.gen";
+import { Wizard3Screen } from "../nd4/screens/wizard-3.gen";
+import { Wizard3ScreenLaptop } from "../nd4/screens/wizard-3-laptop.gen";
+import { Wizard3ScreenTablet } from "../nd4/screens/wizard-3-tablet.gen";
+import { Wizard4Screen } from "../nd4/screens/wizard-4.gen";
+import { Wizard4ScreenLaptop } from "../nd4/screens/wizard-4-laptop.gen";
+import { Wizard4ScreenTablet } from "../nd4/screens/wizard-4-tablet.gen";
+
+const SCREENS = [
+  [Wizard1Screen, Wizard1ScreenTablet, Wizard1ScreenLaptop],
+  [Wizard2Screen, Wizard2ScreenTablet, Wizard2ScreenLaptop],
+  [Wizard3Screen, Wizard3ScreenTablet, Wizard3ScreenLaptop],
+  [Wizard4Screen, Wizard4ScreenTablet, Wizard4ScreenLaptop],
+] as const;
 
 export const INTRO_CARDS = [
   { icon: "phrase", key: "say" },
@@ -18,8 +37,8 @@ export const INTRO_CARDS = [
 
 export function Intro({ onDone, onPlaced, onQr }: { onDone: () => void; onPlaced: (p: PlaceT) => void; onQr: () => void }) {
   const [n, setN] = useState(0);
+  const wide = useDrawing();
   const card = INTRO_CARDS[n];
-  const last = n === INTRO_CARDS.length - 1;
   const bar = (
     <header className="k-row k-bar">
       <div className="k-bar-title">
@@ -33,25 +52,12 @@ export function Intro({ onDone, onPlaced, onQr }: { onDone: () => void; onPlaced
   );
   // wizard-5: the place under the same bar, every dash lit
   if (n === INTRO_CARDS.length) return <Place wizard={bar} onChosen={onPlaced} onBack={onDone} onQr={onQr} />;
-  // the prototype's wizard-1…4: the bar with the title, five dots (the fifth is the place) and the cross; the yard with the
-  // card's icon in a round panel over it; the title and the text; «next»
+  // docs/newdesign4 screens 17…20 (wizard-1…4): the archive's markup as is, its words through nd4/texts
+  const Screen = SCREENS[n][wide === "laptop" ? 2 : wide === "tablet" ? 1 : 0];
   return (
-    <main className="k-screen" data-screen="intro">
-      <EntryScene title={say(`app.intro.${card.key}_title`)} text={say(`app.intro.${card.key}_text`)} icon={card.icon} />
-      <div className="k-col">
-        {bar}
-        <section className="k-panel k-grow k-splash k-intro" data-testid="intro-step" data-step={n + 1} key={card.key}>
-          <Scene kind="splash"><span className="k-intro-mark" aria-hidden="true"><NdIcon name={card.icon} /></span></Scene>
-          <div className="k-stack">
-            <h2 className="k-title k-title-big">{say(`app.intro.${card.key}_title`)}</h2>
-            <p className="k-sub k-price">{say(`app.intro.${card.key}_text`)}</p>
-          </div>
-        </section>
-        <section className="k-panel k-actions">
-          <button type="button" className="k-cta" onClick={() => setN(n + 1)} data-testid="intro-next">
-            <NdIcon name={last ? "place" : "chev"} /><span>{say(last ? "app.intro.to_place" : "app.intro.next")}</span>
-          </button>
-        </section>
+    <main className="k-screen nd-screen" data-screen="intro" data-width={wide} data-bare="">
+      <div data-testid="intro-step" data-step={n + 1} key={card.key} style={{ display: "contents" }}>
+        <Screen t={words(`wizard-${n + 1}` as "wizard-1")} backLabel={say("app.reg.back")} onSkip={onDone} onNext={() => setN(n + 1)} onBack={() => setN(Math.max(0, n - 1))} />
       </div>
     </main>
   );

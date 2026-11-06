@@ -139,7 +139,6 @@
 .k-cta[data-fit] { width: auto; padding: 0 24px; }
 .k-cta .nd-icon { width: 28px; height: 28px; }
 /* card-more: the picks 112 tall with a 35px badge; block on the danger ground */
-.k-pick-tall { height: 112px; }
 .k-badge-35 { width: 35px; height: 35px; border-radius: 10px; }
 .k-pick[data-danger] { background: var(--danger-bg); }
 .k-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -1211,15 +1210,6 @@ button.tg-dk-card:disabled { cursor: default; }
 .k-tb-foot[data-foot="con"]:has(> .k-tb-acts:not(:empty)) .k-row > .k-cta { height: 60px; border-radius: 20px; padding: 0; box-shadow: none; background: var(--tile); color: var(--accent); }
 .k-tb-foot[data-foot="con"]:has(> .k-tb-acts:not(:empty)) .k-row > .k-cta > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
-/* the hidden phrase's foot bar (proto feed-hidden, desktop-1440/3-nearby/feed-hidden.svg): it stays at the list panel's foot */
-.k-undo { position: sticky; bottom: 6px; margin-top: auto; z-index: 2; display: flex; align-items: center; gap: 14px; height: 60px; padding: 0 7px 0 18px; border-radius: 30px; background: var(--accent); color: #fff; box-sizing: border-box; }
-.k-undo > span:first-of-type { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.k-undo .nd-icon { width: 26px; height: 26px; flex: none; }
-.k-undo-btn { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; }
-.k-undo-ring { position: relative; flex: none; width: 46px; height: 46px; border-radius: 50%; border: 3px solid #fff; box-sizing: border-box; background: conic-gradient(rgba(255,255,255,.35) var(--undo-left, 100%), transparent 0); animation: k-undo-run var(--undo-ms, 5s) linear forwards; }
-.k-undo-ring::after { content: ""; position: absolute; inset: 0; margin: auto; width: 12px; height: 12px; border-radius: 50%; background: #fff; }
-@property --undo-left { syntax: "<percentage>"; inherits: false; initial-value: 100%; }
-@keyframes k-undo-run { to { --undo-left: 0%; } }
 .k-note > .k-icon-btn { margin-left: auto; flex: none; }
 
 /* arrival-1: the move code in three tiles of a row (R-TAB17-1, m1920-arrival-1) */
@@ -1257,9 +1247,6 @@ button.tg-dk-card:disabled { cursor: default; }
 .k-where:disabled { cursor: default; }
 
 /* card-in (owner 28.10): «you're here» as an outline pill and the round «Take back» at its height (proto card-in.html) */
-.k-take { gap: 8px; align-items: center; }
-.k-take > .k-cta { flex: 1 1 auto; }
-.k-take > .k-round { width: 60px; height: 60px; background: var(--tile); }
 .k-swatch[data-swatch="limestone"] { background: radial-gradient(circle at 75% 70%, #c2613f 18%, transparent 19%), linear-gradient(155deg,#fbf8f3,#ebe5da); }
 .k-swatch[data-swatch="amber"] { background: radial-gradient(circle at 75% 70%, #e0694f 18%, transparent 19%), linear-gradient(180deg,#f7c4a0,#e8d0d8); }
 .k-swatch[data-swatch="marble"] { background: radial-gradient(circle at 75% 70%, #1f4e9c 18%, transparent 19%), #f4efe4; }
@@ -1274,3 +1261,24 @@ button.tg-dk-card:disabled { cursor: default; }
 .k-accent[data-accent-dot="citrine"] { --dot: #c98a1e; } .k-accent[data-accent-dot="peridot"] { --dot: #5f7f45; }
 .k-accent[data-accent-dot="turquoise"] { --dot: #1f8a8a; } .k-accent[data-accent-dot="lapis"] { --dot: #2f62b8; }
 .k-accent[data-accent-dot="amethyst"] { --dot: #7a5fb0; } .k-accent[data-accent-dot="tourmaline"] { --dot: #b8407a; }
+
+/* The feed as screen 283 draws it: tiles on the page with no panel round them; the app's search and menu at the size of the row's round button. */
+main[data-screen="feed"] .k-body { background: none; box-shadow: none; padding: 0; border-radius: 0; }
+main[data-screen="feed"] .k-uhead-btn { width: 44px; height: 44px; border-radius: 50%; }
+main[data-screen="feed"] .k-uhead-btn .nd-icon { width: 20px; height: 20px; }
+
+/* Screen 79: the tables nearby are one column of rows at every width. */
+.screen[data-screen="tables"] .k-tb-grid.k-tb-grid[data-testid="tables"] { display: flex; flex-direction: column; gap: 10px; flex: none; }
+.screen[data-screen="tables"] .k-tb-grid.k-tb-grid[data-testid="tables"][hidden] { display: none; }
+.screen[data-screen="tables"] [data-testid="table-open"] .nd-icon { width: 26px; height: 26px; }
+main[data-screen="tables"] .k-body { background: none; box-shadow: none; padding: 0; border-radius: 0; }
+/* my-marks (49): the lit hand is drawn 24 wide, its tap reaches past the drawing; a like that cannot be taken back dims */
+.k-mark-btn { position: relative; cursor: pointer; }
+.k-mark-btn::after { content: ""; position: absolute; inset: -10px; }
+.k-mark-btn[aria-disabled="true"] { opacity: .45; cursor: default; }
+[data-screen="likes"] > .k-col > header { flex: none; }
+main[data-screen="likes"] .k-body { background: none; box-shadow: none; padding: 0; border-radius: 0; } /* the tiles stand on the screen, as the feed's */
+/* the archive's tablet draws the likes in three columns */
+@media (min-width: 768px) and (max-width: 1439px) { [data-screen="likes"] [data-testid="liked"] { --fd-cols: 3; } }
+/* the hidden toast (46) stands full width over the round «write» for its 5 s: the button rises above it */
+[data-screen="feed"]:has(.ktoast) .k-fab { bottom: 176px; }

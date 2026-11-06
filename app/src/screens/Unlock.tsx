@@ -14,6 +14,7 @@ import { canOpen, pinRefusal } from "@sdk/pin_gate.ts";
 import { PIN_LENGTH } from "@sdk/register.ts";
 import { brand } from "@brand";
 import { say } from "../i18n";
+import { ConfirmDanger } from "../nd4/screens/confirm.gen";
 import { NdIcon } from "../shell/NdIcon";
 import { forget, unlockAfterReload } from "../vault";
 import { pinLine } from "./pin-line";
@@ -62,7 +63,7 @@ export function Unlock({ record, onDone, onForget, onRestore }: {
     input.current?.focus();
   }
 
-  if (sure) return <ForgetConfirm onCancel={() => setSure(false)} onForget={async () => { if (forgetting.current) return; forgetting.current = true; await forget(); onForget(); }} />;
+  if (sure) return <ForgetConfirm onCancel={() => setSure(false)} onForget={async () => { if (forgetting.current) return; forgetting.current = true; try { await forget(); onForget(); } finally { forgetting.current = false; } }} />;
 
   // docs/newdesign4 06/07: the line says the refusal in the accent; from the third miss «Forgot it? Use your paper code»;
   // the «⋯» on the card and «Not you? Forget this device» lead to 08 (SCREENS_spec §9)
@@ -88,16 +89,12 @@ function ForgetConfirm({ onCancel, onForget }: { onCancel: () => void; onForget:
     <main className="k-screen nd-screen" data-screen="forget-confirm">
       <div className="nd-col nd-confirm">
         <header className="nd-head"><button type="button" className="nd-back" aria-label={say("app.reg.back")} onClick={onCancel}><NdIcon name="back" /></button></header>
-        <div className="nd-grow nd-confirm-mid">
-          <span className="nd-ring-mark" aria-hidden="true"><NdIcon name="device" /></span>
-          <h1 className="nd-h1">{say("app.forget.title_1", { name: brand.name })}<br />{say("app.forget.title_2")}</h1>
-          <p className="nd-sub">{say("app.forget.sub_1", { name: brand.name })}<br />{say("app.forget.sub_2")}</p>
-        </div>
-        <p className="nd-have">{say("app.forget.price_1")}<br />{say("app.forget.price_2")}</p>
-        <div className="nd-btnrow">
-          <button type="button" className="nd-tile-btn" onClick={onCancel} data-testid="forget-cancel">{say("app.forget.cancel")}</button>
-          <button type="button" className="nd-danger" onClick={onForget} data-testid="forget-sure"><NdIcon name="trash" />{say("app.forget.sure")}</button>
-        </div>
+        <ConfirmDanger id="forget-body" mark={<NdIcon name="device" />}
+          title={<>{say("app.forget.title_1", { name: brand.name })}<br />{say("app.forget.title_2")}</>}
+          lead={<>{say("app.forget.sub_1", { name: brand.name })}<br />{say("app.forget.sub_2")}</>}
+          price={<>{say("app.forget.price_1")}<br />{say("app.forget.price_2")}</>}
+          cancelId="forget-cancel" cancelText={say("app.forget.cancel")} onCancel={onCancel}
+          okId="forget-sure" okText={say("app.forget.sure")} okMark={<NdIcon name="trash" />} onOk={onForget} />
       </div>
     </main>
   );

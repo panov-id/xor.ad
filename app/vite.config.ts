@@ -86,8 +86,9 @@ const CSP_PAGE = [
   "form-action 'self'",
 ].join("; ");
 // frame-ancestors is ignored in a <meta> (CSP3 §6.1): only the header carries
+// Only Telegram's web client may frame the page (owner /go 05.11.2026, the Telegram shell).
 // it, so a page served elsewhere without this header can still be framed.
-const CSP_HEADER = `${CSP_PAGE}; frame-ancestors 'none'`;
+const CSP_HEADER = `${CSP_PAGE}; frame-ancestors https://web.telegram.org`;
 
 // Into the built page only: the dev server injects its own inline React
 // Refresh preamble, which this policy would refuse. The page as it is served —

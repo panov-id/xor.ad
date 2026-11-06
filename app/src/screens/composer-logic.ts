@@ -10,6 +10,10 @@ export function liveLeft(ownLive: number): { left: number; of: number } {
   return { left: Math.max(0, LIVE_PHRASES - Math.max(0, ownLive)), of: LIVE_PHRASES };
 }
 
+/** One's rows that take one of the four: a lost has its own slot. An older node sends no kind. */
+export const ownPhrases = (rows: ReadonlyArray<{ kind?: string }> | undefined): number =>
+  (rows ?? []).filter((r) => (r.kind ?? "phrase") === "phrase").length;
+
 /** Letters left of the node's limit (GET /limits phrase_length), counted as a person counts them (code points). */
 export const lettersLeft = (text: string, limit: number): number => Math.max(0, limit - [...text].length);
 

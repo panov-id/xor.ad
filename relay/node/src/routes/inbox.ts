@@ -64,6 +64,7 @@ async function inbox(req: Request): Promise<Response> {
     interest: boolean; offer_id: string | null; offer_text: string | null; offer_mode: string;
     discount_value: string | null; conditions: string | null;
     their_ends: string | null; my_ends: string | null; mine_is_phrase: boolean;
+    their_lat: number | null; their_lon: number | null; their_id: string | null;
   }>(
     `SELECT m.id, them.name, them.age, theirs.text_snapshot AS text, theirs.mode,
             (theirs.accepted_at IS NOT NULL AND mine.accepted_at IS NULL) AS waiting, m.created_at,
@@ -93,7 +94,14 @@ async function inbox(req: Request): Promise<Response> {
             -- no end to tell (LEFT, null).
             floor(extract(epoch from tf.expires_at))::bigint::text AS their_ends,
             floor(extract(epoch from mf.expires_at))::bigint::text AS my_ends,
-            (mf.id IS NOT NULL) AS mine_is_phrase
+            (mf.id IS NOT NULL) AS mine_is_phrase,
+            -- Where their phrase stands, as the feed already printed it: the
+            -- published centre on its radius's grid (db/027), never the exact
+            -- place. The app measures the distance from its own (screens 110, 111).
+            tf.lat_published AS their_lat, tf.lon_published AS their_lon,
+            -- Their phrase's id while it is still in the feed, so the waiting screen's «…»
+            -- can hide it or report it as the feed card does (screen 111, owner /go 06.11).
+            tf.id AS their_id
        FROM matches m
        JOIN match_participants mine   ON mine.match_id = m.id AND mine.identity = $1
        JOIN match_participants theirs ON theirs.match_id = m.id AND theirs.identity <> $1
@@ -179,7 +187,11 @@ async function inbox(req: Request): Promise<Response> {
       // for both (P5): `phrase` carries the offer's text on both rows, and the
       // author's row adds `offer` — its id, and the discount while it lives.
       kind: m.interest ? "offer_interest" : "match", id: m.id, name: m.name, age: m.age,
-      phrase: { text: m.text ?? "", mode: m.mode, ...(m.their_ends !== null ? { expires_at: Number(m.their_ends) } : {}) },
+      phrase: {
+        text: m.text ?? "", mode: m.mode, ...(m.their_ends !== null ? { expires_at: Number(m.their_ends) } : {}),
+        ...(m.their_lat !== null && m.their_lon !== null ? { lat: m.their_lat, lon: m.their_lon } : {}),
+        ...(m.their_id !== null ? { id: m.their_id } : {}),
+      },
       // My own phrase in this match (sheet 24's first card), read from my side
       // of it only — mine.identity = $1 above; an offer on my side is `offer`.
       ...(!m.interest && m.mine_is_phrase

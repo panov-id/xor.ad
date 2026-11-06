@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { canSay, lettersLeft, LIVE_PHRASES, liveLeft } from "./composer-logic.ts";
+import { canSay, lettersLeft, LIVE_PHRASES, liveLeft, ownPhrases } from "./composer-logic.ts";
 
 test("liveLeft: four less one's own live phrases, never below none", () => {
   assert.equal(LIVE_PHRASES, 4);
@@ -44,4 +44,9 @@ test("the composer's place is in the «where» row only; the new strings are in 
   const i18n = readFileSync(new URL("../i18n.ts", import.meta.url), "utf8");
   for (const key of ["app.feed.head", "app.feed.place_radius", "app.compose.where_change"])
     assert.equal(i18n.split(`"${key}":`).length - 1, 2, `${key} is not in both RU and EN`);
+});
+
+test("ownPhrases: a live lost takes none of the four", () => {
+  assert.equal(ownPhrases([{ kind: "phrase" }, { kind: "lost" }, {}]), 2);
+  assert.equal(ownPhrases(undefined), 0);
 });

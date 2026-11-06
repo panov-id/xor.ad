@@ -4233,6 +4233,36 @@ test({ name: "a liked phrase stays in my feed marked liked, unmarked for anybody
   reset();
 });
 
+test({ name: "a feed row carries match_id for the two people of a live match out of it, and for nobody else (screen 52 after a reload)", sanitizeOps: false, sanitizeResources: false }, async () => {
+  const { reset } = await import("../src/lib/rate_limit.ts");
+  reset();
+  const a = await author();
+  const b = await author();
+  const c = await author();
+  const mine = await seedPhrase(a.identity_id, "кто на набережную?", "company");
+  const theirs = await seedPhrase(b.identity_id, "гуляю у залива");
+  await seedPhrase(c.identity_id, "а я просто смотрю");
+  const rowsOf = async (who: { pair: CryptoKeyPair; session_id: string }) =>
+    (await feedItems(who)) as Array<{ id: string; liked?: boolean; match_id?: string }>;
+
+  assertEquals(stateOf(await like(a, theirs)), "liked");
+  assertEquals((await rowsOf(a)).find((i) => i.id === theirs)?.match_id, undefined, "a one-sided like already carries a match");
+  const back = await like(b, mine);
+  assertEquals(stateOf(back), "matched", JSON.stringify(back.body));
+  const matchId = (back.body as { match_id: string }).match_id;
+
+  assertEquals((await rowsOf(a)).find((i) => i.id === theirs)?.match_id, matchId, "A's feed does not carry the match on B's phrase");
+  assertEquals((await rowsOf(b)).find((i) => i.id === mine)?.match_id, matchId, "B's feed does not carry the match on A's phrase");
+  assertEquals((await rowsOf(a)).find((i) => i.id === mine)?.match_id, undefined, "the match is printed on one's own phrase");
+  const outsider = await rowsOf(c);
+  assertEquals(outsider.filter((i) => i.match_id !== undefined).length, 0, `a third person sees somebody else's match: ${JSON.stringify(outsider)}`);
+  const anybody = await rowsOf(a);
+  assertEquals(anybody.filter((i) => i.match_id !== undefined).length, 1, "a card with no match of A's carries a match_id");
+  await database.queryOrThrow(`UPDATE matches SET expires_at = now() - interval '1 minute' WHERE id = $1`, [matchId]);
+  assertEquals((await rowsOf(a)).find((i) => i.id === theirs)?.match_id, undefined, "an expired match is still printed on the row");
+  reset();
+});
+
 test({ name: "a like that became a match is listed as matched, on both sides", sanitizeOps: false, sanitizeResources: false }, async () => {
   const { reset } = await import("../src/lib/rate_limit.ts");
   reset();

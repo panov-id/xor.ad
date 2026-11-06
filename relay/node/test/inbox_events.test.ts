@@ -239,6 +239,9 @@ test("a match row tells what is left of both phrases — the other's end to its 
   const rowA = (await inbox(a)).items.find((i) => i.id === id) as unknown as Row;
   assertEquals(rowA.phrase.text, "гуляю у залива");
   assertEquals(rowA.phrase.expires_at, endB, "the other side's phrase does not carry its end to its match partner");
+  // Their phrase's id, while it is in the feed (screen 111's «…», owner /go 06.11)
+  const idB = (await database.queryOrThrow<{ id: string }>(`SELECT id FROM feed_messages WHERE author_identity = $1`, [b.identity_id]))[0].id;
+  assertEquals((rowA.phrase as { id?: string }).id, idB, "the match row does not carry the other side's phrase id");
   assertEquals(rowA.my_phrase, { text: "кто на набережную?", mode: "alone", expires_at: endA }, "my own phrase in the match is not mine, or not with my end");
 
   const rowB = (await inbox(b)).items.find((i) => i.id === id) as unknown as Row;
@@ -312,7 +315,7 @@ test("a like on my offer is interest in it in my inbox, with the offer, and a ma
     `INSERT INTO feed_messages
        (id, brand, author_identity, text, mode, lang, lat, lon, area_radius,
         lat_published, lon_published, visible_at, expires_at, discount_value, conditions)
-     VALUES ($1, 'xor', $2, 'отдам две табуретки', 'company', 'und', 60.17, 24.94, 1000, 60.17, 24.94,
+     VALUES ($1, 'xor', $2, 'отдам две табуретки', 'company', 'und', 60.1712, 24.9433, 1000, 60.17, 24.94,
              now(), now() + interval '3 hours', '100%', 'самовывоз')`,
     [offerId, neighbour.identity_id],
   );
@@ -342,8 +345,11 @@ test("a like on my offer is interest in it in my inbox, with the offer, and a ma
   assert(match, "the offer's match is not in the taker's inbox");
   assertEquals(match.kind, "match", "the taker's own inbox names the match as interest in an offer");
   // With its end since N1: the offer is the match's phrase, told to its partner (§8.11).
-  const { expires_at: offerEnd, ...offerPhrase } = match.phrase as { text: string; mode: string; expires_at?: number };
-  assertEquals(offerPhrase, { text: "отдам две табуретки", mode: "company" }, "the taker does not see the offer as the match's phrase");
+  const { expires_at: offerEnd, ...offerPhrase } = match.phrase as { text: string; mode: string; expires_at?: number; lat?: number; lon?: number; id?: string };
+  // With its place since 06.11 (screens 110, 111): the published centre the feed printed (60.17, 24.94), never the
+  // exact one it was said at (60.1712, 24.9433), for the app to measure from.
+  // With its id since 06.11 (screen 111's «…»: hide or report it as the feed card does).
+  assertEquals(offerPhrase, { text: "отдам две табуретки", mode: "company", lat: 60.17, lon: 24.94, id: offerId }, "the taker does not see the offer as the match's phrase, at its published place, with its id");
   assert(typeof offerEnd === "number" && offerEnd > nowSeconds(), "the taker is not told what is left of the offer's phrase");
   assert(!("offer" in match), "the taker was given the offer block");
   assertEquals(theirs.events.new_matches, 1);

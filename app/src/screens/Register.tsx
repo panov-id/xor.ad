@@ -29,6 +29,7 @@ import { failedLine, say } from "../i18n";
 import { NdIcon } from "../shell/NdIcon";
 import { registerAndKeep } from "../vault";
 import { Cells, CodePlate, PIN_CELLS, PinPad } from "./register-parts";
+import { youngInTelegram } from "../shell/telegram";
 import { afterDigits, pickPair, pressed as padPressed, type PinStage } from "./pin-flow";
 import { NameCard } from "./Splash";
 
@@ -82,9 +83,10 @@ export function Register({ onDone, onRestore, onArrive, onBack }: { onDone: (sea
   }, []);
 
   const groups = paperGroups(code);
-  const young = isYoung(age);
-  const nextWhy = whyNext({ name, age, consent });
-  const reasonNext = nextWhy ? say(`web.register.why_${nextWhy}`) : null;
+  const youngHere = youngInTelegram(age) && !isYoung(age);
+  const young = isYoung(age) || youngHere;
+  const nextWhy = whyNext({ name, age, consent }) ?? (youngHere ? "young" : null);
+  const reasonNext = youngHere && nextWhy === "young" ? say("app.telegram.young") : nextWhy ? say(`web.register.why_${nextWhy}`) : null;
   const pinWhy = whyPin(pin, pinAgain);
   const reasonGroups = whyGroups(first, second, true) ? say("web.register.why_groups") : null;
   const restartPin = () => { setPin(""); setPinAgain(""); setMismatch(false); setMisses(0); setStage("pin"); };
@@ -189,7 +191,7 @@ export function Register({ onDone, onRestore, onArrive, onBack }: { onDone: (sea
                   onChange={(e) => setAge(ageDigits(e.target.value))} data-testid="age" />
                 <button type="button" className="nd-step" aria-label={say("app.reg.age_more")} onClick={() => setAge(ageDigits(String(Math.max(AGE_MIN - 1, Number(age) || 0) + 1)))} data-testid="age-more"><NdIcon name="chev" /></button>
               </div>
-              {young && <p className="nd-note" role="alert" data-state="young" data-testid="register-age-min">{say("web.register.age_min")}</p>}
+              {young && <p className="nd-note" role="alert" data-state="young" data-testid="register-age-min">{say(youngHere ? "app.telegram.young" : "web.register.age_min")}</p>}
               <label className="nd-check">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="consent" />
                 <span className="nd-box" aria-hidden="true"><NdIcon name="check" /></span>

@@ -1,6 +1,7 @@
 // A table's row (sheets w3_tables, and w3_new-table-3 for the table as neighbours will see it): its face in the tile's
 // colour, what it is called, «2 of 4 seated · 1 watching», and the way in. The same row on the list and in the wizard's
 // preview, so the preview is what the list will say.
+import { TableNearby } from "../../nd4/screens/table-nearby.gen";
 import { type Game, gameOfTable, makeTableWords, type TableCard, tableCounts } from "@sdk/new_table.ts";
 import { label, say, sayCount } from "../../i18n";
 import { NdIcon } from "../../shell/NdIcon";
@@ -43,13 +44,20 @@ export const gameTint = (id: string): number => TINT[id] ?? 1;
 /** A table as a tile (tables.html: the game's face, the name, the seats as dots — filled where someone sits — and the watchers).
  * `mine`: the person sits here, the tile is the accent's; `solo`: its player plays alone — an outline, the chip and «Sit» (tables-row-solo).
  * The tile is one button that opens the table; with no `onOpen` it is drawn and shut (aria-disabled), as the preview in the wizard. */
-export function TableTile({ id, card, title, testid, mine, onOpen, preview }: {
-  id?: string; card: Pick<TableCard, "game" | "set" | "playing" | "free_seats" | "watching" | "solo">; title: string; testid?: string; mine?: boolean; onOpen?: () => void; preview?: boolean;
+export function TableTile({ id, card, title, meta, testid, mine, onOpen, preview }: {
+  id?: string; card: Pick<TableCard, "game" | "set" | "playing" | "free_seats" | "watching" | "solo">; title: string; meta?: string; testid?: string; mine?: boolean; onOpen?: () => void; preview?: boolean;
 }) {
   const game = gameOfTable(card.game, card.set);
   const c = tableCounts(card as TableCard);   // reads playing, free_seats and watching only
   const dots = Array.from({ length: Math.max(1, c.seats) }, (_, i) => i < c.seated);
   const solo = !!card.solo && !mine;
+  // screen 79: a table nearby is the archive's row; the person's own table and the wizard's preview are not drawn from it yet
+  if (!mine && !preview && !solo) return (
+    <li data-testid={testid} data-id={id}>
+      <TableNearby face={<NdIcon name={gameIcon(game?.id)} />} title={title} meta={meta ?? countsLine(c.seated, c.seats, c.watching)} seats={dots}
+        seatsLabel={title} sitLabel={say("app.tables.sit")} onOpen={onOpen} />
+    </li>
+  );
   const body = (
     <>
       <NdIcon name={gameIcon(game?.id)} className="k-tb-face" />

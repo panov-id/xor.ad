@@ -147,10 +147,9 @@ test("the tables list keeps the prototype's two tile rows: .k-tb-grid has two te
 
 // desktop-1440 tables-mine.svg: the strip stays on «Mine» at 1440, so the list renders it always and hides it by attribute
 // (the phone's kit rule hides it); «Mine» and «Nearby» each get a head the wide layout shows.
-test("the game strip is always rendered, hidden on «Mine»; both lists carry a .k-tb-label head", () => {
+test("the strip is the archive's; both lists carry a .k-tb-label head", () => {
   const src = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
-  assert.match(src, /<div className="k-tb-games"[^>]*hidden=\{showMine\}>/, "Tables.tsx: the strip is left out on «Mine» instead of hidden: the 1440 sheet loses it");
-  assert.doesNotMatch(src, /!showMine && <div className="k-tb-games"/, "Tables.tsx: the strip is still conditional");
+  assert.match(src, /<TablesStrip /, "Tables.tsx: the strip is not the generated one of screen 79");
   assert.equal((src.match(/<h2 className="k-tb-label"/g) ?? []).length, 2, "Tables.tsx: «Mine» and «Nearby» each need their head");
 });
 
@@ -175,7 +174,7 @@ test("the new table's name field is new-table-2's bare pill: hidden label, place
 // tables-mine.html: the person's own tables have the switch and no game strip; their last tile sets up a new table.
 test("tables-mine: the game strip is drawn only off the mine tab, the mine grid ends with the add tile", () => {
   const src = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
-  assert.match(src, /<div className="k-tb-games"[^>]*hidden=\{showMine\}/, "Tables.tsx: the game strip is not hidden on the mine tab (the phone has none there)");
+  assert.match(src, /games=\{showMine \? null :/, "Tables.tsx: the game chips are not left out on the mine tab");
   const grid = /data-testid="tables-mine">([\s\S]*?)<\/ul>/.exec(src)?.[1] ?? "";
   assert.match(grid, /data-testid="mine-add">[\s\S]*onClick=\{\(\) => onNewTable\(\)\}/, "Tables.tsx: the mine grid lost its add tile");
 });
@@ -187,4 +186,40 @@ test("at 1440/1920 the four-in-a-row board grows its cells to the column, other 
   const four = [...wide.matchAll(/\[data-screen="table"\] \.k-tb-board:has\(\.tg-four\) \{[^}]*--tg-cell: (\d+)p[x]/g)].map((m) => Number(m[1]));
   assert.deepEqual(four, [88, 120], "wide.css: the four-in-a-row board keeps the phone's 39 cell in a 980 high column");
   assert.doesNotMatch(wide, /\.k-tb-board \{[^}]*--tg-cell:/, "wide.css: a cell size on every board overflows the larger grids");
+});
+
+// Screen 79: a table nearby is the archive's generated row, in one column; the seat count comes from the card.
+test("a table nearby is the archive's row in one column", () => {
+  const row = readFileSync(new URL("./table-row.tsx", import.meta.url), "utf8");
+  const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
+  assert.match(row, /<TableNearby /, "table-row.tsx: a table nearby is not the generated row of screen 79");
+  assert.match(css, /\[data-testid="tables"\] \{ display: flex; flex-direction: column/, "kit.css: the tables nearby left the archive's single column");
+});
+
+// The archive's row has no chip: a table whose player plays alone keeps its tile, and a named table keeps its game in the line.
+test("the archive's table row loses neither the solo mark nor a named table's game", () => {
+  const row = readFileSync(new URL("./table-row.tsx", import.meta.url), "utf8");
+  const list = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
+  assert.match(row, /if \(!mine && !preview && !solo\)/, "table-row.tsx: a solo table lost its chip and «Sit» in the archive's row");
+  assert.match(list, /meta=\{lineOf\(card\)\.meta\} testid="table-card"/, "Tables.tsx: a named table's row no longer says its game");
+});
+
+// Shot 02.11: the game's face in the archive's row fell to the icons' 1em; screen 79 draws it 26 px, and no panel round the rows.
+test("the table row's face keeps the archive's size and the list has no panel", () => {
+  const css = readFileSync(new URL("../../../tokens/kit.css", import.meta.url), "utf8");
+  assert.match(css, /\[data-testid="table-open"\] \.nd-icon \{ width: 26p[x]/, "kit.css: the row's game face left screen 79's size");
+  assert.match(css, /main\[data-screen="tables"\] \.k-body \{ background: none/, "kit.css: the panel is back round the table rows");
+});
+
+// Screen 79: the head row with «New table» and the strip are generated; the hand-made ones must not return.
+test("the tables' head and strip are the archive's", () => {
+  const src = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
+  assert.match(src, /<TablesHead /, "Tables.tsx: the head is not the generated row of screen 79");
+  assert.doesNotMatch(src, /className="k-seg"|className="k-tb-games"/, "Tables.tsx: the hand-made switch or game strip is back");
+});
+
+test("«Mine» has no game chips, so pressing it clears the game filter: no own table is hidden with no reason shown", () => {
+  const screen = readFileSync(new URL("./Tables.tsx", import.meta.url), "utf8");
+  assert.match(screen, /games=\{showMine \? null/, "the chips are hidden on Mine");
+  assert.match(screen, /onMine=\{mine\.length > 0 \? \(\) => \{ setTab\("mine"\); setFilter\(null\); \}/, "the filter would keep narrowing own tables");
 });

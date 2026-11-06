@@ -24,7 +24,7 @@ import {
   sunsetHeader,
 } from "../lib/identity_auth.ts";
 import { callerOf, refuse } from "../lib/identity_guard.ts";
-import { configured, openShare, sealShare } from "../lib/vault_share.ts";
+import { configured, openShare, sealShare, storedAuthHash } from "../lib/vault_share.ts";
 import { burnShare, Freezes, freezeSession } from "../lib/sessions.ts";
 import { checkPin, sameHash } from "../lib/pin_attempts.ts";
 import { takeDownLive } from "../lib/take_down.ts";
@@ -242,7 +242,7 @@ async function createIdentity(req: Request): Promise<Response> {
     );
     await run(
       `INSERT INTO vault_shares (session, auth_hash, share_enc) VALUES ($1, $2, $3)`,
-      [sessionId, body.auth_hash, sealed],
+      [sessionId, await storedAuthHash(body.auth_hash as string), sealed],
     );
     // The counters row is born here and not at the first like (§8.3): every
     // publication limit is a conditional UPDATE against it, and a conditional
@@ -321,8 +321,8 @@ async function readProfile(req: Request): Promise<Response> {
   // was published between the two made `used` disagree with the list it was
   // shown beside (review panel F9, B32, 2026-09-26). `live` is the predicate
   // that refuses a fifth phrase; every live row is also in this list.
-  const phrases = await query<{ id: string; expires_at: Date | null; live: boolean }>(
-    `SELECT id, expires_at, (${LIVE_PHRASE}) AS live FROM feed_messages
+  const phrases = await query<{ id: string; expires_at: Date | null; live: boolean; kind: string }>(
+    `SELECT id, expires_at, kind, (${LIVE_PHRASE}) AS live FROM feed_messages
       WHERE author_identity = $1 AND (visible_at IS NULL OR expires_at > now())
       ORDER BY created_at`,
     [caller.identityId],
@@ -341,7 +341,8 @@ async function readProfile(req: Request): Promise<Response> {
     inc("relay_profile_total", { result: "unavailable" });
     return refuse("unavailable", "the node cannot answer right now", 503);
   }
-  const live = phrases.filter((f) => f.live && f.expires_at);
+  // A lost is on its own slot (db/089): it takes none of the four.
+  const live = phrases.filter((f) => f.live && f.expires_at && f.kind === "phrase");
   const used = live.length;
   const next_at = live.reduce<Date | null>((min, f) => (!min || f.expires_at! < min ? f.expires_at : min), null);
 
@@ -360,6 +361,7 @@ async function readProfile(req: Request): Promise<Response> {
     ...(row.filter_age_max === null ? {} : { filter_age_max: row.filter_age_max }),
     languages: row.languages ?? [],
     phrases: phrases.map((f) => ({
+      kind: f.kind,
       id: f.id,
       ...(f.expires_at ? { expires_at: Math.floor(f.expires_at.getTime() / 1000) } : {}),
     })),
@@ -939,7 +941,7 @@ async function vaultInit(req: Request): Promise<Response> {
           SET auth_hash = EXCLUDED.auth_hash, share_enc = EXCLUDED.share_enc,
               attempts_left = 10, next_attempt_at = NULL, locked_at = NULL,
               burned_at = NULL, last_used_at = now()`,
-      [caller.sessionId, body.auth_hash, sealed],
+      [caller.sessionId, await storedAuthHash(body.auth_hash as string), sealed],
     );
     inc("relay_vault_init_total", { result: "set" });
     return new Response(null, { status: 204, headers: sunsetHeader() });
@@ -1051,7 +1053,7 @@ async function changePin(req: Request): Promise<Response> {
           SET auth_hash = $2, share_enc = $3,
               attempts_left = 10, next_attempt_at = NULL, last_used_at = now()
         WHERE session = $1`,
-      [caller.sessionId, nextAuthHash, sealed],
+      [caller.sessionId, await storedAuthHash(nextAuthHash), sealed],
     );
     // The old PIN proved here too: the grant goes out as on /vault/share (W13-PG).
     await run(`UPDATE identities SET first_pin_grant_at = NULL WHERE id = $1 AND first_pin_grant_at IS NOT NULL`, [caller.identityId]);

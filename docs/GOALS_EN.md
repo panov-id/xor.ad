@@ -7,10 +7,10 @@ Checked against the tree on 13.10 with grep/git/ls. Anything not run is marked N
 ## 0. THE GOAL — single (owner's word, 12.10 evening)
 
 **30.10.2026, goal «sosed = newdesign4» (owner's word: «make it like there 100%… the layout is already there… MAIN THING don't lose the goal!»). Replaces the goal «sosed = prototype» below.**
-1. Source: `docs/newdesign4/sosed-design-2026-10-29.zip` — 268 screens (`screens.csv`), layout `screens/*.html`, texts `SCREENS_spec.md`.
+1. Source: `docs/newdesign4/sosed-design-2026-10-29.zip` — 283 screens (`screens.csv` and 15 lost-*/spot-* of archive _2), layout `screens/*.html`, texts `SCREENS_spec.md`.
 2. Widths 390 / 820 / 1440; 4 themes × day/night: Limestone, Amber, Marble, Chalk (`limestone`, `amber`, `marble`, `chalk`); 8 gem accents: Carnelian (default), Coral, Citrine, Peridot, Turquoise, Lapis, Amethyst, Tourmaline; «When»: by sun / day / night.
 3. Node and database change where a screen needs data.
-4. Done by machine: inventory 268 of 268 (`scripts/nd4-inventory.py`), shots next to the archive PNG at three widths, unit, `check-app`, e2e, crowd green, review-panel 0 critical and important.
+4. Done by machine: inventory 283 of 283; "ready used N of 283" (markup, CSS and scripts of `screens/*.html` taken by a script, files headed generated from) (`scripts/nd4-inventory.py`), shots next to the archive PNG at three widths, unit, `check-app`, e2e, crowd green, review-panel 0 critical and important.
 
 **26.10.2026, goal «sosed = prototype» (owner's word: «form the goal… in the new session loop until you reach it»).**
 1. Phone: 148 screens built on the prototype's markup (`docs/newdesign/proto/`) from the pieces of `app/tokens/kit.css`.

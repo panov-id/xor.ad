@@ -18,8 +18,16 @@ step "app-i18n-keys.py (no key twice in a language, every called key there)"
 docker run --rm --network none --user "$(id -u):$(id -g)" -v "$root":/repo:ro -w /repo "$py_image" \
   python3 -I scripts/design/app-i18n-keys.py /repo || fail=1
 
+step "nd4-extract.py --check (screens generated from docs/newdesign4 are fresh)"
+docker run --rm --network none --user "$(id -u):$(id -g)" -v "$root":/repo:ro -w /repo "$py_image" \
+  python3 -I scripts/design/nd4-extract.py --check || fail=1
+
 step "no raw px in app/src (sizes live in app/tokens)"
-if grep -rEn '[0-9]px' "$root/app/src" --include='*.css' --include='*.ts' --include='*.tsx'; then
+# a file made from the owner's material carries the material's own sizes (rule 40): only the exact paths the generator
+# owns (nd4-extract.py --list) are exempt, and the generator must reproduce them (--check above) (panel 31.10, security 2)
+owned="$(docker run --rm --network none --user "$(id -u):$(id -g)" -v "$root":/repo:ro -w /repo "$py_image" python3 -I scripts/design/nd4-extract.py --list)" || fail=1
+if grep -rEn '[0-9]px' "$root/app/src" --include='*.css' --include='*.ts' --include='*.tsx' | sed "s#^$root/##" \
+   | grep -vF -f <(printf '%s:\n' $owned); then
   echo "raw px outside app/tokens: add a token to app/tokens/layout.css"; fail=1
 fi
 

@@ -9,13 +9,14 @@ import { useEffect, useState } from "react";
 import type { Client, Radius } from "@sdk/client.ts";
 import { PHRASE_LIFE_SECONDS } from "@sdk/life.ts";
 import { createPhrase, type Mode, type Sent } from "@platform/phrase.ts";
+import { PhraseRejected } from "./MyPhrase";
 import { failedLine, LANG, label, say } from "../i18n";
 import { storedPlace } from "../place";
 import { NdIcon } from "../shell/NdIcon";
 import { type Tab, TabBar } from "../shell/TabBar";
 import { useMinWidth } from "../shell/useMinWidth";
 import { RADIUS_ICON, radiusText } from "./feed-radius";
-import { canSay, lettersLeft, liveLeft } from "./composer-logic";
+import { canSay, lettersLeft, liveLeft, ownPhrases } from "./composer-logic";
 import { RADII, radiusWord, textSize } from "./feed-logic";
 
 const phrase = createPhrase({ say, lang: LANG });
@@ -115,9 +116,11 @@ export function Composer({ client, radius, onSent, onBack, onTab, onPlace }:
   const [live, setLive] = useState<{ left: number; of: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [refused, setRefused] = useState<string | null>(null);
+  // docs/newdesign4 screen 38: the moderator's refusal has its own screen; a refusal of the moment (a pause, a limit) stays a line here
+  const [rejected, setRejected] = useState<string | null>(null);
   useEffect(() => {
     client.limits().then((l) => setLimit(l.phrase_length)).catch(() => {});
-    client.profile().then((p) => setLive(liveLeft(p?.phrases?.length ?? 0))).catch(() => {});
+    client.profile().then((p) => setLive(liveLeft(ownPhrases(p?.phrases)))).catch(() => {});
   }, [client]);
   async function send() {
     setBusy(true);
@@ -125,7 +128,7 @@ export function Composer({ client, radius, onSent, onBack, onTab, onPlace }:
     try {
       const at = storedPlace();
       const sent = await phrase.sayPhrase(client, { text: text.trim(), mode, lat: at.lat, lon: at.lon, radius: zone });
-      if (sent.state === "refused") setRefused(sent.why);
+      if (sent.state === "refused") { if (sent.why === say("web.phrase.refused_generic")) setRejected(sent.why); else setRefused(sent.why); }
       else onSent(sent, text.trim());
     } catch (e) {
       setRefused(failedLine(e));
@@ -133,6 +136,7 @@ export function Composer({ client, radius, onSent, onBack, onTab, onPlace }:
       setBusy(false);
     }
   }
+  if (rejected !== null) return <PhraseRejected text={text.trim()} why={rejected} onBack={() => setRejected(null)} onDelete={onBack} onEdit={() => setRejected(null)} />;
   return (
     <ComposerPane state={{ text, mode, zone, limit, live, busy, refused, place: storedPlace().name }} actions={{
       onText: (t) => setText(t), onMode: setMode, onZone: setZone, onSend: () => void send(), onBack, onTab, onPlace,

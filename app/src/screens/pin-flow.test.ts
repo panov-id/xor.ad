@@ -81,7 +81,7 @@ test("the PIN door 06–09: the pad's paper key, the ring and shake for a second
   assert.match(u, /say\("app\.unlock\.wrong", \{ n: refusal\.left \}\)/, "the refusal does not say the tries left");
   assert.match(u, /refusals >= 3 && <p[^\n]*data-testid="unlock-forgot"/, "«Forgot it?» does not come after the third miss");
   assert.match(u, /onClick=\{\(\) => setSure\(true\)\} data-testid="forget"/, "«⋯» does not open forget");
-  assert.match(u, /className="nd-danger" onClick=\{onForget\} data-testid="forget-sure"/, "«Forget» is not outlined");
+  assert.match(u, /<ConfirmDanger id="forget-body"[\s\S]*okId="forget-sure"[\s\S]*onOk=\{onForget\}/, "«Forget» is not the archive's outlined answer");
   assert.match(l, /say\("app\.locked\.away", \{ n: Math\.max\(1, Math\.round\(idleMs\(\) \/ 60_000\)\) \}\)/, "the lock line does not say this build's own minutes");
   const i18n = readFileSync(new URL("../i18n.ts", import.meta.url), "utf8");
   const keys = [...new Set([...u, ...l].length ? [...(u + l + door).matchAll(/say\("(app\.(?:unlock|locked|forget)\.[a-z0-9_]+)"/g)].map((m) => m[1]) : [])];

@@ -2,16 +2,18 @@
 // stand's dev server, the real local node behind it) — they register, pick their place on the map, say a phrase, like
 // each other, talk when a like comes back, make tables and sit at them. Every step of every person leaves a shot, a line
 // of the journal (who, step, screen, ok, ms, the node's errors, the console's errors) and the names of the animations
-// that ran in the 900 ms after it; every browser leaves a video. SLOW=1 waits ~2 s between steps, so a person can watch
+// that ran in the 900 ms after it; with VIDEO=1 every browser leaves a video. SLOW=1 waits ~2 s between steps, so a person can watch
 // from their own browser. The end: summary.txt (steps ok of all, slow answers, errors, steps with no motion, who saw
 // whom) and the exit code 0 only when every step passed and the towns saw only their own phrases.
 import { chromium } from "playwright";
-import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const BASE = process.env.APP_URL ?? "http://127.0.0.1:5174";
 const OUT = process.env.OUT ?? "/out";
 const SLOW = process.env.SLOW === "1";
 const N = Number(process.env.PEOPLE ?? 10);
+// Video is one ffmpeg per browser, a fifth of a core each: only on request.
+const recording = (size) => process.env.VIDEO === "1" ? { recordVideo: { dir: `${OUT}/video`, size } } : {};
 const PIN = "483915";
 const RUN = Date.now().toString(36).slice(-5);
 mkdirSync(`${OUT}/shots`, { recursive: true });
@@ -61,7 +63,7 @@ if (process.env.PANEL_URL) {
   const key = await crypto.subtle.importKey("raw", enc.encode(process.env.SESSION_SECRET ?? "web-test-panel-secret"), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const token = `${head}.${body}.${b64(new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(`${head}.${body}`))))}`;
   const browser = await chromium.launch();
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, recordVideo: { dir: `${OUT}/video`, size: { width: 960, height: 600 } } });
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, ...recording({ width: 960, height: 600 }) });
   await ctx.addInitScript((t) => localStorage.setItem("panel_jwt", t), token);
   const page = await ctx.newPage();
   let node = [], cons = [];
@@ -134,7 +136,7 @@ async function person(browser, i) {
   // ORIGIN_TOKEN (docker-compose.web.yml, relay/node/src/lib/client_ip.ts), so the sign-up limit counts per person.
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: w < 768, hasTouch: w < 1024, locale: "ru-RU",
     extraHTTPHeaders: { "x-origin-token": process.env.ORIGIN_TOKEN ?? "web-test-origin-token", "x-client-ip": `10.24.${RUN.charCodeAt(0) % 200}.${i + 1}` },
-    recordVideo: { dir: `${OUT}/video`, size: { width: Math.min(w, 960), height: Math.round(h * Math.min(w, 960) / w) } } });
+    ...recording({ width: Math.min(w, 960), height: Math.round(h * Math.min(w, 960) / w) }) });
   await ctx.addInitScript(() => {
     try { localStorage.setItem("lang-asked", "1"); } catch {}
     const alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -150,9 +152,31 @@ async function person(browser, i) {
     const look = () => { try { for (const a of document.getAnimations()) window.__anim.add(a.animationName ?? a.transitionProperty ?? a.constructor.name); } catch {} requestAnimationFrame(look); };
     requestAnimationFrame(look);
   });
+  const heardNow = [];
+  await ctx.exposeFunction("__crowdHeard", (id, text) => { heardNow.push([id, text]); });
+  await ctx.addInitScript(() => {
+    const seen = new Set();
+    const scan = () => {
+      for (const el of document.querySelectorAll('[data-testid="theirs"]')) {
+        if (!el.checkVisibility()) continue;
+        const id = el.closest("[data-id]")?.getAttribute("data-id"), text = el.innerText;
+        if (!id || seen.has(id + text)) continue;
+        seen.add(id + text);
+        window.__crowdHeard(id, text);
+      }
+    };
+    addEventListener("DOMContentLoaded", () => new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["style"] }));
+  });
   const page = await ctx.newPage();
+  page.__heardNow = heardNow;
   const p = { i, ctx, page, n: 0, nodeErrors: [], consoleErrors: [], reloads: [], phrase: null, liked: 0, limits: [], said: {}, heard: {} };
-  page.on("console", (m) => { if (m.type() === "error") p.consoleErrors.push(m.text().slice(0, 200)); });
+  page.on("console", async (m) => {
+    if (m.type() !== "error") return;
+    if (!m.text().includes("same key")) { p.consoleErrors.push(m.text().slice(0, 200)); return; }
+    const key = await m.args()[1]?.jsonValue().catch(() => "?");
+    const stack = String(await m.args()[2]?.jsonValue().catch(() => "") ?? "").split("\n").slice(0, 6).map((l) => l.trim().split(" (")[0]).join(" < ");
+    p.consoleErrors.push(`same key ${key}: ${stack}`);
+  });
   page.on("pageerror", (e) => p.consoleErrors.push(String(e).slice(0, 200)));
   page.on("response", (r) => {
     const u = new URL(r.url());
@@ -165,7 +189,9 @@ async function person(browser, i) {
 // A chat screen keeps no history (chat_state.ts starts at lines: []): a line the other side sent while this tab sat on
 // the chat is drawn and acked there, and gone once the screen closes. So whatever «theirs» shows is heard before leaving.
 async function harvest(p) {
-  const pg = p.page, open = pg.locator('[data-screen="chat"][data-id]');
+  // the talk stands in a screen, or from the tablet up in the inbox's pane (Chat.tsx Frame: chat-pane)
+  const pg = p.page, open = pg.locator('[data-screen="chat"][data-id]:visible, [data-testid="chat-pane"][data-id]:visible');
+  for (const [id, x] of pg.__heardNow.splice(0)) if (x.startsWith(RUN)) (p.heard[id] ??= new Set()).add(x);
   if (!(await open.count().catch(() => 0))) return;
   const id = await open.first().getAttribute("data-id").catch(() => null);
   if (!id) return;
@@ -176,6 +202,9 @@ async function harvest(p) {
 async function tab(p, t, screen) {
   const pg = p.page, sel = `[data-testid="tab-${t}"]:visible`;
   await harvest(p);
+  // Five minutes without input lock the app (App.tsx): whoever waited out a round types the PIN (run flow-1102-121801: Dmitri).
+  const shut = pg.locator('[data-testid="unlock-pin"]');
+  if (await shut.count()) { p.reloads.push("locked while idle: PIN typed"); await shut.fill(PIN); await pg.waitForSelector(sel, { timeout: 30000 }); }
   // The phrase opens full-screen over the feed and has no tab bar on a phone (feed.css .fd-screen, by the sheet w1_card):
   // the bar under it is still «visible» to Playwright, and the like button took 5 of 5 presses (run flow-1026-081126).
   // A person presses Back first.
@@ -312,7 +341,7 @@ async function place(p) {
   const cx = map.x + map.width / 2, cy = (top + bottom) / 2, d = (p.i % 3) * 12 - 12;   // inside the part on screen
   if (bottom - top < 60) throw new Error(`the map is off screen (${Math.round(top)}..${Math.round(bottom)} of ${vh})`);
   await pg.mouse.move(cx, cy); await pg.mouse.down(); await pg.mouse.move(cx + d, cy + d, { steps: 6 }); await pg.mouse.up();
-  const near = await pg.locator('[data-testid="place-near"] p').first().innerText();
+  const near = await pg.locator('[data-testid="place-near"]').first().innerText({ timeout: 10000 });
   await pairShot(p, "place");
   // from the first-entry step «Here» leads to the feed, from Me back to Me
   await pg.click('[data-testid="place-here"]'); await pg.waitForSelector('[data-screen="me"], [data-screen="feed"]');
@@ -337,7 +366,7 @@ async function sayPhrase(p) {
   }
   await pairShot(p, "feed");
   // the feed's pen on phones and tablets, the rail's «say something» from 1024 on (TabBar.tsx)
-  await pg.locator('[data-testid="write"]:visible, [data-testid="rail-say"]:visible').first().click(); await pg.waitForSelector('[data-testid="text"]');
+  await pg.locator('[data-testid="write"]:visible, [data-testid="rail-say"]:visible, [data-testid="quiet-say"]:visible').first().click(); await pg.waitForSelector('[data-testid="text"]');
   await pairShot(p, "composer");
   p.phrase = say(p, `${["кто на кофе у моря?", "ищу партнёра на шахматы", "собака ищет друга", "кто знает хорошего мастера?", "вечером гуляю у набережной"][p.i % 5]} (${TOWNS[p.i][1]})`);
   await pg.fill('[data-testid="text"]', p.phrase);
@@ -386,17 +415,61 @@ async function like(p) {
   return `liked ${done}${mate >= 0 ? `, partner ${partnerOf(NAMES[p.i])} first` : `, partner ${partnerOf(NAMES[p.i])} not in the feed`}`;
 }
 
+// MATCH_SHOTS=1: screens 110 (offer), 111 (my yes waits), 45 (they said not now) at 390/820/1440, then the run ends: the pair has no chat.
+async function matchShots(a, b) {
+  const pg = a.page, was = pg.viewportSize(), made = [];
+  const shoot = async (name) => {
+    for (const width of [390, 820, 1440]) {
+      await pg.setViewportSize({ width, height: width < 1000 ? 844 : 900 });
+      await pg.waitForTimeout(700);
+      const path = `shots/match-${name}-${width}.png`;
+      await pg.screenshot({ path: `${OUT}/${path}` });
+      made.push(path);
+    }
+    await pg.setViewportSize(was);
+    await pg.waitForTimeout(400);
+  };
+  const openOffer = async (q) => {
+    await tab(q, "chats", "inbox");
+    await q.page.locator('[data-testid="open-match"]').first().click({ timeout: 15000 });
+    await q.page.waitForSelector('[data-testid="talk"]', { timeout: 10000 });
+  };
+  await openOffer(a);
+  await shoot("offer-110");
+  await pg.click('[data-testid="talk"]');
+  await pg.waitForSelector('[data-gone="no"]', { timeout: 15000 });
+  await shoot("waiting-111");
+  await openOffer(b);
+  await b.page.click('[data-testid="not-now"]');
+  await pg.waitForSelector('[data-gone="yes"]', { timeout: 20000 });
+  await shoot("gone-45");
+  return `${made.length} of 9 shots`;
+}
+
 async function talk(p) {
   const pg = p.page;
+  // 1440+: an offer pressed in the feed's side pane opens in the inbox's pane; it did nothing while the inbox was not mounted
+  if (pg.viewportSize().width >= 1440) {
+    await tab(p, "feed", "feed");
+    const side = pg.locator('[data-testid="talks-pane"] [data-testid="open-match"]');
+    await side.first().waitFor({ timeout: 10000 }).catch(() => {});
+    if (await side.count()) {
+      await side.first().click();
+      const shown = await pg.waitForSelector('[data-screen="inbox"] [data-testid="talk"], [data-screen="inbox"] [data-pane="match-waiting"]', { timeout: 10000 }).then(() => true, () => false);
+      p.limits.push({ limit: "side pane offer click at 1440", hit: shown, note: shown ? "the offer opened in the inbox's pane" : "pressed, nothing opened" });
+      if (!shown) throw new Error("an offer pressed in the side pane opened nothing");
+    }
+  }
   await tab(p, "chats", "inbox");
   await pg.waitForTimeout(1200);
   let talks = 0;
   // offers in order: one already answered (its wait) is stepped over, not the end of the list (run flow-1028-125842: Anna's yes
   // stood unanswered while the other one met their answered offer first and stopped)
-  for (let k = 0, at0 = 0; k < 2; k++) {
+  for (let k = 0, at0 = 0, missed = 0; k < 2; k++) {
     const offer = pg.locator('[data-testid="open-match"]');
     if ((await offer.count()) <= at0) break;
-    await offer.nth(at0).click();
+    // the offer can leave the list between the count and the click (run flow-1103-115704, Hana): the list is read again
+    if (!(await offer.nth(at0).click({ timeout: 5000 }).then(() => true, () => false))) { k--; if (++missed > 4) break; continue; }
     // An offer already answered opens the waiting screen (no «talk» there; at 1440+ it is the right pane, TalkFrame data-pane): back to the inbox, it waits for the other one.
     const at = await pg.waitForSelector('[data-testid="talk"], [data-screen="match-waiting"], [data-pane="match-waiting"]', { timeout: 10000 });
     if ((await at.getAttribute("data-testid")) !== "talk") { await tab(p, "chats", "inbox"); at0++; k--; if (at0 > 4) break; continue; }
@@ -409,6 +482,7 @@ async function talk(p) {
   // the chats list comes over the node channel after the screen: wait for a row before counting (run us3tv: Elena's
   // talk-again counted 0 while her shot showed two chats). None at all stays 0 after 10 s, as before.
   await pg.locator('[data-testid="open-chat"]').first().waitFor({ timeout: 10000 }).catch(() => {});
+  await pg.screenshot({ path: `${OUT}/shots/inbox-${pg.viewportSize().width}.png` }).catch(() => {});
   const chats = await pg.locator('[data-testid="open-chat"]').count();
   if (chats) {
     await pg.locator('[data-testid="open-chat"]').first().click();
@@ -449,24 +523,77 @@ async function converse(p, round) {
     await pg.waitForTimeout(1200);
     const theirs = (await pg.locator('[data-testid="theirs"]:visible').allInnerTexts()).filter((t) => t.startsWith(RUN));
     (p.heard[id] ??= new Set()); for (const t of theirs) p.heard[id].add(t);
-    if (round === "read") { await pg.goBack().catch(() => {}); continue; }
+    if (round === "read") {
+      const pane = pg.locator('[data-testid="chat-pane"]:visible [data-testid="chat-back"]');
+      if (await pane.count()) await pane.click(); else await pg.goBack().catch(() => {});
+      continue;
+    }
     const last = theirs.at(-1);
     let text = say(p, last ? `${round}: отвечаю на «${last.slice(RUN.length + 1, RUN.length + 41)}»` : `${round}: привет, как дела?`);
     if (round === 4 && TOWNS[p.i][1] === "Limassol" && sent === 0) text = say(p, "длинно ").padEnd(257, "я");
     await box.fill(text);
+    const typed = await box.inputValue();
     const r = pg.waitForResponse((x) => x.request().method() === "POST" && /\/chats\/[^/]+\/messages$/.test(new URL(x.url()).pathname), { timeout: 15000 }).catch(() => null);
     await pg.locator('[data-testid="send"]:visible').last().click();
     const res = await r;
     if ([...text].length > 256) {
-      const err = await pg.locator('[data-testid="error"]:visible, [data-testid="send-again"]:visible').first().innerText({ timeout: 3000 }).catch(() => "");
-      p.limits.push({ limit: "chat.message.length 256", hit: !res || res.status() >= 400 || !!err, note: `257 chars: ${res ? `POST ${res.status()}` : "no POST"}${err ? `, on screen «${err.split("\n")[0]}»` : ", nothing on screen"}` });
+      const kept = [...text].slice(0, 256).join("");
+      p.limits.push({ limit: "chat.message.length 256", hit: kept === typed, note: `typed 257, field kept ${[...typed].length}; POST ${res ? res.status() : "none"}` });
+      text = kept;
     }
+    // Only a line the node took counts as said: the other side cannot be asked to read a line that never left.
+    const taken = res ? await res.json().then((b) => b?.accepted === true, () => false) : false;
+    if (!taken) { p.reloads.push(`chat ${id.slice(0, 6)}: line not accepted, POST ${res ? res.status() : "none"}`); continue; }
     (p.said[id] ??= []).push(text);
     sent++;
     await pg.waitForTimeout(500);
+    // A line that came while this chat was open was drawn and acked: the node will not send it again, and the app keeps no history, so it is read now or never.
+    for (const t of (await pg.locator('[data-testid="theirs"]:visible').allInnerTexts()).filter((x) => x.startsWith(RUN))) p.heard[id].add(t);
     await harvest(p);
   }
   return `round ${round}: ${sent} of ${ids.length} chats, heard ${Object.values(p.heard).reduce((a, s) => a + s.size, 0)} lines so far`;
+}
+
+// Leaving a talk for the feed and coming back (owner 03.11.2026): the lines already read are still drawn, from the page's
+// memory (App.tsx heldLines), since the node does not send acked lines again. Every width the crowd has walks it.
+async function talkReturn(p) {
+  const pg = p.page;
+  const open = async (id) => {
+    if (!(await pg.locator('[data-screen="inbox"]').count())) await tab(p, "chats", "inbox");
+    await pg.locator(`[data-testid="chat"][data-id="${id}"] [data-testid="open-chat"]`).click({ timeout: 10000 });
+    await pg.locator('[data-testid="text"]:visible:not([disabled])').last().waitFor({ timeout: 30000 });
+    await pg.waitForTimeout(1200);
+    return (await pg.locator('[data-testid="theirs"]:visible').allInnerTexts()).filter((t) => t.startsWith(RUN));
+  };
+  await tab(p, "chats", "inbox");
+  await pg.locator('[data-testid="chat"]').first().waitFor({ timeout: 15000 });
+  const ids = await pg.locator('[data-testid="chat"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-id")));
+  const id = ids[0];
+  if (!id) throw new Error("no talk to return to");
+  await open(id);
+  // A line said here and now: tab() reopens the page from a chat screen on a phone (above), and a reload rightly empties the
+  // memory, so what was read before this page is not asked for. One's own line is held with theirs, and the node never echoes it.
+  const mine = say(p, "вернусь и проверю");
+  const r = pg.waitForResponse((x) => x.request().method() === "POST" && /\/chats\/[^/]+\/messages$/.test(new URL(x.url()).pathname), { timeout: 15000 }).catch(() => null);
+  await pg.locator('[data-testid="text"]:visible:not([disabled])').last().fill(mine);
+  await pg.locator('[data-testid="send"]:visible').last().click();
+  await r;
+  await pg.locator('[data-testid="mine"]:visible', { hasText: mine }).first().waitFor({ timeout: 10000 });
+  const lines = async () => (await pg.locator('[data-testid="theirs"]:visible, [data-testid="mine"]:visible').allInnerTexts()).filter((t) => t.includes(RUN));
+  const before = await lines();
+  const reloadsBefore = p.reloads.length;
+  // Out the way a person goes: the talk's own Back, then the feed's tab, then the talks' tab.
+  const back = pg.locator('[data-testid="chat-back"]:visible');
+  if (await back.count()) await back.first().click(); else await pg.goBack();
+  await pg.waitForSelector('[data-testid="tab-feed"]:visible', { timeout: 10000 });   // a person sees the tabs before pressing one
+  await tab(p, "feed", "feed");
+  await tab(p, "chats", "inbox");
+  if (p.reloads.length !== reloadsBefore) throw new Error(`the page was reloaded on the way (${p.reloads.at(-1)}): this step proves nothing`);
+  await open(id);
+  const after = await lines();
+  const lost = before.filter((t) => !after.includes(t));
+  if (lost.length) throw new Error(`lost on return: ${lost.length} of ${before.length} lines, first «${lost[0].slice(0, 60)}»`);
+  return `${pg.viewportSize().width}: ${before.length} lines kept after the feed and back`;
 }
 
 // All 12 games (depth/core/new_table.ts GAMES), at tables: a chat offers backgammon only (chat-game-logic.ts CHIP_GAME).
@@ -488,12 +615,15 @@ async function makeGame(p, g) {
   await pg.click(`[data-testid="new-table-game-${g.game}"]`);
   for (let k = 0; k < 4 && !(await pg.locator('[data-testid="new-table-go"]').count()); k++) {
     const seats = pg.locator(`[data-testid="new-table-seats-${g.players.length}"]`);
-    if (await seats.count()) await seats.click().catch(() => {});
+    // The stepper a person uses; the radios under it are for a reader. A click swallowed here left a two-seat table and a third player watching.
+    if (await seats.count()) for (let up = 0; up < 5 && (await seats.getAttribute("aria-checked")) !== "true"; up++) await pg.click('[data-testid="new-table-seats-more"]:enabled', { timeout: 3000 });
     await pg.click('[data-testid="new-table-next"]'); await pg.waitForTimeout(400);
   }
   const made = pg.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/tables", { timeout: 20000 });
   await pg.click('[data-testid="new-table-go"]');
   const r = await made;
+  g.seats = r.request().postDataJSON()?.seats;
+  if (g.players.length > 2 && g.seats !== g.players.length) g.notes.push(`table made with ${g.seats} seats for ${g.players.length} players`);
   if (r.status() >= 300) throw new Error(`POST /tables ${r.status()}: ${(await r.text()).slice(0, 120)}`);
   g.id = (await r.json().catch(() => ({}))).id;
   if (!g.id) throw new Error("POST /tables answered with no id");
@@ -541,8 +671,14 @@ async function ready(p, g) {
   }
   for (let k = 0; k < 6; k++) {
     // a guest asks into the round (app/ lost the web's «apply» until 25.10: every guest had «nothing to press»)
-    const b = pg.locator('[data-testid="accept-game"]:visible, [data-testid="start-game"]:visible, [data-testid="apply"]:visible');
-    if (await b.count()) { const which = await b.first().getAttribute("data-testid"); await b.first().click(); await pg.waitForTimeout(800); return which; }
+    const b = pg.locator('[data-testid="accept-game"]:visible, [data-testid="start-game"]:visible, [data-testid="guest-start"]:visible, [data-testid="apply"]:visible');
+    if (await b.count()) {
+      const which = await b.first().getAttribute("data-testid");
+      const said = which === "apply" ? pg.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname.startsWith(`/tables/${g.id}/`), { timeout: 10000 }).catch(() => null) : null;
+      await b.first().click();
+      if (said) { const r = await said; g.notes.push(`${NAMES[p.i]} applied: ${r ? r.status() : "no answer"}`); }
+      await pg.waitForTimeout(800); return which;
+    }
     if (await pg.locator('[data-screen="table"] .tg-panel button:enabled, [data-testid="word-go"]').count()) return "the board is open";
     await pg.waitForTimeout(1000);
   }
@@ -781,7 +917,25 @@ async function letterToken(to) {
 async function venuePath(browser, people) {
   const fotis = people.find((p) => p.i === 5 && p.alive);
   const email = `venue-${RUN}@example.test`, venueName = `Кофейня ${RUN}`, text = `${RUN} третий кофе даром`;
-  const cab = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "ru-RU", recordVideo: { dir: `${OUT}/video`, size: { width: 960, height: 600 } } });
+  const cab = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "ru-RU", ...recording({ width: 960, height: 600 }) });
+  // The cabinet's cookies are `__Host-…; Secure`, and the stand is plain http: the browser drops them (measured 02.11: cookies [], /adv/session 401,
+  // no cookie sent). HTTPS has no such gap; on http the crowd carries them for the page's own calls, the node still checks them all.
+  if (BASE.startsWith("http:")) {
+    const jar = new Map();
+    await cab.route(() => true, async (route) => {
+      const q = route.request();
+      if (!["fetch", "xhr"].includes(q.resourceType())) return route.continue();
+      const cookie = [...jar].map(([k, v]) => `${k}=${v}`).join("; ");
+      const res = await route.fetch({ headers: cookie ? { ...q.headers(), cookie } : q.headers() });
+      for (const h of res.headersArray()) {
+        if (h.name.toLowerCase() !== "set-cookie") continue;
+        const [, k, v] = /^([^=]+)=([^;]*)/.exec(h.value) ?? [];
+        if (!k) continue;
+        if (/max-age=0/i.test(h.value) || v === "") jar.delete(k); else jar.set(k, v);
+      }
+      await route.fulfill({ response: res });
+    });
+  }
   const adv = await cab.newPage();
   const shot = async (pg, name) => pg.screenshot({ path: `${OUT}/shots/venue-${name}.png` }).catch(() => {});
   let redirect = null;
@@ -790,8 +944,12 @@ async function venuePath(browser, people) {
     await adv.fill('[data-testid="adv-email"] input, input[data-testid="adv-email"]', email);
     await adv.fill('[data-testid="adv-contact"] input, input[data-testid="adv-contact"]', "Лена, +357 99 111111");
     await adv.click('[data-testid="adv-send"]');
+    // «link expired» is drawn for any answer but 204 (Cabinet.tsx), a 429 or a failed call too: the answer goes into the line (run flow-1102-121801)
+    let session = "no POST /adv/session seen";
+    adv.on("response", async (r) => { if (r.request().method() === "POST" && new URL(r.url()).pathname === "/adv/session") session = `POST /adv/session ${r.status()} ${(await r.text().catch(() => "")).slice(0, 80)}`; });
+    adv.on("requestfailed", (r) => { if (new URL(r.url()).pathname === "/adv/session") session = `POST /adv/session failed: ${r.failure()?.errorText}`; });
     await adv.goto(`${BASE}/adv/enter#${await letterToken(email)}`);
-    await adv.click('[data-testid="venue-add-open"]', { timeout: 15000 });
+    await adv.click('[data-testid="venue-add-open"]', { timeout: 15000 }).catch((e) => { throw new Error(`${e.message.split("\n")[0]} | ${session}`); });
     await adv.fill('[data-testid="venue-name-input"] input, input[data-testid="venue-name-input"]', venueName);
     await adv.fill('[data-testid="venue-address"] input, input[data-testid="venue-address"]', "Анексартисиас 7, Лимасол");
     const at = fotis?.place ?? { lat: 34.6786, lon: 33.0413 };
@@ -827,12 +985,13 @@ async function venuePath(browser, people) {
     await row.locator('[data-testid="venue-verify"]').click();
     await adv.waitForTimeout(2000);
     const st = await row.locator('[data-testid="venue-status"]').innerText();
-    vstep("в venue types the code → verified", /подтвержд/.test(st) && !/не подтв/.test(st), `status «${st}»`);
+    vstep("в venue types the code → verified", /подтвержд/i.test(st) && !/не подтв/i.test(st), `status «${st}»`);
     await adv.click('[data-testid="offers-open"]').catch(() => {});
     await adv.click('[data-testid="offer-new"]', { timeout: 10000 });
     await adv.fill('[data-testid="offer-text"] input, [data-testid="offer-text"] textarea, input[data-testid="offer-text"], textarea[data-testid="offer-text"]', text);
     await adv.fill('[data-testid="offer-discount"] input, input[data-testid="offer-discount"]', "−30 %");
-    await adv.fill('[data-testid="offer-promo"] input, input[data-testid="offer-promo"]', `KOFE${RUN.toUpperCase()}`).catch(() => {});
+    await adv.click('[data-testid="offer-more"]'); // promo, link and terms sit behind «more» (Offers.tsx)
+    await adv.fill('[data-testid="offer-promo"] input, input[data-testid="offer-promo"]', `KOFE${RUN.toUpperCase()}`);
     await adv.fill('[data-testid="offer-url"] input, input[data-testid="offer-url"]', "https://put.example/menu");
     await adv.click('[data-testid="offer-preview"]'); await adv.click('[data-testid="offer-publish"]');
     await adv.locator('[data-testid="offer-published"]').waitFor({ timeout: 15000 });
@@ -843,15 +1002,75 @@ async function venuePath(browser, people) {
 
   if (fotis && redirect) {
     try {
-      await tab(fotis, "feed", "feed"); await fotis.page.waitForTimeout(2000);
+      // The node shows an offer only after ten phrases on the first page (relay/node/src/routes/feed.ts venueOffers): the neighbours fill the page, or screen 62 is never met. Up to all four live slots each: the age band hides most of the crowd from one viewer (feed.ts bandSql).
+      const fill = [];
+      for (const q of people.filter((x) => x.alive && x !== fotis)) for (const n of [1, 2, 3, 4]) fill.push(await compose(q, `${RUN} сосед ${q.i} зовёт, раз ${n}`).then((a) => a?.status ?? "sent").catch(() => "failed"));
+      console.log(`venue: filler phrases ${fill.join(" ")}`);
+      // What the node itself answered, so a missing offer is told apart: not sent, or sent and not drawn.
+      const answers = [];
+      const listen = (r) => { if (new URL(r.url()).pathname === "/feed" && r.request().method() === "GET") r.json().then((b) => answers.push(`${r.status()} ${(b.items ?? []).map((i) => (i.kind ?? "?")[0]).join("")} used ${b.radius_used ?? "-"}`)).catch(() => {}); };
+      fotis.page.on("response", listen);
+      await tab(fotis, "me", "me"); await tab(fotis, "feed", "feed"); await fotis.page.waitForTimeout(2000);
+      fotis.page.off("response", listen);
+      console.log(`venue: GET /feed after the fill: ${answers.join(" | ") || "no request"}; place ${JSON.stringify(fotis.place ?? null)}`);
       const card = fotis.page.locator('[data-testid="card"]').filter({ hasText: text });
       const seenIt = await card.count();
+      console.log(`venue: Fotis sees ${await fotis.page.locator('[data-testid="card"]').count()} tiles, the offer ${seenIt}`);
       const hasPromo = seenIt ? await card.first().locator('text=/KOFE/').count() : 0;
       await fotis.page.screenshot({ path: `${OUT}/shots/venue-d-feed.png` }).catch(() => {});
-      vstep("д Fotis meets the offer in the feed", !!seenIt, seenIt ? `card shown; promo code on it: ${hasPromo ? "yes" : "NO"}; a way to the link from the card: none in feed-card.tsx` : "not in his feed");
+      vstep("д Fotis meets the offer in the feed", !!seenIt, seenIt ? "card shown" : "not in his feed");
+      // Screen 62 on the real node at the three widths; the viewport is put back for the rest of the run.
+      if (seenIt) {
+        const pg = fotis.page, was = pg.viewportSize();
+        await card.first().locator('[data-testid="card-open"]').click();
+        await pg.waitForSelector('[data-screen="card"]', { timeout: 10000 });
+        const seen = [];
+        for (const [w, h] of [[390, 844], [820, 1180], [1440, 900]]) {
+          await pg.setViewportSize({ width: w, height: h }); await pg.waitForTimeout(2000); // past the card's entering motion: at 700 ms the 390 shot was still dark
+          await pg.screenshot({ path: `${OUT}/shots/offer-card-${w}.png` }).catch(() => {});
+          const has = async (id) => (await pg.locator(`[data-screen="card"] [data-testid="${id}"]:visible`).count()) > 0;
+          const wide = await pg.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+          seen.push(`${w}: venue ${await has("offer-venue")}, discount ${await has("offer")}, link ${await has("offer-link")}, hand ${await has("like")}, overflow ${wide}`);
+        }
+        const code = await pg.locator('[data-screen="card"] [data-testid="conditions"]:visible').innerText().catch(() => "");
+        vstep("д the promo code is on the card", /KOFE/.test(code), code || "no terms line");
+        const ok = seen.every((l) => !/false/.test(l) && /overflow 0$/.test(l));
+        vstep("д screen 62 stands at 390, 820, 1440", ok, seen.join("; "));
+        if (was) await pg.setViewportSize(was);
+        // е: the menu's third row opens the landing's report page with the offer. The landing is not on the stand: the same file is served here,
+        // never the live site. No e-mail: the page must give a reference.
+        try {
+          await pg.locator('[data-screen="card"] [data-testid="more-menu"]:visible').click();
+          await pg.waitForTimeout(800); await pg.screenshot({ path: `${OUT}/shots/venue-e-menu.png` }).catch(() => {});
+          await fotis.ctx.route(/\/report\.html/, (r) => r.fulfill({ contentType: "text/html", body: readFileSync("/tests/report.html", "utf8") }));
+          await fotis.ctx.route(/\/config\.js/, (r) => r.fulfill({ contentType: "text/javascript", body: `window.__XOR_CONFIG__={reportUrl:${JSON.stringify(BASE)}}` }));
+          const opened = fotis.ctx.waitForEvent("page", { timeout: 10000 });
+          await pg.locator('[data-testid="card-more"] [data-testid="block"]').click();
+          const popup = await opened;
+          const asked = new URL(popup.url());
+          const form = await fotis.ctx.newPage();
+          await popup.close();
+          await form.goto(`${BASE}/report.html${asked.search}`);
+          const kind = await form.locator("#kind").inputValue(), target = await form.locator("#targetId").inputValue();
+          await form.fill("#reason", `${RUN} скидку не дали`);
+          await form.check("#bona");
+          const sent = form.waitForResponse((x) => new URL(x.url()).pathname === "/report", { timeout: 10000 });
+          await form.click("#send");
+          const res = await sent;
+          const told = await form.locator("#result .ref").innerText({ timeout: 5000 }).catch(() => "");
+          await form.screenshot({ path: `${OUT}/shots/venue-e-report.png` }).catch(() => {});
+          await form.close();
+          vstep("е «no discount given»: menu → report page, no e-mail, a code", kind === "offer" && !!target && res.status() === 202 && /^[0-9a-f]{8}$/.test(told), `kind ${kind}, id ${target.slice(0, 8)}, POST ${res.status()}, code ${told || "none"}, asked ${asked.origin}`);
+        } catch (e) { vstep("е «no discount given»: menu → report page, no e-mail, a code", false, String(e).split("\n")[0].slice(0, 200)); }
+        await pg.keyboard.press("Escape").catch(() => {});
+        await pg.locator('[data-screen="card"] [data-testid="like"]:visible').click();
+        const composes = await pg.waitForSelector('[data-screen="composer"]', { timeout: 8000 }).then(() => true).catch(() => false);
+        vstep("д «Say it with this offer» opens composing", composes, composes ? "composer" : "no composer");
+        await pg.goBack().catch(() => {});
+      }
       const exit = await fotis.ctx.newPage();
       await exit.goto(`${BASE}/o/${redirect}`);
-      const st = await exit.locator('[data-screen="offer-exit"]').getAttribute("data-state", { timeout: 15000 }).catch(() => null);
+      const st = await exit.locator('[data-screen="offer"] [data-testid="go"]').waitFor({ timeout: 15000 }).then(() => "ok").catch(() => null);
       const go = exit.waitForResponse((r) => new URL(r.url()).pathname === `/o/${redirect}/go`, { timeout: 10000 }).catch(() => null);
       await exit.click('[data-testid="go"]').catch(() => {});
       const res = await go;
@@ -860,20 +1079,24 @@ async function venuePath(browser, people) {
       await exit.close();
     } catch (e) { vstep("д feed and link", false, String(e).split("\n")[0].slice(0, 200)); }
   }
-  vstep("е «no discount given» complaint → venue's answer → panel decision", false, "no complaint control on the offer card in app/ (feed-card.tsx); not reachable by a neighbour");
   if (redirect) {
     // ж: two people report the link (Offer.tsx «report», an identity open on the page), the third tap must get 410
     const codes = [];
     for (const p of people.filter((q) => q.alive && [4, 5].includes(q.i))) {
-      const pg = await p.ctx.newPage();
-      await pg.goto(`${BASE}/o/${redirect}`);
+      // The same tab (owner 02.11): the exit from the card, with the identity open.
+      const pg = p.page;
+      await tab(p, "me", "me"); await tab(p, "feed", "feed"); await pg.waitForTimeout(1500);
+      const tile = pg.locator('[data-testid="card"]').filter({ hasText: text });
+      await tile.first().locator('[data-testid="card-open"]').click({ timeout: 10000 }).catch(() => {});
+      await pg.locator('[data-testid="offer-link"]:visible').click({ timeout: 10000 }).catch(() => {});
       const r = pg.waitForResponse((x) => new URL(x.url()).pathname === `/o/${redirect}/report`, { timeout: 10000 }).catch(() => null);
       await pg.click('[data-testid="report"]', { timeout: 10000 }).catch(() => {});
       const res = await r; codes.push(res ? res.status() : "no report button");
-      await pg.close();
+      await pg.goBack().catch(() => {}); await pg.goBack().catch(() => {});
     }
     const after = await fetch(`http://node:8080/o/${redirect}/go`, { redirect: "manual" }).then((r) => r.status).catch((e) => String(e).slice(0, 60));
-    vstep("ж two reports burn the link → 410", after === 410, `reports ${codes.join(", ")}; then /go ${after}`);
+    // Fresh people do not count (routes/offer_links.ts report: written before yesterday); burning at two counting reports is relay/node/test/offer_report.test.ts.
+    vstep("ж reports from people new today are taken and do not burn the link", codes.every((c) => c === 202) && after === 302, `reports ${codes.join(", ")}; then /go ${after}`);
   }
   await cab.close();
 }
@@ -882,7 +1105,7 @@ async function venuePath(browser, people) {
 async function compose(p, text) {
   const pg = p.page;
   await tab(p, "feed", "feed");
-  await pg.locator('[data-testid="write"]:visible, [data-testid="rail-say"]:visible').first().click(); await pg.waitForSelector('[data-testid="text"]');
+  await pg.locator('[data-testid="write"]:visible, [data-testid="rail-say"]:visible, [data-testid="quiet-say"]:visible').first().click(); await pg.waitForSelector('[data-testid="text"]');
   await pg.fill('[data-testid="text"]', text);
   const send = pg.locator('[data-testid="send"]');
   if (!(await send.isEnabled())) {
@@ -1051,10 +1274,17 @@ try {
   await phase(people, "say", sayPhrase);
   await phase(people, "feed-seen", seen);
   await phase(people, "like", like);
+  if (process.env.MATCH_SHOTS === "1") {
+    await step(people[0], "match-shots", () => matchShots(people[0], people[1]));
+    const bad = journal.filter((r) => !r.ok).length;
+    await browser.close();
+    process.exit(bad ? 1 : 0);
+  }
   await phase(people, "talk", talk);
   await phase(people, "talk-again", talk);   // a like that came back after the first round
   for (let r = 1; r <= 6; r++) await phase(people, `converse-${r}`, (p) => converse(p, r));
   await phase(people, "converse-read", (p) => converse(p, "read"));   // the last round's lines, read
+  await phase(people, "talk-return", talkReturn);
   if (wanted("games")) await playGames(people);
   await phase(people, "table-flood", tableFlood, (p) => p.i === 9);
   // the feed: notices (DSA art. 16), hide, limits, the model's refusals; block last, it ends chats
@@ -1110,7 +1340,7 @@ const sum = [
   `steps with no animation in 900 ms: ${still.length}`, ...still.map((r) => `  ${r.who} ${r.step} on ${r.screen}`),
   `who saw whom: ${leaks.length ? `LEAK ${leaks.length}` : "nobody saw anyone outside town and band"}; due but not seen: ${misses.length}`, ...leaks.map((l) => `  LEAK ${l}`), ...misses.map((l) => `  miss ${l}`),
   ...people.map((p) => `  ${NAMES[p.i]} (${AGES[p.i]}, ${TOWNS[p.i][1]}): ${(p.seen ?? []).filter((t) => t.startsWith(RUN)).length} crowd phrases seen, liked ${p.liked}`),
-  `chats with 3+ lines read each way: ${chats.filter((c) => c.ok).length} of ${chats.length}`, ...chats.map((c) => `  ${c.ok ? "ok " : "BAD"} ${c.who}: read ${c.ab} one way, ${c.ba} the other`),
+  `chats with 3+ lines read each way: ${chats.filter((c) => c.ok).length} of ${chats.length}`, ...chats.flatMap((c) => [`  ${c.ok ? "ok " : "BAD"} ${c.who}: read ${c.ab} one way, ${c.ba} the other`, ...(c.ok ? [] : people.filter((p) => p.said[c.id]).flatMap((p) => people.filter((q) => q !== p && (q.said[c.id] || q.heard[c.id])).flatMap((q) => p.said[c.id].filter((t) => !q.heard[c.id]?.has(t)).map((t) => `      ${NAMES[p.i]} said, ${NAMES[q.i]} never saw: ${t.slice(0, 70)}`)))) ]),
   `tabs locked by the idle PIN and opened again: ${people.reduce((a, p) => a + (p.locks ?? 0), 0)}`,
   `people with no real chat: ${silent.length}`, ...silent.map((p) => `  ${NAMES[p.i]} (${AGES[p.i]}, ${TOWNS[p.i][1]})`),
   `games with a move from every player: ${games.filter((g) => g.players.every((i) => g.moves[i] > 0)).length} of ${games.length} (of 12 in GAMES)`,

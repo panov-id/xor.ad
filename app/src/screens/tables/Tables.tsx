@@ -20,6 +20,8 @@ import { useEvery } from "../move-parts";
 import { apart, freshTables, mergeTables, START_GAMES, TABLES_LOOK_MS, TABLES_RADIUS } from "./tables-logic";
 import { fullShown, TABLES_FULL_KEY } from "./table-logic";
 import { gameIcon, gameName, lineOf, TableTile } from "./table-row";
+import { radiusText } from "../feed-radius";
+import { GameChip, TablesHead, TablesStrip } from "../../nd4/screens/tables-head.gen";
 
 export function Tables({ client, onTab, onNewTable, onTable }: { client: Client; onTab: (tab: Tab) => void; onNewTable: (game?: string) => void; onTable?: (id: string) => void }) {
   const place = useRef(storedPlace()).current;
@@ -69,27 +71,14 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
   return (
     <Screen name="tables" title={title} className="k-screen">
       <div className="k-col">
-        <section className="k-panel">
-          <div className="k-row">
-            <NdIcon name="tables" className="k-pin" />
-            <div className="k-stack"><h1 className="k-title">{title}</h1><p className="k-sub">{say("app.tables.sub")}</p></div>
-            <button type="button" className="k-tb-add" aria-label={label("web.newTable.title")} onClick={() => onNewTable()} data-testid="new-table"><NdIcon name="plus" /></button>
-          </div>
-        </section>
-        {/* tables-mine.html: the person's own tables have no game strip, the switch stands in its place; desktop-1440
-            tables-mine.svg keeps the strip (kit: hidden on the phone only) */}
-        {<div className="k-tb-games" role="group" aria-label={say("app.tables.games")} hidden={showMine}>
-          {GAMES.map((g) => (
-            <button key={g.id} type="button" className="k-tb-game" aria-pressed={filter === g.id} aria-label={label(gameName(g))}
-              onClick={() => setFilter(filter === g.id ? null : g.id)} data-testid={`filter-${g.id}`}><NdIcon name={gameIcon(g.id)} /></button>
-          ))}
-        </div>}
-        {mine.length > 0 && (
-          <div className="k-seg" role="tablist">
-            <button type="button" role="tab" aria-selected={tab === "all"} aria-label={say("app.tables.all")} onClick={() => setTab("all")} data-testid="tables-tab-all"><NdIcon name="nearby" /></button>
-            <button type="button" role="tab" aria-selected={tab === "mine"} aria-label={label("web.tables.mine")} onClick={() => setTab("mine")} data-testid="tables-tab-mine"><NdIcon name="me" /></button>
-          </div>
-        )}
+        {/* screen 79: the archive's head row and strip; the person's tables have no game chips on the phone's «Mine» (tables-mine.html) */}
+        <TablesHead name={place.chosen ? place.name : say("web.place.none")} sub={`· ${radiusText(TABLES_RADIUS)}`} newLabel={label("web.newTable.title")} onNew={() => onNewTable()} />
+        <TablesStrip allLabel={say("app.tables.all")} allOn={tab === "all" && !filter} onAll={() => { setTab("all"); setFilter(null); }}
+          mineLabel={label("web.tables.mine")} mineOn={tab === "mine"} onMine={mine.length > 0 ? () => { setTab("mine"); setFilter(null); } : undefined}
+          games={showMine ? null : GAMES.map((g) => (
+            <GameChip key={g.id} label={label(gameName(g))} on={filter === g.id} onPress={() => setFilter(filter === g.id ? null : g.id)}
+              icon={<NdIcon name={gameIcon(g.id)} />} testid={`filter-${g.id}`} />
+          ))} />
         {nothing ? (
           <section className="k-body" data-testid="quiet">
             <div className="k-tb-empty">
@@ -130,7 +119,7 @@ export function Tables({ client, onTab, onNewTable, onTable }: { client: Client;
             {list.length > 0 && <h2 className="k-tb-label" data-testid="tables-playing"><NdIcon name="nearby" /><span>{say("app.tables.playing")}</span></h2>}
             {(
               <ul className="k-grid2 k-tb-grid" hidden={showMine} data-testid="tables">
-                {list.map((card) => <TableTile key={card.id} id={card.id} card={card} title={lineOf(card).title} testid="table-card" onOpen={onTable && (() => onTable(card.id))} />)}
+                {list.map((card) => <TableTile key={card.id} id={card.id} card={card} title={lineOf(card).title} meta={lineOf(card).meta} testid="table-card" onOpen={onTable && (() => onTable(card.id))} />)}
               </ul>
             )}
             {state === "loading" && skeleton && <div className="k-grid2" data-testid="loading"><div className="k-tile k-ghost" /><div className="k-tile k-ghost" /></div>}

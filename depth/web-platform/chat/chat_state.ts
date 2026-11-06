@@ -60,17 +60,21 @@ export interface ChatDeps {
   /** The room; a test hands a stand-in (depth/web-platform/chat/room.ts by default). */
   connect?: (client: Client, chatId: string, on: (event: RoomEvent) => void) => { stop(): void };
   nowSeconds?: () => number;
+  /** What an earlier session of this chat held (heldLines), in the page's memory only: the node does not send acked lines again. */
+  lines?: Line[];
 }
 
 type State = Omit<ChatView, "starters" | "askedByPeer" | "waitingForPeer"> & { extraStarters: Starter[] };
 
 export class ChatSession {
-  readonly #d: Required<ChatDeps>;
+  readonly #d: Required<Omit<ChatDeps, "lines">>;
   #s: State;
   #view: ChatView;
   #turn = 0;
   #alive = true;
   #room: { stop(): void } | null = null;
+  #hidden = false;
+  readonly #unseen = new Map<string, number>();
   readonly #listeners = new Set<() => void>();
   readonly #resends = new Map<string, { text: string; tries: number; timer?: ReturnType<typeof setTimeout> }>();
 
@@ -79,7 +83,7 @@ export class ChatSession {
     const given = deps.row;
     const span = spanOf(given.my_span);
     this.#s = {
-      row: given, lines: [], status: { key: "web.chat.opening_keys" },
+      row: given, lines: deps.lines ?? [], status: { key: "web.chat.opening_keys" },
       // The other side stepped away (§8.2, W12-AW): a mark in the header while the field stays live; their
       // first line here takes it off. And what this tab did not see (§8.8): the row's last activity after the
       // newest moment this tab saw — said once on opening, taken off by what then arrives.
@@ -136,6 +140,20 @@ export class ChatSession {
     this.#resends.clear();
     this.#listeners.clear();
   }
+  /** What the next session of this chat starts from. A line of theirs that failed to open is left out, so its next delivery is read again. */
+  heldLines(): Line[] {
+    return this.#s.lines.filter((l) => l.mine || l.state !== "failed");
+  }
+  /** Kept hidden beside another talk, or shown again: on showing, what came meanwhile is seen and acked. */
+  setHidden(hidden: boolean): void {
+    this.#hidden = hidden;
+    if (hidden || this.#unseen.size === 0) return;
+    const id = this.#s.row.id, ids = [...this.#unseen.keys()];
+    for (const at of this.#unseen.values()) sawActivity(id, at);
+    this.#unseen.clear();
+    this.#set((s) => ({ missed: missedSince(id, s.row.last_activity_at) ? s.missed : false }));
+    void this.#d.client.received(id, ids).catch(() => {});
+  }
   /** One's own clock reaching zero is the same end the node's 4003 names, seen from here (§8.10: the term is one's own). */
   silenceLapsed(): void {
     if (!this.#s.over && this.#s.keysState === "open") this.#overNow();
@@ -165,6 +183,14 @@ export class ChatSession {
         this.#set((s) => ({ lines: [...s.lines, ...flushed.map((f) => ({ id: f.localId, text: f.text, mine: true, at, state: "sent" as const }))] }));
       }
       this.#set({ kept: this.#d.keys.keptOnNode(fresh.id) });
+      // one's own line still unsent when the last session closed: its schedule starts again, with the same local id,
+      // only now that the keys of the fresh row are open: sealed earlier it could go under an old epoch nobody reads
+      for (const l of this.#s.lines) {
+        if (!this.#s.over && l.mine && l.state === "failed" && !this.#resends.has(l.id)) {
+          this.#resends.set(l.id, { text: l.text, tries: 0 });
+          this.#schedule(l.id);
+        }
+      }
     } catch (e) {
       if (!current()) return;
       const message = (e as Error).message;
@@ -224,7 +250,7 @@ export class ChatSession {
           const opened = await this.#d.keys.read(this.#s.row, event.ciphertext, event.id);
           // Their line: the away mark comes off (§8.2), and this tab has now seen up to its moment — what
           // reaches the row's last activity is not missed any more.
-          sawActivity(id, event.createdAt);
+          if (!this.#hidden) sawActivity(id, event.createdAt);
           this.#set((s) => ({
             lines: s.lines.some((l) => l.id === event.id) ? s.lines : [...s.lines, { id: event.id, text: opened, mine: false, at: event.createdAt }],
             peerAway: false,
@@ -232,10 +258,23 @@ export class ChatSession {
           }));
           // a line opened after the screen closed was never drawn: no ack, so the node keeps it for the next open
           if (!this.#alive) return;
+          // kept hidden beside another talk: nobody saw it yet, so no ack until shown; closed first, the node keeps it
+          if (this.#hidden) { this.#unseen.set(event.id, event.createdAt); return; }
           await this.#d.client.received(id, [event.id]);
         } catch (e) {
+          // The node sent a line already shown again (a room reconnected before the ack landed): the seal refuses the
+          // nonce, rightly, but the person has this line. It is acked so the node stops, and no error is drawn.
+          if (this.#s.lines.some((l) => l.id === event.id && l.state !== "failed")) {
+            if (!this.#alive) return;
+            // a held line delivered again to a hidden talk: still nobody saw it, so it waits for showing like a new one
+            if (this.#hidden) { this.#unseen.set(event.id, event.createdAt); return; }
+            sawActivity(id, event.createdAt);
+            this.#set((s) => ({ missed: missedSince(id, s.row.last_activity_at) ? s.missed : false }));
+            await this.#d.client.received(id, [event.id]).catch(() => {});
+            return;
+          }
           const text = this.#d.say("web.chat.not_opened", { message: (e as Error).message });
-          this.#set((s) => ({ lines: [...s.lines, { id: event.id, text, mine: false, at: event.createdAt, state: "failed" }] }));
+          this.#set((s) => ({ lines: s.lines.some((l) => l.id === event.id) ? s.lines : [...s.lines, { id: event.id, text, mine: false, at: event.createdAt, state: "failed" }] }));
         }
       }
     }

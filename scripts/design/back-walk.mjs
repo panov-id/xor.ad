@@ -342,20 +342,20 @@ try {
     check(at !== "splash" && at !== "register", `8b Back from the inbox draws no gate (screen ${at}, url ${url.startsWith("http://localhost") ? new URL(url).pathname : url})`);
     await ctx.close();
   }
-  // 9. inbox → «Offers» → what I am in on → Back: the inbox again (App.tsx toLikes pushes i: 1; popstate → seatScreen("/inbox"))
+  // 9. the feed's menu → what I am in on → Back: the feed again (owner 04.11: likes open from the feed's menu only)
   {
     const { ctx, page } = await open(browser); await registerFull(page);
-    await page.click('[data-testid="tab-chats"]'); await page.waitForSelector('[data-screen="inbox"]');
-    await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]');
+    await page.waitForSelector('[data-screen="feed"]');
+    await page.click('[data-testid="feed-more"]'); await page.click('[data-testid="menu-likes"]'); await page.waitForSelector('[data-screen="likes"]');
     await page.locator('[data-testid="liked-card"]').first().waitFor({ timeout: 10000 });
     const onLikes = new URL(page.url()).pathname;
     await page.goBack(); await settle(page);
     const at = await page.locator("main[data-screen]").first().getAttribute("data-screen");
-    check(onLikes === "/likes" && at === "inbox" && new URL(page.url()).pathname === "/inbox", `9 inbox → Offers (${onLikes}) → Back lands on the inbox (screen ${at}, url ${new URL(page.url()).pathname})`);
-    await page.click('[data-testid="open-likes"]'); await page.waitForSelector('[data-screen="likes"]');
-    await page.click('[data-testid="likes-back"]'); await page.waitForSelector('[data-screen="inbox"]', { timeout: 10000 }).catch(() => null);
+    check(onLikes === "/likes" && at === "feed", `9 feed menu → likes (${onLikes}) → Back lands on the feed (screen ${at}, url ${new URL(page.url()).pathname})`);
+    await page.click('[data-testid="feed-more"]'); await page.click('[data-testid="menu-likes"]'); await page.waitForSelector('[data-screen="likes"]');
+    await page.click('[data-testid="likes-back"]'); await page.waitForSelector('[data-screen="feed"]', { timeout: 10000 }).catch(() => null);
     const at2 = await page.locator("main[data-screen]").first().getAttribute("data-screen");
-    check(at2 === "inbox" && new URL(page.url()).pathname === "/inbox", `9b likes' own back button → the inbox (screen ${at2}, url ${new URL(page.url()).pathname})`);
+    check(at2 === "feed", `9b likes' own back button → the feed (screen ${at2}, url ${new URL(page.url()).pathname})`);
     await ctx.close();
   }
   // 10. inbox → a face → the match → Back: the inbox (App.tsx toMatch pushes i: 1 with the row; popstate → seatScreen("/inbox"))

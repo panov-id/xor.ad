@@ -176,6 +176,10 @@ async function publish(req: Request): Promise<Response> {
           // The one lost slot (db/089): mark the first one found, or wait
           // for its term, before the next.
           return refuse("refused", "one lost notice at a time", 409, { live_lost: refusal.live });
+        case "lost_wait":
+          return refuse("refused", "the last notice was taken down by complaints", 409, {
+            until: Math.floor(refusal.until.getTime() / 1000),
+          });
       }
     }
 
@@ -293,6 +297,7 @@ interface FeedRow {
   visible_at_cursor: string;
   soon: boolean;
   liked: boolean;
+  match_id: string | null;
   author_age: number;
   kind: "phrase" | "lost" | "found";
 }
@@ -509,7 +514,16 @@ async function deliver(req: Request, url: URL): Promise<Response> {
               f.discount_value, f.conditions, f.visible_at, a.age AS author_age,
               f.expires_at <= now() + (${SOON_MINUTES} * interval '1 minute') AS soon,
               EXISTS (SELECT 1 FROM likes lk
-                       WHERE lk.liker_identity = $15::uuid AND lk.feed_message_id = f.id) AS liked
+                       WHERE lk.liker_identity = $15::uuid AND lk.feed_message_id = f.id) AS liked,
+              -- The viewer's own live match out of this card, and nobody
+              -- else's: the join on q names the viewer as a participant, so a
+              -- match two other people made stays theirs (screen 52 after a
+              -- reload, owner 02.11.2026; the same subquery as GET /likes).
+              (SELECT m.id FROM matches m
+                 JOIN match_participants p ON p.match_id = m.id AND p.message_id = f.id
+                 JOIN match_participants q ON q.match_id = m.id AND q.identity = $15::uuid
+                WHERE m.expires_at > now() AND p.identity <> $15::uuid
+                LIMIT 1) AS match_id
          FROM feed_messages f
          JOIN identities a ON a.id = f.author_identity
         WHERE ${livePhraseOf("f")}
@@ -601,6 +615,10 @@ async function deliver(req: Request, url: URL): Promise<Response> {
       ...(row.soon ? { soon: true } : {}),
       // The viewer's own like, only when true (owner, 15.10.2026).
       ...(row.liked ? { liked: true } : {}),
+      // The live match the viewer is in with this card's author, by id only;
+      // the name comes with the inbox, as it does after a like (app
+      // feed-card.tsx peerName). Absent when there is none.
+      ...(row.match_id ? { match_id: row.match_id } : {}),
       // "Farther than you asked", and only when it is true. The viewer's own
       // setting is not changed by this: an empty screen gets a temporary
       // answer, not a silent edit of somebody's preferences (§8.3).

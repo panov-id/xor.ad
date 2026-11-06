@@ -28,3 +28,20 @@ test("wizard-5: two cities stand before a letter is typed, the nearest to the po
 test("wizard-5: «here» in the intro leads to the feed", () => {
   assert.match(app, /<Intro [^\n]*onPlaced=\{toFeed\}/, "App.tsx: the intro's place does not lead to the feed");
 });
+
+test("wizard-1…4: the archive's screens 17–20 at three widths, skip and next wired, every text through p.t", () => {
+  for (let k = 1; k <= 4; k++) {
+    for (const w of ["", "-tablet", "-laptop"]) {
+      const gen = readFileSync(new URL(`../nd4/screens/wizard-${k}${w}.gen.tsx`, import.meta.url), "utf8");
+      assert.match(gen, new RegExp(`screen ${16 + k} \\(family wizard-${k}`), `wizard-${k}${w}: not generated from screen ${16 + k}`);
+      assert.match(gen, /onClick=\{p\.onSkip\} data-testid="intro-close"/, `wizard-${k}${w}: «Skip» does not leave the intro`);
+      assert.match(gen, /onClick=\{p\.onNext\} data-testid="intro-next"/, `wizard-${k}${w}: «Next» does not go on`);
+      if (k > 1) assert.match(gen, /onClick=\{p\.onBack\} data-testid="intro-back"/, `wizard-${k}${w}: «back» goes nowhere`);
+      const bare = [...gen.matchAll(/>([^<{}>]*[A-Za-z][^<{}>]*)</g)].map((m) => m[1].trim()).filter(Boolean);
+      assert.deepEqual(bare, [], `wizard-${k}${w}: archive text left untranslatable`);
+    }
+    assert.match(intro, new RegExp(`\\[Wizard${k}Screen, Wizard${k}ScreenTablet, Wizard${k}ScreenLaptop\\]`), `Intro.tsx: card ${k} is not the archive's screen`);
+  }
+  assert.match(intro, /onBack=\{\(\) => setN\(Math\.max\(0, n - 1\)\)\}/, "Intro.tsx: «back» does not step back");
+  assert.match(intro, /<Screen t=\{words\(/, "Intro.tsx: the cards get no words");
+});

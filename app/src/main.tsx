@@ -11,6 +11,7 @@ import "../tokens/legacy-bridge.css";
 import "../tokens/nd4-themes.gen.css";
 import "../tokens/kit.css";
 import "../tokens/nd4.css";
+import "../tokens/nd4-kit.css";
 import "../tokens/nd-icons.css";
 import "./shell/shell.css";
 import { applyTheme, followSun } from "./brands/sosed/theme";

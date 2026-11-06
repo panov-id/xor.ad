@@ -140,7 +140,8 @@ test("a person leaves the phrase by its Back before pressing a tab", () => {
   const back = tab.indexOf('[data-screen="card"] [data-testid="back"]'), press = tab.indexOf("pg.locator(sel).first().click");
   assert.ok(back > 0 && back < press, "tab() presses a tab under the full-screen phrase");
   const card = readFileSync(new URL("../../app/src/screens/feed-card.tsx", here), "utf8");
-  assert.match(card, /data-screen="card"[\s\S]*?data-testid="back"/, "the phrase screen lost its Back: look again how a person leaves it");
+  const gen = readFileSync(new URL("../../app/src/nd4/screens/card-in.gen.tsx", here), "utf8");
+  assert.ok(/data-screen="card"[\s\S]*?<Frame>|<Frame>[\s\S]*?data-screen="card"/.test(card) && /<CardHead [^>]*onBack=\{onBack\}/.test(card) && /data-testid="back"/.test(gen), "the phrase screen lost its Back: look again how a person leaves it");
 });
 
 // Run flow-1026-110213: 5 of 5 phrase menus (notice, hide, block) waited for a testid the app does not have, and a guest
@@ -149,7 +150,8 @@ test("the phrase menu is pressed by the app's testid, and the solo check waits l
   const card = readFileSync(new URL("../../app/src/screens/feed-card.tsx", here), "utf8");
   const menu = /async function cardMenu[\s\S]*?\n}\n/.exec(crowd)?.[0] ?? "";
   const id = /\[data-testid="([a-z-]+)"\]'\)\.first\(\)\.click/.exec(menu)?.[1];
-  assert.ok(id && new RegExp(`data-testid="${id}"\\s*\\n?\\s*onClick=\\{\\(\\) => open\\("card-more"`).test(card), `cardMenu() presses «${id}», not the button that opens the card's menu in feed-card.tsx`);
+  const gen = readFileSync(new URL("../../app/src/nd4/screens/card-in.gen.tsx", here), "utf8");
+  assert.ok(id && new RegExp(`data-testid="${id}"`).test(gen) && /<CardHead [^>]*onMore=\{openMore\}/.test(card) && /const openMore = \(\) => open\("card-more"/.test(card), `cardMenu() presses «${id}», not the button that opens the card's menu in feed-card.tsx`);
   const seen = /async function soloSeen[\s\S]*?\n}\n/.exec(crowd)?.[0] ?? "";
   const wait = Number(/pathname === "\/tables", \{ timeout: (\d+) \}/.exec(seen)?.[1]);
   const look = Number(/TABLES_LOOK_MS = ([\d_]+)/.exec(readFileSync(new URL("../../app/src/screens/tables/tables-logic.ts", here), "utf8"))?.[1].replace(/_/g, ""));
@@ -245,9 +247,9 @@ test("a Me row the crowd clicks is reached through its hub (app/src/screens/me/H
   assert.deepEqual(bad, [], `${clicked - bad.length} of ${clicked} hub rows reached through the hub`);
 });
 
-test("the crowd opens the place map before dragging it (Place.tsx: the map is behind place-map-open)", () => {
-  const place = readFileSync(new URL("../../app/src/screens/me/Place.tsx", here), "utf8");
-  assert.match(place, /data-testid="place-map-open"|testid="place-map-open"/, "Place.tsx has no place-map-open: look again how the map opens");
+test("the crowd opens the place map before dragging it (place.gen.tsx: the map is behind place-map-open)", () => {
+  const place = readFileSync(new URL("../../app/src/nd4/screens/place.gen.tsx", here), "utf8");
+  assert.match(place, /data-testid="place-map-open"/, "place.gen.tsx has no place-map-open: look again how the map opens");
   const open = crowd.indexOf(`click('[data-testid="place-map-open"]')`), drag = crowd.indexOf(`locator('[data-testid="place-map"]')`);
   assert.ok(drag > 0, "the crowd no longer drags the map");
   assert.ok(open > 0 && open < drag, "the crowd drags place-map without opening it first");

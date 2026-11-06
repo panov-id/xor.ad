@@ -11,13 +11,15 @@ import { NdIcon } from "../../shell/NdIcon";
 import { Field } from "../register-parts";
 import { profileLine } from "./EditName";
 import { ErrorLine, SubPage } from "./parts";
+import { youngInTelegram } from "../../shell/telegram";
 
 export function EditAge({ client, age: was, onDone, onBack }: { client: Client; age: number; onDone: () => void; onBack: () => void }) {
   const [age, setAge] = useState(String(was));
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [refused, setRefused] = useState<string | null>(null);
-  const changed = age !== "" && Number(age) !== was;
+  const youngHere = youngInTelegram(age);
+  const changed = age !== "" && Number(age) !== was && !youngHere;
   const crossesUp = changed && was <= 20 && Number(age) >= 21;
   const step = (by: number) => { setAge(ageDigits(String(Math.max(0, (Number(age) || was) + by)))); setAsking(false); };
   async function send() {
@@ -53,7 +55,7 @@ export function EditAge({ client, age: was, onDone, onBack }: { client: Client; 
         <button type="button" aria-label={say("app.reg.age_more")} onClick={() => step(1)} data-testid="edit-age-more"><NdIcon name="chev" /></button>
       </div>
       <p className="k-note" role="status"><NdIcon name="alert" /><span>{say("me.ageHint")}</span></p>
-      <ErrorLine text={refused} />
+      <ErrorLine text={youngHere ? say("app.telegram.young") : refused} />
     </SubPage>
   );
 }

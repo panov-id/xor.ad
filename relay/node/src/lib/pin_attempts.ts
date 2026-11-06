@@ -17,6 +17,7 @@
 import { inTransaction, savepoint } from "./db.ts";
 import { refuse } from "./identity_guard.ts";
 import { log } from "./log.ts";
+import { comparableAuthHash } from "./vault_share.ts";
 import { Freezes, freezeSession } from "./sessions.ts";
 import { takeDownLiveInPlace } from "./take_down.ts";
 
@@ -109,7 +110,7 @@ export async function checkPin(
     }, { "retry-after": String(seconds) });
   }
 
-  if (!sameHash(presented, row.auth_hash)) {
+  if (!sameHash(await comparableAuthHash(presented, row.auth_hash), row.auth_hash)) {
     // The delays of §8.2, by their own numbers: the sixth attempt waits 30
     // seconds, the tenth four hours, and the tenth miss closes entry without
     // burning the share — a stolen signing key must not be able to erase

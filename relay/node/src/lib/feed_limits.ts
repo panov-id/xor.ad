@@ -39,6 +39,11 @@ export const PAUSE_MINUTES = 15;
 // one of the four: a lost thing is not a phrase about one's evening, and it
 // must not cost the evening.
 export const LIVE_LOST_MAX = 1;
+// Three counting complaints end a lost (routes/lost.ts). The author waits this
+// long before the next one: otherwise the same notice comes back as a new id at
+// once and outlives the people who complained (review panel, 02.11.2026).
+export const TAKEDOWN_COMPLAINTS = 3;
+export const AFTER_TAKEDOWN = "3 days";
 
 // A row the queue let through and whose time has not run out — **of any
 // kind** (db/089: phrase, lost, found). One wording for the refusal below and
@@ -96,7 +101,8 @@ export type Refusal =
   | { kind: "hourly"; nextSlot: Date }
   | { kind: "live"; live: number }
   // A live lost already up (db/089): the one lost slot is taken.
-  | { kind: "lost"; live: number };
+  | { kind: "lost"; live: number }
+  | { kind: "lost_wait"; until: Date };
 
 // Reads the row under a lock and answers what, if anything, refuses this send.
 // Null means "go ahead".
@@ -198,6 +204,17 @@ export async function refusalFor(
     if (lostCount >= LIVE_LOST_MAX) {
       inc("relay_feed_total", { result: "lost_limit" });
       return { kind: "lost", live: lostCount };
+    }
+    // Nothing is live here, so "one at a time" would be false: its own answer.
+    const [waiting] = await run<{ until: Date | null }>(
+      `SELECT max(f.expires_at + interval '${AFTER_TAKEDOWN}') AS until FROM feed_messages f
+        WHERE f.author_identity = $1 AND f.kind = 'lost' AND f.expires_at > now() - interval '${AFTER_TAKEDOWN}'
+          AND (SELECT count(*) FROM lost_complaints c WHERE c.lost_id = f.id AND c.counts) >= ${TAKEDOWN_COMPLAINTS}`,
+      [identityId],
+    );
+    if (waiting?.until) {
+      inc("relay_feed_total", { result: "lost_limit" });
+      return { kind: "lost_wait", until: waiting.until };
     }
     return null;
   }

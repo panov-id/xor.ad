@@ -489,7 +489,7 @@ def xor(root: Path):
                 continue
             target = (p.parent / spec.split("?")[0]).resolve()  # Vite's '?url' / '?raw' name the same file
             found = None
-            for cand in [target] + [target.with_suffix(s) for s in XOR_CODE] + [target / f"index{s}" for s in XOR_CODE]:
+            for cand in [target] + [target.with_suffix(s) for s in XOR_CODE] + [target.with_name(target.name + s) for s in XOR_CODE] + [target / f"index{s}" for s in XOR_CODE]:
                 if cand.is_file():
                     found = cand
                     break

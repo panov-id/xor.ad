@@ -216,11 +216,6 @@
   .nd-pane-empty { position: fixed; left: calc(100% - var(--pane-w) - var(--pane-right)); top: var(--panel-top); bottom: var(--panel-bottom); width: var(--pane-w);
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center;
     background: var(--panel-solid); border-radius: var(--r-panel); box-shadow: var(--shadow-panel); z-index: 2; color: var(--text); }
-  .nd-pane-mark { display: grid; place-items: center; width: 120px; height: 120px; border-radius: 50%; background: var(--tile-strong); color: var(--accent);
-    box-shadow: var(--shadow-tile); margin-bottom: 8px; }
-  .nd-pane-mark .nd-icon { width: 48px; height: 48px; }
-  .nd-pane-title { font-size: 20px; font-weight: 800; line-height: 1.2; }
-  .nd-pane-hint { font-size: 14px; line-height: 1.4; color: var(--text-muted); max-width: 320px; }
   /* the talks' pane at the right of the panel (TalksPane.tsx) */
   .tk-pane { position: fixed; left: calc(100% - var(--pane-w) - var(--pane-right)); top: var(--panel-top); bottom: var(--panel-bottom); width: var(--pane-w); overflow-y: auto;
     background: var(--c-sheet); border-radius: var(--r-sheet); padding: 0 0 24px; z-index: 2;
@@ -339,16 +334,18 @@
 
 /* ── desktop, the entry frame (TAB7, desktop-1440/1-entry and 2-intro sheets): the scene card on the left 1.8 parts, the screen's
    own column (bar, panel, action panel) on the right; no rail, the person is not in yet (restore, place of the intro drew it over the
-   screen). Place opened from Me stays in Me's pane (.k-me-pane) and keeps that frame ── */
+   screen). The place left the rule on 2026-11-01: both its views draw the archive's laptop screens whole
+   (nd4/screens/place-laptop.gen.tsx and place-map-laptop.gen.tsx, kypros-laptop.html 22 and 23); the intro too (its
+   four cards are the archive's screens 17–20 whole; its fifth step is the place) ── */
 @media (min-width: 1440px) {
   :is(main[data-screen="arrival"],
-      main[data-screen="intro"], main[data-screen="place"], main[data-screen="cabinet-sign-in"], main[data-screen="cabinet-sent"],
+      main[data-screen="cabinet-sign-in"], main[data-screen="cabinet-sent"],
       main[data-screen="cabinet-expired"]):not(.k-me-pane *) {
     box-sizing: border-box; height: 100dvh; padding: var(--panel-top) var(--nd-gap) var(--panel-bottom);
     display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: var(--nd-gap);
   }
   :is(main[data-screen="arrival"],
-      main[data-screen="intro"], main[data-screen="place"], main[data-screen="cabinet-sign-in"], main[data-screen="cabinet-sent"],
+      main[data-screen="cabinet-sign-in"], main[data-screen="cabinet-sent"],
       main[data-screen="cabinet-expired"]):not(.k-me-pane *) {
     & > .k-entry-scene { grid-column: 1; grid-row: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--nd-gap); box-sizing: border-box; padding: 12px 12px 18px; border-radius: 28px; background: var(--panel); }
     & > .k-entry-scene .k-entry-card { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; border-radius: 20px; background: var(--tile);
@@ -408,7 +405,8 @@
 
 /* ── desktop, the feed (desktop-1440 3-nearby/feed.svg, TAB10 requests/xor-ad-09.md) ── */
 @media (min-width: 1440px) {
-  [data-screen="feed"] > .k-col { padding: 13px 505px 13px 137px; gap: 9px; }
+  [data-screen="feed"] > .k-col { padding: 13px 505px 13px var(--panel-left); gap: 9px; }
+  [data-screen="feed"] > .k-col > .ktoast { left: calc(var(--panel-left) + 14px) !important; right: 519px !important; } /* the archive anchors the toast (46) to the feed's column, not the window */
   [data-screen="feed"] .k-panel { height: 78px; box-sizing: border-box; justify-content: center; }
   [data-screen="feed"] .k-seg { height: 51px; box-sizing: border-box; }
   /* the rail's «Say» writes at 1440: no round «write», no cut for it */
@@ -441,7 +439,8 @@
 }
 /* desktop-1920/3-nearby/feed.svg: the feed between the rail (16-128) and the wider talks pane (from 1224) (TAB18) */
 @media (min-width: 1920px) {
-  [data-screen="feed"] > .k-col { padding: 16px 712px 16px 144px; gap: 11px; }
+  [data-screen="feed"] > .k-col { padding: 16px 712px 16px var(--panel-left); gap: 11px; }
+  [data-screen="feed"] > .k-col > .ktoast { left: calc(var(--panel-left) + 14px) !important; right: 726px !important; } /* the archive anchors the toast (46) to the feed's column, not the window */
   [data-screen="feed"] .k-panel { height: 80px; }
   [data-screen="feed"] .k-seg { height: 48px; }
   [data-screen="feed"] .nd-icon.k-empty-mark { width: 110px; height: 110px; padding: 22px; }
@@ -452,19 +451,11 @@
 /* desktop-1440/1920 3-nearby/my-marks.svg: the likes stand in the feed's frame, two columns, the talks pane at the right (TAB20) */
 @media (min-width: 1440px) {
   [data-screen="likes"] > .k-col { padding: 13px 505px 13px 137px; gap: 9px; }
-  [data-screen="likes"] .k-scene { height: auto; overflow: visible; border-radius: 0; }
-  [data-screen="likes"] .k-scene > svg { display: none; }
-  [data-screen="likes"] .k-scene-over { position: static; }
-  [data-screen="likes"] .k-panel { height: 78px; box-sizing: border-box; justify-content: center; }
-  [data-screen="likes"] .k-seg { height: 51px; box-sizing: border-box; }
   [data-screen="likes"] .k-body[data-fab] { -webkit-mask: none; mask: none; }
   [data-screen="likes"] .k-grid2 { --fd-cols: 2; gap: 9px; }
 }
 @media (min-width: 1920px) {
   [data-screen="likes"] > .k-col { padding: 16px 712px 16px 144px; gap: 11px; }
-  [data-screen="likes"] .k-panel { height: 80px; }
-  [data-screen="likes"] .k-seg { height: 48px; }
-  [data-screen="likes"] .nd-icon.k-empty-mark { width: 110px; height: 110px; padding: 22px; }
 }
 
 /* place-qr at 1440+: the question sheet and its dim lie over the feed column only (R-TAB17-3, m1920-place-qr) */
@@ -572,4 +563,22 @@
   [data-screen="table"] .k-tb-board:has(.tg-dominoes) { --tg-dom-h: min(960px, 100dvh - 120px); }
   [data-screen="table"] .k-tb-board:has(.tg-chapayev) .tg-chapayev { width: min(100%, 960px, 100dvh - 120px); }
   [data-screen="table"] .k-tb-board:has(.tg-pk) .tg-pk { width: min(100%, 100dvh - 220px); }
+}
+
+/* docs/newdesign4 screen 113 at the tablet: lines sit on the foot, no clock, the archive's bubbles, chips share the width */
+[data-screen="chat"][data-width="tablet"] .k-ch-list > :first-child { margin-top: auto; }
+[data-screen="chat"][data-width="tablet"] .k-ch-time { display: none; }
+[data-screen="chat"][data-width="tablet"] .k-ch-row[data-state="failed"] .k-ch-time { display: inline; }
+[data-screen="chat"][data-width="tablet"] .k-ch-bubble { max-width: 78%; padding: 11px 15px; font-weight: 500; font-size: 15px; line-height: 1.35; }
+[data-screen="chat"][data-width="tablet"] .k-ch-theirs .k-ch-bubble { background: var(--kit-d-5521ec); box-shadow: var(--kit-d-35596e); }
+[data-screen="chat"][data-width="tablet"] .k-ch-mine .k-ch-bubble { background: linear-gradient(145deg, var(--kit-d0714d), var(--accent) 55%, var(--accent)); }
+[data-screen="chat"][data-width="tablet"] .k-ch-quick { overflow: visible; -webkit-mask: none; mask: none; }
+[data-screen="chat"][data-width="tablet"] .k-ch-chip { flex: 1; width: auto; height: 44px; border-radius: 15px; background: var(--kit-d-5521ec); box-shadow: var(--kit-d-35596e); }
+[data-screen="chat"][data-width="tablet"] .k-ch-chip .nd-icon { width: 22px; height: 22px; }
+
+/* The talks with nothing open (kypros-laptop.html 108, 109): one centred column, no empty pane; an open talk brings the pane back (113). */
+@media (min-width: 1440px) {
+  .screen.k-screen[data-screen="inbox"]:has(> .k-col > .nd-pane-empty) { padding-right: var(--pane-right); }
+  .screen.k-screen[data-screen="inbox"] > .k-col:has(> .nd-pane-empty) { width: 530px; max-width: 100%; flex: none; margin-inline: auto; }
+  .screen.k-screen[data-screen="inbox"] > .k-col > .nd-pane-empty { display: none; }
 }

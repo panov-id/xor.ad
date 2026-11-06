@@ -440,3 +440,35 @@ Deno.test({ name: "a tenth miss whose session a move froze under it takes down n
   const [newDevice] = await database.queryOrThrow<{ frozen_at: Date | null }>(`SELECT frozen_at FROM sessions WHERE id = $1`, [fresh]);
   assertEquals(newDevice.frozen_at, null, "the new device's session was frozen by the old one's tenth miss");
 });
+
+// Crypto attack review of 2026-11-02: a dump alone must not test a PIN guess.
+Deno.test({ name: "flag off: the proof stays plain, the start's rekey changes nothing, the right PIN opens", ...pooled }, async () => {
+  const vault = await import("../src/lib/vault_share.ts");
+  Deno.env.delete("PIN_PROOF_KEYED");
+  const me = await onTheLastAttempt();
+  const stored = async () => (await database.queryOrThrow<{ auth_hash: string }>(`SELECT auth_hash FROM vault_shares WHERE session = $1`, [me.session_id]))[0].auth_hash;
+  const plain = await auth.sha256hex(PIN);
+  assertEquals(await stored(), plain, "with the flag off a previous tag could not compare this proof: a rollback refuses the right PIN");
+  assertEquals(await vault.rekeyAtStart(database.queryOrThrow), null, "the start's rekey ran with the flag off");
+  assertEquals(await stored(), plain, "the start's rekey changed a row with the flag off");
+  const right = await signedCall(me.key, me.session_id, "POST", "/vault/share", { auth: b64(PIN) });
+  assertEquals(right.status, 200, `the right PIN did not open a plain row: ${JSON.stringify(right.body)}`);
+});
+
+Deno.test({ name: "the PIN's proof is stored under the key; an old plain row is rekeyed and still opens", ...pooled }, async () => {
+  const vault = await import("../src/lib/vault_share.ts");
+  Deno.env.set("PIN_PROOF_KEYED", "1");
+  const stored = async (session: string) =>
+    (await database.queryOrThrow<{ auth_hash: string }>(`SELECT auth_hash FROM vault_shares WHERE session = $1`, [session]))[0].auth_hash;
+  const plain = await auth.sha256hex(PIN);
+  const me = await onTheLastAttempt();
+  const keyed = await stored(me.session_id);
+  assert(keyed.startsWith("k1:"), `registration stored the proof without the key: ${keyed.slice(0, 12)}`);
+  assert(!keyed.includes(plain), "the plain proof is in the stored value");
+  await database.queryOrThrow(`UPDATE vault_shares SET auth_hash = $2 WHERE session = $1`, [me.session_id, plain]);
+  assert((await vault.rekeyAtStart(database.queryOrThrow) ?? 0) >= 1, "no row was rekeyed");
+  assertEquals(await stored(me.session_id), keyed, "a rekeyed row differs from a row written under the key");
+  const right = await signedCall(me.key, me.session_id, "POST", "/vault/share", { auth: b64(PIN) });
+  assertEquals(right.status, 200, `the right PIN did not open a rekeyed row: ${JSON.stringify(right.body)}`);
+  Deno.env.delete("PIN_PROOF_KEYED");
+});

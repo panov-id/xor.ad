@@ -27,6 +27,7 @@ import "./routes/limits.ts"; // GET /limits: the numbers a face must obey
 import "./routes/identity.ts"; // registers the identity routes of chat spec §13 step 1
 import "./routes/transfer.ts"; // and the transfer of an identity between devices (§8.2)
 import "./routes/feed.ts"; // step 2 of the build order: publishing a phrase (§8.3)
+import "./routes/lost.ts"; // a lost's marks "I saw it", its public page /l/:id, its counted take-down (db/090)
 import "./routes/statements.ts"; // and Article 17 for an author with no mailbox (§13)
 import "./routes/likes.ts"; // step 3: a like, and the match a mutual one makes (§8.4, §8.5)
 import "./routes/matches.ts"; // step 4: consent to a match, and "not now" (§8.5)

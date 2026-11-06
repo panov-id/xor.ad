@@ -256,6 +256,23 @@ export const TRANSFER_STATE_LIMITS: Limit[] = [
 // spend the page counter's allowance (offers/SPEC_RU.md §6.2, 2026-09-24).
 export const OFFER_LINK_LIMITS: Limit[] = PAGEVIEW_LIMITS.map((limit) => ({ ...limit, name: `offer-link-${limit.name}` }));
 
+// /l/<id>: the public page of a lost, read without a key — a page view, in
+// buckets of its own, as an offer's link is (routes/lost.ts).
+export const LOST_PAGE_LIMITS: Limit[] = PAGEVIEW_LIMITS.map((limit) => ({ ...limit, name: `lost-page-${limit.name}` }));
+// Per identity: "I saw it" marks and complaints on lost notices. A person
+// writes a handful; a script writes a page.
+export const LOST_SEEN_LIMITS: Limit[] = [{ name: "lost-seen", max: 20, windowMs: HOUR }];
+// Anonymous marks by address: the anonymous key hashes headers the caller sets, so a new
+// User-Agent is a new key (review panel 02.11). A shared address gets room for a house.
+export const LOST_ANON_ADDRESS_LIMITS: Limit[] = [{ name: "lost-anon-address", max: 30, windowMs: HOUR }];
+// A mark from somebody not signed in (routes/lost.ts, POST /l/:id/seen): the
+// bucket is the daily hash of address, browser and language, not an identity.
+// Three refusals by the verdict in a day close the marks — only the marks; the
+// page itself stays readable — for 24 hours by that hash (owner, 02.11.2026).
+// Counted here, in the limiter's own table, rather than in a table of its own.
+export const LOST_ANON_REFUSALS: Limit = { name: "lost-anon-refusals", max: 3, windowMs: DAY };
+export const LOST_COMPLAINT_LIMITS: Limit[] = [{ name: "lost-complaint", max: 10, windowMs: HOUR }];
+
 export const V1_LIMITS: Limit[] = [
   { name: "v1", max: 1200, windowMs: HOUR },
   { name: "v1-day", max: 20000, windowMs: DAY },

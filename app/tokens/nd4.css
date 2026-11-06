@@ -207,26 +207,12 @@
 .nd-restore-code .nd-group:not([data-on]):not(:focus-within) { background: none; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text-muted) 40%, transparent); }
 main[data-screen="restore"] .nd-cta { flex: none; width: 100%; }
 
-/* 14 loading: a thin bar with a stripe running across it (kypros-phone.html .kwait) */
-.nd-loading { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px; }
-.nd-bar { display: block; width: 140px; height: 3px; border-radius: 2px; background: var(--tile-strong); overflow: hidden; }
-.nd-bar > i { display: block; width: 40%; height: 100%; border-radius: 2px; background: var(--accent); animation: nd-wait 1.6s ease-in-out infinite; }
-@keyframes nd-wait { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
-@media (prefers-reduced-motion: reduce) { .nd-bar > i { animation: none; } }
-
-/* 15 update: over every screen, the mark in a round tile in the middle, «Later» and «Update» at the foot */
-.nd-update { position: fixed; inset: 0; z-index: 50; background: var(--bg); }
-.nd-update .nd-col { max-width: 560px; margin: 0 auto; }
-.nd-update .nd-cta[data-tile] { background: var(--panel); color: var(--text); box-shadow: var(--shadow-panel); height: 56px; font-size: 16px; }
-.nd-update-mid { margin: auto 0; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 0 10px; }
-.nd-update-mid .nd-h1 { margin: 0; font-size: 28px; }
-.nd-update-mark { width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center; color: var(--accent);
-  background: var(--panel); box-shadow: inset 0 0 0 1.5px var(--tile-strong), 0 14px 28px -16px rgba(80,60,30,.4); }
-.nd-update-mark .nd-icon { width: 51px; height: 51px; stroke-width: 1.44; }
-/* 15 update on the laptop (laptop-kypros 015): the mark, the words and the two buttons as one block in the middle; the tablet
-   keeps the buttons at the foot as the phone does */
-@media (min-width: 1280px) {
-  .nd-update .nd-col { justify-content: center; max-width: 420px; }
-  .nd-update .nd-head { position: absolute; top: 0; left: 0; }
-  .nd-update-mid { margin: 0 0 20px; }
-}
+/* screen 108: the lists around the generated rows (nd4/screens/talks-list.gen.tsx); the offers scroll when they do not fit, the lit row is the wide layout's */
+.nd-talks { display: flex; flex-direction: column; gap: 10px; }
+.nd-offers { display: flex; gap: 8px; overflow-x: auto; list-style: none; margin: 0; padding: 0; }
+.nd-offers[hidden] { display: none; }
+.nd-offers > li { flex: none; }
+.nd-talk-rows { display: flex; flex-direction: column; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.nd-talk-row { cursor: pointer; }
+.nd-talk-row[aria-disabled="true"] { cursor: default; opacity: .6; }
+.nd-talk-row[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--accent) !important; }

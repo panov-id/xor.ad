@@ -35,7 +35,9 @@ export type HintVerdict = "publish" | "reject" | "unsure";
 export interface Hint { verdict: HintVerdict; reason: string; model: string; ms: number }
 
 // What is being judged, and what the rules already saw in it.
-export type SubjectKind = "phrase" | "name" | "table_line" | "table_name" | "game_word";
+// seen_note: "where I saw it" on a lost (routes/lost.ts; LOST_SPOTS §5) —
+// a neighbour's line for the lost's author, judged as a phrase is.
+export type SubjectKind = "phrase" | "name" | "table_line" | "table_name" | "game_word" | "seen_note";
 export interface Subject {
   kind: SubjectKind;
   text: string;
@@ -64,7 +66,7 @@ for (const verdict of ["publish", "reject", "unsure", "failed", "dropped"]) inc(
 // What the model said of a phrase (feed.ts publish).
 for (const result of ["publish", "reject", "unsure", "unavailable"]) inc("relay_feed_model_total", { result }, 0);
 // Every verdict, by what was judged, who judged and how it went.
-for (const kind of ["phrase", "name", "table_line", "table_name", "game_word"]) {
+for (const kind of ["phrase", "name", "table_line", "table_name", "game_word", "seen_note"]) {
   for (const by of ["model", "rules"]) {
     for (const result of ["published", "refused"]) inc("relay_moderation_verdicts_total", { kind, by, result }, 0);
   }
@@ -83,7 +85,7 @@ export function moderatorConfig(): { url: string; model: string; timeoutMs: numb
 // a site, an address, a phone, a handle, a messenger) and an insult are not.
 // The phrase is data inside the prompt, never instructions.
 export const SYSTEM_PROMPT = [
-  "You are the moderator of a neighbourhood feed. Each item is one short line a person nearby wrote: a phrase, a display name, a line at a game table, or a table's name.",
+  "You are the moderator of a neighbourhood feed. Each item is one short line a person nearby wrote: a phrase, a display name, a line at a game table, a table's name, or a note of where a lost thing was seen.",
   "Answer REJECT when the text contains any of: a link or a website, even masked (\"example dot com\", \"пример . рф\", \"www example com\", odd dots or full-width punctuation);",
   "an e-mail address, even spelled out (\"anna at mail dot ru\", \"собака\", \"точка\"); a phone number, even in words or split by spaces;",
   "a handle or an invitation to a messenger (telegram, тг, телега, whatsapp, ватсап, viber, вайбер, snapchat, @name);",
@@ -200,7 +202,7 @@ export async function askLimited(
   return hint;
 }
 
-const NOUN: Record<SubjectKind, string> = { phrase: "phrase", name: "name", table_line: "line", table_name: "table name", game_word: "word" };
+const NOUN: Record<SubjectKind, string> = { phrase: "phrase", name: "name", table_line: "line", table_name: "table name", game_word: "word", seen_note: "note" };
 
 // The verdict. Never throws: a model that fails refuses, it does not crash.
 export async function judge(

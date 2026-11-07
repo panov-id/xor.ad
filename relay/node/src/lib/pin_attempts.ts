@@ -17,7 +17,7 @@
 import { inTransaction, savepoint } from "./db.ts";
 import { refuse } from "./identity_guard.ts";
 import { log } from "./log.ts";
-import { comparableAuthHash } from "./vault_share.ts";
+import { comparableAuthHashes, moveAuthHash } from "./vault_share.ts";
 import { Freezes, freezeSession } from "./sessions.ts";
 import { takeDownLiveInPlace } from "./take_down.ts";
 
@@ -110,7 +110,19 @@ export async function checkPin(
     }, { "retry-after": String(seconds) });
   }
 
-  if (!sameHash(await comparableAuthHash(presented, row.auth_hash), row.auth_hash)) {
+  // Every candidate is compared, whichever matches: the count of comparisons
+  // depends on the row's form only, never on the PIN.
+  let matched: string | null = null;
+  for (const candidate of await comparableAuthHashes(presented, row.auth_hash)) {
+    if (sameHash(candidate.form, row.auth_hash) && candidate.under !== "current") matched = "move";
+    else if (sameHash(candidate.form, row.auth_hash)) matched = matched ?? "current";
+  }
+  if (matched === "move") {
+    // Rotation (07.11.2026): the right PIN under the retired key or a k1 row
+    // goes under the current key now, in this transaction.
+    await moveAuthHash(run, sessionId, presented, row.auth_hash);
+  }
+  if (!matched) {
     // The delays of §8.2, by their own numbers: the sixth attempt waits 30
     // seconds, the tenth four hours, and the tenth miss closes entry without
     // burning the share — a stolen signing key must not be able to erase

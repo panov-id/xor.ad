@@ -12,15 +12,15 @@
 // The key is VAULT_SHARE_KEY through HKDF with its own salt and info
 // (lib/vault_share.ts explains why HKDF and why a constant salt): already the
 // pool's shared secret, one the wizard generates and will not deploy without.
-// Rotating it ends every cursor in hand: `after` answers 400, and a client
-// has to start from the first page again — depth does not yet, it shows the
-// refusal (depth/ink/rooms.ts, the likes' "more").
+// A rotation keeps every cursor in hand while VAULT_SHARE_KEY_PREVIOUS is set;
+// after it goes, an old `after` answers 400 and the list starts again.
 //
 // The list's name is the GCM additional data: a feed cursor does not open as a
 // likes cursor. Layout: nonce(12) ‖ ciphertext(8 + 16) ‖ tag(16), base64url.
 
 import { config } from "../config.ts";
 import { base64urlToBytes, bytesToBase64url } from "./identity_auth.ts";
+import { derivedKey, forgetVaultKey, openingKeys, type Which } from "./vault_share.ts";
 
 export type CursorList = "feed" | "likes" | "tables";
 
@@ -32,34 +32,20 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // in the database (review panel 23.09.2026).
 const MICROS = /^[0-9]{1,16}$/;
 
-let cached: CryptoKey | null = null;
-
 export function cursorConfigured(): boolean {
   return config.vaultShareKey.length > 0;
 }
 
-async function key(): Promise<CryptoKey> {
-  if (cached) return cached;
+// Rotation (owner /go 07.11.2026): issued under the current key, opened under
+// either while VAULT_SHARE_KEY_PREVIOUS is set, so a page in hand survives it.
+function key(which: Which = "current"): Promise<CryptoKey> {
   if (!cursorConfigured()) throw new Error("VAULT_SHARE_KEY is not set — a cursor must not travel in the clear");
-  const material = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(config.vaultShareKey) as BufferSource,
-    "HKDF",
-    false,
-    ["deriveBits"],
-  );
-  const bits = await crypto.subtle.deriveBits(
-    { name: "HKDF", hash: "SHA-256", salt: KEY_SALT as BufferSource, info: KEY_INFO as BufferSource },
-    material,
-    256,
-  );
-  cached = await crypto.subtle.importKey("raw", bits, "AES-GCM", false, ["encrypt", "decrypt"]);
-  return cached;
+  return derivedKey(which, KEY_SALT, KEY_INFO, "AES-GCM");
 }
 
 // Only for tests that change the environment between cases.
 export function forgetCursorKey(): void {
-  cached = null;
+  forgetVaultKey();
 }
 
 function uuidBytes(id: string): Uint8Array {
@@ -102,16 +88,20 @@ export async function openCursor(list: CursorList, cursor: string): Promise<{ mi
   // last one decode to the same bytes. Only the spelling issued is a cursor
   // (verifier, 2026-09-24).
   if (bytesToBase64url(bytes) !== cursor) return null;
-  let plain: Uint8Array;
-  try {
-    plain = new Uint8Array(await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: bytes.slice(0, NONCE_BYTES), additionalData: new TextEncoder().encode(list) },
-      await key(),
-      bytes.slice(NONCE_BYTES),
-    ));
-  } catch {
-    return null;
+  let plain: Uint8Array | null = null;
+  for (const which of openingKeys()) {
+    try {
+      plain = new Uint8Array(await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: bytes.slice(0, NONCE_BYTES), additionalData: new TextEncoder().encode(list) },
+        await key(which),
+        bytes.slice(NONCE_BYTES),
+      ));
+      break;
+    } catch {
+      // the next key
+    }
   }
+  if (!plain) return null;
   const micros = new DataView(plain.buffer).getBigUint64(0).toString();
   if (!MICROS.test(micros)) return null;
   return { micros, id: uuidText(plain.slice(8)) };

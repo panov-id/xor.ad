@@ -50,14 +50,16 @@ function standWith(lines: Line[]) {
   const received: string[] = [];
   const said: Array<string | undefined> = [];
   let opened = false;
+  // The keys' open takes 5 ms; a test that ends sooner leaves its timer to the next test, and Deno fails both (07.11.2026).
+  const openings: Promise<unknown>[] = [];
   const client = { inbox: async () => [row()], received: async (_: string, ids: string[]) => { received.push(...ids); } } as unknown as Client;
   const keys = {
-    open: async () => { await new Promise((r) => setTimeout(r, 5)); opened = true; return {}; }, flush: async () => [], keptOnNode: () => ({ epoch: 1 }),
+    open: () => { const p = (async () => { await new Promise((r) => setTimeout(r, 5)); opened = true; return {}; })(); openings.push(p); return p; }, flush: async () => [], keptOnNode: () => ({ epoch: 1 }),
     read: async () => { throw new Error("nonce seen"); },
     say: async (_r: unknown, _t: string, localId?: string) => { said.push(opened ? localId : "sealed before the keys opened"); return { localId: localId ?? "x", answer: { status: 202, body: { accepted: true } } }; },
   } as unknown as ChatKeys;
   const session = new ChatSession({ client, keys, row: row(), say: (k) => k, lines, connect: (_c, _i, on) => { room = on; return { stop: () => { room = null; } }; }, nowSeconds: () => NOW });
-  return { session, received, said, emit: (e: RoomEvent) => room?.(e), settle: () => new Promise((r) => setTimeout(r, 0)) };
+  return { session, received, said, emit: (e: RoomEvent) => room?.(e), settle: () => new Promise((r) => setTimeout(r, 0)), opened: () => Promise.all(openings) };
 }
 const theirs: Line = { id: "m1", text: "привет", mine: false, at: NOW };
 
@@ -86,6 +88,7 @@ Deno.test("ChatSession: a held line delivered again to a hidden talk waits for s
   assertEquals(s.received, []);
   s.session.setHidden(false);
   assertEquals(s.received, ["m1"]);
+  await s.opened();
   s.session.stop();
 });
 

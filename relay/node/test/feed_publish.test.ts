@@ -2286,19 +2286,55 @@ test({
   sanitizeOps: false,
   async fn() {
   const { a, id } = await freshMatch();
-  const declined = await matchCall(a, "POST", `/matches/${id}/decline`);
+  const declined = await matchCall(a, "POST", `/matches/${id}/decline`, { nonce: nonce() });
   assertEquals(declined.status, 204, JSON.stringify(declined.body));
   const row = async () => (await database.queryOrThrow<{ accepted_at: Date | null; declined_at: Date | null }>(
     `SELECT accepted_at, declined_at FROM match_participants WHERE match_id = $1 AND identity = $2`,
     [id, a.identity_id]))[0];
   assert((await row()).declined_at, "not now was not written");
-  assertEquals((await matchCall(a, "DELETE", `/matches/${id}/decline`)).status, 204);
+  assertEquals((await matchCall(a, "DELETE", `/matches/${id}/decline`, { nonce: nonce() })).status, 204);
   assertEquals((await row()).declined_at, null, "undoing not now left it written");
-  await matchCall(a, "POST", `/matches/${id}/decline`);
+  await matchCall(a, "POST", `/matches/${id}/decline`, { nonce: nonce() });
   await consent(a, id);
   const after = await row();
   assertEquals(after.declined_at, null, "consent after not now left the decline standing");
   assert(after.accepted_at, "consent after not now was not written");
+}});
+
+// Security panel 07.11.2026: a decline replayed after its owner took it back must not decline again.
+test({
+  name: "a replayed not now after its undo declines nobody; a decline with no nonce is refused",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+  const { a, id } = await freshMatch();
+  const declinedAt = async () => (await database.queryOrThrow<{ declined_at: Date | null }>(
+    `SELECT declined_at FROM match_participants WHERE match_id = $1 AND identity = $2`, [id, a.identity_id]))[0].declined_at;
+  const once = { nonce: nonce() };
+  assertEquals((await matchCall(a, "POST", `/matches/${id}/decline`, once)).status, 204);
+  assertEquals((await matchCall(a, "DELETE", `/matches/${id}/decline`, { nonce: nonce() })).status, 204);
+  const replay = await matchCall(a, "POST", `/matches/${id}/decline`, once);
+  assertEquals(replay.status, 204, JSON.stringify(replay.body));
+  assertEquals(await declinedAt(), null, "the replayed decline declined again after its undo");
+  const bare = await matchCall(a, "POST", `/matches/${id}/decline`);
+  assertEquals(bare.status, 400, "a decline without a nonce was taken");
+}});
+
+test({
+  name: "a replayed undo after a new not now takes nothing back; an undo with no nonce is refused",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+  const { a, id } = await freshMatch();
+  const declinedAt = async () => (await database.queryOrThrow<{ declined_at: Date | null }>(
+    `SELECT declined_at FROM match_participants WHERE match_id = $1 AND identity = $2`, [id, a.identity_id]))[0].declined_at;
+  const undo = { nonce: nonce() };
+  assertEquals((await matchCall(a, "POST", `/matches/${id}/decline`, { nonce: nonce() })).status, 204);
+  assertEquals((await matchCall(a, "DELETE", `/matches/${id}/decline`, undo)).status, 204);
+  assertEquals((await matchCall(a, "POST", `/matches/${id}/decline`, { nonce: nonce() })).status, 204);
+  assertEquals((await matchCall(a, "DELETE", `/matches/${id}/decline`, undo)).status, 204);
+  assert(await declinedAt(), "the replayed undo took the new decline back");
+  assertEquals((await matchCall(a, "DELETE", `/matches/${id}/decline`)).status, 400, "an undo without a nonce was taken");
 }});
 
 // ── Chat messages through the node (§8.8) ─────────────────────────────────────
@@ -2815,7 +2851,7 @@ test({
     await consent(b, id);
     assertEquals((await inbox(a)).items.find((i) => i.id === id)?.waiting_for_you, true, "the other side agreed and the card does not say so");
 
-    await matchCall(a, "POST", `/matches/${id}/decline`);
+    await matchCall(a, "POST", `/matches/${id}/decline`, { nonce: nonce() });
     assertEquals((await inbox(a)).items.find((i) => i.id === id), undefined, "a declined offer stayed in one's own inbox");
     assert((await inbox(b)).items.find((i) => i.id === id), "one side's 'not now' was shown to the other");
 

@@ -442,33 +442,90 @@ Deno.test({ name: "a tenth miss whose session a move froze under it takes down n
 });
 
 // Crypto attack review of 2026-11-02: a dump alone must not test a PIN guess.
-Deno.test({ name: "flag off: the proof stays plain, the start's rekey changes nothing, the right PIN opens", ...pooled }, async () => {
-  const vault = await import("../src/lib/vault_share.ts");
-  Deno.env.delete("PIN_PROOF_KEYED");
+// Owner 07.11.2026: no flag. With nothing in the environment the proof is still keyed, so a dump alone tests no guess.
+Deno.test({ name: "no flag in the environment: the proof is keyed, the dump holds no plain proof, the right PIN opens", ...pooled }, async () => {
   const me = await onTheLastAttempt();
-  const stored = async () => (await database.queryOrThrow<{ auth_hash: string }>(`SELECT auth_hash FROM vault_shares WHERE session = $1`, [me.session_id]))[0].auth_hash;
+  const stored = (await database.queryOrThrow<{ auth_hash: string }>(`SELECT auth_hash FROM vault_shares WHERE session = $1`, [me.session_id]))[0].auth_hash;
   const plain = await auth.sha256hex(PIN);
-  assertEquals(await stored(), plain, "with the flag off a previous tag could not compare this proof: a rollback refuses the right PIN");
-  assertEquals(await vault.rekeyAtStart(database.queryOrThrow), null, "the start's rekey ran with the flag off");
-  assertEquals(await stored(), plain, "the start's rekey changed a row with the flag off");
+  assert(stored.startsWith("k2:"), `the proof was stored without the key: ${stored.slice(0, 12)}; a dump plus one device tests every PIN offline`);
+  assert(!stored.includes(plain), "the plain proof is in the stored value");
   const right = await signedCall(me.key, me.session_id, "POST", "/vault/share", { auth: b64(PIN) });
-  assertEquals(right.status, 200, `the right PIN did not open a plain row: ${JSON.stringify(right.body)}`);
+  assertEquals(right.status, 200, `the right PIN did not open a keyed row: ${JSON.stringify(right.body)}`);
 });
 
 Deno.test({ name: "the PIN's proof is stored under the key; an old plain row is rekeyed and still opens", ...pooled }, async () => {
   const vault = await import("../src/lib/vault_share.ts");
-  Deno.env.set("PIN_PROOF_KEYED", "1");
   const stored = async (session: string) =>
     (await database.queryOrThrow<{ auth_hash: string }>(`SELECT auth_hash FROM vault_shares WHERE session = $1`, [session]))[0].auth_hash;
   const plain = await auth.sha256hex(PIN);
   const me = await onTheLastAttempt();
   const keyed = await stored(me.session_id);
-  assert(keyed.startsWith("k1:"), `registration stored the proof without the key: ${keyed.slice(0, 12)}`);
+  assert(keyed.startsWith("k2:"), `registration stored the proof without the key: ${keyed.slice(0, 12)}`);
   assert(!keyed.includes(plain), "the plain proof is in the stored value");
   await database.queryOrThrow(`UPDATE vault_shares SET auth_hash = $2 WHERE session = $1`, [me.session_id, plain]);
   assert((await vault.rekeyAtStart(database.queryOrThrow) ?? 0) >= 1, "no row was rekeyed");
   assertEquals(await stored(me.session_id), keyed, "a rekeyed row differs from a row written under the key");
   const right = await signedCall(me.key, me.session_id, "POST", "/vault/share", { auth: b64(PIN) });
   assertEquals(right.status, 200, `the right PIN did not open a rekeyed row: ${JSON.stringify(right.body)}`);
-  Deno.env.delete("PIN_PROOF_KEYED");
+});
+
+// Owner /go 07.11.2026: with a database, no key or a failed rekey stops the start; with no database there is nothing to key.
+Deno.test({
+  name: "the start refuses without the key and on a failed rekey; with no database it has nothing to do",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    const vault = await import("../src/lib/vault_share.ts");
+    const failing = (() => Promise.reject(new Error("db down"))) as unknown as Parameters<typeof vault.vaultAtStart>[0];
+    let refused = "";
+    try { await vault.vaultAtStart(failing, true, false); } catch (e) { refused = String(e); }
+    assert(refused.includes("VAULT_SHARE_KEY is not set"), `the start went on without the key: ${refused || "no error"}`);
+    refused = "";
+    try { await vault.vaultAtStart(failing, true, true); } catch (e) { refused = String(e); }
+    assert(refused.includes("could not be put under the key"), `the start went on after a failed rekey: ${refused || "no error"}`);
+    assertEquals(await vault.vaultAtStart(failing, false, false), 0, "a node with no database was asked for the key");
+  },
+});
+
+// Owner /go 07.11.2026 ("сперва делаем ротацию, тестируем"): a new key with the old one as PREVIOUS loses nothing. The
+// share is resealed at the start, the right PIN opens and moves its proof under the new key, a cursor in hand opens;
+// once PREVIOUS goes, all of it still works under the new key alone.
+Deno.test({ name: "a rotation of the vault key loses no share, no PIN and no cursor in hand", ...pooled }, async () => {
+  const vault = await import("../src/lib/vault_share.ts");
+  const cursor = await import("../src/lib/cursor.ts");
+  const { config } = await import("../src/config.ts");
+  const keys = config as unknown as { vaultShareKey: string; vaultShareKeyPrevious: string };
+  const row = async (session: string) => (await database.queryOrThrow<{ auth_hash: string; share_enc: Uint8Array }>(
+    `SELECT auth_hash, share_enc FROM vault_shares WHERE session = $1`, [session]))[0];
+  const me = await onTheLastAttempt();
+  const before = await row(me.session_id);
+  const oldId = await vault.keyId("current");
+  const page = await cursor.sealCursor("feed", "1700000000000000", "00000000-0000-4000-8000-000000000001");
+  const held = keys.vaultShareKey;
+  try {
+    keys.vaultShareKeyPrevious = held;
+    keys.vaultShareKey = "pin-rollback-vault-key-rotated";
+    vault.forgetVaultKey();
+    const newId = await vault.keyId("current");
+    assert(newId !== oldId, "two keys share one key id");
+    assert((await vault.previousRows(database.queryOrThrow)) >= 1, "the row under the old key was not counted");
+    const moved = await vault.rekeyShares(database.queryOrThrow);
+    assert(moved.moved >= 1, `no share was resealed under the new key: ${JSON.stringify(moved)}`);
+    const resealed = await row(me.session_id);
+    assert(resealed.share_enc.length > 0 && String(resealed.share_enc) !== String(before.share_enc), "the share kept the old seal");
+    assert(await cursor.openCursor("feed", page), "a cursor issued before the rotation stopped opening");
+    const right = await signedCall(me.key, me.session_id, "POST", "/vault/share", { auth: b64(PIN) });
+    assertEquals(right.status, 200, `the right PIN did not open after the rotation: ${JSON.stringify(right.body)}`);
+    assert((await row(me.session_id)).auth_hash.startsWith(`k2:${newId}:`), "the right PIN left its proof under the old key");
+
+    keys.vaultShareKeyPrevious = "";
+    vault.forgetVaultKey();
+    const again = await signedCall(me.key, me.session_id, "POST", "/vault/share", { auth: b64(PIN) });
+    assertEquals(again.status, 200, `with the old key gone the right PIN stopped opening: ${JSON.stringify(again.body)}`);
+    assertEquals(await cursor.openCursor("feed", page), null, "with the old key gone an old cursor still opens");
+  } finally {
+    keys.vaultShareKey = held;
+    keys.vaultShareKeyPrevious = "";
+    vault.forgetVaultKey();
+  }
 });

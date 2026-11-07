@@ -108,6 +108,10 @@ function read() {
     // enough to try a million PINs offline. Unset means the node refuses to store
     // a share at all rather than storing it in the clear.
     vaultShareKey: env("VAULT_SHARE_KEY"),
+    // Rotation (owner /go 07.11.2026): the key being retired. Set only while a
+    // rotation runs: rows sealed under it still open and are moved under
+    // VAULT_SHARE_KEY (lib/vault_keys.ts); empty means no rotation.
+    vaultShareKeyPrevious: env("VAULT_SHARE_KEY_PREVIOUS"),
 
     // Watchdog С7 (lib/backup_watch.ts): how old the last nightly dump may be
     // before a letter goes out. A nightly dump and an hour to spare.

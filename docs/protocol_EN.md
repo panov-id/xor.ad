@@ -94,7 +94,7 @@ algorithm   ECDSA, namedCurve P-256, hash SHA-256
   **Caveat of 2026-09-16 (panel, SEC-3):** for one-shot actions the price of a replay exceeds the
   trade — a second table and standing up from the first, a spent support quota, a repeated
   step-away after coming back. So `POST /tables`, `POST /away`, `POST /support`,
-  `POST /recovery/reissue`, `POST /identities/close`, `POST /vault/pin` and `POST /blocks` carry a `nonce` field in
+  `POST /recovery/reissue`, `POST /identities/close`, `POST /vault/pin`, `POST /blocks`, `POST /matches/:id/decline` and `DELETE /matches/:id/decline` (since 07.11.2026: a replayed «not now» or its undo changed the answer again) carry a `nonce` field in
   the body (16 bytes, random, base64url): it enters the signature through the body hash, the node keeps
   the pair (session, nonce) with the first answer for ten minutes in the `nonces` table of the database (DDL in chat spec §8.2) —
   shared by the pool and surviving a restart; the nonce is bound to its route, the same nonce on another route answers 409 `invalid_body` (SEC-25); the same nonce with another body on the same route is a repeat too: it gets the first answer and changes nothing — the body is signed, so it is the same device asking, and a new action wants a new nonce (decided by quorum on 2026-09-25); the replay is looked up after the signature and version checks and before the route's rate limit and the stepped-away refusal — a repeat is answered even when the hour's limit is spent or the person is away (2026-09-24, review panel of the loop); on `POST /identities/close` a repeat after a close that went through gets 401 — the close froze the session itself, and the request never reaches the replay lookup, and only 2xx and state-409 answers are kept (SEC-2, SEC-4 of pass 5); the "shared memory" argument is withdrawn for these seven
@@ -530,7 +530,7 @@ this list like the other two: since 2026-09-15 they need the checkbox too (§8.2
 
 ## 8. Open
 
-**The stored proof and rollback (owner 05.11.2026).** The node keeps `auth_hash` under an HMAC (`k1:`) only with `PIN_PROOF_KEYED=1`; off by default. While it is off, new proofs stay plain, no row is rekeyed, and a rollback to the previous tag accepts the right PIN. Rows of both forms are always read. Turn it on once a rollback to a tag without `k1:` is no longer needed: after that such a rollback refuses the right PIN.
+**The stored proof and rollback (owner 05.11.2026, changed 07.11.2026).** The node always keeps `auth_hash` under an HMAC (`k1:`); the `PIN_PROOF_KEYED` flag is gone (owner 07.11: «нужна оч сильная»). Every plain row is rekeyed at start; rows of both forms are read. A rollback to a tag without `k1:` refuses the right PIN.
 
 The list is deliberately short: this is what cannot be derived from the spec, and
 it has to be settled before the first line of step 1.

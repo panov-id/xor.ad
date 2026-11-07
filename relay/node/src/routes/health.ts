@@ -3,6 +3,7 @@ import { json } from "../lib/http.ts";
 import { storageEnabled } from "../lib/storage.ts";
 import { enabled as databaseEnabled, listenState, query } from "../lib/db.ts";
 import { cursorConfigured } from "../lib/cursor.ts";
+import { rotating } from "../lib/vault_share.ts";
 import { moderatorConfig } from "../lib/moderator.ts";
 
 // Two routes, and the difference between them is the point.
@@ -112,6 +113,9 @@ export async function health(): Promise<Response> {
     // Named here, decided in /ready: without it the feed and the likes answer
     // 503 (lib/cursor.ts) while everything else looks well.
     vault_key: cursorConfigured() ? "set" : "missing",
+    // A rotation runs while VAULT_SHARE_KEY_PREVIOUS is set (lib/vault_share.ts);
+    // how many rows still name the old key is in the start log, previous_rows.
+    vault_rotation: rotating() ? "running" : "none",
     ts: new Date().toISOString(),
   });
 }

@@ -195,35 +195,29 @@ them goes out at once until the model of §8.14 reads every phrase; the price is
 (`relay/wizard/wizard.py`, the node's environment list), so on a box only the
 default applies; `queue` cannot be chosen on a live node until the wizard learns it.
 
-### The vault key `VAULT_SHARE_KEY`: changed only at a loss
+### The vault key `VAULT_SHARE_KEY`: changed by rotation
 
-The key seals two things: the node's share of each session's vault key
-(`relay/node/src/lib/vault_share.ts`) and the cursor of the feed and the likes
-(`lib/cursor.ts`). Both are derived from it by HKDF with different `salt` and
-`info`, so one never opens the other, but they change together. The key comes
-from `relay/wizard/new-vault-key.sh`; without it a node with a database answers
-503 on `/ready` (below, "Smoke after a deploy").
+The key covers four things. Each is derived from it by HKDF with its own `salt` and `info`, so one never opens another:
+- the node's share of each session's vault key (`relay/node/src/lib/vault_share.ts`);
+- the PIN proof (`k2:<key id>:<mac>`);
+- the cursors of the feed, the likes and the tables (`lib/cursor.ts`);
+- the HMAC of a suspended venue's address (`lib/advertiser_sweeper.ts`).
 
-**There is no rotation without loss — recorded 2026-09-24.** The node holds one
-key and cannot open with an old one while sealing with a new one. Changing the
-key means:
+`relay/wizard/fill-secrets.sh` fills empty keys: it leaves set ones alone and prints no value. Without the key a node with a database does not start.
 
-- **every session's share in the environment stops opening** — every local
-  history there is lost, as if the key itself were lost; a person comes back
-  with the paper code and sets a new PIN;
-- **cursors issued before the change get 400** — a client starts the list again
-  from the first page (`depth` does since 2026-09-24); no harm done.
+**Rotation without loss, since 2026-11-07.** The order:
+1. Move the current value of `VAULT_SHARE_KEY_<ENV>` to `VAULT_SHARE_KEY_PREVIOUS_<ENV>`, put a new value in `VAULT_SHARE_KEY_<ENV>`, keep both in the password store.
+2. Roll every node of the environment with the wizard. At the start a node:
+   - reseals under the new key every share the old one opened;
+   - logs `vault key rotation` with `previous_rows`.
+   `/health` shows `vault_rotation: running`.
+3. A PIN proof cannot be recomputed without the PIN, so it moves under the new key at the first right PIN. Cursors issued before the change open while the old key is set.
+4. When `previous_rows` reads 0 at a start, clear `VAULT_SHARE_KEY_PREVIOUS_<ENV>`, roll the nodes again, and destroy the old key.
 
-So the key is changed only when it has leaked. The order: a new key from
-`new-vault-key.sh`; put it in the password store and in `secrets.env` under the
-environment's name; roll the environment's nodes with the wizard — all at once,
-since the key is shared by the pool and nodes with different keys open neither
-each other's cursors nor shares; check `/ready` on each node. Then destroy the
-old key: it opens a share out of any copy of the database.
-
-A change without loss is separate work: the node reads both keys, reseals a
-share with the new one on its next use, and drops the old key after a window.
-Not built; the owner's decision.
+The price:
+- A person who entered no PIN during the whole rotation signs in with the paper code once the old key is gone. Their share is already resealed by then.
+- Old cursors get 400 once the old key is gone, and the client starts the list again.
+- Suspended venue address HMACs are not recomputed: an address suspended before the change stops being recognised once the old key is gone. Not closed.
 
 ### `pool` requires confirmation
 

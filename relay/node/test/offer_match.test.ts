@@ -343,11 +343,11 @@ Deno.test("both agree on the offer's match: the header is the offer alone, and t
   // Q9 (§8.5, owner 18.09.2026): the second's "not now" is told to the one
   // who agreed and waits — «предложение ушло»; taken back, the wait returns.
   // The one who declined sees nothing of it: the row is hidden on its side.
-  const declined = await signedCall(neighbour, "POST", `/matches/${matchId}/decline`);
+  const declined = await signedCall(neighbour, "POST", `/matches/${matchId}/decline`, { nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))) });
   assertEquals(declined.status, 204);
   assertEquals(await consentOf(taker), "gone", "the waiting side is not told the offer went");
   assertEquals(await consentOf(neighbour), undefined, "a declined match stays in the decliner's inbox");
-  const undone = await signedCall(neighbour, "DELETE", `/matches/${matchId}/decline`);
+  const undone = await signedCall(neighbour, "DELETE", `/matches/${matchId}/decline`, { nonce: auth.bytesToBase64url(crypto.getRandomValues(new Uint8Array(16))) });
   assertEquals(undone.status, 204);
   assertEquals(await consentOf(taker), "waiting", "the decline taken back does not return the wait");
   assertEquals(await consentOf(neighbour), "none");

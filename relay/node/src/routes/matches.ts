@@ -71,6 +71,15 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
   // SPKI: bound to this match, a half cannot be carried by the node into
   // another match of the same identity, and the long key's two uses — request
   // lines and halves — cannot collide (security lens, 2026-09-22).
+  // "Not now" carries a nonce (security panel 07.11.2026): a signed line lives five minutes, and a decline replayed
+  // after its owner took it back declined the person again. The first use is kept per (session, nonce) in the
+  // decline's transaction; a repeat is answered 204 and changes nothing.
+  let declineNonce: Uint8Array | null = null;
+  if (action === "decline" || action === "undo") {
+    const body = await req.json().catch(() => null) as Record<string, unknown> | null;
+    declineNonce = typeof body?.nonce === "string" ? base64urlToBytes(body.nonce) : null;
+    if (!declineNonce || declineNonce.length !== 16) return refuse("invalid_body", "nonce must be 16 bytes, base64url", 400);
+  }
   let half: { key: string; signature: string } | null = null;
   if (action === "consent") {
     const body = await req.json().catch(() => null) as Record<string, unknown> | null;
@@ -123,6 +132,16 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
     if (!live) return refuse("not_found", "no such match", 404);
 
     if (action === "decline") {
+      const [fresh] = await run<{ nonce: Uint8Array }>(
+        `INSERT INTO nonces (session_id, nonce, route, status, response)
+         VALUES ($1, $2, 'POST /matches/decline', 204, 'null'::jsonb)
+         ON CONFLICT DO NOTHING RETURNING nonce`,
+        [caller.sessionId, declineNonce],
+      );
+      if (!fresh) {
+        inc("relay_nonce_replay_total", { route: "POST /matches/decline" });
+        return new Response(null, { status: 204, headers: sunsetHeader() });
+      }
       await run(
         `UPDATE match_participants SET declined_at = now(), accepted_at = NULL
           WHERE match_id = $1 AND identity = $2`,
@@ -132,6 +151,16 @@ async function act(req: Request, matchId: string, action: Action): Promise<Respo
       return new Response(null, { status: 204, headers: sunsetHeader() });
     }
     if (action === "undo") {
+      const [fresh] = await run<{ nonce: Uint8Array }>(
+        `INSERT INTO nonces (session_id, nonce, route, status, response)
+         VALUES ($1, $2, 'DELETE /matches/decline', 204, 'null'::jsonb)
+         ON CONFLICT DO NOTHING RETURNING nonce`,
+        [caller.sessionId, declineNonce],
+      );
+      if (!fresh) {
+        inc("relay_nonce_replay_total", { route: "DELETE /matches/decline" });
+        return new Response(null, { status: 204, headers: sunsetHeader() });
+      }
       await run(
         `UPDATE match_participants SET declined_at = NULL WHERE match_id = $1 AND identity = $2`,
         [matchId, me],

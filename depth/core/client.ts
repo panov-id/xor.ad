@@ -686,13 +686,13 @@ export class Client {
   // "Not now", and taking it back while the match lives (screen 7). What was
   // written for this match before the second agreed goes with it.
   async decline(matchId: string): Promise<Answer> {
-    const answer = await this.#call("POST", `/matches/${encodeURIComponent(matchId)}/decline`);
+    const answer = await this.#call("POST", `/matches/${encodeURIComponent(matchId)}/decline`, { nonce: base64url(random(16)) });
     if (answer.status >= 200 && answer.status < 300) this.#pending.drop(matchId);
     return answer;
   }
 
   undoDecline(matchId: string): Promise<Answer> {
-    return this.#call("DELETE", `/matches/${encodeURIComponent(matchId)}/decline`);
+    return this.#call("DELETE", `/matches/${encodeURIComponent(matchId)}/decline`, { nonce: base64url(random(16)) });
   }
 
   // POST /chats/:id/messages — a ciphertext (base64url) under a local_id the

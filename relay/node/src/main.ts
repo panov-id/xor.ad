@@ -3,7 +3,7 @@
 // stubbed (see chat/relay.ts) so the node is chat-ready without chat code.
 
 import { enabled as dbEnabled, queryOrThrow } from "./lib/db.ts";
-import { configured as vaultConfigured, rekeyAtStart } from "./lib/vault_share.ts";
+import { previousRows, vaultAtStart } from "./lib/vault_share.ts";
 import { assertConfig, config } from "./config.ts";
 import { installUncaughtScrub, log } from "./lib/log.ts";
 import { closeAllRooms } from "./chat/relay.ts";
@@ -25,15 +25,11 @@ try {
   log("warn", "rate-limit hits could not be read; the address limits start from nought", { error: String(error) });
 }
 
-// With PIN_PROOF_KEYED on, no PIN proof stays in the clear once this node is up. A row this step
-// missed keeps working through its plain comparison, so a failure here locks nobody out.
-if (dbEnabled() && vaultConfigured()) {
-  try {
-    log("info", "PIN proofs put under the key", { rows: await rekeyAtStart(queryOrThrow) });
-  } catch (error) {
-    log("error", "PIN proofs could not be put under the key", { error: String(error) });
-  }
-}
+// No PIN proof stays in the clear once this node is up: without the key, or when the rekey fails, the node does not
+// start (owner /go 07.11.2026). The throw ends the process before it takes a request.
+log("info", "PIN proofs put under the key", { rows: await vaultAtStart(queryOrThrow, dbEnabled()) });
+// Rotation (07.11.2026): what still names the retired key; at 0 VAULT_SHARE_KEY_PREVIOUS can go.
+if (dbEnabled()) log("info", "vault key rotation", { previous_rows: await previousRows(queryOrThrow) });
 
 // Background work, if there is a database to hold it. Both calls are no-ops
 // without one, so a stand with no Postgres behaves exactly as it did.

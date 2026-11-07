@@ -199,6 +199,17 @@ try:
           and "VAULT_SHARE_KEY=prod-vault-key" in prod_file,
           [line for line in dev_file.splitlines() if "VAULT_SHARE" in line] or "no such line")
 
+    check("no rotation: the previous vault key is empty",
+          "VAULT_SHARE_KEY_PREVIOUS=\n" in prod_file,
+          [line for line in prod_file.splitlines() if "PREVIOUS" in line] or "no such line")
+    os.environ["VAULT_SHARE_KEY_PREVIOUS_PROD"] = "prod-old-vault-key"
+    rotating = wizard.env_file(inventory, box, "prod")
+    check("a rotation hands the previous vault key to that environment only",
+          "VAULT_SHARE_KEY_PREVIOUS=prod-old-vault-key" in rotating
+          and "VAULT_SHARE_KEY_PREVIOUS=\n" in wizard.env_file(inventory, box, "dev"),
+          [line for line in rotating.splitlines() if "PREVIOUS" in line] or "no such line")
+    os.environ.pop("VAULT_SHARE_KEY_PREVIOUS_PROD", None)
+
     os.environ.pop("VAULT_SHARE_KEY_PROD", None)
     try:
         wizard.env_file(inventory, box, "prod")
@@ -578,6 +589,17 @@ check("the trim runs daily from a timer the wizard enables",
       "OnCalendar=*-*-*" in wizard.LOG_TRIM_TIMER
       and "systemctl enable --now relay-logs-trim.timer" in source,
       wizard.LOG_TRIM_TIMER)
+
+# panel 07.11.2026: a public box opens 443 to all, so a logs- host there served the
+# Dozzle log viewer (and the docker socket behind it) to the internet with no password
+_pub = {"pool": {"dns_zone": "z.example"}, "env": {"prod": {"access": "public", "database": False}}}
+_priv = {"pool": {"dns_zone": "z.example"}, "env": {"dev": {"access": "private", "database": False}}}
+_box = lambda env: {"id": "p1", "envs": [env]}
+check("a public box serves no logs- or mail- host",
+      "logs-" not in wizard.render_caddyfile(_pub, _box("prod")) and wizard.aux_hosts(_pub, _box("prod")) == [],
+      wizard.aux_hosts(_pub, _box("prod")))
+check("a private box keeps its logs- host behind the whitelist",
+      "logs-p1.z.example" in wizard.render_caddyfile(_priv, _box("dev")))
 
 if failed:
     print(f"FAILED: {failed}")

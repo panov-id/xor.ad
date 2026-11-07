@@ -202,12 +202,13 @@ def env_file(inv: dict, box: dict, env: str) -> str:
         # looked healthy.
         #
         # Per environment and never shared, for the same reason as the session
-        # secret. And louder than that one: the key is not a credential that can
-        # be rotated at will — **change it and every share sealed under the old
-        # one stops opening**, which means every device in that environment
-        # loses its local history at once. Generate it with
-        # relay/wizard/new-vault-key.sh and keep it where the other secrets are.
+        # secret. Rotated only through VAULT_SHARE_KEY_PREVIOUS below: a value
+        # changed without it means every share sealed under the old one stops
+        # opening. Generate it with relay/wizard/fill-secrets.sh.
         "VAULT_SHARE_KEY": require_secret(f"VAULT_SHARE_KEY_{env.upper()}", env),
+        # The key being retired (owner /go 07.11.2026): set only while a
+        # rotation runs; rows under it still open and move under the new key.
+        "VAULT_SHARE_KEY_PREVIOUS": os.environ.get(f"VAULT_SHARE_KEY_PREVIOUS_{env.upper()}", ""),
         "PANEL_URL": e.get("panel_url", ""),
         "PANEL_SENDER": os.environ.get("PANEL_SENDER", ""),
         # Whether a public request must name its tenant with a key. Per env, in
@@ -279,8 +280,18 @@ def uses_mailpit(inv: dict, box: dict) -> bool:
     return any(inv["env"][e].get("mail") == "mailpit" for e in box["envs"])
 
 
+def is_public_box(inv: dict, box: dict) -> bool:
+    return any(inv["env"][e].get("access") == "public" for e in box["envs"])
+
+
 def aux_hosts(inv: dict, box: dict) -> list[str]:
-    # logs viewer (Dozzle) always; mail catcher (Mailpit) if any env uses it.
+    # logs viewer (Dozzle) and mail catcher (Mailpit, if any env uses it), only on a
+    # box whose 443 is whitelisted. A public box opens 443 to everyone and Caddy
+    # routes by name, so logs-<box> there was every node and postgres log, and the
+    # docker socket behind Dozzle, for anyone who resolved the name (panel 07.11.2026).
+    # On a public box the logs are read over ssh: `docker logs`.
+    if is_public_box(inv, box):
+        return []
     hosts = [f"logs-{box['id']}.{dns_zone(inv)}"]
     if uses_mailpit(inv, box):
         hosts.append(f"mail-{box['id']}.{dns_zone(inv)}")

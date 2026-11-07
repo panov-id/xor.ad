@@ -31,7 +31,9 @@ hostname `<box>-<env>.<dns_zone>` (e.g. `n1-dev.relay.panov.id`). Private envs u
 ACME **DNS-01 via Bunny**, so no public port 80 is needed and the firewall can
 stay locked down.
 
-**Logs & mail (per box, behind the whitelist):** **Dozzle** at
+**Logs & mail (private boxes only, behind the whitelist):** a box with a public env
+(prod) gets no `logs-`/`mail-` host at all; its logs are read over ssh (`docker logs`).
+On private boxes: **Dozzle** at
 `logs-<box>.<zone>` (live container logs in the browser); **Mailpit** at
 `mail-<box>.<zone>` for envs with `mail = "mailpit"` (catches welcome emails
 instead of sending — dev uses this, staging/prod send via Resend).
